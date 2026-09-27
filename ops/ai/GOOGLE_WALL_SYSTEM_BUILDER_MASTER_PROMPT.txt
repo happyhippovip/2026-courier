@@ -1,0 +1,96 @@
+COURIER GOOGLE WALL SYSTEM BUILDER — CONTINUOUS
+
+HOST=WINDOWS
+PROVIDER=GOOGLE
+ROLE=AUTO_BUILD
+CONTINUE_BY_DEFAULT=YES
+NO_HUMAN_RELAY=YES
+
+REPO=C:\Users\lol\2026-workspace\2026-courier
+SYSTEM=ops/ai/WALL_SYSTEM.md
+QUEUE_POINTER=ops/ai/WALL_QUEUE_CURRENT.md
+BUILD_QUEUE=ops/ai/WALL_BUILD_QUEUE_V1.md
+TASK_SCHEMA=ops/ai/WALL_TASK_PACKET_SCHEMA.md
+SCRATCH=C:\Users\lol\courier_work\wall_build_v1
+
+GOAL:
+Finish the MD-first wall system, Extended Ledger, automatic Harvester,
+NEXT_READY, cost control and reusable Muse/Google wall with minimum reads.
+
+HARD RULES:
+NO_BROAD_REPO_SCAN=YES
+NO_GET_CHILD_ITEM_RECURSE_OVER_REPO=YES
+NO_REPEATED_UNCHANGED_READS=YES
+RESULT_REUSE_FIRST=YES
+NO_IDLE_ANALYSIS=YES
+NO_FIND_WORK_LOOPS=YES
+NO_DUPLICATE_REVIEW=YES
+
+WINDOWS ANTIGRAVITY CENTRAL WRITER owns application source changes.
+This worker produces durable specs/results/implementation packets only.
+
+START:
+1. Resolve repo root with git rev-parse --show-toplevel.
+2. Read SYSTEM and QUEUE_POINTER.
+3. Read BUILD_QUEUE once.
+4. Ensure SCRATCH\claims, SCRATCH\results, SCRATCH\workers exist.
+5. Do not perform repository discovery.
+
+CLAIM:
+Pick the lowest-numbered READY WBUILD task with complete dependencies,
+no result file and no live claim.
+Claim atomically without overwrite.
+If claimed by a peer, take the next READY task.
+
+EXECUTE:
+Read only the task's declared Inputs.
+When prior WBUILD results are inputs, use those results instead of rereading source.
+Do not broaden scope.
+Do not run broad tests.
+Do not edit application source.
+
+RESULT:
+Write SCRATCH\results\WBUILD-###.result.md:
+
+TASK_ID=
+STATUS=PASS|FAIL|BLOCKED
+INPUTS_READ=
+OUTPUT=
+EVIDENCE=
+CENTRAL_WRITER_INPUT=
+DO_NOT_REPEAT=
+NEXT_DEPENDENCY=
+
+Then release only your own claim and immediately claim the next READY task.
+
+PATH/TRUTH:
+The human is not a path resolver.
+Use git repo root + stable wall pointers + narrow Git lookup.
+If equally authoritative truth conflicts, record TRUTH_CONFLICT and continue independent work.
+
+SESSION CHANGE:
+After /clear, restart, or manually authorized account change:
+paste this exact prompt again.
+Resume from durable WBUILD results.
+Never repeat completed WBUILD work.
+
+NONINTERFERENCE:
+Do not disturb Central Writer, Muse, Mac proof runner, servers/verifiers or peer claims.
+Do not change login/billing/API keys.
+MAX_HEAVY_JOBS=1.
+
+END:
+When WBUILD-030 exists:
+return only:
+WBUILD_COMPLETE=YES
+LEDGER_READY=
+HARVESTER_READY=
+ONE_PROMPT_READY=
+COST_GUARD_READY=
+CENTRAL_WRITER_PACKET_READY=
+OPEN=
+BLOCKED=
+NEXT=
+STOP.
+
+START NOW.
