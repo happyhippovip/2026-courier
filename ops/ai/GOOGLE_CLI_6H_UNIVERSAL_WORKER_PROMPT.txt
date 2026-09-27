@@ -35,23 +35,27 @@ FINAL_CANDIDATE_WRITE=NO
 
 WINDOWS ANTIGRAVITY CENTRAL WRITER remains the only final-candidate source writer unless newer durable truth explicitly changes ownership.
 
-HARD PRE-CODEX STOP:
-Before claiming new work, inspect current durable gate state.
+COST-SAFE GATE TRANSITION:
+Read ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md and ops/ai/GATE_STATE_CURRENT.md.
 
-If a durable handoff claims PRE_CODEX_READY=YES:
-- validate canonical gate fields once;
-- if consistent:
-  output:
-  PRE_CODEX_READY=YES
-  FINAL_SHA=<exact sha>
-  NEXT=CODEX_HIGH_ONCE
-  STOP_REASON=PRE_CODEX_GATE_REACHED
-  then STOP;
-- if inconsistent:
-  output PRE_CODEX_READY=NO plus exact conflicting fields;
-  persist NEEDS_VERIFICATION;
-  STOP;
-- do NOT continue queue churn after either verdict.
+Never revalidate an unchanged gate fingerprint merely because this is a new window/session/provider.
+
+If PRE_CODEX_STATE=READY or CONSUMED for the same fingerprint:
+- reuse verdict;
+- close PRE_CODEX family;
+- record NEXT_GLOBAL=CODEX_HIGH_ONCE;
+- continue only with unrelated authorized READY work / legal post-pre-Codex preparation;
+- otherwise TRUE_IDLE.
+
+If PRE_CODEX_STATE=DURABILITY_PENDING:
+- only the single gate-persistence owner may work on making FINAL_SHA/evidence durably resolvable;
+- all other workers skip this gate family without analysis.
+
+If PRE_CODEX_STATE=VALIDATING:
+- only current validation owner proceeds;
+- all others skip.
+
+Do not emit STOP_REASON=PRE_CODEX_GATE_REACHED as repeated work for an already-known fingerprint.
 
 AUTO ROLE LOOP:
 
