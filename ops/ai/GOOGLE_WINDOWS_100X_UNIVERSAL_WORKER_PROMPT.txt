@@ -74,21 +74,27 @@ If FINAL_SHA absent:
 mark WAITING_FOR_FINAL_SHA
 -> claim another non-candidate-sensitive READY task.
 
-HARD PRE_CODEX STOP:
-If durable state claims PRE_CODEX_READY=YES:
-validate canonical gate once.
-If consistent:
-PRE_CODEX_READY=YES
-FINAL_SHA=<exact sha>
-NEXT=CODEX_HIGH_ONCE
-STOP_REASON=PRE_CODEX_GATE_REACHED
-STOP.
-If inconsistent:
-PRE_CODEX_READY=NO
-CONFLICTING_FIELDS=<exact>
-STOP_REASON=PRE_CODEX_GATE_INCONSISTENT
-STOP.
-Do not continue queue churn.
+COST-SAFE PRE_CODEX TRANSITION:
+Read ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md and ops/ai/GATE_STATE_CURRENT.md.
+
+Same gate fingerprint MUST reuse the durable verdict.
+
+If READY/CONSUMED:
+- do not validate again;
+- close PRE_CODEX family;
+- record NEXT_GLOBAL=CODEX_HIGH_ONCE;
+- continue other legal nonduplicate WINDOWS/EITHER tasks;
+- if none, TRUE_IDLE.
+
+If DURABILITY_PENDING:
+- at most one gate-persistence owner may make the reported FINAL_SHA/evidence durable;
+- all other windows skip this gate family immediately and take another READY task.
+
+If VALIDATING:
+- only the existing validation owner validates;
+- all others skip.
+
+Never make every new CLI window pay to rediscover PRE_CODEX_GATE_REACHED.
 
 PREPARER:
 Generate new tasks ONLY from:
