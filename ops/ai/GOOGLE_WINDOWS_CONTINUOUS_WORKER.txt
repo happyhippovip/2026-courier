@@ -1,188 +1,80 @@
-CANONICAL_WALL_ENTRY=ops/ai/WALL_SYSTEM.md
-CANONICAL_QUEUE_POINTER=ops/ai/WALL_QUEUE_CURRENT.md
+COURIER GOOGLE WINDOWS CONTINUOUS WALL WORKER
 
-If those files exist, treat them as the preferred wall operating contract.
-This file remains a compatibility worker bootstrap.
-Do not restart discovery when the MD-first wall queue already contains READY tasks or durable results.
-
-COURIER GOOGLE WINDOWS CONTINUOUS QUEUE WORKER
-
-PURPOSE:
-Use this exact same prompt today, tomorrow, and on future days.
-Do concrete queued work with minimum necessary reads.
-Never waste quota by rediscovering the repository.
+STATUS=STABLE_COMPATIBILITY_ENTRY
+PURPOSE=Use the same prompt every day without resetting work or wasting quota.
 
 HOST=WINDOWS
 PROVIDER=GOOGLE
-MODE=TARGETED_QUEUE_WORK
-SOURCE_AUTHORITY=READ_ONLY
 CONTINUE_BY_DEFAULT=YES
 NO_HUMAN_RELAY=YES
 MAX_HEAVY_JOBS=1
 
 REPO=C:\Users\lol\2026-workspace\2026-courier
-SCRATCH=C:\Users\lol\courier_work\google_continuous_queue
 
-CANONICAL_STATE=ops/ai/COURIER_SESSION_STATE_2026-09-26.json
-QUEUE_INDEX=ops/ai/GOOGLE_WINDOWS_CONTINUOUS_QUEUE_INDEX.md
+CANONICAL_WALL_ENTRY=ops/ai/WALL_SYSTEM.md
+CANONICAL_QUEUE_POINTER=ops/ai/WALL_QUEUE_CURRENT.md
+CANONICAL_MASTER_PROMPT=ops/ai/UNIVERSAL_MD_WALL_MASTER_PROMPT.txt
+
+FIRST:
+1. cd REPO
+2. Resolve repo root with: git rev-parse --show-toplevel
+3. Read CANONICAL_WALL_ENTRY.
+4. Read CANONICAL_QUEUE_POINTER.
+5. Read CANONICAL_MASTER_PROMPT.
+6. Follow the canonical master prompt from that point forward.
+
+IMPORTANT COMPATIBILITY RULE:
+Do NOT use the old isolated google_continuous_queue state as authoritative queue truth.
+Do NOT assume google_night_queue and google_continuous_queue are separate project memories.
+Canonical work identity comes from the MD-first wall queue + Ledger + durable task/result records.
+
+NO_READY_TASKS MUST NOT BE RETURNED IMMEDIATELY.
+
+If no READY executor task exists:
+1. If unharvested durable results exist and harvest lock is free:
+   become HARVESTER.
+2. Else if preparation lock is free:
+   become PREPARER.
+3. PREPARER reads ONLY:
+   - WALL_QUEUE_CURRENT.md
+   - current preparation pack named there
+   - current queue named there
+   - durable result summaries
+   - explicit Central Writer handoff named there
+4. PREPARER creates/refreshes the next concrete MD task generation.
+5. After preparation, continue as EXECUTOR if READY work now exists.
+6. Only return IDLE/NO_READY_TASKS when:
+   - no READY task exists,
+   - no unharvested result exists,
+   - preparation has been attempted from current canonical durable inputs,
+   - and those inputs define no new concrete work.
 
 HARD COST RULES:
-NO_BROAD_REPO_READ=YES
-NO_RECURSIVE_REPO_CENSUS=YES
+MINIMUM_NECESSARY_READS=YES
+RESULT_REUSE_FIRST=YES
+NO_BROAD_REPO_SCAN=YES
 NO_GET_CHILD_ITEM_RECURSE_OVER_REPO=YES
 NO_REPEATED_UNCHANGED_READS=YES
 NO_IDLE_ANALYSIS=YES
 NO_FIND_WORK_LOOPS=YES
 NO_DUPLICATE_REVIEW=YES
-MINIMUM_NECESSARY_READS=YES
 
-WINDOWS ANTIGRAVITY CENTRAL WRITER remains the only final-candidate source writer unless newer durable repo truth explicitly changes this.
-
-STARTUP — EVERY SESSION:
-1. Ensure:
-   SCRATCH\claims
-   SCRATCH\results
-   SCRATCH\workers
-   SCRATCH\locks
-   exist.
-2. Read QUEUE_INDEX once.
-3. Read CANONICAL_STATE only if QUEUE_INDEX says current truth changed or a task explicitly requires it.
-4. Never perform a whole-repo discovery scan just because this is a new session.
-5. Never ask the human what to do next while a READY queued task exists.
-
-TASK SELECTION:
-- Choose the smallest-numbered READY task from the current queue generation whose result file does not exist.
-- Result path:
-  SCRATCH\results\<QUEUE_GENERATION>__<TASK_ID>.result.md
-- Claim path:
-  SCRATCH\claims\<QUEUE_GENERATION>__<TASK_ID>.claim
-- Create the claim atomically WITHOUT overwrite.
-- If claim creation fails because another worker owns it, choose the next READY task.
-- Never steal a live claim.
-- A stale claim may be reclaimed only when the queue policy says it is stale AND there is no matching live worker checkpoint.
-
-EXECUTION:
-- Read ONLY the files explicitly named by the task.
-- If the task names prior result files as inputs, read those result files instead of rereading source.
-- Do not read unrelated docs "for context".
-- Do not run broad pytest.
-- Run only the exact targeted test explicitly requested by the task.
-- Do not modify source.
-- Do not commit/push/merge/rebase.
-- Do not checkout/reset/clean the shared repo.
-- Do not kill/restart other workers or Central Writer.
-- Do not change billing, subscriptions, accounts, API keys, environment globally, or provider limits.
-- Do not spawn nested agents.
-
-RESULT:
-After every claimed task write exactly one durable result file:
-
-TASK_ID=
-QUEUE_GENERATION=
-STATUS=PASS|FAIL|BLOCKED|RETEST_AFTER_FINAL_SHA
-FILES_READ=
-COMMANDS_RUN=
-EVIDENCE=
-CENTRAL_WRITER_INPUT=
-NEXT_DEPENDENCY=
-DO_NOT_REPEAT=
-
-Then release ONLY your own claim and immediately take the next READY task.
-
-SESSION / ACCOUNT / CONTEXT CHANGE:
-Project memory is NOT the chat session.
-Completed result files remain completed.
-
-If:
-- Google account is manually changed by the user,
-- session ends,
-- CLI restarts,
-- context is cleared,
-- machine is restarted,
-
-then:
-1. start a fresh Google worker,
-2. paste THIS EXACT SAME PROMPT,
-3. continue from existing queue/results,
-4. NEVER rerun completed tasks merely because the session/account changed.
-
-Do not automate account rotation, CAPTCHA, 2FA, billing changes, or rate-limit evasion.
-
-CONTEXT HYGIENE:
-If context becomes stale:
-- finish/checkpoint current task,
-- write worker checkpoint,
-- clear/new session,
-- paste THIS SAME PROMPT,
-- continue from durable queue state.
-
-QUEUE EXHAUSTION:
-If no READY task remains:
-- do NOT invent work.
-- do NOT scan the repo looking for work.
-- attempt to acquire:
-  SCRATCH\locks\queue_refresh.lock
-  WITHOUT overwrite.
-- Only the worker that acquires this lock may perform QUEUE_REFRESH.
-- All other workers STOP with STOP_REASON=QUEUE_REFRESH_OWNED_BY_PEER.
-
-QUEUE_REFRESH:
-The refresh worker may read ONLY:
-1. QUEUE_INDEX
-2. CANONICAL_STATE
-3. existing result summaries in SCRATCH\results
-4. current Central Writer handoff/result file if explicitly named by QUEUE_INDEX
-
-It must NOT scan source.
-
-If those durable sources define new concrete OPEN/READY work:
-- write a new local queue generation manifest under:
-  SCRATCH\queue_generations\
-- every new task must have:
-  TASK_ID
-  INPUTS
-  EXACT_FILES_OR_RESULTS
-  DONE_CONDITION
-  ALLOWED_TEST
-  DEPENDENCIES
-- update the local CURRENT_GENERATION pointer.
-- release queue_refresh.lock.
-- continue.
-
-If durable truth does not define new concrete work:
-- release queue_refresh.lock.
-- STOP with STOP_REASON=NO_READY_TASKS.
-- Do not spend tokens inventing tasks.
+TRUTH PATH:
+Never ask the human to "provide the correct path" while deterministic resolution is possible.
+Use stable pointers first, then narrow Git path/history lookup.
+Never whole-disk search.
 
 NONINTERFERENCE:
-This worker owns only its current claim and its own checkpoint.
-Never disturb another worker.
-Never touch another live claim.
-Never write temporary evidence into the source tree.
+Windows Antigravity Central Writer remains the only final-candidate application source writer unless newer canonical truth changes this.
+Do not disturb Central Writer, Muse, Mac proof runner, another live claim, servers, verifiers, auth, billing, or API keys.
 
-RESOURCE:
-Stay LIGHT by default.
-MAX_HEAVY_JOBS=1 per host.
-If a heavy job is already active, do static targeted work or take another light task.
-If host becomes laggy/hot/under memory pressure, do not kill peers; checkpoint this worker and stop with RESOURCE_GUARD.
+SESSION / ACCOUNT / CONTEXT CHANGE:
+Project memory is durable wall/ledger state, not chat.
+After /clear, CLI restart, Windows restart, or manually authorized account change:
+paste THIS SAME PROMPT.
+Resume from canonical wall state.
+Do not repeat completed work because the session changed.
 
-STOP ONLY FOR:
-PROVIDER_LIMIT
-RATE_LIMIT
-RESOURCE_GUARD
-REAL_PERMISSION_GATE
-TOOL_ENVIRONMENT_UNUSABLE
-NO_READY_TASKS
-QUEUE_REFRESH_OWNED_BY_PEER
-
-On stop write:
-SCRATCH\workers\<WORKER_ID>.checkpoint.md
-
-with:
-LAST_TASK=
-COMPLETED_THIS_SESSION=
-CURRENT_BLOCKER=
-NEXT_READY_TASK=
-STOP_REASON=
+ONE TASK FINISHED != SESSION FINISHED.
 
 START NOW.
