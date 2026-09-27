@@ -124,3 +124,9 @@ RETURN TO HUMAN ONLY FOR:
 Otherwise continue.
 
 START NOW.
+
+
+SHARED CAPABILITY / UPDATE FUTURE:
+Read docs/COURIER_SHARED_CAPABILITY_UPDATE_FABRIC_2026-09-28.md as durable strategic direction.
+Preserve: shared sanitized capability packs, optional domain packs, signed/delta/deduplicated updates, weekly stable + monthly rollup cadence, Time-Machine/rollback history, user receive/contribute choice, crypto agility and post-quantum migration readiness.
+Classification=LATER until Core proof + positive pilot signal. Do not let this expansion delay the current critical path.
