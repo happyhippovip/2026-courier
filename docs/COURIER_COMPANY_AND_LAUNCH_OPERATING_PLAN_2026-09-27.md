@@ -149,3 +149,26 @@ This repository is public-safe.
 Do not commit private personal financial details, credentials, account identifiers, private legal documents, private customer data or other personal-life material.
 
 The company plan may reference budgets/limits as abstract policy, but exact private finances belong in private records.
+
+## Shared capability flywheel + recurring updates
+
+Canonical direction: `docs/COURIER_SHARED_CAPABILITY_UPDATE_FABRIC_2026-09-28.md`.
+
+Courier's long-term business model includes a compounding shared-capability layer: proven, reusable work from one user may be sanitized, generalized, tested, versioned and offered to other users as optional capability packs. Private repositories, customer data, credentials and proprietary project content are not cross-customer distribution material by default.
+
+Business loop:
+
+REAL CUSTOMER WORK -> VERIFIED REUSABLE CAPABILITY -> SHARED LIBRARY -> LOWER SETUP/COST/DATA FOR OTHER USERS -> BETTER PRODUCT -> MORE REAL WORK.
+
+Packaging should distinguish Core/Security Updates, cross-industry Shared Capability Packs, optional Domain Packs and Private Project Artifacts.
+
+Target release rhythm after Core + positive pilot evidence:
+- bounded continuous security/metadata checks;
+- weekly stable update window when evidence justifies a release;
+- monthly platform/capability rollup;
+- emergency security fixes when necessary;
+- no calendar-driven filler releases.
+
+Updates should use signed manifests, content-addressed/deduplicated artifacts and delta/component delivery where safe. Users control optional capability installation and pinning. Product recovery should retain a durable Time-Machine-style history of versions, manifests, migrations, Last Known Good and rollback points.
+
+Every release should preserve crypto agility and improve post-quantum migration readiness where standards/platform evidence supports it. Do not claim "quantum secure" without a concrete proven profile.
