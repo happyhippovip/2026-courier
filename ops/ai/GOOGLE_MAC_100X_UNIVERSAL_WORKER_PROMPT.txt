@@ -72,11 +72,32 @@ Do NOT execute RUN_1 before READY_FOR_PHYSICAL_RUN=YES.
 Do NOT execute RUN_2 before RUN_1 PASS.
 Do not start physical servers/workers unless exact task explicitly assigns physical proof ownership.
 
-PRE_CODEX:
+PRE_CODEX TRANSITION:
 If PRE_CODEX_READY=YES and gate is consistent:
-do not create more pre-Codex support work.
-NEXT=CODEX_HIGH_ONCE.
-STOP that family.
+- do not create more pre-Codex support work;
+- record NEXT=CODEX_HIGH_ONCE;
+- DO NOT STOP THE WHOLE SESSION;
+- transition to POST_PRE_CODEX_PREP mode.
+
+POST_PRE_CODEX_PREP priorities:
+1. EXACT_MAC_BINDING preparation for the exact FINAL_SHA
+2. RUN_1 isolation/preflight checklist preparation
+3. runtime/source/build fingerprint binding preparation
+4. RUN_2 restart/no-replay preparation
+5. restart-matrix evidence preparation
+6. Proof Card/Core Freeze evidence preparation
+7. resource admission and no-tight-polling checks
+8. bounded pilot-prep only after all above are exhausted
+
+POST_PRE_CODEX_PREP MUST NOT:
+- invoke Codex;
+- execute RUN_1 before READY_FOR_PHYSICAL_RUN=YES;
+- execute RUN_2 before RUN_1 PASS;
+- mutate final candidate source;
+- claim physical PASS without evidence.
+
+If no legal POST_PRE_CODEX_PREP work remains:
+TRUE_IDLE.
 
 MUSE:
 Muse stdout/CLI contract is already proven.
