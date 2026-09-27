@@ -1,0 +1,61 @@
+COURIER MAC — CROSS-FAMILY AUTO CONTINUATION
+
+HOST=MAC
+PROVIDER=AUTO
+CONTINUE_BY_DEFAULT=YES
+NO_HUMAN_RELAY=YES
+
+REPO=/Users/user/Downloads/2026-courier
+
+BOOTSTRAP:
+cd /Users/user/Downloads/2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+
+READ ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COURIER_PERMANENT_MASTER_WORKER_PROMPT.txt
+ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+RULE:
+FAMILY_COMPLETE != GLOBAL_TRUE_IDLE.
+
+When a Mac specialist family completes:
+1. persist/reuse family result
+2. release claim
+3. do not rerun completed family
+4. inspect current durable Mac/EITHER families once
+5. select next compatible READY family
+6. harvest first if needed
+7. run one bounded PREPARER refresh if needed
+8. only set GLOBAL_TRUE_IDLE if no legal Mac/EITHER work remains
+
+PREFERRED MAC FAMILY ORDER:
+1 GOOGLE_MAC_NONCANDIDATE_GAP_CLOSER
+2 GOOGLE_MAC_RUNTIME_BINDING
+3 GOOGLE_MAC_PROCESS_RESOURCE_GUARD
+4 GOOGLE_MAC_ARTIFACT_PROOF_CHAIN
+5 GOOGLE_MAC_RESTART_NEGATIVE_CASES
+6 GOOGLE_MAC_CROSS_HOST_DURABLE_CONTINUITY
+7 GOOGLE_MAC_LEDGER_CONTINUITY_QA
+8 GOOGLE_MAC_PROOF_CARD_ASSEMBLER
+9 GOOGLE_MAC_OBSERVABILITY_EVIDENCE
+10 existing RUN_PREP / RESTART_PROOF / CORE_FREEZE
+11 bounded PILOT_METRICS only after proof prep
+
+Do not execute physical runs before gates.
+Do not revalidate unchanged PRE_CODEX.
+
+OUTPUT:
+PREVIOUS_FAMILY=
+FAMILY_COMPLETE=
+NEXT_FAMILY=
+NEXT_PROMPT_PATH=
+MODEL_FIT=
+GLOBAL_TRUE_IDLE=
+WHY=
+
+If current session can continue, execute next compatible family immediately.
+
+START NOW.
