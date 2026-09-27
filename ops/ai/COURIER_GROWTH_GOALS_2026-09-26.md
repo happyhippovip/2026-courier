@@ -359,6 +359,37 @@ Do not claim "quantum secure" without a proven concrete profile.
 See:
 docs/V1_CAPACITY_UPDATES_AND_CRYPTO_READINESS_PLAN.md
 
+## G17 — Beginner Wall + Subscription-First UX
+
+Normal customers should not need API keys.
+
+Courier should expose clean beginner wall presets such as 1 / 3 / 5 / 6 / 9 / 10 / 12 / 16, while retaining exact logical wall selection in advanced mode.
+
+Provider subscriptions should be usable as the normal path; API/PAYG belongs in an optional developer/advanced surface.
+
+See:
+docs/COURIER_V1_BEGINNER_WALL_AND_COMMUNITY_VISION_2026-09-27.md
+
+## G18 — Focus / Background Mode
+
+Users should be able to hide the operational wall and see only the project world/background, chat, people/community and a lightweight truthful status.
+
+The control plane stays one click away.
+
+## G19 — Community + Verified Contribution
+
+Longer-term community should center on useful verified contribution, teams, goals and reputation rather than fake engagement.
+
+Any contribution-linked rewards are exploratory.
+
+Equity, ownership, investment return or revenue-share promises require a separate legal/compliance design before implementation or marketing.
+
+## G20 — Cheapest-Suitable Model Routing
+
+Courier should route broad routine work to cheaper/faster models and reserve premium models for convergence, difficult code-grounded review, contradiction resolution and release-readiness judgment.
+
+Exact provider plans/prices are configuration and must not be hard-coded as permanent product truth.
+
 ## Design invariant
 
 Bigger must mean:
