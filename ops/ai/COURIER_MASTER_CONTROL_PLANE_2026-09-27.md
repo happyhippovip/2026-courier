@@ -246,3 +246,24 @@ Personal/private planning that is not product-operational must live in a private
 ## Chief rule
 
 When asked "what next?", start from this file + current durable state. Do not ask the human to reconstruct the plan from memory.
+
+## Shared capability / update strategic direction
+
+Canonical product/business strategy:
+`docs/COURIER_SHARED_CAPABILITY_UPDATE_FABRIC_2026-09-28.md`
+
+After Core + positive pilot evidence, Courier should evolve toward:
+- signed Core/Security update channel;
+- reusable Shared Capability Packs;
+- optional Domain Packs;
+- private-project isolation by default;
+- content-addressed/deduplicated/delta delivery;
+- weekly stable update windows;
+- monthly capability/platform rollups;
+- durable Time-Machine/rollback/Last-Known-Good history;
+- explicit receive/contribute preferences;
+- crypto agility and evidence-based post-quantum migration readiness.
+
+Do not share customer/private repo content across users merely because it is useful. Only generalized, authorized, sanitized, tested, versioned capabilities may enter the shared distribution layer.
+
+This direction must not delay current proof -> pilot critical path.
