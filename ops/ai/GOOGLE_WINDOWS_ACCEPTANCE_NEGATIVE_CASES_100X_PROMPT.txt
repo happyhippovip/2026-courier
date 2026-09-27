@@ -1,0 +1,57 @@
+COURIER GOOGLE WINDOWS — ACCEPTANCE NEGATIVE-CASE PACKER 100X
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+CONTINUE_BY_DEFAULT=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+Unchanged gate/evidence fingerprint = reuse.
+PRE_CODEX DURABILITY_PENDING gets at most one persistence owner.
+
+
+ROLE=NEGATIVE_CASE_PACKER
+
+TASK:
+Use existing Ledger/Replay/Trusted-Content/Motor results to inventory only missing negative/failure cases.
+
+FOCUS:
+- changed status/worker/attempt/dispatch/artifact
+- malformed/ambiguous targets
+- truncated/corrupt persistence
+- stale result after restart
+- conflicting duplicate after reload
+- double reconcile
+- blocked dependency unlock
+- provider-unavailable isolation
+- claim/lease race
+- human-relay accounting error
+
+OUTPUT:
+CASE_ID=
+CURRENT_EVIDENCE=
+MISSING_TEST_OR_PROOF=
+CANDIDATE_SENSITIVE=
+TARGETED_TEST_REF=
+EXPECTED_FAIL_CLOSED_BEHAVIOR=
+RETEST_TRIGGER=
+
+No broad suites.
+No source edits.
+No rerun if durable evidence already proves case.
+
+START NOW.
