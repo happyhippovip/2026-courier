@@ -1,0 +1,46 @@
+COURIER TODAY — PRE-CODEX HANDOFF ASSEMBLER
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+MODE=READ_ONLY_HANDOFF
+CONTINUE_BY_DEFAULT=YES
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+RUN ONLY IF:
+AUTHORITATIVE PRE_CODEX_STATE=READY.
+
+TASK:
+Assemble one compact Codex HIGH input packet from durable evidence only:
+FINAL_SHA
+BASE_SHA
+exact changed-file set
+12-case mapping/results
+targeted-test result fingerprint
+SKIPPED_COUNT
+git diff --check status
+open causal P0 blockers
+trusted-content/replay invariants
+do-not-repeat/gate fingerprint
+
+DO NOT:
+re-run unchanged tests
+revalidate gate
+invoke Codex yourself
+edit source
+
+OUTPUT:
+PRE_CODEX_READY=
+FINAL_SHA=
+GATE_FINGERPRINT=
+CODEX_INPUT_REFS=
+UNRESOLVED_P0=
+NEXT=CODEX_HIGH_ONCE
+
+If authoritative gate is not READY:
+STATUS=WAITING_FOR_DURABILITY
+STOP THIS FAMILY.

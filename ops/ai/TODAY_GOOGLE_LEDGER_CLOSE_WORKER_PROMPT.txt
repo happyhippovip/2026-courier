@@ -1,0 +1,47 @@
+COURIER TODAY — GOOGLE LEDGER CLOSE WORKER
+
+HOST=WINDOWS_PREFERRED
+PROVIDER=GOOGLE_CLI
+MODE=LEDGER_CLOSE
+CONTINUE_BY_DEFAULT=YES
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/LEDGER_FINISH_QUEUE_30_2026-09-27.md
+ops/ai/GOOGLE_WINDOWS_LEDGER_QUEUE_G181_G280_2026-09-27.md
+
+RESULT_REUSE_FIRST=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+
+PRIORITY:
+1 harvest Ledger results
+2 finish remaining GLEDGER tasks
+3 finish remaining G181-G280 tasks
+4 unlock synthesis G190/G200/G210/G220/G230/G240/G250/G260/G270/G280
+5 close GLEDGER-130
+6 validate Central Writer packet completeness
+7 emit exact residual blockers
+
+Do not touch unchanged PRE_CODEX unless this slot is the single authorized gate owner.
+Do not repeat completed Ledger tasks.
+
+OUTPUT:
+LEDGER_SPEC_READY=
+HARVESTER_READY=
+NEXT_READY_READY=
+CONTINUITY_READY=
+SECURITY_BOUNDARY_READY=
+CENTRAL_WRITER_PACKET_READY=
+OPEN=
+BLOCKED=
+NEXT=
+
+When Ledger family is complete:
+FAMILY_COMPLETE=YES
+-> route through canonical master, not GLOBAL_TRUE_IDLE.
+
+START NOW.

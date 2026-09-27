@@ -1,0 +1,44 @@
+COURIER TODAY — MINIMUM REAL PILOT PREP
+
+HOST=AUTO
+PROVIDER=GOOGLE_CLI
+MODE=READ_ONLY_PILOT_PREP
+CONTINUE_BY_DEFAULT=YES
+
+PRECONDITION:
+Core Freeze is complete or only non-pilot-blocking documentation remains.
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+docs/COURIER_USER_REPO_ONBOARDING_AND_IDEA_INTAKE_2026-09-27.md
+
+PREPARE:
+Goal Contract
+onboarding/permission checklist
+private-data boundaries
+setup-time capture
+HIPG/RSR/NDR definitions
+support-effort capture
+provider-cost class capture
+payment yes/no/unknown field
+issue classification
+day-1/day-2 evidence packet
+user-visible Proof/Next summary
+
+DO NOT:
+invent customers
+start sales
+make payment actions
+build Product Shell
+edit application source
+
+OUTPUT:
+PILOT_ITEM=
+READY=
+MISSING=
+OWNER=
+CAPTURE_METHOD=
+PILOT_BLOCKING=
+
+START NOW.

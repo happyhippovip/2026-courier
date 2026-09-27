@@ -1,0 +1,33 @@
+COURIER TODAY — MUSE CORE FREEZE QA
+
+HOST=MAC_PREFERRED
+PROVIDER=MUSE
+MODEL_CLASS=C2
+MODE=READ_ONLY_QA
+CONTINUE_BY_DEFAULT=YES
+
+PRECONDITION:
+Use after physical RUN evidence exists or for candidate-independent freeze preparation.
+
+REVIEW durable evidence for:
+Trusted Ledger
+Reliable Motor
+motor transition chain
+zero-human continuation
+restart/no-replay
+resource bounds
+Proof Cards
+fingerprints
+UNKNOWN handling
+
+OUTPUT:
+AREA=
+CURRENT_STATE=
+MISSING_EVIDENCE=
+FREEZE_BLOCKING=YES|NO
+REVALIDATION_TRIGGER=
+NEXT_EXACT_ACTION=
+
+Do not execute physical runs.
+Do not duplicate deterministic Google checks.
+START NOW.

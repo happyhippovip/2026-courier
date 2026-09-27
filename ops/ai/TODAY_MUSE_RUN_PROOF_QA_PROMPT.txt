@@ -1,0 +1,39 @@
+COURIER TODAY — MUSE RUN PROOF QA
+
+HOST=MAC_PREFERRED
+PROVIDER=MUSE
+MODEL_CLASS=C2
+MODE=READ_ONLY_QA
+CONTINUE_BY_DEFAULT=YES
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+
+RESULT_REUSE_FIRST=YES
+NO_DUPLICATE_REVIEW=YES
+APPLICATION_SOURCE_WRITE=NO
+
+REVIEW:
+- exact runtime/candidate binding
+- A exactly once evidence
+- trusted expected hash
+- server-byte evidence
+- verify/reconcile ordering
+- B auto-start proof
+- HUMAN_RELAY_COUNT=0 evidence
+- no FAILED execution
+- restart/no-A-replay plan
+- Proof Card bindings
+
+OUTPUT:
+CLAIM=
+CURRENT_EVIDENCE=
+AMBIGUITY=
+MISSING=
+PHYSICAL_RUN_REQUIRED=
+NEXT_EXACT_ACTION=
+
+Do not execute physical runs.
+Do not revalidate unchanged PRE_CODEX.
+START NOW.

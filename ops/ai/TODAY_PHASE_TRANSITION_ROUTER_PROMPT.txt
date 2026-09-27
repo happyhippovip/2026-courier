@@ -1,0 +1,37 @@
+COURIER TODAY — PHASE TRANSITION ROUTER
+
+HOST=AUTO
+PROVIDER=GOOGLE_CLI
+MODE=ROUTING_ONLY
+CONTINUE_BY_DEFAULT=YES
+
+READ ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+current durable finish/run/freeze/pilot summary refs
+
+ROUTE:
+IF Ledger not closed -> TODAY_GOOGLE_LEDGER_CLOSE
+ELSE IF PRE_CODEX DURABILITY_PENDING -> one gate persistence owner + unrelated prep
+ELSE IF PRE_CODEX READY and Codex not consumed -> PRE_CODEX handoff + CODEX_HIGH_ONCE
+ELSE IF Codex green and READY_FOR_PHYSICAL_RUN != YES -> Mac proof prep
+ELSE IF READY_FOR_PHYSICAL_RUN=YES and RUN_1 not PASS -> one Mac physical RUN_1 owner
+ELSE IF RUN_1 PASS and RUN_2 not PASS -> RUN_2 prep + one physical RUN_2 owner
+ELSE IF RUN_2 PASS and Core Freeze not complete -> Core Freeze closure
+ELSE IF Core Freeze complete and pilot not started -> minimum pilot prep
+ELSE IF positive pilot signal -> Product Shell backlog prep
+ELSE -> preserve state / pilot iteration / GLOBAL_TRUE_IDLE if no legal work
+
+OUTPUT:
+CURRENT_PHASE=
+NEXT_PHASE=
+NEXT_PROMPT=
+HOST=
+PROVIDER=
+COUNT=
+BLOCKER=
+DO_NOT_START=
+
+Never infer PASS.
+Never create duplicate physical runners or gate owners.

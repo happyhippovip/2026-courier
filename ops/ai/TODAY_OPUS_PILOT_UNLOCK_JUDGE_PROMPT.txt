@@ -1,0 +1,27 @@
+COURIER TODAY — OPUS 4.6 PILOT UNLOCK JUDGE
+
+HOST=AUTO
+PROVIDER=OPUS_4_6
+MODEL_CLASS=C4
+REASONING=HIGH
+MODE=READ_ONLY_CONVERGENCE
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+
+TASK:
+Using Core Freeze and pilot-prep durable summaries only, determine the minimum honest evidence needed to start the first real pilot.
+
+OUTPUT:
+CORE_FREEZE_STATE=
+PILOT_BLOCKERS=
+NON_BLOCKING_GAPS=
+MINIMUM_PILOT_SCOPE=
+SUCCESS_EVIDENCE=
+FAILURE_EVIDENCE=
+NEXT_EXACT_ACTION=
+
+Do not execute pilot.
+Do not invent customers.
+Do not build Product Shell.

@@ -1,0 +1,39 @@
+COURIER TODAY — PRODUCT SHELL BACKLOG PREPARER
+
+HOST=AUTO
+PROVIDER=GOOGLE_CLI
+MODE=READ_ONLY_BACKLOG_PREP
+
+HARD PRECONDITION:
+A durable positive real-pilot signal exists.
+
+If no positive pilot signal:
+STATUS=BLOCKED_BY_PILOT_SIGNAL
+STOP.
+
+TASK:
+Prepare the smallest Product Shell implementation backlog from validated pilot needs only.
+
+INCLUDE ONLY:
+- user-visible current state
+- Arbeit / Braucht dich / Fertig / Proof / Next
+- onboarding needs proven by pilot
+- safe update/settings surfaces actually required
+- minimal support/observability surface
+
+DO NOT:
+invent marketplace
+invent enterprise features
+build speculative dashboard
+edit application source
+
+OUTPUT:
+BACKLOG_ITEM=
+PILOT_EVIDENCE_REF=
+USER_NEED=
+ACCEPTANCE=
+PRIORITY=
+OWNER_CLASS=
+DO_NOT_BUILD=
+
+START NOW.

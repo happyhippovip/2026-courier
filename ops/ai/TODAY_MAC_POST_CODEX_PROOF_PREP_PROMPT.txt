@@ -1,0 +1,42 @@
+COURIER TODAY — MAC POST-CODEX PHYSICAL PROOF PREP
+
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+MODE=READ_ONLY_PHYSICAL_PREP
+CONTINUE_BY_DEFAULT=YES
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+
+PRIORITY:
+1 exact FINAL_SHA Mac binding when durable
+2 source/build/runtime/config fingerprints
+3 isolated state/log/artifact dirs
+4 server/worker/verifier command binding
+5 process/port ownership
+6 expected-hash/server-byte evidence capture
+7 A execution-count evidence
+8 verify/reconcile evidence
+9 B auto-dispatch evidence
+10 HUMAN_RELAY_COUNT evidence
+11 restart checkpoint preparation
+
+Do not execute RUN_1 before READY_FOR_PHYSICAL_RUN=YES.
+Do not execute RUN_2 before RUN_1 PASS.
+APPLICATION_SOURCE_WRITE=NO.
+
+If candidate binding is blocked:
+do candidate-independent proof prep and continue.
+
+OUTPUT:
+AREA=
+READY=
+CANDIDATE_SENSITIVE=
+MISSING=
+EVIDENCE_LOCATION=
+NEXT_EXACT_ACTION=
+
+FAMILY_COMPLETE != GLOBAL_TRUE_IDLE.
+START NOW.
