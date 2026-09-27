@@ -379,3 +379,24 @@ Courier earns #1 by repeatedly demonstrating:
 - better long-run reliability
 
 The benchmark is the judge.
+
+## Moat 4a — Shared capability compounding
+
+Canonical strategy: `docs/COURIER_SHARED_CAPABILITY_UPDATE_FABRIC_2026-09-28.md`.
+
+Organizational memory should compound not only inside one project but, with proper authorization and sanitization, across the product.
+
+The target flywheel is:
+
+VERIFIED CUSTOMER SOLUTION
+-> SAFE GENERALIZED CAPABILITY
+-> VERSIONED SHARED LIBRARY
+-> REUSE BY OTHER USERS
+-> LESS SETUP / LESS DATA / LOWER COST
+-> MORE VERIFIED SOLUTIONS.
+
+This must not become cross-customer data pooling. Private artifacts stay private; reusable capabilities require rights/provenance, sanitization, evidence, compatibility and rollback.
+
+The update fabric should later support weekly stable improvements, monthly rollups, delta/content-addressed delivery, Last Known Good and a durable Time-Machine history.
+
+Crypto posture should improve through continuous crypto agility and evidence-based post-quantum migration readiness, never unsupported security marketing.
