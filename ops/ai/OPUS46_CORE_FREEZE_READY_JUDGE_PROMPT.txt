@@ -1,0 +1,58 @@
+COURIER OPUS 4.6 — CORE FREEZE READINESS JUDGE
+
+HOST=AUTO
+PROVIDER=OPUS_4_6
+MODEL_CLASS=C4
+REASONING=HIGH
+CONTINUE_BY_DEFAULT=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+RESULT_REUSE_FIRST=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+APPLICATION_SOURCE_WRITE=NO
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+Do not spend Opus on deterministic C0/C1 work.
+Do not revalidate unchanged PRE_CODEX.
+
+
+ROLE=CORE_FREEZE_READINESS_JUDGE
+
+TASK:
+Using durable proof summaries only, determine the exact remaining prerequisites to truthfully enter CORE_FREEZE once RUN evidence exists.
+
+ASSESS:
+- Trusted Ledger
+- Reliable Motor
+- Result->Verify->Reconcile->NEXT_READY
+- zero-human A->B
+- restart matrix
+- Autonomy Grade / Covered Surface
+- resource bounds
+- no tight polling
+- Proof Cards
+- fingerprints
+- gate-violating UNKNOWNs
+
+OUTPUT:
+AREA=
+CURRENT_STATE=
+MISSING_TO_FREEZE=
+CAN_PREPARE_NOW=
+RUN_DEPENDENT=
+INVALIDATION_TRIGGER=
+
+FINAL:
+CORE_FREEZE_PREP_READY=
+TOP_NONRUN_BLOCKER=
+NEXT_EXACT_ACTION=
+
+START NOW.
