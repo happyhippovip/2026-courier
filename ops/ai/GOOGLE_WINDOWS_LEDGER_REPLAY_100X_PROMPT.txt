@@ -1,0 +1,60 @@
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+REPO=C:\Users\lol\2026-workspace\2026-courier
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+
+BOOTSTRAP:
+cd /d C:\Users\lol\2026-workspace\2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+DO NOT checkout/merge/rebase/reset/clean.
+
+If required ops/ai file is missing locally:
+git show origin/coordination/autofill-task-seed-20260926:<PATH>
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+
+RULES:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_BUSYWORK=YES
+NO_IDLE_ANALYSIS=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+
+
+ROLE=WINDOWS_LEDGER_REPLAY_SPECIALIST
+
+PRIORITY:
+1 result/task/attempt/dispatch identity
+2 persistence/reload survival
+3 duplicate canonicalization
+4 conflicting replay rejection
+5 stale generation rejection
+6 changed worker/status/attempt/artifact rejection
+7 reconcile idempotence
+8 NEXT_READY determinism
+
+LOOP:
+- inspect durable claims/results first
+- claim one unowned WINDOWS/EITHER task matching this family
+- reuse evidence
+- exact reads only
+- deterministic checks first
+- run targeted test only if explicitly allowed
+- persist compact result
+- release own claim
+- take next matching task
+
+If PRE_CODEX_READY=YES:
+do not redo PRE_CODEX family.
+Continue only legal Ledger/Replay work not already proven.
+
+If no matching READY work:
+HARVEST -> one bounded refresh -> TRUE_IDLE.
+
+START NOW.
