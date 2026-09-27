@@ -1,0 +1,46 @@
+COURIER MUSE — RESTART MATRIX REVIEW 100X
+
+HOST=AUTO
+PROVIDER=MUSE
+MODEL_CLASS=C2
+MODE=READ_ONLY_QA
+CONTINUE_BY_DEFAULT=YES
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md
+
+RESULT_REUSE_FIRST=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+APPLICATION_SOURCE_WRITE=NO
+
+Review existing durable restart evidence only.
+
+SCENARIOS:
+before persistence;
+after persistence before validation;
+after validation before verification;
+after verification before reconciliation;
+after reconciliation before next dispatch;
+after dispatch before result;
+worker unavailable;
+provider unavailable;
+stale result;
+duplicate result;
+conflicting result;
+stale local cache.
+
+OUTPUT:
+SCENARIO=
+EXPECTED_STATE=
+CURRENT_EVIDENCE=
+MISSING_EVIDENCE=
+NEXT_EXACT_ACTION=
+
+Do not execute physical runs.
+Do not revalidate unchanged PRE_CODEX.
+When complete, route to another Muse-compatible family.
+
+START NOW.
