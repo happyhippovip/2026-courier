@@ -77,4 +77,13 @@ Do not repeat completed work because the session changed.
 
 ONE TASK FINISHED != SESSION FINISHED.
 
+FAMILY_IDLE_IS_NOT_GLOBAL_IDLE=YES
+If the currently selected specialized family becomes complete:
+- persist FAMILY_COMPLETE;
+- do not repeat it;
+- return to WALL_QUEUE_CURRENT + canonical master/router;
+- select another compatible READY family;
+- only return GLOBAL_TRUE_IDLE after the bounded global refresh proves there is no legal work anywhere in current durable pointers.
+
+
 START NOW.
