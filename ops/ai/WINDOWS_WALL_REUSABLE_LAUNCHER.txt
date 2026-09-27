@@ -1,0 +1,49 @@
+COURIER WINDOWS WALL — REUSABLE LAUNCHER
+
+HOST=WINDOWS
+PROVIDER=GOOGLE
+ROLE=AUTO
+CONTINUE_BY_DEFAULT=YES
+NO_HUMAN_RELAY=YES
+
+REPO=C:\Users\lol\2026-workspace\2026-courier
+
+FIRST:
+1. cd C:\Users\lol\2026-workspace\2026-courier
+2. resolve repo root with git rev-parse --show-toplevel
+3. read:
+   ops/ai/WALL_SYSTEM.md
+   ops/ai/WALL_QUEUE_CURRENT.md
+   ops/ai/UNIVERSAL_WALL_V2_MASTER_PROMPT.txt
+4. execute UNIVERSAL_WALL_V2_MASTER_PROMPT.txt exactly
+5. do not summarize the master prompt back to the human
+6. start the next durable useful role/package immediately
+
+REUSE:
+Use this same launcher after:
+- /clear
+- new Google session
+- manually authorized Google-account change
+- CLI restart
+- Windows restart
+
+Never restart completed work because the session changed.
+Resume from durable claims/results/published state.
+
+COST:
+No broad repo scan.
+No repeated unchanged reads.
+No idle analysis.
+No duplicate review.
+Result reuse first.
+Exact-input reads only.
+
+NONINTERFERENCE:
+Do not disturb the active source writer, another live claim, Muse, Mac proof runner, server/verifier, billing/auth state or unrelated processes.
+
+RESOURCE:
+100 logical slots are queue capacity, not 100 required terminals.
+Use only host-safe admitted motors.
+MAX_HEAVY_JOBS=1 unless newer proven policy changes it.
+
+START NOW.
