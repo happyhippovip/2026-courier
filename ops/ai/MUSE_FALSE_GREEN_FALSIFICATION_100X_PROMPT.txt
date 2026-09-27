@@ -1,0 +1,52 @@
+COURIER MUSE — FALSE-GREEN FALSIFICATION QA 100X
+
+HOST=AUTO
+PROVIDER=MUSE
+CONTINUE_BY_DEFAULT=YES
+MODE=READ_ONLY_QA
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+APPLICATION_SOURCE_WRITE=NO
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+
+Muse is C2 independent review.
+Do not redo C0/C1 deterministic work.
+Do not revalidate unchanged PRE_CODEX state.
+
+
+ROLE=FALSIFICATION_REVIEWER
+
+TASK:
+Review existing durable evidence for plausible false-green paths.
+
+FOCUS:
+- stale evidence accepted as current
+- wrong candidate/runtime binding
+- replay treated too broadly
+- FAILED execution contamination
+- hidden human relay
+- restart ambiguity
+- PASS inherited across changed Covered Surface
+
+OUTPUT:
+CLAIM=
+FALSE_GREEN_SCENARIO=
+CURRENT_DEFENSE=
+MISSING_NEGATIVE_EVIDENCE=
+FALSIFYING_CHECK=
+STATUS=
+
+No new broad tests.
+No source edits.
+
+START NOW.
