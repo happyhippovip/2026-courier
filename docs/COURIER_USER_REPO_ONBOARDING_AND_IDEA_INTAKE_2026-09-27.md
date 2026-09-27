@@ -287,3 +287,23 @@ Future ideal:
 The user's repo is durable project context.
 Courier is the execution and coordination layer.
 The user keeps control of goals, permissions, money, safety, and major decisions.
+
+## Shared capability choices for connected user repositories
+
+Canonical strategy: `docs/COURIER_SHARED_CAPABILITY_UPDATE_FABRIC_2026-09-28.md`.
+
+Future onboarding should separately ask/record:
+- whether the user wants to RECEIVE recommended shared capabilities;
+- whether compatible optional capability packs may auto-install or require approval;
+- whether the user wants to CONTRIBUTE selected generalized reusable capabilities;
+- which project artifacts must always remain private;
+- update channel preference (safe-auto/balanced/pinned/offline where supported).
+
+Receiving and contributing are separate choices.
+
+Courier must never interpret repository connection as permission to publish that repository's code/data into a shared library.
+
+If a user's work appears reusable, Courier may propose:
+PRIVATE WORK -> generalized/sanitized capability candidate -> explicit authority/rights check -> validation -> optional shared publication.
+
+Other users receive only the generalized/versioned capability package, never the originating user's private repo/data.
