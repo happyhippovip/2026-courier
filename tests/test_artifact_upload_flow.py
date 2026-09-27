@@ -378,3 +378,73 @@ def test_mac_worker_uploads_and_verifier_reconciles(tmp_path, monkeypatch):
     (work / "effect.txt").unlink()
     [pending] = http.get("/tasks/pending_verification", headers=VERIFIER).get_json()["tasks"]
     assert load_verifier(monkeypatch).verify_artifacts(pending, pending["result"], fetch=client_fetch(http)) == "PASS"
+
+def test_verifier_rejects_omitted_expected_artifact(monkeypatch):
+    v = load_verifier(monkeypatch)
+    task = {
+        "task_id": "t1",
+        "artifacts": ["A.txt", "B.txt"]
+    }
+    result = {
+        "artifacts": [
+            {"path": "A.txt", "sha256": "0"*64}
+        ]
+    }
+    def dummy_verify(*args): return True
+    verdict = v.verify_artifacts(task, result, local_verify=dummy_verify)
+    assert verdict == "FAIL"
+
+def test_verifier_poison_pill_isolation(monkeypatch):
+    import requests
+    v = load_verifier(monkeypatch)
+    
+    # Mock the API responses
+    class MockResponse:
+        def __init__(self, json_data, status_code):
+            self.json_data = json_data
+            self.status_code = status_code
+        def json(self):
+            return self.json_data
+            
+    # Track verification submissions
+    submitted = []
+    
+    def mock_get(url, **kwargs):
+        if url.endswith("/tasks/pending_verification"):
+            return MockResponse({"tasks": [
+                None, # Poison pill: will throw AttributeError on task.get()
+                {
+                    "task_id": "valid_task",
+                    "result": {"result_id": "r1", "artifacts": []}
+                }
+            ]}, 200)
+        return MockResponse({}, 404)
+        
+    def mock_post(url, json=None, **kwargs):
+        if url.endswith("/tasks/verify"):
+            submitted.append(json.get("task_id"))
+            return MockResponse({}, 200)
+        return MockResponse({}, 404)
+        
+    monkeypatch.setattr(requests, "get", mock_get)
+    monkeypatch.setattr(requests, "post", mock_post)
+    
+    # We run the loop but throw StopLoop after one iteration to avoid infinite loop
+    # Wait, run_loop catches exceptions. We can mock requests.get to throw StopLoop on the second call.
+    calls = []
+    def mock_get_stop(url, **kwargs):
+        calls.append(1)
+        if len(calls) > 1:
+            raise StopLoop()
+        return mock_get(url, **kwargs)
+        
+    monkeypatch.setattr(requests, "get", mock_get_stop)
+    
+    try:
+        v.run_loop()
+    except StopLoop:
+        pass
+        
+    assert "valid_task" in submitted
+    assert len(submitted) == 1
+
