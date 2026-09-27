@@ -59,3 +59,9 @@ One PREPARER generates the next Markdown queue generation from:
 If those sources define no concrete READY work, wall becomes IDLE.
 
 NO_READY_TASKS never authorizes broad discovery or busywork.
+
+
+MORNING_QUEUE_PREPARER=ops/ai/GOOGLE_MORNING_NEXT_QUEUE_PREPARER_2026-09-28.md
+MORNING_WINDOWS_WORKER=ops/ai/GOOGLE_MORNING_WINDOWS_WORKER_PROMPT.txt
+MORNING_MAC_WORKER=ops/ai/GOOGLE_MORNING_MAC_WORKER_PROMPT.txt
+MORNING_HARVESTER=ops/ai/GOOGLE_MORNING_HARVESTER_PROMPT.txt
