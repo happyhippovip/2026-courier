@@ -35,6 +35,8 @@ Workers should start here instead of guessing dated paths.
 - Cost/noninterference: `ops/ai/NIGHT_QUEUE_NONINTERFERENCE_AND_COST_POLICY_2026-09-27.md`
 - Returned-result policy: `ops/ai/RETURNED_RESULT_POLICY.md`
 - Mac Google permanent worker: `ops/ai/MAC_GOOGLE_PERMANENT_WORKER_PROMPT.txt`
+- Adaptive queue/package sizing: `ops/ai/ADAPTIVE_QUEUE_AND_PACKAGE_SIZING_2026-09-27.md`
+- Muse wall preflight preparation: `ops/ai/MUSE_WALL_PREFLIGHT_PREPARATION_PACK_2026-09-28.md`
 
 ## MD-first rule
 
@@ -188,3 +190,8 @@ When no READY task exists:
 - if no new concrete work exists, wall becomes IDLE.
 
 That is correct behavior, not failure.
+
+
+## Adaptive queue depth
+
+Queue depth and active worker count are separate. Use `ops/ai/ADAPTIVE_QUEUE_AND_PACKAGE_SIZING_2026-09-27.md` to size task generations and package granularity for small, standard, and large hosts/users. Maintain a bounded READY reserve for unattended work only when real authorized independent work exists. Do not manufacture filler to hit a numeric target.
