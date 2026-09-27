@@ -77,6 +77,10 @@ NO_READY_TASKS:
 - if still empty, TRUE_IDLE
 - do not broad-scan or invent work
 
+COST-SAFE GATE LAW:
+Read ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md + ops/ai/GATE_STATE_CURRENT.md.
+One gate fingerprint gets at most one validation owner. Reuse durable verdicts across window/session/provider/host changes. A merely reported local FINAL_SHA is not cross-host READY until durably resolvable. Do not repeatedly return the same PRE_CODEX gate event to the human.
+
 COST:
 RESULT_REUSE_FIRST=YES
 MINIMUM_NECESSARY_READS=YES
