@@ -390,3 +390,23 @@ The current live priority remains:
 secure AWS access -> reproducible cloud state -> Machine A -> Machine B -> headless runtime -> Execution Ledger.
 
 This blueprint must not interrupt or overlap with the active AWS live-write lane.
+
+## Shared Capability Registry + Update Fabric
+
+Canonical strategy: `docs/COURIER_SHARED_CAPABILITY_UPDATE_FABRIC_2026-09-28.md`.
+
+The platform should eventually include a versioned Shared Capability Registry.
+
+A reusable workflow or module may move:
+
+PRIVATE_PROJECT -> REUSABLE_CANDIDATE -> SANITIZED/GENERALIZED -> TESTED -> SIGNED/VERSIONED -> OPTIONAL_SHARED_CAPABILITY.
+
+Never copy private project state directly between customers.
+
+Registry manifests should bind capability identity/version, content hash, provenance/rights, security/test evidence, compatibility, dependencies, update channel, rollback target and revalidation trigger.
+
+Distribution should prefer manifest-first checks, content-addressed storage, deduplicated caches and delta/component downloads.
+
+Maintain a durable Time-Machine-style release history for Core + capability state so recovery can return to a known-good compatible configuration.
+
+Update/security architecture must remain crypto-agile and post-quantum migration ready without making unsupported "quantum secure" claims.
