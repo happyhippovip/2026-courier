@@ -2,11 +2,20 @@
 
 Use this index to keep long-run wall work consistent across providers and hosts.
 
+## MASTER ENTRY — READ THIS FIRST
+
+- COURIER_MASTER_CONTROL_PLANE_2026-09-27.md
+- COURIER_PERMANENT_MASTER_WORKER_PROMPT.txt
+- docs/COURIER_COMPANY_AND_LAUNCH_OPERATING_PLAN_2026-09-27.md
+
+If chat/session memory is stale, start from the MASTER CONTROL PLANE instead of reconstructing the project from conversation history.
+
 ## Canonical truth
 
 - COURIER_SESSION_STATE_2026-09-26.json
 - RETURNED_RESULT_POLICY.md
 - docs/COURIER_SYMPHONY_CANONICAL_PRODUCT_PLAN.md
+- GOOGLE_PRE_CODEX_GATE_2026-09-27.md
 
 ## Wall / crew goals
 
@@ -31,11 +40,17 @@ Use this index to keep long-run wall work consistent across providers and hosts.
 - WALL_MD_PREPARER_PROMPT.txt
 - WALL_MD_EXECUTOR_PROMPT.txt
 - WALL_MD_HARVESTER_PROMPT.txt
+- WALL_BUILD_QUEUE_V1.md
+- GOOGLE_WINDOWS_NIGHT_QUEUE_50_2026-09-27.md
 
 The MD-first wall system is the preferred operating path for new wall work. Prepare durable task packets before execution; use the universal prompt when one reusable prompt is preferred, or the three role prompts when explicit role separation is safer.
 
 ## Copy/paste prompts
 
+Preferred permanent prompt:
+- COURIER_PERMANENT_MASTER_WORKER_PROMPT.txt
+
+Specialized/legacy prompts:
 - UNIVERSAL_WALL_BOOTSTRAP.txt
 - OVERNIGHT_WALL_BOOTSTRAP.txt
 - UNIVERSAL_WALL_PASTE.txt
@@ -61,7 +76,7 @@ Use bounded 10-hour overnight rounds when safe and useful.
 
 Checkpoint -> clear/rotate stale context -> reload minimal truth.
 
-Prefer the MD-first wall pipeline for new autonomous windows. The legacy universal long-run prompt is retained for compatibility.
+Prefer the MD-first wall pipeline for new autonomous windows.
 
 Use the quick free-CLI prompt for reserved short investigations.
 
@@ -69,10 +84,19 @@ Use only a small minority of capacity for the idea engine.
 
 Do not confuse logical wall size with heavy-process concurrency.
 
-Current core proof path remains:
+Current core proof path:
 FINAL CANDIDATE
--> TARGETED TESTS
--> INDEPENDENT REVIEW
+-> TARGETED TESTS + 12-CASE MATRIX
+-> PRE_CODEX_GATE
+-> CODEX HIGH ONCE
 -> RUN_1
 -> RUN_2
--> MINIMUM HONEST UI
+-> CORE FREEZE
+-> MINIMUM PILOT
+-> PRODUCT SHELL ONLY AFTER POSITIVE PILOT SIGNAL
+-> PACKAGING / UPDATES
+-> EXPANSION
+
+## Public-repo privacy rule
+
+This repository is public. Never put credentials, private account/card identifiers, private customer data, or private personal-life material here.
