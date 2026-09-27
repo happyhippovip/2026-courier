@@ -1,56 +1,56 @@
 COURIER WINDOWS — CROSS-FAMILY AUTO CONTINUATION
 
 HOST=WINDOWS
-MODE=ROUTER_CONTINUATION
+PROVIDER=AUTO
 CONTINUE_BY_DEFAULT=YES
 NO_HUMAN_RELAY=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
 
 REPO=C:\Users\lol\2026-workspace\2026-courier
-COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
 
 BOOTSTRAP:
 cd /d C:\Users\lol\2026-workspace\2026-courier
 git fetch origin coordination/autofill-task-seed-20260926
 
 READ ONLY:
-- ops/ai/WALL_SYSTEM.md
-- ops/ai/WALL_QUEUE_CURRENT.md
-- ops/ai/COURIER_PERMANENT_MASTER_WORKER_PROMPT.txt
-- ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md
-- ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
-- ops/ai/GATE_STATE_CURRENT.md
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COURIER_PERMANENT_MASTER_WORKER_PROMPT.txt
+ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
 
 RULE:
 FAMILY_COMPLETE != GLOBAL_TRUE_IDLE.
 
-If the previous worker reports a completed family such as O48:
-1. record/reuse its completion;
-2. never restart that family unless RETEST_TRIGGER changed;
-3. inspect only current durable pointers/claims/results;
-4. harvest any unprocessed result;
-5. route this window to the next compatible READY family;
-6. prefer cheapest capable class;
-7. if current model is wrong fit, emit ROUTE_TO with exact prompt path and continue only compatible work;
-8. run at most one bounded PREPARER refresh;
-9. GLOBAL_TRUE_IDLE is legal only when no READY work, no unharvested results, no unlocked synthesis/prep, and no compatible cross-family task remains.
+WHEN A SPECIALIST FAMILY COMPLETES:
+1. persist/reuse family result
+2. release claim
+3. do not rerun completed family
+4. harvest unprocessed results
+5. inspect current durable Windows/EITHER families once
+6. run one bounded PREPARER refresh if needed
+7. select next compatible READY family
+8. only emit GLOBAL_TRUE_IDLE if no legal Windows/EITHER work exists
 
-CURRENT IMPORTANT STATE:
-O48 may be FAMILY_COMPLETE.
-PRE_CODEX may be DURABILITY_PENDING.
-Do not revalidate unchanged PRE_CODEX.
-Only one gate durability/persistence owner is allowed.
+PRIORITY:
+1 exact gate durability owner ONLY if owner slot is free and task is authorized
+2 Ledger deterministic/finish work
+3 result harvesting/cache integrity
+4 proof packet assembly
+5 cross-host QA
+6 Human Gate / routing integrity
+7 Opus O49-O53 / Ledger convergence only when actual model fit is C4
+8 other canonical READY families
 
 OUTPUT:
 PREVIOUS_FAMILY=
 FAMILY_COMPLETE=
-GLOBAL_READY_FAMILIES=
-SELECTED_NEXT_FAMILY=
+NEXT_FAMILY=
 NEXT_PROMPT_PATH=
 MODEL_FIT=
-ROUTE_TO=
 GLOBAL_TRUE_IDLE=
 WHY=
 
-If current session can continue, execute the selected compatible next family immediately rather than waiting for the human.
+If current runtime is capable, execute next compatible family immediately.
 
 START NOW.
