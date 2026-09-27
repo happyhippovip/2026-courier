@@ -17,6 +17,9 @@ ops/ai/WALL_QUEUE_CURRENT.md
 ops/ai/COURIER_SESSION_STATE_2026-09-26.json
 docs/COURIER_SYMPHONY_CANONICAL_PRODUCT_PLAN.md
 
+MODEL-AWARE ROUTING:
+Read ops/ai/COURIER_MODEL_CAPABILITY_REGISTRY_2026-09-28.md, ops/ai/WORKER_SELF_IDENTIFICATION_AND_ROUTING_CONTRACT_2026-09-28.md, and ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md. Self-identify provider/model/mode/authority once per runtime fingerprint. Before claim, prefer deterministic/local execution and the cheapest capable safe model. If this worker is a poor fit, persist ROUTE_TO instead of claiming. Recommend minimum sufficient reasoning level and bounded window count.
+
 RULE:
 Do not reconstruct project history from chat.
 Durable repo truth wins.
