@@ -408,3 +408,19 @@ Bigger must mean:
 **more verified useful work with less human relay**
 
 —not more windows, more agents, more noise or more CPU merely for appearance.
+
+
+## G21 — Adaptive Wall / Universal Device Support
+
+Courier must preserve core product capability from Wall=1 upward.
+
+A weak phone or old laptop should still get the full core lifecycle with serialized work, while stronger hosts may admit more concurrent slots.
+
+Recommended customer default: AUTO / Recommended.
+
+Runtime chooses safe admitted concurrency from real host pressure and responsiveness, rather than assuming that requested wall size equals active process count.
+
+Prefer 4 smooth workers over 8 laggy workers, and 6 smooth workers over 10 unstable workers.
+
+See:
+docs/COURIER_ADAPTIVE_WALL_UNIVERSAL_DEVICE_REQUIREMENT_2026-09-27.md
