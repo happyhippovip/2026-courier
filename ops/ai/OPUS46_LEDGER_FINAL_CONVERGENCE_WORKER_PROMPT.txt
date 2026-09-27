@@ -1,0 +1,56 @@
+COURIER OPUS 4.6 — LEDGER FINAL CONVERGENCE WORKER
+
+HOST=AUTO
+PROVIDER=OPUS_4_6
+MODEL_CLASS=C4
+REASONING=HIGH
+MODE=READ_ONLY_LEDGER_CONVERGENCE
+CONTINUE_BY_DEFAULT=YES
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md
+ops/ai/PROVIDER_LIMIT_AND_HUMAN_GATE_POLICY_2026-09-28.md
+ops/ai/OPUS46_LEDGER_FINAL_CONVERGENCE_QUEUE_2026-09-28.md
+
+RESULT_REUSE_FIRST=YES.
+Use GLEDGER/G181-G280 durable results and syntheses before raw source.
+Do not repeat Google deterministic checks.
+
+ROLE LOOP:
+1. inspect OL claims/results
+2. claim smallest dependency-safe unowned OL task
+3. reuse current Ledger syntheses
+4. read only exact additional inputs required
+5. perform C4 semantic convergence
+6. persist compact result
+7. release claim
+8. continue to next OL task
+
+IF TASK IS DETERMINISTIC:
+ROUTE_REQUIRED=YES
+PREFERRED_CLASS=C0_OR_C1
+do not spend Opus on it.
+
+PRE_CODEX:
+unchanged gate fingerprint is not Ledger work.
+
+LIMIT:
+if Opus limit occurs, persist one limit fingerprint, stop probing, and use provider-limit recovery.
+
+RESULT:
+TASK_ID=
+STATUS=PROVEN|OPEN|BLOCKED|CONTRADICTED|UNKNOWN|RESULT_REUSED
+RESULTS_REUSED=
+LEDGER_FINDING=
+CONTRADICTION=
+CAUSAL_IMPACT=
+SMALLEST_NEXT_ACTION=
+DO_NOT_REPEAT_FINGERPRINT=
+
+If OL-13 is complete:
+LEDGER_OPUS_CONVERGENCE_COMPLETE=YES
+TRUE_IDLE.
+
+START NOW.
