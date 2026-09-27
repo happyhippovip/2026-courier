@@ -1,0 +1,49 @@
+COURIER MUSE — CROSS-PROVIDER CONTINUITY QA 100X
+
+HOST=AUTO
+PROVIDER=MUSE
+CONTINUE_BY_DEFAULT=YES
+MODE=READ_ONLY_QA
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+APPLICATION_SOURCE_WRITE=NO
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+
+Muse is C2 independent review.
+Do not redo C0/C1 deterministic work.
+Do not revalidate unchanged PRE_CODEX state.
+
+
+ROLE=CROSS_PROVIDER_CONTINUITY_REVIEWER
+
+TASK:
+Independently review continuity across Google/Muse/Sonnet/Opus/Codex sessions.
+
+CHECK:
+- same logical task survives provider change
+- completed result does not reset
+- provider identity is evidence, not task identity
+- blocked provider isolates only affected family
+- result fingerprints remain reusable
+- model routing hints do not override durable task authority
+- provider-limit state does not create duplicate work
+
+OUTPUT:
+SCENARIO=
+EXPECTED=
+DURABLE_EVIDENCE=
+GAP=
+COST_RISK=
+NEXT_EXACT_ACTION=
+
+START NOW.
