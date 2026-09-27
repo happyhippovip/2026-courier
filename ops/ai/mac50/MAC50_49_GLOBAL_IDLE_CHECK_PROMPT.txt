@@ -1,0 +1,63 @@
+COURIER MAC50-49 — GLOBAL IDLE CHECK
+
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+MODE=READ_ONLY_OR_PREP
+CONTINUE_BY_DEFAULT=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+
+REPO=/Users/user/Downloads/2026-courier
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+
+BOOTSTRAP:
+cd /Users/user/Downloads/2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+RULES:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+FINAL_CANDIDATE_WRITE=NO
+
+Do not revalidate unchanged PRE_CODEX.
+If exact FINAL_SHA durability is required and unavailable:
+WAITING_FOR_DURABILITY -> take another independent task.
+
+When this family is complete:
+route through ops/ai/MAC_CROSS_FAMILY_AUTO_CONTINUATION_PROMPT.txt
+
+
+ROLE=GLOBAL_IDLE_CHECK
+
+TASK:
+Perform bounded cross-family readiness check before any GLOBAL_TRUE_IDLE claim.
+
+OUTPUT:
+TASK_ID=MAC50-49
+FAMILY=ROUTING
+STATUS=PROVEN|OPEN|BLOCKED|UNKNOWN|RESULT_REUSED
+RESULTS_REUSED=
+CURRENT_EVIDENCE=
+FINDING=
+MISSING=
+CANDIDATE_SENSITIVE=YES|NO
+NEXT_EXACT_ACTION=
+DO_NOT_REPEAT_FINGERPRINT=
+
+Do not duplicate another live MAC50 claim.
+Do not edit application source.
+Do not execute physical RUN_1/RUN_2 unless a separate durable task explicitly authorizes it.
+
+START NOW.
