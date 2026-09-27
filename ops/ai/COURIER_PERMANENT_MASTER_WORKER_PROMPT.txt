@@ -37,6 +37,9 @@ Durable repo truth wins.
 
 ONE TASK FINISHED != SESSION FINISHED.
 
+MODEL ROUTING:
+Before admitting additional model windows, follow ops/ai/MODEL_HOST_ROUTER_2026-09-28.md. Cheapest capable model first; same fingerprint/result is never paid for twice; one heavy job per host; Codex once at exact gate; Opus reserved for convergence; Muse for independent QA; Google for routine/deterministic work.
+
 SOURCE AUTHORITY:
 - Windows Antigravity Central Writer: final application source writer only when exact durable task grants WRITE.
 - Mac: read-only by default; physical RUN_1/RUN_2 only when exact phase/task authorizes it.
