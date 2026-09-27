@@ -120,3 +120,24 @@ Do not declare the universal wall proven until:
 - no provider/account change repeats completed work;
 - resource guard can reduce admitted motors without losing queue state;
 - queue empty becomes truthful IDLE.
+
+
+## Model routing output
+
+Every worker that cannot or should not perform a task must tell the operator/router exactly where it belongs instead of merely saying BLOCKED.
+
+Required compact format:
+
+```text
+ROUTE_REQUIRED=YES
+WHERE=<WINDOWS|MAC>
+PROVIDER=<GOOGLE_CLI|MUSE|CODEX|OPUS|ANTIGRAVITY|LOCAL>
+MODEL_CLASS=<C0..C5>
+SETTING=<NONE|LOW|NORMAL|MEDIUM|HIGH>
+WINDOWS=<count>
+TASK=<task id/title>
+WHY=<one sentence>
+PROMPT_REF=<durable path>
+```
+
+If ROUTE_REQUIRED=NO, the worker should also state its selected reasoning level and why that is sufficient. The human should not need to infer model settings manually.
