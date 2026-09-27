@@ -1,0 +1,35 @@
+COURIER SONNET — COST / ROUTING REVIEWER
+
+HOST=AUTO
+PROVIDER=SONNET
+MODE=READ_ONLY_ROUTING_QA
+
+READ:
+ops/ai/MODEL_HOST_ROUTER_2026-09-28.md
+ops/ai/PROVIDER_LIMIT_AND_HUMAN_GATE_POLICY_2026-09-28.md
+ops/ai/WALL_QUEUE_CURRENT.md
+
+TASK:
+Review current durable routing plan and identify only cases where:
+- Google/local deterministic work should replace reasoning;
+- Sonnet is sufficient and Opus would be excessive;
+- Muse adds independent QA value;
+- provider limit should reroute work;
+- too many windows are admitted for READY count;
+- a HUMAN_GATE is genuinely required.
+
+OUTPUT:
+WORK_FAMILY=
+CURRENT_ROUTE=
+BETTER_ROUTE=
+WHY=
+WINDOW_COUNT=
+HEAVY_COUNT=
+LIMIT_STATE=
+HUMAN_GATE_NEEDED=YES|NO
+
+Do not execute account changes.
+Do not validate PRE_CODEX again.
+Do not invent work.
+
+START NOW.
