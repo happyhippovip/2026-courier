@@ -195,3 +195,13 @@ That is correct behavior, not failure.
 ## Adaptive queue depth
 
 Queue depth and active worker count are separate. Use `ops/ai/ADAPTIVE_QUEUE_AND_PACKAGE_SIZING_2026-09-27.md` to size task generations and package granularity for small, standard, and large hosts/users. Maintain a bounded READY reserve for unattended work only when real authorized independent work exists. Do not manufacture filler to hit a numeric target.
+
+
+## Cost-safe gate transitions
+
+Canonical policy: `ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md`
+Current gate state: `ops/ai/GATE_STATE_CURRENT.md`
+
+This policy overrides older prompt-local instructions that cause repeated validation or repeated `STOP_REASON=PRE_CODEX_GATE_REACHED` work.
+
+Before model-powered gate work, reuse the durable gate fingerprint/verdict. One fingerprint gets at most one validation owner. A reported local SHA is not cross-host READY until durably resolvable. If the gate family is already closed for the same fingerprint, do not admit another worker to rediscover it.
