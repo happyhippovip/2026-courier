@@ -133,3 +133,30 @@ FINAL CANDIDATE
 -> MINIMUM HONEST PRODUCT SURFACE
 
 After core proof, capacity/update work can become a NEXT-phase product lane.
+
+## Shared capability distribution and update channels
+
+Canonical strategy: `docs/COURIER_SHARED_CAPABILITY_UPDATE_FABRIC_2026-09-28.md`.
+
+The updater should eventually distribute both Courier Core releases and independently versioned capability packs.
+
+Classes:
+- Core/Security;
+- Shared Capability;
+- optional Domain Pack;
+- Private Project Artifact (never cross-user by default).
+
+Bandwidth/data minimization should use content hashes, content-addressed caching, dependency reuse and delta/component updates so identical bytes are not repeatedly transferred.
+
+Recommended release channels after proof:
+- bounded continuous metadata/advisory checks;
+- weekly stable updates when evidence warrants;
+- monthly broader rollups;
+- emergency security release when justified.
+
+The update history should retain manifests, hashes, migration versions, install results, rollback targets and Last Known Good so the system can reconstruct what was installed and revert safely.
+
+A capability derived from user work must be generalized and scrubbed of private identifiers/data before any shared publication and must have rights/provenance, compatibility and test evidence.
+
+Crypto rule:
+every update may improve algorithm agility, deprecation posture and post-quantum migration readiness, but must never silently substitute an unproven cryptographic scheme or claim quantum security without a concrete tested profile.
