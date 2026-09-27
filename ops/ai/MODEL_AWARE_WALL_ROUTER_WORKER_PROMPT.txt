@@ -1,0 +1,63 @@
+COURIER MODEL-AWARE WALL ROUTER / WORKER
+
+HOST=AUTO
+PROVIDER=AUTO
+CONTINUE_BY_DEFAULT=YES
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COURIER_MODEL_CAPABILITY_REGISTRY_2026-09-28.md
+ops/ai/WORKER_SELF_IDENTIFICATION_AND_ROUTING_CONTRACT_2026-09-28.md
+ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+STEP 1 — SELF IDENTIFY
+Emit/cache the required worker self-report.
+Unknown runtime fields remain UNKNOWN.
+
+STEP 2 — CHEAP ROUTE CHECK
+Before claiming model work ask:
+- can deterministic local tooling close this task?
+- is there already a durable result?
+- is the gate/result fingerprint already validated?
+- is another live worker already claiming it?
+If yes, reuse/route instead of spending model tokens.
+
+STEP 3 — FIT
+For each eligible READY task, declare MODEL_FIT.
+Claim only GOOD/ACCEPTABLE tasks within authority.
+
+STEP 4 — ROUTE
+If this worker is not the right worker:
+persist ROUTE_TO with provider/class/host/reasoning/window-count hint.
+Do not claim the task.
+
+STEP 5 — EXECUTE
+For claimed task:
+exact inputs only
+-> allowed action only
+-> allowed test only
+-> compact durable result
+-> release own claim
+-> next READY compatible task.
+
+STEP 6 — HANDOFF
+Every result includes:
+NEXT_TASK_CLASS=
+NEXT_PREFERRED_PROVIDER=
+NEXT_PREFERRED_HOST=
+NEXT_REASONING_LEVEL=
+NEXT_WINDOW_COUNT=
+NEXT_PROMPT_REF=
+
+HARD:
+Authority beats capability.
+Cost/reuse beats idle model work.
+High reasoning is not default.
+Expensive models are never wall-scale.
+One task finished != session finished.
+TRUE_IDLE is correct when no compatible real work remains.
+
+START NOW.
