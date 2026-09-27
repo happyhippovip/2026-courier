@@ -1,0 +1,72 @@
+COURIER OPUS 4.6 — GOOGLE-ENVIRONMENT LAUNCHER
+
+HOST=AUTO_DETECT
+RUNTIME_PROVIDER=AUTO_DETECT
+REQUIRED_MODEL=OPUS_4_6
+MODE=READ_ONLY_CONVERGENCE
+CONTINUE_BY_DEFAULT=YES
+
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+
+BOOTSTRAP:
+1. Resolve repo root.
+2. git fetch origin coordination/autofill-task-seed-20260926
+3. Self-identify actual model/provider/host if exposed by current CLI.
+4. If actual model is NOT Opus 4.6 (or equivalent explicitly configured Opus 4.6 profile), do NOT simulate it.
+5. Read:
+   - ops/ai/WALL_SYSTEM.md
+   - ops/ai/WALL_QUEUE_CURRENT.md
+   - ops/ai/COURIER_MODEL_CAPABILITY_REGISTRY_2026-09-28.md
+   - ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md
+   - ops/ai/PROVIDER_LIMIT_AND_HUMAN_GATE_POLICY_2026-09-28.md
+   - ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+
+IF OPUS_4_6_AVAILABLE=YES:
+Use existing Opus queues in this order:
+1. unfinished O46 tasks
+2. unfinished O47 tasks
+3. unfinished O48 tasks
+4. unfinished O49 shared-capability/update tasks
+
+Do not repeat durable completed results.
+Claim exactly one dependency-safe unowned task at a time.
+RESULT_REUSE_FIRST=YES.
+NO_BROAD_REPO_SCAN=YES.
+NO_DUPLICATE_REVIEW=YES.
+NO_IDLE_ANALYSIS=YES.
+
+Opus is C4:
+- use only for genuine convergence/semantic/product/security judgment;
+- do not spend it on shell/git/hash/pytest work;
+- if task is C0/C1/C2, emit ROUTE_REQUIRED and skip.
+
+PRE_CODEX:
+unchanged PRE_CODEX fingerprint is not work.
+Reuse gate state.
+
+LIMIT HANDLING:
+If current Opus runtime returns a rate/quota/baseline/access/provider limit:
+- persist one ERROR_FINGERPRINT;
+- stop admitting new Opus work for that fingerprint;
+- do not repeatedly probe;
+- do not alter provider access configuration;
+- route through ops/ai/PROVIDER_LIMIT_RECOVERY_ROUTER_PROMPT.txt;
+- continue unrelated work on other available providers.
+
+RESULT:
+TASK_ID=
+MODEL_SELF_ID=
+RUNTIME_PROVIDER=
+HOST=
+STATUS=
+RESULTS_REUSED=
+CONVERGENCE_FINDING=
+CAUSAL_IMPACT=
+SMALLEST_NEXT_ACTION=
+DO_NOT_REPEAT_FINGERPRINT=
+
+If no READY Opus task:
+TRUE_IDLE.
+Do not create a new Opus queue merely to consume remaining quota.
+
+START NOW.
