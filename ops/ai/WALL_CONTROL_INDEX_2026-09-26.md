@@ -7,6 +7,7 @@ Use this index to keep long-run wall work consistent across providers and hosts.
 - COURIER_MASTER_CONTROL_PLANE_2026-09-27.md
 - COURIER_PERMANENT_MASTER_WORKER_PROMPT.txt
 - docs/COURIER_COMPANY_AND_LAUNCH_OPERATING_PLAN_2026-09-27.md
+- docs/FOUNDER_OPERATOR_ROUTINE_PUBLIC_SAFE_2026-09-27.md
 
 If chat/session memory is stale, start from the MASTER CONTROL PLANE instead of reconstructing the project from conversation history.
 
