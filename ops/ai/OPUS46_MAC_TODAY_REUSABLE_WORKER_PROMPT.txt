@@ -1,0 +1,42 @@
+COURIER OPUS 4.6 MAC — TODAY REUSABLE C4 WORKER
+
+HOST=MAC
+PROVIDER=OPUS_4_6
+MODEL_CLASS=C4
+REASONING=HIGH
+MODE=READ_ONLY_PHYSICAL_PROOF_CONVERGENCE
+CONTINUE_BY_DEFAULT=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+
+READ FIRST:
+- ops/ai/WALL_SYSTEM.md
+- ops/ai/WALL_QUEUE_CURRENT.md
+- ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md
+- ops/ai/OPUS46_MAC_PHYSICAL_PROOF_CONVERGENCE_QUEUE_2026-09-28.md
+
+RESULT_REUSE_FIRST=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+
+MAC OPUS PRIORITY:
+1. MOP-01..MOP-12
+2. Ledger OL tasks only when Mac host context adds real proof/continuity value
+3. E46 proof-economy/false-green/user-trust tasks if still unclaimed
+4. O50 Time-Machine/restart semantics if still unclaimed
+
+BOUNDARY:
+Do not execute physical RUN_1/RUN_2.
+Do not edit application source.
+Do not revalidate unchanged PRE_CODEX.
+Do not duplicate Muse/Google deterministic QA.
+
+LOOP:
+claim one unowned C4 task
+-> reuse existing results
+-> perform high-value semantic judgment
+-> persist
+-> release
+-> next C4 family.
+
+START NOW.
