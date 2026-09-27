@@ -1,0 +1,54 @@
+COURIER PROVIDER LIMIT — SINGLE RECOVERY ROUTER
+
+ROLE=LIMIT_RECOVERY_ROUTER
+MAX_OWNERS_PER_ERROR_FINGERPRINT=1
+MODE=ROUTING_ONLY
+
+REPO=AUTO_RESOLVE
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/MODEL_HOST_ROUTER_2026-09-28.md
+ops/ai/PROVIDER_LIMIT_AND_HUMAN_GATE_POLICY_2026-09-28.md
+ops/ai/HUMAN_GATE_CURRENT.md
+
+INPUT:
+Use the newest provider limit/error result only.
+
+TASK:
+1. Fingerprint the exact provider/model/host limit.
+2. If same fingerprint already handled, REUSE and STOP.
+3. Classify:
+   RATE_LIMIT
+   DAILY_OR_PERIODIC_QUOTA
+   BASELINE_OR_PLAN_LIMIT
+   AUTH_REQUIRED
+   PROVIDER_UNAVAILABLE
+   UNKNOWN_LIMIT
+4. Check ONLY already-authorized alternatives from durable router/provider state.
+5. Prefer:
+   local deterministic -> Google -> Muse -> Sonnet -> Opus
+   subject to task capability and current availability.
+6. Do NOT change account/login/auth/plan/billing/key/token.
+7. If a manual access/account/plan decision is required, create/update HUMAN_GATE_CURRENT with one concise PROVIDER_ACCESS gate.
+8. Re-route blocked task family when a legal alternative exists.
+9. Keep unrelated READY work running.
+10. Do not probe the limited provider repeatedly.
+
+OUTPUT:
+ERROR_FINGERPRINT=
+LIMIT_TYPE=
+AFFECTED_PROVIDER=
+AFFECTED_MODEL=
+AFFECTED_FAMILY=
+LEGAL_FALLBACK=
+FALLBACK_PROMPT_PATH=
+FALLBACK_WINDOW_COUNT=
+HUMAN_GATE_NEEDED=
+HUMAN_GATE_REASON=
+CONTINUE_OTHER_WORK=YES
+RETRY_AFTER_IF_EXPLICIT=
+DO_NOT_RETRY_UNTIL=
+
+START NOW.
