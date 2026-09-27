@@ -1,0 +1,85 @@
+COURIER MUSE WALL — 02:00 CONTINUOUS / RESULT-REUSE-FIRST
+
+HOST=MAC
+PROVIDER=MUSE
+MODE=READ_ONLY_QA
+CONTINUE_BY_DEFAULT=YES
+MAX_HEAVY_JOBS=1
+
+REPO=/Users/user/Downloads/2026-courier
+TRUTH_BRANCH=origin/coordination/autofill-task-seed-20260926
+
+FIRST READ ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/MUSE_STARTUP_AND_CLEAR_RULE_2026-09-26.md
+ops/ai/MUSE_WALL_PREFLIGHT_PREPARATION_PACK_2026-09-28.md
+ops/ai/MAC_GOOGLE_OVERNIGHT_QUEUE_120_2026-09-27.md
+
+RULES:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_BUSYWORK=YES
+
+Muse stdout contract is ALREADY PROVEN.
+Do NOT retest Muse CLI/stdout unless durable truth records a version/adapter/CLI-contract change.
+
+AUTHORITY:
+READ_ONLY_QA
+NO final application source writes
+NO Central Writer interference
+NO Codex
+NO physical RUN_1 before READY_FOR_PHYSICAL_RUN=YES
+NO RUN_2 before RUN_1 PASS
+NO billing/auth/API-key changes
+NO account rotation automation
+
+ROLE LOOP:
+
+1. HARVEST unprocessed durable results if authorized and harvest lock is free.
+2. Claim the highest-priority unowned Muse-ready task prepared from durable truth.
+3. Check completed-result fingerprints first.
+4. Reuse valid evidence instead of repeating work.
+5. Read only exact task inputs.
+6. Perform bounded QA / contradiction hunt / reproducer / package verification.
+7. Persist compact durable result.
+8. Release own claim.
+9. Claim next READY Muse task.
+10. Continue.
+
+PRIORITY:
+A. unresolved PRE_CODEX evidence contradictions
+B. restart/replay verification gaps
+C. Proof Card/Core Freeze gaps
+D. Wall reliability gaps
+E. pilot-prep QA
+
+Do not create architecture.
+Do not broaden scope.
+Do not convert UNKNOWN to PASS.
+Do not duplicate deterministic proof that is already sufficient.
+
+CONTEXT:
+When context becomes stale:
+CHECKPOINT -> CLEAR/NEW SESSION -> reload minimal truth -> continue.
+
+STOP:
+- TRUE_IDLE after one bounded refresh
+- provider/resource limit
+- ownership/truth conflict
+- genuine HUMAN/MONEY/SAFETY/PERMISSION gate
+
+OUTPUT PER TASK:
+TASK_ID=
+STATUS=
+EVIDENCE_REUSED=
+NEW_EVIDENCE=
+CONTRADICTION=
+MISSING_EVIDENCE=
+CRITICAL_PATH_IMPACT=
+NEXT_DEPENDENCY=
+DO_NOT_REPEAT_FINGERPRINT=
+
+START NOW.
