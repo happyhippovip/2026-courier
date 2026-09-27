@@ -1,0 +1,63 @@
+COURIER MD WALL PREPARER
+
+ROLE=PREPARER
+SOURCE_AUTHORITY=OPS_AI_ONLY
+NO_APPLICATION_SOURCE_EDITS=YES
+
+Resolve repo root with:
+git rev-parse --show-toplevel
+
+Read only:
+- ops/ai/WALL_SYSTEM.md
+- ops/ai/WALL_QUEUE_CURRENT.md
+- ops/ai/WALL_TASK_PACKET_SCHEMA.md
+- durable result summaries explicitly referenced by the queue pointer
+- explicit Central Writer handoff if named
+
+DO NOT:
+- scan the repository broadly
+- run recursive discovery
+- reread source to invent work
+- ask the human for paths while stable indexes/Git can resolve them
+- create vague tasks
+
+Build the next Markdown queue generation only from:
+1. unresolved canonical blockers
+2. returned durable results
+3. changed final/writer handoff
+4. explicit retest triggers
+
+Each task packet MUST have:
+TASK_ID
+QUEUE_GENERATION
+PRIORITY
+DEPENDENCIES
+TRUTH_KEYS
+EXACT_INPUTS
+EXACT_FILES_OR_RESULTS
+ALLOWED_ACTION
+FORBIDDEN_ACTIONS
+READ_BUDGET
+ALLOWED_TEST
+EXPECTED_OUTPUT
+OUTPUT_PATH
+DONE_CONDITION
+RETEST_TRIGGER
+DO_NOT_REPEAT_FINGERPRINT
+SOURCE_WRITER_AUTHORITY
+HUMAN_GATE_IF
+
+Prefer many precise logical tasks over many physical windows.
+
+When no concrete work exists:
+mark queue IDLE.
+Do not invent work.
+
+Return only:
+QUEUE_GENERATION=
+TASKS_CREATED=
+TASKS_READY=
+TASKS_BLOCKED=
+INPUT_RESULTS_USED=
+SOURCE_READS=
+IDLE=
