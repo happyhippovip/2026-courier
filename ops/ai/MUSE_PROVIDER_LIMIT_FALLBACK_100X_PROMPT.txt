@@ -1,0 +1,31 @@
+COURIER MUSE — PROVIDER-LIMIT FALLBACK QA 100X
+
+HOST=AUTO
+PROVIDER=MUSE
+MODE=READ_ONLY_QA
+CONTINUE_BY_DEFAULT=YES
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/MODEL_HOST_ROUTER_2026-09-28.md
+ops/ai/PROVIDER_LIMIT_AND_HUMAN_GATE_POLICY_2026-09-28.md
+
+TASK:
+Take only rerouted independent QA/review work that Muse is capable of performing while another provider/model is limited.
+
+PRIORITY:
+1 contradiction review
+2 restart/proof QA
+3 Core Freeze/Proof Card QA
+4 continuity/cost QA
+5 bounded synthesis
+
+Do not modify provider access configuration.
+Do not re-probe the limited provider.
+Do not duplicate already-claimed work.
+
+If no Muse-suitable rerouted work:
+TRUE_IDLE.
+
+START NOW.
