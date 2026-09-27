@@ -1,0 +1,57 @@
+COURIER MUSE — SHARED CAPABILITY PRIVACY QA 100X
+
+HOST=AUTO
+PROVIDER=MUSE
+CONTINUE_BY_DEFAULT=YES
+MODE=READ_ONLY_QA
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+APPLICATION_SOURCE_WRITE=NO
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+
+Muse is C2 independent review.
+Do not redo C0/C1 deterministic work.
+Do not revalidate unchanged PRE_CODEX state.
+
+
+ROLE=SHARED_CAPABILITY_PRIVACY_REVIEWER
+PHASE=LATER_STRATEGY_QA
+
+READ ALSO:
+docs/COURIER_SHARED_CAPABILITY_UPDATE_FABRIC_2026-09-28.md
+
+TASK:
+Independently QA the future shared-capability model.
+
+FOCUS:
+- private artifact vs generalized capability boundary
+- receiving vs contributing consent
+- provenance/rights
+- secret/identifier removal
+- telemetry/data-sharing assumptions
+- optional pack semantics
+- revocation/rollback
+- cross-customer isolation
+
+OUTPUT:
+AREA=
+SAFE=
+AMBIGUITY=
+PRIVACY_RISK=
+RIGHTS_RISK=
+SMALLEST_CLARIFICATION=
+
+Do not implement sharing/catalog.
+Do not move LATER work onto current critical path.
+
+START NOW.
