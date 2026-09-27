@@ -205,3 +205,13 @@ Current gate state: `ops/ai/GATE_STATE_CURRENT.md`
 This policy overrides older prompt-local instructions that cause repeated validation or repeated `STOP_REASON=PRE_CODEX_GATE_REACHED` work.
 
 Before model-powered gate work, reuse the durable gate fingerprint/verdict. One fingerprint gets at most one validation owner. A reported local SHA is not cross-host READY until durably resolvable. If the gate family is already closed for the same fingerprint, do not admit another worker to rediscover it.
+
+
+## Model-aware routing
+
+Canonical registry: `ops/ai/COURIER_MODEL_CAPABILITY_REGISTRY_2026-09-28.md`
+Self-ID contract: `ops/ai/WORKER_SELF_IDENTIFICATION_AND_ROUTING_CONTRACT_2026-09-28.md`
+Routing/admission policy: `ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md`
+Universal router-worker prompt: `ops/ai/MODEL_AWARE_WALL_ROUTER_WORKER_PROMPT.txt`
+
+Every admitted worker must self-identify provider/model/mode/authority, recommend the minimum sufficient reasoning level, and refuse tasks that are a poor/forbidden fit. Task packets declare preferred/allowed model classes and provider/host hints. The router prefers deterministic/local work first, then the cheapest capable safe model. Expensive reviewers are bounded and never used merely because windows are free.
