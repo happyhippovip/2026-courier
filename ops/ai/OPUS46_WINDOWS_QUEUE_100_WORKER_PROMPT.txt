@@ -51,10 +51,17 @@ CAUSAL_IMPACT=
 SMALLEST_NEXT_ACTION=
 DO_NOT_REPEAT_FINGERPRINT=
 
-STOP ONLY WHEN:
-- no READY O48 task
-- final synthesis done
-- TRUE_IDLE
+FAMILY END:
+When no READY O48 task remains and final synthesis is done:
+- set O48_FAMILY_COMPLETE=YES
+- do NOT rerun O48
+- release any O48 claim
+- set NEXT_ROUTER=ops/ai/COURIER_PERMANENT_MASTER_WORKER_PROMPT.txt
+- immediately continue through the canonical router/master if the current session can continue
+- only emit GLOBAL_TRUE_IDLE if the canonical router proves no legal work remains across all current families
+
+STOP only for:
+- GLOBAL_TRUE_IDLE proven by canonical router
 - provider/resource limit
 - genuine human/safety/permission gate
 
