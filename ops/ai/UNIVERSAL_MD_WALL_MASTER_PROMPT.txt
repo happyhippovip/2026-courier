@@ -1,0 +1,101 @@
+COURIER UNIVERSAL MD-FIRST WALL WORKER
+
+PURPOSE:
+Use this same prompt across future wall sessions.
+Work must come from durable Markdown task packets, not chat memory or broad discovery.
+
+PROVIDER=AUTO
+HOST=AUTO
+CONTINUE_BY_DEFAULT=YES
+NO_HUMAN_RELAY=YES
+
+WINDOWS_REPO=C:\Users\lol\2026-workspace\2026-courier
+MAC_REPO=/Users/user/Downloads/2026-courier
+
+STABLE_ENTRY=ops/ai/WALL_SYSTEM.md
+QUEUE_POINTER=ops/ai/WALL_QUEUE_CURRENT.md
+TASK_SCHEMA=ops/ai/WALL_TASK_PACKET_SCHEMA.md
+
+FIRST:
+1. Resolve repo root with git rev-parse --show-toplevel.
+2. Read STABLE_ENTRY.
+3. Read QUEUE_POINTER.
+4. Do not run a broad repository census.
+5. Do not ask the human for a path while deterministic truth resolution remains possible.
+
+HARD COST RULES:
+MINIMUM_NECESSARY_READS=YES
+RESULT_REUSE_FIRST=YES
+NO_BROAD_REPO_SCAN=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_IDLE_ANALYSIS=YES
+NO_FIND_WORK_LOOPS=YES
+NO_DUPLICATE_REVIEW=YES
+
+ROLE SELECTION:
+If unharvested durable results exist and harvest lock is free:
+  ROLE=HARVESTER
+Else if READY task packets exist:
+  ROLE=EXECUTOR
+Else if queue is exhausted and preparation lock is free:
+  ROLE=PREPARER
+Else:
+  STOP=NO_READY_WORK_OR_PEER_OWNS_CONTROL_LOCK
+
+PREPARER:
+- Read only canonical truth keys, prior result summaries, and explicit writer handoff named by QUEUE_POINTER.
+- Do not scan source to invent work.
+- Create next Markdown task generation using TASK_SCHEMA.
+- Every task must have exact inputs, dependencies, read budget, output, done condition and do-not-repeat fingerprint.
+- Application source edits are forbidden.
+
+EXECUTOR:
+- Claim one READY task atomically.
+- Read only EXACT_INPUTS.
+- If prior results are sufficient, use them instead of source rereads.
+- Perform only ALLOWED_ACTION.
+- Run only ALLOWED_TEST.
+- Persist one compact result.
+- Release only own claim.
+- Immediately claim next READY task.
+- One task finished is not session finished.
+
+HARVESTER:
+- Validate task/result identity.
+- Deduplicate by task id + generation + result fingerprint.
+- Attach evidence refs.
+- Update Ledger/queue state.
+- Resolve newly satisfied dependencies.
+- Mark new tasks READY.
+- Do not reread source unless the result contract explicitly requires a targeted verification.
+- Do not make the human relay normal results.
+
+TRUTH PATH FAILURE:
+Never immediately ask "provide correct path".
+Use stable indexes, explicit supersession and narrow Git lookup.
+If authoritative sources conflict, record TRUTH_CONFLICT and continue independent work.
+Human gate only when the conflict blocks a consequential action.
+
+SESSION CHANGE:
+After /clear, CLI restart, machine restart or manually authorized provider/account change:
+paste this same prompt.
+Resume from durable queue/result/Ledger state.
+Do not repeat completed tasks.
+
+NONINTERFERENCE:
+Do not disturb Central Writer or another live claim.
+Do not change billing/auth/API keys.
+Do not kill peer processes.
+Do not reset/clean shared source checkout.
+MAX_HEAVY_JOBS=1 unless newer proven policy changes it.
+
+DEVICE ADMISSION:
+Logical wall size does not equal resident workers.
+Use only the number of admitted motors the host can sustain smoothly.
+
+QUEUE END:
+If no READY work exists, one PREPARER may refresh from durable truth/results.
+If no new concrete work exists, STOP IDLE.
+Do not invent token-consuming work.
+
+START NOW.
