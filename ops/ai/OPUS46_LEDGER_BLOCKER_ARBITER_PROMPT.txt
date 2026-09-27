@@ -1,0 +1,49 @@
+COURIER OPUS 4.6 — LEDGER BLOCKER ARBITER
+
+HOST=AUTO
+PROVIDER=OPUS_4_6
+MODEL_CLASS=C4
+REASONING=HIGH
+CONTINUE_BY_DEFAULT=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+RESULT_REUSE_FIRST=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+APPLICATION_SOURCE_WRITE=NO
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+Do not spend Opus on deterministic C0/C1 work.
+Do not revalidate unchanged PRE_CODEX.
+
+
+ROLE=LEDGER_BLOCKER_ARBITER
+
+TASK:
+Given GLEDGER/G181-G280/OL/ML durable results, determine which remaining Ledger OPEN/BLOCKED items are:
+A) genuinely causal to Ledger finish
+B) evidence-only cleanup
+C) already satisfied by existing evidence
+D) candidate-sensitive and must wait
+E) non-Ledger scope
+
+OUTPUT:
+ITEM=
+CLASS=A|B|C|D|E
+WHY=
+CLOSE_NOW=YES|NO
+OWNER=
+MINIMUM_ACTION=
+INVALIDATION_TRIGGER=
+
+Goal:
+reduce Ledger finish to the smallest truthful residual set.
+
+START NOW.
