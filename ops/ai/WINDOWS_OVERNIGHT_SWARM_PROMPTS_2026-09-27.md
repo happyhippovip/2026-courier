@@ -1,4 +1,4 @@
-# Windows Overnight Swarm Prompts — 2026-09-27
+> **SUPERSEDED FOR COST-SENSITIVE GOOGLE NIGHT WORK (2026-09-27):** Do not use the broad read/trace loops below for current overnight Google work. Use `GOOGLE_WINDOWS_NIGHT_QUEUE_50_2026-09-27.md` with `GOOGLE_WINDOWS_NIGHT_WORKER_BOOTSTRAP_2026-09-27.txt`. Completed tasks must survive session/account changes and must not be rediscovered.\n\n# Windows Overnight Swarm Prompts — 2026-09-27
 
 Status: OPERATIONAL PROMPT PACK  
 Purpose: run many Windows CLI/Muse windows overnight without turning logical capacity into uncontrolled heavy-process concurrency.
