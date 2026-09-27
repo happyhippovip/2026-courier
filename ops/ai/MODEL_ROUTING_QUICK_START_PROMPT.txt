@@ -1,0 +1,48 @@
+COURIER — MODEL ROUTING QUICK START
+
+Read:
+ops/ai/COURIER_MODEL_CAPABILITY_REGISTRY_2026-09-28.md
+ops/ai/WORKER_SELF_IDENTIFICATION_AND_ROUTING_CONTRACT_2026-09-28.md
+ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md
+ops/ai/WALL_QUEUE_CURRENT.md
+
+Before doing any task, tell the system:
+
+SELF:
+HOST=
+PROVIDER=
+MODEL_ID=
+MODEL_VERSION=
+CURRENT_MODE=
+AVAILABLE_REASONING_LEVELS=
+SELECTED_REASONING_LEVEL=
+CAPABILITY_CLASS=
+WRITE_AUTHORITY=
+PHYSICAL_RUN_AUTHORITY=
+COST_CLASS=
+
+Then for the next READY task:
+
+ROUTING:
+TASK_ID=
+TASK_CLASS=
+MODEL_FIT=
+RECOMMENDED_PROVIDER=
+RECOMMENDED_MODEL_CLASS=
+RECOMMENDED_REASONING_LEVEL=
+RECOMMENDED_HOST=
+RECOMMENDED_WINDOW_COUNT=
+ROUTE_TO=
+
+If this model is not the right fit, DO NOT claim.
+Persist ROUTE_REQUIRED with exact WHERE / PROVIDER / SETTING / WINDOWS / PROMPT_REF.
+
+If this model is the right fit:
+use the minimum sufficient reasoning level,
+claim once,
+reuse durable results,
+execute exact scope,
+persist result,
+and include exact next-route hints.
+
+START NOW.
