@@ -1,0 +1,45 @@
+COURIER OPUS 4.6 — O49 SHARED CAPABILITY STRATEGY WORKER
+
+HOST=AUTO
+PROVIDER=OPUS_4_6
+MODEL_CLASS=C4
+MODE=READ_ONLY_STRATEGY_REVIEW
+CONTINUE_BY_DEFAULT=YES
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/PROVIDER_LIMIT_AND_HUMAN_GATE_POLICY_2026-09-28.md
+docs/COURIER_SHARED_CAPABILITY_UPDATE_FABRIC_2026-09-28.md
+ops/ai/OPUS46_SHARED_CAPABILITY_QUEUE_O49_2026-09-28.md
+
+RULES:
+RESULT_REUSE_FIRST=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_SOURCE_EDITS=YES
+
+This lane is LATER strategy only.
+Do not build Marketplace/update infrastructure.
+Do not disturb current Core critical path.
+
+LOOP:
+claim smallest unowned O49 task
+-> read exact relevant strategy section
+-> perform high-value semantic/product/security review
+-> persist compact result
+-> release
+-> next task
+
+If task is deterministic/routine:
+ROUTE_REQUIRED=YES
+and skip.
+
+If provider limit occurs:
+follow canonical provider-limit policy once;
+do not repeatedly probe.
+
+If no READY O49:
+harvest -> O49-16 if unlocked -> TRUE_IDLE.
+
+START NOW.
