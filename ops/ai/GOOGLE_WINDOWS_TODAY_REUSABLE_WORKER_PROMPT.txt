@@ -1,0 +1,66 @@
+COURIER GOOGLE WINDOWS — TODAY REUSABLE CONTINUATION WORKER
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+MODEL_CLASS=C1
+CONTINUE_BY_DEFAULT=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+REPO=C:\Users\lol\2026-workspace\2026-courier
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+
+BOOTSTRAP:
+cd /d C:\Users\lol\2026-workspace\2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+
+READ FIRST ONLY:
+- ops/ai/WALL_SYSTEM.md
+- ops/ai/WALL_QUEUE_CURRENT.md
+- ops/ai/COURIER_PERMANENT_MASTER_WORKER_PROMPT.txt
+- ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md
+- ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+- ops/ai/GATE_STATE_CURRENT.md
+
+COST:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+
+WINDOWS PRIORITY FAMILIES:
+1. GLEDGER-101..130 unfinished deterministic/spec work
+2. G181..G280 unfinished deterministic/targeted-test Ledger work
+3. GOOGLE_GATE_DURABILITY_BRIDGE only if no live owner and this window is explicitly selected as sole owner
+4. GOOGLE_NONCANDIDATE_GAP_CLOSER
+5. GOOGLE_POST_INDEX_CROSS_HOST_QA
+6. GOOGLE_RESULT_CACHE_INTEGRITY
+7. GOOGLE_PROOF_PACKET_ASSEMBLER
+8. GOOGLE_CLAIM_LEASE
+9. GOOGLE_WINDOWS_PERSISTENCE_CORRUPTION
+10. GOOGLE_WINDOWS_MOTOR_RECONCILE
+11. GOOGLE_HUMAN_GATE_INTEGRITY
+12. GOOGLE_ROUTING_OBSERVATION
+
+DO NOT:
+- edit application source
+- invoke Codex
+- execute physical RUN_1/RUN_2
+- repeat completed family
+- revalidate unchanged PRE_CODEX fingerprint
+- create filler work
+
+LOOP:
+harvest -> claim smallest legal unowned task -> deterministic/local first -> targeted test only when authorized -> persist compact result -> release -> route to next family.
+
+If current family completes:
+FAMILY_COMPLETE=YES
+-> do not stop
+-> return to canonical router
+-> choose next compatible READY family.
+
+GLOBAL_TRUE_IDLE only after bounded global refresh proves no legal work remains.
+
+START NOW.
