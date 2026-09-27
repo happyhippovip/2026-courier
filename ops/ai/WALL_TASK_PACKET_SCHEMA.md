@@ -10,6 +10,14 @@ QUEUE_GENERATION=
 TITLE=
 PRIORITY=P0|P1|P2
 ROLE=PREPARE|EXECUTE|VERIFY|HARVEST
+TASK_CLASS=C0_DETERMINISTIC|C1_BULK|C2_REVIEW|C3_CODE_GATE|C4_CONVERGENCE|C5_WRITER|C5_PHYSICAL
+PREFERRED_PROVIDER=
+ALLOWED_PROVIDERS=
+PREFERRED_HOST=WINDOWS|MAC|EITHER
+MIN_CAPABILITY_CLASS=
+MAX_COST_CLASS=
+RECOMMENDED_REASONING_LEVEL=LOW|NORMAL|MEDIUM|HIGH|NONE
+TASK_FAMILY_PARALLEL_CAP=
 
 DEPENDENCIES=
 TRUTH_KEYS=
@@ -72,6 +80,12 @@ BLOCKER=
 CENTRAL_WRITER_INPUT=
 DO_NOT_REPEAT=
 NEXT_DEPENDENCY=
+NEXT_TASK_CLASS=
+NEXT_PREFERRED_PROVIDER=
+NEXT_PREFERRED_HOST=
+NEXT_REASONING_LEVEL=
+NEXT_WINDOW_COUNT=
+NEXT_PROMPT_REF=
 ```
 
 ## Invalid tasks
@@ -85,3 +99,8 @@ Reject or return to PREPARER when a packet says:
 - run all tests
 
 unless a specific exceptional policy explicitly authorizes that scope.
+
+
+## Model-aware routing requirement
+
+Before claim, apply `ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md` and the worker self-identification contract. A capable model without required authority is not eligible. Prefer C0 deterministic execution and the cheapest capable safe provider. Expensive C3/C4 workers require a task packet that explicitly justifies that class.
