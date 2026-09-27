@@ -54,6 +54,18 @@ Default multiplicity:
 - 2-8 windows
 - use only on distinct claims/families
 
+### SONNET
+Best for:
+- mid-tier semantic review when deterministic Google/local checks are insufficient
+- contradiction/restart/proof semantics
+- routing/cost QA
+- independent synthesis where Opus would be excessive
+
+Default multiplicity:
+- 1-6 windows depending on real distinct reasoning tasks
+- use only when Sonnet is actually available in the current environment
+- on provider limit, follow PROVIDER_LIMIT_AND_HUMAN_GATE_POLICY; never rotate accounts automatically
+
 ### OPUS_4_6
 Best for:
 - semantic convergence
@@ -152,3 +164,8 @@ If RUN_2=PASS:
 If all relevant queues exhausted:
 - TRUE_IDLE
 - do not recommend more windows merely because capacity exists
+
+
+## Provider limits
+Canonical policy: ops/ai/PROVIDER_LIMIT_AND_HUMAN_GATE_POLICY_2026-09-28.md
+A provider limit disables only the affected family. Re-route to an already-authorized capable provider when possible; otherwise create one HUMAN_GATE and continue unrelated work. Never automate account/auth/billing changes.
