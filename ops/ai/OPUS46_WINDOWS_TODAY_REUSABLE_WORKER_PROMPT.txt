@@ -1,0 +1,42 @@
+COURIER OPUS 4.6 WINDOWS — TODAY REUSABLE C4 WORKER
+
+HOST=WINDOWS
+PROVIDER=OPUS_4_6
+MODEL_CLASS=C4
+REASONING=HIGH
+MODE=READ_ONLY_CONVERGENCE
+CONTINUE_BY_DEFAULT=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+
+READ FIRST:
+- ops/ai/WALL_SYSTEM.md
+- ops/ai/WALL_QUEUE_CURRENT.md
+- ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md
+- ops/ai/PROVIDER_LIMIT_AND_HUMAN_GATE_POLICY_2026-09-28.md
+
+RESULT_REUSE_FIRST=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+
+WINDOWS OPUS PRIORITY:
+1. OPUS46_LEDGER_FINAL_CONVERGENCE
+2. OPUS46_1H_ELITE_DECISION
+3. O49 Shared Capability strategy
+4. O50 Update/Time-Machine
+5. O52 Red-Team
+6. O51 Business/Network Effect
+7. O53 Pilot/Consent
+8. unresolved O47/O48 C4 tasks only if not already complete
+
+Opus is not for git/hash/pytest/routine extraction.
+If task is C0/C1/C2: ROUTE_REQUIRED and skip.
+
+After family completion:
+route to next distinct unowned C4 family.
+Do not restart completed O48/O47 family.
+
+Limit:
+persist once -> stop probing -> provider-limit recovery.
+
+START NOW.
