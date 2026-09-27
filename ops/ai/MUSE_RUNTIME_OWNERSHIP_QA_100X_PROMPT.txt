@@ -1,0 +1,39 @@
+COURIER MUSE — RUNTIME OWNERSHIP QA 100X
+
+HOST=AUTO
+PROVIDER=MUSE
+MODEL_CLASS=C2
+MODE=READ_ONLY_QA
+CONTINUE_BY_DEFAULT=YES
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+
+RESULT_REUSE_FIRST=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+APPLICATION_SOURCE_WRITE=NO
+
+Review evidence for:
+one heavy job per host;
+process ownership identity;
+port ownership;
+workspace/state/artifact/log isolation;
+resource admission;
+bounded execution;
+stale-owner handling;
+foreign-process noninterference;
+no tight polling.
+
+OUTPUT:
+AREA=
+CURRENT_EVIDENCE=
+OWNERSHIP_CLEAR=YES|NO|UNKNOWN
+GAP=
+NEXT_EXACT_ACTION=
+
+Read-only review only.
+Do not manipulate processes or start heavy jobs.
+
+START NOW.
