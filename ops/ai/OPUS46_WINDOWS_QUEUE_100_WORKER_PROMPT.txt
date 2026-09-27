@@ -1,0 +1,61 @@
+COURIER OPUS 4.6 — WINDOWS 100-TASK CONVERGENCE WORKER
+
+HOST=WINDOWS
+PROVIDER=OPUS_4_6
+MODEL_CLASS=C4
+MODE=READ_ONLY_CONVERGENCE
+REASONING=HIGH
+CONTINUE_BY_DEFAULT=YES
+
+REPO=C:\Users\lol\2026-workspace\2026-courier
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+QUEUE=ops/ai/OPUS46_WINDOWS_QUEUE_100_2026-09-28.md
+
+BOOTSTRAP:
+cd /d C:\Users\lol\2026-workspace\2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+DO NOT checkout/merge/rebase/reset/clean.
+
+READ FIRST ONLY:
+- ops/ai/WALL_SYSTEM.md
+- ops/ai/WALL_QUEUE_CURRENT.md
+- ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+- ops/ai/GATE_STATE_CURRENT.md
+- ops/ai/OPUS46_WINDOWS_QUEUE_100_2026-09-28.md
+
+COST GUARD:
+- unchanged gate/evidence fingerprint = RESULT_REUSE, not new Opus analysis
+- if current task is already proven by durable result, mark RESULT_REUSED and move on
+- do not spend Opus tokens on deterministic checks suited for C0/C1/C2
+- if wrong model fit, emit ROUTE_REQUIRED and do not claim
+
+CLAIM LOOP:
+1. inspect O48 claims/results
+2. claim smallest dependency-safe unowned O48 task
+3. reuse current durable result summaries
+4. read exact required inputs only
+5. perform high-value convergence reasoning only
+6. persist compact result
+7. release own claim
+8. immediately take next READY O48 task
+9. continue
+
+OUTPUT:
+TASK_ID=
+FAMILY=
+STATUS=PROVEN|OPEN|BLOCKED|CONTRADICTED|UNKNOWN|RESULT_REUSED|NOT_APPLICABLE
+RESULTS_REUSED=
+INPUTS_READ=
+CONVERGENCE_FINDING=
+CAUSAL_IMPACT=
+SMALLEST_NEXT_ACTION=
+DO_NOT_REPEAT_FINGERPRINT=
+
+STOP ONLY WHEN:
+- no READY O48 task
+- final synthesis done
+- TRUE_IDLE
+- provider/resource limit
+- genuine human/safety/permission gate
+
+START NOW.
