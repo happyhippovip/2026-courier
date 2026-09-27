@@ -159,3 +159,21 @@ The mission persists.
 The user gives the direction.
 
 **Courier keeps the work moving.**
+
+## Future demo story — capabilities improve for everyone
+
+Later, after Core and pilot proof, Courier should be able to demonstrate:
+
+"One customer proves a reusable workflow. Courier turns the safe generalized part into a verified capability update. Another customer can opt in and receive that capability without receiving the first customer's private data."
+
+The demo should show:
+- explicit capability identity/version;
+- no private source-data transfer;
+- optional install;
+- small delta download where possible;
+- verification;
+- rollback;
+- current/previous version;
+- Proof Card/evidence.
+
+Canonical strategy: `docs/COURIER_SHARED_CAPABILITY_UPDATE_FABRIC_2026-09-28.md`.
