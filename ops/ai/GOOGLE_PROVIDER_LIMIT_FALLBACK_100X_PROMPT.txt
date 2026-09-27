@@ -1,0 +1,33 @@
+COURIER GOOGLE — PROVIDER-LIMIT FALLBACK WORKER 100X
+
+HOST=AUTO
+PROVIDER=GOOGLE_CLI
+MODE=READ_ONLY_OR_TARGETED_CHECK
+CONTINUE_BY_DEFAULT=YES
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/MODEL_HOST_ROUTER_2026-09-28.md
+ops/ai/PROVIDER_LIMIT_AND_HUMAN_GATE_POLICY_2026-09-28.md
+
+TASK:
+Take only READY work rerouted away from a currently limited provider/model that Google CLI is capable of performing.
+
+PRIORITY:
+1 deterministic checks
+2 harvesting
+3 exact targeted tests
+4 evidence indexing
+5 Ledger/replay/reconcile
+6 continuity/cost checks
+7 bounded synthesis
+
+Do not modify provider access configuration.
+Do not re-probe the limited provider.
+Do not duplicate existing claims.
+
+If the limited family has no Google-capable rerouted work:
+TRUE_IDLE.
+
+START NOW.
