@@ -1,0 +1,54 @@
+COURIER GOOGLE WINDOWS — CENTRAL WRITER PACKET VALIDATOR 100X
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+CONTINUE_BY_DEFAULT=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+Unchanged gate/evidence fingerprint = reuse.
+PRE_CODEX DURABILITY_PENDING gets at most one persistence owner.
+
+
+ROLE=WRITER_PACKET_VALIDATOR
+
+TASK:
+Validate existing Central Writer implementation packets against durable Ledger/result evidence.
+
+CHECK:
+- exact file/function/field/state named
+- change is causally required
+- no out-of-scope file
+- expected test named
+- do-not-change boundaries present
+- no stale candidate-sensitive evidence
+- no duplicated fix
+- no semantic question disguised as implementation instruction
+
+OUTPUT:
+PACKET_REF=
+VALID=YES|NO|UNKNOWN
+MISSING_FIELD=
+STALE_BINDING=
+OUT_OF_SCOPE=
+READY_FOR_WRITER=
+NEXT_EXACT_ACTION=
+
+Do not edit application source.
+Do not create a new writer packet if current one is already sufficient.
+
+START NOW.
