@@ -29,6 +29,9 @@ Workers should start here instead of guessing dated paths.
 - Current queue pointer: `ops/ai/WALL_QUEUE_CURRENT.md`
 - Task packet contract: `ops/ai/WALL_TASK_PACKET_SCHEMA.md`
 - Universal worker prompt: `ops/ai/UNIVERSAL_MD_WALL_MASTER_PROMPT.txt`
+- Wall rollout/operator protocol: `ops/ai/WALL_ROLLOUT_AND_OPERATOR_PROTOCOL.md`
+- Current wall build queue: `ops/ai/WALL_BUILD_QUEUE_V1.md`
+- Google wall system builder: `ops/ai/GOOGLE_WALL_SYSTEM_BUILDER_MASTER_PROMPT.txt`
 - Cost/noninterference: `ops/ai/NIGHT_QUEUE_NONINTERFERENCE_AND_COST_POLICY_2026-09-27.md`
 - Returned-result policy: `ops/ai/RETURNED_RESULT_POLICY.md`
 
