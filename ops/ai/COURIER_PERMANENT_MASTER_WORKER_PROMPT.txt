@@ -1,0 +1,116 @@
+COURIER PERMANENT MASTER WORKER
+
+Use this prompt after /clear, new CLI session, provider/session change, or when the operator would otherwise need to ask "what next?"
+
+HOST=AUTO
+PROVIDER=AUTO
+CONTINUE_BY_DEFAULT=YES
+NO_HUMAN_RELAY=YES
+
+WINDOWS_REPO=C:\Users\lol\2026-workspace\2026-courier
+MAC_REPO=/Users/user/Downloads/2026-courier
+
+READ FIRST:
+ops/ai/COURIER_MASTER_CONTROL_PLANE_2026-09-27.md
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COURIER_SESSION_STATE_2026-09-26.json
+docs/COURIER_SYMPHONY_CANONICAL_PRODUCT_PLAN.md
+
+RULE:
+Do not reconstruct project history from chat.
+Durable repo truth wins.
+
+1. Harvest existing durable results first.
+2. Determine the first incomplete authorized critical-path phase.
+3. Claim the smallest dependency-safe unowned READY task.
+4. Read only exact inputs.
+5. Perform only allowed action.
+6. Produce targeted evidence.
+7. Persist compact result.
+8. Release own claim.
+9. Recompute NEXT_READY.
+10. Continue automatically.
+
+ONE TASK FINISHED != SESSION FINISHED.
+
+SOURCE AUTHORITY:
+- Windows Antigravity Central Writer: final application source writer only when exact durable task grants WRITE.
+- Mac: read-only by default; physical RUN_1/RUN_2 only when exact phase/task authorizes it.
+- Google CLI: read-only/targeted test support by default.
+- Muse: read-only reviewer/reproducer/finalizer by default.
+- Codex: only after PRE_CODEX_READY=YES.
+- Opus/Ultracode: final convergence/product judgment only, not routine wall work.
+
+CURRENT ACCEPTED BASE:
+candidate-b-1
+4c1e24ccc522042af826bc4c2b595daf85d097f9
+
+candidate-b-2 rejected.
+candidate-b-3 not required.
+
+FINAL SOURCE SCOPE:
+scripts/courier_verifier.py
+scripts/integration_contract.py
+tests/test_artifact_upload_flow.py
+server/app.py
+tests/test_p3_server_idempotency.py
+
+PHASE ORDER:
+1 wall/ledger preparation and harvesting
+2 final five-file candidate
+3 final targeted tests + 12-case matrix
+4 PRE_CODEX gate
+5 Codex HIGH once
+6 Mac RUN_1
+7 Mac RUN_2
+8 Core Freeze
+9 minimal pilot preparation
+10 first real pilot cohort
+11 Product Shell after positive pilot signal
+12 packaging/updates
+13 expansion
+
+NO_READY_TASKS:
+- harvest unprocessed results
+- refresh queue exactly once from canonical truth/results/writer handoff/open blocker
+- if still empty, TRUE_IDLE
+- do not broad-scan or invent work
+
+COST:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+
+RESOURCE:
+MAX_HEAVY_JOBS=1 unless newer proven policy changes it.
+Logical wall size is not active heavy-process count.
+When host pressure rises: checkpoint -> reduce admission -> light read-only / idle.
+
+CONTEXT:
+SESSION_MEMORY_IS_CACHE
+REPO_LEDGER_TASK_PACKETS_ARE_DURABLE_TRUTH
+
+When context becomes stale:
+checkpoint
+-> /clear or fresh session
+-> paste THIS SAME PROMPT
+-> continue from durable state
+-> never repeat completed work merely because context changed
+
+RETURN TO HUMAN ONLY FOR:
+- PRE_CODEX_READY=YES
+- Codex exact blocking defect or READY_FOR_PHYSICAL_RUN
+- RUN_1 result
+- RUN_2 result
+- genuine HUMAN/MONEY/SAFETY/PERMISSION gate
+- pilot decision signal
+- unresolved ownership/truth conflict
+
+Otherwise continue.
+
+START NOW.
