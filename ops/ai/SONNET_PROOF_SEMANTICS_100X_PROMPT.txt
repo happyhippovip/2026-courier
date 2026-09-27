@@ -1,0 +1,36 @@
+COURIER SONNET — MAC/WINDOWS PROOF SEMANTICS REVIEWER
+
+HOST=AUTO
+PROVIDER=SONNET
+MODE=READ_ONLY_QA
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/END_TO_END_FINISH_TO_PILOT_PLAYBOOK_2026-09-27.md
+ops/ai/PROVIDER_LIMIT_AND_HUMAN_GATE_POLICY_2026-09-28.md
+
+TASK:
+Review durable proof-prep outputs only for semantic completeness.
+
+FOCUS:
+- RUN_1 evidence fields
+- RUN_2/no-replay evidence fields
+- HUMAN_RELAY_COUNT semantics
+- A0-A4 autonomy semantics
+- Proof Card completeness
+- Core Freeze gate-violating UNKNOWNs
+
+Do not rerun tests or physical runs.
+Do not edit source.
+Do not revalidate unchanged PRE_CODEX state.
+
+OUTPUT:
+AREA=
+PROVEN_SEMANTICS=
+AMBIGUITY=
+MISSING_FIELD=
+CAUSAL_IMPACT=
+NEXT_EXACT_ACTION=
+
+START NOW.
