@@ -223,3 +223,24 @@ Policy: `ops/ai/PROVIDER_LIMIT_AND_HUMAN_GATE_POLICY_2026-09-28.md`
 Recovery router: `ops/ai/PROVIDER_LIMIT_RECOVERY_ROUTER_PROMPT.txt`
 
 One new limit fingerprint gets at most one recovery-router owner. Re-route only to already-available capable providers. If operator action is required, create one provider-access HUMAN_GATE and continue unrelated work.
+
+## Family completion vs global idle
+
+A specialized queue becoming empty is FAMILY_COMPLETE, not automatically TRUE_IDLE.
+
+Required transition:
+FAMILY_COMPLETE
+-> persist family synthesis/result
+-> release family claim
+-> return to canonical router/master
+-> inspect current durable pointers/results/claims once
+-> claim another authorized compatible READY family when one exists
+-> only then, if no READY work, no unharvested result, no unlocked synthesis/preparation, and no legal cross-family work remains, set GLOBAL_TRUE_IDLE.
+
+Rules:
+- A worker must not invent new tasks inside a completed family.
+- A worker must not repeat the completed family merely to stay alive.
+- A dedicated family prompt may terminate its family, but must emit NEXT_ROUTER=ops/ai/COURIER_PERMANENT_MASTER_WORKER_PROMPT.txt unless GLOBAL_TRUE_IDLE has been proven.
+- Provider/model suitability still applies: wrong-fit work is routed, not executed.
+- FAMILY_COMPLETE != GOAL_COMPLETE.
+- TRUE_IDLE without a bounded global cross-family refresh is PREMATURE_IDLE.
