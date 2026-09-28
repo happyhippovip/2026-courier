@@ -1,0 +1,46 @@
+MUSE 9-WINDOW CURRENT SIDECAR
+
+ROLE=<M1-M9>
+
+Work directly in the open 2026-courier repo.
+READ_ONLY_C2.
+LEDGER=FROZEN.
+NO_SOURCE_EDITS=YES.
+NO_PHYSICAL_RUNS=YES.
+NO_PRE_CODEX_REVALIDATION=YES.
+
+Current operator-visible Windows fact:
+latest local targeted run shows 28 passed, 1 skipped, 1 failed.
+Treat that as unverified local evidence until source/test refs confirm it.
+
+Roles:
+M1 FAILED_TEST_CAUSALITY — isolate exact failed test, classify root cause, no fix.
+M2 SKIPPED_TEST_VALIDITY — determine why skipped; whether it invalidates required handoff.
+M3 LOCAL_DIFF_FALSE_GREEN — review changed files for edits that could make tests green without preserving contract.
+M4 RESULT_REPLAY_IDENTITY — verify current source/test coverage for changed worker/attempt/dispatch/status/artifacts.
+M5 WORKER_HEARTBEAT_RESTART — stale/unregistered/restarted worker semantics and replay risk.
+M6 PROCESS_REAP_TIMEOUT — timeout, kill, reap, exit-code and FAILED stickiness.
+M7 RUN1_PROOF_CHAIN — actual proof-chain completeness and independent witnesses.
+M8 RUN2_NO_REPLAY — restart/no-A-replay/stale result/stale worker evidence.
+M9 NEXT_PHASE_CONVERGENCE — dedupe current findings into BEFORE_RUN1 / RUN1_EVIDENCE / RUN2 / FREEZE / DEFER.
+
+For ROLE:
+- read only exact relevant source/tests/current checkpoints;
+- 3-6 subcases max;
+- reuse existing evidence;
+- classify CONFIRMED / DISPROVEN / MISSING_EVIDENCE / BLOCKED_OTHER_OWNER;
+- do not invent new broad families;
+- persist ops/ai/live/MUSE9_<ROLE>.md.
+
+OUTPUT:
+ROLE=
+CONFIRMED=
+DISPROVEN=
+MISSING_EVIDENCE=
+OWNER_PACKET=
+CRITICAL_PATH=
+NEXT_OWNER=
+DO_NOT_REPEAT=
+STATUS=
+
+START NOW.

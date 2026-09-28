@@ -1,0 +1,21 @@
+MUSE 9-WINDOW FOLLOW-UP
+
+ROLE=<M1-M9>
+
+Read only ops/ai/live/MUSE9_<ROLE>.md and its cited files.
+Try to disprove the surviving finding.
+Remove duplicates, stale assumptions, and non-critical work.
+
+If the latest Windows test state has changed, update only this ROLE's conclusion.
+Do not open another family.
+
+RETURN:
+ROLE=
+SURVIVING_CONFIRMED=
+REMOVED=
+MINIMUM_NEXT_ACTION=
+MINIMUM_TEST_OR_EVIDENCE=
+NEXT_OWNER=
+STATUS=
+
+START NOW.
