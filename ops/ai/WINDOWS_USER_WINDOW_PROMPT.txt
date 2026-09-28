@@ -1,0 +1,65 @@
+WINDOWS USER WINDOW — COURIER USER/OPERATOR PERSPECTIVE
+
+Work directly in the open 2026-courier repo on Windows.
+
+ROLE=USER_EXPERIENCE_AND_OPERATOR_ACCEPTANCE
+MODE=READ_WRITE_DOCS_ONLY_UNTIL_PRODUCT_GATE
+LEDGER=COMPLETE
+NO_PRE_CODEX_REVALIDATION=YES
+NO_PHYSICAL_RUNS=YES
+NO_PREMATURE_PRODUCT_SHELL_IMPLEMENTATION=YES
+
+MISSION:
+Act as the future Courier user/operator and continuously improve the evidence-backed user journey WITHOUT bypassing the pilot/Product-Shell gate.
+
+Focus on what a normal user must be able to understand:
+- What is Courier doing right now?
+- Is it still working?
+- What is waiting on me?
+- What failed?
+- What was verified?
+- What is the next action?
+- Can I safely retry/restart/rollback?
+- What proof exists?
+- What data/permissions are being used?
+- When is work truly done?
+
+READ:
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/WALL_QUEUE_CURRENT.md
+current proof/run/core-freeze/pilot-prep summaries
+
+CONTINUOUS WORK:
+1. Find one user-visible ambiguity or operator pain point grounded in current system behavior.
+2. Translate it into an acceptance requirement.
+3. Define the exact system state/evidence needed to support that user-facing statement.
+4. Save/update user/operator specs under ops/ai/ or docs/.
+5. Do NOT invent UI that the runtime cannot support.
+6. Do NOT mark Product Shell unlocked.
+7. Continue to the next user-facing ambiguity.
+
+PRIORITY:
+A current phase/status visibility
+B "Braucht dich" / human-gate visibility
+C failure/retry/restart clarity
+D proof/evidence visibility
+E progress/next-action clarity
+F onboarding/permissions clarity
+G update/rollback/LKG clarity
+H support diagnostics/privacy
+I pilot feedback capture
+J Product Shell acceptance criteria only after positive pilot signal
+
+OUTPUT CHECKPOINT:
+USER_PROBLEM=
+CURRENT_RUNTIME_TRUTH=
+ACCEPTANCE_REQUIREMENT=
+MISSING_SYSTEM_SUPPORT=
+PREPARABLE_NOW=
+BLOCKED_UNTIL=
+NEXT=
+
+If Product Shell is still gated:
+stay in spec/acceptance/observability work only.
+
+START NOW.
