@@ -1,0 +1,24 @@
+# Muse Finish Wall 31–50 — 2026-09-28
+
+Use after/alongside Muse 1–30. These are closure-oriented C2 tasks, not Ledger work.
+
+- 31: `ops/ai/muse_finish50/MUSE_D_31_GATE_TRANSITION_INVARIANTS_PROMPT.txt`
+- 32: `ops/ai/muse_finish50/MUSE_D_32_CANDIDATE_BUNDLE_INTEGRITY_PROMPT.txt`
+- 33: `ops/ai/muse_finish50/MUSE_D_33_CODEX_HANDOFF_AMBIGUITY_PROMPT.txt`
+- 34: `ops/ai/muse_finish50/MUSE_D_34_CODEX_BLOCKED_RETURN_PATH_PROMPT.txt`
+- 35: `ops/ai/muse_finish50/MUSE_D_35_CENTRAL_WRITER_PACKET_MINIMALITY_PROMPT.txt`
+- 36: `ops/ai/muse_finish50/MUSE_D_36_MAC_EXACT_BINDING_FALSIFICATION_PROMPT.txt`
+- 37: `ops/ai/muse_finish50/MUSE_D_37_RUN1_COMMAND_EVIDENCE_CONSISTENCY_PROMPT.txt`
+- 38: `ops/ai/muse_finish50/MUSE_D_38_RUN1_RESULT_IDENTITY_PROMPT.txt`
+- 39: `ops/ai/muse_finish50/MUSE_D_39_RUN1_ZERO_HUMAN_TRACE_PROMPT.txt`
+- 40: `ops/ai/muse_finish50/MUSE_D_40_RUN1_FAILURE_CONTAMINATION_PROMPT.txt`
+- 41: `ops/ai/muse_finish50/MUSE_D_41_RUN2_RESTART_STATE_MACHINE_PROMPT.txt`
+- 42: `ops/ai/muse_finish50/MUSE_D_42_RUN2_EXECUTION_COUNT_CONSISTENCY_PROMPT.txt`
+- 43: `ops/ai/muse_finish50/MUSE_D_43_CROSS_RUN_CONTAMINATION_PROMPT.txt`
+- 44: `ops/ai/muse_finish50/MUSE_D_44_PROCESS_CLEANUP_NONINTERFERENCE_PROMPT.txt`
+- 45: `ops/ai/muse_finish50/MUSE_D_45_RESOURCE_BACKOFF_RELIABILITY_PROMPT.txt`
+- 46: `ops/ai/muse_finish50/MUSE_D_46_PROOF_CARD_FINGERPRINT_BINDING_PROMPT.txt`
+- 47: `ops/ai/muse_finish50/MUSE_D_47_CORE_FREEZE_UNKNOWN_AUDIT_PROMPT.txt`
+- 48: `ops/ai/muse_finish50/MUSE_D_48_PILOT_UNLOCK_HONESTY_PROMPT.txt`
+- 49: `ops/ai/muse_finish50/MUSE_D_49_PRODUCT_SHELL_GUARDRAIL_PROMPT.txt`
+- 50: `ops/ai/muse_finish50/MUSE_D_50_FINAL_CAUSAL_BLOCKER_SYNTHESIS_PROMPT.txt`

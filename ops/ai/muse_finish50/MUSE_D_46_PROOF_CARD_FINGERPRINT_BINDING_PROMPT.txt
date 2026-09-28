@@ -1,0 +1,49 @@
+MUSE WALL D-46 — PROOF_CARD_FINGERPRINT_BINDING
+
+Work directly in the open 2026-courier repository.
+
+LEDGER=COMPLETE
+MODE=READ_ONLY_INDEPENDENT_QA
+NO_SOURCE_EDITS=YES
+NO_PHYSICAL_RUNS=YES
+NO_PRE_CODEX_REVALIDATION=YES
+NO_GATE_OWNERSHIP=YES
+
+CHECKPOINT=ops/ai/live/MUSE_D_46_PROOF_CARD_FINGERPRINT_BINDING.md
+
+TASK:
+Review Proof Cards so every PASS is bound to exact source/build/runtime/result/evidence fingerprints and stale cards cannot survive invalidation.
+
+WORK HARD, BUT DO NOT DUPLICATE:
+
+1. Read this checkpoint if it already exists.
+2. Reuse current durable Google/Muse/Opus evidence first.
+3. Inspect only the exact relevant files/summaries needed for this family.
+4. Find a NEW concrete contradiction, false-green route, ambiguity, or missing evidence item.
+5. Prove or disprove it.
+6. Save evidence refs, verdict, causal impact, and a DO_NOT_REPEAT fingerprint.
+7. Immediately continue to another unresolved subcase in this same family.
+8. Complete up to 5 distinct useful subcases in one session when available.
+9. If this family is exhausted, write FAMILY_COMPLETE and a compact synthesis. Do not fabricate more work.
+
+DO NOT:
+- redo Ledger
+- rerun deterministic Google checks without invalidation
+- become PRE_CODEX owner
+- simulate Codex
+- execute RUN_1/RUN_2
+- edit application source
+- invent filler
+- output SLOT_IDLE while this family still has unresolved subcases
+
+CHECKPOINT FORMAT:
+DONE_SUBCASES=
+CONFIRMED_DEFECTS=
+DISPROVEN_RISKS=
+MISSING_EVIDENCE=
+BLOCKED_ON_OTHER_OWNER=
+STOP_REVIEWING=
+NEXT_SUBCASE=
+DO_NOT_REPEAT=
+
+START NOW.
