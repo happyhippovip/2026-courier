@@ -1,0 +1,39 @@
+COURIER — GOOGLE PHASE SWITCH
+
+Read:
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/ENDGAME_SLOT_ROUTER_CURRENT.md
+ops/ai/ENDGAME_PROMPT_PACK_CURRENT.md
+
+Do not use remembered phase.
+
+If CURRENT_PHASE=BEFORE_RUN1_WRITER:
+- Windows: run GOOGLE_WINDOWS_PERSISTENT_ENDGAME_CURRENT.txt
+- Mac: run GOOGLE_MAC_SIMPLE_ENDGAME_CURRENT.txt
+- only the explicitly authorized sole writer may modify source.
+
+If CURRENT_PHASE=POST_WRITER_NEW_SHA_CONVERGENCE:
+- all free read-only windows run P2 using unique SLOT_ID 01..30.
+
+If CURRENT_PHASE=MAC_EXACT_BINDING:
+- one explicit Mac binding owner runs P3;
+- other windows use only active read-only router slots or park.
+
+If CURRENT_PHASE=RUN1_ACTUAL:
+- exactly one explicit Physical Mac Owner runs P4;
+- others inspect only actual RUN1 evidence when it appears.
+
+If CURRENT_PHASE=RUN2_ACTUAL:
+- exactly one explicit Physical Mac Owner runs P5;
+- others inspect only actual RUN2 evidence when it appears.
+
+If CURRENT_PHASE=CORE_FREEZE:
+- read-only windows run P6 by SLOT_ID;
+- one decision owner runs P7 after slot results converge.
+
+If CURRENT_PHASE=MINIMUM_REAL_PILOT:
+- pilot-prep windows run P8.
+- do not unlock Product Shell before positive real pilot evidence.
+
+If phase/SHA changes during work:
+stop stale work immediately and re-route.
