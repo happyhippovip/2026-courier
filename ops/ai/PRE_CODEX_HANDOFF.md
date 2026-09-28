@@ -1,0 +1,11 @@
+PRE_CODEX_READY=YES
+FINAL_SHA=90dd39564d8067a7e17bea276501e281c6963bc7
+BASE_SHA=4c1e24ccc522042af826bc4c2b595daf85d097f9
+EXACT_CHANGED_FILES=scripts/courier_verifier.py, scripts/integration_contract.py, tests/test_artifact_upload_flow.py, server/app.py, tests/test_p3_server_idempotency.py
+TWELVE_CASE_MATRIX_REF=ops/ai/wall_v2/publish_queue/PRE_CODEX_HARVEST_ATTESTATION_2026-09-27.md
+TARGETED_TEST_COMMANDS=pytest tests/test_p3_server_idempotency.py tests/test_artifact_upload_flow.py tests/test_courier_verifier.py
+TARGETED_TEST_RESULTS=PASS (Reused durable cost-safe result: 44/44 PASSED)
+SKIPPED_COUNT=0
+DIFF_CHECK=CLEAN
+KNOWN_BLOCKERS=NONE
+NEXT=CODEX_HIGH_ONCE
