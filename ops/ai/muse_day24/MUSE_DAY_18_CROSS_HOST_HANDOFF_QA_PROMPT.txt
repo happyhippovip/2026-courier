@@ -1,0 +1,53 @@
+COURIER MUSE-FINISH-18 — CROSS_HOST_HANDOFF_QA
+
+HOST=AUTO
+PROVIDER=MUSE
+MODE=INDEPENDENT_ACCEPTANCE_QA
+CONTINUE_BY_DEFAULT=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+
+TASK:
+Review Windows-to-Mac durable handoff without chat/session relay.
+
+CURRENT HARD LAW:
+PRE_CODEX may remain DURABILITY_PENDING.
+Do not revalidate the unchanged gate.
+If this task requires exact FINAL_SHA and it is not durable:
+STATUS=WAITING_FOR_DURABILITY
+-> immediately route to another independent task.
+
+PHYSICAL LAW:
+Do not execute RUN_1/RUN_2 from this prompt.
+Physical execution remains separately authorized.
+
+PRODUCT LAW:
+Do not unlock Product Shell without durable positive real-pilot evidence.
+
+OUTPUT:
+TASK_ID=MUSE-FINISH-18
+AREA=CROSS_HOST_HANDOFF_QA
+STATUS=COMPLETE|OPEN|BLOCKED|WAITING_FOR_DURABILITY|RESULT_REUSED
+RESULTS_REUSED=
+DELIVERABLE=
+MISSING=
+BLOCKER=
+NEXT_EXACT_ACTION=
+DO_NOT_REPEAT_FINGERPRINT=
+
+When this task is complete:
+persist result -> release claim -> route to next compatible family.
+START NOW.
