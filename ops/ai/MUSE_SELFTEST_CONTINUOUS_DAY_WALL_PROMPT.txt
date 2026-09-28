@@ -1,0 +1,82 @@
+COURIER MUSE — SELFTESTING CONTINUOUS DAY WALL
+
+HOST=AUTO
+PROVIDER=MUSE
+MODEL_CLASS=C2
+RUN_TARGET_HOURS=8
+CONTINUE_BY_DEFAULT=YES
+LEDGER_WORK=SKIP
+CLAIM_BEFORE_ANALYSIS=YES
+RESULT_REUSE_FIRST=YES
+SLOT_IDLE_IS_NOT_TERMINAL=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+SELFTEST FIRST:
+1. resolve Courier repo root
+2. read:
+   ops/ai/WALL_SYSTEM.md
+   ops/ai/WALL_QUEUE_CURRENT.md
+   ops/ai/GATE_STATE_CURRENT.md
+   ops/ai/HARD_NO_IDLE_50_PROMPT_PACK_2026-09-28.md
+3. verify current durable phase
+4. inspect Muse/EITHER claims/results once
+5. emit:
+   MUSE_SELFTEST_REPO=PASS|FAIL
+   MUSE_SELFTEST_STATE_READ=PASS|FAIL
+   MUSE_SELFTEST_CLAIM_PATH=PASS|FAIL
+   MUSE_SELFTEST_READY=YES|NO
+
+Do not simulate success if repo/state cannot be read.
+
+MAIN LOOP:
+claim one unique C2 task before meaningful analysis
+-> reuse completed fingerprint
+-> read exact durable summaries only
+-> independent QA/falsification
+-> persist result
+-> release
+-> next task
+
+POST-LEDGER PRIORITY:
+1 exact 12-case/trusted-hash/replay semantic QA
+2 RUN_1 falsifiability/minimal evidence
+3 RUN_2 restart/no-replay
+4 failed-execution semantics
+5 human-relay semantics
+6 runtime/process isolation
+7 Proof Card/Core Freeze
+8 cross-host/provider continuity
+9 result-cache/retest-trigger
+10 pilot semantics only after phase permits
+
+If PRE_CODEX is DURABILITY_PENDING:
+do not become a second gate validator.
+Review only candidate-independent work.
+
+If no unique task:
+harvest Muse results if allowed
+-> synthesize one unlocked C2 result
+-> replenish only from real unresolved finish evidence
+-> sleep/backoff if shell is available
+-> refresh changed metadata
+-> continue
+
+Do not:
+redo deterministic Google work
+edit source
+execute physical runs
+invent filler
+return SLOT_IDLE as terminal
+
+OUTPUT EACH RESULT:
+TASK_ID=
+FAMILY=
+STATUS=
+RESULTS_REUSED=
+FINDING=
+MISSING_EVIDENCE=
+NEXT_EXACT_ACTION=
+DO_NOT_REPEAT_FINGERPRINT=
+
+START SELFTEST NOW, THEN LOOP.

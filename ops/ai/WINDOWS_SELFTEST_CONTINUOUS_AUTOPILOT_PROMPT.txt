@@ -1,0 +1,120 @@
+COURIER WINDOWS — SELFTESTING CONTINUOUS AUTOPILOT
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+MODEL_CLASS=C1
+RUN_TARGET_HOURS=8
+CONTINUE_BY_DEFAULT=YES
+NO_HUMAN_RELAY=YES
+LEDGER_WORK=SKIP
+CLAIM_BEFORE_ANALYSIS=YES
+RESULT_REUSE_FIRST=YES
+SLOT_IDLE_IS_NOT_TERMINAL=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+REPO=C:\Users\lol\2026-workspace\2026-courier
+BRANCH=coordination/autofill-task-seed-20260926
+
+SELFTEST FIRST — DO NOT SKIP:
+1. cd C:\Users\lol\2026-workspace\2026-courier
+2. git rev-parse --show-toplevel
+3. git fetch origin coordination/autofill-task-seed-20260926
+4. verify these files exist locally or by exact remote git-show fallback:
+   ops/ai/WALL_SYSTEM.md
+   ops/ai/WALL_QUEUE_CURRENT.md
+   ops/ai/GATE_STATE_CURRENT.md
+   ops/ai/WINDOWS_AFTER_LEDGER_CONTINUOUS_FINISHER_PROMPT.txt
+5. parse GATE_STATE_CURRENT.md and print:
+   SELFTEST_GATE_STATE=
+   SELFTEST_AUTHORITATIVE_READY=
+   SELFTEST_FINAL_SHA=
+6. verify Python is callable:
+   python --version
+7. verify git is callable:
+   git --version
+8. perform one temp-file write/delete inside repo temp area only.
+9. inspect current claims/results metadata once.
+10. emit:
+   SELFTEST_REPO=PASS|FAIL
+   SELFTEST_GIT=PASS|FAIL
+   SELFTEST_PYTHON=PASS|FAIL
+   SELFTEST_QUEUE_READ=PASS|FAIL
+   SELFTEST_READY_TO_LOOP=YES|NO
+
+If any selftest failure is locally repairable without destructive action:
+repair boundedly and retest.
+If auth/permission/admin action is required:
+return HUMAN_GATE with exact action.
+Do not continue with fake PASS.
+
+MAIN LOOP:
+A HARVEST
+- harvest unprocessed durable results if ownership is free
+- dedupe by result fingerprint
+- unlock dependencies
+- persist
+
+B EXECUTE
+- claim exactly one unique compatible READY task
+- if claim fails, immediately select another
+- if fingerprint already complete, RESULT_REUSED and select another
+- deterministic/local first
+- persist result
+- release claim
+
+C WINDOWS POST-LEDGER PRIORITY
+1 WINDOWS_HNI_01 only if no live gate-persistence owner exists
+2 WINDOWS_HNI_02..06 PRE_CODEX/Codex handoff prep
+3 WINDOWS_HNI_07..09 cache/claim/cross-host
+4 WINDOWS_HNI_10..15 Mac/RUN/Core Freeze inputs
+5 WINDOWS_HNI_16..19 pilot/product/motor/provider prep
+6 WINDOWS_HNI_20 router
+
+D GATE LAW
+If PRE_CODEX_STATE=DURABILITY_PENDING:
+- exactly one gate-persistence owner may work it
+- all other slots skip it and continue independent work
+- never revalidate unchanged fingerprint
+
+If PRE_CODEX_STATE=READY:
+- stop gate validation
+- assemble PRE_CODEX handoff
+- mark NEXT=CODEX_HIGH_ONCE
+- continue only legal parallel prep
+
+E TEMPORARY EMPTY
+If no READY task:
+1 harvest once
+2 run one bounded PREPARER/replenisher pass from real unfinished critical-path work
+3 if still empty, shell sleep 60 seconds
+4 git fetch best-effort
+5 reread changed pointer/result metadata only
+6 loop again
+
+DO NOT:
+- return SLOT_IDLE as terminal
+- reopen Ledger without RETEST_TRIGGER
+- invent filler
+- run Codex yourself
+- execute physical RUN_1/RUN_2
+- change auth/account/billing
+- broad-scan repo
+
+TERMINAL ONLY:
+RUN_TARGET_HOURS reached;
+real auth/2FA/CAPTCHA/payment/admin/legal/safety/permission gate;
+destructive truth/ownership conflict;
+provider hard limit requiring manual action.
+
+HEARTBEAT OUTPUT EACH CYCLE:
+CYCLE=
+CURRENT_PHASE=
+ACTIVE_TASK=
+RESULTS_REUSED=
+NEW_RESULT=
+GATE_STATE=
+NEXT=
+SLEEPING=YES|NO
+
+START SELFTEST NOW, THEN LOOP.
