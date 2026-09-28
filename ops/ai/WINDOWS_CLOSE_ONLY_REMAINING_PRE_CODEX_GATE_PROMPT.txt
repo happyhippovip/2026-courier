@@ -1,0 +1,54 @@
+WINDOWS CENTRAL WRITER — CLOSE THE ONLY REMAINING PRE-CODEX GATE
+
+Work directly in the already-open 2026-courier repo on Windows.
+
+YOU ARE THE SINGLE PRE_CODEX DURABILITY OWNER.
+
+Read:
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/LEDGER_FREEZE_CURRENT.md
+ops/ai/CANONICAL_ENDGAME_SEQUENCE_2026-09-28.md
+current Muse return-harvest result if available.
+
+MISSION:
+Close the real gate, not another review.
+
+Current reported candidate:
+FINAL_SHA=34b0a4264bf763bc2a78f761ffba36e47706b2cf
+BASE_SHA=4c1e24ccc522042af826bc4c2b595daf85d097f9
+
+1. Confirm the intended local final candidate and exact allowed 5-file scope.
+2. Reuse existing targeted-test/12-case evidence unless materially invalidated.
+3. Resolve any MUST_FIX_BEFORE_CODEX owner packets that are current-source-grounded.
+4. Persist/publish the exact intended final candidate through the canonical durable path.
+5. Confirm the FINAL_SHA is durably resolvable cross-host.
+6. Run only the designated final 12-case re-matrix if the gate policy requires it after durability.
+7. Require SKIPPED=0, exact scope, targeted-test fingerprint, diff-check clean, no unresolved causal P0.
+8. Update GATE_STATE_CURRENT exactly once to READY only when all authoritative evidence is real.
+9. Produce the exact Codex handoff.
+
+DO NOT:
+- reopen Ledger
+- create another candidate variant unless a real source defect requires it
+- broaden source scope
+- ask Muse to revalidate the same SHA
+- stop after describing the blocker
+- fake READY
+
+RETURN:
+FINAL_SHA=
+DURABLE_SOURCE_REF=
+REMOTE_RESOLUTION=
+MUST_FIX_PACKETS_RESOLVED=
+TWELVE_CASE_STATUS=
+SKIPPED_COUNT=
+TARGETED_TEST_FINGERPRINT=
+DIFF_CHECK=
+UNRESOLVED_CAUSAL_P0=
+PRE_CODEX_STATE=
+AUTHORITATIVE_READY=
+CODEX_HANDOFF_READY=YES|NO
+BLOCKER=
+NEXT=
+
+START NOW AND CLOSE THE GATE.

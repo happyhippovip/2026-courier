@@ -1,0 +1,65 @@
+MUSE RETURN HARVEST — FINAL PRE-CODEX STOP CHECK
+
+Work directly in the open 2026-courier repo on Mac.
+
+MODE=READ_ONLY_CONVERGENCE
+LEDGER=FROZEN
+NO_SOURCE_EDITS=YES
+NO_PHYSICAL_RUNS=YES
+NO_PRE_CODEX_REVALIDATION=YES
+
+PURPOSE:
+Most Mac/Muse prep windows have already returned.
+Do NOT create another broad review wave.
+Harvest the returned work and decide whether any genuinely new candidate-independent C2 work remains.
+
+READ MINIMUM NECESSARY:
+- ops/ai/GATE_STATE_CURRENT.md
+- ops/ai/LEDGER_FREEZE_CURRENT.md
+- ops/ai/CANONICAL_ENDGAME_SEQUENCE_2026-09-28.md
+- current ops/ai/live/MUSE_MAC_*.md
+- current ops/ai/live/MUSE_MAC_BRIDGE_*.md
+- current Muse Cascade A/B/C checkpoints if present
+- exact owner packets referenced by those checkpoints
+
+DO:
+1. Deduplicate all returned Muse findings.
+2. Separate:
+   CONFIRMED_SOURCE_DEFECT
+   EVIDENCE_DOC_DEFECT
+   MISSING_EVIDENCE
+   DISPROVEN
+   WAITING_FOR_FINAL_SHA
+   WAITING_FOR_PHYSICAL_RUN
+3. Identify any surviving item that is BOTH:
+   - candidate-independent
+   - causally required before Codex.
+4. If none exist, set STOP_PRE_CODEX_MUSE=YES.
+5. Produce the exact smallest Windows owner packet list.
+6. Produce the exact Codex launch checklist slots already prepared.
+7. Do not invent new review families.
+
+CURRENT RULE:
+If GATE_STATE_CURRENT still says DURABILITY_PENDING/AUTHORITATIVE_READY=NO,
+Muse cannot advance the gate.
+The remaining gate owner is Windows Central Writer.
+
+OUTPUT:
+CURRENT_GATE=
+DEDUP_CONFIRMED=
+DEDUP_EVIDENCE_GAPS=
+DISPROVEN=
+WAITING_FOR_FINAL_SHA=
+WAITING_FOR_PHYSICAL_RUN=
+MUST_FIX_BEFORE_CODEX=
+WINDOWS_OWNER_PACKETS=
+CODEX_LAUNCH_CHECKLIST_READY=YES|NO
+STOP_PRE_CODEX_MUSE=YES|NO
+NEXT_OWNER=
+NEXT_ACTION=
+DO_NOT_REPEAT=
+
+If STOP_PRE_CODEX_MUSE=YES:
+stop cleanly. No new Muse pre-Codex work.
+
+START NOW.
