@@ -172,3 +172,20 @@ Target release rhythm after Core + positive pilot evidence:
 Updates should use signed manifests, content-addressed/deduplicated artifacts and delta/component delivery where safe. Users control optional capability installation and pinning. Product recovery should retain a durable Time-Machine-style history of versions, manifests, migrations, Last Known Good and rollback points.
 
 Every release should preserve crypto agility and improve post-quantum migration readiness where standards/platform evidence supports it. Do not claim "quantum secure" without a concrete proven profile.
+
+
+## Durable founder/company continuity
+
+The cross-session public-safe founder/company operating plan is:
+
+docs/FOUNDER_LIFE_AND_COMPANY_MASTER_PLAN_PUBLIC_SAFE_2026-09-28.md
+
+Use it for founder operating preferences, sleep/overnight workflow, cost discipline, company sequencing and the rule that the founder must not become the worker message bus.
+
+Current engineering execution truth is not copied here repeatedly. Resolve it from:
+- ops/ai/GATE_STATE_CURRENT.md
+- ops/ai/LIVE_STATUS_CURRENT.md
+- ops/ai/WALL_QUEUE_CURRENT.md
+- ops/ai/CANONICAL_ENDGAME_SEQUENCE_2026-09-28.md
+
+This separation keeps strategy durable while allowing technical gate state to move without rewriting the entire company plan.
