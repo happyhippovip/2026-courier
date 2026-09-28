@@ -8,6 +8,10 @@ Use this index to keep long-run wall work consistent across providers and hosts.
 - COURIER_PERMANENT_MASTER_WORKER_PROMPT.txt
 - docs/COURIER_COMPANY_AND_LAUNCH_OPERATING_PLAN_2026-09-27.md
 - docs/FOUNDER_OPERATOR_ROUTINE_PUBLIC_SAFE_2026-09-27.md
+- docs/FOUNDER_LIFE_AND_COMPANY_MASTER_PLAN_PUBLIC_SAFE_2026-09-28.md
+- GATE_STATE_CURRENT.md
+- LIVE_STATUS_CURRENT.md
+- CANONICAL_ENDGAME_SEQUENCE_2026-09-28.md
 
 If chat/session memory is stale, start from the MASTER CONTROL PLANE instead of reconstructing the project from conversation history.
 
@@ -50,6 +54,10 @@ The MD-first wall system is the preferred operating path for new wall work. Prep
 
 Preferred permanent prompt:
 - COURIER_PERMANENT_MASTER_WORKER_PROMPT.txt
+
+Current specialized permanent prompts:
+- GOOGLE_PRE_CODEX_MASTER_PROMPT.txt
+- MAC_PRE_CODEX_MEGA_MASTER_PROMPT.txt
 
 Specialized/legacy prompts:
 - UNIVERSAL_WALL_BOOTSTRAP.txt
