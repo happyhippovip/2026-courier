@@ -31,19 +31,22 @@ When a Mac specialist family completes:
 7. run one bounded PREPARER refresh if needed
 8. only set GLOBAL_TRUE_IDLE if no legal Mac/EITHER work remains
 
-PREFERRED MAC FAMILY ORDER:
-0 GOOGLE_MAC_PHYSICAL_PROOF_PREP_M181_M260
-1 GOOGLE_MAC_NONCANDIDATE_GAP_CLOSER
+PREFERRED MAC FAMILY ORDER AFTER LEDGER COMPLETION:
+0 MAC_HNI_01..10 RUN_1 proof packet preparation
+1 MAC_HNI_11..15 RUN_2 restart/no-replay preparation
 2 GOOGLE_MAC_RUNTIME_BINDING
 3 GOOGLE_MAC_PROCESS_RESOURCE_GUARD
 4 GOOGLE_MAC_ARTIFACT_PROOF_CHAIN
 5 GOOGLE_MAC_RESTART_NEGATIVE_CASES
 6 GOOGLE_MAC_CROSS_HOST_DURABLE_CONTINUITY
-7 GOOGLE_MAC_LEDGER_CONTINUITY_QA
-8 GOOGLE_MAC_PROOF_CARD_ASSEMBLER
-9 GOOGLE_MAC_OBSERVABILITY_EVIDENCE
-10 existing RUN_PREP / RESTART_PROOF / CORE_FREEZE
-11 bounded PILOT_METRICS only after proof prep
+7 GOOGLE_MAC_PROOF_CARD_ASSEMBLER
+8 GOOGLE_MAC_OBSERVABILITY_EVIDENCE
+9 existing RUN_PREP / RESTART_PROOF / CORE_FREEZE
+10 bounded PILOT_METRICS only after Core Freeze
+
+LEDGER FAMILY LAW:
+Ledger is operator-reported complete for this routing phase.
+Do not claim GOOGLE_MAC_LEDGER_CONTINUITY_QA or any Ledger finish/review family unless a durable RETEST_TRIGGER or contradiction explicitly reopens it.
 
 Do not execute physical runs before gates.
 Do not revalidate unchanged PRE_CODEX.
