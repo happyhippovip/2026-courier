@@ -1,0 +1,35 @@
+GOOGLE WINDOWS WAVE 4 — B
+ROLE=<GW25-GW36>
+
+Read only WAVE4_<ROLE>_A and cited files.
+
+Falsify/minimize:
+- already correct?
+- patch too broad?
+- test too broad?
+- stale assumption?
+- wrong owner?
+- should defer?
+- can current proof be reused?
+- would patch invalidate Claude-reviewed candidate?
+
+GW26-GW36 never edit.
+GW25 may edit only if current phase and Claude/Codex result explicitly permit the exact change.
+
+Return:
+ROLE=
+CONFIRMED=
+DISPROVEN=
+MIN_SAFE_CHANGE=
+MIN_RETEST=
+INVALIDATION_SCOPE=
+EVIDENCE_REUSE=
+READY_FOR_WRITER=
+NEXT_OWNER=
+STOP_DOING=
+STATUS=
+
+Persist:
+ops/ai/live/WAVE4_<ROLE>_B.md
+
+START NOW.

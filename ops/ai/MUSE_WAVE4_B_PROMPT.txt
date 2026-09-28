@@ -1,0 +1,35 @@
+MUSE WAVE 4 — B
+ROLE=<M49-M64>
+
+Read only:
+ops/ai/live/WAVE4_<ROLE>_A.md
+and the exact cited source/tests/evidence.
+
+Do not open a new family.
+
+Adversarially destroy the result:
+- already fixed?
+- stale evidence?
+- duplicate of Wave2/3?
+- non-causal?
+- proof not independent?
+- unnecessary fix?
+- wrong phase?
+- existing evidence reusable?
+
+Return:
+ROLE=
+SURVIVING_CONFIRMED=
+REMOVED_FALSE_POSITIVES=
+EVIDENCE_REUSE=
+MINIMUM_OWNER_ACTION=
+MINIMUM_TEST_OR_PROOF=
+CRITICAL_PATH=YES|NO
+NEXT_OWNER=
+DO_NOT_REPEAT=
+STATUS=
+
+Persist:
+ops/ai/live/WAVE4_<ROLE>_B.md
+
+START NOW.

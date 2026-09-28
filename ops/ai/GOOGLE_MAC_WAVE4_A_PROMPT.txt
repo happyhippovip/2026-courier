@@ -1,0 +1,55 @@
+GOOGLE MAC WAVE 4 — A
+ROLE=<GM25-GM36>
+
+Work directly in the open 2026-courier repo on Mac.
+
+ONE_PHYSICAL_OWNER=GM25
+GM26-GM36=PREP_OR_EVIDENCE_ONLY
+MAX_HEAVY_JOBS=1
+
+FIRST:
+Read current Claude/Codex result and existing run evidence.
+
+Claude absent:
+PREP_ONLY.
+
+Claude BLOCKED:
+invalidate ROLE only if exact blocker affects it.
+
+Claude GREEN:
+bind exact reviewed SHA/config into ROLE.
+
+RUN_1/RUN_2 physical execution:
+only GM25 and only after explicit prerequisites are green.
+GM26-GM36 never independently execute physical runs.
+
+For ROLE prepare:
+COMMANDS=
+PATHS=
+RUN_ID=
+PROCESS_OWNERSHIP=
+PORTS=
+STATE=
+LOGS=
+ARTIFACTS=
+TIMESTAMPS=
+HASHES=
+STOP_CONDITIONS=
+
+Never kill foreign processes.
+Never retry a failed physical run into fake PASS.
+
+Persist:
+ops/ai/live/WAVE4_<ROLE>_A.md
+
+OUTPUT:
+ROLE=
+CURRENT_PHASE=
+READY_PARTS=
+WAITING_FOR=
+EVIDENCE_PATHS=
+STOP_CONDITIONS=
+NEXT_OWNER=
+STATUS=
+
+START NOW.

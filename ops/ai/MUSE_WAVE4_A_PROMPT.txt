@@ -1,0 +1,59 @@
+MUSE WAVE 4 — A
+ROLE=<M49-M64>
+
+Work directly in the open 2026-courier repo.
+MODE=READ_ONLY_C2
+LEDGER=FROZEN
+CLAUDE_OWNS_CODEX_C4=YES
+NO_SOURCE_EDITS=YES
+NO_PHYSICAL_RUNS=YES
+
+FIRST:
+Read current Claude/Codex result if present.
+Read Wave3 checkpoint only if ROLE depends on it.
+
+PHASE RULE:
+- Claude absent -> prepare ROLE only.
+- Claude BLOCKED -> correlate only exact blocker if relevant.
+- Claude GREEN -> evaluate ROLE against reviewed/current source and post-Codex path.
+- RUN_1 evidence exists -> prefer actual-instance evidence over templates.
+- RUN_2 evidence exists -> prefer restart evidence.
+- Core Freeze/Pilot -> only activate roles relevant to that phase.
+
+For ROLE:
+inspect 4-6 exact subcases.
+Use minimum necessary reads.
+Reuse fingerprints.
+No broad scan.
+No old 65-96/Cascade/Gate revalidation.
+
+Classify:
+CONFIRMED_SOURCE_DEFECT
+EVIDENCE_GAP
+DISPROVEN
+NO_ISSUE
+BLOCKED_OTHER_OWNER
+
+If change appears needed, do not edit. Write:
+FILES=
+CAUSAL_BUG=
+MIN_FIX=
+MIN_TEST=
+OWNER=
+PHASE=
+
+Persist:
+ops/ai/live/WAVE4_<ROLE>_A.md
+
+OUTPUT:
+ROLE=
+CURRENT_PHASE=
+CONFIRMED=
+DISPROVEN=
+EVIDENCE_GAPS=
+OWNER_PACKET=
+DO_NOT_REPEAT=
+NEXT_OWNER=
+STATUS=
+
+START NOW.

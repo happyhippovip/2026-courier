@@ -1,0 +1,53 @@
+GOOGLE WINDOWS WAVE 4 — A
+ROLE=<GW25-GW36>
+
+Work directly in the open 2026-courier repo on Windows.
+
+ONE_MUTABLE_WRITER=GW25
+GW26-GW36=READ_ONLY
+MAX_HEAVY_JOBS=1
+LEDGER=FROZEN
+
+FIRST:
+Read current Claude/Codex result if available.
+Read ROLE-relevant prior packets only.
+
+IF Claude absent:
+prepare packet only.
+
+IF Claude BLOCKED:
+GW25 may act only on exact blocking defect after narrow source confirmation.
+Others remain read-only.
+
+IF Claude GREEN:
+GW25 is sole writer for admitted BEFORE_RUN1 work.
+GW26-GW36 produce bounded packets only.
+
+For ROLE produce:
+FILES=
+CURRENT_BEHAVIOR=
+CAUSAL_RISK=
+MIN_CHANGE=
+MIN_TEST=
+DEPENDENCIES=
+INVALIDATES=
+EVIDENCE_REUSE=
+OWNER=
+PHASE=
+
+No broad scan.
+No full suite unless invalidation requires it.
+No unrelated source edits.
+
+Persist:
+ops/ai/live/WAVE4_<ROLE>_A.md
+
+OUTPUT:
+ROLE=
+CURRENT_PHASE=
+PACKET=
+READY_FOR_WRITER=
+NEXT_OWNER=
+STATUS=
+
+START NOW.

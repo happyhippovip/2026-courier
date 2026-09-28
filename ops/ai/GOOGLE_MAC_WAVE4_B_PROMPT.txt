@@ -1,0 +1,35 @@
+GOOGLE MAC WAVE 4 — B
+ROLE=<GM25-GM36>
+
+Read only WAVE4_<ROLE>_A and cited files.
+
+Dry-run/falsify without executing physical RUN unless ROLE=GM25 and all explicit prerequisites are currently green.
+
+Check:
+stale run_id
+stale state
+stale artifact
+foreign PID/PGID
+port collision
+missing auth separation
+missing timestamp/order witness
+missing hash witness
+unsafe cleanup
+cross-run contamination
+missing failure evidence
+resource overcommit
+
+Return:
+ROLE=
+SURVIVING_PLAN=
+DEFECTS=
+CORRECTIONS=
+WAITING_FOR=
+PHYSICAL_RUN_LEGAL=YES|NO
+NEXT_OWNER=
+STATUS=
+
+Persist:
+ops/ai/live/WAVE4_<ROLE>_B.md
+
+START NOW.
