@@ -368,6 +368,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupMissionControls();
   setupInitialLogs();
   updateMissionUI();
+  setupWindowCapacity();
 });
 
 // RENDER AGENT ROSTER
@@ -612,4 +613,57 @@ function setupInitialLogs() {
   addLog("INFO", "Canonical Project Memory loaded from happyhippovip/2026-project-memory (HEAD: 89cece2).");
   addLog("GATE", "Human Gates status: Public Upload, OAuth, and Payments LOCKED by default.");
   addLog("SUCCESS", "Courier Relay Protocol v2.0 verified with zero human-gate stalls.");
+}
+
+
+async function fetchWindowCapacity() {
+  const res=await fetch("/api/window-capacity",{cache:"no-store"});
+  if(!res.ok) throw new Error("capacity fetch failed");
+  return (await res.json()).policy;
+}
+async function saveWindowCapacity(patch) {
+  const res=await fetch("/api/window-capacity",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(patch)
+  });
+  if(!res.ok) throw new Error("capacity save failed");
+  return (await res.json()).policy;
+}
+function renderWindowCapacity(policy) {
+  const card=document.getElementById("window-capacity-card");
+  if(!card) return;
+  card.classList.toggle("capacity-hidden", !!policy.controls_hidden);
+  document.getElementById("capacity-target").textContent=policy.target_window_slots;
+  document.getElementById("capacity-active").textContent=policy.active_windows ?? "—";
+  document.getElementById("capacity-remaining").textContent=policy.remaining_slots ?? "—";
+  document.getElementById("capacity-mode").textContent=policy.paused ? "PAUSED" : (policy.mode || "RUNNING");
+  document.querySelectorAll(".capacity-btn").forEach(btn=>{
+    btn.classList.toggle("active", Number(btn.dataset.slots)===Number(policy.target_window_slots));
+  });
+  const pause=document.getElementById("btn-capacity-pause");
+  pause.textContent=policy.paused ? "Resume new starts" : "Pause new starts";
+}
+async function setupWindowCapacity() {
+  try {
+    const policy=await fetchWindowCapacity();
+    const status=await fetch("/api/status",{cache:"no-store"}).then(r=>r.json()).catch(()=>({}));
+    const merged={...policy,...(status.window_capacity||{})};
+    renderWindowCapacity(merged);
+  } catch(e) { addLog("INFO","Window capacity control unavailable; defaults remain safe."); }
+
+  document.querySelectorAll(".capacity-btn").forEach(btn=>btn.addEventListener("click", async()=>{
+    try { renderWindowCapacity(await saveWindowCapacity({target_window_slots:Number(btn.dataset.slots)})); }
+    catch(e) { addLog("GATE","Could not persist window capacity."); }
+  }));
+  document.getElementById("btn-capacity-pause")?.addEventListener("click", async()=>{
+    const p=await fetchWindowCapacity();
+    renderWindowCapacity(await saveWindowCapacity({paused:!p.paused}));
+  });
+  document.getElementById("btn-hide-capacity")?.addEventListener("click", async()=>{
+    renderWindowCapacity(await saveWindowCapacity({controls_hidden:true}));
+  });
+  document.getElementById("btn-show-capacity")?.addEventListener("click", async()=>{
+    renderWindowCapacity(await saveWindowCapacity({controls_hidden:false}));
+  });
 }

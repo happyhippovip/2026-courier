@@ -20,6 +20,10 @@ DASHBOARD_DIR = Path(__file__).resolve().parent
 COURIER_DIR = DASHBOARD_DIR.parent
 MEMORY_DIR = Path(os.environ.get("MEMORY_DIR", COURIER_DIR.parent / "2026-project-memory"))
 EVENTS_DIR = COURIER_DIR / "events"
+SCRIPTS_DIR = COURIER_DIR / "scripts"
+if str(COURIER_DIR) not in sys.path:
+    sys.path.insert(0, str(COURIER_DIR))
+from scripts.window_capacity_policy import load_policy, update_policy, admission
 
 
 def get_status_payload() -> dict:
@@ -94,6 +98,7 @@ def get_status_payload() -> dict:
         "spend_eur": 0.0,
         "unauthorized_spend_eur": 0.0,
         "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+        "window_capacity": admission(load_policy(), len(active_workers)),
         "real_vs_simulated": {
             "canonical_authority": "VERIFIED_REAL",
             "host_survival_and_fencing": "VERIFIED_REAL",
@@ -137,7 +142,36 @@ def get_commercial_offers_payload() -> dict:
 
 
 class CommandCenterHandler(http.server.SimpleHTTPRequestHandler):
+    def _json(self, status: int, payload: dict) -> None:
+        body=json.dumps(payload, indent=2).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_POST(self) -> None:
+        if self.path != "/api/window-capacity":
+            self._json(404, {"error":"not_found"})
+            return
+        if self.client_address[0] not in ("127.0.0.1","::1"):
+            self._json(403, {"error":"local_write_only"})
+            return
+        try:
+            length=min(int(self.headers.get("Content-Length","0")),4096)
+            payload=json.loads(self.rfile.read(length) or b"{}")
+            slots=payload.get("target_window_slots")
+            paused=payload.get("paused") if "paused" in payload else None
+            hidden=payload.get("controls_hidden") if "controls_hidden" in payload else None
+            state=update_policy(slots=slots, paused=paused, controls_hidden=hidden)
+            self._json(200, {"status":"OK","policy":state})
+        except (ValueError, TypeError, json.JSONDecodeError) as exc:
+            self._json(400, {"error":"invalid_capacity_policy","detail":str(exc)})
+
     def do_GET(self) -> None:
+        if self.path == "/api/window-capacity":
+            self._json(200, {"status":"OK","policy":load_policy()})
+            return
         if self.path in ("/api/status", "/api/health"):
             self.send_response(200)
             self.send_header("Content-Type", "application/json")

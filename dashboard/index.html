@@ -336,6 +336,35 @@
         </div>
       </div>
 
+
+      <!-- Persistent Window Capacity Control -->
+      <div class="card glass-card capacity-card" id="window-capacity-card">
+        <div class="card-header">
+          <div class="header-icon">🪟</div>
+          <div class="header-text">
+            <h2>WINDOW CAPACITY</h2>
+            <span class="meta-tag">Persistent reviewer/UI admission budget · writers/heavy jobs stay capped at 1</span>
+          </div>
+          <button class="btn btn-xs btn-outline" id="btn-hide-capacity">Hide</button>
+        </div>
+        <div class="capacity-row">
+          <div class="capacity-presets" id="capacity-presets">
+            <button class="capacity-btn" data-slots="8">8</button>
+            <button class="capacity-btn" data-slots="12">12</button>
+            <button class="capacity-btn" data-slots="16">16</button>
+            <button class="capacity-btn" data-slots="32">32</button>
+          </div>
+          <button class="btn btn-sm btn-secondary" id="btn-capacity-pause">Pause new starts</button>
+        </div>
+        <div class="capacity-meta">
+          <span>Target <strong id="capacity-target">16</strong></span>
+          <span>Active <strong id="capacity-active">0</strong></span>
+          <span>Remaining <strong id="capacity-remaining">16</strong></span>
+          <span>Mode <strong id="capacity-mode">RUNNING</strong></span>
+        </div>
+        <div class="roster-disclaimer">Scaling down uses <strong>drain mode</strong>: running work is not killed; new admissions stop until active slots are at/below target. Mutable writers=1. Heavy jobs/host=1.</div>
+      </div>
+
       <!-- 6. Activity & Event Log Stream -->
       <div class="card glass-card log-card">
         <div class="card-header">
@@ -361,6 +390,7 @@
       <span>AI Agent Command Center v1.0 (MVP 092) · HappyHippo VIP Ecosystem</span>
     </div>
     <div class="footer-right">
+      <button class="capacity-restore" id="btn-show-capacity" title="Show window capacity controls">⚙ Capacity</button>
       <span>Source of Truth: <a href="#" class="footer-link">happyhippovip/2026-project-memory</a> (Commit 89cece2)</span>
     </div>
   </footer>

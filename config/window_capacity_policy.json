@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "target_window_slots": 16,
+  "paused": false,
+  "controls_hidden": false,
+  "max_mutable_writers": 1,
+  "max_heavy_jobs_per_host": 1,
+  "allowed_window_slots": [
+    8,
+    12,
+    16,
+    32
+  ],
+  "scale_down_behavior": "DRAIN_NO_NEW_ADMISSIONS",
+  "description": "Persistent UI/reviewer capacity. Does not raise mutable-writer or heavy-job concurrency."
+}
