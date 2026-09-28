@@ -27,7 +27,7 @@ BLOCKERS: AWAITING_WINDOWS_CENTRAL_WRITER_FINAL_SHA
 
 | Task | Invariant / Requirement | Concrete Implementation & Proof | Status |
 | :--- | :--- | :--- | :--- |
-| **G101** | Dependency on RUN_1 PASS | `PHYS-002` demonstrated clean end-to-end flow ($A \to \text{VERIFY} \to B$) on staging Port 8081 (`goal-d0a02c0e`) with `HUMAN_RELAY_COUNT=0`. RUN_1 prerequisite is satisfied. | **PROVEN** |
+| **G101** | Dependency on RUN_1 PASS | `PHYS-002` staging run is currently gated. Execution awaits `FINAL_SHA`. RUN_1 prerequisite is NOT physically proven yet. | **PENDING** |
 | **G102** | Fresh Isolation Checklist | Staging workspace `/Users/user/courier_work/canary_run1/` with dedicated Port 8081 coordinator, distinct state root `central_state.json`, and separate artifact store. Production Port 8080 (PID 69407) remains untouched. | **PROVEN** |
 | **G103** | Persisted Result A Before Restart | Pre-restart Step A (`run2-task-a`) executed, uploaded `artifact-2a.txt`, and was durably committed to `central_state.json` with status `RECONCILED` and `attempts: 1` before kill injection. | **PROVEN** |
 | **G104** | Restart Cutpoint Definition | Controlled `SIGTERM` (`kill -15`) dispatched to coordinator immediately following Step A disk persistence, prior to Step B dispatch. Coordinator process terminates cleanly; verified by PID change (PID 15728 on revival). | **PROVEN** |

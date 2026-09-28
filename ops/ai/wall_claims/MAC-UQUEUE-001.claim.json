@@ -12,7 +12,7 @@
   "current_queue_generation": "2026-09-27.V3",
   "last_task_id": "L100-100",
   "last_result": "PASS",
-  "blocker": "WAITING_FOR_WINDOWS_CENTRAL_WRITER_FINAL_SHA",
+  "blocker": "RESOLVED_FINAL_SHA_09166bd5e3dc9b2e002d0ce0381335aa0ffa7adf",
   "next_ready_task": "FAMILY_04_TARGETED_TESTS_ON_FINAL_SHA",
   "durable_checkpoint_path": "ops/ai/wall_claims/MAC-UQUEUE-001.claim.json",
   "state": "TRUE_IDLE",

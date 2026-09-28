@@ -62,6 +62,8 @@ def test_verified_result_binds_identity_and_artifact(tmp_path: Path):
     [
         ("goal_id", "wrong-goal"),
         ("task_id", "wrong-task"),
+        ("attempt_id", "wrong-attempt"),
+        ("dispatch_id", "wrong-dispatch"),
         ("worker_id", "wrong-worker"),
         ("run_id", ""),
     ],
@@ -72,6 +74,8 @@ def test_result_identity_mismatch_fails_closed(tmp_path: Path, field: str, value
     raw = {
         "goal_id": packet["goal_id"],
         "task_id": packet["task_id"],
+        "attempt_id": packet["attempt_id"],
+        "dispatch_id": packet["dispatch_id"],
         "worker_id": packet["worker_id"],
         "run_id": "run-1",
         "status": "SUCCESS",

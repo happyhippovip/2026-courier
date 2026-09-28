@@ -215,11 +215,28 @@ def run_task(task, config):
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace")
         run_id = str(process.pid)
         stdout, stderr_out = process.communicate(timeout=600)
-        out_clean = stdout.strip()
-        stderr = stderr_out
+        out_clean = (stdout or "").strip()[-100000:]
+        stderr = (stderr_out or "").strip()[-100000:]
         status = "SUCCESS" if process.returncode == 0 else "FAILED"
+    except subprocess.TimeoutExpired:
+        if 'process' in locals():
+            try:
+                subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)], capture_output=True)
+            except Exception:
+                pass
+            try:
+                process.kill()
+                process.communicate()
+            except Exception:
+                pass
+        status = "FAILED"
+        stderr = "Timeout expired (600s)"
     except Exception as e:
         if 'process' in locals():
+            try:
+                subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)], capture_output=True)
+            except Exception:
+                pass
             try:
                 process.kill()
                 process.communicate() # flush pipes

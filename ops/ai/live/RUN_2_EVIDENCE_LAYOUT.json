@@ -1,0 +1,40 @@
+{
+  "run_id": "run_002",
+  "evidence_layout_version": "1.0",
+  "pre_execution_gate": {
+    "condition": "RUN_1 == PASS",
+    "status_file": "runs/run_001/state/pass_fail.json"
+  },
+  "reconcile_resume": {
+    "persistence_verified": {
+      "phase": "A",
+      "metric": "A_persistence",
+      "expected_state": "RESTORED",
+      "source_path": "runs/run_001/state/central_state.json"
+    },
+    "execution_counts": {
+      "phase_A_count": {
+        "expected": 1,
+        "operator": "STRICT_EQUAL",
+        "description": "no A replay"
+      }
+    }
+  },
+  "continuation": {
+    "phase": "B",
+    "metric": "B_continuation",
+    "expected_start": true,
+    "log_marker": "PHASE_B_DISPATCHED"
+  },
+  "post_execution_validation": {
+    "files_to_collect": [
+      "runs/run_002/logs/admission.log",
+      "runs/run_002/state/central_state.json",
+      "runs/run_002/artifacts/run_manifest.json"
+    ],
+    "assertions": [
+      "A_replay_count == 0 in RUN_2 context",
+      "B_execution_status == COMPLETED"
+    ]
+  }
+}

@@ -165,7 +165,7 @@ def test_run_task_kills_process_on_timeout(monkeypatch):
     
     res = daemon.run_task({"task_id": "t1", "instruction": "sleep"}, {"WORKER_ID": "W1"})
     assert res["status"] == "FAILED"
-    assert "timed out" in res["stderr"]
+    assert "Timeout expired" in res["stderr"]
     assert mock_p.killed is True
 
 def test_resource_pressure_does_not_block_result_ready_phase(tmp_path, monkeypatch):
@@ -255,3 +255,17 @@ def test_upload_artifact_success(tmp_path, monkeypatch):
     assert outcome == "OK"
     assert record["artifact_id"] == f"art-{digest}"
     assert record["size"] == 5
+
+def test_run_task_truncates_large_output(monkeypatch):
+    import subprocess
+    import scripts.windows_worker.daemon as daemon
+    class MockProcess:
+        def __init__(self):
+            self.pid = 1234
+            self.returncode = 0
+        def communicate(self, timeout=None):
+            return "x" * 150000, "y" * 150000
+    monkeypatch.setattr(subprocess, "Popen", lambda *a, **k: MockProcess())
+    res = daemon.run_task({"task_id": "t1", "instruction": "sleep"}, {"WORKER_ID": "W1"})
+    assert len(res["stdout"]) <= 100000
+    assert len(res["stderr"]) <= 100000

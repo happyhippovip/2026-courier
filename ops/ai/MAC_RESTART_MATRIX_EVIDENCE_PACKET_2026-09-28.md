@@ -17,15 +17,15 @@ Provide the definitive evidence mapping for all 6 pipeline restart scenarios and
 
 | # | Scenario | Point of Interruption | Expected Durable State | Recovery Action | Verified Invariant |
 |---|---|---|---|---|---|
-| **S1** | **Restart Before Persist** | Worker running; crash before submission | Task remains `DISPATCHED` in memory | Watchdog reclaims after lease timeout; rolls back to `READY` | Task cleanly retried with attempt+1; zero ghost state |
-| **S2** | **Restart After Persist Before Validate** | Result on disk; crash before schema check | Result exists in intake queue | Server reloads; detects unvalidated submission; runs schema check | Result validated without re-executing task |
-| **S3** | **Restart After Validate Before Verify** | Schema passed; crash before Verifier download | Task marked `VALIDATED_PENDING_VERIFY` | Verifier daemon polls pending queue on boot; downloads bytes | Bytes hashed directly; no task rerun |
-| **S4** | **Restart After Verify Before Reconcile** | Verifier exit 0; crash before ledger entry | Result file in `ops/ai/wall_results/` | Harvester detects unharvested result; updates `ledger.jsonl` | Atomic reconciliation; no task rerun |
-| **S5** | **Restart After Reconcile Before Dispatch** | Task A reconciled; crash before Task B dispatch | Task A marked `RECONCILED` in ledger | Scheduler recomputes `NEXT_READY`; dispatches Task B | Zero replay of Task A; Task B starts cleanly |
-| **S6** | **Restart After Dispatch Before Result** | Task dispatched; crash while worker computes | Active lease with heartbeat | If worker submits before timeout, accepted; if dead, reclaimed | Single active execution; clean recovery |
-| **S7** | **Worker Disappears** | Worker process killed or drops network | Unrenewed claim / heartbeat | Watchdog detects missed heartbeats; marks attempt `ABANDONED` | Task returned to `READY` for fresh attempt |
-| **S8** | **Provider Outage** | External LLM / API throttled or down | Task fails with provider error | Exponential backoff with jitter; routes to alternate or pauses | Preserves task identity; no infinite thrash |
-| **S9** | **Stale Result After Timeout** | Worker returns late after lease reclaimed | Stale `attempt_id` < current | Server rejects with HTTP 409 Conflict | Canonical state protected against stale overwrite |
+| **S1** | **Restart Before Persist** | Worker running; crash before submission | Task remains `DISPATCHED` in `central_state.json` | `POST /tasks/reclaim_stale` quarantines to `HUMAN_REQUIRED` | Split-brain prevented; no auto-retry without reap |
+| **S2** | **Restart After Persist Before Validate** | Result received via REST; crash before save | State Impossible (REST validation is synchronous) | Rollback to S1 (No disk state written) | Strict atomic save under `STATE_LOCK` |
+| **S3** | **Restart After Validate Before Verify** | Schema passed, saved; crash before Verify | Task marked `RESULT_RECEIVED` | Offline `scripts/courier_verifier.py` runs synchronously | Bytes hashed directly; no task rerun |
+| **S4** | **Restart After Verify Before Reconcile** | Verifier exit 0; crash during save | `RESULT_RECEIVED` with Verifier output | Verifier script atomic update to `RECONCILED` | Keine Ledger-Interaktion (`LEDGER_WORK=SKIP`) |
+| **S5** | **Restart After Reconcile Before Dispatch** | Task A reconciled; crash before Task B dispatch | Task A marked `RECONCILED` in `central_state.json` | Worker pull via `/tasks/claim` for Task B | Zero replay of Task A; pull-based continuation |
+| **S6** | **Restart After Dispatch Before Result** | Server crash while worker computes | Task remains `DISPATCHED` | Boot sequence `reclaim_stale` sets `HUMAN_REQUIRED` | Late submissions quarantined; split-brain blocked |
+| **S7** | **Worker Disappears** | Worker process killed or drops network | Unrenewed claim | `reclaim_stale` marks `HUMAN_REQUIRED` (Quarantine) | No new execution until orphaned worker reaped |
+| **S8** | **Stale Result After Timeout** | Worker returns late after quarantine/timeout | Stale `attempt_id` | Server rejects with HTTP 409 Conflict | Canonical state protected against stale overwrite |
+| **S9** | **Duplicate Result** | Worker retries identical submission | Result already `RESULT_RECEIVED`/`RECONCILED` | Server returns `ACK_DUPLICATE` (200 OK) | Idempotenz nachgewiesen (`test_p3_server_idempotency.py`) |
 
 ---
 

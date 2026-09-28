@@ -1,0 +1,28 @@
+{
+  "batch": "02",
+  "phase": "Resource and Process Management",
+  "status": "COMPLETED",
+  "constraints_checked": {
+    "no_git_show": true,
+    "no_ledger_modifications": true,
+    "no_physical_run": true,
+    "no_process_manipulation": true
+  },
+  "deliverables": [
+    {
+      "name": "Process Ownership",
+      "file": "runtime/process_ownership.py",
+      "features": ["PID", "PGID", "port", "foreign process detection", "owned cleanup", "orphan handling", "timeouts"]
+    },
+    {
+      "name": "Resource Admission",
+      "file": "runtime/resource_admission.py",
+      "features": ["CPU", "RAM", "swap", "disk", "MAX_HEAVY_JOBS=1"]
+    },
+    {
+      "name": "Runbook",
+      "file": "ops/ai/live/RUNBOOK_BATCH_02.md",
+      "features": ["Operational Instructions", "Constraints"]
+    }
+  ]
+}

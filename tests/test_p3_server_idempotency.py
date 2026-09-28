@@ -267,3 +267,24 @@ def test_workflow_plan_step_instruction_must_be_string(srv):
     resp = srv.app.test_client().post("/goals", headers=WORKER, json={"goal_text": "t", "workflow_plan": [{"instruction": {"evil": "dict"}}]})
     assert resp.status_code == 400
     assert "instruction must be a string" in resp.get_json()["error"]
+
+import time
+def test_cost_routing(srv):
+    http = srv.app.test_client()
+    # add goal
+    goal = http.post("/goals", headers=WORKER, json={"goal_text": "foo", "workflow_plan": [{"task_id": "t1", "target_agent": "mac"}]}).get_json()
+    
+    # register high cost worker
+    http.post("/workers/register", headers=WORKER, json={"worker_id": "HIGH", "capabilities": ["macos"], "cost_class": "high"})
+    
+    # register low cost worker
+    http.post("/workers/register", headers=WORKER, json={"worker_id": "LOW", "capabilities": ["macos"], "cost_class": "low"})
+    
+    # claim with HIGH
+    res = http.post("/tasks/claim", headers=WORKER, json={"worker_id": "HIGH"}).get_json()
+    assert res.get("task") is None, res
+    
+    # claim with LOW
+    res2 = http.post("/tasks/claim", headers=WORKER, json={"worker_id": "LOW"}).get_json()
+    assert res2.get("task") is not None, res2
+    assert res2["task"]["task_id"] == "t1"
