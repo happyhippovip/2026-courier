@@ -108,14 +108,30 @@ def submit_goal():
     }
     
     if "workflow_plan" in data:
+        if not isinstance(data["workflow_plan"], list):
+            return jsonify({"error": "workflow_plan must be a list"}), 400
+        if not data["workflow_plan"]:
+            return jsonify({"error": "workflow_plan cannot be empty"}), 400
         goal["workflow_plan"] = data["workflow_plan"]
         goal["current_step_index"] = 0
+        seen_tasks = set()
         for step in goal["workflow_plan"]:
+            target_agent = str(step.get("target_agent", "linux")).lower()
+            if "github" in target_agent: target_agent = "github"
+            elif "windows" in target_agent or "codex" in target_agent: target_agent = "windows"
+            elif "mac" in target_agent or "antigravity" in target_agent or "gemini" in target_agent: target_agent = "mac"
+            else: target_agent = "linux"
+            step["target_agent"] = target_agent
             step["goal_id"] = goal_id
             step["status"] = "QUEUED"
             step["attempts"] = 0
+            if "instruction" in step and not isinstance(step["instruction"], str):
+                return jsonify({"error": "instruction must be a string"}), 400
             if "task_id" not in step:
                 step["task_id"] = f"task-{uuid.uuid4().hex[:8]}"
+            if step["task_id"] in seen_tasks or step["task_id"] in state.get("tasks", {}):
+                return jsonify({"error": f"duplicate task_id: {step['task_id']}"}), 400
+            seen_tasks.add(step["task_id"])
     else:
         try:
             _, planned_steps = ChiefCommander().formulate_workflow_plan(
@@ -127,6 +143,7 @@ def submit_goal():
             return jsonify({"error": "planner returned no actionable tasks"}), 503
         goal["workflow_plan"] = []
         goal["current_step_index"] = 0
+        seen_tasks = set()
         for step in planned_steps:
             target_agent = str(step.get("target_agent", "linux")).lower()
             if "github" in target_agent:
@@ -137,8 +154,12 @@ def submit_goal():
                 target_agent = "mac"
             else:
                 target_agent = "linux"
+            task_id = step.get("task_id", f"task-{uuid.uuid4().hex[:8]}")
+            if task_id in seen_tasks or task_id in state.get("tasks", {}):
+                return jsonify({"error": f"duplicate task_id from planner: {task_id}"}), 503
+            seen_tasks.add(task_id)
             goal["workflow_plan"].append({
-                "task_id": step.get("task_id", f"task-{uuid.uuid4().hex[:8]}"),
+                "task_id": task_id,
                 "goal_id": goal_id,
                 "instruction": step.get("instruction", "Next bounded step"),
                 "target_agent": target_agent,
@@ -337,6 +358,7 @@ def claim_task():
                         except ContractError as exc:
                             return jsonify({"error": str(exc)}), 400
                         next_task["status"] = "DISPATCHED"
+                        next_task["dispatched_at"] = time.time()
                         goal["workflow_plan"][idx] = next_task
                         
                         worker["current_task"] = next_task["task_id"]
@@ -364,7 +386,7 @@ def task_result():
         # Duplicate protection: a resend of the stored result (e.g. after a lost
         # response) is acknowledged; any other result for a processed task conflicts.
         stored = task.get("result") or {}
-        if stored and all(stored.get(field) == data.get(field) for field in ("dispatch_id", "result_id", "status")):
+        if stored and all(stored.get(field) == data.get(field) for field in ("dispatch_id", "result_id", "status", "worker_id", "attempt_id", "artifacts")):
             return jsonify({"status": "ACK_DUPLICATE"})
         if task["status"] in ["RECONCILED", "FAILED_TERMINAL", "RESULT_RECEIVED", "FAILED_VERIFICATION"]:
             return jsonify({"error": "Conflicting result for already processed task"}), 409
@@ -381,6 +403,7 @@ def task_result():
                 return jsonify({"error": str(exc)}), 400
             task["status"] = "RESULT_RECEIVED"
             task["result"] = durable_result
+            task["result"]["received_at"] = time.time()
             
             if durable_result.get("status") == "SUCCESS":
                 task["status"] = "RESULT_RECEIVED" # wait for independent /verify
@@ -473,11 +496,13 @@ def verify_task_result():
     task = state["tasks"].get(task_id)
     if not task:
         return jsonify({"error": "Unknown task"}), 404
-    if task.get("status") == "RECONCILED":
+    if task.get("status") in ("RECONCILED", "FAILED_VERIFICATION"):
         verification = task.get("verification", {})
         if verification.get("result_id") == data.get("result_id"):
             return jsonify({"status": "ACK_DUPLICATE"})
-        return jsonify({"error": "Task already reconciled"}), 409
+        if task.get("status") == "RECONCILED":
+            return jsonify({"error": "Task already reconciled"}), 409
+        return jsonify({"error": "Task already failed verification"}), 409
     if task.get("status") != "RESULT_RECEIVED":
         return jsonify({"error": "Task has no result awaiting verification"}), 409
 
@@ -498,6 +523,7 @@ def verify_task_result():
         "result_id": result["result_id"],
         "verdict": verdict,
         "artifacts": result["artifacts"],
+        "verified_at": time.time(),
     }
     goal = state["goals"][task["goal_id"]]
     if verdict == "PASS":
@@ -539,6 +565,8 @@ def resume_task(task_id):
             record["status"] = "QUEUED"
             record["worker_id"] = None
         if "instruction_override" in data:
+            if not isinstance(data["instruction_override"], str) or not data["instruction_override"].strip():
+                return jsonify({"error": "instruction_override must be a non-empty string"}), 400
             step["instruction"] = data["instruction_override"]
         goal["status"] = "ACTIVE"
         save_state(state)
