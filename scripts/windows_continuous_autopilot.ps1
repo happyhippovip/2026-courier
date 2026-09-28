@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Continue"
 $Repo = "C:\Users\lol\2026-workspace\2026-courier"
-$PromptPath = Join-Path $Repo "ops\ai\WINDOWS_SELFTEST_CONTINUOUS_AUTOPILOT_PROMPT.txt"
+$PromptPath = Join-Path $env:TEMP "courier-WINDOWS_SELFTEST_CONTINUOUS_AUTOPILOT_PROMPT.txt"
 $MaxHours = if ($env:MAX_HOURS) { [int]$env:MAX_HOURS } else { 8 }
 $SleepSeconds = if ($env:SLEEP_SECONDS) { [int]$env:SLEEP_SECONDS } else { 45 }
 $LogDir = Join-Path $Repo "logs\windows-autopilot"
@@ -10,11 +10,9 @@ Set-Location $Repo
 git fetch origin coordination/autofill-task-seed-20260926
 if ($LASTEXITCODE -ne 0) { Write-Host "[launcher] initial fetch failed; continuing from local durable state" }
 
-if (-not (Test-Path $PromptPath)) {
-  $remote = git show "origin/coordination/autofill-task-seed-20260926:ops/ai/WINDOWS_SELFTEST_CONTINUOUS_AUTOPILOT_PROMPT.txt"
-  if ($LASTEXITCODE -ne 0) { throw "Cannot load autopilot prompt" }
-  Set-Content -Path $PromptPath -Value $remote -Encoding UTF8
-}
+$remote = git show "origin/coordination/autofill-task-seed-20260926:ops/ai/WINDOWS_SELFTEST_CONTINUOUS_AUTOPILOT_PROMPT.txt"
+if ($LASTEXITCODE -ne 0) { throw "Cannot load autopilot prompt" }
+Set-Content -Path $PromptPath -Value $remote -Encoding UTF8
 
 if (-not (Get-Command agy -ErrorAction SilentlyContinue)) { throw "agy not found in PATH" }
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) { throw "git not found in PATH" }
