@@ -1,0 +1,17 @@
+MUSE CLAUDE/CODEX SIDECAR MASTER
+
+Work directly in the open 2026-courier repo.
+Read ops/ai/MUSE_CLAUDE_CODEX_SIDECAR_16_2026-09-28.md.
+
+Choose the lowest unfinished sidecar family 01-16 whose checkpoint is not FAMILY_COMPLETE.
+Do 3-6 new read-only subcases.
+Do not edit source.
+Do not duplicate Claude/Codex arbitration.
+Do not reopen old 65-96/Cascade/Pre-Codex work.
+Persist checkpoint and stop after one family.
+
+If Claude/Codex result exists:
+BLOCKED -> correlate only exact defect.
+GREEN -> convert this family to post-Codex/RUN evidence relevance.
+
+START NOW.

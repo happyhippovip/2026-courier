@@ -1,0 +1,58 @@
+MUSE CLAUDE-CODEX SIDECAR 16 — PILOT_VALUE_CONTRACT
+
+Work directly in the open 2026-courier repo.
+
+MODE=READ_ONLY_C2
+LEDGER=FROZEN
+NO_SOURCE_EDITS=YES
+NO_PHYSICAL_RUNS=YES
+NO_PRE_CODEX_REVALIDATION=YES
+CLAUDE_OWNS_CODEX_ARBITRATION=YES
+
+CHECKPOINT=ops/ai/live/MUSE_CLAUDE_SIDECAR_16_PILOT_VALUE_CONTRACT.md
+
+CURRENT SOURCE FACT TO REUSE:
+candidate-b-1 duplicate ACK comparison already includes:
+dispatch_id, result_id, status, worker_id, attempt_id, artifacts.
+Do not reopen the old worker-blind Case-10 arbitration unless current source materially changes.
+
+TASK:
+Prepare the minimum real-pilot contract: setup time, interventions, reliability, support burden, provider cost, positive/negative/unknown value signal. No product-shell unlock yet.
+
+WORK:
+1. Read only exact relevant source/tests/evidence.
+2. Reuse current Claude/Codex findings; do not compete with Claude.
+3. Examine 3-6 concrete subcases.
+4. Classify:
+   CONFIRMED_DEFECT
+   MISSING_EVIDENCE
+   DISPROVEN
+   NO_ISSUE
+   WAITING_FOR_CLAUDE
+   WAITING_FOR_RUN
+5. If a source change seems needed, write only a compact owner packet:
+   FILES=
+   CAUSAL_BUG=
+   MIN_FIX=
+   MIN_TEST=
+   OWNER=
+   DO NOT edit.
+6. Persist checkpoint with DO_NOT_REPEAT.
+7. If Claude/Codex produces a result while this runs:
+   - BLOCKED -> only correlate your family with the exact defect;
+   - GREEN -> switch to post-Codex/RUN-prep relevance;
+   - do not reopen broad review.
+
+OUTPUT:
+STATUS=
+SUBCASES_DONE=
+CONFIRMED=
+MISSING_EVIDENCE=
+DISPROVEN=
+OWNER_PACKET=
+WAITING_FOR=
+NEXT_OWNER=
+DO_NOT_REPEAT=
+FAMILY_COMPLETE=YES|NO
+
+START NOW.
