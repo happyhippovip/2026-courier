@@ -1,0 +1,60 @@
+COURIER FINISH F24 — CORE FREEZE ASSEMBLER
+
+HOST=MAC_PREFERRED
+PROVIDER=GOOGLE_CLI
+MODE=FREEZE_FINALIZER
+CONTINUE_BY_DEFAULT=YES
+RESULT_REUSE_FIRST=YES
+CLAIM_BEFORE_ANALYSIS=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+
+RULES:
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+APPLICATION_SOURCE_WRITE=NO unless this prompt explicitly grants WRITER authority.
+
+If current task fingerprint already has a durable valid result:
+RESULT_REUSED
+-> continue to another unclaimed task in this prompt family.
+
+If one task is blocked:
+persist exact blocker
+-> continue independent work in this family.
+
+Do not stop on SLOT_IDLE until harvest/synthesis/preparation for this family has been checked once.
+
+
+PRECONDITION:
+RUN_1 PASS and RUN_2 PASS.
+
+TASK:
+Assemble Core Freeze proof:
+Trusted Ledger;
+Reliable Motor;
+Result->Verify->Reconcile->NEXT_READY;
+zero-human A->B;
+restart matrix;
+Autonomy Grade;
+Covered Surface;
+resource bounds;
+no-tight-polling;
+Proof Cards;
+source/build/runtime fingerprints;
+UNKNOWN list.
+
+DONE:
+CORE_FREEZE_PACKET_READY=
+UNKNOWN=
+NEXT=
+
+START NOW.

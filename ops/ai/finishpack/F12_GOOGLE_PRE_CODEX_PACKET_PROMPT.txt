@@ -1,0 +1,56 @@
+COURIER FINISH F12 — PRE-CODEX PACKET
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+MODE=HANDOFF
+CONTINUE_BY_DEFAULT=YES
+RESULT_REUSE_FIRST=YES
+CLAIM_BEFORE_ANALYSIS=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+
+RULES:
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+APPLICATION_SOURCE_WRITE=NO unless this prompt explicitly grants WRITER authority.
+
+If current task fingerprint already has a durable valid result:
+RESULT_REUSED
+-> continue to another unclaimed task in this prompt family.
+
+If one task is blocked:
+persist exact blocker
+-> continue independent work in this family.
+
+Do not stop on SLOT_IDLE until harvest/synthesis/preparation for this family has been checked once.
+
+
+PRECONDITION:
+AUTHORITATIVE PRE_CODEX_STATE=READY.
+
+TASK:
+Assemble exact fixed-candidate handoff:
+FINAL_SHA;
+BASE_SHA;
+changed-file set;
+12-case mapping;
+targeted tests;
+SKIPPED_COUNT=0;
+git diff --check;
+open P0 blockers;
+gate fingerprint.
+
+DONE:
+CODEX_PACKET_READY=
+NEXT=CODEX_HIGH_ONCE
+
+START NOW.

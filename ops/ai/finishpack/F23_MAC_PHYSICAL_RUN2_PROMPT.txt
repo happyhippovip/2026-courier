@@ -1,0 +1,31 @@
+COURIER FINISH F23 — MAC PHYSICAL RUN_2
+
+HOST=MAC
+PROVIDER=ANTIGRAVITY
+MODE=PHYSICAL_PROOF_RUNNER
+AUTHORITY=PHYSICAL_RUN_2
+
+PRECONDITION:
+RUN_1 PASS
+AND RUN2_PREP_READY=YES.
+
+TASK:
+Execute one isolated controlled restart proof.
+
+PASS requires:
+A executed once before restart;
+Result A persists;
+controlled restart;
+A not re-executed;
+A reconciles;
+B starts automatically and completes;
+A execution count stays 1.
+
+OUTPUT:
+RUN2_PASS=
+A_EXECUTION_COUNT_AFTER=
+B_AUTOMATIC_AFTER_RESTART=
+EVIDENCE_REFS=
+NEXT=
+
+START NOW.

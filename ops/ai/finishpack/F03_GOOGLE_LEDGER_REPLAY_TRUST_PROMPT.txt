@@ -1,0 +1,54 @@
+COURIER FINISH F03 — LEDGER REPLAY + TRUSTED CONTENT
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+MODE=LEDGER_C1
+CONTINUE_BY_DEFAULT=YES
+RESULT_REUSE_FIRST=YES
+CLAIM_BEFORE_ANALYSIS=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+
+RULES:
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+APPLICATION_SOURCE_WRITE=NO unless this prompt explicitly grants WRITER authority.
+
+If current task fingerprint already has a durable valid result:
+RESULT_REUSED
+-> continue to another unclaimed task in this prompt family.
+
+If one task is blocked:
+persist exact blocker
+-> continue independent work in this family.
+
+Do not stop on SLOT_IDLE until harvest/synthesis/preparation for this family has been checked once.
+
+
+TASK:
+Close only remaining replay/trusted-content gaps:
+identical replay;
+changed status/worker/attempt/dispatch/artifact rejection;
+task-owned expected_sha256;
+worker expected hash rejected;
+server-byte hashing;
+ambiguous artifact failure.
+
+Use G201-G220 results first.
+
+DONE:
+REPLAY_READY=
+TRUSTED_CONTENT_READY=
+OPEN=
+NEXT=
+
+START NOW.

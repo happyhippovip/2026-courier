@@ -1,0 +1,25 @@
+COURIER FINISH F33 — WINDOWS PRODUCT SOURCE WRITER
+
+HOST=WINDOWS
+PROVIDER=ANTIGRAVITY
+MODE=AUTHORIZED_CENTRAL_WRITER
+AUTHORITY=APPLICATION_SOURCE_WRITE
+
+PRECONDITION:
+positive pilot signal
+AND approved durable F31/F32 implementation packet.
+
+RULE:
+Write only explicitly authorized files/functions from packet.
+No scope expansion.
+Run targeted tests.
+Persist exact source SHA and evidence.
+
+OUTPUT:
+PRODUCT_SOURCE_SHA=
+FILES_CHANGED=
+TARGETED_TESTS=
+OPEN=
+NEXT=
+
+START NOW.

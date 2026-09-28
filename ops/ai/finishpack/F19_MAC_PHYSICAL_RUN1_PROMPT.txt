@@ -1,0 +1,38 @@
+COURIER FINISH F19 — MAC PHYSICAL RUN_1
+
+HOST=MAC
+PROVIDER=ANTIGRAVITY
+MODE=PHYSICAL_PROOF_RUNNER
+AUTHORITY=PHYSICAL_RUN_1
+
+PRECONDITION:
+READY_FOR_PHYSICAL_RUN=YES
+EXACT_MAC_BINDING_READY=YES
+
+TASK:
+Execute one isolated RUN_1.
+
+PASS requires:
+A exactly once;
+real Result A;
+task-owned expected hash;
+server bytes exact;
+A verified/reconciled;
+B only after A verify;
+B automatic;
+B completes;
+HUMAN_RELAY_COUNT=0;
+NO FAILED execution.
+
+Any FAILED execution => RUN_1 FAIL.
+
+OUTPUT:
+RUN1_PASS=
+A_EXECUTION_COUNT=
+B_AUTOMATIC=
+HUMAN_RELAY_COUNT=
+FAILED_EXECUTIONS=
+EVIDENCE_REFS=
+NEXT=
+
+START NOW.

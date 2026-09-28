@@ -1,0 +1,29 @@
+COURIER FINISH F13 — CODEX HIGH ONCE
+
+HOST=WINDOWS
+PROVIDER=CODEX
+MODEL_CLASS=C3
+REASONING=HIGH
+MODE=FIXED_CANDIDATE_REVIEW
+
+PRECONDITION:
+AUTHORITATIVE PRE_CODEX READY
+AND exact durable FINAL_SHA
+AND fixed 12-case/test packet.
+
+RULE:
+RUN EXACTLY ONCE FOR THIS GATE FINGERPRINT.
+
+TASK:
+Review only the exact final candidate scope and supplied evidence.
+Report only causal blocking defects or green readiness.
+Do not broaden repo scope.
+
+OUTPUT:
+CODEX_VERDICT=
+BLOCKING_DEFECTS=
+READY_FOR_PHYSICAL_RUN=
+REVIEWED_FINAL_SHA=
+GATE_FINGERPRINT=
+
+START NOW.
