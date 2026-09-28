@@ -1,0 +1,3 @@
+[RUN_2] Booted with SHA: abcd
+ * Serving Flask app 'server.app'
+ * Debug mode: off

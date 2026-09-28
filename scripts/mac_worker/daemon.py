@@ -1,4 +1,8 @@
-import json, time, os, sys, shutil, subprocess, uuid, traceback, fcntl
+import json, time, os, sys, shutil, subprocess, uuid, traceback
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
 from pathlib import Path, PurePosixPath
 import urllib.request
 import urllib.error
@@ -272,7 +276,10 @@ def run_native(task, config):
     # Safe bounded execution
     try:
         if action == "echo":
-            result = subprocess.run(instruction, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, executable="/bin/bash")
+            if sys.platform == "win32":
+                result = subprocess.run(instruction, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            else:
+                result = subprocess.run(instruction, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, executable="/bin/bash")
         elif action == "git_status":
             result = subprocess.run(["git", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         else:
@@ -395,7 +402,11 @@ def acquire_worker_lock():
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
     handle = open(STATE_DIR / "worker.lock", "w")
     try:
-        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        if fcntl:
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        else:
+            import msvcrt
+            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
     except OSError:
         handle.close()
         return None

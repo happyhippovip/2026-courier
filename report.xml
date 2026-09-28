@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.521" timestamp="2026-09-28T23:19:51.976451+02:00" hostname="DESKTOP-JDPRUGR"><testcase classname="tests.test_run_physical" name="test_run_physical_success" time="0.016"><failure message="ModuleNotFoundError: No module named 'scripts'">tmp_path = WindowsPath('C:/Users/lol/AppData/Local/Temp/pytest-of-lol/pytest-447/test_run_physical_success0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x0000023985E01A70&gt;
+
+    def test_run_physical_success(tmp_path, monkeypatch):
+&gt;       import scripts.run_physical as script
+E       ModuleNotFoundError: No module named 'scripts'
+
+tests\test_run_physical.py:7: ModuleNotFoundError</failure></testcase></testsuite></testsuites>

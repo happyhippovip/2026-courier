@@ -1,0 +1,37 @@
+{
+  "goals": {
+    "g1": {
+      "id": "g1",
+      "status": "IN_PROGRESS",
+      "artifacts": {},
+      "payload": {
+        "candidate_sha": "abcd",
+        "run_id": "RUN_2",
+        "host": "MAC",
+        "test_target": "tests/",
+        "artifacts": [
+          {
+            "name": "evidence.zip",
+            "path": "evidence/"
+          }
+        ]
+      }
+    }
+  },
+  "tasks": {},
+  "workers": {
+    "MAC-01": {
+      "worker_id": "MAC-01",
+      "platform": "macos",
+      "capabilities": [
+        "macos",
+        "linux",
+        "antigravity"
+      ],
+      "last_seen": 1790629858.1594903,
+      "available": true,
+      "current_task": null,
+      "cost_class": "unknown"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "goals": {
+    "goal-d6826864": {
+      "goal_id": "goal-d6826864",
+      "goal_text": "run physical tests",
+      "status": "ACTIVE",
+      "workflow_plan": [
+        {
+          "task_id": "process_a",
+          "target_agent": "mac",
+          "instruction": "echo A > courier_canary_process_a.txt",
+          "goal_id": "goal-d6826864",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "process_b",
+          "target_agent": "mac",
+          "instruction": "echo B > courier_canary_process_b.txt",
+          "goal_id": "goal-d6826864",
+          "status": "QUEUED",
+          "attempts": 0
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {},
+  "workers": {}
+}

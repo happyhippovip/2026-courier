@@ -1,0 +1,86 @@
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://192.168.178.87:8081
+Press CTRL+C to quit
+127.0.0.1 - - [28/Sep/2026 22:59:26] "GET /health HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:26] "POST /goals HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:26] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:27] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+Traceback (most recent call last):
+  File "C:\Users\lol\2026-workspace\2026-courier-final-writer\scripts\mac_worker\daemon.py", line 1, in <module>
+    import json, time, os, sys, shutil, subprocess, uuid, traceback, fcntl
+ModuleNotFoundError: No module named 'fcntl'
+127.0.0.1 - - [28/Sep/2026 22:59:28] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:29] "GET /tasks/pending_verification HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:29] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:30] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:31] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:32] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:33] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:34] "GET /tasks/pending_verification HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:34] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:35] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:36] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:38] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:39] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:39] "GET /tasks/pending_verification HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:40] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:41] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:42] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:43] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:44] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:44] "GET /tasks/pending_verification HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:45] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:46] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:47] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:48] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:49] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:49] "GET /tasks/pending_verification HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:50] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:51] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:52] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:53] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:54] "GET /tasks/pending_verification HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:54] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:55] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:56] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:57] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:58] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:59] "GET /tasks/pending_verification HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 22:59:59] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:00] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:01] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:02] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:03] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:04] "GET /tasks/pending_verification HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:04] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:05] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:06] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:07] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:08] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:09] "GET /tasks/pending_verification HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:09] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:10] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:11] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:12] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:13] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:14] "GET /tasks/pending_verification HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:14] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:15] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:16] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:17] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:18] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:19] "GET /tasks/pending_verification HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:19] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:20] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:21] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:22] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:23] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:24] "GET /tasks/pending_verification HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:24] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:25] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:26] "GET /goals/goal-3af776a1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:27] "GET /health HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:27] "POST /goals HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 23:00:27] "GET /goals/goal-af98e393 HTTP/1.1" 200 -

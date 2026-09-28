@@ -1,5 +1,4 @@
 """Small shared persistence, STOP fencing and process-ownership primitives."""
-import fcntl
 import hashlib
 import json
 import os
@@ -9,6 +8,13 @@ import tempfile
 import time
 from contextlib import contextmanager
 from pathlib import Path
+import sys
+
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
+    import msvcrt
 
 CANONICAL_WORKSPACE = "/Users/user/Downloads/2026-courier"
 
@@ -24,6 +30,8 @@ def read_object(path, default=None):
 
 
 def sync_directory(path):
+    if sys.platform == "win32":
+        return
     fd = os.open(str(path), os.O_RDONLY)
     try:
         os.fsync(fd)
@@ -53,12 +61,41 @@ def control_lock(wall):
     wall = Path(wall)
     wall.mkdir(parents=True, exist_ok=True)
     with open(wall / "control.lock", "a") as handle:
-        fcntl.flock(handle, fcntl.LOCK_EX)
-        yield
+        if fcntl:
+            fcntl.flock(handle, fcntl.LOCK_EX)
+        else:
+            handle.seek(0)
+            while True:
+                try:
+                    msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+                    break
+                except OSError:
+                    time.sleep(0.1)
+        try:
+            yield
+        finally:
+            if fcntl:
+                pass # flock is released on close, but we are using a context manager around yield. Wait, the original code didn't unlock it explicitly.
+                # Actually, the file handle is closed when `with open` exits, which releases the lock.
+            else:
+                try:
+                    handle.seek(0)
+                    msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+                except OSError:
+                    pass
 
 
 def process_identity(pid):
     """No command arguments/secrets persisted; include OS start time, PGID, executable."""
+    if sys.platform == "win32":
+        # ps doesn't work on Windows, just return a mock or a basic identity using psutil if available.
+        # But this is just for validating process ownership. Let's just return something simple.
+        try:
+            import psutil
+            p = psutil.Process(int(pid))
+            return {"pid": int(pid), "pgid": int(pid), "fingerprint": hashlib.sha256(str(p.create_time()).encode()).hexdigest()}
+        except Exception:
+            return None
     try:
         value = subprocess.check_output(
             ["ps", "-p", str(int(pid)), "-o", "pid=,pgid=,lstart=,comm="],
@@ -78,6 +115,12 @@ def same_process(pid, identity):
 
 
 def group_exists(pgid):
+    if sys.platform == "win32":
+        try:
+            import psutil
+            return psutil.pid_exists(int(pgid))
+        except ImportError:
+            return True
     try:
         os.killpg(int(pgid), 0)
         return True
@@ -101,7 +144,15 @@ def cleanup_group(proc, identity, grace=2.0):
     current = process_identity(pgid)
     if current is not None and current != identity:
         return False
-    for sig in (signal.SIGTERM, signal.SIGKILL):
+    
+    sig_term = getattr(signal, "SIGTERM", signal.SIGINT)
+    sig_kill = getattr(signal, "SIGKILL", signal.SIGTERM)
+    
+    if sys.platform == "win32":
+        sig_term = signal.CTRL_BREAK_EVENT
+        sig_kill = signal.CTRL_BREAK_EVENT
+
+    for sig in (sig_term, sig_kill):
         if not group_exists(pgid):
             proc.poll()
             return True
@@ -109,8 +160,11 @@ def cleanup_group(proc, identity, grace=2.0):
         if current is not None and current != identity:
             return False
         try:
-            os.killpg(pgid, sig)
-        except ProcessLookupError:
+            if sys.platform == "win32":
+                os.kill(pgid, sig)
+            else:
+                os.killpg(pgid, sig)
+        except (ProcessLookupError, OSError):
             return True
         deadline = time.monotonic() + grace
         while time.monotonic() < deadline:

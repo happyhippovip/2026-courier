@@ -1,0 +1,1 @@
+{"artifact_id": "art-ff4779fedbdfb9739ea14a8b10e096d3e2cb9b9b47ab9ca33a3881119d5b822c", "attempt_id": "process_b:attempt:1", "dispatch_id": "dispatch-fde3c63d3241400cad30c0188f4cc3ab", "goal_id": "g1", "name": "courier_canary_process_b.txt", "sha256": "a464a7d1047895b950c9581e3f6335059e745cb9b435fb90481ab081e410bc1e", "size": 4, "task_id": "process_b", "worker_id": "MAC-01"}

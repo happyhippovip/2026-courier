@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="14.584" timestamp="2026-09-28T23:20:53.413527+02:00" hostname="DESKTOP-JDPRUGR"><testcase classname="tests.test_run_physical" name="test_run_physical_success" time="14.245" /></testsuite></testsuites>

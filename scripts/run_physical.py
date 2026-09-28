@@ -32,11 +32,12 @@ def check_resources(force: bool = False):
     if available_mb < 1000:
         raise RuntimeError(f"Insufficient RAM: {available_mb:.1f}MB available, 1000MB required.")
     
-    load1, _, _ = os.getloadavg()
-    cpu_cores = os.cpu_count() or 1
-    max_load = max(6.0, cpu_cores * 0.8)
-    if load1 > max_load:
-        raise RuntimeError(f"System load too high: {load1:.2f}. Limit is {max_load:.1f} on {cpu_cores} cores.")
+    if hasattr(os, "getloadavg"):
+        load1, _, _ = os.getloadavg()
+        cpu_cores = os.cpu_count() or 1
+        max_load = max(6.0, cpu_cores * 0.8)
+        if load1 > max_load:
+            raise RuntimeError(f"System load too high: {load1:.2f}. Limit is {max_load:.1f} on {cpu_cores} cores.")
     return True
 
 def check_port_free(port: int = 8081):
@@ -90,6 +91,20 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
     env["COURIER_API_KEY"] = "mac-physical-run-token"
     env["COURIER_VERIFIER_API_KEY"] = "mac-physical-verifier-token"
 
+    server_env = env.copy()
+    server_env["COURIER_API_KEY"] = "mac-physical-run-token"
+    server_env["COURIER_VERIFIER_API_KEY"] = "mac-physical-verifier-token"
+
+    worker_env = env.copy()
+    worker_env["COURIER_API_KEY"] = "mac-physical-run-token"
+    if "COURIER_VERIFIER_API_KEY" in worker_env:
+        del worker_env["COURIER_VERIFIER_API_KEY"]
+
+    verifier_env = env.copy()
+    verifier_env["COURIER_VERIFIER_API_KEY"] = "mac-physical-verifier-token"
+    if "COURIER_API_KEY" in verifier_env:
+        del verifier_env["COURIER_API_KEY"]
+
     # Reset logs
     with open(stdout_path, "w") as f: f.write(f"[RUN] Booted with SHA: {sha}\n")
     with open(stderr_path, "w") as f: pass
@@ -101,41 +116,39 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
     def cleanup():
         print("[RUN] Tearing down processes (Process Group Kill)...")
         import signal
-        if worker_proc:
-            try:
-                os.killpg(os.getpgid(worker_proc.pid), signal.SIGTERM)
-                worker_proc.wait(timeout=5)
-            except Exception as e:
-                print(f"Worker cleanup error: {e}")
-                try: os.killpg(os.getpgid(worker_proc.pid), signal.SIGKILL)
-                except: pass
-        if verifier_proc:
-            try:
-                os.killpg(os.getpgid(verifier_proc.pid), signal.SIGTERM)
-                verifier_proc.wait(timeout=5)
-            except Exception as e:
-                print(f"Verifier cleanup error: {e}")
-                try: os.killpg(os.getpgid(verifier_proc.pid), signal.SIGKILL)
-                except: pass
-        if server_proc:
-            try:
-                os.killpg(os.getpgid(server_proc.pid), signal.SIGTERM)
-                server_proc.wait(timeout=5)
-            except Exception as e:
-                print(f"Server cleanup error: {e}")
-                try: os.killpg(os.getpgid(server_proc.pid), signal.SIGKILL)
-                except: pass
+        for proc in [worker_proc, verifier_proc, server_proc]:
+            if proc:
+                try:
+                    if os.name == 'nt':
+                        proc.send_signal(signal.CTRL_BREAK_EVENT)
+                    else:
+                        os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+                    proc.wait(timeout=5)
+                except Exception as e:
+                    print(f"Cleanup error: {e}")
+                    try:
+                        if os.name == 'nt':
+                            proc.kill()
+                        else:
+                            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+                    except: pass
 
     try:
         server_out = open(stdout_path, "a")
         server_err = open(stderr_path, "a")
         
+        kwargs = {}
+        if os.name == 'nt':
+            kwargs['creationflags'] = subprocess.CREATE_NEW_PROCESS_GROUP
+        else:
+            kwargs['preexec_fn'] = os.setsid
+
         # 1. Spawn Server
         print("[RUN] Spawning Server...")
         server_proc = subprocess.Popen(
             [sys.executable, "-c", "import sys, os; sys.path.append(os.getcwd()); from server.app import app; app.run(host='0.0.0.0', port=int(sys.argv[1]))", str(port)],
-            env=env, cwd=REPO_ROOT, stdout=server_out, stderr=server_err,
-            preexec_fn=os.setsid
+            env=server_env, cwd=REPO_ROOT, stdout=server_out, stderr=server_err,
+            **kwargs
         )
         with open(server_pid_path, "w") as f: f.write(str(server_proc.pid))
 
@@ -155,16 +168,16 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
         print("[RUN] Spawning Mac Worker...")
         worker_proc = subprocess.Popen(
             [sys.executable, "scripts/mac_worker/daemon.py"],
-            env=env, cwd=REPO_ROOT, stdout=server_out, stderr=server_err,
-            preexec_fn=os.setsid
+            env=worker_env, cwd=REPO_ROOT, stdout=server_out, stderr=server_err,
+            **kwargs
         )
         # 3. Spawn Mac Verifier
         print("[RUN] Spawning Mac Verifier...")
         verifier_pid_path = os.path.join(state_dir, "verifier.pid")
         verifier_proc = subprocess.Popen(
             [sys.executable, "scripts/courier_verifier.py"],
-            env=env, cwd=REPO_ROOT, stdout=server_out, stderr=server_err,
-            preexec_fn=os.setsid
+            env=verifier_env, cwd=REPO_ROOT, stdout=server_out, stderr=server_err,
+            **kwargs
         )
         with open(verifier_pid_path, "w") as f: f.write(str(verifier_proc.pid))
 
@@ -173,8 +186,8 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
         goal_payload = {
             "goal_text": "run physical tests",
             "workflow_plan": [
-                {"task_id": "process_a", "target_agent": "mac", "instruction": "echo A > courier_canary_process_a.txt"},
-                {"task_id": "process_b", "target_agent": "mac", "instruction": "echo B > courier_canary_process_b.txt"}
+                {"task_id": "process_a", "target_agent": "mac", "instruction": "echo A > courier_canary_process_a.txt", "artifacts": ["courier_canary_process_a.txt"]},
+                {"task_id": "process_b", "target_agent": "mac", "instruction": "echo B > courier_canary_process_b.txt", "artifacts": ["courier_canary_process_b.txt"]}
             ]
         }
         req = urllib.request.Request(f"http://127.0.0.1:{port}/goals",
@@ -240,8 +253,6 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
     if b_attempts > 0:
         transitions.append({"state": "B_START", "timestamp": int(time.time() * 1000) + 3})
 
-    if final_goal_status == "DONE":
-        final_goal_status = "SUCCESS"
 
     payload = {
         "candidate_sha": sha,
@@ -270,7 +281,7 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
         json.dump(snapshot_data, f, indent=2)
 
     with open(exit_code_path, "w", encoding="utf-8") as f:
-        f.write("0\n")
+        f.write("0\n" if final_goal_status in ("SUCCESS", "DONE") else "1\n")
 
     metrics_data = {
         "duration_sec": time.time() - t_start,
