@@ -1,0 +1,43 @@
+GOOGLE WINDOWS PULL-THROUGH 02 — RESTART_S1_S4
+
+Work DIRECTLY in the open 2026-courier repo on Windows.
+ONE main Google/Antigravity worker.
+No git-show prompt loader.
+No git-fetch requirement for local work.
+LEDGER=COMPLETE.
+Do not repair third-party tools/providers.
+
+CHECKPOINT=ops/ai/live/GWIN_02_RESTART_S1_S4.md
+
+MISSION:
+Close S1-S4 restart semantics against real source; add targeted regression coverage where appropriate.
+
+PULL-THROUGH CONTRACT:
+- Do not stop after one tiny finding.
+- Execute 3-6 concrete substeps in this mission when legally possible.
+- Use source/tests/runtime truth before docs.
+- Reuse completed evidence first.
+- If OUR repo doc/test/support bug is found: make smallest bounded fix and verify.
+- If application-source change is required: only edit it if this window is the sole authorized Windows Central Writer for that exact task; otherwise create an exact patch packet.
+- If remote durability alone blocks a substep: park that substep and continue locally.
+- If optional external path fails twice: DISABLED_UNTIL_TRIGGER and continue.
+
+HARD GATES:
+Do not duplicate PRE_CODEX durability owner.
+Do not simulate Codex.
+Do not execute physical RUN_1/RUN_2.
+Product Shell remains gated by real pilot signal.
+
+BEFORE RETURN:
+persist checkpoint/results and identify the next executable substep.
+
+OUTPUT:
+DONE=
+FIXED=
+CHECKS_RUN=
+FILES_CHANGED=
+BLOCKED_REMOTE=
+BLOCKED_OTHER=
+NEXT=
+
+START NOW AND PUSH THROUGH.

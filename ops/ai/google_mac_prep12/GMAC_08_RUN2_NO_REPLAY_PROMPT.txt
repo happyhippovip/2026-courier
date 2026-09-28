@@ -1,0 +1,28 @@
+GOOGLE MAC PREP 08 — RUN2_NO_REPLAY
+
+Work directly in the open 2026-courier repo on Mac.
+LEDGER=COMPLETE.
+NO_PHYSICAL_EXECUTION_UNTIL_GATE=YES.
+MAX_HEAVY_JOBS=1.
+
+CHECKPOINT=ops/ai/live/GMAC_08_RUN2_NO_REPLAY.md
+
+TASK:
+Close no-A-replay/execution-count evidence design.
+
+Work 3-6 concrete substeps before returning when available.
+Use real source states only.
+Reuse evidence.
+Do not revalidate PRE_CODEX.
+If exact FINAL_SHA is required and not durable, park only that substep and continue candidate-independent prep.
+Do not execute RUN_1 until READY_FOR_PHYSICAL_RUN=YES.
+Do not execute RUN_2 until RUN_1 PASS.
+
+OUTPUT:
+DONE=
+OPEN=
+BLOCKED_ON_FINAL_SHA=
+EVIDENCE=
+NEXT=
+
+START NOW.

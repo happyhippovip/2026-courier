@@ -1,0 +1,26 @@
+# Google Windows Pull-Through 24 — 2026-09-28
+
+- 01: STATE_TRUTH_FIX — `ops/ai/google_windows_pullthrough24/GWIN_01_STATE_TRUTH_FIX_PROMPT.txt`
+- 02: RESTART_S1_S4 — `ops/ai/google_windows_pullthrough24/GWIN_02_RESTART_S1_S4_PROMPT.txt`
+- 03: RESTART_S5_S9 — `ops/ai/google_windows_pullthrough24/GWIN_03_RESTART_S5_S9_PROMPT.txt`
+- 04: DUPLICATE_RESULT — `ops/ai/google_windows_pullthrough24/GWIN_04_DUPLICATE_RESULT_PROMPT.txt`
+- 05: VERIFY_RECONCILE — `ops/ai/google_windows_pullthrough24/GWIN_05_VERIFY_RECONCILE_PROMPT.txt`
+- 06: RESULT_IDENTITY — `ops/ai/google_windows_pullthrough24/GWIN_06_RESULT_IDENTITY_PROMPT.txt`
+- 07: TRUSTED_HASH — `ops/ai/google_windows_pullthrough24/GWIN_07_TRUSTED_HASH_PROMPT.txt`
+- 08: SERVER_BYTES — `ops/ai/google_windows_pullthrough24/GWIN_08_SERVER_BYTES_PROMPT.txt`
+- 09: CLAIMS_REALITY — `ops/ai/google_windows_pullthrough24/GWIN_09_CLAIMS_REALITY_PROMPT.txt`
+- 10: WORKER_LIVENESS — `ops/ai/google_windows_pullthrough24/GWIN_10_WORKER_LIVENESS_PROMPT.txt`
+- 11: NEXT_READY_REALITY — `ops/ai/google_windows_pullthrough24/GWIN_11_NEXT_READY_REALITY_PROMPT.txt`
+- 12: B_AUTOSTART_REALITY — `ops/ai/google_windows_pullthrough24/GWIN_12_B_AUTOSTART_REALITY_PROMPT.txt`
+- 13: RUN1_CONTRACTS — `ops/ai/google_windows_pullthrough24/GWIN_13_RUN1_CONTRACTS_PROMPT.txt`
+- 14: RUN1_FAILURE_GUARD — `ops/ai/google_windows_pullthrough24/GWIN_14_RUN1_FAILURE_GUARD_PROMPT.txt`
+- 15: RUN2_CONTRACTS — `ops/ai/google_windows_pullthrough24/GWIN_15_RUN2_CONTRACTS_PROMPT.txt`
+- 16: EVENT_SCHEMA — `ops/ai/google_windows_pullthrough24/GWIN_16_EVENT_SCHEMA_PROMPT.txt`
+- 17: TIMESTAMPS — `ops/ai/google_windows_pullthrough24/GWIN_17_TIMESTAMPS_PROMPT.txt`
+- 18: STATE_ATOMICITY — `ops/ai/google_windows_pullthrough24/GWIN_18_STATE_ATOMICITY_PROMPT.txt`
+- 19: MOTOR_WORKFLOW — `ops/ai/google_windows_pullthrough24/GWIN_19_MOTOR_WORKFLOW_PROMPT.txt`
+- 20: WINDOWS_MAC_HANDOFF — `ops/ai/google_windows_pullthrough24/GWIN_20_WINDOWS_MAC_HANDOFF_PROMPT.txt`
+- 21: PROOF_CARD — `ops/ai/google_windows_pullthrough24/GWIN_21_PROOF_CARD_PROMPT.txt`
+- 22: CORE_FREEZE — `ops/ai/google_windows_pullthrough24/GWIN_22_CORE_FREEZE_PROMPT.txt`
+- 23: PILOT_PREP — `ops/ai/google_windows_pullthrough24/GWIN_23_PILOT_PREP_PROMPT.txt`
+- 24: FINISH_SWEEP — `ops/ai/google_windows_pullthrough24/GWIN_24_FINISH_SWEEP_PROMPT.txt`

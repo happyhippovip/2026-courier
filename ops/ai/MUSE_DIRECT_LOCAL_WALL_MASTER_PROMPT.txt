@@ -21,6 +21,3 @@ Do not repair external tools.
 Do not repeat completed fingerprints.
 
 START NOW.
-
-
-Compatibility alias: this file replaces the older fetch/show selftest bootstrap.

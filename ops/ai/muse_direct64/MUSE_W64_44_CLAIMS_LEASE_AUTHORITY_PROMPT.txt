@@ -1,0 +1,61 @@
+MUSE DIRECT WALL 44 — CLAIMS_LEASE_AUTHORITY
+
+Work DIRECTLY in the already-open 2026-courier repo.
+Do not git-fetch/show a prompt first.
+Do not repair external tools.
+LEDGER=COMPLETE.
+MODE=READ_ONLY_ADVERSARIAL_QA.
+NO_SOURCE_EDITS=YES.
+NO_PRE_CODEX_GATE_OWNERSHIP=YES.
+NO_PHYSICAL_RUNS=YES.
+
+CHECKPOINT=ops/ai/live/MUSE_W64_44_CLAIMS_LEASE_AUTHORITY.md
+
+PRIMARY TARGET:
+pid/liveness field reality
+
+SOURCE-TRUTH LAW:
+Executable source/runtime truth outranks prose packets.
+Known example: valid /tasks/result -> RESULT_RECEIVED; verifier PASS -> RECONCILED.
+Never accept invented states or proof claims just because a Markdown file says so.
+
+WORK LOOP:
+1. Read this checkpoint if it exists.
+2. Reuse prior durable evidence; skip completed fingerprints.
+3. Inspect only exact source/tests/proof/docs for this target.
+4. Find a NEW contradiction, false-green route, missing independent witness, missing identity/timestamp, or source/doc mismatch.
+5. Prove or disprove it with exact refs.
+6. Persist finding + causal impact + do-not-repeat fingerprint.
+7. Continue to the next unresolved subcase in this SAME target.
+8. Aim for 4-8 useful subcases in one session.
+9. If exhausted, mark FAMILY_COMPLETE and state the next owner; do not fabricate more work.
+
+PHASE AWARE:
+- PRE_CODEX pending: candidate-independent QA only.
+- PRE_CODEX ready/consumed: stop gate-adjacent review.
+- Codex green/RUN_1 pending: focus physical-proof evidence semantics.
+- RUN_1 PASS: focus RUN_2/restart/no-replay.
+- RUN_2 PASS: focus Core Freeze.
+- Core Freeze complete: focus pilot/value evidence.
+
+DO NOT:
+redo Ledger;
+repeat old Muse findings;
+simulate Google/Codex/Opus;
+run physical proof;
+invent filler;
+return SLOT_IDLE while target has unresolved subcases.
+
+OUTPUT:
+TARGET=
+DONE_SUBCASES=
+CONFIRMED_DEFECTS=
+DISPROVEN_RISKS=
+MISSING_EVIDENCE=
+SOURCE_REFS=
+BLOCKED_ON_OTHER_OWNER=
+NEXT_OWNER=
+NEXT_SUBCASE=
+DO_NOT_REPEAT=
+
+START NOW.

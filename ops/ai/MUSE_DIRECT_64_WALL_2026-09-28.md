@@ -1,0 +1,68 @@
+# Muse Direct 64 Wall — 2026-09-28
+
+Direct local roles. No git-show bootstrap.
+
+- 01: SOURCE_STATE_TRUTH — authoritative task-state vocabulary from source only — `ops/ai/muse_direct64/MUSE_W64_01_SOURCE_STATE_TRUTH_PROMPT.txt`
+- 02: SOURCE_STATE_TRUTH — RESULT_RECEIVED semantics — `ops/ai/muse_direct64/MUSE_W64_02_SOURCE_STATE_TRUTH_PROMPT.txt`
+- 03: SOURCE_STATE_TRUTH — RECONCILED semantics — `ops/ai/muse_direct64/MUSE_W64_03_SOURCE_STATE_TRUTH_PROMPT.txt`
+- 04: SOURCE_STATE_TRUTH — FAILED_VERIFICATION semantics — `ops/ai/muse_direct64/MUSE_W64_04_SOURCE_STATE_TRUTH_PROMPT.txt`
+- 05: SOURCE_STATE_TRUTH — FAILED_TERMINAL semantics — `ops/ai/muse_direct64/MUSE_W64_05_SOURCE_STATE_TRUTH_PROMPT.txt`
+- 06: SOURCE_STATE_TRUTH — HUMAN_REQUIRED semantics — `ops/ai/muse_direct64/MUSE_W64_06_SOURCE_STATE_TRUTH_PROMPT.txt`
+- 07: SOURCE_STATE_TRUTH — QUEUED/DISPATCHED transition semantics — `ops/ai/muse_direct64/MUSE_W64_07_SOURCE_STATE_TRUTH_PROMPT.txt`
+- 08: SOURCE_STATE_TRUTH — unknown or invented state names in proof/docs — `ops/ai/muse_direct64/MUSE_W64_08_SOURCE_STATE_TRUTH_PROMPT.txt`
+- 09: RESTART_STATE_TRUTH — S1 restart before result persistence — `ops/ai/muse_direct64/MUSE_W64_09_RESTART_STATE_TRUTH_PROMPT.txt`
+- 10: RESTART_STATE_TRUTH — S2 actual pre-validate vs post-save-pre-ACK crash windows — `ops/ai/muse_direct64/MUSE_W64_10_RESTART_STATE_TRUTH_PROMPT.txt`
+- 11: RESTART_STATE_TRUTH — S3 restart after RESULT_RECEIVED before verify — `ops/ai/muse_direct64/MUSE_W64_11_RESTART_STATE_TRUTH_PROMPT.txt`
+- 12: RESTART_STATE_TRUTH — S4 restart after verify/reconcile boundary — `ops/ai/muse_direct64/MUSE_W64_12_RESTART_STATE_TRUTH_PROMPT.txt`
+- 13: RESTART_STATE_TRUTH — S5 restart after dispatch — `ops/ai/muse_direct64/MUSE_W64_13_RESTART_STATE_TRUTH_PROMPT.txt`
+- 14: RESTART_STATE_TRUTH — stale attempt result after retry — `ops/ai/muse_direct64/MUSE_W64_14_RESTART_STATE_TRUTH_PROMPT.txt`
+- 15: RESTART_STATE_TRUTH — conflicting result after terminal state — `ops/ai/muse_direct64/MUSE_W64_15_RESTART_STATE_TRUTH_PROMPT.txt`
+- 16: RESTART_STATE_TRUTH — restart matrix source/doc consistency — `ops/ai/muse_direct64/MUSE_W64_16_RESTART_STATE_TRUTH_PROMPT.txt`
+- 17: RUN1_WITNESS_INDEPENDENCE — A-exactly-once witness independence — `ops/ai/muse_direct64/MUSE_W64_17_RUN1_WITNESS_INDEPENDENCE_PROMPT.txt`
+- 18: RUN1_WITNESS_INDEPENDENCE — real Result A vs template/self-report — `ops/ai/muse_direct64/MUSE_W64_18_RUN1_WITNESS_INDEPENDENCE_PROMPT.txt`
+- 19: RUN1_WITNESS_INDEPENDENCE — trusted expected-hash authority chain — `ops/ai/muse_direct64/MUSE_W64_19_RUN1_WITNESS_INDEPENDENCE_PROMPT.txt`
+- 20: RUN1_WITNESS_INDEPENDENCE — server bytes comparator independence — `ops/ai/muse_direct64/MUSE_W64_20_RUN1_WITNESS_INDEPENDENCE_PROMPT.txt`
+- 21: RUN1_WITNESS_INDEPENDENCE — Verify evidence independent witness — `ops/ai/muse_direct64/MUSE_W64_21_RUN1_WITNESS_INDEPENDENCE_PROMPT.txt`
+- 22: RUN1_WITNESS_INDEPENDENCE — Reconcile evidence separate from Verify — `ops/ai/muse_direct64/MUSE_W64_22_RUN1_WITNESS_INDEPENDENCE_PROMPT.txt`
+- 23: RUN1_WITNESS_INDEPENDENCE — B auto-start vs manual/implicit next-step — `ops/ai/muse_direct64/MUSE_W64_23_RUN1_WITNESS_INDEPENDENCE_PROMPT.txt`
+- 24: RUN1_WITNESS_INDEPENDENCE — HUMAN_RELAY_COUNT=0 evidence robustness — `ops/ai/muse_direct64/MUSE_W64_24_RUN1_WITNESS_INDEPENDENCE_PROMPT.txt`
+- 25: RUN1_FAILURE_FALSE_GREEN — FAILED execution contamination — `ops/ai/muse_direct64/MUSE_W64_25_RUN1_FAILURE_FALSE_GREEN_PROMPT.txt`
+- 26: RUN1_FAILURE_FALSE_GREEN — partial execution contamination — `ops/ai/muse_direct64/MUSE_W64_26_RUN1_FAILURE_FALSE_GREEN_PROMPT.txt`
+- 27: RUN1_FAILURE_FALSE_GREEN — timeout contamination — `ops/ai/muse_direct64/MUSE_W64_27_RUN1_FAILURE_FALSE_GREEN_PROMPT.txt`
+- 28: RUN1_FAILURE_FALSE_GREEN — retry cannot erase failure — `ops/ai/muse_direct64/MUSE_W64_28_RUN1_FAILURE_FALSE_GREEN_PROMPT.txt`
+- 29: RUN1_FAILURE_FALSE_GREEN — stale logs cannot prove success — `ops/ai/muse_direct64/MUSE_W64_29_RUN1_FAILURE_FALSE_GREEN_PROMPT.txt`
+- 30: RUN1_FAILURE_FALSE_GREEN — artifact from prior run cannot prove success — `ops/ai/muse_direct64/MUSE_W64_30_RUN1_FAILURE_FALSE_GREEN_PROMPT.txt`
+- 31: RUN1_FAILURE_FALSE_GREEN — same-file self-authored witness risk — `ops/ai/muse_direct64/MUSE_W64_31_RUN1_FAILURE_FALSE_GREEN_PROMPT.txt`
+- 32: RUN1_FAILURE_FALSE_GREEN — proof-contract glob/hash coverage gaps — `ops/ai/muse_direct64/MUSE_W64_32_RUN1_FAILURE_FALSE_GREEN_PROMPT.txt`
+- 33: RUN2_NO_REPLAY — A result persistence across restart — `ops/ai/muse_direct64/MUSE_W64_33_RUN2_NO_REPLAY_PROMPT.txt`
+- 34: RUN2_NO_REPLAY — A not re-executed after restart — `ops/ai/muse_direct64/MUSE_W64_34_RUN2_NO_REPLAY_PROMPT.txt`
+- 35: RUN2_NO_REPLAY — A execution count remains one — `ops/ai/muse_direct64/MUSE_W64_35_RUN2_NO_REPLAY_PROMPT.txt`
+- 36: RUN2_NO_REPLAY — B continuation after restart — `ops/ai/muse_direct64/MUSE_W64_36_RUN2_NO_REPLAY_PROMPT.txt`
+- 37: RUN2_NO_REPLAY — duplicate dispatch after restart — `ops/ai/muse_direct64/MUSE_W64_37_RUN2_NO_REPLAY_PROMPT.txt`
+- 38: RUN2_NO_REPLAY — stale worker reconnect — `ops/ai/muse_direct64/MUSE_W64_38_RUN2_NO_REPLAY_PROMPT.txt`
+- 39: RUN2_NO_REPLAY — stale result resend — `ops/ai/muse_direct64/MUSE_W64_39_RUN2_NO_REPLAY_PROMPT.txt`
+- 40: RUN2_NO_REPLAY — restart race ordering — `ops/ai/muse_direct64/MUSE_W64_40_RUN2_NO_REPLAY_PROMPT.txt`
+- 41: CLAIMS_LEASE_AUTHORITY — wall_claim files vs server authority — `ops/ai/muse_direct64/MUSE_W64_41_CLAIMS_LEASE_AUTHORITY_PROMPT.txt`
+- 42: CLAIMS_LEASE_AUTHORITY — worker_id field reality — `ops/ai/muse_direct64/MUSE_W64_42_CLAIMS_LEASE_AUTHORITY_PROMPT.txt`
+- 43: CLAIMS_LEASE_AUTHORITY — lease_until field reality — `ops/ai/muse_direct64/MUSE_W64_43_CLAIMS_LEASE_AUTHORITY_PROMPT.txt`
+- 44: CLAIMS_LEASE_AUTHORITY — pid/liveness field reality — `ops/ai/muse_direct64/MUSE_W64_44_CLAIMS_LEASE_AUTHORITY_PROMPT.txt`
+- 45: CLAIMS_LEASE_AUTHORITY — stale claim detection evidence — `ops/ai/muse_direct64/MUSE_W64_45_CLAIMS_LEASE_AUTHORITY_PROMPT.txt`
+- 46: CLAIMS_LEASE_AUTHORITY — claim release after completion — `ops/ai/muse_direct64/MUSE_W64_46_CLAIMS_LEASE_AUTHORITY_PROMPT.txt`
+- 47: CLAIMS_LEASE_AUTHORITY — claim recovery after crash — `ops/ai/muse_direct64/MUSE_W64_47_CLAIMS_LEASE_AUTHORITY_PROMPT.txt`
+- 48: CLAIMS_LEASE_AUTHORITY — file-level vs server-level lease claims — `ops/ai/muse_direct64/MUSE_W64_48_CLAIMS_LEASE_AUTHORITY_PROMPT.txt`
+- 49: OBSERVABILITY_ORDERING — dispatch timestamp visibility — `ops/ai/muse_direct64/MUSE_W64_49_OBSERVABILITY_ORDERING_PROMPT.txt`
+- 50: OBSERVABILITY_ORDERING — execution start/end visibility — `ops/ai/muse_direct64/MUSE_W64_50_OBSERVABILITY_ORDERING_PROMPT.txt`
+- 51: OBSERVABILITY_ORDERING — result timestamp visibility — `ops/ai/muse_direct64/MUSE_W64_51_OBSERVABILITY_ORDERING_PROMPT.txt`
+- 52: OBSERVABILITY_ORDERING — verify timestamp visibility — `ops/ai/muse_direct64/MUSE_W64_52_OBSERVABILITY_ORDERING_PROMPT.txt`
+- 53: OBSERVABILITY_ORDERING — reconcile timestamp visibility — `ops/ai/muse_direct64/MUSE_W64_53_OBSERVABILITY_ORDERING_PROMPT.txt`
+- 54: OBSERVABILITY_ORDERING — NEXT_READY event visibility — `ops/ai/muse_direct64/MUSE_W64_54_OBSERVABILITY_ORDERING_PROMPT.txt`
+- 55: OBSERVABILITY_ORDERING — B dispatch/start event visibility — `ops/ai/muse_direct64/MUSE_W64_55_OBSERVABILITY_ORDERING_PROMPT.txt`
+- 56: OBSERVABILITY_ORDERING — restart/execution-count event visibility — `ops/ai/muse_direct64/MUSE_W64_56_OBSERVABILITY_ORDERING_PROMPT.txt`
+- 57: FREEZE_PILOT_CONVERGENCE — Proof Card exact fingerprint binding — `ops/ai/muse_direct64/MUSE_W64_57_FREEZE_PILOT_CONVERGENCE_PROMPT.txt`
+- 58: FREEZE_PILOT_CONVERGENCE — Covered Surface honesty — `ops/ai/muse_direct64/MUSE_W64_58_FREEZE_PILOT_CONVERGENCE_PROMPT.txt`
+- 59: FREEZE_PILOT_CONVERGENCE — Core Freeze gate-violating UNKNOWNs — `ops/ai/muse_direct64/MUSE_W64_59_FREEZE_PILOT_CONVERGENCE_PROMPT.txt`
+- 60: FREEZE_PILOT_CONVERGENCE — Core Freeze dependency ordering — `ops/ai/muse_direct64/MUSE_W64_60_FREEZE_PILOT_CONVERGENCE_PROMPT.txt`
+- 61: FREEZE_PILOT_CONVERGENCE — pilot unlock honesty — `ops/ai/muse_direct64/MUSE_W64_61_FREEZE_PILOT_CONVERGENCE_PROMPT.txt`
+- 62: FREEZE_PILOT_CONVERGENCE — pilot value-signal evidence — `ops/ai/muse_direct64/MUSE_W64_62_FREEZE_PILOT_CONVERGENCE_PROMPT.txt`
+- 63: FREEZE_PILOT_CONVERGENCE — Product Shell gate honesty — `ops/ai/muse_direct64/MUSE_W64_63_FREEZE_PILOT_CONVERGENCE_PROMPT.txt`
+- 64: FREEZE_PILOT_CONVERGENCE — final causal blocker synthesis — `ops/ai/muse_direct64/MUSE_W64_64_FREEZE_PILOT_CONVERGENCE_PROMPT.txt`
