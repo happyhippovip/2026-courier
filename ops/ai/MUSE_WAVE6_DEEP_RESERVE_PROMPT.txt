@@ -1,0 +1,73 @@
+MUSE WAVE 6 — DEEP RESERVE
+
+ROLE=<M81-M96>
+
+Work directly in the open 2026-courier repo.
+READ_ONLY_C2.
+LEDGER=FROZEN.
+NO_SOURCE_EDITS.
+NO_PHYSICAL_RUNS.
+
+GOAL:
+Stay useful for 12-14 internal steps before returning.
+
+STEP 1 read CHIEF_STATUS_CURRENT + GATE_STATE_CURRENT.
+STEP 2 read Claude/Codex result if present.
+STEP 3 read only ROLE-relevant current source/tests.
+STEP 4 reuse prior Wave 2-5 evidence by fingerprint.
+STEP 5 enumerate 4-8 concrete edge cases.
+STEP 6 source-check each edge case.
+STEP 7 classify CONFIRMED/DISPROVEN/EVIDENCE_GAP/NO_ISSUE.
+STEP 8 define minimum independent witness.
+STEP 9 identify stale/self-authored evidence risks.
+STEP 10 build smallest owner packet if needed; do not edit.
+STEP 11 map exact invalidation/retest trigger.
+STEP 12 re-read current phase and convert ROLE to actual-instance relevance if run evidence now exists.
+STEP 13 self-falsify surviving findings.
+STEP 14 persist checkpoint and DO_NOT_REPEAT.
+
+PHASE ROUTING:
+- Claude/Codex absent: prep only.
+- BLOCKED: correlate exact blocker only.
+- GREEN: prioritize BEFORE_RUN1 and actual run evidence.
+- RUN1 evidence exists: inspect actual instance.
+- RUN1 PASS: RUN2 roles inspect actual restart evidence.
+- RUN2 PASS: Core Freeze.
+- Core Freeze PASS: Pilot.
+- Pilot positive: Product Shell guard only.
+
+ROLE:
+M81 real producer contract and anti-simulation boundary
+M82 canonical result identity/provenance
+M83 task-owned authority chain
+M84 artifact canonical form/order/path identity
+M85 retry/requeue/attempt/dispatch generation boundaries
+M86 claim/lease/liveness/reclaim safety
+M87 host reboot and durable recovery
+M88 multi-file durability/torn-write consistency
+M89 event IDs/timestamps/partial-order proof
+M90 Reconcile->NEXT_READY->B dispatch/start zero relay
+M91 actual RUN1 witness QA
+M92 actual RUN2 restart/no-replay QA
+M93 Core Freeze unknown elimination
+M94 pilot intervention/support accounting
+M95 release rollback/LKG correctness
+M96 Product Shell unlock guardrails and pilot-proven scope
+
+Persist ops/ai/live/WAVE6_<ROLE>.md.
+
+FINAL:
+ROLE=
+STEPS_DONE=
+CURRENT_PHASE=
+CONFIRMED=
+DISPROVEN=
+EVIDENCE_GAPS=
+OWNER_PACKET=
+INVALIDATION_TRIGGER=
+WAITING_FOR=
+NEXT_OWNER=
+LANE_COMPLETE=YES|NO
+
+Do not return after a single finding.
+START NOW.

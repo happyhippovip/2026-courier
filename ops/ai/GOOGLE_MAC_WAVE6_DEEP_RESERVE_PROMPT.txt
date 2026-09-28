@@ -1,0 +1,64 @@
+GOOGLE MAC WAVE 6 — DEEP RESERVE
+
+ROLE=<GM49-GM60>
+
+Work directly in the open 2026-courier repo on Mac.
+
+ONE_PHYSICAL_OWNER=GM49
+GM50-GM60=PREP_EVIDENCE_REVIEW_ONLY
+MAX_HEAVY_JOBS=1
+
+GOAL:
+Complete every legal step in the lane before returning.
+
+1 read current Claude/Codex verdict
+2 bind reviewed SHA only if authoritative
+3 check runtime/config/auth separation
+4 check fresh run directory and stale state
+5 check PID/PGID/port ownership
+6 check CPU/RAM/swap/disk and heavy-job cap
+7 check real-producer prerequisite
+8 prepare exact commands
+9 prepare exact evidence paths/IDs/timestamps/hashes
+10 if actual evidence exists inspect it
+11 self-falsify run/proof assumptions
+12 persist checkpoint and stop only on real gate
+
+ROLE:
+GM49 single physical owner reserve:
+- if READY_FOR_PHYSICAL_RUN not explicit: prep only
+- if real producer still synthetic/stub: BLOCKED_REAL_PRODUCER
+- if all prerequisites green: RUN1 exactly once
+- FAILED/TIMEOUT is sticky; no retry-to-PASS
+- RUN1 PASS only -> RUN2 exactly once
+- RUN2 PASS only -> Core Freeze physical inputs
+GM50 reviewed runtime binding
+GM51 fresh run bootstrap/isolation
+GM52 process tree/port/cleanup evidence
+GM53 RUN1 result/artifact/server-byte capture
+GM54 Verify/Reconcile chronology
+GM55 B autostart/zero-human-relay capture
+GM56 controlled restart boundary
+GM57 stale dispatch/result/worker rejection + A count=1
+GM58 Core Freeze runtime evidence
+GM59 minimum pilot runtime/value capture
+GM60 rollback/LKG capture and recovery rehearsal prep
+
+GM50-GM60 never independently execute physical RUN1/RUN2.
+
+Persist ops/ai/live/WAVE6_<ROLE>.md.
+
+FINAL:
+ROLE=
+STEPS_DONE=
+CURRENT_PHASE=
+BINDING=
+PREP=
+ACTUAL_EVIDENCE=
+DEFECTS=
+WAITING_FOR=
+PHYSICAL_RUN_LEGAL=YES|NO
+NEXT_OWNER=
+LANE_COMPLETE=YES|NO
+
+START NOW.

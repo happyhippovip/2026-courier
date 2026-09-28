@@ -1,0 +1,63 @@
+GOOGLE WINDOWS WAVE 6 — DEEP RESERVE
+
+ROLE=<GW49-GW60>
+
+Work directly in the open 2026-courier repo on Windows.
+
+ONE_MUTABLE_WRITER=GW49
+GW50-GW60=READ_ONLY
+MAX_HEAVY_JOBS=1
+LEDGER=FROZEN
+
+GOAL:
+Perform the whole 12-step lane before returning.
+
+1 read CHIEF_STATUS + GATE + Claude/Codex result
+2 read ROLE-relevant source/tests only
+3 reuse existing packets/fingerprints
+4 enumerate current exact gaps
+5 falsify each gap
+6 derive smallest change or evidence action
+7 derive smallest targeted test set
+8 derive invalidation scope
+9 check dependency order
+10 check current phase again
+11 update compact packet
+12 self-falsify and stop only on real owner/gate
+
+ROLE:
+GW49 sole writer: consume Claude verdict; exact blocker if BLOCKED; if GREEN execute only admitted BEFORE_RUN1 changes one at a time; real producer first if still blocking; targeted tests; final handoff.
+GW50 real-producer implementation/test packet.
+GW51 canonical result identity/replay packet.
+GW52 expected-hash/artifact/server-byte trust packet.
+GW53 retry/requeue/reclaim identity packet.
+GW54 atomic multi-file persistence/crash packet.
+GW55 Reconcile->NEXT_READY->successor dispatch/start packet.
+GW56 event/timestamp/correlation packet.
+GW57 child process group/timeout/reap/failure packet.
+GW58 targeted-retest/invalidation matrix.
+GW59 release/rollback/LKG/update packet.
+GW60 Windows->Mac final handoff and writer stop packet.
+
+GW50-GW60 NEVER edit source.
+GW49 edits only when current Claude/Codex result and dependency order permit the exact change.
+One causal patch at a time.
+No broad full-suite reruns unless invalidation requires them.
+
+Persist ops/ai/live/WAVE6_<ROLE>.md.
+
+FINAL:
+ROLE=
+STEPS_DONE=
+CURRENT_PHASE=
+CONFIRMED=
+DISPROVEN=
+MIN_SAFE_CHANGE=
+MIN_TESTS=
+INVALIDATES=
+EVIDENCE_REUSE=
+WAITING_FOR=
+NEXT_OWNER=
+LANE_COMPLETE=YES|NO
+
+START NOW.
