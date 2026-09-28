@@ -198,3 +198,14 @@ Therefore prefer:
 - minimal founder intervention.
 
 This file is the durable default working protocol. New agents should follow it unless a newer explicit CURRENT protocol supersedes it.
+
+## Execution UX / ETA discipline
+
+- Never give the founder an ungrounded completion ETA such as "one hour", "today", "tomorrow", or "one wall round" unless it is directly supported by a bounded, measured remaining-work set.
+- Distinguish preparation completion from actual product completion. Parallel wall work can reduce unknowns; it cannot substitute for serial source-write, physical RUN_1/RUN_2, Core Freeze, or real pilot gates.
+- Prefer one long autonomous prompt per worker session over dozens of queued micro-prompts.
+- Do not assume an external agent UI will auto-send queued messages. If the provider UI requires a manual click to advance, prompts cannot override that UI behavior.
+- Do not require the founder to clear or refill 50-100 queued prompts. Use a self-contained marathon loop that chooses the next unfinished authorized family itself.
+- Missing local_swarm_claim.py is not POOL_EXHAUSTED. A worker must first find the actual repo root; if the helper is genuinely unavailable, switch to a bounded claimless fallback queue instead of returning immediately.
+- Report progress using gates and evidence, not optimistic time estimates. Preferred summary: CURRENT_PHASE, EXACT_BLOCKER, OWNER, WHAT_CAN_RUN_AUTONOMOUSLY, WHAT_REQUIRES_HUMAN_CLICK, NEXT_TRIGGER.
+
