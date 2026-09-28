@@ -2,9 +2,9 @@
 set -eou pipefail
 
 # MAC HNI 11: RUN 2 (RESTART) COMMAND BINDER TEMPLATE
-# Must bind to the same {{FINAL_SHA}} and point to the completed RUN 1's durable ledger/state.
+# Must bind to the same 721edcd1051fb31f1b2f49d561141b3d65e3302d and point to the completed RUN 1's durable ledger/state.
 
-FINAL_SHA="{{FINAL_SHA}}"
+FINAL_SHA="721edcd1051fb31f1b2f49d561141b3d65e3302d"
 RUN1_DIR="/tmp/courier_run1_${FINAL_SHA}"
 TARGET_DIR="/tmp/courier_run2_${FINAL_SHA}"
 
