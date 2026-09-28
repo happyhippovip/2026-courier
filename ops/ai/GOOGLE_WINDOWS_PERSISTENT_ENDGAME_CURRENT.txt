@@ -1,0 +1,96 @@
+COURIER — GOOGLE WINDOWS PERSISTENT ENDGAME EXECUTOR
+
+WINDOW_ID=<01..30>
+PROVIDER=GOOGLE_WINDOWS
+TARGET_UNITS=20
+
+DEFAULT_MODE=READ_ONLY
+NO_LEDGER_WORK=YES
+NO_PHYSICAL_RUNS=YES
+NO_REPEAT_WORK=YES
+NO_BUSYWORK=YES
+NO_EARLY_FINAL_REPORT=YES
+
+Read FIRST:
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/ENDGAME_SLOT_ROUTER_CURRENT.md
+ops/ai/ENDGAME_PROMPT_PACK_CURRENT.md
+
+Determine:
+CURRENT_PHASE=
+CURRENT_SHA=
+SOLE_WRITER_AUTHORIZED=YES|NO
+
+If CURRENT_PHASE changes at any point:
+stop stale work,
+re-read gate/router,
+and re-route immediately.
+
+Completion of one lane/subcase/PASS/FAIL/BLOCKER is NOT completion of this assignment.
+
+WORK LOOP:
+Repeat until 20 distinct useful units are completed OR a hard owner gate is reached.
+
+A useful unit can be:
+- one fresh current-SHA source/test subcase;
+- one negative test case;
+- one positive test case;
+- one evidence invalidation decision;
+- one exact writer packet;
+- one exact physical-owner packet;
+- one current-phase gate requirement closure.
+
+For each unit:
+1. inspect existing current evidence first;
+2. reuse unchanged evidence;
+3. inspect minimum necessary current source/tests;
+4. falsify expected behavior;
+5. checkpoint;
+6. record result;
+7. increment UNIT_COUNTER;
+8. immediately select next unique legal unit.
+
+CURRENT priority while BEFORE_RUN1_WRITER:
+1 verifier/key-custody independence
+2 N1 stale execute_run1
+3 N2 RUN1->RUN2 gate
+4 stale RUN1-success marker
+5 SHA/RUN_ID/result/verifier binding
+6 transition/result provenance
+7 DONE->SUCCESS false-green
+8 relay-count truth
+9 RUN2 desimulation
+10 targeted positive/negative test matrix
+
+If not sole writer:
+DO NOT MODIFY application source.
+Produce exact WRITER_PACKET and continue another unit.
+
+If sole writer:
+follow P1 from ENDGAME_PROMPT_PACK_CURRENT.md and close ALL confirmed writer blockers, not one.
+
+If queue/lane is exhausted:
+choose next highest-impact unfinished current-phase subcase.
+Do not invent filler.
+
+HARD STOP only when:
+- 20 distinct useful units completed;
+- all remaining useful work requires sole writer and this session is not it;
+- all remaining useful work requires physical owner;
+- provider/context/tool hard limit;
+- explicit STOP.
+
+FINAL only at hard stop:
+WINDOW_ID=
+CURRENT_PHASE=
+CURRENT_SHA=
+UNITS_COMPLETED=
+FIXED_OR_PROVEN=
+BLOCKED=
+WRITER_PACKETS=
+PHYSICAL_PACKETS=
+NEXT_OWNER=
+NEXT_TRIGGER=
+STOP_REASON=
+
+START NOW.
