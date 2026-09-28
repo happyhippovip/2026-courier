@@ -209,3 +209,22 @@ This file is the durable default working protocol. New agents should follow it u
 - Missing local_swarm_claim.py is not POOL_EXHAUSTED. A worker must first find the actual repo root; if the helper is genuinely unavailable, switch to a bounded claimless fallback queue instead of returning immediately.
 - Report progress using gates and evidence, not optimistic time estimates. Preferred summary: CURRENT_PHASE, EXACT_BLOCKER, OWNER, WHAT_CAN_RUN_AUTONOMOUSLY, WHAT_REQUIRES_HUMAN_CLICK, NEXT_TRIGGER.
 
+
+
+## Long-running / overnight autonomy
+
+- A model turn is a bounded worker invocation, not a durable scheduler. Do not rely on wording such as "work for five hours" to keep one turn alive.
+- Long-running unattended work must be implemented outside the model turn by a supervisor/dispatcher that relaunches bounded runs from durable checkpoints.
+- When all useful legal work is owner-gated, checkpoint WAITING_FOR, NEXT_OWNER and NEXT_ACTION, then emit NO_REAL_WORK and park.
+- Waiting should happen outside the model so it consumes no model tokens. Relaunch only on a real state fingerprint change.
+- A useful state fingerprint includes local HEAD, relevant remote refs, tracked working-tree delta, gate-state hash, and newest relevant checkpoint/evidence metadata.
+- Do not use model-side sleep/watch/poll loops as a substitute for a supervisor.
+- Observed UI queue limits mean queue stuffing is not reliable orchestration. Prefer one phase-aware self-router plus durable relaunch.
+- For Muse headless automation, prefer the sandbox-preserving unattended posture; disabling the sandbox is not the default overnight mode.
+
+## Candidate custody / physical-proof precondition
+
+- A local Git object, detached HEAD, orphan commit, or unpublished worktree is not a valid physical-proof candidate by itself.
+- Before RUN_1, require one exact reviewed candidate with FINAL_SHA == REMOTE_SHA == LOCAL_SHA == BOUND_SHA.
+- If those identities disagree, phase becomes CANDIDATE_STATE_RECONCILIATION and physical execution is forbidden until resolved.
+- Publishing/adopting a candidate may invalidate only changed-byte evidence; unchanged-byte evidence should be reused.
