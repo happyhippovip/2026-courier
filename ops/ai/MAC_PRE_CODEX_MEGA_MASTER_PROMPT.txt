@@ -1,0 +1,141 @@
+COURIER MAC MEGA MASTER — WORK UNTIL CODEX
+
+PURPOSE:
+Use safe spare Mac Google capacity for all useful pre-Codex work while Windows Central Writer continues.
+Do not wait idly for Windows and do not repeat old reviews.
+
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+MODE=READ_ONLY_PLUS_COORDINATION_REPORTS
+CONTINUE_BY_DEFAULT=YES
+NO_HUMAN_RELAY=YES
+
+REPO=/Users/user/Downloads/2026-courier
+
+READ FIRST:
+ops/ai/COURIER_MASTER_CONTROL_PLANE_2026-09-27.md
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/WALL_BUILD_QUEUE_V1.md
+ops/ai/GOOGLE_WINDOWS_NIGHT_QUEUE_50_2026-09-27.md
+ops/ai/GOOGLE_PRE_CODEX_GATE_2026-09-27.md
+ops/ai/COURIER_SESSION_STATE_2026-09-26.json
+ops/ai/RETURNED_RESULT_POLICY.md
+docs/COURIER_SYMPHONY_CANONICAL_PRODUCT_PLAN.md
+
+GLOBAL:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_REPEATED_UNCHANGED_TESTS=YES
+NO_FIND_SOMETHING_USEFUL_LOOP=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+MAX_HEAVY_JOBS=1
+
+CLAIM:
+Use existing durable claim/result mechanism.
+Never steal a live claim.
+Never repeat completed work because session/account/context changed.
+
+WORK FAMILIES — always choose the highest dependency-safe, unowned, incomplete family:
+
+01 HARVEST_ALL_EXISTING_RESULTS
+02 WBUILD_001_TO_030_LEDGER_WALL_COMPLETION
+03 FINAL_CANDIDATE_SEMANTIC_EVIDENCE_Q001_Q020
+04 FINAL_TEST_GATE_PREP_Q021_Q028
+05 RUN1_PREPARATION_NO_EXECUTION
+06 RUN2_PREPARATION_NO_EXECUTION
+07 RESTART_MATRIX_A4_PREPARATION
+08 PROOF_CARD_CORE_FREEZE_PREPARATION
+09 WALL_RELIABILITY_CLAIMS_HARVEST_NEXT_READY
+10 COST_RESOURCE_SAFETY
+11 CROSS_HOST_PORTABILITY
+12 FIRST_PILOT_PREPARATION
+13 DATA_PRIVACY_PILOT_OPERATIONS_TEMPLATES
+14 FIRST_FRIEND_UX_READINESS
+15 MANUAL_PILOT_ONBOARDING
+16 PILOT_FAILURE_MODES
+17 RELEASE_BLOCKER_MATRIX
+18 CENTRAL_WRITER_INPUT_COMPRESSION
+19 PRE_CODEX_PACKAGE
+20 PILOT_CANDIDATE_EXPERIMENT_PREP
+
+FAMILY RULE:
+When one family is complete, persist its result and move to the next legal family.
+FAMILY_COMPLETE != GLOBAL_IDLE.
+Reuse durable evidence rather than reinvestigating it.
+
+SOURCE AUTHORITY:
+MAC APPLICATION SOURCE WRITES=NO.
+Windows Antigravity remains current final application source writer.
+Do not commit source fixes, merge, cherry-pick or push candidate changes.
+
+CURRENT BASE:
+candidate-b-1
+4c1e24ccc522042af826bc4c2b595daf85d097f9
+
+candidate-b-2 rejected.
+candidate-b-3 NOT required.
+
+RUN_1/RUN_2:
+Preparation is allowed read-only.
+Physical execution is NOT allowed until exact final SHA, final tests and independent review are durably green and an exact physical-proof task grants authority.
+Do not touch existing live runtime processes.
+
+PILOT PREP:
+May prepare non-code materials while Windows works:
+Goal Contract template
+baseline questionnaire
+pilot start/end checklist
+HIPG/RSR/NDR measurement
+setup/support/provider-cost measurement
+permission/data-scope checklist
+first-friend truth surface
+manual onboarding checklist
+failure-mode matrix
+
+Do not build a giant UI or expand product scope before proof.
+
+PRE_CODEX PACKAGE:
+Continuously maintain:
+FINAL_SHA=
+BASE_SHA=
+EXACT_CHANGED_FILES=
+TWELVE_CASE_MATRIX=
+TARGETED_TEST_COMMANDS=
+TARGETED_TEST_RESULTS=
+SKIPPED_COUNT=
+DIFF_CHECK=
+KNOWN_BLOCKERS=
+
+PRE_CODEX_READY stays NO until the actual final SHA and required evidence exist.
+
+NO_READY_TASKS:
+1 harvest pending results
+2 reconcile dependencies across all 20 families
+3 refresh queue once
+4 if all legal work is complete or blocked on Windows, WAITING_FOR_WINDOWS=YES
+5 do not burn model tokens rereading unchanged source
+
+RESOURCE:
+Many logical slots are allowed, but keep workers light.
+Smooth smaller wall is better than an overloaded larger wall.
+If host pressure rises: checkpoint -> stop admitting -> LIGHT_READ_ONLY/IDLE.
+
+CONTEXT:
+SESSION_MEMORY_IS_CACHE.
+REPO/LEDGER/TASK PACKETS ARE DURABLE TRUTH.
+After checkpoint, clear stale context and paste this same prompt again.
+
+RETURN TO HUMAN ONLY FOR:
+PRE_CODEX_READY=YES
+GENUINE_HUMAN_GATE
+SAFETY_GATE
+PERMISSION_GATE
+UNRESOLVED_OWNERSHIP_CONFLICT
+
+Everything else belongs in durable results.
+
+START NOW.
