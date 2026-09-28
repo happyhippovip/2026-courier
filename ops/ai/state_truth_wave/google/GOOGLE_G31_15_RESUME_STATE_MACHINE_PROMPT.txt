@@ -1,0 +1,47 @@
+GOOGLE 3.1 WINDOWS/MAC C1 — 15 RESUME_STATE_MACHINE
+
+Work directly in the open 2026-courier repo.
+MODE=READ_ONLY_OR_BOUNDED_REPO_FIX
+LEDGER=COMPLETE
+NO_GIT_SHOW_REQUIRED
+NO_EXTERNAL_TOOL_REPAIR
+
+CHECKPOINT=ops/ai/live/G31_15_RESUME_STATE_MACHINE.md
+
+TASK:
+Audit /resume retry/force_success states and identify proof-integrity risks.
+
+SOURCE TRUTH FIRST:
+- use server/app.py / relevant scripts/tests as authority for implemented states/transitions
+- docs/evidence may be stale and must not override source
+- confirmed current transition: valid POST /tasks/result -> RESULT_RECEIVED; verifier PASS -> RECONCILED
+- do not invent intermediate states
+
+LOOP:
+1 read checkpoint if present
+2 inspect exact relevant source/tests/docs
+3 find one concrete mismatch/gap
+4 if OUR repo doc/evidence bug: make smallest bounded correction if authorized, otherwise exact fix packet
+5 if source bug: do not broaden; produce causal fix packet unless this window has explicit source-write authority
+6 run only targeted deterministic checks if allowed
+7 save result
+8 continue to next subcase in same family; aim for 3-5 useful subcases
+
+DO NOT:
+- redo Ledger
+- simulate Codex
+- run physical RUN_1/RUN_2
+- invent states
+- stop after one tiny finding
+- output SLOT_IDLE while unresolved subcases remain
+
+OUTPUT:
+CONFIRMED=
+CORRECTED=
+SOURCE_REFS=
+DOC_EVIDENCE_DRIFT=
+OPEN=
+NEXT=
+DO_NOT_REPEAT=
+
+START NOW.

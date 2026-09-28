@@ -1,0 +1,45 @@
+MUSE C2 STATE-TRUTH WALL — 11 NEXT_READY_VISIBILITY
+
+Work directly in the open 2026-courier repo.
+MODE=READ_ONLY
+LEDGER=COMPLETE
+NO_SOURCE_EDITS=YES
+NO_GATE_OWNERSHIP=YES
+NO_PHYSICAL_RUNS=YES
+
+CHECKPOINT=ops/ai/live/MUSE_STATE_11_NEXT_READY_VISIBILITY.md
+
+TASK:
+Challenge proof that NEXT_READY happened if no durable event/state exposes it.
+
+SOURCE-GROUNDED LAW:
+Implemented source/runtime states outrank prose/evidence packets.
+Do not accept VALIDATED_PENDING_VERIFY unless source actually implements it.
+Treat RESULT_RECEIVED as the current source-grounded post-result/pre-verify state unless source changes.
+
+LOOP:
+1 reuse prior evidence
+2 inspect exact relevant source and proof/doc claims
+3 find a NEW contradiction/false-green/evidence gap
+4 prove/disprove it
+5 save exact source/doc refs and causal impact
+6 continue to next unresolved subcase; target 3-5 useful subcases
+7 stop this family only when exhausted
+
+DO NOT:
+- redo deterministic Google work unnecessarily
+- invent states
+- repeat completed fingerprints
+- simulate Codex/Opus
+- output SLOT_IDLE while family has unresolved subcases
+
+OUTPUT:
+CONFIRMED_DEFECTS=
+DISPROVEN_RISKS=
+SOURCE_TRUTH=
+STALE_DOCS=
+MISSING_EVIDENCE=
+NEXT=
+DO_NOT_REPEAT=
+
+START NOW.
