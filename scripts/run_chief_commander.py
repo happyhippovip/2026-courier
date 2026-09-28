@@ -329,14 +329,22 @@ class ChiefCommander:
         # 2. Evaluate Review Budget
         review_decision = "NO_REVIEW"
         try:
-            rb_mgr = ReviewBudgetManager(self.repo_dir)
-            review_eval = rb_mgr.evaluate_review_requirement(
-                task_id=task_id,
-                task_instruction=result_data.get("instruction", ""),
-                target_agent=result_data.get("source", "antigravity"),
-                diff_files=payload.get("modified_files", []),
-            )
-            review_decision = review_eval.get("decision", "NO_REVIEW")
+            current_res_hash = hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()
+            previous_res_hash = current_res_hash if result_data.get("reused_from_cache") else None
+            should_rev, reason = ReviewDedupeTracker.should_review(previous_res_hash, current_res_hash)
+            
+            if not should_rev:
+                print(f"[CHIEF REVIEW DEDUPE] {reason}")
+                review_decision = "NO_REVIEW"
+            else:
+                rb_mgr = ReviewBudgetManager(self.repo_dir)
+                review_eval = rb_mgr.evaluate_review_requirement(
+                    task_id=task_id,
+                    task_instruction=result_data.get("instruction", ""),
+                    target_agent=result_data.get("source", "antigravity"),
+                    diff_files=payload.get("modified_files", []),
+                )
+                review_decision = review_eval.get("decision", "NO_REVIEW")
         except Exception:
             review_decision = "NO_REVIEW"
 

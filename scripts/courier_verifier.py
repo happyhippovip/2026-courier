@@ -68,16 +68,17 @@ def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
         return "FAIL"
     remote = any(t == target for t in REMOTE_TARGETS)
     for art in artifacts:
+        task_expected_sha256 = None
+        for expected_art in task.get("artifacts", []):
+            if isinstance(expected_art, dict) and expected_art.get("path") == art.get("path"):
+                task_expected_sha256 = expected_art.get("expected_sha256")
+
         if "artifact_id" in art:
             try:
                 record, data = fetch(art["artifact_id"])
             except Exception as e:
                 log(f"Cannot fetch uploaded artifact: {e}")
                 return "FAIL"
-            task_expected_sha256 = None
-            for expected_art in task.get("artifacts", []):
-                if isinstance(expected_art, dict) and expected_art.get("path") == art.get("path"):
-                    task_expected_sha256 = expected_art.get("expected_sha256")
             
             if task_expected_sha256:
                 if hashlib.sha256(data).hexdigest() != task_expected_sha256:
@@ -92,10 +93,16 @@ def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
             return "FAIL"
         elif target == "github":
             # GitHub CI artifacts without artifact_id are externally produced;
-            # only the omission check (below) and any expected_sha256 apply.
+            if task_expected_sha256 and art.get("sha256") != task_expected_sha256:
+                log(f"Hash mismatch against expected_sha256 for {art.get('path')} (github)")
+                return "FAIL"
             continue
         elif not is_safe_artifact_name(art.get("path")) or not local_verify(art.get("path"), art.get("sha256")):
             return "FAIL"
+        else:
+            if task_expected_sha256 and art.get("sha256") != task_expected_sha256:
+                log(f"Hash mismatch against expected_sha256 for {art.get('path')} (local)")
+                return "FAIL"
             
     # Check for Case 5 Omission Bypass: ensure all expected_sha256 artifacts were uploaded
     result_paths = {a.get("path") for a in artifacts if isinstance(a, dict)}

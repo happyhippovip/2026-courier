@@ -1,0 +1,52 @@
+# Google IDE Direct 50 Progress
+
+- [x] GQ01: aktuellen lokalen Candidate, Base und verbleibenden PRE_CODEX-Durability-Blocker exakt bestimmen.
+- [x] GQ02: vollständiges PRE_CODEX-Handoff-Paket aus bestehender Evidence bauen.
+- [x] GQ03: exakte 12-Case-Evidence-Matrix vollständig machen.
+- [x] GQ04: Targeted-Test-Ergebnisse an den richtigen Candidate-Fingerprint binden; nur bei echter Invalidierung erneut testen.
+- [x] GQ05: tatsächliche Changed Files gegen erlaubten Final-Scope prüfen.
+- [x] GQ06: Trusted expected_sha256 Provenance von Task bis Verify prüfen und echte Repo-Fehler beheben.
+- [x] GQ07: Replay/Duplicate-Semantik prüfen: identischer Replay ACK, geänderte Felder reject.
+- [DONE] GQ08: Result-Cache prüfen und unnötige Wiederholungen im eigenen System verhindern.
+- [DONE] GQ09: Claim/Lease/Stale-Claim/Duplicate-Worker-Verhalten prüfen und Repo-Fehler beheben.
+- [DONE] GQ10: Result -> Harvest -> Dependency Unlock -> NEXT_READY vollständig prüfen.
+- [DOING] GQ11: Windows->Mac-Handoff ohne menschliches Copy/Paste fertig machen.
+- [ ] GQ12: Mac Exact-Binding Inputs vollständig vorbereiten.
+- [ ] GQ13: RUN_1 Command Sheet vorbereiten.
+- [ ] GQ14: RUN_1 Evidence Layout vorbereiten.
+- [ ] GQ15: A-executes-exactly-once Evidence vollständig vorbereiten.
+- [ ] GQ16: Expected-Hash-Survival Evidence vorbereiten.
+- [ ] GQ17: Server-Bytes/Hash Evidence inklusive Wrong-Bytes-Fall vorbereiten.
+- [ ] GQ18: Verify -> Reconcile State Transition vollständig prüfen.
+- [ ] GQ19: automatischen B-Start nach A-Verifikation vollständig prüfen.
+- [ ] GQ20: HUMAN_RELAY_COUNT=0 Definition und Evidence fertig machen.
+- [ ] GQ21: sicherstellen, dass FAILED execution niemals durch Retry zu Fake-PASS wird.
+- [ ] GQ22: RUN_2 Restart Operator Sheet vorbereiten.
+- [ ] GQ23: Persistenz von Result A über Restart vollständig prüfen.
+- [ ] GQ24: alle lokalen A-Replay-Pfade nach Restart prüfen und eigene Bugs beheben.
+- [ ] GQ25: automatische B-Fortsetzung nach Restart vorbereiten.
+- [ ] GQ26: Evidence vorbereiten, dass A execution count nach Restart weiterhin 1 ist.
+- [ ] GQ27: Restart-Race-Matrix für persist/validate/verify/reconcile/dispatch/result erstellen.
+- [ ] GQ28: PID/PGID/Port Ownership und Foreign-Process-Schutz vorbereiten.
+- [ ] GQ29: State/Log/Artifact Isolation und stale-file detection vorbereiten.
+- [ ] GQ30: CPU/RAM/Swap/Disk/Heavy-Job Resource Admission vorbereiten.
+- [ ] GQ31: nach echten Tight-Polling/Busy-Loop-Problemen in unserem Runtime-Code suchen und beheben.
+- [ ] GQ32: Persistent-Idle/Backoff-Verhalten prüfen und Regression Coverage ergänzen.
+- [ ] GQ33: Courier-Motor-Workflow prüfen: getrennte Verifier Authority, richtiger State-Pfad, echter Failure Status.
+- [ ] GQ34: Worker-/Verifier-Auth-Boundaries testen.
+- [ ] GQ35: minimales Execution-Event-Schema für Task bis NEXT_READY erstellen.
+- [ ] GQ36: Timestamp-/Ordering-Assertions vorbereiten.
+- [ ] GQ37: sicherstellen, dass echte Failures dauerhaft erhalten bleiben und nicht überschrieben werden.
+- [ ] GQ38: Proof Card aus realer Evidence zusammensetzen.
+- [ ] GQ39: Covered Surface / NOT_COVERED / UNKNOWN / human-dependent sauber bestimmen.
+- [ ] GQ40: Core-Freeze-Matrix erstellen: PROVEN, PREPARABLE_NOW, RUN1_DEPENDENT, RUN2_DEPENDENT, BLOCKED.
+- [ ] GQ41: exakte Retest-/Invalidation-Trigger erstellen.
+- [ ] GQ42: Fingerprints auf Windows->Mac-Portabilität prüfen.
+- [ ] GQ43: Task-/Result-Identität über Google/Muse/Sonnet/Opus/Codex sauber definieren.
+- [ ] GQ44: Provider-Ausfälle isolieren, damit ein kaputter Provider nicht Courier stoppt.
+- [ ] GQ45: Minimum-Real-Pilot Goal Contract vorbereiten.
+- [ ] GQ46: Pilot-Metriken vorbereiten: Setup Time, HIPG, RSR, NDR, Human Intervention, Support Effort, Provider Cost Class, Time to Useful Result.
+- [ ] GQ47: echtes positives/negatives/unklares Pilot-Value-Signal definieren.
+- [ ] GQ48: Product-Shell-Gate vorbereiten; vor positivem Pilot-Signal NICHT freischalten.
+- [ ] GQ49: Update/Delta/Dedupe/Rollback/Last-Known-Good Paket vorbereiten.
+- [ ] GQ50: aktuelle Critical-Path-Synthese erstellen: DONE, OPEN, BLOCKED, NEXT.
