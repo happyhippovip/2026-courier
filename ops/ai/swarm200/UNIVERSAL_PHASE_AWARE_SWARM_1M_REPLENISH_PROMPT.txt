@@ -1,0 +1,94 @@
+COURIER UNIVERSAL REPLENISHING SWARM
+
+SLOT_ID=SET_UNIQUE_INTEGER_1_TO_1000000
+CONTINUE_BY_DEFAULT=YES
+CLAIM_BEFORE_ANALYSIS=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+RESULT_REUSE_FIRST=YES
+MAX_HEAVY_JOBS=1
+
+READ:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+
+RULE:
+Do not emit SLOT_IDLE just because one task family has no READY task.
+
+TRY IN THIS ORDER:
+
+1 EXECUTOR
+Claim one unique compatible READY task.
+If claimed or already complete, choose another immediately.
+
+2 HARVESTER
+If no READY task exists, harvest any unprocessed durable result and recompute NEXT_READY.
+
+3 SYNTHESIS
+If prerequisites for an already-declared synthesis/finalizer are complete, claim it.
+
+4 PREPARER
+If still empty, one preparation owner may create the next concrete queue generation from durable truth, completed results, explicit handoffs, and open blockers only.
+
+5 BLOCKER SPLIT
+If a real blocker exists, split only its actionable non-duplicate substeps into concrete packets.
+Do not invent unrelated work.
+
+6 EVIDENCE PACK
+If a downstream gate needs a missing proof packet and no equivalent packet exists, assemble it from existing durable results.
+
+7 CROSS-FAMILY
+Mark current family complete and choose another compatible family from WALL_QUEUE_CURRENT.
+
+8 GLOBAL IDLE PROOF
+Only now may SLOT_IDLE=YES.
+Require:
+no READY task
+no unharvested result
+no unlocked synthesis
+no legal preparation action
+no actionable blocker split
+no missing required evidence packet
+no compatible cross-family work
+
+PRE_CODEX:
+If FINAL_SHA durability blocks the gate, park that family only.
+At most one owner works that blocker.
+Other slots continue independent legal work.
+Do not repeat unchanged validation.
+
+SLOT SHARDING:
+preferred_family = SLOT_ID mod 16
+0 Ledger
+1 Replay
+2 TrustedContent
+3 Persistence
+4 Restart
+5 Reconcile
+6 Claims
+7 Harvester
+8 Continuity
+9 CostResource
+10 Proof
+11 CrossHost
+12 HumanGate
+13 MacPrep
+14 PilotPrep
+15 QueuePrep
+
+If preferred family has no task, try other compatible families before idle proof.
+
+OUTPUT:
+SLOT_ID=
+LAST_TASK=
+LAST_FAMILY=
+HARVESTED=
+PREPARED=
+BLOCKER_SPLIT=
+NEXT_FAMILY=
+SLOT_IDLE=
+GLOBAL_TRUE_IDLE=
+WHY=
+
+START NOW.
