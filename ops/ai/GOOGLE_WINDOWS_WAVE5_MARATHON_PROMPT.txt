@@ -1,0 +1,80 @@
+GOOGLE WINDOWS WAVE 5 — MARATHON LANE
+
+ROLE=<GW37-GW48>
+
+Work directly in the open 2026-courier repo on Windows.
+
+ONE_MUTABLE_WRITER=GW37
+GW38-GW48=READ_ONLY
+MAX_HEAVY_JOBS=1
+LEDGER=FROZEN
+
+PURPOSE:
+Complete a whole bounded lane before returning.
+
+FIRST:
+Read current Claude/Codex result and exact lane checkpoints.
+
+FOR EVERY ROLE execute:
+1 SOURCE CHECK
+2 NEGATIVE/EDGE MATRIX
+3 MINIMUM CHANGE/PROOF PACKET
+4 MINIMUM TARGETED TEST PLAN
+5 INVALIDATION/REUSE CHECK
+6 PHASE ROUTE
+7 SELF-FALSIFY
+
+ROLE CONTENT:
+GW37 SOLE_WRITER_CRITICAL_PATH:
+ consume Claude verdict -> if BLOCKED apply exact defect only -> if GREEN close admitted BEFORE_RUN1 stack -> real-producer blocker -> targeted tests -> final post-Codex SHA -> Mac handoff
+GW38 REPLAY_TEST_LANE:
+ identical replay + changed status/worker/attempt/dispatch/artifacts + retry/requeue tests
+GW39 HASH_ARTIFACT_LANE:
+ expected hash authority + artifact binding + server bytes + canonical artifact-set equality
+GW40 REAL_PRODUCER_PACKET_LANE:
+ inspect synthetic run_physical producer -> define real producer boundary -> smallest safe implementation/test packet
+GW41 PROCESS_TIMEOUT_LANE:
+ child process group -> TERM/KILL/reap -> timeout mapping -> exit evidence -> no foreign process impact
+GW42 STATE_LOCKING_LANE:
+ JSON atomic write -> directory edge -> in-process vs cross-process locking -> crash consistency
+GW43 WORKER_RECLAIM_LANE:
+ register/heartbeat/unregister -> stale worker -> quarantine -> retry identity
+GW44 BACKOFF_RESOURCE_LANE:
+ bounded retry -> idle wakeup -> heavy job cap -> resource admission -> no starvation
+GW45 EVENTS_TIMESTAMP_LANE:
+ event schema -> UTC precision -> ordering -> correlation IDs -> restart chronology
+GW46 PROOF_TOOLING_LANE:
+ proof producer -> verifier -> hash coverage -> synthetic guard -> stale-proof invalidation
+GW47 RETEST_INVALIDATION_LANE:
+ map each possible code change to smallest invalidated tests/evidence and no-repeat fingerprints
+GW48 HANDOFF_RELEASE_STOP_LANE:
+ post-Codex handoff -> Mac binding -> run prerequisites -> stop Windows writer -> rollback/LKG release metadata
+
+GW38-GW48 NEVER EDIT SOURCE.
+
+GW37:
+May edit only when current Claude/Codex decision and dependency order permit it.
+One causal patch at a time.
+Run only targeted invalidated tests.
+Never broaden candidate/source scope silently.
+
+CHECKPOINT:
+ops/ai/live/WAVE5_<ROLE>.md
+
+After each stage append progress and immediately continue.
+
+FINAL:
+ROLE=
+STAGES_COMPLETED=
+CURRENT_PHASE=
+CONFIRMED=
+DISPROVEN=
+MIN_SAFE_CHANGE=
+TESTS=
+INVALIDATION=
+EVIDENCE_REUSE=
+WAITING_FOR=
+NEXT_OWNER=
+LANE_COMPLETE=YES|NO
+
+START NOW AND CONTINUE THROUGH THE WHOLE LANE.

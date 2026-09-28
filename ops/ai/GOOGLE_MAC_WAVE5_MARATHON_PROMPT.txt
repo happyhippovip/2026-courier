@@ -1,0 +1,76 @@
+GOOGLE MAC WAVE 5 — MARATHON LANE
+
+ROLE=<GM37-GM48>
+
+Work directly in the open 2026-courier repo on Mac.
+
+ONE_PHYSICAL_OWNER=GM37
+GM38-GM48=PREP_EVIDENCE_REVIEW_ONLY
+MAX_HEAVY_JOBS=1
+
+PURPOSE:
+Complete all legal work in the lane before returning.
+
+FIRST:
+Read current Claude/Codex verdict, exact reviewed SHA if available, and current physical-run evidence.
+
+ROLE CONTENT:
+GM37 SINGLE_PHYSICAL_OWNER:
+  A bind reviewed SHA/runtime/config
+  B preflight fresh run dir/port/process/auth/resources
+  C verify real producer is no longer synthetic/stub and all RUN_1 prerequisites are green
+  D if and only if READY_FOR_PHYSICAL_RUN=YES: execute RUN_1 exactly once
+  E capture evidence and adjudicate PASS/FAIL
+  F only if RUN_1 PASS: controlled restart RUN_2 exactly once
+  G capture no-replay evidence
+  H only if RUN_2 PASS: assemble Core Freeze physical inputs
+  Any FAILED execution is sticky and stops the physical chain. Never retry into PASS.
+
+GM38 PROCESS_PORT_WITNESS:
+ ownership -> PID/PGID -> port collision -> own cleanup -> foreign-process protection
+GM39 RUN_ISOLATION_WITNESS:
+ run IDs -> state dirs -> logs -> artifacts -> temp files -> cross-run stale detection
+GM40 RESULT_ARTIFACT_WITNESS:
+ result identity -> artifact bytes -> hashes -> server store -> capture integrity
+GM41 VERIFY_RECONCILE_WITNESS:
+ Verify evidence -> Reconcile evidence -> timestamps/IDs -> ordering -> crash gaps
+GM42 B_AUTOSTART_WITNESS:
+ NEXT_READY -> B dispatch -> B claim -> B start -> B complete -> zero human relay
+GM43 FAILURE_STICKINESS_WITNESS:
+ timeout/failure/exit -> immutable run identity -> no hidden retry -> no false PASS
+GM44 RUN2_RESTART_NO_REPLAY:
+ persisted A -> restart -> stale A rejection -> A count=1 -> B continuation
+GM45 RESOURCE_METRICS_WITNESS:
+ CPU/RAM/swap/disk -> heavy job cap -> polling/backoff -> run-time resource evidence
+GM46 PROOF_CARD_WITNESS:
+ source/build/runtime/config/result/artifact/verify/reconcile/run fingerprints
+GM47 CORE_FREEZE_WITNESS:
+ freeze matrix -> actual evidence -> remaining UNKNOWN -> stop conditions
+GM48 PILOT_VALUE_CAPTURE:
+ pilot command/evidence -> setup time -> interventions -> reliability -> support/cost/value -> rollback metadata
+
+GM38-GM48:
+Do not execute physical RUN_1/RUN_2 independently.
+They may inspect actual evidence once GM37 creates it.
+
+If prerequisites are absent:
+finish every candidate-independent prep/falsification step in your lane, checkpoint, then WAITING_FOR.
+Do not busy-poll.
+
+CHECKPOINT:
+ops/ai/live/WAVE5_<ROLE>.md
+
+FINAL:
+ROLE=
+STAGES_COMPLETED=
+CURRENT_PHASE=
+BINDING=
+PREP=
+ACTUAL_EVIDENCE=
+DEFECTS=
+WAITING_FOR=
+PHYSICAL_RUN_LEGAL=YES|NO
+NEXT_OWNER=
+LANE_COMPLETE=YES|NO
+
+START NOW AND CONTINUE THROUGH THE WHOLE LANE.

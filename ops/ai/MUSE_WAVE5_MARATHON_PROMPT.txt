@@ -1,0 +1,115 @@
+MUSE WAVE 5 — MARATHON LANE
+
+ROLE=<M65-M80>
+
+Work directly in the open 2026-courier repo.
+
+MODE=READ_ONLY_C2
+LEDGER=FROZEN
+NO_SOURCE_EDITS=YES
+NO_PHYSICAL_RUNS=YES
+CLAUDE_OWNS_CODEX_C4=YES
+
+PURPOSE:
+Stay useful for a full lane instead of returning after one small finding.
+
+GENERAL METHOD:
+For ROLE perform these stages IN ORDER and keep going automatically:
+
+STAGE 1 SOURCE TRUTH
+- read only exact relevant current source/tests/evidence
+- summarize implemented behavior in <=10 bullets
+- reuse existing fingerprints
+
+STAGE 2 ADVERSARIAL MATRIX
+- test/reason through 5-8 distinct negative/edge subcases
+- remove duplicates immediately
+- classify CONFIRMED / DISPROVEN / EVIDENCE_GAP / NO_ISSUE
+
+STAGE 3 EVIDENCE MINIMALITY
+- define smallest independent witness set
+- distinguish self-authored proof from independent evidence
+- define exact failure/stop conditions
+
+STAGE 4 OWNER PACKET
+If a real change is needed, write a compact packet:
+FILES=
+CAUSAL_BUG=
+MIN_FIX=
+MIN_TEST=
+INVALIDATES=
+OWNER=
+PHASE=
+Do not edit source.
+
+STAGE 5 PHASE TRANSITION
+Read Claude/Codex result if present.
+- absent -> freeze ready packet
+- BLOCKED -> correlate only exact blocking defect
+- GREEN -> reclassify lane into BEFORE_RUN1 / RUN1_EVIDENCE / BEFORE_RUN2 / RUN2_EVIDENCE / CORE_FREEZE / PILOT
+If actual RUN evidence exists, inspect actual instance rather than templates.
+
+STAGE 6 SELF-FALSIFY
+Try once to disprove your own surviving conclusion.
+Remove stale/non-causal/duplicated work.
+
+LANE CONTENT:
+M65 RESULT_REPLAY_LANE:
+ canonical result identity -> identical replay -> changed status/worker/attempt/dispatch/artifacts -> retry/requeue preservation
+M66 ARTIFACT_TRUST_LANE:
+ task-owned expected hash -> artifact binding -> server-byte witness -> artifact ordering/staleness
+M67 WORKER_LIVENESS_LANE:
+ register -> heartbeat -> unregister -> stale worker -> reclaim/quarantine
+M68 STATE_DURABILITY_LANE:
+ atomic save -> parent path/CWD -> cross-process lock assumptions -> crash windows -> recovery
+M69 BACKOFF_RESOURCE_LANE:
+ bounded backoff -> wakeup on new READY -> heavy-job admission -> starvation/overcommit
+M70 VERIFY_RECONCILE_LANE:
+ result received -> verifier authority -> Verify -> Reconcile -> crash between stages
+M71 SUCCESSOR_AUTOSTART_LANE:
+ NEXT_READY -> dispatch -> claim -> start -> complete -> HUMAN_RELAY_COUNT=0
+M72 FAILURE_STICKINESS_LANE:
+ FAILED/TIMEOUT -> retries -> new attempts -> aggregation -> never retry-to-PASS
+M73 REAL_PRODUCER_LANE:
+ synthetic/STUB producer -> real effect boundary -> real result production -> proof compatibility -> before-RUN1 acceptance
+M74 PROOF_CHAIN_LANE:
+ producer hash -> verifier hash -> included files -> mutation after hash -> stale proof invalidation
+M75 EVENT_TIMESTAMP_LANE:
+ UTC/precision -> event IDs -> partial order -> restart ordering -> ambiguity
+M76 RUN1_WITNESS_LANE:
+ A once -> result A -> hash/server bytes -> Verify/Reconcile -> B auto -> zero relay
+M77 RUN2_NO_REPLAY_LANE:
+ persisted result -> restart -> stale dispatch/result/worker -> A count=1 -> B continuation
+M78 CROSS_HOST_BINDING_LANE:
+ reviewed SHA -> tree/files/hashes -> runtime/config -> Windows->Mac continuity -> stale cache
+M79 CORE_FREEZE_LANE:
+ Trusted Ledger -> Motor -> result chain -> zero relay -> restart -> resources -> Proof Cards -> UNKNOWN closure
+M80 PILOT_RELEASE_LANE:
+ pilot setup -> intervention count -> reliability -> support burden -> provider cost -> value signal -> rollback/LKG gate
+
+CHECKPOINT:
+ops/ai/live/WAVE5_<ROLE>.md
+
+After EACH stage append:
+STAGE_DONE=
+SURVIVING_FINDINGS=
+DO_NOT_REPEAT=
+
+Do not return until:
+- all six stages are complete; OR
+- every remaining substep is truly WAITING_FOR a different owner/gate.
+
+FINAL OUTPUT:
+ROLE=
+STAGES_COMPLETED=
+CONFIRMED=
+DISPROVEN=
+EVIDENCE_GAPS=
+OWNER_PACKET=
+WAITING_FOR=
+NEXT_OWNER=
+NEXT_PHASE=
+DO_NOT_REPEAT=
+LANE_COMPLETE=YES|NO
+
+START NOW AND CONTINUE THROUGH THE WHOLE LANE.
