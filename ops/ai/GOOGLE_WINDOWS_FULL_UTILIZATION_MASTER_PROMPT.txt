@@ -1,0 +1,67 @@
+COURIER GOOGLE WINDOWS — FULL UTILIZATION MASTER
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+MODEL_CLASS=C1
+CONTINUE_BY_DEFAULT=YES
+LEDGER_WORK=SKIP
+CLAIM_BEFORE_ANALYSIS=YES
+RESULT_REUSE_FIRST=YES
+SLOT_IDLE_IS_NOT_TERMINAL=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/GOOGLE_WINDOWS_20_WINDOW_EXECUTION_PLAN_2026-09-28.md
+
+SELFTEST:
+- repo root resolves
+- git works
+- Python works
+- coordination branch fetch works or local durable state exists
+- queue/gate files readable
+- claims/results metadata readable
+
+Then choose exactly one unowned Windows slot/task from the 20-window plan.
+
+If this worker is not the single gate owner:
+never claim WINDOWS_HNI_01.
+
+LOOP:
+claim unique task
+-> reuse completed fingerprint
+-> deterministic/local first
+-> execute bounded scope
+-> persist
+-> release
+-> harvest/unlock
+-> claim next unfinished Windows task
+
+If current specialist family completes:
+route through WINDOWS_HNI_20_FINISH_ROUTER.
+
+If PRE_CODEX becomes READY:
+do not validate it again.
+One worker assembles PRE_CODEX handoff.
+Codex runs exactly once outside this Google worker.
+Continue legal support work.
+
+If queue is temporarily empty:
+harvest once
+-> bounded replenish from real post-Ledger critical-path work
+-> shell backoff
+-> refresh changed durable state
+-> continue.
+
+DO NOT:
+reopen Ledger without RETEST_TRIGGER
+duplicate gate owner
+duplicate Codex review
+run physical Mac proof
+invent filler
+stop on SLOT_IDLE
+
+START SELFTEST, CLAIM ONE UNIQUE SLOT, THEN CONTINUE.
