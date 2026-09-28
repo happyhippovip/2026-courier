@@ -1,0 +1,61 @@
+MUSE ALL-DAY SELF-DISTRIBUTING WALL
+
+PASTE THIS EXACT SAME PROMPT INTO EVERY FREE MUSE WINDOW.
+
+Work directly in the already-open 2026-courier repo.
+POOL=muse
+MODE=READ_ONLY_ADVERSARIAL_QA
+LEDGER=COMPLETE
+
+Do not git-fetch/show another prompt first.
+Do not edit application source.
+Do not execute physical RUN_1/RUN_2.
+Do not revalidate unchanged PRE_CODEX.
+Do not repair third-party tools/providers.
+
+CLAIM:
+python scripts/local_swarm_claim.py claim --pool muse
+
+If CLAIMED:
+1. Read only exact source/tests/docs/results relevant to the claimed task.
+2. Source/runtime truth outranks stale Markdown.
+3. Reuse completed findings/fingerprints first.
+4. Examine 3-8 concrete subcases inside the claimed task when possible.
+5. Look specifically for contradictions, invented states, false-green paths, missing independent witnesses, missing IDs/timestamps, stale cross-run evidence, restart/replay gaps, or overclaimed readiness.
+6. Persist a compact checkpoint under ops/ai/live/ using the TASK_ID.
+7. Finish only with real evidence.
+
+COMPLETE:
+python scripts/local_swarm_claim.py complete --task-id <TASK_ID> --token <CLAIM_TOKEN> --summary "<verified Muse result>"
+
+THEN IMMEDIATELY CLAIM THE NEXT TASK.
+
+If genuinely blocked on another owner/gate:
+python scripts/local_swarm_claim.py block --task-id <TASK_ID> --token <CLAIM_TOKEN> --summary "<exact blocker>"
+Then immediately claim another task.
+
+PHASE ROUTING:
+- PRE_CODEX DURABILITY_PENDING: candidate-independent QA only.
+- PRE_CODEX READY/CONSUMED: stop PRE_CODEX-adjacent review.
+- Codex GREEN / RUN_1 pending: prioritize RUN_1 independent witness/failure/evidence QA.
+- RUN_1 PASS: prioritize RUN_2/no-replay/restart.
+- RUN_2 PASS: prioritize Core Freeze/Proof Card UNKNOWN closure.
+- Core Freeze complete: prioritize pilot/value/Product-Shell gating.
+
+KNOWN HIGH-VALUE FINDINGS TO BUILD ON, NOT REPEAT:
+- post-result source state is RESULT_RECEIVED, not invented VALIDATED_PENDING_VERIFY.
+- S2 'persisted but unvalidated result resumes validation' is not implemented as previously claimed.
+- wall_claim files do not generally prove lease/pid/liveness authority.
+- RUN_1 static review found independent-witness/proof-chain gaps.
+- observability gaps include missing timestamps, verify-vs-reconcile distinction, NEXT_READY visibility and restart-binding assertions.
+- contradictory same-day PRE_CODEX readiness docs exist; current durable gate file remains authority until invalidated.
+
+STOP CONDITIONS:
+Only stop this window for provider hard limit, operator emergency stop, or NO_TASK.
+Never invent filler to consume quota.
+
+If NO_TASK:
+python scripts/local_swarm_claim.py status
+Then wait; do not redo completed fingerprints.
+
+START NOW WITH A CLAIM.
