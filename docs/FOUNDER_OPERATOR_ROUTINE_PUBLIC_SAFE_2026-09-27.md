@@ -119,3 +119,27 @@ ops/ai/COURIER_MASTER_CONTROL_PLANE_2026-09-27.md
 plus current durable queue/results.
 
 Never require the founder to retell the project from memory.
+
+
+## Rule 11 — Durable founder/company master
+
+Cross-session public-safe founder/company direction is stored in:
+
+docs/FOUNDER_LIFE_AND_COMPANY_MASTER_PLAN_PUBLIC_SAFE_2026-09-28.md
+
+When the founder asks about company direction, personal operating routine, sleep-friendly work, cost discipline, launch order or "what next?", use that file together with current gate/live/queue state.
+
+Do not ask the founder to repeat already-persisted planning.
+Do not infer or commit sensitive private-life material.
+
+## Rule 12 — Current post-Ledger status source
+
+Ledger is currently frozen/complete unless RETEST_TRIGGER reopens a specific family.
+
+For present execution state, use:
+- ops/ai/GATE_STATE_CURRENT.md
+- ops/ai/LIVE_STATUS_CURRENT.md
+- ops/ai/CANONICAL_ENDGAME_SEQUENCE_2026-09-28.md
+- ops/ai/WALL_QUEUE_CURRENT.md
+
+Old chat prose and old queue snapshots do not override these current durable surfaces.
