@@ -256,3 +256,17 @@ Direct Google IDE masters:
 - `ops/ai/GOOGLE_IDE_MASTER_1_EXECUTE_CONTINUOUSLY_PROMPT.txt`
 - `ops/ai/GOOGLE_IDE_MASTER_2_WORKING_ONLY_QA_REPAIR_PROMPT.txt`
 - `ops/ai/GOOGLE_IDE_MASTER_3_FINISH_CRITICAL_PATH_PROMPT.txt`
+
+
+## Direct Google IDE single-worker override
+
+When WALL_QUEUE_CURRENT.md declares ACTIVE_GOOGLE_EXECUTION_MODE=DIRECT_IDE_LOCAL:
+
+- the direct 50-task queue and its progress file are the active Google truth;
+- old Ledger/current-Google pointers are historical and must not be executed;
+- QUEUE_EMPTY_MEANS_IDLE does not apply until all direct GQ tasks are DONE or truly blocked and a bounded synthesis finds no legal local work;
+- no external claim API is required because this mode is one main worker;
+- no git show/fetch is required for ordinary local work;
+- remote Git blocks only tasks whose done condition is remote durability;
+- after a completed GQ task the worker immediately selects the next TODO task;
+- repeated copies of the same direct worker prompt are safe because progress is stored in GOOGLE_IDE_DIRECT_50_PROGRESS.md.
