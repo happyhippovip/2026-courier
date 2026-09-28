@@ -59,7 +59,10 @@ def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
     """
     local_verify = local_verify or verify_artifact
     artifacts = result.get("artifacts", [])
-    expected_paths = set(task.get("artifacts") or [])
+    expected_paths = {
+        a.get("path") if isinstance(a, dict) else a
+        for a in (task.get("artifacts") or [])
+    }
     if expected_paths and not expected_paths.issubset({art.get("path") for art in artifacts}):
         log("Result is missing expected artifacts.")
         return "FAIL"
