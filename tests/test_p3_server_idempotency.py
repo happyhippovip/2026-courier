@@ -108,6 +108,48 @@ def test_resent_failed_result_is_acknowledged_after_requeue(srv):
     assert state["tasks"][task["task_id"]]["attempts"] == 1
 
 
+def test_resent_result_with_different_artifact_order_is_acknowledged(srv):
+    http, _, task = setup_claimed_task(srv)
+    result = durable_result(task)
+    # Give it multiple artifacts to ensure order matters
+    result["artifacts"] = [{"path": "a.txt", "sha256": "0"*64}, {"path": "b.txt", "sha256": "1"*64}]
+    res = http.post("/tasks/result", headers=WORKER, json=result)
+    assert res.status_code == 200, f"Got {res.status_code}: {res.get_data(as_text=True)}"
+    
+    # Resend with a different list order
+    resent_result = dict(result)
+    resent_result["artifacts"] = [{"path": "b.txt", "sha256": "1"*64}, {"path": "a.txt", "sha256": "0"*64}]
+    resent = http.post("/tasks/result", headers=WORKER, json=resent_result)
+    assert resent.status_code == 200 and resent.get_json()["status"] == "ACK_DUPLICATE"
+
+def test_resent_result_with_different_artifact_key_order_is_acknowledged(srv):
+    http, _, task = setup_claimed_task(srv)
+    result = durable_result(task)
+    result["artifacts"] = [{"path": "a.txt", "sha256": "0"*64}]
+    assert http.post("/tasks/result", headers=WORKER, json=result).status_code == 200
+    
+    # Resend with a different key order in the dict
+    resent_result = dict(result)
+    resent_result["artifacts"] = [{"sha256": "0"*64, "path": "a.txt"}]
+    resent = http.post("/tasks/result", headers=WORKER, json=resent_result)
+    assert resent.status_code == 200 and resent.get_json()["status"] == "ACK_DUPLICATE"
+
+def test_verify_with_different_artifact_order_is_accepted(srv):
+    http, _, task = setup_claimed_task(srv)
+    result = durable_result(task)
+    result["artifacts"] = [{"path": "a.txt", "sha256": "0"*64}, {"path": "b.txt", "sha256": "1"*64}]
+    assert http.post("/tasks/result", headers=WORKER, json=result).status_code == 200
+    
+    # Verify with reversed artifact order
+    verify_payload = {
+        "task_id": result["task_id"],
+        "verifier_id": "verifier-123",
+        "result_id": result["result_id"],
+        "artifacts": [{"path": "b.txt", "sha256": "1"*64}, {"path": "a.txt", "sha256": "0"*64}],
+        "verdict": "PASS"
+    }
+    assert http.post("/tasks/verify", headers=VERIFIER, json=verify_payload).status_code == 200
+
 def test_changed_result_not_duplicate_success(srv):
     http, _, task = setup_claimed_task(srv)
     result = durable_result(task)
@@ -133,3 +175,30 @@ def test_unregistered_worker_stays_stopped_despite_heartbeat(srv):
     assert http.post("/workers/register", headers=WORKER, json=worker).status_code == 200
     claimed = http.post("/tasks/claim", headers=WORKER, json={"worker_id": "MAC-01"}).get_json()["task"]
     assert claimed["task_id"] == "task-stop"
+
+
+def test_stale_worker_tasks_are_quarantined(srv):
+    import time
+    http, goal_id, task = setup_claimed_task(srv)
+    state = srv.load_state()
+    # Mock last_seen to be old (over 300s threshold)
+    state["workers"]["MAC-01"]["last_seen"] = time.time() - 400
+    srv.save_state(state)
+    
+    res = http.post("/tasks/reclaim_stale", headers=WORKER)
+    assert res.status_code == 200
+    assert res.get_json()["quarantined_tasks"] == 1
+    
+    state = srv.load_state()
+    assert state["tasks"][task["task_id"]]["status"] == "HUMAN_REQUIRED"
+    assert state["tasks"][task["task_id"]]["recovery_reason"] == "STALE_WORKER_EFFECT_AMBIGUOUS"
+    assert state["workers"]["MAC-01"]["current_task"] is None
+
+
+def test_hung_task_abandonment_requeues_task(srv):
+    http, goal_id, task = setup_claimed_task(srv)
+    failed = dict(durable_result(task), status="FAILED", error="TIMEOUT_HUNG_TASK", artifacts=[])
+    assert http.post("/tasks/result", headers=WORKER, json=failed).status_code == 200
+    state = srv.load_state()
+    assert state["tasks"][task["task_id"]]["status"] == "QUEUED"
+    assert state["tasks"][task["task_id"]]["attempts"] == 1

@@ -364,8 +364,11 @@ def task_result():
         # Duplicate protection: a resend of the stored result (e.g. after a lost
         # response) is acknowledged; any other result for a processed task conflicts.
         stored = task.get("result") or {}
-        if stored and all(stored.get(field) == data.get(field) for field in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id", "run_id", "result_id", "status", "artifacts")):
-            return jsonify({"status": "ACK_DUPLICATE"})
+        if stored and all(stored.get(field) == data.get(field) for field in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id", "run_id", "result_id", "status")):
+            def sort_artifacts(arts):
+                return sorted(arts, key=lambda x: json.dumps(x, sort_keys=True)) if isinstance(arts, list) else arts
+            if sort_artifacts(stored.get("artifacts")) == sort_artifacts(data.get("artifacts")):
+                return jsonify({"status": "ACK_DUPLICATE"})
         if task["status"] in ["RECONCILED", "FAILED_TERMINAL", "RESULT_RECEIVED", "FAILED_VERIFICATION"]:
             return jsonify({"error": "Conflicting result for already processed task"}), 409
 
@@ -487,7 +490,9 @@ def verify_task_result():
     result = task["result"]
     if data.get("result_id") != result.get("result_id"):
         return jsonify({"error": "result_id mismatch"}), 400
-    if data.get("artifacts") != result.get("artifacts"):
+    def sort_artifacts(arts):
+        return sorted(arts, key=lambda x: json.dumps(x, sort_keys=True)) if isinstance(arts, list) else arts
+    if sort_artifacts(data.get("artifacts")) != sort_artifacts(result.get("artifacts")):
         return jsonify({"error": "artifact evidence mismatch"}), 400
     verdict = data.get("verdict")
     if verdict not in {"PASS", "FAIL"}:
