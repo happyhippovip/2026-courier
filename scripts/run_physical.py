@@ -101,6 +101,7 @@ def execute_run1(sha: str, evidence_dir: str, port: int = 8081):
     server_bytes_hash = hashlib.sha256(serialized_payload).hexdigest()
 
     snapshot_data = {
+        "synthetic": True,  # STUB PRODUCER — verifier will reject this
         "final_status": "SUCCESS",
         "candidate_sha": sha,
         "execution_counters": {

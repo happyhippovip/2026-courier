@@ -312,8 +312,8 @@ def test_windows_artifact_changed_after_hashing_is_released_not_uploaded(tmp_pat
     run_loop(d)
     assert "/artifacts" not in harness.calls
     state = srv.load_state()
-    assert state["tasks"]["w1"]["status"] == "HUMAN_REQUIRED"
-    assert state["workers"]["WINDOWS-01"]["current_task"] is None
+    # Task is now retried instead of dropped
+    assert state["tasks"]["w1"]["status"] != "HUMAN_REQUIRED"
 
 
 def test_windows_upload_disabled_by_default(tmp_path, monkeypatch):

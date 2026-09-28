@@ -1,0 +1,75 @@
+--- scripts/mac_worker/daemon.py
++++ scripts/mac_worker/daemon.py
+@@ -270,7 +270,22 @@
+     workspace.mkdir(parents=True, exist_ok=True)
+     try:
+         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=str(workspace))
+-        stdout, stderr = proc.communicate(timeout=600)
++        
++        import threading
++        stop_heartbeat = threading.Event()
++        def hb():
++            while not stop_heartbeat.wait(30.0):
++                try:
++                    http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
++                except Exception:
++                    pass
++        hb_thread = threading.Thread(target=hb, daemon=True)
++        hb_thread.start()
++        try:
++            stdout, stderr = proc.communicate(timeout=600)
++        finally:
++            stop_heartbeat.set()
++            
+         status = "SUCCESS" if proc.returncode == 0 else "FAILED"
+     except subprocess.TimeoutExpired:
+         proc.kill()
+@@ -298,7 +313,22 @@
+     
+     try:
+         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+-        stdout, stderr = process.communicate(timeout=300)
++        
++        import threading
++        stop_heartbeat = threading.Event()
++        def hb():
++            while not stop_heartbeat.wait(30.0):
++                try:
++                    http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
++                except Exception:
++                    pass
++        hb_thread = threading.Thread(target=hb, daemon=True)
++        hb_thread.start()
++        try:
++            stdout, stderr = process.communicate(timeout=300)
++        finally:
++            stop_heartbeat.set()
++            
+         
+         out_clean = stdout.strip()
+         parsed = False
+@@ -439,12 +469,21 @@
+                 task = durable
+ 
+             if task:
+-                outcome = upload_pending_artifacts(config, task, current_task_state_file) if upload_enabled(config) else "READY"
+-                if outcome == "READY":
+-                    outcome = deliver_result(config, task["result_payload"])
++                upload_outcome = upload_pending_artifacts(config, task, current_task_state_file) if upload_enabled(config) else "READY"
++                if upload_outcome == "REJECTED":
++                    task["result_payload"]["status"] = "FAILED"
++                    task["result_payload"]["stderr"] = task["result_payload"].get("stderr", "") + "\nArtifact upload permanently rejected (e.g. size/binding error)."
++                    task["result_payload"]["artifacts"] = []
++                    persist_task(current_task_state_file, task)
++                    write_log(f"Result for task {task['task_id']} upload REJECTED; converting to FAILED result.")
++                    upload_outcome = "READY"
++
++                outcome = upload_outcome
++                if outcome == "READY":
++                    outcome = deliver_result(config, task["result_payload"])
++                    
+                 if outcome == "UNDELIVERED":
+                     # Keep the finished result; later cycles only redeliver it.
+                     write_log(f"Result for task {task['task_id']} not delivered yet; keeping it for redelivery.")
+                 elif outcome == "REJECTED":
+                     persist_task(STATE_DIR / f"rejected_result_{task['task_id']}.json", task)

@@ -14,17 +14,18 @@ def submit_intake(owner: str, repo: str, sha: str, customer_ref: str):
     task_id = f"REV-{uuid.uuid4().hex[:8].upper()}"
     
     goal_payload = {
-        "goal_id": goal_id,
         "goal_text": f"Revenue Safety Audit for {owner}/{repo}",
-        "tasks": [
+        "workflow_plan": [
             {
                 "task_id": task_id,
                 "type": "revenue_safety_audit",
                 "capabilities": ["revenue_safety_audit"],
+                "target_agent": "linux",
                 "target_owner": owner,
                 "target_repo": repo,
                 "target_sha": sha,
                 "customer_reference": customer_ref,
+                "idempotency_key": f"idem-{uuid.uuid4().hex[:8].upper()}",
                 "dependencies": []
             }
         ]

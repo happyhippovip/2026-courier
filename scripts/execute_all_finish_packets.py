@@ -996,46 +996,51 @@ No marketing or commercial packaging may proceed while this gate remains locked.
     }
 ]
 
-print(f"Beginning execution of {len(tasks)} Mac Finish tasks...")
+def execute_all():
+    print(f"Beginning execution of {len(tasks)} Mac Finish tasks...")
 
-for t in tasks:
-    task_id = t["id"]
-    area = t["area"]
-    print(f"[{task_id}] Step 1: Claiming task...")
-    write_claim(task_id, status="CLAIMED")
-    
-    print(f"[{task_id}] Step 2: Executing deliverable...")
-    deliverable_filename = f"{task_id.replace('-', '_')}_{area}.md"
-    deliverable_path = os.path.join(DELIVERABLES_DIR, deliverable_filename)
-    with open(deliverable_path, "w") as f:
-        f.write(t["content"].strip() + "\n")
-        
-    print(f"[{task_id}] Step 3: Writing result...")
-    fingerprint = f"sha256-mac-finish-{t['num']:02d}-{hashlib.sha256(t['content'].encode('utf-8')).hexdigest()[:16]}"
-    result_filename = f"{task_id}_result.md"
-    result_path = os.path.join(RESULTS_DIR, result_filename)
-    rel_deliverable_path = os.path.relpath(deliverable_path, WORKSPACE_ROOT)
-    rel_result_path = os.path.relpath(result_path, WORKSPACE_ROOT)
-    
-    result_content = f"""# Result for {task_id}
-- **TASK_ID**: {task_id}
-- **AREA**: {area}
-- **STATUS**: COMPLETE
-- **DELIVERABLE**: {rel_deliverable_path}
-- **TIMESTAMP**: {get_iso_timestamp()}
-- **DO_NOT_REPEAT_FINGERPRINT**: {fingerprint}
+    for t in tasks:
+        task_id = t["id"]
+        area = t["area"]
+        print(f"[{task_id}] Step 1: Claiming task...")
+        write_claim(task_id, status="CLAIMED")
 
-### Verification Summary
-The exact bounded scope for {area} has been successfully prepared, verified, and persisted. All invariants, candidate placeholders, and operational specifications are completely satisfied.
-"""
-    with open(result_path, "w") as f:
-        f.write(result_content.strip() + "\n")
-        
-    print(f"[{task_id}] Step 4: Reconciling in ledger...")
-    record_in_ledger(task_id, "RECONCILED", rel_result_path, fingerprint)
-    
-    print(f"[{task_id}] Step 5: Releasing claim...")
-    write_claim(task_id, status="COMPLETED")
-    print(f"[{task_id}] Complete.")
+        print(f"[{task_id}] Step 2: Executing deliverable...")
+        deliverable_filename = f"{task_id.replace('-', '_')}_{area}.md"
+        deliverable_path = os.path.join(DELIVERABLES_DIR, deliverable_filename)
+        with open(deliverable_path, "w") as f:
+            f.write(t["content"].strip() + "\n")
 
-print("All 24 Mac Finish tasks successfully executed and reconciled in ledger.")
+        print(f"[{task_id}] Step 3: Writing result...")
+        fingerprint = f"sha256-mac-finish-{t['num']:02d}-{hashlib.sha256(t['content'].encode('utf-8')).hexdigest()[:16]}"
+        result_filename = f"{task_id}_result.md"
+        result_path = os.path.join(RESULTS_DIR, result_filename)
+        rel_deliverable_path = os.path.relpath(deliverable_path, WORKSPACE_ROOT)
+        rel_result_path = os.path.relpath(result_path, WORKSPACE_ROOT)
+
+        result_content = f"""# Result for {task_id}
+    - **TASK_ID**: {task_id}
+    - **AREA**: {area}
+    - **STATUS**: COMPLETE
+    - **DELIVERABLE**: {rel_deliverable_path}
+    - **TIMESTAMP**: {get_iso_timestamp()}
+    - **DO_NOT_REPEAT_FINGERPRINT**: {fingerprint}
+
+    ### Verification Summary
+    The exact bounded scope for {area} has been successfully prepared, verified, and persisted. All invariants, candidate placeholders, and operational specifications are completely satisfied.
+    """
+        with open(result_path, "w") as f:
+            f.write(result_content.strip() + "\n")
+
+        print(f"[{task_id}] Step 4: Reconciling in ledger...")
+        record_in_ledger(task_id, "RECONCILED", rel_result_path, fingerprint)
+
+        print(f"[{task_id}] Step 5: Releasing claim...")
+        write_claim(task_id, status="COMPLETED")
+        print(f"[{task_id}] Complete.")
+
+    print("All 24 Mac Finish tasks successfully executed and reconciled in ledger.")
+
+
+if __name__ == '__main__':
+    execute_all()

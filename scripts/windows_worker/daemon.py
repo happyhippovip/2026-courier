@@ -214,7 +214,25 @@ def run_task(task, config):
     try:
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace")
         run_id = str(process.pid)
-        stdout, stderr_out = process.communicate(timeout=600)
+        
+        import threading
+        stop_heartbeat = threading.Event()
+        def hb():
+            while not stop_heartbeat.wait(30.0):
+                try:
+                    req = urllib.request.Request(f"{config['COURIER_SERVER'].rstrip('/')}/workers/heartbeat", method="POST")
+                    req.add_header("Authorization", f"Bearer {config.get('COURIER_API_KEY', '')}")
+                    urllib.request.urlopen(req, data=json.dumps({"worker_id": config["WORKER_ID"]}).encode("utf-8"), timeout=10)
+                except Exception:
+                    pass
+        hb_thread = threading.Thread(target=hb, daemon=True)
+        hb_thread.start()
+        
+        try:
+            stdout, stderr_out = process.communicate(timeout=600)
+        finally:
+            stop_heartbeat.set()
+            
         out_clean = (stdout or "").strip()[-100000:]
         stderr = (stderr_out or "").strip()[-100000:]
         status = "SUCCESS" if process.returncode == 0 else "FAILED"
@@ -360,16 +378,26 @@ def loop():
                     persist_task(state_file, task)
 
                 if task:
-                    outcome = upload_pending_artifacts(task, state_file) if upload_enabled(config) else "READY"
+                    upload_outcome = upload_pending_artifacts(task, state_file) if upload_enabled(config) else "READY"
+                    if upload_outcome == "REJECTED":
+                        # The upload was permanently rejected (e.g. 413 Payload Too Large).
+                        # Convert this to a failed task so the server logs the exact failure reason
+                        # instead of quarantining it as an ambiguous lost-state failure.
+                        task["result_payload"]["status"] = "FAILED"
+                        task["result_payload"]["stderr"] = task["result_payload"].get("stderr", "") + "\nArtifact upload permanently rejected (e.g. size/binding error)."
+                        task["result_payload"]["artifacts"] = []
+                        persist_task(state_file, task)
+                        print(f"[{worker_id}] Task {task['task_id']} upload REJECTED; converting to FAILED result.")
+                        upload_outcome = "READY"
+                        
+                    outcome = upload_outcome
                     if outcome == "READY":
                         outcome = http_post_result(task["result_payload"])
+                    
                     if outcome == "UNDELIVERED":
                         print(f"[{worker_id}] Result for {task['task_id']} not delivered yet; keeping it for redelivery.")
                     elif outcome == "REJECTED":
                         persist_task(STATE_DIR / f"rejected_result_{task['task_id']}.json", task)
-                        # The server keeps the task assigned after a 4xx; release it so recovery
-                        # quarantines it instead of leaving us WORKER_BUSY forever. The phase is
-                        # persisted first, so a crash here still releases on restart.
                         task["worker_phase"] = "RELEASE_PENDING"
                         persist_task(state_file, task)
                         print(f"[{worker_id}] Task {task['task_id']} result REJECTED; releasing it.")

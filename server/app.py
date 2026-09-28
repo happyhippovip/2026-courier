@@ -496,11 +496,13 @@ def verify_task_result():
     task = state["tasks"].get(task_id)
     if not task:
         return jsonify({"error": "Unknown task"}), 404
-    if task.get("status") == "RECONCILED":
+    if task.get("status") in ("RECONCILED", "FAILED_VERIFICATION"):
         verification = task.get("verification", {})
         if verification.get("result_id") == data.get("result_id"):
             return jsonify({"status": "ACK_DUPLICATE"})
-        return jsonify({"error": "Task already reconciled"}), 409
+        if task.get("status") == "RECONCILED":
+            return jsonify({"error": "Task already reconciled"}), 409
+        return jsonify({"error": "Task already failed verification"}), 409
     if task.get("status") != "RESULT_RECEIVED":
         return jsonify({"error": "Task has no result awaiting verification"}), 409
 

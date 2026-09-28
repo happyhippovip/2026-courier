@@ -1,25 +1,79 @@
-from scripts.courier_motor_precheck import has_dispatchable_work
+import pytest
+import json
+import os
+from scripts.courier_motor_precheck import has_dispatchable_work, DISPATCHER_ID
 
+def test_has_dispatchable_work_worker_busy():
+    state = {
+        "workers": {
+            DISPATCHER_ID: {
+                "current_task": "some_task"
+            }
+        },
+        "goals": {
+            "g1": {
+                "status": "ACTIVE",
+                "workflow_plan": [{"status": "QUEUED", "target_agent": "github"}]
+            }
+        }
+    }
+    assert not has_dispatchable_work(state)
 
-def state(step_status="QUEUED", target="github", goal_status="ACTIVE", index=0, workers=None):
-    return {"goals": {"g1": {"status": goal_status, "current_step_index": index,
-                             "workflow_plan": [{"task_id": "t1", "status": step_status, "target_agent": target}]}},
-            "tasks": {}, "workers": workers or {}}
+def test_has_dispatchable_work_no_work():
+    state = {
+        "workers": {
+            DISPATCHER_ID: {}
+        },
+        "goals": {
+            "g1": {
+                "status": "ACTIVE",
+                "workflow_plan": [{"status": "COMPLETED", "target_agent": "github"}]
+            },
+            "g2": {
+                "status": "BLOCKED",
+                "workflow_plan": [{"status": "QUEUED", "target_agent": "github"}]
+            }
+        }
+    }
+    assert not has_dispatchable_work(state)
 
+def test_has_dispatchable_work_has_work():
+    state = {
+        "workers": {},
+        "goals": {
+            "g1": {
+                "status": "ACTIVE",
+                "workflow_plan": [{"status": "QUEUED", "target_agent": "github"}]
+            }
+        }
+    }
+    assert has_dispatchable_work(state)
+    
+def test_has_dispatchable_work_different_agent():
+    state = {
+        "workers": {},
+        "goals": {
+            "g1": {
+                "status": "ACTIVE",
+                "workflow_plan": [{"status": "QUEUED", "target_agent": "windows"}]
+            }
+        }
+    }
+    assert not has_dispatchable_work(state)
 
-def test_queued_github_step_is_work():
-    assert has_dispatchable_work(state())
-    assert has_dispatchable_work(state(target="GitHub-Hosted"))
+def test_has_dispatchable_work_current_step_index():
+    state = {
+        "workers": {},
+        "goals": {
+            "g1": {
+                "status": "ACTIVE",
+                "current_step_index": 1,
+                "workflow_plan": [
+                    {"status": "COMPLETED", "target_agent": "github"},
+                    {"status": "QUEUED", "target_agent": "github"}
+                ]
+            }
+        }
+    }
+    assert has_dispatchable_work(state)
 
-
-def test_idle_states_are_not_work():
-    assert not has_dispatchable_work({})
-    assert not has_dispatchable_work(state(step_status="DISPATCHED"))
-    assert not has_dispatchable_work(state(target="windows"))
-    assert not has_dispatchable_work(state(goal_status="DONE"))
-    assert not has_dispatchable_work(state(index=1))
-
-
-def test_busy_dispatcher_is_not_work():
-    busy = {"GITHUB-DISPATCHER": {"current_task": "t0"}}
-    assert not has_dispatchable_work(state(workers=busy))

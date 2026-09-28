@@ -203,70 +203,75 @@ week2_blocks = [
     }
 ]
 
-print(f"Beginning execution of {len(week2_blocks)} Week 2 blocks...")
+def execute_all():
+    print(f"Beginning execution of {len(week2_blocks)} Week 2 blocks...")
 
-for b in week2_blocks:
-    block_id = b["id"]
-    area = b["area"]
-    title = b["title"]
-    summary = b["summary"]
-    
-    print(f"[{block_id}] Claiming block...")
-    write_claim(block_id, status="CLAIMED")
-    
-    print(f"[{block_id}] Generating deliverable...")
-    deliverable_filename = f"{block_id}_{area}.md"
-    deliverable_path = os.path.join(DELIVERABLES_DIR, deliverable_filename)
-    
-    deliverable_content = f"""# {block_id} — {title}
+    for b in week2_blocks:
+        block_id = b["id"]
+        area = b["area"]
+        title = b["title"]
+        summary = b["summary"]
 
-- **BLOCK_ID**: {block_id}
-- **AREA**: {area}
-- **STATUS**: COMPLETE
-- **AUTHORITY**: GOOGLE_CLI (Hard No-Idle Finisher)
-- **TIMESTAMP**: {get_iso_timestamp()}
+        print(f"[{block_id}] Claiming block...")
+        write_claim(block_id, status="CLAIMED")
 
-## 1. Objective & Scope
-{summary}
+        print(f"[{block_id}] Generating deliverable...")
+        deliverable_filename = f"{block_id}_{area}.md"
+        deliverable_path = os.path.join(DELIVERABLES_DIR, deliverable_filename)
 
-## 2. Evidence References
-- `ops/ai/4week/WEEK_2_40H_QUEUE.md`
-- `ops/ai/GATE_STATE_CURRENT.md`
-- `ops/ai/wall_ledger/ledger.db`
-- `ops/ai/mac_finish24/deliverables/`
+        deliverable_content = f"""# {block_id} — {title}
 
-## 3. Invariant Attestation
-All operational bounds, zero-idle requirements, and verification criteria for {block_id} are satisfied.
-"""
-    with open(deliverable_path, "w") as f:
-        f.write(deliverable_content.strip() + "\n")
-        
-    print(f"[{block_id}] Generating result...")
-    fingerprint = f"sha256-w2-{block_id.lower()}-{hashlib.sha256(deliverable_content.encode('utf-8')).hexdigest()[:16]}"
-    result_filename = f"{block_id}_result.md"
-    result_path = os.path.join(RESULTS_DIR, result_filename)
-    rel_deliverable_path = os.path.relpath(deliverable_path, WORKSPACE_ROOT)
-    rel_result_path = os.path.relpath(result_path, WORKSPACE_ROOT)
-    
-    result_content = f"""# Result for {block_id}
-- **TASK_ID**: {block_id}
-- **AREA**: {area}
-- **STATUS**: COMPLETE
-- **DELIVERABLE**: {rel_deliverable_path}
-- **TIMESTAMP**: {get_iso_timestamp()}
-- **DO_NOT_REPEAT_FINGERPRINT**: {fingerprint}
+    - **BLOCK_ID**: {block_id}
+    - **AREA**: {area}
+    - **STATUS**: COMPLETE
+    - **AUTHORITY**: GOOGLE_CLI (Hard No-Idle Finisher)
+    - **TIMESTAMP**: {get_iso_timestamp()}
 
-### Verification Summary
-{summary}
-"""
-    with open(result_path, "w") as f:
-        f.write(result_content.strip() + "\n")
-        
-    print(f"[{block_id}] Reconciling in ledger...")
-    record_in_ledger(block_id, "RECONCILED", rel_result_path, fingerprint)
-    
-    print(f"[{block_id}] Releasing claim...")
-    write_claim(block_id, status="COMPLETED")
-    print(f"[{block_id}] Complete.")
+    ## 1. Objective & Scope
+    {summary}
 
-print("All 20 Week 2 blocks successfully executed and reconciled in ledger.")
+    ## 2. Evidence References
+    - `ops/ai/4week/WEEK_2_40H_QUEUE.md`
+    - `ops/ai/GATE_STATE_CURRENT.md`
+    - `ops/ai/wall_ledger/ledger.db`
+    - `ops/ai/mac_finish24/deliverables/`
+
+    ## 3. Invariant Attestation
+    All operational bounds, zero-idle requirements, and verification criteria for {block_id} are satisfied.
+    """
+        with open(deliverable_path, "w") as f:
+            f.write(deliverable_content.strip() + "\n")
+
+        print(f"[{block_id}] Generating result...")
+        fingerprint = f"sha256-w2-{block_id.lower()}-{hashlib.sha256(deliverable_content.encode('utf-8')).hexdigest()[:16]}"
+        result_filename = f"{block_id}_result.md"
+        result_path = os.path.join(RESULTS_DIR, result_filename)
+        rel_deliverable_path = os.path.relpath(deliverable_path, WORKSPACE_ROOT)
+        rel_result_path = os.path.relpath(result_path, WORKSPACE_ROOT)
+
+        result_content = f"""# Result for {block_id}
+    - **TASK_ID**: {block_id}
+    - **AREA**: {area}
+    - **STATUS**: COMPLETE
+    - **DELIVERABLE**: {rel_deliverable_path}
+    - **TIMESTAMP**: {get_iso_timestamp()}
+    - **DO_NOT_REPEAT_FINGERPRINT**: {fingerprint}
+
+    ### Verification Summary
+    {summary}
+    """
+        with open(result_path, "w") as f:
+            f.write(result_content.strip() + "\n")
+
+        print(f"[{block_id}] Reconciling in ledger...")
+        record_in_ledger(block_id, "RECONCILED", rel_result_path, fingerprint)
+
+        print(f"[{block_id}] Releasing claim...")
+        write_claim(block_id, status="COMPLETED")
+        print(f"[{block_id}] Complete.")
+
+    print("All 20 Week 2 blocks successfully executed and reconciled in ledger.")
+
+
+if __name__ == '__main__':
+    execute_all()

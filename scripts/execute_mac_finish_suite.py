@@ -18,9 +18,10 @@ RESULTS_DIR = os.path.join(WORKSPACE_ROOT, "ops/ai/wall_results")
 LEDGER_DB_PATH = os.path.join(WORKSPACE_ROOT, "ops/ai/wall_ledger/ledger.db")
 LEDGER_JSONL_PATH = os.path.join(WORKSPACE_ROOT, "ops/ai/wall_ledger/ledger.jsonl")
 
-os.makedirs(DELIVERABLES_DIR, exist_ok=True)
-os.makedirs(CLAIMS_DIR, exist_ok=True)
-os.makedirs(RESULTS_DIR, exist_ok=True)
+def init_directories():
+    os.makedirs(DELIVERABLES_DIR, exist_ok=True)
+    os.makedirs(CLAIMS_DIR, exist_ok=True)
+    os.makedirs(RESULTS_DIR, exist_ok=True)
 
 def get_iso_timestamp():
     return datetime.now(timezone.utc).isoformat()
@@ -36,6 +37,7 @@ def get_last_ledger_block():
     return "GENESIS_BLOCK_00000000000000000000000000000000"
 
 def write_claim(task_id, status="CLAIMED"):
+    init_directories()
     claim_path = os.path.join(CLAIMS_DIR, f"{task_id}.claim.json")
     claim_data = {
         "TASK_ID": task_id,
@@ -50,6 +52,7 @@ def write_claim(task_id, status="CLAIMED"):
     return claim_path
 
 def record_in_ledger(task_id, status, evidence_path, fingerprint):
+    init_directories()
     conn = sqlite3.connect(LEDGER_DB_PATH)
     cursor = conn.cursor()
     
@@ -82,4 +85,5 @@ def record_in_ledger(task_id, status, evidence_path, fingerprint):
     with open(LEDGER_JSONL_PATH, "a") as f:
         f.write(json.dumps(jsonl_entry) + "\n")
 
-print("Execute Mac Finish Suite initialized.")
+if __name__ == '__main__':
+    print("Execute Mac Finish Suite initialized.")

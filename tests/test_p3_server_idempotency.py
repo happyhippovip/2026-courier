@@ -327,3 +327,26 @@ def test_empty_workflow_plan_is_rejected(srv):
     resp = http.post("/goals", headers=WORKER, json={"goal_text": "t", "workflow_plan": []})
     assert resp.status_code == 400
     assert "empty" in resp.get_json()["error"].lower()
+
+def test_verify_fail_duplicate_returns_ack_not_409(srv):
+    """Retrying a FAIL verdict after a lost HTTP response must return ACK_DUPLICATE, not 409."""
+    http, goal_id, task = setup_claimed_task(srv)
+    result = durable_result(task)
+    assert http.post("/tasks/result", headers=WORKER, json=result).status_code == 200
+
+    # First FAIL verdict
+    resp1 = verify(http, task, result, "FAIL")
+    assert resp1.status_code == 200
+    assert srv.load_state()["tasks"]["task-1"]["status"] == "FAILED_VERIFICATION"
+
+    # Retry the same FAIL verdict (simulates lost HTTP response)
+    resp2 = verify(http, task, result, "FAIL")
+    assert resp2.status_code == 200, f"Expected ACK_DUPLICATE (200), got {resp2.status_code}: {resp2.get_json()}"
+    assert resp2.get_json()["status"] == "ACK_DUPLICATE"
+
+    # A conflicting result_id on a FAILED_VERIFICATION task must still 409
+    resp3 = http.post("/tasks/verify", headers=VERIFIER, json={
+        "task_id": task["task_id"], "result_id": "different-result",
+        "verifier_id": "VERIFIER-01", "verdict": "FAIL",
+        "artifacts": result["artifacts"]})
+    assert resp3.status_code == 409

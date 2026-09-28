@@ -63,7 +63,8 @@ def resume_pending():
         state_file = path.with_name(f"{path.stem}.github-worker-state.json")
         if state_file.is_file():
             try:
-                if json.loads(state_file.read_text(encoding="utf-8")).get("status") == "POSTED":
+                status = json.loads(state_file.read_text(encoding="utf-8")).get("status")
+                if status in ("POSTED", "POSTED_FAILED"):
                     continue
             except (OSError, ValueError):
                 pass
@@ -97,7 +98,24 @@ def run_loop():
                 if task:
                     task_id = task.get("task_id")
                     log(f"Claimed task {task_id} for GitHub.")
-                    handle_claimed_task(task)
+                    if not handle_claimed_task(task):
+                        log(f"Refused task {task_id}, posting FAILED result to free server state.")
+                        try:
+                            err_result = {
+                                "goal_id": task.get("goal_id", "unknown"),
+                                "task_id": task.get("task_id", "unknown"),
+                                "attempt_id": task.get("attempt_id", "unknown"),
+                                "dispatch_id": task.get("dispatch_id", "unknown"),
+                                "worker_id": WORKER_ID,
+                                "run_id": "failed",
+                                "result_id": f"result-{task.get('dispatch_id', 'err')}",
+                                "status": "FAILED",
+                                "artifacts": [],
+                                "stderr": "Dispatcher refused the task (invalid identity or unsafe dispatch_id)"
+                            }
+                            requests.post(f"{API_URL}/tasks/result", json=err_result, headers=HEADERS, timeout=10)
+                        except Exception as ex:
+                            log(f"Failed to post error result for {task_id}: {ex}")
         except Exception as e:
             log(f"Error polling for tasks: {e}")
             

@@ -176,4 +176,24 @@ if __name__ == "__main__":
         raise SystemExit(run(sys.argv[1]))
     except (IndexError, OSError, RuntimeError, ValueError, json.JSONDecodeError) as exc:
         print(f"GITHUB_WORKER_ERROR={exc}", file=sys.stderr)
+        try:
+            task_file = Path(sys.argv[1])
+            if task_file.is_file():
+                task = json.loads(task_file.read_text(encoding="utf-8"))
+                err_result = {
+                    "goal_id": task.get("goal_id", "unknown"),
+                    "task_id": task.get("task_id", "unknown"),
+                    "attempt_id": task.get("attempt_id", "unknown"),
+                    "dispatch_id": task.get("dispatch_id", "unknown"),
+                    "worker_id": task.get("worker_id", "unknown"),
+                    "run_id": "failed",
+                    "result_id": f"result-{task.get('dispatch_id', 'err')}",
+                    "status": "FAILED",
+                    "artifacts": [],
+                    "stderr": str(exc)
+                }
+                post_result(err_result)
+                write_state(task_file, {"dispatch_id": task.get("dispatch_id", ""), "status": "POSTED_FAILED"})
+        except Exception as inner_exc:
+            print(f"Failed to post error result: {inner_exc}", file=sys.stderr)
         raise SystemExit(1)

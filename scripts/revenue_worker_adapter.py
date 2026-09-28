@@ -126,17 +126,52 @@ def main():
                         
                     import hashlib
                     artifact_sha = hashlib.sha256(artifact_bytes).hexdigest()
-                    artifact_b64 = base64.b64encode(artifact_bytes).decode('utf-8')
                     
-                    # Post result
-                    res_payload = {
+                    # Upload artifact using /artifacts endpoint
+                    meta = {
+                        "name": "revenue_artifacts.zip",
+                        "sha256": artifact_sha,
+                        "size": len(artifact_bytes),
+                        "goal_id": task.get("goal_id", "unknown"),
                         "task_id": task_id,
                         "attempt_id": attempt_id,
+                        "dispatch_id": task.get("dispatch_id", "unknown"),
+                        "worker_id": worker_id
+                    }
+                    
+                    import urllib.request
+                    req = urllib.request.Request(f"{config['COURIER_SERVER']}/artifacts", method="POST")
+                    req.add_header("Authorization", f"Bearer {config['COURIER_API_KEY']}")
+                    req.add_header("Content-Type", "application/octet-stream")
+                    req.add_header("X-Courier-Artifact", json.dumps(meta))
+                    req.data = artifact_bytes
+                    
+                    try:
+                        with urllib.request.urlopen(req) as response:
+                            art_resp = json.loads(response.read().decode("utf-8"))
+                    except Exception as e:
+                        write_log(f"Artifact upload failed: {e}")
+                        art_resp = {}
+                        
+                    # Prepare DurableResult
+                    res_payload = {
+                        "goal_id": task.get("goal_id", "unknown"),
+                        "task_id": task_id,
+                        "attempt_id": attempt_id,
+                        "dispatch_id": task.get("dispatch_id", "unknown"),
                         "worker_id": worker_id,
-                        "result_data": result_data,
-                        "artifact_name": "revenue_artifacts.zip",
-                        "artifact_sha256": artifact_sha,
-                        "artifact_content_base64": artifact_b64
+                        "run_id": f"run-{uuid.uuid4().hex[:8]}",
+                        "result_id": f"result-{uuid.uuid4().hex[:8]}",
+                        "status": "SUCCESS",
+                        "result_data": locals().get("result_data", None),
+                        "artifacts": [
+                            {
+                                "path": "revenue_artifacts.zip",
+                                "sha256": artifact_sha,
+                                "size": len(artifact_bytes),
+                                "artifact_id": art_resp.get("artifact_id", "unknown")
+                            }
+                        ]
                     }
                     
                     write_log("Posting result...")
@@ -145,7 +180,21 @@ def main():
                     
                 except subprocess.CalledProcessError as e:
                     write_log(f"Task execution failed: {e.output.decode('utf-8', errors='ignore')}")
-                    # Could implement fail endpoint here if one existed
+                    res_payload = {
+                        "goal_id": task.get("goal_id", "unknown"),
+                        "task_id": task_id,
+                        "attempt_id": attempt_id,
+                        "dispatch_id": task.get("dispatch_id", "unknown"),
+                        "worker_id": worker_id,
+                        "run_id": f"run-{uuid.uuid4().hex[:8]}",
+                        "result_id": f"result-{uuid.uuid4().hex[:8]}",
+                        "status": "FAILED",
+                        "result_data": locals().get("result_data", None),
+                        "artifacts": [],
+                        "stderr": e.output.decode('utf-8', errors='ignore')
+                    }
+                    write_log("Posting FAILED result...")
+                    http_post(config, "/tasks/result", res_payload)
                     
         except Exception as e:
             write_log(f"Error in main loop: {traceback.format_exc()}")

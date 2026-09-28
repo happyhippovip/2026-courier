@@ -28,6 +28,19 @@
       ]
     }
   },
-  "tasks": {},
+  "tasks": {
+    "task-revenue-7e907e2a": {
+      "task_id": "task-revenue-7e907e2a",
+      "customer_reference": "ref-123",
+      "worker_id": "github-actions-revenue-v1",
+      "platform": "github",
+      "dispatch_ref": "intake_dispatcher_local",
+      "execution_ref": "12345",
+      "state": "DISPATCHED_TO_EXTERNAL",
+      "last_transition": "AUTOMATIC_DISPATCH",
+      "next_explicit_transition": "WAIT_FOR_GITHUB_PR",
+      "real_wall": "HUMAN_REVIEW_REQUIRED_ON_PR"
+    }
+  },
   "workers": {}
 }

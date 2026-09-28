@@ -37,8 +37,10 @@ def dispatch_intake(intake_file):
     execution_ref = run_info.stdout.strip()
     
     # Update Central State
-    state_file = 'central_state.json'
+    state_file = os.environ.get("COURIER_STATE_FILE", "server/state/central_state.json")
     try:
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(state_file), exist_ok=True)
         if os.path.exists(state_file):
             with open(state_file, 'r') as f:
                 state = json.load(f)

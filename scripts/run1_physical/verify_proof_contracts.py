@@ -25,6 +25,18 @@ from typing import Dict, Any, Tuple
 
 # --- RUN 1 Proof Verification Functions ---
 
+def verify_not_synthetic(snapshot_json_path: str) -> bool:
+    """Fail-closed gate: reject any snapshot produced by a stub/synthetic producer."""
+    with open(snapshot_json_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    assert data.get('synthetic') is not True, (
+        "CRITICAL: Snapshot is marked as synthetic. "
+        "A stub producer cannot generate a valid RUN PASS. "
+        "Replace run_physical.py with a real producer before attempting RUN_1."
+    )
+    return True
+
+
 def verify_a_once(snapshot_json_path: str) -> bool:
     with open(snapshot_json_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
@@ -33,14 +45,18 @@ def verify_a_once(snapshot_json_path: str) -> bool:
     return True
 
 def compute_run1_chain(final_sha: str, execution_artifacts_dir: str) -> str:
+    """Compute combined SHA256 of all evidence files (matching producer's compute_dir_hash)."""
     hasher = hashlib.sha256()
-    hasher.update(final_sha.encode('utf-8'))
+    if final_sha:
+        hasher.update(final_sha.encode('utf-8'))
     
-    files = sorted(glob.glob(os.path.join(execution_artifacts_dir, "*.log")) +
-                   glob.glob(os.path.join(execution_artifacts_dir, "*.json")))
-    for f in files:
-        with open(f, 'rb') as fd:
-            hasher.update(fd.read())
+    for root, _, files in os.walk(execution_artifacts_dir):
+        for fname in sorted(files):
+            if fname.endswith(".txt") and "hash" in fname:
+                continue
+            fpath = os.path.join(root, fname)
+            with open(fpath, 'rb') as fd:
+                hasher.update(fd.read())
             
     return hasher.hexdigest()
 
@@ -153,10 +169,13 @@ def verify_b_continuation(run2_snapshot_path: str) -> bool:
     
     for t in transitions:
         st = t.get('state', '')
-        assert st != 'VERIFY', "RUN 2 executed VERIFY state, which means it failed to read RECONCILE state or restarted from scratch."
+        # Reject full re-verification from scratch (indicates A replay), but allow
+        # B-scoped verification states like VERIFY_B or B_VERIFY.
+        if st == 'VERIFY':
+            assert False, "RUN 2 executed full VERIFY state, which means it failed to read RECONCILE state or restarted from scratch."
         assert 'HUMAN' not in st, "RUN 2 required human intervention. Not autonomous."
     
-    b_start_found = any(t.get('state') == 'B_START' for t in transitions)
+    b_start_found = any(t.get('state') in ('B_START', 'VERIFY_B', 'B_VERIFY') for t in transitions)
     assert b_start_found, "Process B failed to start during RUN 2 continuation."
     return True
 
@@ -266,8 +285,21 @@ def run_self_tests() -> bool:
             assert False, "Failed execution guard did not catch exit code 1!"
         except AssertionError:
             pass # Expected
+
+        # Test synthetic-reject gate
+        synthetic_snap = os.path.join(tmpdir, "synthetic_snapshot.json")
+        synthetic_data = dict(run1_data, synthetic=True)
+        with open(synthetic_snap, "w", encoding="utf-8") as f:
+            json.dump(synthetic_data, f, indent=2)
+        try:
+            verify_not_synthetic(synthetic_snap)
+            assert False, "Synthetic-reject gate did not catch synthetic snapshot!"
+        except AssertionError:
+            pass # Expected
+        # Non-synthetic must pass
+        assert verify_not_synthetic(run1_snapshot_path) is True
             
-    print("[verify_proof_contracts] All 11 proof contract self-tests PASSED successfully.")
+    print("[verify_proof_contracts] All 12 proof contract self-tests PASSED successfully.")
     return True
 
 def verify_run1_directory(run1_dir: str) -> bool:
@@ -275,12 +307,25 @@ def verify_run1_directory(run1_dir: str) -> bool:
     snap_path = os.path.join(evidence_dir, "run1_state_snapshot.json")
     exit_path = os.path.join(evidence_dir, "run1_exit_code.txt")
     print(f"[verify_proof_contracts] Verifying RUN 1 directory: {evidence_dir}")
+    verify_not_synthetic(snap_path)
     verify_a_once(snap_path)
     verify_server_bytes(snap_path)
     verify_state_transitions(snap_path)
     verify_b_autostart(snap_path)
     verify_zero_relay(snap_path)
     verify_success_no_contamination(exit_path, snap_path)
+    # Verify hash chain integrity if falsifiability hash exists
+    hash_path = os.path.join(evidence_dir, "run1_falsifiability_hash.txt")
+    if os.path.isfile(hash_path):
+        with open(hash_path, "r", encoding="utf-8") as f:
+            stored_hash = f.read().strip()
+        # Recompute from evidence directory (excluding the hash file itself)
+        recomputed = compute_run1_chain("", evidence_dir)
+        assert stored_hash == recomputed, (
+            f"Hash chain mismatch! Stored: {stored_hash}, Recomputed: {recomputed}. "
+            "Evidence directory may have been tampered with after production."
+        )
+        print(f"[verify_proof_contracts] Hash chain integrity verified: {stored_hash[:16]}...")
     print("[verify_proof_contracts] All RUN 1 proof contracts PASSED.")
     return True
 

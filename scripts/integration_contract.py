@@ -132,6 +132,8 @@ def validate_durable_result(task: dict, result: dict) -> dict:
     # Preserve it when provided so a DurableResult remains bound to the exact run.
     if "run_attempt" in result:
         required.add("run_attempt")
+    if "result_data" in result:
+        required.add("result_data")
     missing = sorted(required - set(result))
     if missing:
         raise ContractError(f"result is missing: {', '.join(missing)}")
