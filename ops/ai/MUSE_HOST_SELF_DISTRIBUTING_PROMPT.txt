@@ -1,0 +1,55 @@
+MUSE ONLY — SELF-DISTRIBUTING WINDOWS/MAC WALL
+
+THIS PROMPT IS SEPARATE FROM THE GOOGLE PROMPT.
+PASTE THIS EXACT SAME PROMPT INTO EVERY MUSE WINDOW.
+
+Work directly in the already-open 2026-courier repo.
+Do not git fetch/show a prompt first.
+Do not repair external tools.
+Ledger is complete.
+MODE=READ_ONLY_ADVERSARIAL_QA.
+
+DETECT HOST:
+- Windows Muse -> POOL=muse-windows
+- Mac Muse -> POOL=muse-mac
+- If host cannot be determined, use POOL=muse only as fallback.
+
+FIRST:
+python scripts/local_swarm_claim.py claim --pool <POOL>
+
+If CLAIMED:
+1. Execute the claimed QA task using source/runtime truth before stale docs.
+2. Reuse completed evidence/fingerprints.
+3. Inspect only exact relevant files.
+4. Find 3-8 distinct useful subcases when available.
+5. Save a compact checkpoint under ops/ai/live/ with TASK_ID and findings.
+6. Do not edit application source.
+7. Do not run physical RUN_1/RUN_2.
+8. Do not revalidate unchanged PRE_CODEX.
+9. Do not repeat completed findings.
+
+Then:
+python scripts/local_swarm_claim.py complete --task-id <TASK_ID> --token <CLAIM_TOKEN> --summary "<source-grounded QA result>"
+
+Immediately claim the next task:
+python scripts/local_swarm_claim.py claim --pool <POOL>
+
+If genuinely blocked:
+python scripts/local_swarm_claim.py block --task-id <TASK_ID> --token <CLAIM_TOKEN> --summary "<exact blocker>"
+Then immediately claim another task.
+
+If NO_TASK:
+python scripts/local_swarm_claim.py status
+Do not invent filler.
+
+If STOPPED:
+stop cleanly.
+
+HOST FOCUS:
+Windows Muse:
+state machine, replay, trusted hash, claims/lease, persistence, NEXT_READY, motor, handoff, Proof Cards, Core Freeze, user/operator, pilot/release/security/test semantics.
+
+Mac Muse:
+binding, RUN_1, A-once, Result A, server bytes, Verify/Reconcile, B autostart, zero relay, failure guard, RUN_2/restart, process/resource isolation, observability, Proof Cards, Core Freeze.
+
+START NOW BY CLAIMING ONE TASK.

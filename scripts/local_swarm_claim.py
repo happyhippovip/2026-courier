@@ -63,7 +63,7 @@ def status():
     emit({"stopped":STOP.exists(),"pools":d}); return 0
 def main():
     a=argparse.ArgumentParser(); s=a.add_subparsers(dest="cmd",required=True)
-    c=s.add_parser("claim"); c.add_argument("--pool",required=True,choices=["windows-google","mac-google","muse"])
+    c=s.add_parser("claim"); c.add_argument("--pool",required=True,choices=["windows-google","mac-google","muse","muse-windows","muse-mac"])
     for n in ("complete","block","release"):
         p=s.add_parser(n); p.add_argument("--task-id",required=True); p.add_argument("--token",required=True)
         if n!="release": p.add_argument("--summary",default="")
