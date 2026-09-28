@@ -1,0 +1,8 @@
+MUSE CASCADE WAVE C MASTER
+Only use after WAVE_B_COMPLETE=YES.
+Read only deduped Wave A/B checkpoints plus current gate.
+Choose the lowest unfinished Wave C family.
+Goal is convergence and stopping work, not discovering endless new families.
+Persist exact stop-doing, Opus input, Codex input slots, Mac handoff slots.
+When all C complete: WAVE_C_COMPLETE=YES; OPUS_NOW=YES|NO; CODEX_NOW=YES|NO.
+START NOW.

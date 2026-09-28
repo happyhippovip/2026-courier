@@ -1,0 +1,8 @@
+MUSE CASCADE WAVE B MASTER
+Only use after WAVE_A_COMPLETE=YES.
+Read Wave A checkpoints/results.
+Choose the lowest unfinished Wave B family.
+Convert findings into minimal owner/proof/convergence packets. Do not rediscover source facts.
+Do 3-6 useful subcases, persist checkpoint, continue.
+When all B complete: WAVE_B_COMPLETE=YES; OPUS_INPUT_READY=YES|NO.
+START NOW.

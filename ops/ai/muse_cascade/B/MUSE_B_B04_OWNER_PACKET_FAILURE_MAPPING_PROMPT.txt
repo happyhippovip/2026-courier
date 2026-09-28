@@ -1,0 +1,38 @@
+MUSE CASCADE B-B04 — OWNER_PACKET_FAILURE_MAPPING
+
+Work directly in the open 2026-courier repo.
+MODE=READ_ONLY_ADVERSARIAL_QA
+LEDGER=COMPLETE
+NO_SOURCE_EDITS=YES
+NO_PHYSICAL_RUNS=YES
+NO_PRE_CODEX_REVALIDATION=YES
+
+CHECKPOINT=ops/ai/live/MUSE_CASCADE_B_B04_OWNER_PACKET_FAILURE_MAPPING.md
+
+TASK:
+Turn A05 findings into exact acceptance/test gaps.
+
+RULES:
+- source/runtime truth beats stale docs
+- reuse current WHAT-IS-LEFT checkpoint + existing Muse findings
+- do NOT route through old MUSE_DIRECT_65_96
+- do NOT rediscover known RESULT_RECEIVED / VALIDATED_PENDING_VERIFY / wall_claim lease / generic timestamp findings
+- inspect 3-6 distinct subcases
+- classify each as CONFIRMED_SOURCE_DEFECT / EVIDENCE_DOC_DEFECT / MISSING_EVIDENCE / DISPROVEN / NO_ISSUE / BLOCKED_OTHER_OWNER
+- persist exact refs and a DO_NOT_REPEAT fingerprint
+- if exhausted: FAMILY_COMPLETE
+- before /clear: persist CLEAR_SAFE=YES and NEXT_SUBCASE
+
+OUTPUT:
+STATUS=
+DONE_SUBCASES=
+CONFIRMED=
+EVIDENCE_GAPS=
+DISPROVEN=
+BLOCKED_OTHER_OWNER=
+NEXT_OWNER=
+NEXT_SUBCASE=
+CLEAR_SAFE=
+DO_NOT_REPEAT=
+
+START NOW.

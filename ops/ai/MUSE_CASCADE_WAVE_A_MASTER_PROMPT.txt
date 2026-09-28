@@ -1,0 +1,7 @@
+MUSE CASCADE WAVE A MASTER
+Read ops/ai/MUSE_CASCADE_ABC_2026-09-28.md.
+Choose the lowest-numbered Wave A family whose checkpoint is not FAMILY_COMPLETE.
+Do 3-6 real subcases, persist checkpoint, then continue to the next unfinished Wave A family.
+Do not use old 65-96 router. No PRE_CODEX revalidation. No source edits. No physical runs.
+When ALL A families are complete or blocked on other owners, output WAVE_A_COMPLETE=YES and stop.
+START NOW.
