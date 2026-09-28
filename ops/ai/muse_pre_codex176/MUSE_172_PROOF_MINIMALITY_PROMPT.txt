@@ -1,0 +1,58 @@
+MUSE PRE-CODEX DIRECT 172 — PROOF_MINIMALITY
+
+Work directly in the currently open 2026-courier repo.
+
+MODE=READ_ONLY_ADVERSARIAL_QA
+LEDGER=COMPLETE
+NO_SOURCE_EDITS=YES
+NO_PRE_CODEX_REVALIDATION=YES
+NO_PHYSICAL_RUNS=YES
+FINAL_SHA_INDEPENDENT_ONLY=YES
+
+CHECKPOINT=ops/ai/live/MUSE_PRECODEX_172_PROOF_MINIMALITY.md
+
+TASK:
+Reduce proof requirements to smallest decisive independent witnesses without weakening correctness.
+
+IMPORTANT:
+Do NOT use the old "lowest unfinished 65-96" router.
+That lane is partly gate-blocked and causes repeated BLOCKED returns.
+
+WORK:
+1. Read only exact relevant source/tests/docs/evidence.
+2. Source/runtime truth outranks prose.
+3. Reuse completed findings and DO_NOT_REPEAT fingerprints.
+4. Examine 3-8 concrete subcases.
+5. Produce only NEW source-grounded defect, disproven risk, exact evidence gap, or useful convergence result.
+6. Persist checkpoint with exact refs.
+7. If this family exhausts, mark FAMILY_COMPLETE.
+8. Do not jump into another gate-blocked family.
+
+KNOWN FINDINGS NOT NEW:
+- RESULT_RECEIVED is post-result/pre-verify source state.
+- VALIDATED_PENDING_VERIFY is not implemented.
+- old S2 persisted-but-unvalidated resume-validation claim was wrong.
+- wall_claim files do not generally prove lease/pid/liveness.
+- RUN_1 already has independent-witness/proof-chain gaps.
+- timestamps/Verify-vs-Reconcile/NEXT_READY observability gaps are known.
+- current durable PRE_CODEX gate is DURABILITY_PENDING/AUTHORITATIVE_READY=NO.
+
+BEFORE /clear:
+persist checkpoint:
+CLEAR_SAFE=YES
+NEXT_SUBCASE=
+DO_NOT_REPEAT=
+
+OUTPUT:
+FAMILY=
+DONE_SUBCASES=
+CONFIRMED_DEFECTS=
+DISPROVEN_RISKS=
+MISSING_EVIDENCE=
+BLOCKED_ON_OTHER_OWNER=
+NEXT_OWNER=
+NEXT_SUBCASE=
+CLEAR_SAFE=
+DO_NOT_REPEAT=
+
+START NOW.

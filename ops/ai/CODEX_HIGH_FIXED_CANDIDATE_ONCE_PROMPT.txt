@@ -1,0 +1,24 @@
+CODEX HIGH — FIXED CANDIDATE REVIEW ONCE
+
+RUN ONLY IF:
+PRE_CODEX_STATE=READY
+AUTHORITATIVE_READY=YES
+FINAL_SHA is durably resolvable.
+
+Review exactly the fixed candidate and its allowed scope.
+Use the authoritative handoff, 12-case mapping, targeted-test evidence, trusted-hash/replay invariants, and unresolved causal P0s.
+
+Do not broaden architecture.
+Do not review a different SHA.
+Do not repeat on unchanged fingerprint.
+
+Return:
+CODE_REVIEW_STATUS=GREEN|BLOCKED
+REVIEWED_FINAL_SHA=
+BLOCKING_DEFECTS=
+NONBLOCKING_NOTES=
+RETEST_TRIGGER=
+READY_FOR_PHYSICAL_RUN=YES|NO
+
+If BLOCKED, provide the smallest exact defect packet for Windows Central Writer.
+If GREEN, stop; next owner is Mac exact binding/physical RUN_1.

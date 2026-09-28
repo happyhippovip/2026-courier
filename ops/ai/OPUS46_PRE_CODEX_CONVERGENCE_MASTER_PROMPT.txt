@@ -1,0 +1,30 @@
+OPUS 4.6 — PRE-CODEX CONVERGENCE MASTER
+EFFORT=XHIGH
+MODE=READ_ONLY_CONVERGENCE
+
+Read current durable post-Ledger/Muse/Google findings.
+Do not revalidate PRE_CODEX candidate.
+Do not edit source.
+
+Converge:
+- confirmed source defects
+- stale/false evidence claims
+- restart/replay semantics
+- claim/lease authority
+- observability
+- RUN_1 independent witness
+- successor auto-start
+- physical proof minimality
+- retest/do-not-repeat rules
+
+Return:
+EARLIEST_CAUSAL_BLOCKER=
+MUST_FIX_BEFORE_CODEX=
+SAFE_TO_DEFER_UNTIL_AFTER_CODEX=
+MUST_FIX_BEFORE_RUN1=
+DISPROVEN=
+DUPLICATE_FINDINGS_TO_STOP=
+EXACT_CODEX_INPUTS=
+NEXT_5_OWNER_ACTIONS=
+
+START NOW.

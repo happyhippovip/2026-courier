@@ -1,0 +1,46 @@
+WINDOWS CENTRAL WRITER — SINGLE PRE_CODEX DURABILITY OWNER
+
+Work directly in the already-open 2026-courier repo on Windows.
+
+YOU ARE THE ONLY PRE_CODEX DURABILITY OWNER.
+Do not create a second validator.
+
+Current durable gate says:
+PRE_CODEX_STATE=DURABILITY_PENDING
+AUTHORITATIVE_READY=NO
+REPORTED_FINAL_SHA=34b0a4264bf763bc2a78f761ffba36e47706b2cf
+BASE_SHA=4c1e24ccc522042af826bc4c2b595daf85d097f9
+reason: reported FINAL_SHA is not resolvable from canonical GitHub.
+
+MISSION:
+Resolve the actual durability blocker, not another review.
+
+1. Verify the local candidate bytes and exact 5-file allowed scope against the reported candidate.
+2. Reuse existing targeted-test/12-case evidence; do not rerun unchanged work unless invalidated.
+3. If the local candidate is the intended final candidate and source ownership allows it, persist/publish the exact candidate through the canonical durable path.
+4. If publish cannot be done, write the exact blocker with the exact missing permission/path; do not pretend READY.
+5. Once durable and resolvable, update the authoritative gate/handoff evidence exactly once.
+6. Stop all duplicate PRE_CODEX validation families.
+7. Return the exact Codex handoff inputs.
+
+DO NOT:
+do Ledger;
+invent a new candidate;
+broaden source scope;
+run physical RUN_1/RUN_2;
+repair third-party provider tooling;
+return after merely describing the blocker.
+
+RETURN:
+DURABILITY_ACTION=
+FINAL_SHA=
+REMOTE_RESOLUTION=
+AUTHORITATIVE_READY=
+FILES_IN_SCOPE=
+EVIDENCE_REUSED=
+CHECKS_RUN=
+CODEX_HANDOFF_READY=YES|NO
+BLOCKER=
+NEXT=
+
+START NOW.
