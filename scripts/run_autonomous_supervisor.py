@@ -1135,6 +1135,8 @@ class AutonomousSupervisor:
         max_bundle_size: int = 3,
         max_operations: int = 20,
         idle_exit_after_empty_checks: int = 2,
+        persistent_idle: bool = True,
+        idle_backoff_seconds: float = 30.0,
     ) -> dict:
         """Executes the persistent, evidence-based Long-Run Work Engine across Opportunity Queue."""
         work_budget = budget or SessionWorkBudget()
@@ -1170,6 +1172,7 @@ class AutonomousSupervisor:
         operations = []
         queue_refill_during_session = 0
         empty_queue_checks = 0
+        idle_backoff_cycles = 0
 
         self.heartbeat.update_heartbeat(
             supervisor_alive=True,
@@ -1208,11 +1211,46 @@ class AutonomousSupervisor:
 
             if not next_opp:
                 empty_queue_checks += 1
-                print(f"[IDLE MONITORING] Opportunity queue empty (Check {empty_queue_checks}/{idle_exit_after_empty_checks}).")
-                if empty_queue_checks >= idle_exit_after_empty_checks:
-                    print("[IDLE MONITORING] No further actionable opportunities. Graceful IDLE stop.")
-                    stop_reason = "IDLE_MONITORING_NO_WORK"
-                    break
+                idle_threshold = max(1, idle_exit_after_empty_checks)
+                print(
+                    f"[IDLE MONITORING] Opportunity queue empty "
+                    f"(Check {empty_queue_checks}/{idle_threshold}, persistent={persistent_idle})."
+                )
+                if empty_queue_checks >= idle_threshold:
+                    if not persistent_idle:
+                        print("[IDLE MONITORING] No further actionable opportunities. Graceful IDLE stop.")
+                        stop_reason = "IDLE_MONITORING_NO_WORK"
+                        break
+
+                    elapsed = time.time() - start_time
+                    remaining = max(0.0, work_budget.max_wall_clock_seconds - elapsed)
+                    if remaining <= 0:
+                        stop_reason = "MAX_WALL_CLOCK_REACHED"
+                        break
+
+                    sleep_for = min(max(0.0, idle_backoff_seconds), remaining)
+                    idle_backoff_cycles += 1
+                    print(
+                        f"[IDLE BACKOFF] No actionable work right now. "
+                        f"Sleeping {sleep_for:.1f}s, then refreshing durable evidence "
+                        f"(cycle {idle_backoff_cycles})."
+                    )
+                    self.heartbeat.update_heartbeat(
+                        supervisor_alive=True,
+                        chief_presence=self.chief.get_presence().get("presence", "AWAKE"),
+                        active_task=None,
+                        queue_ready=self.opportunity_queue.export_telemetry()["READY"],
+                        queue_blocked=self.opportunity_queue.export_telemetry()["BLOCKED"],
+                        completed_this_session=total_operations_completed,
+                    )
+                    if sleep_for > 0:
+                        time.sleep(sleep_for)
+
+                    # A previously visited item can become actionable again only if
+                    # durable queue state changes. The queue's own status/claim/dedupe
+                    # guards still prevent replay of completed work.
+                    visited_opportunity_ids.clear()
+                    empty_queue_checks = 0
                 continue
 
             empty_queue_checks = 0
@@ -1442,6 +1480,8 @@ class AutonomousSupervisor:
             "total_operations_completed": total_operations_completed,
             "total_builder_jobs_executed": total_builder_jobs_executed,
             "queue_refill_during_session": queue_refill_during_session,
+            "idle_backoff_cycles": idle_backoff_cycles,
+            "persistent_idle": persistent_idle,
             "human_copy_paste_between_steps": 0,
             "unapproved_spend_eur": 0.0,
             "model_calls_incurred": 0,
@@ -1502,12 +1542,23 @@ def main():
 
     elif args.long_run_canary:
         budget = SessionWorkBudget(max_wall_clock_seconds=300.0, zero_spend_limit_eur=0.0)
-        res = supervisor.run_long_run_session(budget=budget, max_operations=12, enable_bundling=True)
+        res = supervisor.run_long_run_session(
+            budget=budget,
+            max_operations=12,
+            enable_bundling=True,
+            persistent_idle=False,
+        )
         print(json.dumps(res, indent=2))
 
     elif args.sleep:
         budget = SessionWorkBudget(max_wall_clock_seconds=args.max_hours * 3600.0, zero_spend_limit_eur=0.0)
-        res = supervisor.run_long_run_session(budget=budget, max_operations=100, enable_bundling=True)
+        res = supervisor.run_long_run_session(
+            budget=budget,
+            max_operations=100,
+            enable_bundling=True,
+            persistent_idle=True,
+            idle_backoff_seconds=30.0,
+        )
         print(json.dumps(res, indent=2))
 
 
