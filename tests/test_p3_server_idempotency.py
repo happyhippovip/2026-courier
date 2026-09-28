@@ -123,3 +123,24 @@ def test_unregistered_worker_stays_stopped_despite_heartbeat(srv):
     assert http.post("/workers/register", headers=WORKER, json=worker).status_code == 200
     claimed = http.post("/tasks/claim", headers=WORKER, json={"worker_id": "MAC-01"}).get_json()["task"]
     assert claimed["task_id"] == "task-stop"
+
+def test_task_result_persists_exact_timestamp_ordering_fields(srv):
+    http, goal_id, task = setup_claimed_task(srv)
+    assert "dispatched_at" in srv.load_state()["tasks"][task["task_id"]]
+    
+    result = durable_result(task)
+    assert http.post("/tasks/result", headers=WORKER, json=result).status_code == 200
+    
+    state = srv.load_state()
+    assert "received_at" in state["tasks"][task["task_id"]]["result"]
+    
+    verify(http, task, result, "PASS")
+    state = srv.load_state()
+    assert "verified_at" in state["tasks"][task["task_id"]]["verification"]
+
+def test_resume_task_in_invalid_status_is_rejected(srv):
+    http, goal_id, task = setup_claimed_task(srv)
+    # The task is DISPATCHED, which is invalid for resume
+    resp = http.post(f"/tasks/{task['task_id']}/resume", headers=WORKER, json={"action": "retry"})
+    assert resp.status_code == 400
+    assert "cannot be resumed from status DISPATCHED" in resp.get_json()["error"]
