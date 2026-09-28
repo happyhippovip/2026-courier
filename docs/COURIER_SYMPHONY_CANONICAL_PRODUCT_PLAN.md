@@ -1054,3 +1054,32 @@ Desired later update system:
 All cryptographic update work follows crypto-agility and post-quantum migration-readiness principles. "Quantum secure" is not a permitted marketing claim without a concrete proven cryptographic profile.
 
 This is product direction, not permission to bypass Gate 1-5 or build a marketplace before proof.
+
+## 32a. Durable Orchestration statt Prompt-Persistenz
+
+Ein einzelner Modell-Turn ist kein langlebiger Scheduler.
+
+Courier darf Langzeitautonomie deshalb nicht darauf stützen, dass ein Prompt einen Agenten für Stunden "beschäftigt" hält.
+
+Verbindliches Muster:
+
+bounded worker turn
+-> durable checkpoint
+-> current gate/owner refresh
+-> external supervisor/dispatcher
+-> tokenfreies Warten bei unverändertem Zustand
+-> relaunch nur bei echtem Trigger
+
+Ein UI-Queue-Backlog ist kein Scheduler.
+Freie Agentenkapazität ist kein Grund, Arbeit zu erfinden.
+
+Wenn der früheste offene Gate-Schritt einem exklusiven Owner gehört:
+- genau dieser Owner arbeitet;
+- unabhängige READY-Arbeit darf weiterlaufen;
+- übrige Worker parken.
+
+Physische Proof-Gates setzen zusätzlich exakte Candidate-Custody voraus:
+
+FINAL_SHA == REMOTE_SHA == LOCAL_SHA == BOUND_SHA
+
+Ein lokaler/orphaned/detached Candidate zählt nicht als bindbarer Physical-Proof-Candidate, bis er ausdrücklich übernommen und dauerhaft verfügbar ist.
