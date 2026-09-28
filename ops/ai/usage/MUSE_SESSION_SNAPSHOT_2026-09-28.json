@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "recorded_at": "2026-09-28T14:50:00+02:00",
+  "provider_class": "MUSE",
+  "model_class": "muse-spark-1.3-contributor",
+  "session_aggregate": {
+    "input_tokens": 24084513,
+    "cached_tokens": 23407836,
+    "output_tokens": 80676,
+    "total_tokens": 24165189,
+    "turns": 156,
+    "subagents_used": 0
+  },
+  "privacy_note": "Sanitized operational snapshot only. No account, subscription, billing, payment, or quota reset data stored."
+}
