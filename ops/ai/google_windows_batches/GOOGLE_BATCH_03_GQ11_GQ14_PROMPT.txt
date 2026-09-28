@@ -1,0 +1,42 @@
+GOOGLE WINDOWS BATCH 03 — GQ11_GQ14
+
+Work directly in the already-open 2026-courier repo on Windows.
+ONE main Google/Antigravity IDE worker.
+No git show.
+No git fetch required for ordinary local work.
+No external claim API.
+Do not repair third-party tools/providers.
+Ledger is complete.
+
+READ LOCAL:
+ops/ai/GOOGLE_IDE_DIRECT_50_PROGRESS.md
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/WORKING_ONLY_EXECUTION_POLICY_2026-09-28.md
+
+BATCH MISSION:
+Process GQ11 through GQ14: Windows->Mac handoff, Mac binding inputs, RUN_1 command sheet, RUN_1 evidence layout.
+
+EXECUTION RULE:
+- Work through the entire batch, not just the first item.
+- For each referenced GQ task: if DONE, skip it; if BLOCKED_REMOTE/BLOCKED_OTHER, skip to the next independent task; if TODO, set DOING, execute real repo work, verify, save evidence, then mark DONE.
+- Complete at least 3 concrete GQ tasks in this run when 3 are legally executable.
+- Do not return after one tiny artifact.
+- Use deterministic local checks first.
+- If OUR_REPO_BUG is found and current authority allows the change, make the smallest causal fix and targeted verification. Otherwise create an exact fix packet.
+- If an optional external path fails twice, mark DISABLED_UNTIL_TRIGGER and keep working locally.
+- Do not simulate Codex.
+- Do not execute physical RUN_1/RUN_2.
+- Do not output SLOT_IDLE.
+
+BEFORE RETURNING:
+update ops/ai/GOOGLE_IDE_DIRECT_50_PROGRESS.md
+
+RETURN:
+DONE_THIS_BATCH=
+SKIPPED_ALREADY_DONE=
+BLOCKED=
+NEXT_GQ=
+FILES_CHANGED=
+CHECKS_RUN=
+
+START NOW AND PUSH THROUGH THE WHOLE BATCH.

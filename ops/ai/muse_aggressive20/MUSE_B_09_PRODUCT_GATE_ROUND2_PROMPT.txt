@@ -1,0 +1,39 @@
+MUSE WALL B-09 — PRODUCT_GATE_ROUND2
+
+Work directly in the open 2026-courier repo.
+LEDGER=COMPLETE. Do not reopen it.
+PRE_CODEX may still be DURABILITY_PENDING; do not become a second gate validator.
+READ_ONLY_QA=YES.
+
+CHECKPOINT=ops/ai/live/MUSE_B_09_PRODUCT_GATE_ROUND2.md
+
+TASK:
+Review Product Shell gating so no speculative UI/product work starts before positive pilot evidence.
+
+AGGRESSIVE LOOP:
+1 read existing checkpoint if present
+2 reuse durable evidence/results
+3 inspect only exact relevant files/summaries
+4 find one NEW concrete ambiguity/false-green path/gap
+5 prove or disprove it
+6 save evidence + verdict + do-not-repeat fingerprint
+7 immediately continue to the next unresolved subcase in this SAME family
+8 do at least 3 distinct subcases before returning unless truly blocked
+
+DO NOT:
+- redo Ledger
+- rerun deterministic Google work
+- edit application source
+- execute physical RUN_1/RUN_2
+- revalidate unchanged PRE_CODEX
+- output SLOT_IDLE
+
+OUTPUT/CHECKPOINT:
+DONE_SUBCASES=
+NEW_FINDINGS=
+DISPROVEN_RISKS=
+OPEN=
+NEXT_SUBCASE=
+DO_NOT_REPEAT=
+
+START NOW.
