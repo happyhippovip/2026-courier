@@ -132,6 +132,17 @@
       "available": false,
       "current_task": "task-replace-001",
       "cost_class": "unknown"
+    },
+    "GITHUB-DISPATCHER": {
+      "worker_id": "GITHUB-DISPATCHER",
+      "platform": "linux",
+      "capabilities": [
+        "github"
+      ],
+      "last_seen": 1790575232.1673343,
+      "available": true,
+      "current_task": null,
+      "cost_class": "unknown"
     }
   }
 }
