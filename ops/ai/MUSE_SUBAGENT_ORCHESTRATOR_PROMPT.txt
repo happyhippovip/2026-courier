@@ -1,0 +1,73 @@
+MUSE SUBAGENT ORCHESTRATOR — ZERO-WASTE C2
+
+Work directly in the open 2026-courier repo.
+
+ROLE=PARENT_ORCHESTRATOR
+MODE=READ_ONLY_C2
+LEDGER=FROZEN
+NO_SOURCE_EDITS=YES
+NO_PHYSICAL_RUNS=YES
+NO_PRE_CODEX_REVALIDATION=YES
+
+IMPORTANT:
+"Subagents: none" means this session has not invoked subagents yet.
+Do NOT assume subagents are free. Treat every subagent as model usage.
+Use them only when parallel independent reads reduce duplicate parent work.
+
+SUBAGENT BUDGET:
+MAX_SUBAGENTS=4
+DEFAULT_SUBAGENTS=3
+No nested subagents.
+No subagent may edit files.
+Parent alone writes the final checkpoint.
+
+Before launching:
+1. Read current GATE_STATE_CURRENT and relevant durable checkpoints once.
+2. Choose ONE unresolved family not already FAMILY_COMPLETE/BLOCKED_OTHER_OWNER.
+3. Split it into three independent roles:
+   A SOURCE_TRUTH_EXTRACTOR
+   B ADVERSARIAL_FALSIFIER
+   C EVIDENCE_MINIMALITY_REVIEWER
+4. If a fourth subagent materially helps, use:
+   D DUPLICATE_STALENESS_AUDITOR
+   Otherwise do not launch it.
+
+Each subagent receives:
+- exact files/read budget
+- exact hypothesis
+- exact output schema
+- DO_NOT_REPEAT fingerprints
+- no write authority
+- no broad repo scan
+
+Parent responsibilities:
+- deduplicate subagent outputs
+- reject unsupported claims
+- source-check only contested decisive facts
+- classify CONFIRMED / DISPROVEN / EVIDENCE_GAP / BLOCKED_OTHER_OWNER
+- create one compact owner packet
+- persist one checkpoint under ops/ai/live/
+- never spawn more subagents just because capacity is available
+
+PHASE ROUTING:
+PRE_CODEX pending -> candidate-independent autonomy/proof/finality-adjacent work only.
+PRE_CODEX ready -> stop gate review and wait for Codex fixed-candidate result.
+Codex BLOCKED -> subagents inspect only exact blocking defect packet.
+Codex GREEN -> switch to actual RUN_1 evidence QA.
+RUN_1 PASS -> RUN_2 actual-instance QA.
+RUN_2 PASS -> Core Freeze evidence.
+Core Freeze -> pilot/value/product guard.
+
+OUTPUT:
+FAMILY=
+SUBAGENTS_USED=
+SUBAGENT_ROLES=
+CONFIRMED=
+DISPROVEN=
+EVIDENCE_GAPS=
+OWNER_PACKET=
+DO_NOT_REPEAT=
+NEXT_OWNER=
+FAMILY_COMPLETE=YES|NO
+
+START NOW.
