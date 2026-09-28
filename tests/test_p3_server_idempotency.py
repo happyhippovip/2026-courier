@@ -144,3 +144,30 @@ def test_resume_task_in_invalid_status_is_rejected(srv):
     resp = http.post(f"/tasks/{task['task_id']}/resume", headers=WORKER, json={"action": "retry"})
     assert resp.status_code == 400
     assert "cannot be resumed from status DISPATCHED" in resp.get_json()["error"]
+
+def test_create_goal_rejects_duplicate_task_ids(srv):
+    http, goal_id, task = setup_claimed_task(srv)
+    resp = http.post(
+        "/goals",
+        headers=WORKER,
+        json={
+            "goal_text": "duplicate test",
+            "workflow_plan": [{"task_id": task["task_id"], "target_agent": "linux"}],
+        },
+    )
+    assert resp.status_code == 400
+    assert "duplicate task_id" in resp.get_json()["error"]
+
+def test_validate_durable_result_checks_run_attempt(srv):
+    http, goal_id, task = setup_claimed_task(srv)
+    result = {
+        **{f: task[f] for f in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")},
+        "run_id": "r1",
+        "result_id": "result-1",
+        "status": "SUCCESS",
+        "artifacts": [],
+        "run_attempt": "not-numeric",
+    }
+    resp = http.post("/tasks/result", headers=WORKER, json=result)
+    assert resp.status_code == 400
+    assert "run_attempt is invalid" in resp.get_json()["error"]

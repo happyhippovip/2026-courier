@@ -152,7 +152,6 @@ def validate_durable_result(task: dict, result: dict) -> dict:
     for artifact in result["artifacts"]:
         # Uploaded artifacts additionally carry the server-issued artifact_id and size.
         if not isinstance(artifact, dict) or set(artifact) not in ({"path", "sha256"},
-                                                                   {"path", "sha256", "artifact_id", "size"},
                                                                    {"path", "sha256", "artifact_id", "size"}):
             raise ContractError("invalid artifact evidence")
         if "artifact_id" in artifact:

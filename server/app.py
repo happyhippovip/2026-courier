@@ -110,12 +110,16 @@ def submit_goal():
     if "workflow_plan" in data:
         goal["workflow_plan"] = data["workflow_plan"]
         goal["current_step_index"] = 0
+        seen_tasks = set()
         for step in goal["workflow_plan"]:
             step["goal_id"] = goal_id
             step["status"] = "QUEUED"
             step["attempts"] = 0
             if "task_id" not in step:
                 step["task_id"] = f"task-{uuid.uuid4().hex[:8]}"
+            if step["task_id"] in seen_tasks or step["task_id"] in state.get("tasks", {}):
+                return jsonify({"error": f"duplicate task_id: {step['task_id']}"}), 400
+            seen_tasks.add(step["task_id"])
     else:
         try:
             _, planned_steps = ChiefCommander().formulate_workflow_plan(
@@ -337,6 +341,7 @@ def claim_task():
                         except ContractError as exc:
                             return jsonify({"error": str(exc)}), 400
                         next_task["status"] = "DISPATCHED"
+                        next_task["dispatched_at"] = time.time()
                         goal["workflow_plan"][idx] = next_task
                         
                         worker["current_task"] = next_task["task_id"]
@@ -381,6 +386,7 @@ def task_result():
                 return jsonify({"error": str(exc)}), 400
             task["status"] = "RESULT_RECEIVED"
             task["result"] = durable_result
+            task["result"]["received_at"] = time.time()
             
             if durable_result.get("status") == "SUCCESS":
                 task["status"] = "RESULT_RECEIVED" # wait for independent /verify
@@ -498,6 +504,7 @@ def verify_task_result():
         "result_id": result["result_id"],
         "verdict": verdict,
         "artifacts": result["artifacts"],
+        "verified_at": time.time(),
     }
     goal = state["goals"][task["goal_id"]]
     if verdict == "PASS":
