@@ -1,0 +1,43 @@
+MUSE WALL C-24 — HASH_TRUST_BYPASS_QA
+
+Work directly in the open 2026-courier repo.
+
+LEDGER=COMPLETE
+READ_ONLY_QA=YES
+NO_SOURCE_EDITS=YES
+NO_PHYSICAL_RUNS=YES
+NO_PRE_CODEX_REVALIDATION=YES
+
+CHECKPOINT=ops/ai/live/MUSE_C_24_HASH_TRUST_BYPASS_QA.md
+
+TASK:
+Search for semantic bypasses where worker-controlled artifact metadata could influence trusted expected-hash verification.
+
+LOOP:
+1. Read existing checkpoint if present.
+2. Reuse current durable evidence/results first.
+3. Inspect only exact relevant files/summaries.
+4. Find one NEW concrete ambiguity, contradiction, false-green path, or missing evidence item.
+5. Prove or disprove it.
+6. Save finding, evidence refs, verdict, and do-not-repeat fingerprint.
+7. Continue immediately to the next unresolved subcase in this same family.
+8. Complete at least 3 distinct subcases before returning unless genuinely blocked.
+
+DO NOT:
+- redo Ledger
+- redo deterministic Google work
+- become a second gate owner
+- execute Codex work
+- execute RUN_1/RUN_2
+- invent filler
+- output SLOT_IDLE
+
+CHECKPOINT:
+DONE_SUBCASES=
+CONFIRMED_DEFECTS=
+DISPROVEN_RISKS=
+MISSING_EVIDENCE=
+NEXT_SUBCASE=
+DO_NOT_REPEAT=
+
+START NOW.

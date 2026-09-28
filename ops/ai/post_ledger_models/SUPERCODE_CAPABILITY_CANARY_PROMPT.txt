@@ -1,0 +1,42 @@
+SUPERCODE — CONSERVATIVE CAPABILITY CANARY
+
+MODE=READ_ONLY
+AUTHORITY=NO_SOURCE_WRITE_NO_GATE_NO_PHYSICAL_RUN
+
+FIRST:
+Identify yourself exactly:
+PROVIDER=
+MODEL=
+VERSION=
+MODE=
+AVAILABLE_TOOLS=
+KNOWN_LIMITS=
+
+Then perform ONE bounded task only:
+
+Read the current durable post-Ledger handoff/proof summaries and identify one concrete ambiguity or missing evidence item that is NOT already recorded in completed Muse/Google results.
+
+Do not:
+- edit application source
+- validate PRE_CODEX
+- invoke/replace Codex
+- run physical proof
+- change auth/account/billing
+- claim capabilities you cannot prove
+
+OUTPUT:
+CANARY_STATUS=PASS|FAIL
+TASK=
+FINDING=
+EVIDENCE_USED=
+NEW_OR_DUPLICATE=
+RECOMMENDED_CLASS=C1|C2|UNSUITABLE
+SAFE_NEXT_WORK=
+DO_NOT_REPEAT_FINGERPRINT=
+
+If PASS and Recommended Class is C1 or C2:
+it may be used for bounded read-only prep/QA before Opus.
+
+It may NOT replace Codex HIGH at the PRE_CODEX gate.
+
+START NOW.
