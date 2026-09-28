@@ -1,0 +1,69 @@
+COURIER MUSE HARD-NO-IDLE 11 — CHANGED_ATTEMPT_DISPATCH_QA
+
+HOST=AUTO
+PROVIDER=MUSE
+MODEL_CLASS=C2
+ROLE=INDEPENDENT_ACCEPTANCE
+CONTINUE_BY_DEFAULT=YES
+CLAIM_BEFORE_ANALYSIS=YES
+SLOT_IDLE_IS_NOT_TERMINAL=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+
+TASK:
+Review changed-attempt/dispatch duplicate rejection evidence.
+
+RULES:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+
+CURRENT GATE:
+If PRE_CODEX remains DURABILITY_PENDING, do not revalidate the unchanged gate.
+Only the designated single persistence owner may touch that blocker.
+If this task is candidate-sensitive and blocked on exact FINAL_SHA:
+STATUS=WAITING_FOR_DURABILITY
+-> claim another independent task.
+
+IDLE LAW:
+Do NOT return SLOT_IDLE as a terminal state.
+If no READY task:
+1 harvest unprocessed durable results if allowed;
+2 check one bounded synthesis/finish task;
+3 replenish only from real unfinished critical-path work;
+4 if still empty, use shell sleep 60 seconds;
+5 refresh changed queue/result metadata only;
+6 continue.
+
+PHYSICAL LAW:
+Do not execute RUN_1 before READY_FOR_PHYSICAL_RUN=YES.
+Do not execute RUN_2 before RUN_1 PASS.
+
+PRODUCT LAW:
+Do not unlock Product Shell before durable positive real-pilot evidence.
+
+OUTPUT:
+TASK_ID=MUSE-HNI-11
+AREA=CHANGED_ATTEMPT_DISPATCH_QA
+STATUS=COMPLETE|OPEN|BLOCKED|WAITING_FOR_DURABILITY|RESULT_REUSED
+RESULTS_REUSED=
+DELIVERABLE_OR_VERDICT=
+MISSING=
+BLOCKER=
+NEXT_EXACT_ACTION=
+DO_NOT_REPEAT_FINGERPRINT=
+
+WHEN COMPLETE:
+persist -> release claim -> claim another unique compatible task.
+Never stop merely because this family is complete.
+
+START NOW.
