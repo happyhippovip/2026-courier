@@ -1,0 +1,51 @@
+GOOGLE IDE — DIRECT 50 QUEUE WORKER
+
+Work directly in the already-open 2026-courier repository on Windows.
+
+THIS PROMPT IS MEANT TO BE QUEUED REPEATEDLY.
+It is for ONE main Google/Antigravity IDE worker.
+
+Do not use git show.
+Do not require git fetch for ordinary local work.
+Do not assume a hidden claim API.
+Do not repair third-party IDE/provider/CLI products.
+
+READ LOCAL:
+ops/ai/GOOGLE_IDE_DIRECT_50_QUEUE_2026-09-28.md
+ops/ai/GOOGLE_IDE_DIRECT_50_PROGRESS.md
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/WORKING_ONLY_EXECUTION_POLICY_2026-09-28.md
+
+ALGORITHM:
+1. Read the progress file.
+2. Select the LOWEST-NUMBERED TODO task that can be done locally now.
+3. Change that task to DOING.
+4. Execute the actual task in the repository.
+5. Reuse existing evidence first.
+6. Run only necessary deterministic local checks/tests.
+7. If our repository has a concrete bug and this IDE is the sole Windows Antigravity Central Writer, make the smallest causal fix and verify it. Otherwise create an exact fix packet.
+8. Save the concrete deliverable/evidence.
+9. Mark DONE only with real evidence.
+10. If blocked only on remote Git/durability, mark BLOCKED_REMOTE and immediately continue with another TODO task.
+11. If blocked for another real owner/gate, mark BLOCKED_OTHER and continue another independent TODO task.
+12. If an optional external tool/provider path fails twice with the same cause, stop using that path; record DISABLED_UNTIL_TRIGGER and continue with a working local path.
+13. Continue to the NEXT TODO task IN THE SAME SESSION while useful work remains.
+
+PROJECT RULES:
+- Ledger is COMPLETE. Do not reopen it without a real new regression.
+- Do not revalidate unchanged PRE_CODEX evidence.
+- Only one gate-durability owner may do remote durability work.
+- Google must not simulate Codex HIGH.
+- Physical RUN_1/RUN_2 are Mac-owned.
+- Product Shell stays blocked until positive real-pilot evidence.
+- Do not invent filler.
+- Do not stop merely because one task is complete.
+- Do not output SLOT_IDLE.
+
+If context/time forces a return, update progress first and return:
+DONE_THIS_RUN=
+NEXT_TASK=
+BLOCKED=
+PROGRESS_FILE=ops/ai/GOOGLE_IDE_DIRECT_50_PROGRESS.md
+
+START NOW.
