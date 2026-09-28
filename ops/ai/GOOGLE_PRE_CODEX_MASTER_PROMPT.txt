@@ -1,0 +1,135 @@
+COURIER GOOGLE PRE-CODEX PERMANENT WORKER
+
+PURPOSE:
+Use this same prompt after /clear, a new Google CLI session, or a manually authorized account/session change.
+Finish all dependency-safe Google work needed before the one final Codex review.
+Do not restart already completed work.
+
+HOST=AUTO
+PROVIDER=GOOGLE_CLI
+MODE=READ_ONLY_OR_TARGETED_TEST
+CONTINUE_BY_DEFAULT=YES
+NO_HUMAN_RELAY=YES
+
+WINDOWS_REPO=C:\Users\lol\2026-workspace\2026-courier
+MAC_REPO=/Users/user/Downloads/2026-courier
+
+READ FIRST:
+ops/ai/COURIER_MASTER_CONTROL_PLANE_2026-09-27.md
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/WALL_BUILD_QUEUE_V1.md
+ops/ai/GOOGLE_WINDOWS_NIGHT_QUEUE_50_2026-09-27.md
+ops/ai/GOOGLE_PRE_CODEX_GATE_2026-09-27.md
+ops/ai/COURIER_SESSION_STATE_2026-09-26.json
+
+GLOBAL:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+
+WORK ORDER:
+1. HARVEST all existing durable results first.
+2. Finish missing dependency-safe WBUILD-001..030. Never create WBUILD-031.
+3. Finish missing Q001..Q020 semantics/evidence tasks.
+4. Finish Q021..Q028 final-candidate gate tasks.
+5. Use spare read-only capacity for Q029..Q050 only when no unowned READY P0 task remains.
+6. Do not let non-causal Q029..Q050 work delay Codex once PRE_CODEX_READY=YES.
+
+FINAL CANDIDATE AUTHORITY:
+Windows Antigravity Central Writer is the only final-candidate application source writer unless newer durable coordination explicitly changes ownership.
+Google does not edit final candidate application source.
+
+ACCEPTED BASE:
+candidate-b-1
+4c1e24ccc522042af826bc4c2b595daf85d097f9
+
+REJECTED:
+candidate-b-2
+candidate-b-3 is NOT required.
+
+FINAL FIVE FILES:
+scripts/courier_verifier.py
+scripts/integration_contract.py
+tests/test_artifact_upload_flow.py
+server/app.py
+tests/test_p3_server_idempotency.py
+
+REQUIRED FINAL SURFACE:
+1 task-owned expected hash survives workflow
+2 correct server bytes PASS
+3 wrong server bytes FAIL
+4 worker expected hash rejected
+5 worker omission cannot bypass task expectation
+6 no task expectation remains legacy-only
+7 malformed/ambiguous target FAIL
+8 identical replay ACK
+9 changed status rejected
+10 changed worker rejected
+11 changed attempt/dispatch rejected
+12 changed artifact result rejected
+
+IF FINAL_SHA CHANGES:
+Invalidate only candidate-sensitive evidence.
+Rerun only the exact affected final-gate checks.
+Do not restart the queue.
+
+IF DEFECT FOUND:
+Do not patch from Google.
+Record:
+FILE=
+FUNCTION=
+DEFECT=
+REQUIRED_BEHAVIOR=
+TARGETED_TEST=
+DO_NOT_CHANGE=
+Q027 is the single deduplicated Central Writer defect packet.
+
+NO_READY_TASKS:
+1 harvest pending durable results
+2 check WBUILD-030 and Q026/Q027/Q028 aggregators
+3 refresh dependencies once from durable truth/results
+4 if nothing concrete exists, TRUE_IDLE=YES
+5 do not scan source or invent work to avoid idle
+
+SESSION/ACCOUNT CHANGE:
+Task completion survives it.
+Read durable claims/results and continue next incomplete READY task.
+Do not restart at Q001.
+Do not automate account rotation or use account changes to bypass provider limits.
+
+PRE_CODEX_READY=YES only when:
+FINAL_SHA known
+accepted candidate-b-1 lineage
+exact five-file scope only
+12-case matrix complete against FINAL_SHA
+required targeted tests actually executed against FINAL_SHA
+all required tests green
+SKIPPED_COUNT=0
+diff-check clean
+no stale older-SHA PASS reused
+no unresolved causal P0 blocker
+
+WHEN PRE_CODEX_READY=YES:
+STOP NEW GOOGLE ANALYSIS.
+
+Return:
+PRE_CODEX_READY=YES
+FINAL_SHA=
+BASE_SHA=
+EXACT_CHANGED_FILES=
+TWELVE_CASE_MATRIX_REF=
+TARGETED_TEST_COMMANDS=
+TARGETED_TEST_RESULTS=
+SKIPPED_COUNT=0
+DIFF_CHECK=
+KNOWN_BLOCKERS=NONE
+NEXT=CODEX_HIGH_ONCE
+
+Otherwise continue automatically.
+
+START NOW.
