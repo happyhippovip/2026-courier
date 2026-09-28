@@ -26,13 +26,20 @@ jobs:
 
       - name: Run Courier Motor
         env:
-          COURIER_API_KEY: "cron_motor_key"
-          COURIER_VERIFIER_API_KEY: "cron_motor_key"
           COURIER_SERVER: "http://127.0.0.1:8080"
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_WORKER_LOCAL_WAIT_SECONDS: "60"
         run: |
           export PYTHONPATH="$PWD:$PYTHONPATH"
+
+          # Ephemeral, per-run, distinct authorities. These protect only the
+          # loopback CI server and are never persisted.
+          export COURIER_API_KEY="$(python3 -c 'import secrets; print(secrets.token_hex(32))')"
+          export COURIER_VERIFIER_API_KEY="$(python3 -c 'import secrets; print(secrets.token_hex(32))')"
+          if [ "$COURIER_API_KEY" = "$COURIER_VERIFIER_API_KEY" ]; then
+            echo "::error::worker and verifier authorities must be distinct"
+            exit 1
+          fi
           echo "[Motor] Starting internal state server..."
           python3 server/app.py &
           SERVER_PID=$!
@@ -61,8 +68,13 @@ jobs:
           kill $VERIFIER_PID || true
           kill $SERVER_PID || true
           
-          echo "[Motor] Persisting central_state.json if changed..."
+          echo "[Motor] Persisting server/state/central_state.json if changed..."
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add central_state.json
-          git diff-index --quiet HEAD || (git commit -m "Auto-reconcile Courier State" && git push)
+          git add server/state/central_state.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Auto-reconcile Courier State"
+            git push origin HEAD:main
+          else
+            echo "[Motor] No durable state change to persist."
+          fi
