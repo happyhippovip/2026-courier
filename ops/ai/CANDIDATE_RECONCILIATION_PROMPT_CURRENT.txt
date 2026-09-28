@@ -1,0 +1,51 @@
+COURIER — CANDIDATE STATE RECONCILIATION
+
+MODE=READ_ONLY
+NO_APPLICATION_SOURCE_WRITES=YES
+NO_PHYSICAL_RUNS=YES
+NO_LEDGER_WORK=YES
+NO_BROAD_REAUDIT=YES
+
+Read first:
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/CANDIDATE_RECONCILIATION_ROUTER_CURRENT.md
+ops/ai/FOUNDER_WORKING_PROTOCOL_CURRENT.md
+
+MISSION:
+Resolve the exact candidate identity conflict without inventing a winner.
+
+Known identities to map:
+- base/historical 34b0a4264bf763bc2a78f761ffba36e47706b2cf
+- durable recovered runner e9b4f15f8bc45be3d2bc2d9ab4f3c8ead7a77939
+- locally observed fixed commit prefix dfd22bb, full durable identity currently unknown
+
+Determine:
+FINAL_SHA=
+REMOTE_SHA=
+LOCAL_SHA=
+BOUND_SHA=
+LOCAL_FIXED_FULL_SHA=
+LOCAL_FIXED_BRANCH=
+LOCAL_FIXED_REMOTE_PRESENT=
+LOCAL_FIXED_WORKTREE_PRESENT=
+CHANGED_FILES_VS_E9B4=
+FIXES_PRESENT_ONLY_ON_LOCAL_FIXED=
+EVIDENCE_INVALIDATED_IF_ADOPTED=
+EVIDENCE_REUSABLE_IF_ADOPTED=
+
+Do not run RUN_1/RUN_2.
+Do not edit source.
+Do not silently choose a candidate.
+
+If the local fixed commit is a real complete candidate, produce the smallest exact ADOPT/PUBLISH owner packet.
+If it is incomplete/stale, produce the smallest exact RULE_OUT owner packet.
+
+Physical proof remains blocked until:
+FINAL_SHA == REMOTE_SHA == LOCAL_SHA == BOUND_SHA
+
+FINAL:
+CANDIDATE_STATE=
+EXACT_CONFLICT=
+OWNER_PACKET=
+NEXT_OWNER=
+NEXT_TRIGGER=
