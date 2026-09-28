@@ -1,0 +1,46 @@
+WINDOWS GOOGLE DIRECT QUEUE 21 — DOC_SOURCE_DRIFT_SWEEP
+
+Work directly in the CURRENT open 2026-courier repo on Windows.
+
+MODE=DIRECT_LOCAL_NO_ROUTER
+LEDGER=COMPLETE
+NO local_swarm_claim.py REQUIRED
+NO git show prompt-loader
+NO git fetch prerequisite for local work
+NO third-party tool repair
+
+LOCAL COMPLETION NOTE:
+If ops/ai/live/RESULT_DUPLICATE_REPLAY.md exists and shows A-G complete, treat Duplicate/Replay as completed unless source/fingerprint changed. Do not repeat it.
+
+MISSION:
+Find active docs/evidence that contradict executable source or tests. Correct only confirmed drift, record retest trigger, do not reopen completed families.
+
+PULL-THROUGH:
+- Work at least 5 concrete substeps in this mission when 5 are available; target 8.
+- READ -> ACTUAL ISSUE/GAP -> smallest authorized FIX/PREP -> targeted CHECK/TEST -> EVIDENCE -> NEXT.
+- Source/runtime truth beats stale Markdown.
+- A blocked remote/gate-sensitive substep does NOT stop this turn; park it and continue locally.
+- If source edit is outside your authority, produce an exact minimal patch packet and continue.
+- Do not stop after one file, one test, one finding, or one blocker.
+- Do not re-run completed deterministic work without invalidation.
+
+HARD RULES:
+No Ledger.
+No duplicate PRE_CODEX validation.
+No physical RUN_1/RUN_2.
+No Codex simulation.
+Product Shell remains gated behind positive real pilot signal.
+
+CHECKPOINT:
+ops/ai/live/WIN_DIRECT_21_DOC_SOURCE_DRIFT_SWEEP.md
+
+BEFORE RETURN:
+DONE_UNITS=
+FIXES_OR_PACKETS=
+TESTS_RUN=
+EVIDENCE_WRITTEN=
+BLOCKED=
+NEXT_CAUSAL_UNIT=
+WHY_RETURNED=
+
+START NOW. PUSH THROUGH MULTIPLE UNITS.

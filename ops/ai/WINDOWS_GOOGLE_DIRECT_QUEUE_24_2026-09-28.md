@@ -1,0 +1,28 @@
+# Windows Google Direct Queue 24 — 2026-09-28
+
+Router-free local prompts.
+
+- 01: TRUSTED_HASH_CHAIN — `ops/ai/windows_direct_queue24/WIN_01_TRUSTED_HASH_CHAIN_PROMPT.txt`
+- 02: VERIFY_RECONCILE_NEXT_READY — `ops/ai/windows_direct_queue24/WIN_02_VERIFY_RECONCILE_NEXT_READY_PROMPT.txt`
+- 03: B_AUTOSTART_IMPLEMENTATION_REALITY — `ops/ai/windows_direct_queue24/WIN_03_B_AUTOSTART_IMPLEMENTATION_REALITY_PROMPT.txt`
+- 04: RESTART_S1_S4 — `ops/ai/windows_direct_queue24/WIN_04_RESTART_S1_S4_PROMPT.txt`
+- 05: RESTART_S5_S9 — `ops/ai/windows_direct_queue24/WIN_05_RESTART_S5_S9_PROMPT.txt`
+- 06: FAILED_EXECUTION_IMMUTABILITY — `ops/ai/windows_direct_queue24/WIN_06_FAILED_EXECUTION_IMMUTABILITY_PROMPT.txt`
+- 07: EVENT_TIMESTAMP_CHAIN — `ops/ai/windows_direct_queue24/WIN_07_EVENT_TIMESTAMP_CHAIN_PROMPT.txt`
+- 08: RUN1_WITNESS_HARDENING — `ops/ai/windows_direct_queue24/WIN_08_RUN1_WITNESS_HARDENING_PROMPT.txt`
+- 09: RUN2_NO_REPLAY_HARDENING — `ops/ai/windows_direct_queue24/WIN_09_RUN2_NO_REPLAY_HARDENING_PROMPT.txt`
+- 10: STATE_PERSISTENCE_CONCURRENCY — `ops/ai/windows_direct_queue24/WIN_10_STATE_PERSISTENCE_CONCURRENCY_PROMPT.txt`
+- 11: CLAIM_LEASE_REALITY — `ops/ai/windows_direct_queue24/WIN_11_CLAIM_LEASE_REALITY_PROMPT.txt`
+- 12: MOTOR_RELIABILITY — `ops/ai/windows_direct_queue24/WIN_12_MOTOR_RELIABILITY_PROMPT.txt`
+- 13: WINDOWS_MAC_HANDOFF — `ops/ai/windows_direct_queue24/WIN_13_WINDOWS_MAC_HANDOFF_PROMPT.txt`
+- 14: PROOF_CARD_HARDENING — `ops/ai/windows_direct_queue24/WIN_14_PROOF_CARD_HARDENING_PROMPT.txt`
+- 15: CORE_FREEZE_PREPARABLE_NOW — `ops/ai/windows_direct_queue24/WIN_15_CORE_FREEZE_PREPARABLE_NOW_PROMPT.txt`
+- 16: USER_OPERATOR_STATUS — `ops/ai/windows_direct_queue24/WIN_16_USER_OPERATOR_STATUS_PROMPT.txt`
+- 17: PILOT_PREP — `ops/ai/windows_direct_queue24/WIN_17_PILOT_PREP_PROMPT.txt`
+- 18: UPDATE_ROLLBACK_LKG — `ops/ai/windows_direct_queue24/WIN_18_UPDATE_ROLLBACK_LKG_PROMPT.txt`
+- 19: SECURITY_AUTH_BOUNDARIES — `ops/ai/windows_direct_queue24/WIN_19_SECURITY_AUTH_BOUNDARIES_PROMPT.txt`
+- 20: TEST_GAP_SWEEP — `ops/ai/windows_direct_queue24/WIN_20_TEST_GAP_SWEEP_PROMPT.txt`
+- 21: DOC_SOURCE_DRIFT_SWEEP — `ops/ai/windows_direct_queue24/WIN_21_DOC_SOURCE_DRIFT_SWEEP_PROMPT.txt`
+- 22: CANDIDATE_SCOPE_HANDOFF — `ops/ai/windows_direct_queue24/WIN_22_CANDIDATE_SCOPE_HANDOFF_PROMPT.txt`
+- 23: FINISH_CAUSAL_SWEEP — `ops/ai/windows_direct_queue24/WIN_23_FINISH_CAUSAL_SWEEP_PROMPT.txt`
+- 24: LONG_CONTINUATION — `ops/ai/windows_direct_queue24/WIN_24_LONG_CONTINUATION_PROMPT.txt`

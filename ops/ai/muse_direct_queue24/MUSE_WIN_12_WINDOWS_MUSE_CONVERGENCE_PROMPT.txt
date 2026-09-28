@@ -1,0 +1,33 @@
+MUSE Windows DIRECT 12 — WINDOWS_MUSE_CONVERGENCE
+
+Work directly in the CURRENT open 2026-courier repo on Windows.
+MODE=READ_ONLY_ADVERSARIAL_QA
+LEDGER=COMPLETE
+NO SOURCE EDITS
+NO PRE_CODEX REVALIDATION
+NO PHYSICAL RUNS
+NO router/swarm script required
+
+MISSION:
+Deduplicate Windows-side Muse findings into source defects, evidence defects, missing tests, disproven, obsolete, next owner.
+
+WORK:
+- Reuse completed local evidence/checkpoints.
+- Inspect exact relevant source/tests/docs only.
+- Find 3-6 NEW concrete counterexamples, contradictions, false-green paths or missing independent evidence items.
+- Prove/disprove each with exact refs.
+- Persist compact checkpoint under ops/ai/live/.
+- Do not repeat completed fingerprints.
+- If family exhausted, mark FAMILY_COMPLETE and move to another still-open subcase in this mission.
+- Do not invent filler.
+
+OUTPUT:
+DONE_SUBCASES=
+CONFIRMED_DEFECTS=
+DISPROVEN=
+MISSING_EVIDENCE=
+BLOCKED_ON_OTHER_OWNER=
+NEXT=
+DO_NOT_REPEAT=
+
+START NOW.
