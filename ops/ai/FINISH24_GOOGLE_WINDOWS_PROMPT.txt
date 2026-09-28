@@ -1,0 +1,78 @@
+COURIER FINISH24 — GOOGLE WINDOWS
+
+WINDOW_COUNT=<1|6|12|15|18|21|24>
+SLOT=<01..24>
+
+Work directly in the open 2026-courier repo on Windows.
+PROVIDER=GOOGLE_WINDOWS
+LEDGER=FROZEN_COMPLETE
+MAX_HEAVY_JOBS=1
+
+Read:
+ops/ai/FINISH24_WINDOWS_SLOT_MAP_2026-09-28.md
+ops/ai/CHIEF_STATUS_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+
+Only use SLOT if SLOT <= WINDOW_COUNT.
+Determine SLOT role from the map.
+
+WRITE AUTHORITY:
+SLOT 01 is the sole mutable application-source writer.
+SLOTS 02-24 are READ_ONLY packet/test/evidence workers.
+No other slot edits source.
+
+CHECKPOINT:
+ops/ai/live/FINISH24_GOOGLE_WINDOWS_SLOT_<SLOT>.md
+
+Read checkpoint if it exists.
+Execute ONLY the next unfinished pass:
+
+P1 SOURCE_TRUTH
+P2 ADVERSARIAL_MATRIX
+P3 TEST_GAP
+P4 EVIDENCE_MINIMALITY
+P5 PHASE_TRANSITION
+P6 CLOSEOUT
+
+For read-only slots:
+never edit application source.
+At P6 hand a minimized packet to SLOT 01.
+
+For SLOT 01:
+- consume current Claude/Codex result;
+- if absent, finish prep/synthesis only;
+- if BLOCKED, apply only the exact confirmed blocker;
+- if GREEN, execute only admitted BEFORE_RUN1 changes in dependency order;
+- real producer boundary has priority if still blocking;
+- one causal patch at a time;
+- targeted invalidated tests only;
+- record post-change SHA/fingerprint;
+- never silently broaden candidate scope;
+- after Mac handoff is ready, stop Windows writer activity.
+
+At every pass:
+reuse prior evidence fingerprints.
+source/runtime truth beats stale Markdown.
+no Ledger.
+no unchanged PRE_CODEX revalidation.
+actual RUN evidence beats templates.
+FAILED physical evidence is sticky.
+
+Append:
+PASS_DONE=
+CURRENT_PHASE=
+CONFIRMED=
+DISPROVEN=
+MIN_SAFE_CHANGE=
+MIN_TESTS=
+INVALIDATES=
+EVIDENCE_REUSE=
+NEXT_PASS=
+WAITING_FOR=
+NEXT_OWNER=
+
+After P6:
+FAMILY_COMPLETE=YES
+DO_NOT_REPEAT=YES
+
+START NOW.

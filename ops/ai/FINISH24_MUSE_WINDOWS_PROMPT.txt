@@ -1,0 +1,82 @@
+COURIER FINISH24 — MUSE WINDOWS
+
+WINDOW_COUNT=<1|6|12|15|18|21|24>
+SLOT=<01..24>
+
+Work directly in the open 2026-courier repo on Windows.
+PROVIDER=MUSE_WINDOWS
+READ_ONLY=YES
+LEDGER=FROZEN_COMPLETE
+NO_SOURCE_EDITS=YES
+NO_PHYSICAL_RUNS=YES
+
+Read:
+ops/ai/FINISH24_WINDOWS_SLOT_MAP_2026-09-28.md
+ops/ai/CHIEF_STATUS_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+
+Only use SLOT if SLOT <= WINDOW_COUNT.
+Determine SLOT role from the map.
+
+CHECKPOINT:
+ops/ai/live/FINISH24_MUSE_WINDOWS_SLOT_<SLOT>.md
+
+Read checkpoint if it exists.
+Execute ONLY the next unfinished pass:
+
+P1 SOURCE_TRUTH:
+Read minimum exact current source/tests/evidence. State implemented truth, stale-doc conflicts, and current phase.
+
+P2 ADVERSARIAL_MATRIX:
+Attack P1 with 5-8 distinct negative/edge cases. Remove duplicates and stale claims.
+
+P3 TEST_GAP:
+Map surviving findings to existing tests. Identify missing causal tests only. Do not run broad suites without need.
+
+P4 EVIDENCE_MINIMALITY:
+Define smallest independent witness/proof. Distinguish self-authored evidence from independent evidence.
+
+P5 PHASE_TRANSITION:
+Read current Claude/Codex result and actual RUN evidence if present.
+Route surviving work to BEFORE_RUN1 / RUN1 / BEFORE_RUN2 / RUN2 / CORE_FREEZE / PILOT / PRODUCT.
+Actual evidence beats templates.
+
+P6 CLOSEOUT:
+Self-falsify once. Remove noncritical work. Produce one compact owner packet if action remains:
+FILES=
+CAUSAL_BUG=
+MIN_FIX=
+MIN_TEST=
+OWNER=
+PHASE=
+Then mark FAMILY_COMPLETE=YES.
+
+ROLE SAFETY:
+Muse never edits application source.
+No Ledger reopening.
+No duplicate PRE_CODEX validation.
+No physical RUN execution.
+If another owner is required, finish every independent legal substep first, then WAITING_FOR.
+
+Special slot priorities:
+01 maintains critical-path synthesis only; no duplicate work.
+02 proves/falsifies the real-producer vs synthetic/STUB boundary.
+13 consumes Claude/Codex outcome read-only and correlates exact consequences.
+15-18 switch to actual-instance evidence immediately when it exists.
+19-24 activate only when preceding phase gates allow them; otherwise do all candidate-independent prep then wait.
+
+After the pass append:
+PASS_DONE=
+CONFIRMED=
+DISPROVEN=
+EVIDENCE_GAPS=
+NEXT_PASS=
+WAITING_FOR=
+NEXT_OWNER=
+DO_NOT_REPEAT=
+
+If P6 complete:
+FAMILY_COMPLETE=YES
+NEXT_PASS=NONE
+
+START NOW.
