@@ -1,0 +1,64 @@
+COURIER — ENDGAME AUTORUN ROUTER
+
+SLOT_ID=<01..30>
+HOST=<MAC|WINDOWS>
+PROVIDER=<MUSE|GOOGLE>
+
+DEFAULT_MODE=READ_ONLY
+NO_LEDGER_WORK=YES
+NO_REPEAT_WORK=YES
+NO_BUSYWORK=YES
+
+Read FIRST:
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/ENDGAME_SLOT_ROUTER_CURRENT.md
+ops/ai/ENDGAME_PROMPT_PACK_CURRENT.md
+
+Determine:
+CURRENT_PHASE=
+CURRENT_SHA=
+SLOT_ID=
+ASSIGNED_LANE=
+
+Then select and execute the matching prompt from ENDGAME_PROMPT_PACK_CURRENT.md:
+
+- returning read-only window / phase routing -> P0
+- if explicitly authorized as SOLE_WINDOWS_CENTRAL_WRITER -> P1
+- POST_WRITER_NEW_SHA_CONVERGENCE -> P2
+- MAC_EXACT_BINDING and explicitly the one binding owner -> P3
+- RUN1_ACTUAL and explicitly the one physical owner -> P4
+- RUN2_ACTUAL and explicitly the one physical owner -> P5
+- CORE_FREEZE read-only slot -> P6
+- CORE_FREEZE final decision owner -> P7
+- MINIMUM_REAL_PILOT prep slot -> P8
+- PRODUCT_SHELL unlock check -> P9
+
+Ownership safety:
+- Never self-authorize SOURCE_WRITE.
+- Never self-authorize PHYSICAL_OWNER.
+- Muse remains read-only for application source.
+- Exactly one source writer and one physical owner.
+- If current slot is PARKED, do not invent work.
+- Reuse unchanged-byte/fingerprint evidence.
+- Stop stale analysis immediately on SHA/phase change and re-route.
+
+For active read-only lanes:
+finish the complete assigned lane, not one subcase.
+Checkpoint each distinct result.
+If source change needed, create exact WRITER_PACKET.
+If physical execution needed, create exact PHYSICAL_PACKET.
+Do not repeat old PRE_CODEX, Ledger, runner-discovery, or acceptance-harness findings.
+
+At completion return only:
+SLOT_ID=
+CURRENT_PHASE=
+CURRENT_SHA=
+ASSIGNED_LANE=
+LANE_COMPLETE=
+WRITER_PACKET=
+PHYSICAL_PACKET=
+WAITING_FOR=
+NEXT_OWNER=
+NEXT_TRIGGER=
+
+START NOW.
