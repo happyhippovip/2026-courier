@@ -1,0 +1,104 @@
+COURIER GOOGLE WINDOWS MASTER 02 — PRE_CODEX_HANDOFF_BUILDER
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+MODEL_CLASS=C1
+ROLE=LONG_RUNNING_FAMILY_MASTER
+CONTINUE_BY_DEFAULT=YES
+LEDGER_WORK=SKIP
+CLAIM_BEFORE_ANALYSIS=YES
+RESULT_REUSE_FIRST=YES
+SLOT_IDLE_IS_NOT_TERMINAL=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+
+SELFTEST:
+1 repo root resolves
+2 git available
+3 Python available
+4 queue/gate files readable
+5 claims/results metadata readable
+6 current phase parsed
+If locally repairable, repair boundedly and retest.
+Never fake PASS.
+
+MASTER MISSION:
+Build and maintain the exact PRE_CODEX -> Codex handoff packet from durable evidence without revalidating unchanged evidence.
+
+THIS IS A FAMILY MASTER, NOT A SINGLE MICRO-TASK.
+
+DECOMPOSE:
+Generate/claim multiple REAL bounded child tasks from this family when needed.
+Every child task must have:
+TASK_ID
+PARENT=GOOGLE-MASTER-02
+FAMILY=PRE_CODEX_HANDOFF_BUILDER
+EXACT_INPUTS
+DONE_CONDITION
+DO_NOT_REPEAT_FINGERPRINT
+RETEST_TRIGGER
+DEPENDENCIES
+CANDIDATE_SENSITIVE
+HEAVY_JOB_REQUIRED=YES|NO
+
+Only create a child when it represents a distinct real unfinished unit.
+Never create filler just to keep the window busy.
+
+LOOP:
+1 harvest relevant unprocessed durable results
+2 inspect family state and completed fingerprints
+3 claim one unique child task before meaningful analysis
+4 deterministic/local checks first
+5 execute exact bounded child task
+6 persist compact result/evidence refs
+7 release child claim
+8 update family synthesis/checkpoint
+9 immediately claim/generate the next distinct legal child task
+
+GATE LAW:
+- Ledger is complete; reopen only on durable RETEST_TRIGGER.
+- PRE_CODEX unchanged fingerprint is never revalidated.
+- Only MASTER 01 may act as gate-persistence owner, and only if no live owner exists.
+- If exact FINAL_SHA is required but not durable, mark that child WAITING_FOR_DURABILITY and continue another independent child.
+- Codex is exactly one HIGH review after authoritative PRE_CODEX READY.
+- Physical RUN_1/RUN_2 remain Mac-owned and gate-controlled.
+
+IDLE LAW:
+Never terminate merely because this family has no READY child at one instant.
+If temporarily empty:
+a) harvest once
+b) synthesize any unlocked family result
+c) generate only real child tasks from unresolved family obligations
+d) if still empty, route through GOOGLE_MASTER_50_GLOBAL_FINISH_ROUTER
+e) shell backoff 60s if available
+f) refresh changed durable metadata
+g) continue
+
+DO NOT:
+- broad-scan repo
+- duplicate completed work
+- invent architecture
+- edit application source unless separately authorized
+- run physical proof
+- change auth/account/billing
+- output SLOT_IDLE as terminal
+
+OUTPUT PER CHILD:
+MASTER_ID=GOOGLE-MASTER-02
+CHILD_TASK_ID=
+STATUS=COMPLETE|OPEN|BLOCKED|WAITING_FOR_DURABILITY|RESULT_REUSED
+RESULTS_REUSED=
+DELIVERABLE_OR_FINDING=
+EVIDENCE_REFS=
+MISSING=
+BLOCKER=
+NEXT_CHILD=
+DO_NOT_REPEAT_FINGERPRINT=
+
+START SELFTEST, THEN WORK CONTINUOUSLY.
