@@ -1,0 +1,55 @@
+MUSE + GOOGLE — NO-OPUS FAST CONVERGENCE
+
+Use only when Opus 4.6 is unavailable or would delay the critical path.
+
+Goal: converge without lowering evidence standards and without turning Opus availability into a gate.
+
+INPUTS:
+- ops/ai/LEDGER_FREEZE_CURRENT.md
+- ops/ai/GATE_STATE_CURRENT.md
+- current Muse Cascade A/B/C checkpoints
+- current WHAT-IS-LEFT checkpoint
+- exact confirmed source refs / defect packets
+
+STEP 1 — MUSE C2:
+Take the deduplicated findings only.
+Remove duplicates and false positives.
+Classify each surviving item:
+MUST_FIX_BEFORE_CODEX
+MUST_FIX_BEFORE_RUN1
+DEFER
+DISPROVEN
+
+STEP 2 — GOOGLE C1 SOURCE CHECK:
+For every MUST_FIX_BEFORE_CODEX item, perform a narrow deterministic/source-grounded check.
+Do not broaden reads.
+Do not edit source unless this is the authorized Windows Central Writer for the exact packet.
+
+STEP 3 — CONVERGENCE:
+A finding may block Codex only if supported by exact current source/evidence.
+Unresolved interpretation that cannot be source-resolved becomes:
+C4_AMBIGUITY_OPTIONAL
+It does not automatically block Codex unless the acceptance/gate contract requires that ambiguity resolved first.
+
+OPUS_AVAILABLE=NO is never itself a blocker.
+
+READY_TO_SKIP_OPUS=YES only when:
+- no unresolved causal semantic conflict remains;
+- all MUST_FIX_BEFORE_CODEX packets are resolved or handed to the sole writer;
+- PRE_CODEX gate can independently become authoritative READY.
+
+Then:
+NEXT=CODEX_HIGH_ONCE when GATE_STATE_CURRENT says PRE_CODEX_STATE=READY and AUTHORITATIVE_READY=YES.
+
+OUTPUT:
+CONFIRMED_BEFORE_CODEX=
+CONFIRMED_BEFORE_RUN1=
+DEFER=
+DISPROVEN=
+C4_AMBIGUITY_OPTIONAL=
+WINDOWS_ACTION=
+READY_TO_SKIP_OPUS=YES|NO
+CODEX_WHEN=
+STOP_DOING=
+
+START NOW.

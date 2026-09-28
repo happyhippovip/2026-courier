@@ -214,3 +214,18 @@ subject to:
 - gate ownership
 
 Expensive models are admitted only when cheaper/deterministic work cannot truthfully close the task or when independent high-quality judgment is itself the task.
+
+
+## Availability rule for C4 / Opus
+
+OPUS/C4 availability is never itself a project gate.
+
+Use C4 only when a real unresolved semantic/convergence decision remains after source-grounded C1/C2 work.
+If Opus is unavailable:
+1. Muse C2 deduplicates/false-positive-checks;
+2. Google C1 performs narrow source-grounded confirmation;
+3. unresolved optional interpretation is recorded without blocking unrelated critical-path work;
+4. Codex C3 still runs exactly once when the authoritative PRE_CODEX gate is READY.
+
+Fallback prompt:
+`ops/ai/NO_OPUS_FAST_CONVERGENCE_PROMPT.txt`

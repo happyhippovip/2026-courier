@@ -270,3 +270,26 @@ When WALL_QUEUE_CURRENT.md declares ACTIVE_GOOGLE_EXECUTION_MODE=DIRECT_IDE_LOCA
 - remote Git blocks only tasks whose done condition is remote durability;
 - after a completed GQ task the worker immediately selects the next TODO task;
 - repeated copies of the same direct worker prompt are safe because progress is stored in GOOGLE_IDE_DIRECT_50_PROGRESS.md.
+
+
+## Post-Ledger freeze override — 2026-09-28
+
+Canonical freeze marker: `ops/ai/LEDGER_FREEZE_CURRENT.md`
+Canonical finish order: `ops/ai/CANONICAL_ENDGAME_SEQUENCE_2026-09-28.md`
+
+When LEDGER_FREEZE_CURRENT says FROZEN:
+- historical Ledger is durable evidence/history, not an active work queue;
+- the base GOAL->...->LEDGER flow is considered completed for this project phase;
+- post-Ledger results update current checkpoints/queue/gate/proof surfaces without reopening Ledger;
+- Ledger work may reopen only through a named durable RETEST_TRIGGER;
+- a new window/provider/account/host or available quota is never a retest trigger.
+
+Muse uses:
+`ops/ai/MUSE_FROZEN_LEDGER_READONLY_BASELINE_2026-09-28.md`
+and must not treat stale historical prose as current source truth.
+
+Opus/C4 is an optional convergence accelerator, not a gate.
+If Opus is unavailable, use:
+`ops/ai/NO_OPUS_FAST_CONVERGENCE_PROMPT.txt`
+
+Codex C3 fixed-candidate HIGH remains mandatory exactly once after authoritative PRE_CODEX READY.

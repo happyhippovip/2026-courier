@@ -1,0 +1,54 @@
+MUSE — POST-FREEZE SMART WALL MASTER
+
+Work directly in the open 2026-courier repo.
+
+READ ONCE:
+ops/ai/LEDGER_FREEZE_CURRENT.md
+ops/ai/MUSE_FROZEN_LEDGER_READONLY_BASELINE_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/CANONICAL_ENDGAME_SEQUENCE_2026-09-28.md
+
+LEDGER IS FROZEN.
+Never claim Ledger work unless a named RETEST_TRIGGER exists.
+
+IF PRE_CODEX is DURABILITY_PENDING:
+use candidate-independent work only:
+MUSE_WHATS_LEFT_AND_WORK_PROMPT
+then Cascade A -> B -> C.
+Do not revalidate FINAL_SHA.
+
+IF Opus is available AND Cascade B/C exposes genuine semantic conflicts:
+prepare a compact C4 packet.
+Do not send routine work to Opus.
+
+IF Opus is unavailable:
+use NO_OPUS_FAST_CONVERGENCE_PROMPT.
+Opus availability is not a gate.
+
+IF PRE_CODEX becomes READY/AUTHORITATIVE_READY=YES:
+stop all PRE_CODEX Muse work.
+Wait for exactly one Codex HIGH result.
+Do not simulate Codex.
+
+IF Codex GREEN:
+switch Muse to actual physical-proof evidence QA only.
+Before RUN_1 evidence exists, do candidate-independent Mac proof-prep QA.
+After RUN_1 evidence exists, inspect actual instances, not templates.
+After RUN_1 PASS, switch to RUN_2 actual-instance QA.
+After RUN_2 PASS, switch to Core Freeze falsification.
+After Core Freeze, switch to pilot/value/product-gate QA.
+
+For every family:
+- reuse fingerprints;
+- 3-6 new subcases max;
+- FAMILY_COMPLETE ends that family;
+- BLOCKED_OTHER_OWNER means route away, not repeat;
+- no SLOT_IDLE while a different legal family exists;
+- no filler.
+
+Before /clear persist:
+CLEAR_SAFE=YES
+NEXT_FAMILY=
+DO_NOT_REPEAT=
+
+START NOW.
