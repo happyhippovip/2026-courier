@@ -115,3 +115,89 @@ def test_result_id_is_idempotent_for_same_observation(tmp_path: Path):
     second = verify_result(packet, json.loads(json.dumps(raw)), tmp_path)
 
     assert first["result_id"] == second["result_id"]
+
+
+def test_result_schema_boundary_enforces_artifact_keys():
+    from scripts.integration_contract import validate_durable_result, ContractError
+    import pytest
+    
+    # Valid artifact sets conforming to the exact contract
+    valid_result = {
+        "goal_id": "goal-1",
+        "task_id": "task-1",
+        "worker_id": "worker-1",
+        "attempt_id": "attempt-1",
+        "dispatch_id": "dispatch-1",
+        "run_id": "run-1",
+        "status": "SUCCESS",
+        "result_id": "result-1",
+        "artifacts": [
+            {"path": "a.txt", "sha256": "a"*64},
+            {"path": "b.txt", "sha256": "b"*64, "artifact_id": "art-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "size": 10},
+            {"path": "c.txt", "sha256": "c"*64, "expected_sha256": "d"*64} # explicitly permitted by schema
+        ]
+    }
+    
+    # Should pass without raising
+    task = {
+        "goal_id": "goal-1",
+        "task_id": "task-1",
+        "worker_id": "worker-1",
+        "attempt_id": "attempt-1",
+        "dispatch_id": "dispatch-1",
+    }
+    validate_durable_result(task, valid_result)
+    
+    # Invalid artifact set: extra unauthorized key
+    invalid_result = dict(valid_result)
+    invalid_result["artifacts"] = [{"path": "a.txt", "sha256": "a"*64, "malicious_override": "true"}]
+    
+    with pytest.raises(ContractError, match="invalid artifact evidence"):
+        validate_durable_result(task, invalid_result)
+
+def test_result_id_changes_when_status_changes(tmp_path):
+    from scripts.integration_contract import verify_result
+    packet = task_packet()
+    (tmp_path / packet['artifacts'][0]).write_text('SUCCESS\n', encoding='utf-8')
+    
+    raw_success = {
+        'goal_id': packet['goal_id'],
+        'task_id': packet['task_id'],
+        'worker_id': packet['worker_id'],
+        'attempt_id': packet['attempt_id'],
+        'dispatch_id': packet['dispatch_id'],
+        'run_id': 'run-1',
+        'status': 'SUCCESS',
+    }
+    raw_failed = dict(raw_success, status='FAILED')
+    
+    res_success = verify_result(packet, raw_success, tmp_path)
+    res_failed = verify_result(packet, raw_failed, tmp_path)
+    
+    assert res_success['result_id'] != res_failed['result_id']
+
+
+def test_result_id_changes_when_artifact_changes(tmp_path):
+    from scripts.integration_contract import verify_result
+    packet = task_packet()
+    (tmp_path / packet['artifacts'][0]).write_text('SUCCESS\n', encoding='utf-8')
+    
+    raw1 = {
+        'goal_id': packet['goal_id'],
+        'task_id': packet['task_id'],
+        'worker_id': packet['worker_id'],
+        'attempt_id': packet['attempt_id'],
+        'dispatch_id': packet['dispatch_id'],
+        'run_id': 'run-1',
+        'status': 'SUCCESS',
+    }
+    
+    res1 = verify_result(packet, raw1, tmp_path)
+    
+    # change artifact contents
+    (tmp_path / packet['artifacts'][0]).write_text('DIFFERENT\n', encoding='utf-8')
+    
+    res2 = verify_result(packet, raw1, tmp_path)
+    
+    assert res1['result_id'] != res2['result_id']
+

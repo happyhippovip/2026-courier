@@ -188,6 +188,135 @@ def test_verifier_fails_when_fetch_fails(monkeypatch):
     assert v.verify_artifacts({"target_capability": "windows"}, {"artifacts": [art]}, fetch=boom) == "FAIL"
 
 
+def test_verifier_fails_on_malformed_target(monkeypatch):
+    v = load_verifier(monkeypatch)
+    art = {"path": "a", "sha256": "a" * 64, "artifact_id": "art-" + "a" * 64, "size": 1}
+    assert v.verify_artifacts({"target_capability": "unknown_target"}, {"artifacts": [art]}, fetch=lambda x: (None, None)) == "FAIL"
+
+
+def test_verifier_fails_if_expected_artifact_is_omitted(tmp_path, monkeypatch):
+    expected_hash = hashlib.sha256(b"ok\n").hexdigest()
+    # Task expects "win.txt" with expected_sha256, and "other.txt"
+    srv, http = setup(tmp_path, monkeypatch, artifacts=([
+        {"path": "win.txt", "expected_sha256": expected_hash},
+        {"path": "other.txt"}
+    ]))
+    task = claim(http)
+    
+    # Worker only uploads "other.txt" and omits "win.txt"
+    rec = upload(http, task, "other.txt", b"other bytes").get_json()
+    ref = {"path": "other.txt", "sha256": rec["sha256"], "artifact_id": rec["artifact_id"], "size": rec["size"]}
+    http.post("/tasks/result", headers=WORKER, json=result_for(task, [ref]))
+    
+    [pending] = http.get("/tasks/pending_verification", headers=VERIFIER).get_json()["tasks"]
+    v = load_verifier(monkeypatch)
+    
+    assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http)) == "FAIL"
+
+
+def test_verifier_ignores_worker_controlled_expected_sha256(tmp_path, monkeypatch):
+    expected_hash = hashlib.sha256(b"ok\n").hexdigest()
+    srv, http = setup(tmp_path, monkeypatch, artifacts=([{"path": "win.txt", "expected_sha256": expected_hash}]))
+    task = claim(http)
+    
+    # Worker uploads tampered content
+    tampered_hash = hashlib.sha256(b"tampered").hexdigest()
+    rec = upload(http, task, "win.txt", b"tampered").get_json()
+    
+    # Worker maliciously tries to override expected_sha256 in the result
+    ref = {"path": "win.txt", "sha256": rec["sha256"], "artifact_id": rec["artifact_id"], "size": rec["size"], "expected_sha256": tampered_hash}
+    http.post("/tasks/result", headers=WORKER, json=result_for(task, [ref]))
+    
+    [pending] = http.get("/tasks/pending_verification", headers=VERIFIER).get_json()["tasks"]
+    v = load_verifier(monkeypatch)
+    
+    # Verifier must FAIL because it ignores the worker's expected_hash and uses the task's expected_hash
+    assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http)) == "FAIL"
+
+
+def test_verifier_omission_of_worker_expected_hash_cannot_bypass_task_expectation(tmp_path, monkeypatch):
+    expected_hash = hashlib.sha256(b"ok\n").hexdigest()
+    srv, http = setup(tmp_path, monkeypatch, artifacts=([{"path": "win.txt", "expected_sha256": expected_hash}]))
+    task = claim(http)
+    
+    # Worker uploads tampered content
+    rec = upload(http, task, "win.txt", b"tampered").get_json()
+    
+    # Worker omits expected_sha256 in its result
+    ref = {"path": "win.txt", "sha256": rec["sha256"], "artifact_id": rec["artifact_id"], "size": rec["size"]}
+    http.post("/tasks/result", headers=WORKER, json=result_for(task, [ref]))
+    
+    [pending] = http.get("/tasks/pending_verification", headers=VERIFIER).get_json()["tasks"]
+    v = load_verifier(monkeypatch)
+    
+    # Verifier must FAIL because the task expected_hash is not met, even though the worker omitted expected_sha256
+    assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http)) == "FAIL"
+
+
+def test_verifier_github_target_passthrough(monkeypatch):
+    v = load_verifier(monkeypatch)
+    art = {"path": "a.txt"}
+    task = {"target_capability": "github", "artifacts": [art]}
+    result = {"artifacts": [{"path": "a.txt", "sha256": "x"*64}]}
+    
+    # Because 'art' has no 'expected_sha256', the exact-hash fetch is bypassed,
+    # and the only validation is the omission check (which passes) and the target check.
+    assert v.verify_artifacts(task, result, fetch=lambda x: (None, None)) == "PASS"
+
+
+def test_verifier_poison_pill_does_not_deadlock(monkeypatch):
+    v = load_verifier(monkeypatch)
+    tasks = [{"task_id": "malformed", "result": None}, {"task_id": "good", "result": {"artifacts": []}, "target_capability": "github"}]
+    
+    class StopLoop(Exception): pass
+    calls = []
+    
+    class MockResponse:
+        def __init__(self, data, status_code=200):
+            self.data = data
+            self.status_code = status_code
+        def json(self): return self.data
+    
+    def mock_get(url, **kwargs):
+        if url.endswith("/tasks/pending_verification"):
+            if not calls:
+                calls.append("get")
+                return MockResponse({"tasks": tasks})
+            raise StopLoop()
+        return MockResponse({})
+        
+    def mock_post(url, json, **kwargs):
+        calls.append(json["task_id"])
+        return MockResponse({}, 200)
+        
+    monkeypatch.setattr(v.requests, "get", mock_get)
+    monkeypatch.setattr(v.requests, "post", mock_post)
+    monkeypatch.setattr(v.time, "sleep", lambda x: None)
+    
+    try:
+        v.run_loop()
+    except StopLoop:
+        pass
+        
+    assert "good" in calls
+
+
+def test_windows_worker_bypasses_proxy_for_localhost():
+    import os, urllib.request
+    # The Courier worker sets NO_PROXY=127.0.0.1,localhost to ensure proxy bypass.
+    # On Windows, proxy_bypass() queries the registry and may not honour NO_PROXY;
+    # proxy_bypass_environment() is the stdlib function that respects the env var.
+    old_no_proxy = os.environ.get("NO_PROXY", "")
+    os.environ["NO_PROXY"] = "127.0.0.1,localhost"
+    try:
+        assert urllib.request.proxy_bypass_environment("127.0.0.1")
+    finally:
+        if old_no_proxy:
+            os.environ["NO_PROXY"] = old_no_proxy
+        else:
+            os.environ.pop("NO_PROXY", None)
+
+
 # ---------------------------------------------------------------- Windows worker end to end
 
 class Resp(io.BytesIO):

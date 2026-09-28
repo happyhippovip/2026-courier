@@ -90,6 +90,10 @@ def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
         elif remote:
             log(f"Artifact {art.get('path')} from a {target} worker was not uploaded; not opening remote paths.")
             return "FAIL"
+        elif target == "github":
+            # GitHub CI artifacts without artifact_id are externally produced;
+            # only the omission check (below) and any expected_sha256 apply.
+            continue
         elif not is_safe_artifact_name(art.get("path")) or not local_verify(art.get("path"), art.get("sha256")):
             return "FAIL"
             
@@ -156,7 +160,7 @@ def run_loop():
                             log(f"Failed to submit verification for {task_id}: HTTP {vr.status_code} {vr.text}")
                     except Exception as e:
                         log(f"Error verifying task {task.get('task_id')}: {e}")
-        except Exception as e:
+        except requests.RequestException as e:
             log(f"Error polling for tasks: {e}")
             
         time.sleep(5)
