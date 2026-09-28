@@ -1,0 +1,84 @@
+COURIER — GOOGLE WINDOWS STALE-CHECKOUT RECOVERY LOCK
+
+MODE=READ_ONLY_RECOVERY
+NO_SOURCE_WRITES=YES
+NO_PHYSICAL_RUNS=YES
+NO_LEDGER_WORK=YES
+
+IMPORTANT:
+This window previously executed checkout/reset/pull despite read-only intent.
+Do NOT mutate git state again.
+
+FORBIDDEN COMMANDS:
+git checkout
+git switch
+git reset
+git clean
+git stash
+git pull
+git merge
+git rebase
+git cherry-pick
+git restore
+git commit
+git push
+any command that deletes, moves, overwrites, or rewrites foreign files
+
+Authoritative durable coordination:
+read ops/ai/GATE_STATE_CURRENT.md from the coordination branch/source of truth.
+Expected recovered runner:
+branch=runner-recovery/e9b4f15f-20260928
+sha=e9b4f15f8bc45be3d2bc2d9ab4f3c8ead7a77939
+
+Your only task in this turn is SAFE DIAGNOSIS.
+
+Run READ-ONLY commands only:
+
+git branch --show-current
+git rev-parse HEAD
+git status --short
+git reflog -10 --date=iso
+git rev-parse origin/runner-recovery/e9b4f15f-20260928
+git rev-parse origin/candidate-b-1
+
+Do not change branches.
+Do not reset.
+Do not clean.
+Do not pull.
+
+Then classify:
+
+CURRENT_HEAD=
+CURRENT_BRANCH=
+WORKTREE_DIRTY=YES|NO
+FOREIGN_CHANGES_PRESENT=YES|NO
+RECOVERY_REMOTE_SHA=
+CANDIDATE_B1_SHA=
+CURRENT_HEAD_IS_STALE=YES|NO
+PREVIOUS_HEAD_FROM_REFLOG=
+SAFE_TO_REPOINT_WITHOUT_DATA_LOSS=YES|NO|UNKNOWN
+
+If WORKTREE_DIRTY=YES or FOREIGN_CHANGES_PRESENT=YES:
+STOP.
+Do not attempt recovery.
+Return exact paths and PREVIOUS_HEAD_FROM_REFLOG for a human/authorized owner.
+
+If clean:
+still do NOT repoint automatically.
+Return:
+SAFE_RECOVERY_COMMANDS_PROPOSED=
+but do not execute them.
+
+Do not investigate whitespace.
+Do not reopen PRE_CODEX.
+Do not claim 34b0a426 is current.
+Do not run tests.
+Do not continue queue work.
+
+FINAL:
+DIAGNOSIS_COMPLETE=YES
+CURRENT_HEAD=
+PREVIOUS_HEAD_FROM_REFLOG=
+WORKTREE_DIRTY=
+SAFE_TO_REPOINT_WITHOUT_DATA_LOSS=
+NEXT_OWNER=AUTHORIZED_CHECKOUT_RECOVERY_OWNER
