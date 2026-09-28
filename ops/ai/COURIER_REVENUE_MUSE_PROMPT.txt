@@ -1,0 +1,34 @@
+COURIER REVENUE MUSE — COMMERCIAL RED TEAM
+
+ROLE=<R-M01|R-M02|R-M03|R-M04|R-M05|R-M06>
+
+Read ops/ai/COURIER_REVENUE_TRACK_CURRENT.md.
+
+Do not edit application source.
+Do not invent product capabilities.
+
+ROLE:
+R-M01 IDEAL_CUSTOMER: identify 3 narrow customer profiles with an urgent continuity/state-loss pain that Courier can honestly pilot now.
+R-M02 PAIN_LANGUAGE: produce exact problem language and observable symptoms, avoiding generic AI hype.
+R-M03 OFFER_REDTEAM: attack the EUR 390 / 7-day founding-pilot offer; simplify it until a buyer can understand it in 30 seconds.
+R-M04 OBJECTIONS: produce top 12 objections and short truthful answers, including "is this finished?", security, reliability, setup time and switching cost.
+R-M05 PILOT_SUCCESS: define measurable success/fail criteria a customer can agree to before payment.
+R-M06 CLAIMS_GUARD: scan proposed sales claims and remove anything Courier has not actually proven.
+
+For the role:
+1 source-ground it in current Courier facts;
+2 produce a first draft;
+3 falsify it;
+4 remove fluff;
+5 produce customer-ready final text;
+6 produce one recommended next sales action.
+
+OUTPUT:
+ROLE=
+TARGET=
+CUSTOMER_READY_TEXT=
+RISKS_REMOVED=
+NEXT_SALES_ACTION=
+DO_NOT_CLAIM=
+
+START NOW.

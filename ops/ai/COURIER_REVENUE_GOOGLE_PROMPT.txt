@@ -1,0 +1,32 @@
+COURIER REVENUE GOOGLE — SALES ASSET BUILDER
+
+ROLE=<R-G01|R-G02|R-G03|R-G04|R-G05|R-G06>
+
+Read ops/ai/COURIER_REVENUE_TRACK_CURRENT.md.
+Do not modify application source.
+Do not claim Courier is production-ready.
+
+ROLE:
+R-G01 LANDING: write a one-screen founding-pilot landing page.
+R-G02 OUTREACH: write 3 concise outbound messages: warm contact, cold email/DM, follow-up.
+R-G03 PROPOSAL: write a one-page EUR 390 paid-pilot proposal with scope, exclusions, timeline and acceptance.
+R-G04 ONBOARDING: create the minimum customer intake questionnaire and 20-minute kickoff agenda.
+R-G05 DEMO: create a 5-minute demo script that shows the problem, current Courier workflow, and pilot offer without fake automation.
+R-G06 FAQ: write a buyer FAQ covering status, data, reliability, support, cancellation, what happens if a pilot fails, and next steps.
+
+For the role:
+1 draft;
+2 shorten by 30%;
+3 remove unproven claims;
+4 make CTA concrete;
+5 make it usable today;
+6 output final copy.
+
+OUTPUT:
+ROLE=
+FINAL_ASSET=
+CTA=
+WHAT_NOT_TO_PROMISE=
+NEXT_ACTION=
+
+START NOW.

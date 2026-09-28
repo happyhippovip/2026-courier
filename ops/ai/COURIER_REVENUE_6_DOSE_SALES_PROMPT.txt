@@ -1,0 +1,36 @@
+COURIER REVENUE — 6-DOSE SALES EXECUTION
+
+This is NOT a product-QA task.
+
+Goal of this invocation:
+prepare enough material to contact real potential customers today.
+
+1. Read ops/ai/COURIER_REVENUE_TRACK_CURRENT.md.
+2. Choose one narrow buyer:
+   - AI-heavy solo developer/freelancer;
+   - small software/automation agency;
+   - 2-10 person team repeatedly losing AI-work context.
+3. Write one 2-sentence pain statement.
+4. Write one EUR 390 founding-pilot offer.
+5. Write one short outbound message.
+6. Write one follow-up message.
+7. Write one 20-minute discovery call script.
+8. Write one pilot-success checklist.
+9. Remove every unproven technical claim.
+10. End with the exact action the human operator must take to create revenue.
+
+Do not create more than one customer segment per invocation.
+Do not produce strategy essays.
+The desired outcome is a sent message / booked call / paid pilot.
+
+OUTPUT:
+BUYER=
+PAIN=
+OFFER=
+OUTBOUND=
+FOLLOWUP=
+CALL_SCRIPT=
+SUCCESS_CRITERIA=
+OPERATOR_ACTION=
+
+START NOW.
