@@ -1,0 +1,11 @@
+--- scripts/mac_worker/daemon.py
++++ scripts/mac_worker/daemon.py
+@@ -107,2 +107,8 @@
+     except Exception as e:
++        if 'process' in locals():
++            try:
++                process.kill()
++                process.communicate()
++            except Exception:
++                pass
+         return {"status": "FAILED", "stderr": str(e), "execution_mode": "ANTIGRAVITY"}

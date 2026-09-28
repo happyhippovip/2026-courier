@@ -146,3 +146,24 @@ def test_crash_after_rejection_still_releases_on_restart(tmp_path, monkeypatch):
     assert srv.load_state()["tasks"]["w1"]["status"] == "HUMAN_REQUIRED"
     assert srv.load_state()["workers"]["WINDOWS-01"]["current_task"] is None
     assert not state_file(daemon).exists()
+
+def test_run_task_kills_process_on_timeout(monkeypatch):
+    import subprocess
+    import scripts.windows_worker.daemon as daemon
+    class MockProcess:
+        def __init__(self):
+            self.pid = 1234
+            self.returncode = None
+            self.killed = False
+        def communicate(self, timeout=None):
+            raise subprocess.TimeoutExpired(cmd="powershell", timeout=timeout)
+        def kill(self):
+            self.killed = True
+    
+    mock_p = MockProcess()
+    monkeypatch.setattr(subprocess, "Popen", lambda *a, **k: mock_p)
+    
+    res = daemon.run_task({"task_id": "t1", "instruction": "sleep"}, {"WORKER_ID": "W1"})
+    assert res["status"] == "FAILED"
+    assert "timed out" in res["stderr"]
+    assert mock_p.killed is True

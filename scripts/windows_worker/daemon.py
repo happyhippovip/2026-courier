@@ -219,6 +219,12 @@ def run_task(task, config):
         stderr = stderr_out
         status = "SUCCESS" if process.returncode == 0 else "FAILED"
     except Exception as e:
+        if 'process' in locals():
+            try:
+                process.kill()
+                process.communicate() # flush pipes
+            except Exception:
+                pass
         status = "FAILED"
         stderr = str(e)
             
@@ -367,8 +373,16 @@ def loop():
             time.sleep(10)
             
     finally:
-        if os.path.exists(lock_path):
-            os.remove(lock_path)
+        if _lock_fd is not None:
+            try:
+                os.close(_lock_fd)
+            except Exception:
+                pass
+        if lock_path and os.path.exists(lock_path):
+            try:
+                os.remove(lock_path)
+            except Exception:
+                pass
 
 if __name__ == "__main__":
     try:
