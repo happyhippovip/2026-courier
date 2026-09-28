@@ -27,6 +27,25 @@ Courier brings the user back the next day exactly where they left off.
 
 ## Canonical current technical truth
 
+LEDGER_STATUS=FROZEN
+LEDGER_ROUTING=DISABLED_UNLESS_RETEST_TRIGGER
+
+Current gate state is authoritative from:
+ops/ai/GATE_STATE_CURRENT.md
+
+Current reported final candidate:
+34b0a4264bf763bc2a78f761ffba36e47706b2cf
+
+Current gate snapshot:
+PRE_CODEX_STATE=VALIDATING
+REPORTED_PRE_CODEX_READY=YES
+REMOTE_GITHUB_RESOLUTION=FOUND_ON_candidate-b-1
+AUTHORITATIVE_READY=NO
+NEXT=CLAUDE_CODEX_FIXED_CANDIDATE_CONSUME
+
+Do not reopen Ledger work unless a concrete durable RETEST_TRIGGER exists.
+Do not redo remote-durability work already proven.
+
 Accepted repair base:
 candidate-b-1
 4c1e24ccc522042af826bc4c2b595daf85d097f9
@@ -73,18 +92,24 @@ SKIPPED required tests invalidate the final handoff.
 
 ## Critical path
 
-1. finish/deduplicate wall + Extended Ledger preparation
-2. final five-file candidate on accepted base
-3. real targeted tests + exact 12-case matrix
-4. Codex HIGH once on exact final SHA
-5. Mac physical RUN_1
-6. Mac physical RUN_2 restart/no-replay
-7. Core Freeze
-8. minimum honest pilot surface
-9. first real pilot cohort
-10. Product Shell only after positive pilot signal
-11. Packaging/Updates after Core + pilot evidence
-12. broader wall/connectors/Brain/community/world expansion only after proof
+Current post-Ledger order:
+
+0. Ledger FROZEN; no routing back without RETEST_TRIGGER.
+1. PRE_CODEX durability/fixed-candidate validation — single owner.
+2. Candidate-independent Muse/Google prep may continue in parallel, non-blocking.
+3. Optional convergence only if useful; it must not block a clean gate.
+4. Codex HIGH exactly once on the exact fixed candidate when AUTHORITATIVE_READY=YES.
+5. Exact Mac source/build/runtime/config/evidence binding.
+6. RUN_1 physical once.
+7. RUN_2 restart/no-replay once.
+8. Core Freeze.
+9. Minimum real pilot.
+10. Product Shell only after positive pilot signal.
+11. Packaging/Updates after Core + pilot evidence.
+12. Broader wall/connectors/Brain/community/world/shared-capability expansion only after proof.
+
+Canonical endgame sequence:
+ops/ai/CANONICAL_ENDGAME_SEQUENCE_2026-09-28.md
 
 ## Model/host roles
 
@@ -220,6 +245,27 @@ ops/ai/GOOGLE_WINDOWS_NIGHT_QUEUE_50_2026-09-27.md
 Pre-Codex stop gate:
 ops/ai/GOOGLE_PRE_CODEX_GATE_2026-09-27.md
 
+Current gate state:
+ops/ai/GATE_STATE_CURRENT.md
+
+Canonical post-Ledger endgame:
+ops/ai/CANONICAL_ENDGAME_SEQUENCE_2026-09-28.md
+
+Live status:
+ops/ai/LIVE_STATUS_CURRENT.md
+
+Ledger freeze marker:
+ops/ai/LEDGER_FREEZE_CURRENT.md
+
+Permanent Google pre-Codex prompt:
+ops/ai/GOOGLE_PRE_CODEX_MASTER_PROMPT.txt
+
+Mac large pre-Codex preparation prompt:
+ops/ai/MAC_PRE_CODEX_MEGA_MASTER_PROMPT.txt
+
+Founder life/company master plan (public-safe):
+docs/FOUNDER_LIFE_AND_COMPANY_MASTER_PLAN_PUBLIC_SAFE_2026-09-28.md
+
 Context hygiene:
 ops/ai/CONTEXT_HYGIENE_AND_HANDOFF_POLICY_2026-09-26.md
 
@@ -267,3 +313,18 @@ After Core + positive pilot evidence, Courier should evolve toward:
 Do not share customer/private repo content across users merely because it is useful. Only generalized, authorized, sanitized, tested, versioned capabilities may enter the shared distribution layer.
 
 This direction must not delay current proof -> pilot critical path.
+
+
+## Founder/company continuity rule
+
+When the founder later asks for the plan, priorities, next step, overnight setup, company direction or launch sequence:
+
+1. read this Master Control Plane;
+2. read ops/ai/GATE_STATE_CURRENT.md;
+3. read ops/ai/LIVE_STATUS_CURRENT.md;
+4. read ops/ai/WALL_QUEUE_CURRENT.md;
+5. read docs/FOUNDER_LIFE_AND_COMPANY_MASTER_PLAN_PUBLIC_SAFE_2026-09-28.md;
+6. answer from durable current truth instead of asking the founder to retell prior conversations.
+
+Public-safe company/founder planning belongs in the repo.
+Sensitive private-life, credential, exact personal-finance, medical, family or private-customer data does not.
