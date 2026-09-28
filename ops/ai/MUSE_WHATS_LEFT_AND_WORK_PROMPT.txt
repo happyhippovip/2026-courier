@@ -1,0 +1,131 @@
+MUSE — WHAT IS LEFT + KEEP WORKING UNTIL CODEX
+
+Work directly in the currently open 2026-courier repo.
+This prompt is SELF-CONTAINED. Do not require any new prompt file to exist locally.
+
+MODE=READ_ONLY_ADVERSARIAL_QA
+LEDGER=COMPLETE
+NO_SOURCE_EDITS=YES
+NO_PHYSICAL_RUNS=YES
+NO_DUPLICATE_PRE_CODEX_VALIDATION=YES
+
+CHECKPOINT=ops/ai/live/MUSE_WHATS_LEFT_CURRENT.md
+
+FIRST READ, MINIMUM NECESSARY:
+- ops/ai/GATE_STATE_CURRENT.md if present
+- ops/ai/WALL_QUEUE_CURRENT.md if present
+- current ops/ai/live checkpoints
+- current relevant wall_results
+- server/app.py
+- scripts/integration_contract.py
+- scripts/courier_verifier.py
+- only exact RUN_1/RUN_2 proof files needed
+
+KNOWN FINDINGS — DO NOT REDISCOVER AS NEW:
+- POST /tasks/result -> RESULT_RECEIVED.
+- verifier PASS -> RECONCILED.
+- VALIDATED_PENDING_VERIFY is not an implemented task state.
+- old S2 persisted-but-unvalidated resume-validation claim was incorrect.
+- wall_claim files do not generally prove file-level lease/pid/liveness authority.
+- RUN_1 already has independent-witness/proof-chain gaps.
+- timestamps, Verify-vs-Reconcile and NEXT_READY visibility are known evidence gaps.
+- contradictory PRE_CODEX-ready prose exists; GATE_STATE_CURRENT is durable authority until invalidated.
+
+PHASE CHECK:
+Read GATE_STATE_CURRENT.
+If DURABILITY_PENDING/AUTHORITATIVE_READY=NO:
+DO NOT validate FINAL_SHA again.
+DO NOT select work that requires exact FINAL_SHA.
+Choose only candidate-independent work below.
+
+CANDIDATE-INDEPENDENT WORKBANK:
+A API state contract drift
+B HTTP idempotency/duplicate-control-flow
+C error-code semantics and failure classification
+D schema drift across server/scripts/tests/evidence
+E identity normalization: task/attempt/dispatch/run/result/worker/verifier
+F timestamp normalization: timezone/precision/ordering
+G event partial-order model
+H duplicate event/execution-count false greens
+I JSON state crash consistency
+J cross-process state-write/lock assumptions
+K goal.workflow_plan vs state.tasks copy drift
+L worker register/heartbeat/current_task consistency
+M stale-worker quarantine/reclaim semantics
+N resume-retry fresh identity and failure preservation
+O force_success proof-integrity risks
+P artifact target/path ambiguity and normalization
+Q artifact hash byte/encoding semantics
+R artifact/result/run/source binding
+S verifier authority/replay/failure semantics
+T successor readiness vs actual dispatch/start
+U successor exactly-once under restart/retry
+V motor bounded backoff/resume
+W central_state path consistency
+X worker/verifier auth separation
+Y real proof instance vs template/placeholder rules
+Z stale-proof invalidation across SHA/run/host/provider
+AA minimum decisive independent proof set
+AB do-not-repeat/retest-trigger correctness
+AC cross-provider handoff fingerprint continuity
+AD pre-Codex blocker deduplication
+AE PRE_CODEX doc contradiction cleanup requirements
+AF build Opus convergence packet from all confirmed findings
+
+SELECTION:
+1. Read CHECKPOINT if present.
+2. Maintain DONE_WORKBANK and DO_NOT_REPEAT.
+3. Pick 4-8 still-unexamined workbank items that are legal NOW.
+4. Do real read-only analysis; do not merely list them.
+5. For each item classify:
+   CONFIRMED_SOURCE_DEFECT
+   EVIDENCE_DOC_DEFECT
+   MISSING_EVIDENCE
+   DISPROVEN
+   NO_ISSUE
+   BLOCKED_OTHER_OWNER
+6. Write exact source/evidence refs.
+7. Update checkpoint.
+8. Continue to the next legal items in this same run.
+9. If all candidate-independent items are exhausted, produce a convergence packet instead of returning SLOT_IDLE.
+
+OPUS_TRIGGER:
+Set OPUS_NOW=YES when either:
+- at least 8 distinct confirmed/evidence-gap findings are deduplicated; OR
+- no more high-value candidate-independent C2 work remains.
+Opus is for convergence/arbitration, not another bulk scan.
+
+CODEX_TRIGGER:
+CODEX_NOW=YES ONLY when current durable file says:
+PRE_CODEX_STATE=READY
+AUTHORITATIVE_READY=YES
+and exact FINAL_SHA is durably resolvable.
+Otherwise CODEX_NOW=NO.
+
+BEFORE /clear:
+finish the current atomic read;
+persist checkpoint;
+write:
+CLEAR_SAFE=YES
+NEXT_WORKBANK=
+DO_NOT_REPEAT=
+Then /clear is safe.
+After /clear, paste THIS SAME PROMPT and continue from checkpoint.
+
+OUTPUT:
+CURRENT_PHASE=
+CURRENT_GATE=
+DONE_WORKBANK=
+NEW_CONFIRMED_DEFECTS=
+NEW_EVIDENCE_GAPS=
+DISPROVEN=
+BLOCKED_OTHER_OWNER=
+STOP_DOING=
+OPUS_NOW=YES|NO
+OPUS_QUESTIONS=
+CODEX_NOW=YES|NO
+WINDOWS_OWNER_ACTION=
+NEXT_WORKBANK=
+CLEAR_SAFE=YES|NO
+
+START NOW AND DO THE WORK, NOT JUST THE PLAN.
