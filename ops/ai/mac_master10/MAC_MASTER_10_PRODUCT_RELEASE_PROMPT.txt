@@ -1,0 +1,56 @@
+COURIER MAC MASTER 10 — Product Shell + Release Readiness
+
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+MODEL_CLASS=C1
+RECOMMENDED_LOGICAL_WINDOWS=4
+CONTINUE_BY_DEFAULT=YES
+LEDGER_WORK=SKIP
+LEDGER_REOPEN_ONLY_ON_RETEST_TRIGGER=YES
+CLAIM_BEFORE_ANALYSIS=YES
+RESULT_REUSE_FIRST=YES
+SLOT_IDLE_IS_NOT_TERMINAL=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/MAC_MASTER_10_SEQUENCE_2026-09-28.md
+
+HARD RULES:
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+
+HARD GATE:
+Durable positive real-pilot signal required.
+
+BUILD/PREP ONLY PILOT-PROVEN NEEDS:
+Arbeit; Braucht dich; Fertig; Proof; Next; minimal onboarding; safe settings/update controls; owner observability; support surfaces; install/update/rollback/LKG; delta/dedupe; release checklist; crypto-agility/PQ migration inventory; known limitations; support playbook; next-30-day backlog.
+
+No speculative marketplace/enterprise features.
+
+DONE WHEN:
+smallest evidence-backed sellable Product Shell/release packet exists.
+
+WORK LOOP:
+harvest -> claim one unique subtask -> reuse matching fingerprint -> execute bounded scope -> persist -> release -> next subtask.
+
+BLOCKED SUBTASK:
+park only that subtask and continue another legal subtask.
+
+TEMPORARY EMPTY:
+replenish from unfinished scope of THIS master only -> shell sleep 60s -> refresh changed durable metadata -> continue.
+
+DO NOT RETURN FOR:
+SLOT_IDLE, FAMILY_COMPLETE, WAITING_FOR_DURABILITY, one blocked subtask.
+
+RETURN ONLY FOR:
+auth/2FA/CAPTCHA/payment/admin/legal/safety/permission gate, destructive truth/ownership conflict, or explicitly required physical/operator action unavailable to this slot.
+
+START NOW.

@@ -1,0 +1,74 @@
+COURIER MAC MASTER 01 — Pre-Codex Parallel Prep
+
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+MODEL_CLASS=C1
+RECOMMENDED_LOGICAL_WINDOWS=4
+CONTINUE_BY_DEFAULT=YES
+LEDGER_WORK=SKIP
+LEDGER_REOPEN_ONLY_ON_RETEST_TRIGGER=YES
+CLAIM_BEFORE_ANALYSIS=YES
+RESULT_REUSE_FIRST=YES
+SLOT_IDLE_IS_NOT_TERMINAL=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/MAC_MASTER_10_SEQUENCE_2026-09-28.md
+
+HARD RULES:
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+
+MISSION:
+Keep Mac productive while Windows resolves PRE_CODEX durability.
+
+WORK UNTIL EXHAUSTED:
+- RUN_1 command binder
+- evidence layout
+- A-exactly-once proof contract
+- trusted expected-hash chain
+- server-bytes proof capture
+- verify/reconcile proof layout
+- B auto-start proof layout
+- HUMAN_RELAY_COUNT=0 proof layout
+- failed-execution contamination guard
+- RUN_1 result template
+- process/port ownership
+- state/log/artifact isolation
+- resource admission
+- no-tight-polling audit
+- candidate-independent Proof Card fields
+
+Do not do Ledger work.
+Do not revalidate PRE_CODEX.
+Candidate-sensitive fields stay explicit placeholders.
+
+DONE WHEN:
+all candidate-independent RUN_1/RUN_2 proof-prep packets are durable and deduplicated.
+
+NEXT_MASTER=MAC_MASTER_02_RUNTIME_BINDING
+
+WORK LOOP:
+harvest -> claim one unique subtask -> reuse matching fingerprint -> execute bounded scope -> persist -> release -> next subtask.
+
+BLOCKED SUBTASK:
+park only that subtask and continue another legal subtask.
+
+TEMPORARY EMPTY:
+replenish from unfinished scope of THIS master only -> shell sleep 60s -> refresh changed durable metadata -> continue.
+
+DO NOT RETURN FOR:
+SLOT_IDLE, FAMILY_COMPLETE, WAITING_FOR_DURABILITY, one blocked subtask.
+
+RETURN ONLY FOR:
+auth/2FA/CAPTCHA/payment/admin/legal/safety/permission gate, destructive truth/ownership conflict, or explicitly required physical/operator action unavailable to this slot.
+
+START NOW.
