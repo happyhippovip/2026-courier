@@ -1,0 +1,66 @@
+COURIER MASTER 06 — GATE / CODEX TRANSITION
+
+HOST=WINDOWS
+PROVIDER=AUTO
+LOCAL_ONLY=YES
+CONTINUE_BY_DEFAULT=YES
+RESULT_REUSE_FIRST=YES
+CLAIM_BEFORE_ANALYSIS=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+SLOT_IDLE_IS_TEMPORARY=YES
+MAX_HEAVY_JOBS=1
+
+READ LOCAL FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+
+HARD RULES:
+NO_GIT_REQUIRED=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+
+LOOP:
+HARVEST -> EXECUTE -> SYNTHESIZE -> PREPARE -> BLOCKER_DECOMPOSE -> CROSS_FAMILY_ROUTE -> TEMPORARY_BACKOFF -> REFRESH LOCAL METADATA -> REPEAT.
+
+Do not terminate for:
+TEMPORARY_IDLE
+SLOT_IDLE
+FAMILY_COMPLETE
+WAITING_FOR_DURABILITY
+one blocked task
+one unavailable family.
+
+If FINAL_SHA durability is unresolved:
+park only candidate-sensitive work;
+continue independent legal work.
+
+Persist compact checkpoints and do not ask the human to relay ordinary results.
+
+
+CURRENT LAW:
+one gate persistence owner only.
+
+FLOW:
+1 verify current durable gate state
+2 if DURABILITY_PENDING:
+   one owner attempts legal persistence/resolution
+   all other workers continue unrelated work
+3 if AUTHORITATIVE READY:
+   assemble exact Codex packet
+4 Codex HIGH exactly once for this fingerprint
+5 harvest Codex verdict
+6 if green -> unlock Mac exact binding / physical-proof prep
+7 if blocking defect -> create one exact Central Writer packet
+
+NEVER:
+repeat same gate validation;
+invoke Codex twice for same fingerprint;
+invent a FINAL_SHA;
+claim READY without durable resolution.
+
+START NOW.

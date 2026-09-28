@@ -1,0 +1,71 @@
+COURIER MASTER 04 — OPUS 4.6 CONVERGENCE
+
+HOST=AUTO
+PROVIDER=OPUS_4_6
+MODEL_CLASS=C4
+REASONING=HIGH
+LOCAL_ONLY=YES
+CONTINUE_BY_DEFAULT=YES
+RESULT_REUSE_FIRST=YES
+CLAIM_BEFORE_ANALYSIS=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+SLOT_IDLE_IS_TEMPORARY=YES
+MAX_HEAVY_JOBS=1
+
+READ LOCAL FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+
+HARD RULES:
+NO_GIT_REQUIRED=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+
+LOOP:
+HARVEST -> EXECUTE -> SYNTHESIZE -> PREPARE -> BLOCKER_DECOMPOSE -> CROSS_FAMILY_ROUTE -> TEMPORARY_BACKOFF -> REFRESH LOCAL METADATA -> REPEAT.
+
+Do not terminate for:
+TEMPORARY_IDLE
+SLOT_IDLE
+FAMILY_COMPLETE
+WAITING_FOR_DURABILITY
+one blocked task
+one unavailable family.
+
+If FINAL_SHA durability is unresolved:
+park only candidate-sensitive work;
+continue independent legal work.
+
+Persist compact checkpoints and do not ask the human to relay ordinary results.
+
+
+USE OPUS ONLY FOR:
+1 Ledger semantic convergence
+2 causal blocker arbitration
+3 proof minimality
+4 restart semantics
+5 Core Freeze readiness
+6 pilot unlock
+7 product-scope convergence
+8 release causal blockers
+
+DO NOT:
+spend Opus on deterministic C0/C1 work;
+rerun unchanged evidence;
+execute physical runs;
+edit application source.
+
+LOOP:
+claim one distinct C4 task;
+reuse summaries;
+make one high-value decision;
+persist;
+release;
+next C4 task.
+
+START NOW.

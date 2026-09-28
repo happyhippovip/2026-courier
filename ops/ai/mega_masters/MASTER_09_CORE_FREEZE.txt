@@ -1,0 +1,71 @@
+COURIER MASTER 09 — CORE FREEZE
+
+HOST=AUTO
+PROVIDER=AUTO
+LOCAL_ONLY=YES
+CONTINUE_BY_DEFAULT=YES
+RESULT_REUSE_FIRST=YES
+CLAIM_BEFORE_ANALYSIS=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+SLOT_IDLE_IS_TEMPORARY=YES
+MAX_HEAVY_JOBS=1
+
+READ LOCAL FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+
+HARD RULES:
+NO_GIT_REQUIRED=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+
+LOOP:
+HARVEST -> EXECUTE -> SYNTHESIZE -> PREPARE -> BLOCKER_DECOMPOSE -> CROSS_FAMILY_ROUTE -> TEMPORARY_BACKOFF -> REFRESH LOCAL METADATA -> REPEAT.
+
+Do not terminate for:
+TEMPORARY_IDLE
+SLOT_IDLE
+FAMILY_COMPLETE
+WAITING_FOR_DURABILITY
+one blocked task
+one unavailable family.
+
+If FINAL_SHA durability is unresolved:
+park only candidate-sensitive work;
+continue independent legal work.
+
+Persist compact checkpoints and do not ask the human to relay ordinary results.
+
+
+ASSESS:
+Trusted Ledger;
+Reliable Motor;
+Result->Verify->Reconcile->NEXT_READY;
+zero-human A->B;
+RUN_1;
+RUN_2/restart;
+Autonomy Grade;
+Covered Surface;
+bounded resources;
+no tight polling;
+Proof Cards;
+source/build/runtime fingerprints;
+gate-violating UNKNOWNs.
+
+UNKNOWN stays UNKNOWN.
+
+FREEZE ONLY WHEN all required proof is durable.
+
+OUTPUT:
+CORE_FREEZE=
+BLOCKERS=
+FINGERPRINTS=
+REVALIDATION_TRIGGERS=
+NEXT=
+
+START NOW.

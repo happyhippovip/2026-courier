@@ -1,0 +1,59 @@
+COURIER MASTER 17 — RESOURCE / PROCESS SAFETY
+
+HOST=AUTO
+PROVIDER=GOOGLE_CLI_PREFERRED
+LOCAL_ONLY=YES
+CONTINUE_BY_DEFAULT=YES
+RESULT_REUSE_FIRST=YES
+CLAIM_BEFORE_ANALYSIS=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+SLOT_IDLE_IS_TEMPORARY=YES
+MAX_HEAVY_JOBS=1
+
+READ LOCAL FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+
+HARD RULES:
+NO_GIT_REQUIRED=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+
+LOOP:
+HARVEST -> EXECUTE -> SYNTHESIZE -> PREPARE -> BLOCKER_DECOMPOSE -> CROSS_FAMILY_ROUTE -> TEMPORARY_BACKOFF -> REFRESH LOCAL METADATA -> REPEAT.
+
+Do not terminate for:
+TEMPORARY_IDLE
+SLOT_IDLE
+FAMILY_COMPLETE
+WAITING_FOR_DURABILITY
+one blocked task
+one unavailable family.
+
+If FINAL_SHA durability is unresolved:
+park only candidate-sensitive work;
+continue independent legal work.
+
+Persist compact checkpoints and do not ask the human to relay ordinary results.
+
+
+VERIFY/PREPARE:
+one heavy job per host;
+process ownership;
+port ownership;
+foreign-process noninterference;
+bounded timeout;
+orphan/stale-owner evidence;
+CPU/RAM/swap admission;
+bounded polling;
+cleanup proof.
+
+Never manipulate foreign processes.
+Never start extra heavy jobs just to avoid idle.
+
+START NOW.

@@ -1,0 +1,66 @@
+COURIER MASTER 02 — MAC GOOGLE OVERNIGHT
+
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+LOCAL_ONLY=YES
+CONTINUE_BY_DEFAULT=YES
+RESULT_REUSE_FIRST=YES
+CLAIM_BEFORE_ANALYSIS=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+SLOT_IDLE_IS_TEMPORARY=YES
+MAX_HEAVY_JOBS=1
+
+READ LOCAL FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+
+HARD RULES:
+NO_GIT_REQUIRED=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+
+LOOP:
+HARVEST -> EXECUTE -> SYNTHESIZE -> PREPARE -> BLOCKER_DECOMPOSE -> CROSS_FAMILY_ROUTE -> TEMPORARY_BACKOFF -> REFRESH LOCAL METADATA -> REPEAT.
+
+Do not terminate for:
+TEMPORARY_IDLE
+SLOT_IDLE
+FAMILY_COMPLETE
+WAITING_FOR_DURABILITY
+one blocked task
+one unavailable family.
+
+If FINAL_SHA durability is unresolved:
+park only candidate-sensitive work;
+continue independent legal work.
+
+Persist compact checkpoints and do not ask the human to relay ordinary results.
+
+
+PRIORITY:
+1 exact runtime-binding preparation
+2 state/log/artifact isolation
+3 RUN_1 evidence preparation
+4 restart/RUN_2 preparation
+5 process/resource ownership
+6 artifact/hash proof chain
+7 Proof Cards
+8 Core Freeze preparation
+9 cross-host continuity
+10 observability
+11 pilot metrics preparation
+12 queue replenishment
+
+PHYSICAL:
+Do not execute RUN_1 before READY_FOR_PHYSICAL_RUN=YES.
+Do not execute RUN_2 before RUN_1 PASS.
+
+If exact FINAL_SHA is unavailable:
+continue candidate-independent prep.
+
+START NOW AND KEEP RUNNING.
