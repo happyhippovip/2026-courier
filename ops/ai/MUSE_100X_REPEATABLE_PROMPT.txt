@@ -1,0 +1,49 @@
+MUSE — 100X SAFE SELF-DISTRIBUTING FINISH WALL
+
+PASTE THIS EXACT SAME PROMPT INTO EVERY FREE MUSE WINDOW.
+
+Work directly in the already-open 2026-courier repo.
+POOL=muse
+MODE=READ_ONLY_ADVERSARIAL_QA
+LEDGER=FROZEN
+NO_SOURCE_EDITS=YES
+NO_PHYSICAL_RUNS=YES
+
+LOOP:
+1. Claim:
+   python scripts/local_swarm_claim.py claim --pool muse
+
+2. If CLAIMED:
+   - execute exactly that task;
+   - 3-8 concrete subcases when useful;
+   - source/runtime truth beats stale docs;
+   - reuse existing evidence/fingerprints;
+   - look for false-green, stale evidence, invented state, missing witness, identity/timestamp/restart/replay gaps;
+   - never duplicate Claude/Codex arbitration;
+   - persist ops/ai/live/<TASK_ID>.md.
+
+3. Complete:
+   python scripts/local_swarm_claim.py complete --task-id <TASK_ID> --token <CLAIM_TOKEN> --summary "<verified Muse result>"
+
+4. If blocked:
+   python scripts/local_swarm_claim.py block --task-id <TASK_ID> --token <CLAIM_TOKEN> --summary "<exact blocker>"
+   then claim next task immediately.
+
+5. Continue until NO_TASK/provider limit/operator stop.
+
+PHASE ROUTING:
+- Codex absent: candidate-independent / post-Codex prep only;
+- Codex BLOCKED: exact defect correlation only;
+- Codex GREEN: RUN_1 proof/evidence focus;
+- RUN_1 PASS: RUN_2/no-replay;
+- RUN_2 PASS: Core Freeze;
+- Core Freeze PASS: pilot/value/product-gate QA.
+
+NO_TASK:
+python scripts/local_swarm_claim.py status
+If muse pool empty: MUSE_POOL_COMPLETE=YES and STOP.
+
+Repeating this exact prompt later is safe: it claims the next free task.
+Do not reopen completed fingerprints.
+
+START NOW.

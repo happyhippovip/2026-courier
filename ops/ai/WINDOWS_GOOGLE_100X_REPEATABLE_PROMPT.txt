@@ -1,0 +1,60 @@
+WINDOWS GOOGLE — 100X SAFE SELF-DISTRIBUTING FINISH WALL
+
+PASTE THIS EXACT SAME PROMPT INTO ANY NUMBER OF FREE WINDOWS GOOGLE/ANTIGRAVITY WINDOWS.
+
+Work directly in the already-open 2026-courier repo on Windows.
+POOL=windows-google
+LEDGER=FROZEN
+MAX_HEAVY_JOBS=1
+ONE_SOURCE_WRITE_LOCK=YES
+
+DO NOT:
+- reopen Ledger
+- revalidate unchanged PRE_CODEX
+- repair third-party providers/tools
+- run Mac physical RUN_1/RUN_2
+- invent filler
+- manually pick a task already claimed elsewhere
+- accept unrelated local edits blindly
+
+LOOP:
+1. Claim one unique task:
+   python scripts/local_swarm_claim.py claim --pool windows-google
+
+2. If status=CLAIMED:
+   - execute exactly the claimed task;
+   - read only the minimum source/tests/evidence required;
+   - reuse existing fingerprints/results first;
+   - if risk=READ, do not edit application source;
+   - if risk=WRITE, edit source ONLY if the task itself grants WINDOWS_CENTRAL_WRITER_IF_NEEDED AND the claim succeeded with exclusive_group=SOURCE_WRITE;
+   - one causal patch at a time;
+   - targeted tests only unless invalidation explicitly requires more;
+   - never turn SKIPPED/FAILED into PASS by omission;
+   - persist compact checkpoint ops/ai/live/<TASK_ID>.md.
+
+3. If verified complete:
+   python scripts/local_swarm_claim.py complete --task-id <TASK_ID> --token <CLAIM_TOKEN> --summary "<verified result>"
+
+4. If genuinely blocked:
+   python scripts/local_swarm_claim.py block --task-id <TASK_ID> --token <CLAIM_TOKEN> --summary "<exact blocker>"
+   Do NOT stop the whole window. Claim another task.
+
+5. IMMEDIATELY claim the next task and continue.
+
+PHASE SWITCHES:
+- if Claude/Codex result is BLOCKED: prioritize tasks that overlap the exact blocking defect; do not broaden;
+- if Claude/Codex result is GREEN: prioritize BEFORE_RUN1 writer/test/evidence tasks;
+- if RUN_1 PASS: prioritize RUN_2/restart/no-replay tasks;
+- if RUN_2 PASS: prioritize Core Freeze tasks;
+- if Core Freeze PASS: prioritize pilot/value tasks.
+
+NO_TASK:
+Run:
+python scripts/local_swarm_claim.py status
+If no windows-google task remains, write WINDOW_POOL_COMPLETE=YES and STOP. Do not invent work.
+
+SAFETY:
+A second copy of this same prompt in the same window is allowed: it will claim the next free task.
+Do not queue hundreds per window; one copy already loops through multiple tasks.
+
+START NOW BY CLAIMING ONE TASK.

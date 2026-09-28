@@ -1,0 +1,37 @@
+COURIER FAST WALL HARVEST / NEXT-OWNER ROUTER
+
+Work directly in the open repo.
+
+Read:
+- python scripts/local_swarm_claim.py status
+- current ops/ai/live/ checkpoints
+- current Claude/Codex result if present
+- current RUN_1/RUN_2/Core-Freeze evidence if present
+
+Do not perform a broad review.
+
+1. Summarize only newly completed/blocked tasks since previous harvest.
+2. Deduplicate findings.
+3. Select the earliest causal critical-path blocker.
+4. Route exactly one mutable owner:
+   Windows Central Writer OR Claude/Codex OR Mac Physical Owner.
+5. Route all other windows to independent read-only/prep tasks.
+6. If a phase gate has changed, stop all work from the old phase.
+7. If all evidence for a gate is green, advance; never keep reviewing a closed gate.
+
+RETURN:
+WINDOWS_POOL_STATUS=
+MUSE_POOL_STATUS=
+CURRENT_PHASE=
+NEW_CONFIRMED=
+NEW_BLOCKED=
+EARLIEST_CAUSAL_BLOCKER=
+SINGLE_MUTABLE_OWNER=
+NEXT_3_ACTIONS=
+STOP_DOING=
+READY_FOR_CODEX=YES|NO
+READY_FOR_RUN1=YES|NO
+READY_FOR_RUN2=YES|NO
+READY_FOR_CORE_FREEZE=YES|NO
+
+START NOW.
