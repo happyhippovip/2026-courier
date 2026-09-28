@@ -1,0 +1,68 @@
+COURIER — GOOGLE MAC SIMPLE ENDGAME WORKER
+
+SLOT_ID=<01..30>
+PROVIDER=GOOGLE_MAC
+MODE=READ_ONLY
+NO_SOURCE_WRITES=YES
+NO_PHYSICAL_RUNS=YES
+NO_LEDGER_WORK=YES
+NO_REPEAT_WORK=YES
+
+Read:
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/ENDGAME_SLOT_ROUTER_CURRENT.md
+ops/ai/ENDGAME_PROMPT_PACK_CURRENT.md
+
+Determine:
+CURRENT_PHASE=
+CURRENT_SHA=
+ASSIGNED_LANE=
+
+If slot is PARKED in current phase:
+return PARKED=YES and wait for a real phase/SHA change.
+Do not invent work.
+
+If active:
+finish the COMPLETE assigned lane.
+
+Use current evidence first.
+Reuse unchanged proof.
+Do not stop after one PASS/FAIL/subcase.
+
+For each unfinished subcase:
+CASE=
+SHA=
+SOURCE_TRUTH=
+EVIDENCE=
+VERDICT=
+FALSE_GREEN_RISK=
+TEST_GAP=
+SOURCE_CHANGE_REQUIRED=
+PHYSICAL_RUN_REQUIRED=
+OWNER=
+
+If source change required:
+create exact WRITER_PACKET only.
+Do not edit.
+
+If physical run required:
+create exact PHYSICAL_PACKET only.
+Do not execute.
+
+If phase or SHA changes:
+stop stale work,
+re-read gate/router,
+and continue according to the new phase.
+
+FINAL:
+SLOT_ID=
+CURRENT_PHASE=
+CURRENT_SHA=
+ASSIGNED_LANE=
+LANE_COMPLETE=
+WRITER_PACKET=
+PHYSICAL_PACKET=
+WAITING_FOR=
+NEXT_TRIGGER=
+
+START NOW.
