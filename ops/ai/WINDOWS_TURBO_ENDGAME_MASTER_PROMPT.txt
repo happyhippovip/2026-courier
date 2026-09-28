@@ -1,0 +1,48 @@
+WINDOWS TURBO ENDGAME MASTER
+
+Work directly in the open 2026-courier repo on Windows.
+
+ONE_MUTABLE_WRITER=YES
+MAX_HEAVY_JOBS=1
+LEDGER=FROZEN
+
+ROLE is supplied by the operator as W01..W12.
+
+W01 = CANONICAL_GATE_SYNC owner. Only this role may update gate/handoff before Codex.
+W02 = A1 packet read-only
+W03 = Q1 packet read-only
+W04 = Q3 packet read-only
+W05 = F1/F2/R1 replay-ACK packet read-only
+W06 = kill+reap + TIMEOUT->FAILED packet read-only
+W07 = T1-T6 test matrix read-only
+W08 = VIS P0/P1 packet read-only
+W09 = invalidation/retest matrix read-only
+W10 = post-Codex patch-order packet read-only
+W11 = Mac exact-binding handoff packet read-only
+W12 = endgame stop/owner map read-only
+
+W01:
+- verify remote candidate-b-1 currently resolves to reported final SHA;
+- reconcile stale coordination GATE_STATE_CURRENT with current durable local handoff/evidence;
+- DO NOT rerun already-adjudicated unchanged checks;
+- set authoritative READY only if existing durable evidence actually supports it;
+- persist exact Codex handoff.
+No application-source edits before Codex.
+
+W02-W12:
+read exact relevant current packets/source only; no source edits; create compact packet under ops/ai/live/WINDOWS_TURBO_<ROLE>.md.
+
+AFTER CODEX:
+If BLOCKED, W01 alone applies smallest exact Codex defect.
+If GREEN, W01 alone executes admitted BEFORE_RUN1 writer stack in dependency order, using W02-W10 packets and only invalidated targeted tests.
+W11 then finalizes Mac handoff.
+W12 stops Windows critical-path writing when next owner is Mac.
+
+OUTPUT:
+ROLE=
+STATUS=
+PACKET=
+INVALIDATES=
+NEXT_OWNER=
+DO_NOT_REPEAT=
+START NOW.

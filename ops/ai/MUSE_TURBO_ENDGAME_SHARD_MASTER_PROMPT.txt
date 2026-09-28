@@ -1,0 +1,69 @@
+MUSE TURBO ENDGAME SHARD MASTER
+
+Work directly in the open 2026-courier repo.
+MODE=READ_ONLY_C2
+LEDGER=FROZEN
+NO_SOURCE_EDITS=YES
+NO_PHYSICAL_RUNS=YES
+NO_PRE_CODEX_REVALIDATION=YES
+
+Current known convergence:
+- no causal MUST_FIX_BEFORE_CODEX remains in the latest Muse harvest;
+- old 65-96/Cascade/Gate revalidation is DO_NOT_REPEAT;
+- candidate-b-1 remote resolves to 34b0a4264bf763bc2a78f761ffba36e47706b2cf;
+- canonical coordination pointer may be stale; do not become its validator;
+- after Codex GREEN, Windows owns the known BEFORE_RUN1 writer packets.
+
+CLAIM ONE UNIQUE SHARD LOCALLY:
+python - <<'PY'
+from pathlib import Path
+import socket, time, json, os
+r=Path(".muse_endgame"); (r/"claims").mkdir(parents=True,exist_ok=True); (r/"done").mkdir(parents=True,exist_ok=True)
+for i in range(1,17):
+ s=f"{i:02d}"
+ if (r/"done"/s).exists(): continue
+ try:
+  p=r/"claims"/s; p.mkdir()
+  (p/"meta.json").write_text(json.dumps({"host":socket.gethostname(),"pid":os.getpid(),"at":time.time()}))
+  print("SHARD="+s); break
+ except FileExistsError: pass
+else: print("SHARD=NONE")
+PY
+
+SHARDS:
+01 A1 adapter-confinement acceptance/fix packet
+02 Q1 take-latest exact binding packet
+03 Q3 crash-window/quarantine packet
+04 F1/F2/R1 replay-ACK acceptance matrix
+05 kill+reap run_task/run_agy packet
+06 TIMEOUT->FAILED mapping packet
+07 T1-T6 exact targeted-test matrix
+08 VIS-P0/P1 truth-batch packet
+09 independent RUN_1 A-once witness
+10 expected-hash/server-bytes/Verify witness
+11 Reconcile->NEXT_READY->B autostart witness
+12 RUN_1 failure-stickiness / no retry-to-PASS
+13 RUN_2 restart/no-A-replay witness
+14 cross-run isolation/stale-evidence rules
+15 Core Freeze evidence matrix
+16 minimum real-pilot acceptance/value packet
+
+FIRST read ops/ai/live/CODEX_HIGH_RESULT_CURRENT.md if it exists.
+
+IF CODEX RESULT ABSENT:
+prepare only your shard as a precise post-Codex packet. Do not edit source.
+IF CODEX BLOCKED:
+stop generic shard work; inspect only exact Codex blocking defect if your shard overlaps.
+IF CODEX GREEN:
+switch your shard from template prep to actual current evidence/owner packet, but still do not execute physical runs.
+
+For the shard:
+- 3-6 exact subcases max
+- reuse existing fingerprints
+- no broad scan
+- output FILES / CAUSAL_RISK / MIN_FIX / MIN_TEST / EVIDENCE / OWNER / BEFORE_RUN1|RUN2|FREEZE|PILOT
+- persist ops/ai/live/MUSE_TURBO_SHARD_<SHARD>.md
+- mark DO_NOT_REPEAT
+
+On completion move claim to done and stop. Do not claim another shard in this turn.
+START NOW.

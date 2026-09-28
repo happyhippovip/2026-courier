@@ -1,0 +1,37 @@
+OPUS 4.6 — LAST PRE-RUN CREDIT: REPLAY ACK SEMANTIC ARBITER
+EFFORT=XHIGH
+MODE=READ_ONLY_C4
+
+Spend this premium call on only the remaining semantic issue reported by Muse:
+
+Case-10 duplicate/replay ACK width:
+worker-blind 3-field equivalence vs worker-sensitive identity required by the current trusted-result contract.
+
+Use exact current source/tests and frozen findings only.
+
+Decide one coherent rule that also resolves:
+F1
+F2
+R1-resume
+changed worker
+changed attempt/dispatch
+changed artifact result
+identical replay ACK
+
+Constraints:
+- identical canonical result/same attempt/same dispatch generation may duplicate-ACK;
+- changed status/worker/attempt/dispatch/artifact result must not false-ACK;
+- do not weaken trusted expected_sha256 authority;
+- result must be implementable/testable by one Windows writer.
+
+RETURN:
+DECISION=
+CANONICAL_EQUIVALENCE_TUPLE=
+REQUIRED_CODE_EFFECT=
+REQUIRED_TESTS=
+MIGRATION_OR_COMPAT_RISK=
+BEFORE_RUN1=YES|NO
+STOP_DOING=
+
+No broad architecture review. No source edits.
+START NOW.
