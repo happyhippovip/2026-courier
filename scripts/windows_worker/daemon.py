@@ -318,8 +318,8 @@ def loop():
                         register_worker(worker_id)
                 
                 # 2. Resource Pressure Check
-                if is_resource_pressure_high():
-                    print(f"[{worker_id}] Resource pressure high. Pausing claims.")
+                if (not task or task.get("worker_phase") == "CLAIMED") and is_resource_pressure_high():
+                    print(f"[{worker_id}] Resource pressure high. Pausing claims/execution.")
                     time.sleep(60)
                     continue
                 

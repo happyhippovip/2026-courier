@@ -171,3 +171,33 @@ def test_validate_durable_result_checks_run_attempt(srv):
     resp = http.post("/tasks/result", headers=WORKER, json=result)
     assert resp.status_code == 400
     assert "run_attempt is invalid" in resp.get_json()["error"]
+
+def test_goal_without_manual_plan_sets_queued_status_for_generated_tasks(srv):
+    from scripts.run_chief_commander import ChiefCommander
+    srv.app.test_client().post("/workers/register", headers=WORKER, json={"worker_id": "MAC-01", "capabilities": ["macos"]})
+    class MockChief:
+        def formulate_workflow_plan(self, *args, **kwargs):
+            return "wf1", [{"task_id": "test-gen-1", "target_agent": "mac", "artifacts": []}]
+    import server.app
+    server.app.ChiefCommander = MockChief
+    
+    resp = srv.app.test_client().post("/goals", headers=WORKER, json={"goal_text": "gen task"})
+    assert resp.status_code == 200
+    
+    claim = srv.app.test_client().post("/tasks/claim", headers=WORKER, json={"worker_id": "MAC-01"}).get_json()
+    assert claim.get("task"), "Should be able to claim generated task"
+    assert claim["task"]["status"] == "DISPATCHED"
+
+def test_goal_with_ai_generated_duplicate_task_id_fails(srv):
+    from scripts.run_chief_commander import ChiefCommander
+    class MockChief:
+        def formulate_workflow_plan(self, *args, **kwargs):
+            return "wf1", [
+                {"task_id": "dup-gen", "target_agent": "mac", "artifacts": []},
+                {"task_id": "dup-gen", "target_agent": "mac", "artifacts": []}
+            ]
+    srv.ChiefCommander = MockChief
+    
+    resp = srv.app.test_client().post("/goals", headers=WORKER, json={"goal_text": "gen task with duplicates"})
+    assert resp.status_code == 503
+    assert "duplicate task_id from planner" in resp.get_json()["error"]

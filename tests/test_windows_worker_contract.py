@@ -167,3 +167,27 @@ def test_run_task_kills_process_on_timeout(monkeypatch):
     assert res["status"] == "FAILED"
     assert "timed out" in res["stderr"]
     assert mock_p.killed is True
+
+def test_resource_pressure_does_not_block_result_ready_phase(tmp_path, monkeypatch):
+    srv, http, headers = central(tmp_path, monkeypatch)
+    harness, executions = Harness(http, headers, max_calls=2), []
+    import scripts.windows_worker.daemon as daemon
+    
+    claimed = http.post("/tasks/claim", headers=headers, json={"worker_id": "WINDOWS-01"}).get_json()["task"]
+    
+    # Mock high pressure
+    monkeypatch.setattr(daemon, "is_resource_pressure_high", lambda: True)
+    
+    # Start the daemon with a RESULT_READY task
+    d = load_daemon(tmp_path, monkeypatch, harness, executions)
+    d.persist_task(state_file(d), dict(claimed, worker_phase="RESULT_READY", result_payload={
+        "goal_id": claimed["goal_id"], "task_id": claimed["task_id"], "worker_id": "WINDOWS-01",
+        "run_id": "r1", "result_id": "r2", "status": "FAILED", "artifacts": [],
+        "attempt_id": claimed["attempt_id"], "dispatch_id": claimed["dispatch_id"]
+    }))
+    
+    run(d)
+    
+    # Despite high pressure, it should have delivered the result!
+    state = srv.load_state()
+    assert state["tasks"][claimed["task_id"]]["status"] == "QUEUED"
