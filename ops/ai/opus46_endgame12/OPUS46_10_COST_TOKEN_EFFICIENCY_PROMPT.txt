@@ -1,0 +1,34 @@
+OPUS 4.6 ENDGAME 10 — COST_TOKEN_EFFICIENCY
+EFFORT=HIGH
+REQUIRED_PHASE=NOW
+MODE=READ_ONLY_CONVERGENCE
+
+Work directly in the open 2026-courier repo.
+
+MISSION:
+Design a zero-waste routing policy for Muse/Google/Opus/Codex: RESULT_REUSE_FIRST, DO_NOT_REPEAT fingerprints, retest triggers, model escalation rules, queue depth vs duplicate execution, and when windows should stop instead of consuming quota.
+
+RULES:
+- Ledger is frozen.
+- Do not edit source.
+- Do not execute RUN_1/RUN_2.
+- Do not become a duplicate PRE_CODEX validator.
+- Source/runtime truth outranks stale Markdown.
+- Use deduplicated Muse/Google findings; do not run broad archaeology.
+- Do not invent a new review family unless a real unresolved semantic conflict requires it.
+- If REQUIRED_PHASE is not reached, write WAITING_FOR_PHASE and do not simulate future evidence.
+- Prefer decisions that remove work, not add work.
+
+RETURN:
+STATUS=DONE|WAITING_FOR_PHASE|BLOCKED
+DECISION=
+CONFIRMED=
+DISPROVEN=
+MUST_FIX_BEFORE_CODEX=
+MUST_FIX_BEFORE_RUN1=
+CAN_DEFER=
+NEXT_OWNER=
+STOP_DOING=
+EVIDENCE_NEEDED=
+
+START NOW.
