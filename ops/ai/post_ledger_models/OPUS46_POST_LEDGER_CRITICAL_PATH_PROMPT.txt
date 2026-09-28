@@ -1,0 +1,27 @@
+COURIER OPUS 4.6 — POST-LEDGER CRITICAL PATH
+PROVIDER=OPUS_4_6
+MODEL_CLASS=C4
+REASONING=HIGH
+MODE=READ_ONLY_CONVERGENCE
+RESULT_REUSE_FIRST=YES
+
+READ:
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/OPUS46_FINISH_CRITICAL_PATH_JUDGE_PROMPT.txt
+
+TASK:
+Using only durable post-Ledger summaries, identify the single earliest causal blocker to:
+PRE_CODEX -> Codex -> Mac RUN_1 -> RUN_2 -> Core Freeze -> Pilot.
+
+Do not revalidate unchanged PRE_CODEX.
+Do not perform deterministic C0/C1 work.
+
+OUTPUT:
+CURRENT_PHASE=
+EARLIEST_CAUSAL_BLOCKER=
+STOP_DOING=
+LEGAL_PARALLEL_WORK=
+NEXT_3_ACTIONS=
+OWNER_CLASS=
+START NOW.

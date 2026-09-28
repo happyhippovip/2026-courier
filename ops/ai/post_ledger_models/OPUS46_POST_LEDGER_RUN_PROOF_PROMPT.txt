@@ -1,0 +1,18 @@
+COURIER OPUS 4.6 — POST-LEDGER RUN PROOF
+PROVIDER=OPUS_4_6
+MODEL_CLASS=C4
+REASONING=HIGH
+READ:
+ops/ai/OPUS46_RUN_PROOF_MINIMALITY_JUDGE_PROMPT.txt
+ops/ai/WALL_QUEUE_CURRENT.md
+TASK:
+Converge the smallest decisive RUN_1/RUN_2 evidence set from durable Mac/Windows prep outputs.
+Do not execute physical runs.
+Do not revalidate PRE_CODEX.
+OUTPUT:
+RUN1_MINIMUM=
+RUN2_MINIMUM=
+FALSE_GREEN_RISKS=
+CAN_REMOVE=
+NEXT_EXACT_ACTION=
+START NOW.

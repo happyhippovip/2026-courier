@@ -1,0 +1,57 @@
+COURIER WINDOWS POST-LEDGER 15 — CORE_FREEZE_PREREQUISITES
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+MODEL_CLASS=C1
+CONTINUE_BY_DEFAULT=YES
+LEDGER_WORK=SKIP
+CLAIM_BEFORE_ANALYSIS=YES
+RESULT_REUSE_FIRST=YES
+SLOT_IDLE_IS_NOT_TERMINAL=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+
+TASK:
+Assemble candidate-independent Core Freeze prerequisite matrix and exact RUN-dependent gaps.
+
+RULES:
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+APPLICATION_SOURCE_WRITE=NO
+
+LEDGER LAW:
+Ledger is complete. Do not claim Ledger finish/review work unless a durable RETEST_TRIGGER reopens it.
+
+PRE_CODEX LAW:
+Unchanged gate fingerprint is never revalidated.
+Only WINDOWS-HNI-XX may own gate persistence, and only if no live owner exists.
+All other tasks must skip that blocker and continue independent prep.
+
+PHYSICAL LAW:
+No RUN_1/RUN_2 execution here.
+
+OUTPUT:
+TASK_ID=WINDOWS-HNI-15
+AREA=CORE_FREEZE_PREREQUISITES
+STATUS=COMPLETE|OPEN|BLOCKED|WAITING_FOR_DURABILITY|RESULT_REUSED
+RESULTS_REUSED=
+DELIVERABLE=
+MISSING=
+BLOCKER=
+NEXT_EXACT_ACTION=
+DO_NOT_REPEAT_FINGERPRINT=
+
+IF TEMPORARILY EMPTY:
+harvest -> replenish from real post-Ledger critical-path work -> shell backoff -> refresh -> continue.
+Do not terminate with SLOT_IDLE.
+
+START NOW.

@@ -1,0 +1,39 @@
+COURIER WINDOWS — AFTER-LEDGER CONTINUOUS FINISHER
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+CONTINUE_BY_DEFAULT=YES
+LEDGER_WORK=SKIP
+CLAIM_BEFORE_ANALYSIS=YES
+RESULT_REUSE_FIRST=YES
+SLOT_IDLE_IS_NOT_TERMINAL=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+READ:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+
+PRIORITY:
+1 WINDOWS_HNI_01 only if no live gate persistence owner
+2 WINDOWS_HNI_02..06 PRE_CODEX/Codex packet prep
+3 WINDOWS_HNI_07..09 cache/claim/cross-host
+4 WINDOWS_HNI_10..15 Mac/RUN/Core Freeze inputs
+5 WINDOWS_HNI_16..19 pilot/product/motor/provider prep
+6 WINDOWS_HNI_20 router
+
+Ledger is complete. Reopen only on durable RETEST_TRIGGER.
+
+If gate still DURABILITY_PENDING and another owner exists:
+skip gate work immediately; claim another task.
+
+If PRE_CODEX READY:
+stop validating it; assemble handoff.
+Codex runs exactly once through the dedicated Codex prompt.
+
+If Codex green:
+Windows shifts to evidence harvesting/cross-host support while Mac owns exact binding/physical run.
+
+Do not terminate on SLOT_IDLE.
+START NOW.
