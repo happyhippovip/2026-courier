@@ -1,0 +1,57 @@
+MUSE FUTURE 97 — POST_CODEX — CODEX_FINDING_CLASSIFICATION
+
+Work directly in the open 2026-courier repo.
+MODE=READ_ONLY_ADVERSARIAL_QA
+LEDGER=COMPLETE
+NO_SOURCE_EDITS=YES
+NO_PHYSICAL_EXECUTION=YES
+
+CHECKPOINT=ops/ai/live/MUSE_FUTURE_97_CODEX_FINDING_CLASSIFICATION.md
+
+FIRST:
+Read ops/ai/GATE_STATE_CURRENT.md and current durable phase/result summaries.
+
+REQUIRED_PHASE=POST_CODEX
+
+If REQUIRED_PHASE is not reached:
+write WAITING_FOR_PHASE=POST_CODEX
+do not simulate later evidence
+do not review templates as if runtime instances existed
+then choose another currently legal Muse task.
+
+If phase is reached:
+TASK=Classify Codex findings into causal source defect, test defect, evidence defect, or non-blocking note.
+
+WORK:
+1 reuse completed fingerprints
+2 inspect only exact relevant source/runtime evidence/docs
+3 evaluate actual instances when the phase has produced them
+4 find 3-6 new concrete subcases where useful
+5 separate CONFIRMED_DEFECT / EVIDENCE_GAP / DISPROVEN / UNKNOWN
+6 persist exact refs and do-not-repeat fingerprint
+7 when exhausted mark FAMILY_COMPLETE
+
+BEFORE /clear:
+persist checkpoint with CLEAR_SAFE=YES and NEXT_SUBCASE.
+
+DO NOT:
+reopen Ledger;
+repeat pre-phase template reviews after real runtime evidence exists;
+revalidate unchanged PRE_CODEX;
+simulate Codex or physical runs;
+invent filler.
+
+OUTPUT:
+REQUIRED_PHASE=
+CURRENT_PHASE=
+STATUS=ACTIVE|WAITING_FOR_PHASE|FAMILY_COMPLETE
+CONFIRMED_DEFECTS=
+EVIDENCE_GAPS=
+DISPROVEN=
+UNKNOWN=
+NEXT_OWNER=
+NEXT_SUBCASE=
+CLEAR_SAFE=
+DO_NOT_REPEAT=
+
+START NOW.

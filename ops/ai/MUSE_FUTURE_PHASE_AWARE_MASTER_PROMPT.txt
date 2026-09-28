@@ -1,0 +1,41 @@
+MUSE FUTURE PHASE-AWARE MASTER
+
+Work directly in the open 2026-courier repo.
+
+Read:
+ops/ai/MUSE_FUTURE_97_144_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+Determine CURRENT_PHASE from durable truth.
+
+Use only the section whose REQUIRED_PHASE has actually been reached.
+
+Priority:
+POST_CODEX
+-> POST_RUN1
+-> POST_RUN2
+-> CORE_FREEZE
+-> PILOT
+-> PRODUCT_RELEASE
+
+Pick the lowest-numbered unfinished family legal for CURRENT_PHASE.
+Work 3-6 new subcases.
+Persist checkpoint.
+Then continue to another legal unfinished family.
+
+If no family in the current phase is legal yet:
+do NOT simulate later phases.
+Return WAITING_FOR_PHASE with NEXT_OWNER.
+
+Before /clear:
+checkpoint current state,
+write CLEAR_SAFE=YES,
+NEXT_SUBCASE=...
+then stop.
+
+No Ledger.
+No unchanged PRE_CODEX revalidation.
+No source edits.
+No physical runs.
+No filler.
+START NOW.
