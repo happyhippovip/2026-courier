@@ -17,7 +17,6 @@ LOCAL_OBSERVED_FIXED_COMMIT_PREFIX=dfd22bb
 LOCAL_OBSERVED_FIXED_COMMIT_FULL_SHA=UNKNOWN_NOT_DURABLE
 LOCAL_OBSERVED_FIXED_COMMIT_REMOTE_PRESENT=NO_PER_LOCAL_EVIDENCE
 LOCAL_OBSERVED_FIXED_COMMIT_WORKTREE_PRESENT=NO_PER_LOCAL_EVIDENCE
-DO_NOT_TREAT_DFD22BB_PREFIX_AS_A_RUN_ID=YES
 
 CURRENT_PHASE=CANDIDATE_STATE_RECONCILIATION
 AUTHORITATIVE_READY=NO
@@ -56,8 +55,6 @@ MAX_SOURCE_WRITERS=1
 MAX_PHYSICAL_MAC_OWNERS=1
 
 READ_ONLY_WALL_STATE=TARGETED_RECONCILIATION_ONLY
-READ_ONLY_WALL_RULE=
-Do not reopen broad review. Only work a unique reconciliation, changed-byte, actual-evidence, or explicitly routed lane. All other windows park.
 
 COST_GUARD:
 - do not send Muse/Google back to old PRE_CODEX work;
@@ -66,7 +63,7 @@ COST_GUARD:
 - do not reopen Ledger absent RETEST_TRIGGER;
 - do not invent new read-only shards merely to keep windows busy;
 - do not use watch/sleep loops inside model turns;
-- when no real work exists, emit NO_REAL_WORK and let an external supervisor wait without model tokens.
+- when no real work exists, record the exact owner and trigger, then park.
 
 INVALIDATION_TRIGGER:
 - dispatcher publishes/rules out the orphaned fixed commit;
