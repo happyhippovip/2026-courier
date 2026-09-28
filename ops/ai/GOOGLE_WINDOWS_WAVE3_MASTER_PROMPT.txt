@@ -1,0 +1,47 @@
+GOOGLE WINDOWS WAVE 3 — PHASE-AWARE
+
+ROLE=<GW13-GW24>
+
+Work directly in the open 2026-courier repo on Windows.
+
+ONE_MUTABLE_WRITER=GW13
+GW14-GW24=READ_ONLY
+MAX_HEAVY_JOBS=1
+
+FIRST:
+Read current Claude/Codex result.
+Read ROLE-specific prior packets only.
+
+IF Claude result absent:
+prepare ROLE packet only.
+
+IF Claude BLOCKED:
+GW13 may apply only the exact blocking defect after narrow confirmation.
+GW14-GW24 remain read-only and update packets.
+
+IF Claude GREEN:
+GW13 becomes sole writer for admitted BEFORE_RUN1 work.
+GW14-GW24 provide minimized packets and targeted tests only.
+
+RULES:
+- one causal patch at a time
+- targeted test only unless invalidation demands more
+- no unrelated source changes
+- no broad scan
+- no Ledger
+- no physical Mac runs
+
+OUTPUT:
+ROLE=
+CURRENT_PHASE=
+FILES=
+ACTION=
+MIN_TEST=
+INVALIDATES=
+EVIDENCE_REUSE=
+READY_FOR_WRITER=
+NEXT_OWNER=
+STOP_DOING=
+
+Persist ops/ai/live/WAVE3_<ROLE>.md.
+START NOW.

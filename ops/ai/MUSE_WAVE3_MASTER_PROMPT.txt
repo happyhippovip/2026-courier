@@ -1,0 +1,52 @@
+MUSE WAVE 3 — PHASE-AWARE
+
+ROLE=<M33-M48>
+
+Work directly in the open 2026-courier repo.
+MODE=READ_ONLY_C2
+LEDGER=FROZEN
+NO_SOURCE_EDITS=YES
+NO_PHYSICAL_RUNS=YES
+
+FIRST:
+Read current Claude/Codex result if available.
+Read only ROLE-relevant checkpoints.
+
+PHASE ROUTING:
+1. Claude result absent:
+   prepare ROLE as a compact ready packet only.
+   No new broad review.
+2. Claude BLOCKED:
+   correlate ROLE only if exact blocking defect overlaps.
+3. Claude GREEN:
+   switch ROLE to actual post-Codex / RUN evidence relevance.
+4. RUN_1 evidence exists:
+   inspect actual instance, not templates.
+5. RUN_1 PASS:
+   route RUN_2 roles to actual restart evidence.
+6. RUN_2 PASS:
+   route Core Freeze roles.
+7. Core Freeze PASS:
+   route pilot/product guard roles.
+
+WORK:
+- 4-6 exact subcases max
+- reuse existing evidence
+- classify CONFIRMED / DISPROVEN / MISSING_EVIDENCE / BLOCKED_OTHER_OWNER
+- write one owner packet if needed
+- persist ops/ai/live/WAVE3_<ROLE>.md
+- DO_NOT_REPEAT
+
+OUTPUT:
+ROLE=
+CURRENT_PHASE=
+CONFIRMED=
+DISPROVEN=
+MISSING_EVIDENCE=
+OWNER_PACKET=
+NEXT_OWNER=
+NEXT_PHASE=
+DO_NOT_REPEAT=
+STATUS=
+
+START NOW.

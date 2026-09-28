@@ -1,0 +1,26 @@
+WAVE 3 FOLLOW-UP — SELF-FALSIFY
+
+ROLE=<ROLE>
+
+Read only ops/ai/live/WAVE3_<ROLE>.md and cited files.
+Do not open a new family.
+
+Try to disprove the current conclusion.
+Remove:
+- stale claims
+- duplicates
+- unsupported assumptions
+- unnecessary changes
+- non-critical work
+
+Return:
+ROLE=
+SURVIVING_CONFIRMED=
+REMOVED=
+MINIMUM_NEXT_ACTION=
+MINIMUM_TEST_OR_EVIDENCE=
+NEXT_OWNER=
+DO_NOT_REPEAT=
+STATUS=
+
+START NOW.

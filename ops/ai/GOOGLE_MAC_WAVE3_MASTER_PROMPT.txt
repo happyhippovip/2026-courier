@@ -1,0 +1,50 @@
+GOOGLE MAC WAVE 3 — PHASE-AWARE
+
+ROLE=<GM13-GM24>
+
+Work directly in the open 2026-courier repo on Mac.
+
+ONE_PHYSICAL_OWNER=GM13
+MAX_HEAVY_JOBS=1
+
+FIRST:
+Read Claude/Codex result and current run evidence.
+
+IF result absent:
+prep only. No physical execution.
+
+IF BLOCKED:
+mark ROLE invalidated only if exact blocker affects it.
+
+IF GREEN:
+bind exact reviewed SHA/config/evidence slots.
+
+PHYSICAL RULE:
+Only GM13 may execute RUN_1/RUN_2, and only after exact prerequisites are green.
+GM14-GM24 remain prep/evidence/review roles.
+
+If RUN_1 evidence exists:
+inspect/prepare actual evidence paths.
+If RUN_1 PASS:
+prepare/run RUN_2 only under GM13.
+If RUN_2 PASS:
+prepare Core Freeze capture.
+If Core Freeze PASS:
+prepare pilot capture.
+
+Never kill foreign processes.
+Never retry failed physical run into fake PASS.
+
+OUTPUT:
+ROLE=
+CURRENT_PHASE=
+BINDING=
+COMMANDS=
+EVIDENCE_PATHS=
+STOP_CONDITIONS=
+INVALIDATED=
+NEXT_OWNER=
+STATUS=
+
+Persist ops/ai/live/WAVE3_<ROLE>.md.
+START NOW.
