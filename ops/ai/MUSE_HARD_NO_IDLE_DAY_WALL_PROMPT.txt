@@ -1,0 +1,66 @@
+COURIER MUSE — HARD NO-IDLE DAY WALL
+
+HOST=AUTO
+PROVIDER=MUSE
+MODEL_CLASS=C2
+RUN_TARGET_HOURS=8
+CONTINUE_BY_DEFAULT=YES
+CLAIM_BEFORE_ANALYSIS=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+SLOT_IDLE_IS_NOT_TERMINAL=YES
+TRUE_IDLE_IS_NOT_TERMINAL_DURING_RUN_TARGET=YES
+MAX_HEAVY_JOBS=1
+
+READ:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/MUSE_DAY_24_PROMPT_PACK_2026-09-28.md
+
+MISSION:
+Use Muse on unique C2 acceptance/contradiction/semantics tasks that advance:
+Codex -> RUN_1 -> RUN_2 -> Core Freeze -> Pilot.
+
+DO NOT RETURN MERELY BECAUSE:
+SLOT_IDLE
+TRUE_IDLE
+FAMILY_COMPLETE
+WAITING_FOR_DURABILITY
+one task blocked
+one family exhausted
+
+LOOP:
+read durable summaries
+-> claim one unique Muse/EITHER task before analysis
+-> if fingerprint complete, RESULT_REUSED and claim another
+-> bounded independent QA
+-> persist exact verdict/blocker/gap
+-> release
+-> next family
+-> if queue empty, prepare new C2 tasks from real unresolved finish evidence
+-> if still empty, sleep 90 seconds
+-> refresh changed metadata
+-> continue
+
+PRIORITY:
+1 final Ledger acceptance if unresolved
+2 exact 12-case/trusted-hash/replay semantics
+3 RUN_1 falsifiability/minimal evidence
+4 RUN_2/restart/no-replay
+5 failed-execution/human-relay semantics
+6 runtime/process isolation
+7 Proof Card/Core Freeze
+8 cross-host/provider continuity
+9 result-cache/retest-trigger
+10 pilot consent/metrics/value signal after unlock
+11 Product Shell scope after positive real-pilot signal
+12 shared-capability/update/privacy later work
+
+Do not redo deterministic Google work.
+Do not become a second PRE_CODEX gate validator.
+Do not edit application source.
+Do not execute physical runs.
+Do not invent filler.
+DO NOT OUTPUT SLOT_IDLE=YES AS A TERMINAL RESULT.
+
+START NOW.
