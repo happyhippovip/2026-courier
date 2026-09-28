@@ -1,0 +1,54 @@
+# Google IDE Direct 50 Progress
+
+Single-worker local progress. States: TODO | DOING | DONE | BLOCKED_REMOTE | BLOCKED_OTHER.
+
+- GQ01 | TODO | Current local candidate identity and remaining durability blocker
+- GQ02 | TODO | PRE_CODEX handoff packet
+- GQ03 | TODO | Exact 12-case evidence matrix
+- GQ04 | TODO | Targeted-test fingerprint evidence
+- GQ05 | TODO | Final changed-file scope check
+- GQ06 | TODO | Trusted expected-hash provenance
+- GQ07 | TODO | Replay equivalence and changed-field rejection
+- GQ08 | TODO | Result-cache integrity
+- GQ09 | TODO | Claim/lease integrity
+- GQ10 | TODO | Harvester to NEXT_READY chain
+- GQ11 | TODO | Windows-to-Mac durable handoff
+- GQ12 | TODO | Mac binding input packet
+- GQ13 | TODO | RUN_1 command sheet
+- GQ14 | TODO | RUN_1 evidence layout
+- GQ15 | TODO | A executes exactly once evidence
+- GQ16 | TODO | Expected hash survival evidence
+- GQ17 | TODO | Server bytes/hash evidence
+- GQ18 | TODO | Verify-to-reconcile evidence
+- GQ19 | TODO | B automatic start evidence
+- GQ20 | TODO | HUMAN_RELAY_COUNT=0 evidence
+- GQ21 | TODO | FAILED-execution contamination guard
+- GQ22 | TODO | RUN_2 restart operator sheet
+- GQ23 | TODO | A result persistence across restart
+- GQ24 | TODO | No-A-replay after restart
+- GQ25 | TODO | B continuation after restart
+- GQ26 | TODO | A execution count remains one
+- GQ27 | TODO | Restart race matrix
+- GQ28 | TODO | Process/PID/PGID/port ownership
+- GQ29 | TODO | State/log/artifact isolation
+- GQ30 | TODO | Resource admission checks
+- GQ31 | TODO | Tight-polling audit
+- GQ32 | TODO | Persistent-idle regression coverage
+- GQ33 | TODO | Courier Motor workflow regression
+- GQ34 | TODO | Worker/verifier auth-boundary regression
+- GQ35 | TODO | Execution event schema
+- GQ36 | TODO | Timestamp/order assertions
+- GQ37 | TODO | Failure evidence preservation
+- GQ38 | TODO | Proof Card assembly
+- GQ39 | TODO | Covered Surface and autonomy evidence
+- GQ40 | TODO | Core Freeze matrix
+- GQ41 | TODO | Retest trigger matrix
+- GQ42 | TODO | Fingerprint portability Windows-to-Mac
+- GQ43 | TODO | Provider handoff identity continuity
+- GQ44 | TODO | Provider failure isolation
+- GQ45 | TODO | Pilot Goal Contract prep
+- GQ46 | TODO | Pilot metrics prep
+- GQ47 | TODO | Pilot value-signal definitions
+- GQ48 | TODO | Product Shell gate prep
+- GQ49 | TODO | Update/rollback/LKG prep
+- GQ50 | TODO | Critical-path synthesis and reset to earliest incomplete
