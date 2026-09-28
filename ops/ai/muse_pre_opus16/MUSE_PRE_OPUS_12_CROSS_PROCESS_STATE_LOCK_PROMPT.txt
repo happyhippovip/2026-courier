@@ -1,0 +1,8 @@
+MUSE PRE-OPUS 12 — CROSS_PROCESS_STATE_LOCK
+MODE=READ_ONLY
+LEDGER=COMPLETE
+NO_SOURCE_EDITS=YES
+NO_PRE_CODEX_REVALIDATION=YES
+TASK=Challenge RLock/JSON-state assumptions under multiple processes and restart.
+Use source/runtime truth over stale prose. Reuse completed findings. Find 3-5 new concrete subcases, persist exact refs and causal impact, and stop when family is exhausted. Do not simulate Opus/Codex or run physical proof.
+START NOW.

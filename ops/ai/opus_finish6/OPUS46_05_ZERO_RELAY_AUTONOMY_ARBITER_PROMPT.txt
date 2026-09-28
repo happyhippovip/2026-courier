@@ -1,0 +1,6 @@
+OPUS 4.6 — ZERO-RELAY AUTONOMY ARBITER
+EFFORT=XHIGH
+MODE=READ_ONLY
+Judge only proof semantics for A exactly once -> trusted result -> independent verify -> reconcile -> B automatic start -> restart/no replay.
+Find the smallest independent witness/event set that distinguishes automation from human/manual progression.
+Return REQUIRED_EVENTS, CURRENT_GAPS, FALSE_GREENS, BEFORE_RUN_FIXES.

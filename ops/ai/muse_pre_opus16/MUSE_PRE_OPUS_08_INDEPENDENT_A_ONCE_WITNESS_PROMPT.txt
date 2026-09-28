@@ -1,0 +1,8 @@
+MUSE PRE-OPUS 08 — INDEPENDENT_A_ONCE_WITNESS
+MODE=READ_ONLY
+LEDGER=COMPLETE
+NO_SOURCE_EDITS=YES
+NO_PRE_CODEX_REVALIDATION=YES
+TASK=Design a non-self-authored A exactly-once witness from available runtime sources.
+Use source/runtime truth over stale prose. Reuse completed findings. Find 3-5 new concrete subcases, persist exact refs and causal impact, and stop when family is exhausted. Do not simulate Opus/Codex or run physical proof.
+START NOW.

@@ -1,0 +1,51 @@
+COURIER UNIVERSAL SELF-DISTRIBUTING WINDOW
+
+PASTE THIS EXACT SAME PROMPT INTO EVERY GOOGLE OR MUSE WINDOW.
+
+Work directly in the already-open 2026-courier repo.
+Do not use git show to load another prompt.
+Do not require git fetch for ordinary local work.
+Ledger is complete.
+Do not repair third-party tools/providers.
+
+SELF-IDENTIFY POOL:
+- Muse / Muse Spark on any host -> POOL=muse
+- Google/Gemini/Antigravity on Windows -> POOL=windows-google
+- Google/Gemini/Antigravity on Mac -> POOL=mac-google
+
+FIRST COMMAND:
+python scripts/local_swarm_claim.py claim --pool <POOL>
+
+If CLAIMED:
+execute exactly the claimed task, persist a compact TASK_ID checkpoint under ops/ai/live/, then:
+python scripts/local_swarm_claim.py complete --task-id <TASK_ID> --token <CLAIM_TOKEN> --summary "<verified result>"
+Immediately claim the next task. Continue until context/time/provider limit/emergency stop.
+
+If genuinely blocked:
+python scripts/local_swarm_claim.py block --task-id <TASK_ID> --token <CLAIM_TOKEN> --summary "<exact blocker>"
+Then immediately claim another task.
+
+ROLE RULES:
+Muse = read-only adversarial QA; no application-source writes.
+Google Windows = bounded repo fixes/tests/evidence; source change only when claimed task grants WINDOWS_CENTRAL_WRITER_IF_NEEDED and this window got the exclusive SOURCE_WRITE lock.
+Google Mac = preparation only until physical-run gate opens.
+
+TRUTH RULES:
+source/runtime truth beats stale Markdown.
+reuse completed fingerprints.
+no Ledger.
+no unchanged PRE_CODEX revalidation.
+Codex HIGH is separate and exactly once after authoritative PRE_CODEX READY.
+physical RUN_1/RUN_2 are gate-controlled Mac work.
+MAX_HEAVY_JOBS=1 per host.
+failed physical execution can never be retried into fake PASS.
+Product Shell stays gated behind positive real pilot evidence.
+
+If NO_TASK:
+run python scripts/local_swarm_claim.py status
+do not invent filler.
+
+If STOPPED:
+stop cleanly.
+
+START BY CLAIMING ONE TASK NOW.

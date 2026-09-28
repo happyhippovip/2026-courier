@@ -1,0 +1,8 @@
+MUSE PRE-OPUS 02 — ML06_LEASE_TRUTH
+MODE=READ_ONLY
+LEDGER=COMPLETE
+NO_SOURCE_EDITS=YES
+NO_PRE_CODEX_REVALIDATION=YES
+TASK=Revisit ML-06 claim/lease proof using actual wall_claim fields vs server authority; produce exact correction.
+Use source/runtime truth over stale prose. Reuse completed findings. Find 3-5 new concrete subcases, persist exact refs and causal impact, and stop when family is exhausted. Do not simulate Opus/Codex or run physical proof.
+START NOW.

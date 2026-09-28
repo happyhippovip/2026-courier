@@ -1,0 +1,5 @@
+OPUS 4.6 — PRE_CODEX HANDOFF ARBITER
+EFFORT=HIGH
+MODE=READ_ONLY
+Without revalidating the candidate, review whether the handoff is unambiguous enough for exactly one Codex HIGH fixed-candidate review once durability becomes authoritative.
+Return MISSING_BEFORE_CODEX, SAFE_TO_PREPARE_NOW, STALE_EVIDENCE, STOP_REVIEWING, EXACT_CODEX_INPUT_SET.

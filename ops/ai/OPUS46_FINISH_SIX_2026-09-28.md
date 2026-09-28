@@ -1,0 +1,8 @@
+# Opus 4.6 Finish Six
+
+- `ops/ai/opus_finish6/OPUS46_01_CAUSAL_DEFECT_ARBITER_PROMPT.txt`
+- `ops/ai/opus_finish6/OPUS46_02_PHYSICAL_PROOF_MINIMALITY_PROMPT.txt`
+- `ops/ai/opus_finish6/OPUS46_03_STATE_MACHINE_TRUTH_ARBITER_PROMPT.txt`
+- `ops/ai/opus_finish6/OPUS46_04_PRE_CODEX_HANDOFF_ARBITER_PROMPT.txt`
+- `ops/ai/opus_finish6/OPUS46_05_ZERO_RELAY_AUTONOMY_ARBITER_PROMPT.txt`
+- `ops/ai/opus_finish6/OPUS46_06_FINISH_DAY_OWNER_MAP_PROMPT.txt`

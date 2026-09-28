@@ -1,0 +1,12 @@
+COURIER SWARM EMERGENCY SWITCH
+
+STOP new claims on this device:
+python scripts/local_swarm_claim.py stop --reason "operator emergency stop"
+
+Existing windows finish only their current safe atomic/checkpoint step, persist it, complete/block/release the claim, then stop.
+Do not kill foreign processes.
+
+RESUME:
+python scripts/local_swarm_claim.py resume
+
+Then paste the universal self-distributing prompt again.

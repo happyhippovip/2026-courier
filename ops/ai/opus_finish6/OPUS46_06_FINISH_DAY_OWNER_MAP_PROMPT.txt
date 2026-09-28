@@ -1,0 +1,6 @@
+OPUS 4.6 — FINISH DAY OWNER MAP
+EFFORT=HIGH
+MODE=READ_ONLY_CONVERGENCE
+Read current durable blockers and completed evidence. Produce the smallest owner-specific path to finish:
+Windows durability/writer -> Codex HIGH once -> Mac binding/RUN_1 -> RUN_2 -> Core Freeze -> pilot.
+Return NEXT_5_ACTIONS with owner, done condition, stop condition, and STOP_DOING list. Do not add new review families unless causally required.

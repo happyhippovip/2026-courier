@@ -1,0 +1,6 @@
+OPUS 4.6 — PHYSICAL PROOF MINIMALITY
+EFFORT=XHIGH
+MODE=READ_ONLY_CONVERGENCE
+Read current RUN_1/RUN_2 contracts, Muse falsifications, state-truth map and Mac prep.
+Define minimum decisive independent evidence for RUN_1 PASS, RUN_2 PASS, Core Freeze.
+Return false-green gaps that must be fixed before physical execution and what can wait. No source edits, no physical run.

@@ -1,0 +1,6 @@
+OPUS 4.6 — STATE MACHINE TRUTH ARBITER
+EFFORT=XHIGH
+MODE=READ_ONLY
+Adjudicate conflicting restart/state claims against executable source truth.
+Focus RESULT_RECEIVED, verify/reconcile, retry, HUMAN_REQUIRED, resume/force_success, current_step_index, successor readiness.
+Return CANONICAL_STATE_MAP, FALSE_DOC_CLAIMS, SOURCE_DEFECTS, EVIDENCE_DEFECTS, MINIMUM_CORRECTIONS.
