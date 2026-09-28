@@ -1,0 +1,11 @@
+{
+  "task_id": "TAMPER_EVIDENT_TEST",
+  "TASK_ID": "TAMPER_EVIDENT_TEST",
+  "owner": "MAC_GOOGLE_FINISHER",
+  "OWNER": "MAC_GOOGLE_FINISHER",
+  "host": "MAC",
+  "provider": "GOOGLE_CLI",
+  "status": "RECONCILED",
+  "STATUS": "RECONCILED",
+  "timestamp": "2026-09-28T01:08:06.882244+00:00"
+}

@@ -1,0 +1,11 @@
+TASK=MPREP-06
+STATUS=PASS
+RESULTS_REUSED=ops/ai/coordination_pack/FAMILY_08_CORE_FREEZE_PROOF_CARD.md
+OUTPUT=
+Proof Card missing/unknown fields:
+- PRESENT: Goal-ID, Task-ID, Attempt-ID, Execution-ID, Result-ID, Evidence-IDs, acceptance criteria, Covered Surface, Human Interventions (0), Proof Level (PHYSICAL_STAGING_PORT_8081), Autonomy Grade (A3/A4)
+- UNKNOWN / PENDING: FINAL_SHA (pending Windows commit), Source Fingerprint (pending FINAL_SHA), Build Fingerprint (pending py_compile on FINAL_SHA)
+MISSING=FINAL_SHA from Windows Central Writer
+BLOCKER=BLK-01 (Windows Central Writer candidate commit)
+MUSE_INPUT=Audit the 16-field Proof Card schema; verify no other required fields are missing.
+DO_NOT_REPEAT_FINGERPRINT=420ae048bd2baed1

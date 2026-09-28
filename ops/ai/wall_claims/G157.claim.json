@@ -1,0 +1,11 @@
+{
+  "slot": "G157",
+  "worker_type": "COURIER_GOOGLE_OVERNIGHT_QUEUE_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "mode": "READ_ONLY_REPORT",
+  "status": "COMPLETED",
+  "task": "G157",
+  "result_path": "ops/ai/wall_results/G157_result.md",
+  "fingerprint": "G157_RESOURCE_PRESSURE_FALLBACK"
+}

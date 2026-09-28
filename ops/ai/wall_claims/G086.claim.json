@@ -1,0 +1,11 @@
+{
+  "slot": "G086",
+  "worker_type": "COURIER_GOOGLE_OVERNIGHT_QUEUE_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "mode": "READ_ONLY_REPORT",
+  "status": "COMPLETED",
+  "task": "G086",
+  "result_path": "ops/ai/wall_results/G086_result.md",
+  "fingerprint": "G086_CHANGED_DISPATCH_GEN_BLOCKED"
+}

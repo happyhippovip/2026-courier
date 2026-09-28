@@ -1,0 +1,10 @@
+{
+  "task_id": "MAC_HNI_13",
+  "status": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "scripts/run2_physical/RUN2_NO_A_REPLAY_PROOF_CONTRACT.md",
+  "blocker": "NONE",
+  "missing": "NONE",
+  "next_exact_action": "CLAIM_MAC_HNI_14",
+  "timestamp": "2026-09-28T03:00:00Z"
+}

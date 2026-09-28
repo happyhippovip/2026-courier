@@ -1,0 +1,6 @@
+# HNI_11_ARTIFACT_STORAGE_LAYOUT.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_11_ARTIFACT_STORAGE_LAYOUT.txt
+DESCRIPTION: Define exact filesystem directory hierarchy for server/state/isolated_run1/artifacts and verifier downloads.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_11_ARTIFACT_STORAGE_LAYOUT.md

@@ -1,0 +1,23 @@
+{
+  "slot": "MAC-MEGA-005",
+  "worker_type": "COURIER_MAC_MEGA_MASTER",
+  "host": "MAC",
+  "provider": "GOOGLE_CLI",
+  "mode": "READ_ONLY_PLUS_COORDINATION_REPORTS",
+  "status": "COMPLETED",
+  "claimed_at": "2026-09-27T22:46:15+02:00",
+  "completed_at": "2026-09-27T22:46:30+02:00",
+  "mission": "COURIER_MAC_MEGA_MASTER_WORK_UNTIL_CODEX",
+  "canonical_base": "4c1e24ccc522042af826bc4c2b595daf85d097f9",
+  "remote_head": "7ac735e983ce01f3d42359eba63f951ff5b2e4b3",
+  "families_all_reported": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+  "ledger100_all_reported": true,
+  "ledger100_results_count": 100,
+  "morning_chief_report": "ops/ai/coordination_pack/MORNING_CHIEF_AGGREGATOR_REPORT_2026-09-27.md",
+  "reports_dir": "ops/ai/coordination_pack/",
+  "unworked_queue_size": 0,
+  "safe_to_idle": true,
+  "state": "TRUE_IDLE",
+  "waiting_for_windows": true,
+  "pre_codex_ready": false
+}

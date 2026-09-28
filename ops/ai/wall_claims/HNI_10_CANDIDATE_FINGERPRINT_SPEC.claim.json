@@ -1,0 +1,11 @@
+{
+  "task_id": "CANDIDATE_FINGERPRINT_SPEC",
+  "TASK_ID": "CANDIDATE_FINGERPRINT_SPEC",
+  "owner": "MAC_GOOGLE_FINISHER",
+  "OWNER": "MAC_GOOGLE_FINISHER",
+  "host": "MAC",
+  "provider": "GOOGLE_CLI",
+  "status": "RECONCILED",
+  "STATUS": "RECONCILED",
+  "timestamp": "2026-09-28T01:08:06.867267+00:00"
+}

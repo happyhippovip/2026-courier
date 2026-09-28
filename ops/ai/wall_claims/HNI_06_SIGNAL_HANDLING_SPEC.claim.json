@@ -1,0 +1,11 @@
+{
+  "task_id": "SIGNAL_HANDLING_SPEC",
+  "TASK_ID": "SIGNAL_HANDLING_SPEC",
+  "owner": "MAC_GOOGLE_FINISHER",
+  "OWNER": "MAC_GOOGLE_FINISHER",
+  "host": "MAC",
+  "provider": "GOOGLE_CLI",
+  "status": "RECONCILED",
+  "STATUS": "RECONCILED",
+  "timestamp": "2026-09-28T01:08:06.847051+00:00"
+}

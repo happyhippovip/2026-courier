@@ -1,0 +1,6 @@
+# HNI_48_GIT_TAG_LOCK_PROTOCOL.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_48_GIT_TAG_LOCK_PROTOCOL.txt
+DESCRIPTION: Define formal Git annotated tag protocol (core-freeze-v1.0) and commit signing requirements.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_48_GIT_TAG_LOCK_PROTOCOL.md

@@ -1,0 +1,9 @@
+{
+  "task_id": "PPREP-09",
+  "task_title": "Mac Worker & Verifier Key Separation Checklist",
+  "host": "MAC",
+  "worker": "GOOGLE_CLI",
+  "claimed_at": "2026-09-28T00:12:40+02:00",
+  "completed_at": "2026-09-28T00:12:40+02:00",
+  "status": "COMPLETED"
+}

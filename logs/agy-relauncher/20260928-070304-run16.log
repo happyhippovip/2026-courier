@@ -1,0 +1,79 @@
+# Courier Mac — After-Ledger Continuous Finisher Report
+
+- **Host**: `MAC` (`Darwin 25.6.0 x86_64`)
+- **Provider**: `GOOGLE_CLI`
+- **Model Class**: `C1`
+- **Gate Status**: `PRE_CODEX_STATE=DURABILITY_PENDING` (Blocked on authoritative durability of reported `FINAL_SHA`)
+- **Ledger Work**: `SKIP` (100% Reconciled)
+- **Slot Idle Status**: `NON-TERMINAL` (Continuous daemon polling cycle active)
+
+---
+
+## 1. Phase A — Candidate-Independent Mac Prep Status
+
+All candidate-independent verification tasks, contract specifications, and harness binders (`MAC_HNI_01`..`MAC_HNI_22`) are fully authored, audited, and verified:
+
+| Priority | Task ID | Name | Deliverable | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | `MAC_HNI_01` | `RUN1_COMMAND_BINDER` | [`RUN1_PHYSICAL_BINDING_TEMPLATE.sh`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUN1_PHYSICAL_BINDING_TEMPLATE.sh) | `COMPLETE` |
+| 2 | `MAC_HNI_02` | `RUN1_EVIDENCE_LAYOUT` | [`RUN1_EVIDENCE_LAYOUT.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUN1_EVIDENCE_LAYOUT.md) | `COMPLETE` |
+| 3 | `MAC_HNI_03` | `RUN1_A_ONCE_PROOF` | [`RUN1_A_ONCE_PROOF_CONTRACT.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUN1_A_ONCE_PROOF_CONTRACT.md) | `COMPLETE` |
+| 4 | `MAC_HNI_04` | `RUN1_EXPECTED_HASH_CHAIN` | [`RUN1_EXPECTED_HASH_CHAIN.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUN1_EXPECTED_HASH_CHAIN.md) | `COMPLETE` |
+| 5 | `MAC_HNI_05` | `RUN1_SERVER_BYTES_PROOF` | [`RUN1_SERVER_BYTES_PROOF_CONTRACT.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUN1_SERVER_BYTES_PROOF_CONTRACT.md) | `COMPLETE` |
+| 6 | `MAC_HNI_06` | `RUN1_VERIFY_RECONCILE_PROOF` | [`RUN1_VERIFY_RECONCILE_PROOF_CONTRACT.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUN1_VERIFY_RECONCILE_PROOF_CONTRACT.md) | `COMPLETE` |
+| 7 | `MAC_HNI_07` | `RUN1_B_AUTOSTART_PROOF` | [`RUN1_B_AUTOSTART_PROOF_CONTRACT.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUN1_B_AUTOSTART_PROOF_CONTRACT.md) | `COMPLETE` |
+| 8 | `MAC_HNI_08` | `RUN1_ZERO_RELAY_PROOF` | [`RUN1_ZERO_RELAY_PROOF_CONTRACT.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUN1_ZERO_RELAY_PROOF_CONTRACT.md) | `COMPLETE` |
+| 9 | `MAC_HNI_09` | `RUN1_FAILED_EXECUTION_GUARD` | [`RUN1_FAILED_EXECUTION_GUARD.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUN1_FAILED_EXECUTION_GUARD.md) | `COMPLETE` |
+| 10 | `MAC_HNI_10` | `RUN1_RESULT_TEMPLATE` | [`RUN1_RESULT_TEMPLATE.json`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUN1_RESULT_TEMPLATE.json) | `COMPLETE` |
+| 11 | `MAC_HNI_11` | `RUN2_RESTART_BINDER` | [`RUN2_PHYSICAL_BINDING_TEMPLATE.sh`](file:///Users/user/Downloads/2026-courier/scripts/run2_physical/RUN2_PHYSICAL_BINDING_TEMPLATE.sh) | `COMPLETE` |
+| 12 | `MAC_HNI_12` | `RUN2_A_PERSISTENCE_PROOF` | [`RUN2_A_PERSISTENCE_PROOF_CONTRACT.md`](file:///Users/user/Downloads/2026-courier/scripts/run2_physical/RUN2_A_PERSISTENCE_PROOF_CONTRACT.md) | `COMPLETE` |
+| 13 | `MAC_HNI_13` | `RUN2_NO_A_REPLAY_PROOF` | [`RUN2_NO_A_REPLAY_PROOF_CONTRACT.md`](file:///Users/user/Downloads/2026-courier/scripts/run2_physical/RUN2_NO_A_REPLAY_PROOF_CONTRACT.md) | `COMPLETE` |
+| 14 | `MAC_HNI_14` | `RUN2_B_CONTINUATION_PROOF` | [`RUN2_B_CONTINUATION_PROOF_CONTRACT.md`](file:///Users/user/Downloads/2026-courier/scripts/run2_physical/RUN2_B_CONTINUATION_PROOF_CONTRACT.md) | `COMPLETE` |
+| 15 | `MAC_HNI_15` | `RUN2_EXECUTION_COUNT_PROOF` | [`RUN2_EXECUTION_COUNT_PROOF_CONTRACT.md`](file:///Users/user/Downloads/2026-courier/scripts/run2_physical/RUN2_EXECUTION_COUNT_PROOF_CONTRACT.md) | `COMPLETE` |
+| 16 | `MAC_HNI_17` | `PROCESS_PORT_OWNERSHIP` | [`PROCESS_PORT_OWNERSHIP.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/PROCESS_PORT_OWNERSHIP.md) | `COMPLETE` |
+| 17 | `MAC_HNI_18` | `STATE_LOG_ARTIFACT_ISOLATION` | [`STATE_LOG_ARTIFACT_ISOLATION.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/STATE_LOG_ARTIFACT_ISOLATION.md) | `COMPLETE` |
+| 18 | `MAC_HNI_19` | `RESOURCE_ADMISSION` | [`RESOURCE_ADMISSION.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RESOURCE_ADMISSION.md) | `COMPLETE` |
+| 19 | `MAC_HNI_20` | `NO_TIGHT_POLLING_AUDIT` | [`NO_TIGHT_POLLING_AUDIT.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/NO_TIGHT_POLLING_AUDIT.md) | `COMPLETE` |
+| 20 | `MAC_HNI_21` | `PROOF_CARD_FINALIZER` | [`PROOF_CARD_TEMPLATE.md`](file:///Users/user/Downloads/2026-courier/docs/proofs/PROOF_CARD_TEMPLATE.md) & [`verify_proof_contracts.py`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/verify_proof_contracts.py) | `COMPLETE` |
+| 21 | `MAC_HNI_22` | `CORE_FREEZE_CLOSEOUT` | [`CORE_FREEZE_CLOSEOUT_CHECKLIST.md`](file:///Users/user/Downloads/2026-courier/docs/proofs/CORE_FREEZE_CLOSEOUT_CHECKLIST.md) | `COMPLETE` |
+| — | `MAC_HNI_16` | `RUNTIME_SOURCE_BINDING` | [`RUNTIME_SOURCE_BINDING.json`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUNTIME_SOURCE_BINDING.json) | Template prepared (`{{FINAL_SHA}}`), binding deferred to gate open |
+
+---
+
+## 2. Preflight Executable Verification
+
+All harness execution and contract self-tests verified:
+
+1. **Proof Contracts Self-Test**:
+   ```bash
+   python3 scripts/run1_physical/verify_proof_contracts.py --self-test
+   ```
+   **Result**: `[verify_proof_contracts] All 11 proof contract self-tests PASSED successfully.`
+
+2. **RUN 1 Preflight Resource & Port Check**:
+   ```bash
+   python3 scripts/run_physical.py --dry-run-check --sha test
+   ```
+   **Result**: `[RUN_1] Preflight check PASSED.`
+
+3. **RUN 2 Preflight Check**:
+   ```bash
+   python3 scripts/run_physical_restart.py --dry-run-check --sha test --state-dir test
+   ```
+   **Result**: `[RUN_2] Preflight check PASSED.`
+
+---
+
+## 3. Gate Status & Phase Progression
+
+- **Current Gate State**: [`ops/ai/GATE_STATE_CURRENT.md`](file:///Users/user/Downloads/2026-courier/ops/ai/GATE_STATE_CURRENT.md)
+  - `PRE_CODEX_STATE=DURABILITY_PENDING`
+  - `REPORTED_FINAL_SHA=34b0a4264bf763bc2a78f761ffba36e47706b2cf`
+  - `REMOTE_GITHUB_RESOLUTION=NOT_FOUND`
+  - `AUTHORITATIVE_READY=NO`
+- **Cost Guard Directives**:
+  - No redundant validation of unchanged `PRE_CODEX` candidate.
+  - Physical execution of `RUN_1` strictly deferred until `READY_FOR_PHYSICAL_RUN=YES`.
+  - Physical execution of `RUN_2` strictly deferred until `RUN_1 PASS`.
+  - The continuous supervisor daemon maintains bounded polling cycles without tight loops or premature termination.
+  - As soon as Windows resolves `PRE_CODEX` durability and the gate opens (`READY_FOR_PHYSICAL_RUN=YES`), the Mac runner will immediately bind the exact `FINAL_SHA` into [`RUNTIME_SOURCE_BINDING.json`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUNTIME_SOURCE_BINDING.json) and execute `RUN_1` with exact single-owner physical proof.

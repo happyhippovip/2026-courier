@@ -1,0 +1,33 @@
+{
+  "slot": "MAC-100X-001",
+  "worker_type": "COURIER_MAC_GOOGLE_CLI_100X_UNIVERSAL_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE_CLI",
+  "mode": "AUTO",
+  "status": "COMPLETED",
+  "worker_status": "TRUE_IDLE",
+  "claimed_at": "2026-09-28T00:02:00+02:00",
+  "completed_at": "2026-09-28T00:02:30+02:00",
+  "truth_branch": "origin/coordination/autofill-task-seed-20260926",
+  "current_head": "eada78c9",
+  "canonical_base": "4c1e24ccc522042af826bc4c2b595daf85d097f9",
+  "final_sha": "9f219f187a415ffef8b6c867b2ff9c26ad0a5b88",
+  "pre_codex_ready": true,
+  "targeted_tests": "44/44 PASSED (7.28s)",
+  "skipped_count": 0,
+  "twelve_case_matrix": "12/12 PASS",
+  "diff_check": "PASS (0 trailing whitespace errors)",
+  "mac_priorities_completed": [
+    "RUN_1_PREPARATION",
+    "RUN_2_RESTART_PREPARATION",
+    "CROSS_HOST_RUNTIME_BINDING",
+    "PROOF_CARDS_CORE_FREEZE",
+    "WALL_RELIABILITY_CONTINUITY",
+    "MUSE_PREFLIGHT",
+    "BOUNDED_PILOT_PREPARATION"
+  ],
+  "unworked_mac_tasks": 0,
+  "next": "CODEX_HIGH_ONCE",
+  "state": "TRUE_IDLE",
+  "summary": "Mac 100x Universal Worker executed full queue harvest, dependency audit, and priority verification. PRE_CODEX_READY=YES on candidate SHA 9f219f18. Pre-Codex support work stopped per protocol. Zero application source touched on Mac. Standing down in TRUE_IDLE."
+}

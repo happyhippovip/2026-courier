@@ -1,0 +1,6 @@
+# HNI_42_PROOF_CARD_OS_VERSION.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_42_PROOF_CARD_OS_VERSION.txt
+DESCRIPTION: Extract kernel release, Darwin build number, and OS product version for Proof Card metadata.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_42_PROOF_CARD_OS_VERSION.md

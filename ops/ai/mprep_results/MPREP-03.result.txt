@@ -1,0 +1,16 @@
+TASK=MPREP-03
+STATUS=PASS
+RESULTS_REUSED=ops/ai/coordination_pack/FAMILY_18_CENTRAL_WRITER_COMPRESSED.md, ops/ai/coordination_pack/FAMILY_19_PRE_CODEX_PACKAGE.md
+OUTPUT=
+Contradiction shortlist (max 10 items):
+1. courier_verifier.py:78 reads worker art['expected_sha256'] vs task-owned expected hash (CW-01)
+2. integration_contract.py:156 schema permits expected_sha256 in worker payload vs strict isolation (CW-04)
+3. server/app.py:367 duplicate check checks 3 fields vs 6-tuple in contract (CW-05)
+4. server/app.py whitespace in lines 358, 511, 518, 535 vs git diff --check (CW-02)
+5. 12-Case Matrix status: 5 PASS, 7 FAIL on base 4c1e24cc vs stale claims of full pass on older branches
+6. Candidate branch truth: candidate-b-1 @ 4c1e24cc is canonical base; b-2 rejected; b-3 not required
+7. Port separation: Port 8080 production server (PID 69407) vs Port 8081 canary staging (PID 70005)
+MISSING=NONE
+BLOCKER=NONE
+MUSE_INPUT=Review these 7 bounded contradictions for independent QA confirmation.
+DO_NOT_REPEAT_FINGERPRINT=7543110c9127daa8

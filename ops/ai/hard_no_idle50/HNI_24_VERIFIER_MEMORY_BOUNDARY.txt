@@ -1,0 +1,6 @@
+# HNI_24_VERIFIER_MEMORY_BOUNDARY.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_24_VERIFIER_MEMORY_BOUNDARY.txt
+DESCRIPTION: Audit verifier invocation memory isolation to prevent shared memory leakage between worker and verifier.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_24_VERIFIER_MEMORY_BOUNDARY.md

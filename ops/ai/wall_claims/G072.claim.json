@@ -1,0 +1,11 @@
+{
+  "slot": "G072",
+  "worker_type": "COURIER_GOOGLE_OVERNIGHT_QUEUE_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "mode": "READ_ONLY_REPORT",
+  "status": "COMPLETED",
+  "task": "G072",
+  "result_path": "ops/ai/wall_results/G072_result.md",
+  "fingerprint": "G072_DISPATCH_HASH_PROP_BLOCKED"
+}

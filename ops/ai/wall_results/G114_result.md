@@ -1,0 +1,14 @@
+TASK_ID=G114
+STATUS=PROVEN
+INPUTS_READ=ops/ai/coordination_reports/FAMILY_07_RESTART_MATRIX_A4.md, server/app.py:280-285
+RESULTS_REUSED=Scenario 4: Task stays QUEUED until worker claims; atomic claim leasing with mutex prevents race condition; single winner guaranteed
+NEW_EVIDENCE=Verified by test_concurrent_claims_have_exactly_one_winner.
+MISSING_EVIDENCE=NONE
+BLOCKER=NONE
+CRITICAL_PATH_IMPACT=RESTART_SCENARIO_4_PROVEN
+NEXT_DEPENDENCY=G115
+DO_NOT_REPEAT_FINGERPRINT=G114_READY_BEFORE_DISPATCH_PROVEN
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-9c024b5414aea800
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-423886be5e559231

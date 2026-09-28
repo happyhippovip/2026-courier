@@ -1,0 +1,11 @@
+{
+  "slot": "G120",
+  "worker_type": "COURIER_RUN2_RESTART_MASTER",
+  "host": "MAC",
+  "provider": "GOOGLE_CLI",
+  "mode": "READ_ONLY_PREP",
+  "status": "COMPLETED",
+  "task": "G120",
+  "result_path": "ops/ai/wall_results/G120_result.md",
+  "fingerprint": "G120_RSR_READINESS_PROVEN"
+}

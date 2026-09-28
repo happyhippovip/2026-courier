@@ -1,0 +1,13 @@
+{
+  "task_id": "SQLITE_WAL_CRASH_RECOVERY",
+  "TASK_ID": "SQLITE_WAL_CRASH_RECOVERY",
+  "status": "COMPLETE",
+  "STATUS": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "ops/ai/hard_no_idle50/deliverables/HNI_38_SQLITE_WAL_CRASH_RECOVERY.md",
+  "fingerprint": "SQLITE_WAL_CRASH_RECOVERY:COMPLETE:56e97e9f76ade7d564dbd1b3b3844805b0dd4030805e8326b315fdb1d6d828a1",
+  "blocker": "NONE",
+  "missing": "NONE",
+  "next_exact_action": "ADVANCE_NEXT_TASK",
+  "timestamp": "2026-09-28T01:08:07.070085+00:00"
+}

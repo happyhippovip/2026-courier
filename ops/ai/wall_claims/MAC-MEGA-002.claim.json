@@ -1,0 +1,14 @@
+{
+  "slot": "MAC-MEGA-002",
+  "host": "MAC",
+  "provider": "GOOGLE_CLI",
+  "status": "COMPLETED",
+  "claimed_at": "2026-09-28T00:00:00+02:00",
+  "mission": "COURIER_MAC_MEGA_MASTER_WORK_UNTIL_CODEX",
+  "families_filed": [1, 4],
+  "families_reused": [2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+  "families_skipped_with_reason": [2, 3, 5, 6, 19, 20],
+  "yields_to": "MAC-MEGA-001",
+  "mode": "READ_ONLY_PLUS_COORDINATION_REPORTS",
+  "resume_trigger": "FINAL_SHA publication, MAC-MEGA-001 completion with gaps, or new unowned READY packet"
+}

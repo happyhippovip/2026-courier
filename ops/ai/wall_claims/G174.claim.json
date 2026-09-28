@@ -1,0 +1,11 @@
+{
+  "slot": "G174",
+  "worker_type": "COURIER_GOOGLE_OVERNIGHT_QUEUE_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "mode": "READ_ONLY_REPORT",
+  "status": "COMPLETED",
+  "task": "G174",
+  "result_path": "ops/ai/wall_results/G174_result.md",
+  "fingerprint": "G174_IDEA_INBOX_CLASSIFY"
+}

@@ -1,0 +1,9 @@
+{
+  "task_id": "FAIL_SEM_AUDIT",
+  "task_title": "Courier Failure Semantics Audit",
+  "host": "MAC",
+  "worker": "GOOGLE_CLI",
+  "claimed_at": "2026-09-28T00:15:35+02:00",
+  "completed_at": "2026-09-28T00:15:35+02:00",
+  "status": "COMPLETED"
+}

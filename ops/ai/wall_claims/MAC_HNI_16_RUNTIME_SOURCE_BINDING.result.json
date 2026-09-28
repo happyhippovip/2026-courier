@@ -1,0 +1,10 @@
+{
+  "task_id": "MAC_HNI_16",
+  "status": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "scripts/run1_physical/RUNTIME_SOURCE_BINDING.json",
+  "blocker": "WAITING_FOR_DURABILITY_ON_FINAL_SHA",
+  "missing": "FINAL_SHA",
+  "next_exact_action": "CLAIM_MAC_HNI_17",
+  "timestamp": "2026-09-28T03:00:00Z"
+}

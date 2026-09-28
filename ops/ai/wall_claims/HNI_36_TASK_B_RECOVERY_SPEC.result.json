@@ -1,0 +1,13 @@
+{
+  "task_id": "TASK_B_RECOVERY_SPEC",
+  "TASK_ID": "TASK_B_RECOVERY_SPEC",
+  "status": "COMPLETE",
+  "STATUS": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "ops/ai/hard_no_idle50/deliverables/HNI_36_TASK_B_RECOVERY_SPEC.md",
+  "fingerprint": "TASK_B_RECOVERY_SPEC:COMPLETE:436d3f19a407b9db137fd9aab139d5944911977aef0d21bd50df54e23b4514ca",
+  "blocker": "NONE",
+  "missing": "NONE",
+  "next_exact_action": "ADVANCE_NEXT_TASK",
+  "timestamp": "2026-09-28T01:08:07.054250+00:00"
+}

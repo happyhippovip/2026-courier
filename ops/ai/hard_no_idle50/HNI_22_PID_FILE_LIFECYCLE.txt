@@ -1,0 +1,6 @@
+# HNI_22_PID_FILE_LIFECYCLE.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_22_PID_FILE_LIFECYCLE.txt
+DESCRIPTION: Audit PID file creation, validation, and deletion cycle in server/state/staging.pid.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_22_PID_FILE_LIFECYCLE.md

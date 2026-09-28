@@ -1,0 +1,11 @@
+{
+  "task_id": "STATE_DIR_SANDBOX",
+  "TASK_ID": "STATE_DIR_SANDBOX",
+  "owner": "MAC_GOOGLE_FINISHER",
+  "OWNER": "MAC_GOOGLE_FINISHER",
+  "host": "MAC",
+  "provider": "GOOGLE_CLI",
+  "status": "RECONCILED",
+  "STATUS": "RECONCILED",
+  "timestamp": "2026-09-28T01:08:06.965456+00:00"
+}

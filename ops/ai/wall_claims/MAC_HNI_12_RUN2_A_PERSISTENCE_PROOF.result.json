@@ -1,0 +1,10 @@
+{
+  "task_id": "MAC_HNI_12",
+  "status": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "scripts/run2_physical/RUN2_A_PERSISTENCE_PROOF_CONTRACT.md",
+  "blocker": "NONE",
+  "missing": "NONE",
+  "next_exact_action": "CLAIM_MAC_HNI_13",
+  "timestamp": "2026-09-28T03:00:00Z"
+}

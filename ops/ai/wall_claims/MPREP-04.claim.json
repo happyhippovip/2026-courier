@@ -1,0 +1,13 @@
+{
+  "slot": "MPREP-04",
+  "worker_type": "COURIER_GOOGLE_MUSE_PREFLIGHT_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "mode": "LIGHT_READ_ONLY",
+  "status": "COMPLETED",
+  "claimed_at": "2026-09-27T23:01:05+02:00",
+  "completed_at": "2026-09-27T23:01:15+02:00",
+  "task": "MPREP-04",
+  "result_path": "ops/ai/wall_results/MPREP-04_result.md",
+  "fingerprint": "mprep-04-missing-evidence-shortlist-v1"
+}

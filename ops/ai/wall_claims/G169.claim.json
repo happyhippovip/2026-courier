@@ -1,0 +1,11 @@
+{
+  "slot": "G169",
+  "worker_type": "COURIER_GOOGLE_OVERNIGHT_QUEUE_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "mode": "READ_ONLY_REPORT",
+  "status": "COMPLETED",
+  "task": "G169",
+  "result_path": "ops/ai/wall_results/G169_result.md",
+  "fingerprint": "G169_HIPG_RSR_NDR"
+}

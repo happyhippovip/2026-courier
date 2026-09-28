@@ -1,0 +1,20 @@
+{
+  "slot": "POST-PRE-CODEX-001",
+  "worker_type": "COURIER_MAC_GOOGLE_CLI_100X_UNIVERSAL_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE_CLI",
+  "mode": "POST_PRE_CODEX_PREP",
+  "status": "COMPLETED",
+  "worker_status": "TRUE_IDLE",
+  "claimed_at": "2026-09-28T00:10:00+02:00",
+  "completed_at": "2026-09-28T00:11:45+02:00",
+  "final_sha": "34b0a4264bf763bc2a78f761ffba36e47706b2cf",
+  "base_sha": "4c1e24ccc522042af826bc4c2b595daf85d097f9",
+  "pre_codex_ready": true,
+  "post_pre_codex_prep_complete": true,
+  "all_8_priorities_completed": true,
+  "unworked_tasks": 0,
+  "next": "CODEX_HIGH_ONCE",
+  "state": "TRUE_IDLE",
+  "summary": "All 8 POST_PRE_CODEX_PREP priorities are 100% complete and attested. Zero application source touched on Mac. Standing down in TRUE_IDLE."
+}

@@ -1,0 +1,13 @@
+{
+  "task_id": "EVIDENCE_INDEX_FORMAT",
+  "TASK_ID": "EVIDENCE_INDEX_FORMAT",
+  "status": "COMPLETE",
+  "STATUS": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "ops/ai/hard_no_idle50/deliverables/HNI_19_EVIDENCE_INDEX_FORMAT.md",
+  "fingerprint": "EVIDENCE_INDEX_FORMAT:COMPLETE:cc614633d023b44b99d5a3a4868ae44651706b33084eb0964ecb79e69af63d51",
+  "blocker": "NONE",
+  "missing": "NONE",
+  "next_exact_action": "ADVANCE_NEXT_TASK",
+  "timestamp": "2026-09-28T01:08:06.912263+00:00"
+}

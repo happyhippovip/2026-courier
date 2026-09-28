@@ -1,0 +1,11 @@
+{
+  "slot": "G093",
+  "worker_type": "COURIER_GOOGLE_OVERNIGHT_QUEUE_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "mode": "READ_ONLY_REPORT",
+  "status": "COMPLETED",
+  "task": "G093",
+  "result_path": "ops/ai/wall_results/G093_result.md",
+  "fingerprint": "G093_RUN1_PORTS_PROC_BLOCKED"
+}

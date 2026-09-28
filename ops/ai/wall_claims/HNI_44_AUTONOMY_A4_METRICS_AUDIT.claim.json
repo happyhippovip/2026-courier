@@ -1,0 +1,11 @@
+{
+  "task_id": "AUTONOMY_A4_METRICS_AUDIT",
+  "TASK_ID": "AUTONOMY_A4_METRICS_AUDIT",
+  "owner": "MAC_GOOGLE_FINISHER",
+  "OWNER": "MAC_GOOGLE_FINISHER",
+  "host": "MAC",
+  "provider": "GOOGLE_CLI",
+  "status": "RECONCILED",
+  "STATUS": "RECONCILED",
+  "timestamp": "2026-09-28T01:08:07.119898+00:00"
+}

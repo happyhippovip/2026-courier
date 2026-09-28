@@ -1,0 +1,14 @@
+TASK_ID=G107
+STATUS=PROVEN
+INPUTS_READ=ops/ai/coordination_reports/FAMILY_06_RUN_2_RESTART_RESILIENCE.md, ops/ai/coordination_reports/FAMILY_07_RESTART_MATRIX_A4.md
+RESULTS_REUSED=Coordinator state boot recovery loads state JSON; verifier audits pending steps; previously reconciled steps stay RECONCILED
+NEW_EVIDENCE=Deterministic post-restart reconciliation proven without duplicate verifier runs.
+MISSING_EVIDENCE=NONE
+BLOCKER=NONE
+CRITICAL_PATH_IMPACT=RUN_2_POST_RESTART_RECONCILE_PROVEN
+NEXT_DEPENDENCY=G108
+DO_NOT_REPEAT_FINGERPRINT=G107_RUN2_POST_RESTART_RECONCILE_PROVEN
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-3e9228a1f5920cf3
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-6d6dfeac50db4bc5

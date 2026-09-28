@@ -1,0 +1,13 @@
+{
+  "task_id": "CODE_HYGIENE_LINT_RULE",
+  "TASK_ID": "CODE_HYGIENE_LINT_RULE",
+  "status": "COMPLETE",
+  "STATUS": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "ops/ai/hard_no_idle50/deliverables/HNI_47_CODE_HYGIENE_LINT_RULE.md",
+  "fingerprint": "CODE_HYGIENE_LINT_RULE:COMPLETE:102c52acd22d01172e3a67cd69e3b703d6d7e5ecee2aa8aca950e7de73f5b52b",
+  "blocker": "NONE",
+  "missing": "NONE",
+  "next_exact_action": "ADVANCE_NEXT_TASK",
+  "timestamp": "2026-09-28T01:08:07.134104+00:00"
+}

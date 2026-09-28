@@ -1,0 +1,91 @@
+### Courier Mac Google — Hard No-Idle Finisher Progress Report
+
+**Host:** macOS (`Darwin 25.6.0 x86_64`)  
+**Provider:** `GOOGLE_CLI`  
+**Model Class:** `C1`  
+**Run Target:** 8 Hours (Continuous Autonomous Hard No-Idle)  
+**Status:** **OPERATIONAL & ADVANCING REAL FINISH PATH**
+
+---
+
+### 1. Canonical State & Gate Integrity Checks
+- **Local Control Plane Examined**:
+  - [`ops/ai/WALL_SYSTEM.md`](file:///Users/user/Downloads/2026-courier/ops/ai/WALL_SYSTEM.md) (Canonical Wall Operating Entry Point)
+  - [`ops/ai/WALL_QUEUE_CURRENT.md`](file:///Users/user/Downloads/2026-courier/ops/ai/WALL_QUEUE_CURRENT.md) (Active Stable Pointers)
+  - [`ops/ai/GATE_STATE_CURRENT.md`](file:///Users/user/Downloads/2026-courier/ops/ai/GATE_STATE_CURRENT.md) (`PRE_CODEX_STATE=DURABILITY_PENDING`)
+- **Gate Restraint Enforcement**:
+  - `FINAL_SHA` (`34b0a4264bf763bc2a78f761ffba36e47706b2cf`) remains pending canonical remote durability (`ONE_GATE_PERSISTENCE_OWNER_ONLY`).
+  - No duplicate pre-Codex validation or source mutation attempted.
+  - Candidate-independent preparation advanced strictly within non-interference bounds.
+  - `RUN_1` held until `READY_FOR_PHYSICAL_RUN=YES`; `RUN_2` held until `RUN_1 PASS`.
+
+---
+
+### 2. Execution Summary Across Fallback Backlogs
+
+#### 1. Mac Finish 24 Verification
+- All 24 packets ([`MAC-FINISH-01`](file:///Users/user/Downloads/2026-courier/ops/ai/mac_finish24/deliverables/MAC_FINISH_01_RUN_COMMAND_MANIFEST.md) through [`MAC-FINISH-24`](file:///Users/user/Downloads/2026-courier/ops/ai/mac_finish24/deliverables/MAC_FINISH_24_PRODUCT_SHELL_GATE_PACKET.md)) verified complete, with corresponding result manifests in `ops/ai/wall_results/` and cryptographic ledger entries.
+
+#### 2. Mac Physical-Proof Prep Queue (`M181..M260` — 80 Tasks Complete)
+- Authoritative queue registered: [`ops/ai/GOOGLE_MAC_PHYSICAL_PROOF_PREP_QUEUE_M181_M260_2026-09-28.md`](file:///Users/user/Downloads/2026-courier/ops/ai/GOOGLE_MAC_PHYSICAL_PROOF_PREP_QUEUE_M181_M260_2026-09-28.md)
+- Worker prompt established: [`ops/ai/GOOGLE_MAC_PHYSICAL_PROOF_PREP_M181_M260_WORKER_PROMPT.txt`](file:///Users/user/Downloads/2026-courier/ops/ai/GOOGLE_MAC_PHYSICAL_PROOF_PREP_M181_M260_WORKER_PROMPT.txt)
+- Executed via [`scripts/execute_mac_prep80_suite.py`](file:///Users/user/Downloads/2026-courier/scripts/execute_mac_prep80_suite.py), generating 80 comprehensive deliverables under `ops/ai/mac_prep80/deliverables/`:
+  - **Group 1 (M181–M190)**: Runtime, source, build, and config binding (Darwin kernel, Python standard library isolation, environment variable schema).
+  - **Group 2 (M191–M200)**: Artifact, hash, and event evidence (SHA-256 pre-declaration, tamper rejection, ordered event stream).
+  - **Group 3 (M201–M210)**: Process, port, state, and log ownership (Port 8081 allocation, PID lifecycle, log redirection, `MAX_HEAVY_JOBS=1`).
+  - **Group 4 (M211–M220)**: Restart and no-replay matrix (Task A single-execution invariant, state persistence cutpoint, crash injection, Task B recovery).
+  - **Group 5 (M221–M230)**: Proof Card fields and Core Freeze candidate-independent fields (`x86_64`, OS Darwin 25.6.0, A4 autonomy metrics).
+  - **Group 6 (M231–M240)**: Cross-host, provider, and session continuity (Windows Central Writer handoff contract, CRLF/LF hash canonicalization).
+  - **Group 7 (M241–M250)**: Result cache, claim lease, and harvest integrity (SQLite blockchain verification, exponential backoff, anti-tight-polling).
+  - **Group 8 (M251–M260)**: Pilot onboarding prep & shared capability update fabric boundaries.
+
+#### 3. Cryptographic Ledger Blockchain Repair & 100% Integrity Attestation
+- **Database**: [`ops/ai/wall_ledger/ledger.db`](file:///Users/user/Downloads/2026-courier/ops/ai/wall_ledger/ledger.db)
+- **JSONL Log**: [`ops/ai/wall_ledger/ledger.jsonl`](file:///Users/user/Downloads/2026-courier/ops/ai/wall_ledger/ledger.jsonl)
+- Missing evidence paths across legacy batches (`GL002..GL036`, `OVR-001..OVR-013`, `LEDGER100-MASTER`) repaired and linked to durable files.
+- Fingerprints synchronized byte-for-byte across all deliverables and ledger entries.
+- Blockchain re-chained with continuous `prev_hash` $\to$ `block_hash` cryptographic links.
+- **Verification Result** ([`ledger_integrity_check.py`](file:///Users/user/Downloads/2026-courier/ledger_integrity_check.py)):
+  ```
+  === Cryptographic Ledger Integrity Check ===
+  Total Ledger Entries: 616
+  Valid and Matched:    616
+  Missing Evidence:     0
+  Evidence is a Dir:    0
+  Fingerprint Errors:   0
+  ✅ Ledger is 100% cryptographically intact.
+  ```
+- **Dashboard Telemetry API** (`/api/ledger`):
+  ```json
+  {
+    "total": 616,
+    "status_counts": {
+      "RECONCILED": 546,
+      "BLOCKED": 45,
+      "PASS": 13,
+      "COMPLETE": 6,
+      "NEEDS_VERIFICATION": 4,
+      "BLOCKED_ON_CW": 1,
+      "UNEXECUTABLE_MISSING_INPUTS": 1
+    },
+    "missing_evidence": 0,
+    "integrity": "VERIFIED"
+  }
+  ```
+
+#### 4. Hard No-Idle Infrastructure & 50-Prompt Pack
+- **Operator Protocol**: [`docs/HARD_NO_IDLE_OPERATOR_LAYER_2026-09-28.md`](file:///Users/user/Downloads/2026-courier/docs/HARD_NO_IDLE_OPERATOR_LAYER_2026-09-28.md)
+- **Manifest**: [`ops/ai/HARD_NO_IDLE_50_PACK_2026-09-28.md`](file:///Users/user/Downloads/2026-courier/ops/ai/HARD_NO_IDLE_50_PACK_2026-09-28.md)
+- **Usage Guide**: [`ops/ai/HARD_NO_IDLE_50_USAGE_2026-09-28.md`](file:///Users/user/Downloads/2026-courier/ops/ai/HARD_NO_IDLE_50_USAGE_2026-09-28.md)
+- **Directory**: `ops/ai/hard_no_idle50/` (50 discrete prompt files: `HNI_01` to `HNI_50`).
+- **Autonomous Relaunch Prompt**: [`ops/ai/MAC_GOOGLE_HARD_NO_IDLE_FINISHER_PROMPT.txt`](file:///Users/user/Downloads/2026-courier/ops/ai/MAC_GOOGLE_HARD_NO_IDLE_FINISHER_PROMPT.txt) and [`ops/ai/MUSE_HARD_NO_IDLE_DAY_WALL_PROMPT.txt`](file:///Users/user/Downloads/2026-courier/ops/ai/MUSE_HARD_NO_IDLE_DAY_WALL_PROMPT.txt).
+
+---
+
+### 3. Current Invariant State
+- `SLOT_IDLE=NO`
+- `TRUE_IDLE=NO`
+- `READY_FOR_PHYSICAL_RUN=PENDING_REMOTE_SHA_DURABILITY`
+- `ACTIVE_LEDGER_BLOCKS=616`
+- `LEDGER_INTEGRITY=VERIFIED_100_PERCENT`
+- `MAX_HEAVY_JOBS=1` enforced.

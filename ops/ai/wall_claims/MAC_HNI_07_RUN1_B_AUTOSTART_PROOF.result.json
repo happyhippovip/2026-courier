@@ -1,0 +1,10 @@
+{
+  "task_id": "MAC_HNI_07",
+  "status": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "scripts/run1_physical/RUN1_B_AUTOSTART_PROOF_CONTRACT.md",
+  "blocker": "NONE",
+  "missing": "NONE",
+  "next_exact_action": "CLAIM_MAC_HNI_08",
+  "timestamp": "2026-09-28T03:00:00Z"
+}

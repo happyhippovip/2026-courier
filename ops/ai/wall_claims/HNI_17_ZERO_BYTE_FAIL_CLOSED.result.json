@@ -1,0 +1,13 @@
+{
+  "task_id": "ZERO_BYTE_FAIL_CLOSED",
+  "TASK_ID": "ZERO_BYTE_FAIL_CLOSED",
+  "status": "COMPLETE",
+  "STATUS": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "ops/ai/hard_no_idle50/deliverables/HNI_17_ZERO_BYTE_FAIL_CLOSED.md",
+  "fingerprint": "ZERO_BYTE_FAIL_CLOSED:COMPLETE:ea10b72febd04662255575928e54e6f81dec0835a50cfa8c5a0b6a0c449d32ef",
+  "blocker": "NONE",
+  "missing": "NONE",
+  "next_exact_action": "ADVANCE_NEXT_TASK",
+  "timestamp": "2026-09-28T01:08:06.899935+00:00"
+}

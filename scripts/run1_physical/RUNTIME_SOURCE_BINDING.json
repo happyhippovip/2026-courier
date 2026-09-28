@@ -1,0 +1,13 @@
+{
+  "host": "MAC",
+  "provider": "GOOGLE_CLI",
+  "arch": "x86_64",
+  "runtime": "python3",
+  "entrypoint": "scripts/run_physical.py",
+  "candidate_sha": "{{FINAL_SHA}}",
+  "target_remote": "https://github.com/happyhippovip/2026-courier",
+  "environment": {
+    "PYTHONUNBUFFERED": "1",
+    "COURIER_MAC_ENV": "1"
+  }
+}

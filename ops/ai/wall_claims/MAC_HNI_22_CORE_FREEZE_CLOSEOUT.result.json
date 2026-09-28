@@ -1,0 +1,10 @@
+{
+  "task_id": "MAC_HNI_22",
+  "status": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "docs/proofs/CORE_FREEZE_CLOSEOUT_CHECKLIST.md",
+  "blocker": "NONE",
+  "missing": "FINAL_SHA_AND_WINDOWS_APPROVAL",
+  "next_exact_action": "PARK_AND_HARVEST",
+  "timestamp": "2026-09-28T03:00:00Z"
+}

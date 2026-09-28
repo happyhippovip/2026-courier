@@ -1,0 +1,6 @@
+# HNI_29_PORT_PREFLIGHT_CHECK.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_29_PORT_PREFLIGHT_CHECK.txt
+DESCRIPTION: Implement lsof/nc preflight validation script verifying socket availability before test suite trigger.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_29_PORT_PREFLIGHT_CHECK.md

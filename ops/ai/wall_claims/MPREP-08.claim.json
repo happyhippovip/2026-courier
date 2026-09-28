@@ -1,0 +1,13 @@
+{
+  "slot": "MPREP-08",
+  "worker_type": "COURIER_GOOGLE_MUSE_PREFLIGHT_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "mode": "LIGHT_READ_ONLY",
+  "status": "COMPLETED",
+  "claimed_at": "2026-09-27T23:02:40+02:00",
+  "completed_at": "2026-09-27T23:02:50+02:00",
+  "task": "MPREP-08",
+  "result_path": "ops/ai/wall_results/MPREP-08_result.md",
+  "fingerprint": "mprep-08-wall-reliability-open-checks-v1"
+}

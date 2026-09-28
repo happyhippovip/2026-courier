@@ -1,0 +1,23 @@
+{
+  "slot": "PRE-CODEX-GATE-FINAL",
+  "worker_type": "COURIER_WINDOWS_CENTRAL_WRITER",
+  "status": "COMPLETED",
+  "pre_codex_ready": true,
+  "final_sha": "9f219f187a415ffef8b6c867b2ff9c26ad0a5b88",
+  "base_sha": "4c1e24ccc522042af826bc4c2b595daf85d097f9",
+  "exact_changed_files": [
+    "scripts/courier_verifier.py",
+    "scripts/integration_contract.py",
+    "server/app.py",
+    "tests/test_artifact_upload_flow.py",
+    "tests/test_p3_server_idempotency.py"
+  ],
+  "unexpected_changed_files": 0,
+  "targeted_test_results": "44/44 PASSED (7.28s)",
+  "skipped_count": 0,
+  "twelve_case_matrix": "12/12 PASS",
+  "diff_check": "PASS (0 trailing whitespace errors)",
+  "known_blockers": "NONE",
+  "next": "CODEX_HIGH_ONCE",
+  "timestamp": "2026-09-27T23:53:00+02:00"
+}

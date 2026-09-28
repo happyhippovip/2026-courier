@@ -1,0 +1,11 @@
+{
+  "slot": "G128",
+  "worker_type": "COURIER_GOOGLE_OVERNIGHT_QUEUE_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "mode": "READ_ONLY_REPORT",
+  "status": "COMPLETED",
+  "task": "G128",
+  "result_path": "ops/ai/wall_results/G128_result.md",
+  "fingerprint": "G128_COVERED_SURFACE_BLOCKED"
+}

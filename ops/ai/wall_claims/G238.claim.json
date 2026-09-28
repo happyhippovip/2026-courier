@@ -1,0 +1,9 @@
+{
+  "task_id": "G238",
+  "task_name": "Provider temporary outage recovery",
+  "host": "MAC",
+  "worker": "GOOGLE_CLI",
+  "claimed_at": "2026-09-27T23:50:00+02:00",
+  "completed_at": "2026-09-27T23:50:00+02:00",
+  "status": "COMPLETED"
+}

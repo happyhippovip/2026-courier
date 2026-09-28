@@ -1,0 +1,6 @@
+# HNI_36_TASK_B_RECOVERY_SPEC.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_36_TASK_B_RECOVERY_SPEC.txt
+DESCRIPTION: Specify recovery and seamless continuation of dependent Task B following coordinator server restart.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_36_TASK_B_RECOVERY_SPEC.md

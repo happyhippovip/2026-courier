@@ -1,0 +1,15 @@
+{
+  "slot": "MAC-MPREP-001",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "status": "COMPLETED",
+  "claimed_at": "2026-09-27T23:01:00+02:00",
+  "completed_at": "2026-09-27T23:01:25+02:00",
+  "mission": "COURIER_GOOGLE_TO_MUSE_PREFLIGHT_WORKER",
+  "task": "MPREP-XX",
+  "mprep_tasks_completed": ["MPREP-01", "MPREP-02", "MPREP-03", "MPREP-04", "MPREP-05", "MPREP-06", "MPREP-07", "MPREP-08", "MPREP-09", "MPREP-10"],
+  "taskbank_generated": "ops/ai/mprep_results/MUSE_READY_TASK_BANK.md",
+  "safe_to_idle": true,
+  "state": "TRUE_IDLE",
+  "waiting_for_windows": true
+}

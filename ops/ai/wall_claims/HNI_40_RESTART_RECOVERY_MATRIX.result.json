@@ -1,0 +1,13 @@
+{
+  "task_id": "RESTART_RECOVERY_MATRIX",
+  "TASK_ID": "RESTART_RECOVERY_MATRIX",
+  "status": "COMPLETE",
+  "STATUS": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "ops/ai/hard_no_idle50/deliverables/HNI_40_RESTART_RECOVERY_MATRIX.md",
+  "fingerprint": "RESTART_RECOVERY_MATRIX:COMPLETE:9f63f2e5c3f54675f7098214dcce8b2ccbc194b33210d155802da54f5d7f25b8",
+  "blocker": "NONE",
+  "missing": "NONE",
+  "next_exact_action": "ADVANCE_NEXT_TASK",
+  "timestamp": "2026-09-28T01:08:07.086085+00:00"
+}

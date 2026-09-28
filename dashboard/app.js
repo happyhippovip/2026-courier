@@ -368,6 +368,8 @@ document.addEventListener("DOMContentLoaded", () => {
   setupMissionControls();
   setupInitialLogs();
   updateMissionUI();
+  fetchLedgerData();
+  setInterval(fetchLedgerData, 5000);
 });
 
 // RENDER AGENT ROSTER
@@ -405,7 +407,7 @@ function renderAgentRoster() {
         ${capsList}
       </ul>
 
-      <button class="card-action-btn ${agent.status === 'ACTIVE' ? 'active-state' : ''}" 
+      <button class="card-action-btn ${agent.status === 'ACTIVE' ? 'active-state' : ''}"
               onclick="toggleAgentActivation('${agent.id}')">
         ${agent.status === 'ACTIVE' ? '✓ ACTIVE' : '⚡ ACTIVATE'}
       </button>
@@ -459,12 +461,16 @@ function setupMissionControls() {
       currentMissionStep = 1;
     }
     updateMissionUI();
+  fetchLedgerData();
+  setInterval(fetchLedgerData, 5000);
   });
 
   document.getElementById("btn-reset-mission").addEventListener("click", () => {
     stopAutoMission();
     currentMissionStep = 1;
     updateMissionUI();
+  fetchLedgerData();
+  setInterval(fetchLedgerData, 5000);
     addLog("INFO", "Demo mission reset to Stage 1.");
   });
 
@@ -482,6 +488,8 @@ function setupMissionControls() {
       stopAutoMission();
       currentMissionStep = parseInt(stepEl.dataset.step, 10);
       updateMissionUI();
+  fetchLedgerData();
+  setInterval(fetchLedgerData, 5000);
     });
   });
 
@@ -504,6 +512,8 @@ function startAutoMission() {
     if (currentMissionStep < MISSION_STAGES.length) {
       currentMissionStep++;
       updateMissionUI();
+  fetchLedgerData();
+  setInterval(fetchLedgerData, 5000);
     } else {
       stopAutoMission();
       addLog("GATE", "Demo mission reached final stage: safely stopped at Human Gate.");
@@ -612,4 +622,31 @@ function setupInitialLogs() {
   addLog("INFO", "Canonical Project Memory loaded from happyhippovip/2026-project-memory (HEAD: 89cece2).");
   addLog("GATE", "Human Gates status: Public Upload, OAuth, and Payments LOCKED by default.");
   addLog("SUCCESS", "Courier Relay Protocol v2.0 verified with zero human-gate stalls.");
+}
+
+
+async function fetchLedgerData() {
+  try {
+    const res = await fetch("/api/ledger");
+    if (!res.ok) throw new Error("Network response was not ok");
+    const data = await res.json();
+
+    const container = document.getElementById("ledger-metrics-container");
+    if (container) {
+      let html = `<div style="display: flex; flex-direction: column; gap: 0.5rem; font-family: monospace;">`;
+      html += `<div><strong>Architecture:</strong> <span style="color: #00e676">SQLite Blockchain (Zero-Cost)</span></div>`;
+      html += `<div><strong>Total Blocks:</strong> ${data.total}</div>`;
+      html += `<div><strong>Integrity:</strong> <span style="color: #00e676">${data.integrity}</span></div>`;
+      html += `<div><strong>Missing Evidence Files:</strong> <span style="color: ${data.missing_evidence > 0 ? '#ff4d4d' : '#00e676'}">${data.missing_evidence}</span></div>`;
+      html += `<div><strong>Status Breakdown:</strong></div>`;
+      html += `<ul style="list-style-type: none; margin: 0; padding-left: 1rem;">`;
+      for (const [status, count] of Object.entries(data.status_counts)) {
+        html += `<li>- ${status}: ${count}</li>`;
+      }
+      html += `</ul></div>`;
+      container.innerHTML = html;
+    }
+  } catch (err) {
+    console.error("Failed to fetch ledger data", err);
+  }
 }

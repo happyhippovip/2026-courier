@@ -1,0 +1,6 @@
+# HNI_04_DEPENDENCY_TREE_AUDIT.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_04_DEPENDENCY_TREE_AUDIT.txt
+DESCRIPTION: Confirm that server and verifier run exclusively on standard library modules (sqlite3, hashlib, http.server, urllib, json).
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_04_DEPENDENCY_TREE_AUDIT.md

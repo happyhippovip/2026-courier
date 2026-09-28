@@ -1,0 +1,13 @@
+{
+  "task_id": "DUPLICATE_DISPATCH_REJECT",
+  "TASK_ID": "DUPLICATE_DISPATCH_REJECT",
+  "status": "COMPLETE",
+  "STATUS": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "ops/ai/hard_no_idle50/deliverables/HNI_37_DUPLICATE_DISPATCH_REJECT.md",
+  "fingerprint": "DUPLICATE_DISPATCH_REJECT:COMPLETE:f4c18a006d80e8722b9260a4b39e8d029b781b1cad47873030b6938ca629470c",
+  "blocker": "NONE",
+  "missing": "NONE",
+  "next_exact_action": "ADVANCE_NEXT_TASK",
+  "timestamp": "2026-09-28T01:08:07.060758+00:00"
+}

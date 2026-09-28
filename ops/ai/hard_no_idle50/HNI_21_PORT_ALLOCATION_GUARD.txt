@@ -1,0 +1,6 @@
+# HNI_21_PORT_ALLOCATION_GUARD.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_21_PORT_ALLOCATION_GUARD.txt
+DESCRIPTION: Verify port reservation and conflict detection on port 8081 before spawning coordinator server process.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_21_PORT_ALLOCATION_GUARD.md

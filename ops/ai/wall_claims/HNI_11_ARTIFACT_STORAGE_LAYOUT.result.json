@@ -1,0 +1,13 @@
+{
+  "task_id": "ARTIFACT_STORAGE_LAYOUT",
+  "TASK_ID": "ARTIFACT_STORAGE_LAYOUT",
+  "status": "COMPLETE",
+  "STATUS": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "ops/ai/hard_no_idle50/deliverables/HNI_11_ARTIFACT_STORAGE_LAYOUT.md",
+  "fingerprint": "ARTIFACT_STORAGE_LAYOUT:COMPLETE:8f5efb10f7ae7dfbd1727918b981bbd11971eb10882c5077b91abb10fa423f03",
+  "blocker": "NONE",
+  "missing": "NONE",
+  "next_exact_action": "ADVANCE_NEXT_TASK",
+  "timestamp": "2026-09-28T01:08:06.868428+00:00"
+}

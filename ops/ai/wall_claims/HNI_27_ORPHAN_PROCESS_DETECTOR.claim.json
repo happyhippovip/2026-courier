@@ -1,0 +1,11 @@
+{
+  "task_id": "ORPHAN_PROCESS_DETECTOR",
+  "TASK_ID": "ORPHAN_PROCESS_DETECTOR",
+  "owner": "MAC_GOOGLE_FINISHER",
+  "OWNER": "MAC_GOOGLE_FINISHER",
+  "host": "MAC",
+  "provider": "GOOGLE_CLI",
+  "status": "RECONCILED",
+  "STATUS": "RECONCILED",
+  "timestamp": "2026-09-28T01:08:06.982305+00:00"
+}

@@ -1,0 +1,14 @@
+TASK_ID=G111
+STATUS=PROVEN
+INPUTS_READ=ops/ai/coordination_reports/FAMILY_07_RESTART_MATRIX_A4.md, ops/ai/specialist_reports/SPECIALIST_D_RESTART_MATRIX_CLOSER.md
+RESULTS_REUSED=Scenario 1: Coordinator killed via SIGTERM; state atomically reloaded from JSON; reconciled tasks unchanged; QUEUED tasks resume without attempt inflation (PHYS-003)
+NEW_EVIDENCE=Physical Canary and test_mac_worker_recovery.py verify crash recovery.
+MISSING_EVIDENCE=NONE
+BLOCKER=NONE
+CRITICAL_PATH_IMPACT=RESTART_SCENARIO_1_PROVEN
+NEXT_DEPENDENCY=G112
+DO_NOT_REPEAT_FINGERPRINT=G111_COURIER_PROCESS_RESTART_PROVEN
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-45cf1e5c6a14f10a
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-8e1054b035489663

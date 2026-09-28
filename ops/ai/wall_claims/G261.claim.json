@@ -1,0 +1,9 @@
+{
+  "task_id": "G261",
+  "task_name": "Local-vs-model work inventory",
+  "host": "MAC",
+  "worker": "GOOGLE_CLI",
+  "claimed_at": "2026-09-27T23:50:00+02:00",
+  "completed_at": "2026-09-27T23:50:00+02:00",
+  "status": "COMPLETED"
+}

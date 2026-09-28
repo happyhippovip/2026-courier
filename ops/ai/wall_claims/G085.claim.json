@@ -1,0 +1,11 @@
+{
+  "slot": "G085",
+  "worker_type": "COURIER_GOOGLE_OVERNIGHT_QUEUE_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "mode": "READ_ONLY_REPORT",
+  "status": "COMPLETED",
+  "task": "G085",
+  "result_path": "ops/ai/wall_results/G085_result.md",
+  "fingerprint": "G085_CHANGED_ATTEMPT_REJECT_BLOCKED"
+}

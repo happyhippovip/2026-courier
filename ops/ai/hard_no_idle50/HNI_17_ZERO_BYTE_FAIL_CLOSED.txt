@@ -1,0 +1,6 @@
+# HNI_17_ZERO_BYTE_FAIL_CLOSED.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_17_ZERO_BYTE_FAIL_CLOSED.txt
+DESCRIPTION: Verify that zero-byte artifacts and empty payload responses trigger fail-closed state in verifier.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_17_ZERO_BYTE_FAIL_CLOSED.md

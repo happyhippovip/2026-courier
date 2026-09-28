@@ -1,0 +1,6 @@
+# HNI_25_STATE_DIR_SANDBOX.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_25_STATE_DIR_SANDBOX.txt
+DESCRIPTION: Verify file system sandbox boundaries preventing server or worker from writing outside STATE_DIR.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_25_STATE_DIR_SANDBOX.md

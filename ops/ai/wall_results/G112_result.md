@@ -1,0 +1,14 @@
+TASK_ID=G112
+STATUS=PROVEN
+INPUTS_READ=ops/ai/coordination_reports/FAMILY_07_RESTART_MATRIX_A4.md, server/app.py:270-275
+RESULTS_REUSED=Scenario 2: Worker heartbeat exceeds 300s lease; task quarantined to HUMAN_REQUIRED with recovery_reason="STALE_WORKER_EFFECT_AMBIGUOUS"; worker marked unavailable
+NEW_EVIDENCE=Verified by test_stale_claim_is_quarantined_without_replay_and_other_goal_continues.
+MISSING_EVIDENCE=NONE
+BLOCKER=NONE
+CRITICAL_PATH_IMPACT=RESTART_SCENARIO_2_PROVEN
+NEXT_DEPENDENCY=G113
+DO_NOT_REPEAT_FINGERPRINT=G112_WORKER_DISAPPEARS_PROVEN
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-df3089ffa9046dfc
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-b3d4030eb7031f8a

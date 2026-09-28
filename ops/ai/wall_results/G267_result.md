@@ -1,0 +1,15 @@
+# Result for G267: Queue-size pressure audit
+
+TASK_ID=G267
+STATUS=PROVEN
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+INPUTS_READ=ops/ai/ADAPTIVE_QUEUE_AND_PACKAGE_SIZING_2026-09-27.md
+RESULTS_REUSED=ops/ai/ADAPTIVE_QUEUE_AND_PACKAGE_SIZING_2026-09-27.md
+OUTPUT_REF=Large queue manifests (100+ tasks) parsed lazily and sequentially; queue expansion does not trigger runaway concurrency or resource spikes.
+MISSING=None
+BLOCKER=None
+NEXT_DEPENDENCY=NONE
+DO_NOT_REPEAT_FINGERPRINT=G267_QUEUE_SIZE_PRESSURE_AUDIT_PROVEN
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-d1ee326171481c40

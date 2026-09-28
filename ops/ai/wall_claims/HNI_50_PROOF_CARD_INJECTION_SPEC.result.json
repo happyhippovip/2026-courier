@@ -1,0 +1,13 @@
+{
+  "task_id": "PROOF_CARD_INJECTION_SPEC",
+  "TASK_ID": "PROOF_CARD_INJECTION_SPEC",
+  "status": "COMPLETE",
+  "STATUS": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "ops/ai/hard_no_idle50/deliverables/HNI_50_PROOF_CARD_INJECTION_SPEC.md",
+  "fingerprint": "PROOF_CARD_INJECTION_SPEC:COMPLETE:aa98bde10548553aab1bebc5f211430395cf0d40cf14c251ccd052fdc0b0446f",
+  "blocker": "NONE",
+  "missing": "NONE",
+  "next_exact_action": "ADVANCE_NEXT_TASK",
+  "timestamp": "2026-09-28T01:08:07.154334+00:00"
+}

@@ -1,0 +1,11 @@
+{
+  "slot": "G117",
+  "worker_type": "COURIER_RUN2_RESTART_MASTER",
+  "host": "MAC",
+  "provider": "GOOGLE_CLI",
+  "mode": "READ_ONLY_PREP",
+  "status": "COMPLETED",
+  "task": "G117",
+  "result_path": "ops/ai/wall_results/G117_result.md",
+  "fingerprint": "G117_STALE_RESULT_COVERAGE_PROVEN"
+}

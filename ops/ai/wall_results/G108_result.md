@@ -1,0 +1,14 @@
+TASK_ID=G108
+STATUS=PROVEN
+INPUTS_READ=ops/ai/wall_v2/publish_queue/PHYSICAL_CANARY_PROOF_BUNDLE_2026-09-27.md, ops/ai/coordination_reports/FAMILY_06_RUN_2_RESTART_RESILIENCE.md
+RESULTS_REUSED=Post-restart coordinator immediately dispatches dependent Step B (run2-task-b) without manual prompt or intervention (HUMAN_RELAY_COUNT=0)
+NEW_EVIDENCE=Step B auto-start and execution to completion verified.
+MISSING_EVIDENCE=NONE
+BLOCKER=NONE
+CRITICAL_PATH_IMPACT=RUN_2_B_AUTO_START_PROVEN
+NEXT_DEPENDENCY=G109
+DO_NOT_REPEAT_FINGERPRINT=G108_RUN2_B_AUTO_START_PROVEN
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-70b00c6dc72da6d0
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-6b0c27eb5ccedef0

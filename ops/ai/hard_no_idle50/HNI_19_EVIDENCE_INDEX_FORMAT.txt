@@ -1,0 +1,6 @@
+# HNI_19_EVIDENCE_INDEX_FORMAT.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_19_EVIDENCE_INDEX_FORMAT.txt
+DESCRIPTION: Standardize .evidence.json metadata schemas capturing tool invocation commands, exit codes, and stdout digests.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_19_EVIDENCE_INDEX_FORMAT.md

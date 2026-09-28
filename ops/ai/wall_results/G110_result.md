@@ -1,0 +1,14 @@
+TASK_ID=G110
+STATUS=PROVEN
+INPUTS_READ=ops/ai/specialist_reports/SPECIALIST_C_RUN2_RESTART_BINDER.md, ops/ai/coordination_reports/FAMILY_06_RUN_2_RESTART_RESILIENCE.md
+RESULTS_REUSED=Complete run2_proof.json schema defined: goal_id, step_a status/attempts/hash, cutpoint signal/pids, step_b auto_dispatch/status, human_interventions: 0
+NEW_EVIDENCE=Evidence packet ready for immediate re-execution against FINAL_SHA commit.
+MISSING_EVIDENCE=Windows Central Writer commit delivering FINAL_SHA
+BLOCKER=AWAITING_WINDOWS_CENTRAL_WRITER_FINAL_SHA
+CRITICAL_PATH_IMPACT=RUN_2_EVIDENCE_TEMPLATE_READY
+NEXT_DEPENDENCY=G111
+DO_NOT_REPEAT_FINGERPRINT=G110_RUN2_FINAL_EVIDENCE_TEMPLATE_PROVEN
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-24512a1dcf5c6dc7
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-d4b5ab5f2a07e7f9

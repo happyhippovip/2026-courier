@@ -1,0 +1,6 @@
+# HNI_02_PYTHON_ENV_ISOLATION.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_02_PYTHON_ENV_ISOLATION.txt
+DESCRIPTION: Verify Python 3.9 virtual environment boundaries, sys.path hygiene, and absence of external package pollution.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_02_PYTHON_ENV_ISOLATION.md

@@ -1,0 +1,17 @@
+{
+  "run_id": "RUN_1",
+  "final_sha": "{{FINAL_SHA}}",
+  "result": "PENDING",
+  "timestamp": "",
+  "evidence_dir": "/tmp/courier_run1_{{FINAL_SHA}}/evidence",
+  "verdict_hash": "",
+  "checks": {
+    "MAC_HNI_03_A_ONCE": false,
+    "MAC_HNI_04_HASH_CHAIN": false,
+    "MAC_HNI_05_SERVER_BYTES": false,
+    "MAC_HNI_06_VERIFY_RECONCILE": false,
+    "MAC_HNI_07_B_AUTOSTART": false,
+    "MAC_HNI_08_ZERO_RELAY": false,
+    "MAC_HNI_09_FAILED_EXECUTION": false
+  }
+}

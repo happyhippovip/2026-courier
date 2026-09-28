@@ -1,0 +1,10 @@
+{
+  "task_id": "MAC_HNI_21",
+  "status": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "docs/proofs/PROOF_CARD_TEMPLATE.md",
+  "blocker": "NONE",
+  "missing": "NONE",
+  "next_exact_action": "CLAIM_MAC_HNI_22",
+  "timestamp": "2026-09-28T03:00:00Z"
+}

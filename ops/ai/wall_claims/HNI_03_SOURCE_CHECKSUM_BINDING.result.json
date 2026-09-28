@@ -1,0 +1,13 @@
+{
+  "task_id": "HNI_03",
+  "TASK_ID": "HNI_03",
+  "status": "COMPLETE",
+  "STATUS": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "ops/ai/hard_no_idle50/deliverables/HNI_03_SOURCE_CHECKSUM_BINDING.md",
+  "fingerprint": "HNI_03:COMPLETE:ddeba49ff0d6fb79b1bbbb47c678aa06a010997dc1bc6b71b62de053cb194a22",
+  "blocker": "NONE",
+  "missing": "NONE",
+  "next_exact_action": "ADVANCE_NEXT_TASK",
+  "timestamp": "2026-09-28T01:08:06.824334+00:00"
+}

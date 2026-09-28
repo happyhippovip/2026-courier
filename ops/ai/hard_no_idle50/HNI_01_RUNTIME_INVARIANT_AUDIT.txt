@@ -1,0 +1,6 @@
+# HNI_01_RUNTIME_INVARIANT_AUDIT.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_01_RUNTIME_INVARIANT_AUDIT.txt
+DESCRIPTION: Audit Darwin 25.6.0 x86_64 system calls, architecture flags, and posix constraints for candidate-independent execution.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_01_RUNTIME_INVARIANT_AUDIT.md

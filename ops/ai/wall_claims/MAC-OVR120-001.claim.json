@@ -1,0 +1,23 @@
+{
+  "slot": "MAC-OVR120-001",
+  "worker_type": "COURIER_GOOGLE_OVERNIGHT_QUEUE_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "mode": "READ_ONLY_REPORT",
+  "worker_status": "TRUE_IDLE",
+  "status": "COMPLETED",
+  "claimed_at": "2026-09-27T23:30:00+02:00",
+  "completed_at": "2026-09-27T23:33:45+02:00",
+  "truth_branch": "origin/coordination/autofill-task-seed-20260926",
+  "current_queue_generation": "2026-09-27.OVERNIGHT_120_V1",
+  "last_task_id": "G180",
+  "last_result": "PASS",
+  "blocker": "WAITING_FOR_WINDOWS_CENTRAL_WRITER_FINAL_SHA",
+  "next_ready_task": "FAMILY_04_TARGETED_TESTS_ON_FINAL_SHA",
+  "durable_checkpoint_path": "ops/ai/OVERNIGHT_120_EXECUTION_SUMMARY_2026-09-27.md",
+  "state": "TRUE_IDLE",
+  "waiting_for_windows": true,
+  "pre_codex_ready": false,
+  "safe_to_idle": true,
+  "summary": "Supplemental queue G061..G180 (120 tasks) is 100% complete and reconciled via RESULT_REUSE_FIRST. No unworked tasks remain. Standing down in TRUE_IDLE awaiting Windows Central Writer 5-file commit."
+}

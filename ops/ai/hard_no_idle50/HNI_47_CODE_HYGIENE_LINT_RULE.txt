@@ -1,0 +1,6 @@
+# HNI_47_CODE_HYGIENE_LINT_RULE.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_47_CODE_HYGIENE_LINT_RULE.txt
+DESCRIPTION: Verify git diff --check clean status with zero trailing whitespace or carriage return anomalies.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_47_CODE_HYGIENE_LINT_RULE.md

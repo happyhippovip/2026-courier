@@ -1,0 +1,15 @@
+# Result for G262: Idle token waste audit
+
+TASK_ID=G262
+STATUS=PROVEN
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+INPUTS_READ=ops/ai/WALL_QUEUE_CURRENT.md, ops/ai/WALL_SYSTEM.md
+RESULTS_REUSED=ops/ai/WALL_QUEUE_CURRENT.md, ops/ai/WALL_SYSTEM.md
+OUTPUT_REF=When active queue exhausted, worker enters `TRUE_IDLE` with sleep backoff. Polling loops without work strictly prohibited.
+MISSING=None
+BLOCKER=None
+NEXT_DEPENDENCY=NONE
+DO_NOT_REPEAT_FINGERPRINT=G262_IDLE_TOKEN_WASTE_AUDIT_PROVEN
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-c9a40be047d7309e

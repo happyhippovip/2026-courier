@@ -1,0 +1,6 @@
+# HNI_03_SOURCE_CHECKSUM_BINDING.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_03_SOURCE_CHECKSUM_BINDING.txt
+DESCRIPTION: Audit source tree checksums across server/, scripts/, and tests/ to ensure zero untracked mutation during proof prep.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_03_SOURCE_CHECKSUM_BINDING.md

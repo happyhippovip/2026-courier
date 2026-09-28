@@ -1,0 +1,11 @@
+{
+  "task_id": "SERVER_CRASH_INJECTION",
+  "TASK_ID": "SERVER_CRASH_INJECTION",
+  "owner": "MAC_GOOGLE_FINISHER",
+  "OWNER": "MAC_GOOGLE_FINISHER",
+  "host": "MAC",
+  "provider": "GOOGLE_CLI",
+  "status": "RECONCILED",
+  "STATUS": "RECONCILED",
+  "timestamp": "2026-09-28T01:08:07.034860+00:00"
+}

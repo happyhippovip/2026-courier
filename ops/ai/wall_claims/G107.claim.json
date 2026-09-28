@@ -1,0 +1,11 @@
+{
+  "slot": "G107",
+  "worker_type": "COURIER_RUN2_RESTART_MASTER",
+  "host": "MAC",
+  "provider": "GOOGLE_CLI",
+  "mode": "READ_ONLY_PREP",
+  "status": "COMPLETED",
+  "task": "G107",
+  "result_path": "ops/ai/wall_results/G107_result.md",
+  "fingerprint": "G107_RUN2_POST_RESTART_RECONCILE_PROVEN"
+}

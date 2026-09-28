@@ -1,0 +1,14 @@
+TASK_ID=G119
+STATUS=PROVEN
+INPUTS_READ=ops/ai/coordination_reports/FAMILY_07_RESTART_MATRIX_A4.md, tests/test_p3_server_idempotency.py:92-98
+RESULTS_REUSED=Scenario 9: Divergent result payload for processed task rejected with HTTP 409 Conflict; prevents silent corruption of completed state
+NEW_EVIDENCE=Verified by test_conflicting_result_for_processed_task_is_rejected.
+MISSING_EVIDENCE=NONE
+BLOCKER=NONE
+CRITICAL_PATH_IMPACT=RESTART_SCENARIO_9_PROVEN
+NEXT_DEPENDENCY=G120
+DO_NOT_REPEAT_FINGERPRINT=G119_CONTRADICTORY_DUPLICATE_COVERAGE_PROVEN
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-d32de9f5bd4824b6
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-171deb3cb0070baf

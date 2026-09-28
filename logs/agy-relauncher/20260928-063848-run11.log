@@ -1,0 +1,75 @@
+### Courier Mac — After-Ledger Continuous Finisher Report
+
+**Host**: `MAC`  
+**Provider**: `GOOGLE_CLI`  
+**Model Class**: `C1`  
+**Status**: `CONTINUOUS_EXECUTION_ACTIVE` (Phase A 100% Prepared; Standing by for Authoritative Gate Opening)
+
+---
+
+### 1. Gate & Coordination Verification
+
+| Field | Current State | Notes |
+|---|---|---|
+| **PRE_CODEX_STATE** | `DURABILITY_PENDING` | Active external blocker |
+| **Reported Candidate SHA** | `34b0a4264bf763bc2a78f761ffba36e47706b2cf` | Resolved locally |
+| **Remote GitHub Resolution** | `NOT_FOUND` (`origin HEAD`: `1e148fc10dbc4b3c495fe893dd337a49ffae2112`) | Verified via `git ls-remote origin` |
+| **Authoritative Ready** | `NO` | Awaiting Windows persistence owner |
+| **Ledger Work** | `SKIPPED` | 100% reconciled; zero re-examinations |
+
+---
+
+### 2. Phase A — Candidate-Independent Mac Preparation (MAC_HNI_01..22)
+
+In accordance with `CLAIM_BEFORE_ANALYSIS=YES` and `RESULT_REUSE_FIRST=YES`, all 21 candidate-independent tasks plus `MAC_HNI_16` preparatory bindings are fully verified and locked:
+
+| Task ID | Task Scope | Status | Deliverable Pointer |
+|---|---|:---:|---|
+| **MAC_HNI_01** | RUN1_COMMAND_BINDER | **COMPLETE** | [`RUN1_PHYSICAL_BINDING_TEMPLATE.sh`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUN1_PHYSICAL_BINDING_TEMPLATE.sh) |
+| **MAC_HNI_02** | RUN1_EVIDENCE_LAYOUT | **COMPLETE** | [`RUN1_EVIDENCE_LAYOUT.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUN1_EVIDENCE_LAYOUT.md) |
+| **MAC_HNI_03** | RUN1_A_ONCE_PROOF | **COMPLETE** | [`RUN1_A_ONCE_PROOF_CONTRACT.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUN1_A_ONCE_PROOF_CONTRACT.md) |
+| **MAC_HNI_04** | RUN1_EXPECTED_HASH_CHAIN | **COMPLETE** | [`RUN1_EXPECTED_HASH_CHAIN.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUN1_EXPECTED_HASH_CHAIN.md) |
+| **MAC_HNI_05** | RUN1_SERVER_BYTES_PROOF | **COMPLETE** | [`RUN1_SERVER_BYTES_PROOF_CONTRACT.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUN1_SERVER_BYTES_PROOF_CONTRACT.md) |
+| **MAC_HNI_06** | RUN1_VERIFY_RECONCILE_PROOF | **COMPLETE** | [`RUN1_VERIFY_RECONCILE_PROOF_CONTRACT.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUN1_VERIFY_RECONCILE_PROOF_CONTRACT.md) |
+| **MAC_HNI_07** | RUN1_B_AUTOSTART_PROOF | **COMPLETE** | [`RUN1_B_AUTOSTART_PROOF_CONTRACT.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUN1_B_AUTOSTART_PROOF_CONTRACT.md) |
+| **MAC_HNI_08** | RUN1_ZERO_RELAY_PROOF | **COMPLETE** | [`RUN1_ZERO_RELAY_PROOF_CONTRACT.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUN1_ZERO_RELAY_PROOF_CONTRACT.md) |
+| **MAC_HNI_09** | RUN1_FAILED_EXECUTION_GUARD | **COMPLETE** | [`RUN1_FAILED_EXECUTION_GUARD.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUN1_FAILED_EXECUTION_GUARD.md) |
+| **MAC_HNI_10** | RUN1_RESULT_TEMPLATE | **COMPLETE** | [`RUN1_RESULT_TEMPLATE.json`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUN1_RESULT_TEMPLATE.json) |
+| **MAC_HNI_11** | RUN2_RESTART_BINDER | **COMPLETE** | [`RUN2_PHYSICAL_BINDING_TEMPLATE.sh`](file:///Users/user/Downloads/2026-courier/scripts/run2_physical/RUN2_PHYSICAL_BINDING_TEMPLATE.sh) |
+| **MAC_HNI_12** | RUN2_A_PERSISTENCE_PROOF | **COMPLETE** | [`RUN2_A_PERSISTENCE_PROOF_CONTRACT.md`](file:///Users/user/Downloads/2026-courier/scripts/run2_physical/RUN2_A_PERSISTENCE_PROOF_CONTRACT.md) |
+| **MAC_HNI_13** | RUN2_NO_A_REPLAY_PROOF | **COMPLETE** | [`RUN2_NO_A_REPLAY_PROOF_CONTRACT.md`](file:///Users/user/Downloads/2026-courier/scripts/run2_physical/RUN2_NO_A_REPLAY_PROOF_CONTRACT.md) |
+| **MAC_HNI_14** | RUN2_B_CONTINUATION_PROOF | **COMPLETE** | [`RUN2_B_CONTINUATION_PROOF_CONTRACT.md`](file:///Users/user/Downloads/2026-courier/scripts/run2_physical/RUN2_B_CONTINUATION_PROOF_CONTRACT.md) |
+| **MAC_HNI_15** | RUN2_EXECUTION_COUNT_PROOF | **COMPLETE** | [`RUN2_EXECUTION_COUNT_PROOF_CONTRACT.md`](file:///Users/user/Downloads/2026-courier/scripts/run2_physical/RUN2_EXECUTION_COUNT_PROOF_CONTRACT.md) |
+| **MAC_HNI_16** | RUNTIME_SOURCE_BINDING | **PREPARED** | [`RUNTIME_SOURCE_BINDING.json`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUNTIME_SOURCE_BINDING.json) (All candidate-independent fields populated; awaiting durable remote `FINAL_SHA`) |
+| **MAC_HNI_17** | PROCESS_PORT_OWNERSHIP | **COMPLETE** | [`PROCESS_PORT_OWNERSHIP.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/PROCESS_PORT_OWNERSHIP.md) |
+| **MAC_HNI_18** | STATE_LOG_ARTIFACT_ISOLATION | **COMPLETE** | [`STATE_LOG_ARTIFACT_ISOLATION.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/STATE_LOG_ARTIFACT_ISOLATION.md) |
+| **MAC_HNI_19** | RESOURCE_ADMISSION | **COMPLETE** | [`RESOURCE_ADMISSION.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RESOURCE_ADMISSION.md) |
+| **MAC_HNI_20** | NO_TIGHT_POLLING_AUDIT | **COMPLETE** | [`NO_TIGHT_POLLING_AUDIT.md`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/NO_TIGHT_POLLING_AUDIT.md) |
+| **MAC_HNI_21** | PROOF_CARD_FINALIZER | **COMPLETE** | [`PROOF_CARD_TEMPLATE.md`](file:///Users/user/Downloads/2026-courier/docs/proofs/PROOF_CARD_TEMPLATE.md) |
+| **MAC_HNI_22** | CORE_FREEZE_CLOSEOUT | **COMPLETE** | [`CORE_FREEZE_CLOSEOUT_CHECKLIST.md`](file:///Users/user/Downloads/2026-courier/docs/proofs/CORE_FREEZE_CLOSEOUT_CHECKLIST.md) |
+
+---
+
+### 3. Falsifiability & Harness Self-Test Status
+
+- **Verification Harness**: [`scripts/run1_physical/verify_proof_contracts.py`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/verify_proof_contracts.py)
+- **Self-Test Run**: `python3 scripts/run1_physical/verify_proof_contracts.py --self-test`
+- **Result**: **11/11 proof contract self-tests PASSED** with 0 errors.
+
+---
+
+### 4. Transition Readiness Protocol
+
+1. **Phase B (When `PRE_CODEX_STATE=READY`)**:
+   - Zero redundant revalidation of PRE_CODEX.
+   - Wait for `CODEX_HIGH_ONCE` result while retaining candidate-independent preparation.
+2. **Phase C (When `READY_FOR_PHYSICAL_RUN=YES`)**:
+   - Immediately bind exact Mac source/runtime `FINAL_SHA` into [`RUNTIME_SOURCE_BINDING.json`](file:///Users/user/Downloads/2026-courier/scripts/run1_physical/RUNTIME_SOURCE_BINDING.json).
+   - Freeze command & evidence packets.
+   - Designate **one physical RUN_1 owner** (all other Mac slots capture evidence only).
+3. **Phase D (After RUN_1 PASS)**:
+   - Switch immediately to single-owner physical RUN_2 restart/no-replay proof.
+4. **Phase E (After RUN_2 PASS)**:
+   - Core Freeze closeout -> generate Proof Card -> minimum pilot prep.
+
+`SLOT_IDLE` is non-terminal; the Mac runner remains active and primed to trigger Phase C immediately upon gate clearance.

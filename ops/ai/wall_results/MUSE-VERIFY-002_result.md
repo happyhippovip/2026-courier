@@ -1,0 +1,11 @@
+# Result for MUSE-VERIFY-002
+- **TASK_ID**: MUSE-VERIFY-002
+- **STATUS**: PASS_VERIFIED_DEFECT
+- **VERDICT**: FAIL
+- **INPUTS_READ**: ops/ai/EXTENDED_EXECUTION_LEDGER_SPEC_2026-09-27.md, server/app.py
+- **FINDING**: server/app.py does not implement a stable truth keys validation table (TRUTH_BRAIN, TRUTH_CONTRACT, TRUTH_HANDOFF, TRUTH_RESULT_POLICY, TRUTH_QUEUE_INDEX). State schema currently omits truth key bindings.
+- **DO_NOT_REPEAT**: bcaa51df34c9164773201d33386fc9d0c63c603336f36df05188fbe94f6faffc
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-eb5f539455cd909a
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-8583b01f2a69b7a6

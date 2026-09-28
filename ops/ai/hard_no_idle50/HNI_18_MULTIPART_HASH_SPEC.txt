@@ -1,0 +1,6 @@
+# HNI_18_MULTIPART_HASH_SPEC.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_18_MULTIPART_HASH_SPEC.txt
+DESCRIPTION: Specify multi-part chunked SHA-256 calculation for large artifacts exceeding streaming buffer thresholds.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_18_MULTIPART_HASH_SPEC.md

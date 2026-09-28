@@ -1,0 +1,14 @@
+{
+  "slot": "MAC-PERM-001",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "status": "COMPLETED",
+  "claimed_at": "2026-09-27T22:45:00+02:00",
+  "completed_at": "2026-09-27T22:47:15+02:00",
+  "mission": "COURIER_GOOGLE_UNIVERSAL_QUEUE_WORKER",
+  "specialists_completed": ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"],
+  "reports_dir": "ops/ai/specialist_reports/",
+  "safe_to_idle": true,
+  "state": "TRUE_IDLE",
+  "waiting_for_windows": true
+}

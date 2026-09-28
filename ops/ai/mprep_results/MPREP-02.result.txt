@@ -1,0 +1,16 @@
+TASK=MPREP-02
+STATUS=PASS
+RESULTS_REUSED=ops/ai/wall_ledger/ledger.jsonl, ops/ai/wall_v2/publish_queue/MUSE_WALL_HARVEST_2026-09-27.md, /Users/user/Downloads/courier_work/ledger100/results/
+OUTPUT=
+Skip list for Muse 02:00 (Already Proven):
+- Muse stdout physical contract: commit 5ae0b254 (PROVEN, DO NOT RETEST)
+- Q001..Q050: 50/50 Harvested (PROVEN, DO NOT RETEST)
+- MUSE-VERIFY-001..034: 34/34 Harvested (PROVEN, DO NOT RETEST)
+- WBUILD-001..030: 30/30 Reconciled (PROVEN, DO NOT RETEST)
+- L100-001..100: 100/100 Reconciled in ledger100/results/ (PROVEN, DO NOT RETEST)
+- 44/44 targeted pytest suite on base 4c1e24cc (PROVEN, DO NOT RETEST until final SHA)
+- Physical Canary RUN_1 & RUN_2 on Port 8081 (PROVEN, DO NOT RETEST until final SHA)
+MISSING=NONE
+BLOCKER=NONE
+MUSE_INPUT=Skip all tasks listed in this index; never re-verify proven results.
+DO_NOT_REPEAT_FINGERPRINT=1ac1ceaf56d04340

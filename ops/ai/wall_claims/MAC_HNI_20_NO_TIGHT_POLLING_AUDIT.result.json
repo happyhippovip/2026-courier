@@ -1,0 +1,10 @@
+{
+  "task_id": "MAC_HNI_20",
+  "status": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "scripts/run1_physical/NO_TIGHT_POLLING_AUDIT.md",
+  "blocker": "NONE",
+  "missing": "NONE",
+  "next_exact_action": "CLAIM_MAC_HNI_21",
+  "timestamp": "2026-09-28T03:00:00Z"
+}

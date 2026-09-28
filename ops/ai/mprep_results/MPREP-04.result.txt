@@ -1,0 +1,16 @@
+TASK=MPREP-04
+STATUS=PASS
+RESULTS_REUSED=ops/ai/coordination_pack/FAMILY_19_PRE_CODEX_PACKAGE.md
+OUTPUT=
+Missing-evidence shortlist for Pre-Codex Gate:
+1. Case 1 (Task expected hash enforced): pending CW commit in scripts/courier_verifier.py
+2. Case 4 (Worker cannot self-authorize expected hash): pending CW commit in scripts/courier_verifier.py
+3. Case 5 (Worker expected hash ignored when task specifies expected hash): pending CW commit in scripts/courier_verifier.py
+4. Case 9 (Verifier poison pill isolation in loop): pending CW commit in scripts/courier_verifier.py:98
+5. Case 10 (Worker artifact schema rejects unexpected expected_sha256): pending CW commit in scripts/integration_contract.py:156
+6. Case 12 (Duplicate replay matching full 6-tuple): pending CW commit in server/app.py:367
+7. Final candidate SHA git diff check: pending Windows CW commit to verify 5 files only and clean diff
+MISSING=Windows Central Writer candidate commit for the 5 authorized files
+BLOCKER=BLK-01 (Windows Central Writer candidate commit)
+MUSE_INPUT=Do not attempt to test these cases as green until Windows pushes the patch commit.
+DO_NOT_REPEAT_FINGERPRINT=964c75fbbcfeb182

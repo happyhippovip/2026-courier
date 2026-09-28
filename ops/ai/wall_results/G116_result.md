@@ -1,0 +1,14 @@
+TASK_ID=G116
+STATUS=PROVEN
+INPUTS_READ=ops/ai/coordination_reports/FAMILY_07_RESTART_MATRIX_A4.md, ops/ai/coordination_reports/FAMILY_16_PILOT_FAILURE_MODES.md
+RESULTS_REUSED=Scenario 6: HTTP 429/503 triggers worker-side exponential backoff retry; underlying tool execution is NOT repeated; execution count = 1 preserved
+NEW_EVIDENCE=Verified by test_windows_transient_upload_failure_keeps_result_without_reexecution.
+MISSING_EVIDENCE=NONE
+BLOCKER=NONE
+CRITICAL_PATH_IMPACT=RESTART_SCENARIO_6_PROVEN
+NEXT_DEPENDENCY=G117
+DO_NOT_REPEAT_FINGERPRINT=G116_PROVIDER_TEMP_UNAVAILABLE_PROVEN
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-6ae3df266de42dfd
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-b7cd896ab5d660a5

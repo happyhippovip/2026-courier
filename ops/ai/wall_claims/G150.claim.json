@@ -1,0 +1,11 @@
+{
+  "slot": "G150",
+  "worker_type": "COURIER_GOOGLE_OVERNIGHT_QUEUE_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "mode": "READ_ONLY_REPORT",
+  "status": "COMPLETED",
+  "task": "G150",
+  "result_path": "ops/ai/wall_results/G150_result.md",
+  "fingerprint": "G150_TRUE_IDLE_CORRECTNESS"
+}

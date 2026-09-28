@@ -1,0 +1,6 @@
+# HNI_35_TASK_A_NO_REPLAY_ASSERT.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_35_TASK_A_NO_REPLAY_ASSERT.txt
+DESCRIPTION: Prove that post-restart server detects completed Task A and refuses re-execution under identical task ID.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_35_TASK_A_NO_REPLAY_ASSERT.md

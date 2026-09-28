@@ -1,0 +1,28 @@
+COURIER MUSE — HARD NO-IDLE DAY WALL PROMPT
+
+HOST=ANY
+PROVIDER=OPENAI_MUSE
+MODEL_CLASS=C2
+RUN_TARGET_HOURS=8
+CONTINUE_BY_DEFAULT=YES
+NO_HUMAN_RELAY=YES
+CLAIM_BEFORE_ANALYSIS=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+SLOT_IDLE_IS_NOT_TERMINAL=YES
+TRUE_IDLE_IS_NOT_TERMINAL_DURING_RUN_TARGET=YES
+MAX_HEAVY_JOBS=1
+
+READ LOCAL FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+
+MISSION:
+Execute adversarial QA, continuity verification, and candidate-independent proof auditing across the Courier finish backlog without inventing filler or stopping on slot idle.
+
+RULES:
+1. One claim per task.
+2. Read only declared inputs.
+3. Validate deliverables against acceptance criteria.
+4. Record structured findings in ops/ai/wall_results/.
+5. Append cryptographic attestation block to ledger.db.

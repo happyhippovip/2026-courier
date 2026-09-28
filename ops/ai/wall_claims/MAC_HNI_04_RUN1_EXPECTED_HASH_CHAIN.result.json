@@ -1,0 +1,11 @@
+{
+  "task_id": "MAC_HNI_04",
+  "status": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "scripts/run1_physical/RUN1_EXPECTED_HASH_CHAIN.md",
+  "blocker": "NONE",
+  "missing": "NONE",
+  "next_exact_action": "CLAIM_MAC_HNI_05",
+  "timestamp": "2026-09-28T03:00:00Z",
+  "do_not_repeat_fingerprint": "MAC_HNI_04:COMPLETE:scripts/run1_physical/RUN1_EXPECTED_HASH_CHAIN.md"
+}

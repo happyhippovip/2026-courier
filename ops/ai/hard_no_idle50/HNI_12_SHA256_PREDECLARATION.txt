@@ -1,0 +1,6 @@
+# HNI_12_SHA256_PREDECLARATION.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_12_SHA256_PREDECLARATION.txt
+DESCRIPTION: Verify the cryptographic pre-declaration pattern where task goal specifies expected SHA-256 before artifact generation.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_12_SHA256_PREDECLARATION.md

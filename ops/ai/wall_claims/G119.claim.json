@@ -1,0 +1,11 @@
+{
+  "slot": "G119",
+  "worker_type": "COURIER_RUN2_RESTART_MASTER",
+  "host": "MAC",
+  "provider": "GOOGLE_CLI",
+  "mode": "READ_ONLY_PREP",
+  "status": "COMPLETED",
+  "task": "G119",
+  "result_path": "ops/ai/wall_results/G119_result.md",
+  "fingerprint": "G119_CONTRADICTORY_DUPLICATE_COVERAGE_PROVEN"
+}

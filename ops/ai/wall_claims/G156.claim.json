@@ -1,0 +1,11 @@
+{
+  "slot": "G156",
+  "worker_type": "COURIER_GOOGLE_OVERNIGHT_QUEUE_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "mode": "READ_ONLY_REPORT",
+  "status": "COMPLETED",
+  "task": "G156",
+  "result_path": "ops/ai/wall_results/G156_result.md",
+  "fingerprint": "G156_MAX_HEAVY_JOBS_ADMISSION"
+}

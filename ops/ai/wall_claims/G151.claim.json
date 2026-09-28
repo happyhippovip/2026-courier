@@ -1,0 +1,11 @@
+{
+  "slot": "G151",
+  "worker_type": "COURIER_GOOGLE_OVERNIGHT_QUEUE_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "mode": "READ_ONLY_REPORT",
+  "status": "COMPLETED",
+  "task": "G151",
+  "result_path": "ops/ai/wall_results/G151_result.md",
+  "fingerprint": "G151_SESSION_CLEAR_CONTINUITY"
+}

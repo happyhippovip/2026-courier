@@ -1,0 +1,13 @@
+{
+  "slot": "MPREP-09",
+  "worker_type": "COURIER_GOOGLE_MUSE_PREFLIGHT_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "mode": "LIGHT_READ_ONLY",
+  "status": "COMPLETED",
+  "claimed_at": "2026-09-27T23:03:05+02:00",
+  "completed_at": "2026-09-27T23:03:15+02:00",
+  "task": "MPREP-09",
+  "result_path": "ops/ai/wall_results/MPREP-09_result.md",
+  "fingerprint": "mprep-09-pilot-prep-review-packet-v1"
+}

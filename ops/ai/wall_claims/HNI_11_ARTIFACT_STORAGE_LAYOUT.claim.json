@@ -1,0 +1,11 @@
+{
+  "task_id": "ARTIFACT_STORAGE_LAYOUT",
+  "TASK_ID": "ARTIFACT_STORAGE_LAYOUT",
+  "owner": "MAC_GOOGLE_FINISHER",
+  "OWNER": "MAC_GOOGLE_FINISHER",
+  "host": "MAC",
+  "provider": "GOOGLE_CLI",
+  "status": "RECONCILED",
+  "STATUS": "RECONCILED",
+  "timestamp": "2026-09-28T01:08:06.871979+00:00"
+}

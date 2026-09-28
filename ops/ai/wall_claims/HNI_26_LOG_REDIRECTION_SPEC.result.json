@@ -1,0 +1,13 @@
+{
+  "task_id": "LOG_REDIRECTION_SPEC",
+  "TASK_ID": "LOG_REDIRECTION_SPEC",
+  "status": "COMPLETE",
+  "STATUS": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "ops/ai/hard_no_idle50/deliverables/HNI_26_LOG_REDIRECTION_SPEC.md",
+  "fingerprint": "LOG_REDIRECTION_SPEC:COMPLETE:5fc55b3383d1fd5466f4900fa47f40ca5655d64266412e444a9c346d973a3ab1",
+  "blocker": "NONE",
+  "missing": "NONE",
+  "next_exact_action": "ADVANCE_NEXT_TASK",
+  "timestamp": "2026-09-28T01:08:06.967217+00:00"
+}

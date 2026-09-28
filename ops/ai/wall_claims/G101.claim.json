@@ -1,0 +1,11 @@
+{
+  "slot": "G101",
+  "worker_type": "COURIER_RUN2_RESTART_MASTER",
+  "host": "MAC",
+  "provider": "GOOGLE_CLI",
+  "mode": "READ_ONLY_PREP",
+  "status": "COMPLETED",
+  "task": "G101",
+  "result_path": "ops/ai/wall_results/G101_result.md",
+  "fingerprint": "G101_RUN2_DEP_ON_RUN1_PASS_PROVEN"
+}

@@ -1,0 +1,6 @@
+# HNI_15_IMMUTABLE_EVENT_STREAM.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_15_IMMUTABLE_EVENT_STREAM.txt
+DESCRIPTION: Audit append-only properties of event logs preventing historical event overwrites or truncation.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_15_IMMUTABLE_EVENT_STREAM.md

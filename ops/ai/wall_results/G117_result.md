@@ -1,0 +1,14 @@
+TASK_ID=G117
+STATUS=PROVEN
+INPUTS_READ=ops/ai/coordination_reports/FAMILY_07_RESTART_MATRIX_A4.md, tests/test_p3_server_idempotency.py:64
+RESULTS_REUSED=Scenario 7: Late result carrying superseded attempt_id or mismatched dispatch_id rejected with HTTP 400 ContractError; current task state preserved intact
+NEW_EVIDENCE=Verified by test_prior_attempt_or_dispatch_evidence_fails_closed.
+MISSING_EVIDENCE=NONE
+BLOCKER=NONE
+CRITICAL_PATH_IMPACT=RESTART_SCENARIO_7_PROVEN
+NEXT_DEPENDENCY=G118
+DO_NOT_REPEAT_FINGERPRINT=G117_STALE_RESULT_COVERAGE_PROVEN
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-06db7b3e779575b0
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-bb139169659c280f

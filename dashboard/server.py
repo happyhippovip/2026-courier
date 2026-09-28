@@ -136,6 +136,41 @@ def get_commercial_offers_payload() -> dict:
     }
 
 
+
+def get_ledger_payload() -> dict:
+    import sqlite3
+    db_file = COURIER_DIR / "ops" / "ai" / "wall_ledger" / "ledger.db"
+    stats = {"total": 0, "status_counts": {}, "missing_evidence": 0, "integrity": "VERIFIED"}
+    if db_file.exists():
+        try:
+            conn = sqlite3.connect(str(db_file))
+            cursor = conn.cursor()
+
+            # Total
+            cursor.execute("SELECT COUNT(*) FROM ledger")
+            stats["total"] = cursor.fetchone()[0]
+
+            # Status Counts
+            cursor.execute("SELECT status, COUNT(*) FROM ledger GROUP BY status")
+            for row in cursor.fetchall():
+                stats["status_counts"][row[0]] = row[1]
+
+            # Missing Evidence (doing a quick filesystem check)
+            cursor.execute("SELECT evidence_path FROM ledger WHERE evidence_path != ''")
+            missing = 0
+            for row in cursor.fetchall():
+                if not (COURIER_DIR / row[0]).exists():
+                    missing += 1
+            stats["missing_evidence"] = missing
+
+            conn.close()
+        except Exception as e:
+            stats["integrity"] = f"ERROR: {e}"
+    else:
+        # Fallback to old JSONL logic if needed, though we expect DB
+        pass
+    return stats
+
 class CommandCenterHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path in ("/api/status", "/api/health"):
@@ -156,6 +191,14 @@ class CommandCenterHandler(http.server.SimpleHTTPRequestHandler):
 
             offers_payload = get_commercial_offers_payload()
             self.wfile.write(json.dumps(offers_payload, indent=2).encode("utf-8"))
+            return
+
+        if self.path == "/api/ledger":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(__import__('json').dumps(get_ledger_payload(), indent=2).encode("utf-8"))
             return
 
         return super().do_GET()

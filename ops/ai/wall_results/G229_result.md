@@ -1,0 +1,15 @@
+# Result for G229: Provider unavailable isolation
+
+TASK_ID=G229
+STATUS=PROVEN
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+INPUTS_READ=ops/ai/WALL_SYSTEM.md, ops/ai/COURIER_MASTER_CONTROL_PLANE_2026-09-27.md
+RESULTS_REUSED=ops/ai/WALL_SYSTEM.md, ops/ai/COURIER_MASTER_CONTROL_PLANE_2026-09-27.md
+OUTPUT_REF=Provider outage isolates only tasks mapped to affected provider into `PROVIDER_BACKOFF`; independent tasks (e.g. Google CLI / local deterministic) continue execution.
+MISSING=None
+BLOCKER=None
+NEXT_DEPENDENCY=NONE
+DO_NOT_REPEAT_FINGERPRINT=G229_PROVIDER_UNAVAILABLE_ISOLATION_PROVEN
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-959a54c01ab1d955

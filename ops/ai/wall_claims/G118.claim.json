@@ -1,0 +1,11 @@
+{
+  "slot": "G118",
+  "worker_type": "COURIER_RUN2_RESTART_MASTER",
+  "host": "MAC",
+  "provider": "GOOGLE_CLI",
+  "mode": "READ_ONLY_PREP",
+  "status": "COMPLETED",
+  "task": "G118",
+  "result_path": "ops/ai/wall_results/G118_result.md",
+  "fingerprint": "G118_IDENTICAL_DUPLICATE_COVERAGE_PROVEN"
+}

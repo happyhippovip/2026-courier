@@ -1,0 +1,14 @@
+{
+  "session_id": "courier-mac-permanent-worker-2026-09-27",
+  "base_sha": "4c1e24ccc522042af826bc4c2b595daf85d097f9",
+  "base_ref": "origin/candidate-b-1",
+  "candidate_b2_status": "REJECTED",
+  "candidate_b3_status": "NOT_REQUIRED",
+  "central_source_writer": "WINDOWS_ANTIGRAVITY",
+  "mac_worker_mode": "READ_ONLY_TARGETED_VERIFY",
+  "active_queue": "ops/ai/WALL_QUEUE_CURRENT.md",
+  "canonical_truth_index": "ops/ai/CANONICAL_TRUTH_PATH_INDEX_2026-09-27.md",
+  "extended_ledger_spec": "ops/ai/EXTENDED_EXECUTION_LEDGER_SPEC_2026-09-27.md",
+  "return_policy": "ops/ai/RETURNED_RESULT_POLICY.md",
+  "updated_at_utc": "2026-09-27T19:15:00Z"
+}

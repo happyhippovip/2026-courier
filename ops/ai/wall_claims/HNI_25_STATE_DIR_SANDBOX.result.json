@@ -1,0 +1,13 @@
+{
+  "task_id": "STATE_DIR_SANDBOX",
+  "TASK_ID": "STATE_DIR_SANDBOX",
+  "status": "COMPLETE",
+  "STATUS": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "ops/ai/hard_no_idle50/deliverables/HNI_25_STATE_DIR_SANDBOX.md",
+  "fingerprint": "STATE_DIR_SANDBOX:COMPLETE:42029029665283a5cd9d10bbfc784e2bc2f0a529ce075338a5d9be12240bf9e7",
+  "blocker": "NONE",
+  "missing": "NONE",
+  "next_exact_action": "ADVANCE_NEXT_TASK",
+  "timestamp": "2026-09-28T01:08:06.959711+00:00"
+}

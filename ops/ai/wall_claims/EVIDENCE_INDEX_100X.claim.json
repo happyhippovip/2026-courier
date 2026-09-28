@@ -1,0 +1,9 @@
+{
+  "task_id": "EVIDENCE_INDEX_100X",
+  "task_title": "Durable Evidence Indexer 100X",
+  "host": "AUTO",
+  "worker": "GOOGLE_CLI",
+  "claimed_at": "2026-09-28T00:47:50+02:00",
+  "completed_at": "2026-09-28T00:47:50+02:00",
+  "status": "COMPLETED"
+}

@@ -1,0 +1,13 @@
+{
+  "slot": "MPREP-01",
+  "worker_type": "COURIER_GOOGLE_MUSE_PREFLIGHT_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "mode": "LIGHT_READ_ONLY",
+  "status": "COMPLETED",
+  "claimed_at": "2026-09-27T22:59:45+02:00",
+  "completed_at": "2026-09-27T22:59:55+02:00",
+  "task": "MPREP-01",
+  "result_path": "ops/ai/wall_results/MPREP-01_result.md",
+  "fingerprint": "mprep-01-muse-input-index-v1"
+}

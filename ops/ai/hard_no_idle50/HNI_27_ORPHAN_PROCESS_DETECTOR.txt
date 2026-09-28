@@ -1,0 +1,6 @@
+# HNI_27_ORPHAN_PROCESS_DETECTOR.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_27_ORPHAN_PROCESS_DETECTOR.txt
+DESCRIPTION: Create automated check detecting orphaned server processes on port 8081 and reclaiming resources safely.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_27_ORPHAN_PROCESS_DETECTOR.md

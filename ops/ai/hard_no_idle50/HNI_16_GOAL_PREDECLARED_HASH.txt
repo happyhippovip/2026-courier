@@ -1,0 +1,6 @@
+# HNI_16_GOAL_PREDECLARED_HASH.txt
+COURIER HARD NO-IDLE TASK — MAC GOOGLE C1
+TARGET: HNI_16_GOAL_PREDECLARED_HASH.txt
+DESCRIPTION: Verify propagation of expected hash from goal definition to verifier without intermediate worker alteration.
+RULES: CLAIM_BEFORE_ANALYSIS=YES, MINIMUM_NECESSARY_READS=YES, MAX_HEAVY_JOBS=1
+OUTPUT: ops/ai/hard_no_idle50/deliverables/HNI_16_GOAL_PREDECLARED_HASH.md

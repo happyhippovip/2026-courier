@@ -1,0 +1,25 @@
+GOOGLE MAC PHYSICAL PROOF PREP M181-M260 WORKER PROMPT
+
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+MODEL_CLASS=C1
+QUEUE=ops/ai/GOOGLE_MAC_PHYSICAL_PROOF_PREP_QUEUE_M181_M260_2026-09-28.md
+SCOPE=M181..M260
+CLAIM_BEFORE_ANALYSIS=YES
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+APPLICATION_SOURCE_WRITE=NO
+FINAL_CANDIDATE_WRITE=NO
+NO_PHYSICAL_RUN_1_BEFORE_READY_FOR_PHYSICAL_RUN
+NO_RUN_2_BEFORE_RUN_1_PASS
+MAX_HEAVY_JOBS=1
+
+PROCESS:
+1. HARVEST: Inspect existing claims and results in ops/ai/wall_claims and ops/ai/wall_results.
+2. CLAIM: Select the lowest numbered unclaimed M### task from M181..M260. Write atomic claim JSON.
+3. EXECUTE: Analyze the exact bounded scope of the task. Check invariants, verify constraints, prepare proof specifications.
+4. PERSIST: Write deliverable markdown to ops/ai/mac_prep80/deliverables/M###_<NAME>.md and result record to ops/ai/wall_results/M###_result.md.
+5. RECONCILE: Record block entry in cryptographic ledger database ops/ai/wall_ledger/ledger.db and ledger.jsonl.
+6. RELEASE: Update claim status to RECONCILED.
+7. ADVANCE: Proceed to next available task without idling.

@@ -1,0 +1,13 @@
+{
+  "slot": "MPREP-02",
+  "worker_type": "COURIER_GOOGLE_MUSE_PREFLIGHT_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "mode": "LIGHT_READ_ONLY",
+  "status": "COMPLETED",
+  "claimed_at": "2026-09-27T23:00:15+02:00",
+  "completed_at": "2026-09-27T23:00:35+02:00",
+  "task": "MPREP-02",
+  "result_path": "ops/ai/wall_results/MPREP-02_result.md",
+  "fingerprint": "mprep-02-muse-skip-list-v1"
+}

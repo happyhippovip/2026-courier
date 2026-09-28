@@ -1,0 +1,13 @@
+{
+  "task_id": "ORPHAN_PROCESS_DETECTOR",
+  "TASK_ID": "ORPHAN_PROCESS_DETECTOR",
+  "status": "COMPLETE",
+  "STATUS": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "ops/ai/hard_no_idle50/deliverables/HNI_27_ORPHAN_PROCESS_DETECTOR.md",
+  "fingerprint": "ORPHAN_PROCESS_DETECTOR:COMPLETE:9c44e70616694769f14bf7d0e1e162d8d828bd2bb6948b4abde72ced758a1c53",
+  "blocker": "NONE",
+  "missing": "NONE",
+  "next_exact_action": "ADVANCE_NEXT_TASK",
+  "timestamp": "2026-09-28T01:08:06.973980+00:00"
+}

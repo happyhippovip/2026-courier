@@ -43,10 +43,10 @@
 
   <!-- Main Grid Dashboard -->
   <main class="dashboard-grid">
-    
+
     <!-- LEFT COLUMN: Commander HUD & Workflow -->
     <section class="grid-column col-left">
-      
+
       <!-- 1. Chief Commander HUD -->
       <div class="card glass-card commander-hud">
         <div class="card-header">
@@ -201,6 +201,22 @@
 
     </section>
 
+
+      <!-- 3.5 Ledger Overview -->
+      <div class="card glass-card ledger-card">
+        <div class="card-header">
+          <div class="header-icon">📒</div>
+          <div class="header-text">
+            <h2>CRYPTOGRAPHIC HANDOFF LEDGER</h2>
+            <span class="meta-tag">Live Audit & Integrity Metrics</span>
+          </div>
+        </div>
+        <div class="ledger-metrics" id="ledger-metrics-container" style="padding: 1rem;">
+          <p>Loading ledger data...</p>
+        </div>
+      </div>
+
+
     <!-- RIGHT COLUMN: Demo Mission & Agent Roster -->
     <section class="grid-column col-right">
 
@@ -317,7 +333,7 @@
             <h2>AGENT ROSTER & MARKETPLACE</h2>
             <span class="meta-tag">17 Canonical Roles from Project Memory · Hire/Activate Controls (UI Concept)</span>
           </div>
-          
+
           <div class="filter-tabs" id="roster-filters">
             <button class="filter-btn active" data-filter="all">All (17)</button>
             <button class="filter-btn" data-filter="orchestration">Orchestration</button>

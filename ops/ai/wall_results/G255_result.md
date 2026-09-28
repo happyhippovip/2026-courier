@@ -1,0 +1,15 @@
+# Result for G255: Host change continuity
+
+TASK_ID=G255
+STATUS=PROVEN
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+INPUTS_READ=ops/ai/GOOGLE_WINDOWS_LEDGER_QUEUE_G181_G280_2026-09-27.md, ops/ai/WALL_SYSTEM.md
+RESULTS_REUSED=ops/ai/GOOGLE_WINDOWS_LEDGER_QUEUE_G181_G280_2026-09-27.md, ops/ai/WALL_SYSTEM.md
+OUTPUT_REF=Cross-host parity: Mac and Windows workers operate on identical git commit, task IDs, and ledger schema. Seamless handoff between Mac and Windows verified.
+MISSING=None
+BLOCKER=None
+NEXT_DEPENDENCY=NONE
+DO_NOT_REPEAT_FINGERPRINT=G255_HOST_CHANGE_CONTINUITY_PROVEN
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-b8f82da078a0d7e4

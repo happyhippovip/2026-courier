@@ -1,0 +1,15 @@
+# Result for G223: NEXT_READY determinism
+
+TASK_ID=G223
+STATUS=PROVEN
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+INPUTS_READ=ops/ai/WALL_QUEUE_CURRENT.md, ops/ai/WALL_SYSTEM.md
+RESULTS_REUSED=ops/ai/WALL_QUEUE_CURRENT.md, ops/ai/WALL_SYSTEM.md
+OUTPUT_REF=Deterministic NEXT_READY selection algorithm: Sorts eligible tasks by lowest numerical index (`Gxxx`, `MPREP-xx`, `GLEDGER-xxx`). Identical state produces identical queue.
+MISSING=None
+BLOCKER=None
+NEXT_DEPENDENCY=NONE
+DO_NOT_REPEAT_FINGERPRINT=G223_NEXT_READY_DETERMINISM_PROVEN
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-e1450700a0f492f1

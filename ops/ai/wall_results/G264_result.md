@@ -1,0 +1,15 @@
+# Result for G264: Repeated-test waste audit
+
+TASK_ID=G264
+STATUS=PROVEN
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+INPUTS_READ=ops/ai/WALL_SYSTEM.md
+RESULTS_REUSED=ops/ai/WALL_SYSTEM.md
+OUTPUT_REF=Tests executed only when underlying code inputs or explicit `RETEST_TRIGGER` change; unchanged commits reuse prior test attestations.
+MISSING=None
+BLOCKER=None
+NEXT_DEPENDENCY=NONE
+DO_NOT_REPEAT_FINGERPRINT=G264_REPEATED_TEST_WASTE_AUDIT_PROVEN
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-9ddab031149052bd

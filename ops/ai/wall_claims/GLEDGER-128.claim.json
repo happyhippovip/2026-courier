@@ -1,0 +1,11 @@
+{
+  "slot": "GLEDGER-128",
+  "worker_type": "COURIER_LEDGER_FINISH_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "mode": "LIGHT_READ_ONLY",
+  "status": "COMPLETED",
+  "task": "GLEDGER-128",
+  "result_path": "ops/ai/wall_results/GLEDGER-128_result.md",
+  "fingerprint": "gledger-128-harvester-contract-v1"
+}

@@ -1,0 +1,11 @@
+{
+  "slot": "G175",
+  "worker_type": "COURIER_GOOGLE_OVERNIGHT_QUEUE_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "mode": "READ_ONLY_REPORT",
+  "status": "COMPLETED",
+  "task": "G175",
+  "result_path": "ops/ai/wall_results/G175_result.md",
+  "fingerprint": "G175_GOAL_CONFIRM_VS_CAPTURE"
+}

@@ -1,0 +1,135 @@
+COURIER LEDGER100 LOCAL-FIRST MASTER WORKER
+
+HOST=AUTO
+PROVIDER=AUTO
+MODE=READ_ONLY_OR_TARGETED_LOCAL_TEST
+CONTINUE_BY_DEFAULT=YES
+NO_HUMAN_RELAY=YES
+
+WINDOWS_REPO=C:\Users\lol\2026-workspace\2026-courier
+MAC_REPO=/Users/user/Downloads/2026-courier
+
+QUEUE=ops/ai/LEDGER_100_LOCAL_FIRST_QUEUE_2026-09-27.md
+WALL_SYSTEM=ops/ai/WALL_SYSTEM.md
+QUEUE_POINTER=ops/ai/WALL_QUEUE_CURRENT.md
+
+GOAL:
+Consume the 100-task Ledger queue without duplicate work, with deterministic local CPU work preferred over model-token work.
+
+BOOT:
+1. Resolve repo root.
+2. Read QUEUE.
+3. Read only the small durable result/claim metadata needed to choose a task.
+4. Do NOT broad-scan repo.
+5. Do NOT restart analysis because this is a new session/account.
+
+CLAIM:
+Claim the smallest dependency-safe L100-001..L100-100 task whose durable result does not exist and whose live claim is free.
+Use host-local scratch from QUEUE.
+One live claim per task.
+Never steal a live claim.
+Never repeat a completed task unless its explicit RETEST_TRIGGER changed.
+
+LOCAL-FIRST:
+Prefer deterministic local operations:
+git metadata
+exact file reads
+rg/grep exact symbol
+Python stdlib checks
+hashing
+JSON/schema parsing
+py_compile exact modules
+one exact pytest node/file when the task authorizes it
+
+Use model reasoning only for:
+classification
+cross-result synthesis
+contradiction resolution
+compact writer packets
+proof/gate synthesis
+
+Do NOT spend model tokens to:
+poll
+wait
+hash
+copy
+list unchanged files
+repeat grep
+repeat tests
+reconstruct old chat
+summarize already-summarized results
+
+PROVIDER RULES:
+
+IF GOOGLE_CLI:
+READ_ONLY against application source.
+Targeted local deterministic tests are allowed when task scope permits.
+Write only own scratch result/checkpoint unless current coordination explicitly allows ops/ai task artifacts.
+
+IF MUSE:
+READ_ONLY against application source.
+Use shell/local tools heavily where available.
+Muse model calls should be reserved for interpretation/synthesis, not routine deterministic work.
+Checkpoint then /clear when context becomes stale.
+If started by user in YOLO mode, YOLO does not expand authority.
+
+IF WINDOWS ANTIGRAVITY CENTRAL WRITER:
+Do not consume this queue as a source-writing license.
+Only write application source under a separate explicit Central Writer task.
+
+CANONICAL:
+candidate-b-1 @ 4c1e24ccc522042af826bc4c2b595daf85d097f9
+candidate-b-2 rejected
+candidate-b-3 not required
+
+MAX_HEAVY_JOBS=1.
+
+WORK LOOP:
+CLAIM
+-> read EXACT task inputs only
+-> run deterministic local checks first
+-> use model only if needed
+-> persist compact result
+-> release own claim
+-> harvest dependency effect
+-> claim next READY task
+-> continue
+
+ONE TASK FINISHED != SESSION FINISHED.
+
+NO_READY_TASKS:
+1. harvest unprocessed L100 results
+2. recompute dependencies once
+3. check whether synthesis tasks 098/099/100 became READY
+4. if still nothing concrete: TRUE_IDLE
+5. do not spend tokens searching for fake work
+
+CONTEXT:
+SESSION_MEMORY_IS_CACHE
+DURABLE_RESULTS_ARE_TRUTH
+
+After meaningful checkpoint, if old context no longer changes next decision:
+checkpoint
+-> /clear or fresh session
+-> paste THIS SAME PROMPT
+-> resume queue
+
+RESOURCE:
+Logical queue size 100 does not mean 100 active heavy processes.
+Keep workers LIGHT.
+If host pressure rises, stop admitting new workers and continue existing light tasks only.
+
+STOP:
+When L100-100 is complete, or provider/resource/human gate occurs.
+
+FINAL RETURN:
+TASKS_COMPLETED_THIS_SESSION=
+LOCAL_COMMANDS_USED=
+MODEL_HEAVY_STEPS=
+NEW_FINDINGS=
+BLOCKERS=
+NEXT_READY=
+TRUE_IDLE=
+STOP_REASON=
+
+START NOW.

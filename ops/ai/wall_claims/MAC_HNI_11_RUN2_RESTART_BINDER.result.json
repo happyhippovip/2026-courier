@@ -1,0 +1,10 @@
+{
+  "task_id": "MAC_HNI_11",
+  "status": "COMPLETE",
+  "host": "MAC",
+  "deliverable": "scripts/run2_physical/RUN2_PHYSICAL_BINDING_TEMPLATE.sh",
+  "blocker": "NONE",
+  "missing": "NONE",
+  "next_exact_action": "CLAIM_MAC_HNI_12",
+  "timestamp": "2026-09-28T03:00:00Z"
+}

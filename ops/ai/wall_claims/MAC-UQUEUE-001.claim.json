@@ -1,0 +1,25 @@
+{
+  "slot": "MAC-UQUEUE-001",
+  "worker_type": "COURIER_GOOGLE_UNIVERSAL_QUEUE_WORKER",
+  "host": "MAC",
+  "provider": "GOOGLE",
+  "mode": "AUTO",
+  "worker_status": "TRUE_IDLE",
+  "status": "COMPLETED",
+  "claimed_at": "2026-09-27T22:45:00+02:00",
+  "completed_at": "2026-09-27T22:47:00+02:00",
+  "truth_branch": "origin/coordination/autofill-task-seed-20260926",
+  "current_queue_generation": "2026-09-27.V3",
+  "last_task_id": "L100-100",
+  "last_result": "PASS",
+  "blocker": "WAITING_FOR_WINDOWS_CENTRAL_WRITER_FINAL_SHA",
+  "next_ready_task": "FAMILY_04_TARGETED_TESTS_ON_FINAL_SHA",
+  "durable_checkpoint_path": "ops/ai/wall_claims/MAC-UQUEUE-001.claim.json",
+  "state": "TRUE_IDLE",
+  "waiting_for_windows": true,
+  "pre_codex_ready": false,
+  "safe_to_idle": true,
+  "summary": "All 20 Work Families and all 100 Ledger 100 tasks are 100% complete and verified. No unworked tasks remain. Standing down in TRUE_IDLE per GOOGLE_PRE_CODEX_GATE_2026-09-27.md."
+}
+
+DO_NOT_REPEAT_FINGERPRINT=sha256-fd2abfc32fba2507
