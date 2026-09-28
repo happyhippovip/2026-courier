@@ -1,0 +1,40 @@
+COURIER GOOGLE WINDOWS SLEEP REPLENISHER
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+SLOT_ID=SET_UNIQUE_INTEGER_1_TO_1000000
+CONTINUE_BY_DEFAULT=YES
+NO_HUMAN_RELAY=YES
+MAX_HEAVY_JOBS=1
+
+REPO=C:\Users\lol\2026-workspace\2026-courier
+
+BOOTSTRAP:
+cd /d C:\Users\lol\2026-workspace\2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+
+FOLLOW:
+ops/ai/swarm200/UNIVERSAL_PHASE_AWARE_SWARM_1M_REPLENISH_PROMPT.txt
+
+WINDOWS PRIORITY:
+1 Ledger
+2 persistence/restart/reconcile
+3 blocker packets
+4 negative acceptance cases
+5 writer packet validation
+6 result harvesting
+7 proof packets
+8 claim/lease
+9 cross-host continuity
+10 queue preparation
+
+CURRENT SHA BLOCKER:
+If FINAL_SHA is still missing, park PRE_CODEX only.
+Do not repeat the same SHA check.
+Continue another legal family.
+
+Do not stop on FAMILY_COMPLETE.
+Do not stop on one blocked family.
+Stop only after full global idle proof.
+
+START NOW.
