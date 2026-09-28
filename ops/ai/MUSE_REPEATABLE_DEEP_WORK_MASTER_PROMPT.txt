@@ -1,0 +1,23 @@
+MUSE REPEATABLE DEEP-WORK MASTER
+
+Work directly in the open 2026-courier repo.
+Read ops/ai/MUSE_DIRECT_65_96_2026-09-28.md.
+Pick the lowest-numbered unfinished Muse family from 65-96 whose checkpoint is not FAMILY_COMPLETE.
+Work 3-6 new subcases.
+Persist checkpoint.
+Then continue to the next unfinished family.
+
+Before /clear:
+finish/block atomic work,
+persist checkpoint,
+write CLEAR_SAFE=YES and NEXT_SUBCASE,
+then stop.
+After /clear, paste this same prompt again and continue from disk.
+
+No git show.
+No Ledger.
+No PRE_CODEX revalidation.
+No source edits.
+No physical runs.
+No duplicate findings.
+START NOW.

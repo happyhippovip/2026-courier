@@ -1,0 +1,67 @@
+MUSE DIRECT 74 — RESULT_IDENTITY_REPLAY
+
+Work directly in the already-open 2026-courier repository.
+
+MODE=READ_ONLY_ADVERSARIAL_QA
+LEDGER=COMPLETE
+NO_SOURCE_EDITS=YES
+NO_PRE_CODEX_REVALIDATION=YES
+NO_PHYSICAL_RUNS=YES
+
+CHECKPOINT=ops/ai/live/MUSE_74_RESULT_IDENTITY_REPLAY.md
+
+TASK:
+Challenge result replay across task_id/result_id/attempt_id/dispatch_id combinations.
+
+WORK METHOD:
+1. Read this checkpoint if it exists.
+2. Reuse completed evidence and DO_NOT_REPEAT fingerprints.
+3. Read only exact relevant source/tests/docs/results.
+4. Source/runtime truth outranks Markdown prose.
+5. Find a NEW contradiction, false-green route, missing independent witness, missing identity/timestamp, stale evidence path, or overclaimed readiness.
+6. Prove or disprove it with exact refs.
+7. Persist the finding in the checkpoint.
+8. Continue to the next unresolved subcase in this SAME family.
+9. Aim for 3-6 useful subcases before returning.
+10. If family is exhausted, mark FAMILY_COMPLETE and identify NEXT_OWNER.
+
+BEFORE /clear OR CONTEXT RESET:
+- finish or block the current atomic subcase;
+- write checkpoint;
+- set:
+CLEAR_SAFE=YES
+NEXT_SUBCASE=
+DO_NOT_REPEAT=
+Then the same prompt may be pasted again after /clear and must continue from checkpoint.
+
+KNOWN SOURCE TRUTH TO BUILD ON:
+- valid POST /tasks/result -> RESULT_RECEIVED
+- verifier PASS -> RECONCILED
+- VALIDATED_PENDING_VERIFY is not an implemented task state
+- old persisted-but-unvalidated S2 resume-validation claim was incorrect
+- wall_claim files do not generally prove lease/pid/liveness
+- RUN_1 already has known independent-witness/proof-chain gaps
+- observability already has known timestamp/Verify-vs-Reconcile/NEXT_READY gaps
+
+DO NOT:
+redo Ledger;
+repeat completed Muse findings;
+simulate Codex/Opus;
+invent new states;
+run tests/servers/physical proof;
+edit application source;
+return SLOT_IDLE while this family still has unresolved subcases.
+
+OUTPUT/CHECKPOINT:
+FAMILY=
+DONE_SUBCASES=
+CONFIRMED_DEFECTS=
+DISPROVEN_RISKS=
+MISSING_EVIDENCE=
+BLOCKED_ON_OTHER_OWNER=
+NEXT_OWNER=
+NEXT_SUBCASE=
+CLEAR_SAFE=YES|NO
+DO_NOT_REPEAT=
+
+START NOW.
