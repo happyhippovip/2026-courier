@@ -1,0 +1,46 @@
+MUSE MAC PRE-CODEX BRIDGE 13 — PHYSICAL_PREFLIGHT_STOP_RULES
+
+Work directly in the open 2026-courier repo on Mac.
+MODE=READ_ONLY_ADVERSARIAL_QA
+LEDGER=FROZEN
+NO_SOURCE_EDITS=YES
+NO_PHYSICAL_RUNS=YES
+NO_PRE_CODEX_REVALIDATION=YES
+
+CHECKPOINT=ops/ai/live/MUSE_MAC_BRIDGE_13_PHYSICAL_PREFLIGHT_STOP_RULES.md
+
+TASK:
+Audit Mac physical-run preflight stop conditions: FINAL_SHA binding, Codex green, load/resource admission, process ownership, isolation, failure stickiness.
+
+CURRENT HARD FACT:
+The Mac/Muse lane does NOT own FINAL_SHA durability.
+Do not pretend this task can make AUTHORITATIVE_READY=YES.
+
+WORK:
+1. reuse existing Mac/Muse checkpoints and durable evidence;
+2. inspect only exact relevant source/tests/contracts/docs;
+3. do 3-6 concrete subcases where useful;
+4. source/runtime truth beats stale prose;
+5. write exact evidence requirements or correction packet;
+6. mark candidate-sensitive parts WAITING_FOR_FINAL_SHA rather than revalidating;
+7. persist DO_NOT_REPEAT fingerprint;
+8. if complete, FAMILY_COMPLETE=YES.
+
+BEFORE /clear:
+CLEAR_SAFE=YES
+NEXT_SUBCASE=
+DO_NOT_REPEAT=
+
+OUTPUT:
+STATUS=
+DONE_SUBCASES=
+CONFIRMED_DEFECTS=
+EVIDENCE_GAPS=
+WAITING_FOR_FINAL_SHA=
+NEXT_OWNER=
+NEXT_SUBCASE=
+FAMILY_COMPLETE=YES|NO
+CLEAR_SAFE=
+DO_NOT_REPEAT=
+
+START NOW.

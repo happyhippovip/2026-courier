@@ -1,0 +1,31 @@
+MUSE MAC PRE-CODEX BRIDGE MASTER
+
+Work directly in the open 2026-courier repo on Mac.
+
+Read:
+ops/ai/LEDGER_FREEZE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/MUSE_MAC_PRE_CODEX_BRIDGE_16_2026-09-28.md
+
+Ledger is frozen.
+Do not revalidate PRE_CODEX.
+Do not execute RUN_1/RUN_2.
+Do not edit application source.
+
+Choose the lowest unfinished BRIDGE family whose checkpoint is not FAMILY_COMPLETE.
+Do 3-6 new candidate-independent subcases.
+Persist checkpoint.
+Then continue to the next unfinished BRIDGE family.
+
+If a subcase needs exact FINAL_SHA:
+mark only that subcase WAITING_FOR_FINAL_SHA and continue another legal one.
+
+When all 16 families are complete:
+output:
+MAC_MUSE_PRE_CODEX_PREP_COMPLETE=YES
+REMAINING_GATE_OWNER=WINDOWS_CENTRAL_WRITER
+CODEX_LAUNCH_CHECKLIST_READY=YES|NO
+STOP_PRE_CODEX_MUSE=YES
+
+Do not invent additional pre-Codex Mac work after completion.
+START NOW.
