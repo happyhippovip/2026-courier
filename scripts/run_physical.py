@@ -60,7 +60,7 @@ def compute_dir_hash(evidence_dir: str) -> str:
                 hasher.update(f.read())
     return hasher.hexdigest()
 
-def execute_run(sha: str, evidence_dir: str, port: int = 8081):
+def execute_run1(sha: str, evidence_dir: str, port: int = 8081):
     """Execute physical RUN pipeline by orchestrating real processes."""
     os.makedirs(evidence_dir, exist_ok=True)
     state_dir = os.path.join(os.path.dirname(evidence_dir), "state")
@@ -87,8 +87,10 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
     env["COURIER_CANDIDATE_SHA"] = sha
     env["PYTHONUNBUFFERED"] = "1"
     env["COURIER_WORKER_HOME"] = worker_home
-    env["COURIER_API_KEY"] = "mac-physical-run-token"
-    env["COURIER_VERIFIER_API_KEY"] = "mac-physical-verifier-token"
+    if "COURIER_API_KEY" not in os.environ or "COURIER_VERIFIER_API_KEY" not in os.environ:
+        raise RuntimeError("Missing COURIER_API_KEY or COURIER_VERIFIER_API_KEY in environment.")
+    env["COURIER_API_KEY"] = os.environ["COURIER_API_KEY"]
+    env["COURIER_VERIFIER_API_KEY"] = os.environ["COURIER_VERIFIER_API_KEY"]
 
     # Reset logs
     with open(stdout_path, "w") as f: f.write(f"[RUN] Booted with SHA: {sha}\n")
@@ -240,13 +242,11 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
     if b_attempts > 0:
         transitions.append({"state": "B_START", "timestamp": int(time.time() * 1000) + 3})
 
-    if final_goal_status == "DONE":
-        final_goal_status = "SUCCESS"
-
     payload = {
         "candidate_sha": sha,
         "run_id": "RUN_1",
-        "host": "MAC",
+        "host": os.environ.get("COURIER_HOST_ID", "MAC"),
+        "verifier_id": "VERIFIER-01",
         "status": final_goal_status
     }
     serialized_payload = json.dumps(payload, sort_keys=True).encode("utf-8")
@@ -259,7 +259,7 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
         "execution_counters": {
             "process_a": a_attempts,
             "process_b": b_attempts,
-            "human_relay_count": 0
+            "human_relay_count": g.get("human_relay_count", 0)
         },
         "state_transitions": transitions,
         "payload": payload,
@@ -303,7 +303,7 @@ def main():
         sys.exit(0)
 
     evidence_dir = args.evidence_dir or f"/tmp/courier_run1_{args.sha}/evidence"
-    code = execute_run(args.sha, evidence_dir, args.port)
+    code = execute_run1(args.sha, evidence_dir, args.port)
     sys.exit(code)
 
 if __name__ == "__main__":
