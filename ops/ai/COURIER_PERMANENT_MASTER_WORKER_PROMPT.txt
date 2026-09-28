@@ -78,23 +78,24 @@ server/app.py
 tests/test_p3_server_idempotency.py
 
 PHASE ORDER:
-1 wall/ledger preparation and harvesting
-2 final five-file candidate
-3 final targeted tests + 12-case matrix
-4 PRE_CODEX gate
-5 Codex HIGH once
-6 Mac RUN_1
-7 Mac RUN_2
-8 Core Freeze
-9 minimal pilot preparation
-10 first real pilot cohort
-11 Product Shell after positive pilot signal
-12 packaging/updates
-13 expansion
+1 PRE_CODEX durability
+2 PRE_CODEX handoff
+3 Codex HIGH once
+4 Mac exact binding
+5 Mac RUN_1
+6 Mac RUN_2
+7 Core Freeze
+8 minimal real pilot
+9 Product Shell after positive pilot signal
+10 packaging/updates
+11 expansion
+
+LEDGER_STATUS=COMPLETE
+LEDGER_ROUTING=DISABLED_UNLESS_RETEST_TRIGGER
 
 NO_READY_TASKS:
 - harvest unprocessed results
-- refresh queue exactly once from canonical truth/results/writer handoff/open blocker
+- refresh queue exactly once from canonical truth/results/writer handoff/current post-Ledger blocker
 - if still empty, TRUE_IDLE
 - do not broad-scan or invent work
 
@@ -126,6 +127,19 @@ checkpoint
 -> paste THIS SAME PROMPT
 -> continue from durable state
 -> never repeat completed work merely because context changed
+
+LIVE STATUS:
+After every materially useful work block, update ops/ai/LIVE_STATUS_CURRENT.md with:
+UPDATED_AT
+HOST
+PROVIDER
+CURRENT_PHASE
+DONE
+CHANGED_FILES
+CHECKS_RUN
+OPEN_BLOCKER
+NEXT_OWNER
+NEXT_ACTION
 
 RETURN TO HUMAN ONLY FOR:
 - PRE_CODEX_READY=YES
