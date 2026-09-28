@@ -1,0 +1,56 @@
+GOOGLE WINDOWS POWER 06 — TRUSTED_EXPECTED_HASH_CODE_SWEEP
+
+Work directly in the already-open 2026-courier repository on Windows.
+
+Do not use git show.
+Do not require git fetch for ordinary local work.
+Do not repair third-party tools/providers.
+Ledger is COMPLETE and inactive.
+
+READ LOCAL FIRST:
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/LIVE_STATUS_CURRENT.md
+ops/ai/GOOGLE_IDE_DIRECT_50_PROGRESS.md
+
+MISSION:
+Trace expected_sha256 through task storage, dispatch, result and verifier code. Fix any path where worker-controlled expected hash can override or bypass trusted task expectation.
+
+EXECUTION CONTRACT:
+- Do real repository work, not only analysis.
+- Reuse existing evidence before rerunning tests.
+- Prefer the smallest deterministic reproduction.
+- If OUR_REPO_BUG is confirmed and current Windows IDE has source-write authority, make the smallest causal fix.
+- Add or update a targeted regression test when appropriate.
+- Run the smallest relevant test set first; broaden only when needed.
+- Complete at least 2 concrete subproblems in this run when 2 are available.
+- Do not stop after the first PASS.
+- Do not reopen Ledger.
+- Do not revalidate unchanged PRE_CODEX.
+- Do not simulate Codex.
+- Do not execute Mac physical RUN_1/RUN_2.
+- If an external optional path fails twice, disable that path from active use and continue locally.
+
+BEFORE RETURNING:
+Update ops/ai/LIVE_STATUS_CURRENT.md:
+UPDATED_AT=
+HOST=WINDOWS
+PROVIDER=GOOGLE_IDE
+CURRENT_PHASE=
+DONE=
+CHANGED_FILES=
+CHECKS_RUN=
+OPEN_BLOCKER=
+NEXT_OWNER=
+NEXT_ACTION=
+
+Also update any affected GQ status in:
+ops/ai/GOOGLE_IDE_DIRECT_50_PROGRESS.md
+
+RETURN:
+DONE_THIS_RUN=
+BUGS_FIXED=
+TESTS=
+FILES_CHANGED=
+NEXT=
+
+START NOW.
