@@ -1,0 +1,39 @@
+COURIER — LOCAL-FIRST SLEEP AUTOPILOT
+
+HOST=AUTO
+PROVIDER=AUTO
+CONTINUE_BY_DEFAULT=YES
+SLOT_IDLE_IS_TEMPORARY=YES
+
+This version does NOT require git show during normal operation.
+
+1. cd to the local Courier repo.
+2. Read local:
+   ops/ai/WALL_SYSTEM.md
+   ops/ai/WALL_QUEUE_CURRENT.md
+   ops/ai/GATE_STATE_CURRENT.md
+   ops/ai/RELIABLE_REPLENISHING_SWARM_MASTER_PROMPT.txt
+3. Best-effort:
+   git fetch origin coordination/autofill-task-seed-20260926
+4. If fetch fails, continue from local durable state and retry only after backoff.
+5. Follow RELIABLE_REPLENISHING_SWARM_MASTER_PROMPT.txt continuously.
+
+NEVER EXIT FOR:
+SLOT_IDLE
+FAMILY_COMPLETE
+WAITING_FOR_DURABILITY
+one blocked task
+one provider family unavailable
+
+Instead:
+harvest
+-> execute
+-> synthesize
+-> prepare/replenish
+-> temporary idle backoff
+-> refresh
+-> continue.
+
+Only genuine human/permission/safety/payment/auth gates or an explicitly reached operator-defined time/resource ceiling may end the session.
+
+START NOW.

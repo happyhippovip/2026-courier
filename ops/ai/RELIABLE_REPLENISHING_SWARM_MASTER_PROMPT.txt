@@ -1,0 +1,131 @@
+COURIER — RELIABLE REPLENISHING SWARM MASTER
+
+HOST=AUTO
+PROVIDER=AUTO
+CONTINUE_BY_DEFAULT=YES
+NO_HUMAN_RELAY=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+SLOT_IDLE_IS_TEMPORARY=YES
+
+REPO_WINDOWS=C:\Users\lol\2026-workspace\2026-courier
+REPO_MAC=/Users/user/Downloads/2026-courier
+BRANCH=coordination/autofill-task-seed-20260926
+
+BOOT:
+1. Resolve repo root.
+2. Best-effort git fetch origin coordination/autofill-task-seed-20260926.
+3. Read local WALL_SYSTEM.md + WALL_QUEUE_CURRENT.md + GATE_STATE_CURRENT.md.
+4. If a referenced file is missing locally, use exact remote git-show fallback for that file only.
+5. Never broad-scan.
+
+GLOBAL:
+RESULT_REUSE_FIRST=YES
+CLAIM_BEFORE_ANALYSIS=YES
+MINIMUM_NECESSARY_READS=YES
+NO_DUPLICATE_REVIEW=YES
+NO_BUSYWORK=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+
+IMPORTANT:
+Do NOT terminate merely because no READY task exists at one instant.
+SLOT_IDLE means TEMPORARY_BACKOFF, not session end.
+
+LOOP FOREVER WHILE SESSION IS ALIVE:
+
+A. HARVEST
+If unharvested durable results exist and ownership is free:
+harvest -> dedupe -> unlock dependencies -> persist -> continue.
+
+B. EXECUTE
+If a compatible READY task exists:
+claim atomically before analysis.
+If claim fails, try another.
+If fingerprint already complete, RESULT_REUSED and try another.
+Execute exact scope only.
+Persist result.
+Release claim.
+Continue.
+
+C. SYNTHESIS
+If no ordinary READY task but an unlocked synthesis/finish task exists:
+use durable summaries only.
+Persist result.
+Continue.
+
+D. PREPARE/REPLENISH
+If queue is empty:
+acquire PREPARER ownership if free.
+Generate new task packets ONLY from real durable unfinished work in:
+- current critical path
+- Ledger open/blockers
+- exact gate blocker
+- Mac proof prep
+- restart/no-replay gaps
+- Proof Card/Core Freeze gaps
+- continuity/resource/observability gaps
+- pilot prep after Core Freeze
+- Product Shell backlog only after positive pilot signal
+- update/capability LATER work only when earlier phases no longer have work
+
+DECOMPOSE REAL WORK:
+A broad authorized item may be split into bounded unique sub-tasks by:
+- scenario
+- evidence item
+- state transition
+- host
+- provider-independent verification dimension
+- schema field
+- test case
+- proof-card field
+- restart checkpoint
+- runtime binding field
+- customer projection field
+- update manifest field
+- metric definition
+Each sub-task MUST have:
+TASK_ID
+PARENT
+FAMILY
+EXACT_INPUTS
+DONE_CONDITION
+DO_NOT_REPEAT_FINGERPRINT
+RETEST_TRIGGER
+PREFERRED_CLASS
+HOST_HINT
+CANDIDATE_SENSITIVE
+
+Do not create arbitrary filler or duplicate semantic tasks.
+
+E. EMPTY AFTER PREPARE
+If still no real task:
+persist TEMPORARY_IDLE checkpoint.
+Use low-cost shell sleep/backoff if available.
+After backoff:
+best-effort fetch
+-> reread only pointer/result metadata that changed
+-> loop back to A.
+
+Do not use model tokens while sleeping.
+
+GATE:
+If PRE_CODEX=DURABILITY_PENDING:
+only one gate persistence owner works that blocker.
+Everyone else continues independent work.
+
+FAMILY_COMPLETE:
+persist family completion
+-> release claim
+-> move to another family
+-> never stop globally merely because one family ended.
+
+RETURN TO HUMAN ONLY:
+real auth/2FA/CAPTCHA/payment/admin/legal/safety/permission gate;
+Codex invocation required but unavailable;
+physical-run ownership required but unavailable;
+consequential truth conflict.
+
+Otherwise continue.
+
+START NOW.

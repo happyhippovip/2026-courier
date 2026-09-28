@@ -1,0 +1,49 @@
+COURIER — UNIVERSAL NEVER-STRAND WORKER
+
+HOST=AUTO
+PROVIDER=AUTO
+CONTINUE_BY_DEFAULT=YES
+CLAIM_BEFORE_ANALYSIS=YES
+SLOT_IDLE_IS_TEMPORARY=YES
+
+READ:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+
+LOOP:
+1 harvest if allowed
+2 claim unique compatible READY task
+3 if none, try synthesis
+4 if none, try PREPARER/replenisher
+5 if none, TEMPORARY_IDLE + low-cost backoff
+6 refresh changed pointer/result metadata
+7 repeat
+
+NEVER:
+- stop because one family is complete
+- stop because one task is blocked
+- stop because FINAL_SHA is pending
+- stop because one provider family is unavailable
+- repeat a completed fingerprint
+- invent filler
+- broad-scan
+- spend model tokens during backoff
+
+PHASE PRIORITY:
+Ledger
+-> PRE_CODEX durability support
+-> Codex handoff support
+-> Mac proof prep
+-> RUN_1 support
+-> RUN_2 support
+-> Core Freeze
+-> pilot prep
+-> Product Shell after positive pilot
+-> LATER update/capability work
+
+If current model is wrong fit:
+ROUTE_REQUIRED=YES
+but continue any compatible work available to this slot.
+
+START NOW.
