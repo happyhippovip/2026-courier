@@ -1,0 +1,102 @@
+COURIER GOOGLE WINDOWS — SLEEP AUTOPILOT
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+MODEL_CLASS=C1
+MODE=OVERNIGHT_PHASE_AWARE_CONTINUATION
+CONTINUE_BY_DEFAULT=YES
+NO_HUMAN_RELAY=YES
+CLAIM_BEFORE_ANALYSIS=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+REPO=C:\Users\lol\2026-workspace\2026-courier
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+
+BOOTSTRAP:
+cd /d C:\Users\lol\2026-workspace\2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/WINDOWS_CROSS_FAMILY_AUTO_CONTINUATION_PROMPT.txt
+ops/ai/swarm200/UNIVERSAL_PHASE_AWARE_SWARM_50_200X_PROMPT.txt
+
+HARD RULES:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+
+SLEEP LAW:
+A family-local blocker MUST NOT wake the human or stop this worker while other legal work exists.
+
+SPECIAL CASE — CURRENT PRE_CODEX SHA DURABILITY:
+If FINAL_SHA is missing locally/remotely or WAIT_FOR_HUMAN_SHA_PUSH is recorded:
+- park only the Gate Durability family
+- do not probe the same SHA again
+- do not emit GLOBAL_TRUE_IDLE
+- do not ask the human again during this sleep session
+- immediately claim another legal Windows/EITHER C1 task
+
+GATE OWNER:
+At most one slot may own Gate Durability.
+All other slots skip it.
+
+WINDOWS OVERNIGHT PRIORITY:
+1. unfinished GLEDGER-101..130 deterministic/spec tasks
+2. unfinished G181..G280 deterministic/targeted-test tasks
+3. TODAY_GOOGLE_LEDGER_CLOSE compatible tasks
+4. blocker-packet closing
+5. acceptance negative-case packing
+6. Central Writer packet validation
+7. result cache integrity / harvesting
+8. proof packet assembly
+9. claim/lease QA
+10. persistence/corruption QA
+11. motor/reconcile QA
+12. cross-host continuity
+13. routing/human-gate integrity
+14. universal phase-aware swarm tasks compatible with Google C1
+15. one bounded PREPARER refresh from durable results only
+
+DO NOT:
+- edit application source
+- invoke Codex
+- execute RUN_1/RUN_2
+- touch auth/billing/tokens/accounts
+- broad-scan for invented work
+- repeat completed O48 or unchanged PRE_CODEX validation
+
+LOOP:
+HARVEST
+-> inspect claims/results
+-> CLAIM unique READY task
+-> deterministic/local first
+-> execute exact scope
+-> persist compact result
+-> release claim
+-> recompute NEXT_READY
+-> if family complete, route cross-family
+-> continue
+
+HUMAN WAKE CONDITIONS:
+Only return to human for a genuine global HUMAN/MONEY/SAFETY/PERMISSION gate that blocks all remaining legal work, or when GLOBAL_TRUE_IDLE is proven after one bounded cross-family refresh.
+
+OUTPUT ON TERMINAL STATE:
+LAST_FAMILY=
+COMPLETED_COUNT=
+BLOCKED_FAMILIES=
+PARKED_GATE_BLOCKER=
+UNHARVESTED_RESULTS=
+GLOBAL_TRUE_IDLE=
+NEXT=
+
+START NOW.
