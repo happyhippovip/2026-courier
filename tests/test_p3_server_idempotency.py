@@ -201,3 +201,40 @@ def test_goal_with_ai_generated_duplicate_task_id_fails(srv):
     resp = srv.app.test_client().post("/goals", headers=WORKER, json={"goal_text": "gen task with duplicates"})
     assert resp.status_code == 503
     assert "duplicate task_id from planner" in resp.get_json()["error"]
+
+def test_resume_task_updates_instruction_override(srv):
+    http = srv.app.test_client()
+    goal_id = http.post("/goals", headers=WORKER, json={"goal_text": "t", "workflow_plan": [{"task_id": "r3", "target_agent": "windows"}]}).get_json()["goal_id"]
+    http.post("/workers/register", headers=WORKER, json={"worker_id": "WINDOWS-01", "capabilities": ["windows"]})
+    task = http.post("/tasks/claim", headers=WORKER, json={"worker_id": "WINDOWS-01"}).get_json()["task"]
+    
+    # Force state to HUMAN_REQUIRED so it can be resumed
+    state = srv.load_state()
+    state["tasks"][task["task_id"]]["status"] = "HUMAN_REQUIRED"
+    srv.save_state(state)
+    
+    resp = http.post(f"/tasks/{task['task_id']}/resume", headers=WORKER, json={
+        "action": "retry", 
+        "instruction_override": "New instruction!"
+    })
+    assert resp.status_code == 200
+    
+    state = srv.load_state()
+    assert state["goals"][goal_id]["workflow_plan"][0]["instruction"] == "New instruction!"
+
+def test_resume_task_rejects_invalid_instruction_override(srv):
+    http = srv.app.test_client()
+    goal_id = http.post("/goals", headers=WORKER, json={"goal_text": "t", "workflow_plan": [{"task_id": "r4", "target_agent": "windows"}]}).get_json()["goal_id"]
+    http.post("/workers/register", headers=WORKER, json={"worker_id": "WINDOWS-01", "capabilities": ["windows"]})
+    task = http.post("/tasks/claim", headers=WORKER, json={"worker_id": "WINDOWS-01"}).get_json()["task"]
+    
+    state = srv.load_state()
+    state["tasks"][task["task_id"]]["status"] = "HUMAN_REQUIRED"
+    srv.save_state(state)
+    
+    resp = http.post(f"/tasks/{task['task_id']}/resume", headers=WORKER, json={
+        "action": "retry", 
+        "instruction_override": {"invalid": "type"}
+    })
+    assert resp.status_code == 400
+    assert "instruction_override must be a non-empty string" in resp.get_json()["error"]

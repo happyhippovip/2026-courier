@@ -551,6 +551,8 @@ def resume_task(task_id):
             record["status"] = "QUEUED"
             record["worker_id"] = None
         if "instruction_override" in data:
+            if not isinstance(data["instruction_override"], str) or not data["instruction_override"].strip():
+                return jsonify({"error": "instruction_override must be a non-empty string"}), 400
             step["instruction"] = data["instruction_override"]
         goal["status"] = "ACTIVE"
         save_state(state)

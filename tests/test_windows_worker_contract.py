@@ -191,3 +191,67 @@ def test_resource_pressure_does_not_block_result_ready_phase(tmp_path, monkeypat
     # Despite high pressure, it should have delivered the result!
     state = srv.load_state()
     assert state["tasks"][claimed["task_id"]]["status"] == "QUEUED"
+
+def test_is_safe_artifact_path():
+    from scripts.windows_worker.daemon import is_safe_artifact_path
+    
+    # Safe paths
+    assert is_safe_artifact_path("file.txt") is True
+    assert is_safe_artifact_path("folder/file.txt") is True
+    assert is_safe_artifact_path("folder\\file.txt") is True
+    
+    # Unsafe paths
+    assert is_safe_artifact_path("../file.txt") is False
+    assert is_safe_artifact_path("folder/../file.txt") is False
+    assert is_safe_artifact_path("/file.txt") is False
+    assert is_safe_artifact_path("\\file.txt") is False
+    assert is_safe_artifact_path("C:\\file.txt") is False
+    assert is_safe_artifact_path("C:file.txt") is False
+    assert is_safe_artifact_path("\\\\?\\C:\\file.txt") is False
+    assert is_safe_artifact_path(None) is False
+    assert is_safe_artifact_path("") is False
+
+def test_upload_artifact_success(tmp_path, monkeypatch):
+    import scripts.windows_worker.daemon as daemon
+    import hashlib
+    import json
+    from urllib.error import HTTPError
+    from pathlib import Path
+    
+    art_path = tmp_path / "test.txt"
+    art_path.write_bytes(b"hello")
+    digest = hashlib.sha256(b"hello").hexdigest()
+    
+    # Needs to be relative for is_safe_artifact_path, but wait: is_safe_artifact_path REJECTS absolute paths.
+    # So we must mock it or chdir.
+    monkeypatch.chdir(tmp_path)
+    
+    # Create the file in the CWD
+    Path("test.txt").write_bytes(b"hello")
+    
+    task = {"goal_id": "g", "task_id": "t", "attempt_id": "a", "dispatch_id": "d", "worker_id": "w"}
+    art = {"path": "test.txt", "sha256": digest}
+    
+    class MockResponse:
+        def read(self):
+            return json.dumps({"artifact_id": f"art-{digest}", "size": 5, "sha256": digest}).encode("utf-8")
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        
+    def mock_urlopen(req, data=None, timeout=None):
+        assert req.method == "POST"
+        assert req.headers["Content-type"] == "application/octet-stream"
+        meta = json.loads(req.headers["X-courier-artifact"])
+        assert meta["name"] == "test.txt"
+        assert meta["sha256"] == digest
+        assert meta["size"] == 5
+        assert meta["task_id"] == "t"
+        return MockResponse()
+        
+    monkeypatch.setattr(daemon.urllib.request, "urlopen", mock_urlopen)
+    monkeypatch.setattr(daemon, "require_api_key", lambda: None)
+    
+    outcome, record = daemon.upload_artifact(task, art)
+    assert outcome == "OK"
+    assert record["artifact_id"] == f"art-{digest}"
+    assert record["size"] == 5
