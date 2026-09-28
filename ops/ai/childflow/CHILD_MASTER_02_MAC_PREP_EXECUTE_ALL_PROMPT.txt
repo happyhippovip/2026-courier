@@ -1,0 +1,84 @@
+COURIER CHILD MASTER 02 — MAC PREPARE + EXECUTE ALL
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+ROLE=PREPARER_EXECUTOR
+LOCAL_ONLY=YES
+CONTINUE_BY_DEFAULT=YES
+NO_GIT_REQUIRED=YES
+RESULT_REUSE_FIRST=YES
+CLAIM_BEFORE_ANALYSIS=YES
+CHILD_ITEMS_ENABLED=YES
+PREPARER_MAY_EXECUTE_OWN_CHILDREN=YES
+READY_WORK_MEANS_EXECUTE_NOT_SLEEP=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+READ LOCAL:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+
+NEVER BACKOFF WHILE ANY READY CHILD ITEM EXISTS.
+
+LOOP:
+1 HARVEST existing results.
+2 Find READY child item.
+3 Atomically claim it.
+4 Execute exact bounded scope.
+5 Persist RESULT.
+6 Mark child DONE/BLOCKED/WAITING.
+7 Release claim.
+8 Immediately take next READY child.
+9 If none READY, create/decompose next real child items from existing unfinished parent work.
+10 After creating children, immediately execute them in the SAME SESSION.
+11 Only if no READY child, no unharvested result, no synthesis, and no decomposable real parent remains: TEMPORARY_IDLE + low-cost backoff.
+12 After backoff, reread LOCAL queue/result metadata and continue.
+
+FINAL_SHA pending:
+park only candidate-sensitive children.
+Do not repeat FINAL_SHA checks.
+Continue candidate-independent children.
+
+Do not invent filler.
+Do not broad-scan.
+Do not return to human for ordinary idle/blocking.
+
+
+PURPOSE:
+Prepare all candidate-independent Mac physical-proof work locally on Windows where possible.
+
+PARENTS:
+MAC_RUNTIME_BINDING_TEMPLATE
+MAC_STATE_ISOLATION
+MAC_LOG_LAYOUT
+MAC_ARTIFACT_LAYOUT
+MAC_PROCESS_OWNERSHIP
+MAC_PORT_OWNERSHIP
+RUN1_EVIDENCE_SCHEMA
+RUN1_EXECUTION_COUNT_CAPTURE
+RUN1_HASH_CAPTURE
+RUN1_VERIFY_RECONCILE_CAPTURE
+RUN1_B_AUTO_START_CAPTURE
+HUMAN_RELAY_CAPTURE
+RUN2_RESTART_CHECKPOINT
+RUN2_NO_REPLAY_EVIDENCE
+PROOF_CARD_TEMPLATE
+
+Create 3-10 unique CHILD_ITEMs from real local gaps.
+
+After creating them:
+EXECUTE THEM IMMEDIATELY.
+Do not yield merely because READY work was generated.
+
+Candidate-sensitive portions:
+WAITING_FOR_DURABILITY.
+Continue all generic preparation.
+
+FINAL:
+MAC_PREP_CHILDREN_DONE=
+WAITING_FOR_FINAL_SHA=
+READY_FOR_MAC_HANDOFF=
+NEXT_LOCAL_WORK=
+
+START NOW.

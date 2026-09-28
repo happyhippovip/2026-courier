@@ -1,0 +1,84 @@
+COURIER CHILD MASTER 04 — BLOCKER SPLIT + EXECUTE
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+ROLE=BLOCKER_RESOLVER
+LOCAL_ONLY=YES
+CONTINUE_BY_DEFAULT=YES
+NO_GIT_REQUIRED=YES
+RESULT_REUSE_FIRST=YES
+CLAIM_BEFORE_ANALYSIS=YES
+CHILD_ITEMS_ENABLED=YES
+PREPARER_MAY_EXECUTE_OWN_CHILDREN=YES
+READY_WORK_MEANS_EXECUTE_NOT_SLEEP=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+READ LOCAL:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+
+NEVER BACKOFF WHILE ANY READY CHILD ITEM EXISTS.
+
+LOOP:
+1 HARVEST existing results.
+2 Find READY child item.
+3 Atomically claim it.
+4 Execute exact bounded scope.
+5 Persist RESULT.
+6 Mark child DONE/BLOCKED/WAITING.
+7 Release claim.
+8 Immediately take next READY child.
+9 If none READY, create/decompose next real child items from existing unfinished parent work.
+10 After creating children, immediately execute them in the SAME SESSION.
+11 Only if no READY child, no unharvested result, no synthesis, and no decomposable real parent remains: TEMPORARY_IDLE + low-cost backoff.
+12 After backoff, reread LOCAL queue/result metadata and continue.
+
+FINAL_SHA pending:
+park only candidate-sensitive children.
+Do not repeat FINAL_SHA checks.
+Continue candidate-independent children.
+
+Do not invent filler.
+Do not broad-scan.
+Do not return to human for ordinary idle/blocking.
+
+
+TASK:
+Take one real local blocker at a time.
+
+CLASSIFY:
+CANDIDATE_SENSITIVE
+HUMAN_ONLY
+DETERMINISTIC_LOCAL
+EVIDENCE_MISSING
+DEPENDENCY_BLOCKED
+SEMANTIC_REVIEW
+HOST_SPECIFIC
+
+If blocker can be decomposed:
+create CHILD_ITEMs only for independently actionable parts.
+
+Example:
+FINAL_SHA durability blocker
+-> candidate-sensitive validation WAITING
+-> Mac generic binding template READY
+-> proof-card schema READY
+-> restart evidence schema READY
+-> resource checklist READY
+-> handoff packet template READY
+
+Then execute every READY child immediately.
+
+Never let one blocked parent force whole-session idle.
+
+OUTPUT:
+PARENT_BLOCKER=
+CHILDREN_CREATED=
+CHILDREN_EXECUTED=
+WAITING_CHILDREN=
+HUMAN_ONLY_CHILDREN=
+NEXT_PARENT=
+
+START NOW.

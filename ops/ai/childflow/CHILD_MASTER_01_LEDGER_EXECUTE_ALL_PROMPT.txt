@@ -1,0 +1,100 @@
+COURIER CHILD MASTER 01 — LEDGER PREPARE + EXECUTE ALL
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+ROLE=PREPARER_EXECUTOR
+LOCAL_ONLY=YES
+CONTINUE_BY_DEFAULT=YES
+NO_GIT_REQUIRED=YES
+RESULT_REUSE_FIRST=YES
+CLAIM_BEFORE_ANALYSIS=YES
+CHILD_ITEMS_ENABLED=YES
+PREPARER_MAY_EXECUTE_OWN_CHILDREN=YES
+READY_WORK_MEANS_EXECUTE_NOT_SLEEP=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+READ LOCAL:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+
+NEVER BACKOFF WHILE ANY READY CHILD ITEM EXISTS.
+
+LOOP:
+1 HARVEST existing results.
+2 Find READY child item.
+3 Atomically claim it.
+4 Execute exact bounded scope.
+5 Persist RESULT.
+6 Mark child DONE/BLOCKED/WAITING.
+7 Release claim.
+8 Immediately take next READY child.
+9 If none READY, create/decompose next real child items from existing unfinished parent work.
+10 After creating children, immediately execute them in the SAME SESSION.
+11 Only if no READY child, no unharvested result, no synthesis, and no decomposable real parent remains: TEMPORARY_IDLE + low-cost backoff.
+12 After backoff, reread LOCAL queue/result metadata and continue.
+
+FINAL_SHA pending:
+park only candidate-sensitive children.
+Do not repeat FINAL_SHA checks.
+Continue candidate-independent children.
+
+Do not invent filler.
+Do not broad-scan.
+Do not return to human for ordinary idle/blocking.
+
+
+PARENTS:
+LEDGER_IDENTITY
+LEDGER_PERSISTENCE
+LEDGER_REPLAY
+LEDGER_TRUSTED_CONTENT
+LEDGER_VERIFY
+LEDGER_RECONCILE
+LEDGER_NEXT_READY
+LEDGER_CLAIM_LEASE
+LEDGER_HARVEST
+LEDGER_CONTINUITY
+LEDGER_SECURITY
+LEDGER_FINISH
+
+CHILD SHAPES:
+one invariant;
+one state transition;
+one negative case;
+one evidence gap;
+one finish criterion.
+
+FOR EACH CHILD:
+CHILD_ID=
+PARENT=
+FAMILY=
+EXACT_LOCAL_INPUTS=
+DONE_CONDITION=
+CANDIDATE_SENSITIVE=
+DO_NOT_REPEAT_FINGERPRINT=
+
+CRITICAL:
+When you create CHILD_ITEMs, DO NOT SLEEP.
+Immediately claim CHILD_ITEM_1 and execute it.
+Then CHILD_ITEM_2.
+Then CHILD_ITEM_3.
+Continue until all locally actionable Ledger children are DONE/BLOCKED/WAITING.
+
+Then synthesize:
+LEDGER_IDENTITY_READY=
+LEDGER_PERSISTENCE_READY=
+LEDGER_REPLAY_READY=
+LEDGER_TRUST_READY=
+LEDGER_VERIFY_READY=
+LEDGER_RECONCILE_READY=
+LEDGER_NEXT_READY=
+LEDGER_CLAIM_READY=
+LEDGER_HARVEST_READY=
+LEDGER_CONTINUITY_READY=
+LEDGER_SECURITY_READY=
+LEDGER_OPEN=
+LEDGER_BLOCKED=
+
+START NOW.

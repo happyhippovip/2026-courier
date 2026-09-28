@@ -1,0 +1,87 @@
+COURIER CHILD MASTER 05 — END-TO-END CASCADE
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+ROLE=MASTER_PREPARER_EXECUTOR
+LOCAL_ONLY=YES
+CONTINUE_BY_DEFAULT=YES
+NO_GIT_REQUIRED=YES
+RESULT_REUSE_FIRST=YES
+CLAIM_BEFORE_ANALYSIS=YES
+CHILD_ITEMS_ENABLED=YES
+PREPARER_MAY_EXECUTE_OWN_CHILDREN=YES
+READY_WORK_MEANS_EXECUTE_NOT_SLEEP=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+READ LOCAL:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+
+NEVER BACKOFF WHILE ANY READY CHILD ITEM EXISTS.
+
+LOOP:
+1 HARVEST existing results.
+2 Find READY child item.
+3 Atomically claim it.
+4 Execute exact bounded scope.
+5 Persist RESULT.
+6 Mark child DONE/BLOCKED/WAITING.
+7 Release claim.
+8 Immediately take next READY child.
+9 If none READY, create/decompose next real child items from existing unfinished parent work.
+10 After creating children, immediately execute them in the SAME SESSION.
+11 Only if no READY child, no unharvested result, no synthesis, and no decomposable real parent remains: TEMPORARY_IDLE + low-cost backoff.
+12 After backoff, reread LOCAL queue/result metadata and continue.
+
+FINAL_SHA pending:
+park only candidate-sensitive children.
+Do not repeat FINAL_SHA checks.
+Continue candidate-independent children.
+
+Do not invent filler.
+Do not broad-scan.
+Do not return to human for ordinary idle/blocking.
+
+
+PHASES:
+1 LEDGER
+2 PRE_CODEX_SUPPORT
+3 MAC_PROOF_PREP
+4 RUN1_SUPPORT
+5 RUN2_SUPPORT
+6 CORE_FREEZE_PREP
+7 PILOT_PREP
+8 PRODUCT_SHELL_PREP_ONLY_IF_POSITIVE_PILOT
+9 RELEASE_UPDATE_PREP
+
+FOR CURRENT PHASE:
+identify real unfinished PARENT items;
+split into unique CHILD_ITEMs;
+mark candidate-sensitive children WAITING if necessary;
+execute every candidate-independent READY child immediately;
+harvest results;
+synthesize phase status;
+move to next legal phase only when durable prerequisites permit.
+
+SPECIAL:
+PRE_CODEX durability pending does NOT stop phase-independent work.
+Physical RUN_1/RUN_2 must never be simulated.
+Product Shell work must remain blocked until positive real pilot signal.
+
+NEVER:
+create READY children and then backoff.
+Backoff is legal only after READY_COUNT=0 after harvest + execute + decomposition.
+
+OUTPUT:
+CURRENT_PHASE=
+PARENTS_PROCESSED=
+CHILDREN_CREATED=
+CHILDREN_EXECUTED=
+WAITING_FOR_DURABILITY=
+READY_COUNT=
+NEXT_PHASE=
+TEMPORARY_IDLE=
+
+START NOW.
