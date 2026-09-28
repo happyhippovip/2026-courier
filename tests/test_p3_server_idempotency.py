@@ -288,3 +288,42 @@ def test_cost_routing(srv):
     res2 = http.post("/tasks/claim", headers=WORKER, json={"worker_id": "LOW"}).get_json()
     assert res2.get("task") is not None, res2
     assert res2["task"]["task_id"] == "t1"
+def test_manual_plan_target_agent_normalization(srv):
+    http = srv.app.test_client()
+    from tests.test_p3_server_idempotency import WORKER
+    # manual plan
+    http.post("/goals", headers=WORKER, json={
+        "goal_text": "foo", 
+        "workflow_plan": [{"task_id": "t1", "target_agent": "codex", "instruction": "echo hi"}]
+    })
+    
+    # register windows worker
+    http.post("/workers/register", headers=WORKER, json={"worker_id": "W1", "capabilities": ["windows"]})
+    
+    # attempt claim
+    res = http.post("/tasks/claim", headers=WORKER, json={"worker_id": "W1"}).get_json()
+    assert res.get("task") is not None, res
+def test_prepare_task_capability_bug(srv):
+    http = srv.app.test_client()
+    from tests.test_p3_server_idempotency import WORKER
+    # manual plan
+    http.post("/goals", headers=WORKER, json={
+        "goal_text": "foo", 
+        "workflow_plan": [{"task_id": "t1", "target_agent": "mac", "instruction": "echo hi"}]
+    })
+    
+    # register mac worker
+    http.post("/workers/register", headers=WORKER, json={"worker_id": "M1", "capabilities": ["macos"]})
+    
+    # attempt claim
+    res = http.post("/tasks/claim", headers=WORKER, json={"worker_id": "M1"})
+    print("STATUS:", res.status_code)
+    print("BODY:", res.get_json())
+    assert res.status_code == 200, res.get_json()
+    assert res.get_json().get("task") is not None
+def test_empty_workflow_plan_is_rejected(srv):
+    http = srv.app.test_client()
+    from tests.test_p3_server_idempotency import WORKER
+    resp = http.post("/goals", headers=WORKER, json={"goal_text": "t", "workflow_plan": []})
+    assert resp.status_code == 400
+    assert "empty" in resp.get_json()["error"].lower()

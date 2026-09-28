@@ -36,4 +36,9 @@ STOP_DOING=Codex auf undeklarierten Bytes; DISPROVEN-Reviews neu aufrollen;
   neue Familien; Ledger-Reopen; PRE_CODEX-Doppelvalidierung; Runs aus Dirt.
 OPUS_AVAILABLE=NO (kein Gate).
 
+DELTA_2026-09-28_PM: WINDOWS_CENTRAL_WRITER_FINAL_COMMIT_7 erschien (Batch 7:
+daemon.py taskkill-Baum, Output-Truncation, cost-routing-Test) -> Writer-Linie
+laeuft weiter, keine FINAL-Deklaration. P3 RE-BESTAETIGT und verschaerft.
+Uebrige Verdicts unveraendert; Remote-Tip stabil 34b0a426.
+
 DO_NOT_REPEAT=sha256-muse-noopus-convergence-01

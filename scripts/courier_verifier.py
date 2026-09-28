@@ -44,11 +44,21 @@ def fetch_artifact(artifact_id):
     """Return (record, bytes) of the server-side uploaded copy."""
     meta = requests.get(f"{API_URL}/artifacts/{artifact_id}/meta", headers=HEADERS, timeout=10)
     meta.raise_for_status()
-    blob = requests.get(f"{API_URL}/artifacts/{artifact_id}", headers=HEADERS, timeout=30)
-    blob.raise_for_status()
-    if len(blob.content) > MAX_ARTIFACT_BYTES:
+    record = meta.json()
+    if int(record.get("size", 0)) > MAX_ARTIFACT_BYTES:
         raise ValueError("artifact exceeds size limit")
-    return meta.json(), blob.content
+
+    blob = requests.get(f"{API_URL}/artifacts/{artifact_id}", headers=HEADERS, timeout=30, stream=True)
+    blob.raise_for_status()
+    
+    # Read chunk by chunk to prevent OOM
+    content = bytearray()
+    for chunk in blob.iter_content(chunk_size=8192):
+        if chunk:
+            content.extend(chunk)
+            if len(content) > MAX_ARTIFACT_BYTES:
+                raise ValueError("artifact exceeds size limit")
+    return record, bytes(content)
 
 
 def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
