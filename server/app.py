@@ -108,6 +108,8 @@ def submit_goal():
     }
     
     if "workflow_plan" in data:
+        if not isinstance(data["workflow_plan"], list):
+            return jsonify({"error": "workflow_plan must be a list"}), 400
         goal["workflow_plan"] = data["workflow_plan"]
         goal["current_step_index"] = 0
         seen_tasks = set()
@@ -115,6 +117,8 @@ def submit_goal():
             step["goal_id"] = goal_id
             step["status"] = "QUEUED"
             step["attempts"] = 0
+            if "instruction" in step and not isinstance(step["instruction"], str):
+                return jsonify({"error": "instruction must be a string"}), 400
             if "task_id" not in step:
                 step["task_id"] = f"task-{uuid.uuid4().hex[:8]}"
             if step["task_id"] in seen_tasks or step["task_id"] in state.get("tasks", {}):

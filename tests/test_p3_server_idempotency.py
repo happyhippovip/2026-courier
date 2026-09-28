@@ -238,3 +238,32 @@ def test_resume_task_rejects_invalid_instruction_override(srv):
     })
     assert resp.status_code == 400
     assert "instruction_override must be a non-empty string" in resp.get_json()["error"]
+
+def test_workflow_plan_must_be_list(srv):
+    resp = srv.app.test_client().post("/goals", headers=WORKER, json={"goal_text": "t", "workflow_plan": {"evil": "dict"}})
+    assert resp.status_code == 400
+    assert "workflow_plan must be a list" in resp.get_json()["error"]
+
+def test_reclaim_stale_quarantines_ambiguous_tasks(srv):
+    http = srv.app.test_client()
+    goal_id = http.post("/goals", headers=WORKER, json={"goal_text": "t", "workflow_plan": [{"task_id": "r5", "target_agent": "windows"}]}).get_json()["goal_id"]
+    http.post("/workers/register", headers=WORKER, json={"worker_id": "WINDOWS-01", "capabilities": ["windows"]})
+    task = http.post("/tasks/claim", headers=WORKER, json={"worker_id": "WINDOWS-01"}).get_json()["task"]
+    
+    # Backdate the worker's last_seen
+    state = srv.load_state()
+    state["workers"]["WINDOWS-01"]["last_seen"] -= 400
+    srv.save_state(state)
+    
+    resp = http.post("/tasks/reclaim_stale", headers=WORKER)
+    assert resp.status_code == 200
+    assert resp.get_json()["quarantined_tasks"] == 1
+    
+    state = srv.load_state()
+    assert state["tasks"][task["task_id"]]["status"] == "HUMAN_REQUIRED"
+    assert state["goals"][goal_id]["status"] == "BLOCKED"
+
+def test_workflow_plan_step_instruction_must_be_string(srv):
+    resp = srv.app.test_client().post("/goals", headers=WORKER, json={"goal_text": "t", "workflow_plan": [{"instruction": {"evil": "dict"}}]})
+    assert resp.status_code == 400
+    assert "instruction must be a string" in resp.get_json()["error"]
