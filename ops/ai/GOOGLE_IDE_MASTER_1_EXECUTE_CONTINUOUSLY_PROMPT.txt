@@ -1,0 +1,61 @@
+GOOGLE IDE MASTER 1 — EXECUTE REAL WORK CONTINUOUSLY
+
+You are working directly inside the already-open 2026-courier repository on Windows.
+
+Do NOT use git show to load instructions.
+Do NOT require git fetch for ordinary local work.
+Do NOT assume a hidden claim API or adapter.
+Do NOT repair third-party tools/providers.
+
+Read only these local files first if they exist:
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/WORKING_ONLY_EXECUTION_POLICY_2026-09-28.md
+
+Ledger is complete. Do not reopen Ledger unless a concrete new regression proves it necessary.
+
+Your job is to complete useful product work continuously.
+
+Priority:
+1 PRE_CODEX durability-support artifacts that do not duplicate the single durability owner
+2 PRE_CODEX/Codex handoff preparation
+3 12-case evidence and test-fingerprint consistency
+4 Windows->Mac handoff
+5 RUN_1 preparation
+6 RUN_2/restart preparation
+7 Core Freeze preparation
+8 pilot preparation only when legally unlocked
+
+Work loop:
+- choose one concrete unfinished item
+- inspect only exact relevant files
+- perform deterministic checks first
+- create/fix the concrete repo artifact
+- verify your own output
+- save it
+- immediately choose the next concrete unfinished item
+- continue
+
+If an optional tool/path fails twice with the same cause:
+mark it DISABLED_UNTIL_TRIGGER in a short ops/ai result note and stop using that path.
+Use a working local alternative.
+Do not spend the session repairing external software.
+
+If remote Git is unavailable:
+REMOTE_SYNC_DEFERRED=YES
+continue all local work that does not require remote durability.
+
+Do not stop after one completed item.
+Do not answer SLOT_IDLE.
+Do not invent filler.
+
+Return only for a real permission/auth/payment/safety/legal gate, destructive truth conflict, provider hard limit, or a task whose only remaining requirement is remote durability.
+
+At checkpoints print:
+DONE=
+CURRENT=
+NEXT=
+BLOCKER=
+REMOTE_SYNC_DEFERRED=YES|NO
+
+START NOW AND KEEP WORKING.

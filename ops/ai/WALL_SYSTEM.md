@@ -244,3 +244,15 @@ Rules:
 - Provider/model suitability still applies: wrong-fit work is routed, not executed.
 - FAMILY_COMPLETE != GOAL_COMPLETE.
 - TRUE_IDLE without a bounded global cross-family refresh is PREMATURE_IDLE.
+
+
+## Working-only execution override
+
+Canonical policy: `ops/ai/WORKING_ONLY_EXECUTION_POLICY_2026-09-28.md`.
+
+For the direct Google IDE path, proven local execution is preferred over optional broken adapters/loaders. An unavailable optional tool is disabled from active routing rather than repeatedly repaired. Git remains durable source-control truth, but local read/write work does not require remote fetch/show unless remote durability is the task itself.
+
+Direct Google IDE masters:
+- `ops/ai/GOOGLE_IDE_MASTER_1_EXECUTE_CONTINUOUSLY_PROMPT.txt`
+- `ops/ai/GOOGLE_IDE_MASTER_2_WORKING_ONLY_QA_REPAIR_PROMPT.txt`
+- `ops/ai/GOOGLE_IDE_MASTER_3_FINISH_CRITICAL_PATH_PROMPT.txt`

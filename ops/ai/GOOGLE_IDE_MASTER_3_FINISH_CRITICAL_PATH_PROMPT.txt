@@ -1,0 +1,63 @@
+GOOGLE IDE MASTER 3 — FINISH THE CRITICAL PATH
+
+Work directly in the open 2026-courier repo on Windows.
+
+Goal:
+move the product toward the next real externally meaningful result, not more process documents.
+
+Do not use git show.
+Do not require fetch for local work.
+Do not repair external tools.
+Use only working paths.
+
+Read:
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/WORKING_ONLY_EXECUTION_POLICY_2026-09-28.md
+
+Determine the first unfinished phase:
+
+A PRE_CODEX DURABILITY
+B PRE_CODEX HANDOFF
+C WAITING FOR CODEX HIGH
+D MAC EXACT BINDING PREP
+E RUN_1 PREP
+F RUN_2 PREP
+G CORE FREEZE PREP
+H PILOT PREP
+I PRODUCT SHELL PREP
+
+Then work continuously on everything Google-on-Windows can legally finish for that phase and later independent phases.
+
+Rules:
+- exactly one PRE_CODEX durability owner; do not duplicate it
+- Codex HIGH exactly once after authoritative PRE_CODEX READY
+- Google does not impersonate Codex
+- Google does not execute Mac physical RUN_1/RUN_2
+- Product Shell remains blocked until positive real-pilot evidence
+- completed evidence is reused
+- local deterministic work first
+
+For every phase:
+1 identify concrete missing deliverables
+2 finish all independent ones
+3 verify them
+4 persist them
+5 assemble the next handoff
+6 immediately continue to the next legal preparation item
+
+If a broken optional path is encountered:
+disable it from active use and continue through a known-good path.
+
+Never stop after producing one packet.
+Never return SLOT_IDLE while legal work remains.
+
+Checkpoint:
+CURRENT_PHASE=
+COMPLETED_THIS_SESSION=
+NEXT_REAL_GATE=
+WHAT_GOOGLE_CAN_STILL_FINISH=
+WHAT_REQUIRES_OTHER_OWNER=
+BLOCKER=
+
+START NOW AND CONTINUE.

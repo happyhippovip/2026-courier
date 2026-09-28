@@ -1,0 +1,67 @@
+GOOGLE IDE MASTER 2 — WORKING-ONLY QA + LOCAL REPAIR
+
+Work directly in the already-open 2026-courier repo.
+
+Mission:
+keep only working Courier execution paths active and repair OUR repository when a concrete local defect blocks progress.
+
+Do not repair external vendors, provider software, IDE products, billing/auth systems, or unsupported CLIs.
+Do not require git show.
+Do not require remote Git unless the exact task is about remote durability.
+
+Read:
+ops/ai/WORKING_ONLY_EXECUTION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+ops/ai/WALL_QUEUE_CURRENT.md
+
+Loop continuously:
+
+1. Pick the earliest concrete critical-path defect or reliability gap.
+2. Reproduce it with the smallest deterministic check possible.
+3. Classify:
+   A OUR_REPO_BUG
+   B OPTIONAL_EXTERNAL_PATH_BROKEN
+   C REMOTE_SYNC_ONLY
+   D ALREADY_FIXED
+4. If A:
+   - make the smallest authorized repo-side repair;
+   - add/update a regression test or concrete verification;
+   - run only the targeted check;
+   - save the result.
+5. If B:
+   - mark that path DISABLED_UNTIL_TRIGGER;
+   - remove it from active routing/pointers if safe;
+   - switch to a known-good path;
+   - do not repair the external product.
+6. If C:
+   - record REMOTE_SYNC_DEFERRED;
+   - continue unrelated local work.
+7. If D:
+   - reuse the evidence and move on immediately.
+
+Current reliability priorities:
+- Courier Motor scheduled-run reliability
+- verifier authority separation
+- correct state persistence path
+- persistent idle/backoff
+- result reuse
+- no duplicate work
+- Windows->Mac durable handoff
+- RUN_1/RUN_2 proof packet correctness
+- Core Freeze evidence integrity
+
+After every fix/check:
+verify -> save -> move to next issue.
+
+Do not stop because one issue is complete.
+Do not output generic advice.
+Do not create a repair project for third-party software.
+
+Checkpoint:
+ISSUE=
+CLASS=
+ACTION=
+VERIFICATION=
+NEXT=
+
+START NOW.
