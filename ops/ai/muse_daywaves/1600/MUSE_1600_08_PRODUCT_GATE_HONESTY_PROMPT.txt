@@ -1,0 +1,58 @@
+MUSE 1600 WAVE 08 — PRODUCT_GATE_HONESTY
+
+Work directly in the open 2026-courier repo.
+
+LEDGER=COMPLETE
+MODE=READ_ONLY_INDEPENDENT_QA
+NO_SOURCE_EDITS=YES
+NO_PHYSICAL_RUNS=YES
+NO_DUPLICATE_PRE_CODEX_VALIDATION=YES
+
+CHECKPOINT=ops/ai/live/MUSE_1600_08_PRODUCT_GATE_HONESTY.md
+
+FIRST:
+Read ops/ai/GATE_STATE_CURRENT.md and current durable handoff/result summaries.
+Determine the CURRENT phase before doing any analysis.
+
+TASK:
+If positive pilot signal exists, review Product Shell gate; otherwise ensure it stays blocked.
+
+PHASE ROUTING:
+- If PRE_CODEX is still DURABILITY_PENDING: do candidate-independent QA only; never become a second gate owner.
+- If PRE_CODEX is READY/CONSUMED: stop PRE_CODEX review and move to Codex-handoff/post-Codex legal work.
+- If READY_FOR_PHYSICAL_RUN=YES and RUN_1 not PASS: focus RUN_1 evidence only.
+- If RUN_1 PASS and RUN_2 not PASS: focus RUN_2/restart/no-replay only.
+- If RUN_2 PASS: focus Core Freeze only.
+- If Core Freeze complete: focus pilot unlock/value evidence.
+- Product Shell only after positive real-pilot evidence.
+
+WORK LOOP:
+1 reuse completed evidence/fingerprints
+2 inspect only exact relevant files/summaries
+3 find one NEW concrete ambiguity/false-green route/missing evidence item
+4 prove or disprove it
+5 persist finding/verdict/evidence/fingerprint
+6 continue to another unresolved subcase in this same family
+7 complete up to 5 useful subcases before returning
+8 if family becomes obsolete because phase advanced, write OBSOLETE_BY_PHASE and stop that family
+
+DO NOT:
+- redo Ledger
+- repeat completed Muse findings
+- rerun deterministic Google tests without invalidation
+- simulate Codex/Opus
+- invent filler
+- output SLOT_IDLE while this family has real unresolved work
+
+OUTPUT/CHECKPOINT:
+CURRENT_PHASE=
+DONE_SUBCASES=
+CONFIRMED_DEFECTS=
+DISPROVEN_RISKS=
+MISSING_EVIDENCE=
+BLOCKED_ON_OTHER_OWNER=
+OBSOLETE_BY_PHASE=
+NEXT_SUBCASE=
+DO_NOT_REPEAT=
+
+START NOW.
