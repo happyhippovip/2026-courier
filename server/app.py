@@ -9,6 +9,17 @@ from scripts.run_chief_commander import ChiefCommander
 
 app = Flask(__name__)
 
+from flask import send_from_directory
+
+@app.route("/")
+def serve_pilot():
+    return send_from_directory(os.path.abspath("pilot"), "index.html")
+
+@app.route("/<path:path>")
+def serve_pilot_static(path):
+    return send_from_directory(os.path.abspath("pilot"), path)
+
+
 STATE_FILE = os.environ.get("COURIER_STATE_FILE", "server/state/central_state.json")
 API_KEY = os.environ.get("COURIER_API_KEY")
 if not API_KEY:
