@@ -110,3 +110,9 @@ events/github-dispatch/
 # Local credential files (never commit real keys).
 .env
 deploy/.env
+
+# Candidate-branch hygiene: runtime logs/canary effects must never be committed (provenance pollution).
+scripts/mac_worker/logs/*.log
+scripts/windows_worker/logs/*.log
+logs/*.log
+courier_canary_process_*.txt
