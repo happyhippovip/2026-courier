@@ -55,6 +55,8 @@ def compute_dir_hash(evidence_dir: str) -> str:
         for fname in sorted(files):
             if fname.endswith(".txt") and "hash" in fname:
                 continue
+            if fname.endswith(".pid"):
+                continue
             fpath = os.path.join(root, fname)
             with open(fpath, "rb") as f:
                 hasher.update(f.read())
@@ -146,8 +148,7 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
                 urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=1).read()
                 ready = True
                 break
-            except Exception as e:
-                print(f"Health check error: {e}")
+            except Exception:
                 time.sleep(0.5)
         if not ready:
             raise RuntimeError("Server failed to boot or bind.")
@@ -229,6 +230,7 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
             a_attempts = task.get("attempts", 0)
         elif task.get("task_id") == "process_b":
             b_attempts = task.get("attempts", 0)
+
 
     if final_goal_status == "DONE":
         final_goal_status = "SUCCESS"
