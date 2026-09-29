@@ -371,6 +371,18 @@
           "worker_id": "MUSE-AGENT"
         }
       ]
+    },
+    "goal-openapi-sync": {
+      "goal_id": "goal-openapi-sync",
+      "goal_text": "Keep OpenAPI spec perfectly in sync with server routes",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "gen-openapi-01",
+          "status": "SUCCESS",
+          "worker_id": "GEMINI-DISPATCHER"
+        }
+      ]
     }
   },
   "tasks": {
