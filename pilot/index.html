@@ -85,7 +85,7 @@
             'Authorization': `Bearer ${apiKey}`
           },
           body: JSON.stringify({ 
-            goal_text: goalText,
+            goal_text: goalText, budget: 2.0,
             workflow_plan: [
               { target_agent: provider, instruction: goalText }
             ]

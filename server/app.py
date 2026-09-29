@@ -132,7 +132,9 @@ def submit_goal():
     goal = {
         "goal_id": goal_id,
         "goal_text": data.get("goal_text"),
-        "status": "ACTIVE"
+        "status": "ACTIVE",
+        "budget_limit": float(data.get("budget", 0.0)),
+        "budget_spent": 0.0
     }
     
     if "workflow_plan" in data:
@@ -302,8 +304,13 @@ def claim_task():
         save_state(state)
         return jsonify({"task": None, "reason": "WORKER_BUSY"})
     
+    state_changed = False
     for goal_id, goal in state["goals"].items():
         if goal["status"] == "ACTIVE" and "workflow_plan" in goal:
+            if goal.get("budget_limit", 0) > 0 and goal.get("budget_spent", 0) >= goal.get("budget_limit", 0):
+                goal["status"] = "PAUSED_FOR_BUDGET"
+                state_changed = True
+                continue
             idx = goal.get("current_step_index", 0)
             if idx < len(goal["workflow_plan"]):
                 next_task = goal["workflow_plan"][idx]
