@@ -42,6 +42,7 @@ def external_artifact():
     # 3. Store it in ArtifactStore
     # For now, it serves as the prepared ingress point.
     
+    announce_ledger_event("EXTERNAL_ARTIFACT", {"name": data['name'], "status": "STORED"})
     return jsonify({
         "status": "STORED",
         "message": f"Artifact {data['name']} securely ingested into Universal Ledger.",
@@ -627,6 +628,43 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
 
 
+
+import queue
+import threading
+
+# Global event dispatcher for the Universal Ledger
+ledger_subscribers = []
+ledger_lock = threading.Lock()
+
+def announce_ledger_event(event_type, data):
+    with ledger_lock:
+        for sub in ledger_subscribers:
+            try:
+                sub.put_nowait({"type": event_type, "data": data})
+            except queue.Full:
+                pass
+
+@app.route("/ledger/stream")
+def ledger_stream():
+    # SSE endpoint for Muse Windows to subscribe to real-time Ledger updates
+    def event_stream():
+        q = queue.Queue(maxsize=20)
+        with ledger_lock:
+            ledger_subscribers.append(q)
+        try:
+            yield "data: {\"type\": \"connected\", \"message\": \"Muse Window connected to Universal Ledger\"}\n\n"
+            while True:
+                event = q.get()
+                import json
+                yield f"data: {json.dumps(event)}\n\n"
+        except GeneratorExit:
+            with ledger_lock:
+                if q in ledger_subscribers:
+                    ledger_subscribers.remove(q)
+                    
+    from flask import Response
+    return Response(event_stream(), mimetype="text/event-stream")
+
 @app.route("/ledger/external_claim", methods=["POST"])
 @require_auth
 def external_claim():
@@ -642,6 +680,7 @@ def external_claim():
         
     # TODO: Activate full cryptographic verification of external JWT/Signatures when ready
     
+    announce_ledger_event("EXTERNAL_CLAIM", {"provider": provider, "status": "RECORDED"})
     return jsonify({
         "status": "RECORDED",
         "message": f"State transition securely logged in Universal Ledger for provider: {provider}",
