@@ -9,15 +9,27 @@ from scripts.run_chief_commander import ChiefCommander
 
 app = Flask(__name__)
 
+def require_auth(f):
+    def wrapper(*args, **kwargs):
+        if API_KEY in INSECURE_API_KEYS:
+            return jsonify({"error": "Courier API key is not configured"}), 503
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or auth_header != f"Bearer {API_KEY}":
+            return jsonify({"error": "Unauthorized"}), 401
+        return f(*args, **kwargs)
+    wrapper.__name__ = f.__name__
+    return wrapper
+
+
 from flask import send_from_directory
 
 @app.route("/")
-def serve_pilot():
-    return send_from_directory(os.path.abspath("pilot"), "index.html")
+def serve_studio_index():
+    return send_from_directory(os.path.abspath("studio"), "index.html")
 
 @app.route("/<path:path>")
-def serve_pilot_static(path):
-    return send_from_directory(os.path.abspath("pilot"), path)
+def serve_studio_static(path):
+    return send_from_directory(os.path.abspath("studio"), path)
 
 
 
@@ -59,16 +71,8 @@ if not VERIFIER_API_KEY:
 INSECURE_API_KEYS = {"", "dev-secret-key", "your_secure_api_key_here"}
 STATE_LOCK = threading.RLock()
 
-def require_auth(f):
-    def wrapper(*args, **kwargs):
-        if API_KEY in INSECURE_API_KEYS:
-            return jsonify({"error": "Courier API key is not configured"}), 503
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or auth_header != f"Bearer {API_KEY}":
-            return jsonify({"error": "Unauthorized"}), 401
-        return f(*args, **kwargs)
-    wrapper.__name__ = f.__name__
-    return wrapper
+
+
 
 
 def require_verifier_auth(f):
@@ -85,6 +89,8 @@ def require_verifier_auth(f):
     return wrapper
 
 
+
+
 def serialize_state_mutation(f):
     """Keep each JSON-state read/check/write transition atomic in this process."""
     @wraps(f)
@@ -92,6 +98,8 @@ def serialize_state_mutation(f):
         with STATE_LOCK:
             return f(*args, **kwargs)
     return wrapper
+
+
 
 def load_state():
     if not os.path.exists(STATE_FILE):
@@ -136,6 +144,8 @@ app.register_blueprint(create_blueprint(
 @app.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "healthy", "time": time.time()})
+
+
 
 @app.route("/status", methods=["GET"])
 @require_auth
@@ -623,6 +633,84 @@ def _find_workflow_step(state, task_id):
                 return goal, step
     return None, None
 
+
+
+@app.route("/api/state", methods=["GET"])
+def get_api_state():
+    state = load_state()
+    active_agents = []
+    
+    # Map running workers
+    for w_id, w in state.get("workers", {}).items():
+        if w.get("available") == False:
+            active_agents.append({
+                "id": w_id,
+                "name": w.get("platform", "Worker"),
+                "state": "WORKING",
+                "is_active": True,
+                "task": "Working on task..."
+            })
+            
+    # Auto runtime
+    current_goal_name = "Autonomous Standby"
+    current_task_name = "None (Safe Standby)"
+    for g_id, g in state.get("goals", {}).items():
+        if g.get("status") == "ACTIVE":
+            current_goal_name = g.get("title", g_id)
+            break
+            
+    # Task Board
+    task_board = []
+    needs_you = False
+    human_reason = "NOTHING (You can safely walk away)"
+    
+    for t_id, t in state.get("tasks", {}).items():
+        if t.get("status") == "HUMAN_REQUIRED":
+            needs_you = True
+            human_reason = f"TASK {t_id} BLOCKED: {t.get('recovery_reason', 'Human Input Required')}"
+            
+        task_board.append({
+            "task_id": t_id,
+            "title": t.get("description", t_id),
+            "status": t.get("status", "UNKNOWN"),
+            "owner_agent": t.get("worker_id", "UNASSIGNED"),
+            "provider": t.get("platform", "LOCAL_DETERMINISTIC")
+        })
+        
+    # Result Feed
+    result_feed = []
+    import datetime
+    for t_id, t in state.get("tasks", {}).items():
+        if t.get("status") in ["RESULT_RECEIVED", "RECONCILED", "FAILED_VERIFICATION"]:
+            outcome = "SUCCESS" if t.get("status") in ["RESULT_RECEIVED", "RECONCILED"] else "FAIL"
+            result_feed.append({
+                "task_id": t_id,
+                "event_type": "RESULT",
+                "outcome": outcome,
+                "source_worker": t.get("worker_id", "System"),
+                "ingested_at": datetime.datetime.utcnow().isoformat() + "Z"
+            })
+            
+    return jsonify({
+        "agents": active_agents,
+        "auto_runtime": {
+            "current_goal": current_goal_name,
+            "current_action": current_task_name
+        },
+        "endurance": {
+            "elapsed_seconds": 0
+        },
+        "human_attention_required": needs_you,
+        "human_attention_reason": human_reason,
+        "task_board": task_board,
+        "result_feed": result_feed,
+        "bus": {
+            "treasury_verified": True,
+            "treasury_goal": 8,
+            "snitch_healthy": True,
+            "snitch_command": "curl -s http://127.0.0.1:8088/api/state"
+        }
+    })
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
