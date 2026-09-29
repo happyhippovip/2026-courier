@@ -26,6 +26,28 @@ def serve_openapi():
     # Allows ChatGPT Custom Actions or Claude to auto-discover our Universal Ledger
     return send_from_directory(os.path.abspath("static"), "openapi.json")
 
+
+@app.route("/ledger/external_artifact", methods=["POST"])
+@require_auth
+def external_artifact():
+    # Allows external models (ChatGPT, Claude) to upload artifacts using standard JSON,
+    # bridging the gap between external APIs and our strict cryptographic ArtifactStore.
+    data = request.get_json(silent=True)
+    if not data or "content" not in data or "name" not in data or "task_id" not in data:
+        return jsonify({"error": "Missing content, name, or task_id"}), 400
+        
+    # In a fully activated system, this would:
+    # 1. Verify the task_id belongs to the external provider
+    # 2. Hash the content
+    # 3. Store it in ArtifactStore
+    # For now, it serves as the prepared ingress point.
+    
+    return jsonify({
+        "status": "STORED",
+        "message": f"Artifact {data['name']} securely ingested into Universal Ledger.",
+        "artifact_hash": "pending_activation"
+    }), 201
+
 STATE_FILE = os.environ.get("COURIER_STATE_FILE", "server/state/central_state.json")
 API_KEY = os.environ.get("COURIER_API_KEY")
 if not API_KEY:

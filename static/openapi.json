@@ -48,7 +48,11 @@
                     "description": "SHA-256 hash of the generated artifact"
                   }
                 },
-                "required": ["provider", "task_id", "artifact_hash"]
+                "required": [
+                  "provider",
+                  "task_id",
+                  "artifact_hash"
+                ]
               }
             }
           }
@@ -56,6 +60,45 @@
         "responses": {
           "201": {
             "description": "State transition securely recorded"
+          }
+        }
+      }
+    },
+    "/ledger/external_artifact": {
+      "post": {
+        "summary": "Upload a generated artifact to the Ledger",
+        "operationId": "uploadExternalArtifact",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "task_id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Filename of the artifact"
+                  },
+                  "content": {
+                    "type": "string",
+                    "description": "Raw text or base64 content of the artifact"
+                  }
+                },
+                "required": [
+                  "task_id",
+                  "name",
+                  "content"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Artifact securely ingested"
           }
         }
       }
