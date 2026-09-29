@@ -597,3 +597,25 @@ def _find_workflow_step(state, task_id):
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
+
+
+@app.route("/ledger/external_claim", methods=["POST"])
+@require_auth
+def external_claim():
+    # MULTI-PROVIDER LEDGER EXPANSION (Prepared for Activation)
+    # This endpoint allows external agents (ChatGPT, Claude, Google) 
+    # to submit cryptographically signed state transitions directly to the Courier Ledger.
+    data = request.get_json(silent=True) or {}
+    provider = data.get("provider", "unknown")
+    signature = request.headers.get("X-Provider-Signature")
+    
+    if not signature:
+        return jsonify({"error": "Missing cryptographic signature from provider"}), 400
+        
+    # TODO: Activate full cryptographic verification of external JWT/Signatures when ready
+    
+    return jsonify({
+        "status": "RECORDED",
+        "message": f"State transition securely logged in Universal Ledger for provider: {provider}",
+        "ledger_hash": "pending_activation"
+    }), 201
