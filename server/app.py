@@ -532,12 +532,15 @@ def resume_task(task_id):
         return jsonify({"error": f"Task cannot be resumed from status {status}"}), 400
 
     if action == "retry":
-        # Requeue only; the next claim mints a fresh attempt_id/dispatch_id so
-        # results of the superseded attempt can no longer bind to this task.
+        # Requeue only. The superseded attempt's stored result is dropped so a
+        # byte-identical replay can no longer ACK as a duplicate; the next
+        # claim mints a fresh attempt_id/dispatch_id for the new attempt.
         for record in filter(None, (task, step)):
             record["resumed_from"] = status
             record["status"] = "QUEUED"
             record["worker_id"] = None
+        if task is not None:
+            task["result"] = {}
         if "instruction_override" in data:
             step["instruction"] = data["instruction_override"]
         goal["status"] = "ACTIVE"
