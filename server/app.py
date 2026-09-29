@@ -108,14 +108,30 @@ def submit_goal():
     }
     
     if "workflow_plan" in data:
+        if not isinstance(data["workflow_plan"], list):
+            return jsonify({"error": "workflow_plan must be a list"}), 400
+        if not data["workflow_plan"]:
+            return jsonify({"error": "workflow_plan cannot be empty"}), 400
         goal["workflow_plan"] = data["workflow_plan"]
         goal["current_step_index"] = 0
+        seen_tasks = set()
         for step in goal["workflow_plan"]:
+            target_agent = str(step.get("target_agent", "linux")).lower()
+            if "github" in target_agent: target_agent = "github"
+            elif "windows" in target_agent or "codex" in target_agent: target_agent = "windows"
+            elif "mac" in target_agent or "antigravity" in target_agent or "gemini" in target_agent: target_agent = "mac"
+            else: target_agent = "linux"
+            step["target_agent"] = target_agent
             step["goal_id"] = goal_id
             step["status"] = "QUEUED"
             step["attempts"] = 0
+            if "instruction" in step and not isinstance(step["instruction"], str):
+                return jsonify({"error": "instruction must be a string"}), 400
             if "task_id" not in step:
                 step["task_id"] = f"task-{uuid.uuid4().hex[:8]}"
+            if step["task_id"] in seen_tasks or step["task_id"] in state.get("tasks", {}):
+                return jsonify({"error": f"duplicate task_id: {step['task_id']}"}), 400
+            seen_tasks.add(step["task_id"])
     else:
         try:
             _, planned_steps = ChiefCommander().formulate_workflow_plan(
@@ -127,6 +143,7 @@ def submit_goal():
             return jsonify({"error": "planner returned no actionable tasks"}), 503
         goal["workflow_plan"] = []
         goal["current_step_index"] = 0
+        seen_tasks = set()
         for step in planned_steps:
             target_agent = str(step.get("target_agent", "linux")).lower()
             if "github" in target_agent:
@@ -137,8 +154,12 @@ def submit_goal():
                 target_agent = "mac"
             else:
                 target_agent = "linux"
+            task_id = step.get("task_id", f"task-{uuid.uuid4().hex[:8]}")
+            if task_id in seen_tasks or task_id in state.get("tasks", {}):
+                return jsonify({"error": f"duplicate task_id from planner: {task_id}"}), 503
+            seen_tasks.add(task_id)
             goal["workflow_plan"].append({
-                "task_id": step.get("task_id", f"task-{uuid.uuid4().hex[:8]}"),
+                "task_id": task_id,
                 "goal_id": goal_id,
                 "instruction": step.get("instruction", "Next bounded step"),
                 "target_agent": target_agent,
