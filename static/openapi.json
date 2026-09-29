@@ -1,0 +1,64 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Courier Symphony - Universal Ledger API",
+    "description": "Cryptographic state persistence and task verification for cross-platform AI agents.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8198",
+      "description": "Local Courier Server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "paths": {
+    "/ledger/external_claim": {
+      "post": {
+        "summary": "Record a cryptographic state transition",
+        "operationId": "recordExternalClaim",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "description": "The AI provider making the claim (e.g., openai, anthropic, google)"
+                  },
+                  "task_id": {
+                    "type": "string"
+                  },
+                  "artifact_hash": {
+                    "type": "string",
+                    "description": "SHA-256 hash of the generated artifact"
+                  }
+                },
+                "required": ["provider", "task_id", "artifact_hash"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "State transition securely recorded"
+          }
+        }
+      }
+    }
+  }
+}

@@ -20,6 +20,12 @@ def serve_pilot_static(path):
     return send_from_directory(os.path.abspath("pilot"), path)
 
 
+
+@app.route("/openapi.json", methods=["GET"])
+def serve_openapi():
+    # Allows ChatGPT Custom Actions or Claude to auto-discover our Universal Ledger
+    return send_from_directory(os.path.abspath("static"), "openapi.json")
+
 STATE_FILE = os.environ.get("COURIER_STATE_FILE", "server/state/central_state.json")
 API_KEY = os.environ.get("COURIER_API_KEY")
 if not API_KEY:
