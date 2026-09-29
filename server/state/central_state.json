@@ -383,6 +383,18 @@
           "worker_id": "GEMINI-DISPATCHER"
         }
       ]
+    },
+    "goal-mcp-server": {
+      "goal_id": "goal-mcp-server",
+      "goal_text": "Implement Courier MCP Server",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "gen-mcp-01",
+          "status": "SUCCESS",
+          "worker_id": "GEMINI-DISPATCHER"
+        }
+      ]
     }
   },
   "tasks": {
