@@ -80,6 +80,9 @@ def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
                 if hashlib.sha256(data).hexdigest() != task_expected:
                     log(f"Hash mismatch against expected_sha256 for {art.get('path')}")
                     return "FAIL"
+            else:
+                log(f"Missing expected_sha256 for {art.get('path')}. Tautological fallback rejected.")
+                return "FAIL"
             ok, reason = verify_uploaded_artifact(data, record, art, task)
             if not ok:
                 log(f"Uploaded artifact rejected: {reason}")

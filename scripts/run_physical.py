@@ -135,7 +135,7 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
         server_proc = subprocess.Popen(
             [sys.executable, "-c", "import sys, os; sys.path.append(os.getcwd()); from server.app import app; app.run(host='0.0.0.0', port=int(sys.argv[1]))", str(port)],
             env=env, cwd=REPO_ROOT, stdout=server_out, stderr=server_err,
-            preexec_fn=os.setsid
+            preexec_fn=os.setpgrp
         )
         with open(server_pid_path, "w") as f: f.write(str(server_proc.pid))
 
@@ -146,7 +146,8 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
                 urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=1).read()
                 ready = True
                 break
-            except Exception:
+            except Exception as e:
+                print(f"Health check error: {e}")
                 time.sleep(0.5)
         if not ready:
             raise RuntimeError("Server failed to boot or bind.")
@@ -156,7 +157,7 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
         worker_proc = subprocess.Popen(
             [sys.executable, "scripts/mac_worker/daemon.py"],
             env=env, cwd=REPO_ROOT, stdout=server_out, stderr=server_err,
-            preexec_fn=os.setsid
+            preexec_fn=os.setpgrp
         )
         # 3. Spawn Mac Verifier
         print("[RUN] Spawning Mac Verifier...")
@@ -164,7 +165,7 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
         verifier_proc = subprocess.Popen(
             [sys.executable, "scripts/courier_verifier.py"],
             env=env, cwd=REPO_ROOT, stdout=server_out, stderr=server_err,
-            preexec_fn=os.setsid
+            preexec_fn=os.setpgrp
         )
         with open(verifier_pid_path, "w") as f: f.write(str(verifier_proc.pid))
 
@@ -229,17 +230,6 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
         elif task.get("task_id") == "process_b":
             b_attempts = task.get("attempts", 0)
 
-    transitions = [
-        {"state": "BOOT", "timestamp": int(t_start * 1000)}
-    ]
-    if a_attempts > 0:
-        now_ms = int(time.time() * 1000)
-        transitions.append({"state": "VERIFY", "timestamp": now_ms})
-        transitions.append({"state": "RECONCILE", "timestamp": now_ms + 1})
-        transitions.append({"state": "A_COMPLETE", "timestamp": now_ms + 2})
-    if b_attempts > 0:
-        transitions.append({"state": "B_START", "timestamp": int(time.time() * 1000) + 3})
-
     if final_goal_status == "DONE":
         final_goal_status = "SUCCESS"
 
@@ -261,7 +251,7 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
             "process_b": b_attempts,
             "human_relay_count": 0
         },
-        "state_transitions": transitions,
+        "state_transitions": g.get("state_transitions", []),
         "payload": payload,
         "expected_server_bytes_hash": server_bytes_hash
     }
