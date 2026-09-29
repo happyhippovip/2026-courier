@@ -1,104 +1,222 @@
 {
-  "openapi": "3.1.0",
+  "openapi": "3.0.0",
   "info": {
-    "title": "Courier Symphony - Universal Ledger API",
-    "description": "Cryptographic state persistence and task verification for cross-platform AI agents.",
-    "version": "1.0.0"
+    "title": "Courier Universal Ledger API",
+    "version": "1.0.0",
+    "description": "Auto-generated OpenAPI spec for Courier backend"
   },
   "servers": [
     {
-      "url": "http://localhost:8198",
-      "description": "Local Courier Server"
-    }
-  ],
-  "components": {
-    "securitySchemes": {
-      "BearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
-      }
-    }
-  },
-  "security": [
-    {
-      "BearerAuth": []
+      "url": "http://localhost:8000"
     }
   ],
   "paths": {
-    "/ledger/external_claim": {
-      "post": {
-        "summary": "Record a cryptographic state transition",
-        "operationId": "recordExternalClaim",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "provider": {
-                    "type": "string",
-                    "description": "The AI provider making the claim (e.g., openai, anthropic, google)"
-                  },
-                  "task_id": {
-                    "type": "string"
-                  },
-                  "artifact_hash": {
-                    "type": "string",
-                    "description": "SHA-256 hash of the generated artifact"
-                  }
-                },
-                "required": [
-                  "provider",
-                  "task_id",
-                  "artifact_hash"
-                ]
-              }
-            }
-          }
-        },
+    "/": {
+      "get": {
+        "summary": "Auto-generated GET for /",
         "responses": {
-          "201": {
-            "description": "State transition securely recorded"
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/{path}": {
+      "get": {
+        "summary": "Auto-generated GET for /{path}",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "summary": "Auto-generated GET for /openapi.json",
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
     },
     "/ledger/external_artifact": {
       "post": {
-        "summary": "Upload a generated artifact to the Ledger",
-        "operationId": "uploadExternalArtifact",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "task_id": {
-                    "type": "string"
-                  },
-                  "name": {
-                    "type": "string",
-                    "description": "Filename of the artifact"
-                  },
-                  "content": {
-                    "type": "string",
-                    "description": "Raw text or base64 content of the artifact"
-                  }
-                },
-                "required": [
-                  "task_id",
-                  "name",
-                  "content"
-                ]
-              }
-            }
-          }
-        },
+        "summary": "Auto-generated POST for /ledger/external_artifact",
         "responses": {
-          "201": {
-            "description": "Artifact securely ingested"
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Auto-generated GET for /health",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/status": {
+      "get": {
+        "summary": "Auto-generated GET for /status",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/goals": {
+      "post": {
+        "summary": "Auto-generated POST for /goals",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/goals/{d}": {
+      "get": {
+        "summary": "Auto-generated GET for /goals/{d}",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/workers": {
+      "get": {
+        "summary": "Auto-generated GET for /workers",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/walls": {
+      "get": {
+        "summary": "Auto-generated GET for /walls",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/workers/register": {
+      "post": {
+        "summary": "Auto-generated POST for /workers/register",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/workers/unregister": {
+      "post": {
+        "summary": "Auto-generated POST for /workers/unregister",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/workers/heartbeat": {
+      "post": {
+        "summary": "Auto-generated POST for /workers/heartbeat",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/tasks/claim": {
+      "post": {
+        "summary": "Auto-generated POST for /tasks/claim",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/tasks/result": {
+      "post": {
+        "summary": "Auto-generated POST for /tasks/result",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/tasks/reclaim_stale": {
+      "post": {
+        "summary": "Auto-generated POST for /tasks/reclaim_stale",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/tasks/pending_verification": {
+      "get": {
+        "summary": "Auto-generated GET for /tasks/pending_verification",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/tasks/verify": {
+      "post": {
+        "summary": "Auto-generated POST for /tasks/verify",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/tasks/{d}/resume": {
+      "post": {
+        "summary": "Auto-generated POST for /tasks/{d}/resume",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/ledger/stream": {
+      "get": {
+        "summary": "Auto-generated GET for /ledger/stream",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/ledger/external_claim": {
+      "post": {
+        "summary": "Auto-generated POST for /ledger/external_claim",
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
