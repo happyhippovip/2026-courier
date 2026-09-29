@@ -36,9 +36,9 @@
           "target_agent": "windows",
           "artifacts": [],
           "goal_id": "goal-7751ca47",
-          "status": "DISPATCHED",
+          "status": "UNASSIGNED",
           "attempts": 1,
-          "worker_id": "NEW-WIN-PC-01",
+          "worker_id": null,
           "attempt_id": "task-replace-001:attempt:1",
           "dispatch_id": "dispatch-862d1de11e694f229f2afb0dcf6350a4",
           "run_id": null,
@@ -167,6 +167,198 @@
           "worker_id": "WIN-GGL-6abd72ba"
         }
       ]
+    },
+    "goal-feature_ux_installer_v1": {
+      "goal_id": "goal-feature_ux_installer_v1",
+      "goal_text": "Monster worker: feature_ux_installer_v1",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_ux_installer_v1-01",
+          "status": "SUCCESS",
+          "worker_id": "WIN-GGL-MONSTER-57e51a"
+        }
+      ]
+    },
+    "goal-feature_error_recovery_v1": {
+      "goal_id": "goal-feature_error_recovery_v1",
+      "goal_text": "Monster worker: feature_error_recovery_v1",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_error_recovery_v1-01",
+          "status": "SUCCESS",
+          "worker_id": "WIN-GGL-MONSTER-57e51a"
+        }
+      ]
+    },
+    "goal-feature_continuity_audit_v2": {
+      "goal_id": "goal-feature_continuity_audit_v2",
+      "goal_text": "Monster worker: feature_continuity_audit_v2",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_continuity_audit_v2-01",
+          "status": "SUCCESS",
+          "worker_id": "WIN-GGL-MONSTER-57e51a"
+        }
+      ]
+    },
+    "goal-feature_jobcenter_proposal_v1": {
+      "goal_id": "goal-feature_jobcenter_proposal_v1",
+      "goal_text": "Monster worker: feature_jobcenter_proposal_v1",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_jobcenter_proposal_v1-01",
+          "status": "SUCCESS",
+          "worker_id": "WIN-GGL-MONSTER-57e51a"
+        }
+      ]
+    },
+    "goal-feature_prior_art_defense": {
+      "goal_id": "goal-feature_prior_art_defense",
+      "goal_text": "Monster worker: feature_prior_art_defense",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_prior_art_defense-01",
+          "status": "SUCCESS",
+          "worker_id": "WIN-GGL-MONSTER-57e51a"
+        }
+      ]
+    },
+    "goal-feature_moat_attack_v1": {
+      "goal_id": "goal-feature_moat_attack_v1",
+      "goal_text": "Monster worker: feature_moat_attack_v1",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_moat_attack_v1-01",
+          "status": "SUCCESS",
+          "worker_id": "WIN-GGL-MONSTER-57e51a"
+        }
+      ]
+    },
+    "goal-feature_founder_synthesis_v3": {
+      "goal_id": "goal-feature_founder_synthesis_v3",
+      "goal_text": "Monster worker: feature_founder_synthesis_v3",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_founder_synthesis_v3-01",
+          "status": "SUCCESS",
+          "worker_id": "WIN-GGL-MONSTER-57e51a"
+        }
+      ]
+    },
+    "goal-feature_stop_doing_v2": {
+      "goal_id": "goal-feature_stop_doing_v2",
+      "goal_text": "Monster worker: feature_stop_doing_v2",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_stop_doing_v2-01",
+          "status": "SUCCESS",
+          "worker_id": "WIN-GGL-MONSTER-57e51a"
+        }
+      ]
+    },
+    "goal-feature_customer_discovery_v2": {
+      "goal_id": "goal-feature_customer_discovery_v2",
+      "goal_text": "Monster worker: feature_customer_discovery_v2",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_customer_discovery_v2-01",
+          "status": "SUCCESS",
+          "worker_id": "WIN-GGL-MONSTER-57e51a"
+        }
+      ]
+    },
+    "goal-feature_demo_script_v2": {
+      "goal_id": "goal-feature_demo_script_v2",
+      "goal_text": "Monster worker: feature_demo_script_v2",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_demo_script_v2-01",
+          "status": "SUCCESS",
+          "worker_id": "WIN-GGL-MONSTER-57e51a"
+        }
+      ]
+    },
+    "goal-feature_pilot_launch_checklist": {
+      "goal_id": "goal-feature_pilot_launch_checklist",
+      "goal_text": "Monster worker: feature_pilot_launch_checklist",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_pilot_launch_checklist-01",
+          "status": "SUCCESS",
+          "worker_id": "WIN-GGL-MONSTER-57e51a"
+        }
+      ]
+    },
+    "goal-feature_cost_projection_v1": {
+      "goal_id": "goal-feature_cost_projection_v1",
+      "goal_text": "Monster worker: feature_cost_projection_v1",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_cost_projection_v1-01",
+          "status": "SUCCESS",
+          "worker_id": "WIN-GGL-MONSTER-57e51a"
+        }
+      ]
+    },
+    "goal-feature_provider_fallback": {
+      "goal_id": "goal-feature_provider_fallback",
+      "goal_text": "Monster worker: feature_provider_fallback",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_provider_fallback-01",
+          "status": "SUCCESS",
+          "worker_id": "WIN-GGL-MONSTER-57e51a"
+        }
+      ]
+    },
+    "goal-feature_physical_ai_notes": {
+      "goal_id": "goal-feature_physical_ai_notes",
+      "goal_text": "Monster worker: feature_physical_ai_notes",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_physical_ai_notes-01",
+          "status": "SUCCESS",
+          "worker_id": "WIN-GGL-MONSTER-57e51a"
+        }
+      ]
+    },
+    "goal-feature_beginner_tutorial": {
+      "goal_id": "goal-feature_beginner_tutorial",
+      "goal_text": "Monster worker: feature_beginner_tutorial",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_beginner_tutorial-01",
+          "status": "SUCCESS",
+          "worker_id": "WIN-GGL-MONSTER-57e51a"
+        }
+      ]
+    },
+    "goal-feature_support_kb": {
+      "goal_id": "goal-feature_support_kb",
+      "goal_text": "Monster worker: feature_support_kb",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_support_kb-01",
+          "status": "SUCCESS",
+          "worker_id": "WIN-GGL-MONSTER-57e51a"
+        }
+      ]
     }
   },
   "tasks": {
@@ -220,9 +412,9 @@
       "target_agent": "windows",
       "artifacts": [],
       "goal_id": "goal-7751ca47",
-      "status": "DISPATCHED",
+      "status": "UNASSIGNED",
       "attempts": 1,
-      "worker_id": "NEW-WIN-PC-01",
+      "worker_id": null,
       "attempt_id": "task-replace-001:attempt:1",
       "dispatch_id": "dispatch-862d1de11e694f229f2afb0dcf6350a4",
       "run_id": null,
