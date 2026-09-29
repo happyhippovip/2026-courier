@@ -5,6 +5,7 @@ import time
 import requests
 import hashlib
 from pathlib import Path
+from resource_governor import governor
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from scripts.artifact_store import DEFAULT_MAX_BYTES, is_safe_artifact_name, verify_uploaded_artifact
@@ -151,7 +152,7 @@ def run_loop():
         except Exception as e:
             log(f"Error polling for tasks: {e}")
             
-        time.sleep(5)
+        time.sleep(governor.get_poll_interval())
 
 if __name__ == "__main__":
     run_loop()

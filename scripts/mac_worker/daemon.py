@@ -4,6 +4,7 @@ import urllib.request
 import urllib.error
 import urllib.parse
 import signal
+from resource_governor import governor
 from contextlib import nullcontext
 
 # Paths
@@ -445,7 +446,7 @@ def loop():
                     persist_task(current_task_state_file, task)
                 except OSError:
                     pass
-                time.sleep(config.get("POLL_INTERVAL_SECONDS", 5))
+                time.sleep(governor.get_poll_interval())
                 continue
             if stopped() and (not task or task.get("worker_phase") == "CLAIMED"):
                 return
@@ -488,6 +489,9 @@ def loop():
                 
             if not task:
                 # Claim Task
+                if not governor.admit_job("HEAVY"):
+                    time.sleep(governor.get_poll_interval())
+                    continue
                 with admission_lock():
                     if stopped():
                         return
@@ -531,7 +535,7 @@ def loop():
                     except MuseAdmissionBlocked:
                         task["worker_phase"] = "CLAIMED"
                         persist_task(current_task_state_file, task)
-                        time.sleep(config.get("POLL_INTERVAL_SECONDS", 5))
+                        time.sleep(governor.get_poll_interval())
                         continue
                 else:
                     result = run_agy(task, config)
@@ -593,7 +597,7 @@ def loop():
         except Exception as e:
             write_log(f"Error in HTTP poll loop: {e}\n{traceback.format_exc()}")
             
-        time.sleep(config.get("POLL_INTERVAL_SECONDS", 5))
+        time.sleep(governor.get_poll_interval())
 
 if __name__ == "__main__":
     def shutdown(signum, frame):
