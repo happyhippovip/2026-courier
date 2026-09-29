@@ -59,6 +59,78 @@
           "worker_id": "MUSE-AGENT"
         }
       ]
+    },
+    "goal-feature_cost_budget_alert_v1": {
+      "goal_id": "goal-feature_cost_budget_alert_v1",
+      "goal_text": "Implement feature_cost_budget_alert_v1 for Cost",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_cost_budget_alert_v1-01",
+          "status": "SUCCESS",
+          "worker_id": "MUSE-AGENT"
+        }
+      ]
+    },
+    "goal-feature_support_restart_v1": {
+      "goal_id": "goal-feature_support_restart_v1",
+      "goal_text": "Implement feature_support_restart_v1 for Support",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_support_restart_v1-01",
+          "status": "SUCCESS",
+          "worker_id": "MUSE-AGENT"
+        }
+      ]
+    },
+    "goal-feature_pilot_onboarding_v1": {
+      "goal_id": "goal-feature_pilot_onboarding_v1",
+      "goal_text": "Implement feature_pilot_onboarding_v1 for Pilot",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_pilot_onboarding_v1-01",
+          "status": "SUCCESS",
+          "worker_id": "MUSE-AGENT"
+        }
+      ]
+    },
+    "goal-feature_demo_scenario_v1": {
+      "goal_id": "goal-feature_demo_scenario_v1",
+      "goal_text": "Implement feature_demo_scenario_v1 for Demo",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_demo_scenario_v1-01",
+          "status": "SUCCESS",
+          "worker_id": "MUSE-AGENT"
+        }
+      ]
+    },
+    "goal-feature_provider_health_v1": {
+      "goal_id": "goal-feature_provider_health_v1",
+      "goal_text": "Implement feature_provider_health_v1 for Provider",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_provider_health_v1-01",
+          "status": "SUCCESS",
+          "worker_id": "MUSE-AGENT"
+        }
+      ]
+    },
+    "goal-feature_product_pricing_v1": {
+      "goal_id": "goal-feature_product_pricing_v1",
+      "goal_text": "Implement feature_product_pricing_v1 for Product",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_product_pricing_v1-01",
+          "status": "SUCCESS",
+          "worker_id": "MUSE-AGENT"
+        }
+      ]
     }
   },
   "tasks": {

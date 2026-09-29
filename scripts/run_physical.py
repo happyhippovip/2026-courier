@@ -276,6 +276,9 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
     with open(hash_path, "w", encoding="utf-8") as f:
         f.write(f"{falsifiability_hash}\n")
 
+    if final_goal_status != "SUCCESS":
+        print(f"[RUN] Physical run FAILED. Final status: {final_goal_status}. Hash: {falsifiability_hash}")
+        return 1
     print(f"[RUN] Completed physical run successfully. Hash: {falsifiability_hash}")
     return 0
 
