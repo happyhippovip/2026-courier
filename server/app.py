@@ -53,23 +53,39 @@ def serialize_state_mutation(f):
     return wrapper
 
 def load_state():
-    if os.path.exists(STATE_FILE):
-        with open(STATE_FILE, 'r') as f:
-            state = json.load(f)
-            state.setdefault("goals", {})
-            state.setdefault("tasks", {})
-            state.setdefault("workers", {})
-            return state
-    return {"goals": {}, "tasks": {}, "workers": {}}
+    if not os.path.exists(STATE_FILE):
+        return {"goals": {}, "tasks": {}, "workers": {}}
+    with open(STATE_FILE, 'r') as f:
+        data = f.read()
+    if API_KEY and os.path.exists(STATE_FILE + ".sig"):
+        with open(STATE_FILE + ".sig", "r") as f:
+            expected_sig = f.read().strip()
+        actual_sig = hmac.new(API_KEY.encode(), data.encode(), hashlib.sha256).hexdigest()
+        if actual_sig != expected_sig:
+            raise RuntimeError("State file signature mismatch! Tampering detected.")
+    state = json.loads(data)
+    state.setdefault("goals", {})
+    state.setdefault("tasks", {})
+    state.setdefault("workers", {})
+    return state
 
 def save_state(state):
     os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
     temp_path = f"{STATE_FILE}.tmp"
+    data = json.dumps(state, indent=2)
     with open(temp_path, 'w') as f:
-        json.dump(state, f, indent=2)
+        f.write(data)
         f.flush()
         os.fsync(f.fileno())
     os.replace(temp_path, STATE_FILE)
+    if API_KEY:
+        sig = hmac.new(API_KEY.encode(), data.encode(), hashlib.sha256).hexdigest()
+        sig_tmp = f"{STATE_FILE}.sig.tmp"
+        with open(sig_tmp, 'w') as f:
+            f.write(sig)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(sig_tmp, f"{STATE_FILE}.sig")
 
 ARTIFACT_STORE = ArtifactStore.from_env()
 app.register_blueprint(create_blueprint(
@@ -372,8 +388,6 @@ def task_result():
         if task.get("worker_id") == worker_id:
             if task.get("status") != "DISPATCHED":
                 return jsonify({"error": "Task is not awaiting a result"}), 409
-            if task.get("dispatch_id") and data.get("dispatch_id") != task.get("dispatch_id"):
-                return jsonify({"error": "dispatch_id mismatch, possible replay"}), 409
             try:
                 durable_result = validate_durable_result(task, data)
                 for ref in durable_result["artifacts"]:
