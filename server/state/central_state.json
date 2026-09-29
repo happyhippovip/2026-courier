@@ -131,6 +131,42 @@
           "worker_id": "MUSE-AGENT"
         }
       ]
+    },
+    "goal-feature_google_provider_docs": {
+      "goal_id": "goal-feature_google_provider_docs",
+      "goal_text": "Implement feature_google_provider_docs for Provider",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_google_provider_docs-01",
+          "status": "SUCCESS",
+          "worker_id": "WIN-GGL-6abd72ba"
+        }
+      ]
+    },
+    "goal-feature_windows_path_fixes": {
+      "goal_id": "goal-feature_windows_path_fixes",
+      "goal_text": "Implement feature_windows_path_fixes for R&D",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_windows_path_fixes-01",
+          "status": "SUCCESS",
+          "worker_id": "WIN-GGL-6abd72ba"
+        }
+      ]
+    },
+    "goal-feature_customer_faq_v2": {
+      "goal_id": "goal-feature_customer_faq_v2",
+      "goal_text": "Implement feature_customer_faq_v2 for Customer",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "task_id": "feature_customer_faq_v2-01",
+          "status": "SUCCESS",
+          "worker_id": "WIN-GGL-6abd72ba"
+        }
+      ]
     }
   },
   "tasks": {
