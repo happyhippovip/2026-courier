@@ -7,12 +7,45 @@ def test_run_physical_restart_success(tmp_path, monkeypatch):
     
     monkeypatch.setattr(script, "check_resources", lambda *args, **kwargs: True)
     monkeypatch.setattr(script, "check_port_free", lambda *args, **kwargs: True)
+
+    import subprocess
+    class MockProc:
+        def __init__(self, *args, **kwargs):
+            self.pid = 9999
+        def wait(self, *args, **kwargs):
+            pass
+    monkeypatch.setattr(subprocess, "Popen", MockProc)
+
+    import urllib.request
+    def mock_urlopen(req, *args, **kwargs):
+        class MockResp:
+            def read(self):
+                return json.dumps({"goal": {"status": "SUCCESS"}}).encode("utf-8")
+        return MockResp()
+    monkeypatch.setattr(urllib.request, "urlopen", mock_urlopen)
     
     run1_dir = tmp_path / "run1"
     run1_evidence = run1_dir / "evidence"
     run1_evidence.mkdir(parents=True)
     (run1_evidence / "run1_exit_code.txt").write_text("0")
-    (run1_evidence / "run1_state_snapshot.json").write_text(json.dumps({"final_status": "SUCCESS", "payload": {}}))
+    (run1_evidence / "run1_state_snapshot.json").write_text(json.dumps({
+        "final_status": "SUCCESS",
+        "execution_counters": {"process_a": 1, "process_b": 0},
+        "payload": {}
+    }))
+
+    run1_state = run1_dir / "state"
+    run1_state.mkdir()
+    (run1_state / "central_state.json").write_text(json.dumps({
+        "goals": {
+            "goal-123": {
+                "workflow_plan": [
+                    {"task_id": "process_a", "attempts": 1},
+                    {"task_id": "process_b", "attempts": 1}
+                ]
+            }
+        }
+    }))
     
     run2_evidence = tmp_path / "run2_evidence"
     
@@ -25,6 +58,7 @@ def test_run_physical_restart_success(tmp_path, monkeypatch):
     assert snap["final_status"] == "SUCCESS"
     assert snap["initial_state"]["process_a_status"] == "COMPLETE"
     assert snap["execution_counters"]["process_a"] == 0
+    assert snap["execution_counters"]["process_b"] == 1
     assert (run2_evidence / "run2_falsifiability_hash.txt").exists()
 
 def test_run_physical_restart_run1_fail(tmp_path, monkeypatch):
@@ -43,4 +77,3 @@ def test_run_physical_restart_run1_fail(tmp_path, monkeypatch):
     
     with pytest.raises(RuntimeError, match="RUN 1 did not PASS cleanly"):
         script.execute_run2("abcd", str(run1_dir), str(run2_evidence), 8081)
-

@@ -12,8 +12,8 @@ def test_run_physical_success(tmp_path, monkeypatch):
     
     evidence_dir = tmp_path / "evidence"
     
-    # Execute run1
-    exit_code = script.execute_run1("1234abcd", str(evidence_dir), 8081)
+    # Execute run
+    exit_code = script.execute_run("1234abcd", str(evidence_dir), 8081)
     
     assert exit_code == 0
     assert (evidence_dir / "run1_stdout.log").exists()
