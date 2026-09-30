@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Dispatch and reconcile one bounded Courier TaskPacket on GitHub Actions."""
+"""Dispatch and reconcile one bounded Courier TaskPacket on GitHub Actions.
+
+Exit codes: 0 = result POSTED (or already reconciled), 1 = error,
+2 (EXIT_TIMEOUT) = local wait deadline expired, task left WAITING_FOR_WORKER.
+"""
 
 from __future__ import annotations
 
@@ -19,7 +23,8 @@ import requests
 REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "happyhippovip/2026-courier")
 WORKFLOW = "courier_worker.yml"
 LOCAL_WAIT_SECONDS = int(os.environ.get("GITHUB_WORKER_LOCAL_WAIT_SECONDS", "60"))
-POLL_SECONDS = 5
+POLL_SECONDS = int(os.environ.get("GITHUB_WORKER_POLL_SECONDS", "5"))
+EXIT_TIMEOUT = 2
 IDENTITY_FIELDS = ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")
 ALLOW_LIST = {"metadata", "report", "deterministic_transform", "verify_file", "static_analysis", "run_tests"}
 
@@ -168,7 +173,7 @@ def run(task_file_name: str) -> int:
             write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "status": "WAITING_FOR_WORKER"})
         time.sleep(POLL_SECONDS)
     write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "status": "WAITING_FOR_WORKER"})
-    return 0
+    return EXIT_TIMEOUT
 
 
 if __name__ == "__main__":

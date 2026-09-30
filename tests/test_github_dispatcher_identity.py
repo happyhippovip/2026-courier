@@ -127,5 +127,6 @@ def test_adapter_restart_after_workflow_dispatch_does_not_redispatch(tmp_path, m
     monkeypatch.setattr(adapter, "find_run", lambda did: ("123", "in_progress"))
     monkeypatch.setattr(adapter, "run_cmd", lambda cmd: calls.append(cmd) or (0, "", ""))
     monkeypatch.setattr(adapter, "LOCAL_WAIT_SECONDS", 0)
-    assert adapter.run(str(task_file)) == 0
+    # Wait expiry without completion is EXIT_TIMEOUT; the key property is no redispatch.
+    assert adapter.run(str(task_file)) == adapter.EXIT_TIMEOUT
     assert not any(c[:3] == ["gh", "workflow", "run"] for c in calls)

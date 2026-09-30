@@ -83,7 +83,8 @@ def test_existing_waiting_dispatch_is_reconciled_not_dispatched(tmp_path: Path, 
     monkeypatch.setattr(adapter, "LOCAL_WAIT_SECONDS", 0)
     monkeypatch.setattr(adapter, "find_run", lambda _: (None, None))
     monkeypatch.setattr(adapter, "run_cmd", lambda command: pytest.fail(f"must not redispatch: {command}"))
-    assert adapter.run(str(task_file)) == 0
+    # Unreconciled wait expiry is EXIT_TIMEOUT (contract: 0 = POSTED/reconciled).
+    assert adapter.run(str(task_file)) == adapter.EXIT_TIMEOUT
 
 
 def test_dispatch_preserves_taskpacket_as_raw_json(tmp_path: Path, monkeypatch):
@@ -93,7 +94,8 @@ def test_dispatch_preserves_taskpacket_as_raw_json(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(adapter, "LOCAL_WAIT_SECONDS", 0)
     commands = []
     monkeypatch.setattr(adapter, "run_cmd", lambda command: (commands.append(command) or (0, "branch", "")))
-    assert adapter.run(str(task_file)) == 0
+    # Fresh dispatch with zero wait budget expires immediately (EXIT_TIMEOUT).
+    assert adapter.run(str(task_file)) == adapter.EXIT_TIMEOUT
     dispatch = next(command for command in commands if command[:3] == ["gh", "workflow", "run"])
     assert "--raw-field" in dispatch
     encoded = dispatch[dispatch.index("--raw-field") + 1].removeprefix("task_payload_base64=")
@@ -107,6 +109,16 @@ def test_durable_result_preserves_github_run_attempt():
         "status": "SUCCESS", "artifacts": [{"path": "courier_output_dispatch-1.json", "sha256": "a" * 64}],
     }
     assert validate_durable_result(task, result)["run_attempt"] == "1"
+
+
+def test_wait_deadline_expiry_returns_exit_timeout(tmp_path: Path, monkeypatch):
+    task_file = tmp_path / "task.json"
+    task_file.write_text(json.dumps(packet()), encoding="utf-8")
+    adapter.write_state(task_file, {"dispatch_id": "dispatch-1", "status": "WAITING_FOR_WORKER"})
+    monkeypatch.setattr(adapter, "LOCAL_WAIT_SECONDS", 0)
+    monkeypatch.setattr(adapter, "find_run", lambda _: (None, None))
+    assert adapter.run(str(task_file)) == adapter.EXIT_TIMEOUT
+    assert json.loads(adapter.state_path(task_file).read_text())["status"] == "WAITING_FOR_WORKER"
 
 
 def test_post_result_uses_courier_bearer_token(monkeypatch):
