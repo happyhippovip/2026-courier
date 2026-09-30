@@ -1,5 +1,6 @@
 import json
 import os
+import stat as statmod
 import threading
 
 import pytest
@@ -108,6 +109,21 @@ def test_emit_creates_nested_dir_and_persists(tmp_path):
     record = emit(bus, "agent-1", "task-1", "TASK_COMPLETE", "done")
     assert os.path.isfile(bus)
     assert read_events(bus) == [record]
+
+
+def test_emit_dir_fsync_failure_is_loud_but_persisted(tmp_path, monkeypatch):
+    bus = str(tmp_path / "events.jsonl")
+    real_fsync = os.fsync
+
+    def fail_on_dirs(fd):
+        if statmod.S_ISDIR(os.fstat(fd).st_mode):
+            raise OSError("simulated dir-fsync failure")
+        return real_fsync(fd)
+
+    monkeypatch.setattr(os, "fsync", fail_on_dirs)
+    with pytest.raises(OSError, match="simulated dir-fsync failure"):
+        emit(bus, "agent-1", "task-1", "TASK_COMPLETE", "done")
+    assert len(read_events(bus)) == 1
 
 
 def test_concurrent_appends_all_persisted(tmp_path):

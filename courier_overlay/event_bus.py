@@ -98,7 +98,11 @@ def _fsync_dir(path):
 
 
 def emit(bus_path, agent_id, task_id, event_type, short_summary):
-    """Validate + append one event atomically. Returns the stored record."""
+    """Validate + append one event atomically. Returns the stored record.
+
+    Durability failures (fsync) raise OSError AFTER the record was appended;
+    callers may retry — duplicates fold last-writer-wins on replay.
+    """
     record = validate_event(agent_id, task_id, event_type, short_summary)
     os.makedirs(os.path.dirname(os.path.abspath(bus_path)), exist_ok=True)
     line = (json.dumps(record, separators=(",", ":")) + "\n").encode("utf-8")
