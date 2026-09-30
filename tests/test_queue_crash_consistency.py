@@ -63,6 +63,24 @@ def test_failed_dispatch_writes_no_marker(qp):
     assert list(Path("intakes").rglob("*.dispatched")) == []
 
 
+def test_missing_gh_cli_stops_batch_and_returns_file_to_pending(qp):
+    write_pending("in-1.json")
+    write_pending("in-2.json")
+    calls = []
+    def no_gh(path):
+        calls.append(path)
+        raise SystemExit(2)
+    qp.dispatch_intake = no_gh
+    qp.process_queue()
+    # Batch stopped at the environmental failure: second file never attempted,
+    # first file returned to pending (not triaged as poison).
+    assert len(calls) == 1
+    assert (Path("intakes/pending") / "in-1.json").is_file()
+    assert (Path("intakes/pending") / "in-2.json").is_file()
+    assert list(Path("intakes/processing").glob("*.json")) == []
+    assert list(Path("intakes").rglob("*.dispatched")) == []
+
+
 def test_orphan_marker_without_sibling_is_cleaned(qp):
     Path("intakes/processing").mkdir(parents=True, exist_ok=True)
     (Path("intakes/processing") / "gone.json.dispatched").write_text("ok")

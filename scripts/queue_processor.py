@@ -74,8 +74,20 @@ def process_queue():
             logger.info("processed and moved %s", claimed)
             ok += 1
         except (Exception, SystemExit) as e:
-            # dispatch_intake signals dispatch failure via sys.exit();
-            # a poisoned intake must not abort the rest of the batch.
+            # dispatch_intake signals dispatch failure via sys.exit().
+            # Exit 2 means the gh CLI is missing: an environmental failure,
+            # not per-file poison. Stop the batch and return this file to
+            # pending/ so nothing is triaged as poison and nothing is lost;
+            # the next run retries when the environment is fixed.
+            if isinstance(e, SystemExit) and e.code == 2:
+                logger.error("environmental failure (%s); returning %s to pending and stopping batch", e, claimed)
+                try:
+                    os.rename(claimed, os.path.join("intakes/pending", os.path.basename(claimed)))
+                except OSError as re:
+                    logger.error("error returning %s to pending: %s", claimed, re)
+                    failed += 1
+                break
+            # A poisoned intake must not abort the rest of the batch.
             # The file stays in processing/ for triage (re-queue would risk
             # a second external dispatch).
             logger.error("error processing %s: %s", claimed, e)
