@@ -114,6 +114,37 @@ def emit(bus_path, agent_id, task_id, event_type, short_summary):
     return record
 
 
+def _is_valid_record(record):
+    """True iff a decoded line meets the emit contract (no re-stamping).
+
+    The bus file is a shared local file: any process can append bytes, so
+    the read path re-validates instead of trusting file content. Secret
+    patterns are re-checked so a foreign-written leak never surfaces to
+    overlay readers via replay.
+    """
+    if not isinstance(record, dict):
+        return False
+    for name in ("agent_id", "task_id"):
+        value = record.get(name)
+        if not isinstance(value, str) or not value.strip() or len(value) > 128:
+            return False
+    event_type = record.get("event_type")
+    if not isinstance(event_type, str) or event_type not in EVENT_TYPES:
+        return False
+    summary = record.get("short_summary")
+    if not isinstance(summary, str) or not summary.strip():
+        return False
+    if len(summary) > MAX_SUMMARY_LEN:
+        return False
+    for pattern in _SECRET_PATTERNS:
+        if pattern.search(summary):
+            return False
+    timestamp = record.get("timestamp")
+    if not isinstance(timestamp, str) or not timestamp:
+        return False
+    return True
+
+
 def read_events(bus_path, event_type=None, task_id=None, agent_id=None):
     """Read back events, optionally filtered. Skips corrupt lines."""
     events = []
@@ -128,7 +159,7 @@ def read_events(bus_path, event_type=None, task_id=None, agent_id=None):
                 record = json.loads(raw.decode("utf-8"))
             except (ValueError, UnicodeDecodeError):
                 continue
-            if not isinstance(record, dict):
+            if not _is_valid_record(record):
                 continue
             if event_type is not None and record.get("event_type") != event_type:
                 continue

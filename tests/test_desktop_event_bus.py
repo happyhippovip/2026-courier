@@ -126,6 +126,31 @@ def test_emit_dir_fsync_failure_is_loud_but_persisted(tmp_path, monkeypatch):
     assert len(read_events(bus)) == 1
 
 
+def test_read_revalidates_foreign_written_lines(tmp_path):
+    bus = _bus(tmp_path)
+    good = emit(bus, "agent-1", "task-1", "TASK_COMPLETE", "done")
+    foreign_lines = [
+        {"event_type": "NOPE", "agent_id": "a", "task_id": "t",
+         "short_summary": "s", "timestamp": "2026-01-01T00:00:00+00:00"},
+        {"event_type": ["TASK_COMPLETE"], "agent_id": "a", "task_id": "t",
+         "short_summary": "s", "timestamp": "2026-01-01T00:00:00+00:00"},
+        {"event_type": "TASK_COMPLETE", "task_id": "t",
+         "short_summary": "s", "timestamp": "2026-01-01T00:00:00+00:00"},
+        {"event_type": "TASK_COMPLETE", "agent_id": "a", "task_id": "t",
+         "short_summary": "api_key=sk-live-123", "timestamp": "2026-01-01T00:00:00+00:00"},
+        {"event_type": "TASK_COMPLETE", "agent_id": "a", "task_id": "t",
+         "short_summary": "s"},
+        "just a string",
+        [1, 2],
+    ]
+    with open(bus, "ab") as f:
+        for line in foreign_lines:
+            blob = line if isinstance(line, str) else json.dumps(line)
+            f.write((blob + "\n").encode("utf-8"))
+    assert read_events(bus) == [good]
+    assert list(replay(bus, task_id="task-1")) == [good]
+
+
 def test_concurrent_appends_all_persisted(tmp_path):
     bus = _bus(tmp_path)
     threads = [
