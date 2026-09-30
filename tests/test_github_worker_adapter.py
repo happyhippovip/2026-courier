@@ -109,6 +109,47 @@ def test_durable_result_preserves_github_run_attempt():
     assert validate_durable_result(task, result)["run_attempt"] == "1"
 
 
+def _success_result(**changes):
+    result = {
+        **packet(), "run_id": "99", "run_attempt": "1", "result_id": "result-dispatch-1",
+        "status": "SUCCESS", "operation": "deterministic_transform",
+        "artifacts": [{"path": "courier_output_dispatch-1.json", "sha256": "x"}],
+    }
+    result.update(changes)
+    return result
+
+
+def _success_evidence():
+    return {"operation": "deterministic_transform", "input_sha256": hashlib.sha256(b"canary").hexdigest()}
+
+
+@pytest.mark.parametrize("evil_path", ["/etc/passwd", "../outside.json", "sub/../../escape.json", "", None, 42])
+def test_verify_result_rejects_unsafe_artifact_path(tmp_path: Path, evil_path):
+    result = _success_result(artifacts=[{"path": evil_path, "sha256": "x"}])
+    with pytest.raises(ValueError, match="unsafe artifact path"):
+        adapter.verify_result(packet(), result, _success_evidence(), "99", tmp_path)
+
+
+def test_verify_result_rejects_windows_absolute_artifact_path(tmp_path: Path):
+    result = _success_result(artifacts=[{"path": "C:\\Windows\\Temp\\evil.json", "sha256": "x"}])
+    with pytest.raises(ValueError, match="unsafe artifact path"):
+        adapter.verify_result(packet(), result, _success_evidence(), "99", tmp_path)
+
+
+def test_verify_result_rejects_nondict_artifact(tmp_path: Path):
+    result = _success_result(artifacts=["courier_output_dispatch-1.json"])
+    with pytest.raises(ValueError, match="unsafe artifact path"):
+        adapter.verify_result(packet(), result, _success_evidence(), "99", tmp_path)
+
+
+def test_verify_result_accepts_confined_relative_artifact_path(tmp_path: Path):
+    body = b'{"operation": "deterministic_transform"}'
+    (tmp_path / "courier_output_dispatch-1.json").write_bytes(body)
+    digest = hashlib.sha256(body).hexdigest()
+    result = _success_result(artifacts=[{"path": "courier_output_dispatch-1.json", "sha256": digest}])
+    assert adapter.verify_result(packet(), result, _success_evidence(), "99", tmp_path) is None
+
+
 def test_post_result_uses_courier_bearer_token(monkeypatch):
     captured = {}
 

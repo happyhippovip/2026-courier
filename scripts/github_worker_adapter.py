@@ -11,7 +11,7 @@ import shutil
 import subprocess
 import sys
 import time
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import Any
 
 import requests
@@ -95,7 +95,15 @@ def verify_result(task: dict[str, Any], result: dict[str, Any], evidence: dict[s
     if not isinstance(artifacts, list) or len(artifacts) != 1:
         raise ValueError("successful DurableResult requires one evidence artifact")
     artifact = artifacts[0]
-    evidence_file = directory / artifact.get("path", "")
+    if not isinstance(artifact, dict):
+        raise ValueError("unsafe artifact path")
+    path = artifact.get("path", "")
+    if not isinstance(path, str) or not path or Path(path).is_absolute() or ".." in Path(path).parts:
+        raise ValueError("unsafe artifact path")
+    windows = PureWindowsPath(path)
+    if windows.drive or windows.root or ".." in windows.parts:
+        raise ValueError("unsafe artifact path")
+    evidence_file = directory / path
     if not evidence_file.is_file() or artifact.get("sha256") != hashlib.sha256(evidence_file.read_bytes()).hexdigest():
         raise ValueError("evidence artifact hash does not match")
     operation = result["operation"]
