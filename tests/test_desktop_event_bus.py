@@ -83,6 +83,26 @@ def test_read_skips_corrupt_lines(tmp_path):
     assert len(read_events(bus)) == 1
 
 
+def test_replay_is_idempotent_for_observers(tmp_path):
+    """Replaying the same file twice yields the same sequence, so a
+    last-writer-wins observer fold converges (dup-tolerance contract)."""
+    bus = _bus(tmp_path)
+    emit(bus, "a1", "t1", "WORKER_STARTED", "s1")
+    emit(bus, "a1", "t1", "WORKER_PROGRESS", "s2")
+    emit(bus, "a1", "t1", "TASK_COMPLETE", "s3")
+    first = list(replay(bus))
+    second = list(replay(bus))
+    assert first == second
+
+    def fold(events):
+        state = {}
+        for e in events:
+            state[e["task_id"]] = e["event_type"]
+        return state
+
+    assert fold(first) == fold(second) == {"t1": "TASK_COMPLETE"}
+
+
 def test_concurrent_appends_all_persisted(tmp_path):
     bus = _bus(tmp_path)
     threads = [
