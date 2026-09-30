@@ -4,6 +4,10 @@ import urllib.request
 import urllib.error
 import urllib.parse
 import signal
+# scripts/ must be importable before sibling imports: the daemon is launched
+# standalone (launchd WorkingDirectory=repo root, run_physical spawn), where
+# sys.path[0] is scripts/mac_worker/ and resource_governor is unreachable.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from resource_governor import governor
 from contextlib import nullcontext
 
