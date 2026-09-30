@@ -39,7 +39,16 @@ def state_path(task_file: Path) -> Path:
 
 
 def write_state(task_file: Path, state: dict[str, Any]) -> None:
-    state_path(task_file).write_text(json.dumps(state, sort_keys=True) + "\n", encoding="utf-8")
+    # Atomic: a crash mid-write must leave the prior state intact so the
+    # next run can resume instead of failing on torn JSON (same pattern
+    # as persist_packet in courier_github_dispatcher.py).
+    target = state_path(task_file)
+    tmp = target.with_suffix(".json.tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write(json.dumps(state, sort_keys=True) + "\n")
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp, target)
 
 
 def validate_task(task: dict[str, Any]) -> None:
