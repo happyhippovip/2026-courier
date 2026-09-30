@@ -140,6 +140,8 @@ def test_read_revalidates_foreign_written_lines(tmp_path):
          "short_summary": "api_key=sk-live-123", "timestamp": "2026-01-01T00:00:00+00:00"},
         {"event_type": "TASK_COMPLETE", "agent_id": "a", "task_id": "t",
          "short_summary": "s"},
+        {"event_type": "TASK_COMPLETE", "agent_id": "a", "task_id": "t",
+         "short_summary": "s", "timestamp": "not-a-time"},
         "just a string",
         [1, 2],
     ]

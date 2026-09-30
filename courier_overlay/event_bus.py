@@ -142,6 +142,10 @@ def _is_valid_record(record):
     timestamp = record.get("timestamp")
     if not isinstance(timestamp, str) or not timestamp:
         return False
+    try:
+        datetime.datetime.fromisoformat(timestamp)
+    except ValueError:
+        return False
     return True
 
 
