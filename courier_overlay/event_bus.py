@@ -162,11 +162,15 @@ def _is_valid_record(record):
     return True
 
 
-def read_events(bus_path, event_type=None, task_id=None, agent_id=None):
-    """Read back events, optionally filtered. Skips corrupt lines."""
-    events = []
+def _scan_lines(bus_path):
+    """Yield (record, dropped) per non-blank line; blank lines skipped.
+
+    Single decode+validate core shared by read_events and scan_report, so
+    a concurrent append cannot make the two disagree (two separate passes
+    could count different file states and report negative dropped).
+    """
     if not os.path.exists(bus_path):
-        return events
+        return
     with open(bus_path, "rb") as f:
         for raw in f:
             raw = raw.strip()
@@ -175,16 +179,27 @@ def read_events(bus_path, event_type=None, task_id=None, agent_id=None):
             try:
                 record = json.loads(raw.decode("utf-8"))
             except (ValueError, UnicodeDecodeError):
+                yield None, True
                 continue
             if not _is_valid_record(record):
+                yield None, True
                 continue
-            if event_type is not None and record.get("event_type") != event_type:
-                continue
-            if task_id is not None and record.get("task_id") != task_id:
-                continue
-            if agent_id is not None and record.get("agent_id") != agent_id:
-                continue
-            events.append(record)
+            yield record, False
+
+
+def read_events(bus_path, event_type=None, task_id=None, agent_id=None):
+    """Read back events, optionally filtered. Skips corrupt lines."""
+    events = []
+    for record, dropped in _scan_lines(bus_path):
+        if dropped:
+            continue
+        if event_type is not None and record.get("event_type") != event_type:
+            continue
+        if task_id is not None and record.get("task_id") != task_id:
+            continue
+        if agent_id is not None and record.get("agent_id") != agent_id:
+            continue
+        events.append(record)
     return events
 
 
@@ -199,12 +214,13 @@ def scan_report(bus_path):
     Drops (corrupt or schema-invalid lines, e.g. foreign-written garbage
     or secret-leak attempts) are otherwise silent. A rising dropped count
     on an unattended bus means a broken or hostile writer: investigate.
-    Two passes, no duplicated decode logic (validity defined once, by
-    read_events via _is_valid_record).
+    Single pass over the shared _scan_lines core: dropped can never go
+    negative, even with a concurrent writer appending mid-scan.
     """
-    if not os.path.exists(bus_path):
-        return {"total": 0, "valid": 0, "dropped": 0}
-    with open(bus_path, "rb") as f:
-        total = sum(1 for raw in f if raw.strip())
-    valid = len(read_events(bus_path))
+    total = 0
+    valid = 0
+    for _record, dropped in _scan_lines(bus_path):
+        total += 1
+        if not dropped:
+            valid += 1
     return {"total": total, "valid": valid, "dropped": total - valid}

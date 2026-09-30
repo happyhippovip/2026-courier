@@ -136,6 +136,29 @@ def test_scan_report_counts_valid_and_dropped(tmp_path):
     assert scan_report(bus) == {"total": 3, "valid": 1, "dropped": 2}
 
 
+def test_scan_report_consistent_under_concurrent_appends(tmp_path):
+    bus = _bus(tmp_path)
+    emit(bus, "agent-1", "task-1", "TASK_COMPLETE", "seed")
+    stop = threading.Event()
+
+    def writer():
+        i = 0
+        while not stop.is_set():
+            emit(bus, "a", f"t{i}", "WORKER_PROGRESS", "s")
+            i += 1
+
+    thread = threading.Thread(target=writer)
+    thread.start()
+    try:
+        for _ in range(50):
+            report = scan_report(bus)
+            assert report["dropped"] >= 0
+            assert report["valid"] + report["dropped"] == report["total"]
+    finally:
+        stop.set()
+        thread.join()
+
+
 def test_emit_dir_fsync_failure_is_loud_but_persisted(tmp_path, monkeypatch):
     bus = str(tmp_path / "events.jsonl")
     real_fsync = os.fsync
