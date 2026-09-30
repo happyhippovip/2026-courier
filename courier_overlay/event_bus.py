@@ -102,6 +102,13 @@ def emit(bus_path, agent_id, task_id, event_type, short_summary):
 
     Durability failures (fsync) raise OSError AFTER the record was appended;
     callers may retry — duplicates fold last-writer-wins on replay.
+
+    Delivery is AT-LEAST-ONCE: a retry after any failure (including a
+    timeout whose write actually landed) appends a second record. Consumers
+    MUST fold idempotently (key on task_id + event_type, last wins) and
+    MUST NOT count records. Retries MUST be bounded: unbounded retry
+    against a persistent failure (e.g. full disk) grows duplicates and
+    fills the disk with no backpressure from this module.
     """
     record = validate_event(agent_id, task_id, event_type, short_summary)
     os.makedirs(os.path.dirname(os.path.abspath(bus_path)), exist_ok=True)

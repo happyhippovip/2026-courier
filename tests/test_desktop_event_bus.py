@@ -111,6 +111,18 @@ def test_emit_creates_nested_dir_and_persists(tmp_path):
     assert read_events(bus) == [record]
 
 
+def test_delivery_is_at_least_once_not_exactly_once(tmp_path):
+    bus = _bus(tmp_path)
+    first = emit(bus, "agent-1", "task-1", "WORKER_PROGRESS", "half")
+    second = emit(bus, "agent-1", "task-1", "WORKER_PROGRESS", "half")
+    assert len(read_events(bus)) == 2
+    state = {}
+    for event in replay(bus):
+        state[event["task_id"]] = event["event_type"]
+    assert state == {"task-1": "WORKER_PROGRESS"}
+    assert first != second  # distinct records (timestamps differ)
+
+
 def test_emit_dir_fsync_failure_is_loud_but_persisted(tmp_path, monkeypatch):
     bus = str(tmp_path / "events.jsonl")
     real_fsync = os.fsync
