@@ -274,24 +274,56 @@ def run_native(task, config):
             "execution_mode": "NATIVE"
         }
         
-    # Safe bounded execution
+    # Bounded execution: every native child runs in its own process group so a
+    # timeout or daemon interruption (WorkerShutdown) reaps the whole subtree
+    # instead of orphaning it. Like run_agy/run_muse, kill via cleanup_group,
+    # which is PID-reuse safe.
+    timeout = min(float(config.get("NATIVE_TIMEOUT_SECONDS", 120)), 600)
+    if action == "echo":
+        argv, kwargs = instruction, {"shell": True, "executable": "/bin/bash"}
+    elif action == "git_status":
+        argv, kwargs = ["git", "status"], {}
+    else:
+        return {"status": "FAILED", "stderr": f"Action '{action}' is allowed but handler is not implemented yet.", "execution_mode": "NATIVE"}
+    process = None
+    identity = None
     try:
-        if action == "echo":
-            result = subprocess.run(instruction, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, executable="/bin/bash")
-        elif action == "git_status":
-            result = subprocess.run(["git", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        else:
-            return {"status": "FAILED", "stderr": f"Action '{action}' is allowed but handler is not implemented yet.", "execution_mode": "NATIVE"}
-            
+        process = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   text=True, start_new_session=True, **kwargs)
+        identity = process_identity(process.pid)
+        try:
+            stdout, stderr = process.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            cleanup_group(process, identity)
+            try:
+                process.wait()
+            except Exception:
+                pass
+            stdout, stderr = process.communicate()
+            return {"status": "FAILED",
+                    "stdout": stdout,
+                    "stderr": ((stderr or "") + f"\nTIMEOUT after {timeout:g}s; "
+                             "process group killed and reaped").strip(),
+                    "exit_code": process.returncode,
+                    "execution_mode": "NATIVE", "reason": "TIMEOUT"}
         return {
-            "status": "SUCCESS" if result.returncode == 0 else "FAILED",
-            "stdout": result.stdout,
-            "stderr": result.stderr,
-            "exit_code": result.returncode,
+            "status": "SUCCESS" if process.returncode == 0 else "FAILED",
+            "stdout": stdout,
+            "stderr": stderr,
+            "exit_code": process.returncode,
             "execution_mode": "NATIVE"
         }
     except Exception as e:
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "NATIVE"}
+    finally:
+        # BaseException (e.g. WorkerShutdown on SIGTERM) skips the FAILED dict
+        # above; still reap the group so no orphan keeps running.
+        if process is not None and process.poll() is None:
+            cleanup_group(process, identity)
+            try:
+                process.wait()
+            except Exception:
+                pass
 
 def run_agy(task, config):
     write_log(f"Running AI task {task['task_id']} via agy")
