@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 import time
+from pathlib import Path
 
 import pytest
 
@@ -34,6 +35,20 @@ def mock_run_factory(cmds):
         cmds.append(cmd)
         return Completed()
     return fake_run
+
+
+class ScriptedRun:
+    """Per-call stdout script for `gh run list`; workflow dispatch always succeeds."""
+    def __init__(self, cmds, listings):
+        self.cmds = cmds
+        self.listings = list(listings)
+
+    def __call__(self, cmd, **kwargs):
+        self.cmds.append(cmd)
+        if cmd[:2] == ["gh", "workflow"]:
+            return Completed()
+        text = self.listings.pop(0) if self.listings else ""
+        return type("R", (), {"returncode": 0, "stdout": text, "stderr": ""})()
 
 
 @pytest.fixture
@@ -76,12 +91,59 @@ def test_env_overrides_workflow_worker_state_and_currency(tmp_path, monkeypatch,
     monkeypatch.setenv("COURIER_PRICE_CURRENCY", "USD_42")
     monkeypatch.setattr(intake_dispatcher.shutil, "which", lambda _: "/usr/bin/gh")
     cmds = []
-    monkeypatch.setattr(subprocess, "run", mock_run_factory(cmds))
+    # before-set {111}, then our dispatch surfaces 222 (delta binding).
+    monkeypatch.setattr(subprocess, "run", ScriptedRun(cmds, ["111\n", "222\n111\n"]))
     intake_dispatcher.dispatch_intake(intake)
-    dispatch = cmds[0]
+    dispatch = [c for c in cmds if c[:2] == ["gh", "workflow"]][0]
     assert dispatch[:4] == ["gh", "workflow", "run", "custom_lane.yml"]
     assert "price_currency=USD_42" in dispatch
     state = json.loads(state_file.read_text())
     [task] = state["tasks"].values()
     assert task["worker_id"] == "custom-worker"
-    assert task["execution_ref"] == "123"
+    assert task["execution_ref"] == "222"
+
+
+def test_binds_new_run_not_take_latest(tmp_path, monkeypatch, no_sleep):
+    # A concurrent foreign dispatch (333) is newest; ours is 222.
+    # Take-latest would bind 333; delta binding must bind 222.
+    monkeypatch.chdir(tmp_path)
+    intake = write_intake(tmp_path / "good.json", good_payload())
+    monkeypatch.setattr(intake_dispatcher.shutil, "which", lambda _: "/usr/bin/gh")
+    cmds = []
+    monkeypatch.setattr(subprocess, "run",
+                        ScriptedRun(cmds, ["111\n", "333\n222\n111\n"]))
+    intake_dispatcher.dispatch_intake(intake)
+    state = json.loads(Path("central_state.json").read_text())
+    [task] = state["tasks"].values()
+    assert task["execution_ref"] == "222"
+
+
+def test_no_new_run_falls_back_to_dispatched(tmp_path, monkeypatch, no_sleep):
+    monkeypatch.chdir(tmp_path)
+    intake = write_intake(tmp_path / "good.json", good_payload())
+    monkeypatch.setattr(intake_dispatcher.shutil, "which", lambda _: "/usr/bin/gh")
+    monkeypatch.setenv("COURIER_INTAKE_LOOKUP_ATTEMPTS", "2")
+    cmds = []
+    monkeypatch.setattr(subprocess, "run", ScriptedRun(cmds, ["111\n", "111\n", "111\n"]))
+    intake_dispatcher.dispatch_intake(intake)
+    state = json.loads(Path("central_state.json").read_text())
+    [task] = state["tasks"].values()
+    assert task["execution_ref"] == "DISPATCHED"
+
+
+def test_state_write_preserves_prior_on_crash(tmp_path, monkeypatch, no_sleep):
+    import os as _os
+    monkeypatch.chdir(tmp_path)
+    intake = write_intake(tmp_path / "good.json", good_payload())
+    monkeypatch.setattr(intake_dispatcher.shutil, "which", lambda _: "/usr/bin/gh")
+    prior = {"tasks": {"old": {"task_id": "old"}}}
+    Path("central_state.json").write_text(json.dumps(prior))
+    cmds = []
+    monkeypatch.setattr(subprocess, "run", ScriptedRun(cmds, ["111\n", "222\n111\n"]))
+    real_replace = _os.replace
+    monkeypatch.setattr(_os, "replace",
+                        lambda *a, **k: (_ for _ in ()).throw(OSError("crash")))
+    with pytest.raises(OSError):
+        intake_dispatcher.dispatch_intake(intake)
+    monkeypatch.setattr(_os, "replace", real_replace)
+    assert json.loads(Path("central_state.json").read_text()) == prior

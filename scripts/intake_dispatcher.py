@@ -7,6 +7,18 @@ import os
 
 REQUIRED_INTAKE_FIELDS = ("target_owner", "target_repo", "target_sha", "customer_reference")
 
+def _int_env(name, default):
+    try:
+        return int(os.environ.get(name, default))
+    except (TypeError, ValueError):
+        return default
+
+def _float_env(name, default):
+    try:
+        return float(os.environ.get(name, default))
+    except (TypeError, ValueError):
+        return default
+
 def _env_config():
     # Read at call time so overrides set after import still apply.
     return {
@@ -14,7 +26,40 @@ def _env_config():
         "worker_id": os.environ.get("COURIER_INTAKE_WORKER_ID", "github-actions-revenue-v1"),
         "state_file": os.environ.get("COURIER_STATE_PATH", "central_state.json"),
         "currency": os.environ.get("COURIER_PRICE_CURRENCY", "EUR_99"),
+        "lookup_attempts": _int_env("COURIER_INTAKE_LOOKUP_ATTEMPTS", 6),
+        "lookup_poll_seconds": _float_env("COURIER_INTAKE_LOOKUP_POLL_SECONDS", 5),
     }
+
+def _list_run_ids(cfg):
+    """All known run IDs for the workflow; empty set on any transport error."""
+    try:
+        info = subprocess.run(
+            ["gh", "run", "list", f"--workflow={cfg['workflow']}",
+             "--limit=50", "--json", "databaseId", "-q", ".[].databaseId"],
+            capture_output=True, text=True)
+    except OSError:
+        return set()
+    if info.returncode != 0:
+        return set()
+    return {line.strip() for line in info.stdout.splitlines() if line.strip()}
+
+def _await_new_run(cfg, before):
+    """Bind the run that appeared after our dispatch, not take-latest.
+
+    Take-latest cross-binds under concurrent dispatches. The before/after
+    delta narrows the match to runs created by this dispatch; concurrent
+    foreign runs can still collide in theory (exact binding would need a
+    correlation input plus run-name support in the workflow, which is a
+    shared-CI change owned elsewhere). Empty string = unknown, and the
+    caller records the honest DISPATCHED fallback.
+    """
+    import time
+    for _ in range(max(1, cfg["lookup_attempts"])):
+        new = sorted(_list_run_ids(cfg) - before)
+        if new:
+            return new[0]
+        time.sleep(max(0, cfg["lookup_poll_seconds"]))
+    return ""
 
 def dispatch_intake(intake_file):
     cfg = _env_config()
@@ -38,6 +83,8 @@ def dispatch_intake(intake_file):
 
     task_id = f"task-revenue-{uuid.uuid4().hex[:8]}"
     print(f"Admitting intake {intake.get('customer_reference')} as {task_id}")
+    # Snapshot before dispatch so the post-dispatch delta binds OUR run.
+    run_before = _list_run_ids(cfg)
     
     # Revenue V1 uses GitHub Actions as the primary qualified lane
     cmd = [
@@ -57,12 +104,8 @@ def dispatch_intake(intake_file):
         print(f"Failed to dispatch: {e.stderr}")
         sys.exit(1)
         
-    # Find the execution_ref (the GitHub run ID)
-    # We pause a tiny bit so GitHub registers the workflow dispatch
-    import time
-    time.sleep(3)
-    run_info = subprocess.run(["gh", "run", "list", f"--workflow={cfg['workflow']}", "--limit=1", "--json", "databaseId", "-q", ".[0].databaseId"], capture_output=True, text=True)
-    execution_ref = run_info.stdout.strip()
+    # Find the execution_ref (the GitHub run ID) via before/after delta.
+    execution_ref = _await_new_run(cfg, run_before)
 
     # Update Central State
     state_file = cfg["state_file"]
@@ -88,9 +131,14 @@ def dispatch_intake(intake_file):
         "real_wall": "HUMAN_REVIEW_REQUIRED_ON_PR"
     }
     
-    with open(state_file, 'w') as f:
+    # Atomic write: a torn central_state.json breaks every later reader.
+    tmp_state = state_file + ".tmp"
+    with open(tmp_state, 'w') as f:
         json.dump(state, f, indent=2)
-        
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp_state, state_file)
+
     print(f"Central state updated. System chain fully connected for intake -> execution -> PR.")
 
 if __name__ == "__main__":
