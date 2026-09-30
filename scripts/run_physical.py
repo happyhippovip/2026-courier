@@ -62,6 +62,15 @@ def compute_dir_hash(evidence_dir: str) -> str:
                 hasher.update(f.read())
     return hasher.hexdigest()
 
+def exit_code_for_status(final_status: str) -> int:
+    """Process contract: exit 0 iff the run reached SUCCESS, else 1.
+
+    The exit-code FILE carries this same value (first line) plus the status
+    string (second line) so file-gated follow-ups (RUN_2) cannot mistake a
+    BLOCKED/FAILED run for a PASS. See writer packets P2+P3 (2026-09-29).
+    """
+    return 0 if final_status == "SUCCESS" else 1
+
 def execute_run(sha: str, evidence_dir: str, port: int = 8081):
     """Execute physical RUN pipeline by orchestrating real processes."""
     os.makedirs(evidence_dir, exist_ok=True)
@@ -261,8 +270,9 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
     with open(snapshot_path, "w", encoding="utf-8") as f:
         json.dump(snapshot_data, f, indent=2)
 
+    exit_code = exit_code_for_status(final_goal_status)
     with open(exit_code_path, "w", encoding="utf-8") as f:
-        f.write("0\n")
+        f.write(f"{exit_code}\n{final_goal_status}\n")
 
     metrics_data = {
         "duration_sec": time.time() - t_start,
@@ -278,9 +288,9 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
 
     if final_goal_status != "SUCCESS":
         print(f"[RUN] Physical run FAILED. Final status: {final_goal_status}. Hash: {falsifiability_hash}")
-        return 1
-    print(f"[RUN] Completed physical run successfully. Hash: {falsifiability_hash}")
-    return 0
+    else:
+        print(f"[RUN] Completed physical run successfully. Hash: {falsifiability_hash}")
+    return exit_code
 
 def main():
     parser = argparse.ArgumentParser(description="Courier Physical RUN Runner")

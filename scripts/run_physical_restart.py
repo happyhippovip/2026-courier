@@ -66,8 +66,15 @@ def execute_run2(sha: str, run1_dir: str, evidence_dir: str, port: int = 8081):
     if not os.path.isfile(exit_file):
         raise RuntimeError(f"RUN 1 exit code file missing: {exit_file}")
     with open(exit_file, "r") as f:
-        if f.read().strip() != "0":
-            raise RuntimeError("RUN 1 did not PASS cleanly (non-zero exit code). Contamination guard triggered.")
+        exit_lines = f.read().strip().splitlines()
+    if not exit_lines:
+        raise RuntimeError(f"RUN 1 exit code file empty: {exit_file}")
+    try:
+        run1_exit_code = int(exit_lines[0].strip())
+    except ValueError:
+        raise RuntimeError(f"RUN 1 exit code file unreadable: {exit_file}")
+    if run1_exit_code != 0:
+        raise RuntimeError("RUN 1 did not PASS cleanly (non-zero exit code). Contamination guard triggered.")
 
     if not os.path.isfile(snap_file):
         raise RuntimeError(f"RUN 1 snapshot missing: {snap_file}")
@@ -75,6 +82,11 @@ def execute_run2(sha: str, run1_dir: str, evidence_dir: str, port: int = 8081):
         run1_snap = json.load(f)
     if run1_snap.get("final_status") != "SUCCESS":
         raise RuntimeError("RUN 1 snapshot status is not SUCCESS.")
+    if run1_snap.get("candidate_sha") != sha:
+        raise RuntimeError(
+            f"RUN 1 snapshot candidate_sha mismatch: expected {sha}, "
+            f"found {run1_snap.get('candidate_sha')}. Refusing stale bundle."
+        )
 
     os.makedirs(evidence_dir, exist_ok=True)
     state_dir = os.path.join(os.path.dirname(evidence_dir), "state")
