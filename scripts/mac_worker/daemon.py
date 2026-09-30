@@ -522,7 +522,10 @@ def loop():
                 write_log("Registered successfully.")
                 registered = True
                 if release_ambiguous_task:
-                    os.remove(current_task_state_file)
+                    # The release was already delivered via the register POST
+                    # above; a missing marker (operator cleanup) must neither
+                    # raise nor leave the flag stale for a duplicate release.
+                    current_task_state_file.unlink(missing_ok=True)
                     release_ambiguous_task = False
                 
             # Heartbeat
@@ -630,7 +633,7 @@ def loop():
                     registered = False
                     task = None
                 else:
-                    os.remove(current_task_state_file)
+                    current_task_state_file.unlink(missing_ok=True)
                     task = None
                     if one_task:
                         write_log("Task delivered; exiting for a fresh slot process.")
