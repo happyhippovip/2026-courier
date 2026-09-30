@@ -191,3 +191,20 @@ def read_events(bus_path, event_type=None, task_id=None, agent_id=None):
 def replay(bus_path, **filters):
     """Yield events in stored order (generator over read_events)."""
     yield from read_events(bus_path, **filters)
+
+
+def scan_report(bus_path):
+    """Count total/valid/dropped lines for operator visibility.
+
+    Drops (corrupt or schema-invalid lines, e.g. foreign-written garbage
+    or secret-leak attempts) are otherwise silent. A rising dropped count
+    on an unattended bus means a broken or hostile writer: investigate.
+    Two passes, no duplicated decode logic (validity defined once, by
+    read_events via _is_valid_record).
+    """
+    if not os.path.exists(bus_path):
+        return {"total": 0, "valid": 0, "dropped": 0}
+    with open(bus_path, "rb") as f:
+        total = sum(1 for raw in f if raw.strip())
+    valid = len(read_events(bus_path))
+    return {"total": total, "valid": valid, "dropped": total - valid}

@@ -7,6 +7,7 @@ from .event_bus import (
     emit,
     read_events,
     replay,
+    scan_report,
     validate_event,
 )
 
@@ -17,5 +18,6 @@ __all__ = [
     "emit",
     "read_events",
     "replay",
+    "scan_report",
     "validate_event",
 ]

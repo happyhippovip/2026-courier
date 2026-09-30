@@ -11,6 +11,7 @@ from courier_overlay import (
     emit,
     read_events,
     replay,
+    scan_report,
 )
 
 
@@ -121,6 +122,18 @@ def test_delivery_is_at_least_once_not_exactly_once(tmp_path):
         state[event["task_id"]] = event["event_type"]
     assert state == {"task-1": "WORKER_PROGRESS"}
     assert first != second  # distinct records (timestamps differ)
+
+
+def test_scan_report_counts_valid_and_dropped(tmp_path):
+    assert scan_report(str(tmp_path / "missing.jsonl")) == {
+        "total": 0, "valid": 0, "dropped": 0}
+    bus = _bus(tmp_path)
+    emit(bus, "agent-1", "task-1", "TASK_COMPLETE", "done")
+    with open(bus, "ab") as f:
+        f.write(b"not json\n")
+        f.write(b"\n")
+        f.write(b'{"event_type": "NOPE"}\n')
+    assert scan_report(bus) == {"total": 3, "valid": 1, "dropped": 2}
 
 
 def test_emit_dir_fsync_failure_is_loud_but_persisted(tmp_path, monkeypatch):
