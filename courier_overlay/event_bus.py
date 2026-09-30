@@ -128,6 +128,10 @@ def _is_valid_record(record):
         value = record.get(name)
         if not isinstance(value, str) or not value.strip() or len(value) > 128:
             return False
+        if value != value.strip():
+            # emit() persists stripped ids; a padded foreign id would miss
+            # equality filters downstream — drop instead of repairing.
+            return False
     event_type = record.get("event_type")
     if not isinstance(event_type, str) or event_type not in EVENT_TYPES:
         return False
@@ -135,6 +139,8 @@ def _is_valid_record(record):
     if not isinstance(summary, str) or not summary.strip():
         return False
     if len(summary) > MAX_SUMMARY_LEN:
+        return False
+    if summary != summary.strip():
         return False
     for pattern in _SECRET_PATTERNS:
         if pattern.search(summary):
