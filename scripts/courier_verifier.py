@@ -116,16 +116,46 @@ def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
             return "FAIL"
     return "PASS"
 
+SUBMIT_MAX_FAILURES = 3  # consecutive per-task failures before backing off
+SUBMIT_BACKOFF_POLLS = 12  # polls to skip a failing task (~60s at 5s poll)
+_task_failures = {}  # task_id -> consecutive failure count
+_task_skip_until = {}  # task_id -> poll index (exclusive) to resume at
+
+def _should_skip_task(task_id, poll):
+    return _task_skip_until.get(task_id, -1) > poll
+
+def _record_task_failure(task_id, poll):
+    """Count a verify-exception or verdict-submit failure; back the task off.
+
+    Backoff is rate-limiting, not give-up: after SUBMIT_BACKOFF_POLLS the
+    task is retried, so recovery (server back, artifact available) resumes
+    automatically. Without this, one stuck task re-runs full verification
+    (artifact downloads incl. fetch retries) every poll forever.
+    """
+    n = _task_failures.get(task_id, 0) + 1
+    _task_failures[task_id] = n
+    if n >= SUBMIT_MAX_FAILURES:
+        _task_skip_until[task_id] = poll + SUBMIT_BACKOFF_POLLS
+        log(f"Backing off task {task_id} for {SUBMIT_BACKOFF_POLLS} polls after {n} consecutive failures")
+    return n
+
+def _record_task_success(task_id):
+    _task_failures.pop(task_id, None)
+    _task_skip_until.pop(task_id, None)
+
 def run_loop():
     if not API_KEY:
         raise SystemExit("COURIER_VERIFIER_API_KEY is required")
     log(f"Starting Courier Verifier ({VERIFIER_ID}) pointing to {API_URL}")
+    poll = 0
     while True:
         try:
             res = requests.get(f"{API_URL}/tasks/pending_verification", headers=HEADERS, timeout=10)
             if res.status_code == 200:
                 tasks = res.json().get("tasks", [])
                 for task in tasks:
+                    if _should_skip_task(task.get("task_id"), poll):
+                        continue
                     try:
                         task_id = task.get("task_id")
                         result = task.get("result") or {}
@@ -165,15 +195,19 @@ def run_loop():
                         vr = requests.post(f"{API_URL}/tasks/verify", json=verify_payload, headers=HEADERS, timeout=10)
                         if vr.status_code == 200:
                             log(f"Successfully verified {task_id} with verdict {verdict}")
+                            _record_task_success(task_id)
                         else:
                             log(f"Failed to submit verification for {task_id}: HTTP {vr.status_code} {vr.text}")
+                            _record_task_failure(task_id, poll)
                     except Exception as e:
                         t_id = task.get('task_id', 'unknown') if isinstance(task, dict) else 'unknown'
                         log(f"Error processing task {t_id}: {e}")
+                        _record_task_failure(task.get("task_id"), poll)
         except Exception as e:
             log(f"Error polling for tasks: {e}")
-            
+
         time.sleep(governor.get_poll_interval())
+        poll += 1
 
 if __name__ == "__main__":
     run_loop()
