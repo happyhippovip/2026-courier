@@ -81,6 +81,22 @@ def validate_event(agent_id, task_id, event_type, short_summary):
     }
 
 
+def _fsync_dir(path):
+    """fsync the containing directory so a new file entry is durable.
+
+    Without this, file data can be fsynced yet the directory entry lost
+    on OS crash, making the whole bus file vanish after restart.
+    POSIX-only: directory fsync is unsupported on Windows (no-op there).
+    """
+    if os.name != "posix":
+        return
+    dir_fd = os.open(os.path.dirname(os.path.abspath(path)), os.O_RDONLY)
+    try:
+        os.fsync(dir_fd)
+    finally:
+        os.close(dir_fd)
+
+
 def emit(bus_path, agent_id, task_id, event_type, short_summary):
     """Validate + append one event atomically. Returns the stored record."""
     record = validate_event(agent_id, task_id, event_type, short_summary)
@@ -90,6 +106,7 @@ def emit(bus_path, agent_id, task_id, event_type, short_summary):
         f.write(line)
         f.flush()
         os.fsync(f.fileno())
+    _fsync_dir(bus_path)
     return record
 
 

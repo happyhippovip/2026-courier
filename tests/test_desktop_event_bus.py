@@ -103,6 +103,13 @@ def test_replay_is_idempotent_for_observers(tmp_path):
     assert fold(first) == fold(second) == {"t1": "TASK_COMPLETE"}
 
 
+def test_emit_creates_nested_dir_and_persists(tmp_path):
+    bus = str(tmp_path / "sub" / "dir" / "events.jsonl")
+    record = emit(bus, "agent-1", "task-1", "TASK_COMPLETE", "done")
+    assert os.path.isfile(bus)
+    assert read_events(bus) == [record]
+
+
 def test_concurrent_appends_all_persisted(tmp_path):
     bus = _bus(tmp_path)
     threads = [
