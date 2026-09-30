@@ -36,3 +36,12 @@ def test_result_with_matching_dispatch_id_is_accepted(tmp_path, monkeypatch):
     http, _, task = setup_claimed_task(tmp_path, monkeypatch)
     resp = http.post("/tasks/result", headers=auth(), json=_result(task, task["dispatch_id"]))
     assert resp.status_code == 200
+
+
+def test_result_missing_dispatch_id_fails_validation_not_conflict(tmp_path, monkeypatch):
+    http, _, task = setup_claimed_task(tmp_path, monkeypatch)
+    bad = _result(task, task["dispatch_id"])
+    del bad["dispatch_id"]
+    resp = http.post("/tasks/result", headers=auth(), json=bad)
+    assert resp.status_code == 400
+    assert "missing" in resp.get_json()["error"]
