@@ -4,9 +4,7 @@ while the matching dispatch is accepted. Guards against cross-dispatch
 replay on a still-DISPATCHED task."""
 import hashlib
 
-from server import app as server_app
-
-from test_server_integration_contract import auth, client, setup_claimed_task
+from test_server_integration_contract import auth, setup_claimed_task
 
 
 def _result(task, dispatch_id):
