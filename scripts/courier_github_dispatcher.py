@@ -40,9 +40,46 @@ def persist_packet(task):
     os.replace(tmp, path)
     return path
 
+RESUME_EVERY_N_POLLS = 12  # supervision tick (~60s at the 5s poll below)
+MAX_RESUMES_PER_DISPATCH = 3  # per process lifetime; then loud log, operator owns it
+_spawned = {}  # packet file name -> Popen handle (same-process supervision)
+_resume_counts = {}  # packet file name -> respawn count (retry bound)
+
 def spawn_adapter(path):
     python_bin = "venv/bin/python3" if os.path.exists("venv/bin/python3") else "python3"
-    subprocess.Popen([python_bin, "scripts/github_worker_adapter.py", str(path)])
+    proc = subprocess.Popen([python_bin, "scripts/github_worker_adapter.py", str(path)])
+    _spawned[Path(path).name] = proc
+    return proc
+
+def _handle_alive(name):
+    """True if this process spawned the packet's adapter and it still runs."""
+    proc = _spawned.get(name)
+    if proc is None:
+        return False
+    if proc.poll() is None:
+        return True
+    _spawned.pop(name, None)  # reaped; fall through to pid-file check
+    return False
+
+def _pid_alive(pid):
+    """True if an adapter with this pid may still run. Conservative True on
+    unknown errors: a missed respawn is recoverable, a double-spawn may
+    double-execute and double-POST."""
+    try:
+        pid = int(pid)
+    except (TypeError, ValueError):
+        return False
+    if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    except OSError:
+        return True
+    return True
 
 def handle_claimed_task(task):
     """Persist identity first; only then start execution."""
@@ -53,20 +90,38 @@ def handle_claimed_task(task):
     return True
 
 def resume_pending():
-    """Restart adapters for persisted dispatches that were never POSTED."""
+    """Restart adapters for persisted dispatches that were never POSTED.
+
+    Never double-spawns: a packet whose adapter is alive in this process
+    (Popen handle) or in a surviving process (pid in state file) is
+    skipped. Respawns are bounded per dispatch per process lifetime so a
+    permanently failing adapter cannot hot-loop; exhaustion is logged
+    loudly for the operator. Torn state counts as respawnable: the
+    adapter fails fast on it, the bound stops the loop.
+    """
     resumed = 0
     if not DISPATCH_DIR.is_dir():
         return 0
     for path in sorted(DISPATCH_DIR.glob("dispatch-*.json")):
         if path.name.endswith(".github-worker-state.json"):
             continue
+        if _handle_alive(path.name):
+            continue
         state_file = path.with_name(f"{path.stem}.github-worker-state.json")
-        if state_file.is_file():
-            try:
-                if json.loads(state_file.read_text(encoding="utf-8")).get("status") == "POSTED":
-                    continue
-            except (OSError, ValueError):
-                pass
+        try:
+            state = json.loads(state_file.read_text(encoding="utf-8")) if state_file.is_file() else {}
+        except (OSError, ValueError):
+            state = {}
+        if not isinstance(state, dict):
+            state = {}
+        if state.get("status") == "POSTED":
+            continue
+        if _pid_alive(state.get("pid")):
+            continue
+        if _resume_counts.get(path.name, 0) >= MAX_RESUMES_PER_DISPATCH:
+            log(f"Not respawning {path.name}: respawn budget exhausted, needs operator")
+            continue
+        _resume_counts[path.name] = _resume_counts.get(path.name, 0) + 1
         spawn_adapter(path)
         resumed += 1
     return resumed
@@ -85,7 +140,20 @@ def run_loop():
     except Exception as e:
         log(f"Failed to register: {e}")
 
+    poll = 0
     while True:
+        # Supervision tick: pick up packets whose adapter died without
+        # POSTED (crash after claim, kill, host reboot of this process).
+        # resume_pending is duplicate-safe (handle + pid liveness) and
+        # respawn-bounded, so running it periodically cannot double-execute.
+        if poll % RESUME_EVERY_N_POLLS == 0:
+            try:
+                revived = resume_pending()
+                if revived:
+                    log(f"Supervision respawned {revived} adapter(s).")
+            except Exception as e:
+                log(f"Supervision tick failed: {e}")
+        poll += 1
         try:
             # Heartbeat
             requests.post(f"{API_URL}/workers/heartbeat", json={"worker_id": WORKER_ID}, headers=HEADERS, timeout=10)

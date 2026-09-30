@@ -42,6 +42,9 @@ def write_state(task_file: Path, state: dict[str, Any]) -> None:
     # Atomic: a crash mid-write must leave the prior state intact so the
     # next run can resume instead of failing on torn JSON (same pattern
     # as persist_packet in courier_github_dispatcher.py).
+    # The writer pid lets the dispatcher tell a still-running adapter
+    # apart from a dead one, so resume never double-spawns (Wave 4 D1).
+    state = {**state, "pid": os.getpid()}
     target = state_path(task_file)
     tmp = target.with_suffix(".json.tmp")
     with open(tmp, "w", encoding="utf-8") as f:

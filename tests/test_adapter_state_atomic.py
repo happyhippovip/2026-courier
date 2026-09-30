@@ -41,7 +41,9 @@ def test_state_write_preserves_prior_on_crash_before_replace(tmp_path, monkeypat
     monkeypatch.setattr(os, "replace", real_replace)
 
     # Prior state must be intact and parseable: resume can continue.
-    assert json.loads(adapter.state_path(task).read_text(encoding="utf-8")) == prior
+    stored = json.loads(adapter.state_path(task).read_text(encoding="utf-8"))
+    assert isinstance(stored.pop("pid"), int)
+    assert stored == prior
 
 
 def test_state_write_leaves_complete_json_and_no_tmp(tmp_path):
@@ -50,5 +52,7 @@ def test_state_write_leaves_complete_json_and_no_tmp(tmp_path):
     task.write_text("{}")
     state = {"dispatch_id": "d2", "run_id": "123", "status": "POSTED"}
     adapter.write_state(task, state)
-    assert json.loads(adapter.state_path(task).read_text(encoding="utf-8")) == state
+    stored = json.loads(adapter.state_path(task).read_text(encoding="utf-8"))
+    assert isinstance(stored.pop("pid"), int)
+    assert stored == state
     assert list(tmp_path.glob("*.tmp")) == []
