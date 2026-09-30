@@ -293,6 +293,26 @@ def run_native(task, config):
     except Exception as e:
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "NATIVE"}
 
+def _reap_agy_group(process, identity):
+    """Best-effort group reap for the agy wrapper subtree; never raises.
+
+    Called from timeout/finally paths where blocking or leaking is worse
+    than a redundant signal. cleanup_group first (PID-reuse safe); direct
+    kill as fallback; wait() guarantees the direct child is reaped so a
+    later communicate() cannot block.
+    """
+    try:
+        if not cleanup_group(process, identity):
+            process.kill()
+    except Exception:
+        pass
+    try:
+        process.wait()
+    except Exception:
+        pass
+    process.poll()
+
+
 def run_agy(task, config):
     write_log(f"Running AI task {task['task_id']} via agy")
     instruction = task.get('instruction', task.get('description', ''))
@@ -304,10 +324,27 @@ def run_agy(task, config):
         
     wrapper = os.path.join(os.path.dirname(__file__), "limit_wrapper.sh")
     cmd = [wrapper, agy_bin, "-p", prompt, "--dangerously-skip-permissions"]
-    
+    timeout = min(float(config.get("AGY_TIMEOUT_SECONDS", 300)), 3600)
+
+    # The wrapper spawns agy as a grandchild, so killing only the direct
+    # child would orphan it. Like run_muse, launch a fresh session and reap
+    # the whole process group on timeout or interruption (WorkerShutdown
+    # propagates through communicate and must not leak the child either).
+    process = None
+    identity = None
     try:
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        stdout, stderr = process.communicate(timeout=300)
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   text=True, start_new_session=True)
+        identity = process_identity(process.pid)
+        try:
+            stdout, stderr = process.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            _reap_agy_group(process, identity)
+            stdout, stderr = process.communicate()
+            return {"status": "FAILED",
+                    "stderr": ((stderr or "") + f"\nTIMEOUT after {timeout:g}s; "
+                               "process group killed and reaped").strip(),
+                    "execution_mode": "ANTIGRAVITY", "reason": "TIMEOUT"}
         
         out_clean = stdout.strip()
         parsed = False
@@ -325,11 +362,16 @@ def run_agy(task, config):
         if not parsed:
             res_json["status"] = "FAILED"
             res_json["raw_diagnostic"] = out_clean
-            
+
         return res_json
-        
+
     except Exception as e:
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "ANTIGRAVITY"}
+    finally:
+        # BaseException (e.g. WorkerShutdown on SIGTERM) skips the FAILED
+        # dict above; still reap the group so no orphan keeps running.
+        if process is not None and process.poll() is None:
+            _reap_agy_group(process, identity)
 
 def run_muse(task, config):
     """Muse slot execution through the muse_adapter boundary (no guessed CLI method)."""
