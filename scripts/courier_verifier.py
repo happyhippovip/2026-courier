@@ -39,14 +39,35 @@ def verify_artifact(path, expected_hash):
 
 MAX_ARTIFACT_BYTES = int(os.environ.get("COURIER_ARTIFACT_MAX_BYTES", DEFAULT_MAX_BYTES))
 REMOTE_TARGETS = ("mac", "windows")
+FETCH_META_TIMEOUT = int(os.environ.get("COURIER_FETCH_META_TIMEOUT", "10"))
+FETCH_BLOB_TIMEOUT = int(os.environ.get("COURIER_FETCH_BLOB_TIMEOUT", "30"))
+FETCH_MAX_ATTEMPTS = int(os.environ.get("COURIER_FETCH_ATTEMPTS", "3"))
+FETCH_BACKOFF_SECONDS = (1, 2)
+
+
+def _get_with_retry(url, timeout):
+    """GET with bounded retry on transient transport errors only.
+
+    Retries Timeout/ConnectionError with backoff. HTTP errors (including 5xx)
+    and evidence failures propagate immediately to preserve fail-closed FAIL.
+    """
+    last = None
+    for attempt in range(max(1, FETCH_MAX_ATTEMPTS)):
+        try:
+            resp = requests.get(url, headers=HEADERS, timeout=timeout)
+            resp.raise_for_status()
+            return resp
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+            last = e
+            if attempt < FETCH_MAX_ATTEMPTS - 1:
+                time.sleep(FETCH_BACKOFF_SECONDS[min(attempt, len(FETCH_BACKOFF_SECONDS) - 1)])
+    raise last
 
 
 def fetch_artifact(artifact_id):
     """Return (record, bytes) of the server-side uploaded copy."""
-    meta = requests.get(f"{API_URL}/artifacts/{artifact_id}/meta", headers=HEADERS, timeout=10)
-    meta.raise_for_status()
-    blob = requests.get(f"{API_URL}/artifacts/{artifact_id}", headers=HEADERS, timeout=30)
-    blob.raise_for_status()
+    meta = _get_with_retry(f"{API_URL}/artifacts/{artifact_id}/meta", FETCH_META_TIMEOUT)
+    blob = _get_with_retry(f"{API_URL}/artifacts/{artifact_id}", FETCH_BLOB_TIMEOUT)
     if len(blob.content) > MAX_ARTIFACT_BYTES:
         raise ValueError("artifact exceeds size limit")
     return meta.json(), blob.content
