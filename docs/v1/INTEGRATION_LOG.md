@@ -268,7 +268,7 @@ The scope is recorded in `.github/ci/known_failures.json` →
 
 - `scripts/mac_worker` is the legacy macOS worker. It imports `fcntl` and
   uses POSIX process groups, so it cannot run on Windows by design.
-- The Windows baseline already holds 22 `test_mac_*` failures with this root
+- The Windows baseline already holds 21 `test_mac_*` failures with this root
   cause, recorded at step 0.
 - The planned M2 hardening lanes (steps 5–6) add 19 more tests of the same
   component. In the preflight [run 36806319325](https://github.com/happyhippovip/2026-courier/actions/runs/36806319325)
