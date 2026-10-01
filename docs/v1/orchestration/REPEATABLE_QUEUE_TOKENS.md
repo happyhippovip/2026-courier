@@ -158,3 +158,24 @@ After unattended work:
 - update durable continuity only for real transitions.
 
 Goal: maximize **new verified work per owner interaction**, not number of prompts sent.
+
+## 7. Preferred replacement for huge manual Muse queues
+
+When Muse supports `/loop`, do not manually enqueue the same token 30/65/100/1000 times.
+
+Use the self-refilling project skill:
+
+```
+/loop 5m /courier-night-loop
+```
+
+The loop is serial: if a scheduled wake lands during an active run, Muse skips that occurrence rather than queueing it for later.
+
+This gives effectively unbounded future wakes without an unbounded message backlog.
+
+The skill still stops real work when:
+- no evidence-backed task exists;
+- RESOURCE_PAUSE is active;
+- an owner decision is required.
+
+That is intentional: infinite useful engineering cannot be guaranteed from a finite unchanged repo.
