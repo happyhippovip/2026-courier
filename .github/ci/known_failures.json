@@ -19,8 +19,6 @@
   "Windows": {
     "source": "CI run 36805249973 (windows-latest, Python 3.12.10, pinned deps) at d0e690c9 = e95aa787 + L1 foundation, 2026-10-01: 256 passed, 48 failed, 12 skipped",
     "failing": [
-      "tests/test_ci_acceptance_credentials.py::test_workflow_fallback_keys_are_distinct_and_only_emitted_as_masks",
-      "tests/test_ci_acceptance_credentials.py::test_workflow_uses_provided_secrets_without_regenerating",
       "tests/test_mac_worker_contract.py::test_crash_after_post_before_ack_resends_same_result_once_executed",
       "tests/test_mac_worker_contract.py::test_crash_after_rejection_still_releases_on_restart",
       "tests/test_mac_worker_contract.py::test_missing_api_key_fails_closed_before_network",
@@ -31,7 +29,6 @@
       "tests/test_mac_worker_contract.py::test_unsafe_artifact_is_never_read_and_never_success[../outside.txt]",
       "tests/test_mac_worker_contract.py::test_unsafe_artifact_is_never_read_and_never_success[/etc/passwd]",
       "tests/test_mac_worker_contract.py::test_unsafe_artifact_is_never_read_and_never_success[a/../../x.txt]",
-      "tests/test_mac_worker_install.py::test_install_resolves_repo_root_from_any_cwd",
       "tests/test_mac_worker_recovery.py::test_claimed_but_not_started_task_runs_once_after_restart",
       "tests/test_mac_worker_recovery.py::test_exception_during_execution_is_not_retried_in_process",
       "tests/test_mac_worker_recovery.py::test_normal_claim_executes_once_and_posts_bound_result",
@@ -52,25 +49,13 @@
       "tests/test_muse_supervisor.py::test_started_task_is_not_replayed",
       "tests/test_muse_supervisor.py::test_stop_prevents_restart",
       "tests/test_muse_supervisor.py::test_unconfirmed_prompt_method_fails_closed",
-      "tests/test_run_physical.py::test_run_physical_success",
-      "tests/test_script_credentials.py::test_missing_key_fails_closed_before_side_effects[   -deploy/install_mac_runtime.sh]",
-      "tests/test_script_credentials.py::test_missing_key_fails_closed_before_side_effects[   -scripts/revenue_v1_goal.sh]",
-      "tests/test_script_credentials.py::test_missing_key_fails_closed_before_side_effects[   -scripts/setup_local_autonomy.sh]",
-      "tests/test_script_credentials.py::test_missing_key_fails_closed_before_side_effects[-deploy/install_mac_runtime.sh]",
-      "tests/test_script_credentials.py::test_missing_key_fails_closed_before_side_effects[-scripts/revenue_v1_goal.sh]",
-      "tests/test_script_credentials.py::test_missing_key_fails_closed_before_side_effects[-scripts/setup_local_autonomy.sh]",
-      "tests/test_script_credentials.py::test_missing_key_fails_closed_before_side_effects[None-deploy/install_mac_runtime.sh]",
-      "tests/test_script_credentials.py::test_missing_key_fails_closed_before_side_effects[None-scripts/revenue_v1_goal.sh]",
-      "tests/test_script_credentials.py::test_missing_key_fails_closed_before_side_effects[None-scripts/setup_local_autonomy.sh]",
-      "tests/test_script_credentials.py::test_revenue_script_prefers_canonical_courier_server",
-      "tests/test_script_credentials.py::test_revenue_script_uses_key_and_never_echoes_it"
+      "tests/test_run_physical.py::test_run_physical_success"
     ],
     "flaky": [
       "tests/test_resource_policy_mission_093.py::TestMission093And095And097HardenedPolicy::test_03b_atomic_expired_lease_reclaim_single_winner"
     ],
     "causes": {
       "fcntl": "scripts/mac_worker/runtime_state.py imports the POSIX-only fcntl module: test_mac_worker_contract, test_mac_worker_recovery, test_mac_worker_standalone_boot, test_muse_supervisor, test_muse_convergence (collection)",
-      "bash_is_wsl": "subprocess 'bash' resolves to the WSL launcher (no distribution installed) on the Windows runner: test_script_credentials, test_ci_acceptance_credentials, test_mac_worker_install",
       "setpgrp": "os.setpgrp does not exist on Windows: test_run_physical::test_run_physical_success",
       "shared_with_linux": "run_physical_restart candidate_sha fixture, same as Linux (the two 409-vs-400 tests were fixed in step 2)"
     },
