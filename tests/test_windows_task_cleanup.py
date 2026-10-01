@@ -90,3 +90,21 @@ def test_http_responses_are_closed(monkeypatch):
     assert daemon.register_worker("W-01") is True
     assert daemon.http_post_result({}) == "DELIVERED"
     assert seen and all(r.closed for r in seen)
+
+
+def test_release_lock_closes_fd_and_removes_file(tmp_path):
+    daemon = load_win_daemon()
+    lock_file = tmp_path / "w.lock"
+    fd = os.open(str(lock_file), os.O_CREAT | os.O_RDWR)
+    daemon._lock_fd = fd
+    daemon._release_lock(str(lock_file))
+    with pytest.raises(OSError):
+        os.fstat(fd)
+    assert not lock_file.exists()
+    assert daemon._lock_fd is None
+
+
+def test_release_lock_tolerates_absent_state(tmp_path):
+    daemon = load_win_daemon()
+    daemon._lock_fd = None
+    daemon._release_lock(str(tmp_path / "missing.lock"))  # must not raise

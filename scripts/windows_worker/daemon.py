@@ -281,6 +281,28 @@ def is_resource_pressure_high():
         return False
 
 _lock_fd = None
+
+def _release_lock(lock_path):
+    """Close the lock fd, then remove the lock file (both best-effort).
+
+    The fd must close first: on Windows an open handle blocks removal of
+    the lock file, leaving a stale lock behind and letting the remove
+    error mask the real shutdown path.
+    """
+    global _lock_fd
+    fd, _lock_fd = _lock_fd, None
+    if fd is not None:
+        try:
+            os.close(fd)
+        except OSError:
+            pass
+    if lock_path:
+        try:
+            if os.path.exists(lock_path):
+                os.remove(lock_path)
+        except OSError:
+            pass
+
 def acquire_lock(worker_id):
     global _lock_fd
     import msvcrt
@@ -400,8 +422,7 @@ def loop():
             time.sleep(10)
             
     finally:
-        if os.path.exists(lock_path):
-            os.remove(lock_path)
+        _release_lock(lock_path)
 
 if __name__ == "__main__":
     try:
