@@ -291,3 +291,18 @@ platform: passed / failed / skipped / new / now_passing / out_of_scope.
 
 **Reversal.** Delete `Windows.out_of_scope` from `known_failures.json`. The
 Mac tests then count as Windows failures again. This changes no code.
+
+## Step 5 — `M2/mac-agy-orphan-marker`, including G1 and the agy heartbeat (2026-10-01)
+
+| Field | Value |
+|---|---|
+| Source branch | `M2/mac-agy-orphan-marker`; its ancestors `G1/mac-agy-kill-reap` (`adad9731`) and `M2/mac-agy-heartbeat` (`e26a98e3`) come with it. 4 commits on `e95aa787`: `c52a699c`, `adad9731`, `e26a98e3`, `9add426e` |
+| Source SHA | `9add426e` |
+| Resulting integration SHA | `57e994e3` (merge commit, `--no-ff`) |
+| Files | `scripts/mac_worker/daemon.py`, `tests/test_mac_agy_timeout_reap.py`, `tests/test_mac_agy_heartbeat.py`, `tests/test_mac_agy_orphan_marker.py` |
+| Conflicts | none |
+| Manual resolution | none |
+| Targeted tests | `test_mac_agy_timeout_reap`, `test_mac_agy_heartbeat`, `test_mac_agy_orphan_marker`, plus the existing `test_mac_worker_contract`, `test_mac_worker_recovery`, `test_mac_worker_standalone_boot`: 28 passed |
+| Overall, local Linux | 384 passed, 1 failed (known), 11 skipped; gate PASS |
+| Overall, CI | [run 36807288154](https://github.com/happyhippovip/2026-courier/actions/runs/36807288154). **ubuntu-latest:** PASS, 382 passed, 3 failed (1 known + 2 known-flaky muse), 11 skipped. **windows-latest:** PASS, 292 passed, 54 failed, 12 skipped; new=0, out_of_scope=8 (the 8 new agy tests, `fcntl`) |
+| Known remaining failures | unchanged from step 2 (Linux 1 + 9 flaky; Windows 46 + scoped Mac tests) |
