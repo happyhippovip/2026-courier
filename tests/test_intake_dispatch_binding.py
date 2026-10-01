@@ -106,13 +106,19 @@ def _dispatch_with_list_runs(tmp_path, monkeypatch, list_runs):
 
     with mock.patch.object(
         intake_dispatcher.subprocess, "run", side_effect=fake_run
-    ), mock.patch.object(intake_dispatcher.time, "sleep"), mock.patch.object(
-        intake_dispatcher.uuid, "uuid4", return_value=mock.Mock(hex="abcd1234")
-    ):
+    ), mock.patch.object(intake_dispatcher.time, "sleep"):
         intake_dispatcher.dispatch_intake(str(intake))
     with open(tmp_path / "central_state.json") as f:
         state = json.load(f)
-    return state["tasks"]["task-revenue-abcd1234"]
+    expected = intake_dispatcher.fingerprint_task_id(
+        {
+            "customer_reference": "cust-1",
+            "target_owner": "o",
+            "target_repo": "r",
+            "target_sha": "s",
+        }
+    )
+    return state["tasks"][expected]
 
 
 def test_dispatch_concurrent_never_binds_foreign_id(tmp_path, monkeypatch):
@@ -160,12 +166,16 @@ def test_dispatch_gh_list_failure_marks_unbound(tmp_path, monkeypatch):
 
     with mock.patch.object(
         intake_dispatcher.subprocess, "run", side_effect=fake_run
-    ), mock.patch.object(intake_dispatcher.time, "sleep"), mock.patch.object(
-        intake_dispatcher.uuid, "uuid4", return_value=mock.Mock(hex="abcd1234")
-    ):
+    ), mock.patch.object(intake_dispatcher.time, "sleep"):
         intake_dispatcher.dispatch_intake(str(intake))
     with open(tmp_path / "central_state.json") as f:
         state = json.load(f)
-    assert state["tasks"]["task-revenue-abcd1234"]["execution_ref"] == (
-        "DISPATCHED_UNBOUND"
+    expected = intake_dispatcher.fingerprint_task_id(
+        {
+            "customer_reference": "cust-1",
+            "target_owner": "o",
+            "target_repo": "r",
+            "target_sha": "s",
+        }
     )
+    assert state["tasks"][expected]["execution_ref"] == "DISPATCHED_UNBOUND"

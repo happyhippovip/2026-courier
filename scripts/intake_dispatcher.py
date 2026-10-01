@@ -1,7 +1,7 @@
+import hashlib
 import json
 import sys
 import time
-import uuid
 import subprocess
 import os
 from datetime import datetime
@@ -59,11 +59,25 @@ def resolve_execution_ref(workflow, since_epoch, attempts=BIND_ATTEMPTS,
     return None
 
 
+def fingerprint_task_id(intake):
+    """Stable id for an intake so recovery re-dispatch is idempotent.
+
+    Same intake content -> same task id: a crash between dispatch and the
+    queue move re-records under the same id instead of minting a duplicate
+    task (and the queue pre-check skips the second external dispatch).
+    """
+    canonical = json.dumps(
+        {k: intake[k] for k in (
+            "customer_reference", "target_owner", "target_repo", "target_sha")},
+        sort_keys=True, separators=(",", ":"))
+    return f"task-revenue-{hashlib.sha1(canonical.encode()).hexdigest()[:8]}"
+
+
 def dispatch_intake(intake_file):
     with open(intake_file, 'r') as f:
         intake = json.load(f)
-        
-    task_id = f"task-revenue-{uuid.uuid4().hex[:8]}"
+
+    task_id = fingerprint_task_id(intake)
     print(f"Admitting intake {intake.get('customer_reference')} as {task_id}")
     
     # Revenue V1 uses GitHub Actions as the primary qualified lane

@@ -52,10 +52,16 @@ def _mocked_dispatch(monkeypatch, list_runs="[]"):
 
     monkeypatch.setattr(intake_dispatcher.subprocess, "run", fake_run)
     monkeypatch.setattr(intake_dispatcher.time, "sleep", lambda s: None)
-    monkeypatch.setattr(
-        intake_dispatcher.uuid,
-        "uuid4",
-        mock.Mock(return_value=mock.Mock(hex="abcd1234")),
+
+
+def _expected_task_id():
+    return intake_dispatcher.fingerprint_task_id(
+        {
+            "customer_reference": "cust-1",
+            "target_owner": "o",
+            "target_repo": "r",
+            "target_sha": "s",
+        }
     )
 
 
@@ -92,9 +98,8 @@ def test_existing_tasks_preserved_and_no_tmp_left(tmp_path, monkeypatch):
     intake_dispatcher.dispatch_intake(str(intake))
     state = json.loads(state_file.read_text())
     assert state["tasks"]["task-old"] == {"task_id": "task-old"}
-    assert state["tasks"]["task-revenue-abcd1234"]["execution_ref"] == (
-        "DISPATCHED_UNBOUND"
-    )
+    expected = _expected_task_id()
+    assert state["tasks"][expected]["execution_ref"] == "DISPATCHED_UNBOUND"
     assert list(tmp_path.glob("*.tmp")) == []
 
 
@@ -105,6 +110,5 @@ def test_missing_state_file_starts_fresh(tmp_path, monkeypatch):
     intake_dispatcher.dispatch_intake(str(intake))
     with open(tmp_path / "central_state.json") as f:
         state = json.load(f)
-    assert state["tasks"]["task-revenue-abcd1234"]["task_id"] == (
-        "task-revenue-abcd1234"
-    )
+    expected = _expected_task_id()
+    assert state["tasks"][expected]["task_id"] == expected
