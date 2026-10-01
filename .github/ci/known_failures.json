@@ -1,5 +1,5 @@
 {
-  "_about": "Known failing / flaky tests per CI platform (runner.os). Owned by L1. Entries may only be REMOVED when a test is fixed, never added to hide a regression. Each entry must be traceable in docs/v1/INTEGRATION_LOG.md.",
+  "_about": "Known failing / flaky tests per CI platform (runner.os). Owned by L1. Entries may only be REMOVED when a test is fixed, never added to hide a regression. 'out_of_scope' lists node-id patterns of components that cannot run on that platform by design; those tests still run and are reported, and stay fully gated on the platforms where the component runs. Every entry and scope must be traceable in docs/v1/INTEGRATION_LOG.md.",
   "Linux": {
     "source": "baseline at e95aa787 (Python 3.12.3, pinned deps from pyproject.toml), 4 local runs on 2026-10-01",
     "failing": [
@@ -74,6 +74,13 @@
       "bash_is_wsl": "subprocess 'bash' resolves to the WSL launcher (no distribution installed) on the Windows runner: test_script_credentials, test_ci_acceptance_credentials, test_mac_worker_install",
       "setpgrp": "os.setpgrp does not exist on Windows: test_run_physical::test_run_physical_success",
       "shared_with_linux": "run_physical_restart candidate_sha fixture, same as Linux (the two 409-vs-400 tests were fixed in step 2)"
+    },
+    "out_of_scope": {
+      "patterns": [
+        "tests/test_mac_*"
+      ],
+      "reason": "POSIX-only legacy Mac worker: scripts/mac_worker imports fcntl and targets macOS; gated on Linux",
+      "decision": "L1 CI policy 2026-10-01, docs/v1/INTEGRATION_LOG.md 'CI policy - platform scope'"
     }
   }
 }

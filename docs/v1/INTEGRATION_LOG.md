@@ -252,3 +252,42 @@ snapshot state that v1 retires in favour of the SQLite journal (L2).
 Windows 11 is the primary v1 platform, the lane's owned tests are red there,
 and L1 does not write lane code. Not merged. The fix goes to the owning lane
 (L5).
+
+## CI policy — platform scope for POSIX-only components (L1 decision, 2026-10-01)
+
+**Decision.** On `windows-latest`, failures of tests matching
+`tests/test_mac_*` are reported as OUT OF SCOPE and do not fail the gate.
+The scope is recorded in `.github/ci/known_failures.json` →
+`Windows.out_of_scope`.
+
+- These tests still run on Windows and are listed in every report.
+- On Linux they stay fully gated.
+- Every other test is gated on both platforms exactly as before.
+
+**Why.**
+
+- `scripts/mac_worker` is the legacy macOS worker. It imports `fcntl` and
+  uses POSIX process groups, so it cannot run on Windows by design.
+- The Windows baseline already holds 22 `test_mac_*` failures with this root
+  cause, recorded at step 0.
+- The planned M2 hardening lanes (steps 5–6) add 19 more tests of the same
+  component. In the preflight [run 36806319325](https://github.com/happyhippovip/2026-courier/actions/runs/36806319325)
+  each of them fails on Windows only with `ModuleNotFoundError: No module named 'fcntl'`
+  and passes on Linux.
+- Treating "cannot import on Windows" as a regression would block valid Mac
+  hardening forever without protecting any Windows behaviour.
+- The v1 Windows worker host is L3's `courier_worker`, which the golden
+  harness gates on both platforms.
+
+**Limits.**
+
+- The scope covers only `tests/test_mac_*`.
+- Windows-relevant components found red on Windows stay blocked. This applies
+  to m06 (step 1), OVERLAY (step 4) and the Windows worker timeout kill
+  (step 7).
+
+**Gate visibility.** The gate also emits a one-line `::notice` annotation per
+platform: passed / failed / skipped / new / now_passing / out_of_scope.
+
+**Reversal.** Delete `Windows.out_of_scope` from `known_failures.json`. The
+Mac tests then count as Windows failures again. This changes no code.
