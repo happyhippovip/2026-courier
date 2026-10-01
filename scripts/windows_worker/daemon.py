@@ -197,6 +197,30 @@ def build_result_payload(task, result, config):
         "stderr": result.get("stderr", ""),
     }
 
+def communicate_bounded(process, timeout, drain_timeout=10, wait_timeout=5):
+    """communicate() with kill+drain+reap on timeout.
+
+    Returns (timed_out, stdout, stderr). Only the owned direct child is
+    signalled. The child is always reaped; pipes are drained if possible
+    so it cannot block forever on a full pipe nobody reads. (Same shape
+    as the mac run_agy helper; kept platform-local to avoid new coupling.)
+    """
+    try:
+        stdout, stderr = process.communicate(timeout=timeout)
+        return False, stdout, stderr
+    except subprocess.TimeoutExpired:
+        pass
+    process.kill()
+    try:
+        stdout, stderr = process.communicate(timeout=drain_timeout)
+    except subprocess.TimeoutExpired:
+        stdout, stderr = "", ""
+    try:
+        process.wait(timeout=wait_timeout)
+    except subprocess.TimeoutExpired:
+        pass
+    return True, stdout or "", stderr or ""
+
 def run_task(task, config):
     print(f"[{config['WORKER_ID']}] Running task {task['task_id']}...")
     
@@ -214,7 +238,13 @@ def run_task(task, config):
     try:
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace")
         run_id = str(process.pid)
-        stdout, stderr_out = process.communicate(timeout=600)
+        timed_out, stdout, stderr_out = communicate_bounded(process, 600)
+        if timed_out:
+            return {"status": "FAILED", "reason": "TASK_TIMEOUT",
+                    "stdout": "", "stderr": (stderr_out or "")[-4000:],
+                    "goal_id": task.get("goal_id"), "task_id": task["task_id"],
+                    "worker_id": config["WORKER_ID"], "provider": "windows_native",
+                    "run_id": run_id}
         out_clean = stdout.strip()
         stderr = stderr_out
         status = "SUCCESS" if process.returncode == 0 else "FAILED"
