@@ -372,3 +372,17 @@ A useful owner interaction is:
 
 This reduces provider calls, host probes, tokens, wakeups, and accidental interference.
 
+
+## 14. Mac low-FD mode supersedes child factories under active EMFILE
+
+A large logical queue does not require child-agent fanout.
+
+If the Mac has current/recent EMFILE, child-session lease failures, or sustained heat:
+- do not launch another 144-child factory;
+- do not launch new Muse child agents/subagents on that host;
+- prefer one retained Muse session processing a long logical queue sequentially;
+- canonical template: `docs/v1/orchestration/MUSE_MAC_LOW_FD_SINGLE_AGENT.md`.
+
+Return to bounded child workflows only after host stability is separately proven.
+
+The failed 144-cell run is treated as orchestration-infrastructure evidence, not product-code evidence.
