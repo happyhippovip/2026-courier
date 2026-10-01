@@ -48,16 +48,13 @@
       "tests/test_muse_supervisor.py::test_slot_claims_canonical_task_runs_muse_exits_and_restarts_with_checkpoint",
       "tests/test_muse_supervisor.py::test_started_task_is_not_replayed",
       "tests/test_muse_supervisor.py::test_stop_prevents_restart",
-      "tests/test_muse_supervisor.py::test_unconfirmed_prompt_method_fails_closed",
-      "tests/test_run_physical.py::test_run_physical_success"
+      "tests/test_muse_supervisor.py::test_unconfirmed_prompt_method_fails_closed"
     ],
     "flaky": [
       "tests/test_resource_policy_mission_093.py::TestMission093And095And097HardenedPolicy::test_03b_atomic_expired_lease_reclaim_single_winner"
     ],
     "causes": {
-      "fcntl": "scripts/mac_worker/runtime_state.py imports the POSIX-only fcntl module: test_mac_worker_contract, test_mac_worker_recovery, test_mac_worker_standalone_boot, test_muse_supervisor, test_muse_convergence (collection)",
-      "setpgrp": "os.setpgrp does not exist on Windows: test_run_physical::test_run_physical_success",
-      "shared_with_linux": "run_physical_restart candidate_sha fixture, same as Linux (the two 409-vs-400 tests were fixed in step 2)"
+      "fcntl": "scripts/mac_worker/runtime_state.py imports the POSIX-only fcntl module: test_mac_worker_contract, test_mac_worker_recovery, test_mac_worker_standalone_boot, test_muse_supervisor, test_muse_convergence (collection)"
     },
     "out_of_scope": {
       "patterns": [
