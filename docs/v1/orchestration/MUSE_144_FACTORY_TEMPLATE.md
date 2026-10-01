@@ -16,7 +16,7 @@ Use this when Courier needs a large amount of overnight read-only engineering wo
 
 If the session reports Goal Store provenance/backend errors, do not retry `/goal`; this factory does not require Goal Store.
 
-Resource rule: at most three investigator children active at once. Any EMFILE / os error 24 / host-pressure signal pauses new child launches.
+Resource rule: at most three investigator children active at once. Any EMFILE / os error 24 / host-pressure signal pauses new child launches. Do not repeatedly probe local files or run status loops under pressure; preserve the retained workflow and wait for terminal delivery when possible.
 
 ---
 
