@@ -129,3 +129,27 @@ courier.db-wal
 courier.db-shm
 *.sqlite3-wal
 *.sqlite3-shm
+
+# --- v1 hygiene (L1 cycle 2): runtime state never lives in git; see docs/v1/INTEGRATION_LOG.md ---
+/server/state/central_state.json
+/server/state/central_state.json.sig
+/logs/*
+!/logs/.gitkeep
+/runtime/resource_guard/
+/runtime/harmless_staging_marker.json
+/scripts/mac_worker/logs/
+/scripts/windows_worker/courier_canary_*.txt
+/work_dir/
+/courier_canary_*.txt
+# outputs legacy scripts and workflows write into the repo root (history copies in attic/)
+/central_state.json
+/dummy_task_2.json
+/dummy_task_3.json
+/founder_concierge_result.json
+/gemini_result*.json
+/task.json
+/result.json
+/verified.json
+/handoff.json
+/reconciliation.json
+/agy_test_*.txt
