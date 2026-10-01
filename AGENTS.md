@@ -29,7 +29,7 @@ Do not create a seventh writer lane. Read-only review/factory/scout work is allo
 
 Orchestration rules:
 - verify CURRENT repo state before assigning work;
-- use deep queued workflows/skills instead of repeated identical prompt storms;
+- use deep queued workflows/skills instead of repeated identical prompt storms;\n- HUMAN-TIME RULE: when related read-only tasks can safely share context, give the owner one master prompt per window instead of many small copy/paste prompts; split only for a concrete technical reason;
 - preserve bounded live concurrency;
 - Mac resource history means EMFILE/host pressure is a hard signal to stop new helper spawning;
 - no active window/workflow may be cleared, closed, or repurposed until custody is proven;
