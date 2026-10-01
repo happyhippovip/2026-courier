@@ -453,3 +453,24 @@ detailed assertion was not retrievable.
 listed. The race is a finding for its owner (resource-policy / lease code).
 L1 does not change that code. `integration/v1` was not advanced on the red
 attempt.
+
+## Step 9 — `lane/L2-journal`, the v1 core journal (L1 cycle 3, 2026-10-01)
+
+| Field | Value |
+|---|---|
+| Source branch | `lane/L2-journal` (1 commit on `c2a10c6b`) |
+| Source SHA | `48cf54f5` |
+| Resulting integration SHA | `d1f61f1a` (merge commit, `--no-ff`, onto `655cb94b`) |
+| Files | new only: `courier_core/{__init__,events,state_machine,journal,projection}.py`, `tests/core/{core_builders,test_core_events,test_core_state_machine,test_core_journal,test_core_projection}.py` |
+| Conflicts | none |
+| Manual resolution | none |
+| Stop-condition check | Lane CI [run 36809684753](https://github.com/happyhippovip/2026-courier/actions/runs/36809684753) green on both platforms. Touches no other lane's paths. Adds no runtime state (the tests write only to `tmp_path`; CI tree-clean checks pass). Implements the ledger contract rather than bypassing it: the events table, `Journal(path).open()`, `.verify_chain().ok`, `projection_hash(conn)` and `rebuild(journal, out_path)` match `tests/golden/README.md` |
+| Targeted tests | `tests/core`: 65 passed |
+| Golden harness | still 11 skipped. It now waits only for `courier_core.serve`, `courier_worker.host` and `adapters.synthetic`; `courier_core.journal` and `courier_core.projection` are found |
+| Overall, local Linux | 459 passed, 2 failed (known + known-flaky `test_result_ready_is_only_redelivered`), 11 skipped; gate PASS |
+| Overall, CI | [run 36811357331](https://github.com/happyhippovip/2026-courier/actions/runs/36811357331). **ubuntu-latest:** PASS, 459 / 2 / 11. **windows-latest:** PASS, 357 passed (292 + 65 core), 65 failed (known + 19 out of scope), 12 skipped, new=0 |
+| Known remaining failures | unchanged |
+
+**Lane watch.** m06 (`d8265a5b`), OVERLAY (`a53b3c73`) and g05 (`724aee46`)
+are unchanged and still blocked. PR #57 is unchanged: open, mergeable, and
+waiting on Dennis.
