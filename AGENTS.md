@@ -29,8 +29,11 @@ Do not create a seventh writer lane. Read-only review/factory/scout work is allo
 
 Orchestration rules:
 - verify CURRENT repo state before assigning work;
-- use deep queued workflows/skills instead of repeated identical prompt storms;\n- HUMAN-TIME RULE: when related read-only tasks can safely share context, give the owner one master prompt per window instead of many small copy/paste prompts; split only for a concrete technical reason;
+- use deep queued workflows/skills instead of repeated identical prompt storms;
+- HUMAN-TIME RULE: when related read-only tasks can safely share context, give the owner one master prompt per window instead of many small copy/paste prompts; split only for a concrete technical reason;
 - preserve bounded live concurrency;
+- prompt length or queue count does NOT guarantee runtime; use Muse `/loop`/goals/workflows for real continuation rather than manual duplicate queues;
+- on Windows, default to one retained Muse steward for recurring read-only work; use Antigravity bounded background subagents for real parallel read-only fan-out;
 - Mac resource history means EMFILE/host pressure is a hard signal to stop new helper spawning;
 - no active window/workflow may be cleared, closed, or repurposed until custody is proven;
 - unknown custody => not safe to clear/close;
