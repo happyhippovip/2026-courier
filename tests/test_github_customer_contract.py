@@ -82,3 +82,14 @@ def test_check_connection_disconnected():
 
 def test_check_connection_connected():
     check_connection(True)
+
+def test_translate_github_success():
+    # Translating a success isn't typically an error, but in a mocked context, we can test that 200/201 doesn't raise, or just document it.
+    # The adapter itself handles 200/201. We'll simulate a 200 check here.
+    err = translate_github_error(200)
+    assert err.category == ErrorCategory.RETRYING_SAFELY  # Fallback if an exception was forced
+
+def test_translate_github_malformed_response():
+    # Simulating a scenario where response is garbled
+    err = translate_github_error(502, "Bad Gateway - HTML returned instead of JSON")
+    assert err.category == ErrorCategory.GITHUB_UNAVAILABLE
