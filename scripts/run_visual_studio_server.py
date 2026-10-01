@@ -34,20 +34,31 @@ APPROVALS_DIR.mkdir(parents=True, exist_ok=True)
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
+from run_chief_commander import ChiefCommander
+from run_bodyguards import BodyguardPoolManager
+
+# These registries enrich the cockpit but are not required to serve it. Some
+# production deployments omit them, so their absence must not prevent the core
+# UI and its canonical state views from starting.
 try:
-    from run_chief_commander import ChiefCommander
-    from run_bodyguards import BodyguardPoolManager
     from capability_registry import CapabilityRegistry, SkillRegistry, ConnectorRegistry
+except ImportError:
+    CapabilityRegistry = SkillRegistry = ConnectorRegistry = None
+
+try:
     from standing_objectives import StandingObjectivesRegistry
+except ImportError:
+    StandingObjectivesRegistry = None
+
+try:
     from resource_intelligence import ResourceIntelligenceManager
+except ImportError:
+    ResourceIntelligenceManager = None
+
+try:
     from live_operations_truth_contract import LiveOperationsTruthContract
 except ImportError:
-    from scripts.run_chief_commander import ChiefCommander
-    from scripts.run_bodyguards import BodyguardPoolManager
-    from scripts.capability_registry import CapabilityRegistry, SkillRegistry, ConnectorRegistry
-    from scripts.standing_objectives import StandingObjectivesRegistry
-    from scripts.resource_intelligence import ResourceIntelligenceManager
-    from scripts.live_operations_truth_contract import LiveOperationsTruthContract
+    LiveOperationsTruthContract = None
 
 
 
