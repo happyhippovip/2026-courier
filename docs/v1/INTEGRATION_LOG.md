@@ -358,3 +358,34 @@ of probing the process.
 The commit message itself says the test only exercises the non-Windows path.
 On the only platform this worker targets, the fix is unproven and the lane's
 test leaves an orphan. Not applied. The fix goes to the owning lane (L3).
+
+## Merge plan status (2026-10-01, end of L1 cycle 1)
+
+| Step | Source (SHA) | Result | Integration SHA |
+|---|---|---|---|
+| 0 | trunk `e95aa787` + L1 foundation | merged | `9e416f69`, `d0e690c9` (+ log `90af2405`) |
+| 0b | `lane/L1-product-rule-zero` (`8df37cda`) | merged (docs) | `8c04aa6f` |
+| 1 | `m06/dispatcher-persist-oexcl` (`d8265a5b`) | **BLOCKED**: Windows; merge `8b58dd4b` reverted by `efe60061` | — |
+| 2 | `muse/M07-adapter-evidence-confinement` (`b2dbfead`) | merged; 409-vs-400 green | `6c32d11d` |
+| 3 | `mac/M05-intake-dispatch-binding` (`8da27318`) | merged | `dd933e29` |
+| 4 | `courier-ui/cobalt-nova/OVERLAY-REPLAY` (`a53b3c73`) | **BLOCKED**: Windows event loss; not merged | — |
+| — | CI policy: Windows scope for `tests/test_mac_*` | applied | `7b596685` |
+| 5 | `M2/mac-agy-orphan-marker` (`9add426e`), with G1 and agy heartbeat | merged | `57e994e3` |
+| 6 | `M2/mac-deliver-heartbeat` (`fb3d6a22`), native stack | merged; `daemon.py` resolved by hand | `f66f9dba` |
+| 7 | cherry-pick `724aee46` (Windows timeout kill) | **BLOCKED**: Windows test invalid, orphan left; not applied | — |
+
+**Gate at `f66f9dba`.**
+
+- Linux: 395 passed, 1 known failure (`test_run_physical_restart`), 9 tolerated flaky muse tests.
+- Windows: 292 passed, 46 known failures, Mac tests out of scope, 0 new.
+- Golden harness: 11 tests, all skipped until `courier_core` / `courier_worker` / `adapters.synthetic` exist.
+
+**Re-integration of blocked lanes.**
+
+- Each lane fixes its Windows defect on a `lane/**` branch, where `v1-ci.yml`
+  runs both platforms.
+- L1 then merges it as a new step. For m06, L1 first runs `git revert efe60061`.
+
+**Preflight.** Before merging a batch, L1 pushes the planned end state to
+`lane/L1-preflight` (L1-owned, never merged). One Windows CI run then shows
+every Windows blocker in advance.
