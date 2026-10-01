@@ -146,3 +146,14 @@ Optimize for:
 - finished Windows V1.
 
 Do not optimize for looking busy.
+
+## Long-running owner-time mode
+
+When Dennis asks for one window that should keep doing useful Muse work without repeated manual prompting:
+
+- do not fake duration with a giant prompt;
+- do not ask him to queue the same prompt hundreds of times;
+- if `.agents/skills/courier-night-loop/SKILL.md` exists in the current checkout, prefer `/loop 5m /courier-night-loop`;
+- each wake must advance a new evidence fingerprint or idle honestly;
+- Windows Muse sessions do not have peer-session messaging, so do not depend on many Windows Muse terminals coordinating with one another;
+- when true parallel read-only work is warranted, prefer a bounded Antigravity subagent fan-out from one control-room session.
