@@ -6,7 +6,7 @@ import { test } from 'node:test';
 
 import {
   MARKS, createDecisionClient, decisionsAllowed, escapeHtml, findChoice, initialConnection,
-  interpretResponse, nextConnection, renderCard, renderHome, renderReceipt, retryDelayMs, statusLine,
+  interpretResponse, nextConnection, renderCard, renderHome, renderReceipt, retryDelayMs, statusLine, viewSignature,
 } from '../../courier_hub/static/hub_core.mjs';
 
 const view = JSON.parse(readFileSync(new URL('./fixtures/home_view.json', import.meta.url), 'utf8'));
@@ -124,16 +124,32 @@ test('responses: recorded, already recorded, stale, offline, error', () => {
   const stale = interpretResponse(409, { result: 'stale', message: 'This changed since you opened it.' });
   assert.equal(stale.kind, 'stale');
   assert.equal(stale.message, 'This changed since you opened it.');
-  assert.equal(interpretResponse(0, null).kind, 'offline');
+  assert.equal(interpretResponse(-1, null).kind, 'unknown');
+  assert.equal(interpretResponse(504, { result: 'unknown', message: 'm', item: null }).kind, 'unknown');
   assert.equal(interpretResponse(503, { result: 'offline', message: 'x' }).kind, 'offline');
   assert.equal(interpretResponse(500, null).kind, 'error');
 });
 
-test('a network failure during a decision reports offline, never success', async () => {
+test('a network failure after sending is reported as unknown, never as success or as "nothing changed"', async () => {
   const client = createDecisionClient(async () => { throw new TypeError('fetch failed'); });
   const result = await client.decide('t-blocked', 'cancel', 1);
-  assert.equal(result.kind, 'offline');
-  assert.match(result.message, /Nothing was changed/);
+  assert.equal(result.kind, 'unknown');
+  assert.doesNotMatch(result.message, /nothing (was )?changed/i);
+  assert.match(result.message, /Couldn't confirm/);
+});
+
+test('an unchanged view has the same signature, so the page does not re-render while idle', () => {
+  const a = viewSignature(view, live, null);
+  assert.equal(a, viewSignature(JSON.parse(JSON.stringify(view)), live, null));
+  assert.notEqual(a, viewSignature({ ...view, head_seq: view.head_seq + 1 }, live, null));
+  assert.notEqual(a, viewSignature(view, { ...live, state: 'offline' }, null));
+  assert.notEqual(a, viewSignature(view, live, 't-blocked'));
+});
+
+test('a disabled stop says so to assistive technology; an unrecognised item offers no actions', () => {
+  assert.ok(renderCard(view.working[0], { now: NOW, decisionsAllowed: false }).includes('aria-disabled="true"'));
+  const odd = { ...view.working[0], phase: 'unrecognised', label: 'State not recognised by this hub', stop: null };
+  assert.ok(!renderCard(odd, { now: NOW }).includes('data-action="stop"'));
 });
 
 test('receipt answers the seven questions and keeps ids in the support view', () => {

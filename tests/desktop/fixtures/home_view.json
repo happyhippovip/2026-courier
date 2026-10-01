@@ -123,6 +123,7 @@
     "working": 1,
     "done": 4
   },
+  "done_shown": 4,
   "status": {
     "controller": "running",
     "checked_at": "2026-10-02T08:00:00.000000Z"

@@ -373,3 +373,209 @@ def test_resumed_only_when_courier_actually_continued(world):
     assert view["done"][0]["mark"] == "check" and view["needs_you"] == []  # recovery never asked anyone
     receipt = hub.item(task_id).json()["receipt"]
     assert receipt["resumed"] is True and receipt["decisions"] == []
+
+
+# ------------------------------------------------ merge-quality regressions
+class AnswerDroppingProxy:
+    """Forwards each request to the real controller, then drops the connection
+    without answering: the decision is recorded but the answer is lost."""
+
+    def __init__(self, upstream):
+        import http.server
+        import urllib.request
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def log_message(self, *a):
+                pass
+
+            def do_POST(self):
+                body = self.rfile.read(int(self.headers["Content-Length"]))
+                req = urllib.request.Request(upstream + self.path, data=body, method="POST", headers={
+                    "X-Courier-Token": self.headers["X-Courier-Token"], "Content-Type": "application/json"})
+                urllib.request.urlopen(req, timeout=10).read()
+                self.close_connection = True
+                self.connection.shutdown(2)
+
+            def do_GET(self):
+                req = urllib.request.Request(upstream + self.path,
+                                             headers={"X-Courier-Token": self.headers["X-Courier-Token"]})
+                data = urllib.request.urlopen(req, timeout=10).read()
+                self.send_response(200)
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+
+        self.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+        self.base = f"http://127.0.0.1:{self.server.server_address[1]}"
+
+    def stop(self):
+        self.server.shutdown()
+        self.server.server_close()
+
+
+def test_lost_answer_after_the_controller_recorded_is_never_reported_as_nothing_changed(tmp_path):
+    clock = FakeClock()
+    live = LiveService(tmp_path / "home", clock=clock)
+    proxy = AnswerDroppingProxy(live.base)
+    hub = HubProcess(tmp_path / "home", proxy.base)
+    try:
+        task_id = blocked_task(live, clock)
+        answer = hub.decide(task_id, "effect_confirmed", 1)
+        assert answer.status_code == 504
+        body = answer.json()
+        assert body["result"] == "unknown" and "nothing" not in body["message"].lower()
+        assert body["item"]["card"]["outcome"] == "human_confirmed"  # what Courier actually recorded
+        again = hub.decide(task_id, "effect_confirmed", 1)  # the user clicks again after the scare
+        assert again.status_code == 504  # proxy drops every answer, but the runtime still records once
+        confirmed = [e for e in live.controller.journal.events(task_id=task_id) if e.type.value == "EFFECT_CONFIRMED"]
+        assert len(confirmed) == 1
+    finally:
+        hub.stop()
+        proxy.stop()
+        live.stop()
+
+
+def test_controller_not_running_means_nothing_was_sent(tmp_path):
+    hub = HubProcess(tmp_path / "home", "http://127.0.0.1:9")
+    (tmp_path / "home" / "run").mkdir(parents=True)
+    (tmp_path / "home" / "run" / "controller.token").write_text("t")
+    try:
+        answer = hub.decide("task-x", "cancel", 1)
+        assert answer.status_code == 503 and answer.json()["result"] == "offline"
+        assert "Nothing was sent" in answer.json()["message"]
+    finally:
+        hub.stop()
+
+
+def test_retry_authorized_twice_gives_exactly_one_new_attempt(world):
+    live, hub, clock = world
+    task_id = blocked_task(live, clock)
+    assert hub.decide(task_id, "retry_authorized", 1).json()["result"] == "recorded"
+    assert hub.decide(task_id, "retry_authorized", 1).json()["result"] == "already_recorded"
+    lease = live.post("/v1/claim", {"worker_id": "w2"}).json()
+    assert lease["task_id"] == task_id and lease["attempt"] == 2
+    assert live.post("/v1/claim", {"worker_id": "w3"}).status_code == 204  # no second extra attempt
+
+
+def test_two_tabs_with_different_decisions_only_the_first_counts(world):
+    live, hub, clock = world
+    task_id = blocked_task(live, clock)
+    assert hub.decide(task_id, "effect_confirmed", 1).json()["result"] == "recorded"
+    other_tab = hub.decide(task_id, "retry_authorized", 1)
+    assert other_tab.status_code == 409 and other_tab.json()["result"] == "stale"
+    second_stop = hub.decide(task_id, "cancel", 1)
+    assert second_stop.status_code == 409 and second_stop.json()["result"] == "stale"
+    assert live.get(f"/v1/tasks/{task_id}").json()["resolution"] == "effect_confirmed"
+    assert live.post("/v1/claim", {"worker_id": "w9"}).status_code == 204
+
+
+def test_stop_after_a_non_idempotent_action_started_never_reads_as_nothing_happened(world):
+    live, hub, clock = world
+    task_id = live.post("/v1/tasks", task_body(effect_class="non_idempotent")).json()["task_id"]
+    lease = live.post("/v1/claim", {"worker_id": "w1"}).json()
+    live.post("/v1/start", {"dispatch_id": lease["dispatch_id"]})
+    assert hub.post(f"/hub/api/items/{task_id}/stop", {}).status_code == 200
+    live.post("/v1/heartbeat", {"worker_id": "w1", "dispatch_ids": []})  # worker confirms the stop
+    done = hub.home()["done"][0]
+    assert done["outcome"] == "stopped" and done["mark"] == "gate-question"
+    assert "may already have happened" in done["explanation"]
+
+
+def test_stop_before_start_is_a_plain_stop(world):
+    live, hub, clock = world
+    task_id = live.post("/v1/tasks", task_body(effect_class="non_idempotent")).json()["task_id"]
+    assert hub.post(f"/hub/api/items/{task_id}/stop", {}).status_code == 200
+    done = hub.home()["done"][0]
+    assert done["outcome"] == "stopped" and done["mark"] == "gate" and done["explanation"].startswith("This was stopped")
+
+
+def test_stop_after_completion_is_stale_not_success(world):
+    live, hub, clock = world
+    task_id = verified_task(live)
+    answer = hub.post(f"/hub/api/items/{task_id}/stop", {})
+    assert answer.status_code == 409 and answer.json()["result"] == "stale"
+    assert hub.home()["done"][0]["mark"] == "check"
+
+
+def test_an_unknown_runtime_state_does_not_take_home_down():
+    tasks = [state("RUNNING", task_id="ok"), {"task_id": "odd", "status": "TELEPORTED", "adapter": "synthetic",
+                                               "params": {}}]
+    view = model.home(tasks, {})
+    odd = [c for c in view["working"] if c["id"] == "odd"][0]
+    assert odd["phase"] == "unrecognised" and odd["stop"] is None
+    assert [c["id"] for c in view["working"]].count("ok") == 1
+
+
+def test_done_count_is_the_true_total_even_when_the_list_is_trimmed():
+    tasks = [state("COMPLETE", task_id=f"t{i}", resolution="verified") for i in range(60)]
+    view = model.home(tasks, {}, done_limit=50)
+    assert view["counts"]["done"] == 60 and len(view["done"]) == 50 and view["done_shown"] == 50
+
+
+def test_idle_home_reads_only_the_journal_head(world, monkeypatch):
+    live, hub, clock = world
+    verified_task(live)
+    core = hub.server.hub
+    calls = []
+    real_read = core._read
+    monkeypatch.setattr(core, "_read", lambda: calls.append(1) or real_read())
+    first = hub.home()
+    for _ in range(5):
+        assert hub.home()["done"] == first["done"]
+    assert len(calls) <= 1  # unchanged head: no full re-read
+    live.post("/v1/tasks", task_body())
+    assert len(hub.home()["working"]) == 1 and len(calls) == 2  # a change is seen at once
+
+
+def test_500_tasks_render_quickly_and_quietly(tmp_path):
+    import time
+    from courier_core.events import Event, EventType
+    from courier_core.journal import Journal
+    home = tmp_path / "home"
+    with Journal(home / "courier.db") as journal:
+        for i in range(500):
+            journal.append(Event(type=EventType.TASK_CREATED, task_id=f"t{i:03d}", payload={
+                "adapter": "synthetic", "params": {"title": f"Task {i}"}, "effect_class": "idempotent",
+                "max_attempts": 3, "lease_ttl_s": 6}))
+    hub = Hub(home, "http://127.0.0.1:9", actor=ACTOR)
+    started = time.perf_counter()
+    view = hub.home_view()
+    first = time.perf_counter() - started
+    started = time.perf_counter()
+    hub.home_view()
+    cached = time.perf_counter() - started
+    assert view["counts"]["working"] == 500 and first < 3.0 and cached < first
+
+
+@pytest.mark.parametrize("headers, body, status", [
+    ({"Content-Type": "text/plain"}, "{}", 403),                      # simple-request CSRF shape
+    ({}, "{not json", 400),
+    ({}, "[1, 2]", 400),
+    ({}, json.dumps({"decision": "cancel", "attempt": 1, "note": "x" * 1001}), 400),
+    ({}, "x" * (17 * 1024), 413),
+])
+def test_malformed_or_hostile_posts_are_refused(world, headers, body, status):
+    live, hub, clock = world
+    task_id = blocked_task(live, clock)
+    h = {"X-Courier-Hub": "1", "Content-Type": "application/json", **headers}
+    answer = requests.post(f"{hub.base}/hub/api/items/{task_id}/decision", data=body, headers=h, timeout=10)
+    assert answer.status_code == status
+    assert live.get(f"/v1/tasks/{task_id}").json()["status"] == "BLOCKED"
+
+
+def test_unknown_or_malformed_task_ids_are_not_found(world):
+    _, hub, _ = world
+    assert hub.decide("task-does-not-exist", "cancel", 1).status_code == 404
+    assert hub.item("task-does-not-exist").status_code == 404
+    assert requests.get(hub.base + "/hub/api/items/%3Cscript%3E", timeout=10).status_code == 404
+
+
+def test_task_text_is_returned_as_data_never_as_markup(world):
+    live, hub, clock = world
+    evil = "<img src=x onerror=alert(1)> Ünïcødé ✓ ‮"
+    live.post("/v1/tasks", task_body(params={"title": evil}))
+    card = hub.home()["working"][0]
+    assert card["title"] == evil.strip()  # the page escapes it (tests/desktop); the API never pre-renders HTML
+    assert requests.get(hub.base + "/hub/api/home", timeout=10).headers["Content-Type"] == "application/json"

@@ -2,11 +2,12 @@
 // live in hub_core.mjs; this file only fetches, renders and handles input.
 import {
   createDecisionClient, decisionsAllowed, findChoice, initialConnection, nextConnection,
-  renderHome, renderReceipt, retryDelayMs, statusLine,
+  renderHome, renderReceipt, retryDelayMs, statusLine, viewSignature,
 } from './hub_core.mjs';
 
 const $ = (sel) => document.querySelector(sel);
-const state = { view: null, connection: initialConnection(), pending: null, openItem: null, timer: null };
+const state = { view: null, connection: initialConnection(), pending: null, openItem: null, timer: null,
+  rendered: null, renderedAt: 0 };
 const client = createDecisionClient((url, init) => fetch(url, init));
 
 function announce(text, tone = 'ok') {
@@ -16,7 +17,11 @@ function announce(text, tone = 'ok') {
   box.hidden = !text;
 }
 
-function render() {
+function render({ force = false } = {}) {
+  const signature = viewSignature(state.view, state.connection, state.pending);
+  if (!force && signature === state.rendered && Date.now() - state.renderedAt < 60000) return;  // nothing changed
+  state.rendered = signature;
+  state.renderedAt = Date.now();
   const line = statusLine(state.view, state.connection);
   const status = $('#status');
   status.textContent = line.text;
@@ -46,8 +51,11 @@ async function refresh() {
     state.connection = nextConnection(state.connection, { type: 'fail' });
   }
   render();
-  if (state.openItem) await loadItem(state.openItem, { quiet: true });
-  state.timer = setTimeout(refresh, retryDelayMs(state.connection));
+  if (state.openItem && state.view && state.view.head_seq !== state.openItemSeq) {
+    state.openItemSeq = state.view.head_seq;  // reload the receipt only when the record changed
+    await loadItem(state.openItem, { quiet: true });
+  }
+  state.timer = document.hidden ? null : setTimeout(refresh, retryDelayMs(state.connection));
 }
 
 async function loadItem(id, { quiet = false } = {}) {
@@ -62,6 +70,7 @@ async function loadItem(id, { quiet = false } = {}) {
 
 function openDetail(id) {
   state.openItem = id;
+  state.openItemSeq = state.view?.head_seq;
   const panel = $('#detail');
   panel.hidden = false;
   $('#detail-body').textContent = 'Loading…';
@@ -93,11 +102,12 @@ async function decide(button) {
   const choice = findChoice(state.view, id, decision);
   if (!(await confirmChoice(choice))) return;
   state.pending = id;
-  render();
+  render({ force: true });
   const result = await client.decide(id, decision, Number(attempt));
   state.pending = null;
   announce(result.message, result.kind === 'success' || result.kind === 'already' ? 'ok' : 'warn');
   await refresh();
+  render({ force: true });
 }
 
 async function stop(button) {
@@ -125,5 +135,6 @@ document.addEventListener('keydown', (event) => {
 $('#detail-close').addEventListener('click', closeDetail);
 $('#refresh').addEventListener('click', () => refresh());
 window.addEventListener('focus', () => refresh());
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
 window.addEventListener('online', () => refresh());
 refresh();

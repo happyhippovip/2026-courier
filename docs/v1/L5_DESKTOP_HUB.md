@@ -49,9 +49,30 @@ shows the same piles, because they are recomputed from the journal on every read
 | CANCELLED | Done | Stopped |
 | CANCELLED, resolution cancelled_effect_unknown | Done | Outcome uncertain — Courier stopped trying; the earlier action may already have happened |
 
+A stop recorded after a non-idempotent action had already started keeps the label
+"Stopped", but never says nothing happened: "Stopped after the action had started.
+Part of it may already have happened." A runtime state the hub does not know is
+shown as "State not recognised by this hub", with no actions.
+
 "Try once more" asks for confirmation first and names the concrete consequence.
 It is not offered once a stop has been requested. Internal ids (dispatch, attempt,
 worker, effect key, event names) appear only in the receipt's "For support" section.
+
+## When an answer is lost
+
+| What happened | What the hub says |
+| --- | --- |
+| Controller not reachable: nothing was sent | "Courier isn't reachable right now. Nothing was sent." |
+| Request sent, answer lost (the decision may be recorded) | "Courier may have recorded this, but its answer was lost", with the item as Courier has recorded it now |
+| The browser lost its connection to the hub | "Couldn't confirm whether your decision arrived", then a refresh from the journal |
+| The same decision repeated | "Already recorded"; the runtime keeps exactly one |
+| A different decision about an already-decided question | "This no longer needs a decision" (stale), nothing changes |
+
+## Quiet when idle
+
+The hub re-reads the journal only when its head sequence changes. The page
+re-renders only when what it shows changes (or once a minute for relative
+times), and stops polling while its tab is hidden.
 
 ## Authority shown today
 
@@ -70,12 +91,12 @@ and the hub says so.
 
 ## Tests
 
-- `tests/hub/` (pytest) runs against the real controller and HTTP service: projection mapping, restart and reload, BLOCKED to Needs you, every Human Desk decision, duplicate clicks, stale screens, controller offline, Working and stop, receipts, security.
+- `tests/hub/` (pytest) runs against the real controller and HTTP service: projection mapping, restart and reload, BLOCKED to Needs you, every Human Desk decision, duplicate and conflicting decisions, a lost answer after the controller recorded a decision, stale screens, controller offline, Working and stop (before and after start), receipts, idle reads, 500 tasks, and hostile requests.
 - `tests/desktop/` (`node --test`) covers the page logic: rendering, distinct outcomes, connection and reconnect, single-flight decisions, response handling, escaping, keyboard reachability. Its fixture is generated from the Python model, and `tests/hub/test_hub_fixture.py` keeps the two in sync.
 
 ## Not yet
 
-- No packaging into the Windows launcher (L6).
+- No packaging into the Windows launcher (L6); see `docs/v1/L6_DESKTOP_HUB_WINDOWS_HANDOFF.md`.
 - No push notifications, no mobile companion.
 - No standing authority.
 - No visual mapping onto the approved world: the styling is a neutral dark-glass placeholder.
