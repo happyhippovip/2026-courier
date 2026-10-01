@@ -400,7 +400,7 @@ def test_real_adapter_verifier_identity_carries_source_hash(tmp_path, monkeypatc
     (package / "__init__.py").write_text("")
     source = ("from courier_core.verification import Verdict\nVERIFIER_VERSION = '2'\n"
               "def verify(task, result, home):\n    return Verdict(True, 'ok')\n")
-    (package / "idprobe.py").write_text(source)
+    (package / "idprobe.py").write_bytes(source.encode())  # exact bytes: no CRLF translation on Windows
     monkeypatch.syspath_prepend(str(tmp_path / "pkg"))
     for name in [n for n in sys.modules if n == "adapters" or n.startswith("adapters.")]:
         monkeypatch.delitem(sys.modules, name)
