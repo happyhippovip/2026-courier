@@ -46,6 +46,52 @@ def test_verify_result_rejects_nondict_evidence(monkeypatch, tmp_path: Path, bad
         adapter.verify_result(task, result, bad_evidence, "99", tmp_path)
 
 
+def _success_result(path, digest):
+    task = packet()
+    return task, {
+        **task,
+        "run_id": "99",
+        "run_attempt": "1",
+        "result_id": "result-dispatch-1",
+        "status": "SUCCESS",
+        "operation": "deterministic_transform",
+        "artifacts": [{"path": path, "sha256": digest}],
+    }
+
+
+def _success_evidence():
+    return {"operation": "deterministic_transform",
+            "input_sha256": hashlib.sha256(b"canary").hexdigest()}
+
+
+@pytest.mark.parametrize("evil_path", ["/etc/passwd", "../outside.txt", "sub/../../outside.txt"])
+def test_verify_result_rejects_evidence_path_outside_download_directory(tmp_path: Path, evil_path):
+    outside = tmp_path / "outside.txt"
+    outside.write_bytes(b"not-the-worker-output\n")
+    digest = hashlib.sha256(outside.read_bytes()).hexdigest()
+    path = str(outside) if evil_path.startswith("/") else evil_path
+    task, result = _success_result(path, digest)
+    with pytest.raises(ValueError, match="escapes the download directory"):
+        adapter.verify_result(task, result, _success_evidence(), "99", tmp_path / "download")
+
+
+@pytest.mark.parametrize("bad_path", [None, 42, ["x"], ""])
+def test_verify_result_rejects_non_string_evidence_path(tmp_path: Path, bad_path):
+    task, result = _success_result(bad_path, "x")
+    with pytest.raises(ValueError, match="escapes the download directory"):
+        adapter.verify_result(task, result, _success_evidence(), "99", tmp_path)
+
+
+def test_verify_result_accepts_evidence_inside_download_directory(tmp_path: Path):
+    directory = tmp_path / "download"
+    directory.mkdir()
+    blob = directory / "courier_output_dispatch-1.json"
+    blob.write_bytes(b"worker-output\n")
+    task, result = _success_result(
+        "courier_output_dispatch-1.json", hashlib.sha256(b"worker-output\n").hexdigest())
+    assert adapter.verify_result(task, result, _success_evidence(), "99", directory) is None
+
+
 @pytest.mark.parametrize("bad_input", [None, 42, ["x"], {"x": 1}])
 def test_validate_task_rejects_non_string_transform_input(bad_input):
     with pytest.raises(ValueError, match="string input"):
