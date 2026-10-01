@@ -133,11 +133,12 @@ class ControllerClient:
         if status != 200:
             raise StaleDispatch(f"start for {dispatch_id}: status {status}")
 
-    def heartbeat(self, worker_id: str, dispatch_ids: list) -> None:
-        status, _ = self._call("POST", "/heartbeat",
+    def heartbeat(self, worker_id: str, dispatch_ids: list) -> dict:
+        status, payload = self._call("POST", "/heartbeat",
                                {"worker_id": worker_id, "dispatch_ids": dispatch_ids})
         if status != 200:
             raise ControllerError(f"heartbeat: status {status}")
+        return payload or {}
 
     def deliver(self, payload: dict) -> str:
         """Send one result. Returns 'accepted', 'stale', or raises."""
@@ -177,9 +178,12 @@ def resolve_spec(claim: dict, worker_id: str, artifacts_root: str, heartbeat_s: 
     argv = spec.get("argv")
     if not isinstance(argv, list) or not argv:
         raise SpecError("claim spec carries no executable argv; refusing to invent a command")
-    timeout_s = spec.get("timeout_s", DEFAULT_TIMEOUT_S)
+    timeout_s = spec.get("timeout_s") or DEFAULT_TIMEOUT_S
     if not isinstance(timeout_s, (int, float)) or not 0 < timeout_s <= MAX_TIMEOUT_S:
         raise SpecError("claim spec timeout_s is out of bounds")
+    claim_heartbeat = claim.get("heartbeat_s")
+    if isinstance(claim_heartbeat, (int, float)) and claim_heartbeat > 0:
+        heartbeat_s = min(heartbeat_s, float(claim_heartbeat))
     result_id = "r-" + dispatch_id
     if len(result_id) > 200:
         raise SpecError("dispatch_id leaves no room for a result_id within 200 chars")
@@ -384,7 +388,11 @@ class WorkerLoop:
         return "delivered"
 
     def _send_heartbeat(self, client: ControllerClient, spec: ExecutionSpec) -> None:
-        client.heartbeat(self.worker_id, [spec.dispatch_id])
+        payload = client.heartbeat(self.worker_id, [spec.dispatch_id])
+        if spec.dispatch_id in payload.get("cancel", []) or spec.dispatch_id in payload.get("stop", []):
+            watcher = self._watchers.get(spec.dispatch_id)
+            if watcher:
+                watcher._cancelled.set()
 
     def _deliver_payload(self, payload: dict) -> None:
         outbox_write(self.home, payload)
