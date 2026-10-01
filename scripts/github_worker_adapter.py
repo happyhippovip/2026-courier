@@ -95,7 +95,10 @@ def verify_result(task: dict[str, Any], result: dict[str, Any], evidence: dict[s
     if not isinstance(artifacts, list) or len(artifacts) != 1:
         raise ValueError("successful DurableResult requires one evidence artifact")
     artifact = artifacts[0]
-    evidence_file = directory / artifact.get("path", "")
+    evidence_path = artifact.get("path", "")
+    if not isinstance(evidence_path, str) or not evidence_path or Path(evidence_path).is_absolute() or ".." in Path(evidence_path).parts:
+        raise ValueError("evidence artifact path escapes the download directory")
+    evidence_file = directory / evidence_path
     if not evidence_file.is_file() or artifact.get("sha256") != hashlib.sha256(evidence_file.read_bytes()).hexdigest():
         raise ValueError("evidence artifact hash does not match")
     operation = result["operation"]

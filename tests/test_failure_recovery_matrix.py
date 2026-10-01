@@ -36,11 +36,14 @@ def test_result_from_another_worker_is_rejected(tmp_path, monkeypatch):
     assert server_app.load_state()["tasks"][task["task_id"]]["status"] == "DISPATCHED"
 
 
-@pytest.mark.parametrize("field", ["goal_id", "attempt_id", "dispatch_id"])
-def test_result_with_wrong_identity_is_rejected(tmp_path, monkeypatch, field):
+@pytest.mark.parametrize(
+    "field,status", [("goal_id", 400), ("attempt_id", 400), ("dispatch_id", 409)])
+def test_result_with_wrong_identity_is_rejected(tmp_path, monkeypatch, field, status):
     http, _, task = setup_claimed_task(tmp_path, monkeypatch)
     wrong = dict(durable_result(task), **{field: "wrong"})
-    assert http.post("/tasks/result", headers=auth(), json=wrong).status_code == 400
+    # Same-attempt dispatch mismatch is a cross-dispatch replay -> 409 conflict;
+    # other identity mismatches stay 400 validation failures.
+    assert http.post("/tasks/result", headers=auth(), json=wrong).status_code == status
     assert server_app.load_state()["tasks"][task["task_id"]]["status"] == "DISPATCHED"
 
 
