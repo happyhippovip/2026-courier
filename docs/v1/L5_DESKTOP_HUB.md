@@ -51,7 +51,8 @@ shows the same piles, because they are recomputed from the journal on every read
 
 A stop recorded after a non-idempotent action had already started keeps the label
 "Stopped", but never says nothing happened: "Stopped after the action had started.
-Part of it may already have happened." A runtime state the hub does not know is
+Part of it may already have happened." A failed item's receipt says whether Courier checked the result and refused it, or never
+got a result it could check; it never says "Checked by Courier". A runtime state the hub does not know is
 shown as "State not recognised by this hub", with no actions.
 
 "Try once more" asks for confirmation first and names the concrete consequence.
@@ -70,7 +71,8 @@ worker, effect key, event names) appear only in the receipt's "For support" sect
 
 ## Quiet when idle
 
-The hub re-reads the journal only when its head sequence changes. The page
+The hub re-reads the journal only when its head (sequence and hash) changes, so a
+restored or replaced journal of the same length is never served from cache. The page
 re-renders only when what it shows changes (or once a minute for relative
 times), and stops polling while its tab is hidden.
 

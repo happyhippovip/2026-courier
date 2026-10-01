@@ -292,8 +292,12 @@ def receipt(task: Any, events: Iterable[Any]) -> dict:
                               "decided": _PLAIN_STEPS[kind] if kind != "TASK_CANCELLED" else "Chose to stop",
                               "reason": payload.get("reason"), "at": _get(event, "ts_utc")})
     accepted = [e for e in events if _type(e) == "RESULT_ACCEPTED"]
-    if accepted:
-        how = "Checked by Courier: " + (str(_payload(accepted[-1]).get("reason") or "the evidence matched"))
+    rejected = [e for e in events if _type(e) == "RESULT_REJECTED"]
+    if pile == PILE_DONE and done_outcome(task) == OUTCOME_COULD_NOT_COMPLETE:
+        how = ("Courier checked the result and did not accept it." if rejected
+               else "Courier could not get a result it could check.")
+    elif accepted:
+        how = "Checked by Courier: the result matched the evidence it was checked against."
     elif pile == PILE_DONE and done_outcome(task) == OUTCOME_HUMAN_CONFIRMED:
         how = f"Confirmed by {display_actor(_get(task, 'decided_by'))}. Courier did not verify it."
     elif pile == PILE_DONE:

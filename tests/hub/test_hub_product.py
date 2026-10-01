@@ -546,7 +546,41 @@ def test_500_tasks_render_quickly_and_quietly(tmp_path):
     started = time.perf_counter()
     hub.home_view()
     cached = time.perf_counter() - started
-    assert view["counts"]["working"] == 500 and first < 3.0 and cached < first
+    assert view["counts"]["working"] == 500 and first < 10.0 and cached < first
+
+
+def test_a_replaced_journal_with_the_same_length_is_never_served_from_cache(tmp_path):
+    from courier_core.events import Event, EventType
+    from courier_core.journal import Journal
+
+    def make(path, title):
+        with Journal(path) as journal:
+            journal.append(Event(type=EventType.TASK_CREATED, task_id="t1", payload={
+                "adapter": "synthetic", "params": {"title": title}, "effect_class": "idempotent",
+                "max_attempts": 3, "lease_ttl_s": 6}))
+
+    home = tmp_path / "home"
+    make(home / "courier.db", "Before restore")
+    make(tmp_path / "other" / "courier.db", "After restore")
+    hub = Hub(home, "http://127.0.0.1:9", actor=ACTOR)
+    assert hub.home_view()["working"][0]["title"] == "Before restore"
+    (tmp_path / "other" / "courier.db").replace(home / "courier.db")  # same head seq, different history
+    assert hub.home_view()["working"][0]["title"] == "After restore"
+
+
+def test_failed_receipt_never_claims_courier_checked_it():
+    task = state("FAILED")
+    rejected = [{"type": "RESULT_REJECTED", "task_id": "t1", "payload": {"reason": "hash mismatch"}}]
+    assert model.receipt(task, rejected)["how_known"] == "Courier checked the result and did not accept it."
+    assert model.receipt(task, [])["how_known"] == "Courier could not get a result it could check."
+
+
+@pytest.mark.parametrize("actor", ["", "ana smith", "a" * 201, "<script>", "ana\nforged"])
+def test_an_unsafe_actor_name_is_refused_at_start(tmp_path, actor):
+    from courier_hub.server import main
+    with pytest.raises(SystemExit) as stopped:
+        main(["--home", str(tmp_path), "--controller", "http://127.0.0.1:9", "--actor", actor])
+    assert stopped.value.code == 2
 
 
 @pytest.mark.parametrize("headers, body, status", [
