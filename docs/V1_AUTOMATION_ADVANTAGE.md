@@ -172,3 +172,17 @@ For the current locked V1:
 Only after those gates should real adapters and richer autonomous continuation become product implementation scope.
 
 The principle is durable; the implementation order remains unchanged.
+
+
+## 7. Domain Assurance Profiles
+
+Courier's automation contract should become consequence-aware by domain.
+
+Canonical companion:
+`docs/V1_DOMAIN_ASSURANCE_PROFILES.md`
+
+The long-term differentiator is not one generic agent policy for every task. It is one durable assurance kernel with stricter domain profiles for areas such as robotics, medical systems, and aviation.
+
+Profiles determine proof obligations, authorization gates, retry/recovery rules, evidence requirements, and Human Desk conditions while preserving one canonical ledger.
+
+The Windows V1 scope/order remains unchanged.
