@@ -474,3 +474,48 @@ attempt.
 **Lane watch.** m06 (`d8265a5b`), OVERLAY (`a53b3c73`) and g05 (`724aee46`)
 are unchanged and still blocked. PR #57 is unchanged: open, mergeable, and
 waiting on Dennis.
+
+## Step 10 — PR #58, product-quality / customer-experience contract (docs only, 2026-10-01)
+
+| Field | Value |
+|---|---|
+| Source | [happyhippovip/2026-courier#58](https://github.com/happyhippovip/2026-courier/pull/58), branch `lane/L1-product-quality-bar` (owner account). Commits: `0d0e6f51` (quality bar), `9990b9e9` (handoff) |
+| Source SHA | `9990b9e9`, based on `c3affaf9`, the integration head at review time |
+| Resulting integration SHA | `d9a6a4f3` (merge commit, `--no-ff`) |
+| Files | `docs/V1_PRODUCT_QUALITY_BAR.md` (new, 497 lines), `docs/NEXT_CHAT_HANDOFF.md` (rewritten); 0 non-doc files |
+| Conflicts | none (`git merge-tree` clean; GitHub `mergeable_state: clean`) |
+| Manual resolution | none |
+| Docs verification | Every repo path the two documents reference exists (`docs/V1_RULE_0.md`, `docs/V1_PRODUCT_QUALITY_BAR.md`, `docs/NEXT_CHAT_HANDOFF.md`, `docs/v1/INTEGRATION_LOG.md`). No unbalanced code fences |
+| Overall, CI | __CI__ |
+| Known remaining failures | unchanged |
+
+**Content review against `integration/v1` @ `c3affaf9`.**
+
+- **Accurate:** the handoff anchor (`c3affaf9`, L2 core as step 9, golden
+  harness waiting only for `courier_core.serve`, `courier_worker.host` and
+  `adapters.synthetic`).
+- **No architecture change.** The directions are consistent with integrated
+  code:
+  - the journal already uses a finite busy timeout (30 s), a fail-closed
+    hash chain, and replay that equals the live projection;
+  - Windows process containment via Job Objects matches the locked
+    architecture;
+  - the GOLDEN PATH stage gate lists exactly the failure classes in
+    `tests/golden/test_golden_failures.py`;
+  - "timing-sensitive failures stay visible, not hidden as random CI" matches
+    the step-8 handling of the lease-reclaim race (tracked, still run and
+    reported).
+- **Implications for blocked lanes, recorded for L1 re-integration.**
+  - g05: the contract rules out broad `taskkill` as the final containment, so
+    a corrected g05 must prove owned-tree containment, preferably with a
+    Job Object.
+  - m06: legacy JSON publish paths must not become V1 state, so a corrected
+    m06 stays a legacy-adapter fix.
+- **Nit, not changed:** in §10 (WINDOWS EXE), `` `Local\\CourierV1` `` is
+  inside a code span and therefore renders with two backslashes. The intended
+  mutex name is `Local\CourierV1`, as in the Issue #54 correction.
+
+**After step 10.** L1 has no further own implementation work. It waits for
+the next official lane delivery on the critical path:
+L2 Controller/API (`courier_core.serve`) → L3 worker host + L4 synthetic
+adapter / verifier → live golden path.
