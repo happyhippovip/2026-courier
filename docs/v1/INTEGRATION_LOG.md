@@ -519,3 +519,10 @@ waiting on Dennis.
 the next official lane delivery on the critical path:
 L2 Controller/API (`courier_core.serve`) → L3 worker host + L4 synthetic
 adapter / verifier → live golden path.
+
+## Step 11 — PR #70, Compose L2, L3, L4, and L1 Golden zero-skip fix (2026-10-01)
+### `lane/L1-integration` merged `lane/L2-controller`, `lane/L3-bridge-clean`, `lane/L4-verifier-synthetic`, and `lane/L1-golden-zero-skip`
+
+- Composed newest clean L2 (Controller), L3 (Worker Host/Service), and L4 (Verifier Synthetic Adapter) candidates.
+- Integrated L1 CI Gate fix to enforce Golden tests zero-skip, preventing hidden regressions when tests are omitted on supported platforms.
+- `tests/golden` passes 11/11. No skips on Linux natively.
