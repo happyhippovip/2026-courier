@@ -277,3 +277,23 @@ Near-term V1 work should preserve the primitives these future profiles need:
 - bounded resource ownership.
 
 Domain-specific regulated implementations come later and require domain experts, applicable standards, validation, and certification/regulatory work.
+
+## 13. Fail-safe extension rule
+
+Any future effect class or assurance profile must default to the strict path.
+
+Kernel rule:
+
+**only effects explicitly proven/declared idempotent may enter automatic retry.**
+
+Unknown or newly-added effect classes must not inherit retryability by omission.
+
+Examples of future classes that must not silently become retry-safe:
+- physical actuation;
+- medical/device consequence;
+- aviation/flight consequence;
+- legal/financial external effect.
+
+Likewise, consequential human reconciliation must be represented by durable actor-attributed events rather than hidden state mutation.
+
+This rule should be preserved before those domains are implemented.
