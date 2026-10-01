@@ -81,6 +81,10 @@ def http_post(config, endpoint, data):
 # Files without worker_phase come from the previous daemon, which wrote them
 # right before executing, so they are treated as STARTED.
 MAX_RESULT_POST_ATTEMPTS = 8
+# In-execution heartbeat cadence for run_native (mirrors run_muse/run_agy):
+# the server reclaims workers unseen for 300s while NATIVE_TIMEOUT_SECONDS
+# allows up to 600s, so a silent native run must beat.
+NATIVE_HEARTBEAT_INTERVAL_SECONDS = 30
 
 def persist_task(path, task):
     atomic_json(path, task)
@@ -291,8 +295,21 @@ def run_native(task, config):
         process = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    text=True, start_new_session=True, **kwargs)
         identity = process_identity(process.pid)
+        # Sliced communicate with in-execution heartbeat (same pattern as
+        # run_agy): the overall deadline is unchanged and still handled below.
         try:
-            stdout, stderr = process.communicate(timeout=timeout)
+            deadline = time.monotonic() + timeout
+            while True:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise subprocess.TimeoutExpired(argv, timeout)
+                try:
+                    stdout, stderr = process.communicate(
+                        timeout=min(NATIVE_HEARTBEAT_INTERVAL_SECONDS, remaining))
+                    break
+                except subprocess.TimeoutExpired:
+                    if config.get("COURIER_SERVER"):
+                        http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
         except subprocess.TimeoutExpired:
             cleanup_group(process, identity)
             try:
