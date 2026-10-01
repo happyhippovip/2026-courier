@@ -486,7 +486,7 @@ waiting on Dennis.
 | Conflicts | none (`git merge-tree` clean; GitHub `mergeable_state: clean`) |
 | Manual resolution | none |
 | Docs verification | Every repo path the two documents reference exists (`docs/V1_RULE_0.md`, `docs/V1_PRODUCT_QUALITY_BAR.md`, `docs/NEXT_CHAT_HANDOFF.md`, `docs/v1/INTEGRATION_LOG.md`). No unbalanced code fences |
-| Overall, CI | __CI__ |
+| Overall, CI | [run 36815640095](https://github.com/happyhippovip/2026-courier/actions/runs/36815640095) (`workflow_dispatch` on `e8f2b367`; docs-only pushes do not trigger CI). **ubuntu-latest:** PASS, 460 passed, 1 failed (known), 11 skipped. **windows-latest:** PASS, 357 passed, 65 failed (known + 19 out of scope), 12 skipped, new=0. Code tree identical to `c3affaf9` |
 | Known remaining failures | unchanged |
 
 **Content review against `integration/v1` @ `c3affaf9`.**
