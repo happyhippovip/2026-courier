@@ -186,3 +186,33 @@ The long-term differentiator is not one generic agent policy for every task. It 
 Profiles determine proof obligations, authorization gates, retry/recovery rules, evidence requirements, and Human Desk conditions while preserving one canonical ledger.
 
 The Windows V1 scope/order remains unchanged.
+
+
+## 8. Commercial sustainability
+
+Courier must become a sustainable business, not only an impressive engineering system.
+
+Technical uniqueness is valuable only when it converts into customer value people will pay for and can be delivered with healthy operating economics.
+
+Every major product improvement should eventually be evaluated against:
+- customer pain removed;
+- willingness to pay;
+- retention / repeated use;
+- cost to serve;
+- support burden;
+- gross-margin impact;
+- whether it reduces owner babysitting;
+- whether it creates a clearer paid tier, pilot, or enterprise value proposition.
+
+Do not optimize for maximum autonomous compute if the customer value does not justify the cost.
+
+Prefer product improvements that increase:
+**verified useful work per euro of customer value and per euro of compute/support cost.**
+
+Commercial discipline does not change the locked V1 implementation route. It means the Windows EXE, clean-machine acceptance, real adapters, and later domain assurance capabilities must be designed toward something customers can actually buy, trust, and keep using.
+
+The company must be able to fund normal real-world obligations such as salaries/owner income, taxes, insurance, infrastructure, support, and continued product development.
+
+Avoid both extremes:
+- shipping unsafe or unfinished work merely for revenue;
+- endlessly polishing technical novelty without proving a path to paying customers.
