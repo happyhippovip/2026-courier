@@ -81,6 +81,9 @@ def http_post(config, endpoint, data):
 # Files without worker_phase come from the previous daemon, which wrote them
 # right before executing, so they are treated as STARTED.
 MAX_RESULT_POST_ATTEMPTS = 8
+# In-execution heartbeat cadence for run_agy (mirrors run_muse's 30s): the
+# server reclaims workers unseen for 300s, so a silent agy run must beat.
+AGY_HEARTBEAT_INTERVAL_SECONDS = 30
 
 def persist_task(path, task):
     atomic_json(path, task)
@@ -139,11 +142,16 @@ def bind_runtime_task(task, config):
 
 
 def require_no_orphan():
-    previous = read_object(STATE_DIR / "muse_process.json")
-    if previous and previous.get("state") != "CLEAN":
-        identity = previous.get("identity")
-        if not identity or group_exists(identity["pgid"]):
-            raise RuntimeError("Unreconciled Muse child; no further claims/executions allowed")
+    # Muse and agy executions each leave a marker; a non-CLEAN marker whose
+    # group may still be alive (violent daemon death mid-execution) blocks
+    # new claims/executions until an operator reconciles it. A provably dead
+    # group needs no reconciliation: the next run overwrites the marker.
+    for marker, label in (("muse_process.json", "Muse"), ("agy_process.json", "agy")):
+        previous = read_object(STATE_DIR / marker)
+        if previous and previous.get("state") != "CLEAN":
+            identity = previous.get("identity")
+            if not identity or group_exists(identity["pgid"]):
+                raise RuntimeError(f"Unreconciled {label} child; no further claims/executions allowed")
 
 
 def persist_ready_result(path, task, config):
@@ -293,6 +301,26 @@ def run_native(task, config):
     except Exception as e:
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "NATIVE"}
 
+def _reap_agy_group(process, identity):
+    """Best-effort group reap for the agy wrapper subtree; never raises.
+
+    Called from timeout/finally paths where blocking or leaking is worse
+    than a redundant signal. cleanup_group first (PID-reuse safe); direct
+    kill as fallback; wait() guarantees the direct child is reaped so a
+    later communicate() cannot block.
+    """
+    try:
+        if not cleanup_group(process, identity):
+            process.kill()
+    except Exception:
+        pass
+    try:
+        process.wait()
+    except Exception:
+        pass
+    process.poll()
+
+
 def run_agy(task, config):
     write_log(f"Running AI task {task['task_id']} via agy")
     instruction = task.get('instruction', task.get('description', ''))
@@ -304,10 +332,48 @@ def run_agy(task, config):
         
     wrapper = os.path.join(os.path.dirname(__file__), "limit_wrapper.sh")
     cmd = [wrapper, agy_bin, "-p", prompt, "--dangerously-skip-permissions"]
-    
+    timeout = min(float(config.get("AGY_TIMEOUT_SECONDS", 300)), 3600)
+
+    # The wrapper spawns agy as a grandchild, so killing only the direct
+    # child would orphan it. Like run_muse, launch a fresh session and reap
+    # the whole process group on timeout or interruption (WorkerShutdown
+    # propagates through communicate and must not leak the child either).
+    process = None
+    identity = None
+    # Orphan marker (mirrors run_muse's muse_process.json): a violent daemon
+    # death between spawn and exit must be detectable on restart via
+    # require_no_orphan. Overwritten by every run; only non-CLEAN counts.
+    child_file = STATE_DIR / "agy_process.json"
     try:
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        stdout, stderr = process.communicate(timeout=300)
+        atomic_json(child_file, {"state": "STARTING"})
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   text=True, start_new_session=True)
+        identity = process_identity(process.pid)
+        atomic_json(child_file, {"state": "RUNNING", "identity": identity})
+        # Sliced communicate with in-execution heartbeat: the server's
+        # reclaim_stale quarantines workers unseen for 300s, and the default
+        # agy window spans exactly that. Same 30s cadence as run_muse; the
+        # overall deadline is unchanged and still handled below.
+        try:
+            deadline = time.monotonic() + timeout
+            while True:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise subprocess.TimeoutExpired(cmd, timeout)
+                try:
+                    stdout, stderr = process.communicate(
+                        timeout=min(AGY_HEARTBEAT_INTERVAL_SECONDS, remaining))
+                    break
+                except subprocess.TimeoutExpired:
+                    if config.get("COURIER_SERVER"):
+                        http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
+        except subprocess.TimeoutExpired:
+            _reap_agy_group(process, identity)
+            stdout, stderr = process.communicate()
+            return {"status": "FAILED",
+                    "stderr": ((stderr or "") + f"\nTIMEOUT after {timeout:g}s; "
+                               "process group killed and reaped").strip(),
+                    "execution_mode": "ANTIGRAVITY", "reason": "TIMEOUT"}
         
         out_clean = stdout.strip()
         parsed = False
@@ -325,11 +391,24 @@ def run_agy(task, config):
         if not parsed:
             res_json["status"] = "FAILED"
             res_json["raw_diagnostic"] = out_clean
-            
+
         return res_json
-        
+
     except Exception as e:
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "ANTIGRAVITY"}
+    finally:
+        # BaseException (e.g. WorkerShutdown on SIGTERM) skips the FAILED
+        # dict above; still reap the group so no orphan keeps running, then
+        # record the outcome: CLEAN only when the group is provably gone,
+        # otherwise fail closed like run_muse (outer except → FAILED).
+        if process is not None:
+            if process.poll() is None:
+                _reap_agy_group(process, identity)
+            clean = process.poll() is not None and not group_exists(process.pid)
+            atomic_json(child_file, {"state": "CLEAN" if clean else "ORPHANS_REMAIN",
+                                     "identity": identity})
+            if not clean:
+                raise RuntimeError("agy child cleanup unproven; no new execution allowed")
 
 def run_muse(task, config):
     """Muse slot execution through the muse_adapter boundary (no guessed CLI method)."""
@@ -480,7 +559,10 @@ def loop():
                 write_log("Registered successfully.")
                 registered = True
                 if release_ambiguous_task:
-                    os.remove(current_task_state_file)
+                    # The release was already delivered via the register POST
+                    # above; a missing marker (operator cleanup) must neither
+                    # raise nor leave the flag stale for a duplicate release.
+                    current_task_state_file.unlink(missing_ok=True)
                     release_ambiguous_task = False
                 
             # Heartbeat
@@ -588,7 +670,7 @@ def loop():
                     registered = False
                     task = None
                 else:
-                    os.remove(current_task_state_file)
+                    current_task_state_file.unlink(missing_ok=True)
                     task = None
                     if one_task:
                         write_log("Task delivered; exiting for a fresh slot process.")
