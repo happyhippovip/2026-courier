@@ -50,6 +50,7 @@ STATIC_TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript; ch
                 ".svg": "image/svg+xml"}
 MAX_BODY_BYTES = 16 * 1024
 CONTROLLER_TIMEOUT_S = 5.0
+ACTOR_RE = re.compile(r"^[A-Za-z0-9_.:@-]{1,200}$")
 _ITEM = re.compile(r"^/hub/api/items/([A-Za-z0-9_.:-]{1,200})$")
 _ITEM_ACTION = re.compile(r"^/hub/api/items/([A-Za-z0-9_.:-]{1,200})/(decision|stop)$")
 
@@ -127,10 +128,10 @@ class Hub:
         finally:
             journal.close()
 
-    def _head(self) -> int:
+    def _head(self) -> tuple:
         journal = self._open()
         try:
-            return journal.head()[0]
+            return tuple(journal.head())  # (seq, hash): a replaced journal never matches the cache
         except sqlite3.DatabaseError as exc:
             raise TruthUnavailable("unreadable") from exc
         finally:
@@ -145,9 +146,9 @@ class Hub:
             if cached is not None and cached[0] == head:
                 view = dict(cached[1])
             else:
-                tasks, events_by_task, head = self._read()
+                tasks, events_by_task, _ = self._read()
                 view = model.home(tasks, events_by_task)
-                view["head_seq"] = head
+                view["head_seq"] = head[0]
                 with self._cache_lock:
                     self._cached = (head, view)
                 view = dict(view)
@@ -395,6 +396,8 @@ def main(argv: Optional[list] = None) -> int:
     args = parser.parse_args(argv)
     if not args.home:
         parser.error("--home (or COURIER_HOME) is required")
+    if args.actor is not None and not ACTOR_RE.match(args.actor):
+        parser.error("--actor must be 1-200 characters of letters, digits and _.:@-")
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     server = HubServer(Hub(Path(args.home), args.controller, actor=args.actor), args.port)
     if args.print_url:
