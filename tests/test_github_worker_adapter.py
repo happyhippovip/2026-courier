@@ -92,6 +92,64 @@ def test_verify_result_accepts_evidence_inside_download_directory(tmp_path: Path
     assert adapter.verify_result(task, result, _success_evidence(), "99", directory) is None
 
 
+def _completed_run_result(blob_digest):
+    task = packet()
+    return task, {
+        **task,
+        "run_id": "99",
+        "run_attempt": "1",
+        "result_id": "result-dispatch-1",
+        "status": "SUCCESS",
+        "operation": "deterministic_transform",
+        "artifacts": [{"path": "out.bin", "sha256": blob_digest}],
+    }
+
+
+def test_run_posts_verified_result_and_records_posted_state(tmp_path: Path, monkeypatch):
+    task_file = tmp_path / "task.json"
+    task_file.write_text(json.dumps(packet()), encoding="utf-8")
+    blob = b"worker-output\n"
+    task, result = _completed_run_result(hashlib.sha256(blob).hexdigest())
+    evidence = _success_evidence()
+    posted = []
+    monkeypatch.setattr(adapter, "find_run", lambda _: ("99", "completed"))
+
+    def fake_download(run_id, dispatch_id, directory):
+        assert (run_id, dispatch_id) == ("99", "dispatch-1")
+        directory.mkdir(parents=True, exist_ok=True)
+        (directory / f"result_{dispatch_id}.json").write_text(json.dumps(result), encoding="utf-8")
+        (directory / "out.bin").write_bytes(blob)
+        return result, evidence
+
+    monkeypatch.setattr(adapter, "download_result", fake_download)
+    monkeypatch.setattr(adapter, "post_result", posted.append)
+    assert adapter.run(str(task_file)) == 0
+    assert [p["result_id"] for p in posted] == ["result-dispatch-1"]
+    state = json.loads(adapter.state_path(task_file).read_text(encoding="utf-8"))
+    assert state["status"] == "POSTED" and state["run_id"] == "99"
+    assert not (tmp_path / ".courier-result-dispatch-1").exists()
+
+
+def test_run_with_tampered_evidence_posts_nothing_and_cleans_up(tmp_path: Path, monkeypatch):
+    task_file = tmp_path / "task.json"
+    task_file.write_text(json.dumps(packet()), encoding="utf-8")
+    _, result = _completed_run_result(hashlib.sha256(b"worker-output\n").hexdigest())
+    posted = []
+    monkeypatch.setattr(adapter, "find_run", lambda _: ("99", "completed"))
+
+    def fake_download_tampered(run_id, dispatch_id, directory):
+        directory.mkdir(parents=True, exist_ok=True)
+        (directory / "out.bin").write_bytes(b"tampered\n")
+        return result, _success_evidence()
+
+    monkeypatch.setattr(adapter, "download_result", fake_download_tampered)
+    monkeypatch.setattr(adapter, "post_result", posted.append)
+    with pytest.raises(ValueError, match="hash does not match"):
+        adapter.run(str(task_file))
+    assert posted == []
+    assert not (tmp_path / ".courier-result-dispatch-1").exists()
+
+
 @pytest.mark.parametrize("bad_input", [None, 42, ["x"], {"x": 1}])
 def test_validate_task_rejects_non_string_transform_input(bad_input):
     with pytest.raises(ValueError, match="string input"):
