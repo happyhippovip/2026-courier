@@ -216,3 +216,32 @@ The company must be able to fund normal real-world obligations such as salaries/
 Avoid both extremes:
 - shipping unsafe or unfinished work merely for revenue;
 - endlessly polishing technical novelty without proving a path to paying customers.
+
+
+## 9. Anti-commodity horizon review
+
+Courier should periodically re-evaluate its differentiation as external agent platforms add new commodity primitives.
+
+Canonical review template:
+`docs/v1/orchestration/OPUS_STRATEGIC_MOAT_REVIEW.md`
+
+The rule is:
+
+**do not chase features; protect guarantees.**
+
+When a competitor ships scheduling, background agents, workflows, memory, computer use, or other execution primitives, ask whether Courier's customer value still survives if that primitive becomes universally available.
+
+A durable differentiator should depend on guarantees such as:
+- canonical truth;
+- verified completion;
+- exactly-once protection;
+- consequence-aware recovery;
+- reconciliation;
+- domain assurance;
+- evidence/change traceability;
+- resource-aware continuation;
+- customer-safe explanation.
+
+If a proposed differentiator disappears when a commodity primitive becomes widespread, it is not a moat.
+
+This review may create advisory proposals only. Implementation still follows the locked V1 route and one L1-L6 owner per change.
