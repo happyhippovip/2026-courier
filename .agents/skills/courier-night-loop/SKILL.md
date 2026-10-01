@@ -115,15 +115,26 @@ Do not add a unit if its fingerprint is already completed for the same head.
 
 Do not invent features.
 
-### 5. Execute exactly one bounded work unit
+### 5. Execute one deep bounded batch
 
-Select the highest-priority first unfinished unit.
+Select the highest-priority unfinished units.
 
-Spend the turn completing that unit thoroughly.
+Target **6 useful units per scheduled wake**.
+Complete at least 4 when 4 honest runnable units exist.
+Maximum 8.
 
-A unit may contain several sequential read-only substeps and targeted test-design checks.
+Do not end the scheduled turn after one small finding merely because one unit reached a conclusion.
 
-Prefer depth over returning after one trivial observation.
+You may finish before 4 only when:
+- RESOURCE_PAUSE is active;
+- no additional honest non-duplicate unit exists;
+- remaining items need an owner decision;
+- remaining items are WAIT_FOR_LANE / DEFER_AFTER_EXE;
+- a real contract contradiction makes continued review misleading.
+
+Each unit may contain several sequential read-only substeps and targeted test-design checks.
+
+Prefer depth over frequent short returns.
 
 For each unit record:
 
