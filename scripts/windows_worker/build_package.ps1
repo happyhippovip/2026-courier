@@ -18,7 +18,7 @@ if ($LASTEXITCODE -ne 0) {
 
 # 2. Copy binaries and scripts
 Copy-Item "$PSScriptRoot\Courier.exe" -Destination $OutDir
-Copy-Item "$PSScriptRoot\daemon.py" -Destination $OutDir
+Copy-Item -Recurse "$PSScriptRoot\..\..\courier_worker" -Destination "$OutDir\courier_worker"
 Copy-Item "$PSScriptRoot\install.ps1" -Destination $OutDir
 Copy-Item "$PSScriptRoot\uninstall.ps1" -Destination $OutDir
 

@@ -75,23 +75,17 @@ namespace CourierLauncher
             }
 
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string pyScript = Path.Combine(baseDir, "daemon.py");
+            string workerModule = "courier_worker.host";
             
-            if (!File.Exists(pyScript)) 
-            {
-                Console.WriteLine(string.Format("Error: {0} not found.", pyScript));
-                Environment.Exit(1);
-            }
-
             // Path priorities:
             // 1. Packaged embedded python (no external dependencies)
             // 2. uv fallback for dev environments
             string pythonExe = "uv";
-            string arguments = string.Format("run python \"{0}\"", pyScript);
+            string arguments = string.Format("run python -m {0}", workerModule);
             
             if (File.Exists(Path.Combine(baseDir, "python", "python.exe"))) {
                 pythonExe = Path.Combine(baseDir, "python", "python.exe");
-                arguments = string.Format("\"{0}\"", pyScript);
+                arguments = string.Format("-m {0}", workerModule);
             }
             
             ProcessStartInfo psi = new ProcessStartInfo
