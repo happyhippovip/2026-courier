@@ -122,7 +122,17 @@ def state_path(task_file: Path) -> Path:
 
 
 def write_state(task_file: Path, state: dict[str, Any]) -> None:
-    state_path(task_file).write_text(json.dumps(state, sort_keys=True) + "\n", encoding="utf-8")
+    # Atomic publish: a kill between truncate and content commit must never
+    # leave a torn state file behind (torn state crashes every future run
+    # with JSONDecodeError while resume keeps respawning into the crash).
+    # The tmp name is thread-unique and has no .json suffix, so neither the
+    # resume glob nor the lock logic can mistake it for a packet or a lock.
+    tmp = task_file.with_name(f".{task_file.stem}.{os.getpid()}.{threading.get_ident()}.statetmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write(json.dumps(state, sort_keys=True) + "\n")
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp, state_path(task_file))
 
 
 def validate_task(task: dict[str, Any]) -> None:
