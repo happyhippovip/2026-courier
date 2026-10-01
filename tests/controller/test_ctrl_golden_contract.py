@@ -12,6 +12,7 @@ process-tree parts stay with the real golden tests.
 import json
 import os
 import sqlite3
+import subprocess
 import sys
 import textwrap
 import time
@@ -49,6 +50,16 @@ class ControllerOnly(Courier):
         env = super().env()
         env["PYTHONPATH"] = os.pathsep.join([str(self.probe_dir), env["PYTHONPATH"]])
         return env
+
+    def _spawn(self, args, log_name, new_group=False):
+        # `python -m` puts the cwd first on sys.path. Run from the probe dir so the
+        # probe `adapters` package wins over the repo's real one (lane L4).
+        log = open(self.logs / log_name, "ab")
+        self._log_handles.append(log)
+        proc = subprocess.Popen([sys.executable, "-m", *args], cwd=str(self.probe_dir), env=self.env(),
+                                stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT)
+        self.tracked_pids.add(proc.pid)
+        return proc
 
     def make_probe_task(self, **kw):
         body = {"adapter": "l2probe", "params": synthetic_params(), "effect_class": kw.pop("effect_class", "idempotent"),
