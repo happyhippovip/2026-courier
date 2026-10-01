@@ -14,15 +14,18 @@
   CONTROLLER_STOPPED is journaled and the journal is closed.
 
 HTTP API (prefix /v1, JSON bodies, see tests/golden/README.md):
-  GET  /health                 mode, head_seq (+ first_bad_seq when degraded)
+  GET  /health                 mode, head_seq, build (+ first_bad_seq when degraded)
   GET  /events                 SSE of every journal event, id = seq; resume with Last-Event-ID
-  GET  /tasks/<id>             projection row of one task
+  GET  /tasks/<id>             projection row of one task (+ effect_key)
   POST /tasks                  create a task (201, or 200 for a repeated idempotency_key)
-  POST /claim                  {"worker_id"} -> lease (200) or 204 when there is no work
+  POST /claim                  {"worker_id"} -> lease (200) or 204 when there is no work;
+                               spec.effect_key is the same for every attempt of a task
   POST /start                  {"dispatch_id"[, "worker_id"]}
   POST /heartbeat              {"worker_id", "dispatch_ids"} -> {"stop": [...], "cancel": [...]}
   POST /result                 {"dispatch_id", "result_id", "artifacts", "outcome"[, "retryable", "reason"]}
-  POST /tasks/<id>/cancel
+  POST /tasks/<id>/cancel      [{"actor", "reason"}]; a BLOCKED task needs "actor"
+  POST /tasks/<id>/resolve     {"decision": effect_confirmed|retry_authorized|cancel,
+                                "actor", "attempt" (the blocked attempt), "reason"}
   POST /shutdown
 
 Worker contract for cancellation (L3): when a heartbeat answer lists a
@@ -54,11 +57,13 @@ log = logging.getLogger("courier.serve")
 
 MAX_BODY_BYTES = 1024 * 1024
 SSE_KEEPALIVE_S = 15.0
+SSE_FLUSH_PADDING = b":" + b" " * 2048 + b"\n\n"  # an SSE comment; clients ignore it
 MAX_EVENT_STREAMS = 32  # each SSE client holds one thread; bound them
 MAX_DISCARD_BYTES = 4 * MAX_BODY_BYTES  # read-and-drop this much of a refused body so the answer is delivered
 TOKEN_HEADER = "X-Courier-Token"
 _TASK_PATH = re.compile(r"^/v1/tasks/([A-Za-z0-9_.:-]{1,200})$")
 _CANCEL_PATH = re.compile(r"^/v1/tasks/([A-Za-z0-9_.:-]{1,200})/cancel$")
+_RESOLVE_PATH = re.compile(r"^/v1/tasks/([A-Za-z0-9_.:-]{1,200})/resolve$")
 
 
 # --------------------------------------------------------------------- files
@@ -240,7 +245,10 @@ class Handler(BaseHTTPRequestHandler):
                 return None
             match = _CANCEL_PATH.match(path)
             if match:
-                return self._send(200, controller.cancel(match.group(1)))
+                return self._send(200, controller.cancel(match.group(1), body))
+            match = _RESOLVE_PATH.match(path)
+            if match:
+                return self._send(200, controller.resolve(match.group(1), body))
             raise ApiError(404, "not_found")
         except ApiError as exc:
             self._send(exc.status, exc.body())
@@ -287,6 +295,7 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.close_connection = True
         idle = 0.0
+        caught_up = True
         try:
             while not controller.stopping and not self.server.stopping.is_set():
                 batch = controller.events_after(last)
@@ -297,7 +306,15 @@ class Handler(BaseHTTPRequestHandler):
                 if batch:
                     self.wfile.flush()
                     idle = 0.0
+                    caught_up = False
                     continue
+                if not caught_up:
+                    # Clients that read in fixed-size blocks (requests.iter_lines reads 512
+                    # bytes) would hold the newest event until more bytes arrive; a comment
+                    # longer than such a block pushes it through before the stream idles.
+                    self.wfile.write(SSE_FLUSH_PADDING)
+                    self.wfile.flush()
+                    caught_up = True
                 controller.wait_for_change(last, 1.0)
                 idle += 1.0
                 if idle >= SSE_KEEPALIVE_S:

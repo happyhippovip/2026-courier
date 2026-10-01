@@ -12,8 +12,12 @@ only extra state it keeps is in memory and is rebuilt on boot:
   projection on boot.
 
 After any failure (lease lost, result rejected) the controller journals the
-decision the state machine allows: retry, fail, BLOCKED (an uncertain
-non-idempotent outcome is never retried) or CANCELLED.
+decision the state machine allows: retry, fail, BLOCKED (an uncertain outcome
+of anything not classified idempotent is never retried) or CANCELLED. A
+BLOCKED task waits for a human decision with an actor (resolve()).
+
+Attribution: CONTROLLER_STARTED records the build (courier_core.build);
+RESULT_ACCEPTED / RESULT_REJECTED record the verifier that decided.
 
 Integrity: on boot an existing journal is opened read-only and checked
 (SQLite quick_check, hash chain, append-only guards, projection == replay)
@@ -39,8 +43,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
+from courier_core.build import build_identity
 from courier_core.events import (
     EFFECT_CLASSES, MAX_ATTEMPTS_LIMIT, MAX_ID_LENGTH, RESULT_OUTCOMES, Event, EventType, EventValidationError,
+    effect_key,
 )
 from courier_core.journal import DedupeConflict, Journal, JournalError
 from courier_core.projection import ProjectionError
@@ -62,6 +68,12 @@ SUSPEND_GAP_S = 5.0  # a tick gap this long means the machine slept; leases are 
 
 TASK_FIELDS = {"adapter", "params", "effect_class", "max_attempts", "lease_ttl_s", "timeout_s", "idempotency_key"}
 RESULT_FIELDS = {"dispatch_id", "result_id", "artifacts", "outcome", "retryable", "reason"}
+MAX_REASON_CHARS = 2000
+
+# POST /v1/tasks/<id>/resolve: the human decisions a BLOCKED task accepts.
+RESOLVE_DECISIONS = {"effect_confirmed": EventType.EFFECT_CONFIRMED,
+                     "retry_authorized": EventType.RETRY_AUTHORIZED,
+                     "cancel": EventType.TASK_CANCELLED}
 
 
 class ApiError(Exception):
@@ -104,6 +116,15 @@ def _require_int(body: dict, name: str, low: int, high: int, required: bool = Tr
     return value
 
 
+def _require_reason(body: dict, required: bool) -> str | None:
+    value = body.get("reason")
+    if value is None and not required:
+        return None
+    if not isinstance(value, str) or not value.strip() or len(value) > MAX_REASON_CHARS:
+        raise ApiError(400, "invalid_request", f"reason must be a non-empty string of at most {MAX_REASON_CHARS} chars")
+    return value
+
+
 def _only_fields(body: Any, allowed: set[str]) -> dict:
     if not isinstance(body, dict):
         raise ApiError(400, "invalid_request", "request body must be a JSON object")
@@ -133,6 +154,8 @@ class Controller:
         self._stopping = threading.Event()
         self._threads: list[threading.Thread] = []
         self._last_tick: float | None = None
+        self._projection_readable = True
+        self.build = build_identity()
 
     # ------------------------------------------------------------------ boot
     def boot(self) -> "Controller":
@@ -151,7 +174,7 @@ class Controller:
         self.mode = NORMAL
         with self._locked():
             self._head_seq = self.journal.head()[0]
-            self._append(Event(type=EventType.CONTROLLER_STARTED, payload={"pid": os.getpid()}))
+            self._append(Event(type=EventType.CONTROLLER_STARTED, payload={"pid": os.getpid(), "build": self.build}))
             self._recover()
         return self
 
@@ -169,7 +192,9 @@ class Controller:
                 return f"hash chain broken: {report.reason}", report.first_bad_seq
             if not inspector.guards_present():
                 return "append-only guard triggers are missing", None
-            if not inspector.verify_projection():
+            # A projection from an older build is rebuilt by the writable open; a current
+            # one must equal the replay exactly.
+            if inspector.projection_current() and not inspector.verify_projection():
                 return "stored projection differs from journal replay", None
             return None
         except (sqlite3.DatabaseError, ProjectionError, ValueError) as exc:
@@ -185,6 +210,7 @@ class Controller:
         try:
             self.journal = Journal(self.db_path, readonly=True).open()
             self._head_seq = self.journal.head()[0]
+            self._projection_readable = self.journal.projection_current()
         except (sqlite3.DatabaseError, JournalError):
             self.journal = None
 
@@ -252,14 +278,15 @@ class Controller:
             self._append(self._task_event(EventType.TASK_FAILED, task, payload={"reason": reason}))
         elif decision is Decision.BLOCK:
             self._append(self._task_event(EventType.TASK_BLOCKED, task, payload={
-                "reason": f"outcome of non-idempotent attempt {task.attempt} is unknown ({reason}); "
+                "reason": f"outcome of {task.effect_class} attempt {task.attempt} is unknown ({reason}); "
                           "needs a human decision"}))
         else:
             self._append(self._task_event(EventType.TASK_CANCELLED, task, payload={"reason": "cancelled"}))
 
     # ------------------------------------------------------------------ API
     def health(self) -> dict:
-        body = {"mode": self.mode, "head_seq": self._head_seq, "active_leases": len(self._leases)}
+        body = {"mode": self.mode, "head_seq": self._head_seq, "active_leases": len(self._leases),
+                "build": self.build}
         if self.mode == DEGRADED:
             body["first_bad_seq"] = self.first_bad_seq
             body["reason"] = self.degraded_reason
@@ -268,11 +295,14 @@ class Controller:
     def task_view(self, task_id: str) -> dict:
         if self._stopping.is_set():
             raise ApiError(503, "stopping", "controller is shutting down")
+        if not self._projection_readable:
+            raise ApiError(503, DEGRADED, "task state is unavailable: the projection predates this build",
+                           first_bad_seq=self.first_bad_seq)
         with self._locked():
             task = self.journal.task(task_id) if self.journal else None
         if task is None:
             raise ApiError(404, "unknown_task")
-        return task.to_record()
+        return {**task.to_record(), "effect_key": effect_key(task.task_id)}
 
     def create_task(self, body: Any) -> tuple[int, dict]:
         self._require_writable()
@@ -324,7 +354,7 @@ class Controller:
                 self._leases[dispatch_id] = Lease(task.task_id, dispatch_id, worker_id, task.lease_ttl_s,
                                                   self._clock() + task.lease_ttl_s, "ttl")
                 spec = {"adapter": task.adapter, "params": task.params, "effect_class": task.effect_class,
-                        "timeout_s": task.timeout_s}
+                        "timeout_s": task.timeout_s, "effect_key": effect_key(task.task_id)}
                 return {"task_id": task.task_id, "attempt": attempt, "dispatch_id": dispatch_id,
                         "worker_id": worker_id, "ttl_s": task.lease_ttl_s,
                         "heartbeat_s": heartbeat_interval(task.lease_ttl_s), "spec": spec}
@@ -407,8 +437,8 @@ class Controller:
         if "retryable" in body:
             payload["retryable"] = body["retryable"]
         if "reason" in body:
-            if not isinstance(body["reason"], str) or len(body["reason"]) > 2000:
-                raise ApiError(400, "invalid_request", "reason must be a string of at most 2000 chars")
+            if not isinstance(body["reason"], str) or len(body["reason"]) > MAX_REASON_CHARS:
+                raise ApiError(400, "invalid_request", f"reason must be a string of at most {MAX_REASON_CHARS} chars")
             payload["reason"] = body["reason"]
         with self._locked():
             claim = self._claim_of(dispatch_id)
@@ -433,9 +463,12 @@ class Controller:
                 return 200, {"status": "ACCEPTED_FOR_VERIFY", "task_id": task.task_id, "seq": appended.event.seq}
             if task.dispatch_id == dispatch_id and task.status is TaskStatus.CLAIMED:
                 raise ApiError(409, "not_started", "report /v1/start before a result")
+            # The late report is kept as evidence (a human deciding a BLOCKED task needs it),
+            # but it never changes the task.
             late = Event(type=EventType.LATE_RESULT_DISCARDED, task_id=task.task_id, dispatch_id=dispatch_id,
                          result_id=result_id, dedupe_key=f"late:{dispatch_id}:{result_id}",
-                         payload={"reason": f"dispatch is not the active attempt (task {task.status.value})"})
+                         payload={**payload, "reported_reason": payload.get("reason"), "attempt": claim.attempt,
+                                  "reason": f"dispatch is not the active attempt (task {task.status.value})"})
             try:
                 self._append(late)
             except (TransitionError, DedupeConflict):  # pragma: no cover - defensive
@@ -443,23 +476,78 @@ class Controller:
             raise ApiError(409, "stale_dispatch", "result belongs to a superseded or finished dispatch",
                            task_status=task.status.value)
 
-    def cancel(self, task_id: str) -> dict:
+    def cancel(self, task_id: str, body: Any = None) -> dict:
+        """Request cancellation. Cancelling a BLOCKED task is a human decision: it needs an actor."""
         self._require_writable()
+        body = _only_fields(body or {}, {"actor", "reason"})
+        actor = _require_id(body, "actor") if body.get("actor") is not None else None
+        reason = _require_reason(body, required=False)
         with self._locked():
             task = self.journal.task(task_id)
             if task is None:
                 raise ApiError(404, "unknown_task")
-            if task.status in TERMINAL:
-                raise ApiError(409, "terminal", "task already finished", task_status=task.status.value)
-            if not task.cancel_requested:
-                self._append(self._task_event(EventType.TASK_CANCEL_REQUESTED, task,
-                                              payload={"reason": "requested via API"}))
-                task = self.journal.task(task_id)
-            if task.status in (TaskStatus.QUEUED, TaskStatus.BLOCKED):
-                self._append(self._task_event(EventType.TASK_CANCELLED, task, payload={"reason": "cancelled"}))
-            elif task.status is TaskStatus.RETRY_PENDING:
-                self._decide(task)
-            return {"status": self.journal.task(task_id).status.value, "cancel_requested": True}
+            return self._cancel(task, actor, reason)
+
+    def _cancel(self, task: TaskState, actor: str | None, reason: str | None) -> dict:
+        if task.status in TERMINAL:
+            raise ApiError(409, "terminal", "task already finished", task_status=task.status.value)
+        if task.status is TaskStatus.BLOCKED and actor is None:
+            raise ApiError(409, "actor_required", "cancelling a blocked task is a human decision; name the actor",
+                           task_status=task.status.value)
+        who = {"actor": actor} if actor is not None else {}
+        if not task.cancel_requested:
+            self._append(self._task_event(EventType.TASK_CANCEL_REQUESTED, task,
+                                          payload={"reason": reason or "requested via API", **who}))
+            task = self.journal.task(task.task_id)
+        if task.status in (TaskStatus.QUEUED, TaskStatus.BLOCKED):
+            self._append(self._task_event(EventType.TASK_CANCELLED, task,
+                                          payload={"reason": reason or "cancelled", **who}))
+        elif task.status is TaskStatus.RETRY_PENDING:
+            self._decide(task)
+        return {"status": self.journal.task(task.task_id).status.value, "cancel_requested": True}
+
+    def resolve(self, task_id: str, body: Any) -> dict:
+        """A human decision on a BLOCKED task: effect_confirmed, retry_authorized or cancel.
+
+        The body names the blocked attempt it decides about, so a stale or
+        repeated click cannot act on a later block of the same task.
+        """
+        self._require_writable()
+        body = _only_fields(body, {"decision", "actor", "attempt", "reason"})
+        decision = body.get("decision")
+        if decision not in RESOLVE_DECISIONS:
+            raise ApiError(400, "invalid_request", f"decision must be one of {sorted(RESOLVE_DECISIONS)}")
+        actor = _require_id(body, "actor")
+        attempt = _require_int(body, "attempt", 1, MAX_ATTEMPTS_LIMIT)
+        reason = _require_reason(body, required=True)
+        event_type = RESOLVE_DECISIONS[decision]
+        with self._locked():
+            task = self.journal.task(task_id)
+            if task is None:
+                raise ApiError(404, "unknown_task")
+            if event_type is not EventType.TASK_CANCELLED:
+                candidate = Event(type=event_type, task_id=task_id, attempt=attempt,
+                                  payload={"actor": actor, "reason": reason})
+                existing = self.journal.get_event_by_dedupe_key(candidate.dedupe_key)
+                if existing is not None:
+                    if existing.content() != candidate.content():
+                        raise ApiError(409, "decision_conflict", "this attempt was already decided differently")
+                    return {"status": task.status.value, "decision": decision, "duplicate": True}
+            if task.status is not TaskStatus.BLOCKED:
+                raise ApiError(409, "not_blocked", "only a blocked task takes a human decision",
+                               task_status=task.status.value)
+            if attempt != task.attempt:
+                raise ApiError(409, "stale_decision", f"the blocked attempt is {task.attempt}",
+                               task_status=task.status.value, attempt=task.attempt)
+            if event_type is EventType.TASK_CANCELLED:
+                result = self._cancel(task, actor, reason)
+                return {"status": result["status"], "decision": decision, "duplicate": False}
+            if event_type is EventType.RETRY_AUTHORIZED and task.cancel_requested:
+                raise ApiError(409, "cancel_requested", "cancellation was requested; cancel or confirm the effect")
+            if event_type is EventType.RETRY_AUTHORIZED and task.attempt >= MAX_ATTEMPTS_LIMIT:
+                raise ApiError(409, "attempt_limit", f"attempt limit {MAX_ATTEMPTS_LIMIT} reached")
+            self._append(candidate)
+            return {"status": self.journal.task(task_id).status.value, "decision": decision, "duplicate": False}
 
     # ------------------------------------------------------- background work
     def tick(self) -> None:
@@ -508,11 +596,13 @@ class Controller:
             common = dict(task_id=task_id, attempt=current.attempt, dispatch_id=current.dispatch_id,
                           result_id=current.pending_result_id)
             if verdict.accepted:
-                self._append(Event(type=EventType.RESULT_ACCEPTED, payload={"reason": verdict.reason}, **common))
+                self._append(Event(type=EventType.RESULT_ACCEPTED, **common,
+                                   payload={"reason": verdict.reason, "verifier": verdict.verifier}))
                 self._complete(self.journal.task(task_id))
             else:
                 self._append(Event(type=EventType.RESULT_REJECTED, **common,
-                                   payload={"reason": verdict.reason or "rejected", "retryable": verdict.retryable}))
+                                   payload={"reason": verdict.reason or "rejected", "retryable": verdict.retryable,
+                                            "verifier": verdict.verifier}))
                 self._decide(self.journal.task(task_id))
         return True
 

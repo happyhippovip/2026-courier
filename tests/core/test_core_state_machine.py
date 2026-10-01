@@ -110,8 +110,12 @@ def test_uncertain_non_idempotent_outcome_is_blocked_never_retried():
     assert blocked.status is TaskStatus.BLOCKED
     with pytest.raises(TransitionError, match="human decision"):
         apply(blocked, Attempt(attempt=2).claimed())
-    cancelled = run([task_event(EventType.TASK_CANCEL_REQUESTED), task_event(EventType.TASK_CANCELLED)], blocked)
+    with pytest.raises(TransitionError, match="needs an actor"):
+        run([task_event(EventType.TASK_CANCEL_REQUESTED), task_event(EventType.TASK_CANCELLED)], blocked)
+    cancelled = run([task_event(EventType.TASK_CANCEL_REQUESTED),
+                     task_event(EventType.TASK_CANCELLED, actor="desk:ana")], blocked)
     assert cancelled.status is TaskStatus.CANCELLED
+    assert cancelled.resolution == "cancelled_effect_unknown" and cancelled.decided_by == "desk:ana"
 
 
 def test_non_idempotent_attempt_that_never_started_may_be_retried():
@@ -219,4 +223,5 @@ def test_uncertain_non_idempotent_outcome_outranks_a_cancel_request():
     with pytest.raises(TransitionError, match="BLOCKED before it can be cancelled"):
         apply(lost, task_event(EventType.TASK_CANCELLED))
     blocked = apply(lost, task_event(EventType.TASK_BLOCKED, reason="uncertain"))
-    assert apply(blocked, task_event(EventType.TASK_CANCELLED)).status is TaskStatus.CANCELLED
+    cancelled = apply(blocked, task_event(EventType.TASK_CANCELLED, actor="desk:ana"))
+    assert cancelled.status is TaskStatus.CANCELLED and cancelled.resolution == "cancelled_effect_unknown"

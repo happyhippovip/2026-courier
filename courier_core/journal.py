@@ -129,9 +129,17 @@ class Journal:
             # so an interrupted first open is completed by the next one.
             conn.executescript(EVENTS_SCHEMA)
             conn.execute("BEGIN IMMEDIATE")
+            if not projection.is_current(conn):
+                rows = conn.execute("SELECT * FROM events ORDER BY seq").fetchall()
+                projection.rebuild_in_place(conn, (Event.from_row(row) for row in rows))
             projection.create_schema(conn)
             conn.execute(f"PRAGMA user_version={DB_SCHEMA_VERSION}")
             conn.execute("COMMIT")
+        except (projection.ProjectionError, ValueError) as exc:
+            if conn.in_transaction:
+                conn.execute("ROLLBACK")
+            conn.close()
+            raise JournalError(f"{self.path}: projection cannot be rebuilt: {exc}") from exc
         except BaseException:
             if conn.in_transaction:
                 conn.execute("ROLLBACK")
@@ -263,6 +271,10 @@ class Journal:
         names = {row[0] for row in self.conn.execute(
             "SELECT name FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'events'")}
         return {"events_no_update", "events_no_delete"} <= names
+
+    def projection_current(self) -> bool:
+        """False if the projection predates this build (the next writable open rebuilds it)."""
+        return projection.is_current(self.conn)
 
     def verify_projection(self) -> bool:
         """True if the stored projection equals a pure in-memory replay."""

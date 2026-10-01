@@ -24,7 +24,7 @@ from typing import Iterable
 from courier_core.events import Event, SYSTEM_EVENTS, canonical_json
 from courier_core.state_machine import TaskState, apply
 
-PROJECTION_VERSION = 1
+PROJECTION_VERSION = 2  # 2: resolution, decided_by
 
 _COLUMNS = [f.name for f in fields(TaskState)]
 _JSON_COLUMNS = {"params"}
@@ -56,6 +56,31 @@ def create_schema(conn: sqlite3.Connection) -> None:
     conn.execute("INSERT OR IGNORE INTO projection_meta(key, value) VALUES ('version', ?)",
                  (str(PROJECTION_VERSION),))
     conn.execute("INSERT OR IGNORE INTO projection_meta(key, value) VALUES ('last_seq', '0')")
+
+
+def is_current(conn: sqlite3.Connection) -> bool:
+    """False if the stored projection was built by another projection version."""
+    try:
+        row = conn.execute("SELECT value FROM projection_meta WHERE key = 'version'").fetchone()
+    except sqlite3.OperationalError:
+        return False
+    return row is not None and row[0] == str(PROJECTION_VERSION)
+
+
+def rebuild_in_place(conn: sqlite3.Connection, events: Iterable[Event]) -> None:
+    """Replace the projection tables by a fresh fold (caller owns the transaction).
+
+    The projection is derived data, so a projection written by an older build
+    is rebuilt from the journal instead of being migrated column by column.
+    """
+    conn.execute("DROP TABLE IF EXISTS tasks")
+    conn.execute("DROP TABLE IF EXISTS projection_meta")
+    create_schema(conn)
+    for event in events:
+        try:
+            apply_event(conn, event)
+        except ValueError as exc:
+            raise ProjectionError(f"seq {event.seq}: {exc}") from exc
 
 
 def _to_row(state: TaskState) -> list:

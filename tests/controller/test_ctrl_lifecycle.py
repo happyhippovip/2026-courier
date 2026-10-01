@@ -6,6 +6,7 @@ from ctrl_helpers import (
     FakeClock, Verifiers, make_controller, result_body, run_attempt, sha_matches, task_body, types,
 )
 from courier_core.controller import ApiError, heartbeat_interval
+from courier_core.events import effect_key
 from courier_core.projection import projection_hash
 from courier_core.state_machine import TaskStatus
 from courier_core.verification import Verdict
@@ -96,7 +97,8 @@ def test_claim_returns_lease_and_spec(ctl):
     assert lease["task_id"] == body["task_id"] and lease["attempt"] == 1
     assert lease["dispatch_id"].startswith("dsp-") and lease["ttl_s"] == 6
     assert lease["heartbeat_s"] == heartbeat_interval(6) <= 6 / 3
-    assert lease["spec"] == {"adapter": "probe", "params": {"x": 1}, "effect_class": "idempotent", "timeout_s": 30}
+    assert lease["spec"] == {"adapter": "probe", "params": {"x": 1}, "effect_class": "idempotent", "timeout_s": 30,
+                             "effect_key": effect_key(body["task_id"])}
     assert ctl.claim({"worker_id": "w2"}) is None
 
 
@@ -348,7 +350,14 @@ def test_cancel_of_blocked_task(ctl, clock):
     lease = ctl.claim({"worker_id": "w1"})
     ctl.start({"dispatch_id": lease["dispatch_id"]})
     pass_time(ctl, clock, 7)
-    assert ctl.cancel(body["task_id"])["status"] == "CANCELLED"
+    err = api_error(ctl.cancel, body["task_id"])  # the effect may have happened: a person must own this
+    assert (err.status, err.code) == (409, "actor_required")
+    assert ctl.journal.task(body["task_id"]).status.value == "BLOCKED"
+    assert ctl.cancel(body["task_id"], {"actor": "desk:ana", "reason": "customer withdrew"})["status"] == "CANCELLED"
+    task = ctl.journal.task(body["task_id"])
+    assert task.resolution == "cancelled_effect_unknown" and task.decided_by == "desk:ana"
+    cancelled = [e for e in ctl.journal.events(task_id=body["task_id"]) if e.type.value == "TASK_CANCELLED"]
+    assert cancelled[0].payload == {"actor": "desk:ana", "reason": "customer withdrew"}
 
 
 # -------------------------------------------------- projection stays derived

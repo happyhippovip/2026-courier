@@ -286,7 +286,9 @@ def test_cancelled_non_idempotent_attempt_with_vanished_worker_is_blocked(tmp_pa
         ctl.cancel(body["task_id"])
         pass_time(ctl, clock, 4)  # worker gone: the effect may or may not have happened
         assert types(ctl, body["task_id"])[-2:] == ["LEASE_EXPIRED", "TASK_BLOCKED"]
-        assert ctl.cancel(body["task_id"])["status"] == "CANCELLED"  # a human may still cancel it
+        assert api_error(ctl.cancel, body["task_id"]).code == "actor_required"  # cancel does not erase it
+        assert ctl.cancel(body["task_id"], {"actor": "desk:ana"})["status"] == "CANCELLED"  # a named human may
+        assert ctl.journal.task(body["task_id"]).resolution == "cancelled_effect_unknown"
     finally:
         ctl.stop()
 

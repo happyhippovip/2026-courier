@@ -384,3 +384,14 @@ def test_process_listens_on_loopback_only(tmp_path):
     finally:
         proc.kill()
         proc.wait(timeout=10)
+
+
+def test_newest_event_reaches_a_block_buffered_client_before_the_stream_idles(live):
+    # requests.iter_lines reads 512-byte blocks; without the idle padding a short
+    # final event sat in the client's buffer until the 15 s keepalive.
+    task_id = live.post("/v1/tasks", task_body()).json()["task_id"]
+    head = journal_seqs(live.service.home)[-1]
+    started = time.monotonic()
+    assert sse_ids(live, head - 1, head, timeout=5) == [head]
+    assert time.monotonic() - started < 2
+    assert live.get(f"/v1/tasks/{task_id}").status_code == 200
