@@ -126,3 +126,44 @@ worker host (L3) must not inherit them.
 | Overall, local Linux | 339 passed, 4 failed, 11 skipped; gate PASS. The 4th failure is the known flaky `test_muse_supervisor.py::test_stop_prevents_restart` |
 | Overall, CI | not triggered (docs-only push; `paths-ignore`). The code tree is identical to `90af2405`, which passed run 36805675912 |
 | Known remaining failures | unchanged from step 0 |
+
+## Step 1 — `m06/dispatcher-persist-oexcl` — BLOCKED, merge reverted (2026-10-01)
+
+| Field | Value |
+|---|---|
+| Source branch | `m06/dispatcher-persist-oexcl` (4 commits on `e95aa787`: `0faea67e` M06-01, `52fbc9f7` M06-02, `737959ea` M06-03, `d8265a5b` M06-05) |
+| Source SHA | `d8265a5b` |
+| Merge commit | `8b58dd4b` (`--no-ff`); never reached `integration/v1` |
+| Revert commit | `efe60061` (`git revert -m 1 8b58dd4b`); tree identical to `0413f830` |
+| Resulting integration SHA | unchanged: `integration/v1` stays at `90af2405` |
+| Conflicts | none |
+| Manual resolution | none |
+| Targeted tests, local Linux | `test_github_dispatcher_persist_race`, `test_github_worker_adapter_dispatch_crash`, `test_github_worker_adapter_packet_lock`, `test_github_worker_adapter_state_atomic`, `test_github_worker_adapter`: 28 passed |
+| Overall, local Linux | 350 passed, 3 failed (known), 11 skipped; gate PASS |
+| Overall, CI | [run 36806012206](https://github.com/happyhippovip/2026-courier/actions/runs/36806012206). **ubuntu-latest:** PASS. **windows-latest:** gate FAIL, 265 passed, 49 failed, 12 skipped |
+| Known remaining failures | unchanged from step 0 |
+
+**Why blocked.** The new Windows failure is in a test owned by the merged lane:
+`tests/test_github_worker_adapter_state_atomic.py::test_concurrent_writes_never_tear_reads`.
+It fails with `PermissionError(13, 'Permission denied')` ×2 and
+`PermissionError(13, 'Access is denied')` ×2.
+
+M06-05 publishes state via a thread-unique tmp file, fsync, then `os.replace`.
+On Windows, `os.replace` cannot replace a file that another handle holds open
+without `FILE_SHARE_DELETE`, which is how Python opens files. Readers can also
+hit the file while it is being replaced. So the lane's own contract ("readers
+only ever see complete state or nothing") does not hold on the primary v1
+platform.
+
+Under the merge rules (owned tests red; L1 does not write lane code; no
+baseline entries added to hide a regression), the merge was reverted rather
+than tolerated.
+
+**Re-integration.**
+1. The lane makes the publish/read path Windows-safe, for example bounded
+   retry on `PermissionError` for both writer and reader, or a lock.
+2. Its tests must pass on `windows-latest`.
+3. L1 then runs `git revert efe60061` to re-apply the four M06 commits, merges
+   the fixed branch, and re-resolves `scripts/github_worker_adapter.py` with M07.
+   That combination was already rehearsed: it auto-merges, and both the atomic
+   publish and the evidence confinement survive.
