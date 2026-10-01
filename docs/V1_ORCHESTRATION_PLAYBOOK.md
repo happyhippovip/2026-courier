@@ -477,3 +477,19 @@ Antigravity:
 - repeatable NEXT UNIT token may be queued deeply only if the session executes queue items serially.
 
 A self-refilling queue may generate new work only from CURRENT evidence. It must idle rather than invent work when nothing honest remains.
+
+### Interpreting a returned Muse composer
+
+A scheduled `/loop` delivery is one bounded turn. If the turn works for 2–7 minutes and the normal composer returns, that alone does **not** mean the loop ended.
+
+Diagnose by asking Muse:
+
+```text
+List my scheduled jobs. Show only each ID, cadence, next eligible fire time,
+last fire time, fire count, and task. Do not create or modify any jobs.
+```
+
+The job must remain in the same session that created it, and the Muse process must remain running for in-session scheduling to fire.
+
+For stronger unattended execution when the terminal may close, use the repo's macOS external runner documented in:
+`docs/v1/orchestration/MACOS_MUSE_UNATTENDED_RUNNER.md` once that ops delivery is integrated.
