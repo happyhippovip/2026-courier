@@ -430,3 +430,26 @@ three blocked lanes:
 - `google/windows-worker-timeout-kill` is still `724aee46`.
 
 They stay out of `integration/v1`.
+
+### Step 8 addendum — intermittent Windows failure on the step-8 log head
+
+- **Run:** [run 36810693808](https://github.com/happyhippovip/2026-courier/actions/runs/36810693808),
+  a `workflow_dispatch` run on `348f6cbb`, a docs-only commit whose code is
+  identical to the green `66996a59`.
+- **Attempt 1:** `windows-latest` reported one new failure:
+  `tests/test_resource_policy_mission_093.py::TestMission093And095And097HardenedPolicy::test_03b_atomic_expired_lease_reclaim_single_winner`.
+- **Attempt 2 (single re-run):** PASS, 292 passed, 65 failed (known and out of scope), 12 skipped, new=0.
+- **History:** the same test passed in about 10 earlier Windows runs. Neither
+  the test nor `TaskLeaseManager` has changed since `e95aa787`. This is not a
+  regression from any integration step.
+
+The test races two processes to reclaim an expired lease and requires exactly
+one winner. An intermittent failure therefore points to a real Windows race
+in the reclaim path. The failure was only seen in the log summary; the
+detailed assertion was not retrievable.
+
+**Action.** The test is recorded as Windows flaky in `known_failures.json`
+(`Windows.flaky`, with `flaky_note`). It still runs, and every failure is
+listed. The race is a finding for its owner (resource-policy / lease code).
+L1 does not change that code. `integration/v1` was not advanced on the red
+attempt.
