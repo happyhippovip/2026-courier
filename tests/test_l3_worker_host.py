@@ -92,12 +92,15 @@ def test_second_claim_while_busy_is_refused(tmp_path):
 def test_timeout_kills_whole_tree_within_bound(tmp_path):
     pgid_file = tmp_path / "pgid.txt"
     gpid_file = tmp_path / "gpid.txt"
+    # os.getpgid() is POSIX-only; use os.getpid() on Windows so the child
+    # survives long enough for the timeout to fire.
+    pgid_expr = "os.getpid()" if os.name == "nt" else "os.getpgid(0)"
     child_code = (
         "import os, subprocess, sys, time; "
-        "open(r'%s', 'w').write(str(os.getpgid(0))); "
+        "open(r'%s', 'w').write(str(%s)); "
         "g = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(30)']); "
         "open(r'%s', 'w').write(str(g.pid)); "
-        "time.sleep(30)" % (pgid_file, gpid_file))
+        "time.sleep(30)" % (pgid_file, pgid_expr, gpid_file))
     host = make_host(tmp_path)
     spec = make_spec(tmp_path, argv=[PY, "-c", child_code], timeout_s=2.0, lease_ttl_s=30.0)
     started = time.monotonic()
@@ -116,6 +119,7 @@ def test_timeout_kills_whole_tree_within_bound(tmp_path):
         except (ProcessLookupError, OSError):
             grandchild_alive = False
         assert grandchild_alive is False
+
 
 
 def test_cancel_terminates_tree_with_truth(tmp_path):
