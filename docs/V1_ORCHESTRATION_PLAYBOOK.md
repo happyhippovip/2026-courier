@@ -386,3 +386,27 @@ If the Mac has current/recent EMFILE, child-session lease failures, or sustained
 Return to bounded child workflows only after host stability is separately proven.
 
 The failed 144-cell run is treated as orchestration-infrastructure evidence, not product-code evidence.
+
+## 15. Human-time / master-prompt rule
+
+**Dennis is not the router. Minimize manual copy/paste operations.**
+
+Default response behavior for orchestration:
+- if many related read-only tasks share the same repo context and can run safely in one session, bundle them into **one master prompt**;
+- one paste per window by default;
+- put the queue, phases, checkpoints, stop conditions, and final synthesis inside that prompt;
+- do not make Dennis manually paste M-R01, M-R02, M-R03... unless separate windows are technically necessary;
+- if multiple windows are truly useful, provide one master prompt **per window**, not one tiny prompt per subtask;
+- split only for a concrete reason: writer ownership, platform isolation, process isolation, context limits, collision risk, or resource pressure;
+- say the exact model/effort and exact paste count.
+
+Preferred hierarchy:
+1. one master prompt in one existing safe window;
+2. one master prompt per genuinely independent window;
+3. a bounded workflow/skill when agent-native orchestration is useful;
+4. many small manual prompts only as a last resort.
+
+Reusable 14-phase Muse master prompt:
+`docs/v1/orchestration/MUSE_MASTER_14_PHASE_PROMPT.md`
+
+This rule exists to save owner time and reduce transcription mistakes while keeping work deep and auditable.
