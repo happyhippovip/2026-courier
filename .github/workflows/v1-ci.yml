@@ -50,13 +50,24 @@ jobs:
           export COURIER_API_KEY="$(python -c 'import secrets; print(secrets.token_hex(32))')"
           export COURIER_VERIFIER_API_KEY="$(python -c 'import secrets; print(secrets.token_hex(32))')"
           set +e
-          python -m pytest -q -p outcomes_plugin --timeout=180 tests
+          # A module that cannot be imported on this platform is recorded as a failure of
+          # <module>::<collection> instead of aborting the whole session.
+          python -m pytest -q -p outcomes_plugin --timeout=180 --continue-on-collection-errors tests
           echo "pytest exit status: $?"
           set -e
           python .github/ci/check_regressions.py \
             --outcomes "$COURIER_CI_OUTCOMES" \
             --known .github/ci/known_failures.json \
             --platform "${{ runner.os }}"
+
+      - name: Upload per-test outcomes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: outcomes-${{ matrix.os }}
+          path: ${{ runner.temp }}/outcomes.json
+          if-no-files-found: warn
+          retention-days: 30
 
       - name: Fail if tests wrote into the working tree
         shell: bash
