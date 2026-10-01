@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS events (
     hash TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS events_task ON events(task_id, seq);
+CREATE INDEX IF NOT EXISTS events_dispatch ON events(dispatch_id, seq);
 CREATE TRIGGER IF NOT EXISTS events_no_update BEFORE UPDATE ON events
 BEGIN SELECT RAISE(ABORT, 'courier journal is append-only'); END;
 CREATE TRIGGER IF NOT EXISTS events_no_delete BEFORE DELETE ON events
@@ -87,14 +88,31 @@ class ChainReport:
 
 
 class Journal:
-    def __init__(self, path: str | os.PathLike):
+    """The journal file.
+
+    readonly=True opens an existing journal for inspection only: no schema is
+    created or migrated and append() is refused, so integrity checks and a
+    degraded controller never write to a file that may be evidence.
+    """
+
+    def __init__(self, path: str | os.PathLike, readonly: bool = False):
         self.path = Path(path)
+        self.readonly = readonly
         self._conn: sqlite3.Connection | None = None
         self._lock = threading.RLock()
 
     # -- lifecycle ------------------------------------------------------------
     def open(self) -> "Journal":
         if self._conn is not None:
+            return self
+        if self.readonly:
+            if not self.path.exists():
+                raise JournalError(f"{self.path}: no journal to inspect")
+            conn = sqlite3.connect(str(self.path), isolation_level=None, check_same_thread=False, timeout=30)
+            conn.row_factory = sqlite3.Row
+            conn.execute("PRAGMA busy_timeout=30000")
+            conn.execute("PRAGMA query_only=ON")
+            self._conn = conn
             return self
         self.path.parent.mkdir(parents=True, exist_ok=True)
         conn = sqlite3.connect(str(self.path), isolation_level=None, check_same_thread=False, timeout=30)
@@ -160,6 +178,13 @@ class Journal:
                                 (key,)).fetchone()
         return Event.from_row(row) if row else None
 
+    def claim_for_dispatch(self, dispatch_id: str) -> Event | None:
+        """The TASK_CLAIMED event that issued dispatch_id, if any."""
+        row = self.conn.execute(
+            f"SELECT {', '.join(_EVENT_COLUMNS)} FROM events WHERE dispatch_id = ? AND type = 'TASK_CLAIMED' "
+            "ORDER BY seq LIMIT 1", (dispatch_id,)).fetchone()
+        return Event.from_row(row) if row else None
+
     def task(self, task_id: str) -> TaskState | None:
         return projection.load_task(self.conn, task_id)
 
@@ -168,6 +193,8 @@ class Journal:
 
     # -- the only write path --------------------------------------------------
     def append(self, event: Event) -> AppendResult:
+        if self.readonly:
+            raise JournalError("journal is open read-only")
         if event.seq is not None or event.hash is not None:
             raise JournalError("event is already sealed; append unsealed events only")
         with self._lock:
@@ -225,6 +252,17 @@ class Journal:
         if chain_hash(event, payload_text=row["payload"]) != row["hash"]:
             return "hash mismatch: stored event was modified"
         return None
+
+    def quick_check(self) -> str:
+        """SQLite's structural check ('ok' when healthy); bounded, read-only."""
+        rows = self.conn.execute("PRAGMA quick_check").fetchall()
+        return "; ".join(str(row[0]) for row in rows)
+
+    def guards_present(self) -> bool:
+        """True if the append-only triggers on `events` are installed."""
+        names = {row[0] for row in self.conn.execute(
+            "SELECT name FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'events'")}
+        return {"events_no_update", "events_no_delete"} <= names
 
     def verify_projection(self) -> bool:
         """True if the stored projection equals a pure in-memory replay."""
