@@ -7,14 +7,21 @@ function, so live state and rebuilt state cannot diverge.
 
 Invariants enforced here:
 - one creation per task; terminal states (COMPLETE, FAILED, CANCELLED) accept
-  nothing but LATE_RESULT_DISCARDED; BLOCKED accepts only cancellation;
+  nothing but LATE_RESULT_DISCARDED; BLOCKED accepts only a human decision;
 - attempts are claimed strictly in order, never beyond max_attempts;
 - dispatch fencing: STARTED / PROGRESS / RESULT_READY / LEASE_EXPIRED must
   carry the current attempt, dispatch_id and worker_id;
 - a result is accepted at most once and only the accepted result completes
   the task (exactly-once completion);
-- a started attempt of a non-idempotent task whose outcome is unknown (lease
-  lost) is never retried automatically: it can only be BLOCKED or CANCELLED;
+- only an effect explicitly classified "idempotent" may be retried
+  automatically after an uncertain outcome; every other class, including
+  any class this build does not know, fails closed: a started attempt whose
+  outcome is unknown (lease lost) is BLOCKED, never retried, and a pending
+  cancel request does not outrank that uncertainty;
+- a BLOCKED task leaves BLOCKED only by a human decision carrying an actor:
+  EFFECT_CONFIRMED (the effect happened; COMPLETE without re-executing it),
+  RETRY_AUTHORIZED (one fresh, fenced attempt) or cancellation. Each names
+  the blocked attempt, so a stale decision cannot act on a later block;
 - lease deadlines are not state: the projection keeps the TTL duration only.
 """
 
@@ -24,7 +31,9 @@ from dataclasses import asdict, dataclass, replace
 from enum import Enum
 from typing import Any
 
-from courier_core.events import Event, EventType, SYSTEM_EVENTS
+from courier_core.events import (
+    MAX_ATTEMPTS_LIMIT, RETRY_SAFE_EFFECT_CLASS, SYSTEM_EVENTS, Event, EventType,
+)
 
 
 class TaskStatus(str, Enum):
@@ -41,6 +50,12 @@ class TaskStatus(str, Enum):
 
 
 TERMINAL = frozenset({TaskStatus.COMPLETE, TaskStatus.FAILED, TaskStatus.CANCELLED})
+
+# TaskState.resolution: how a task reached COMPLETE, or that it was cancelled
+# while its effect was unknown. A human confirmation is never shown as verified.
+RESOLVED_VERIFIED = "verified"
+RESOLVED_EFFECT_CONFIRMED = "effect_confirmed"
+RESOLVED_CANCELLED_EFFECT_UNKNOWN = "cancelled_effect_unknown"
 ACTIVE_LEASE = frozenset({TaskStatus.CLAIMED, TaskStatus.RUNNING})
 
 
@@ -76,6 +91,8 @@ class TaskState:
     retryable: bool | None = None
     last_reason: str | None = None
     late_results: int = 0
+    resolution: str | None = None
+    decided_by: str | None = None
     created_seq: int | None = None
     updated_seq: int | None = None
 
@@ -105,14 +122,21 @@ def _fence(state: TaskState, event: Event, check_worker: bool = True) -> None:
         raise _fail(event, state, "worker_id does not hold the lease")
 
 
+def may_auto_retry(effect_class: str) -> bool:
+    """Whitelist: only an explicitly idempotent effect is ever retried blindly."""
+    return effect_class == RETRY_SAFE_EFFECT_CLASS
+
+
 def decide_after_failure(state: TaskState) -> Decision:
     """What the controller must journal next for a task in RETRY_PENDING."""
     if state.status is not TaskStatus.RETRY_PENDING:
         raise ValueError(f"task {state.task_id} is {state.status.value}, not RETRY_PENDING")
+    # An uncertain outcome of anything not known to be idempotent outranks a cancel
+    # request: the effect may already have happened, so a human decides.
+    if state.failure_kind == "lease_lost" and state.started and not may_auto_retry(state.effect_class):
+        return Decision.BLOCK
     if state.cancel_requested:
         return Decision.CANCEL
-    if state.failure_kind == "lease_lost" and state.started and state.effect_class == "non_idempotent":
-        return Decision.BLOCK
     if state.failure_kind == "rejected" and not state.retryable:
         return Decision.FAIL
     if state.attempt >= state.max_attempts:
@@ -152,8 +176,11 @@ def _transition(state: TaskState, event: Event) -> TaskState:
 
     if s in TERMINAL:
         raise _fail(event, state, "task is terminal")
-    if s is TaskStatus.BLOCKED and t not in (EventType.TASK_CANCEL_REQUESTED, EventType.TASK_CANCELLED):
+    if s is TaskStatus.BLOCKED and t not in (EventType.TASK_CANCEL_REQUESTED, EventType.TASK_CANCELLED,
+                                             EventType.EFFECT_CONFIRMED, EventType.RETRY_AUTHORIZED):
         raise _fail(event, state, "a blocked task needs a human decision")
+    if t in (EventType.EFFECT_CONFIRMED, EventType.RETRY_AUTHORIZED):
+        return _human_decision(state, event)
 
     if t is EventType.TASK_CLAIMED:
         if s is not TaskStatus.QUEUED:
@@ -194,7 +221,7 @@ def _transition(state: TaskState, event: Event) -> TaskState:
             raise _fail(event, state, "verdict is for another result")
         if t is EventType.RESULT_ACCEPTED:
             return replace(state, status=TaskStatus.ACCEPTED, accepted_result_id=event.result_id,
-                           pending_result_id=None)
+                           pending_result_id=None, resolution=RESOLVED_VERIFIED)
         return replace(state, status=TaskStatus.RETRY_PENDING, pending_result_id=None, failure_kind="rejected",
                        retryable=event.payload["retryable"], last_reason=str(event.payload["reason"]))
 
@@ -245,6 +272,34 @@ def _transition(state: TaskState, event: Event) -> TaskState:
             raise _fail(event, state, "cancellation was not requested")
         if s in (TaskStatus.VERIFYING, TaskStatus.ACCEPTED):
             raise _fail(event, state, "a result is already being verified or accepted")
-        return replace(state, status=TaskStatus.CANCELLED)
+        if s is TaskStatus.RETRY_PENDING and decide_after_failure(state) is Decision.BLOCK:
+            raise _fail(event, state, "an uncertain non-idempotent outcome must be BLOCKED before it can be cancelled")
+        if s is TaskStatus.BLOCKED:
+            # Cancelling does not make the unknown effect known: say so in the state.
+            actor = event.payload.get("actor")
+            if actor is None:
+                raise _fail(event, state, "cancelling a blocked task is a human decision and needs an actor")
+            return replace(state, status=TaskStatus.CANCELLED, resolution=RESOLVED_CANCELLED_EFFECT_UNKNOWN,
+                           decided_by=actor)
+        return replace(state, status=TaskStatus.CANCELLED, decided_by=event.payload.get("actor", state.decided_by))
 
     raise _fail(event, state, "unhandled event type")  # pragma: no cover - REQUIRED covers all types
+
+
+def _human_decision(state: TaskState, event: Event) -> TaskState:
+    if state.status is not TaskStatus.BLOCKED:
+        raise _fail(event, state, "only a blocked task takes this human decision")
+    if event.attempt != state.attempt:
+        raise _fail(event, state, f"decision names attempt {event.attempt}, the blocked attempt is {state.attempt}")
+    actor, reason = event.payload["actor"], str(event.payload["reason"])
+    if event.type is EventType.EFFECT_CONFIRMED:
+        return replace(state, status=TaskStatus.COMPLETE, resolution=RESOLVED_EFFECT_CONFIRMED, decided_by=actor,
+                       last_reason=reason)
+    if state.cancel_requested:
+        raise _fail(event, state, "cancellation was requested; cancel or confirm the effect instead")
+    if state.attempt >= MAX_ATTEMPTS_LIMIT:
+        raise _fail(event, state, f"attempt limit {MAX_ATTEMPTS_LIMIT} reached")
+    # The human grants exactly one fresh attempt, even if the automatic budget is spent.
+    return replace(state, status=TaskStatus.QUEUED, max_attempts=max(state.max_attempts, state.attempt + 1),
+                   dispatch_id=None, worker_id=None, started=False, failure_kind=None, retryable=None,
+                   last_reason=reason, decided_by=actor)

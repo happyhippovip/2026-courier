@@ -26,7 +26,11 @@ GENESIS_HASH = "0" * 64
 MAX_ID_LENGTH = 200
 MAX_ATTEMPTS_LIMIT = 100
 
+# Intake accepts only these classes. Retry decisions treat every class other
+# than "idempotent" as unsafe (courier_core.state_machine.may_auto_retry), so a
+# class added here later can never become retryable by omission.
 EFFECT_CLASSES = frozenset({"idempotent", "non_idempotent"})
+RETRY_SAFE_EFFECT_CLASS = "idempotent"
 LEASE_EXPIRY_REASONS = frozenset({"ttl", "restart_grace"})
 RESULT_OUTCOMES = frozenset({"success", "failure"})
 
@@ -48,6 +52,8 @@ class EventType(str, Enum):
     TASK_FAILED = "TASK_FAILED"
     TASK_CANCEL_REQUESTED = "TASK_CANCEL_REQUESTED"
     TASK_CANCELLED = "TASK_CANCELLED"
+    EFFECT_CONFIRMED = "EFFECT_CONFIRMED"
+    RETRY_AUTHORIZED = "RETRY_AUTHORIZED"
     LATE_RESULT_DISCARDED = "LATE_RESULT_DISCARDED"
     CONTROLLER_STARTED = "CONTROLLER_STARTED"
     CONTROLLER_STOPPED = "CONTROLLER_STOPPED"
@@ -57,6 +63,9 @@ SYSTEM_EVENTS = frozenset({EventType.CONTROLLER_STARTED, EventType.CONTROLLER_ST
 TASK_EVENTS = frozenset(EventType) - SYSTEM_EVENTS
 
 ID_FIELDS = ("task_id", "dispatch_id", "worker_id", "result_id")
+
+# Human decisions on a BLOCKED task: who decided is part of the event.
+HUMAN_DECISIONS = frozenset({EventType.EFFECT_CONFIRMED, EventType.RETRY_AUTHORIZED})
 
 # type -> (required envelope fields, required payload keys)
 REQUIRED: dict[EventType, tuple[tuple[str, ...], tuple[str, ...]]] = {
@@ -75,6 +84,8 @@ REQUIRED: dict[EventType, tuple[tuple[str, ...], tuple[str, ...]]] = {
     EventType.TASK_CANCEL_REQUESTED: (("task_id",), ()),
     EventType.TASK_CANCELLED: (("task_id",), ()),
     EventType.LATE_RESULT_DISCARDED: (("task_id", "dispatch_id", "result_id"), ("reason",)),
+    EventType.EFFECT_CONFIRMED: (("task_id", "attempt"), ("actor", "reason")),
+    EventType.RETRY_AUTHORIZED: (("task_id", "attempt"), ("actor", "reason")),
     EventType.CONTROLLER_STARTED: ((), ()),
     EventType.CONTROLLER_STOPPED: ((), ()),
 }
@@ -86,6 +97,17 @@ class EventValidationError(ValueError):
 
 def new_id(prefix: str = "") -> str:
     return prefix + uuid.uuid4().hex
+
+
+def effect_key(task_id: str) -> str:
+    """The stable logical key of the external effect a task intends.
+
+    It depends on the task alone, so every attempt of the task (automatic
+    retries and human-authorized retries alike) carries the same key. Adapters
+    pass it to providers as their idempotency key, so a provider can refuse a
+    second copy of an effect the controller could not see complete.
+    """
+    return "cfx-" + hashlib.sha256(f"courier-effect-v1:{task_id}".encode("utf-8")).hexdigest()[:40]
 
 
 def utc_now() -> str:
@@ -120,6 +142,10 @@ def default_dedupe_key(event_type: EventType, task_id: str | None, attempt: int 
         return f"complete:{task_id}"
     if event_type is EventType.LEASE_EXPIRED:
         return f"lease_expired:{dispatch_id}"
+    if event_type is EventType.EFFECT_CONFIRMED:
+        return f"effect_confirmed:{task_id}"
+    if event_type is EventType.RETRY_AUTHORIZED:
+        return f"retry_authorized:{task_id}:{attempt}"
     return None
 
 
@@ -270,3 +296,7 @@ def _validate_payload(event: Event) -> None:
     elif event.type is EventType.LEASE_EXPIRED:
         if payload["reason"] not in LEASE_EXPIRY_REASONS:
             raise EventValidationError(f"lease expiry reason must be one of {sorted(LEASE_EXPIRY_REASONS)}")
+    if event.type in HUMAN_DECISIONS or "actor" in payload:
+        _check_id("actor", payload.get("actor"))
+    if event.type in HUMAN_DECISIONS and (not isinstance(payload["reason"], str) or not payload["reason"].strip()):
+        raise EventValidationError(f"{event.type.value} needs a non-empty reason")

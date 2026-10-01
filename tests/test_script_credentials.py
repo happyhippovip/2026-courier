@@ -5,6 +5,14 @@ from pathlib import Path
 
 import pytest
 
+import sys
+def get_bash():
+    if sys.platform == "win32":
+        for p in [r"C:\Program Files\Git\bin\bash.exe", r"C:\Program Files\Git\usr\bin\bash.exe"]:
+            if os.path.exists(p):
+                return p
+    return "bash"
+
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ["deploy/install_mac_runtime.sh", "scripts/setup_local_autonomy.sh", "scripts/revenue_v1_goal.sh"]
 # Known leaked values, stored split so this file is not itself a copy.
@@ -49,7 +57,7 @@ def test_missing_key_fails_closed_before_side_effects(script, key, tmp_path):
     env = {"PATH": f"{bindir}:/usr/bin:/bin", "HOME": str(tmp_path), "COURIER_VERIFIER_API_KEY": DUMMY}
     if key is not None:
         env["COURIER_API_KEY"] = key
-    r = subprocess.run(["bash", str(ROOT / script)], env=env, capture_output=True, text=True, timeout=30)
+    r = subprocess.run([get_bash(), str(ROOT / script)], env=env, capture_output=True, text=True, timeout=30)
     assert r.returncode != 0
     assert "COURIER_API_KEY" in r.stderr
     assert not marker.exists()
@@ -63,7 +71,7 @@ def test_revenue_script_uses_key_and_never_echoes_it(tmp_path):
     curl.write_text(f'#!/bin/sh\nprintf "%s\\n" "$@" > {argsfile}\n')
     curl.chmod(0o755)
     env = {"PATH": f"{bindir}:/usr/bin:/bin", "COURIER_API_KEY": DUMMY, "COURIER_SERVER_URL": "http://example.invalid:9/"}
-    r = subprocess.run(["bash", str(ROOT / "scripts/revenue_v1_goal.sh")], env=env, capture_output=True, text=True, timeout=30)
+    r = subprocess.run([get_bash(), str(ROOT / "scripts/revenue_v1_goal.sh")], env=env, capture_output=True, text=True, timeout=30)
     assert r.returncode == 0, r.stderr
     args = argsfile.read_text()
     assert f"Authorization: Bearer {DUMMY}" in args
@@ -79,7 +87,7 @@ def test_revenue_script_prefers_canonical_courier_server(tmp_path):
     (bindir / "curl").chmod(0o755)
     env = {"PATH": f"{bindir}:/usr/bin:/bin", "COURIER_API_KEY": DUMMY,
            "COURIER_SERVER": "http://canonical.invalid:1", "COURIER_SERVER_URL": "http://legacy.invalid:2"}
-    r = subprocess.run(["bash", str(ROOT / "scripts/revenue_v1_goal.sh")], env=env, capture_output=True, text=True, timeout=30)
+    r = subprocess.run([get_bash(), str(ROOT / "scripts/revenue_v1_goal.sh")], env=env, capture_output=True, text=True, timeout=30)
     assert r.returncode == 0, r.stderr
     assert "http://canonical.invalid:1/goals" in argsfile.read_text()
 

@@ -1,3 +1,12 @@
+
+import sys
+def get_bash():
+    if sys.platform == "win32":
+        for p in [r"C:\Program Files\Git\bin\bash.exe", r"C:\Program Files\Git\usr\bin\bash.exe"]:
+            if os.path.exists(p):
+                return p
+    return "bash"
+
 import subprocess
 from pathlib import Path
 
@@ -11,7 +20,7 @@ def test_install_resolves_repo_root_from_any_cwd(tmp_path):
     (bindir / "launchctl").chmod(0o755)
     env = {"PATH": f"{bindir}:/usr/bin:/bin", "HOME": str(tmp_path)}
     for cwd in (ROOT, tmp_path):
-        r = subprocess.run(["bash", str(ROOT / "scripts/mac_worker/install.sh")], cwd=cwd, env=env,
+        r = subprocess.run([get_bash(), str(ROOT / "scripts/mac_worker/install.sh")], cwd=cwd, env=env,
                            capture_output=True, text=True, timeout=30)
         assert r.returncode == 0, r.stderr
         plist = (tmp_path / "Library/LaunchAgents/com.courier.mac_worker.plist").read_text()
