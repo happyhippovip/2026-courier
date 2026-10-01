@@ -1,0 +1,45 @@
+COURIER CODEX — HIGH ONCE FIXED CANDIDATE REVIEW
+
+PROVIDER=CODEX
+MODEL_CLASS=C3
+REASONING=HIGH
+RUN_COUNT=EXACTLY_ONCE_PER_GATE_FINGERPRINT
+
+HARD PRECONDITION:
+PRE_CODEX_STATE=READY
+AUTHORITATIVE_READY=YES
+FINAL_SHA is durably cross-host resolvable
+exact Codex handoff packet exists
+
+READ ONLY THE HANDOFF REFERENCES:
+FINAL_SHA
+BASE_SHA
+exact changed-file set
+12-case matrix/results
+targeted-test fingerprint
+SKIPPED_COUNT
+git diff --check status
+trusted-hash/replay invariants
+open causal P0 blockers
+
+TASK:
+Perform one code-grounded final review of the exact fixed candidate.
+
+OUTPUT:
+GATE_FINGERPRINT=
+FINAL_SHA=
+CODE_REVIEW_STATUS=GREEN|BLOCKED
+CAUSAL_DEFECTS=
+REQUIRED_FIX_SCOPE=
+READY_FOR_PHYSICAL_RUN=YES|NO
+DO_NOT_REPEAT_FINGERPRINT=
+
+If GREEN:
+do not request another Codex review.
+NEXT=EXACT_MAC_BINDING
+
+If BLOCKED:
+return one bounded causal correction packet to Windows Central Writer.
+Do not broaden scope.
+
+START NOW.

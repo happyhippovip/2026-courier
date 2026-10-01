@@ -1,0 +1,90 @@
+{
+  "goals": {
+    "goal-10dadbf8": {
+      "goal_id": "goal-10dadbf8",
+      "goal_text": "one bounded task",
+      "status": "DONE",
+      "workflow_plan": [
+        {
+          "artifacts": [
+            "bounded.txt"
+          ],
+          "instruction": "create bounded.txt",
+          "target_agent": "mac",
+          "task_id": "task-1",
+          "goal_id": "goal-10dadbf8",
+          "status": "RECONCILED",
+          "attempts": 1,
+          "queued_at": 1790464592.6908512,
+          "worker_id": "MAC-01",
+          "attempt_id": "task-1:attempt:1",
+          "dispatch_id": "dispatch-d36e3f95d1954afc93a158d6f233f3e1",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac"
+        }
+      ],
+      "current_step_index": 1
+    }
+  },
+  "tasks": {
+    "task-1": {
+      "artifacts": [
+        "bounded.txt"
+      ],
+      "instruction": "create bounded.txt",
+      "target_agent": "mac",
+      "task_id": "task-1",
+      "goal_id": "goal-10dadbf8",
+      "status": "RECONCILED",
+      "attempts": 1,
+      "queued_at": 1790464592.6908512,
+      "worker_id": "MAC-01",
+      "attempt_id": "task-1:attempt:1",
+      "dispatch_id": "dispatch-d36e3f95d1954afc93a158d6f233f3e1",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "result": {
+        "run_id": "pid-123",
+        "task_id": "task-1",
+        "status": "SUCCESS",
+        "worker_id": "MAC-01",
+        "attempt_id": "task-1:attempt:1",
+        "goal_id": "goal-10dadbf8",
+        "artifacts": [
+          {
+            "path": "bounded.txt",
+            "sha256": "b13408bef4e47a6e9649e53a2c1251e8f27c086f0b9fab29726a26192e400864"
+          }
+        ],
+        "result_id": "result-1",
+        "dispatch_id": "dispatch-d36e3f95d1954afc93a158d6f233f3e1"
+      },
+      "verification": {
+        "verifier_id": "VERIFIER-01",
+        "result_id": "result-1",
+        "verdict": "PASS",
+        "artifacts": [
+          {
+            "path": "bounded.txt",
+            "sha256": "b13408bef4e47a6e9649e53a2c1251e8f27c086f0b9fab29726a26192e400864"
+          }
+        ]
+      }
+    }
+  },
+  "workers": {
+    "MAC-01": {
+      "worker_id": "MAC-01",
+      "platform": "mac",
+      "capabilities": [
+        "macos"
+      ],
+      "last_seen": 1790464592.6908443,
+      "available": true,
+      "current_task": null,
+      "cost_class": "unknown"
+    }
+  }
+}

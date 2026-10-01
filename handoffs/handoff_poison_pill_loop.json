@@ -1,0 +1,13 @@
+﻿{
+    "TARGETED_TEST":  "Inject a CONTRADICTORY_DUPLICATE HTTP 409 response during recover_pending_markers and assert the worker unlinks the marker instead of crashing the loop.",
+    "REPRO_STEPS":  "1. Worker crashes during a task, leaving an effect_marker.json. 2. Upon restart, recover_pending_markers reads the effect_marker, generates a random result_id (uuid.uuid4().hex), and calls http_post_result. 3. Network times out, but server actually receives it. 4. Worker retries on next loop iteration, generating a NEW random result_id for the same execution. 5. Server rejects it as CONTRADICTORY_DUPLICATE. 6. http_post_result raises RuntimeError. 7. The marker is never unlinked. The worker enters a permanent infinite loop and is fully dead.",
+    "CONFLICTING_OWNER":  "NONE",
+    "REPRODUCIBLE":  "YES",
+    "SEVERITY":  "CRITICAL",
+    "ROOT_CAUSE":  "http_post_result raises RuntimeError on CONTRADICTORY_DUPLICATE, which prevents marker.unlink() from executing. Furthermore, ambiguous crash recovery generates a non-deterministic result_id on every retry, guaranteeing a contradictory collision if a timeout occurs.",
+    "AFFECTED_FILES":  "scripts/windows_worker/daemon.py",
+    "BUG":  "CONTRADICTORY_DUPLICATE poison pill causes infinite crash loop, exacerbated by non-deterministic result_id during ambiguous crash recovery.",
+    "RAW_EVIDENCE":  "daemon.py line 82: \raise RuntimeError(\u0027Server rejected contradictory duplicate result\u0027). daemon.py line 141: \u0027result_id\u0027: f\u0027result-{uuid.uuid4().hex}\u0027 inside the retryable marker recovery block.",
+    "WRITE_SCOPE":  "scripts/windows_worker/daemon.py",
+    "MINIMAL_FIX":  "1. In http_post_result, catch CONTRADICTORY_DUPLICATE and treat it as a terminal state for that marker (do not raise, or catch it in recover_pending_markers and delete the marker). 2. Generate a deterministic result_id for ambiguous crashes (e.g. hash of execution_ref + \u0027ambiguous\u0027)."
+}

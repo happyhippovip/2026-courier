@@ -1,0 +1,15 @@
+{
+  "command": [
+    "C:\\Users\\lol\\2026-workspace\\2026-courier\\.venv\\Scripts\\python.exe",
+    "-c",
+    "print('JOB-13 on MUSE-13 OK')"
+  ],
+  "created_at": 1790401522.694581,
+  "finished_at": 1790401527.6260245,
+  "job_id": "JOB-13",
+  "kind": "test",
+  "prompt": null,
+  "slot_id": "MUSE-13",
+  "started_at": 1790401522.7435598,
+  "status": "DONE"
+}

@@ -1,0 +1,77 @@
+{
+  "goals": {
+    "goal-76a2e2fc": {
+      "goal_id": "goal-76a2e2fc",
+      "goal_text": "one bounded task",
+      "status": "ACTIVE",
+      "workflow_plan": [
+        {
+          "artifacts": [
+            "bounded.txt"
+          ],
+          "instruction": "create bounded.txt",
+          "target_agent": "mac",
+          "task_id": "task-1",
+          "goal_id": "goal-76a2e2fc",
+          "status": "RESULT_RECEIVED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "task-1:attempt:1",
+          "dispatch_id": "dispatch-b9de649453da4263b98d4b12a2f14868",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac"
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "task-1": {
+      "artifacts": [
+        "bounded.txt"
+      ],
+      "instruction": "create bounded.txt",
+      "target_agent": "mac",
+      "task_id": "task-1",
+      "goal_id": "goal-76a2e2fc",
+      "status": "RESULT_RECEIVED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "task-1:attempt:1",
+      "dispatch_id": "dispatch-b9de649453da4263b98d4b12a2f14868",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "result": {
+        "status": "SUCCESS",
+        "task_id": "task-1",
+        "result_id": "result-1",
+        "worker_id": "MAC-01",
+        "attempt_id": "task-1:attempt:1",
+        "artifacts": [
+          {
+            "path": "bounded.txt",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        ],
+        "goal_id": "goal-76a2e2fc",
+        "dispatch_id": "dispatch-b9de649453da4263b98d4b12a2f14868",
+        "run_id": "run-1"
+      }
+    }
+  },
+  "workers": {
+    "MAC-01": {
+      "worker_id": "MAC-01",
+      "platform": "mac",
+      "capabilities": [
+        "macos"
+      ],
+      "last_seen": 1790589573.4363112,
+      "available": true,
+      "current_task": null,
+      "cost_class": "unknown"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+﻿{
+    "TARGETED_TEST":  "Install service, kill python processes, verify Task Scheduler triggers restart.",
+    "REPRO_STEPS":  "1. Install CourierMotor scheduled task via install_motor_service.ps1. 2. Reboot or logon to trigger task. 3. Task Scheduler runs start_motor.bat. 4. start_motor.bat launches python processes via \u0027start /B\u0027 and exits immediately. 5. Task Scheduler marks task as \u0027Ready\u0027 (completed successfully). 6. Kill the python process. 7. Task Scheduler does NOT restart it because the task already finished.",
+    "CONFLICTING_OWNER":  "NONE",
+    "REPRODUCIBLE":  "YES",
+    "SEVERITY":  "HIGH",
+    "ROOT_CAUSE":  "start_motor.bat uses \u0027start /B cmd /c\u0027 which returns immediately. Task Scheduler is unaware of the long-running Python processes. Additionally, install_motor_service.ps1 fails to quote $scriptPath in New-ScheduledTaskAction, breaking if the path has spaces.",
+    "AFFECTED_FILES":  "scripts/start_motor.bat, scripts/install_motor_service.ps1, scripts/install_verifier_service.ps1",
+    "BUG":  "Scheduled Task monitoring disabled by async batch exit",
+    "RAW_EVIDENCE":  "start_motor.bat: start /B cmd /c .venv_service\\Scripts\\python.exe... -\u003e exits instantly. install_motor_service.ps1: $action = New-ScheduledTaskAction -Execute  -\u003e no quotes.",
+    "WRITE_SCOPE":  "scripts/start_motor.bat, scripts/install_motor_service.ps1, scripts/install_verifier_service.ps1",
+    "MINIMAL_FIX":  "Quote $scriptPath in .ps1 files. In start_motor.bat, do not use start /B. Alternatively, have the Scheduled Task run python directly, or use a blocking wrapper so the batch file remains \u0027Running\u0027 until the daemons die."
+}

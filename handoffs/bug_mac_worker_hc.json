@@ -1,0 +1,6 @@
+{
+  "script_location": "scripts/mac_worker/health_check.py",
+  "bug_description": "This health check script is completely unreferenced (dead code). Furthermore, it contains a stale assumption that a mac worker has 'linux' provider capabilities out of the box.",
+  "evidence_snippet": "    caps = [\"macos\", \"linux\"]\n    if shutil.which(\"agy\") or shutil.which(\"agy\", path=\"/Users/user/.local/bin:/usr/local/bin:/opt/homebrew/bin\"):",
+  "recommended_remediation": "Delete scripts/mac_worker/health_check.py entirely as it is dead code. If it must be kept, correct the caps list to remove 'linux' and ensure the script is actually integrated into the pipeline."
+}

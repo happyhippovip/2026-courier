@@ -1,0 +1,61 @@
+{
+  "goals": {
+    "goal-b8f435f9": {
+      "goal_id": "goal-b8f435f9",
+      "goal_text": "one bounded task",
+      "status": "ACTIVE",
+      "workflow_plan": [
+        {
+          "artifacts": [
+            "bounded.txt"
+          ],
+          "instruction": "create bounded.txt",
+          "target_agent": "mac",
+          "task_id": "task-1",
+          "goal_id": "goal-b8f435f9",
+          "status": "DISPATCHED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "task-1:attempt:1",
+          "dispatch_id": "dispatch-77646048f127441da2590d32906dcdbe",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac"
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "task-1": {
+      "artifacts": [
+        "bounded.txt"
+      ],
+      "instruction": "create bounded.txt",
+      "target_agent": "mac",
+      "task_id": "task-1",
+      "goal_id": "goal-b8f435f9",
+      "status": "DISPATCHED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "task-1:attempt:1",
+      "dispatch_id": "dispatch-77646048f127441da2590d32906dcdbe",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac"
+    }
+  },
+  "workers": {
+    "MAC-01": {
+      "worker_id": "MAC-01",
+      "platform": "mac",
+      "capabilities": [
+        "macos"
+      ],
+      "last_seen": 1790599730.024618,
+      "available": false,
+      "current_task": "task-1",
+      "cost_class": "unknown"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "invoice_id": "INV-UNKNOWN-PROSPECT-20260930-05",
+  "opportunity_id": "UNKNOWN-OFFERING",
+  "prospect_id": "UNKNOWN-PROSPECT",
+  "customer_name": "Valued Prospect",
+  "customer_email": "test@test.com",
+  "amount_eur": 0.0,
+  "currency": "EUR",
+  "business_name": "2026-Courier Commercial Operations",
+  "payment_reference": "REF-INV-UNKNOWN-PROSPECT-20260930-05-6731129a",
+  "payment_link": "Awaiting account owner configuration (AUTONOMOUS GENERATION)",
+  "created_at": "2026-09-30T18:46:20.069322+00:00",
+  "due_date": "2026-10-07T18:46:20.069322+00:00",
+  "artifact_status": "DRAFT_SIMULATION",
+  "payment_status": "UNCONFIGURED",
+  "destination_verified": false,
+  "autonomous_spend_eur": 0.0
+}

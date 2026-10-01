@@ -1,0 +1,64 @@
+COURIER — DEEP REAL TASKBANK EXPANDER
+
+HOST=AUTO
+PROVIDER=GOOGLE_CLI_PREFERRED
+MODE=PREPARER
+CONTINUE_BY_DEFAULT=YES
+
+PURPOSE:
+Create a deep backlog of REAL, bounded, non-duplicate task packets so large logical walls do not starve.
+
+READ:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GATE_STATE_CURRENT.md
+current queue/result summaries only.
+
+TARGET:
+Maintain a READY+BLOCKED+WAITING taskbank large enough for current wall capacity.
+Do NOT target 10,000 or 1,000,000 tasks merely as a number.
+Depth is derived from real decomposable work.
+
+EXPANSION SOURCES IN ORDER:
+1 Ledger unfinished/open/blockers
+2 acceptance/replay/trusted-content cases
+3 persistence/restart matrix cells
+4 reconcile/NEXT_READY/claim/lease/harvest invariants
+5 candidate-independent Mac binding/prep
+6 runtime/process/resource ownership
+7 evidence/proof-card fields
+8 cross-host/session/provider continuity
+9 Core Freeze evidence areas
+10 pilot evidence definitions after freeze
+11 Product Shell backlog only after positive pilot
+12 update/capability/time-machine/crypto-agility LATER work only when current path no longer has enough work
+
+SHARDING:
+Split each real parent into unique small task packets across:
+scenario x evidence x host x state transition x artifact x proof field
+ONLY when each shard has independent done criteria.
+
+For every packet:
+TASK_ID=
+PARENT=
+FAMILY=
+PRIORITY=
+EXACT_INPUTS=
+ALLOWED_ACTION=
+DONE_CONDITION=
+DO_NOT_REPEAT_FINGERPRINT=
+RETEST_TRIGGER=
+DEPENDENCIES=
+HOST_HINT=
+MODEL_CLASS=
+CANDIDATE_SENSITIVE=
+
+DEDUP BEFORE WRITE.
+Do not create semantically equivalent shards.
+
+When enough real packets exist for current wall:
+TASKBANK_READY=YES.
+Then stop expanding and let workers consume.
+Replenish again only as depth falls.
+
+START NOW.

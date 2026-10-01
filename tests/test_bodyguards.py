@@ -180,6 +180,74 @@ class EightBodyguardsTests(unittest.TestCase):
         self.assertEqual(generate_bodyguard_speech("WORKING", "CHARLIE"), "I'm covering this task while the specialist is busy.")
         self.assertEqual(generate_bodyguard_speech("RETURNING", "DELTA"), "Result delivered to Courier. Returning to standby.")
         self.assertEqual(generate_bodyguard_speech("CAPABILITY_MISMATCH", "ECHO"), "Required capability is unavailable. Flagging capability mismatch.")
+        self.assertEqual(generate_bodyguard_speech("PREPARING", "ZULU"), "Loading task context and validating contracts.")
+        self.assertEqual(generate_bodyguard_speech("BLOCKED", "ZULU"), "Task blocked. Standing by for Chief instruction.")
+        self.assertEqual(generate_bodyguard_speech("UNKNOWN", "ZULU"), "Bodyguard ZULU on reserve.")
+
+    def test_load_json_exception(self):
+        from scripts.run_bodyguards import load_json
+        path = self.repo / "invalid.json"
+        path.write_text("invalid json")
+        self.assertEqual(load_json(path), {})
+
+    def test_initialize_pool_existing(self):
+        # Should execute the `else` branch in initialize_pool
+        bgs = self.manager.initialize_pool(force_reset=False)
+        self.assertEqual(len(bgs), 8)
+
+    def test_get_all_bodyguards_creates_missing(self):
+        self.manager.initialize_pool(force_reset=True)
+        # Delete one file
+        (self.manager.states_dir / "agent-bodyguard-alpha.json").unlink()
+        bgs = self.manager.get_all_bodyguards()
+        self.assertEqual(len(bgs), 8)
+
+    def test_assign_unknown_callsign(self):
+        with self.assertRaisesRegex(ValueError, "Bodyguard UNKNOWN not found"):
+            self.manager.assign_bodyguard("UNKNOWN", "t", "w", "c")
+
+    def test_assign_none_available(self):
+        for _ in range(8):
+            self.manager.assign_bodyguard(None, "t", "w", "c")
+        with self.assertRaisesRegex(ValueError, "No available Bodyguard in STANDBY state"):
+            self.manager.assign_bodyguard(None, "t", "w", "c")
+
+    def test_update_progress_unknown(self):
+        with self.assertRaisesRegex(ValueError, "Unknown bodyguard callsign: UNKNOWN"):
+            self.manager.update_progress("UNKNOWN", 0.5, "action")
+
+    def test_complete_unknown(self):
+        with self.assertRaisesRegex(ValueError, "Unknown bodyguard callsign: UNKNOWN"):
+            self.manager.complete_task("UNKNOWN")
+
+    def test_release_bodyguard(self):
+        self.manager.assign_bodyguard("ALPHA", "t", "w", "c")
+        res = self.manager.release_bodyguard("ALPHA")
+        self.assertEqual(res["state"], "STANDBY")
+
+    def test_main_cli(self):
+        from unittest.mock import patch
+        from scripts.run_bodyguards import main
+
+        # init
+        with patch("sys.argv", ["run_bodyguards.py", "--init"]):
+            with patch("scripts.run_bodyguards.BodyguardPoolManager", return_value=self.manager):
+                self.assertEqual(main(), 0)
+        
+        # assign
+        with patch("sys.argv", ["run_bodyguards.py", "--assign", "ALPHA"]):
+            with patch("scripts.run_bodyguards.BodyguardPoolManager", return_value=self.manager):
+                self.assertEqual(main(), 0)
+
+        # complete
+        with patch("sys.argv", ["run_bodyguards.py", "--complete", "ALPHA"]):
+            with patch("scripts.run_bodyguards.BodyguardPoolManager", return_value=self.manager):
+                self.assertEqual(main(), 0)
+                
+        # status
+        with patch("sys.argv", ["run_bodyguards.py", "--status"]):
+            with patch("scripts.run_bodyguards.BodyguardPoolManager", return_value=self.manager):
+                self.assertEqual(main(), 0)
 
 
 if __name__ == "__main__":

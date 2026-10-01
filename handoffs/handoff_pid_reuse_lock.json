@@ -1,0 +1,13 @@
+﻿{
+    "TARGETED_TEST":  "Run daemon.py, cat the lock file, verify it is valid JSON with process_create_time.",
+    "REPRO_STEPS":  "1. Start daemon.py. 2. Observe the generated lock file in temp directory. 3. It contains only the raw PID integer. 4. If the machine restarts or PID rolls over rapidly without lock deletion, another process could get this PID, tricking acquire_lock() into thinking the daemon is still alive.",
+    "CONFLICTING_OWNER":  "NONE",
+    "REPRODUCIBLE":  "YES",
+    "SEVERITY":  "HIGH",
+    "ROOT_CAUSE":  "In acquire_lock(), os.write(fd, str(os.getpid()).encode()) writes a raw integer string. Although the read-side logic supports parsing JSON with process_create_time to prevent PID reuse, the write-side never writes this JSON.",
+    "AFFECTED_FILES":  "scripts/windows_worker/daemon.py",
+    "BUG":  "daemon.py writes legacy plain-PID locks instead of JSON structured locks, risking PID reuse collision",
+    "RAW_EVIDENCE":  "daemon.py line 288: os.write(fd, str(os.getpid()).encode()) vs line 308: expected_create_time = lock_meta.get(\u0027process_create_time\u0027).",
+    "WRITE_SCOPE":  "scripts/windows_worker/daemon.py",
+    "MINIMAL_FIX":  "In acquire_lock, write json.dumps({\u0027pid\u0027: os.getpid(), \u0027process_create_time\u0027: psutil.Process(os.getpid()).create_time()}).encode(\u0027utf-8\u0027) to the lock file."
+}

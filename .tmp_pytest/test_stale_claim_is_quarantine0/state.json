@@ -1,0 +1,116 @@
+{
+  "goals": {
+    "goal-65a57635": {
+      "goal_id": "goal-65a57635",
+      "goal_text": "independent goal 1",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "artifacts": [
+            "stale-test-1.txt"
+          ],
+          "target_agent": "mac",
+          "task_id": "stale-test-1",
+          "goal_id": "goal-65a57635",
+          "status": "HUMAN_REQUIRED",
+          "attempts": 1,
+          "queued_at": 1790464594.359143,
+          "worker_id": "MAC-STALE",
+          "attempt_id": "stale-test-1:attempt:1",
+          "dispatch_id": "dispatch-4df24959b5984c9eb24216a1b0b06068",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac",
+          "recovery_reason": "STALE_WORKER_EFFECT_AMBIGUOUS"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-f75730d2": {
+      "goal_id": "goal-f75730d2",
+      "goal_text": "independent goal 2",
+      "status": "ACTIVE",
+      "workflow_plan": [
+        {
+          "artifacts": [
+            "stale-test-2.txt"
+          ],
+          "target_agent": "mac",
+          "task_id": "stale-test-2",
+          "goal_id": "goal-f75730d2",
+          "status": "DISPATCHED",
+          "attempts": 1,
+          "queued_at": 1790464594.4046674,
+          "worker_id": "MAC-HEALTHY",
+          "attempt_id": "stale-test-2:attempt:1",
+          "dispatch_id": "dispatch-2d847c13211c446e936525868b33a8fa",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac"
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "stale-test-1": {
+      "artifacts": [
+        "stale-test-1.txt"
+      ],
+      "target_agent": "mac",
+      "task_id": "stale-test-1",
+      "goal_id": "goal-65a57635",
+      "status": "HUMAN_REQUIRED",
+      "attempts": 1,
+      "queued_at": 1790464594.359143,
+      "worker_id": "MAC-STALE",
+      "attempt_id": "stale-test-1:attempt:1",
+      "dispatch_id": "dispatch-4df24959b5984c9eb24216a1b0b06068",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "recovery_reason": "STALE_WORKER_EFFECT_AMBIGUOUS"
+    },
+    "stale-test-2": {
+      "artifacts": [
+        "stale-test-2.txt"
+      ],
+      "target_agent": "mac",
+      "task_id": "stale-test-2",
+      "goal_id": "goal-f75730d2",
+      "status": "DISPATCHED",
+      "attempts": 1,
+      "queued_at": 1790464594.4046674,
+      "worker_id": "MAC-HEALTHY",
+      "attempt_id": "stale-test-2:attempt:1",
+      "dispatch_id": "dispatch-2d847c13211c446e936525868b33a8fa",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac"
+    }
+  },
+  "workers": {
+    "MAC-STALE": {
+      "worker_id": "MAC-STALE",
+      "platform": "mac",
+      "capabilities": [
+        "macos"
+      ],
+      "last_seen": 1790463994.3726816,
+      "available": false,
+      "current_task": null,
+      "cost_class": "unknown"
+    },
+    "MAC-HEALTHY": {
+      "worker_id": "MAC-HEALTHY",
+      "platform": "mac",
+      "capabilities": [
+        "macos"
+      ],
+      "last_seen": 1790464594.4046607,
+      "available": false,
+      "current_task": "stale-test-2",
+      "cost_class": "unknown"
+    }
+  }
+}

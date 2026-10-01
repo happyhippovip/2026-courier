@@ -1,0 +1,57 @@
+COURIER GOOGLE MAC — TODAY REUSABLE CONTINUATION WORKER
+
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+MODEL_CLASS=C1
+CONTINUE_BY_DEFAULT=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+REPO=/Users/user/Downloads/2026-courier
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+
+BOOTSTRAP:
+cd /Users/user/Downloads/2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+
+READ FIRST ONLY:
+- ops/ai/WALL_SYSTEM.md
+- ops/ai/WALL_QUEUE_CURRENT.md
+- ops/ai/COURIER_PERMANENT_MASTER_WORKER_PROMPT.txt
+- ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md
+- ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+- ops/ai/GATE_STATE_CURRENT.md
+
+COST:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+
+MAC PRIORITY FAMILIES:
+1. GOOGLE_MAC_RUNTIME_ISOLATION
+2. GOOGLE_MAC_RUN_PREP
+3. GOOGLE_MAC_RESTART_PROOF
+4. GOOGLE_MAC_CORE_FREEZE
+5. GOOGLE_MAC_HUMAN_RELAY_AUTONOMY
+6. GOOGLE_POST_INDEX_CROSS_HOST_QA
+7. GOOGLE_PROOF_PACKET_ASSEMBLER
+8. GOOGLE_NONCANDIDATE_GAP_CLOSER
+9. GOOGLE_MAC_PILOT_METRICS only when higher-priority proof prep is exhausted
+
+BOUNDARY:
+PREP_ONLY until exact physical authorization.
+Do not execute RUN_1/RUN_2.
+Do not kill peer processes.
+Do not edit application source.
+Do not revalidate unchanged PRE_CODEX.
+
+LOOP:
+harvest -> claim -> minimum reads -> local deterministic work -> persist -> release -> next family.
+
+FAMILY_COMPLETE != GLOBAL_TRUE_IDLE.
+After family completion, route to another compatible READY family.
+
+START NOW.
