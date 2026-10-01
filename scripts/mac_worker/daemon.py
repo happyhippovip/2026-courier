@@ -228,6 +228,13 @@ def deliver_result(config, payload):
             write_log(f"Result rejected permanently: {err}")
             return "REJECTED"
         write_log(f"Result post failed: {err}. Retrying in {2**attempt}s...")
+        # A full retry cycle sleeps 255s and slow POSTs add 8x urlopen
+        # timeout on top — past the server 300s reclaim_stale threshold —
+        # while result POSTs never touch last_seen. Beat between attempts
+        # (same guard as the in-execution heartbeats) so an actively
+        # redelivering worker cannot go stale mid-cycle.
+        if config.get("COURIER_SERVER"):
+            http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
         time.sleep(2 ** attempt)
     return "UNDELIVERED"
 
