@@ -74,3 +74,9 @@ def test_provider_failure_sets_backoff(tmp_path: pathlib.Path) -> None:
     backoff = tmp_path / "state" / "BACKOFF_UNTIL"
     assert backoff.exists()
     assert backoff.read_text(encoding="utf-8").strip().isdigit()
+
+
+def test_successful_no_emfile_text_does_not_pause(tmp_path: pathlib.Path) -> None:
+    result = _run(tmp_path, "No EMFILE / os error 24 encountered; batch complete.")
+    assert result.returncode == 0
+    assert not (tmp_path / "state" / "RESOURCE_PAUSE").exists()
