@@ -411,7 +411,7 @@ Reusable 14-phase Muse master prompt:
 
 This rule exists to save owner time and reduce transcription mistakes while keeping work deep and auditable.
 
-## 15. Muse unattended serial loop
+## 16. Muse unattended serial loop and duration truth
 
 For one-window unattended Muse work, prefer a scheduled serial loop over manually queueing dozens or hundreds of identical messages.
 
@@ -425,13 +425,35 @@ Recommended invocation after the skill is available in the checkout:
 ```
 
 Why:
-- Muse runs the recurrence in the same session;
+- Muse runs the recurrence in the same retained session;
 - an occurrence that lands while an active turn is still running is skipped rather than piled into a backlog;
-- each skill invocation reads durable queue state and performs one new bounded unit;
+- each invocation reads durable local state and performs one new deep evidence unit;
 - when the repo head changes it starts a new evidence epoch and refills the backlog;
 - if no honest work exists it idles rather than inventing work;
 - EMFILE/resource pressure becomes sticky RESOURCE_PAUSE rather than a retry storm.
 
-For Muse Code 1.4.0+, Meta's changelog states newly-created /loop jobs continue until deleted. Some older/general documentation still mentions seven-day expiry, so verify the active job in the installed build after creation.
+**Do not promise runtime from prompt size or queue length.** A huge prompt may finish in minutes. Queueing the same prompt 5,000 times does not create 5,000 useful minutes, and repeated identical work can become duplicate/no-op work.
 
-Do not use an arbitrarily large manual queue (100/1000/1,000,000 repeated messages) as a substitute for /loop. It bloats the retained transcript and cannot create infinite meaningful work.
+If the installed Muse build is 1.4.0+, Meta's changelog says a newly-created `/loop` runs until deleted. Older documentation still describes a seven-day expiry, so verify the installed build and stored job rather than guessing.
+
+The Muse process/session must be running for scheduled work to fire. A retained session can be resumed later.
+
+### Windows-specific Muse rule
+
+Muse inter-session peer messaging is currently unavailable on Windows. Therefore do not design Windows orchestration around many independent Muse windows coordinating with each other.
+
+Preferred Windows Muse pattern:
+- ONE retained Muse steward window;
+- `/loop 5m /courier-night-loop`;
+- read-only;
+- xhigh/max as budget allows;
+- no manual prompt flood;
+- close old completed Muse windows after custody proves them safe.
+
+### Antigravity parallelism
+
+When genuine parallel read-only research is useful, prefer one Antigravity control-room session with several non-overlapping asynchronous background subagents rather than making Dennis manually maintain many terminals.
+
+Start conservatively with up to 4 independent read-only subagents on a healthy host. Increase only when work is truly independent and there is no resource pressure. Monitor from Antigravity's `/agents` panel.
+
+This preserves real parallelism while reducing owner routing work.
