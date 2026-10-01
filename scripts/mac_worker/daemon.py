@@ -84,6 +84,10 @@ MAX_RESULT_POST_ATTEMPTS = 8
 # In-execution heartbeat cadence for run_agy (mirrors run_muse's 30s): the
 # server reclaims workers unseen for 300s, so a silent agy run must beat.
 AGY_HEARTBEAT_INTERVAL_SECONDS = 30
+# In-execution heartbeat cadence for run_native (mirrors run_muse/run_agy):
+# the server reclaims workers unseen for 300s while NATIVE_TIMEOUT_SECONDS
+# allows up to 600s, so a silent native run must beat.
+NATIVE_HEARTBEAT_INTERVAL_SECONDS = 30
 
 def persist_task(path, task):
     atomic_json(path, task)
@@ -142,11 +146,13 @@ def bind_runtime_task(task, config):
 
 
 def require_no_orphan():
-    # Muse and agy executions each leave a marker; a non-CLEAN marker whose
-    # group may still be alive (violent daemon death mid-execution) blocks
-    # new claims/executions until an operator reconciles it. A provably dead
-    # group needs no reconciliation: the next run overwrites the marker.
-    for marker, label in (("muse_process.json", "Muse"), ("agy_process.json", "agy")):
+    # Each execution mode (Muse, agy, native) leaves a marker; a non-CLEAN
+    # marker whose group may still be alive (violent daemon death
+    # mid-execution) blocks new claims/executions until an operator
+    # reconciles it. A provably dead group needs no reconciliation: the next
+    # run overwrites the marker.
+    for marker, label in (("muse_process.json", "Muse"), ("agy_process.json", "agy"),
+                          ("native_process.json", "native")):
         previous = read_object(STATE_DIR / marker)
         if previous and previous.get("state") != "CLEAN":
             identity = previous.get("identity")
@@ -226,6 +232,13 @@ def deliver_result(config, payload):
             write_log(f"Result rejected permanently: {err}")
             return "REJECTED"
         write_log(f"Result post failed: {err}. Retrying in {2**attempt}s...")
+        # A full retry cycle sleeps 255s and slow POSTs add 8x urlopen
+        # timeout on top — past the server 300s reclaim_stale threshold —
+        # while result POSTs never touch last_seen. Beat between attempts
+        # (same guard as the in-execution heartbeats) so an actively
+        # redelivering worker cannot go stale mid-cycle.
+        if config.get("COURIER_SERVER"):
+            http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
         time.sleep(2 ** attempt)
     return "UNDELIVERED"
 
@@ -282,24 +295,84 @@ def run_native(task, config):
             "execution_mode": "NATIVE"
         }
         
-    # Safe bounded execution
+    # Bounded execution: every native child runs in its own process group so a
+    # timeout or daemon interruption (WorkerShutdown) reaps the whole subtree
+    # instead of orphaning it. Like run_agy/run_muse, kill via cleanup_group,
+    # which is PID-reuse safe.
+    timeout = min(float(config.get("NATIVE_TIMEOUT_SECONDS", 120)), 600)
+    if action == "echo":
+        argv, kwargs = instruction, {"shell": True, "executable": "/bin/bash"}
+    elif action == "git_status":
+        argv, kwargs = ["git", "status"], {}
+    else:
+        return {"status": "FAILED", "stderr": f"Action '{action}' is allowed but handler is not implemented yet.", "execution_mode": "NATIVE"}
+    process = None
+    identity = None
+    # Orphan marker (mirrors the muse/agy markers): a violent daemon death
+    # between spawn and exit must be detectable on restart via
+    # require_no_orphan. Overwritten by every run; only non-CLEAN counts.
+    child_file = STATE_DIR / "native_process.json"
     try:
-        if action == "echo":
-            result = subprocess.run(instruction, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, executable="/bin/bash")
-        elif action == "git_status":
-            result = subprocess.run(["git", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        else:
-            return {"status": "FAILED", "stderr": f"Action '{action}' is allowed but handler is not implemented yet.", "execution_mode": "NATIVE"}
-            
+        atomic_json(child_file, {"state": "STARTING"})
+        process = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   text=True, start_new_session=True, **kwargs)
+        identity = process_identity(process.pid)
+        atomic_json(child_file, {"state": "RUNNING", "identity": identity})
+        # Sliced communicate with in-execution heartbeat (same pattern as
+        # run_agy): the overall deadline is unchanged and still handled below.
+        try:
+            deadline = time.monotonic() + timeout
+            while True:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise subprocess.TimeoutExpired(argv, timeout)
+                try:
+                    stdout, stderr = process.communicate(
+                        timeout=min(NATIVE_HEARTBEAT_INTERVAL_SECONDS, remaining))
+                    break
+                except subprocess.TimeoutExpired:
+                    if config.get("COURIER_SERVER"):
+                        http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
+        except subprocess.TimeoutExpired:
+            cleanup_group(process, identity)
+            try:
+                process.wait()
+            except Exception:
+                pass
+            stdout, stderr = process.communicate()
+            return {"status": "FAILED",
+                    "stdout": stdout,
+                    "stderr": ((stderr or "") + f"\nTIMEOUT after {timeout:g}s; "
+                             "process group killed and reaped").strip(),
+                    "exit_code": process.returncode,
+                    "execution_mode": "NATIVE", "reason": "TIMEOUT"}
         return {
-            "status": "SUCCESS" if result.returncode == 0 else "FAILED",
-            "stdout": result.stdout,
-            "stderr": result.stderr,
-            "exit_code": result.returncode,
+            "status": "SUCCESS" if process.returncode == 0 else "FAILED",
+            "stdout": stdout,
+            "stderr": stderr,
+            "exit_code": process.returncode,
             "execution_mode": "NATIVE"
         }
     except Exception as e:
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "NATIVE"}
+    finally:
+        # BaseException (e.g. WorkerShutdown on SIGTERM) skips the FAILED dict
+        # above; still reap the group so no orphan keeps running, then record
+        # the outcome: CLEAN only when the group is provably gone, otherwise
+        # fail closed (outer except → FAILED).
+        if process is not None:
+            if process.poll() is None:
+                cleanup_group(process, identity)
+                try:
+                    process.wait()
+                except Exception:
+                    pass
+            clean = process.poll() is not None and not group_exists(process.pid)
+            atomic_json(child_file, {"state": "CLEAN" if clean else "ORPHANS_REMAIN",
+                                     "identity": identity})
+            if not clean:
+                raise RuntimeError("native child cleanup unproven; no new execution allowed")
+
 
 def _reap_agy_group(process, identity):
     """Best-effort group reap for the agy wrapper subtree; never raises.
