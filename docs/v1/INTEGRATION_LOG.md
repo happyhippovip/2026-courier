@@ -389,3 +389,44 @@ test leaves an orphan. Not applied. The fix goes to the owning lane (L3).
 **Preflight.** Before merging a batch, L1 pushes the planned end state to
 `lane/L1-preflight` (L1-owned, never merged). One Windows CI run then shows
 every Windows blocker in advance.
+
+## Step 8 — runtime state out of git; root scratch to `attic/` (L1 cycle 2, 2026-10-01)
+
+| Field | Value |
+|---|---|
+| Source | L1-owned change on `lane/L1-integration` (no lane merge) |
+| Base | `c2a10c6b`, which is `integration/v1` as re-verified at the start of cycle 2 |
+| Resulting integration SHA | `66996a59` |
+| Conflicts | none |
+| Untracked (`git rm --cached`; history keeps them; now ignored) | 40 files: `server/state/central_state.json`, `server/state/artifacts/records/*` (24) and `blobs/*` (2), `logs/courier_daemon.{log,pid}`, `runtime/resource_guard/{heavy.lock,heavy_jobs.sqlite3}`, `runtime/harmless_staging_marker.json`, `scripts/mac_worker/logs/*.log` (3), `scripts/windows_worker/courier_canary_test-win-001.txt`, `work_dir/report.{json,md}`, root `central_state.json`, root `courier_canary_*.txt` (2) |
+| Moved to `attic/root-scratch-2026-10-01/` (`git mv`) | 17 root files. Smoke scripts: `test_canary.py`, `test_retry.py`, `phase8_workforce_temp.py`. Sample tasks: `dummy_task*.json`, `task.json`, `test_mac_task.json`. Root outputs: `result.json`, `gemini_result*.json` (3), `handoff.json`, `reconciliation.json`, `founder_concierge_result.json`, `agy_test_{out,err}.txt` |
+| Kept | `logs/.gitkeep` (`scripts/start_daemon.sh` redirects into `logs/`), `runtime/content/.gitkeep`. Every docs/, tasks/, fixtures/ and events/ file is untouched |
+| Targeted check | Full suite on a **fresh checkout** of `66996a59`, without any of the untracked files: 394 passed, 2 failed (known `run_physical_restart` + known-flaky `test_four_slots_are_isolated`), 11 skipped; gate PASS. Working tree clean after the run |
+| Overall, CI | [run 36810546224](https://github.com/happyhippovip/2026-courier/actions/runs/36810546224). **ubuntu-latest:** PASS, 395 passed, 1 failed (known), 11 skipped. **windows-latest:** PASS, 292 passed, 65 failed (46 known + 19 Mac tests out of scope), 12 skipped, new=0. Both "working tree clean" checks pass |
+| Known remaining failures | unchanged |
+
+**Why this is safe.**
+
+- `server/app.py` treats a missing state file as empty state.
+- `ArtifactStore` creates its `records/` and `blobs/` directories, and the
+  Mac daemon creates its state and log directories.
+- No code, test or workflow reads any moved file. The scripts and workflows
+  that mention these names only *write* same-named outputs: the revenue
+  workflow writes `task.json`/`result.json`/`handoff.json`/`reconciliation.json`,
+  `gemini_worker_adapter` writes `dummy_task_{2,3}.json`, the founder demo writes
+  `founder_concierge_result.json`, and `intake_dispatcher`/`queue_processor`
+  write a cwd-relative `central_state.json`. Those names are now ignored at
+  the root, so the writers no longer dirty the tree.
+
+**Not changed.** `main` still tracks `server/state/central_state.json`, and its
+motor workflow still commits it until PR #57 is merged. The eventual
+`integration/v1 → main` release removes it.
+
+**Lane watch (cycle 2 start).** No corrected source has been pushed for the
+three blocked lanes:
+
+- `m06/dispatcher-persist-oexcl` is still `d8265a5b`.
+- `courier-ui/cobalt-nova/OVERLAY-REPLAY` is still `a53b3c73`.
+- `google/windows-worker-timeout-kill` is still `724aee46`.
+
+They stay out of `integration/v1`.
