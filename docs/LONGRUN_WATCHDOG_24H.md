@@ -94,3 +94,34 @@ Circuit/payment safety conditions end fail-closed with `PAUSED_FAIL_CLOSED`.
 
 The watchdog never performs an automatic merge, deploy, secret change, purchase,
 or external commercial action by itself.
+
+
+## v2 hardening
+
+The watchdog now adapts its rest interval instead of checking an empty queue at a fixed cadence forever:
+
+- idle streak backoff: 5m -> 10m -> 20m -> capped at 30m by default;
+- EMFILE/ENFILE/"Too many open files": 30m resource backoff by default;
+- ordinary slice exception: 10m error backoff;
+- three consecutive slice exceptions: fail closed;
+- a fresh `AutonomousSupervisor` object is created for each bounded slice and then released, reducing long-lived in-memory accumulation;
+- watchdog state records `idle_streak`, `consecutive_slice_errors`, `sleep_reason`, and the next-check delay.
+
+This directly addresses the observed pattern where interactive windows finish after roughly 15–20 minutes and would otherwise tempt the operator to keep re-pasting prompts. The watchdog should wait cheaply when there is no work and only re-enter the bounded supervisor when a new slice is due.
+
+Example with the defaults made explicit:
+
+```bash
+python3 scripts/run_longrun_watchdog.py \
+  --hours 24 \
+  --slice-seconds 900 \
+  --idle-sleep-seconds 300 \
+  --idle-sleep-max-seconds 1800 \
+  --error-backoff-seconds 600 \
+  --resource-backoff-seconds 1800 \
+  --max-consecutive-slice-errors 3 \
+  --max-operations-per-slice 12 \
+  --max-model-jobs 0 \
+  --max-external-actions 0 \
+  --zero-spend-limit-eur 0
+```
