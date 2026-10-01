@@ -457,3 +457,23 @@ When genuine parallel read-only research is useful, prefer one Antigravity contr
 Start conservatively with up to 4 independent read-only subagents on a healthy host. Increase only when work is truly independent and there is no resource pressure. Monitor from Antigravity's `/agents` panel.
 
 This preserves real parallelism while reducing owner routing work.
+
+## 16. Owner-away / self-refilling queue protocol
+
+For short absences (shower, errands, roughly one hour) and sleep periods, use:
+`docs/v1/orchestration/AWAY_QUEUE_REFILL_PROTOCOL.md`.
+
+Key rule:
+
+**one owner session -> durable queue state -> self-refill from current evidence -> dedupe -> bounded useful unit -> repeat**
+
+Muse Mac:
+- primary = `/loop 5m /courier-night-loop`;
+- emergency A/B/C refill prompts are available when the loop is unavailable;
+- do not manually stack hundreds of Muse messages.
+
+Antigravity:
+- one self-refilling ledger;
+- repeatable NEXT UNIT token may be queued deeply only if the session executes queue items serially.
+
+A self-refilling queue may generate new work only from CURRENT evidence. It must idle rather than invent work when nothing honest remains.
