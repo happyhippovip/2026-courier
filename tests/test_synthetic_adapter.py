@@ -30,9 +30,9 @@ def task(**changes):
     return TaskState(**value)
 
 
-def ready(payload):
+def ready(payload, dispatch_id="d1"):
     return Event(type=EventType.RESULT_READY, task_id="t1", attempt=1,
-                 dispatch_id="d1", worker_id="w1", result_id="r1",
+                 dispatch_id=dispatch_id, worker_id="w1", result_id="r1",
                  payload=payload)
 
 
@@ -235,6 +235,30 @@ def test_verify_judges_evidence_only_for_superseded_attempt(tmp_path):
     synthetic.run(params, tmp_path)
     old = task(attempt=1)
     verdict = synthetic.verify(old, ready(success_payload(tmp_path)), tmp_path)
+    assert verdict.accepted is True
+
+
+def test_verify_rejects_foreign_dispatch(tmp_path):
+    """Per-dispatch binding: sound bytes claimed for another dispatch never verify.
+
+    The journal fences stale dispatches too, but verify() must not accept
+    evidence bound elsewhere, no matter how sound the bytes are."""
+    params = {"write": "out.txt", "content": "courier-golden"}
+    synthetic.run(params, tmp_path)
+    verdict = synthetic.verify(task(params=params, dispatch_id="d-active"),
+                               ready(success_payload(tmp_path), dispatch_id="d-other"),
+                               tmp_path)
+    assert verdict.accepted is False
+    assert verdict.retryable is False
+    assert (tmp_path / "out.txt").read_bytes() == b"courier-golden"  # preserved
+
+
+def test_verify_accepts_matching_dispatch(tmp_path):
+    params = {"write": "out.txt", "content": "courier-golden"}
+    synthetic.run(params, tmp_path)
+    verdict = synthetic.verify(task(params=params, dispatch_id="d1"),
+                               ready(success_payload(tmp_path), dispatch_id="d1"),
+                               tmp_path)
     assert verdict.accepted is True
 
 
