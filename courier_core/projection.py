@@ -97,7 +97,9 @@ def _to_row(state: TaskState) -> list:
 
 
 def _from_row(row: sqlite3.Row | tuple) -> TaskState:
-    record = dict(zip(_COLUMNS, row, strict=True))
+    if len(_COLUMNS) != len(row):
+        raise ValueError(f"Column count mismatch: expected {len(_COLUMNS)}, got {len(row)}")
+    record = dict(zip(_COLUMNS, row))
     for name in _JSON_COLUMNS:
         record[name] = json.loads(record[name])
     for name in _BOOL_COLUMNS:
