@@ -82,3 +82,24 @@ def test_check_connection_disconnected():
 
 def test_check_connection_connected():
     check_connection(True)
+
+def test_translate_github_502_partial_api_failure():
+    err = translate_github_error(502)
+    assert err.category == ErrorCategory.GITHUB_UNAVAILABLE
+    assert "down" in err.message.lower()
+
+def test_translate_github_422_branch_deleted():
+    err = translate_github_error(422, "Reference does not exist")
+    assert err.category == ErrorCategory.NEEDS_YOU
+    assert "conflict" in err.message.lower()
+
+def test_translate_github_409_conflict():
+    err = translate_github_error(409, "Merge conflict")
+    assert err.category == ErrorCategory.NEEDS_YOU
+    assert "conflict" in err.message.lower()
+
+def test_user_disconnects_while_work_is_running():
+    # If the token disappears mid-flight, it's equivalent to 401 or check_connection(False)
+    with pytest.raises(CourierGitHubError) as exc:
+        check_connection(False)
+    assert exc.value.category == ErrorCategory.NEEDS_YOU
