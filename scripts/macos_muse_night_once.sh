@@ -111,7 +111,14 @@ rc=$?
 cat "$run_log" >> "$LOG_FILE"
 cat "$run_log"
 
-if grep -Eqi 'Too many open files|EMFILE|os error 24|resource-pressure|spawn failure' "$run_log"; then
+resource_pause=0
+if grep -q 'COURIER_NIGHT_RESOURCE_PAUSE' "$run_log"; then
+  resource_pause=1
+elif [ "$rc" -ne 0 ] && grep -Eqi 'Too many open files.*os error 24|EMFILE|os error 24' "$run_log"; then
+  resource_pause=1
+fi
+
+if [ "$resource_pause" -eq 1 ]; then
   {
     echo "RESOURCE_PAUSE detected $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
     echo "Clear this file manually only after host pressure is resolved."
