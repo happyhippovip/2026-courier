@@ -142,11 +142,16 @@ def bind_runtime_task(task, config):
 
 
 def require_no_orphan():
-    previous = read_object(STATE_DIR / "muse_process.json")
-    if previous and previous.get("state") != "CLEAN":
-        identity = previous.get("identity")
-        if not identity or group_exists(identity["pgid"]):
-            raise RuntimeError("Unreconciled Muse child; no further claims/executions allowed")
+    # Muse and agy executions each leave a marker; a non-CLEAN marker whose
+    # group may still be alive (violent daemon death mid-execution) blocks
+    # new claims/executions until an operator reconciles it. A provably dead
+    # group needs no reconciliation: the next run overwrites the marker.
+    for marker, label in (("muse_process.json", "Muse"), ("agy_process.json", "agy")):
+        previous = read_object(STATE_DIR / marker)
+        if previous and previous.get("state") != "CLEAN":
+            identity = previous.get("identity")
+            if not identity or group_exists(identity["pgid"]):
+                raise RuntimeError(f"Unreconciled {label} child; no further claims/executions allowed")
 
 
 def persist_ready_result(path, task, config):
@@ -335,10 +340,16 @@ def run_agy(task, config):
     # propagates through communicate and must not leak the child either).
     process = None
     identity = None
+    # Orphan marker (mirrors run_muse's muse_process.json): a violent daemon
+    # death between spawn and exit must be detectable on restart via
+    # require_no_orphan. Overwritten by every run; only non-CLEAN counts.
+    child_file = STATE_DIR / "agy_process.json"
     try:
+        atomic_json(child_file, {"state": "STARTING"})
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    text=True, start_new_session=True)
         identity = process_identity(process.pid)
+        atomic_json(child_file, {"state": "RUNNING", "identity": identity})
         # Sliced communicate with in-execution heartbeat: the server's
         # reclaim_stale quarantines workers unseen for 300s, and the default
         # agy window spans exactly that. Same 30s cadence as run_muse; the
@@ -387,9 +398,17 @@ def run_agy(task, config):
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "ANTIGRAVITY"}
     finally:
         # BaseException (e.g. WorkerShutdown on SIGTERM) skips the FAILED
-        # dict above; still reap the group so no orphan keeps running.
-        if process is not None and process.poll() is None:
-            _reap_agy_group(process, identity)
+        # dict above; still reap the group so no orphan keeps running, then
+        # record the outcome: CLEAN only when the group is provably gone,
+        # otherwise fail closed like run_muse (outer except → FAILED).
+        if process is not None:
+            if process.poll() is None:
+                _reap_agy_group(process, identity)
+            clean = process.poll() is not None and not group_exists(process.pid)
+            atomic_json(child_file, {"state": "CLEAN" if clean else "ORPHANS_REMAIN",
+                                     "identity": identity})
+            if not clean:
+                raise RuntimeError("agy child cleanup unproven; no new execution allowed")
 
 def run_muse(task, config):
     """Muse slot execution through the muse_adapter boundary (no guessed CLI method)."""
