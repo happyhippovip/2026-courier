@@ -20,6 +20,12 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 
+@pytest.fixture(autouse=True)
+def windows_teardown_delay():
+    yield
+    if os.name == "nt":
+        time.sleep(0.1)
+
 from courier_worker import host as H
 from courier_worker.host import ExecutionSpec, Outcome, WorkerHost
 from courier_worker import service as S
