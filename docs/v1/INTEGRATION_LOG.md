@@ -167,3 +167,41 @@ than tolerated.
    the fixed branch, and re-resolves `scripts/github_worker_adapter.py` with M07.
    That combination was already rehearsed: it auto-merges, and both the atomic
    publish and the evidence confinement survive.
+
+## Step 2 — `muse/M07-adapter-evidence-confinement` (2026-10-01)
+
+| Field | Value |
+|---|---|
+| Source branch | `muse/M07-adapter-evidence-confinement` (7 commits on `ff79fbe4`, an ancestor of `e95aa787`: `76690253`, `4decc110`, `5bd5c774`, `e0b767b3`, `e05a3601`, `0993f592`, `b2dbfead`) |
+| Source SHA | `b2dbfead` |
+| Resulting integration SHA | `6c32d11d` (merge commit, `--no-ff`) |
+| Files | `server/app.py`, `scripts/github_worker_adapter.py`, `tests/test_failure_recovery_matrix.py`, `tests/test_github_worker_adapter.py`, `tests/test_result_dispatch_binding.py` (new) |
+| Conflicts | `server/app.py`, `task_result()` dispatch check, one hunk |
+| Manual resolution | Took M07's line (see below). `scripts/github_worker_adapter.py` merged without conflict, because m06 is not in the trunk (step 1) |
+| Targeted tests | `test_github_worker_adapter`, `test_result_dispatch_binding`, `test_failure_recovery_matrix`, `test_p3_server_idempotency`, `test_server_integration_contract`: 85 passed |
+| Overall, local Linux | 356 passed, 1 failed (known), 11 skipped; gate PASS |
+| Overall, CI | [run 36806672165](https://github.com/happyhippovip/2026-courier/actions/runs/36806672165). **ubuntu-latest:** PASS. **windows-latest:** PASS, 272 passed, 46 failed (known), 12 skipped. Both report NOW PASSING / MISSING for the two entries removed below |
+| Baseline change | Removed on both platforms: `test_p3_server_idempotency.py::test_failed_verification_can_be_resumed_with_new_attempt` (now passes) and `test_failure_recovery_matrix.py::test_result_with_wrong_identity_is_rejected[dispatch_id]`. M07 (`0993f592`) re-parametrized the latter as `[dispatch_id-409]`, which passes |
+| Known remaining failures | Linux: `test_run_physical_restart` + 9 flaky muse. Windows: 46 (the 48 of step 0 minus the two above) |
+
+**Conflict and resolution.**
+
+- Trunk (`3d566820`): `if task.get("dispatch_id") and data.get("dispatch_id") != task.get("dispatch_id"): 409`.
+- M07: `if data.get("attempt_id") == task.get("attempt_id") and data.get("dispatch_id") and data.get("dispatch_id") != task.get("dispatch_id"): 409`.
+
+Taking M07's line keeps 409 for a carried dispatch mismatch within the same
+attempt (cross-dispatch replay). Missing or empty dispatch ids and results of
+superseded attempts go back to 400 validation in
+`scripts/integration_contract.validate_durable_result`, which rejects any
+missing or mismatched goal/task/attempt/dispatch/worker id. So nothing that
+trunk rejected is accepted now; only the status code differs, and the task
+stays `DISPATCHED` in every case. This is the 409-vs-400 contract the plan
+required to turn green.
+
+**Open finding (owner lane L4, not fixed by L1).** The new evidence-path
+confinement in `verify_result` rejects `..` and POSIX absolute paths. On
+Windows, rooted driveless paths still escape the download directory
+(`/etc/passwd` becomes `D:\etc\passwd`, `\Windows\win.ini` becomes
+`D:\Windows\win.ini`), and so do drive-relative paths (`C:foo.txt`). This was
+verified with `PureWindowsPath`. Suggested fix: reject any drive or root, and
+check `resolve()` containment.

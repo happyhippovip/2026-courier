@@ -3,8 +3,6 @@
   "Linux": {
     "source": "baseline at e95aa787 (Python 3.12.3, pinned deps from pyproject.toml), 4 local runs on 2026-10-01",
     "failing": [
-      "tests/test_failure_recovery_matrix.py::test_result_with_wrong_identity_is_rejected[dispatch_id]",
-      "tests/test_p3_server_idempotency.py::test_failed_verification_can_be_resumed_with_new_attempt",
       "tests/test_run_physical_restart.py::test_run_physical_restart_success"
     ],
     "flaky": [
@@ -25,7 +23,6 @@
     "failing": [
       "tests/test_ci_acceptance_credentials.py::test_workflow_fallback_keys_are_distinct_and_only_emitted_as_masks",
       "tests/test_ci_acceptance_credentials.py::test_workflow_uses_provided_secrets_without_regenerating",
-      "tests/test_failure_recovery_matrix.py::test_result_with_wrong_identity_is_rejected[dispatch_id]",
       "tests/test_mac_worker_contract.py::test_crash_after_post_before_ack_resends_same_result_once_executed",
       "tests/test_mac_worker_contract.py::test_crash_after_rejection_still_releases_on_restart",
       "tests/test_mac_worker_contract.py::test_missing_api_key_fails_closed_before_network",
@@ -57,7 +54,6 @@
       "tests/test_muse_supervisor.py::test_started_task_is_not_replayed",
       "tests/test_muse_supervisor.py::test_stop_prevents_restart",
       "tests/test_muse_supervisor.py::test_unconfirmed_prompt_method_fails_closed",
-      "tests/test_p3_server_idempotency.py::test_failed_verification_can_be_resumed_with_new_attempt",
       "tests/test_run_physical.py::test_run_physical_success",
       "tests/test_run_physical_restart.py::test_run_physical_restart_success",
       "tests/test_script_credentials.py::test_missing_key_fails_closed_before_side_effects[   -deploy/install_mac_runtime.sh]",
@@ -77,7 +73,7 @@
       "fcntl": "scripts/mac_worker/runtime_state.py imports the POSIX-only fcntl module: test_mac_worker_contract, test_mac_worker_recovery, test_mac_worker_standalone_boot, test_muse_supervisor, test_muse_convergence (collection)",
       "bash_is_wsl": "subprocess 'bash' resolves to the WSL launcher (no distribution installed) on the Windows runner: test_script_credentials, test_ci_acceptance_credentials, test_mac_worker_install",
       "setpgrp": "os.setpgrp does not exist on Windows: test_run_physical::test_run_physical_success",
-      "shared_with_linux": "409-vs-400 dispatch binding (2 tests) and run_physical_restart candidate_sha fixture, same as Linux"
+      "shared_with_linux": "run_physical_restart candidate_sha fixture, same as Linux (the two 409-vs-400 tests were fixed in step 2)"
     }
   }
 }
