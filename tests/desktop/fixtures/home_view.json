@@ -1,0 +1,133 @@
+{
+  "needs_you": [
+    {
+      "id": "t-blocked",
+      "title": "Synthetic test task",
+      "pile": "needs_you",
+      "last_change": {
+        "what": "You asked Courier to do this",
+        "at": "2026-10-02T08:00:00.000000Z"
+      },
+      "needs_you": {
+        "question": "Did Courier manage to write the test file?",
+        "why": "Courier lost contact with the work before it could confirm whether the action happened.",
+        "consequence": "The test file may be written a second time.",
+        "choices": [
+          {
+            "decision": "effect_confirmed",
+            "label": "It happened",
+            "explains": "Mark it done as confirmed by you. Courier will not run it again."
+          },
+          {
+            "decision": "retry_authorized",
+            "label": "Try once more",
+            "explains": "One more try, authorised by you. The test file may be written a second time.",
+            "confirm": "Courier couldn't tell whether it managed to write the test file. Trying again could repeat it. The test file may be written a second time."
+          },
+          {
+            "decision": "cancel",
+            "label": "Stop here",
+            "explains": "Courier stops trying. The earlier action may still have happened."
+          }
+        ],
+        "retry_unavailable_reason": null,
+        "evidence": [],
+        "blocked_attempt": 1
+      },
+      "label": "Courier needs you to decide something"
+    }
+  ],
+  "working": [
+    {
+      "id": "t-running",
+      "title": "Synthetic test task",
+      "pile": "working",
+      "last_change": {
+        "what": "You asked Courier to do this",
+        "at": "2026-10-02T08:00:00.000000Z"
+      },
+      "label": "In progress",
+      "phase": "in_progress",
+      "next": "Courier expects a result from the running work.",
+      "authority": {
+        "may": [
+          "Write the test file once"
+        ],
+        "must_ask": [
+          "Anything after an unclear outcome: it never repeats this on its own"
+        ],
+        "note": "Standing permissions you grant ahead of time are not available yet."
+      },
+      "stop": {
+        "label": "Stop",
+        "explains": "Courier stops at the next safe point. If the action already started, its result may still arrive."
+      }
+    }
+  ],
+  "done": [
+    {
+      "id": "t-verified",
+      "title": "Synthetic test task",
+      "pile": "done",
+      "last_change": {
+        "what": "You asked Courier to do this",
+        "at": "2026-10-02T08:00:00.000000Z"
+      },
+      "outcome": "verified",
+      "label": "Checked by Courier",
+      "explanation": "Courier checked the result against the evidence.",
+      "mark": "check"
+    },
+    {
+      "id": "t-human",
+      "title": "Synthetic test task",
+      "pile": "done",
+      "last_change": {
+        "what": "You asked Courier to do this",
+        "at": "2026-10-02T08:00:00.000000Z"
+      },
+      "outcome": "human_confirmed",
+      "label": "Confirmed by ana",
+      "explanation": "ana confirmed it happened. Courier did not verify it.",
+      "mark": "signature"
+    },
+    {
+      "id": "t-uncertain",
+      "title": "Synthetic test task",
+      "pile": "done",
+      "last_change": {
+        "what": "You asked Courier to do this",
+        "at": "2026-10-02T08:00:00.000000Z"
+      },
+      "outcome": "outcome_uncertain",
+      "label": "Outcome uncertain",
+      "explanation": "Courier stopped trying. The earlier action may already have happened.",
+      "mark": "gate-question"
+    },
+    {
+      "id": "t-failed",
+      "title": "Synthetic test task",
+      "pile": "done",
+      "last_change": {
+        "what": "You asked Courier to do this",
+        "at": "2026-10-02T08:00:00.000000Z"
+      },
+      "outcome": "could_not_complete",
+      "label": "Couldn't complete this safely",
+      "explanation": "Courier stopped because it could not finish this safely.",
+      "mark": "open-ring"
+    }
+  ],
+  "counts": {
+    "needs_you": 1,
+    "working": 1,
+    "done": 4
+  },
+  "status": {
+    "controller": "running",
+    "checked_at": "2026-10-02T08:00:00.000000Z"
+  },
+  "truth": "ok",
+  "head_seq": 12,
+  "read_at": "2026-10-02T08:00:00.000000Z"
+}
