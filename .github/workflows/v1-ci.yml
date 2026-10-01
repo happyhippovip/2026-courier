@@ -96,3 +96,29 @@ jobs:
           else
             echo "tests/desktop not present yet; nothing to run."
           fi
+
+  golden-skip-ratchet:
+    # The 11 Golden tests skip by design until the v1 modules land; the
+    # regression gate tolerates skips silently. This job pins the expected
+    # skip shape instead: any change in either direction fails until the
+    # pin in .github/ci/check_golden_skips.py is deliberately updated by
+    # the merge that lands the modules. Golden skip behavior is
+    # platform-independent, so one ubuntu run is enough.
+    name: golden skip ratchet
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install pinned dependencies
+        run: python -m pip install -e ".[test]"
+
+      - name: Pin golden skip shape
+        shell: bash
+        run: python .github/ci/check_golden_skips.py
