@@ -3,7 +3,7 @@
 echo "Configuring Courier Mac Worker securely in macOS Keychain."
 
 read -p "Enter Courier Server URL (e.g., http://127.0.0.1:8080): " server_url
-read -p "Enter Courier API Key: " api_key
+read -rsp "Enter Courier API Key (input hidden): " api_key; echo
 
 # Delete existing if any to avoid prompt issues
 security delete-generic-password -a "courier_worker" -s "courier_server_url" 2>/dev/null

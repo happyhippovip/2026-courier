@@ -1,0 +1,130 @@
+diff --git a/server/app.py b/server/app.py
+index 725ac91..283a1d4 100644
+--- a/server/app.py
++++ b/server/app.py
+@@ -232,6 +232,8 @@ def unregister_worker():
+     
+     if worker_id in state["workers"]:
+         state["workers"][worker_id]["available"] = False
++        # Stop is sticky: only an explicit re-registration returns the worker to service.
++        state["workers"][worker_id]["unregistered"] = True
+         save_state(state)
+         return jsonify({"status": "UNREGISTERED"})
+     return jsonify({"error": "Unknown worker"}), 404
+@@ -247,7 +249,8 @@ def heartbeat():
+     if worker_id in state["workers"]:
+         state["workers"][worker_id]["last_seen"] = time.time()
+         # Only mark available if not currently working
+-        if not state["workers"][worker_id].get("current_task"):
++        worker = state["workers"][worker_id]
++        if not worker.get("current_task") and not worker.get("unregistered"):
+             state["workers"][worker_id]["available"] = True
+         save_state(state)
+         return jsonify({"status": "OK"})
+@@ -358,13 +361,15 @@ def task_result():
+     if task_id in state["tasks"]:
+         task = state["tasks"][task_id]
+         
+-        # Duplicate protection
+-        if task["status"] in ["RECONCILED", "FAILED_TERMINAL", "RESULT_RECEIVED"]:
+-            return jsonify({"status": "IGNORED", "reason": "DUPLICATE_OR_ALREADY_PROCESSED"})
+-            
++        # Duplicate protection: a resend of the stored result (e.g. after a lost
++        # response) is acknowledged; any other result for a processed task conflicts.
++        stored = task.get("result") or {}
++        if stored and all(stored.get(field) == data.get(field) for field in ("dispatch_id", "result_id", "status")):
++            return jsonify({"status": "ACK_DUPLICATE"})
++        if task["status"] in ["RECONCILED", "FAILED_TERMINAL", "RESULT_RECEIVED", "FAILED_VERIFICATION"]:
++            return jsonify({"error": "Conflicting result for already processed task"}), 409
++
+         if task.get("worker_id") == worker_id:
+-            if task.get("status") == "RESULT_RECEIVED" and task.get("result", {}).get("result_id") == data.get("result_id"):
+-                return jsonify({"status": "ACK_DUPLICATE"})
+             if task.get("status") != "DISPATCHED":
+                 return jsonify({"error": "Task is not awaiting a result"}), 409
+             try:
+@@ -503,13 +508,13 @@ def verify_task_result():
+     else:
+         task["status"] = "FAILED_VERIFICATION"
+         goal["status"] = "BLOCKED"
++    _, step = _find_workflow_step(state, task_id)
++    if step is not None:
++        step["status"] = task["status"]
+     save_state(state)
+     return jsonify({"status": task["status"]})
+ 
+ 
+-if __name__ == "__main__":
+-    app.run(host="0.0.0.0", port=8080)
+-
+ @app.route('/tasks/<task_id>/resume', methods=['POST'])
+ @require_auth
+ @serialize_state_mutation
+@@ -517,29 +522,41 @@ def resume_task(task_id):
+     data = request.get_json(silent=True) or {}
+     action = data.get("action", "retry")
+     state = load_state()
+-    
+-    for goal_id, goal in state["goals"].items():
+-        if "workflow_plan" not in goal: continue
+-        for step in goal["workflow_plan"]:
+-            if step["task_id"] == task_id:
+-                if step["status"] not in ["HUMAN_REQUIRED", "FAILED_VERIFICATION", "FAILED_TERMINAL"]:
+-                    return jsonify({"error": f"Task cannot be resumed from status {step['status']}"}), 400
+-                
+-                if action == "retry":
+-                    step["status"] = "QUEUED"
+-                    goal["status"] = "ACTIVE"
+-                    if "instruction_override" in data:
+-                        step["instruction"] = data["instruction_override"]
+-                    step["worker_id"] = None
+-                    save_state(state)
+-                    return jsonify({"status": "RESUMED", "task_id": task_id, "goal_id": goal_id})
+-                elif action == "force_success":
+-                    step["status"] = "RESULT_RECEIVED"
+-                    goal["status"] = "ACTIVE"
+-                    step["result_id"] = "manual-resume-" + task_id
+-                    save_state(state)
+-                    return jsonify({"status": "FORCED_SUCCESS_PENDING_VERIFICATION", "task_id": task_id})
+-                else:
+-                    return jsonify({"error": "Unknown action"}), 400
+-                    
+-    return jsonify({"error": "Task not found"}), 404
++    task = state["tasks"].get(task_id)
++    goal, step = _find_workflow_step(state, task_id)
++    if step is None:
++        return jsonify({"error": "Task not found"}), 404
++
++    status = task["status"] if task else step["status"]
++    if status not in ["HUMAN_REQUIRED", "FAILED_VERIFICATION", "FAILED_TERMINAL"]:
++        return jsonify({"error": f"Task cannot be resumed from status {status}"}), 400
++
++    if action == "retry":
++        # Requeue only; the next claim mints a fresh attempt_id/dispatch_id so
++        # results of the superseded attempt can no longer bind to this task.
++        for record in filter(None, (task, step)):
++            record["resumed_from"] = status
++            record["status"] = "QUEUED"
++            record["worker_id"] = None
++        if "instruction_override" in data:
++            step["instruction"] = data["instruction_override"]
++        goal["status"] = "ACTIVE"
++        save_state(state)
++        return jsonify({"status": "RESUMED", "task_id": task_id, "goal_id": goal["goal_id"]})
++    if action == "force_success":
++        # Success must come from a DurableResult bound to a dispatch and an
++        # independent verifier; a manual marker cannot provide either.
++        return jsonify({"error": "force_success is not supported; retry and verify instead"}), 400
++    return jsonify({"error": "Unknown action"}), 400
++
++
++def _find_workflow_step(state, task_id):
++    for goal in state["goals"].values():
++        for step in goal.get("workflow_plan", []):
++            if step.get("task_id") == task_id:
++                return goal, step
++    return None, None
++
++
++if __name__ == "__main__":
++    app.run(host="0.0.0.0", port=8080)
