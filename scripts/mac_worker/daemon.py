@@ -81,6 +81,9 @@ def http_post(config, endpoint, data):
 # Files without worker_phase come from the previous daemon, which wrote them
 # right before executing, so they are treated as STARTED.
 MAX_RESULT_POST_ATTEMPTS = 8
+# In-execution heartbeat cadence for run_agy (mirrors run_muse's 30s): the
+# server reclaims workers unseen for 300s, so a silent agy run must beat.
+AGY_HEARTBEAT_INTERVAL_SECONDS = 30
 
 def persist_task(path, task):
     atomic_json(path, task)
@@ -336,8 +339,23 @@ def run_agy(task, config):
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    text=True, start_new_session=True)
         identity = process_identity(process.pid)
+        # Sliced communicate with in-execution heartbeat: the server's
+        # reclaim_stale quarantines workers unseen for 300s, and the default
+        # agy window spans exactly that. Same 30s cadence as run_muse; the
+        # overall deadline is unchanged and still handled below.
         try:
-            stdout, stderr = process.communicate(timeout=timeout)
+            deadline = time.monotonic() + timeout
+            while True:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise subprocess.TimeoutExpired(cmd, timeout)
+                try:
+                    stdout, stderr = process.communicate(
+                        timeout=min(AGY_HEARTBEAT_INTERVAL_SECONDS, remaining))
+                    break
+                except subprocess.TimeoutExpired:
+                    if config.get("COURIER_SERVER"):
+                        http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
         except subprocess.TimeoutExpired:
             _reap_agy_group(process, identity)
             stdout, stderr = process.communicate()
