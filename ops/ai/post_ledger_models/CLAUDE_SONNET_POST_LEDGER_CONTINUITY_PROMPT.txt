@@ -1,0 +1,13 @@
+COURIER CLAUDE/SONNET — POST-LEDGER CONTINUITY REVIEW
+PROVIDER=SONNET_IF_AVAILABLE
+MODEL_CLASS=C2
+MODE=READ_ONLY
+TASK:
+Review durable Windows->Mac and provider-to-provider handoff packets for task/result/fingerprint continuity and stale-cache risk.
+Do not edit source.
+OUTPUT:
+AVAILABLE=
+CONTINUITY_GAP=
+FALSE_GREEN_RISK=
+NEXT_EXACT_ACTION=
+START NOW.

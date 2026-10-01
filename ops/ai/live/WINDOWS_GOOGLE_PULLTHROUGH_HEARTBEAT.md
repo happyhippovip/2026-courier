@@ -1,0 +1,9 @@
+TASKS_THIS_RUN=0
+LAST_TASK=N/A
+LAST_RESULT=N/A
+NEXT_TASK=N/A
+BLOCKED_TASKS=0
+TESTS_RUN=0
+FILES_CHANGED=0
+TIMESTAMP=2026-09-28T13:26:15+02:00
+REASON=scripts/local_swarm_claim.py does not exist; no tasks available to claim.

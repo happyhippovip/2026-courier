@@ -1,0 +1,77 @@
+{
+  "goals": {
+    "goal-f47296a1": {
+      "goal_id": "goal-f47296a1",
+      "goal_text": "do something",
+      "status": "ACTIVE",
+      "workflow_plan": [
+        {
+          "instruction": "test",
+          "target_agent": "windows",
+          "goal_id": "goal-f47296a1",
+          "status": "RESULT_RECEIVED",
+          "attempts": 1,
+          "task_id": "task-c8da1e58",
+          "worker_id": "test-worker",
+          "attempt_id": "task-c8da1e58:attempt:1",
+          "dispatch_id": "dispatch-f336f8dc29a846f5bcb0c223c016c43f",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "windows",
+          "artifacts": [
+            "courier_canary_task-c8da1e58.txt"
+          ]
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "task-c8da1e58": {
+      "instruction": "test",
+      "target_agent": "windows",
+      "goal_id": "goal-f47296a1",
+      "status": "RESULT_RECEIVED",
+      "attempts": 1,
+      "task_id": "task-c8da1e58",
+      "worker_id": "test-worker",
+      "attempt_id": "task-c8da1e58:attempt:1",
+      "dispatch_id": "dispatch-f336f8dc29a846f5bcb0c223c016c43f",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "windows",
+      "artifacts": [
+        "courier_canary_task-c8da1e58.txt"
+      ],
+      "result": {
+        "worker_id": "test-worker",
+        "dispatch_id": "dispatch-f336f8dc29a846f5bcb0c223c016c43f",
+        "goal_id": "goal-f47296a1",
+        "status": "SUCCESS",
+        "result_id": "result-174a1dd35c165bc7d10f9deeab4cec8f5f5d5ad0605ee3e3b8f7d6825abd622d",
+        "artifacts": [
+          {
+            "path": "courier_canary_task-c8da1e58.txt",
+            "sha256": "315f5bdb76d078c43b8ac0064e4a0164612b1fce77c869345bfc94c75894edd3"
+          }
+        ],
+        "attempt_id": "task-c8da1e58:attempt:1",
+        "task_id": "task-c8da1e58",
+        "run_id": "run-123"
+      }
+    }
+  },
+  "workers": {
+    "test-worker": {
+      "worker_id": "test-worker",
+      "platform": "windows",
+      "capabilities": [
+        "windows"
+      ],
+      "last_seen": 1790806327.7647614,
+      "available": true,
+      "current_task": null,
+      "cost_class": "unknown"
+    }
+  }
+}

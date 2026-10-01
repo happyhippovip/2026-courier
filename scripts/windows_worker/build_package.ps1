@@ -19,6 +19,9 @@ if ($LASTEXITCODE -ne 0) {
 # 2. Copy binaries and scripts
 Copy-Item "$PSScriptRoot\Courier.exe" -Destination $OutDir
 Copy-Item -Recurse "$PSScriptRoot\..\..\courier_worker" -Destination "$OutDir\courier_worker"
+if (Test-Path "$PSScriptRoot\..\..\adapters") {
+    Copy-Item -Recurse "$PSScriptRoot\..\..\adapters" -Destination "$OutDir\adapters"
+}
 Copy-Item "$PSScriptRoot\install.ps1" -Destination $OutDir
 Copy-Item "$PSScriptRoot\uninstall.ps1" -Destination $OutDir
 
@@ -30,6 +33,7 @@ $pyDir = Join-Path $OutDir "python"
 New-Item -ItemType Directory -Force -Path $pyDir | Out-Null
 Write-Host "Extracting Python..."
 Expand-Archive -Path $pyZip -DestinationPath $pyDir -Force
+Add-Content -Path "$pyDir\python311._pth" -Value ".."
 
 # 4. Create ZIP package
 $zipOut = "$PSScriptRoot\CourierWorker-v1.zip"

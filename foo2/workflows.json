@@ -1,0 +1,17 @@
+{
+  "workflows": [
+    {
+      "workflow_id": "w1",
+      "production_steps": [
+        "IDEA",
+        "HOOK",
+        "SCRIPT",
+        "ASSET_SELECTION",
+        "VIDEO_BUILD",
+        "METADATA",
+        "REVIEW",
+        "READY_TO_PUBLISH"
+      ]
+    }
+  ]
+}

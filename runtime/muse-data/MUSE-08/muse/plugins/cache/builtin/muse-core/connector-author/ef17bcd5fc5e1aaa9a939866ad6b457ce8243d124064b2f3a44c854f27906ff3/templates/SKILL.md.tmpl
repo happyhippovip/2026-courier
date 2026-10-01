@@ -1,0 +1,80 @@
+---
+name: {{NAME}}
+{{GATE_LINE}}description: "Daemon connector for {{SOURCE_NAME}} — connect words {{CONNECT_WORDS}}; source `{{SOURCE_WORD}}`; one alias per {{CONVERSATION_UNIT}}; default filter `{{DEFAULT_FILTER}}` ({{FILTER_MEANING}}). Listens under a Monitor, prints one feed line per message, replies through {{REPLY_SUMMARY}}."
+---
+
+# {{NAME}}
+
+A connector is a skill directory plus one script (ADR 37480 D1). This one was
+scaffolded by the `connector-author` skill from the daemon's starter template
+on {{DATE}}; the interview answers it was built from are in
+`tests/answers.json`. `<connector-script>` is `scripts/{{SCRIPT_NAME}}`
+joined against this skill's `skill-dir` (the wrapper that delivered this body
+carries it; never the `path` attribute).
+
+## What it connects
+
+- **Source:** {{SOURCE_NAME}} — {{SOURCE_SUMMARY}} The `--source` word is
+  `{{SOURCE_WORD}}`.
+- **Delivery:** {{DELIVERY_SENTENCE}}
+- **One conversation is** {{CONVERSATION_UNIT}}; its stable id is
+  {{CONVERSATION_ID_RULE}}. The alias `c<n>` is this connector's own counter
+  (another connector's `c1` is a different conversation; the daemon
+  addresses `(connector, alias)`).
+- **Identity and auth:** {{AUTH_IDENTITY}} The lane environment names are
+  {{AUTH_ENV_LIST}} (`status --json` reports them as `env_pass`; never a
+  value in a thread).
+- **Default filter:** `{{DEFAULT_FILTER}}` — {{FILTER_MEANING}} A wider
+  stream is asked for in the connect prompt (`--filter ''` is everything);
+  two live subscriptions on one source need disjoint filters.
+
+## The three rules this connector keeps (ADR 37480 D1, D8)
+
+1. Ownership and lanes are the daemon's: the script mints an opaque
+   `conversation` id per {{CONVERSATION_UNIT}} and never reads the registry.
+2. `listen` prints one line per inbound message, `c<n> <sender>: <text>`,
+   and nothing else on stdout (its own notices go to stderr).
+3. A second `listen` for a live subscription key (`source`, `filter`) is
+   refused with one JSON line (`listener_conflict`, exit 3; an overlapping
+   filter on the same source is `filter_overlap`) naming the live pid; `reply`
+   is idempotent on `--key` (a repeat returns the first receipt with
+   `"idempotent": true`).
+
+## Commands
+
+```
+monitor(command="python3 <connector-script> listen --source {{SOURCE_WORD}} [--filter <word>]", persistent=true, wake_delay_ms=0, show_lines=true, description="{{NAME}}")
+python3 <connector-script> reply --to c<n> --text <text> [--key <k>] [--origin <connector>/<conversation>]
+python3 <connector-script> describe --to c<n>
+python3 <connector-script> status --json
+python3 <connector-script> disconnect
+```
+
+`status --json` is the contract the daemon's `start` reads on every restart:
+`sources_available` (every `--source` word `listen` honours; a recorded row
+whose word is missing is reported `stale`, never armed) and `listeners` with
+one record per source word (`listener`, `pid`, `subscriptions`) beside one per
+live subscription key (`<source>|<filter>`). A record whose last listener
+ended non-zero carries `exit` (integer) and `ended_at` (ISO time) until a
+new listener starts on it: `start` records that failure itself, without a
+model call. A live listener, a clean end and a stop by signal carry neither.
+
+Connect words for the daemon prompt: {{CONNECT_WORDS}} → `/daemon connect
+{{NAME}}` (or `muse daemon connect {{NAME}}`). The daemon records one intent
+row for this connector (`start --connector {{NAME}} --connector-script
+<connector-script> --source {{SOURCE_WORD}} --filter {{DEFAULT_FILTER}}
+--prompt '<the words>'`) and arms the Monitor above.
+
+## Replies
+
+{{REPLY_SENTENCE}} Plain text{{MARKDOWN_NOTE}}; no cards, attachments or
+edits (`status --json` says so). Never @-mention your own handle in a reply:
+it would come back as a new line.
+
+## Not filled in yet
+
+{{TODO_LIST}}
+
+State lives under `${{ENV_PREFIX}}STATE_DIR` (default
+`$XDG_DATA_HOME/muse/connectors/{{NAME}}`); `{{ENV_PREFIX}}FIXTURE_FILE`
+makes the script read a JSON inbox instead of the source (tests only).

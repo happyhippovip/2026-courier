@@ -1,0 +1,50 @@
+{
+  "schema_version": 2,
+  "goals": {
+    "goal-0c7f0482": {
+      "goal_id": "goal-0c7f0482",
+      "goal_text": "Demo: Market Research Pipeline",
+      "status": "ACTIVE",
+      "terminal": true,
+      "workflow_plan": [
+        {
+          "task_id": "t1-e6b27d",
+          "target_agent": "mac",
+          "instruction": "echo Extracting market data",
+          "mode": "NATIVE",
+          "goal_id": "goal-0c7f0482",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "t2-e6b27d",
+          "target_agent": "mac",
+          "instruction": "echo Processing metrics",
+          "mode": "NATIVE",
+          "depends_on": [
+            "t1-e6b27d"
+          ],
+          "goal_id": "goal-0c7f0482",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "t3-e6b27d",
+          "target_agent": "mac",
+          "instruction": "echo Generating final report",
+          "mode": "NATIVE",
+          "depends_on": [
+            "t2-e6b27d"
+          ],
+          "goal_id": "goal-0c7f0482",
+          "status": "QUEUED",
+          "attempts": 0
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {},
+  "workers": {},
+  "resource_owners": {}
+}

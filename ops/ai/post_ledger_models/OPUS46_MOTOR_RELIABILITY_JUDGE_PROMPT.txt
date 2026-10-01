@@ -1,0 +1,15 @@
+COURIER OPUS 4.6 — MOTOR RELIABILITY CAUSAL JUDGE
+PROVIDER=OPUS_4_6
+MODEL_CLASS=C4
+REASONING=HIGH
+TASK:
+Review only durable evidence about the repaired scheduled Courier Motor:
+distinct verifier authority, correct state-file persistence, persistent idle semantics, and failure-notification behavior.
+Identify any remaining causal reliability risk before customer-facing use.
+Do not rewrite code.
+OUTPUT:
+REMAINING_CAUSAL_RISK=
+EVIDENCE_NEEDED=
+SELLABILITY_BLOCKING=YES|NO
+NEXT_EXACT_ACTION=
+START NOW.

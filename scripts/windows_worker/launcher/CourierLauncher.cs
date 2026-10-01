@@ -16,6 +16,17 @@ namespace CourierLauncher
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern bool AssignProcessToJobObject(IntPtr job, IntPtr process);
 
+        [DllImport("kernel32.dll")]
+        static extern bool SetConsoleCtrlHandler(ConsoleCtrlDelegate HandlerRoutine, bool Add);
+
+        delegate bool ConsoleCtrlDelegate(uint CtrlType);
+
+        static bool ConsoleCtrlCheck(uint ctrlType)
+        {
+            // Ignore events to let the python child process handle them
+            return true;
+        }
+
         [StructLayout(LayoutKind.Sequential)]
         struct JOBOBJECT_BASIC_LIMIT_INFORMATION
         {
@@ -57,6 +68,8 @@ namespace CourierLauncher
 
         static void Main(string[] args)
         {
+            SetConsoleCtrlHandler(ConsoleCtrlCheck, true);
+
             IntPtr hJob = CreateJobObject(IntPtr.Zero, null);
             if (hJob == IntPtr.Zero)
             {
@@ -79,6 +92,8 @@ namespace CourierLauncher
             
             string dataDir = Environment.ExpandEnvironmentVariables(@"%PROGRAMDATA%\CourierWorker");
             string configPath = Path.Combine(dataDir, "config.json");
+            string logDir = Path.Combine(dataDir, "logs");
+            string logPath = Path.Combine(logDir, "host.log");
             string serverUrl = "";
             string workerId = "";
             
@@ -118,13 +133,38 @@ namespace CourierLauncher
                 Arguments = arguments,
                 UseShellExecute = false,
                 WorkingDirectory = baseDir,
-                RedirectStandardOutput = false,
-                RedirectStandardError = false
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
             };
             
             try
             {
-                Process proc = Process.Start(psi);
+                if (!Directory.Exists(logDir))
+                {
+                    Directory.CreateDirectory(logDir);
+                }
+
+                Process proc = new Process();
+                proc.StartInfo = psi;
+
+                object logLock = new object();
+                
+                DataReceivedEventHandler logHandler = (sender, e) => {
+                    if (e.Data != null) {
+                        lock(logLock) {
+                            File.AppendAllText(logPath, "[" + DateTime.UtcNow.ToString("O") + "] " + e.Data + Environment.NewLine);
+                        }
+                    }
+                };
+
+                proc.OutputDataReceived += logHandler;
+                proc.ErrorDataReceived += logHandler;
+
+                proc.Start();
+                proc.BeginOutputReadLine();
+                proc.BeginErrorReadLine();
+
                 if (proc == null)
                 {
                     Console.WriteLine("Failed to start process.");
@@ -141,6 +181,7 @@ namespace CourierLauncher
             }
             catch (Exception ex)
             {
+                File.WriteAllText("crash.txt", "Error launching daemon: " + ex.ToString());
                 Console.WriteLine("Error launching daemon: " + ex.Message);
                 Environment.Exit(1);
             }

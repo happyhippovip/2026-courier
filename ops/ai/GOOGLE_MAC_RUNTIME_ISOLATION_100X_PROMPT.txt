@@ -1,0 +1,71 @@
+COURIER MAC GOOGLE — RUNTIME / ISOLATION 100X
+
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+REPO=/Users/user/Downloads/2026-courier
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+
+BOOTSTRAP:
+cd /Users/user/Downloads/2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+DO NOT checkout/merge/rebase/reset/clean.
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+If a required ops/ai file is missing locally:
+git show origin/coordination/autofill-task-seed-20260926:<PATH>
+
+RULES:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_BUSYWORK=YES
+NO_IDLE_ANALYSIS=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+
+Same gate fingerprint is never paid for twice.
+If gate work is owned/validated, skip it and take another READY task.
+
+
+ROLE=MAC_RUNTIME_ISOLATION_SPECIALIST
+
+PREP ONLY until physical authorization.
+
+PRIORITY:
+1 repo/source binding readiness
+2 build/runtime/config fingerprint plan
+3 port isolation
+4 process ownership
+5 state-dir isolation
+6 artifact-dir isolation
+7 log-dir isolation
+8 worker/verifier key separation
+9 RUN_1 workspace isolation
+10 RUN_2 workspace isolation
+11 cleanup boundary without touching foreign processes
+
+OUTPUT:
+ITEM=
+CURRENT=
+READY=
+MISSING=
+EVIDENCE_LOCATION=
+BLOCKER=
+CAN_CLOSE_NOW=
+
+Do not start physical RUN_1.
+Do not start physical RUN_2.
+Do not kill peer processes.
+Do not edit source.
+
+Continue until all independent isolation prep is covered.
+Then TRUE_IDLE.
+
+START NOW.

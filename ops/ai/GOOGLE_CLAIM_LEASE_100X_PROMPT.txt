@@ -1,0 +1,64 @@
+COURIER GOOGLE — CLAIM / LEASE INTEGRITY 100X
+
+HOST=AUTO
+PROVIDER=GOOGLE_CLI
+CONTINUE_BY_DEFAULT=YES
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_BUSYWORK=YES
+NO_IDLE_ANALYSIS=YES
+MAX_HEAVY_JOBS=1
+
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+
+BOOTSTRAP:
+git fetch origin coordination/autofill-task-seed-20260926
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+Same gate fingerprint is NEVER paid for twice.
+If gate work is already owned/validated, skip that family and take another READY task.
+
+APPLICATION_SOURCE_WRITE=NO
+
+
+ROLE=CLAIM_LEASE_INTEGRITY_SPECIALIST
+
+TASK:
+Close only current claim/lease/concurrency gaps.
+
+CHECK:
+- one live claim per task
+- owner-bound release
+- owner-bound renewal
+- stale claim criteria
+- no claim resurrection
+- queue generation binding
+- session/provider/host change does not recreate DONE work
+- PREPARER/HARVESTER locks are singular
+- live claims are not stolen
+
+FOR EACH REAL GAP:
+TASK_OR_CLAIM=
+CURRENT_STATE=
+EXPECTED=
+EVIDENCE=
+GAP=
+CAUSAL_RISK=
+SMALLEST_COORDINATION_FIX=
+RETEST_TRIGGER=
+
+No source edits.
+No peer-process killing.
+No filler.
+
+If no real claim/lease gap exists:
+TRUE_IDLE.
+
+START NOW.

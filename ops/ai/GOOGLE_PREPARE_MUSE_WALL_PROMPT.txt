@@ -1,0 +1,76 @@
+COURIER GOOGLE — PREPARE MUSE WALL
+
+HOST=AUTO
+PROVIDER=GOOGLE_CLI
+MODE=MUSE_WALL_PREPARER
+CONTINUE_BY_DEFAULT=YES
+MAX_PREPARERS=2
+MAX_HEAVY_JOBS=1
+
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+
+BOOTSTRAP:
+git fetch origin coordination/autofill-task-seed-20260926
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/MUSE_WALL_PREFLIGHT_PREPARATION_PACK_2026-09-28.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+PURPOSE:
+Prepare real independent Muse-ready tasks before Muse spends tokens.
+
+EXECUTE MPREP IN ORDER:
+MPREP-01 Muse input index
+MPREP-02 completed-result fingerprint/skip index
+MPREP-03 contradiction shortlist
+MPREP-04 missing-evidence shortlist
+MPREP-05 restart-matrix open cells
+MPREP-06 Proof Card missing fields
+MPREP-07 Core Freeze blocker shortlist
+MPREP-08 wall-reliability open checks
+MPREP-09 pilot-prep QA packet
+MPREP-10 Muse taskbank generation
+
+RULES:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_BUSYWORK=YES
+NO_IDLE_ANALYSIS=YES
+APPLICATION_SOURCE_WRITE=NO
+
+Muse stdout/CLI contract is already proven.
+Do not retest it without a durable version/adapter/contract change.
+
+PRE_CODEX:
+Do not revalidate an unchanged gate fingerprint.
+If FINAL_SHA durability is unresolved, mark candidate-sensitive Muse tasks WAITING_FOR_DURABILITY and still prepare independent non-candidate Muse tasks.
+
+TASKBANK LAW:
+Create only unique tasks with:
+TASK_ID
+FAMILY
+PRIORITY
+EXACT_INPUT_REFS
+DONE_CONDITION
+DO_NOT_REPEAT_FINGERPRINT
+CANDIDATE_SENSITIVE
+PREFERRED_HOST
+ALLOWED_MODEL_CLASS=C2
+
+Do not manufacture work to fill 30/100/200 slots.
+
+FINAL OUTPUT:
+MUSE_READY_TASK_COUNT=
+MUSE_READY_BY_FAMILY=
+MUSE_WAITING_FOR_DURABILITY=
+MUSE_SKIP_FINGERPRINT_COUNT=
+TOP_10_READY_TASKS=
+TASKBANK_REF=
+NEXT=MUSE_WALL_SEQUENCE
+
+START NOW.

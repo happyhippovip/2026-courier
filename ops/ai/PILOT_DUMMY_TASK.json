@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "goal_id": "goal-pilot-001",
+  "goal_text": "Courier Pilot Cohort Live Acceptance Test",
+  "workflow_plan": [
+    {
+      "task_id": "pilot-task-001",
+      "goal_id": "goal-pilot-001",
+      "target_agent": "windows",
+      "target_capability": "windows",
+      "instruction": "Execute deterministic pilot canary verification: confirm workspace accessibility, record timestamp, compute SHA256 of proof artifact, and verify no-human-relay execution.",
+      "artifacts": [
+        {
+          "path": "courier_pilot_proof.txt",
+          "expected_sha256": "4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a"
+        }
+      ],
+      "status": "QUEUED"
+    }
+  ],
+  "pilot_metadata": {
+    "cohort_id": "pilot-cohort-alpha",
+    "host": "WINDOWS",
+    "timeout_seconds": 60,
+    "human_relay_limit": 0,
+    "metrics_target": {
+      "setup_time_minutes_max": 15,
+      "human_interventions_max": 0,
+      "provider_cost_class": "free_or_subscription"
+    }
+  }
+}

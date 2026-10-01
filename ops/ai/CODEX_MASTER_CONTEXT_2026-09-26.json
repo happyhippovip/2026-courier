@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "context_id": "CODEX_MASTER_CONTEXT_2026-09-26",
+  "rules": [
+    "CONTINUE_BY_DEFAULT",
+    "FEATHERLIGHT_BY_DEFAULT",
+    "THE_GRANDMA_TEST",
+    "TRUTH_OVER_SPEED",
+    "NO_EVIDENCE_NO_PASS"
+  ],
+  "n1_010": "PARKED",
+  "critical_path": [
+    "close Artifact->Verify cutover",
+    "close documented duplicate gaps",
+    "bind exact candidate",
+    "targeted tests",
+    "physical Mac one-slot A->VERIFY->B with HUMAN_RELAY=0",
+    "restart without A replay",
+    "provider/quota/resource preflight",
+    "scale 1->4->8->16",
+    "60-120+ minute Featherlight soak",
+    "runtime-evidence demo"
+  ],
+  "known": [
+    "two scheduler files do not prove two active authorities",
+    "mergeability does not prove safe integration",
+    "proof binds to exact candidate not necessarily main",
+    "Mac physical A->VERIFY->B not yet proven",
+    "demo metrics must be runtime-derived"
+  ],
+  "unknown": [
+    "actual live scheduler authority",
+    "current physical Mac runtime state",
+    "physical Muse CLI binding",
+    "provider quota/authorization for scale",
+    "real LIGHT/HEAVY contract support",
+    "measured idle overhead",
+    "durable structured context reuse coverage"
+  ],
+  "required_read_order": [
+    "docs/COURIER_CURRENT_CONVERGENCE_CHECKPOINT_2026-09-26.md",
+    "docs/COURIER_NUMBER_ONE_MASTERPLAN.md",
+    "docs/COURIER_CONTINUOUS_OPERATION_PROMISE.md",
+    "docs/COURIER_GRANDMA_TEST.md",
+    "docs/CANONICAL_COMPLETION_HANDOFF.md",
+    "docs/COURIER_SYMPHONY_CANONICAL_PRODUCT_PLAN.md",
+    "ops/ai/CONVERGENCE_REVIEW_ORDER_2026-09-26.json",
+    "ops/ai/NUMBER_ONE_TASK_SEED_2026-09-26.json",
+    "ops/ai/VACATION_MODE_TASK_SEED_2026-09-26.json",
+    "ops/ai/AUTOFILL_TASK_SEED_2026-09-26.json"
+  ],
+  "codex_role": "READ_ONLY_RUNTIME_RED_TEAM",
+  "codex_output_goal": "ONE minimal writer task + exact targeted tests + bound physical proof",
+  "implementation_allowed": false
+}

@@ -1,0 +1,10 @@
+{
+  "channels": [
+    {
+      "channel_id": "c1",
+      "workflow_id": "w1",
+      "platform": "YOUTUBE",
+      "content_project": "FruitKI"
+    }
+  ]
+}

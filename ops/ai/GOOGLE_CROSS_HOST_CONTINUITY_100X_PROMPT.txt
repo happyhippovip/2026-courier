@@ -1,0 +1,64 @@
+COURIER GOOGLE — CROSS-HOST CONTINUITY 100X
+
+HOST=AUTO
+PROVIDER=GOOGLE_CLI
+CONTINUE_BY_DEFAULT=YES
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_BUSYWORK=YES
+NO_IDLE_ANALYSIS=YES
+MAX_HEAVY_JOBS=1
+
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+
+BOOTSTRAP:
+git fetch origin coordination/autofill-task-seed-20260926
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+Same gate fingerprint is NEVER paid for twice.
+If gate work is already owned/validated, skip that family and take another READY task.
+
+APPLICATION_SOURCE_WRITE=NO
+
+
+ROLE=CROSS_HOST_CONTINUITY_SPECIALIST
+
+TASK:
+Verify continuity across Windows <-> Mac <-> new session/provider without repeating completed work.
+
+CHECK:
+- current queue pointer survives host change
+- task IDs remain stable
+- result fingerprints remain stable
+- local stale cache cannot override durable truth
+- FINAL_SHA references are durably resolvable before cross-host use
+- runtime binding is explicit
+- checkpoint fields are complete
+- READY/DONE/BLOCKED states survive /clear or session changes
+- provider identity does not redefine logical task identity
+
+OUTPUT:
+SCENARIO=
+WINDOWS_STATE=
+MAC_STATE=
+DURABLE_SOURCE=
+EXPECTED_CONTINUITY=
+GAP=
+NEXT_EXACT_ACTION=
+RETEST_TRIGGER=
+
+No physical RUN_1/RUN_2.
+No source edits.
+
+Continue across independent scenarios.
+If none remain:
+TRUE_IDLE.
+
+START NOW.
