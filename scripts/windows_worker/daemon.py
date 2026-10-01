@@ -57,7 +57,8 @@ def register_worker(worker_id, release_task=False):
         payload["current_task"] = None
     data = json.dumps(payload).encode("utf-8")
     try:
-        urllib.request.urlopen(req, data=data, timeout=10)
+        with urllib.request.urlopen(req, data=data, timeout=10):
+            pass
         return True
     except Exception as e:
         print(f"[{worker_id}] Failed to register: {e}")
@@ -122,7 +123,8 @@ def http_post_result(res):
         req = urllib.request.Request(f"{API_URL}/tasks/result", method="POST")
         for k, v in HEADERS.items(): req.add_header(k, v)
         try:
-            urllib.request.urlopen(req, data=data, timeout=10)
+            with urllib.request.urlopen(req, data=data, timeout=10):
+                pass
             return "DELIVERED"
         except urllib.error.HTTPError as e:
             if e.code < 500:
@@ -336,7 +338,8 @@ def loop():
                 for k, v in HEADERS.items(): req.add_header(k, v)
                 data = json.dumps({"worker_id": worker_id}).encode("utf-8")
                 try:
-                    urllib.request.urlopen(req, data=data, timeout=10)
+                    with urllib.request.urlopen(req, data=data, timeout=10):
+                        pass
                 except urllib.error.HTTPError as e:
                     if e.code == 404:
                         register_worker(worker_id)
@@ -351,8 +354,8 @@ def loop():
                 if not task:
                     req = urllib.request.Request(f"{API_URL}/tasks/claim", method="POST")
                     for k, v in HEADERS.items(): req.add_header(k, v)
-                    res = urllib.request.urlopen(req, data=data, timeout=10)
-                    res_data = json.loads(res.read().decode("utf-8"))
+                    with urllib.request.urlopen(req, data=data, timeout=10) as res:
+                        res_data = json.loads(res.read().decode("utf-8"))
                     task = res_data.get("task")
                     if task:
                         task["worker_phase"] = "CLAIMED"

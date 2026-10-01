@@ -60,3 +60,33 @@ def test_run_task_timeout_shape_and_cleanup(monkeypatch):
     assert result["reason"] == "TASK_TIMEOUT"
     assert result["task_id"] == "t1"
     assert result["run_id"] == "4242"
+
+
+class TrackingResponse:
+    closed = False
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.closed = True
+        return False
+
+    def read(self):
+        return b"{}"
+
+
+def test_http_responses_are_closed(monkeypatch):
+    daemon = load_win_daemon()
+    seen = []
+
+    def fake_urlopen(req, **kwargs):
+        resp = TrackingResponse()
+        seen.append(resp)
+        return resp
+
+    monkeypatch.setattr(daemon.urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(daemon, "API_KEY", "test-key")
+    assert daemon.register_worker("W-01") is True
+    assert daemon.http_post_result({}) == "DELIVERED"
+    assert seen and all(r.closed for r in seen)
