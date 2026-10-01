@@ -2,9 +2,7 @@
   "_about": "Known failing / flaky tests per CI platform (runner.os). Owned by L1. Entries may only be REMOVED when a test is fixed, never added to hide a regression. 'out_of_scope' lists node-id patterns of components that cannot run on that platform by design; those tests still run and are reported, and stay fully gated on the platforms where the component runs. Every entry and scope must be traceable in docs/v1/INTEGRATION_LOG.md.",
   "Linux": {
     "source": "baseline at e95aa787 (Python 3.12.3, pinned deps from pyproject.toml), 4 local runs on 2026-10-01",
-    "failing": [
-      "tests/test_run_physical_restart.py::test_run_physical_restart_success"
-    ],
+    "failing": [],
     "flaky": [
       "tests/test_muse_supervisor.py::test_slot_claims_canonical_task_runs_muse_exits_and_restarts_with_checkpoint",
       "tests/test_muse_supervisor.py::test_result_ready_is_only_redelivered",
@@ -55,7 +53,6 @@
       "tests/test_muse_supervisor.py::test_stop_prevents_restart",
       "tests/test_muse_supervisor.py::test_unconfirmed_prompt_method_fails_closed",
       "tests/test_run_physical.py::test_run_physical_success",
-      "tests/test_run_physical_restart.py::test_run_physical_restart_success",
       "tests/test_script_credentials.py::test_missing_key_fails_closed_before_side_effects[   -deploy/install_mac_runtime.sh]",
       "tests/test_script_credentials.py::test_missing_key_fails_closed_before_side_effects[   -scripts/revenue_v1_goal.sh]",
       "tests/test_script_credentials.py::test_missing_key_fails_closed_before_side_effects[   -scripts/setup_local_autonomy.sh]",
