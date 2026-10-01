@@ -111,3 +111,18 @@ worker host (L3) must not inherit them.
 
   Both paths are now ignored, and CI fails if a test writes any other
   non-ignored file. The tests should use `tmp_path`.
+
+## Step 0b — Rule 0 and next-chat handoff (2026-10-01)
+
+| Field | Value |
+|---|---|
+| Source branch | `lane/L1-product-rule-zero`, pushed from the owner account; Issue #54 asks L1 to merge it |
+| Source SHA | `8df37cda32c15c24b5fb4c5ca5d9d9c03426cd78` (includes `dd207057`) |
+| Resulting integration SHA | `8c04aa6f` (merge commit, `--no-ff`) |
+| Files | `docs/V1_RULE_0.md`, `docs/NEXT_CHAT_HANDOFF.md` (documentation only) |
+| Conflicts | none |
+| Manual resolution | none |
+| Targeted tests | none (no code) |
+| Overall, local Linux | 339 passed, 4 failed, 11 skipped; gate PASS. The 4th failure is the known flaky `test_muse_supervisor.py::test_stop_prevents_restart` |
+| Overall, CI | not triggered (docs-only push; `paths-ignore`). The code tree is identical to `90af2405`, which passed run 36805675912 |
+| Known remaining failures | unchanged from step 0 |
