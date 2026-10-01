@@ -410,3 +410,28 @@ Reusable 14-phase Muse master prompt:
 `docs/v1/orchestration/MUSE_MASTER_14_PHASE_PROMPT.md`
 
 This rule exists to save owner time and reduce transcription mistakes while keeping work deep and auditable.
+
+## 15. Muse unattended serial loop
+
+For one-window unattended Muse work, prefer a scheduled serial loop over manually queueing dozens or hundreds of identical messages.
+
+Project skill:
+`.agents/skills/courier-night-loop/SKILL.md`
+
+Recommended invocation after the skill is available in the checkout:
+
+```
+/loop 5m /courier-night-loop
+```
+
+Why:
+- Muse runs the recurrence in the same session;
+- an occurrence that lands while an active turn is still running is skipped rather than piled into a backlog;
+- each skill invocation reads durable queue state and performs one new bounded unit;
+- when the repo head changes it starts a new evidence epoch and refills the backlog;
+- if no honest work exists it idles rather than inventing work;
+- EMFILE/resource pressure becomes sticky RESOURCE_PAUSE rather than a retry storm.
+
+For Muse Code 1.4.0+, Meta's changelog states newly-created /loop jobs continue until deleted. Some older/general documentation still mentions seven-day expiry, so verify the active job in the installed build after creation.
+
+Do not use an arbitrarily large manual queue (100/1000/1,000,000 repeated messages) as a substitute for /loop. It bloats the retained transcript and cannot create infinite meaningful work.
