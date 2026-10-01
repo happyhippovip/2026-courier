@@ -299,3 +299,76 @@ Courier V1 must still ship as a bounded Windows application independent of AI de
 RULE 0.000000000 remains:
 
 **FINISH THE PRODUCT.**
+
+## 13. Workflow failure-domain recovery
+
+When a long-running Muse factory is active, distinguish three failure domains before acting.
+
+### A. Monitor/foreground model transport failure
+
+Example:
+- a status-checking foreground turn reports a provider transport error after retries;
+- the retained workflow still reports `running`.
+
+This does **not** by itself prove the workflow failed.
+
+Action:
+1. stop foreground polling;
+2. do not re-submit the factory prompt;
+3. wait for the current workflow attempt to settle or produce terminal delivery;
+4. later perform one bounded `/workflows` check;
+5. only recover/resume if the workflow itself is failed/stopped.
+
+### B. Local host/resource failure
+
+Examples:
+- `Too many open files`;
+- `EMFILE`;
+- `os error 24`;
+- repeated shell/file spawn failures.
+
+Action:
+- mark RESOURCE_PAUSE for new local helper launches;
+- do not use `ls`/probe/retry loops simply to watch progress;
+- do not start more Mac factories/subagents;
+- preserve the active retained workflow;
+- free only windows/processes that are independently proven safe by the custody protocol.
+
+Host resource failure and provider transport failure are separate evidence and must not be conflated.
+
+### C. Workflow child failure
+
+A child task may fail while the workflow owner remains healthy.
+
+Action:
+- let the workflow verifier/reconciler classify/retry only according to the workflow contract;
+- do not restart the whole 144-task factory because 1-2 children failed;
+- terminal synthesis must record failed/blocked children honestly.
+
+### Retained workflow recovery
+
+For a retained Muse session, if the **workflow itself** fails or the Muse process exits:
+
+- do not paste the full factory prompt again;
+- wait until the current owner is no longer running;
+- recover/resume the retained workflow using the persisted workflow records/run id;
+- same-process resume should reuse the existing workflow script/run id when available;
+- after process restart, use Muse's retained workflow recovery mechanism for the run/session;
+- resume should reuse the longest unchanged prefix of completed child work rather than rerunning everything.
+
+Never run two owners for the same workflow concurrently.
+
+### Polling rule
+
+Do not create a 4-minute wait/check loop around `/workflows`.
+The factory is background work; let terminal delivery wake the session when possible.
+
+A useful owner interaction is:
+- start factory;
+- confirm once that it is running;
+- step away;
+- on return use `/recap` or one `/workflows` check;
+- recover only if terminal state requires it.
+
+This reduces provider calls, host probes, tokens, wakeups, and accidental interference.
+
