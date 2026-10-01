@@ -306,3 +306,55 @@ Mac tests then count as Windows failures again. This changes no code.
 | Overall, local Linux | 384 passed, 1 failed (known), 11 skipped; gate PASS |
 | Overall, CI | [run 36807288154](https://github.com/happyhippovip/2026-courier/actions/runs/36807288154). **ubuntu-latest:** PASS, 382 passed, 3 failed (1 known + 2 known-flaky muse), 11 skipped. **windows-latest:** PASS, 292 passed, 54 failed, 12 skipped; new=0, out_of_scope=8 (the 8 new agy tests, `fcntl`) |
 | Known remaining failures | unchanged from step 2 (Linux 1 + 9 flaky; Windows 46 + scoped Mac tests) |
+
+## Step 6 — `M2/mac-deliver-heartbeat`, the native stack (2026-10-01)
+
+| Field | Value |
+|---|---|
+| Source branch | `M2/mac-deliver-heartbeat`; its ancestors `M2/mac-native-timeout-reap` (`60833112`), `M2/mac-native-heartbeat` (`56d29700`) and `M2/mac-native-orphan-marker` (`04b997ab`) come with it. 4 commits on `e95aa787` |
+| Source SHA | `fb3d6a22` |
+| Resulting integration SHA | `f66f9dba` (merge commit, `--no-ff`) |
+| Files | `scripts/mac_worker/daemon.py`, `tests/test_mac_native_timeout_reap.py`, `tests/test_mac_native_heartbeat.py`, `tests/test_mac_native_orphan_marker.py`, `tests/test_mac_deliver_heartbeat.py` |
+| Conflicts | `scripts/mac_worker/daemon.py`, 2 hunks against step 5 (agy) |
+| Manual resolution | Done once, by hand, keeping both hardening sets (see below). Byte-identical to the preflight resolution `c605ae55` |
+| Targeted tests | the 4 native/deliver modules plus the 3 agy modules and `test_mac_worker_contract`, `test_mac_worker_recovery`, `test_mac_worker_standalone_boot`: 39 passed |
+| Overall, local Linux | 394 passed, 2 failed (1 known + flaky `test_muse_supervisor.py::test_result_ready_is_only_redelivered`), 11 skipped; gate PASS |
+| Overall, CI | [run 36807606574](https://github.com/happyhippovip/2026-courier/actions/runs/36807606574). **ubuntu-latest:** PASS, 395 passed, 1 failed (known), 11 skipped. **windows-latest:** PASS, 292 passed, 65 failed, 12 skipped; new=0, out_of_scope=19 (all new agy and native Mac tests, `fcntl`) |
+| Known remaining failures | Linux: `test_run_physical_restart` + 9 flaky muse. Windows: 46 + scoped Mac tests |
+
+**Resolution of `scripts/mac_worker/daemon.py`.**
+
+1. **Heartbeat constants:** kept both `AGY_HEARTBEAT_INTERVAL_SECONDS = 30`
+   and `NATIVE_HEARTBEAT_INTERVAL_SECONDS = 30`, with their comments.
+2. **`require_no_orphan()`:** the restart gate now checks all three execution
+   markers: `muse_process.json`, `agy_process.json` and
+   `native_process.json`. The native branch's own comment anticipated this:
+   "the agy marker joins this gate on the agy line; merge composes them".
+3. **Auto-merged region:** run_native's new `finally` reap (fail closed when
+   cleanup is unproven) and agy's `_reap_agy_group` helper sit side by side.
+   PEP 8 spacing between them was restored.
+
+`runtime_state.same_process` is imported but unused. That is already true on
+the trunk and on both branches; it was not introduced by this merge.
+
+## Step 7 — cherry-pick `724aee46` from `google/windows-worker-timeout-kill` — BLOCKED, not applied (2026-10-01)
+
+| Field | Value |
+|---|---|
+| Source | commit `724aee46` ("fix(windows-worker): kill timed-out PowerShell child instead of leaving it running"), cherry-pick only; the branch's base lineage (`dd3d2644` …) is not merged |
+| Resulting integration SHA | unchanged (not applied) |
+| Files | `scripts/windows_worker/daemon.py`, `tests/test_windows_worker_timeout_kill.py` |
+| Conflicts | none; it applies cleanly onto the current trunk version of the daemon |
+| Targeted tests, local Linux | `test_windows_worker_timeout_kill`: 2 passed |
+| Evidence | Preflight [run 36806319325](https://github.com/happyhippovip/2026-courier/actions/runs/36806319325). **windows-latest:** `test_windows_worker_timeout_kill.py::test_timed_out_process_is_killed_not_left_running` fails with "child process from the timed-out task is still running (orphaned)". The runner's cleanup also reports `Terminate orphan process: ... (sleep)` |
+
+**Why blocked.** The test replaces `daemon.subprocess.Popen`, which is the
+global `subprocess.Popen`. So `kill_process_tree()`'s
+`subprocess.run(["taskkill", ...])` also spawns `sleep 30` instead of
+`taskkill`, and the call times out under the patched `communicate`. The
+liveness probe `os.kill(pid, 0)` also sends `CTRL_C_EVENT` on Windows instead
+of probing the process.
+
+The commit message itself says the test only exercises the non-Windows path.
+On the only platform this worker targets, the fix is unproven and the lane's
+test leaves an orphan. Not applied. The fix goes to the owning lane (L3).
