@@ -22,6 +22,7 @@ import pytest
 
 from courier_worker import host as H
 from courier_worker.host import ExecutionSpec, Outcome, WorkerHost
+from courier_worker import adapter_bridge as A
 from courier_worker import service as S
 
 PY = sys.executable
@@ -388,10 +389,16 @@ def write_token(home):
     (run / "controller.token").write_text(TOKEN, encoding="utf-8")
 
 
-def claim_body(dispatch="d1", task="t1", spec_over=None):
-    spec = {"argv": [PY, "-c", "pass"], "timeout_s": 30}
+EFFECT_KEY = "cfx-" + "a" * 40
+
+
+def claim_body(dispatch="d1", task="t1", spec_over=None, params=None, attempt=1):
+    """The L2 claim shape: a declarative spec, never a command line."""
+    spec = {"adapter": "synthetic", "effect_class": "idempotent", "timeout_s": 30,
+            "effect_key": EFFECT_KEY,
+            "params": {"sleep_s": 0, "write": "out.txt", "content": "courier-golden", **(params or {})}}
     spec.update(spec_over or {})
-    return {"task_id": task, "attempt": 1, "dispatch_id": dispatch, "ttl_s": 30, "spec": spec}
+    return {"task_id": task, "attempt": attempt, "dispatch_id": dispatch, "ttl_s": 30, "spec": spec}
 
 
 def test_claim_start_result_wire_exact_ids(tmp_path, stub):
@@ -403,8 +410,12 @@ def test_claim_start_result_wire_exact_ids(tmp_path, stub):
     assert len(STUB.results) == 1
     payload = STUB.results[0]
     assert payload["dispatch_id"] == "d1" and payload["result_id"] == "r-d1"
-    assert payload["outcome"] == "success"
+    assert payload["outcome"] == "success" and "retryable" not in payload
+    digest = hashlib.sha256(b"courier-golden").hexdigest()
+    assert payload["artifacts"] == [{"path": "artifacts/d1/out.txt", "sha256": digest}]
+    assert (tmp_path / "artifacts" / "d1" / "out.txt").read_bytes() == b"courier-golden"
     assert H.outbox_read_all(str(tmp_path)) == []
+    assert not (tmp_path / "run" / "requests" / "d1.json").exists()  # bridge files cleaned up
     assert all(b["dispatch_ids"] == ["d1"] for b in STUB.beats)
 
 
@@ -511,8 +522,7 @@ def test_no_resend_after_accept(tmp_path, stub):
 
 def test_sse_cancel_aborts_run_promptly(tmp_path, stub):
     write_token(tmp_path)
-    STUB.claims.append(claim_body(task="t9", dispatch="d9",
-                                  spec_over={"argv": [PY, "-c", "import time; time.sleep(30)"]}))
+    STUB.claims.append(claim_body(task="t9", dispatch="d9", params={"hang": True}))
     STUB.sse_plan.append({"type": "TASK_CANCEL_REQUESTED", "task_id": "t9"})
     loop = S.WorkerLoop(str(tmp_path), stub, "w1", 0.2)
     started = time.monotonic()
@@ -521,20 +531,94 @@ def test_sse_cancel_aborts_run_promptly(tmp_path, stub):
     assert len(STUB.results) == 1
     assert STUB.results[0]["outcome"] == "failure"
     assert STUB.results[0]["retryable"] is False
+    assert {"dispatch_ids": [], "worker_id": "w1"} in STUB.beats  # stop confirmation
 
 
-def test_spec_without_argv_is_rejected_as_failure_truth(tmp_path, stub):
+@pytest.mark.parametrize("spec_over, params, needle", [
+    ({"argv": [PY, "-c", "import os; os.system('echo pwned')"]}, None, "argv"),
+    ({"adapter": "shell"}, None, "not allowlisted"),
+    ({"adapter": "courier_worker.adapter_runner"}, None, "not allowlisted"),
+    ({"adapter": None}, None, "not allowlisted"),
+    ({"params": "sleep 1"}, None, "params must be an object"),
+    ({}, {"write": "../escape.txt"}, "synthetic params rejected"),
+    ({}, {"write": "/etc/passwd"}, "synthetic params rejected"),
+    ({}, {"sleep_s": -1}, "synthetic params rejected"),
+    ({}, {"hang": "yes"}, "synthetic params rejected"),
+    ({"effect_key": "bad key; rm"}, None, "effect_key"),
+])
+def test_untrusted_specs_are_refused_before_start(tmp_path, stub, spec_over, params, needle):
     write_token(tmp_path)
-    bad = claim_body()
-    del bad["spec"]["argv"]
-    STUB.claims.append(bad)
+    STUB.claims.append(claim_body(spec_over=spec_over, params=params))
     loop = S.WorkerLoop(str(tmp_path), stub, "w1", 0.2)
     assert loop.iterate(threading.Event()) == "spec-rejected"
-    assert STUB.starts == []  # never started an unresolvable command
-    assert len(STUB.results) == 1
+    assert STUB.starts == []  # nothing started, nothing spawned
     payload = STUB.results[0]
     assert payload["outcome"] == "failure" and payload["retryable"] is False
-    assert "argv" in payload["reason"]
+    assert needle in payload["reason"]
+    assert not (tmp_path / "artifacts").exists() or not any((tmp_path / "artifacts").iterdir())
+    assert not (tmp_path.parent / "escape.txt").exists()
+
+
+def test_transient_adapter_failure_is_a_retryable_failure(tmp_path, stub):
+    write_token(tmp_path)
+    STUB.claims.append(claim_body(params={"fail_transient_n": 1}))
+    loop = S.WorkerLoop(str(tmp_path), stub, "w1", 0.2)
+    assert loop.iterate(threading.Event()) == "delivered"
+    payload = STUB.results[0]
+    assert payload["outcome"] == "failure" and payload["retryable"] is True
+    assert payload["reason"] == "synthetic transient fault" and payload["artifacts"] == []
+
+
+def test_synthetic_crash_is_non_retryable_failure_with_report(tmp_path, stub):
+    write_token(tmp_path)
+    STUB.claims.append(claim_body(params={"crash_after_s": 0}))
+    loop = S.WorkerLoop(str(tmp_path), stub, "w1", 0.2)
+    assert loop.iterate(threading.Event()) == "delivered"
+    payload = STUB.results[0]
+    assert payload["outcome"] == "failure" and payload["retryable"] is False
+    assert payload["artifacts"][0]["path"] == "artifacts/d1/" + H.CRASH_REPORT_NAME
+    report = json.loads((tmp_path / "artifacts" / "d1" / H.CRASH_REPORT_NAME).read_text())
+    assert report["returncode"] == 3 and "crashed" in report["stderr_tail"]
+
+
+def test_fault_only_on_listed_attempts(tmp_path, stub):
+    write_token(tmp_path)
+    STUB.claims.append(claim_body(attempt=2, params={"crash_after_s": 0, "fault_attempts": [1]}))
+    loop = S.WorkerLoop(str(tmp_path), stub, "w1", 0.2)
+    assert loop.iterate(threading.Event()) == "delivered"
+    assert STUB.results[0]["outcome"] == "success"
+
+
+def test_exit_zero_without_report_is_never_success(tmp_path):
+    host = make_host(tmp_path)
+    spec = S.resolve_spec(claim_body(), "w1", str(tmp_path / "artifacts"), 0.2, home=str(tmp_path))
+    spec = ExecutionSpec(**{**spec.__dict__, "argv": (PY, "-c", "pass")})  # exits 0, writes nothing
+    result = host.run_once(spec)
+    assert result.outcome == Outcome.COMPLETED
+    payload = S.build_result_payload(result, None, home=str(tmp_path))
+    assert payload["outcome"] == "failure" and payload["retryable"] is False
+    assert "no structured result" in payload["reason"]
+
+
+def test_bridge_request_preserves_identity_and_effect_key(tmp_path):
+    spec = S.resolve_spec(claim_body(dispatch="dsp-7", task="t7", attempt=3), "w1",
+                          str(tmp_path / "artifacts"), 0.2, home=str(tmp_path))
+    assert spec.argv == (sys.executable, A.RUNNER_SCRIPT, A.request_path(str(tmp_path), "dsp-7"))
+    assert (spec.task_id, spec.attempt, spec.dispatch_id, spec.effect_key) == ("t7", 3, "dsp-7", EFFECT_KEY)
+    path = A.write_request(str(tmp_path), spec)
+    request = json.loads(open(path, encoding="utf-8").read())
+    assert request["effect_key"] == EFFECT_KEY and request["attempt"] == 3
+    assert request["task_id"] == "t7" and request["dispatch_id"] == "dsp-7"
+    assert request["workdir"] == os.path.join(str(tmp_path), "artifacts", "dsp-7")
+
+
+def test_runner_refuses_a_non_allowlisted_request(tmp_path):
+    request = tmp_path / "req.json"
+    request.write_text(json.dumps({"adapter": "os", "params": {}, "attempt": 1,
+                                   "workdir": str(tmp_path / "w"), "report": str(tmp_path / "r.json")}))
+    proc = subprocess.run([PY, A.RUNNER_SCRIPT, str(request)], capture_output=True, text=True, timeout=30)
+    assert proc.returncode == 2 and "not allowlisted" in proc.stderr
+    assert not (tmp_path / "r.json").exists() and not (tmp_path / "w").exists()
 
 
 def test_cli_module_entry_rejects_parallel(tmp_path):
