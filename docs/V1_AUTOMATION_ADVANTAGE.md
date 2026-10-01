@@ -245,3 +245,20 @@ A durable differentiator should depend on guarantees such as:
 If a proposed differentiator disappears when a commodity primitive becomes widespread, it is not a moat.
 
 This review may create advisory proposals only. Implementation still follows the locked V1 route and one L1-L6 owner per change.
+
+## 10. Ledger-is-not-the-moat correction
+
+A durable ledger is necessary, but durable execution/checkpointing is increasingly available as infrastructure.
+
+Therefore do not present "we have a ledger" as Courier's core differentiation.
+
+The stronger product-level guarantee is the combination of:
+
+**consequence semantics + verified completion + uncertainty reconciliation + replayable/explainable customer truth**
+
+The journal is the foundation that makes those guarantees enforceable.
+
+This distinction matters commercially: customers pay for trustworthy outcomes and reduced babysitting, not for the existence of an append-only data structure.
+
+Canonical review harvest:
+`docs/v1/orchestration/OPUS_MOAT_REVIEW_2026-10-01.md`
