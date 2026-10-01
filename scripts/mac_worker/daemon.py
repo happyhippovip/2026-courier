@@ -143,11 +143,17 @@ def bind_runtime_task(task, config):
 
 
 def require_no_orphan():
-    previous = read_object(STATE_DIR / "muse_process.json")
-    if previous and previous.get("state") != "CLEAN":
-        identity = previous.get("identity")
-        if not identity or group_exists(identity["pgid"]):
-            raise RuntimeError("Unreconciled Muse child; no further claims/executions allowed")
+    # Each execution mode leaves a marker; a non-CLEAN marker whose group
+    # may still be alive (violent daemon death mid-execution) blocks new
+    # claims/executions until an operator reconciles it. A provably dead
+    # group needs no reconciliation: the next run overwrites the marker.
+    # (The agy marker joins this gate on the agy line; merge composes them.)
+    for marker, label in (("muse_process.json", "Muse"), ("native_process.json", "native")):
+        previous = read_object(STATE_DIR / marker)
+        if previous and previous.get("state") != "CLEAN":
+            identity = previous.get("identity")
+            if not identity or group_exists(identity["pgid"]):
+                raise RuntimeError(f"Unreconciled {label} child; no further claims/executions allowed")
 
 
 def persist_ready_result(path, task, config):
@@ -291,10 +297,16 @@ def run_native(task, config):
         return {"status": "FAILED", "stderr": f"Action '{action}' is allowed but handler is not implemented yet.", "execution_mode": "NATIVE"}
     process = None
     identity = None
+    # Orphan marker (mirrors the muse/agy markers): a violent daemon death
+    # between spawn and exit must be detectable on restart via
+    # require_no_orphan. Overwritten by every run; only non-CLEAN counts.
+    child_file = STATE_DIR / "native_process.json"
     try:
+        atomic_json(child_file, {"state": "STARTING"})
         process = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    text=True, start_new_session=True, **kwargs)
         identity = process_identity(process.pid)
+        atomic_json(child_file, {"state": "RUNNING", "identity": identity})
         # Sliced communicate with in-execution heartbeat (same pattern as
         # run_agy): the overall deadline is unchanged and still handled below.
         try:
@@ -334,13 +346,21 @@ def run_native(task, config):
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "NATIVE"}
     finally:
         # BaseException (e.g. WorkerShutdown on SIGTERM) skips the FAILED dict
-        # above; still reap the group so no orphan keeps running.
-        if process is not None and process.poll() is None:
-            cleanup_group(process, identity)
-            try:
-                process.wait()
-            except Exception:
-                pass
+        # above; still reap the group so no orphan keeps running, then record
+        # the outcome: CLEAN only when the group is provably gone, otherwise
+        # fail closed (outer except → FAILED).
+        if process is not None:
+            if process.poll() is None:
+                cleanup_group(process, identity)
+                try:
+                    process.wait()
+                except Exception:
+                    pass
+            clean = process.poll() is not None and not group_exists(process.pid)
+            atomic_json(child_file, {"state": "CLEAN" if clean else "ORPHANS_REMAIN",
+                                     "identity": identity})
+            if not clean:
+                raise RuntimeError("native child cleanup unproven; no new execution allowed")
 
 def run_agy(task, config):
     write_log(f"Running AI task {task['task_id']} via agy")
