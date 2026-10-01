@@ -293,6 +293,33 @@ def run_native(task, config):
     except Exception as e:
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "NATIVE"}
 
+def communicate_bounded(process, timeout, drain_timeout=10, wait_timeout=5):
+    """communicate() with kill+drain+reap on timeout.
+
+    Returns (timed_out, stdout, stderr). On timeout only the owned direct
+    child is signalled (no process-group assumptions: run_agy children have
+    no session/identity proof, unlike run_muse via cleanup_group). The
+    child is always reaped; our pipe fds are drained if possible so the
+    child cannot block forever on a full pipe nobody reads.
+    """
+    try:
+        stdout, stderr = process.communicate(timeout=timeout)
+        return False, stdout, stderr
+    except subprocess.TimeoutExpired:
+        pass
+    process.kill()
+    try:
+        stdout, stderr = process.communicate(timeout=drain_timeout)
+    except subprocess.TimeoutExpired:
+        # Grandchildren may hold our pipes open; our fds close with the
+        # Popen object, the direct child is reaped below regardless.
+        stdout, stderr = "", ""
+    try:
+        process.wait(timeout=wait_timeout)
+    except subprocess.TimeoutExpired:
+        pass
+    return True, stdout or "", stderr or ""
+
 def run_agy(task, config):
     write_log(f"Running AI task {task['task_id']} via agy")
     instruction = task.get('instruction', task.get('description', ''))
@@ -307,8 +334,11 @@ def run_agy(task, config):
     
     try:
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        stdout, stderr = process.communicate(timeout=300)
-        
+        timed_out, stdout, stderr = communicate_bounded(process, 300)
+        if timed_out:
+            return {"status": "FAILED", "reason": "AGY_TIMEOUT",
+                    "stderr": (stderr or "")[-4000:], "execution_mode": "ANTIGRAVITY"}
+
         out_clean = stdout.strip()
         parsed = False
         res_json = {}
