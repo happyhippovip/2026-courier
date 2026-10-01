@@ -4,7 +4,8 @@ This repository has a locked V1 destination. Before changing code or orchestrati
 
 1. `docs/V1_RULE_0.md`
 2. `docs/V1_PRODUCT_QUALITY_BAR.md
-- docs/V1_AUTOMATION_ADVANTAGE.md`
+- docs/V1_AUTOMATION_ADVANTAGE.md
+- docs/V1_DOMAIN_ASSURANCE_PROFILES.md`
 3. `docs/V1_ORCHESTRATION_PLAYBOOK.md`
 4. `docs/V1_WINDOW_CUSTODY_PROTOCOL.md`
 5. `docs/NEXT_CHAT_HANDOFF.md`
