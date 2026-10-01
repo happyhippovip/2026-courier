@@ -78,13 +78,22 @@ def blocked_task(live, clock):
     return task_id
 
 
+def wait_status(live, task_id, status, timeout=10):
+    """The service's own verifier thread may hold the result; wait for the runtime, never guess."""
+    import time
+    deadline = time.monotonic() + timeout
+    while live.get(f"/v1/tasks/{task_id}").json()["status"] != status:
+        live.controller.drain()
+        assert time.monotonic() < deadline, f"task never reached {status}"
+        time.sleep(0.05)
+
+
 def verified_task(live):
     task_id = live.post("/v1/tasks", task_body()).json()["task_id"]
     lease = live.post("/v1/claim", {"worker_id": "w1"}).json()
     live.post("/v1/start", {"dispatch_id": lease["dispatch_id"]})
     live.post("/v1/result", result_body(lease["dispatch_id"]))
-    live.controller.drain()
-    assert live.get(f"/v1/tasks/{task_id}").json()["status"] == "COMPLETE"
+    wait_status(live, task_id, "COMPLETE")
     return task_id
 
 
@@ -359,7 +368,7 @@ def test_resumed_only_when_courier_actually_continued(world):
     second = live.post("/v1/claim", {"worker_id": "w2"}).json()
     live.post("/v1/start", {"dispatch_id": second["dispatch_id"]})
     live.post("/v1/result", result_body(second["dispatch_id"], result_id="r2"))
-    live.controller.drain()
+    wait_status(live, task_id, "COMPLETE")
     view = hub.home()
     assert view["done"][0]["mark"] == "check" and view["needs_you"] == []  # recovery never asked anyone
     receipt = hub.item(task_id).json()["receipt"]
