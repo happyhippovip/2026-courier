@@ -10,7 +10,7 @@
 - **North star:** `docs/V1_RULE_0.md`
 - **Quality / customer-experience contract:** `docs/V1_PRODUCT_QUALITY_BAR.md`
 - **Canonical continuity thread:** GitHub Issue #54
-- **Integration evidence:** `docs/v1/INTEGRATION_LOG.md`
+- **Integration evidence:** `docs/v1/INTEGRATION_LOG.md`\n- **Orchestration playbook:** `docs/V1_ORCHESTRATION_PLAYBOOK.md`\n- **Window custody:** `docs/V1_WINDOW_CUSTODY_PROTOCOL.md`\n- **Cross-agent bootstrap:** `AGENTS.md`\n- **Antigravity daily skill:** `.agents/skills/courier-orchestrate/SKILL.md`
 
 A fresh session must not make the owner re-explain the company, destination,
 lane model, or current critical path.
@@ -184,7 +184,7 @@ Opus writer subagents:
 - at most one read-only specialist/reviewer for a narrow independent question;
 - no parallel writer subagents touching the same product scope.
 
-## 8. Developer session lifecycle: /compact and /clear
+## 8. Orchestration / developer session lifecycle\n\nFor daily/overnight orchestration read `docs/V1_ORCHESTRATION_PLAYBOOK.md`.\nFor any old/unknown window read `docs/V1_WINDOW_CUSTODY_PROTOCOL.md`.\n\nPreferred pattern: deep queued workflows/skills with bounded live concurrency, not repeated identical prompt storms. The reusable Muse large-factory template is `docs/v1/orchestration/MUSE_144_FACTORY_TEMPLATE.md`.\n\nAntigravity: prefer the repository Agent Skill `.agents/skills/courier-orchestrate/SKILL.md` for durable repeatable orchestration. Legacy Antigravity Workflows are being retired by Google on 2026-11-01; Skills are the durable path.\n\nCustody invariant: **checkpoint first -> durable handoff second -> clear/close third.** Unknown custody is never safe to clear/close.\n\n### Developer session lifecycle: /compact and /clear
 
 This is developer workflow only; customers never see or use it.
 
@@ -267,7 +267,7 @@ state, current active stage, or next exact task.
 **Historical snapshot only — verify again before acting.**
 
 At update time (2026-10-01):
-- `integration/v1` = `c3affaf9080cdeb2974a6e7ca08a43ca5ff011a8`;
+- `integration/v1` = `5dea64730f5185cec421ccab8d11115e192f7929`;\n- the V1 product-quality/customer-experience contract had been integrated as Step 10;
 - L2 journal/state-machine/projection had been integrated as Step 9;
 - Golden harness had found journal/projection and still awaited:
   - `courier_core.serve` (L2);
@@ -306,4 +306,4 @@ Never trust this SHA after new work without checking GitHub.
 
 ## One-line bootstrap
 
-**Courier Symphony — verify CURRENT integration/v1, then read docs/V1_RULE_0.md + docs/V1_PRODUCT_QUALITY_BAR.md + docs/NEXT_CHAT_HANDOFF.md + newest GitHub Issue #54 + docs/v1/INTEGRATION_LOG.md; keep the Dennis+ChatGPT+Opus V1 architecture locked and continue the first unproven gate on ACTIVE LEDGER -> RELIABLE AUTOMATION -> GOLDEN PATH -> DESKTOP HUB -> WINDOWS EXE -> CLEAN-MACHINE ACCEPTANCE.**
+**Courier Symphony — verify CURRENT integration/v1, then read AGENTS.md + docs/V1_RULE_0.md + docs/V1_PRODUCT_QUALITY_BAR.md + docs/V1_ORCHESTRATION_PLAYBOOK.md + docs/V1_WINDOW_CUSTODY_PROTOCOL.md + docs/NEXT_CHAT_HANDOFF.md + newest GitHub Issue #54 + docs/v1/INTEGRATION_LOG.md; keep the Dennis+ChatGPT+Opus V1 architecture locked and continue the first unproven gate on ACTIVE LEDGER -> RELIABLE AUTOMATION -> GOLDEN PATH -> DESKTOP HUB -> WINDOWS EXE -> CLEAN-MACHINE ACCEPTANCE.**
