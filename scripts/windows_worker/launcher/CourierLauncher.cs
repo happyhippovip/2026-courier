@@ -77,15 +77,39 @@ namespace CourierLauncher
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             string workerModule = "courier_worker.host";
             
+            string dataDir = Environment.ExpandEnvironmentVariables(@"%PROGRAMDATA%\CourierWorker");
+            string configPath = Path.Combine(dataDir, "config.json");
+            string serverUrl = "";
+            string workerId = "";
+            
+            if (File.Exists(configPath))
+            {
+                string json = File.ReadAllText(configPath);
+                string[] lines = json.Split(new[] { ',', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (string line in lines)
+                {
+                    if (line.Contains("\"COURIER_SERVER\""))
+                    {
+                        int start = line.IndexOf(":", StringComparison.Ordinal) + 1;
+                        serverUrl = line.Substring(start).Trim(' ', '"');
+                    }
+                    else if (line.Contains("\"COURIER_WORKER_ID\""))
+                    {
+                        int start = line.IndexOf(":", StringComparison.Ordinal) + 1;
+                        workerId = line.Substring(start).Trim(' ', '"');
+                    }
+                }
+            }
+
             // Path priorities:
             // 1. Packaged embedded python (no external dependencies)
             // 2. uv fallback for dev environments
             string pythonExe = "uv";
-            string arguments = string.Format("run python -m {0}", workerModule);
+            string arguments = string.Format("run python -m {0} --home \"{1}\" --controller \"{2}\" --worker-id \"{3}\"", workerModule, dataDir, serverUrl, workerId);
             
             if (File.Exists(Path.Combine(baseDir, "python", "python.exe"))) {
                 pythonExe = Path.Combine(baseDir, "python", "python.exe");
-                arguments = string.Format("-m {0}", workerModule);
+                arguments = string.Format("-m {0} --home \"{1}\" --controller \"{2}\" --worker-id \"{3}\"", workerModule, dataDir, serverUrl, workerId);
             }
             
             ProcessStartInfo psi = new ProcessStartInfo

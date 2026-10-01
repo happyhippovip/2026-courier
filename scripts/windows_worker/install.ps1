@@ -19,6 +19,7 @@ Write-Host " Courier Windows Worker Installer"
 Write-Host "========================================"
 
 New-Item -ItemType Directory -Force -Path $DataDir | Out-Null
+New-Item -ItemType Directory -Force -Path (Join-Path $DataDir "run") | Out-Null
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
 
 $Server = $ServerArg
@@ -29,7 +30,12 @@ if (Test-Path $ConfigPath) {
     Write-Host "Found existing configuration."
     $existing = Get-Content $ConfigPath | ConvertFrom-Json
     if (-not $Server) { $Server = $existing.COURIER_SERVER }
-    if (-not $ApiKey) { $ApiKey = $existing.COURIER_API_KEY }
+    if (-not $ApiKey) {
+        $tokenPath = Join-Path $DataDir "run\controller.token"
+        if (Test-Path $tokenPath) {
+            $ApiKey = Get-Content $tokenPath
+        }
+    }
     if (-not $WorkerId) { $WorkerId = $existing.COURIER_WORKER_ID }
 }
 
@@ -47,12 +53,15 @@ if (-not $WorkerId) {
 
 $configObj = @{
     COURIER_SERVER = $Server
-    COURIER_API_KEY = $ApiKey
     COURIER_WORKER_ID = $WorkerId
 }
 $configObj | ConvertTo-Json | Set-Content $ConfigPath
 
+$tokenPath = Join-Path $DataDir "run\controller.token"
+$ApiKey | Set-Content $tokenPath -NoNewline
+
 Write-Host "Configuration saved to $ConfigPath."
+Write-Host "Token saved to $tokenPath."
 
 Write-Host "Copying files to $InstallDir..."
 Copy-Item "$PSScriptRoot\*" -Destination $InstallDir -Recurse -Force
