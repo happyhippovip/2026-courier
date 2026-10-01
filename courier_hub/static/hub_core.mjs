@@ -128,7 +128,7 @@ export function renderCard(card, opts = {}) {
   <p class="authority-line"><span class="quiet">Must ask before:</span> ${escapeHtml(card.authority.must_ask.join(' · '))}</p>
   <p class="meta">${when}
   <button type="button" class="link" data-action="details" data-id="${id}">Details</button>
-  ${stopping ? '' : `<button type="button" class="link danger" data-action="stop" data-id="${id}" ${opts.decisionsAllowed === false ? 'disabled' : ''}>Stop</button>`}</p>
+  ${stopping || !card.stop ? '' : `<button type="button" class="link danger" data-action="stop" data-id="${id}" ${opts.decisionsAllowed === false ? 'disabled aria-disabled="true"' : ''}>Stop</button>`}</p>
 </article>`;
   }
   return `<article class="card card-done outcome-${escapeHtml(card.outcome)}" data-id="${id}" aria-labelledby="t-${id}">
@@ -196,7 +196,9 @@ export function createDecisionClient(fetchFn) {
         body: JSON.stringify(body),
       });
     } catch {
-      return interpretResponse(0, null);
+      // The request may have left the browser before the connection broke: the
+      // decision may or may not be recorded. Never claim that nothing changed.
+      return interpretResponse(-1, null);
     }
     let payload = null;
     try { payload = await response.json(); } catch { payload = null; }
@@ -220,8 +222,8 @@ export function createDecisionClient(fetchFn) {
 }
 
 export function interpretResponse(status, payload) {
-  if (status === 0) {
-    return { kind: 'offline', message: "Couldn't reach the hub. Nothing was changed; try again." };
+  if (status === -1 || status === 0) {
+    return { kind: 'unknown', message: "Couldn't confirm whether your decision arrived. Courier keeps the record: the list refreshes with what it has recorded." };
   }
   const result = payload?.result;
   if (status === 200 && result === 'recorded') return { kind: 'success', message: 'Recorded.', item: payload.item };
@@ -229,8 +231,16 @@ export function interpretResponse(status, payload) {
     return { kind: 'already', message: 'This decision was already recorded.', item: payload.item };
   }
   if (result === 'stale') return { kind: 'stale', message: payload.message, item: payload.item };
+  if (result === 'unknown') return { kind: 'unknown', message: payload.message, item: payload.item };
   if (result === 'offline' || result === 'unavailable') return { kind: 'offline', message: payload.message };
   return { kind: 'error', message: payload?.message || 'Something went wrong. Nothing was changed.' };
+}
+
+// A stable fingerprint of what Home would show; the page re-renders only when it
+// changes (or once a minute for relative times), so an idle hub stays quiet.
+export function viewSignature(view, connection, pending) {
+  return JSON.stringify([view?.head_seq, view?.truth, view?.status?.controller, connection.state, pending,
+    view?.counts]);
 }
 
 export function findChoice(view, id, decision) {

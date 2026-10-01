@@ -157,6 +157,12 @@ def outcome_copy(task: Any) -> dict:
                                        "neutral"),
     }
     label, explanation, mark = table[outcome]
+    if (outcome == OUTCOME_STOPPED and _get(task, "started")
+            and _get(task, "effect_class") != "idempotent"):
+        # The runtime recorded a plain stop, but the attempt had already started an
+        # action that is not safe to repeat: never imply that nothing happened.
+        explanation = "Stopped after the action had started. Part of it may already have happened."
+        mark = "gate-question"
     return {"outcome": outcome, "label": label, "explanation": explanation, "mark": mark}
 
 
@@ -340,10 +346,24 @@ def support(task: Any, events: Iterable[Any]) -> dict:
     }
 
 
+def unrecognised_card(task: Any) -> dict:
+    """A state this hub does not know: shown honestly, with no actions offered."""
+    return {"id": _get(task, "task_id"), "title": title_of(task), "pile": PILE_WORKING,
+            "phase": "unrecognised", "label": "State not recognised by this hub",
+            "next": "Courier recorded a state this version of the hub can't show. Open the details for support.",
+            "authority": {"may": ["Nothing shown here"], "must_ask": ["Everything: no actions are offered"],
+                          "note": "Update the hub to see this item properly."},
+            "stop": None, "last_change": None}
+
+
 def home(tasks: Iterable[Any], events_by_task: dict, done_limit: int = 50) -> dict:
     piles = {PILE_NEEDS_YOU: [], PILE_WORKING: [], PILE_DONE: []}
     for task in tasks:
-        piles[pile_of(task)].append(card(task, events_by_task.get(_get(task, "task_id"), [])))
+        try:
+            item = card(task, events_by_task.get(_get(task, "task_id"), []))
+        except ValueError:  # one unknown state must not take the whole Home down
+            item = unrecognised_card(task)
+        piles[item["pile"]].append(item)
 
     def changed(c):
         return (c.get("last_change") or {}).get("at") or ""
@@ -351,6 +371,7 @@ def home(tasks: Iterable[Any], events_by_task: dict, done_limit: int = 50) -> di
     piles[PILE_NEEDS_YOU].sort(key=changed)  # oldest decision first
     piles[PILE_WORKING].sort(key=changed, reverse=True)
     piles[PILE_DONE].sort(key=changed, reverse=True)
+    counts = {k: len(v) for k, v in piles.items()}  # totals, before Done is trimmed for display
     piles[PILE_DONE] = piles[PILE_DONE][:done_limit]
     return {"needs_you": piles[PILE_NEEDS_YOU], "working": piles[PILE_WORKING], "done": piles[PILE_DONE],
-            "counts": {k: len(v) for k, v in piles.items()}}
+            "counts": counts, "done_shown": len(piles[PILE_DONE])}

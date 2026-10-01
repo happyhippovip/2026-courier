@@ -22,10 +22,12 @@ from __future__ import annotations
 
 import argparse
 import getpass
+import http.client
 import json
 import logging
 import os
 import re
+import socket
 import sqlite3
 import sys
 import threading
@@ -70,6 +72,14 @@ class TruthUnavailable(Exception):
     """The journal cannot be read (not created yet, or written by another build)."""
 
 
+class NotSent(ConnectionError):
+    """The controller could not be reached: the request was never delivered."""
+
+
+class ResponseLost(ConnectionError):
+    """The request may have reached the controller, but no answer came back."""
+
+
 class Hub:
     """Reads canonical truth and relays human decisions. No state of its own."""
 
@@ -79,6 +89,10 @@ class Hub:
         self.controller_url = controller_url.rstrip("/")
         self.actor = actor or default_actor()
         self.timeout_s = timeout_s
+        # Derived-data cache keyed by the journal head: every runtime change appends an
+        # event, so an unchanged head means an unchanged projection. Never authoritative.
+        self._cache_lock = threading.Lock()
+        self._cached = None  # (head_seq, view without status)
 
     # -- canonical truth (read-only) -------------------------------------------
     def _open(self) -> Journal:
@@ -113,16 +127,35 @@ class Hub:
         finally:
             journal.close()
 
+    def _head(self) -> int:
+        journal = self._open()
+        try:
+            return journal.head()[0]
+        except sqlite3.DatabaseError as exc:
+            raise TruthUnavailable("unreadable") from exc
+        finally:
+            journal.close()
+
     def home_view(self) -> dict:
         status = self.status()
         try:
-            tasks, events_by_task, head = self._read()
+            head = self._head()
+            with self._cache_lock:
+                cached = self._cached
+            if cached is not None and cached[0] == head:
+                view = dict(cached[1])
+            else:
+                tasks, events_by_task, head = self._read()
+                view = model.home(tasks, events_by_task)
+                view["head_seq"] = head
+                with self._cache_lock:
+                    self._cached = (head, view)
+                view = dict(view)
         except TruthUnavailable as exc:
             return {"status": status, "truth": exc.args[0], "head_seq": None,
                     "needs_you": [], "working": [], "done": [], "counts": {"needs_you": 0, "working": 0, "done": 0},
                     "read_at": utc_now()}
-        view = model.home(tasks, events_by_task)
-        view.update({"status": status, "truth": "ok", "head_seq": head, "read_at": utc_now()})
+        view.update({"status": status, "truth": "ok", "read_at": utc_now()})
         return view
 
     def item_view(self, task_id: str) -> Optional[dict]:
@@ -147,7 +180,7 @@ class Hub:
     def _call(self, method: str, path: str, body: Optional[dict] = None):
         token = self._token()
         if token is None:
-            raise ConnectionError("no controller token")
+            raise NotSent("no controller token")
         data = json.dumps(body).encode("utf-8") if body is not None else None
         request = urllib.request.Request(self.controller_url + path, data=data, method=method,
                                          headers={"X-Courier-Token": token, "Content-Type": "application/json"})
@@ -160,8 +193,15 @@ class Hub:
             except ValueError:
                 payload = {}
             return exc.code, payload
-        except (urllib.error.URLError, OSError, ValueError) as exc:
-            raise ConnectionError(str(exc)) from exc
+        except urllib.error.URLError as exc:
+            if isinstance(exc.reason, (ConnectionRefusedError, socket.gaierror)):
+                raise NotSent(str(exc)) from exc
+            raise ResponseLost(str(exc)) from exc
+        except ConnectionRefusedError as exc:
+            raise NotSent(str(exc)) from exc
+        except (OSError, ValueError, http.client.HTTPException) as exc:
+            # Sent (or partly sent) but no usable answer: the outcome is unknown.
+            raise ResponseLost(str(exc)) from exc
 
     def status(self) -> dict:
         checked = utc_now()
@@ -201,9 +241,15 @@ class Hub:
     def _relay(self, task_id: str, method: str, path: str, payload: dict) -> tuple:
         try:
             code, answer = self._call(method, path, payload)
-        except ConnectionError:
+        except NotSent:
             return 503, {"result": "offline",
-                         "message": "Courier isn't reachable right now. Nothing was changed; try again when it's back."}
+                         "message": "Courier isn't reachable right now. Nothing was sent; try again when it's back."}
+        except ResponseLost:
+            # Never claim "nothing changed" here: the controller may have recorded it.
+            return 504, {"result": "unknown",
+                         "message": "Courier may have recorded this, but its answer was lost. "
+                                    "The item below shows what Courier has recorded now.",
+                         "item": self._safe_item(task_id)}
         error = answer.get("error") if isinstance(answer, dict) else None
         if code == 200:
             result = "already_recorded" if answer.get("duplicate") else "recorded"
