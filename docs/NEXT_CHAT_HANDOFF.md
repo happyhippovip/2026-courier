@@ -184,7 +184,7 @@ Opus writer subagents:
 - at most one read-only specialist/reviewer for a narrow independent question;
 - no parallel writer subagents touching the same product scope.
 
-## 8. Orchestration / developer session lifecycle\n\nFor daily/overnight orchestration read `docs/V1_ORCHESTRATION_PLAYBOOK.md`.\nFor any old/unknown window read `docs/V1_WINDOW_CUSTODY_PROTOCOL.md`.\n\nPreferred pattern: deep queued workflows/skills with bounded live concurrency, not repeated identical prompt storms. The reusable Muse large-factory template is `docs/v1/orchestration/MUSE_144_FACTORY_TEMPLATE.md`.\n\nAntigravity: prefer the repository Agent Skill `.agents/skills/courier-orchestrate/SKILL.md` for durable repeatable orchestration. Legacy Antigravity Workflows are being retired by Google on 2026-11-01; Skills are the durable path.\n\nCustody invariant: **checkpoint first -> durable handoff second -> clear/close third.** Unknown custody is never safe to clear/close.\n\n### Developer session lifecycle: /compact and /clear
+## 8. Orchestration / developer session lifecycle\n\nFor daily/overnight orchestration read `docs/V1_ORCHESTRATION_PLAYBOOK.md`.\nFor any old/unknown window read `docs/V1_WINDOW_CUSTODY_PROTOCOL.md`.\n\nPreferred pattern: deep queued workflows/skills with bounded live concurrency, not repeated identical prompt storms. The reusable Muse large-factory template is `docs/v1/orchestration/MUSE_144_FACTORY_TEMPLATE.md`. The reusable one-window 14-phase master prompt is `docs/v1/orchestration/MUSE_MASTER_14_PHASE_PROMPT.md`.\n\nAntigravity: prefer the repository Agent Skill `.agents/skills/courier-orchestrate/SKILL.md` for durable repeatable orchestration. Legacy Antigravity Workflows are being retired by Google on 2026-11-01; Skills are the durable path.\n\nCustody invariant: **checkpoint first -> durable handoff second -> clear/close third.** Unknown custody is never safe to clear/close.\n\n### Developer session lifecycle: /compact and /clear
 
 This is developer workflow only; customers never see or use it.
 
@@ -297,7 +297,7 @@ Never trust this SHA after new work without checking GitHub.
 - German unless asked otherwise.
 - Direct and copy/paste-ready.
 - Label MAC vs WINDOWS where relevant.
-- For prompts: exact window/lane, exact model effort, exact paste count.
+- For prompts: exact window/lane, exact model effort, exact paste count.\n- HUMAN-TIME RULE: when several related Muse/read-only tasks can share one context safely, consolidate them into ONE master prompt per window by default; do not make Dennis manually paste a long sequence of tiny prompts.
 - Say when `/compact` or `/clear` is appropriate.
 - Verify current repo evidence instead of guessing.
 - Do not give dozens of conflicting next steps.
