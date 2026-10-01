@@ -97,14 +97,14 @@ def dispatch_intake(intake_file):
     # Update Central State
     state_file = 'central_state.json'
     try:
-        if os.path.exists(state_file):
-            with open(state_file, 'r') as f:
-                state = json.load(f)
-        else:
-            state = {"tasks": {}}
-    except Exception:
-        state = {"tasks": {}}
-        
+        state = load_central_state(state_file)
+    except (ValueError, OSError) as e:
+        # Fail closed: never reset-and-overwrite (that would silently wipe
+        # every recorded task) and never record this dispatch. queue_processor
+        # treats SystemExit as retryable, so the intake stays pending.
+        print(f"Refusing dispatch record: unreadable {state_file}: {e}")
+        sys.exit(1)
+
     state["tasks"][task_id] = {
         "task_id": task_id,
         "customer_reference": intake['customer_reference'],
@@ -118,10 +118,41 @@ def dispatch_intake(intake_file):
         "real_wall": "HUMAN_REVIEW_REQUIRED_ON_PR"
     }
     
-    with open(state_file, 'w') as f:
-        json.dump(state, f, indent=2)
-        
+    save_central_state(state_file, state)
+
     print(f"Central state updated. System chain fully connected for intake -> execution -> PR.")
+
+
+def load_central_state(state_file):
+    """Load state, validating shape. Missing file -> fresh state.
+
+    Raises ValueError on corrupt JSON or wrong shape, OSError on IO
+    problems. Callers must fail closed, never reset-and-overwrite.
+    """
+    if not os.path.exists(state_file):
+        return {"tasks": {}}
+    with open(state_file, 'r') as f:
+        try:
+            state = json.load(f)
+        except ValueError as e:
+            raise ValueError(f"corrupt JSON: {e}")
+    if not isinstance(state, dict) or not isinstance(state.get("tasks"), dict):
+        raise ValueError("missing 'tasks' object")
+    return state
+
+
+def save_central_state(state_file, state):
+    """Atomically persist state (tmp + fsync + replace).
+
+    A crash mid-write leaves either the old or the new complete file,
+    never a torn one that the next reader would have to discard.
+    """
+    tmp_file = state_file + ".tmp"
+    with open(tmp_file, 'w') as f:
+        json.dump(state, f, indent=2)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp_file, state_file)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
