@@ -20,6 +20,11 @@ REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "happyhippovip/2026-courier")
 WORKFLOW = "courier_worker.yml"
 LOCAL_WAIT_SECONDS = int(os.environ.get("GITHUB_WORKER_LOCAL_WAIT_SECONDS", "60"))
 POLL_SECONDS = 5
+# How long a resumed adapter waits for a run from an interrupted dispatch to
+# appear before dispatching exactly once more. Covers GitHub list latency so
+# a crash between `gh workflow run` and the WAITING record cannot create a
+# second external run (which would wedge find_run on multiple title matches).
+DISPATCH_GRACE_SECONDS = int(os.environ.get("GITHUB_WORKER_DISPATCH_GRACE_SECONDS", "300"))
 IDENTITY_FIELDS = ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")
 ALLOW_LIST = {"metadata", "report", "deterministic_transform", "verify_file", "static_analysis", "run_tests"}
 
@@ -126,6 +131,46 @@ def post_result(result: dict[str, Any]) -> None:
         raise RuntimeError(f"Courier result POST failed: {response.status_code} {response.text}")
 
 
+def dispatch_external(task_file: Path, task: dict[str, Any]) -> None:
+    """Dispatch exactly one external run, bracketed by durable state.
+
+    The DISPATCHING marker goes down first so a crash around the `gh` call
+    is distinguishable from a fresh admission on resume; the WAITING record
+    confirms the dispatch completed.
+    """
+    ref = os.environ.get("GITHUB_WORKER_REF") or run_cmd(["git", "branch", "--show-current"])[1]
+    if not ref:
+        raise RuntimeError("cannot determine dispatch ref")
+    write_state(task_file, {"dispatch_id": task["dispatch_id"], "status": "DISPATCHING",
+                            "dispatched_at": time.time()})
+    rc, _, error = run_cmd(["gh", "workflow", "run", WORKFLOW, "--repo", REPOSITORY, "--ref", ref,
+                            "--raw-field", "task_payload_base64=" + base64.b64encode(
+                                json.dumps(task, separators=(",", ":")).encode("utf-8")).decode("ascii"),
+                            "--field", f"dispatch_id={task['dispatch_id']}"])
+    if rc:
+        raise RuntimeError(f"workflow dispatch failed: {error}")
+    write_state(task_file, {"dispatch_id": task["dispatch_id"], "status": "WAITING_FOR_WORKER"})
+
+
+def await_dispatched_run(task: dict[str, Any], prior: dict[str, Any]) -> bool:
+    """Wait up to the marker's grace for the interrupted dispatch's run.
+
+    Returns True when a run for this dispatch_id becomes visible (the caller
+    adopts it instead of dispatching again).
+    """
+    try:
+        deadline = float(prior.get("dispatched_at") or 0) + DISPATCH_GRACE_SECONDS
+    except (TypeError, ValueError):
+        return False
+    while time.time() < deadline:
+        time.sleep(POLL_SECONDS)
+        run_id, _ = find_run(task["dispatch_id"])
+        if run_id:
+            return True
+    run_id, _ = find_run(task["dispatch_id"])
+    return bool(run_id)
+
+
 def run(task_file_name: str) -> int:
     task_file = Path(task_file_name)
     task = json.loads(task_file.read_text(encoding="utf-8"))
@@ -140,16 +185,15 @@ def run(task_file_name: str) -> int:
 
     run_id, status = find_run(task["dispatch_id"])
     if not run_id and not prior:
-        ref = os.environ.get("GITHUB_WORKER_REF") or run_cmd(["git", "branch", "--show-current"])[1]
-        if not ref:
-            raise RuntimeError("cannot determine dispatch ref")
-        rc, _, error = run_cmd(["gh", "workflow", "run", WORKFLOW, "--repo", REPOSITORY, "--ref", ref,
-                                "--raw-field", "task_payload_base64=" + base64.b64encode(
-                                    json.dumps(task, separators=(",", ":")).encode("utf-8")).decode("ascii"),
-                                "--field", f"dispatch_id={task['dispatch_id']}"])
-        if rc:
-            raise RuntimeError(f"workflow dispatch failed: {error}")
-        write_state(task_file, {"dispatch_id": task["dispatch_id"], "status": "WAITING_FOR_WORKER"})
+        dispatch_external(task_file, task)
+    elif not run_id and prior.get("status") == "DISPATCHING":
+        # An earlier attempt recorded its intent but never confirmed WAITING:
+        # either it crashed around the external dispatch or GitHub has not
+        # listed the new run yet. Adopt the run if it appears within grace;
+        # dispatch exactly once more only when the marker is stale and no
+        # run exists, so a crash can neither duplicate nor lose the dispatch.
+        if not await_dispatched_run(task, prior):
+            dispatch_external(task_file, task)
 
     deadline = time.monotonic() + LOCAL_WAIT_SECONDS
     while time.monotonic() < deadline:
