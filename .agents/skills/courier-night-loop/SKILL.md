@@ -46,7 +46,7 @@ then:
 
 Use:
 
-`/tmp/courier-v1/night-loop/STATE.md`
+Use a host-local temp path, never tracked source:\n\n- Windows: `%TEMP%\\courier-v1\\night-loop\\STATE.md`\n- macOS/Linux: `/tmp/courier-v1/night-loop/STATE.md`
 
 State contains:
 
@@ -153,7 +153,7 @@ A future loop wake may cheaply check whether the head changed.
 
 ### 7. Stop
 
-Each invocation performs one bounded unit and then stops.
+Each invocation performs one deep unit and then stops. Runtime is evidence-driven: prompt length or queue count never guarantees a minimum number of minutes.
 
 Final line is one of:
 
