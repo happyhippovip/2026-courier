@@ -259,3 +259,32 @@ def test_run_result_json_round_trips_for_wire_use(tmp_path):
                                   "reason": res.reason, "retryable": res.retryable}))
     assert wire["artifacts"][0]["sha256"] == hashlib.sha256(b"abc").hexdigest()
     assert os.path.isfile(tmp_path / "out.txt")
+
+
+# -- worker host layout: artifacts/<dispatch_id>/<write> under home ------------
+def test_verify_accepts_worker_host_per_dispatch_layout(tmp_path):
+    out = synthetic.run({"write": "out.txt", "content": "courier-golden"}, tmp_path / "artifacts" / "d1")
+    path = "artifacts/d1/" + out.artifacts[0]["path"]
+    verdict = synthetic.verify(task(), ready({"outcome": "success",
+                                              "artifacts": [{"path": path, "sha256": out.artifacts[0]["sha256"]}]}),
+                               tmp_path)
+    assert verdict.accepted is True, verdict.reason
+
+
+def test_verify_pins_only_this_dispatch_directory(tmp_path):
+    # Valid golden bytes, but in another dispatch's directory: never the pinned artifact.
+    out = synthetic.run({"write": "out.txt", "content": "courier-golden"}, tmp_path / "artifacts" / "d-other")
+    evidence = [{"path": "artifacts/d-other/out.txt", "sha256": out.artifacts[0]["sha256"]}]
+    verdict = synthetic.verify(task(), ready({"outcome": "success", "artifacts": evidence}), tmp_path)
+    assert verdict.accepted is False and "absent" in verdict.reason
+
+
+def test_verify_malformed_dispatch_id_falls_back_to_plain_name(tmp_path):
+    # A hostile dispatch_id must not broaden the pin: only the plain name counts.
+    out = synthetic.run({"write": "out.txt", "content": "courier-golden"}, tmp_path)
+    evil = Event(type=EventType.RESULT_READY, task_id="t1", attempt=1,
+                 dispatch_id="../evil", worker_id="w1", result_id="r1",
+                 payload={"outcome": "success",
+                          "artifacts": [{"path": "out.txt", "sha256": out.artifacts[0]["sha256"]}]})
+    verdict = synthetic.verify(task(), evil, tmp_path)
+    assert verdict.accepted is True, verdict.reason

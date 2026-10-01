@@ -40,7 +40,8 @@ rejection afterwards). Rules, fail closed:
   ``..`` under either Windows or POSIX semantics) and must resolve inside
   ``home``; the file must exist and its bytes must hash to the claimed sha256.
 - when the task params declare both ``write`` and ``content``, the artifact
-  named ``write`` must additionally hash to the declared content (this is the
+  named ``write`` (or ``artifacts/<dispatch_id>/<write>``, the worker host's
+  per-dispatch layout) must additionally hash to the declared content (this is the
   deterministic-success pin: the bytes are what the task asked for, not merely
   self-consistent).
 - anything else is rejected with a reason; unexpected internal errors are
@@ -251,6 +252,16 @@ def _verify(task: Any, result: Any, home: str | os.PathLike):
     want_digest = hashlib.sha256(want_content.encode("utf-8")).hexdigest() if pinned else None
     if pinned and not is_safe_name(want_name):
         return _reject("task declares an unsafe artifact name")
+    # The worker host (L3) gives each dispatch its own directory and reports
+    # artifacts relative to home: artifacts/<dispatch_id>/<write>. Only this
+    # dispatch's directory counts, so evidence from another attempt never pins.
+    want_names = set()
+    if pinned:
+        want_names.add(want_name)
+        dispatch_id = getattr(result, "dispatch_id", None)
+        if isinstance(dispatch_id, str) and is_safe_name(dispatch_id) and "/" not in dispatch_id \
+                and "\\" not in dispatch_id:
+            want_names.add(f"artifacts/{dispatch_id}/{PurePosixPath(want_name).as_posix()}")
     seen_pinned = False
     for ref in artifacts:
         if not isinstance(ref, Mapping):
@@ -272,7 +283,7 @@ def _verify(task: Any, result: Any, home: str | os.PathLike):
             return _reject("evidence file missing")
         if hashlib.sha256(data).hexdigest() != digest:
             return _reject("evidence artifact hash does not match")
-        if pinned and name == want_name:
+        if pinned and name in want_names:
             seen_pinned = True
             if digest != want_digest:
                 return _reject("evidence does not match the declared synthetic content")
