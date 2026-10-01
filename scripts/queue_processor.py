@@ -2,20 +2,31 @@ import os, glob, json, shutil, sys
 
 # Ensure we can import from scripts dir
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from intake_dispatcher import dispatch_intake, fingerprint_task_id, load_central_state
+from intake_dispatcher import (
+    dispatch_intake, fingerprint_task_id, load_central_state,
+    ADMISSION_ADMITTED, ADMISSION_DISPATCHING,
+)
 
 def already_recorded(intake_file):
-    """True when this intake's fingerprint task is already in state.
+    """True when this intake's fingerprint task is already ADMITTED.
 
     Crash between dispatch and the queue move leaves the intake pending
-    but recorded; recovery must skip the second external dispatch.
+    but recorded; recovery must skip the second external dispatch. A
+    DISPATCHING marker is NOT recorded: it must fall through to
+    dispatch_intake so recovery adopts the in-flight run (or stays
+    pending / re-dispatches once stale) instead of skipping it.
     Raises OSError/ValueError/KeyError when the answer is unknowable;
     callers fall through to dispatch (which fails closed itself).
     """
     with open(intake_file, 'r') as f:
         intake = json.load(f)
     state = load_central_state('central_state.json')
-    return fingerprint_task_id(intake) in state["tasks"]
+    task = state["tasks"].get(fingerprint_task_id(intake))
+    if task is None:
+        return False
+    if task.get("admission", ADMISSION_ADMITTED) == ADMISSION_DISPATCHING:
+        return False
+    return True
 
 def process_queue():
     os.makedirs("intakes/pending", exist_ok=True)

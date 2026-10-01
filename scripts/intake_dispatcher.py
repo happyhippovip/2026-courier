@@ -16,6 +16,15 @@ UNBOUND_EXECUTION_REF = "DISPATCHED_UNBOUND"
 BIND_ATTEMPTS = 3
 BIND_RETRY_DELAY_SECONDS = 2
 
+# Freshness bound for a DISPATCHING admission marker: a fresh marker means
+# "a dispatch may already be in flight, adopt it", a stale marker means
+# "dispatch exactly once". (Pattern lifted from the adapter-side
+# DISPATCHING marker with M06's blessing; intake key space is separate.)
+INTAKE_DISPATCH_GRACE_SECONDS = 300
+
+ADMISSION_DISPATCHING = "DISPATCHING"
+ADMISSION_ADMITTED = "ADMITTED"
+
 
 def _parse_created_at(value):
     try:
@@ -79,7 +88,7 @@ def dispatch_intake(intake_file):
 
     task_id = fingerprint_task_id(intake)
     print(f"Admitting intake {intake.get('customer_reference')} as {task_id}")
-    
+
     # Revenue V1 uses GitHub Actions as the primary qualified lane
     cmd = [
         "gh", "workflow", "run", "revenue_v1_baseline.yml",
@@ -90,24 +99,7 @@ def dispatch_intake(intake_file):
         "-f", f"price_currency={intake.get('price_currency', 'EUR_99')}",
         "-f", f"delivery_destination={intake.get('delivery_destination', 'none')}"
     ]
-    
-    # Timestamp BEFORE dispatch: our own run is created after this point,
-    # so any other run created after it is a concurrent dispatch and makes
-    # binding ambiguous -> UNBOUND (never a foreign run ID).
-    dispatch_start = time.time()
-    try:
-        subprocess.run(cmd, check=True, capture_output=True, text=True)
-        print(f"Successfully dispatched to GitHub Actions worker.")
-    except subprocess.CalledProcessError as e:
-        print(f"Failed to dispatch: {e.stderr}")
-        sys.exit(1)
-        
-    # Bind the execution_ref (the GitHub run ID) to THIS dispatch only:
-    # exactly one run created after dispatch_start binds, anything else
-    # (zero, several, gh failure) fails closed to UNBOUND.
-    execution_ref = resolve_execution_ref(
-        "revenue_v1_baseline.yml", dispatch_start) or UNBOUND_EXECUTION_REF
-    
+
     # Update Central State
     state_file = 'central_state.json'
     try:
@@ -119,6 +111,55 @@ def dispatch_intake(intake_file):
         print(f"Refusing dispatch record: unreadable {state_file}: {e}")
         sys.exit(1)
 
+    existing = state["tasks"].get(task_id)
+    if existing is not None and existing.get(
+            "admission", ADMISSION_ADMITTED) == ADMISSION_ADMITTED:
+        print(f"Task {task_id} already admitted; skipping re-dispatch")
+        return task_id
+    if (existing is not None
+            and existing.get("admission") == ADMISSION_DISPATCHING
+            and time.time() - existing.get("dispatched_at", 0)
+            < INTAKE_DISPATCH_GRACE_SECONDS):
+        # Fresh marker: a dispatch may already be in flight. Adopt its run
+        # if exactly one is visible, else stay pending for a later retry.
+        adopted = resolve_execution_ref(
+            "revenue_v1_baseline.yml", existing["dispatched_at"])
+        if adopted is None:
+            print(f"No run yet for {task_id}; leaving DISPATCHING for retry")
+            sys.exit(1)
+        existing["execution_ref"] = adopted
+        existing["admission"] = ADMISSION_ADMITTED
+        existing["last_transition"] = "AUTOMATIC_ADOPT"
+        save_central_state(state_file, state)
+        print(f"Adopted run {adopted} for {task_id}")
+        return task_id
+
+    # Fresh admission or stale marker: record DISPATCHING *before* the
+    # external call so recovery can adopt instead of blind re-dispatch.
+    # A stale marker means the old attempt is dead; exactly one new
+    # dispatch replaces it.
+    dispatch_start = time.time()
+    state["tasks"][task_id] = {
+        "task_id": task_id,
+        "customer_reference": intake.get('customer_reference'),
+        "admission": ADMISSION_DISPATCHING,
+        "dispatched_at": dispatch_start,
+    }
+    save_central_state(state_file, state)
+    try:
+        subprocess.run(cmd, check=True, capture_output=True, text=True)
+        print(f"Successfully dispatched to GitHub Actions worker.")
+    except subprocess.CalledProcessError as e:
+        # Marker stays DISPATCHING: adopt on retry, re-dispatch once stale.
+        print(f"Failed to dispatch: {e.stderr}")
+        sys.exit(1)
+
+    # Bind the execution_ref (the GitHub run ID) to THIS dispatch only:
+    # exactly one run created after dispatch_start binds, anything else
+    # (zero, several, gh failure) fails closed to UNBOUND.
+    execution_ref = resolve_execution_ref(
+        "revenue_v1_baseline.yml", dispatch_start) or UNBOUND_EXECUTION_REF
+
     state["tasks"][task_id] = {
         "task_id": task_id,
         "customer_reference": intake['customer_reference'],
@@ -126,15 +167,18 @@ def dispatch_intake(intake_file):
         "platform": "github",
         "dispatch_ref": "intake_dispatcher_local",
         "execution_ref": execution_ref,
+        "admission": ADMISSION_ADMITTED,
+        "dispatched_at": dispatch_start,
         "state": "DISPATCHED_TO_EXTERNAL",
         "last_transition": "AUTOMATIC_DISPATCH",
         "next_explicit_transition": "WAIT_FOR_GITHUB_PR",
         "real_wall": "HUMAN_REVIEW_REQUIRED_ON_PR"
     }
-    
+
     save_central_state(state_file, state)
 
     print(f"Central state updated. System chain fully connected for intake -> execution -> PR.")
+    return task_id
 
 
 def load_central_state(state_file):
