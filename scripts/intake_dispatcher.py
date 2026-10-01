@@ -1,8 +1,63 @@
 import json
 import sys
+import time
 import uuid
 import subprocess
 import os
+from datetime import datetime
+
+# Marker recorded when no single run can be unambiguously bound to this
+# dispatch. Downstream must treat it as "linkage pending reconcile",
+# never as a run ID. (M05-Q1: take-latest `gh run list --limit 1` could
+# attach a foreign run under concurrent dispatches.)
+UNBOUND_EXECUTION_REF = "DISPATCHED_UNBOUND"
+
+# Bounded wait for GitHub to register the dispatched run.
+BIND_ATTEMPTS = 3
+BIND_RETRY_DELAY_SECONDS = 2
+
+
+def _parse_created_at(value):
+    try:
+        text = str(value).strip()
+        if text.endswith("Z"):
+            text = text[:-1] + "+00:00"
+        return datetime.fromisoformat(text).timestamp()
+    except (ValueError, TypeError):
+        return None
+
+
+def resolve_execution_ref(workflow, since_epoch, attempts=BIND_ATTEMPTS,
+                          delay=BIND_RETRY_DELAY_SECONDS):
+    """Return the databaseId of the single run created after since_epoch.
+
+    Returns None when zero or more than one candidate run exists
+    (ambiguous: concurrent dispatch or API lag) or when `gh` fails.
+    Callers must fail closed on None, never fall back to take-latest.
+    """
+    for attempt in range(max(1, attempts)):
+        try:
+            run_info = subprocess.run(
+                ["gh", "run", "list", f"--workflow={workflow}",
+                 "--limit=10", "--json", "databaseId,createdAt"],
+                capture_output=True, text=True)
+            runs = json.loads(run_info.stdout or "[]")
+        except (subprocess.CalledProcessError, ValueError):
+            runs = []
+        candidates = []
+        if isinstance(runs, list):
+            for run in runs:
+                if not isinstance(run, dict):
+                    continue
+                created = _parse_created_at(run.get("createdAt"))
+                if created is not None and created >= since_epoch:
+                    candidates.append(str(run.get("databaseId")))
+        if len(candidates) == 1:
+            return candidates[0]
+        if attempt < max(1, attempts) - 1:
+            time.sleep(delay)
+    return None
+
 
 def dispatch_intake(intake_file):
     with open(intake_file, 'r') as f:
@@ -22,6 +77,10 @@ def dispatch_intake(intake_file):
         "-f", f"delivery_destination={intake.get('delivery_destination', 'none')}"
     ]
     
+    # Timestamp BEFORE dispatch: our own run is created after this point,
+    # so any other run created after it is a concurrent dispatch and makes
+    # binding ambiguous -> UNBOUND (never a foreign run ID).
+    dispatch_start = time.time()
     try:
         subprocess.run(cmd, check=True, capture_output=True, text=True)
         print(f"Successfully dispatched to GitHub Actions worker.")
@@ -29,12 +88,11 @@ def dispatch_intake(intake_file):
         print(f"Failed to dispatch: {e.stderr}")
         sys.exit(1)
         
-    # Find the execution_ref (the GitHub run ID)
-    # We pause a tiny bit so GitHub registers the workflow dispatch
-    import time
-    time.sleep(3)
-    run_info = subprocess.run(["gh", "run", "list", "--workflow=revenue_v1_baseline.yml", "--limit=1", "--json", "databaseId", "-q", ".[0].databaseId"], capture_output=True, text=True)
-    execution_ref = run_info.stdout.strip()
+    # Bind the execution_ref (the GitHub run ID) to THIS dispatch only:
+    # exactly one run created after dispatch_start binds, anything else
+    # (zero, several, gh failure) fails closed to UNBOUND.
+    execution_ref = resolve_execution_ref(
+        "revenue_v1_baseline.yml", dispatch_start) or UNBOUND_EXECUTION_REF
     
     # Update Central State
     state_file = 'central_state.json'
@@ -53,7 +111,7 @@ def dispatch_intake(intake_file):
         "worker_id": "github-actions-revenue-v1",
         "platform": "github",
         "dispatch_ref": "intake_dispatcher_local",
-        "execution_ref": execution_ref if execution_ref else "DISPATCHED",
+        "execution_ref": execution_ref,
         "state": "DISPATCHED_TO_EXTERNAL",
         "last_transition": "AUTOMATIC_DISPATCH",
         "next_explicit_transition": "WAIT_FOR_GITHUB_PR",
