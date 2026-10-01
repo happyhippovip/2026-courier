@@ -1,105 +1,113 @@
 # NEXT CHAT HANDOFF — Courier Symphony
 
-**Purpose:** This is the first thing a new ChatGPT/Opus/Courier agent should read so the project does not lose its identity or restart from zero.
+**Purpose:** First-read continuity for every new ChatGPT / Opus / Muse / Courier session.
 
 ## 0. Identity — do not get this wrong
 
-- **Company / product name:** Courier Symphony
+- **Company / product:** Courier Symphony
 - **Repository:** happyhippovip/2026-courier
-- **Project shorthand:** Courier
-- **V1 north-star file:** docs/V1_RULE_0.md
+- **V1 integration trunk:** `integration/v1`
+- **North star:** `docs/V1_RULE_0.md`
+- **Quality / customer-experience contract:** `docs/V1_PRODUCT_QUALITY_BAR.md`
 - **Canonical continuity thread:** GitHub Issue #54
-- **Current V1 integration branch:** integration/v1
+- **Integration evidence:** `docs/v1/INTEGRATION_LOG.md`
 
-A previous fresh chat did not even know the company/project name at the start. That continuity failure is unacceptable for Courier Symphony. Every future handoff should improve on the previous one: shorter to load, harder to misunderstand, and more current.
+A fresh session must not make the owner re-explain the company, destination,
+lane model, or current critical path.
 
 ## 1. Rule 0.000000000
 
 **FINISH THE PRODUCT.**
 
-The destination is not another swarm experiment, another planning document, or another pile of branches.
-
-The destination is a real Windows application people can install and use.
-
 Primary route:
 
 **ACTIVE LEDGER -> RELIABLE AUTOMATION -> GOLDEN PATH -> DESKTOP HUB -> WINDOWS EXE -> CLEAN-MACHINE ACCEPTANCE -> REAL ADAPTERS -> DESKTOP ROBOT OVERLAY**
 
-Do not redesign this destination unless current implementation evidence proves a specific contract problem.
+Do not redesign the destination unless CURRENT implementation evidence proves a
+specific contract contradiction.
 
-## 2. Product vision
+PC/Windows first. Mobile comes later and must reuse the same canonical runtime
+truth.
 
-Courier Symphony should reduce repeated computer work so much that users want to keep using it.
+## 2. Customer experience north star
 
-Core user value:
-- email triage / email handling;
-- local file and data organization;
+Courier may be technically complicated internally; it must feel simple to the
+customer.
+
+The customer must not need to understand:
+- terminals;
+- prompts;
+- L1-L6;
+- GitHub;
+- model/effort settings;
+- `YOLO`;
+- `/goal` or `/clear`;
+- branches/worktrees;
+- subagents;
+- stack traces or internal error jargon.
+
+Courier should self-recover when recovery is safe and truth is known. Ask the
+user only for a real permission, consequential decision, or ambiguous
+non-idempotent outcome.
+
+Normal product UI is plain-language and calm. Raw technical detail belongs in
+**Details / Diagnostics**.
+
+The Windows app should be quiet, light, responsive, local-first and useful even
+when optional providers are unavailable.
+
+The complete quality bar and error gates are in:
+`docs/V1_PRODUCT_QUALITY_BAR.md`.
+
+## 3. Product value
+
+Courier Symphony should reduce repeated computer work.
+
+Core value:
+- email triage / handling;
+- user-selected local file and data organization;
 - repetitive digital housekeeping;
-- task execution and verification;
+- reliable task execution and verification;
 - restart/recovery without duplicate work;
-- evidence, replay, and diagnostics.
+- evidence, replay and diagnostics.
 
-The product should make organization feel unusually satisfying and easy enough to become a strong daily habit. **Do not use manipulative addiction mechanics.** The desired effect is that sorting/clean-up feels rewarding because Courier visibly removes friction and gets real work done.
+Local-first/privacy:
+- never upload private files merely because Courier can access them;
+- operate only inside user-selected scopes;
+- consequential external actions require the product contract/permission;
+- deterministic local work should not burn paid model/API capacity.
 
-A practical first value surface after the runtime is stable is email triage because it is easy for users to understand:
-- categorize;
-- summarize;
-- surface action items;
-- draft;
-- archive/move/tag only under explicit user authorization.
+Credits fund optional paid capability that creates visible value. Never promise
+guaranteed profit or literally zero total operating cost.
 
-Then extend the same organization model to user-selected local files/data.
-
-Local-first/privacy principle:
-- do not upload private files merely because Courier can access them;
-- work only inside user-selected scopes;
-- explicit permission for consequential external actions;
-- local deterministic work should not consume paid model/API capacity unnecessarily.
-
-## 3. Credits / commercial north star
-
-Credits are for optional paid capability that creates visible value.
-
-The aspiration is:
-- users voluntarily replenish credits because Courier saves enough time, removes enough repetitive work, or enables enough useful work that credits feel worth buying again;
-- show what credits funded;
-- avoid burning credits to simulate activity;
-- keep local deterministic operations low-cost.
-
-Never promise guaranteed financial profit or literally zero total operating cost.
-
-## 4. Final V1 architecture baseline
+## 4. Locked V1 architecture
 
 Dennis + ChatGPT + Opus reconciled the V1 architecture.
 
-Do not reopen the entire architecture discussion unless implementation evidence forces it.
-
 Locked direction:
-- one integration trunk: integration/v1;
-- maximum six V1 writer lanes;
+- one integration trunk: `integration/v1`;
+- only six implementation lanes L1-L6;
 - runtime state leaves git;
 - SQLite append-only event journal is canonical truth;
 - deterministic projections;
-- one controller process;
+- one controller;
 - bounded worker hosts;
 - one verifier path;
 - synthetic + local_shell first for internal EXE;
-- Desktop Hub is a view of journal truth, not a second orchestrator;
-- deterministic replay is a first-class feature;
+- Desktop Hub is a view of journal/controller truth, never a second orchestrator;
+- deterministic replay is first-class;
 - Windows V1 packaging: PyInstaller onedir + per-user Inno Setup;
-- Mac remains coordination/read-only while EMFILE/resource exhaustion persists;
-- CI + healthy Windows host are execution/build authority;
-- old 30x/100x/NIGHT/YOLO/loop writer swarms are frozen.
+- Mac coordination stays read-only while host resource pressure/EMFILE is active;
+- healthy Windows + CI are execution/build authority;
+- old NIGHT/30x/100x/YOLO writer swarms are frozen.
 
-## 5. Ledger — this must finally become active
+## 5. Ledger status and Golden Path
 
-The Ledger is not another future feature.
-
-V1 runtime truth must become:
+Runtime truth is:
 
 **SQLite append-only journal -> deterministic projection -> controller -> worker -> verifier -> UI**
 
-Minimum Golden Path:
+Golden lifecycle:
 
 TASK_CREATED
 -> TASK_CLAIMED
@@ -111,141 +119,191 @@ TASK_CREATED
 -> restart
 -> deterministic replay to the same final state
 
-Failure gates:
+Failure gates include:
 - worker crash;
 - duplicate result;
-- late/stale result;
+- stale/late result;
 - timeout;
 - cancellation;
 - controller restart;
-- corrupt journal detection;
-- non-idempotent uncertain result -> BLOCKED, not blind retry.
+- corrupt/incomplete journal;
+- uncertain non-idempotent result -> BLOCKED, never blind retry.
 
-Until this is green, do not claim the autonomous runtime is finished.
+At the verified anchor recorded below, the L2 journal/state-machine/projection
+core was already integrated. Do not redo it.
 
 ## 6. Six V1 writer lanes only
 
 - **L1:** Integration / CI / Golden Harness
 - **L2:** Journal / Controller / API
-- **L3:** Bounded Worker Host (Mac + Windows)
+- **L3:** Bounded Worker Host
 - **L4:** Verifier / Synthetic Adapter
-- **L5:** Desktop Hub / Deterministic Replay / Robots
+- **L5:** Desktop Hub / Replay
 - **L6:** Packaging / Launcher / Paths / Logging / Diagnostics
 
-Everyone else:
-- read-only review;
-- test review;
-- evidence;
-- handoff;
-- no new implementation branches unless Dennis explicitly changes Rule 0.
+Everyone else is read-only review/evidence/test design unless Dennis explicitly
+changes Rule 0.
 
-## 7. Desktop identity
+Only L1 promotes/merges work into `integration/v1`.
 
-Courier Symphony should stay visually unique.
+Writer activation is evidence-gated:
+- L2 remains active until controller/API/restart/corruption semantics are green;
+- L3 writer starts when the L2 command/event/lease interface it needs is committed
+  and green;
+- L4 may start when result/evidence identity is stable and may overlap late L3
+  without file/contract collisions;
+- L5 writer starts after live Golden Path truth exists;
+- L6 writer starts when app entrypoint/paths are stable, though read-only packaging
+  prep may happen earlier.
 
-The product metaphor:
+## 7. Model / effort policy
+
+Claude Opus 5.5:
+- **L1: Maximal**
+- **L2: Maximal**
+- **L3: Maximal for process/resource safety; Extra High only for narrow follow-ups**
+- **L4: Extra High**
+- **L5: High**
+- **L6: Extra High**
+
+Ultra/Ultracode is not a default. Reserve it for one narrowly proven unresolved
+contradiction/review.
+
+Muse prep:
+- current model: `muse-spark-1.3-contributor`;
+- reasoning: **xhigh**;
+- read-only evidence/test/failure mapping;
+- default subagents: **0**;
+- at most one narrow read-only subagent when it materially reduces duplicate
+  reading;
+- no recursive subagents;
+- under resource pressure/EMFILE: zero subagents.
+
+Opus writer subagents:
+- default zero;
+- at most one read-only specialist/reviewer for a narrow independent question;
+- no parallel writer subagents touching the same product scope.
+
+## 8. Developer session lifecycle: /compact and /clear
+
+This is developer workflow only; customers never see or use it.
+
+When Muse context grows:
+1. During active work, prefer `/compact`.
+2. Before reset, write a durable checkpoint/handoff:
+   - current HEAD;
+   - role/lane;
+   - completed evidence;
+   - first unfinished phase;
+   - blockers;
+   - next exact task.
+3. Writer sessions also commit/push owned work when lane policy requires it.
+4. Use `/clear` only after that checkpoint at a clean phase boundary or when
+   context is stale/poisoned.
+5. After `/clear`, bootstrap from repo truth.
+
+Important:
+- `/compact` summarizes old model-visible context;
+- `/clear` starts a fresh session and clears scrollback;
+- `/clear` resets conversation context, goals, tasks and token counts;
+- on-disk project rules/memory remain.
+
+Rule: **checkpoint first -> /clear second -> bootstrap third.**
+
+## 9. Known error classes that must not reach customers
+
+Read `docs/V1_PRODUCT_QUALITY_BAR.md` for full detail.
+
+Mandatory prevention includes:
+- timeout leaving child/grandchild processes alive;
+- fail-open resource probes;
+- unbounded stdout/stderr/log growth;
+- heartbeat/lease timing collision;
+- Windows concurrent file/event loss;
+- lease/reclaim races;
+- EMFILE/process exhaustion;
+- runtime truth returning to git;
+- raw internal errors leaking into customer UX.
+
+Never hide a new correctness regression by adding it to a baseline.
+
+## 10. Desktop identity
+
+Courier metaphor:
 - Courier robots;
 - packages/tasks;
 - Queue;
 - Worker Bays;
-- Customs/ZOLL verification;
+- Customs/ZOLL;
 - Returns/Retry;
 - Delivered;
-- Human Desk for blocked work.
+- Human Desk.
 
-Important:
-- robot motion reflects real journal events;
-- no fake busy motion;
-- UI is never the source of truth;
-- same journal replay => same logical scene.
+Robots visualize real journal state. No fake busy motion.
 
-V1:
-- robots inside the Courier Hub window.
+V1: robots inside Courier Hub.
+After internal EXE: transparent desktop overlay.
+Later: robots may move toward real windows/apps.
 
-After internal EXE:
-- transparent desktop overlay.
+The overlay reuses the same journal truth and never becomes another orchestrator.
 
-Later:
-- robots can move toward actual application/window locations.
+## 11. Continuity / handoff rule
 
-## 8. Continuity is itself a product requirement
-
-Courier Symphony should eventually solve the same continuity problem its own development has suffered from.
-
-A new agent should not ask:
-"What is the project?" or "What is the company called?"
-
-Future Courier concept:
-- project identity;
-- current state;
-- recent changes;
-- canonical rules;
-- current ledger/runtime status;
-- compact machine-readable project passport/context endpoint.
-
-But **do not delay V1 EXE for a large context-server project now**.
-
-For now continuity is:
-1. this handoff;
-2. docs/V1_RULE_0.md;
-3. GitHub Issue #54;
-4. current integration/v1 state.
-
-## 9. Handoff quality rule
-
-Every day / major chat transition:
-- update current branch/SHA only after verifying it;
-- remove stale instructions;
-- record what is actually running;
-- record the one next critical path;
+Every major transition:
+- verify current `integration/v1` first;
+- read Rule 0 + Product Quality Bar + newest Issue #54 rules;
+- remove stale historical instructions;
+- record current writer branches/SHAs only after verification;
+- record one next critical path;
 - record blockers;
-- keep the handoff copy-pasteable;
-- do not make the user explain the company/project again.
+- do not make the owner explain Courier Symphony again.
 
-A handoff is bad if the next chat needs several messages to rediscover:
-- company name;
-- product goal;
-- ledger architecture;
-- current integration branch;
-- six-lane model;
-- next exact task.
+A handoff is bad if the next chat must rediscover:
+company name, product goal, ledger architecture, lane model, current integration
+state, current active stage, or next exact task.
 
-## 10. Current verified anchors at time this handoff was written
+## 12. Verified anchor at this handoff update
 
-Verify these again before acting:
-- integration/v1 existed at e95aa787bdff0740bd8f925ce7462827a9bf999c at the last check.
-- docs/V1_RULE_0.md was created on branch lane/L1-product-rule-zero, commit dd207057848c6d55ee43f0ea5ca413e977ac9d43, awaiting normal L1 integration.
-- GitHub Issue #54 is the canonical orchestration/continuity thread.
+**Historical snapshot only — verify again before acting.**
 
-Do not trust any historical SHA blindly after a new work cycle.
+At update time (2026-10-01):
+- `integration/v1` = `c3affaf9080cdeb2974a6e7ca08a43ca5ff011a8`;
+- L2 journal/state-machine/projection had been integrated as Step 9;
+- Golden harness had found journal/projection and still awaited:
+  - `courier_core.serve` (L2);
+  - `courier_worker.host` (L3);
+  - `adapters.synthetic` (L4);
+- next critical implementation path:
+  **L2 Controller/API -> L3/L4 -> live Golden Path**.
 
-## 11. What the next chat should do first
+Never trust this SHA after new work without checking GitHub.
 
-1. Say explicitly: **"Courier Symphony"** so identity is confirmed.
-2. Read/verify current repo state.
-3. Read docs/V1_RULE_0.md if already merged; otherwise fetch it from the L1 rule branch.
-4. Read GitHub Issue #54.
-5. Check L1-L6 current status.
-6. Continue the critical path. Do not restart architecture brainstorming.
+## 13. What a new chat does first
 
-If L2 is not active:
-**activate Ledger implementation first.**
+1. Say **Courier Symphony**.
+2. Verify CURRENT `integration/v1`.
+3. Read:
+   - `docs/V1_RULE_0.md`
+   - `docs/V1_PRODUCT_QUALITY_BAR.md`
+   - this handoff
+   - newest relevant GitHub Issue #54 rules
+   - `docs/v1/INTEGRATION_LOG.md`
+4. Inspect current L1-L6 state.
+5. Continue the first unproven gate.
+6. Do not restart architecture brainstorming.
 
-If Ledger/Golden Path is already green:
-move to the next unproven gate, not back to planning.
-
-## 12. Response style for the owner
+## 14. Response style for the owner
 
 - German unless asked otherwise.
-- Direct, practical, copy/paste-ready.
-- Clearly label MAC vs WINDOWS.
-- For prompts: exact window/lane and exact paste count.
-- Do not make the owner repeat context already present in this handoff/repo.
-- When uncertain, verify current repo evidence instead of guessing.
-- Avoid giving dozens of conflicting next steps.
+- Direct and copy/paste-ready.
+- Label MAC vs WINDOWS where relevant.
+- For prompts: exact window/lane, exact model effort, exact paste count.
+- Say when `/compact` or `/clear` is appropriate.
+- Verify current repo evidence instead of guessing.
+- Do not give dozens of conflicting next steps.
 
 ---
 
-## One-line bootstrap for a fresh chat
+## One-line bootstrap
 
-**Courier Symphony — continue the 2026-courier project from docs/NEXT_CHAT_HANDOFF.md + docs/V1_RULE_0.md + GitHub Issue #54; verify current integration/v1 state first, keep the Dennis+ChatGPT+Opus V1 architecture locked, and continue the shortest path Ledger -> Golden Path -> Desktop Hub -> Windows EXE.**
+**Courier Symphony — verify CURRENT integration/v1, then read docs/V1_RULE_0.md + docs/V1_PRODUCT_QUALITY_BAR.md + docs/NEXT_CHAT_HANDOFF.md + newest GitHub Issue #54 + docs/v1/INTEGRATION_LOG.md; keep the Dennis+ChatGPT+Opus V1 architecture locked and continue the first unproven gate on ACTIVE LEDGER -> RELIABLE AUTOMATION -> GOLDEN PATH -> DESKTOP HUB -> WINDOWS EXE -> CLEAN-MACHINE ACCEPTANCE.**
