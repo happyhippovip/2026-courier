@@ -673,6 +673,14 @@ def test_runner_refuses_a_non_allowlisted_request(tmp_path):
     assert not (tmp_path / "r.json").exists() and not (tmp_path / "w").exists()
 
 
+def test_missing_adapter_fails_closed_with_spec_error(monkeypatch):
+    """No real L4 and no double importable: validate_request must refuse."""
+    monkeypatch.setitem(sys.modules, "adapters", None)
+    monkeypatch.setitem(sys.modules, "adapters.synthetic", None)
+    with pytest.raises(A.SpecError, match="adapter implementation unavailable"):
+        A.validate_request(claim_body()["spec"])
+
+
 def test_cli_module_entry_rejects_parallel(tmp_path):
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     proc = subprocess.run(
