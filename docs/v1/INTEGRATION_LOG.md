@@ -205,3 +205,50 @@ Windows, rooted driveless paths still escape the download directory
 `D:\Windows\win.ini`), and so do drive-relative paths (`C:foo.txt`). This was
 verified with `PureWindowsPath`. Suggested fix: reject any drive or root, and
 check `resolve()` containment.
+
+## Step 3 — `mac/M05-intake-dispatch-binding` (2026-10-01)
+
+| Field | Value |
+|---|---|
+| Source branch | `mac/M05-intake-dispatch-binding` (4 commits on `e95aa787`: `0d04abd6` Q1, `fbc4accd` Q2, `3ac285b7` Q3, `8da27318` Q4) |
+| Source SHA | `8da27318` |
+| Resulting integration SHA | `dd933e29` (merge commit, `--no-ff`) |
+| Files | `scripts/intake_dispatcher.py`, `scripts/queue_processor.py`, 4 new test modules |
+| Conflicts | none |
+| Manual resolution | none |
+| Stop-condition check | No runtime state added to git. The tests `chdir` into `tmp_path`, so `central_state.json` is written there. `save_central_state` is tmp + fsync + `os.replace` of a cwd-relative legacy file, not a ledger write |
+| Targeted tests | `test_intake_central_state`, `test_intake_dispatch_binding`, `test_intake_dispatch_marker`, `test_queue_redispatch_skip`: 20 passed |
+| Overall, local Linux | 376 passed, 1 failed (known), 11 skipped; gate PASS |
+| Overall, CI | [run 36806919861](https://github.com/happyhippovip/2026-courier/actions/runs/36806919861). **ubuntu-latest:** PASS. **windows-latest:** PASS, 292 passed, 46 failed (known), 12 skipped; working trees clean |
+| Known remaining failures | unchanged from step 2 |
+
+**Note.** M05's atomic `central_state.json` save uses `os.replace`, like
+m06. Its tests are not concurrent and pass on Windows, but the same Windows
+sharing-violation risk applies if readers hold the file open. This is legacy
+snapshot state that v1 retires in favour of the SQLite journal (L2).
+
+## Step 4 — `courier-ui/cobalt-nova/OVERLAY-REPLAY` — BLOCKED, not merged (2026-10-01)
+
+| Field | Value |
+|---|---|
+| Source branch | `courier-ui/cobalt-nova/OVERLAY-REPLAY` (10 commits on `e95aa787`, `8b1e94db`..`a53b3c73`) |
+| Source SHA | `a53b3c73` |
+| Resulting integration SHA | unchanged (not merged) |
+| Files | `courier_overlay/__init__.py`, `courier_overlay/event_bus.py`, `tests/test_desktop_event_bus.py` |
+| Conflicts | none; it merges cleanly |
+| Targeted tests, local Linux | `test_desktop_event_bus`: all pass |
+| Evidence | Preflight [run 36806319325](https://github.com/happyhippovip/2026-courier/actions/runs/36806319325) on `lane/L1-preflight` (`c605ae55`, the planned steps 2–7 on `e29805b2`). **ubuntu-latest:** PASS. **windows-latest:** two new failures in this lane's own tests |
+
+**Why blocked.**
+
+- `test_desktop_event_bus.py::test_concurrent_appends_all_persisted` fails with
+  `assert 4 == 8`. On Windows only 4 of 8 concurrently emitted events are read
+  back. That is event loss in the append-only bus the Desktop Hub is meant to
+  build on.
+- `test_desktop_event_bus.py::test_emit_dir_fsync_failure_is_loud_but_persisted`
+  fails with `DID NOT RAISE OSError`. The directory-fsync contract is not
+  exercised on Windows.
+
+Windows 11 is the primary v1 platform, the lane's owned tests are red there,
+and L1 does not write lane code. Not merged. The fix goes to the owning lane
+(L5).
