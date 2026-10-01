@@ -209,3 +209,14 @@ def test_claim_beyond_max_attempts_is_refused_even_from_a_queued_state():
     exhausted = replace(run([created(max_attempts=2)]), attempt=2)
     with pytest.raises(TransitionError, match="max_attempts 2 exhausted"):
         apply(exhausted, Attempt(attempt=3).claimed())
+
+
+def test_uncertain_non_idempotent_outcome_outranks_a_cancel_request():
+    a = Attempt()
+    lost = run([created(effect_class="non_idempotent"), a.claimed(), a.started(),
+                task_event(EventType.TASK_CANCEL_REQUESTED), a.lease_expired()])
+    assert decide_after_failure(lost) is Decision.BLOCK
+    with pytest.raises(TransitionError, match="BLOCKED before it can be cancelled"):
+        apply(lost, task_event(EventType.TASK_CANCELLED))
+    blocked = apply(lost, task_event(EventType.TASK_BLOCKED, reason="uncertain"))
+    assert apply(blocked, task_event(EventType.TASK_CANCELLED)).status is TaskStatus.CANCELLED

@@ -201,7 +201,7 @@ class Controller:
                 self._complete(task)
             elif task.status is TaskStatus.RETRY_PENDING:
                 self._decide(task)
-            elif task.cancel_requested and task.status in (TaskStatus.QUEUED, TaskStatus.BLOCKED):
+            elif task.cancel_requested and task.status is TaskStatus.QUEUED:
                 self._append(self._task_event(EventType.TASK_CANCELLED, task))
 
     # ----------------------------------------------------------- primitives
@@ -375,11 +375,12 @@ class Controller:
                     stop.append(dispatch_id)
                     continue
                 task = self.journal.task(lease.task_id)
-                if task.cancel_requested:
-                    cancel.append(dispatch_id)
-                    continue
+                # A reporting worker is alive: keep the lease, also while it is still
+                # killing a cancelled dispatch. CANCELLED needs its confirmation.
                 lease.deadline = now + lease.ttl_s
                 lease.reason = "ttl"
+                if task.cancel_requested:
+                    cancel.append(dispatch_id)
             # The worker stops reporting a cancelled dispatch only after it has reaped
             # the process tree: that absence is the cancellation confirmation.
             for lease in [l for l in self._leases.values() if l.worker_id == worker_id]:

@@ -55,6 +55,7 @@ log = logging.getLogger("courier.serve")
 MAX_BODY_BYTES = 1024 * 1024
 SSE_KEEPALIVE_S = 15.0
 MAX_EVENT_STREAMS = 32  # each SSE client holds one thread; bound them
+MAX_DISCARD_BYTES = 4 * MAX_BODY_BYTES  # read-and-drop this much of a refused body so the answer is delivered
 TOKEN_HEADER = "X-Courier-Token"
 _TASK_PATH = re.compile(r"^/v1/tasks/([A-Za-z0-9_.:-]{1,200})$")
 _CANCEL_PATH = re.compile(r"^/v1/tasks/([A-Za-z0-9_.:-]{1,200})/cancel$")
@@ -143,6 +144,7 @@ class ControllerServer(ThreadingHTTPServer):
 class Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
     server_version = "Courier/1"
+    timeout = 30  # socket timeout: a stalled client cannot pin a handler thread forever
     sys_version = ""
     server: ControllerServer
 
@@ -174,7 +176,7 @@ class Handler(BaseHTTPRequestHandler):
             return {}
         length = int(length_header)
         if length > MAX_BODY_BYTES:
-            self.close_connection = True
+            self._discard_body()
             raise ApiError(413, "too_large", f"body exceeds {MAX_BODY_BYTES} bytes")
         raw = self.rfile.read(length) if length else b""
         if not raw:
@@ -184,12 +186,29 @@ class Handler(BaseHTTPRequestHandler):
         except (UnicodeDecodeError, json.JSONDecodeError):
             raise ApiError(400, "invalid_json", "body is not valid UTF-8 JSON") from None
 
+    def _discard_body(self) -> None:
+        """Drop a refused request body and end the connection afterwards.
+
+        Closing a socket with unread data makes Windows send RST, which can
+        destroy the error response before the client reads it; reading a
+        bounded body first lets the client see the 401/413.
+        """
+        self.close_connection = True
+        length = self.headers.get("Content-Length", "")
+        if length.isdigit() and int(length) <= MAX_DISCARD_BYTES:
+            remaining = int(length)
+            while remaining > 0:
+                chunk = self.rfile.read(min(65536, remaining))
+                if not chunk:
+                    break
+                remaining -= len(chunk)
+
     def _dispatch(self, method: str) -> None:
         path = urlsplit(self.path).path
         controller = self.server.controller
         try:
             if not self._authorized():
-                self.close_connection = True  # do not read or trust anything else on this connection
+                self._discard_body()
                 raise ApiError(401, "unauthorized", "missing or invalid token")
             if method == "GET":
                 if path == "/v1/health":

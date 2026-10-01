@@ -109,10 +109,12 @@ def decide_after_failure(state: TaskState) -> Decision:
     """What the controller must journal next for a task in RETRY_PENDING."""
     if state.status is not TaskStatus.RETRY_PENDING:
         raise ValueError(f"task {state.task_id} is {state.status.value}, not RETRY_PENDING")
-    if state.cancel_requested:
-        return Decision.CANCEL
+    # An uncertain non-idempotent outcome outranks a cancel request: the effect may
+    # already have happened, so a human decides (they can still cancel the BLOCKED task).
     if state.failure_kind == "lease_lost" and state.started and state.effect_class == "non_idempotent":
         return Decision.BLOCK
+    if state.cancel_requested:
+        return Decision.CANCEL
     if state.failure_kind == "rejected" and not state.retryable:
         return Decision.FAIL
     if state.attempt >= state.max_attempts:
@@ -245,6 +247,8 @@ def _transition(state: TaskState, event: Event) -> TaskState:
             raise _fail(event, state, "cancellation was not requested")
         if s in (TaskStatus.VERIFYING, TaskStatus.ACCEPTED):
             raise _fail(event, state, "a result is already being verified or accepted")
+        if s is TaskStatus.RETRY_PENDING and decide_after_failure(state) is Decision.BLOCK:
+            raise _fail(event, state, "an uncertain non-idempotent outcome must be BLOCKED before it can be cancelled")
         return replace(state, status=TaskStatus.CANCELLED)
 
     raise _fail(event, state, "unhandled event type")  # pragma: no cover - REQUIRED covers all types

@@ -253,3 +253,72 @@ def test_single_byte_payload_flip_is_caught_by_the_hash_chain(tmp_path):
     assert hits >= 2  # the event row and its projection row
     db.write_bytes(raw.replace(b"marker-017-x", b"marker-017-y"))  # valid JSON, valid pages
     _boot_expect_degraded(home, db, "hash chain broken")
+
+
+# ------------------------------------------- findings of the final review
+def test_cancel_waits_for_confirmation_while_the_worker_still_reports(tmp_path):
+    clock = FakeClock()
+    ctl = make_controller(tmp_path / "home", clock=clock)
+    try:
+        _, body = ctl.create_task(task_body(lease_ttl_s=3))
+        lease = ctl.claim({"worker_id": "w1"})
+        ctl.start({"dispatch_id": lease["dispatch_id"]})
+        ctl.cancel(body["task_id"])
+        for _ in range(10):  # 10 s of "still killing the tree" > 3 s ttl
+            pass_time(ctl, clock, 1)
+            assert ctl.heartbeat({"worker_id": "w1", "dispatch_ids": [lease["dispatch_id"]]})["cancel"] == \
+                [lease["dispatch_id"]]
+        assert "TASK_CANCELLED" not in types(ctl, body["task_id"])
+        assert "LEASE_EXPIRED" not in types(ctl, body["task_id"])
+        ctl.heartbeat({"worker_id": "w1", "dispatch_ids": []})
+        assert types(ctl, body["task_id"])[-1] == "TASK_CANCELLED"
+    finally:
+        ctl.stop()
+
+
+def test_cancelled_non_idempotent_attempt_with_vanished_worker_is_blocked(tmp_path):
+    clock = FakeClock()
+    ctl = make_controller(tmp_path / "home", clock=clock)
+    try:
+        _, body = ctl.create_task(task_body(effect_class="non_idempotent", lease_ttl_s=3))
+        lease = ctl.claim({"worker_id": "w1"})
+        ctl.start({"dispatch_id": lease["dispatch_id"]})
+        ctl.cancel(body["task_id"])
+        pass_time(ctl, clock, 4)  # worker gone: the effect may or may not have happened
+        assert types(ctl, body["task_id"])[-2:] == ["LEASE_EXPIRED", "TASK_BLOCKED"]
+        assert ctl.cancel(body["task_id"])["status"] == "CANCELLED"  # a human may still cancel it
+    finally:
+        ctl.stop()
+
+
+def test_blocked_task_with_cancel_request_survives_restart_as_blocked(tmp_path):
+    home, clock = tmp_path / "home", FakeClock()
+    ctl = make_controller(home, clock=clock)
+    _, body = ctl.create_task(task_body(effect_class="non_idempotent", lease_ttl_s=3))
+    lease = ctl.claim({"worker_id": "w1"})
+    ctl.start({"dispatch_id": lease["dispatch_id"]})
+    ctl.cancel(body["task_id"])
+    pass_time(ctl, clock, 4)
+    ctl.stop()
+    again = make_controller(home)
+    try:
+        assert again.journal.task(body["task_id"]).status.value == "BLOCKED"
+    finally:
+        again.stop()
+
+
+def test_stalled_client_does_not_pin_a_handler_forever(tmp_path, monkeypatch):
+    import socket
+    monkeypatch.setattr(serve.Handler, "timeout", 1)
+    service = LiveService(tmp_path / "home")
+    try:
+        with socket.create_connection(("127.0.0.1", service.service.port), timeout=10) as sock:
+            sock.sendall(b"POST /v1/tasks HTTP/1.1\r\nHost: x\r\nX-Courier-Token: " + service.service.token.encode()
+                         + b"\r\nContent-Length: 100\r\n\r\n{")
+            started = time.monotonic()
+            while sock.recv(4096):
+                pass
+            assert time.monotonic() - started < 5  # the server gave up and closed the socket
+        assert service.get("/v1/health").status_code == 200
+    finally:
+        service.stop()
