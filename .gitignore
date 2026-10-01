@@ -110,3 +110,22 @@ events/github-dispatch/
 # Local credential files (never commit real keys).
 .env
 deploy/.env
+
+# --- v1 integration (L1): build, test and runtime artifacts never belong in git ---
+*.egg-info/
+/build/
+/dist/
+.pytest_cache/
+.venv/
+/venv/
+# Test pollution observed at e95aa787: some tests write into the working tree.
+# Test owners must fix isolation; these entries only keep accidental commits out.
+courier_canary_process_*.txt
+server/state/artifacts/
+# The v1 runtime home lives outside the repository (COURIER_HOME).
+# Local journals and SQLite side files must never be committed.
+courier.db
+courier.db-wal
+courier.db-shm
+*.sqlite3-wal
+*.sqlite3-shm

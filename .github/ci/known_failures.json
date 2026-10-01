@@ -1,0 +1,23 @@
+{
+  "_about": "Known failing / flaky tests per CI platform (runner.os). Owned by L1. Entries may only be REMOVED when a test is fixed, never added to hide a regression. Each entry must be traceable in docs/v1/INTEGRATION_LOG.md.",
+  "Linux": {
+    "source": "baseline at e95aa787 (Python 3.12.3, pinned deps from pyproject.toml), 4 local runs on 2026-10-01",
+    "failing": [
+      "tests/test_failure_recovery_matrix.py::test_result_with_wrong_identity_is_rejected[dispatch_id]",
+      "tests/test_p3_server_idempotency.py::test_failed_verification_can_be_resumed_with_new_attempt",
+      "tests/test_run_physical_restart.py::test_run_physical_restart_success"
+    ],
+    "flaky": [
+      "tests/test_muse_supervisor.py::test_slot_claims_canonical_task_runs_muse_exits_and_restarts_with_checkpoint",
+      "tests/test_muse_supervisor.py::test_result_ready_is_only_redelivered",
+      "tests/test_muse_supervisor.py::test_started_task_is_not_replayed",
+      "tests/test_muse_supervisor.py::test_duplicate_slot_and_supervisor_are_prevented",
+      "tests/test_muse_supervisor.py::test_missing_metrics_block_scale_up",
+      "tests/test_muse_supervisor.py::test_ramp_and_crash_backoff_to_paused",
+      "tests/test_muse_supervisor.py::test_four_slots_are_isolated",
+      "tests/test_muse_supervisor.py::test_stop_prevents_restart",
+      "tests/test_muse_supervisor.py::test_unconfirmed_prompt_method_fails_closed"
+    ],
+    "flaky_note": "tests/test_muse_supervisor.py is timing-sensitive: 5 different tests failed intermittently across 13 local runs at e95aa787. Muse supervisor is frozen dev-swarm runtime (out of v1 scope); tolerated but still run and reported."
+  }
+}
