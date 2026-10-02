@@ -40,10 +40,14 @@ RULES = {
         re.compile(r"""['"]0\.0\.0\.0['"]"""),
         re.compile(r"""(host\s*=\s*|bind\(\s*\(\s*)['"]::['"]"""),
         re.compile(r"""--host[\s=]+['"]?0\.0\.0\.0"""),
+        re.compile(r"""(\s-b|--bind)[\s=]+['"]?(0\.0\.0\.0|\[::\])"""),
         re.compile(r"""(TCPServer|HTTPServer|ThreadingHTTPServer|bind)\(\s*\(\s*['"]['"]\s*,"""),
         re.compile(r"""IPAddress\.(Any|IPv6Any)\b"""),
     ],
 }
+
+# Whole-line comments describe the rules; they are never executed.
+COMMENT_LINE = re.compile(r"^\s*(#|//|::|REM\b|rem\b)")
 
 # A reviewed exception carries its reason on the same line:
 #   subprocess.run(["taskkill", "/IM", ...])  # local-safety: allow <reason>
@@ -61,7 +65,7 @@ def iter_files(root):
 def scan_text(text):
     """Yield (rule, line_number, stripped_line) for every rule hit in text."""
     for number, line in enumerate(text.splitlines(), 1):
-        if ALLOW_PRAGMA.search(line):
+        if ALLOW_PRAGMA.search(line) or COMMENT_LINE.match(line):
             continue
         for rule, patterns in RULES.items():
             if any(p.search(line) for p in patterns):

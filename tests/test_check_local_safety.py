@@ -27,6 +27,8 @@ def test_name_based_kills_are_found(line):
     "var listener = new TcpListener(IPAddress.Any, port);",
     'HOST = "0.0.0.0"',
     "sock.bind(('::', port))",
+    "gunicorn -w 1 --threads 4 -b 0.0.0.0:8080 server.app:app &",
+    "gunicorn --bind=0.0.0.0:8000 app:app",
 ])
 def test_wildcard_binds_are_found(line):
     assert [rule for rule, _, _ in scan_text(line)] == ["WILDCARD_BIND"]
@@ -43,6 +45,9 @@ def test_wildcard_binds_are_found(line):
     'subprocess.run(["taskkill", "/F", "/T", "/PID", str(pid)])',
     "listen on loopback, not 0.0.0.0 or the LAN",
     'subprocess.run(["taskkill", "/IM", "x.exe"])  # local-safety: allow test fixture only',
+    "# never: pkill -f gunicorn (kills foreign servers)",
+    "REM taskkill /F /IM python.exe was removed",
+    "gunicorn -b 127.0.0.1:8080 server.app:app",
 ])
 def test_owned_kills_and_loopback_binds_are_clean(line):
     assert list(scan_text(line)) == []
