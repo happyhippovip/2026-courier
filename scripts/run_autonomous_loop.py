@@ -391,17 +391,27 @@ class AutonomousLevel6Loop:
                 # --- HOST GUARDIAN ADMISSION CHECK ---
                 admission = self.host_guardian.evaluate_admission()
                 if admission == AdmissionState.CLOSED:
-                    status = "RESOURCE_PAUSE"
-                    stop_reason = "Host admission is CLOSED due to memory/swap pressure or cleanup unknown. Lane hibernating."
-                    break
+                    self.host_guardian.stabilize([])
+                    admission = self.host_guardian.evaluate_admission()
+                    if admission == AdmissionState.CLOSED:
+                        status = "RESOURCE_PAUSE"
+                        stop_reason = f"Host admission is CLOSED ({self.host_guardian.state.name}). Lane hibernating."
+                        break
 
                 is_heavy = "codex" in target_agent_raw or "engineer" in target_agent_raw
                 has_lease = False
                 if is_heavy:
                     if not self.host_guardian.request_heavy_lease():
-                        status = "RESOURCE_PAUSE"
-                        stop_reason = "MAX_HEAVY_LOCAL_JOBS exceeded. Lane hibernating."
-                        break
+                        self.host_guardian.stabilize([])
+                        if not self.host_guardian.request_heavy_lease():
+                            status = "RESOURCE_PAUSE"
+                            if self.host_guardian.cleanup_unknown:
+                                stop_reason = "Host admission blocked (LIGHT_ONLY) due to UNCLEAN previous shutdown (cleanup UNKNOWN)."
+                            elif self.host_guardian.state.name == "LIGHT_ONLY":
+                                stop_reason = "Host pressure limits heavy jobs. LIGHT_ONLY active. Lane hibernating."
+                            else:
+                                stop_reason = "MAX_HEAVY_LOCAL_JOBS exceeded. Lane hibernating."
+                            break
                     has_lease = True
                 
                 is_codex = "codex" in target_agent_raw
