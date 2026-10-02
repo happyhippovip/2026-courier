@@ -287,6 +287,22 @@ if os.name == "nt":
 
     def _terminate_job(job: object) -> None:
         _kernel32.TerminateJobObject(job, 1)
+
+    # NtResumeProcess resumes all threads in a process given its handle.
+    # This replaces the psutil dependency for the CREATE_SUSPENDED pattern.
+    _ntdll = ctypes.WinDLL("ntdll", use_last_error=True)
+    _ntdll.NtResumeProcess.restype = wintypes.LONG  # NTSTATUS
+    _ntdll.NtResumeProcess.argtypes = [wintypes.HANDLE]
+
+    def _resume_process(proc: subprocess.Popen) -> None:
+        """Resume a process created with CREATE_SUSPENDED."""
+        # subprocess.Popen on Windows stores the process handle as _handle
+        handle = getattr(proc, "_handle", None)
+        if handle is None:
+            raise ContainmentError("cannot resume: no process handle")
+        status = _ntdll.NtResumeProcess(handle)
+        if status < 0:
+            raise ContainmentError(f"NtResumeProcess failed: NTSTATUS 0x{status & 0xFFFFFFFF:08X}")
 else:
     def _job_for_child() -> object:
         return None
@@ -428,8 +444,7 @@ def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
     if os.name == "nt":
         try:
             _assign_to_job(job, proc.pid)
-            import psutil
-            psutil.Process(proc.pid).resume()
+            _resume_process(proc)
         except BaseException:
             try:
                 proc.kill()

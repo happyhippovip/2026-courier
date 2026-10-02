@@ -100,19 +100,16 @@ namespace CourierLauncher
             if (File.Exists(configPath))
             {
                 string json = File.ReadAllText(configPath);
-                string[] lines = json.Split(new[] { ',', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (string line in lines)
-                {
-                    if (line.Contains("\"COURIER_SERVER\""))
-                    {
-                        int start = line.IndexOf(":", StringComparison.Ordinal) + 1;
-                        serverUrl = line.Substring(start).Trim(' ', '"');
-                    }
-                    else if (line.Contains("\"COURIER_WORKER_ID\""))
-                    {
-                        int start = line.IndexOf(":", StringComparison.Ordinal) + 1;
-                        workerId = line.Substring(start).Trim(' ', '"');
-                    }
+                
+                // Simple regex to extract JSON values
+                System.Text.RegularExpressions.Match serverMatch = System.Text.RegularExpressions.Regex.Match(json, "\"COURIER_SERVER\"\\s*:\\s*\"([^\"]+)\"");
+                if (serverMatch.Success) {
+                    serverUrl = serverMatch.Groups[1].Value;
+                }
+                
+                System.Text.RegularExpressions.Match workerMatch = System.Text.RegularExpressions.Regex.Match(json, "\"COURIER_WORKER_ID\"\\s*:\\s*\"([^\"]+)\"");
+                if (workerMatch.Success) {
+                    workerId = workerMatch.Groups[1].Value;
                 }
             }
 
@@ -145,9 +142,6 @@ namespace CourierLauncher
                     Directory.CreateDirectory(logDir);
                 }
 
-                Process proc = new Process();
-                proc.StartInfo = psi;
-
                 object logLock = new object();
                 
                 DataReceivedEventHandler logHandler = (sender, e) => {
@@ -158,26 +152,30 @@ namespace CourierLauncher
                     }
                 };
 
-                proc.OutputDataReceived += logHandler;
-                proc.ErrorDataReceived += logHandler;
-
-                proc.Start();
-                proc.BeginOutputReadLine();
-                proc.BeginErrorReadLine();
-
-                if (proc == null)
+                while (true)
                 {
-                    Console.WriteLine("Failed to start process.");
-                    Environment.Exit(1);
-                }
+                    Process proc = new Process();
+                    proc.StartInfo = psi;
+                    proc.OutputDataReceived += logHandler;
+                    proc.ErrorDataReceived += logHandler;
 
-                if (!AssignProcessToJobObject(hJob, proc.Handle))
-                {
-                    Console.WriteLine("Failed to assign process to Job Object. Warning: Orphans possible.");
-                }
+                    proc.Start();
+                    proc.BeginOutputReadLine();
+                    proc.BeginErrorReadLine();
 
-                proc.WaitForExit();
-                Environment.Exit(proc.ExitCode);
+                    if (!AssignProcessToJobObject(hJob, proc.Handle))
+                    {
+                        Console.WriteLine("Failed to assign process to Job Object. Warning: Orphans possible.");
+                    }
+
+                    proc.WaitForExit();
+                    
+                    lock(logLock) {
+                        File.AppendAllText(logPath, "[" + DateTime.UtcNow.ToString("O") + "] Worker exited with code " + proc.ExitCode + ". Restarting in 5 seconds..." + Environment.NewLine);
+                    }
+                    
+                    System.Threading.Thread.Sleep(5000);
+                }
             }
             catch (Exception ex)
             {
