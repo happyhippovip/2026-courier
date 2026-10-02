@@ -52,3 +52,35 @@ def evaluate_packet(packet: WorkPacket, current_sha: str, host_safe: bool) -> Wo
         )
         
     return packet
+
+class PacketQueue:
+    def __init__(self):
+        self.packets: dict[str, WorkPacket] = {}
+        
+    def add_packet(self, packet: WorkPacket):
+        self.packets[packet.id] = packet
+        
+    def get_admissible_packet(self, current_sha: str, host_safe: bool) -> Optional[WorkPacket]:
+        """
+        Enforces one-writer ownership and host admission limits.
+        If a CURRENT packet exists, it retains the lock.
+        Otherwise, if the host is safe, a NEXT packet is promoted to CURRENT.
+        """
+        self.packets = {pid: evaluate_packet(p, current_sha, host_safe) for pid, p in self.packets.items()}
+        
+        currents = [p for p in self.packets.values() if p.state == PacketState.CURRENT]
+        if currents:
+            return currents[0]
+            
+        nexts = [p for p in self.packets.values() if p.state == PacketState.NEXT]
+        if nexts and host_safe:
+            promoted = WorkPacket(
+                id=nexts[0].id,
+                owner_id=nexts[0].owner_id,
+                target_sha=nexts[0].target_sha,
+                state=PacketState.CURRENT
+            )
+            self.packets[promoted.id] = promoted
+            return promoted
+            
+        return None
