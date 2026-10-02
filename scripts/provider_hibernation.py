@@ -145,19 +145,27 @@ class LaneHibernator:
 
     def hibernate(self, checkpoint: ContinuationCheckpoint) -> Dict[str, Any]:
         if self.state == LaneState.HIBERNATED:
-            raise RuntimeError("lane already HIBERNATED")
+            return dict(self.release_report)
+            
+        self.checkpoint = checkpoint
+        
         released: List[str] = []
         retained: List[str] = []
         for res in self.resources.values():
             if self._releasable(res):
                 hook = self.release_hooks.get(res.name)
                 if hook is not None:
-                    hook(res.name)
-                res.released = True
-                released.append(res.name)
+                    try:
+                        hook(res.name)
+                        res.released = True
+                        released.append(res.name)
+                    except Exception:
+                        retained.append(res.name)
+                else:
+                    retained.append(res.name)
             else:
                 retained.append(res.name)
-        self.checkpoint = checkpoint
+                
         self.state = LaneState.HIBERNATED
         self.release_report = {
             "released": sorted(released),
