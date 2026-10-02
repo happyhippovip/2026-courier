@@ -1,7 +1,4 @@
 [
- "KILL_BY_NAME:scripts/local_health_watchdog.sh:1aedb4c4f8606c3e",
- "KILL_BY_NAME:scripts/local_health_watchdog.sh:559bd16ad9fe3a62",
- "KILL_BY_NAME:scripts/local_health_watchdog.sh:a80188eca5229282",
- "KILL_BY_NAME:scripts/local_health_watchdog.sh:b92f7f445e1e3894",
- "KILL_BY_NAME:scripts/windows_worker/stop.bat:d5c9fb10da8a3e7c"
+ "KILL_BY_NAME:scripts/windows_worker/stop.bat:d5c9fb10da8a3e7c",
+ "WILDCARD_BIND:deploy/run-supervisor.sh:67ec4caffa389bc0"
 ]

@@ -153,3 +153,6 @@ courier.db-shm
 /handoff.json
 /reconciliation.json
 /agy_test_*.txt
+
+# Owned-process registry written by local supervisors (courier_runtime.ownership).
+/run/owned_processes.json
