@@ -39,6 +39,8 @@ class HostGuardian:
         self.admitted_light = 0
         self.cleanup_unknown = False
         self._last_swap_used = psutil.swap_memory().used
+        self._calm_streak = 0
+        self.required_calm_streak = 3
 
     def evaluate_admission(self) -> AdmissionState:
         mem = psutil.virtual_memory()
@@ -50,13 +52,25 @@ class HostGuardian:
         self._last_swap_used = swap.used
         disk_floor_gb = disk.free / (1024 ** 3)
         
-        if memory_pressure > 0.80 or swap_increasing or disk_floor_gb < 2.0:
+        is_high_pressure = memory_pressure > 0.80 or swap_increasing or disk_floor_gb < 2.0
+        is_medium_pressure = memory_pressure > 0.70 or self.cleanup_unknown
+        
+        if is_high_pressure:
+            self._calm_streak = 0
             if self.state not in [HostState.STABILIZING, HostState.RESTART_RECOMMENDED, HostState.RECOVERING]:
                 self.state = HostState.STABILIZING
-        elif memory_pressure > 0.70 or self.cleanup_unknown:
+        elif is_medium_pressure:
+            self._calm_streak = 0
             self.state = HostState.LIGHT_ONLY
         else:
-            self.state = HostState.NORMAL
+            if self.state in [HostState.STABILIZING, HostState.RESTART_RECOMMENDED, HostState.RECOVERING, HostState.LIGHT_ONLY]:
+                self._calm_streak += 1
+                self.state = HostState.RECOVERING
+                if self._calm_streak >= self.required_calm_streak:
+                    self.state = HostState.NORMAL
+            else:
+                self._calm_streak += 1
+                self.state = HostState.NORMAL
 
         if self.state in [HostState.STABILIZING, HostState.RESTART_RECOMMENDED, HostState.RECOVERING]:
             return AdmissionState.CLOSED
@@ -66,16 +80,19 @@ class HostGuardian:
             return AdmissionState.OPEN
 
     def stabilize(self, resources) -> HostState:
-        if self.state != HostState.STABILIZING:
+        if self.state not in (HostState.STABILIZING, HostState.RESTART_RECOMMENDED):
             return self.state
             
         for res in resources:
-            if not getattr(res, "is_alive", lambda: False)():
-                if hasattr(res, "terminate"):
-                    res.terminate()
-            elif getattr(res, "is_idle", lambda: False)():
-                if hasattr(res, "terminate"):
-                    res.terminate()
+            try:
+                is_alive = getattr(res, "is_alive", lambda: False)()
+                safe_to_retire = getattr(res, "safe_to_retire", lambda: False)()
+                
+                if not is_alive or safe_to_retire:
+                    if hasattr(res, "terminate"):
+                        res.terminate()
+            except Exception:
+                self.cleanup_unknown = True
                 
         self.evaluate_admission()
         
@@ -100,6 +117,8 @@ class HostGuardian:
         
         if not cleanup_proven:
             self.cleanup_unknown = True
+        else:
+            self.cleanup_unknown = False
             
     def get_metrics(self) -> HostMetrics:
         return HostMetrics(

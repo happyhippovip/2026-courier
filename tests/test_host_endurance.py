@@ -41,7 +41,7 @@ import time
 
 import pytest
 
-from scripts import host_capacity as HC
+from scripts import host_budgets as HC
 from scripts.resource_governor import HostPressureController
 from courier_worker import host as H
 from courier_worker import service as S

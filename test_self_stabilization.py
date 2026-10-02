@@ -2,12 +2,14 @@ import pytest
 from scripts.host_guardian import HostGuardian, HostState, AdmissionState
 
 class MockResource:
-    def __init__(self, alive, idle):
+    def __init__(self, alive, idle, safe=False):
         self._alive = alive
         self._idle = idle
+        self._safe = safe
         self.terminated = False
     def is_alive(self): return self._alive
     def is_idle(self): return self._idle
+    def safe_to_retire(self): return self._safe
     def terminate(self): self.terminated = True
 
 def mock_psutil(mem_pct):
@@ -32,9 +34,9 @@ def test_quiet_healthy_work_preserved():
     guardian = HostGuardian()
     guardian.state = HostState.STABILIZING
     
-    quiet_healthy = MockResource(alive=True, idle=False)
-    idle_dead = MockResource(alive=False, idle=True)
-    idle_alive = MockResource(alive=True, idle=True)
+    quiet_healthy = MockResource(alive=True, idle=False, safe=False)
+    idle_dead = MockResource(alive=False, idle=True, safe=False)
+    idle_alive = MockResource(alive=True, idle=True, safe=True)
     
     mock_psutil(75.0) # Safe envelope restored (LIGHT_ONLY)
     
@@ -70,5 +72,7 @@ def test_restart_recommendation_clears_after_recovery():
     
     # Let's say user manually frees memory
     mock_psutil(65.0) # NORMAL
-    assert guardian.evaluate_admission() == AdmissionState.OPEN
+    assert guardian.evaluate_admission() == AdmissionState.CLOSED # RECOVERING
+    assert guardian.evaluate_admission() == AdmissionState.CLOSED # RECOVERING
+    assert guardian.evaluate_admission() == AdmissionState.OPEN # NORMAL
     assert guardian.state == HostState.NORMAL
