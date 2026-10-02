@@ -22,6 +22,7 @@ import hashlib
 import json
 import os
 import sys
+from scripts.host_guardian import HostGuardian, AdmissionState
 import time
 import uuid
 from pathlib import Path
@@ -385,6 +386,23 @@ class AutonomousLevel6Loop:
                 payload_override = current_task_info.get("payload_override")
                 target_agent_raw = current_task_info.get("target_agent", "antigravity").lower()
 
+                
+                # --- HOST GUARDIAN ADMISSION CHECK ---
+                admission = self.host_guardian.evaluate_admission()
+                if admission == AdmissionState.CLOSED:
+                    status = "RESOURCE_PAUSE"
+                    stop_reason = "Host admission is CLOSED due to memory/swap pressure or cleanup unknown. Lane hibernating."
+                    break
+
+                is_heavy = "codex" in target_agent_raw or "engineer" in target_agent_raw
+                has_lease = False
+                if is_heavy:
+                    if not self.host_guardian.request_heavy_lease():
+                        status = "RESOURCE_PAUSE"
+                        stop_reason = "MAX_HEAVY_LOCAL_JOBS exceeded. Lane hibernating."
+                        break
+                    has_lease = True
+                
                 is_codex = "codex" in target_agent_raw
                 target_agent_name = "courier-codex-bridge" if is_codex else "courier-antigravity-bridge"
                 active_tracker = self.codex_state_tracker if is_codex else self.state_tracker
