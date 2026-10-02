@@ -39,6 +39,7 @@ include = [
     "adapters*",
     "desktop*",
     "courier_hub*",
+    "courier_runtime*",
 ]
 
 [tool.setuptools.package-data]
