@@ -4,10 +4,9 @@ param (
     [string]$WorkerIdArg = ""
 )
 
-# Requires Administrator
-if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Host "ERROR: Please run this installer as Administrator." -ForegroundColor Red
-    exit 1
+$IsAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+if (-Not $IsAdmin) {
+    Write-Host "WARNING: Not running as Administrator. Scheduled Task will not be registered." -ForegroundColor Yellow
 }
 
 $InstallDir = "$env:ProgramFiles\CourierWorker"
@@ -66,20 +65,24 @@ Write-Host "Token saved to $tokenPath."
 Write-Host "Copying files to $InstallDir..."
 Copy-Item "$PSScriptRoot\*" -Destination $InstallDir -Recurse -Force
 
-Write-Host "Registering Scheduled Task..."
-$taskName = "CourierWindowsWorker"
-$scriptPath = "$InstallDir\Courier.exe"
+if ($IsAdmin) {
+    Write-Host "Registering Scheduled Task..."
+    $taskName = "CourierWindowsWorker"
+    $scriptPath = "$InstallDir\Courier.exe"
 
-if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
-    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
+    if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
+        Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
+    }
+
+    $trigger = New-ScheduledTaskTrigger -AtStartup
+    $action = New-ScheduledTaskAction -Execute $scriptPath -WorkingDirectory $InstallDir
+    $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+    Register-ScheduledTask -TaskName $taskName -Trigger $trigger -Action $action -Principal $principal | Out-Null
+
+    Write-Host "Starting Service..."
+    Start-ScheduledTask -TaskName $taskName
+} else {
+    Write-Host "Skipped Scheduled Task registration (requires Administrator)." -ForegroundColor Yellow
 }
-
-$trigger = New-ScheduledTaskTrigger -AtStartup
-$action = New-ScheduledTaskAction -Execute $scriptPath -WorkingDirectory $InstallDir
-$principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
-Register-ScheduledTask -TaskName $taskName -Trigger $trigger -Action $action -Principal $principal | Out-Null
-
-Write-Host "Starting Service..."
-Start-ScheduledTask -TaskName $taskName
 
 Write-Host "Courier installed successfully!"

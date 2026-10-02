@@ -28,7 +28,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -89,6 +89,18 @@ class Outcome:
     SPAWN_FAILED = "spawn-failed"
 
 
+class LivenessState:
+    DELIVERED = "delivered"
+    ACCEPTED = "accepted"
+    WORKING = "working"
+    QUIET = "quiet"
+    SLOW = "slow"
+    PROBING = "probing"
+    FAILED = "failed"
+    RESULT_DURABLE = "result_durable"
+    RETIRED = "retired"
+
+
 @dataclass(frozen=True)
 class ExecutionSpec:
     """Everything the host needs to run one dispatch, nothing more."""
@@ -106,6 +118,12 @@ class ExecutionSpec:
     lease_ttl_s: float
     artifact_dir: str
     heartbeat_s: float = 1.0
+    # Set when the spec came from a declarative claim through the adapter
+    # bridge (courier_worker.adapter_bridge); argv then names Courier's own
+    # runner, never a command supplied by the task.
+    adapter: Optional[str] = None
+    params: Optional[dict] = field(default=None, compare=False)
+    effect_key: Optional[str] = None
 
     def __post_init__(self):
         for name in ("task_id", "dispatch_id", "worker_id", "result_id", "goal_id", "attempt_id", "run_id"):
@@ -179,7 +197,12 @@ def default_pressure_probe() -> Optional[str]:
             os.close(w)
     except OSError as exc:
         return f"fd-exhaustion: {exc.strerror or exc}"
-    load = _one_minute_load()
+        
+    try:
+        load = _one_minute_load()
+    except OSError as exc:
+        return f"load-probe-failed: {exc.strerror or exc}"
+        
     if load is not None:
         cpus = os.cpu_count() or 1
         if load > cpus * LOAD_PRESSURE_FACTOR:
@@ -191,10 +214,7 @@ def _one_minute_load() -> Optional[float]:
     getter = getattr(os, "getloadavg", None)
     if getter is None:
         return None
-    try:
-        return float(getter()[0])
-    except OSError:
-        return None
+    return float(getter()[0])
 
 
 # -- owned-tree containment ---------------------------------------------------
@@ -210,6 +230,19 @@ if os.name == "nt":
     from ctypes import wintypes
 
     _kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+
+    _kernel32.CreateJobObjectW.restype = wintypes.HANDLE
+    _kernel32.CreateJobObjectW.argtypes = [wintypes.LPVOID, wintypes.LPCWSTR]
+    _kernel32.SetInformationJobObject.restype = wintypes.BOOL
+    _kernel32.SetInformationJobObject.argtypes = [wintypes.HANDLE, wintypes.DWORD, wintypes.LPVOID, wintypes.DWORD]
+    _kernel32.AssignProcessToJobObject.restype = wintypes.BOOL
+    _kernel32.AssignProcessToJobObject.argtypes = [wintypes.HANDLE, wintypes.HANDLE]
+    _kernel32.OpenProcess.restype = wintypes.HANDLE
+    _kernel32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    _kernel32.CloseHandle.restype = wintypes.BOOL
+    _kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+    _kernel32.TerminateJobObject.restype = wintypes.BOOL
+    _kernel32.TerminateJobObject.argtypes = [wintypes.HANDLE, wintypes.UINT]
 
     _JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x2000
     _JobObjectExtendedLimitInformation = 9
@@ -269,6 +302,22 @@ if os.name == "nt":
 
     def _terminate_job(job: object) -> None:
         _kernel32.TerminateJobObject(job, 1)
+
+    # NtResumeProcess resumes all threads in a process given its handle.
+    # This replaces the psutil dependency for the CREATE_SUSPENDED pattern.
+    _ntdll = ctypes.WinDLL("ntdll", use_last_error=True)
+    _ntdll.NtResumeProcess.restype = wintypes.LONG  # NTSTATUS
+    _ntdll.NtResumeProcess.argtypes = [wintypes.HANDLE]
+
+    def _resume_process(proc: subprocess.Popen) -> None:
+        """Resume a process created with CREATE_SUSPENDED."""
+        # subprocess.Popen on Windows stores the process handle as _handle
+        handle = getattr(proc, "_handle", None)
+        if handle is None:
+            raise ContainmentError("cannot resume: no process handle")
+        status = _ntdll.NtResumeProcess(handle)
+        if status < 0:
+            raise ContainmentError(f"NtResumeProcess failed: NTSTATUS 0x{status & 0xFFFFFFFF:08X}")
 else:
     def _job_for_child() -> object:
         return None
@@ -299,10 +348,7 @@ class ContainedRun:
     def group_id(self) -> Optional[int]:
         if os.name == "nt":
             return None
-        try:
-            return os.getpgid(self.proc.pid)
-        except (OSError, ProcessLookupError):
-            return None
+        return self.proc.pid
 
     def poll(self) -> Optional[int]:
         return self.proc.poll()
@@ -317,9 +363,7 @@ class ContainedRun:
         """True if any member of the owned tree may still run."""
         if os.name == "nt":
             return self.proc.poll() is None  # the job kills the rest on close
-        pgid = self.group_id()
-        if pgid is None:
-            return self.proc.poll() is None
+        pgid = self.proc.pid
         try:
             os.killpg(pgid, 0)
             return True
@@ -330,53 +374,56 @@ class ContainedRun:
 
     def terminate_tree(self, grace: float = KILL_GRACE_S) -> None:
         """SIGTERM, then SIGKILL, then reap. Addresses the owned tree only."""
-        if self.proc.poll() is not None:
-            self._close()
-            return
         if os.name == "nt":
-            _terminate_job(self.job)
-            self.proc.wait()
+            if self.job is not None:
+                _terminate_job(self.job)
+            if self.proc.poll() is None:
+                self.proc.wait()
             self._close()
             return
-        pgid = self.group_id()
-        if pgid is None or pgid != self.proc.pid:
-            # The root is gone or escaped its group: reap the root only.
-            try:
-                self.proc.terminate()
-            except (OSError, ProcessLookupError):
-                pass
+
+        pgid = self.proc.pid
+        try:
+            os.killpg(pgid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+        except PermissionError as exc:
+            raise ContainmentError(f"cannot signal owned group {pgid}: {exc}") from exc
+
+        if self.proc.poll() is None:
             try:
                 self.proc.wait(timeout=grace)
             except subprocess.TimeoutExpired:
                 try:
-                    self.proc.kill()
-                except (OSError, ProcessLookupError):
+                    os.killpg(pgid, signal.SIGKILL)
+                except ProcessLookupError:
                     pass
+                except PermissionError as exc:
+                    raise ContainmentError(f"cannot kill owned group {pgid}: {exc}") from exc
                 self.proc.wait()
-            self._close()
-            return
-        try:
-            os.killpg(pgid, signal.SIGTERM)
-        except ProcessLookupError:
-            self.proc.wait()
-            self._close()
-            return
-        except PermissionError as exc:
-            raise ContainmentError(f"cannot signal owned group {pgid}: {exc}") from exc
-        try:
-            self.proc.wait(timeout=grace)
-        except subprocess.TimeoutExpired:
-            try:
-                os.killpg(pgid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
-            except PermissionError as exc:
-                raise ContainmentError(f"cannot kill owned group {pgid}: {exc}") from exc
-            self.proc.wait()
+        else:
+            # Root is already dead. Wait grace period for the group to empty.
+            deadline = time.monotonic() + grace
+            while time.monotonic() < deadline:
+                try:
+                    os.killpg(pgid, 0)
+                except (OSError, ProcessLookupError):
+                    break
+                time.sleep(0.05)
+            else:
+                try:
+                    os.killpg(pgid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                except PermissionError as exc:
+                    raise ContainmentError(f"cannot kill owned group {pgid}: {exc}") from exc
+
         self._close()
 
     def _close(self) -> None:
-        _close_job(self.job)
+        if self.job is not None:
+            _close_job(self.job)
+            self.job = None
 
 
 def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
@@ -394,7 +441,7 @@ def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
     job = None
     if os.name == "nt":
         job = _job_for_child()
-        popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+        popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP | 0x00000004
     else:
         popen_kwargs["start_new_session"] = True
     try:
@@ -412,6 +459,7 @@ def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
     if os.name == "nt":
         try:
             _assign_to_job(job, proc.pid)
+            _resume_process(proc)
         except BaseException:
             try:
                 proc.kill()
@@ -494,9 +542,14 @@ def run_orphan_gate(home: str) -> int:
     for path in sorted(claims.glob(CLAIM_RECORD_GLOB)):
         try:
             record = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
+            owner_pid = int(record.get("owner_pid", 0) or 0)
+        except (OSError, ValueError, TypeError):
+            try:
+                path.rename(path.with_suffix('.json.corrupt'))
+            except OSError:
+                pass
             continue
-        if _owner_alive(int(record.get("owner_pid", 0))):
+        if _owner_alive(owner_pid):
             continue  # another live host owns this tree; hands off
         _reap_orphan(record)
         try:
@@ -513,10 +566,7 @@ def _reap_orphan(record: dict) -> None:
     if os.name == "nt":
         return  # KILL_ON_JOB_CLOSE already reaped the tree at host death
     if pgid is None and child_pid:
-        try:
-            pgid = os.getpgid(child_pid)
-        except (OSError, ProcessLookupError):
-            return
+        pgid = child_pid
     if not pgid:
         return
     if child_pid:
@@ -761,6 +811,7 @@ class WorkerHost:
         try:
             return self._wait(spec, run, on_heartbeat, is_cancelled)
         finally:
+            run.terminate_tree()
             self._active = None
             try:
                 claim_record.unlink()
@@ -781,10 +832,27 @@ class WorkerHost:
             now = time.monotonic()
             remaining = min(timeout_at, lease_at) - now
             if remaining <= 0:
-                outcome = Outcome.TIMEOUT if timeout_at <= lease_at else Outcome.LEASE_LOST
-                run.terminate_tree()
-                returncode = run.poll()
-                break
+                if timeout_at <= lease_at:
+                    # Time bound reached. LAW: Timeout means SLOW/STALLED/PROBING.
+                    # ONE bounded, non-destructive diagnostic probe.
+                    liveness = LivenessState.PROBING
+                    if run.poll() is not None:
+                        # Process actually exited
+                        outcome = Outcome.TIMEOUT
+                        run.terminate_tree()
+                        returncode = run.poll()
+                        break
+                    else:
+                        # Process is still alive. Do not authorize kill.
+                        # Extend timeout bound, but keep lease cap intact.
+                        liveness = LivenessState.SLOW
+                        timeout_at = now + spec.timeout_s
+                        continue
+                else:
+                    outcome = Outcome.LEASE_LOST
+                    run.terminate_tree()
+                    returncode = run.poll()
+                    break
             if is_cancelled is not None:
                 try:
                     cancelled = is_cancelled()
@@ -799,7 +867,7 @@ class WorkerHost:
             wakes += 1
             if returncode is not None:
                 outcome = Outcome.COMPLETED if returncode == 0 else Outcome.CRASH
-                run._close()
+                run.terminate_tree()
                 break
             if on_heartbeat is not None:
                 try:

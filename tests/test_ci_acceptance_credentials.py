@@ -1,6 +1,17 @@
+
+import sys
+import os
+def get_bash():
+    if sys.platform == "win32":
+        for p in [r"C:\Program Files\Git\bin\bash.exe", r"C:\Program Files\Git\usr\bin\bash.exe"]:
+            if os.path.exists(p):
+                return p
+    return "bash"
+
 import re
 import subprocess
 import sys
+import os
 from pathlib import Path
 
 import yaml
@@ -60,7 +71,7 @@ def test_workflow_fallback_keys_are_distinct_and_only_emitted_as_masks():
     import tempfile
     with tempfile.TemporaryDirectory() as td:
         out = os.path.join(td, "keys")
-        r = subprocess.run(["bash", "-c", script], env={"PATH": "/usr/bin:/bin", "OUT": out},
+        r = subprocess.run([get_bash(), "-c", script], env={"PATH": "/usr/bin:/bin", "OUT": out},
                            capture_output=True, text=True, timeout=30)
         assert r.returncode == 0, r.stderr
         keys = dict(line.split("=", 1) for line in open(out).read().split())
@@ -72,7 +83,7 @@ def test_workflow_fallback_keys_are_distinct_and_only_emitted_as_masks():
 
 
 def test_workflow_uses_provided_secrets_without_regenerating():
-    r = subprocess.run(["bash", "-c", _motor_key_block() + '\necho "$COURIER_API_KEY|$COURIER_VERIFIER_API_KEY"'],
+    r = subprocess.run([get_bash(), "-c", _motor_key_block() + '\necho "$COURIER_API_KEY|$COURIER_VERIFIER_API_KEY"'],
                        env={"PATH": "/usr/bin:/bin", "COURIER_API_KEY": "dummy-a-not-real",
                             "COURIER_VERIFIER_API_KEY": "dummy-v-not-real"},
                        capture_output=True, text=True, timeout=30)

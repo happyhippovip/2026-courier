@@ -74,6 +74,11 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
+Write-Host "Installing dependencies using uv..."
+$projectRoot = (Resolve-Path "$PSScriptRoot\..\..\").Path
+uv pip install --target "$OutDir\libs" $projectRoot
+Add-Content -Path "$pyDir\python311._pth" -Value "..\libs"
+
 # 4. Create ZIP package
 $zipOut = "$PSScriptRoot\CourierWorker-v1.zip"
 if (Test-Path $zipOut) { Remove-Item -Force $zipOut }
