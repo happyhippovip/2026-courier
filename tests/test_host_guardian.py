@@ -15,7 +15,7 @@ def test_host_guardian_memory_warning_light_only():
         free = 100 * (1024**3)
 
     def mock_eval():
-        guardian.state = HostState.PRESSURED
+        guardian.state = HostState.LIGHT_ONLY
         return AdmissionState.LIGHT_ONLY
     
     guardian.evaluate_admission = mock_eval

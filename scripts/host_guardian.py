@@ -4,12 +4,10 @@ import os
 from dataclasses import dataclass
 
 class HostState(enum.Enum):
-    NOMINAL = "NOMINAL"
-    WATCH = "WATCH"
-    PRESSURED = "PRESSURED"
-    DEGRADED = "DEGRADED"
-    RESOURCE_PAUSE = "RESOURCE_PAUSE"
-    EMERGENCY = "EMERGENCY"
+    NORMAL = "NORMAL"
+    STABILIZING = "STABILIZING"
+    LIGHT_ONLY = "LIGHT_ONLY"
+    RESTART_RECOMMENDED = "RESTART_RECOMMENDED"
     RECOVERING = "RECOVERING"
 
 class AdmissionState(enum.Enum):
@@ -36,7 +34,7 @@ class HostMetrics:
 class HostGuardian:
     def __init__(self, max_heavy_local_jobs: int = 1):
         self.max_heavy_local_jobs = max_heavy_local_jobs
-        self.state = HostState.NOMINAL
+        self.state = HostState.NORMAL
         self.admitted_heavy = 0
         self.admitted_light = 0
         self.cleanup_unknown = False
@@ -52,23 +50,39 @@ class HostGuardian:
         self._last_swap_used = swap.used
         disk_floor_gb = disk.free / (1024 ** 3)
         
-        # Determine internal host state
-        if memory_pressure > 0.90 or disk_floor_gb < 2.0:
-            self.state = HostState.EMERGENCY
-        elif memory_pressure > 0.80 or swap_increasing:
-            self.state = HostState.RESOURCE_PAUSE
+        if memory_pressure > 0.80 or swap_increasing or disk_floor_gb < 2.0:
+            if self.state not in [HostState.STABILIZING, HostState.RESTART_RECOMMENDED, HostState.RECOVERING]:
+                self.state = HostState.STABILIZING
         elif memory_pressure > 0.70 or self.cleanup_unknown:
-            self.state = HostState.PRESSURED
+            self.state = HostState.LIGHT_ONLY
         else:
-            self.state = HostState.NOMINAL
+            self.state = HostState.NORMAL
 
-        # Map state to simplified admission
-        if self.state in [HostState.EMERGENCY, HostState.RESOURCE_PAUSE]:
+        if self.state in [HostState.STABILIZING, HostState.RESTART_RECOMMENDED, HostState.RECOVERING]:
             return AdmissionState.CLOSED
-        elif self.state == HostState.PRESSURED or self.cleanup_unknown:
+        elif self.state == HostState.LIGHT_ONLY:
             return AdmissionState.LIGHT_ONLY
         else:
             return AdmissionState.OPEN
+
+    def stabilize(self, resources) -> HostState:
+        if self.state != HostState.STABILIZING:
+            return self.state
+            
+        for res in resources:
+            if not getattr(res, "is_alive", lambda: False)():
+                if hasattr(res, "terminate"):
+                    res.terminate()
+            elif getattr(res, "is_idle", lambda: False)():
+                if hasattr(res, "terminate"):
+                    res.terminate()
+                
+        self.evaluate_admission()
+        
+        if self.state == HostState.STABILIZING:
+            self.state = HostState.RESTART_RECOMMENDED
+            
+        return self.state
 
     def request_heavy_lease(self) -> bool:
         admission = self.evaluate_admission()
