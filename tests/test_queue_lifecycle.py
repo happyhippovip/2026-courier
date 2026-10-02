@@ -58,3 +58,51 @@ def test_process_queue_does_not_abort_entire_session_on_single_failure(tmp_path)
             if os.path.exists(f"intakes/processed/item_{i}.json"):
                 os.remove(f"intakes/processed/item_{i}.json")
 
+
+def test_queue_tail_durability_preserves_all_attributes():
+    """
+    Explicitly verify the architecture preserves:
+    QUEUED_ITEM_ID, ORDER, LANE, SOURCE, PRECONDITION, STATUS
+    and that session destruction would not be the only durable representation.
+    """
+    import os
+    import json
+    from scripts.intake_dispatcher import save_central_state, load_central_state
+
+    state_file = "test_tail_durability_state.json"
+    if os.path.exists(state_file):
+        os.remove(state_file)
+
+    # Simulate preserving the queue tail before session retirement
+    mock_state = {
+        "tasks": {
+            "queued_item_2": {
+                "queued_item_id": "q-1002",
+                "order": 2,
+                "lane": "revenue_v1",
+                "source": "github_webhook",
+                "precondition": "PR_OPEN",
+                "status": "PENDING_EXECUTION"
+            }
+        }
+    }
+    
+    # Save durably (fsync + replace)
+    save_central_state(state_file, mock_state)
+    
+    # Prove the session can be completely destroyed and another session can 
+    # reconstruct the exact queued item attributes from disk
+    restored_state = load_central_state(state_file)
+    restored_task = restored_state["tasks"]["queued_item_2"]
+    
+    assert restored_task["queued_item_id"] == "q-1002"
+    assert restored_task["order"] == 2
+    assert restored_task["lane"] == "revenue_v1"
+    assert restored_task["source"] == "github_webhook"
+    assert restored_task["precondition"] == "PR_OPEN"
+    assert restored_task["status"] == "PENDING_EXECUTION"
+    
+    # Clean up
+    if os.path.exists(state_file):
+        os.remove(state_file)
+
