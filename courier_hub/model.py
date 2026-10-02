@@ -360,6 +360,27 @@ def unrecognised_card(task: Any) -> dict:
             "stop": None, "last_change": None}
 
 
+def unrecognised_receipt(task: Any, events: Iterable[Any]) -> dict:
+    """Receipt for a state this hub does not know: the recorded steps, no conclusions."""
+    events = list(events)
+    steps = []
+    for event in events:
+        step = _PLAIN_STEPS.get(_type(event))
+        if step and (not steps or steps[-1]["what"] != step):
+            steps.append({"what": step, "at": _get(event, "ts_utc")})
+    return {
+        "understood": f"Courier was asked to {copy_for(task)['action']} ({title_of(task)}).",
+        "authorized": unrecognised_card(task)["authority"],
+        "tried": steps,
+        "resumed": any(_type(e) == "TASK_RETRY_SCHEDULED" for e in events),
+        "happened": "Not known to this hub: Courier recorded a state this version can't show.",
+        "how_known": "Not known to this hub.",
+        "decisions": [],
+        "changed_later": [],
+        "evidence": [],
+    }
+
+
 def home(tasks: Iterable[Any], events_by_task: dict, done_limit: int = 50) -> dict:
     piles = {PILE_NEEDS_YOU: [], PILE_WORKING: [], PILE_DONE: []}
     for task in tasks:

@@ -127,7 +127,16 @@ test('responses: recorded, already recorded, stale, offline, error', () => {
   assert.equal(interpretResponse(-1, null).kind, 'unknown');
   assert.equal(interpretResponse(504, { result: 'unknown', message: 'm', item: null }).kind, 'unknown');
   assert.equal(interpretResponse(503, { result: 'offline', message: 'x' }).kind, 'offline');
-  assert.equal(interpretResponse(500, null).kind, 'error');
+  assert.equal(interpretResponse(400, { result: 'invalid', message: 'Unknown decision.' }).kind, 'error');
+});
+
+test('an answer the hub does not vouch for is unknown, never "nothing was changed"', () => {
+  for (const [status, payload] of [[500, null], [502, null], [200, null], [200, { result: 'surprise' }],
+    [500, { result: 'unknown', message: 'The hub hit an internal error. Courier may have recorded this.' }]]) {
+    const result = interpretResponse(status, payload);
+    assert.equal(result.kind, 'unknown', `${status} ${JSON.stringify(payload)}`);
+    assert.doesNotMatch(result.message, /nothing (was )?changed/i);
+  }
 });
 
 test('a network failure after sending is reported as unknown, never as success or as "nothing changed"', async () => {
@@ -173,6 +182,8 @@ test('receipt answers the seven questions and keeps ids in the support view', ()
   const beforeSupport = html.slice(0, html.indexOf('<details'));
   assert.ok(!beforeSupport.includes('dsp-1'));
   assert.ok(html.includes('<summary>For support</summary>'));
+  const exportLink = html.slice(html.indexOf('<details'));
+  assert.ok(exportLink.includes(`href="/hub/api/items/${view.done[0].id}/support" download`));
 });
 
 test('everything shown is escaped', () => {
