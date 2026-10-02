@@ -21,23 +21,33 @@ import re
 import sys
 
 SCANNED_SUFFIXES = (".py", ".ps1", ".psm1", ".bat", ".cmd", ".sh", ".cs", ".yml", ".yaml")
-SKIPPED_DIRS = {".git", "__pycache__", "node_modules", "attic", "runtime", "docs", "venv", ".venv"}
+SKIPPED_DIRS = {".git", "__pycache__", "node_modules", "attic", "runtime", "docs", "venv", ".venv",
+                "dist", "site-packages",  # build output and vendored third-party code
+                "tests"}  # tests use these commands as data for guard tests
 
 RULES = {
     "KILL_BY_NAME": [
         re.compile(r"Stop-Process\b[^\n#]*\s-(Name|ProcessName)\b", re.I),
-        re.compile(r"\btaskkill\b[^\n]*\s/IM\b", re.I),
-        re.compile(r"(^|[\s;&|(`'\"])pkill\s", re.I),
-        re.compile(r"(^|[\s;&|(`'\"])killall\s", re.I),
+        # shell form and argv-list form: taskkill /F /IM x, ["taskkill", "/IM", "x"]
+        re.compile(r"""\btaskkill\b[^\n]*[\s'",]/IM\b""", re.I),
+        re.compile(r"""(^|[\s;&|(`'"\[])(pkill|killall)(\s|['"])""", re.I),
         re.compile(r"Get-Process\b[^\n|]*\|[^\n]*Stop-Process", re.I),
+        # psutil scan that kills by name on the same line
+        re.compile(r"""\.name\(\)[^\n]*\.(kill|terminate)\(""", re.I),
     ],
     "WILDCARD_BIND": [
-        re.compile(r"""host\s*=\s*['"]0\.0\.0\.0['"]"""),
+        # a 0.0.0.0 literal in code is a bind address in practice; "::" only in bind context
+        re.compile(r"""['"]0\.0\.0\.0['"]"""),
+        re.compile(r"""(host\s*=\s*|bind\(\s*\(\s*)['"]::['"]"""),
         re.compile(r"""--host[\s=]+['"]?0\.0\.0\.0"""),
-        re.compile(r"""(TCPServer|HTTPServer|ThreadingHTTPServer|bind)\(\s*\(\s*(['"]['"]|['"]0\.0\.0\.0['"])\s*,"""),
-        re.compile(r"""IPAddress\.Any\b"""),
+        re.compile(r"""(TCPServer|HTTPServer|ThreadingHTTPServer|bind)\(\s*\(\s*['"]['"]\s*,"""),
+        re.compile(r"""IPAddress\.(Any|IPv6Any)\b"""),
     ],
 }
+
+# A reviewed exception carries its reason on the same line:
+#   subprocess.run(["taskkill", "/IM", ...])  # local-safety: allow <reason>
+ALLOW_PRAGMA = re.compile(r"local-safety:\s*allow\s+\S")
 
 
 def iter_files(root):
@@ -51,6 +61,8 @@ def iter_files(root):
 def scan_text(text):
     """Yield (rule, line_number, stripped_line) for every rule hit in text."""
     for number, line in enumerate(text.splitlines(), 1):
+        if ALLOW_PRAGMA.search(line):
+            continue
         for rule, patterns in RULES.items():
             if any(p.search(line) for p in patterns):
                 yield rule, number, line.strip()
@@ -86,9 +98,11 @@ def main(argv=None):
     parser.add_argument("--write-baseline", help="write current finding keys to this file and exit 0")
     args = parser.parse_args(argv)
 
-    # The checker names the forbidden patterns itself; never flag its own source.
-    self_path = os.path.relpath(os.path.abspath(__file__), os.path.abspath(args.root)).replace(os.sep, "/")
-    findings = scan(args.root, skip={self_path})
+    # The checker and its tests name the forbidden patterns; never flag them.
+    here = os.path.abspath(__file__)
+    own = {here, os.path.join(os.path.dirname(os.path.dirname(here)), "tests", "test_check_local_safety.py")}
+    skip = {os.path.relpath(p, os.path.abspath(args.root)).replace(os.sep, "/") for p in own}
+    findings = scan(args.root, skip=skip)
 
     for f in findings:
         print(f"{f['rule']} {f['path']}:{f['line']}: {f['text']}")

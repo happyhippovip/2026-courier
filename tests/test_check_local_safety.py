@@ -11,6 +11,9 @@ from scripts.check_local_safety import main, scan, scan_text
     "taskkill /F /IM Courier.exe 2>NUL",
     "pkill -9 -f gunicorn 2>/dev/null || true",
     "killall python",
+    'subprocess.run(["taskkill", "/F", "/IM", "python.exe"])',
+    'subprocess.run(["pkill", "-f", "courier"])',
+    'if p.name() == "python.exe": p.kill()',
 ])
 def test_name_based_kills_are_found(line):
     assert [rule for rule, _, _ in scan_text(line)] == ["KILL_BY_NAME"]
@@ -22,6 +25,8 @@ def test_name_based_kills_are_found(line):
     "server.bind(('0.0.0.0', 9000))",
     "uvicorn app:app --host 0.0.0.0",
     "var listener = new TcpListener(IPAddress.Any, port);",
+    'HOST = "0.0.0.0"',
+    "sock.bind(('::', port))",
 ])
 def test_wildcard_binds_are_found(line):
     assert [rule for rule, _, _ in scan_text(line)] == ["WILDCARD_BIND"]
@@ -34,9 +39,17 @@ def test_wildcard_binds_are_found(line):
     'app.run(host="127.0.0.1", port=port)',
     'socketserver.TCPServer(("127.0.0.1", port), handler)',
     "# never use pkill-style cleanup",
+    "proc = psutil.Process(owned_pid); proc.kill()",
+    'subprocess.run(["taskkill", "/F", "/T", "/PID", str(pid)])',
+    "listen on loopback, not 0.0.0.0 or the LAN",
+    'subprocess.run(["taskkill", "/IM", "x.exe"])  # local-safety: allow test fixture only',
 ])
 def test_owned_kills_and_loopback_binds_are_clean(line):
     assert list(scan_text(line)) == []
+
+
+def test_allow_pragma_needs_a_reason():
+    assert [r for r, _, _ in scan_text('app.run(host="0.0.0.0")  # local-safety: allow')] == ["WILDCARD_BIND"]
 
 
 def _tree(tmp_path):
