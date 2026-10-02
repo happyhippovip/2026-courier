@@ -317,6 +317,42 @@
         }
       ],
       "current_step_index": 0
+    },
+    "goal-0735a919": {
+      "goal_id": "goal-0735a919",
+      "goal_text": "Test windows",
+      "status": "ACTIVE",
+      "budget_limit": 0.0,
+      "budget_spent": 0.0,
+      "workflow_plan": [
+        {
+          "instruction": "Do windows task",
+          "target_agent": "windows",
+          "goal_id": "goal-0735a919",
+          "status": "QUEUED",
+          "attempts": 0,
+          "task_id": "task-f91a2cb8"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-35b6bcb0": {
+      "goal_id": "goal-35b6bcb0",
+      "goal_text": "Test linux",
+      "status": "ACTIVE",
+      "budget_limit": 0.0,
+      "budget_spent": 0.0,
+      "workflow_plan": [
+        {
+          "instruction": "Do linux task",
+          "target_agent": "linux",
+          "goal_id": "goal-35b6bcb0",
+          "status": "QUEUED",
+          "attempts": 0,
+          "task_id": "task-c29ced08"
+        }
+      ],
+      "current_step_index": 0
     }
   },
   "tasks": {
@@ -471,7 +507,7 @@
       "capabilities": [
         "windows"
       ],
-      "last_seen": 1790865560.477219,
+      "last_seen": 1790931954.0515914,
       "available": true,
       "current_task": null,
       "cost_class": "unknown"
@@ -482,7 +518,7 @@
       "capabilities": [
         "linux"
       ],
-      "last_seen": 1790865560.6258242,
+      "last_seen": 1790931954.1946473,
       "available": false,
       "current_task": "task-83399fbb",
       "cost_class": "unknown"

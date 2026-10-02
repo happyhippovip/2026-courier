@@ -36,6 +36,7 @@ from courier_worker.host import (
     ExecutionSpec,
     HostBusy,
     Outcome,
+    ResourcePaused,
     SpecError,
     WorkerHost,
     acquire_home_lock,
@@ -485,6 +486,9 @@ class WorkerLoop:
                     action = "idle"
                 except HostBusy:
                     return 0
+                except ResourcePaused as exc:
+                    print(f"courier_worker.service: paused due to resource pressure: {exc}", file=sys.stderr)
+                    action = "idle"
                 if action == "idle":
                     stop.wait(self.heartbeat_s)
             try:
