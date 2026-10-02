@@ -89,6 +89,18 @@ class Outcome:
     SPAWN_FAILED = "spawn-failed"
 
 
+class LivenessState:
+    DELIVERED = "delivered"
+    ACCEPTED = "accepted"
+    WORKING = "working"
+    QUIET = "quiet"
+    SLOW = "slow"
+    PROBING = "probing"
+    FAILED = "failed"
+    RESULT_DURABLE = "result_durable"
+    RETIRED = "retired"
+
+
 @dataclass(frozen=True)
 class ExecutionSpec:
     """Everything the host needs to run one dispatch, nothing more."""
@@ -817,10 +829,27 @@ class WorkerHost:
             now = time.monotonic()
             remaining = min(timeout_at, lease_at) - now
             if remaining <= 0:
-                outcome = Outcome.TIMEOUT if timeout_at <= lease_at else Outcome.LEASE_LOST
-                run.terminate_tree()
-                returncode = run.poll()
-                break
+                if timeout_at <= lease_at:
+                    # Time bound reached. LAW: Timeout means SLOW/STALLED/PROBING.
+                    # ONE bounded, non-destructive diagnostic probe.
+                    liveness = LivenessState.PROBING
+                    if run.poll() is not None:
+                        # Process actually exited
+                        outcome = Outcome.TIMEOUT
+                        run.terminate_tree()
+                        returncode = run.poll()
+                        break
+                    else:
+                        # Process is still alive. Do not authorize kill.
+                        # Extend timeout bound, but keep lease cap intact.
+                        liveness = LivenessState.SLOW
+                        timeout_at = now + spec.timeout_s
+                        continue
+                else:
+                    outcome = Outcome.LEASE_LOST
+                    run.terminate_tree()
+                    returncode = run.poll()
+                    break
             if is_cancelled is not None:
                 try:
                     cancelled = is_cancelled()
