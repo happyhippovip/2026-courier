@@ -151,6 +151,11 @@ Largest app groups (RAM):
 | Windows Terminal Host | 3 | 0.1 % | 68 MB |
 | Command Prompt windows | 4 × 2 | 0 % | < 1 MB |
 
+Background detail (23:43): five `muse-bin-1.4.2-R4684.1` processes (0.1–0.3 % CPU,
+4–52 MB each), `pyrefly` 32.5 MB, `Microsoft Windows Search-Indexer` 30.9 MB,
+`sshd`, Node.js runtime, OneDrive — none runaway. CPU 13 %, RAM 81 %, GPU 2 %.
+Muse workers were alive and small during the recurrence (surface ≠ work).
+
 Not captured: total installed RAM, committed memory/pagefile, handle counts,
 per-process command lines, Windows event log.
 
