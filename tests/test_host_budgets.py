@@ -101,3 +101,80 @@ def test_hibernation_releases_budget_back_to_baseline():
     HB.release(budgets, "LIGHT")
     assert budgets["light_workers"].used == 0  # baseline restored, readmit clean
     assert HB.admit_work(budgets, "LIGHT", "NOMINAL") is True
+
+
+def test_unknown_lane_state_hibernates_fail_closed():
+    lanes = [HB.Lane("known-active", HB.ACTIVE),
+             HB.Lane("mystery-1", "SOME_NEW_STATE")]
+    plan = HB.plan_hibernation(lanes, health="NOMINAL",
+                               quota_exhausted=False)
+    assert "mystery-1" in plan["hibernate"]  # never kept alive unread
+    assert plan["unknown"] == ["mystery-1"]  # reported for reclassification
+    assert plan["keep"] == ["known-active"]
+
+
+def test_pressured_admits_light_only_never_heavy():
+    assert HB.admission_state("HEALTHY") == HB.OPEN
+    assert HB.admission_state("NOMINAL") == HB.OPEN  # mission-worded ok
+    assert HB.admission_state("PRESSURED") == HB.LIGHT_ONLY
+    assert HB.admission_state("WATCH") == HB.LIGHT_ONLY
+    assert HB.admission_state("DEGRADED") == HB.LIGHT_ONLY
+    assert HB.admission_state("RESOURCE_PAUSE") == HB.CLOSED
+    assert HB.admission_state("RECOVERING") == HB.CLOSED
+    assert HB.admission_state("EMERGENCY") == HB.CLOSED
+    budgets = HB.default_budgets()
+    assert HB.admit_work(budgets, "HEAVY", "PRESSURED") is False
+    assert budgets["heavy_jobs"].used == 0  # refused charge changes nothing
+    assert HB.admit_work(budgets, "LIGHT", "PRESSURED") is True
+    with pytest.raises(ValueError):
+        HB.admission_state("SOME_NEW_SIGNAL")
+    with pytest.raises(ValueError):
+        HB.admit_work(HB.default_budgets(), "LIGHT", "SOME_NEW_SIGNAL")
+
+
+def test_telemetry_escalates_never_clears():
+    assert HB.escalate_health("HEALTHY", memory_pressure="HIGH") == "PRESSURED"
+    assert HB.escalate_health("HEALTHY",
+                              memory_pressure="CRITICAL") == "RESOURCE_PAUSE"
+    assert HB.escalate_health("HEALTHY",
+                              memory_pressure="UNKNOWN") == "PRESSURED"
+    assert HB.escalate_health("HEALTHY", swap_paging=True) == "PRESSURED"
+    assert HB.escalate_health("HEALTHY", disk_free_gb=1.5) == "RESOURCE_PAUSE"
+    assert HB.escalate_health("HEALTHY", disk_free_gb=601.0) == "HEALTHY"
+    # escalate-only: a DEGRADED host is never talked back to healthy
+    assert HB.escalate_health("DEGRADED",
+                              memory_pressure="NOMINAL") == "DEGRADED"
+    with pytest.raises(ValueError):
+        HB.escalate_health("SOME_NEW_SIGNAL")
+    with pytest.raises(ValueError):
+        HB.escalate_health("HEALTHY", memory_pressure="SMOKING")
+
+
+def test_recovery_needs_consecutive_healthy_probes():
+    gate = HB.RecoveryHysteresis(required_healthy=3)
+    assert gate.probe(True) is False  # one green sample is not recovery
+    assert gate.probe(True) is False
+    assert gate.probe(True) is True
+    gate.probe(False)  # a single bad sample resets the streak
+    assert gate.probe(True) is False
+
+
+def test_weak_profile_admits_less_but_heavy_stays_one():
+    low, normal = HB.default_budgets("low"), HB.default_budgets()
+    assert low["light_workers"].limit < normal["light_workers"].limit
+    assert low["heavy_jobs"].limit == 1 == normal["heavy_jobs"].limit
+    assert HB.admit_work(low, "HEAVY", "HEALTHY") is True
+    assert HB.admit_work(low, "HEAVY", "HEALTHY") is False  # still single-flight
+    with pytest.raises(ValueError):
+        HB.default_budgets("gaming-rig-9000")
+
+
+def test_unproven_cleanup_blocks_heavy_only():
+    budgets = HB.default_budgets()
+    assert HB.admit_work(budgets, "HEAVY", "HEALTHY",
+                         cleanup_proven=False) is False
+    assert budgets["heavy_jobs"].used == 0  # refused charge changes nothing
+    assert HB.admit_work(budgets, "LIGHT", "HEALTHY",
+                         cleanup_proven=False) is True
+    assert HB.admit_work(budgets, "HEAVY", "HEALTHY",
+                         cleanup_proven=True) is True
