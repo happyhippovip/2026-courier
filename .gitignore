@@ -156,3 +156,11 @@ courier.db-shm
 
 # Owned-process registry written by local supervisors (courier_runtime.ownership).
 /run/owned_processes.json
+
+# Generated per-machine runtime state never belongs in git (Muse wall/supervisor,
+# revenue-worker target clones, pytest temp dirs). tests/test_repo_hygiene.py guards this.
+/runtime/muse-data/
+/runtime/slots/
+/runtime/win_slots/
+/scripts/revenue_worker_state/
+/.tmp_pytest/
