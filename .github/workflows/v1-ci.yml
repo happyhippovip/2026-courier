@@ -61,6 +61,13 @@ jobs:
             --known .github/ci/known_failures.json \
             --platform "${{ runner.os }}"
 
+      - name: Tests leave tracked files unchanged
+        if: always()
+        shell: bash
+        # Blocking on Linux; reported only on Windows until a clean Windows run is evidenced.
+        continue-on-error: ${{ runner.os == 'Windows' }}
+        run: git diff --stat --exit-code
+
       - name: Local safety ratchet (no new kill-by-name or wildcard binds)
         if: always()
         shell: bash
