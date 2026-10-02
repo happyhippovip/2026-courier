@@ -11,6 +11,10 @@
 - **Quality / customer-experience contract:** `docs/V1_PRODUCT_QUALITY_BAR.md`
 - **Canonical continuity thread:** GitHub Issue #54
 - **Integration evidence:** `docs/v1/INTEGRATION_LOG.md`
+- **Orchestration playbook:** `docs/V1_ORCHESTRATION_PLAYBOOK.md`
+- **Window custody:** `docs/V1_WINDOW_CUSTODY_PROTOCOL.md`
+- **Cross-agent bootstrap:** `AGENTS.md`
+- **Antigravity daily skill:** `.agents/skills/courier-orchestrate/SKILL.md`
 
 A fresh session must not make the owner re-explain the company, destination,
 lane model, or current critical path.
@@ -184,7 +188,18 @@ Opus writer subagents:
 - at most one read-only specialist/reviewer for a narrow independent question;
 - no parallel writer subagents touching the same product scope.
 
-## 8. Developer session lifecycle: /compact and /clear
+## 8. Orchestration / developer session lifecycle
+
+For daily/overnight orchestration read `docs/V1_ORCHESTRATION_PLAYBOOK.md`.
+For any old/unknown window read `docs/V1_WINDOW_CUSTODY_PROTOCOL.md`.
+
+Preferred pattern: deep queued workflows/skills with bounded live concurrency, not repeated identical prompt storms. The reusable Muse large-factory template is `docs/v1/orchestration/MUSE_144_FACTORY_TEMPLATE.md`. The reusable one-window 14-phase master prompt is `docs/v1/orchestration/MUSE_MASTER_14_PHASE_PROMPT.md`. For unattended serial Muse work, use `.agents/skills/courier-night-loop/SKILL.md` via `/loop 5m /courier-night-loop` when that skill exists in the current checkout.
+
+Antigravity: prefer the repository Agent Skill `.agents/skills/courier-orchestrate/SKILL.md` for durable repeatable orchestration. Legacy Antigravity Workflows are being retired by Google on 2026-11-01; Skills are the durable path.
+
+Custody invariant: **checkpoint first -> durable handoff second -> clear/close third.** Unknown custody is never safe to clear/close.
+
+### Developer session lifecycle: /compact and /clear
 
 This is developer workflow only; customers never see or use it.
 
@@ -267,7 +282,8 @@ state, current active stage, or next exact task.
 **Historical snapshot only — verify again before acting.**
 
 At update time (2026-10-01):
-- `integration/v1` = `c3affaf9080cdeb2974a6e7ca08a43ca5ff011a8`;
+- `integration/v1` = `5dea64730f5185cec421ccab8d11115e192f7929`;
+- the V1 product-quality/customer-experience contract had been integrated as Step 10;
 - L2 journal/state-machine/projection had been integrated as Step 9;
 - Golden harness had found journal/projection and still awaited:
   - `courier_core.serve` (L2);
@@ -298,12 +314,16 @@ Never trust this SHA after new work without checking GitHub.
 - Direct and copy/paste-ready.
 - Label MAC vs WINDOWS where relevant.
 - For prompts: exact window/lane, exact model effort, exact paste count.
+- HUMAN-TIME RULE: when several related Muse/read-only tasks can share one context safely, consolidate them into ONE master prompt per window by default; do not make Dennis manually paste a long sequence of tiny prompts.
 - Say when `/compact` or `/clear` is appropriate.
 - Verify current repo evidence instead of guessing.
 - Do not give dozens of conflicting next steps.
+- Never promise that a giant prompt or N queued duplicates will run for N minutes. For long-running Muse work prefer a real `/goal`, workflow, or `/loop` depending on the job.
+- On Windows, prefer one retained Muse steward window for recurring read-only work; Muse peer-session messaging is not available on Windows.
+- For true parallel read-only fan-out, prefer one Antigravity control room with bounded asynchronous subagents rather than making Dennis manually route many terminals.
 
 ---
 
 ## One-line bootstrap
 
-**Courier Symphony — verify CURRENT integration/v1, then read docs/V1_RULE_0.md + docs/V1_PRODUCT_QUALITY_BAR.md + docs/NEXT_CHAT_HANDOFF.md + newest GitHub Issue #54 + docs/v1/INTEGRATION_LOG.md; keep the Dennis+ChatGPT+Opus V1 architecture locked and continue the first unproven gate on ACTIVE LEDGER -> RELIABLE AUTOMATION -> GOLDEN PATH -> DESKTOP HUB -> WINDOWS EXE -> CLEAN-MACHINE ACCEPTANCE.**
+**Courier Symphony — verify CURRENT integration/v1, then read AGENTS.md + docs/V1_RULE_0.md + docs/V1_PRODUCT_QUALITY_BAR.md + docs/V1_ORCHESTRATION_PLAYBOOK.md + docs/V1_WINDOW_CUSTODY_PROTOCOL.md + docs/NEXT_CHAT_HANDOFF.md + newest GitHub Issue #54 + docs/v1/INTEGRATION_LOG.md; keep the Dennis+ChatGPT+Opus V1 architecture locked and continue the first unproven gate on ACTIVE LEDGER -> RELIABLE AUTOMATION -> GOLDEN PATH -> DESKTOP HUB -> WINDOWS EXE -> CLEAN-MACHINE ACCEPTANCE.**
