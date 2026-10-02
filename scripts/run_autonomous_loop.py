@@ -533,6 +533,10 @@ class AutonomousLevel6Loop:
                 action = decision["action"]
                 verdict = decision["verdict"]
 
+                if has_lease:
+                    self.host_guardian.release_heavy_lease()
+                    has_lease = False
+
                 round_record = {
                     "round": iteration + 1,
                     "task_id": task_id,
@@ -623,6 +627,8 @@ class AutonomousLevel6Loop:
                 stop_reason = f"Terminated after reaching limit of {self.max_iterations} iterations."
 
         finally:
+            if 'has_lease' in locals() and has_lease:
+                self.host_guardian.release_heavy_lease()
             self.release_workflow_lock(workflow_id)
 
         print(f"\n=== LEVEL 6 LOOP FINISHED: {status} ({stop_reason}) ===")
