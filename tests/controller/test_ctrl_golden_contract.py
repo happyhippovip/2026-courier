@@ -97,6 +97,7 @@ class FakeWorker:
 def courier(tmp_path):
     probe = tmp_path / "probe"
     (probe / "adapters").mkdir(parents=True)
+    (probe / "adapters" / "__init__.py").write_text("")
     (probe / "adapters" / "l2probe.py").write_text(PROBE_ADAPTER)
     home, logs = tmp_path / "courier_home", tmp_path / "logs"
     home.mkdir()
