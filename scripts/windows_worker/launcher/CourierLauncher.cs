@@ -10,6 +10,14 @@ namespace CourierLauncher
 {
     class Program
     {
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        static extern IntPtr CreateMutex(IntPtr lpMutexAttributes, bool bInitialOwner, string lpName);
+
+        [DllImport("kernel32.dll")]
+        static extern int GetLastError();
+
+        const int ERROR_ALREADY_EXISTS = 183;
+
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
         static extern IntPtr CreateJobObject(IntPtr a, string lpName);
 
@@ -70,6 +78,12 @@ namespace CourierLauncher
 
         static void Main(string[] args)
         {
+            IntPtr mutex = CreateMutex(IntPtr.Zero, true, "Global\\CourierAppMutex_L6");
+            if (GetLastError() == ERROR_ALREADY_EXISTS)
+            {
+                Environment.Exit(0);
+            }
+
             SetConsoleCtrlHandler(ConsoleCtrlCheck, true);
 
             IntPtr hJob = CreateJobObject(IntPtr.Zero, null);
@@ -88,7 +102,17 @@ namespace CourierLauncher
             }
 
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string homeDir = Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\Courier");
+            
+            string homeDir;
+            if (Environment.UserName.Equals("SYSTEM", StringComparison.OrdinalIgnoreCase))
+            {
+                homeDir = Path.Combine(Environment.GetEnvironmentVariable("ProgramData") ?? @"C:\ProgramData", "Courier");
+            }
+            else
+            {
+                homeDir = Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\Courier");
+            }
+
             string logDir = Path.Combine(homeDir, "logs");
             
             if (!Directory.Exists(logDir))
@@ -181,11 +205,28 @@ namespace CourierLauncher
                 }
             }
 
-            // 2. Start Worker
-            Process workerProc = StartPythonProcess("courier_worker.host", $"--home \"{homeDir}\" --controller \"{controllerUrl}\" --max-tasks 1 --heartbeat 2", "worker.log");
+            // Helper for Crash Backoff
+            void MonitorProcess(Func<Process> startFunc, string name)
+            {
+                new Thread(() => {
+                    int backoff = 2000;
+                    int maxBackoff = 300000;
+                    while (true)
+                    {
+                        Process p = startFunc();
+                        p.WaitForExit();
+                        File.AppendAllText(Path.Combine(logDir, "launcher.log"), $"[{DateTime.UtcNow:O}] {name} exited with code {p.ExitCode}. Restarting in {backoff}ms...\n");
+                        Thread.Sleep(backoff);
+                        backoff = Math.Min(maxBackoff, backoff * 2);
+                    }
+                }) { IsBackground = true }.Start();
+            }
 
-            // 3. Start Hub
-            Process hubProc = StartPythonProcess("courier_hub", $"--home \"{homeDir}\" --controller \"{controllerUrl}\" --port {hp}", "hub.log");
+            // 2. Start Worker with backoff
+            MonitorProcess(() => StartPythonProcess("courier_worker.host", $"--home \"{homeDir}\" --controller \"{controllerUrl}\" --max-tasks 1 --heartbeat 2", "worker.log"), "Worker");
+
+            // 3. Start Hub with backoff
+            MonitorProcess(() => StartPythonProcess("courier_hub", $"--home \"{homeDir}\" --controller \"{controllerUrl}\" --port {hp}", "hub.log"), "Hub");
 
             // 4. Open Browser
             try {
@@ -194,9 +235,17 @@ namespace CourierLauncher
                 File.AppendAllText(Path.Combine(logDir, "launcher.log"), "Could not open browser: " + ex.Message + "\n");
             }
 
-            // Wait for controller to exit, then tear down
-            controllerProc.WaitForExit();
-            Environment.Exit(controllerProc.ExitCode);
+            // Wait for controller. Controller crash will restart the whole suite since we exit.
+            int controllerBackoff = 2000;
+            while (true)
+            {
+                controllerProc.WaitForExit();
+                File.AppendAllText(Path.Combine(logDir, "launcher.log"), $"[{DateTime.UtcNow:O}] Controller exited with code {controllerProc.ExitCode}. Restarting in {controllerBackoff}ms...\n");
+                Thread.Sleep(controllerBackoff);
+                controllerBackoff = Math.Min(300000, controllerBackoff * 2);
+                
+                controllerProc = StartPythonProcess("courier_core.serve", $"--home \"{homeDir}\" --port {cp}", "controller.log");
+            }
         }
     }
 }
