@@ -190,11 +190,16 @@ def test_main_loop_generic_error(clean_env, monkeypatch):
     with pytest.raises(StopLoop):
         revenue_worker_adapter.main()
 
-def test_main_executes(monkeypatch):
-    def mock_main():
-        raise StopLoop()
-    monkeypatch.setattr(revenue_worker_adapter, "main", mock_main)
-    
+def test_main_without_config_fails_closed(monkeypatch, tmp_path):
+    # runpy executes a fresh module, so patching the imported module cannot
+    # reach it. What running the script must guarantee: without a server and
+    # key it exits 1 instead of starting the work loop.
+    monkeypatch.delenv("COURIER_SERVER", raising=False)
+    monkeypatch.delenv("COURIER_API_KEY", raising=False)
+    monkeypatch.setenv("HOME", str(tmp_path))
     import runpy
-    with pytest.raises(StopLoop):
-        runpy.run_path("scripts/revenue_worker_adapter.py", run_name="__main__")
+    script = __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.dirname(
+        __import__("os").path.abspath(__file__))), "scripts", "revenue_worker_adapter.py")
+    with pytest.raises(SystemExit) as exc:
+        runpy.run_path(script, run_name="__main__")
+    assert exc.value.code == 1

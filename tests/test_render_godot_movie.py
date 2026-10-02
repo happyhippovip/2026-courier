@@ -62,7 +62,7 @@ def test_movie_command():
     ]
 
 @patch("scripts.render_godot_movie.subprocess.run")
-@patch("scripts.render_godot_movie.sys.argv")
+@patch("scripts.render_godot_movie.sys.argv", new_callable=list)
 def test_main_dry_run(mock_argv, mock_run, tmp_path):
     godot_exe = tmp_path / "godot.exe"
     godot_exe.write_text("")
