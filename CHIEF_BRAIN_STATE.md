@@ -144,3 +144,32 @@ Freeze candidate requires real evidence for:
 => `COURIER_KERNEL_FREEZE_CANDIDATE = YES` and stop infrastructure development.
 
 Post-freeze Courier-kernel changes only for a reproducible safety/execution/durability/product/revenue blocker.
+
+
+## 💶 FOUNDER PACKAGING BRAIN UPDATE — 2026-09-20
+
+Founder-selected working commercial direction:
+
+**Sell Courier as a simple outcome plan rather than raw AI usage.**
+
+Initial hypothesis:
+- approximately **EUR 99–100/month**;
+- routine Courier AI + bounded agent work included;
+- say **"included in the plan"**, not "free";
+- internal Fair-Use / spend envelope;
+- cheapest-sufficient model/tool routing;
+- own Knowledge/cache first where possible;
+- large/expensive tasks -> `EXTRA_QUOTE_REQUIRED` before execution;
+- no silent customer overages;
+- exact public price/limits remain a Human Gate until unit economics are measured.
+
+Customer-facing flow:
+
+`GOAL -> COURIER PLAN -> INCLUDED / EXTRA QUOTE -> WORK -> VERIFY -> RESULT`
+
+The economic goal is positive customer value and sustainable gross margin, while keeping the UI simple.
+
+Read:
+`docs/agent-warehouse/CUSTOMER_PACKAGING_AND_COST_GUARDRAILS_2026-09-20.md`
+
+This update does NOT authorize billing activation, purchases, customer outreach, public pricing or paid overages.

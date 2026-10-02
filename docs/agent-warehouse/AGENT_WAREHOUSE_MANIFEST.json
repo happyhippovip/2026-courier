@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "created": "2026-09-20",
+  "repository": "happyhippovip/2026-courier",
+  "purpose": "Public-safe structured handoff for Courier Symphony agents and future cloud migration",
+  "public_repository_warning": true,
+  "secret_policy": "Never commit credentials, tokens, private customer data, private emails or payment data.",
+  "documents": [
+    {
+      "path": "docs/agent-warehouse/README.md",
+      "type": "index",
+      "authority": "handoff-index"
+    },
+    {
+      "path": "docs/agent-warehouse/PRODUCT_VISION_AND_FEATURE_MAP_2026-09-20.md",
+      "type": "product-vision",
+      "authority": "working-product-vision"
+    },
+    {
+      "path": "docs/agent-warehouse/AI_COMMUNITY_KNOWLEDGE_ARCHITECTURE_2026-09-20.md",
+      "type": "architecture",
+      "authority": "concept"
+    },
+    {
+      "path": "docs/agent-warehouse/CONTENT_PIPELINES_2026-09-20.md",
+      "type": "pipeline-inventory",
+      "authority": "code-backed-handoff"
+    },
+    {
+      "path": "docs/agent-warehouse/CLOUD_MIGRATION_HANDOFF_2026-09-20.md",
+      "type": "cloud-handoff",
+      "authority": "checklist"
+    },
+    {
+      "path": "docs/agent-warehouse/IP_BRAND_LEGAL_DRAFT_2026-09-20.md",
+      "type": "legal-draft",
+      "authority": "draft-only"
+    },
+    {
+      "path": "docs/agent-warehouse/BRAND_AND_LOGO_2026-09-20.md",
+      "type": "brand-handoff",
+      "authority": "design-concept"
+    },
+    {
+      "path": "docs/agent-warehouse/BACKUP_STRATEGY_MAC_WINDOWS_CLOUD_2026-09-20.md",
+      "type": "backup-strategy",
+      "authority": "operational-recommendation"
+    },
+    {
+      "path": "docs/agent-warehouse/CLOUD_REACTIVATION_RUNBOOK_2026-09-20.md",
+      "type": "cloud-reactivation",
+      "authority": "runbook"
+    },
+    {
+      "path": "docs/agent-warehouse/COMPANY_EXPANSION_ROADMAP_2026-09-20.md",
+      "type": "company-roadmap",
+      "authority": "strategic-working-roadmap"
+    },
+    {
+      "path": "docs/agent-warehouse/OPERATOR_INTERACTION_PROTOCOL_2026-09-20.md",
+      "type": "operator-protocol",
+      "authority": "mandatory-human-setup-rule"
+    },
+    {
+      "path": "docs/agent-warehouse/SESSION_HANDOFF_2026-09-20.md",
+      "type": "session-handoff",
+      "authority": "public-safe-current-state"
+    },
+    {
+      "path": "docs/agent-warehouse/CUSTOMER_PACKAGING_AND_COST_GUARDRAILS_2026-09-20.md",
+      "type": "customer-packaging",
+      "authority": "founder-approved-working-hypothesis"
+    },
+    {
+      "path": "docs/agent-warehouse/MASTER_RULES_AND_IDEAS_2026-09-20.md",
+      "type": "master-rules-and-ideas",
+      "authority": "founder-working-master"
+    },
+    {
+      "path": "docs/agent-warehouse/SECURITY_PUBLIC_SHARING_POLICY_2026-09-20.md",
+      "type": "security-policy",
+      "authority": "founder-operating-rule"
+    },
+    {
+      "path": "docs/agent-warehouse/MUSE_AUTONOMY_OPERATING_RULES_2026-09-20.md",
+      "type": "muse-autonomy",
+      "authority": "working-operational-rule"
+    }
+  ],
+  "existing_canonical_references": [
+    "docs/COURIER_SYMPHONY_CANONICAL_PRODUCT_PLAN.md",
+    "docs/COURIER_4_FORWARD_ONLY_OPERATING_CONTRACT.md",
+    "docs/MULTI_AGENT_CONVERGENCE_POLICY.md",
+    "docs/MULTI_AGENT_TASK_GROUP_PROTOCOL.md",
+    "docs/EMAIL_SENDER_POLICY.md",
+    "docs/PRODUCT_REVENUE_AND_REINVESTMENT_STRATEGY.md"
+  ],
+  "known_product_concepts": {
+    "goal_to_done": true,
+    "integrated_ai_chat": true,
+    "community_knowledge": true,
+    "courier_guild": true,
+    "website_factory": true,
+    "mail_and_archive": true,
+    "youtube_pipeline": true,
+    "tiktok_pipeline": true,
+    "cloud_migration_planned": true,
+    "customer_plan_included_ai": true,
+    "fair_use_cost_guardrails": true,
+    "explicit_extra_quote_gate": true,
+    "confirmed_product_name_courier_symphony": true,
+    "maldives_social_logo_variant": true,
+    "screenshot_driven_admin_mode": true,
+    "public_infra_screenshot_redaction": true,
+    "muse_auto_launcher_approval_mode_never": true
+  },
+  "open_decisions": [
+    "Cloud provider and plan",
+    "Private repository / private documentation location for confidential warehouse data",
+    "Final AI provider and cost-routing policy",
+    "Final legal review of ToS/IP language",
+    "Validate final monthly customer price and included usage envelope from real unit economics",
+    "Choose customer-facing metering model: credits, fair-use budget, task classes, or hybrid",
+    "Choose and verify AWS-supported managed access path after missing local private key"
+  ]
+}
