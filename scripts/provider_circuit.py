@@ -22,6 +22,19 @@ class ErrorCategory(enum.Enum):
 class CircuitState:
     state: ProviderState = ProviderState.AVAILABLE
     reset_time: datetime.datetime = None
+    probe_in_flight: bool = False
+
+    @staticmethod
+    def _as_aware(value: datetime.datetime):
+        """Normalize reset timestamps to aware UTC.
+
+        Provider reset headers and ledger-restored timestamps are often
+        naive; comparing them against aware ``now`` raises TypeError and
+        would crash the scheduler path. Assume UTC for naive values.
+        """
+        if value is not None and value.tzinfo is None:
+            return value.replace(tzinfo=datetime.timezone.utc)
+        return value
 
     def classify_error(self, error_code: int, error_message: str):
         msg = error_message.lower()
@@ -52,16 +65,20 @@ class CircuitState:
             self.state = ProviderState.DEGRADED
             
         if reset_time:
-            self.reset_time = reset_time
+            self.reset_time = self._as_aware(reset_time)
+
+        # A fresh failure supersedes any outstanding recovery probe.
+        self.probe_in_flight = False
 
     def check_circuit(self) -> bool:
         """Returns True if open (prevent requests), False if closed (allow requests)"""
         if self.state in (ProviderState.AVAILABLE, ProviderState.DEGRADED):
             return False
-            
+
         if self.state in (ProviderState.QUOTA_EXHAUSTED, ProviderState.RATE_LIMITED, ProviderState.PROVIDER_UNAVAILABLE):
             # Check if reset time has passed
-            if self.reset_time and datetime.datetime.now(datetime.timezone.utc) >= self.reset_time:
+            reset = self._as_aware(self.reset_time)
+            if reset and datetime.datetime.now(datetime.timezone.utc) >= reset:
                 self.state = ProviderState.RECOVERY_PROBE_DUE
                 return False
             return True
@@ -74,9 +91,22 @@ class CircuitState:
             
         return False
 
+    def claim_probe(self) -> bool:
+        """Claim the single bounded recovery probe.
+
+        Returns True exactly once per RECOVERY_PROBE_DUE episode; further
+        claimants must wait instead of firing duplicate provider probes.
+        The claim releases on the next recorded success or failure.
+        """
+        if self.state == ProviderState.RECOVERY_PROBE_DUE and not self.probe_in_flight:
+            self.probe_in_flight = True
+            return True
+        return False
+
     def record_success(self):
         self.state = ProviderState.AVAILABLE
         self.reset_time = None
+        self.probe_in_flight = False
 
 class ProviderCircuitBreaker:
     def __init__(self):

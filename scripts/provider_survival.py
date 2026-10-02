@@ -1,9 +1,10 @@
 import datetime
 import enum
 from dataclasses import dataclass
-from typing import Any, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
 from scripts.provider_circuit import ProviderCircuitBreaker, ProviderState
 from scripts.automation_wake_coalescing import AutomationContext, AutoState, Wakeup
+from scripts.provider_hibernation import LaneHibernator, should_hibernate
 
 class WorkState(enum.Enum):
     LOCAL_READY = "LOCAL_READY"
@@ -21,6 +22,9 @@ class TaskContext:
     is_deterministic: bool = False
     requires_human_gate: bool = False
     effect_uncertain: bool = False
+    effect_key: Optional[str] = None
+    attempt: int = 1
+    dispatch_id: Optional[str] = None
 
 @dataclass
 class Provider:
@@ -63,7 +67,10 @@ class AuthorizedProviderRouter:
             "TASK": task.task_id,
             "AUTHORITY_BOUNDARY": "PRESERVED",
             "PREVIOUS_PROVIDER": from_provider,
-            "TARGET_PROVIDER": to_provider.id
+            "TARGET_PROVIDER": to_provider.id,
+            "EFFECT_KEY": task.effect_key,
+            "ATTEMPT": task.attempt,
+            "DISPATCH_ID": task.dispatch_id,
         }
 
 class CourierScheduler:
@@ -77,6 +84,13 @@ class CourierScheduler:
         self.planner = LocalReadyPlanner()
         self.automation_ctx = AutomationContext()
         self.completed_tasks = []
+        # Every real provider attempt is logged here as (provider_id, task_id).
+        # Deterministic fake-provider tests assert on this log instead of
+        # touching the network. A recovery probe counts as one attempt.
+        self.provider_calls: List[Tuple[str, str]] = []
+        # Optional fake probe used after reset: () -> (ok, code, message).
+        # When None, a claimed probe succeeds and completes the unit.
+        self.recovery_probe: Optional[Callable[[], Tuple[bool, int, str]]] = None
 
     def handle_wake(self, wake_id: str, tasks: List[TaskContext]):
         self.automation_ctx.enqueue_wake(Wakeup(trigger_id=wake_id))
@@ -128,21 +142,90 @@ class CourierScheduler:
             else:
                 pass # WAIT
         else:
+            circuit = self.breaker.get_circuit(primary_provider, task.required_capability)
+            if circuit.state == ProviderState.RECOVERY_PROBE_DUE:
+                # Only one bounded recovery probe per episode; the rest wait.
+                if not circuit.claim_probe():
+                    return
+                self.provider_calls.append((primary_provider, task.task_id))
+                if self.recovery_probe is not None:
+                    ok, code, message = self.recovery_probe()
+                    if ok:
+                        self.breaker.record_success(primary_provider, task.required_capability)
+                        self.completed_tasks.append(task.task_id)
+                    else:
+                        self.breaker.record_failure(
+                            primary_provider, task.required_capability, code, message
+                        )
+                        # The episode's reset is consumed; without fresh reset
+                        # metadata the circuit holds OPEN instead of probing
+                        # continuously.
+                        circuit.reset_time = None
+                    return
+                self.breaker.record_success(primary_provider, task.required_capability)
+                self.completed_tasks.append(task.task_id)
+                return
             if hasattr(self, "simulate_error") and self.simulate_error_provider == primary_provider:
+                self.provider_calls.append((primary_provider, task.task_id))
                 self.breaker.record_failure(
-                    primary_provider, 
-                    task.required_capability, 
-                    self.simulate_error_code, 
+                    primary_provider,
+                    task.required_capability,
+                    self.simulate_error_code,
                     self.simulate_error_message,
                     getattr(self, "simulate_reset_time", None)
                 )
-                
+
                 fallback = self.router.find_fallback(primary_provider, task)
                 if fallback:
                     handoff = self.router.create_compact_handoff(task, primary_provider, fallback)
                     self.completed_tasks.append(task.task_id)
                 return
-                
+
+            self.provider_calls.append((primary_provider, task.task_id))
             self.breaker.record_success(primary_provider, task.required_capability)
             self.completed_tasks.append(task.task_id)
+
+    def customer_state(self, tasks: List[TaskContext], needs_connection: bool = False) -> str:
+        """Customer projection: WORKING / NEEDS YOU / DONE.
+
+        Raw provider internals (429, quota strings, stack traces) never
+        appear here: this function does not even accept error text.
+        """
+        pending = [t for t in tasks if t.task_id not in self.completed_tasks]
+        if not pending:
+            return "DONE"
+        if any(t.requires_human_gate for t in pending):
+            return "NEEDS YOU"
+        if needs_connection:
+            return "NEEDS YOU"
+        return "WORKING"
+
+    def hibernate_if_quota_blocked_idle(
+        self,
+        hibernator: LaneHibernator,
+        checkpoint,
+        local_tasks: List[TaskContext],
+        provider_tasks: List[TaskContext],
+    ) -> Optional[Dict[str, Any]]:
+        """Checkpoint + release + HIBERNATED when the lane is quota-blocked/idle.
+
+        Returns the release report, or None when the lane still has useful
+        work (local units, a healthy circuit, or an authorized fallback).
+        """
+        if provider_tasks:
+            capability = provider_tasks[0].required_capability
+            circuits_open = self.breaker.is_open("muse", capability)
+        else:
+            circuits_open = False
+        fallback_available = any(
+            self.router.find_fallback("muse", t) is not None for t in provider_tasks
+        )
+        if should_hibernate(
+            [t.task_id for t in local_tasks],
+            [t.task_id for t in provider_tasks],
+            circuits_open,
+            fallback_available,
+        ):
+            return hibernator.hibernate(checkpoint)
+        return None
 
