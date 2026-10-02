@@ -106,3 +106,61 @@ def test_queue_tail_durability_preserves_all_attributes():
     if os.path.exists(state_file):
         os.remove(state_file)
 
+
+def test_anti_thrash_duplicate_wake_dedupe():
+    """
+    Ensure that identical, repeated wakes/prompts do not spin up new physical
+    sessions or re-dispatch if the state has not materially changed (no duplicate).
+    """
+    import os
+    import json
+    from scripts.intake_dispatcher import save_central_state, load_central_state, dispatch_intake, fingerprint_task_id
+
+    # Create a mock pending intake
+    os.makedirs("intakes/pending", exist_ok=True)
+    intake_data = {
+        "customer_reference": "ref-dup-1",
+        "target_owner": "org",
+        "target_repo": "repo",
+        "target_sha": "abc1234"
+    }
+    with open("intakes/pending/dup_item.json", "w") as f:
+        json.dump(intake_data, f)
+        
+    state_file = "central_state.json"
+    if os.path.exists(state_file):
+        # Read or initialize
+        pass
+        
+    task_id = fingerprint_task_id(intake_data)
+    
+    # Simulate first admission already happened
+    mock_state = {
+        "tasks": {
+            task_id: {
+                "task_id": task_id,
+                "admission": "ADMITTED",
+                "state": "DISPATCHED_TO_EXTERNAL"
+            }
+        }
+    }
+    save_central_state(state_file, mock_state)
+    
+    # Mock dispatch to prove it isn't called
+    called = []
+    import scripts.intake_dispatcher as idisp
+    original_subprocess = idisp.subprocess.run
+    idisp.subprocess.run = lambda *args, **kwargs: called.append(True)
+    
+    try:
+        # Re-dispatching the exact same intake should skip (anti-thrash)
+        # We test dispatch_intake returns the task_id but doesn't run subprocess
+        res_task = idisp.dispatch_intake("intakes/pending/dup_item.json")
+        
+        assert res_task == task_id
+        assert len(called) == 0, "Duplicate wake triggered a physical execution!"
+    finally:
+        idisp.subprocess.run = original_subprocess
+        if os.path.exists("intakes/pending/dup_item.json"):
+            os.remove("intakes/pending/dup_item.json")
+            
