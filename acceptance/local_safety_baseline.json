@@ -3,10 +3,5 @@
  "KILL_BY_NAME:scripts/local_health_watchdog.sh:559bd16ad9fe3a62",
  "KILL_BY_NAME:scripts/local_health_watchdog.sh:a80188eca5229282",
  "KILL_BY_NAME:scripts/local_health_watchdog.sh:b92f7f445e1e3894",
- "KILL_BY_NAME:scripts/windows_worker/stop.bat:d5c9fb10da8a3e7c",
- "WILDCARD_BIND:dashboard/server.py:4a0ce87c364092ae",
- "WILDCARD_BIND:dashboard/server.py:7e55b28ea863eae0",
- "WILDCARD_BIND:scripts/q14_proof.py:a800acc41979ca4f",
- "WILDCARD_BIND:scripts/run_physical.py:62a9c4746c5e227b",
- "WILDCARD_BIND:server/app.py:e12addf9629571ee"
+ "KILL_BY_NAME:scripts/windows_worker/stop.bat:d5c9fb10da8a3e7c"
 ]
