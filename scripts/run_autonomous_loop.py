@@ -647,7 +647,7 @@ class AutonomousLevel6Loop:
 
         finally:
             if 'has_lease' in locals() and has_lease:
-                self.host_guardian.release_heavy_lease(cleanup_proven=True)
+                self.host_guardian.release_heavy_lease(cleanup_proven=False)
             self.release_workflow_lock(workflow_id)
 
         print(f"\n=== LEVEL 6 LOOP FINISHED: {status} ({stop_reason}) ===")
