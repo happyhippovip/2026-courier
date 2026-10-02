@@ -107,6 +107,7 @@ class AutonomousLevel6Loop:
         else:
             self.max_iterations = max_iterations
         self.timeout_seconds = timeout_seconds
+        self.host_guardian = HostGuardian(max_heavy_local_jobs=1)
 
         self.locks_dir = repo_dir / "events/locks"
         self.locks_dir.mkdir(parents=True, exist_ok=True)
