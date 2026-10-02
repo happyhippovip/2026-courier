@@ -54,7 +54,7 @@ class TestHandoffIsNotCompletion:
         sched = CourierScheduler()
 
         # Break muse
-        sched.breaker.record_failure("muse", "completion", 429, "quota exhausted")
+        sched.breaker.record_failure("muse", "default", "completion", 429, "quota exhausted")
 
         task = _task("handoff-task")
         sched.execute_with_provider(task, "muse")
@@ -90,7 +90,7 @@ class TestProbeIsNotCompletion:
         sched = CourierScheduler()
 
         # Put circuit in RECOVERY_PROBE_DUE
-        circuit = sched.breaker.get_circuit("muse", "completion")
+        circuit = sched.breaker.get_circuit("muse", "default", "completion")
         circuit.state = ProviderState.RECOVERY_PROBE_DUE
 
         sched.recovery_probe = lambda: (True, 200, "ok")
@@ -116,7 +116,7 @@ class TestProviderRearm:
         bounded path back to RECOVERY_PROBE_DUE."""
         sched = CourierScheduler()
 
-        circuit = sched.breaker.get_circuit("muse", "completion")
+        circuit = sched.breaker.get_circuit("muse", "default", "completion")
         circuit.state = ProviderState.RECOVERY_PROBE_DUE
 
         sched.recovery_probe = lambda: (False, 503, "still down")

@@ -23,6 +23,7 @@ class CircuitState:
     state: ProviderState = ProviderState.AVAILABLE
     reset_time: datetime.datetime = None
     probe_in_flight: bool = False
+    consecutive_failures: int = 0
 
     @staticmethod
     def _as_aware(value: datetime.datetime):
@@ -67,6 +68,7 @@ class CircuitState:
         if reset_time:
             self.reset_time = self._as_aware(reset_time)
 
+        self.consecutive_failures += 1
         # A fresh failure supersedes any outstanding recovery probe.
         self.probe_in_flight = False
 
@@ -107,23 +109,24 @@ class CircuitState:
         self.state = ProviderState.AVAILABLE
         self.reset_time = None
         self.probe_in_flight = False
+        self.consecutive_failures = 0
 
 class ProviderCircuitBreaker:
     def __init__(self):
         self.circuits: dict[str, CircuitState] = {}
         
-    def get_circuit(self, provider_id: str, capability: str) -> CircuitState:
-        key = f"{provider_id}|{capability}"
+    def get_circuit(self, provider_id: str, account_id: str, capability: str) -> CircuitState:
+        key = f"{provider_id}|{account_id}|{capability}"
         if key not in self.circuits:
             self.circuits[key] = CircuitState()
         return self.circuits[key]
         
-    def is_open(self, provider_id: str, capability: str) -> bool:
-        return self.get_circuit(provider_id, capability).check_circuit()
+    def is_open(self, provider_id: str, account_id: str, capability: str) -> bool:
+        return self.get_circuit(provider_id, account_id, capability).check_circuit()
         
-    def record_failure(self, provider_id: str, capability: str, error_code: int, error_message: str, reset_time: datetime.datetime = None):
-        self.get_circuit(provider_id, capability).record_failure(error_code, error_message, reset_time)
+    def record_failure(self, provider_id: str, account_id: str, capability: str, error_code: int, error_message: str, reset_time: datetime.datetime = None):
+        self.get_circuit(provider_id, account_id, capability).record_failure(error_code, error_message, reset_time)
         
-    def record_success(self, provider_id: str, capability: str):
-        self.get_circuit(provider_id, capability).record_success()
+    def record_success(self, provider_id: str, account_id: str, capability: str):
+        self.get_circuit(provider_id, account_id, capability).record_success()
 
