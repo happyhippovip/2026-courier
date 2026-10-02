@@ -79,7 +79,7 @@ def test_main(tmp_path, monkeypatch):
     
     with mock.patch("time.sleep", side_effect=mock_sleep):
         sys.argv = ["mac_worker_adapter.py", str(task_file)]
-        runpy.run_path(str(Path("C:/Users/lol/2026-workspace/2026-courier/scripts/mac_worker_adapter.py")), run_name="__main__")
+        runpy.run_path(str(Path(str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "mac_worker_adapter.py"))), run_name="__main__")
         
     incoming = Path("results/incoming/mac3_result.json")
     assert incoming.exists()

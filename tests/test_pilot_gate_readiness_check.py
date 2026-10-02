@@ -50,5 +50,5 @@ def test_main(mock_exit, monkeypatch):
     import runpy
     # Prevent the actual script from failing if files don't exist by overriding repo root
     # or just let it run. Let's just let it run and check that sys.exit was called.
-    runpy.run_path("C:/Users/lol/2026-workspace/2026-courier/scripts/pilot_gate_readiness_check.py", run_name="__main__")
+    runpy.run_path(str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "pilot_gate_readiness_check.py"), run_name="__main__")
     mock_exit.assert_called_once()

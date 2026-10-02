@@ -144,7 +144,7 @@ def test_main_positive(tmp_path, monkeypatch):
         import runpy
         import sys
         sys.argv = ["gemini_worker_adapter.py", "positive"]
-        runpy.run_path("C:/Users/lol/2026-workspace/2026-courier/scripts/gemini_worker_adapter.py", run_name="__main__")
+        runpy.run_path(str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "gemini_worker_adapter.py"), run_name="__main__")
         
     assert os.path.exists("dummy_task_2.json")
     assert os.path.exists("gemini_result_task-gemini-002.json")
@@ -160,7 +160,7 @@ def test_main_negative(tmp_path, monkeypatch):
         import runpy
         import sys
         sys.argv = ["gemini_worker_adapter.py", "negative"]
-        runpy.run_path("C:/Users/lol/2026-workspace/2026-courier/scripts/gemini_worker_adapter.py", run_name="__main__")
+        runpy.run_path(str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "gemini_worker_adapter.py"), run_name="__main__")
         
     assert os.path.exists("dummy_task_3.json")
     assert os.path.exists("gemini_result_task-gemini-003-invalid.json")
