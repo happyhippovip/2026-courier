@@ -164,3 +164,9 @@ courier.db-shm
 /runtime/win_slots/
 /scripts/revenue_worker_state/
 /.tmp_pytest/
+
+# Outputs written by proof scripts and tests; generated, never tracked.
+/server/state/test_state.json
+/server/state/test_state.json.sig
+/server/state/*.lock
+/scripts/logs/
