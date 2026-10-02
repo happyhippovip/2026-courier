@@ -182,7 +182,12 @@ def default_pressure_probe() -> Optional[str]:
             os.close(w)
     except OSError as exc:
         return f"fd-exhaustion: {exc.strerror or exc}"
-    load = _one_minute_load()
+        
+    try:
+        load = _one_minute_load()
+    except OSError as exc:
+        return f"load-probe-failed: {exc.strerror or exc}"
+        
     if load is not None:
         cpus = os.cpu_count() or 1
         if load > cpus * LOAD_PRESSURE_FACTOR:
@@ -194,10 +199,7 @@ def _one_minute_load() -> Optional[float]:
     getter = getattr(os, "getloadavg", None)
     if getter is None:
         return None
-    try:
-        return float(getter()[0])
-    except OSError:
-        return None
+    return float(getter()[0])
 
 
 # -- owned-tree containment ---------------------------------------------------
@@ -342,7 +344,8 @@ class ContainedRun:
     def terminate_tree(self, grace: float = KILL_GRACE_S) -> None:
         """SIGTERM, then SIGKILL, then reap. Addresses the owned tree only."""
         if os.name == "nt":
-            _terminate_job(self.job)
+            if self.job is not None:
+                _terminate_job(self.job)
             if self.proc.poll() is None:
                 self.proc.wait()
             self._close()
@@ -387,7 +390,9 @@ class ContainedRun:
         self._close()
 
     def _close(self) -> None:
-        _close_job(self.job)
+        if self.job is not None:
+            _close_job(self.job)
+            self.job = None
 
 
 def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
@@ -405,7 +410,7 @@ def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
     job = None
     if os.name == "nt":
         job = _job_for_child()
-        popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+        popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP | 0x00000004
     else:
         popen_kwargs["start_new_session"] = True
     try:
@@ -423,6 +428,8 @@ def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
     if os.name == "nt":
         try:
             _assign_to_job(job, proc.pid)
+            import psutil
+            psutil.Process(proc.pid).resume()
         except BaseException:
             try:
                 proc.kill()
@@ -769,6 +776,7 @@ class WorkerHost:
         try:
             return self._wait(spec, run, on_heartbeat, is_cancelled)
         finally:
+            run.terminate_tree()
             self._active = None
             try:
                 claim_record.unlink()
