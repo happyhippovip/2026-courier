@@ -417,3 +417,11 @@ AttributeError: 'NoneType' object has no attribute 'get'
 [2026-09-16 00:40:07] Result post failed: <urlopen error [Errno 61] Connection refused>. Retrying in 2s...
 [2026-09-16 00:40:09] Result post failed: <urlopen error [Errno 61] Connection refused>. Retrying in 4s...
 [2026-09-16 00:40:13] Result post failed: <urlopen error [Errno 61] Connection refused>. Retrying in 8s...
+[2026-10-02 07:49:11] Failed to register: <urlopen error [Errno 61] Connection refused>
+[2026-10-02 07:49:16] Failed to register: <urlopen error [Errno 61] Connection refused>
+[2026-10-02 07:49:21] Failed to register: <urlopen error [Errno 61] Connection refused>
+[2026-10-02 07:49:26] Failed to register: <urlopen error [Errno 61] Connection refused>
+[2026-10-02 07:49:31] Failed to register: <urlopen error [Errno 61] Connection refused>
+[2026-10-02 07:49:36] Failed to register: <urlopen error [Errno 61] Connection refused>
+[2026-10-02 07:49:41] Failed to register: <urlopen error [Errno 61] Connection refused>
+[2026-10-02 07:49:47] Failed to register: <urlopen error [Errno 61] Connection refused>
