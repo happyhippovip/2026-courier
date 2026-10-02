@@ -43,6 +43,7 @@ include = [
 
 [tool.setuptools.package-data]
 courier_hub = ["static/*"]
+courier_core = ["schemas/*", "config/*"]
 
 # pytest configuration lives in pytest.ini (single source; pytest ignores this
 # file's [tool.pytest.ini_options] whenever pytest.ini exists).

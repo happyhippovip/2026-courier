@@ -67,7 +67,7 @@ def canonical_hash(payload: object) -> str:
 def validate_worker_job_against_schema(job_data: dict, schema_path: Path | None = None) -> tuple[bool, str]:
     """Validates worker job data strictly against schemas/antigravity_worker_job.schema.json."""
     if schema_path is None or not schema_path.exists():
-        default_schema = Path(__file__).resolve().parent.parent / "schemas/antigravity_worker_job.schema.json"
+        default_schema = Path(__file__).resolve().parent.parent / "courier_core/schemas/antigravity_worker_job.schema.json"
         if default_schema.exists():
             schema_path = default_schema
 

@@ -18,8 +18,8 @@ from pathlib import Path
 SCRIPTS_DIR = Path(__file__).resolve().parent
 COURIER_DIR = SCRIPTS_DIR.parent
 
-DEFAULT_CHANNELS_CONFIG = COURIER_DIR / "config/social_channels.json"
-DEFAULT_WORKFLOWS_CONFIG = COURIER_DIR / "config/content_workflows.json"
+DEFAULT_CHANNELS_CONFIG = COURIER_DIR / "courier_core/config/social_channels.json"
+DEFAULT_WORKFLOWS_CONFIG = COURIER_DIR / "courier_core/config/content_workflows.json"
 DEFAULT_QUEUE_DIR = COURIER_DIR / "events/night-queue"
 
 
