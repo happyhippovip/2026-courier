@@ -1,0 +1,19 @@
+COURIER CLAUDE/SONNET — POST-LEDGER PROOF SEMANTICS
+PROVIDER=SONNET_IF_AVAILABLE
+MODEL_CLASS=C2
+MODE=READ_ONLY
+If actual Sonnet/Claude provider is unavailable, return AVAILABLE=NO; do not simulate it.
+READ:
+ops/ai/SONNET_PROOF_SEMANTICS_100X_PROMPT.txt
+ops/ai/WALL_QUEUE_CURRENT.md
+TASK:
+Review current RUN_1/RUN_2/Core Freeze proof packets for semantic ambiguity only.
+Do not rerun deterministic checks.
+OUTPUT:
+AVAILABLE=
+AREA=
+AMBIGUITY=
+MISSING_FIELD=
+CAUSAL_IMPACT=
+NEXT_EXACT_ACTION=
+START NOW.

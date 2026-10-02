@@ -1,0 +1,47 @@
+COURIER GOOGLE MORNING HARVESTER
+
+HOST=AUTO
+PROVIDER=GOOGLE_CLI
+MODE=COORDINATION_READ_ONLY
+CONTINUE_BY_DEFAULT=YES
+
+REPO=AUTO_RESOLVE
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/RETURNED_RESULT_POLICY.md
+
+TASK:
+Harvest overnight and morning results only.
+
+For each result:
+validate identity
+-> dedupe
+-> classify
+-> attach evidence
+-> update dependencies
+-> unlock READY work
+-> persist current gate state
+
+Maintain:
+FINAL_SHA=
+PRE_CODEX_READY=
+LEDGER_STATUS=
+RUN1_PREP_READY=
+RUN2_PREP_READY=
+RESTART_MATRIX=
+CORE_FREEZE=
+MUSE_READY=
+TOP_CAUSAL_BLOCKER=
+NEXT_AUTHORIZED_ACTION=
+
+Do not redo worker analysis.
+Do not broad-scan.
+Do not edit application source.
+Do not invent queue work.
+
+If no new result:
+TRUE_IDLE.
+
+START NOW.

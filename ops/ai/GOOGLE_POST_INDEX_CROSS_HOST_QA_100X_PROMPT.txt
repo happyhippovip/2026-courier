@@ -1,0 +1,56 @@
+COURIER GOOGLE — POST-INDEX CROSS-HOST QA 100X
+
+HOST=AUTO
+PROVIDER=GOOGLE_CLI
+CONTINUE_BY_DEFAULT=YES
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+CURRENT KNOWN STATE:
+FINAL_SHA=34b0a4264bf763bc2a78f761ffba36e47706b2cf
+GATE_STATE=DURABILITY_PENDING
+
+Same gate fingerprint is never paid for twice.
+
+
+ROLE=CROSS_HOST_HANDOFF_QA
+
+TASK:
+Use already-indexed evidence to verify portability between Windows/Mac/provider sessions WITHOUT touching the PRE_CODEX gate.
+
+CHECK:
+- evidence refs resolve from both hosts
+- do-not-repeat fingerprints are host-independent
+- queue/result identity survives session change
+- local cache cannot override durable truth
+- candidate-sensitive refs are clearly marked DURABILITY_PENDING
+- non-candidate evidence remains reusable
+- runtime-binding fields are explicit
+- handoff packets contain exact next action
+
+OUTPUT:
+SCENARIO=
+CURRENT_EVIDENCE=
+PORTABLE=YES|NO|UNKNOWN
+GAP=
+NEXT_EXACT_ACTION=
+RETEST_TRIGGER=
+
+Never re-index evidence.
+Never revalidate PRE_CODEX.
+Continue across independent scenarios.
+
+START NOW.

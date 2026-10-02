@@ -1,0 +1,10 @@
+{
+  "schema_version": "2.0",
+  "topic": "topic1",
+  "hook_window_seconds": 3.0,
+  "visual_hook": "Character pops up unexpectedly in foreground with exaggerated expression",
+  "audio_hook": "Fast comedic whoosh sound + upbeat melodic stinger",
+  "pacing_notes": "Immediate action in first 0.5s; zero dead intro time",
+  "retention_target": ">85% retention at 3s mark",
+  "created_at": "2026-09-30T18:00:56.283957+00:00"
+}

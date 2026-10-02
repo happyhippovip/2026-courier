@@ -1,0 +1,13 @@
+﻿{
+    "TARGETED_TEST":  "Submit a slow-running task that outputs a canary string and then sleeps for 601 seconds. Ensure the timeout error result contains the canary.",
+    "REPRO_STEPS":  "1. Run a task that executes for \u003e600 seconds and produces output. 2. process.communicate(timeout=600) raises TimeoutExpired. 3. The except subprocess.TimeoutExpired as e: block sets status to FAILED and discards e.stdout and e.stderr. 4. The \finally block kills the process with \taskkill but doesn\u0027t wait/drain pipes.",
+    "CONFLICTING_OWNER":  "NONE",
+    "REPRODUCIBLE":  "YES",
+    "SEVERITY":  "MEDIUM",
+    "ROOT_CAUSE":  "The except subprocess.TimeoutExpired as e: block does not retrieve e.stdout.decode() or e.stderr.decode(), thereby losing all logs from a hung task. Furthermore, the finally block kills the tree but leaves no mechanism to capture output buffered right at the end.",
+    "AFFECTED_FILES":  "scripts/windows_worker/daemon.py",
+    "BUG":  "TimeoutExpired discards all partial output (stdout/stderr)",
+    "RAW_EVIDENCE":  "daemon.py line 200: except subprocess.TimeoutExpired as e: status = \u0027FAILED\u0027; stderr = \u0027TimeoutExpired...\u0027 (ignoring e.stdout/stderr).",
+    "WRITE_SCOPE":  "scripts/windows_worker/daemon.py",
+    "MINIMAL_FIX":  "Modify the TimeoutExpired exception handler to capture e.stdout and e.stderr into out_clean and stderr. Wait/poll after taskkill."
+}

@@ -1,0 +1,45 @@
+{
+  "schema_version": "2.0",
+  "topic": "topic1",
+  "content_project": "FruitKI",
+  "godot_project_binding": {
+    "bound_project_path": null,
+    "status": "UNBOUND",
+    "default_scene": null
+  },
+  "viewport": {
+    "aspect_ratio": "9:16",
+    "width": 360,
+    "height": 640,
+    "fps": 30
+  },
+  "character_models": [
+    {
+      "name": "Strawberry",
+      "rig_type": "3D_Vertical_Rig",
+      "format": "GLTF/Scene"
+    },
+    {
+      "name": "Kiwi",
+      "rig_type": "3D_Vertical_Rig",
+      "format": "GLTF/Scene"
+    }
+  ],
+  "environment": {
+    "scene_name": "Classroom_Stage_01",
+    "lighting_rig": "Three_Point_Warm_Studio"
+  },
+  "audio_tracks": [
+    {
+      "track_id": "sfx_mystery_chime",
+      "type": "SFX",
+      "format": "WAV/AAC"
+    },
+    {
+      "track_id": "bgm_upbeat_playful",
+      "type": "BGM",
+      "format": "WAV/AAC"
+    }
+  ],
+  "created_at": "2026-09-30T18:00:56.288457+00:00"
+}

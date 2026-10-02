@@ -1,0 +1,59 @@
+
+COST-SAFE GATE LAW:
+Read ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md and ops/ai/GATE_STATE_CURRENT.md before any gate-family work.
+Same gate fingerprint is validated at most once. Reuse the durable verdict across windows/providers/hosts. If DURABILITY_PENDING or VALIDATING is already owned, skip that gate family without model analysis and take another READY task or TRUE_IDLE.
+
+COURIER GOOGLE MORNING WINDOWS WORKER
+
+HOST=WINDOWS
+PROVIDER=GOOGLE_CLI
+MODE=READ_ONLY_OR_TARGETED_TEST
+CONTINUE_BY_DEFAULT=YES
+
+REPO=C:\Users\lol\2026-workspace\2026-courier
+
+FIRST READ ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/GOOGLE_MORNING_NEXT_QUEUE_PREPARER_2026-09-28.md
+
+Then read the newest morning queue generation referenced by durable pointer/state.
+
+ROLE LOOP:
+1. HARVEST if authorized and new results exist.
+2. Claim the highest-priority dependency-safe unowned task with HOST_PREFERENCE=WINDOWS or EITHER.
+3. RESULT_REUSE_FIRST.
+4. Read only exact task inputs.
+5. Prefer deterministic local checks over model reasoning.
+6. Run only ALLOWED_TEST.
+7. Persist compact result.
+8. Release own claim.
+9. Continue to next READY task.
+
+PRIORITY:
+- FINAL_SHA / PRE_CODEX evidence
+- Ledger/server/integration hardening gaps
+- exact targeted tests
+- replay/trusted-content/reconcile/NEXT_READY
+- synthesis
+
+FORBIDDEN:
+- application source edits
+- Central Writer interference
+- broad scans
+- GitHub Actions
+- physical RUN_1/RUN_2
+- billing/auth/API-key changes
+- automated account rotation
+- filler work
+
+MAX_HEAVY_JOBS=1.
+
+If PRE_CODEX_READY=YES:
+do not create more Pre-Codex support work.
+Persist NEXT=CODEX_HIGH_ONCE.
+
+If no READY work:
+HARVEST -> one dependency refresh -> TRUE_IDLE.
+
+START NOW.

@@ -1,0 +1,61 @@
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+REPO=/Users/user/Downloads/2026-courier
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+
+BOOTSTRAP:
+cd /Users/user/Downloads/2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+DO NOT checkout/merge/rebase/reset/clean.
+
+If required ops/ai file is missing locally:
+git show origin/coordination/autofill-task-seed-20260926:<PATH>
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+
+RULES:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_BUSYWORK=YES
+NO_IDLE_ANALYSIS=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+
+
+ROLE=MAC_CORE_FREEZE_PROOF_SPECIALIST
+
+PRIORITY:
+1 Proof Card completeness
+2 Source/Build/Runtime/Covered-Surface fingerprints
+3 Trusted Ledger evidence
+4 Reliable Motor evidence
+5 Result->Verify->Reconcile->NEXT_READY evidence
+6 zero-human A->B evidence readiness
+7 restart matrix evidence readiness
+8 Autonomy Grade evidence map
+9 bounded resource/no-tight-polling evidence
+10 gate-violating UNKNOWN audit
+11 bounded pilot-prep only after higher priorities close
+
+UNKNOWN stays UNKNOWN.
+Never promote to PASS without durable evidence.
+Do not execute physical runs unless explicitly authorized by current gate.
+
+FOR EACH ITEM:
+CLAIM=
+PROVEN=
+OPEN=
+BLOCKED=
+UNKNOWN=
+EVIDENCE_REF=
+NEXT_EXACT_ACTION=
+
+Continue to next independent item.
+If no legal work: HARVEST -> bounded refresh -> TRUE_IDLE.
+
+START NOW.

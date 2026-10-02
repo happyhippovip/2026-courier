@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "provider_id": "meta",
+  "profile_id": "tbh",
+  "source": "provider_catalog",
+  "rows": [
+    {
+      "model_id": "muse-spark-1.3",
+      "display_label": "muse-spark-1.3",
+      "provider_id": "meta",
+      "profile_id": "tbh",
+      "visibility": "visible",
+      "release_date": "2026-09-02",
+      "display_order": null,
+      "is_current": false,
+      "is_default": false,
+      "roles": [],
+      "context_limit": 1007997,
+      "output_limit": 128000,
+      "description": null,
+      "cost": null,
+      "reasoning_effort_variants": [
+        {
+          "tier": "minimal",
+          "description": null
+        },
+        {
+          "tier": "low",
+          "description": null
+        },
+        {
+          "tier": "medium",
+          "description": null
+        },
+        {
+          "tier": "high",
+          "description": null
+        },
+        {
+          "tier": "xhigh",
+          "description": null
+        },
+        {
+          "tier": "max",
+          "description": null
+        }
+      ],
+      "supports_video": false
+    },
+    {
+      "model_id": "muse-spark-1.3-contributor",
+      "display_label": "muse-spark-1.3-contributor",
+      "provider_id": "meta",
+      "profile_id": "tbh",
+      "visibility": "visible",
+      "release_date": "2026-09-02",
+      "display_order": null,
+      "is_current": true,
+      "is_default": true,
+      "roles": [],
+      "context_limit": 1007997,
+      "output_limit": 128000,
+      "description": "Your content, including inter-session messages, may be used for product improvement.",
+      "cost": null,
+      "reasoning_effort_variants": [
+        {
+          "tier": "minimal",
+          "description": null
+        },
+        {
+          "tier": "low",
+          "description": null
+        },
+        {
+          "tier": "medium",
+          "description": null
+        },
+        {
+          "tier": "high",
+          "description": null
+        },
+        {
+          "tier": "xhigh",
+          "description": "Use this for deepest analysis and complex fixes."
+        },
+        {
+          "tier": "max",
+          "description": null
+        }
+      ],
+      "supports_video": false
+    },
+    {
+      "model_id": "muse-spark-1.2",
+      "display_label": "muse-spark-1.2",
+      "provider_id": "meta",
+      "profile_id": "tbh",
+      "visibility": "visible",
+      "release_date": "2026-08-05",
+      "display_order": null,
+      "is_current": false,
+      "is_default": false,
+      "roles": [],
+      "context_limit": 1007997,
+      "output_limit": 128000,
+      "description": null,
+      "cost": null,
+      "reasoning_effort_variants": [
+        {
+          "tier": "minimal",
+          "description": null
+        },
+        {
+          "tier": "low",
+          "description": null
+        },
+        {
+          "tier": "medium",
+          "description": null
+        },
+        {
+          "tier": "high",
+          "description": null
+        },
+        {
+          "tier": "xhigh",
+          "description": "Use this for deepest analysis and complex fixes."
+        }
+      ],
+      "supports_video": false
+    },
+    {
+      "model_id": "muse-spark-1.2-contributor",
+      "display_label": "muse-spark-1.2-contributor",
+      "provider_id": "meta",
+      "profile_id": "tbh",
+      "visibility": "visible",
+      "release_date": "2026-08-05",
+      "display_order": null,
+      "is_current": false,
+      "is_default": false,
+      "roles": [],
+      "context_limit": 1007997,
+      "output_limit": 128000,
+      "description": "Your content, including inter-session messages, may be used for product improvement.",
+      "cost": null,
+      "reasoning_effort_variants": [
+        {
+          "tier": "minimal",
+          "description": null
+        },
+        {
+          "tier": "low",
+          "description": null
+        },
+        {
+          "tier": "medium",
+          "description": null
+        },
+        {
+          "tier": "high",
+          "description": null
+        },
+        {
+          "tier": "xhigh",
+          "description": "Use this for deepest analysis and complex fixes."
+        }
+      ],
+      "supports_video": false
+    }
+  ]
+}
