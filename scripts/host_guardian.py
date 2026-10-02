@@ -26,7 +26,7 @@ class HostMetrics:
     host_health: str
 
 class HostGuardian:
-    def __init__(self, max_heavy_local_jobs: int = 2):
+    def __init__(self, max_heavy_local_jobs: int = 1):
         self.max_heavy_local_jobs = max_heavy_local_jobs
         self.state = HostState.NOMINAL
         self.admitted_heavy = 0
