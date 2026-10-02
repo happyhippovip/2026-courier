@@ -51,7 +51,9 @@ author of this record (a cloud session without access to the machine).
 | 2026-10-02 ~23:31 local | Desktop effectively non-interactive: switching windows, taskbar, search and normal application windows unreliable | operator report + photo of the screen (taskbar clock 23:31, 02.10.2026) |
 | 2026-10-02 23:34 local (21:34 UTC) | Emergency recovery prompt sent to a **cloud** Claude session (host `vm`, Linux) instead of the local Windows session; that session had no route to the machine and reported `RECOVERY CONTROL PLANE: LOST` | cloud session transcript |
 | after that | Operator sent the photo; cloud session gave keyboard-only, non-destructive guidance (save/push first, Task Manager via Ctrl+Shift+Esc, Win+Ctrl+Shift+B, no broad kills, reboot last) | cloud session transcript |
-| later | Actual recovery steps and result | **UNKNOWN — must come from the local Windows session** |
+| later | First recovery: the machine became usable again. Who acted and what was done: **UNKNOWN** — not this record's author; must come from the local Windows session's own history | operator report |
+| minutes after recovery #1 | **Recurrence:** the same or a very similar freeze returned | operator report |
+| — | Second capture/recovery | **UNKNOWN — must come from the local Windows session** |
 
 ### Host
 
@@ -112,6 +114,18 @@ author of this record (a cloud session without access to the machine).
 ### Data loss
 
 - **UNKNOWN** at time of writing.
+
+### Recurrence (2026-10-02, reported)
+
+- The freeze returned within minutes of the first recovery (exact interval
+  **UNKNOWN**).
+- Consequence for the analysis: whatever the first recovery did treated a
+  **symptom**, not the cause. A recurring freeze shortly after a restart points
+  toward an ongoing load or leak source that restarts with the session
+  (hypothesis, **NOT PROVEN**), rather than a one-off transient.
+- The first recovery left no captured before/after evidence, so the recurrence
+  cannot be compared against it. This is itself a finding: recovery without
+  capture destroys the evidence needed to prevent recurrence.
 
 ### Root cause confidence
 
