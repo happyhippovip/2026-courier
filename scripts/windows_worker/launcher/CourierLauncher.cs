@@ -79,9 +79,15 @@ namespace CourierLauncher
         static void Main(string[] args)
         {
             IntPtr mutex = CreateMutex(IntPtr.Zero, true, "Global\\CourierAppMutex_L6");
+            if (mutex == IntPtr.Zero)
+            {
+                Console.WriteLine("FATAL: Could not create single-instance mutex.");
+                Environment.Exit(1);
+            }
             if (GetLastError() == ERROR_ALREADY_EXISTS)
             {
-                Environment.Exit(0);
+                Console.WriteLine("Duplicate instance detected. Exiting.");
+                Environment.Exit(2);
             }
 
             SetConsoleCtrlHandler(ConsoleCtrlCheck, true);
@@ -169,7 +175,9 @@ namespace CourierLauncher
 
                 if (!AssignProcessToJobObject(hJob, proc.Handle))
                 {
-                    File.AppendAllText(Path.Combine(logDir, "launcher.log"), "Warning: Failed to assign process to Job Object.\n");
+                    File.AppendAllText(logPath, "FATAL: Failed to assign process to Job Object. Terminating uncontained process.\n");
+                    try { proc.Kill(); } catch { }
+                    throw new Exception("Failed to assign process to Job Object (Containment failure)");
                 }
                 
                 return proc;
@@ -209,13 +217,31 @@ namespace CourierLauncher
             void MonitorProcess(Func<Process> startFunc, string name)
             {
                 new Thread(() => {
-                    int backoff = 2000;
+                    int initialBackoff = 2000;
+                    int backoff = initialBackoff;
                     int maxBackoff = 300000;
+                    TimeSpan healthyUptimeThreshold = TimeSpan.FromMinutes(2);
+
                     while (true)
                     {
-                        Process p = startFunc();
-                        p.WaitForExit();
-                        File.AppendAllText(Path.Combine(logDir, "launcher.log"), $"[{DateTime.UtcNow:O}] {name} exited with code {p.ExitCode}. Restarting in {backoff}ms...\n");
+                        try
+                        {
+                            DateTime startTime = DateTime.UtcNow;
+                            Process p = startFunc();
+                            p.WaitForExit();
+                            
+                            if (DateTime.UtcNow - startTime > healthyUptimeThreshold)
+                            {
+                                backoff = initialBackoff;
+                            }
+
+                            File.AppendAllText(Path.Combine(logDir, "launcher.log"), $"[{DateTime.UtcNow:O}] {name} exited with code {p.ExitCode}. Restarting in {backoff}ms...\n");
+                        }
+                        catch (Exception ex)
+                        {
+                            File.AppendAllText(Path.Combine(logDir, "launcher.log"), $"[{DateTime.UtcNow:O}] {name} failed to start: {ex.Message}. Restarting in {backoff}ms...\n");
+                        }
+
                         Thread.Sleep(backoff);
                         backoff = Math.Min(maxBackoff, backoff * 2);
                     }
@@ -236,15 +262,38 @@ namespace CourierLauncher
             }
 
             // Wait for controller. Controller crash will restart the whole suite since we exit.
-            int controllerBackoff = 2000;
+            int initialControllerBackoff = 2000;
+            int controllerBackoff = initialControllerBackoff;
+            TimeSpan healthyControllerUptimeThreshold = TimeSpan.FromMinutes(2);
+            DateTime controllerStartTime = DateTime.UtcNow;
+
             while (true)
             {
-                controllerProc.WaitForExit();
-                File.AppendAllText(Path.Combine(logDir, "launcher.log"), $"[{DateTime.UtcNow:O}] Controller exited with code {controllerProc.ExitCode}. Restarting in {controllerBackoff}ms...\n");
+                if (controllerProc != null)
+                {
+                    controllerProc.WaitForExit();
+                    
+                    if (DateTime.UtcNow - controllerStartTime > healthyControllerUptimeThreshold)
+                    {
+                        controllerBackoff = initialControllerBackoff;
+                    }
+
+                    File.AppendAllText(Path.Combine(logDir, "launcher.log"), $"[{DateTime.UtcNow:O}] Controller exited with code {controllerProc.ExitCode}. Restarting in {controllerBackoff}ms...\n");
+                }
+                
                 Thread.Sleep(controllerBackoff);
                 controllerBackoff = Math.Min(300000, controllerBackoff * 2);
                 
-                controllerProc = StartPythonProcess("courier_core.serve", $"--home \"{homeDir}\" --port {cp}", "controller.log");
+                try
+                {
+                    controllerProc = StartPythonProcess("courier_core.serve", $"--home \"{homeDir}\" --port {cp}", "controller.log");
+                    controllerStartTime = DateTime.UtcNow;
+                }
+                catch (Exception ex)
+                {
+                    File.AppendAllText(Path.Combine(logDir, "launcher.log"), $"[{DateTime.UtcNow:O}] Controller failed to start: {ex.Message}. Restarting in {controllerBackoff}ms...\n");
+                    controllerProc = null;
+                }
             }
         }
     }
