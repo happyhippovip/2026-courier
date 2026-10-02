@@ -73,6 +73,9 @@ class AutomationContext:
             self.pending_instruction = None
             return
             
+        if self.state == AutoState.RESOURCE_PAUSE:
+            return
+
         if self.recheck_needed:
             self.recheck_needed = False
             self.state = AutoState.PENDING
