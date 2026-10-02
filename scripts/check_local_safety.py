@@ -79,10 +79,12 @@ def finding_key(rule, relpath, line):
 
 
 def scan(root, skip=()):
+    """skip: absolute paths never scanned (compared with os.path.normcase)."""
+    skip = {os.path.normcase(os.path.abspath(p)) for p in skip}
     findings = []
     for path in iter_files(root):
         relpath = os.path.relpath(path, root).replace(os.sep, "/")
-        if relpath in skip:
+        if os.path.normcase(os.path.abspath(path)) in skip:
             continue
         try:
             with open(path, encoding="utf-8", errors="replace") as handle:
@@ -105,8 +107,8 @@ def main(argv=None):
     # The checker and its tests name the forbidden patterns; never flag them.
     here = os.path.abspath(__file__)
     own = {here, os.path.join(os.path.dirname(os.path.dirname(here)), "tests", "test_check_local_safety.py")}
-    skip = {os.path.relpath(p, os.path.abspath(args.root)).replace(os.sep, "/") for p in own}
-    findings = scan(args.root, skip=skip)
+    # Absolute paths: relpath across drives raises on Windows (repo on D:, temp on C:).
+    findings = scan(args.root, skip=own)
 
     for f in findings:
         print(f"{f['rule']} {f['path']}:{f['line']}: {f['text']}")
