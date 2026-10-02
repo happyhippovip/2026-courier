@@ -136,7 +136,7 @@ def run_cycle(
             "--validate-job",
             str(worker_job_file),
             "--schema",
-            str(repo_dir / "schemas/antigravity_worker_job.schema.json"),
+            str(repo_dir / "courier_core/schemas/antigravity_worker_job.schema.json"),
         ],
         capture_output=True,
         text=True,

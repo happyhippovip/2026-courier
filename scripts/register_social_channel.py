@@ -18,9 +18,9 @@ from pathlib import Path
 SCRIPTS_DIR = Path(__file__).resolve().parent
 COURIER_DIR = SCRIPTS_DIR.parent
 
-DEFAULT_CHANNELS_CONFIG = COURIER_DIR / "config/social_channels.json"
-DEFAULT_WORKFLOWS_CONFIG = COURIER_DIR / "config/content_workflows.json"
-DEFAULT_CHANNEL_SCHEMA = COURIER_DIR / "schemas/social_channel_registry.schema.json"
+DEFAULT_CHANNELS_CONFIG = COURIER_DIR / "courier_core/config/social_channels.json"
+DEFAULT_WORKFLOWS_CONFIG = COURIER_DIR / "courier_core/config/content_workflows.json"
+DEFAULT_CHANNEL_SCHEMA = COURIER_DIR / "courier_core/schemas/social_channel_registry.schema.json"
 
 SECRET_PATTERNS = [
     re.compile(r"(?i)(password|secret|token|api[_-]?key|bearer|oauth|private[_-]?key)\s*[:=]\s*['\"]?[A-Za-z0-9_\-\.]{8,}['\"]?"),
