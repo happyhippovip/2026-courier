@@ -1,29 +1,113 @@
 {
   "schema_version": "2.0",
-  "context_version": 59,
-  "generated_at": "2026-09-15T20:35:15.668223+00:00",
+  "context_version": 60,
+  "generated_at": "2026-10-02T09:13:13.284298+00:00",
   "repositories": {
-    "courier_head": "a7e1b6e6707de83c7c81fbd209494520f4174a7b",
-    "memory_head": "3098d0c09c20de0c002f92af73ede44c021d8876",
+    "courier_head": "7c7eaa8753984f30aa1b00ccfba2c4d827f4e392",
+    "memory_head": "b89b91c97218bbb1d45a271942efdd835cd624e4",
     "godot_head": "NOT_CONNECTED"
   },
   "workflow_state": {
-    "workflow_id": "IDLE",
+    "workflow_id": "wf-test-2",
     "correlation_id": "UNKNOWN",
-    "current_task_id": "NONE",
-    "is_locked": false,
+    "current_task_id": "UNKNOWN",
+    "is_locked": true,
     "agent_states": {
       "agent-update-steward": {
         "state": "CHECKING",
         "task": "Compiling Project Context Snapshot",
         "progress": 0.1,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-09-15T20:35:15.668593+00:00"
+        "updated_at": "2026-10-02T09:13:13.284322+00:00"
+      },
+      "agent-bodyguard-hotel": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.433673+00:00"
+      },
+      "agent-bodyguard-golf": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.432782+00:00"
+      },
+      "agent-bodyguard-alpha": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.421296+00:00"
+      },
+      "agent-thought-curator": {
+        "state": "BLOCKED",
+        "task": "Curated idea-4be3c9c0",
+        "progress": 1.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-27T14:57:11.097700+00:00"
+      },
+      "agent-academy-director": {
+        "state": "ADOPTION APPROVED",
+        "task": null,
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-26T13:49:22.693951+00:00"
+      },
+      "agent-bodyguard-delta": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.429672+00:00"
+      },
+      "agent-antigravity-bridge": {
+        "state": "AWAITING_CHIEF_REVIEW",
+        "task": "test",
+        "progress": 1.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-10-02T09:13:13.279420+00:00"
+      },
+      "agent-bodyguard-charlie": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.428088+00:00"
+      },
+      "agent-bodyguard-echo": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.430719+00:00"
+      },
+      "agent-bodyguard-foxtrot": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.431696+00:00"
+      },
+      "agent-bodyguard-bravo": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.427320+00:00"
+      },
+      "agent-academy-teacher": {
+        "state": "PENDING_REVIEW",
+        "task": null,
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-26T13:49:22.645794+00:00"
       }
     },
-    "total_decisions": 0,
-    "total_results": 3,
-    "total_approvals": 0,
+    "total_decisions": 9,
+    "total_results": 22,
+    "total_approvals": 1,
     "total_adoptions": 12
   },
   "memory_truth": {
@@ -117,9 +201,11 @@
     "truth_invariants": "IDEA != IMPLEMENTED | USER_REPORTED != VERIFIED | DETERMINISTIC != REAL_EXTERNAL"
   },
   "changed_since_previous_snapshot": [
-    "courier_head"
+    "courier_head",
+    "memory_head",
+    "workflow_id"
   ],
-  "previous_snapshot_version": 58,
-  "previous_snapshot_hash": "a1fb83704fd6da06d69ca6eaed70b9aa3e83e8a55e28d7b438ac352a53a22896",
-  "snapshot_hash": "4ced48b4d34481c6918462e91714a6da512f32ed5ba1854f423692c05d7a2d25"
+  "previous_snapshot_version": 59,
+  "previous_snapshot_hash": "4ced48b4d34481c6918462e91714a6da512f32ed5ba1854f423692c05d7a2d25",
+  "snapshot_hash": "34b4437d5d68683c379ea8149778624de8b65c085be38b7115ef79000310725f"
 }

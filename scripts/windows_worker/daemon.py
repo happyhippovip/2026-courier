@@ -39,7 +39,14 @@ def load_config():
     with open(config_path, "r") as f:
         return json.load(f)
 
-STATE_DIR = Path(__file__).parent / "state"
+if os.environ.get("USERNAME") == "SYSTEM":
+    STATE_DIR = Path(os.environ.get("ProgramData", "C:\\ProgramData")) / "Courier"
+elif sys.platform == "win32":
+    STATE_DIR = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local")) / "Courier"
+else:
+    STATE_DIR = Path(__file__).parent / "state"
+
+STATE_DIR.mkdir(parents=True, exist_ok=True)
 MAX_RESULT_POST_ATTEMPTS = 5
 
 # Only capabilities run_task() can actually execute (native PowerShell). config.json
@@ -210,7 +217,8 @@ def run_task(task, config):
     import base64
     utf8_instruction = f"[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;\n{instruction}"
     encoded_instruction = base64.b64encode(utf8_instruction.encode("utf-16le")).decode("utf-8")
-    cmd = ["powershell", "-EncodedCommand", encoded_instruction]
+    powershell_path = os.path.expandvars(r"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe") if sys.platform == "win32" else "powershell"
+    cmd = [powershell_path, "-EncodedCommand", encoded_instruction]
     try:
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace")
         run_id = str(process.pid)
@@ -248,20 +256,20 @@ def is_resource_pressure_high():
         # Defaults to safe (no pressure) if check fails to prevent starvation, but we could also back off
         return False
 
-_lock_fd = None
+_lock_handle = None
 def acquire_lock(worker_id):
-    global _lock_fd
-    import msvcrt
-    lock_file = Path(tempfile.gettempdir()) / f"courier_worker_{worker_id}.lock"
-    try:
-        fd = os.open(str(lock_file), os.O_CREAT | os.O_RDWR)
-        msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
-        os.ftruncate(fd, 0)
-        os.write(fd, str(os.getpid()).encode())
-        _lock_fd = fd
-        return lock_file
-    except OSError:
+    global _lock_handle
+    if sys.platform != "win32":
+        return "mock_lock"
+    import ctypes
+    mutex_name = f"Global\\CourierAppMutex_{worker_id}"
+    handle = ctypes.windll.kernel32.CreateMutexW(None, False, mutex_name)
+    if not handle:
         return None
+    if ctypes.windll.kernel32.GetLastError() == 183:
+        return None
+    _lock_handle = handle
+    return handle
 
 def loop():
     config = load_config()
@@ -367,8 +375,7 @@ def loop():
             time.sleep(10)
             
     finally:
-        if os.path.exists(lock_path):
-            os.remove(lock_path)
+        pass  # Handle is automatically released by Windows on process exit
 
 if __name__ == "__main__":
     try:
