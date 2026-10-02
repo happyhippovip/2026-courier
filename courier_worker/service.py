@@ -120,6 +120,9 @@ class ControllerClient:
         if status == 204:
             return None
         if status == 200 and isinstance(payload, dict):
+            task_payload = payload.get("task")
+            if task_payload is not None:
+                return task_payload
             return payload
         return None
 
@@ -162,7 +165,10 @@ def resolve_spec(claim: dict, worker_id: str, artifacts_root: str, heartbeat_s: 
         raise SpecError("claim is not an object")
     task_id = claim.get("task_id")
     dispatch_id = claim.get("dispatch_id")
-    attempt = claim.get("attempt")
+    attempt = claim.get("attempts", 1)
+    goal_id = claim.get("goal_id", "unknown-goal")
+    attempt_id = claim.get("attempt_id", f"{task_id}:attempt:{attempt}")
+    run_id = f"run-{dispatch_id}"
     ttl_s = claim.get("ttl_s")
     spec = claim.get("spec")
     if not isinstance(task_id, str) or not task_id:
@@ -189,7 +195,8 @@ def resolve_spec(claim: dict, worker_id: str, artifacts_root: str, heartbeat_s: 
         raise SpecError("dispatch_id leaves no room for a result_id within 200 chars")
     return ExecutionSpec(
         task_id=task_id, attempt=attempt, dispatch_id=dispatch_id, worker_id=worker_id,
-        result_id=result_id, argv=tuple(argv), timeout_s=float(timeout_s), lease_ttl_s=float(ttl_s),
+        result_id=result_id, goal_id=goal_id, attempt_id=attempt_id, run_id=run_id,
+        argv=tuple(argv), timeout_s=float(timeout_s), lease_ttl_s=float(ttl_s),
         artifact_dir=os.path.join(artifacts_root, dispatch_id), heartbeat_s=heartbeat_s)
 
 
@@ -197,16 +204,22 @@ def build_result_payload(result: ExecutionResult) -> dict:
     return {
         "dispatch_id": result.spec.dispatch_id,
         "result_id": result.spec.result_id,
+        "worker_id": result.spec.worker_id,
+        "task_id": result.spec.task_id,
+        "goal_id": result.spec.goal_id,
+        "attempt_id": result.spec.attempt_id,
+        "run_id": result.spec.run_id,
         "artifacts": [{"path": a.path.replace(os.sep, "/"), "sha256": a.sha256}
                       for a in result.artifacts],
-        "outcome": result.l2_outcome,
-        "retryable": result.retryable,
+        "status": "SUCCESS" if result.l2_outcome == "completed" else "FAILED",
     }
 
 
-def build_spec_failure_payload(dispatch_id: str, result_id: str, reason: str) -> dict:
+def build_spec_failure_payload(dispatch_id: str, result_id: str, worker_id: str, task_id: str, goal_id: str, attempt_id: str, reason: str) -> dict:
     return {"dispatch_id": dispatch_id, "result_id": result_id,
-            "artifacts": [], "outcome": "failure", "retryable": False, "reason": reason}
+            "worker_id": worker_id or "unknown-worker", "task_id": task_id or "unknown-task", 
+            "goal_id": goal_id or "unknown-goal", "attempt_id": attempt_id or "unknown-attempt", 
+            "run_id": f"run-{dispatch_id}", "artifacts": [], "status": "FAILED"}
 
 
 class CancelWatcher:
@@ -365,7 +378,8 @@ class WorkerLoop:
         except SpecError as exc:
             payload = build_spec_failure_payload(
                 str(claim.get("dispatch_id", "")), "r-" + str(claim.get("dispatch_id", "")),
-                f"spec-invalid: {exc}")
+                self.worker_id, str(claim.get("task_id", "")), str(claim.get("goal_id", "")),
+                str(claim.get("attempt_id", "")), f"spec-invalid: {exc}")
             self._deliver_payload(payload)
             return "spec-rejected"
         try:

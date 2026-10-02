@@ -22,18 +22,57 @@ Copy-Item -Recurse "$PSScriptRoot\..\..\courier_worker" -Destination "$OutDir\co
 if (Test-Path "$PSScriptRoot\..\..\adapters") {
     Copy-Item -Recurse "$PSScriptRoot\..\..\adapters" -Destination "$OutDir\adapters"
 }
+Copy-Item -Recurse "$PSScriptRoot\..\..\server" -Destination "$OutDir\server"
+Copy-Item -Recurse "$PSScriptRoot\..\..\dashboard" -Destination "$OutDir\dashboard"
+Copy-Item -Recurse "$PSScriptRoot\..\..\courier_core" -Destination "$OutDir\courier_core"
+if (Test-Path "$PSScriptRoot\..\..\static") {
+    Copy-Item -Recurse "$PSScriptRoot\..\..\static" -Destination "$OutDir\static"
+}
+if (Test-Path "$PSScriptRoot\..\..\studio") {
+    Copy-Item -Recurse "$PSScriptRoot\..\..\studio" -Destination "$OutDir\studio"
+}
+
 Copy-Item "$PSScriptRoot\install.ps1" -Destination $OutDir
 Copy-Item "$PSScriptRoot\uninstall.ps1" -Destination $OutDir
+New-Item -ItemType Directory -Force -Path "$OutDir\scripts" | Out-Null
+Copy-Item "$PSScriptRoot\..\*.py" -Destination "$OutDir\scripts\"
+New-Item -ItemType File -Force -Path "$OutDir\scripts\__init__.py" | Out-Null
 
 # 3. Download and embed Python
 $pyZip = "$env:TEMP\python-embed.zip"
-Write-Host "Downloading Embedded Python from $PythonUrl..."
-Invoke-WebRequest -Uri $PythonUrl -OutFile $pyZip
+if (-not (Test-Path $pyZip)) {
+    Write-Host "Downloading Embedded Python from $PythonUrl..."
+    Invoke-WebRequest -Uri $PythonUrl -OutFile $pyZip
+}
 $pyDir = Join-Path $OutDir "python"
 New-Item -ItemType Directory -Force -Path $pyDir | Out-Null
 Write-Host "Extracting Python..."
 Expand-Archive -Path $pyZip -DestinationPath $pyDir -Force
-Add-Content -Path "$pyDir\python311._pth" -Value ".."
+
+# Enable site packages in embedded python
+$pthFile = "$pyDir\python311._pth"
+$pthContent = Get-Content $pthFile
+$pthContent = $pthContent -replace '#import site', 'import site'
+$pthContent += ".."
+Set-Content -Path $pthFile -Value $pthContent
+
+Write-Host "Installing dependencies..."
+$getPipPath = "$env:TEMP\get-pip.py"
+if (-not (Test-Path $getPipPath)) {
+    Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile $getPipPath
+}
+& "$pyDir\python.exe" $getPipPath
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Failed to install pip"
+    exit 1
+}
+
+# Install project dependencies
+& "$pyDir\python.exe" -m pip install flask==3.1.3 requests==2.34.2 psutil==7.2.2 pywebview==6.2.1
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Failed to install pip dependencies"
+    exit 1
+}
 
 # 4. Create ZIP package
 $zipOut = "$PSScriptRoot\CourierWorker-v1.zip"

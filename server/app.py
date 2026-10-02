@@ -14,7 +14,12 @@ def require_auth(f):
         if API_KEY in INSECURE_API_KEYS:
             return jsonify({"error": "Courier API key is not configured"}), 503
         auth_header = request.headers.get("Authorization")
-        if not auth_header or auth_header != f"Bearer {API_KEY}":
+        token_header = request.headers.get("X-Courier-Token")
+        
+        valid_auth = auth_header and auth_header == f"Bearer {API_KEY}"
+        valid_token = token_header and token_header == API_KEY
+        
+        if not (valid_auth or valid_token):
             return jsonify({"error": "Unauthorized"}), 401
         return f(*args, **kwargs)
     wrapper.__name__ = f.__name__
@@ -142,8 +147,9 @@ app.register_blueprint(create_blueprint(
     task_lookup=lambda task_id: load_state()["tasks"].get(task_id)))
 
 @app.route("/health", methods=["GET"])
+@app.route("/v1/health", methods=["GET"])
 def health():
-    return jsonify({"status": "healthy", "time": time.time()})
+    return jsonify({"status": "healthy", "service": "courier-controller", "time": time.time()})
 
 
 
@@ -308,6 +314,7 @@ def unregister_worker():
     return jsonify({"error": "Unknown worker"}), 404
 
 @app.route("/workers/heartbeat", methods=["POST"])
+@app.route("/v1/heartbeat", methods=["POST"])
 @require_auth
 @serialize_state_mutation
 def heartbeat():
@@ -315,6 +322,14 @@ def heartbeat():
     worker_id = data.get("worker_id")
     state = load_state()
     
+    if worker_id not in state["workers"]:
+        state["workers"][worker_id] = {
+            "current_task": None,
+            "last_seen": time.time(),
+            "available": True,
+            "system_info": {}
+        }
+        
     if worker_id in state["workers"]:
         state["workers"][worker_id]["last_seen"] = time.time()
         # Only mark available if not currently working
@@ -326,7 +341,13 @@ def heartbeat():
     else:
         return jsonify({"error": "Unknown worker"}), 404
 
+@app.route("/v1/start", methods=["POST"])
+@require_auth
+def start_dispatch():
+    return jsonify({"status": "ok"})
+
 @app.route("/tasks/claim", methods=["POST"])
+@app.route("/v1/claim", methods=["POST"])
 @require_auth
 @serialize_state_mutation
 def claim_task():
@@ -335,7 +356,12 @@ def claim_task():
     state = load_state()
     
     if worker_id not in state["workers"]:
-        return jsonify({"error": "Unknown worker"}), 404
+        state["workers"][worker_id] = {
+            "current_task": None,
+            "last_seen": time.time(),
+            "available": True,
+            "system_info": {}
+        }
         
     worker = state["workers"][worker_id]
     worker["last_seen"] = time.time()
@@ -424,6 +450,7 @@ def claim_task():
     return jsonify({"task": None})
 
 @app.route("/tasks/result", methods=["POST"])
+@app.route("/v1/result", methods=["POST"])
 @require_auth
 @serialize_state_mutation
 def task_result():
@@ -454,6 +481,8 @@ def task_result():
                     if "artifact_id" in ref:
                         ARTIFACT_STORE.check_reference(ref, task)
             except (ContractError, ArtifactError) as exc:
+                with open("val_err.txt", "w") as f:
+                    f.write(f"Validation failed for task_id {task_id}: {exc}, payload={data}")
                 return jsonify({"error": str(exc)}), 400
             task["status"] = "RESULT_RECEIVED"
             task["result"] = durable_result
