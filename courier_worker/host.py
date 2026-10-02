@@ -28,7 +28,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -103,6 +103,12 @@ class ExecutionSpec:
     lease_ttl_s: float
     artifact_dir: str
     heartbeat_s: float = 1.0
+    # Set when the spec came from a declarative claim through the adapter
+    # bridge (courier_worker.adapter_bridge); argv then names Courier's own
+    # runner, never a command supplied by the task.
+    adapter: Optional[str] = None
+    params: Optional[dict] = field(default=None, compare=False)
+    effect_key: Optional[str] = None
 
     def __post_init__(self):
         for name in ("task_id", "dispatch_id", "worker_id", "result_id"):
