@@ -39,6 +39,7 @@ from pathlib import Path
 from typing import Optional
 from urllib.parse import urlsplit
 
+from courier_core.build import build_identity
 from courier_core.journal import Journal, JournalError
 from courier_hub import model
 
@@ -52,6 +53,7 @@ MAX_BODY_BYTES = 16 * 1024
 CONTROLLER_TIMEOUT_S = 5.0
 ACTOR_RE = re.compile(r"^[A-Za-z0-9_.:@-]{1,200}$")
 _ITEM = re.compile(r"^/hub/api/items/([A-Za-z0-9_.:-]{1,200})$")
+_SUPPORT = re.compile(r"^/hub/api/items/([A-Za-z0-9_.:-]{1,200})/support$")
 _ITEM_ACTION = re.compile(r"^/hub/api/items/([A-Za-z0-9_.:-]{1,200})/(decision|stop)$")
 
 STALE_CODES = {
@@ -166,10 +168,24 @@ class Hub:
             if task is None:
                 return None
             events = list(journal.events(task_id=task_id))
+        except sqlite3.DatabaseError as exc:
+            raise TruthUnavailable("unreadable") from exc
         finally:
             journal.close()
-        return {"card": model.card(task, events), "receipt": model.receipt(task, events),
-                "support": model.support(task, events), "read_at": utc_now()}
+        try:
+            card, receipt = model.card(task, events), model.receipt(task, events)
+        except ValueError:  # a state this hub does not know: still show what was recorded
+            card, receipt = model.unrecognised_card(task), model.unrecognised_receipt(task, events)
+        return {"card": card, "receipt": receipt, "support": model.support(task, events), "read_at": utc_now()}
+
+    def support_export(self, task_id: str) -> Optional[dict]:
+        """One item's support record, for the customer to save and send. Read-only;
+        holds no token, credential, payload or other task's history."""
+        item = self.item_view(task_id)
+        if item is None:
+            return None
+        return {"kind": "courier.support_export", "version": 1, "exported_at": utc_now(),
+                "hub_build": build_identity(), "item": item["support"], "receipt": item["receipt"]}
 
     # -- controller (the only authority) ----------------------------------------
     def _token(self) -> Optional[str]:
@@ -267,9 +283,12 @@ class Hub:
         return 200, {"result": result, "item": self._safe_item(task_id)}
 
     def _safe_item(self, task_id: str) -> Optional[dict]:
+        # Called after the controller answered: a failed read here must never turn a
+        # recorded decision into an error, so the item is simply left out.
         try:
             return self.item_view(task_id)
-        except TruthUnavailable:
+        except Exception:  # noqa: BLE001
+            log.exception("hub could not read item %s after relaying", task_id)
             return None
 
 
@@ -305,7 +324,8 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):  # quiet by default; no request bodies are logged
         log.debug("%s - %s", self.address_string(), fmt % args)
 
-    def _send(self, status: int, payload=None, content_type: str = "application/json", raw: bytes = None):
+    def _send(self, status: int, payload=None, content_type: str = "application/json", raw: bytes = None,
+              extra_headers: Optional[dict] = None):
         body = raw if raw is not None else (b"" if payload is None else json.dumps(payload).encode("utf-8"))
         self.send_response(status)
         self.send_header("Content-Type", content_type)
@@ -313,6 +333,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "no-referrer")
+        for name, value in (extra_headers or {}).items():
+            self.send_header(name, value)
         self.send_header("Content-Security-Policy",
                          "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
                          "connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'")
@@ -340,6 +362,16 @@ class Handler(BaseHTTPRequestHandler):
                 except TruthUnavailable as exc:
                     return self._send(503, {"result": "unavailable", "truth": exc.args[0]})
                 return self._send(404, {"result": "not_found"}) if item is None else self._send(200, item)
+            match = _SUPPORT.match(path)
+            if match:
+                try:
+                    record = hub.support_export(match.group(1))
+                except TruthUnavailable as exc:
+                    return self._send(503, {"result": "unavailable", "truth": exc.args[0]})
+                if record is None:
+                    return self._send(404, {"result": "not_found"})
+                return self._send(200, record, extra_headers={
+                    "Content-Disposition": f'attachment; filename="courier-support-{match.group(1)}.json"'})
             return self._static(path)
         except (BrokenPipeError, ConnectionResetError):
             self.close_connection = True
@@ -354,7 +386,7 @@ class Handler(BaseHTTPRequestHandler):
                 "application/json"):
             return self._send(403, {"error": "forbidden"})
         length = self.headers.get("Content-Length")
-        if length is None or not length.isdigit() or int(length) > MAX_BODY_BYTES:
+        if length is None or not (length.isascii() and length.isdigit()) or int(length) > MAX_BODY_BYTES:
             self.close_connection = True
             return self._send(413, {"error": "bad_length"})
         try:
@@ -373,7 +405,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(status, payload)
         except Exception:  # noqa: BLE001
             log.exception("hub error on POST %s", self.path)
-            self._send(500, {"result": "error", "message": "The hub hit an internal error. Nothing was changed."})
+            # The controller may already have recorded it: never claim that nothing changed.
+            self._send(500, {"result": "unknown",
+                             "message": "The hub hit an internal error. Courier may have recorded this; "
+                                        "the list shows what it has recorded now."})
 
     def _static(self, path: str):
         name = "index.html" if path in ("/", "/index.html") else path.lstrip("/")

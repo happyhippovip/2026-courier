@@ -613,3 +613,96 @@ def test_task_text_is_returned_as_data_never_as_markup(world):
     card = hub.home()["working"][0]
     assert card["title"] == evil.strip()  # the page escapes it (tests/desktop); the API never pre-renders HTML
     assert requests.get(hub.base + "/hub/api/home", timeout=10).headers["Content-Type"] == "application/json"
+
+
+# ------------------------------------------- third shift: honest failure paths
+def test_a_state_the_hub_does_not_know_still_opens_its_details(world, monkeypatch):
+    live, hub, clock = world
+    task_id = verified_task(live)
+
+    def unknown(task, events):
+        raise ValueError("unknown runtime status")
+    monkeypatch.setattr(model, "card", unknown)  # what pile_of does for a status this hub doesn't know
+    item = hub.item(task_id)
+    assert item.status_code == 200  # the card promises "Open the details for support"
+    body = item.json()
+    assert body["card"]["phase"] == "unrecognised" and body["card"]["stop"] is None
+    assert body["receipt"]["happened"].startswith("Not known to this hub")
+    assert "Checked by Courier" not in json.dumps(body["receipt"])
+    assert body["support"]["task"]["task_id"] == task_id
+
+
+def test_a_recorded_decision_is_never_reported_as_failed_when_the_reread_breaks(world, monkeypatch):
+    live, hub, clock = world
+    task_id = blocked_task(live, clock)
+    core = hub.server.hub
+
+    def broken(_task_id):
+        raise RuntimeError("journal read failed after the controller answered")
+    monkeypatch.setattr(core, "item_view", broken)
+    answer = hub.decide(task_id, "effect_confirmed", 1)
+    assert answer.status_code == 200 and answer.json()["result"] == "recorded"
+    assert live.get(f"/v1/tasks/{task_id}").json()["resolution"] == "effect_confirmed"
+
+
+def test_an_unreadable_item_is_unavailable_not_an_internal_error(world, monkeypatch):
+    import sqlite3
+    from courier_core.journal import Journal
+    live, hub, clock = world
+    task_id = verified_task(live)
+
+    def corrupt(self, *a, **kw):
+        raise sqlite3.DatabaseError("database disk image is malformed")
+    monkeypatch.setattr(Journal, "events", corrupt)
+    answer = hub.item(task_id)
+    assert answer.status_code == 503 and answer.json()["truth"] == "unreadable"
+
+
+def test_an_internal_error_after_relaying_never_claims_nothing_changed(world, monkeypatch):
+    live, hub, clock = world
+    task_id = blocked_task(live, clock)
+    core = hub.server.hub
+    real = core._relay
+
+    def relay_then_crash(*args):
+        real(*args)
+        raise RuntimeError("crash after the controller recorded it")
+    monkeypatch.setattr(core, "_relay", relay_then_crash)
+    answer = hub.decide(task_id, "cancel", 1)
+    assert answer.status_code == 500
+    assert answer.json()["result"] == "unknown" and "Nothing was changed" not in answer.text
+    assert live.get(f"/v1/tasks/{task_id}").json()["status"] == "CANCELLED"
+
+
+def test_a_non_ascii_content_length_is_refused_cleanly(world):
+    import http.client
+    _, hub, _ = world
+    conn = http.client.HTTPConnection("127.0.0.1", hub.server.server_address[1], timeout=10)
+    conn.putrequest("POST", "/hub/api/items/t1/stop", skip_host=True)
+    conn.putheader("Host", f"127.0.0.1:{hub.server.server_address[1]}")
+    conn.putheader("X-Courier-Hub", "1")
+    conn.putheader("Content-Type", "application/json")
+    conn.putheader("Content-Length", "²")  # str.isdigit() is True for superscript two
+    conn.endheaders()
+    assert conn.getresponse().status == 413
+
+
+def test_support_export_is_one_item_read_only_and_holds_no_secrets(world):
+    live, hub, clock = world
+    task_id = verified_task(live)
+    other = live.post("/v1/tasks", task_body()).json()["task_id"]
+    head_before = hub.home()["head_seq"]
+    answer = requests.get(f"{hub.base}/hub/api/items/{task_id}/support", timeout=10)
+    assert answer.status_code == 200
+    assert answer.headers["Content-Disposition"] == f'attachment; filename="courier-support-{task_id}.json"'
+    record = answer.json()
+    assert record["kind"] == "courier.support_export" and record["item"]["task"]["task_id"] == task_id
+    assert record["receipt"]["happened"] == "Checked by Courier"
+    assert set(record["hub_build"]) == {"version", "build_id", "source_sha256", "python"}
+    text = answer.text
+    assert live.service.token not in text and other not in text and "payload" not in text
+    assert hub.home()["head_seq"] == head_before  # reading it wrote nothing
+    assert requests.get(f"{hub.base}/hub/api/items/nope/support", timeout=10).status_code == 404
+    foreign = requests.get(f"{hub.base}/hub/api/items/{task_id}/support",
+                           headers={"Host": "evil.example"}, timeout=10)
+    assert foreign.status_code == 421

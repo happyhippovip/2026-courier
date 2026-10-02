@@ -13,7 +13,9 @@ none of this.
 | Worker host | `python -m courier_worker.host --home <H> --controller http://127.0.0.1:<CP> --max-tasks 1 --heartbeat 2` | `<H>/run/worker.lock`, `<H>/outbox`, `<H>/artifacts` |
 | Desktop Hub | `python -m courier_hub --home <H> --controller http://127.0.0.1:<CP> --port <HP>` | nothing on disk (it only reads `<H>/courier.db`) |
 
-- **`<H>`:** `%LOCALAPPDATA%\Courier` (per user). All three processes must use the same `<H>`.
+- **`<H>`:** the controller's home, proposed `%LOCALAPPDATA%\Courier` (per user).
+  - The hub's `--home` must be the controller's `<H>`: it reads `<H>/courier.db` and `<H>/run/controller.token`.
+  - The worker keeps its own locks and outbox under its `--home`. Using the same `<H>` is simplest, but only the hub strictly needs the controller's.
 - **`<CP>`, `<HP>`:** fixed ports from the installer's config, not `0`. The hub finds the controller only through `--controller`.
   - Today the controller picks a random port when given `--port 0` and writes it nowhere except stdout (`--print-port`).
   - The launcher must either pass a fixed `--port`, or read `--print-port` and hand that URL to the worker and the hub.
@@ -28,6 +30,15 @@ none of this.
 - **Worker adapter runner:** it is started as `sys.executable <install>/courier_worker/adapter_runner.py <request>`.
   - With the embedded `python.exe` used by `CourierLauncher.cs` on the L6 branch this works as is.
   - A single-file frozen EXE would break it, because `sys.executable` would be the EXE. Keep the embedded Python layout, or have L3 add a frozen-mode runner entry.
+
+## Where the L6 branch stands today
+
+Checked against `lane/L6-windows-packaging` at 48f7b8bb (`scripts/windows_worker/launcher/CourierLauncher.cs`):
+
+- The launcher starts only the worker host (`courier_worker.host`), with `--home %PROGRAMDATA%\CourierWorker` and the controller URL from `config.json` (`COURIER_SERVER`). It does not start the controller or the hub yet.
+- It already puts its child in a Job Object with kill-on-close. Start the controller and the hub in the same job, so closing the launcher leaves no orphans.
+- It falls back to `uv run python` when `<install>\python\python.exe` is missing. A clean machine has no `uv`, so the embedded Python must be shipped.
+- `%PROGRAMDATA%` is shared by all users. If the controller's home goes there, `run\controller.token` needs an ACL that only the owning user can read. Otherwise, keep the controller's home per user as proposed above.
 
 ## Lifecycle
 
@@ -49,7 +60,10 @@ none of this.
 - The hub logs no request bodies, and no process ever logs the controller token.
 - Support diagnostics:
   - `GET /v1/health` gives mode, head sequence and build identity.
-  - Every receipt in the hub has a "For support" section with ids and event names.
+  - Every receipt in the hub has a "For support" section with ids and event names, and a "Save support record" link.
+  - That link (`GET /hub/api/items/<id>/support`) downloads one item's record as a JSON file: its runtime ids, event names, hashes, receipt and the hub's build identity.
+    - It never includes the controller token, task payloads or any other item's history.
+    - Support can ask the customer for this file instead of the database.
 
 ## Security assumptions L6 must keep
 

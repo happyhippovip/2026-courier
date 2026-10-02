@@ -179,7 +179,8 @@ export function renderReceipt(item, opts = {}) {
   <dt>What changed later</dt><dd>${later}</dd>
   <dt>Evidence</dt><dd>${evidence}</dd>
 </dl>
-<details class="support"><summary>For support</summary><pre>${support}</pre></details>`;
+<details class="support"><summary>For support</summary><pre>${support}</pre>
+<p><a href="/hub/api/items/${encodeURIComponent(item.card.id)}/support" download>Save support record</a> — this item only; no passwords or keys.</p></details>`;
 }
 
 // ---------------------------------------------------------------- decisions
@@ -233,7 +234,11 @@ export function interpretResponse(status, payload) {
   if (result === 'stale') return { kind: 'stale', message: payload.message, item: payload.item };
   if (result === 'unknown') return { kind: 'unknown', message: payload.message, item: payload.item };
   if (result === 'offline' || result === 'unavailable') return { kind: 'offline', message: payload.message };
-  return { kind: 'error', message: payload?.message || 'Something went wrong. Nothing was changed.' };
+  if (status >= 500 || status === 200 || !payload?.message) {
+    // No answer the hub vouches for: the decision may have been recorded.
+    return interpretResponse(-1, null);
+  }
+  return { kind: 'error', message: payload.message };
 }
 
 // A stable fingerprint of what Home would show; the page re-renders only when it
