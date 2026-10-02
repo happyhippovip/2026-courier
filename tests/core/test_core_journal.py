@@ -43,7 +43,7 @@ def test_golden_path_is_chained_contiguously(journal):
     results = append_all(journal, golden_path())
     assert [r.event.seq for r in results] == [1, 2, 3, 4, 5, 6]
     assert results[0].event.prev_hash == GENESIS_HASH
-    for previous, current in itertools.pairwise(results):
+    for previous, current in zip(results, results[1:]):
         assert current.event.prev_hash == previous.event.hash
     report = journal.verify_chain()
     assert report.ok and report.count == 6 and report.head_hash == results[-1].event.hash
