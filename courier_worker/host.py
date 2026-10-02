@@ -315,10 +315,7 @@ class ContainedRun:
     def group_id(self) -> Optional[int]:
         if os.name == "nt":
             return None
-        try:
-            return os.getpgid(self.proc.pid)
-        except (OSError, ProcessLookupError):
-            return None
+        return self.proc.pid
 
     def poll(self) -> Optional[int]:
         return self.proc.poll()
@@ -333,9 +330,7 @@ class ContainedRun:
         """True if any member of the owned tree may still run."""
         if os.name == "nt":
             return self.proc.poll() is None  # the job kills the rest on close
-        pgid = self.group_id()
-        if pgid is None:
-            return self.proc.poll() is None
+        pgid = self.proc.pid
         try:
             os.killpg(pgid, 0)
             return True
@@ -346,49 +341,49 @@ class ContainedRun:
 
     def terminate_tree(self, grace: float = KILL_GRACE_S) -> None:
         """SIGTERM, then SIGKILL, then reap. Addresses the owned tree only."""
-        if self.proc.poll() is not None:
-            self._close()
-            return
         if os.name == "nt":
             _terminate_job(self.job)
-            self.proc.wait()
+            if self.proc.poll() is None:
+                self.proc.wait()
             self._close()
             return
-        pgid = self.group_id()
-        if pgid is None or pgid != self.proc.pid:
-            # The root is gone or escaped its group: reap the root only.
-            try:
-                self.proc.terminate()
-            except (OSError, ProcessLookupError):
-                pass
+
+        pgid = self.proc.pid
+        try:
+            os.killpg(pgid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+        except PermissionError as exc:
+            raise ContainmentError(f"cannot signal owned group {pgid}: {exc}") from exc
+
+        if self.proc.poll() is None:
             try:
                 self.proc.wait(timeout=grace)
             except subprocess.TimeoutExpired:
                 try:
-                    self.proc.kill()
-                except (OSError, ProcessLookupError):
+                    os.killpg(pgid, signal.SIGKILL)
+                except ProcessLookupError:
                     pass
+                except PermissionError as exc:
+                    raise ContainmentError(f"cannot kill owned group {pgid}: {exc}") from exc
                 self.proc.wait()
-            self._close()
-            return
-        try:
-            os.killpg(pgid, signal.SIGTERM)
-        except ProcessLookupError:
-            self.proc.wait()
-            self._close()
-            return
-        except PermissionError as exc:
-            raise ContainmentError(f"cannot signal owned group {pgid}: {exc}") from exc
-        try:
-            self.proc.wait(timeout=grace)
-        except subprocess.TimeoutExpired:
-            try:
-                os.killpg(pgid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
-            except PermissionError as exc:
-                raise ContainmentError(f"cannot kill owned group {pgid}: {exc}") from exc
-            self.proc.wait()
+        else:
+            # Root is already dead. Wait grace period for the group to empty.
+            deadline = time.monotonic() + grace
+            while time.monotonic() < deadline:
+                try:
+                    os.killpg(pgid, 0)
+                except (OSError, ProcessLookupError):
+                    break
+                time.sleep(0.05)
+            else:
+                try:
+                    os.killpg(pgid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                except PermissionError as exc:
+                    raise ContainmentError(f"cannot kill owned group {pgid}: {exc}") from exc
+
         self._close()
 
     def _close(self) -> None:
@@ -529,10 +524,7 @@ def _reap_orphan(record: dict) -> None:
     if os.name == "nt":
         return  # KILL_ON_JOB_CLOSE already reaped the tree at host death
     if pgid is None and child_pid:
-        try:
-            pgid = os.getpgid(child_pid)
-        except (OSError, ProcessLookupError):
-            return
+        pgid = child_pid
     if not pgid:
         return
     if child_pid:
@@ -815,7 +807,7 @@ class WorkerHost:
             wakes += 1
             if returncode is not None:
                 outcome = Outcome.COMPLETED if returncode == 0 else Outcome.CRASH
-                run._close()
+                run.terminate_tree()
                 break
             if on_heartbeat is not None:
                 try:
