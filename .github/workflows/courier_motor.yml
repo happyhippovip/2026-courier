@@ -59,13 +59,32 @@ jobs:
 
       - name: Run Courier Motor
         env:
-          COURIER_API_KEY: "cron_motor_key"
-          COURIER_VERIFIER_API_KEY: "cron_motor_key"
+          COURIER_API_KEY: ${{ secrets.COURIER_API_KEY }}
+          COURIER_VERIFIER_API_KEY: ${{ secrets.COURIER_VERIFIER_API_KEY }}
           COURIER_SERVER: "http://127.0.0.1:8080"
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_WORKER_LOCAL_WAIT_SECONDS: "60"
         run: |
           export PYTHONPATH="$PWD:$PYTHONPATH"
+          # The server below is a throwaway process on this runner. Without
+          # repository secrets, fall back to per-run random keys (never committed).
+          for var in COURIER_API_KEY COURIER_VERIFIER_API_KEY; do
+            if [ -z "${!var}" ]; then
+              if command -v python3 >/dev/null 2>&1; then
+                _k=$(python3 -c 'import secrets; print(secrets.token_hex(24))')
+              elif command -v openssl >/dev/null 2>&1; then
+                _k=$(openssl rand -hex 24)
+              else
+                echo "[Motor] ERROR: no key generator (python3/openssl) available" >&2
+                exit 1
+              fi
+              [ -n "$_k" ] || { echo "[Motor] ERROR: ephemeral key generation produced an empty key" >&2; exit 1; }
+              export "$var=$_k"
+              unset _k
+              echo "[Motor] $var secret not set; using an ephemeral per-run key."
+            fi
+            echo "::add-mask::${!var}"
+          done
           echo "[Motor] Starting internal state server..."
           python3 server/app.py &
           SERVER_PID=$!

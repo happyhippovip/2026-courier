@@ -43,6 +43,8 @@ def validate_task(task: dict[str, Any]) -> None:
         raise ValueError(f"TaskPacket is missing required identity fields: {', '.join(missing)}")
     if task.get("task_type", task.get("type")) not in ALLOW_LIST:
         raise ValueError("TaskPacket has an unsupported bounded task type")
+    if task.get("task_type", task.get("type")) == "deterministic_transform" and not isinstance(task.get("input"), str):
+        raise ValueError("TaskPacket deterministic_transform requires a string input")
 
 
 def find_run(dispatch_id: str) -> tuple[str | None, str | None]:
@@ -71,6 +73,10 @@ def download_result(run_id: str, dispatch_id: str, destination: Path) -> tuple[d
 
 
 def verify_result(task: dict[str, Any], result: dict[str, Any], evidence: dict[str, Any] | None, run_id: str, directory: Path) -> None:
+    if not isinstance(result, dict):
+        raise ValueError("DurableResult must be a JSON object")
+    if evidence is not None and not isinstance(evidence, dict):
+        raise ValueError("evidence must be a JSON object or null")
     if any(result.get(field) != task[field] for field in IDENTITY_FIELDS):
         raise ValueError("DurableResult identity does not match TaskPacket")
     if str(result.get("run_id")) != run_id or result.get("result_id") != f"result-{task['dispatch_id']}":
@@ -89,7 +95,10 @@ def verify_result(task: dict[str, Any], result: dict[str, Any], evidence: dict[s
     if not isinstance(artifacts, list) or len(artifacts) != 1:
         raise ValueError("successful DurableResult requires one evidence artifact")
     artifact = artifacts[0]
-    evidence_file = directory / artifact.get("path", "")
+    evidence_path = artifact.get("path", "")
+    if not isinstance(evidence_path, str) or not evidence_path or Path(evidence_path).is_absolute() or ".." in Path(evidence_path).parts:
+        raise ValueError("evidence artifact path escapes the download directory")
+    evidence_file = directory / evidence_path
     if not evidence_file.is_file() or artifact.get("sha256") != hashlib.sha256(evidence_file.read_bytes()).hexdigest():
         raise ValueError("evidence artifact hash does not match")
     operation = result["operation"]

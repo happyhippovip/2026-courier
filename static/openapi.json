@@ -1,0 +1,225 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Courier Universal Ledger API",
+    "version": "1.0.0",
+    "description": "Auto-generated OpenAPI spec for Courier backend"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Auto-generated GET for /",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/{path}": {
+      "get": {
+        "summary": "Auto-generated GET for /{path}",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "summary": "Auto-generated GET for /openapi.json",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/ledger/external_artifact": {
+      "post": {
+        "summary": "Auto-generated POST for /ledger/external_artifact",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Auto-generated GET for /health",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/status": {
+      "get": {
+        "summary": "Auto-generated GET for /status",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/goals": {
+      "post": {
+        "summary": "Auto-generated POST for /goals",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/goals/{d}": {
+      "get": {
+        "summary": "Auto-generated GET for /goals/{d}",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/workers": {
+      "get": {
+        "summary": "Auto-generated GET for /workers",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/walls": {
+      "get": {
+        "summary": "Auto-generated GET for /walls",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/workers/register": {
+      "post": {
+        "summary": "Auto-generated POST for /workers/register",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/workers/unregister": {
+      "post": {
+        "summary": "Auto-generated POST for /workers/unregister",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/workers/heartbeat": {
+      "post": {
+        "summary": "Auto-generated POST for /workers/heartbeat",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/tasks/claim": {
+      "post": {
+        "summary": "Auto-generated POST for /tasks/claim",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/tasks/result": {
+      "post": {
+        "summary": "Auto-generated POST for /tasks/result",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/tasks/reclaim_stale": {
+      "post": {
+        "summary": "Auto-generated POST for /tasks/reclaim_stale",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/tasks/pending_verification": {
+      "get": {
+        "summary": "Auto-generated GET for /tasks/pending_verification",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/tasks/verify": {
+      "post": {
+        "summary": "Auto-generated POST for /tasks/verify",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/tasks/{d}/resume": {
+      "post": {
+        "summary": "Auto-generated POST for /tasks/{d}/resume",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/ledger/stream": {
+      "get": {
+        "summary": "Auto-generated GET for /ledger/stream",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/ledger/external_claim": {
+      "post": {
+        "summary": "Auto-generated POST for /ledger/external_claim",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  }
+}

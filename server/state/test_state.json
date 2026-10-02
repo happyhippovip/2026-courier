@@ -1,0 +1,536 @@
+{
+  "goals": {
+    "goal-bb498ed6": {
+      "goal_id": "goal-bb498ed6",
+      "goal_text": "Test windows",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "instruction": "Do windows task",
+          "target_agent": "windows",
+          "goal_id": "goal-bb498ed6",
+          "status": "HUMAN_REQUIRED",
+          "attempts": 1,
+          "task_id": "task-022cb8cd",
+          "worker_id": "win1",
+          "attempt_id": "task-022cb8cd:attempt:1",
+          "dispatch_id": "dispatch-6f96578f7bd3452c9b57fbd4e83b8dea",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "windows",
+          "artifacts": [
+            "courier_canary_task-022cb8cd.txt"
+          ],
+          "recovery_reason": "STALE_WORKER_EFFECT_AMBIGUOUS"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-5b4bff9d": {
+      "goal_id": "goal-5b4bff9d",
+      "goal_text": "Test linux",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "instruction": "Do linux task",
+          "target_agent": "linux",
+          "goal_id": "goal-5b4bff9d",
+          "status": "HUMAN_REQUIRED",
+          "attempts": 1,
+          "task_id": "task-d975bb58",
+          "worker_id": "lin1",
+          "attempt_id": "task-d975bb58:attempt:1",
+          "dispatch_id": "dispatch-ce6ba05dfac7490ea89b4c00ffc7066e",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "linux",
+          "artifacts": [
+            "courier_canary_task-d975bb58.txt"
+          ],
+          "recovery_reason": "STALE_WORKER_EFFECT_AMBIGUOUS"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-ab619575": {
+      "goal_id": "goal-ab619575",
+      "goal_text": "Test windows",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "instruction": "Do windows task",
+          "target_agent": "windows",
+          "goal_id": "goal-ab619575",
+          "status": "HUMAN_REQUIRED",
+          "attempts": 1,
+          "task_id": "task-da3aa793",
+          "worker_id": "win1",
+          "attempt_id": "task-da3aa793:attempt:1",
+          "dispatch_id": "dispatch-e2351df63c6e49e095ca360fe07a1c57",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "windows",
+          "artifacts": [
+            "courier_canary_task-da3aa793.txt"
+          ],
+          "recovery_reason": "STALE_WORKER_EFFECT_AMBIGUOUS"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-492637af": {
+      "goal_id": "goal-492637af",
+      "goal_text": "Test linux",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "instruction": "Do linux task",
+          "target_agent": "linux",
+          "goal_id": "goal-492637af",
+          "status": "HUMAN_REQUIRED",
+          "attempts": 1,
+          "task_id": "task-69f1d5fa",
+          "worker_id": "lin1",
+          "attempt_id": "task-69f1d5fa:attempt:1",
+          "dispatch_id": "dispatch-ed2e6995be174103880d383fa2b9f451",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "linux",
+          "artifacts": [
+            "courier_canary_task-69f1d5fa.txt"
+          ],
+          "recovery_reason": "STALE_WORKER_EFFECT_AMBIGUOUS"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-7d6d7dd6": {
+      "goal_id": "goal-7d6d7dd6",
+      "goal_text": "Test windows",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "instruction": "Do windows task",
+          "target_agent": "windows",
+          "goal_id": "goal-7d6d7dd6",
+          "status": "HUMAN_REQUIRED",
+          "attempts": 1,
+          "task_id": "task-1942914d",
+          "worker_id": "w1",
+          "attempt_id": "task-1942914d:attempt:1",
+          "dispatch_id": "dispatch-5d42373934674177ba2405e4c719364c",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "windows",
+          "artifacts": [
+            "courier_canary_task-1942914d.txt"
+          ],
+          "recovery_reason": "STALE_WORKER_EFFECT_AMBIGUOUS"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-7d9bd214": {
+      "goal_id": "goal-7d9bd214",
+      "goal_text": "Test linux",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "instruction": "Do linux task",
+          "target_agent": "linux",
+          "goal_id": "goal-7d9bd214",
+          "status": "HUMAN_REQUIRED",
+          "attempts": 1,
+          "task_id": "task-14dd6487",
+          "worker_id": "lin1",
+          "attempt_id": "task-14dd6487:attempt:1",
+          "dispatch_id": "dispatch-808cc4ab74a14dbd8c36c7ff1b63f4e2",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "linux",
+          "artifacts": [
+            "courier_canary_task-14dd6487.txt"
+          ],
+          "recovery_reason": "STALE_WORKER_EFFECT_AMBIGUOUS"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-81545b48": {
+      "goal_id": "goal-81545b48",
+      "goal_text": "Test windows",
+      "status": "BLOCKED",
+      "workflow_plan": [
+        {
+          "instruction": "Do windows task",
+          "target_agent": "windows",
+          "goal_id": "goal-81545b48",
+          "status": "HUMAN_REQUIRED",
+          "attempts": 1,
+          "task_id": "task-24cd396d",
+          "worker_id": "win1",
+          "attempt_id": "task-24cd396d:attempt:1",
+          "dispatch_id": "dispatch-c2d63cec0c604273b99fb558ba5071df",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "windows",
+          "artifacts": [
+            "courier_canary_task-24cd396d.txt"
+          ],
+          "recovery_reason": "STALE_WORKER_EFFECT_AMBIGUOUS"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-217acb76": {
+      "goal_id": "goal-217acb76",
+      "goal_text": "Test linux",
+      "status": "ACTIVE",
+      "workflow_plan": [
+        {
+          "instruction": "Do linux task",
+          "target_agent": "linux",
+          "goal_id": "goal-217acb76",
+          "status": "DISPATCHED",
+          "attempts": 1,
+          "task_id": "task-83399fbb",
+          "worker_id": "lin1",
+          "attempt_id": "task-83399fbb:attempt:1",
+          "dispatch_id": "dispatch-7ca0bc6c3aea424bb57f9178285c171d",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "linux",
+          "artifacts": [
+            "courier_canary_task-83399fbb.txt"
+          ]
+        }
+      ],
+      "current_step_index": 0
+    },
+    "g1": {
+      "status": "ACTIVE",
+      "workflow_plan": [
+        {
+          "task_id": "t1",
+          "status": "QUEUED",
+          "target_agent": "windows"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-8ca96736": {
+      "goal_id": "goal-8ca96736",
+      "goal_text": "Test windows",
+      "status": "ACTIVE",
+      "workflow_plan": [
+        {
+          "instruction": "Do windows task",
+          "target_agent": "windows",
+          "goal_id": "goal-8ca96736",
+          "status": "QUEUED",
+          "attempts": 0,
+          "task_id": "task-b4cc1e6c"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-ad790803": {
+      "goal_id": "goal-ad790803",
+      "goal_text": "Test linux",
+      "status": "ACTIVE",
+      "workflow_plan": [
+        {
+          "instruction": "Do linux task",
+          "target_agent": "linux",
+          "goal_id": "goal-ad790803",
+          "status": "QUEUED",
+          "attempts": 0,
+          "task_id": "task-b4c8436f"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-bd449947": {
+      "goal_id": "goal-bd449947",
+      "goal_text": "Test windows",
+      "status": "ACTIVE",
+      "workflow_plan": [
+        {
+          "instruction": "Do windows task",
+          "target_agent": "windows",
+          "goal_id": "goal-bd449947",
+          "status": "QUEUED",
+          "attempts": 0,
+          "task_id": "task-be81c285"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-19de5380": {
+      "goal_id": "goal-19de5380",
+      "goal_text": "Test linux",
+      "status": "ACTIVE",
+      "workflow_plan": [
+        {
+          "instruction": "Do linux task",
+          "target_agent": "linux",
+          "goal_id": "goal-19de5380",
+          "status": "QUEUED",
+          "attempts": 0,
+          "task_id": "task-5fd9078a"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-cf936bd4": {
+      "goal_id": "goal-cf936bd4",
+      "goal_text": "Test windows",
+      "status": "ACTIVE",
+      "budget_limit": 0.0,
+      "budget_spent": 0.0,
+      "workflow_plan": [
+        {
+          "instruction": "Do windows task",
+          "target_agent": "windows",
+          "goal_id": "goal-cf936bd4",
+          "status": "QUEUED",
+          "attempts": 0,
+          "task_id": "task-33d2f35b"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-e95d62dd": {
+      "goal_id": "goal-e95d62dd",
+      "goal_text": "Test linux",
+      "status": "ACTIVE",
+      "budget_limit": 0.0,
+      "budget_spent": 0.0,
+      "workflow_plan": [
+        {
+          "instruction": "Do linux task",
+          "target_agent": "linux",
+          "goal_id": "goal-e95d62dd",
+          "status": "QUEUED",
+          "attempts": 0,
+          "task_id": "task-6a446461"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-0735a919": {
+      "goal_id": "goal-0735a919",
+      "goal_text": "Test windows",
+      "status": "ACTIVE",
+      "budget_limit": 0.0,
+      "budget_spent": 0.0,
+      "workflow_plan": [
+        {
+          "instruction": "Do windows task",
+          "target_agent": "windows",
+          "goal_id": "goal-0735a919",
+          "status": "QUEUED",
+          "attempts": 0,
+          "task_id": "task-f91a2cb8"
+        }
+      ],
+      "current_step_index": 0
+    },
+    "goal-35b6bcb0": {
+      "goal_id": "goal-35b6bcb0",
+      "goal_text": "Test linux",
+      "status": "ACTIVE",
+      "budget_limit": 0.0,
+      "budget_spent": 0.0,
+      "workflow_plan": [
+        {
+          "instruction": "Do linux task",
+          "target_agent": "linux",
+          "goal_id": "goal-35b6bcb0",
+          "status": "QUEUED",
+          "attempts": 0,
+          "task_id": "task-c29ced08"
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "task-022cb8cd": {
+      "instruction": "Do windows task",
+      "target_agent": "windows",
+      "goal_id": "goal-bb498ed6",
+      "status": "HUMAN_REQUIRED",
+      "attempts": 1,
+      "task_id": "task-022cb8cd",
+      "worker_id": "win1",
+      "attempt_id": "task-022cb8cd:attempt:1",
+      "dispatch_id": "dispatch-6f96578f7bd3452c9b57fbd4e83b8dea",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "windows",
+      "artifacts": [
+        "courier_canary_task-022cb8cd.txt"
+      ],
+      "recovery_reason": "STALE_WORKER_EFFECT_AMBIGUOUS"
+    },
+    "task-d975bb58": {
+      "instruction": "Do linux task",
+      "target_agent": "linux",
+      "goal_id": "goal-5b4bff9d",
+      "status": "HUMAN_REQUIRED",
+      "attempts": 1,
+      "task_id": "task-d975bb58",
+      "worker_id": "lin1",
+      "attempt_id": "task-d975bb58:attempt:1",
+      "dispatch_id": "dispatch-ce6ba05dfac7490ea89b4c00ffc7066e",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "linux",
+      "artifacts": [
+        "courier_canary_task-d975bb58.txt"
+      ],
+      "recovery_reason": "STALE_WORKER_EFFECT_AMBIGUOUS"
+    },
+    "task-da3aa793": {
+      "instruction": "Do windows task",
+      "target_agent": "windows",
+      "goal_id": "goal-ab619575",
+      "status": "HUMAN_REQUIRED",
+      "attempts": 1,
+      "task_id": "task-da3aa793",
+      "worker_id": "win1",
+      "attempt_id": "task-da3aa793:attempt:1",
+      "dispatch_id": "dispatch-e2351df63c6e49e095ca360fe07a1c57",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "windows",
+      "artifacts": [
+        "courier_canary_task-da3aa793.txt"
+      ],
+      "recovery_reason": "STALE_WORKER_EFFECT_AMBIGUOUS"
+    },
+    "task-69f1d5fa": {
+      "instruction": "Do linux task",
+      "target_agent": "linux",
+      "goal_id": "goal-492637af",
+      "status": "HUMAN_REQUIRED",
+      "attempts": 1,
+      "task_id": "task-69f1d5fa",
+      "worker_id": "lin1",
+      "attempt_id": "task-69f1d5fa:attempt:1",
+      "dispatch_id": "dispatch-ed2e6995be174103880d383fa2b9f451",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "linux",
+      "artifacts": [
+        "courier_canary_task-69f1d5fa.txt"
+      ],
+      "recovery_reason": "STALE_WORKER_EFFECT_AMBIGUOUS"
+    },
+    "task-1942914d": {
+      "instruction": "Do windows task",
+      "target_agent": "windows",
+      "goal_id": "goal-7d6d7dd6",
+      "status": "HUMAN_REQUIRED",
+      "attempts": 1,
+      "task_id": "task-1942914d",
+      "worker_id": "w1",
+      "attempt_id": "task-1942914d:attempt:1",
+      "dispatch_id": "dispatch-5d42373934674177ba2405e4c719364c",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "windows",
+      "artifacts": [
+        "courier_canary_task-1942914d.txt"
+      ],
+      "recovery_reason": "STALE_WORKER_EFFECT_AMBIGUOUS"
+    },
+    "task-24cd396d": {
+      "instruction": "Do windows task",
+      "target_agent": "windows",
+      "goal_id": "goal-81545b48",
+      "status": "HUMAN_REQUIRED",
+      "attempts": 1,
+      "task_id": "task-24cd396d",
+      "worker_id": "win1",
+      "attempt_id": "task-24cd396d:attempt:1",
+      "dispatch_id": "dispatch-c2d63cec0c604273b99fb558ba5071df",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "windows",
+      "artifacts": [
+        "courier_canary_task-24cd396d.txt"
+      ],
+      "recovery_reason": "STALE_WORKER_EFFECT_AMBIGUOUS"
+    },
+    "task-14dd6487": {
+      "instruction": "Do linux task",
+      "target_agent": "linux",
+      "goal_id": "goal-7d9bd214",
+      "status": "HUMAN_REQUIRED",
+      "attempts": 1,
+      "task_id": "task-14dd6487",
+      "worker_id": "lin1",
+      "attempt_id": "task-14dd6487:attempt:1",
+      "dispatch_id": "dispatch-808cc4ab74a14dbd8c36c7ff1b63f4e2",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "linux",
+      "artifacts": [
+        "courier_canary_task-14dd6487.txt"
+      ],
+      "recovery_reason": "STALE_WORKER_EFFECT_AMBIGUOUS"
+    },
+    "task-83399fbb": {
+      "instruction": "Do linux task",
+      "target_agent": "linux",
+      "goal_id": "goal-217acb76",
+      "status": "DISPATCHED",
+      "attempts": 1,
+      "task_id": "task-83399fbb",
+      "worker_id": "lin1",
+      "attempt_id": "task-83399fbb:attempt:1",
+      "dispatch_id": "dispatch-7ca0bc6c3aea424bb57f9178285c171d",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "linux",
+      "artifacts": [
+        "courier_canary_task-83399fbb.txt"
+      ]
+    }
+  },
+  "workers": {
+    "win1": {
+      "worker_id": "win1",
+      "platform": "windows",
+      "capabilities": [
+        "windows"
+      ],
+      "last_seen": 1790931954.0515914,
+      "available": true,
+      "current_task": null,
+      "cost_class": "unknown"
+    },
+    "lin1": {
+      "worker_id": "lin1",
+      "platform": "linux",
+      "capabilities": [
+        "linux"
+      ],
+      "last_seen": 1790931954.1946473,
+      "available": false,
+      "current_task": "task-83399fbb",
+      "cost_class": "unknown"
+    },
+    "w1": {
+      "available": false,
+      "capabilities": [
+        "windows",
+        "linux"
+      ],
+      "last_seen": 1790805600.4298189,
+      "current_task": null
+    }
+  }
+}

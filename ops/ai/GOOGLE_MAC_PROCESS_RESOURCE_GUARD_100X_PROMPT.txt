@@ -1,0 +1,68 @@
+COURIER MAC GOOGLE — PROCESS / RESOURCE GUARD 100X
+
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+REPO=/Users/user/Downloads/2026-courier
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+CONTINUE_BY_DEFAULT=YES
+
+BOOTSTRAP:
+cd /Users/user/Downloads/2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+DO NOT checkout/merge/rebase/reset/clean.
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+RULES:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+FINAL_CANDIDATE_WRITE=NO
+
+Same gate fingerprint is never paid for twice.
+If exact FINAL_SHA durability is required and not available:
+WAITING_FOR_DURABILITY -> claim another independent task.
+
+
+ROLE=MAC_PROCESS_RESOURCE_GUARD
+
+TASK:
+Close prep/evidence gaps around safe process ownership and bounded resources.
+
+CHECK:
+- exact owned PID/PGID semantics
+- no executable-name-only killing
+- foreign process protection
+- port ownership
+- one heavy job guard
+- bounded timeout
+- TERM/KILL owned group only
+- orphan detection
+- stale-owner recovery
+- CPU/RAM/swap admission inputs
+- no tight polling
+- cleanup proof
+
+OUTPUT:
+INVARIANT=
+CURRENT_EVIDENCE=
+GAP=
+SAFE_CHECK=
+PHYSICAL_ACTION_REQUIRED=YES|NO
+RETEST_TRIGGER=
+
+Do not kill processes.
+Do not start heavy jobs unless exact task authorizes them.
+
+START NOW.

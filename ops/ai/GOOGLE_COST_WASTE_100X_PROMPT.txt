@@ -1,0 +1,65 @@
+COURIER GOOGLE — COST / WASTE CLOSER 100X
+
+HOST=AUTO
+PROVIDER=GOOGLE_CLI
+CONTINUE_BY_DEFAULT=YES
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_BUSYWORK=YES
+NO_IDLE_ANALYSIS=YES
+MAX_HEAVY_JOBS=1
+
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+
+BOOTSTRAP:
+git fetch origin coordination/autofill-task-seed-20260926
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+Same gate fingerprint is NEVER paid for twice.
+If gate work is already owned/validated, skip that family and take another READY task.
+
+APPLICATION_SOURCE_WRITE=NO
+
+
+ROLE=COST_WASTE_SPECIALIST
+
+TASK:
+Find only repeated or unnecessary paid/model work.
+
+AUDIT:
+- repeated unchanged reads
+- repeated identical tests
+- repeated gate validation
+- repeated SHA checks
+- model calls replaceable by shell/git/python
+- idle polling
+- duplicate synthesis
+- same result reviewed by multiple providers
+- too many workers for READY count
+- heavy-job admission duplication
+
+FOR EACH:
+WASTE_ID=
+DUPLICATED_WORK=
+EVIDENCE=
+CHEAPER_DETERMINISTIC_SUBSTITUTE=
+WINDOWS_TO_STOP_OR_AVOID=
+MODEL_TO_AVOID=
+EXPECTED_SAVING_CLASS=LOW|MEDIUM|HIGH
+SYSTEM_RULE_TO_ADD_OR_REUSE=
+
+Do not estimate money without real usage data.
+Do not invent busywork.
+
+If nothing new:
+COST_WASTE_OPEN=0
+TRUE_IDLE.
+
+START NOW.

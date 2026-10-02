@@ -1,0 +1,55 @@
+{
+  "date": "2026-09-27",
+  "mode": "FINISH_PRODUCT_MINIMUM_HUMAN_RELAY",
+  "coordinator": "CHATGPT",
+  "owner_interaction_format": "WHERE -> WINDOW -> ACTION -> COUNT",
+  "locked_order": [
+    "FINAL_CANONICAL_CANDIDATE",
+    "REAL_TARGETED_TESTS",
+    "CODEX_FINAL_HIGH_REVIEW",
+    "EXACT_MAC_RUNTIME_BINDING",
+    "RUN_1_PHYSICAL_A_VERIFY_B",
+    "RUN_2_RESTART_NO_A_REPLAY",
+    "MINIMUM_HONEST_DUAL_SURFACE_UI",
+    "OWNER_UI_VALIDATION",
+    "FIRST_FRIEND_TRIAL",
+    "VERIFIED_GRAPH_ENGINE",
+    "BOUNDED_SCALE_AND_SOAK",
+    "PRODUCT_SHELL"
+  ],
+  "closed": [
+    "MUSE_STDOUT_CONTRACT"
+  ],
+  "source_ownership_before_final_candidate": {
+    "windows_antigravity": "ONLY_WRITER",
+    "google": "READ_ONLY",
+    "muse": "READ_ONLY",
+    "mac_antigravity": "PHYSICAL_RUNNER"
+  },
+  "fresh_pool": {
+    "windows": [
+      "W1 final writer",
+      "W2 read-only standby"
+    ],
+    "google": [
+      "G1 scope/base",
+      "G2 trusted hash",
+      "G3 duplicate/replay",
+      "G4 test evidence",
+      "G5 idle future writer"
+    ],
+    "muse": [
+      "M1 RUN1 evidence",
+      "M2 RUN2 evidence",
+      "M3 contradiction hunter",
+      "M4 Mac binding",
+      "others idle"
+    ],
+    "codex": "idle until final SHA + tests",
+    "opus": "idle until genuine judge decision"
+  },
+  "expensive_model_rule": "Use only when the result can change a gate/decision or validate complex verified graph/release logic.",
+  "after_run2_writer_policy": "Google/Muse may write bounded non-overlapping tasks; one writer per scope; one integrator.",
+  "no_busywork": true,
+  "desired_owner_state": "Courier works bounded tasks while owner uses computer normally; not yet proven."
+}

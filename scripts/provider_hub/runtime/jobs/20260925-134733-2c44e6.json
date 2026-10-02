@@ -1,0 +1,22 @@
+{
+  "account": "muse-account-1",
+  "created_at": 1790336853.6745353,
+  "effort": "medium",
+  "error": null,
+  "exit_code": 0,
+  "finished_at": 1790336866.7028913,
+  "job_id": "20260925-134733-2c44e6",
+  "process": {
+    "create_time": 1790336854.6636558,
+    "pid": 25676
+  },
+  "prompt": "Antworte nur mit: AUFTRAG-CMD OK",
+  "provider": "muse",
+  "slot_id": "MUSE-H1",
+  "started_at": 1790336854.6699736,
+  "state": "DONE",
+  "timeout_s": 900,
+  "updated_at": 1790336866.7028997,
+  "workdir": "C:\\Users\\lol\\2026-workspace\\2026-courier\\scripts\\provider_hub\\runtime\\work\\20260925-134733-2c44e6",
+  "write_scope": null
+}

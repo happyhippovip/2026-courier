@@ -1,0 +1,80 @@
+{
+  "goals": {
+    "goal-09e54df0": {
+      "goal_id": "goal-09e54df0",
+      "goal_text": "one bounded task",
+      "status": "ACTIVE",
+      "workflow_plan": [
+        {
+          "artifacts": [
+            "bounded.txt"
+          ],
+          "instruction": "create bounded.txt",
+          "target_agent": "mac",
+          "task_id": "task-1",
+          "goal_id": "goal-09e54df0",
+          "status": "RESULT_RECEIVED",
+          "attempts": 1,
+          "queued_at": 1790464592.5563009,
+          "worker_id": "MAC-01",
+          "attempt_id": "task-1:attempt:1",
+          "dispatch_id": "dispatch-9eba68e1b4454aaeb04dcb99e560d757",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac"
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "task-1": {
+      "artifacts": [
+        "bounded.txt"
+      ],
+      "instruction": "create bounded.txt",
+      "target_agent": "mac",
+      "task_id": "task-1",
+      "goal_id": "goal-09e54df0",
+      "status": "RESULT_RECEIVED",
+      "attempts": 1,
+      "queued_at": 1790464592.5563009,
+      "worker_id": "MAC-01",
+      "attempt_id": "task-1:attempt:1",
+      "dispatch_id": "dispatch-9eba68e1b4454aaeb04dcb99e560d757",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac",
+      "result": {
+        "run_id": "pid-123",
+        "task_id": "task-1",
+        "status": "SUCCESS",
+        "worker_id": "MAC-01",
+        "attempt_id": "task-1:attempt:1",
+        "goal_id": "goal-09e54df0",
+        "artifacts": [
+          {
+            "path": "bounded.txt",
+            "sha256": "b13408bef4e47a6e9649e53a2c1251e8f27c086f0b9fab29726a26192e400864"
+          }
+        ],
+        "result_id": "result-1",
+        "dispatch_id": "dispatch-9eba68e1b4454aaeb04dcb99e560d757",
+        "run_attempt": "1"
+      }
+    }
+  },
+  "workers": {
+    "MAC-01": {
+      "worker_id": "MAC-01",
+      "platform": "mac",
+      "capabilities": [
+        "macos"
+      ],
+      "last_seen": 1790464592.5562925,
+      "available": true,
+      "current_task": null,
+      "cost_class": "unknown"
+    }
+  }
+}

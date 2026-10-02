@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools==80.9.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "courier"
+version = "1.0.0.dev0"
+description = "Courier: local dispatcher -> worker -> verifier automation with an append-only event journal and desktop hub."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+# Runtime dependencies are pinned exactly for reproducible builds and the
+# Windows executable. Change pins only through the L1 integration owner.
+dependencies = [
+    "flask==3.1.3",
+    "requests==2.34.2",
+    "psutil==7.2.2",
+    "pywebview==6.2.1",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest==9.1.1",
+    "pytest-timeout==2.4.0",
+    "PyYAML==6.0.3",
+]
+build = [
+    "pyinstaller==6.22.3",
+]
+
+[tool.setuptools.packages.find]
+# Only the v1 product packages are installable. Legacy folders (scripts/,
+# server/, tests/) are used in place from the repository root.
+where = ["."]
+include = [
+    "courier_core*",
+    "courier_worker*",
+    "courier_app*",
+    "courier_overlay*",
+    "adapters*",
+    "desktop*",
+    "courier_hub*",
+]
+
+[tool.setuptools.package-data]
+courier_hub = ["static/*"]
+
+# pytest configuration lives in pytest.ini (single source; pytest ignores this
+# file's [tool.pytest.ini_options] whenever pytest.ini exists).

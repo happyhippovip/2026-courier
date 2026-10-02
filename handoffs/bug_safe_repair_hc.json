@@ -1,0 +1,6 @@
+{
+  "script_location": "scripts/safe_repair.py",
+  "bug_description": "Safe repair script incorrectly looks for 'scripts/health_check.py' which does not exist, causing it to silently skip the health check. It should be looking for 'scripts/product_health_check.py'.",
+  "evidence_snippet": "        if os.path.exists('scripts/health_check.py'):\n            subprocess.run([sys.executable, 'scripts/health_check.py'], check=True, timeout=120)",
+  "recommended_remediation": "Change 'scripts/health_check.py' to 'scripts/product_health_check.py' in run_health_check() in safe_repair.py."
+}

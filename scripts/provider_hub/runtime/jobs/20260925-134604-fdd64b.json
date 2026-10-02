@@ -1,0 +1,22 @@
+{
+  "account": "google-account-1",
+  "created_at": 1790336764.128532,
+  "effort": "low",
+  "error": null,
+  "exit_code": 0,
+  "finished_at": 1790336774.208255,
+  "job_id": "20260925-134604-fdd64b",
+  "process": {
+    "create_time": 1790336765.0903094,
+    "pid": 25584
+  },
+  "prompt": "Lege im aktuellen Ordner die Datei hub_google.txt mit genau dem Inhalt GOOGLE-WRITE-OK an. Sonst nichts.",
+  "provider": "google",
+  "slot_id": "GOOGLE-02",
+  "started_at": 1790336765.0967917,
+  "state": "DONE",
+  "timeout_s": 300,
+  "updated_at": 1790336774.208262,
+  "workdir": "C:\\Users\\lol\\AppData\\Local\\Temp\\claude\\C--Users-lol-2026-workspace-2026-courier\\5ea3208d-72b6-4048-a33e-d29acf5a22b6\\scratchpad\\hubproof\\g_scope",
+  "write_scope": "C:\\Users\\lol\\AppData\\Local\\Temp\\claude\\C--Users-lol-2026-workspace-2026-courier\\5ea3208d-72b6-4048-a33e-d29acf5a22b6\\scratchpad\\hubproof\\g_scope"
+}

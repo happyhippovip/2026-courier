@@ -1433,10 +1433,10 @@ export class LivingHQController {
     try {
       this.btnDispatchIdea.disabled = true;
       this.btnDispatchIdea.textContent = "SYNCING CONTEXT...";
-      const res = await fetch("/api/human-dispatch", {
+      const res = await fetch("/goals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idea, mode: "AUTONOMOUS" }),
+        body: JSON.stringify({ goal_text: idea }),
       });
       if (res.ok) {
         this.humanIdeaInput.value = "";

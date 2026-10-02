@@ -1,0 +1,96 @@
+COURIER AUTO ROUTER — TELL ME WHAT TO RUN WHERE
+
+MODE=ROUTING_ONLY
+NO_SOURCE_WRITES=YES
+NO_MODEL_BUSYWORK=YES
+
+REPO=AUTO_RESOLVE
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+
+BOOTSTRAP:
+1. Resolve repo root.
+2. git fetch origin coordination/autofill-task-seed-20260926
+3. Read ONLY:
+   - ops/ai/WALL_SYSTEM.md
+   - ops/ai/WALL_QUEUE_CURRENT.md
+   - ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+   - ops/ai/GATE_STATE_CURRENT.md
+   - ops/ai/MODEL_HOST_ROUTER_2026-09-28.md
+4. Inspect only compact durable claims/results needed to count READY/unclaimed work.
+
+TASK:
+Produce the current optimal model/host/window plan.
+
+Use the cheapest capable model first.
+Do not assign duplicate gate validation.
+Do not assign more windows than genuine unclaimed READY work.
+Do not assign more than one heavy job per host.
+Do not recommend Codex unless exact current PRE_CODEX fingerprint is durably READY.
+Do not recommend Opus for routine deterministic work.
+Do not recommend Muse where Google/local deterministic work is enough unless independent QA adds value.
+Do not recommend any worker family if its current fingerprint/result is already complete.
+
+OUTPUT EXACTLY:
+
+ROUTING_STATE=
+CURRENT_PHASE=
+GATE_STATE=
+TOP_BLOCKER=
+
+WINDOW_PLAN:
+1.
+HOST=
+PROVIDER=
+ROLE=
+PROMPT_PATH=
+COUNT=
+HEAVY_JOB_COUNT=
+WHY=
+START_CONDITION=
+STOP_CONDITION=
+
+2.
+...
+
+DO_NOT_START=
+NEXT_HUMAN_ACTION=
+ESTIMATED_DUPLICATION_RISK=
+
+Also include an operator-friendly section:
+
+🪟 WINDOWS
+WAS=
+WIE OFT=
+WELCHES FENSTER=
+PROMPT_PATH=
+
+🍎 MAC
+WAS=
+WIE OFT=
+WELCHES FENSTER=
+PROMPT_PATH=
+
+🟨 GOOGLE
+WAS=
+WIE OFT=
+
+🟣 MUSE
+WAS=
+WIE OFT=
+
+🧿 OPUS
+WAS=
+WIE OFT=
+
+🧠 CODEX
+WAS=
+WIE OFT=
+
+If a provider should not be used now, say:
+WAS=NICHT STARTEN
+WIE OFT=0
+
+This router does NOT execute the work.
+It tells the operator exactly where to place each worker and how many.
+
+START NOW.

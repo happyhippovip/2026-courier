@@ -1,0 +1,30 @@
+{
+  "goals": {
+    "goal-98505382": {
+      "goal_id": "goal-98505382",
+      "goal_text": "build and verify one bounded artifact",
+      "status": "ACTIVE",
+      "workflow_plan": [
+        {
+          "task_id": "planned-a",
+          "goal_id": "goal-98505382",
+          "instruction": "create artifact",
+          "target_agent": "github",
+          "status": "QUEUED",
+          "attempts": 0
+        },
+        {
+          "task_id": "planned-b",
+          "goal_id": "goal-98505382",
+          "instruction": "inspect artifact",
+          "target_agent": "mac",
+          "status": "QUEUED",
+          "attempts": 0
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {},
+  "workers": {}
+}

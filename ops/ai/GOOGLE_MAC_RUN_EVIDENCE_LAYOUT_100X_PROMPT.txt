@@ -1,0 +1,60 @@
+COURIER GOOGLE MAC — RUN EVIDENCE LAYOUT 100X
+
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+CONTINUE_BY_DEFAULT=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+Unchanged gate/evidence fingerprint = reuse.
+PRE_CODEX DURABILITY_PENDING gets at most one persistence owner.
+
+
+ROLE=RUN_EVIDENCE_LAYOUT_SPECIALIST
+MODE=PREP_ONLY
+
+TASK:
+Prepare the smallest decisive evidence layout for physical RUN_1/RUN_2.
+
+CAPTURE:
+- A execution count
+- Result A identity
+- expected hash provenance
+- server-byte hash
+- verification
+- reconciliation
+- B READY/dispatch/start
+- B completion
+- HUMAN_RELAY_COUNT
+- FAILED execution detection
+- restart marker
+- A no-reexecution after restart
+- source/build/runtime/config fingerprints
+
+OUTPUT:
+EVIDENCE_FIELD=
+SOURCE=
+CAPTURE_POINT=
+FORMAT=
+FAIL_CONDITION=
+CANDIDATE_SENSITIVE=
+READY=
+
+No physical run.
+No source edits.
+
+START NOW.

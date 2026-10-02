@@ -1,0 +1,13 @@
+﻿{
+    "TARGETED_TEST":  "Ensure no other system components rely on these scripts.",
+    "REPRO_STEPS":  "1. Read scripts/windows_crash_recovery.py. 2. Observe it has \u0027Process kill logic omitted for simulation\u0027 and a __main__ block that writes a mock \u0027worker_state.json\u0027. 3. Read scripts/windows_repair_mode.py. 4. Observe it has \u0027# Calls the logic from Prompt 46\u0027. 5. Grep for worker_state.json creation in daemon.py and see it is never created.",
+    "CONFLICTING_OWNER":  "NONE",
+    "REPRODUCIBLE":  "YES",
+    "SEVERITY":  "MEDIUM",
+    "ROOT_CAUSE":  "These scripts were committed as LLM-generated mock-ups or simulations and never integrated with the actual windows_worker daemon.py, which does not produce worker_state.json.",
+    "AFFECTED_FILES":  "scripts/windows_repair_mode.py, scripts/windows_crash_recovery.py",
+    "BUG":  "windows_repair_mode.py and windows_crash_recovery.py contain mock/pseudo-code and rely on non-existent worker_state.json",
+    "RAW_EVIDENCE":  "windows_repair_mode.py: # Calls the logic from Prompt 46. windows_crash_recovery.py: # Process kill logic omitted for simulation. Both files look for worker_state.json which daemon.py does not generate.",
+    "WRITE_SCOPE":  "scripts/windows_repair_mode.py, scripts/windows_crash_recovery.py",
+    "MINIMAL_FIX":  "Delete both scripts, or fully implement them against the actual lockfile and process management logic used by daemon.py (which uses tempfile.gettempdir() for locks)."
+}

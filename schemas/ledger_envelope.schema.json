@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Universal Ledger Envelope",
+  "type": "object",
+  "required": [
+    "WORK_ID", "GOAL", "RESOURCE_CLASS", "DEPENDENCIES", 
+    "EXPECTED_OUTPUT", "ACCEPTANCE_TEST", "STATE"
+  ],
+  "properties": {
+    "WORK_ID": { "type": "string" },
+    "GOAL": { "type": "string" },
+    "RESOURCE_CLASS": { "enum": ["LIGHT", "MEDIUM", "HEAVY"] },
+    "DEPENDENCIES": { "type": "array", "items": { "type": "string" } },
+    "EXPECTED_OUTPUT": { "type": "string" },
+    "ACCEPTANCE_TEST": { "type": "string" },
+    "STATE": { "enum": ["UNCLAIMED", "CLAIMED", "ACTIVE", "BLOCK", "FAIL", "COMPLETE", "INVALIDATED"] },
+    "CLAIM_ID": { "type": "string" },
+    "CLAIMED_BY": { "type": "string" },
+    "PROVIDER": { "enum": ["MUSE", "CHATGPT", "GOOGLE", "CLAUDE", "UNKNOWN"] },
+    "HOST_ID": { "type": "string" },
+    "LEASE_EXPIRY": { "type": "number" },
+    "RUN_ID": { "type": "string" },
+    "OUTPUT_REFS": { "type": "array", "items": { "type": "string" } },
+    "EVIDENCE_REFS": { "type": "array", "items": { "type": "string" } },
+    "RESULT_FINGERPRINT": { "type": "string" },
+    "NEXT_TRIGGER": { "type": "string" }
+  }
+}

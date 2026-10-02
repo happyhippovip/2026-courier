@@ -276,12 +276,12 @@ class AutonomousLevel6Loop:
                     "task_id": f"repair-{task_id}",
                     "instruction": f"Fix defects reported in {task_id}",
                     "allowed_scope": payload.get("target_file", []),
-                    "target_agent": res_data.get("source", "antigravity"),
+                    "target_agent": result_data.get("source", "antigravity"),
                 },
                 "reason": "QA verification failed; repair task dispatched.",
                 "created_at": now_iso,
             }
-        elif verdict == "PASS":
+        elif verdict in ("PASS", "ACCEPTED"):
             # Determine if there is a next task in the workflow plan
             next_task_info = None
             if workflow_plan and (round_index + 1) < len(workflow_plan):

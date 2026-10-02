@@ -1,47 +1,41 @@
-# External Linux deployment
+# Linux deployment (server + verifier + GitHub dispatcher + watchdog)
 
-This is a narrow deployment wrapper around Courier's existing autonomous
-supervisor. It stores the repository's `events/` directory in
-`/var/lib/courier/events`, so queue records, task status, locks, and reports
-survive service and host restarts. The checkout in `/opt/courier` is treated
-as replaceable program code.
+`deploy/courier.service` runs `deploy/run-supervisor.sh` from `/opt/courier`.
+The supervisor starts `scripts/courier_verifier.py`,
+`scripts/courier_github_dispatcher.py`, `scripts/courier_watchdog.py` and
+`gunicorn -w 1 --threads 4 -b 0.0.0.0:8080 server.app:app`, and refuses to
+start unless `COURIER_API_KEY` and `COURIER_VERIFIER_API_KEY` are set and
+differ.
 
-On a fresh Linux host with `git`, `python3`, and systemd:
+On a fresh Linux host with `git`, `python3` and systemd:
 
 ```sh
 sudo git clone --depth=1 https://github.com/happyhippovip/2026-courier.git /opt/courier
 cd /opt/courier
-sudo deploy/install.sh
-sudoedit /etc/courier/courier.env
-sudoedit /etc/courier/courier.secrets
-sudo systemctl start courier
+sudo deploy/install.sh            # venv + flask/gunicorn/requests, installs and enables the unit
+sudoedit /opt/courier/deploy/.env # set both keys (created from env.example, mode 600)
+sudo systemctl restart courier
 ```
 
-`install.sh` is also safe to re-run to shallow-fetch the configured
-`COURIER_BRANCH` (default `main`) and reinstall the unit. It creates the
-unprivileged `courier` account, initializes state, and replaces the checkout's
-`events` path with a symlink to durable state, preserving the checkout's
-tracked event structure on first install. Configure workers and providers in
-the two `/etc/courier` files; do not add credentials to the checkout.
-`install.sh` enables but intentionally does not start the service, preventing
-an incomplete configuration from creating a restart loop.
+`install.sh` never overwrites an existing `deploy/.env` and does not start the
+service, because placeholder keys make the supervisor fail closed and systemd
+would restart-loop. `deploy/.env` is git-ignored.
 
-The service starts and polls an empty durable queue without contacting Google,
-ChatGPT, Codex, Windows, or macOS. Before each poll, the wrapper holds queued
-work fail-closed unless its `target_agent` is explicitly listed in
-`COURIER_ALLOWED_TARGET_AGENTS`; tasks with no `target_agent` are never passed
-to the supervisor's internal default. Set that allow-list only for workers
-actually provisioned on this host. Any existing GitHub-hosted bounded work
-remains configured by its own task/provider environment; this service does not
-create a broker or network dependency.
-
-Courier's logs use a dedicated systemd journal namespace bounded to 200 MiB
-with 100 MiB host free space reserved. Read them with:
+Health and status (status needs the worker key in the environment):
 
 ```sh
-sudo journalctl --namespace=courier -u courier.service -f
+deploy/courier-health.sh
+COURIER_API_KEY=... deploy/courier-status.sh
 ```
 
-Supervisor reports older than `COURIER_REPORT_RETENTION_DAYS` are removed
-after a successful polling pass. Durable queue/event records are deliberately
-not pruned by this deployment wrapper.
+Workers run on their own hosts and point `COURIER_SERVER` at this server:
+
+- macOS: `scripts/mac_worker/setup_keychain.sh`, then `scripts/mac_worker/install.sh` (LaunchAgent).
+- Windows: `scripts/windows_worker/bootstrap.ps1` (writes `config.json`, installs a Scheduled Task).
+- GitHub: tasks are dispatched by `courier_github_dispatcher.py` to `.github/workflows/courier_worker.yml`.
+
+On macOS the whole runtime can instead run under launchd via
+`deploy/install_mac_runtime.sh` (same `run-supervisor.sh`).
+
+`deploy/journald-courier.conf` and `deploy/install-github-runner.sh` are
+optional host helpers and are not used by `install.sh`.

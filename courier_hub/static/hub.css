@@ -1,0 +1,51 @@
+/* Courier Desktop Hub — behaviour-first styling. Dark glass with gold accents
+   as a neutral placeholder for the approved visual world; every state is
+   carried by text and shape, never by colour or motion alone. */
+:root {
+  --bg: #0f1218; --panel: rgba(255,255,255,0.05); --line: rgba(255,255,255,0.12);
+  --ink: #eef0f4; --quiet: #a7adba; --gold: #d8b46a;
+  --verified: #6fbf8e; --needs: #e3a43c; --stopped: #9aa1ad; --failed: #d77a6b;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+.skip { position: absolute; left: -999px; } .skip:focus { left: 16px; top: 8px; background: var(--gold); color: #111; padding: 4px 8px; }
+.top { display: flex; align-items: center; gap: 16px; padding: 14px 24px; border-bottom: 1px solid var(--line); }
+.top h1 { margin: 0; font-size: 18px; letter-spacing: 0.08em; color: var(--gold); }
+#status { margin: 0; flex: 1; color: var(--quiet); } #status[data-tone="warn"] { color: var(--needs); }
+button { font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+button:hover:not([disabled]) { border-color: var(--gold); }
+button:focus-visible, a:focus-visible, main:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+button[disabled] { opacity: 0.45; cursor: not-allowed; }
+button.link { background: none; border: none; padding: 0 6px; color: var(--gold); text-decoration: underline; }
+button.danger { color: var(--failed); }
+button.primary { border-color: var(--gold); }
+#toast { margin: 12px 24px 0; padding: 8px 12px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line); }
+#toast[data-tone="warn"] { border-color: var(--needs); }
+.piles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; padding: 20px 24px; }
+@media (max-width: 900px) { .piles { grid-template-columns: 1fr; } }
+.pile h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--quiet); margin: 0 0 12px; }
+.pile .count { display: inline-block; min-width: 20px; padding: 0 6px; border-radius: 10px; background: var(--needs); color: #111; text-align: center; }
+.empty { color: var(--quiet); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; backdrop-filter: blur(6px); }
+.card-title { font-size: 15px; margin: 0 0 6px; display: flex; gap: 8px; align-items: center; }
+.card p { margin: 4px 0; } .meta, .when, .note, .quiet { color: var(--quiet); font-size: 13px; }
+.card-needs { border-color: var(--needs); }
+.card-needs .choices { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 4px; }
+.explains { margin: 6px 0; padding-left: 18px; color: var(--quiet); font-size: 13px; }
+.consequence { color: var(--needs); }
+.pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); display: inline-block; animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.3; } }
+@media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
+.mark { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; align-items: center; justify-content: center; font-size: 13px; border: 1.5px solid currentColor; }
+.outcome-verified .mark { color: var(--verified); }
+.outcome-human_confirmed .mark { color: var(--gold); border-style: dashed; }
+.outcome-outcome_uncertain .mark { color: var(--needs); border-radius: 4px; }
+.outcome-stopped .mark { color: var(--stopped); border-radius: 4px; }
+.outcome-could_not_complete .mark { color: var(--failed); border-style: dotted; }
+.detail { position: fixed; right: 0; top: 0; bottom: 0; width: min(560px, 100%); overflow: auto; background: #151a22; border-left: 1px solid var(--line); padding: 16px 20px; }
+.detail-head { display: flex; justify-content: space-between; align-items: center; }
+.receipt dt { color: var(--gold); font-size: 13px; margin-top: 12px; } .receipt dd { margin: 4px 0 0; }
+.receipt h4 { margin: 6px 0 2px; font-size: 13px; color: var(--quiet); }
+.support pre { white-space: pre-wrap; font-size: 12px; color: var(--quiet); }
+dialog { background: #151a22; color: var(--ink); border: 1px solid var(--gold); border-radius: 12px; max-width: 460px; }
+.dialog-actions { display: flex; gap: 8px; justify-content: flex-end; }
