@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Courier</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/hub.css">
+<script type="module" src="/hub.js"></script>
+</head>
+<body>
+<a class="skip" href="#piles">Skip to your items</a>
+<header class="top">
+  <h1>Courier</h1>
+  <p id="status" role="status" aria-live="polite">Loading…</p>
+  <button type="button" id="refresh" title="Refresh (R)">Refresh</button>
+</header>
+<p id="toast" role="alert" hidden></p>
+<main id="piles" class="piles" tabindex="-1"></main>
+<aside id="detail" class="detail" aria-labelledby="detail-heading" hidden>
+  <div class="detail-head">
+    <span id="detail-heading" class="detail-heading">Receipt</span>
+    <button type="button" id="detail-close" aria-label="Close receipt (Esc)">Close</button>
+  </div>
+  <div id="detail-body"></div>
+</aside>
+<dialog id="confirm" aria-labelledby="confirm-heading">
+  <form method="dialog">
+    <h2 id="confirm-heading">Try once more?</h2>
+    <p id="confirm-text"></p>
+    <div class="dialog-actions">
+      <button value="no" autofocus>Go back</button>
+      <button value="yes" class="primary">Try once more</button>
+    </div>
+  </form>
+</dialog>
+</body>
+</html>

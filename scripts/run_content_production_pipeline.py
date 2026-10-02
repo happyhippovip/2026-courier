@@ -32,9 +32,9 @@ from pathlib import Path
 SCRIPTS_DIR = Path(__file__).resolve().parent
 COURIER_DIR = SCRIPTS_DIR.parent
 
-DEFAULT_CHANNELS_CONFIG = COURIER_DIR / "config/social_channels.json"
-DEFAULT_WORKFLOWS_CONFIG = COURIER_DIR / "config/content_workflows.json"
-DEFAULT_LOCAL_TOOLS_CONFIG = COURIER_DIR / "config/local_tools.json"
+DEFAULT_CHANNELS_CONFIG = COURIER_DIR / "courier_core/config/social_channels.json"
+DEFAULT_WORKFLOWS_CONFIG = COURIER_DIR / "courier_core/config/content_workflows.json"
+DEFAULT_LOCAL_TOOLS_CONFIG = COURIER_DIR / "courier_core/config/local_tools.json"
 DEFAULT_RUNTIME_DIR = COURIER_DIR / "runtime/content"
 
 SECRET_PATTERNS = [
