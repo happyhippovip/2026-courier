@@ -127,6 +127,42 @@ author of this record (a cloud session without access to the machine).
   cannot be compared against it. This is itself a finding: recovery without
   capture destroys the evidence needed to prevent recurrence.
 
+### Task Manager evidence after the recurrence (photos, 2026-10-02 23:42 local)
+
+Task Manager opened and responded, so the shell was not hard-frozen at capture time.
+
+| Metric | Value |
+|---|---|
+| CPU | 9–17 % |
+| RAM (Arbeitsspeicher) | 80–81 % |
+| Disk | 0–1 % |
+| Network | 0 % |
+| GPU | 0 % |
+| Background processes | 79 |
+
+Largest app groups (RAM):
+
+| App | Processes | CPU | RAM |
+|---|---|---|---|
+| Antigravity IDE | 13 | 1.3 % | 2,758 MB |
+| Microsoft Edge | 20 | 0.4 % | 1,507 MB |
+| ChatGPT | 22 | 0.3 % | 910 MB |
+| Claude | 16 | 2.1 % | 857 MB |
+| Windows Terminal Host | 3 | 0.1 % | 68 MB |
+| Command Prompt windows | 4 × 2 | 0 % | < 1 MB |
+
+Not captured: total installed RAM, committed memory/pagefile, handle counts,
+per-process command lines, Windows event log.
+
+Reading of this evidence:
+- **Ruled out at capture time:** CPU saturation, disk pressure, GPU load.
+- **Present:** sustained memory pressure (~81 %), ~6 GB in four Electron-based
+  apps (Antigravity IDE, Edge, ChatGPT, Claude) with 71 processes between them.
+- **Hypothesis (LIKELY, not proven):** memory/commit pressure from many
+  concurrent Electron surfaces makes the shell intermittently unresponsive;
+  a "recovery" that only frees a little memory recurs as soon as the same
+  surfaces grow back. Needs committed-memory and pagefile data to confirm.
+
 ### Root cause confidence
 
 - **LOW / NOT PROVEN.** The only hard signal is the PowerShell Editor Services
