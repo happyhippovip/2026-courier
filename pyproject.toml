@@ -38,7 +38,11 @@ include = [
     "courier_overlay*",
     "adapters*",
     "desktop*",
+    "courier_hub*",
 ]
+
+[tool.setuptools.package-data]
+courier_hub = ["static/*"]
 
 # pytest configuration lives in pytest.ini (single source; pytest ignores this
 # file's [tool.pytest.ini_options] whenever pytest.ini exists).
