@@ -51,6 +51,7 @@ def wait_until(predicate, timeout, what, interval=0.2):
         if last:
             return last
         time.sleep(interval)
+    print(f"\nDEBUG TIMEOUT: what={what!r}, last={last!r}")
     raise AssertionError(f"timed out after {timeout}s waiting for {what}; last={last!r}")
 
 
