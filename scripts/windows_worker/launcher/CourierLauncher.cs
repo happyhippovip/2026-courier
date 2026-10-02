@@ -153,7 +153,7 @@ namespace CourierLauncher
                 Directory.CreateDirectory(logDir);
             }
 
-            int cp = 8080; // Controller port (server.app defaults to 8080)
+            int cp = 8080; // Controller port
             int hp = 8081; // Hub port
             string controllerUrl = isRemoteMode ? externalServerUrl : string.Format("http://127.0.0.1:{0}", cp);
             string hubUrl = string.Format("http://127.0.0.1:{0}/", hp);
@@ -213,19 +213,6 @@ namespace CourierLauncher
                     CreateNoWindow = true
                 };
 
-                // Inject PORT for dashboard.server if it's the hub
-                if (module == "dashboard.server")
-                {
-                    psi.EnvironmentVariables["PORT"] = hp.ToString();
-                }
-                // Inject state file and keys for server.app
-                if (module == "server.app")
-                {
-                    psi.EnvironmentVariables["COURIER_STATE_FILE"] = Path.Combine(homeDir, "central_state.json");
-                    if (!string.IsNullOrEmpty(apiKey)) psi.EnvironmentVariables["COURIER_API_KEY"] = apiKey;
-                    if (!string.IsNullOrEmpty(verifierKey)) psi.EnvironmentVariables["COURIER_VERIFIER_API_KEY"] = verifierKey;
-                }
-
                 Process proc = new Process();
                 proc.StartInfo = psi;
 
@@ -262,19 +249,21 @@ namespace CourierLauncher
             if (!isRemoteMode)
             {
                 // 1. Start Controller (Local Mode Only)
-                controllerProc = StartPythonProcess("server.app", "", "controller.log");
+                string controllerArgs = string.Format("--home \"{0}\" --port {1}", homeDir, cp);
+                controllerProc = StartPythonProcess("courier_core.serve", controllerArgs, "controller.log");
 
                 // Wait for health check
                 bool healthy = false;
                 for (int i = 0; i < 30; i++)
                 {
-                    try { if (controllerProc != null && controllerProc.HasExited) { healthy = false; break; } var request = System.Net.WebRequest.Create(string.Format("{0}/health", controllerUrl));
+                    try { if (controllerProc != null && controllerProc.HasExited) { healthy = false; break; } var request = System.Net.WebRequest.Create(string.Format("{0}/v1/health", controllerUrl));
                         request.Timeout = 2000;
+                        request.Headers.Add("Authorization", "Bearer " + apiKey);
                         using (var response = request.GetResponse())
                         using (var reader = new System.IO.StreamReader(response.GetResponseStream()))
                         {
                             string content = reader.ReadToEnd();
-                            if (content.Contains("healthy") && content.Contains("courier-controller"))
+                            if (content.Contains("\"mode\""))
                             {
                                 healthy = true;
                                 break;
@@ -337,7 +326,8 @@ namespace CourierLauncher
             if (!isRemoteMode)
             {
                 // 3. Start Hub with backoff (Local Mode Only)
-                MonitorProcess(() => StartPythonProcess("dashboard.server", "", "hub.log"), "Hub");
+                string hubArgs = string.Format("--home \"{0}\" --controller \"{1}\" --port {2}", homeDir, controllerUrl, hp);
+                MonitorProcess(() => StartPythonProcess("courier_hub", hubArgs, "hub.log"), "Hub");
 
                 // 4. Open Browser
                 try {
@@ -371,7 +361,8 @@ namespace CourierLauncher
                     
                     try
                     {
-                        controllerProc = StartPythonProcess("server.app", "", "controller.log");
+                        string controllerArgs = string.Format("--home \"{0}\" --port {1}", homeDir, cp);
+                        controllerProc = StartPythonProcess("courier_core.serve", controllerArgs, "controller.log");
                         controllerStartTime = DateTime.UtcNow;
                     }
                     catch (Exception ex)
