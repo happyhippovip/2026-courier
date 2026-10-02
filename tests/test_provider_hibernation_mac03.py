@@ -149,7 +149,9 @@ def test_authorized_fallback_preserves_identity():
     ]
     task = TaskContext("t-prov", effect_key="eff-1", attempt=2, dispatch_id="d-1")
     sched.handle_wake("wake-1", [task])
-    assert "t-prov" in sched.completed_tasks
+    # Handoff created but task NOT complete
+    assert "t-prov" not in sched.completed_tasks
+    assert any(h[1] == "t-prov" for h in sched.pending_handoffs)
 
     handoff = sched.router.create_compact_handoff(
         task, "muse", Provider(id="gemini", is_authorized=True, capabilities=["completion"]))
@@ -260,12 +262,16 @@ def test_single_bounded_recovery_probe_after_reset():
 
     tasks = [TaskContext(f"t-{i}") for i in range(5)]
     sched.handle_wake("wake-1", tasks)
-    # Exactly one bounded recovery probe; after recovery the rest is normal
-    # traffic and every non-duplicate unit resumes exactly once.
+    # Exactly one bounded recovery probe; after re-arm the other 4 execute normally.
+    # The probe task itself is NOT completed (probe != execution).
     assert len(claims) == 1
     assert len(sched.provider_calls) == 5
-    assert sorted(sched.completed_tasks) == [f"t-{i}" for i in range(5)]
+    assert sorted(sched.completed_tasks) == [f"t-{i}" for i in range(1, 5)]
     assert sched.breaker.get_circuit("muse", "completion").state == ProviderState.AVAILABLE
+    
+    # Second wake: t-0 now executes normally
+    sched.handle_wake("wake-2", tasks)
+    assert sorted(sched.completed_tasks) == [f"t-{i}" for i in range(5)]
 
 
 def test_failed_probe_reopens_circuit_without_completion():

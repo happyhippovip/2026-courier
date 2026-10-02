@@ -2,7 +2,7 @@ import datetime
 import enum
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple
-from scripts.provider_circuit import ProviderCircuitBreaker, ProviderState
+from scripts.provider_circuit import ProviderCircuitBreaker, ProviderState, CircuitState
 from scripts.automation_wake_coalescing import AutomationContext, AutoState, Wakeup
 from scripts.provider_hibernation import LaneHibernator, should_hibernate
 
@@ -84,6 +84,7 @@ class CourierScheduler:
         self.planner = LocalReadyPlanner()
         self.automation_ctx = AutomationContext()
         self.completed_tasks = []
+        self.pending_handoffs: List[Tuple[str, str, dict]] = []
         # Every real provider attempt is logged here as (provider_id, task_id).
         # Deterministic fake-provider tests assert on this log instead of
         # touching the network. A recovery probe counts as one attempt.
@@ -111,7 +112,7 @@ class CourierScheduler:
                 elif state == WorkState.WAITING_PROVIDER:
                     pass
         except OSError as e:
-            if e.errno == 24: # EMFILE
+            if e.errno in (24, 23): # EMFILE or ENFILE
                 self.automation_ctx.resource_exhausted()
         finally:
             self.automation_ctx.finish_execution()
@@ -138,7 +139,10 @@ class CourierScheduler:
             fallback = self.router.find_fallback(primary_provider, task)
             if fallback:
                 handoff = self.router.create_compact_handoff(task, primary_provider, fallback)
-                self.completed_tasks.append(task.task_id)
+                self.pending_handoffs.append((fallback.id, task.task_id, handoff))
+                # HANDOFF CREATED != TASK COMPLETE.
+                # Task is NOT added to completed_tasks until fallback
+                # actually executes and produces accepted evidence.
             else:
                 pass # WAIT
         else:
@@ -152,18 +156,23 @@ class CourierScheduler:
                     ok, code, message = self.recovery_probe()
                     if ok:
                         self.breaker.record_success(primary_provider, task.required_capability)
-                        self.completed_tasks.append(task.task_id)
+                        # RECOVERY PROBE SUCCESS != TASK COMPLETE.
+                        # The probe re-arms the circuit; the task must still
+                        # be dispatched on a subsequent wake cycle.
                     else:
                         self.breaker.record_failure(
                             primary_provider, task.required_capability, code, message
                         )
-                        # The episode's reset is consumed; without fresh reset
-                        # metadata the circuit holds OPEN instead of probing
-                        # continuously.
-                        circuit.reset_time = None
+                        # Bounded re-arm: ensure reset_time is in the future
+                        # to prevent immediate re-probing. A consumed or missing
+                        # reset leaves the circuit permanently wedged otherwise.
+                        now = datetime.datetime.now(datetime.timezone.utc)
+                        rt = CircuitState._as_aware(circuit.reset_time)
+                        if rt is None or rt <= now:
+                            circuit.reset_time = now + datetime.timedelta(seconds=60)
                     return
                 self.breaker.record_success(primary_provider, task.required_capability)
-                self.completed_tasks.append(task.task_id)
+                # Probe without a custom probe function re-arms only.
                 return
             if hasattr(self, "simulate_error") and self.simulate_error_provider == primary_provider:
                 self.provider_calls.append((primary_provider, task.task_id))
@@ -178,7 +187,8 @@ class CourierScheduler:
                 fallback = self.router.find_fallback(primary_provider, task)
                 if fallback:
                     handoff = self.router.create_compact_handoff(task, primary_provider, fallback)
-                    self.completed_tasks.append(task.task_id)
+                    self.pending_handoffs.append((fallback.id, task.task_id, handoff))
+                    # Error+handoff: task is NOT complete until fallback executes.
                 return
 
             self.provider_calls.append((primary_provider, task.task_id))

@@ -83,8 +83,9 @@ def test_4_authorized_fallback_exists():
     t_provider = TaskContext("t-prov")
     scheduler.handle_wake("wake-1", [t_provider])
     
-    # It should fallback to gemini and complete
-    assert "t-prov" in scheduler.completed_tasks
+    # Handoff created, but task is NOT complete until fallback executes
+    assert "t-prov" not in scheduler.completed_tasks
+    assert any(h[1] == "t-prov" for h in scheduler.pending_handoffs)
 
 def test_5_no_authorized_fallback_exists():
     scheduler = CourierScheduler()
@@ -170,9 +171,13 @@ def test_10_provider_recovers_exactly_one_continuation():
     # Simulate success
     scheduler.handle_wake("wake-1", [t_prov])
     
-    # completed_tasks only has 1
-    assert scheduler.completed_tasks.count("t-prov") == 1
+    # Probe re-arms the circuit but task is NOT complete
+    assert "t-prov" not in scheduler.completed_tasks
     assert scheduler.breaker.get_circuit("muse", "completion").state == ProviderState.AVAILABLE
+    
+    # Second wake: now circuit is AVAILABLE, task actually executes
+    scheduler.handle_wake("wake-2", [t_prov])
+    assert scheduler.completed_tasks.count("t-prov") == 1
 
 def test_11_emfile_resource_pause():
     scheduler = CourierScheduler()

@@ -180,6 +180,9 @@ class LaneHibernator:
         if self.checkpoint is None:
             raise RuntimeError("no checkpoint to resume from")
         self.state = LaneState.ACTIVE
+        # Re-acquire: reset released flags so resources can be re-registered.
+        for res in self.resources.values():
+            res.released = False
         return self.checkpoint
 
     def to_dict(self) -> Dict[str, Any]:
