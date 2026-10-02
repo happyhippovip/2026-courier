@@ -2,11 +2,22 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.IO;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CourierLauncher
 {
     class Program
     {
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        static extern IntPtr CreateMutex(IntPtr lpMutexAttributes, bool bInitialOwner, string lpName);
+
+        [DllImport("kernel32.dll")]
+        static extern int GetLastError();
+
+        const int ERROR_ALREADY_EXISTS = 183;
+
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
         static extern IntPtr CreateJobObject(IntPtr a, string lpName);
 
@@ -23,7 +34,6 @@ namespace CourierLauncher
 
         static bool ConsoleCtrlCheck(uint ctrlType)
         {
-            // Ignore events to let the python child process handle them
             return true;
         }
 
@@ -68,12 +78,17 @@ namespace CourierLauncher
 
         static void Main(string[] args)
         {
+            IntPtr mutex = CreateMutex(IntPtr.Zero, true, "Global\\CourierAppMutex_L6");
+            if (GetLastError() == ERROR_ALREADY_EXISTS)
+            {
+                Environment.Exit(0);
+            }
+
             SetConsoleCtrlHandler(ConsoleCtrlCheck, true);
 
             IntPtr hJob = CreateJobObject(IntPtr.Zero, null);
             if (hJob == IntPtr.Zero)
             {
-                Console.WriteLine("Failed to create Job Object.");
                 Environment.Exit(1);
             }
 
@@ -83,72 +98,59 @@ namespace CourierLauncher
             int length = Marshal.SizeOf(typeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
             if (!SetInformationJobObject(hJob, JobObjectExtendedLimitInformation, ref info, length))
             {
-                Console.WriteLine("Failed to set Job Object limits.");
                 Environment.Exit(1);
             }
 
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string workerModule = "courier_worker.host";
             
-            string dataDir = Environment.ExpandEnvironmentVariables(@"%PROGRAMDATA%\CourierWorker");
-            string configPath = Path.Combine(dataDir, "config.json");
-            string logDir = Path.Combine(dataDir, "logs");
-            string logPath = Path.Combine(logDir, "host.log");
-            string serverUrl = "";
-            string workerId = "";
-            
-            if (File.Exists(configPath))
+            string homeDir;
+            if (Environment.UserName.Equals("SYSTEM", StringComparison.OrdinalIgnoreCase))
             {
-                string json = File.ReadAllText(configPath);
-                string[] lines = json.Split(new[] { ',', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (string line in lines)
-                {
-                    if (line.Contains("\"COURIER_SERVER\""))
-                    {
-                        int start = line.IndexOf(":", StringComparison.Ordinal) + 1;
-                        serverUrl = line.Substring(start).Trim(' ', '"');
-                    }
-                    else if (line.Contains("\"COURIER_WORKER_ID\""))
-                    {
-                        int start = line.IndexOf(":", StringComparison.Ordinal) + 1;
-                        workerId = line.Substring(start).Trim(' ', '"');
-                    }
-                }
+                homeDir = Path.Combine(Environment.GetEnvironmentVariable("ProgramData") ?? @"C:\ProgramData", "Courier");
+            }
+            else
+            {
+                homeDir = Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\Courier");
             }
 
-            // Path priorities:
-            // 1. Packaged embedded python (no external dependencies)
-            // 2. uv fallback for dev environments
-            string pythonExe = "uv";
-            string arguments = string.Format("run python -m {0} --home \"{1}\" --controller \"{2}\" --worker-id \"{3}\"", workerModule, dataDir, serverUrl, workerId);
+            string logDir = Path.Combine(homeDir, "logs");
             
+            if (!Directory.Exists(logDir))
+            {
+                Directory.CreateDirectory(logDir);
+            }
+
+            int cp = 8765;
+            int hp = 8766;
+            string controllerUrl = $"http://127.0.0.1:{cp}";
+            string hubUrl = $"http://127.0.0.1:{hp}/";
+
+            string pythonExe = "uv";
+            bool isUv = true;
             if (File.Exists(Path.Combine(baseDir, "python", "python.exe"))) {
                 pythonExe = Path.Combine(baseDir, "python", "python.exe");
-                arguments = string.Format("-m {0} --home \"{1}\" --controller \"{2}\" --worker-id \"{3}\"", workerModule, dataDir, serverUrl, workerId);
+                isUv = false;
             }
-            
-            ProcessStartInfo psi = new ProcessStartInfo
+
+            Process StartPythonProcess(string module, string arguments, string logName)
             {
-                FileName = pythonExe,
-                Arguments = arguments,
-                UseShellExecute = false,
-                WorkingDirectory = baseDir,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true
-            };
-            
-            try
-            {
-                if (!Directory.Exists(logDir))
+                string fullArgs = isUv ? $"run python -m {module} {arguments}" : $"-m {module} {arguments}";
+                ProcessStartInfo psi = new ProcessStartInfo
                 {
-                    Directory.CreateDirectory(logDir);
-                }
+                    FileName = pythonExe,
+                    Arguments = fullArgs,
+                    UseShellExecute = false,
+                    WorkingDirectory = baseDir,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
 
                 Process proc = new Process();
                 proc.StartInfo = psi;
 
                 object logLock = new object();
+                string logPath = Path.Combine(logDir, logName);
                 
                 DataReceivedEventHandler logHandler = (sender, e) => {
                     if (e.Data != null) {
@@ -165,25 +167,84 @@ namespace CourierLauncher
                 proc.BeginOutputReadLine();
                 proc.BeginErrorReadLine();
 
-                if (proc == null)
-                {
-                    Console.WriteLine("Failed to start process.");
-                    Environment.Exit(1);
-                }
-
                 if (!AssignProcessToJobObject(hJob, proc.Handle))
                 {
-                    Console.WriteLine("Failed to assign process to Job Object. Warning: Orphans possible.");
+                    File.AppendAllText(Path.Combine(logDir, "launcher.log"), "Warning: Failed to assign process to Job Object.\n");
                 }
-
-                proc.WaitForExit();
-                Environment.Exit(proc.ExitCode);
+                
+                return proc;
             }
-            catch (Exception ex)
+
+            // 1. Start Controller
+            Process controllerProc = StartPythonProcess("courier_core.serve", $"--home \"{homeDir}\" --port {cp}", "controller.log");
+
+            // Wait for health check
+            using (HttpClient client = new HttpClient())
             {
-                File.WriteAllText("crash.txt", "Error launching daemon: " + ex.ToString());
-                Console.WriteLine("Error launching daemon: " + ex.Message);
-                Environment.Exit(1);
+                client.Timeout = TimeSpan.FromSeconds(2);
+                bool healthy = false;
+                for (int i = 0; i < 30; i++)
+                {
+                    try
+                    {
+                        var response = client.GetAsync($"{controllerUrl}/v1/health").Result;
+                        if (response.IsSuccessStatusCode)
+                        {
+                            healthy = true;
+                            break;
+                        }
+                    }
+                    catch { }
+                    Thread.Sleep(500);
+                }
+                
+                if (!healthy)
+                {
+                    File.AppendAllText(Path.Combine(logDir, "launcher.log"), "Controller failed to start or become healthy.\n");
+                    Environment.Exit(1);
+                }
+            }
+
+            // Helper for Crash Backoff
+            void MonitorProcess(Func<Process> startFunc, string name)
+            {
+                new Thread(() => {
+                    int backoff = 2000;
+                    int maxBackoff = 300000;
+                    while (true)
+                    {
+                        Process p = startFunc();
+                        p.WaitForExit();
+                        File.AppendAllText(Path.Combine(logDir, "launcher.log"), $"[{DateTime.UtcNow:O}] {name} exited with code {p.ExitCode}. Restarting in {backoff}ms...\n");
+                        Thread.Sleep(backoff);
+                        backoff = Math.Min(maxBackoff, backoff * 2);
+                    }
+                }) { IsBackground = true }.Start();
+            }
+
+            // 2. Start Worker with backoff
+            MonitorProcess(() => StartPythonProcess("courier_worker.host", $"--home \"{homeDir}\" --controller \"{controllerUrl}\" --max-tasks 1 --heartbeat 2", "worker.log"), "Worker");
+
+            // 3. Start Hub with backoff
+            MonitorProcess(() => StartPythonProcess("courier_hub", $"--home \"{homeDir}\" --controller \"{controllerUrl}\" --port {hp}", "hub.log"), "Hub");
+
+            // 4. Open Browser
+            try {
+                Process.Start(new ProcessStartInfo(hubUrl) { UseShellExecute = true });
+            } catch (Exception ex) {
+                File.AppendAllText(Path.Combine(logDir, "launcher.log"), "Could not open browser: " + ex.Message + "\n");
+            }
+
+            // Wait for controller. Controller crash will restart the whole suite since we exit.
+            int controllerBackoff = 2000;
+            while (true)
+            {
+                controllerProc.WaitForExit();
+                File.AppendAllText(Path.Combine(logDir, "launcher.log"), $"[{DateTime.UtcNow:O}] Controller exited with code {controllerProc.ExitCode}. Restarting in {controllerBackoff}ms...\n");
+                Thread.Sleep(controllerBackoff);
+                controllerBackoff = Math.Min(300000, controllerBackoff * 2);
+                
+                controllerProc = StartPythonProcess("courier_core.serve", $"--home \"{homeDir}\" --port {cp}", "controller.log");
             }
         }
     }
