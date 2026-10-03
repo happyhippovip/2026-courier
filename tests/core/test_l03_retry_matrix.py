@@ -16,7 +16,7 @@ from courier_core.state_machine import TaskState, Decision, TaskStatus, decide_a
     ("idempotent", True, "rejected", True, Decision.RETRY),
     ("idempotent", True, "rejected", None, Decision.RETRY),
     # If the worker explicitly says retryable=False, we should respect it
-    ("idempotent", True, "rejected", False, Decision.BLOCK),
+    ("idempotent", True, "rejected", False, Decision.FAIL),
     
     # 3. Started Non-Idempotent Tasks (Uncertainty State -> MUST BLOCK)
     ("non_idempotent", True, "lease_lost", None, Decision.BLOCK),
