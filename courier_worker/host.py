@@ -490,9 +490,21 @@ def _claim_path(home: str, dispatch_id: str) -> Path:
     return _claims_dir(home) / f"dispatch-{safe or 'unnamed'}.json"
 
 
-def _owner_alive(owner_pid: int) -> bool:
+def _owner_alive(owner_pid: int, owner_create_time: float = None) -> bool:
     if owner_pid <= 0:
         return False
+    try:
+        import psutil
+        p = psutil.Process(owner_pid)
+        if not p.is_running():
+            return False
+        if owner_create_time is not None and owner_create_time > 0:
+            if abs(p.create_time() - owner_create_time) > 1.0:
+                return False
+        return True
+    except (ImportError, Exception):
+        pass
+        
     try:
         if os.name == "nt":
             import ctypes
@@ -507,10 +519,18 @@ def _owner_alive(owner_pid: int) -> bool:
         return False
 
 
+
+def _get_my_create_time() -> float:
+    try:
+        import psutil
+        return psutil.Process().create_time()
+    except Exception:
+        return 0.0
+
 def _write_claim_record(home: str, spec: ExecutionSpec, run: ContainedRun) -> Path:
     _claims_dir(home).mkdir(parents=True, exist_ok=True)
     record = {"task_id": spec.task_id, "attempt": spec.attempt, "dispatch_id": spec.dispatch_id,
-              "worker_id": spec.worker_id, "owner_pid": os.getpid(), "child_pid": run.pid,
+              "worker_id": spec.worker_id, "owner_pid": os.getpid(), "owner_create_time": _get_my_create_time(), "child_pid": run.pid,
               "pgid": run.group_id()}
     path = _claim_path(home, spec.dispatch_id)
     fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".claim-", suffix=".tmp")
@@ -545,7 +565,8 @@ def run_orphan_gate(home: str) -> int:
             except OSError:
                 pass
             continue
-        if _owner_alive(owner_pid):
+        owner_create_time = record.get("owner_create_time")
+        if _owner_alive(owner_pid, owner_create_time):
             continue  # another live host owns this tree; hands off
         _reap_orphan(record)
         try:
