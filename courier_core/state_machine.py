@@ -140,7 +140,7 @@ def decide_after_failure(state: TaskState) -> Decision:
         
     # Idempotent or unstarted tasks follow explicit hints or attempts
     if state.failure_kind == "rejected" and state.retryable is False:
-        return Decision.BLOCK if may_auto_retry(state.effect_class) else Decision.FAIL
+        return Decision.FAIL
     if state.attempt >= state.max_attempts:
         return Decision.FAIL
     return Decision.RETRY

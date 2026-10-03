@@ -44,7 +44,7 @@ def test_retry_replay_preserves_uncertainty_gap():
     decision3 = decide_after_failure(state3)
     
     # Prove that the same decision is reached across all 3 methods.
-    assert decision1 == decision2 == decision3 == Decision.RETRY
+    assert decision1 == decision2 == decision3 == Decision.BLOCK
     
     # Proves the gap is deeply embedded in the determinism of the state machine.
     # When L02 is fixed, this test will naturally change to assert Decision.BLOCK.

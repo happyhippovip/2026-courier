@@ -41,5 +41,5 @@ def test_non_idempotent_rejected_with_retryable_true_is_retried():
     
     # GAP PROVED: The system decides to RETRY instead of BLOCK, 
     # fully trusting the worker's retryable=True on a non-idempotent task.
-    assert decision == Decision.RETRY
+    assert decision == Decision.BLOCK
 
