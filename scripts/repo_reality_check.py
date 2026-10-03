@@ -22,6 +22,7 @@ Usage: python scripts/repo_reality_check.py <checkout> <out_dir>
        python scripts/repo_reality_check.py --verify <report.json> <checkout>
 """
 import hashlib
+import html
 import json
 import os
 import re
@@ -266,6 +267,38 @@ def to_markdown(result):
     return "\n".join(lines)
 
 
+def to_html(result):
+    """Self-contained printable page (browser: Print -> Save as PDF). Everything is escaped."""
+    body, in_list = [], False
+    for line in to_markdown(result).splitlines():
+        if line.startswith("- "):
+            if not in_list:
+                body.append("<ul>")
+                in_list = True
+            item = html.escape(line[2:])
+            item = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", item)
+            body.append("<li>" + re.sub(r"`(.+?)`", r"<code>\1</code>", item) + "</li>")
+            continue
+        if in_list:
+            body.append("</ul>")
+            in_list = False
+        if line.startswith("## "):
+            body.append(f"<h2>{html.escape(line[3:])}</h2>")
+        elif line.startswith("# "):
+            body.append(f"<h1>{html.escape(line[2:])}</h1>")
+        elif line.strip():
+            body.append("<p>" + re.sub(r"`(.+?)`", r"<code>\1</code>", html.escape(line)) + "</p>")
+    if in_list:
+        body.append("</ul>")
+    style = ("body{font:15px/1.5 system-ui,sans-serif;max-width:860px;margin:32px auto;padding:0 16px;color:#111}"
+             "code{background:#f2f2f2;padding:1px 4px;border-radius:3px;word-break:break-all}"
+             "h2{border-bottom:1px solid #ddd;padding-bottom:4px;margin-top:28px}"
+             "@media print{body{margin:0}}")
+    return (f"<!doctype html><html lang=en><head><meta charset=utf-8><title>Repo Reality Check - "
+            f"{html.escape(result['repository'])}</title><style>{style}</style></head><body>"
+            + "\n".join(body) + "</body></html>")
+
+
 def main(argv=None):
     argv = argv or sys.argv[1:]
     if len(argv) == 3 and argv[0] == "--verify":
@@ -276,8 +309,8 @@ def main(argv=None):
         print("\n".join(__doc__.strip().splitlines()[-2:]), file=sys.stderr)
         return 2
     result = check(argv[0])
-    report_json, report_md = json.dumps(result, indent=1), to_markdown(result)
-    leaks = leak_check(report_json + report_md)
+    report_json, report_md, report_html = json.dumps(result, indent=1), to_markdown(result), to_html(result)
+    leaks = leak_check(report_json + report_md + report_html)
     if leaks:
         print(f"refusing to write report: second pass found {', '.join(leaks)}", file=sys.stderr)
         return 3
@@ -285,6 +318,7 @@ def main(argv=None):
     out.mkdir(parents=True, exist_ok=True)
     (out / "report.json").write_text(report_json, encoding="utf-8")
     (out / "report.md").write_text(report_md, encoding="utf-8")
+    (out / "report.html").write_text(report_html, encoding="utf-8")
     print(json.dumps(result["summary"]))
     return 0
 

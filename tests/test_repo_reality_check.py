@@ -141,3 +141,14 @@ def test_maintainer_acknowledged_bind_pinned_reqs_and_test_archives_are_low(tmp_
     found = {f["rule"]: f["severity"] for f in check(r)["findings"]}
     assert found["WILDCARD_BIND"] == "low" and found["pinned_without_hashes"] == "low"
     assert found["test_data_archive"] == "low" and "no_lockfile" not in found
+
+
+def test_printable_html_is_escaped_and_complete(repo, tmp_path):
+    (repo / "x<script>.py").write_text("print(1)\n")
+    (repo / "x<script>.exe").write_bytes(b"MZ")
+    git(repo, "add", "-A")
+    out = tmp_path / "out"
+    assert main([str(repo), str(out)]) == 0
+    page = (out / "report.html").read_text()
+    assert page.startswith("<!doctype html>") and "<script>" not in page and "x&lt;script&gt;.exe" in page
+    assert "What this check did NOT cover" in page
