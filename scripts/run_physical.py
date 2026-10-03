@@ -175,7 +175,7 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
         ready = False
         for _ in range(40):
             try:
-                urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=1).read()
+                urllib.request.urlopen(urllib.request.Request(f"http://127.0.0.1:{port}/v1/health", headers={"X-Courier-Token": env["COURIER_API_KEY"]}), timeout=1).read()
                 ready = True
                 break
             except Exception:

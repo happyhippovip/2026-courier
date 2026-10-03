@@ -366,6 +366,9 @@ class StubHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path == "/v1/health":
+            if not self._auth():
+                self._json(401)
+                return
             self._json(200, {"mode": "normal", "head_seq": 0})
         elif self.path == "/v1/events":
             if not self._auth():
