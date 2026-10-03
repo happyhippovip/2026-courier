@@ -1,9 +1,14 @@
 import subprocess
+import sys
 import tempfile
 import os
 import stat
 from pathlib import Path
 
+import pytest
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="executes a bash script directly; run_2_mac.sh is POSIX-only")
 def test_run2_fails_without_run1_success():
     """N2: Proves RUN_2 is gated by RUN_1 success (artifacts/RUN_1_SUCCESS)."""
     with tempfile.TemporaryDirectory() as td:
