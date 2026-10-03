@@ -69,7 +69,13 @@ GUIDE = {  # rule -> (what it means, how to fix, typical effort)
     "large_file": ("A large file slows every clone.", "Move it to release assets or Git LFS.", "30 min"),
     "gitlink_without_gitmodules": ("Embedded repositories without .gitmodules break fresh checkouts.",
                                    "Add a proper .gitmodules or remove the embedded repos.", "30 min"),
-    "no_lockfile": ("Dependencies resolve fresh on every install, so a compromised new release is pulled in silently.",
+    "pinned_without_hashes": ("Versions are pinned but not hash-checked.",
+                              "Generate hashes (pip-compile --generate-hashes or uv) and install with --require-hashes.",
+                              "30 min"),
+    "test_data_archive": ("An archive is committed as test data.", "Fine if it is only data; keep it small and documented.",
+                          "–"),
+    "no_lockfile": ("There is no lockfile, so an install can pull in a new release nobody reviewed. "
+                    "(Normal for libraries; important for applications and bots.)",
                     "Commit a lockfile (or hashed requirements) and install from it.", "30-60 min"),
     "permissions": ("A workflow has broad default token permissions.", "Set `permissions:` to the minimum per job.", "15 min"),
     "timeout": ("A CI job has no timeout and can hang for hours.", "Set `timeout-minutes` per job.", "5 min"),
@@ -98,6 +104,16 @@ def _looks_like_fixture(path, token):
     body = re.split(r"[-_]", token, maxsplit=1)[-1].lower()
     alphabet = "abcdefghijklmnopqrstuvwxyz0123456789"
     return len(set(body)) <= 12 or body[:12] in alphabet + alphabet or token.startswith("-----BEGIN")
+
+
+KEY_BODY = re.compile(r"[A-Za-z0-9+/=]{64,}")
+
+
+def _has_key_body(lines, n, line):
+    """A PEM header alone (code that builds or strips headers, docs with <...>
+    placeholders) is not a leak; a real key has a long base64 body right after."""
+    after = line.split("PRIVATE KEY-----", 1)[-1]
+    return bool(KEY_BODY.search(after.replace("\\n", ""))) or any(KEY_BODY.search(l) for l in lines[n:n + 3])
 
 
 def git_files(repo):
@@ -145,8 +161,10 @@ def check(repo):
 
     checker = Path(__file__).resolve().parent / "check_local_safety.py"
     for f in scan_local_safety(str(repo), skip={str(checker), str(repo / "scripts" / "check_local_safety.py")}):
-        add("safety", "high" if f["rule"] == "KILL_BY_NAME" else "medium", f["rule"], f"{f['path']}:{f['line']}",
-            f["text"][:120])
+        acknowledged = re.search(r"#\s*(noqa:\s*S10[0-9]|nosec)", f["text"])
+        severity = "low" if acknowledged else "high" if f["rule"] == "KILL_BY_NAME" else "medium"
+        detail = ("acknowledged in code by the maintainers: " if acknowledged else "") + f["text"][:120]
+        add("safety", severity, f["rule"], f"{f['path']}:{f['line']}", detail)
 
     for path in files:
         if any(p.search(path) for p in RUNTIME_PATTERNS):
@@ -158,7 +176,10 @@ def check(repo):
         except OSError:
             continue
         if path.lower().endswith(BINARY_SUFFIXES):
-            add("hygiene", "medium", "binary_committed", path, f"{size // 1024} KiB without build provenance")
+            if re.search(r"(^|/)(tests?|testdata|fixtures?)/", path) and path.lower().endswith((".zip", ".7z")):
+                add("hygiene", "low", "test_data_archive", path, f"{size // 1024} KiB archive used as test data")
+            else:
+                add("hygiene", "medium", "binary_committed", path, f"{size // 1024} KiB without build provenance")
         elif size > LARGE_FILE_BYTES:
             add("hygiene", "low", "large_file", path, f"{size // (1024 * 1024)} MiB")
         if size <= 2 * 1024 * 1024:
@@ -166,9 +187,12 @@ def check(repo):
                 text = full.read_text(encoding="utf-8")
             except (OSError, UnicodeDecodeError):
                 continue
-            for n, line in enumerate(text.splitlines(), 1):
+            lines = text.splitlines()
+            for n, line in enumerate(lines, 1):
                 for kind, pattern in SECRET_PATTERNS.items():
                     m = pattern.search(line)
+                    if m and kind == "private_key_block" and not _has_key_body(lines, n, line):
+                        continue
                     if m and _looks_like_fixture(path, m.group(0)):
                         add("secrets", "low", kind, f"{path}:{n}", "test fixture shape (low entropy, in tests/)")
                     elif m:
@@ -183,8 +207,15 @@ def check(repo):
     if not names & set(LOCKFILES):
         hashed = any(n.startswith("requirements") and "--hash" in (repo / p).read_text(errors="replace")
                      for p in files for n in [Path(p).name] if n.startswith("requirements") and n.endswith(".txt"))
-        if has_py and not hashed:
-            add("supply", "medium", "no_lockfile", "repository", "dependencies resolve fresh on every install")
+        reqs = [p for p in files if Path(p).name.startswith("requirements") and p.endswith(".txt")]
+        deps = [l.split("#")[0].strip() for p in reqs for l in (repo / p).read_text(errors="replace").splitlines()]
+        deps = [d for d in deps if d and not d.startswith("-")]
+        pinned = deps and sum("==" in d for d in deps) / len(deps) >= 0.9
+        if has_py and not hashed and pinned:
+            add("supply", "low", "pinned_without_hashes", "requirements*.txt",
+                "versions pinned with ==, but no hashes; a replaced release file would not be detected")
+        elif has_py and not hashed:
+            add("supply", "medium", "no_lockfile", "repository", "no lockfile; installs can pick up new, unreviewed releases")
     result = {"repository": repo.name, "sha": head_sha(repo), "tool": TOOL_VERSION, "files_scanned": len(files),
               "findings": findings,
               "summary": {sev: sum(f["severity"] == sev for f in findings) for sev in ("high", "medium", "low")}}

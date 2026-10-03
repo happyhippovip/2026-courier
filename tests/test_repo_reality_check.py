@@ -104,3 +104,40 @@ def test_digest_verifies_same_commit_and_rejects_tampering(repo, tmp_path):
     report["findings"] = report["findings"][1:]                     # someone hides a finding
     (out / "report.json").write_text(json.dumps(report))
     assert main(["--verify", str(out / "report.json"), str(repo)]) == 1
+
+
+def _repo_with(tmp_path, files):
+    r = tmp_path / "fp"
+    for name, text in files.items():
+        (r / name).parent.mkdir(parents=True, exist_ok=True)
+        (r / name).write_text(text)
+    git(r, "init", "-q")
+    git(r, "add", "-A")
+    return r
+
+
+HEADER = "-----BEGIN " + "PRIVATE KEY-----"     # split so this file holds no key-shaped line
+
+
+def test_pem_header_without_key_body_is_not_a_leak(tmp_path):
+    r = _repo_with(tmp_path, {
+        "auth.py": f'pem = f"{HEADER}\\n{{body}}\\n-----END PRIVATE KEY-----"\n',
+        "docs/ex.md": f'"secret": "{HEADER}\\nMIIEvQIBAB<...>s8KX8=\\n-----END PRIVATE KEY-----"\n',
+        "uv.lock": "#\n"})
+    assert not [f for f in check(r)["findings"] if f["area"] == "secrets"]
+
+
+def test_pem_with_key_body_is_high(tmp_path):
+    body = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7" + "x9Qz" * 8
+    r = _repo_with(tmp_path, {"deploy/key.txt": f"{HEADER}\n{body}\n-----END PRIVATE KEY-----\n"})
+    assert [f["severity"] for f in check(r)["findings"] if f["area"] == "secrets"] == ["high"]
+
+
+def test_maintainer_acknowledged_bind_pinned_reqs_and_test_archives_are_low(tmp_path):
+    r = _repo_with(tmp_path, {
+        "app.py": 'host = "127.0.0.1" if local else "0.0.0.0"  # noqa: S104\n',
+        "requirements.txt": "requests==2.32.3\nnumpy==2.1.0\n",
+        "tests/data/sample.zip": "PK"})
+    found = {f["rule"]: f["severity"] for f in check(r)["findings"]}
+    assert found["WILDCARD_BIND"] == "low" and found["pinned_without_hashes"] == "low"
+    assert found["test_data_archive"] == "low" and "no_lockfile" not in found
