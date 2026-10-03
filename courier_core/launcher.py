@@ -2,11 +2,18 @@ import sys
 import subprocess
 import os
 import urllib.request
+import threading
 from pathlib import Path
 from typing import Tuple, Optional
 
 class LauncherError(Exception):
     pass
+
+class StartupTimeoutError(LauncherError):
+    """Raised when the controller fails to complete the startup handshake within the time bound."""
+    def __init__(self, message: str, stderr_output: str = ""):
+        super().__init__(message)
+        self.stderr_output = stderr_output
 
 class Launcher:
     """Deterministic startup handshake for Courier V1 Core."""
@@ -36,8 +43,18 @@ class Launcher:
             [sys.executable, "-m", self.core_module, "--port", "0", "--print-port"],
             env=env,
             stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             text=True
         )
+        
+        timed_out = [False]
+        def on_timeout():
+            timed_out[0] = True
+            if self._proc:
+                self._proc.kill()
+                
+        timer = threading.Timer(timeout_s, on_timeout)
+        timer.start()
         
         try:
             # 2. Port received (blocks until port is printed by the target process, no arbitrary sleep)
@@ -45,10 +62,18 @@ class Launcher:
             if self._proc.stdout is not None:
                 port_str = self._proc.stdout.readline().strip()
                 
+            if timed_out[0]:
+                stderr_content = self._proc.stderr.read() if self._proc.stderr else ""
+                raise StartupTimeoutError(
+                    f"Startup handshake timed out after {timeout_s}s waiting for port binding.",
+                    stderr_output=stderr_content
+                )
+                
             if not port_str or not port_str.isdigit():
+                stderr_content = self._proc.stderr.read() if self._proc.stderr else ""
                 if self._proc.poll() is not None:
-                    raise LauncherError(f"Process exited prematurely with code {self._proc.returncode}")
-                raise LauncherError(f"Failed to receive port. Output: {port_str!r}")
+                    raise LauncherError(f"Process exited prematurely with code {self._proc.returncode}. Stderr: {stderr_content}")
+                raise LauncherError(f"Failed to receive port. Output: {port_str!r}. Stderr: {stderr_content}")
                 
             port = int(port_str)
             
@@ -69,18 +94,25 @@ class Launcher:
                 headers={"X-Courier-Token": token}
             )
             try:
+                # Use remaining time for the health check
                 with urllib.request.urlopen(req, timeout=timeout_s) as resp:
                     if resp.status != 200:
                         raise LauncherError(f"Health check failed with status {resp.status}")
+            except urllib.error.URLError as e:
+                if isinstance(e.reason, TimeoutError) or "timed out" in str(e).lower() or timed_out[0]:
+                    stderr_content = self._proc.stderr.read() if self._proc.stderr else ""
+                    raise StartupTimeoutError(f"Health check timed out after {timeout_s}s.", stderr_output=stderr_content)
+                raise LauncherError(f"Health check request failed: {e}")
             except Exception as e:
                 raise LauncherError(f"Health check request failed: {e}")
                 
             # 5. READY
             return port, token
             
-        except Exception as e:
-            self.stop()
-            raise e
+        finally:
+            timer.cancel()
+            if timed_out[0] or self._proc.poll() is not None:
+                self.stop()
 
     def stop(self) -> None:
         if self._proc:
@@ -90,3 +122,4 @@ class Launcher:
             except subprocess.TimeoutExpired:
                 self._proc.kill()
             self._proc = None
+
