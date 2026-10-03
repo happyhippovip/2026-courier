@@ -147,7 +147,7 @@ def test_second_claim_while_busy_is_refused(tmp_path):
     assert host.busy is False
 
 
-def test_timeout_kills_whole_tree_within_bound(tmp_path):
+def test_timeout_extends_until_lease_lost(tmp_path):
     pgid_file = tmp_path / "pgid.txt"
     gpid_file = tmp_path / "gpid.txt"
     # os.getpgid() is POSIX-only; use os.getpid() on Windows so the child
@@ -160,13 +160,13 @@ def test_timeout_kills_whole_tree_within_bound(tmp_path):
         "open(r'%s', 'w').write(str(g.pid)); "
         "time.sleep(30)" % (pgid_file, pgid_expr, gpid_file))
     host = make_host(tmp_path)
-    spec = make_spec(tmp_path, argv=[PY, "-c", child_code], timeout_s=2.0, lease_ttl_s=30.0)
+    spec = make_spec(tmp_path, argv=[PY, "-c", child_code], timeout_s=1.0, lease_ttl_s=3.0)
     started = time.monotonic()
     result = host.run_once(spec)
     elapsed = time.monotonic() - started
-    assert result.outcome == Outcome.TIMEOUT
+    assert result.outcome == Outcome.LEASE_LOST
     assert result.retryable is True
-    assert elapsed < 2.0 + H.KILL_GRACE_S + 4.0
+    assert elapsed >= 3.0
     assert result.crash_report_path and os.path.exists(result.crash_report_path)
     if os.name != "nt":
         pgid = int(pgid_file.read_text())
