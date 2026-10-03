@@ -573,6 +573,7 @@ def verify_task_result():
         "verifier_id": verifier_id,
         "result_id": result["result_id"],
         "verdict": verdict,
+        "reason": data.get("reason"),
         "artifacts": result["artifacts"],
     }
     goal = state["goals"][task["goal_id"]]
