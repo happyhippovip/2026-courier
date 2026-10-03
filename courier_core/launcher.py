@@ -3,17 +3,31 @@ import subprocess
 import os
 import urllib.request
 import threading
+import json
+import time
+from dataclasses import dataclass, asdict
 from pathlib import Path
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Any
+
+@dataclass
+class StartupFailureReceipt:
+    component: str
+    process_identity: Optional[int]
+    exit_code: Optional[int]
+    stage: str
+    logs: str
+    evidence_path: str
+    recoverability: bool
 
 class LauncherError(Exception):
-    pass
+    def __init__(self, message: str, receipt: Optional[StartupFailureReceipt] = None, stderr_output: str = ""):
+        super().__init__(message)
+        self.receipt = receipt
+        self.stderr_output = stderr_output
 
 class StartupTimeoutError(LauncherError):
     """Raised when the controller fails to complete the startup handshake within the time bound."""
-    def __init__(self, message: str, stderr_output: str = ""):
-        super().__init__(message)
-        self.stderr_output = stderr_output
+    pass
 
 class Launcher:
     """Deterministic startup handshake for Courier V1 Core."""
@@ -38,6 +52,8 @@ class Launcher:
         env = os.environ.copy()
         env["COURIER_HOME"] = str(self.home)
         
+        stage = "process_start"
+        
         # 1. Process start
         self._proc = subprocess.Popen(
             [sys.executable, "-m", self.core_module, "--port", "0", "--print-port"],
@@ -57,6 +73,7 @@ class Launcher:
         timer.start()
         
         try:
+            stage = "port_binding"
             # 2. Port received (blocks until port is printed by the target process, no arbitrary sleep)
             port_str = ""
             if self._proc.stdout is not None:
@@ -72,11 +89,12 @@ class Launcher:
             if not port_str or not port_str.isdigit():
                 stderr_content = self._proc.stderr.read() if self._proc.stderr else ""
                 if self._proc.poll() is not None:
-                    raise LauncherError(f"Process exited prematurely with code {self._proc.returncode}. Stderr: {stderr_content}")
-                raise LauncherError(f"Failed to receive port. Output: {port_str!r}. Stderr: {stderr_content}")
+                    raise LauncherError(f"Process exited prematurely with code {self._proc.returncode}. Stderr: {stderr_content}", stderr_output=stderr_content)
+                raise LauncherError(f"Failed to receive port. Output: {port_str!r}. Stderr: {stderr_content}", stderr_output=stderr_content)
                 
             port = int(port_str)
             
+            stage = "token_available"
             # 3. Token available
             token_path = self.home / "run" / "controller.token"
             if not token_path.exists():
@@ -85,10 +103,8 @@ class Launcher:
             if not token:
                 raise LauncherError("Token file is empty.")
                 
+            stage = "authenticated_health"
             # 4. Authenticated health
-            # Note: Because port is bound by the socket before printing, the kernel
-            # is already enqueuing connections. urlopen will block until the thread calls accept(),
-            # without generating a ConnectionRefusedError. No arbitrary time.sleep() retry loop is needed!
             req = urllib.request.Request(
                 f"http://127.0.0.1:{port}/v1/health",
                 headers={"X-Courier-Token": token}
@@ -106,12 +122,44 @@ class Launcher:
             except Exception as e:
                 raise LauncherError(f"Health check request failed: {e}")
                 
-            # 5. READY
+            stage = "READY"
             return port, token
             
+        except Exception as e:
+            # Generate StartupFailureReceipt
+            stderr_content = getattr(e, "stderr_output", "")
+            if not stderr_content and self._proc and self._proc.stderr:
+                try:
+                    stderr_content = self._proc.stderr.read()
+                except Exception:
+                    pass
+                    
+            exit_code = self._proc.poll() if self._proc else None
+            recoverability = isinstance(e, StartupTimeoutError)
+            evidence_path = str(self.home / "run" / f"startup_failure_{int(time.time())}.json")
+            
+            receipt = StartupFailureReceipt(
+                component="controller",
+                process_identity=self._proc.pid if self._proc else None,
+                exit_code=exit_code,
+                stage=stage,
+                logs=stderr_content,
+                evidence_path=evidence_path,
+                recoverability=recoverability
+            )
+            
+            os.makedirs(os.path.dirname(evidence_path), exist_ok=True)
+            with open(evidence_path, "w", encoding="utf-8") as f:
+                json.dump(asdict(receipt), f, indent=2)
+                
+            if isinstance(e, LauncherError):
+                e.receipt = receipt
+                
+            self.stop()
+            raise e
         finally:
             timer.cancel()
-            if timed_out[0] or self._proc.poll() is not None:
+            if timed_out[0] or (self._proc and self._proc.poll() is not None):
                 self.stop()
 
     def stop(self) -> None:
@@ -122,4 +170,3 @@ class Launcher:
             except subprocess.TimeoutExpired:
                 self._proc.kill()
             self._proc = None
-
