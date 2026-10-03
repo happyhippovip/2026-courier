@@ -128,17 +128,19 @@ def may_auto_retry(effect_class: str) -> bool:
 
 
 def decide_after_failure(state: TaskState) -> Decision:
-    """What the controller must journal next for a task in RETRY_PENDING."""
     if state.status is not TaskStatus.RETRY_PENDING:
         raise ValueError(f"task {state.task_id} is {state.status.value}, not RETRY_PENDING")
-    # An uncertain outcome of anything not known to be idempotent outranks a cancel
-    # request: the effect may already have happened, so a human decides.
-    if state.failure_kind == "lease_lost" and state.started and not may_auto_retry(state.effect_class):
+    
+    # L01/L02 Uncertainty gap: started non_idempotent tasks MUST BLOCK on failure
+    if state.started and not may_auto_retry(state.effect_class):
         return Decision.BLOCK
+        
     if state.cancel_requested:
         return Decision.CANCEL
-    if state.failure_kind == "rejected" and not state.retryable:
-        return Decision.FAIL
+        
+    # Idempotent or unstarted tasks follow explicit hints or attempts
+    if state.failure_kind == "rejected" and state.retryable is False:
+        return Decision.BLOCK if may_auto_retry(state.effect_class) else Decision.FAIL
     if state.attempt >= state.max_attempts:
         return Decision.FAIL
     return Decision.RETRY
