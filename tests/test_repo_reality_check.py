@@ -86,3 +86,21 @@ def test_second_pass_blocks_a_leaking_report(repo, tmp_path, monkeypatch):
     assert rrc.main([str(repo), str(out)]) == 3
     assert not out.exists()
     assert rrc.leak_check(f"x {FAKE_TOKEN} owner@example.org") == ["github_token", "email_address"]
+
+
+def test_report_answers_first_questions_and_states_limits(repo):
+    md = to_markdown(check(repo))
+    assert "## What the findings mean and how to fix them" in md
+    assert "**`curl_pipe_shell`**" in md and "**Fix:**" in md and "**Effort:**" in md
+    assert "## What this check did NOT cover" in md and "not 'secure'" in md
+
+
+def test_digest_verifies_same_commit_and_rejects_tampering(repo, tmp_path):
+    git(repo, "-c", "user.email=t@example.invalid", "-c", "user.name=t", "commit", "-qm", "init")
+    out = tmp_path / "out"
+    assert main([str(repo), str(out)]) == 0
+    assert main(["--verify", str(out / "report.json"), str(repo)]) == 0
+    report = json.loads((out / "report.json").read_text())
+    report["findings"] = report["findings"][1:]                     # someone hides a finding
+    (out / "report.json").write_text(json.dumps(report))
+    assert main(["--verify", str(out / "report.json"), str(repo)]) == 1

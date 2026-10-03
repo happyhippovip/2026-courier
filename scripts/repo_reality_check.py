@@ -14,8 +14,14 @@ with findings a small team can act on in a day:
                the value is never read into the report
 
 It never executes the customer's code and never sends anything anywhere.
+Every report answers the customer's first questions itself (what it means,
+how to fix it, how long it takes), says what was NOT checked, and carries a
+digest that anyone can re-verify against the same commit.
+
 Usage: python scripts/repo_reality_check.py <checkout> <out_dir>
+       python scripts/repo_reality_check.py --verify <report.json> <checkout>
 """
+import hashlib
 import json
 import os
 import re
@@ -40,6 +46,46 @@ SECRET_PATTERNS = {
     "openai_style_key": re.compile(r"\bsk-[A-Za-z0-9]{32,}\b"),
 }
 EMAIL = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
+TOOL_VERSION = "rrc-2"
+_SECRET_GUIDE = ("A credential-shaped string is in the repository. If it is real, anyone with read access can use it.",
+                 "Revoke and rotate it at the provider first, then remove it from the code and load it from the environment "
+                 "or a secret store. Removing it from history alone is not enough - rotate.", "30-60 min per secret")
+GUIDE = {  # rule -> (what it means, how to fix, typical effort)
+    **{kind: _SECRET_GUIDE for kind in ("github_token", "aws_access_key", "private_key_block", "slack_token",
+                                         "openai_style_key")},
+    "WILDCARD_BIND": ("A server listens on all network interfaces, so other machines on the network (or the internet) "
+                      "can reach it.", "Bind to 127.0.0.1 by default; open it only through an explicit setting.", "15 min"),
+    "KILL_BY_NAME": ("Processes are stopped by name, which can kill unrelated programs with the same name.",
+                     "Record the process id (plus start time) when starting and stop exactly that process.", "1-2 h"),
+    "curl_pipe_shell": ("CI downloads a script and runs it unseen; whoever controls that URL controls your build.",
+                        "Download a pinned version, verify its checksum, then run it.", "30 min"),
+    "action_pinned_by_tag": ("A CI action is referenced by a movable tag; the tag can be moved to different code.",
+                             "Pin to the full commit SHA (a comment can keep the version name).", "10 min per action"),
+    "generated_or_private_file_tracked": ("A file that is usually private or generated is committed.",
+                                          "Remove it from git, add it to .gitignore; rotate anything secret it held.",
+                                          "15 min"),
+    "binary_committed": ("A binary is committed without a record of how it was built, so nobody can check what it contains.",
+                         "Build it in CI from source, or document its source and checksum.", "1 h"),
+    "large_file": ("A large file slows every clone.", "Move it to release assets or Git LFS.", "30 min"),
+    "gitlink_without_gitmodules": ("Embedded repositories without .gitmodules break fresh checkouts.",
+                                   "Add a proper .gitmodules or remove the embedded repos.", "30 min"),
+    "no_lockfile": ("Dependencies resolve fresh on every install, so a compromised new release is pulled in silently.",
+                    "Commit a lockfile (or hashed requirements) and install from it.", "30-60 min"),
+    "permissions": ("A workflow has broad default token permissions.", "Set `permissions:` to the minimum per job.", "15 min"),
+    "timeout": ("A CI job has no timeout and can hang for hours.", "Set `timeout-minutes` per job.", "5 min"),
+    "concurrency": ("Parallel runs can overlap and race.", "Add a `concurrency` group.", "5 min"),
+    "runner_type": ("Self-hosted or unusual runner configuration.", "Check that the runner is isolated and ephemeral.", "1 h"),
+    "mutation_risk": ("A workflow can write to the repository or releases.", "Limit write steps to protected branches.",
+                      "30 min"),
+}
+NOT_CHECKED = [
+    "Smart contracts, cryptographic design and business logic were not audited.",
+    "No code was executed and no running system, server or network was tested.",
+    "Git history before this commit was not scanned; secrets removed earlier may still be in history.",
+    "Dependencies were not checked for known vulnerabilities (CVE scan).",
+    "Secret detection uses known patterns; unusual or custom secret formats can be missed.",
+    "A clean report means 'nothing found by these checks', not 'secure'.",
+]
 LOCKFILES = ("poetry.lock", "uv.lock", "Pipfile.lock", "package-lock.json", "yarn.lock", "pnpm-lock.yaml",
              "Cargo.lock", "go.sum", "Gemfile.lock", "composer.lock")
 
@@ -139,8 +185,25 @@ def check(repo):
                      for p in files for n in [Path(p).name] if n.startswith("requirements") and n.endswith(".txt"))
         if has_py and not hashed:
             add("supply", "medium", "no_lockfile", "repository", "dependencies resolve fresh on every install")
-    return {"repository": repo.name, "sha": head_sha(repo), "files_scanned": len(files), "findings": findings,
-            "summary": {sev: sum(f["severity"] == sev for f in findings) for sev in ("high", "medium", "low")}}
+    result = {"repository": repo.name, "sha": head_sha(repo), "tool": TOOL_VERSION, "files_scanned": len(files),
+              "findings": findings,
+              "summary": {sev: sum(f["severity"] == sev for f in findings) for sev in ("high", "medium", "low")}}
+    result["digest"] = digest(result)
+    return result
+
+
+def digest(result):
+    """Fingerprint of what was found on which commit with which tool version.
+    Re-running the same tool on the same commit gives the same digest."""
+    core = {k: result[k] for k in ("sha", "tool", "findings")}
+    return hashlib.sha256(json.dumps(core, sort_keys=True).encode()).hexdigest()
+
+
+def verify(report_path, repo):
+    """True if the report matches a fresh run on the same checkout."""
+    report = json.loads(Path(report_path).read_text(encoding="utf-8"))
+    fresh = check(repo)
+    return report.get("digest") == digest(report) == fresh["digest"]
 
 
 def to_markdown(result):
@@ -148,7 +211,16 @@ def to_markdown(result):
              f"Commit: `{result.get('sha', 'unknown')}`", "",
              f"Files scanned: {result['files_scanned']} · high {result['summary']['high']} · "
              f"medium {result['summary']['medium']} · low {result['summary']['low']}", "",
-             "Read-only scan; no code was executed. Secret findings show location and type only.", ""]
+             "Read-only scan; no code was executed. Secret findings show location and type only.", "",
+             f"Tool: `{result.get('tool', '?')}` · Digest: `{result.get('digest', '?')}`  ",
+             "Anyone can re-check this report: `python scripts/repo_reality_check.py --verify report.json <checkout>`", ""]
+    rules = sorted({f["rule"] for f in result["findings"]})
+    if rules:
+        lines += ["## What the findings mean and how to fix them", ""]
+        for rule in rules:
+            meaning, fix, effort = GUIDE.get(rule, ("See the finding detail.", "Review the listed locations.", "varies"))
+            lines.append(f"- **`{rule}`** — {meaning} **Fix:** {fix} **Effort:** {effort}")
+        lines.append("")
     for area in ("secrets", "safety", "hygiene", "supply", "workflows"):
         items = [f for f in result["findings"] if f["area"] == area]
         if not items:
@@ -159,13 +231,18 @@ def to_markdown(result):
         if len(items) > 40:
             lines.append(f"- … {len(items) - 40} more in report.json")
         lines.append("")
+    lines += ["## What this check did NOT cover", ""] + [f"- {item}" for item in NOT_CHECKED] + [""]
     return "\n".join(lines)
 
 
 def main(argv=None):
     argv = argv or sys.argv[1:]
+    if len(argv) == 3 and argv[0] == "--verify":
+        ok = verify(argv[1], argv[2])
+        print("VERIFIED: report matches this checkout" if ok else "MISMATCH: report does not match this checkout")
+        return 0 if ok else 1
     if len(argv) != 2:
-        print(__doc__.strip().splitlines()[-1], file=sys.stderr)
+        print("\n".join(__doc__.strip().splitlines()[-2:]), file=sys.stderr)
         return 2
     result = check(argv[0])
     report_json, report_md = json.dumps(result, indent=1), to_markdown(result)
