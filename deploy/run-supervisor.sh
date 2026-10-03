@@ -5,6 +5,9 @@ set -eu
 [ "$COURIER_API_KEY" != "$COURIER_VERIFIER_API_KEY" ] || { echo "Worker and verifier API keys must differ" >&2; exit 1; }
 source venv/bin/activate
 
+mkdir -p run
+echo $$ > run/supervisor.pid
+
 echo "Starting Courier background daemons..."
 python3 scripts/courier_verifier.py > logs/courier_verifier.log 2>&1 &
 VERIFIER_PID=$!
@@ -15,14 +18,12 @@ DISPATCHER_PID=$!
 python3 scripts/courier_watchdog.py > logs/courier_watchdog.log 2>&1 &
 WATCHDOG_PID=$!
 
-
-
 echo "Starting Gunicorn server..."
 # Using -w 1 --threads 4 to avoid file locking issues with state.json
 
 gunicorn -w 1 --threads 4 -b 0.0.0.0:8080 server.app:app &
 GUNICORN_PID=$!
 
-trap "echo 'Stopping all...'; kill $VERIFIER_PID $DISPATCHER_PID $WATCHDOG_PID $GUNICORN_PID 2>/dev/null; exit 0" EXIT SIGINT SIGTERM
+trap "echo 'Stopping all...'; kill $VERIFIER_PID $DISPATCHER_PID $WATCHDOG_PID $GUNICORN_PID 2>/dev/null; rm -f run/supervisor.pid; exit 0" EXIT SIGINT SIGTERM
 
 wait $GUNICORN_PID

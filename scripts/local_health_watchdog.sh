@@ -5,15 +5,21 @@
 
 cd "$(dirname "$0")/.." || exit 1
 
-# Leise pruefen, ob Gunicorn laeuft
-if ! pgrep -f "gunicorn.*server.app:app" > /dev/null; then
+SUPERVISOR_RUNNING=0
+if [ -f run/supervisor.pid ]; then
+    if kill -0 $(cat run/supervisor.pid) 2>/dev/null; then
+        SUPERVISOR_RUNNING=1
+    fi
+fi
+
+if [ $SUPERVISOR_RUNNING -eq 0 ]; then
     echo "$(date): Courier Server laeuft nicht. Starte neu..." >> logs/health_watchdog.log
     
     # Alte Reste zur Sicherheit aufraeumen
-    pkill -9 -f courier_verifier.py 2>/dev/null || true
-    pkill -9 -f courier_github_dispatcher.py 2>/dev/null || true
-    pkill -9 -f courier_watchdog.py 2>/dev/null || true
-    pkill -9 -f gunicorn 2>/dev/null || true
+    if [ -f run/supervisor.pid ]; then
+        kill -TERM $(cat run/supervisor.pid) 2>/dev/null || true
+        sleep 1
+    fi
     
     # Neu starten im Hintergrund, Ausgaben ins Nirvana
     nohup ./deploy/run-supervisor.sh > /dev/null 2>&1 &

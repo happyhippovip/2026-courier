@@ -100,7 +100,22 @@ def heartbeat_interval(ttl_s: int) -> float:
     return max(0.5, ttl_s / 3.0)
 
 
+
+import re
+
+class WorkerIdentity(str):
+    PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
+
+    @classmethod
+    def parse(cls, value: str) -> "WorkerIdentity":
+        if not isinstance(value, str) or not value or len(value) > MAX_ID_LENGTH:
+            raise ApiError(400, "invalid_worker_id", f"worker_id must be a non-empty string of at most {MAX_ID_LENGTH} chars")
+        if not cls.PATTERN.match(value) or value.upper() == "UNKNOWN" or value.upper() == "UNKNOWN_WORKER":
+            raise ApiError(400, "invalid_worker_id", "malformed or unknown worker identity")
+        return cls(value)
+
 def _require_id(body: dict, name: str) -> str:
+
     value = body.get(name)
     if not isinstance(value, str) or not value or len(value) > MAX_ID_LENGTH:
         raise ApiError(400, "invalid_request", f"{name} must be a non-empty string of at most {MAX_ID_LENGTH} chars")
@@ -341,7 +356,7 @@ class Controller:
     def claim(self, body: Any) -> dict | None:
         self._require_writable()
         body = _only_fields(body, {"worker_id"})
-        worker_id = _require_id(body, "worker_id")
+        worker_id = WorkerIdentity.parse(body.get("worker_id"))
         with self._locked():
             for task in self.journal.tasks(TaskStatus.QUEUED.value):
                 if task.cancel_requested:
@@ -389,7 +404,7 @@ class Controller:
     def heartbeat(self, body: Any) -> dict:
         self._require_writable()
         body = _only_fields(body, {"worker_id", "dispatch_ids"})
-        worker_id = _require_id(body, "worker_id")
+        worker_id = WorkerIdentity.parse(body.get("worker_id"))
         dispatch_ids = body.get("dispatch_ids")
         if (not isinstance(dispatch_ids, list) or len(dispatch_ids) > MAX_HEARTBEAT_DISPATCHES
                 or not all(isinstance(d, str) and 0 < len(d) <= MAX_ID_LENGTH for d in dispatch_ids)):

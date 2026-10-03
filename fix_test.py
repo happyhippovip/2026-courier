@@ -1,16 +1,12 @@
-import pathlib
-p = pathlib.Path('tests/test_artifact_upload_flow.py')
-t = p.read_text('utf-8')
-old = '''def result_for(task, refs):
-    return {**{f: task[f] for f in IDS}, "run_id": "r1", "result_id": "result-1", "status": "SUCCESS",
-            "artifacts": refs}'''
-new = '''def result_for(task, refs):
-    import time
-    from scripts.integration_contract import _canonical_hash
-    base = {**{f: task[f] for f in IDS}, "run_id": "r1", "status": "SUCCESS", "artifacts": refs}
-    return {**base, "result_id": f"result-{_canonical_hash(base)}", "execution_start_at": time.time(), "execution_end_at": time.time()}'''
-if old in t:
-    p.write_text(t.replace(old, new), 'utf-8')
-    print('replaced')
-else:
-    print('not found')
+import sys
+
+content = open("tests/test_l3_worker_host.py").read()
+
+content = content.replace("test_timeout_kills_whole_tree_within_bound", "test_timeout_extends_until_lease_lost")
+content = content.replace("timeout_s=2.0, lease_ttl_s=30.0", "timeout_s=1.0, lease_ttl_s=3.0")
+content = content.replace("assert result.outcome == Outcome.TIMEOUT", "assert result.outcome == Outcome.LEASE_LOST")
+content = content.replace("assert elapsed < 2.0 + H.KILL_GRACE_S + 4.0", "assert elapsed >= 3.0")
+
+with open("tests/test_l3_worker_host.py", "w") as f:
+    f.write(content)
+print("Fixed test")

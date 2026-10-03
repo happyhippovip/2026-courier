@@ -27,6 +27,10 @@ class HostCapabilityRegistry:
     def deregister_host(self, host_id: str) -> None:
         self._hosts.pop(host_id, None)
 
+    def is_known(self, host_id: str) -> bool:
+        return host_id in self._hosts
+
+
     def find_eligible_hosts(self, req: WorkkeyRequirements) -> Union[List[str], str]:
         """
         Returns deterministically sorted ELIGIBLE HOSTS or 'BLOCKED_RIGHT_HOST'.

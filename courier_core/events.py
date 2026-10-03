@@ -62,7 +62,7 @@ class EventType(str, Enum):
 SYSTEM_EVENTS = frozenset({EventType.CONTROLLER_STARTED, EventType.CONTROLLER_STOPPED})
 TASK_EVENTS = frozenset(EventType) - SYSTEM_EVENTS
 
-ID_FIELDS = ("task_id", "dispatch_id", "worker_id", "result_id")
+ID_FIELDS = ("task_id", "dispatch_id", "worker_id")
 
 # Human decisions on a BLOCKED task: who decided is part of the event.
 HUMAN_DECISIONS = frozenset({EventType.EFFECT_CONFIRMED, EventType.RETRY_AUTHORIZED})
@@ -73,7 +73,7 @@ REQUIRED: dict[EventType, tuple[tuple[str, ...], tuple[str, ...]]] = {
     EventType.TASK_CLAIMED: (("task_id", "attempt", "dispatch_id", "worker_id"), ("ttl_s",)),
     EventType.TASK_STARTED: (("task_id", "attempt", "dispatch_id", "worker_id"), ()),
     EventType.TASK_PROGRESS: (("task_id", "attempt", "dispatch_id"), ()),
-    EventType.RESULT_READY: (("task_id", "attempt", "dispatch_id", "worker_id", "result_id"), ("artifacts", "outcome")),
+    EventType.RESULT_READY: (("task_id", "attempt", "dispatch_id", "worker_id"), ("artifacts", "status")),
     EventType.RESULT_ACCEPTED: (("task_id", "attempt", "dispatch_id", "result_id"), ()),
     EventType.RESULT_REJECTED: (("task_id", "attempt", "dispatch_id", "result_id"), ("reason", "retryable")),
     EventType.TASK_COMPLETE: (("task_id", "attempt", "dispatch_id", "result_id"), ()),
@@ -279,8 +279,8 @@ def _validate_payload(event: Event) -> None:
     elif event.type is EventType.TASK_CLAIMED:
         _check_positive_int("ttl_s", payload["ttl_s"])
     elif event.type is EventType.RESULT_READY:
-        if payload["outcome"] not in RESULT_OUTCOMES:
-            raise EventValidationError(f"outcome must be one of {sorted(RESULT_OUTCOMES)}")
+        if payload["status"] not in ("SUCCESS", "FAILED"):
+            raise EventValidationError("status must be SUCCESS or FAILED")
         artifacts = payload["artifacts"]
         if not isinstance(artifacts, list):
             raise EventValidationError("artifacts must be a list")
