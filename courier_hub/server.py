@@ -428,6 +428,7 @@ def main(argv: Optional[list] = None) -> int:
     parser.add_argument("--port", type=int, default=0, help="hub port on 127.0.0.1 (0 = pick a free port)")
     parser.add_argument("--actor", default=None, help="who decides in this hub (default desktop:<login name>)")
     parser.add_argument("--print-url", action="store_true")
+    parser.add_argument("--contract-file", help="Write startup contract (JSON) to this file")
     args = parser.parse_args(argv)
     if not args.home:
         parser.error("--home (or COURIER_HOME) is required")
@@ -435,6 +436,10 @@ def main(argv: Optional[list] = None) -> int:
         parser.error("--actor must be 1-200 characters of letters, digits and _.:@-")
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     server = HubServer(Hub(Path(args.home), args.controller, actor=args.actor), args.port)
+    if args.contract_file:
+        contract = {"port": server.server_address[1], "url": server.url}
+        Path(args.contract_file).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.contract_file).write_text(json.dumps(contract))
     if args.print_url:
         print(server.url, flush=True)
     log.info("desktop hub on %s (home %s)", server.url, args.home)
