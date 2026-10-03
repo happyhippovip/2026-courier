@@ -413,3 +413,71 @@ def test_stale_claim_is_quarantined_without_replay_and_other_goal_continues(tmp_
     late_result = durable_result(claimed)
     assert http.post("/tasks/result", headers=auth(), json=late_result).status_code == 409
     assert server_app.load_state()["tasks"][claimed["task_id"]]["status"] == "HUMAN_REQUIRED"
+
+def test_terminal_host_recovery_preserves_work_without_redispatch(tmp_path, monkeypatch):
+    """
+    Test recovery where only the terminal/PowerShell extension host is restarted.
+    Verifies Courier work is preserved (the worker survives) and no unnecessary redispatch occurs.
+    This simulates the scenario where the parent process (terminal host) dies but the worker daemon
+    was launched detached and continues to heartbeat and hold the claim.
+    """
+    import hashlib
+    http = client(tmp_path, monkeypatch)
+    
+    # 1. Register workers
+    http.post("/workers/register", headers=auth(), json={"worker_id": "worker-survivor", "platform": "mac", "capabilities": ["macos"]})
+    http.post("/workers/register", headers=auth(), json={"worker_id": "worker-new-host", "platform": "mac", "capabilities": ["macos"]})
+    
+    # 2. Add goal
+    goal = http.post(
+        "/goals",
+        headers=auth(),
+        json={
+            "goal_text": "terminal recovery task",
+            "workflow_plan": [
+                {
+                    "task_id": "task-recovery-1",
+                    "target_agent": "mac",
+                    "instruction": "survive terminal crash",
+                    "artifacts": ["bounded.txt"],
+                }
+            ],
+        },
+    ).get_json()
+    
+    task_id = "task-recovery-1"
+    
+    # 3. Worker claims task
+    claimed = http.post("/tasks/claim", headers=auth(), json={"worker_id": "worker-survivor"})
+    assert claimed.status_code == 200
+    task_payload = claimed.get_json()["task"]
+    assert task_payload["task_id"] == task_id
+    
+    # 4. Simulate terminal host crash!
+    # The parent process dies, but the worker process is detached, so it survives.
+    # It sends a heartbeat to prove it's still alive.
+    hb_resp = http.post("/workers/heartbeat", headers=auth(), json={"worker_id": "worker-survivor", "attempt_id": task_payload["attempt_id"]})
+    assert hb_resp.status_code == 200
+    
+    # 5. A new worker comes online (e.g. the terminal host restarted)
+    # It tries to claim tasks. It should NOT get the task because the survivor is still holding it (no unnecessary redispatch).
+    resp_new = http.post("/tasks/claim", headers=auth(), json={"worker_id": "worker-new-host"})
+    assert resp_new.status_code == 200
+    assert resp_new.get_json().get("task") is None
+    
+    # 6. Survivor finishes work
+    res_resp = http.post("/tasks/result", headers=auth(), json={
+        "goal_id": goal["goal_id"],
+        "task_id": task_id,
+        "attempt_id": task_payload["attempt_id"],
+        "dispatch_id": task_payload["dispatch_id"],
+        "worker_id": "worker-survivor",
+        "run_id": "pid-123",
+        "result_id": "res-123",
+        "status": "SUCCESS",
+        "artifacts": [{"path": "bounded.txt", "sha256": hashlib.sha256(b"bounded\n").hexdigest()}]
+    })
+    assert res_resp.status_code == 200
+    
+    state_after = server_app.load_state()
+    assert state_after["tasks"][task_id]["status"] == "RESULT_RECEIVED"
