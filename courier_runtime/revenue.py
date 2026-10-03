@@ -66,6 +66,8 @@ class Job:
     reworks: int = 0
     failed: bool = False
     evidence: list = field(default_factory=list)
+    paid_on: str = ""             # ISO date the money arrived; groups revenue by month
+    delivered_on: str = ""        # ISO date the report reached the customer
 
     @property
     def revenue_eur(self):

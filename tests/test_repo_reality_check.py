@@ -64,3 +64,25 @@ def test_cli_writes_json_and_markdown(repo, tmp_path):
     assert main([str(repo), str(out)]) == 0
     assert json.loads((out / "report.json").read_text())["findings"]
     assert (out / "report.md").read_text().startswith("# Repo Reality Check")
+
+
+def test_report_names_the_checked_commit(repo):
+    git(repo, "-c", "user.email=t@example.invalid", "-c", "user.name=t", "commit", "-qm", "init")
+    result = check(repo)
+    assert len(result["sha"]) == 40 and result["sha"] in to_markdown(result)
+
+
+def test_second_pass_blocks_a_leaking_report(repo, tmp_path, monkeypatch):
+    import scripts.repo_reality_check as rrc
+    real = rrc.check
+
+    def leaky(path):
+        result = real(path)
+        result["findings"][0]["detail"] = f"oops {FAKE_TOKEN} owner@example.org"
+        return result
+
+    monkeypatch.setattr(rrc, "check", leaky)
+    out = tmp_path / "out"
+    assert rrc.main([str(repo), str(out)]) == 3
+    assert not out.exists()
+    assert rrc.leak_check(f"x {FAKE_TOKEN} owner@example.org") == ["github_token", "email_address"]

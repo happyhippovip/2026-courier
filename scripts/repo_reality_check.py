@@ -39,6 +39,7 @@ SECRET_PATTERNS = {
     "slack_token": re.compile(r"\bxox[abpr]-[A-Za-z0-9-]{10,}\b"),
     "openai_style_key": re.compile(r"\bsk-[A-Za-z0-9]{32,}\b"),
 }
+EMAIL = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
 LOCKFILES = ("poetry.lock", "uv.lock", "Pipfile.lock", "package-lock.json", "yarn.lock", "pnpm-lock.yaml",
              "Cargo.lock", "go.sum", "Gemfile.lock", "composer.lock")
 
@@ -60,6 +61,20 @@ def git_files(repo):
         meta, path = line.split("\t", 1)
         entries.append((meta.split()[0], path))
     return entries
+
+
+def head_sha(repo):
+    out = subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"], capture_output=True, text=True)
+    return out.stdout.strip() if out.returncode == 0 else "uncommitted"
+
+
+def leak_check(text):
+    """Second pass over the finished report: secret shapes or e-mail addresses
+    must never reach the customer file. Returns the kinds found (never values)."""
+    kinds = [kind for kind, pattern in SECRET_PATTERNS.items() if pattern.search(text)]
+    if EMAIL.search(text):
+        kinds.append("email_address")
+    return kinds
 
 
 def check(repo):
@@ -124,12 +139,13 @@ def check(repo):
                      for p in files for n in [Path(p).name] if n.startswith("requirements") and n.endswith(".txt"))
         if has_py and not hashed:
             add("supply", "medium", "no_lockfile", "repository", "dependencies resolve fresh on every install")
-    return {"repository": repo.name, "files_scanned": len(files), "findings": findings,
+    return {"repository": repo.name, "sha": head_sha(repo), "files_scanned": len(files), "findings": findings,
             "summary": {sev: sum(f["severity"] == sev for f in findings) for sev in ("high", "medium", "low")}}
 
 
 def to_markdown(result):
     lines = [f"# Repo Reality Check — {result['repository']}", "",
+             f"Commit: `{result.get('sha', 'unknown')}`", "",
              f"Files scanned: {result['files_scanned']} · high {result['summary']['high']} · "
              f"medium {result['summary']['medium']} · low {result['summary']['low']}", "",
              "Read-only scan; no code was executed. Secret findings show location and type only.", ""]
@@ -152,10 +168,15 @@ def main(argv=None):
         print(__doc__.strip().splitlines()[-1], file=sys.stderr)
         return 2
     result = check(argv[0])
+    report_json, report_md = json.dumps(result, indent=1), to_markdown(result)
+    leaks = leak_check(report_json + report_md)
+    if leaks:
+        print(f"refusing to write report: second pass found {', '.join(leaks)}", file=sys.stderr)
+        return 3
     out = Path(argv[1])
     out.mkdir(parents=True, exist_ok=True)
-    (out / "report.json").write_text(json.dumps(result, indent=1), encoding="utf-8")
-    (out / "report.md").write_text(to_markdown(result), encoding="utf-8")
+    (out / "report.json").write_text(report_json, encoding="utf-8")
+    (out / "report.md").write_text(report_md, encoding="utf-8")
     print(json.dumps(result["summary"]))
     return 0
 
