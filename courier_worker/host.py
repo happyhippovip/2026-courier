@@ -690,13 +690,16 @@ def _tail(path: str, limit: int = MAX_STDIO_TAIL) -> str:
 
 
 def write_crash_report(artifact_dir: str, spec: ExecutionSpec, outcome: str,
-                       returncode: Optional[int], duration_s: float, stderr_path: str) -> str:
+                       returncode: Optional[int], duration_s: float, stderr_path: str, redact_string: Optional[str] = None) -> str:
     """Persist the abnormal end as evidence; the report itself is an artifact."""
     os.makedirs(artifact_dir, exist_ok=True)
+    tail = _tail(stderr_path)[-8000:]
+    if redact_string and len(redact_string) > 4:
+        tail = tail.replace(redact_string, "[REDACTED_TOKEN]")
     report = {"dispatch_id": spec.dispatch_id, "task_id": spec.task_id, "attempt": spec.attempt,
               "worker_id": spec.worker_id, "outcome": outcome, "returncode": returncode,
               "duration_s": round(duration_s, 3),
-              "stderr_tail": _tail(stderr_path)[-8000:]}
+              "stderr_tail": tail}
     path = os.path.join(artifact_dir, CRASH_REPORT_NAME)
     fd, tmp = tempfile.mkstemp(dir=artifact_dir, prefix=".crash-", suffix=".tmp")
     try:
@@ -874,8 +877,14 @@ class WorkerHost:
         duration_s = time.monotonic() - start
         crash_report_path = None
         if outcome != Outcome.COMPLETED:
+            token = None
+            try:
+                with open(os.path.join(self.home, "run", "controller.token"), encoding="utf-8") as f:
+                    token = f.read().strip()
+            except OSError:
+                pass
             crash_report_path = write_crash_report(
-                spec.artifact_dir, spec, outcome, returncode, duration_s, run.stderr_path)
+                spec.artifact_dir, spec, outcome, returncode, duration_s, run.stderr_path, redact_string=token)
         artifacts = collect_artifacts(spec.artifact_dir)
         return ExecutionResult(
             spec=spec, outcome=outcome, returncode=returncode,
