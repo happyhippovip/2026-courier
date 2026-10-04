@@ -12,7 +12,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-import yaml
+import pytest
+yaml = pytest.importorskip("yaml")
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github" / "workflows" / "courier_motor.yml"

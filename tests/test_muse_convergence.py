@@ -6,6 +6,9 @@ from pathlib import Path
 
 import pytest
 
+if sys.platform == "win32":
+    pytest.skip("mac_worker uses fcntl, not supported on Windows", allow_module_level=True)
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "mac_worker"))
 import muse_adapter as adapter
