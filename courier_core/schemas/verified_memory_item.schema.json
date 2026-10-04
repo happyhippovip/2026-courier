@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "VerifiedMemoryItem",
+  "description": "Defines an accepted reusable project capability, not merely stored text. Speculative notes must not use this schema.",
+  "type": "object",
+  "required": [
+    "memory_id",
+    "what_is_known",
+    "why_is_it_believed",
+    "applicable_state",
+    "producer_identity",
+    "verification_timestamp",
+    "invalidation_conditions"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "memory_id": {
+      "type": "string",
+      "pattern": "^ver-mem-[A-Za-z0-9_.-]+$"
+    },
+    "what_is_known": {
+      "type": "string",
+      "description": "The precise capability, configuration, or fact that was proven.",
+      "minLength": 10
+    },
+    "why_is_it_believed": {
+      "type": "string",
+      "description": "The deterministic evidence, test script, or logs that prove it.",
+      "minLength": 10
+    },
+    "applicable_state": {
+      "type": "string",
+      "description": "The exact commit, artifact hash, or system state where this was true.",
+      "minLength": 5
+    },
+    "producer_identity": {
+      "type": "string",
+      "description": "The agent, worker, or human who ran the verification.",
+      "minLength": 3
+    },
+    "verification_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "An ISO-8601 timestamp of verification."
+    },
+    "invalidation_conditions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "Specific conditions that would render this memory obsolete."
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

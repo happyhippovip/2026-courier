@@ -4,6 +4,10 @@ import os
 import stat
 from pathlib import Path
 
+import sys
+import pytest
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Bash script not supported on Windows")
 def test_run2_fails_without_run1_success():
     """N2: Proves RUN_2 is gated by RUN_1 success (artifacts/RUN_1_SUCCESS)."""
     with tempfile.TemporaryDirectory() as td:
@@ -28,14 +32,14 @@ exit 0
         # 1. Ensure it fails when artifacts/RUN_1_SUCCESS doesn't exist
         os.makedirs(tmp_dir / "artifacts", exist_ok=True)
         
-        result = subprocess.run([str(script_path)], cwd=str(tmp_dir), capture_output=True, text=True)
+        result = subprocess.run(["bash", str(script_path)], cwd=str(tmp_dir), capture_output=True, text=True)
         assert result.returncode == 1, "RUN_2 should fail without RUN_1_SUCCESS"
         assert "ERROR: RUN_2 aborted" in result.stdout
         
         # 2. Ensure it succeeds when artifacts/RUN_1_SUCCESS exists
         (tmp_dir / "artifacts" / "RUN_1_SUCCESS").write_text("SUCCESS")
         
-        result = subprocess.run([str(script_path)], cwd=str(tmp_dir), capture_output=True, text=True)
+        result = subprocess.run(["bash", str(script_path)], cwd=str(tmp_dir), capture_output=True, text=True)
         assert result.returncode == 0, "RUN_2 should succeed when RUN_1_SUCCESS exists"
         assert "Running RUN_2..." in result.stdout
         

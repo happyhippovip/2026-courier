@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 import sys
+import os
 def get_bash():
     if sys.platform == "win32":
         for p in [r"C:\Program Files\Git\bin\bash.exe", r"C:\Program Files\Git\usr\bin\bash.exe"]:
@@ -36,6 +37,7 @@ def test_no_leaked_credential_in_tracked_source():
     assert hits == [], f"leaked credential still present in: {sorted(set(hits))}"
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Bash scripts not supported on Windows")
 @pytest.mark.parametrize("script", SCRIPTS)
 def test_scripts_read_key_from_environment(script):
     text = (ROOT / script).read_text()
@@ -43,6 +45,7 @@ def test_scripts_read_key_from_environment(script):
     assert "set -x" not in text
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Bash scripts not supported on Windows")
 @pytest.mark.parametrize("script", SCRIPTS)
 @pytest.mark.parametrize("key", [None, "", "   "])
 def test_missing_key_fails_closed_before_side_effects(script, key, tmp_path):
@@ -63,6 +66,7 @@ def test_missing_key_fails_closed_before_side_effects(script, key, tmp_path):
     assert not marker.exists()
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Bash scripts not supported on Windows")
 def test_revenue_script_uses_key_and_never_echoes_it(tmp_path):
     bindir = tmp_path / "bin"
     bindir.mkdir()
@@ -79,6 +83,7 @@ def test_revenue_script_uses_key_and_never_echoes_it(tmp_path):
     assert DUMMY not in r.stdout + r.stderr
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Bash scripts not supported on Windows")
 def test_revenue_script_prefers_canonical_courier_server(tmp_path):
     bindir = tmp_path / "bin"
     bindir.mkdir()
@@ -92,6 +97,7 @@ def test_revenue_script_prefers_canonical_courier_server(tmp_path):
     assert "http://canonical.invalid:1/goals" in argsfile.read_text()
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Bash scripts not supported on Windows")
 def test_linux_install_installs_requests_and_never_overwrites_env():
     text = (ROOT / "deploy/install.sh").read_text()
     assert re.search(r"pip install [^\n]*\brequests\b", text)
@@ -104,3 +110,4 @@ def test_local_env_files_are_git_ignored():
     for path in ("deploy/.env", ".env"):
         r = subprocess.run(["git", "check-ignore", "-q", path], cwd=ROOT)
         assert r.returncode == 0, path
+

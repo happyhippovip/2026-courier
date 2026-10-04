@@ -33,7 +33,8 @@ def test_dispatch_intake_success(tmp_path):
             if cmd[1] == "workflow":
                 return mock.Mock(stdout="dispatched")
             elif cmd[1] == "run":
-                return mock.Mock(stdout="9999\n")
+                # Ensure the created time is strictly > 0 so it matches since_epoch
+                return mock.Mock(stdout='[{"databaseId": 9999, "createdAt": "2030-01-01T00:00:00Z"}]')
             return mock.Mock()
         mock_run.side_effect = fake_run
         

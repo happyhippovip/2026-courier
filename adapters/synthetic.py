@@ -30,11 +30,16 @@ Verification contract (for ``courier_core.verification.run_verifier``)::
 ``home`` the file-scope root the caller authorizes reads from. The verifier is
 pure and read-only: it never writes, never deletes, and rejected evidence is
 left exactly as found (preservation is what lets a human or a retry inspect a
-rejection afterwards). Rules, fail closed:
+rejection afterwards). Dispatch identity is bound here; attempt staleness
+and duplication stay the controller journal's job (fencing + dedupe keys).
+Rules, fail closed:
 
 - ``outcome != "success"`` is always rejected; ``retryable`` comes from the
   result payload, defaulting to true only for ``effect_class == "idempotent"``
   (mirrors the controller rule: nothing else becomes retryable by omission).
+- when the task names a ``dispatch_id``, the result must name the same one;
+  evidence bound to another (or no) dispatch is rejected. The journal fences
+  stale dispatches too; this is the verifier's half of that binding.
 - success requires a non-empty artifact list of ``{path, sha256}`` dicts.
 - every artifact path must be workspace-relative (no absolute, drive, root or
   ``..`` under either Windows or POSIX semantics) and must resolve inside
@@ -219,10 +224,11 @@ def verify(task: Any, result: Any, home: str | os.PathLike):
     Returns accept only when every artifact reference resolves inside ``home``
     to bytes hashing to the claimed sha256 (plus the declared synthetic
     content when the task params pin it). Rejects everything else, including
-    failures (with the controller's retryability default), empty or malformed
-    evidence, missing/tampered files, unsafe paths, and content mismatches.
-    Staleness and duplication are the controller journal's job (fencing +
-    dedupe keys): this function judges evidence only and changes no state.
+    failures (with the controller's retryability default), evidence bound to
+    another dispatch, empty or malformed evidence, missing/tampered files,
+    unsafe paths, and content mismatches. Attempt staleness and duplication
+    stay the controller journal's job (fencing + dedupe keys): this function
+    judges evidence only and changes no state.
     """
     try:
         return _verify(task, result, home)
@@ -238,6 +244,10 @@ def _verify(task: Any, result: Any, home: str | os.PathLike):
         reason = payload.get("reason") or "worker reported failure"
         retryable = payload.get("retryable", getattr(task, "effect_class", "") == "idempotent")
         return _reject(reason, retryable)
+    task_dispatch = getattr(task, "dispatch_id", None)
+    result_dispatch = getattr(result, "dispatch_id", None)
+    if task_dispatch is not None and result_dispatch != task_dispatch:
+        return _reject("evidence is bound to a different dispatch")
     artifacts = _payload_artifacts(payload)
     if artifacts is None:
         return _reject("missing evidence" if isinstance(payload.get("artifacts"), list) else "malformed evidence")

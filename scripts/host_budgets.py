@@ -21,6 +21,7 @@ machine-wide) by the imported governor invariant.
 
 from __future__ import annotations
 
+import shutil
 from dataclasses import dataclass, field
 
 try:  # Single source of truth; fall back only defensively.
@@ -148,11 +149,110 @@ def release(budgets: dict[str, Budget], work_class: str) -> None:
             budgets[name].release(cost)
 
 
+# -- disk floor (supporting signal only, never proof of health) -------------------
+def disk_free_bytes(path: str) -> int | None:
+    """Free bytes under path, or None when unreadable (UNKNOWN, not zero)."""
+    try:
+        return shutil.disk_usage(path).free
+    except Exception:
+        return None
+
+
+def disk_floor_ok(path: str, floor_bytes: int) -> bool:
+    """True only when free space is known AND above the floor. Fail-closed."""
+    free = disk_free_bytes(path)
+    return free is not None and free >= floor_bytes
+
+
+# -- trends (baseline drift, not snapshots) ---------------------------------------
+RISING = "RISING"
+FALLING = "FALLING"
+FLAT = "FLAT"
+UNKNOWN_TREND = "UNKNOWN"
+
+
+def trend(samples: list[float | None]) -> str:
+    """Least-squares direction over a history. <3 points or any gap: UNKNOWN."""
+    clean = [s for s in samples if isinstance(s, (int, float))]
+    if len(samples) < 3 or len(clean) != len(samples):
+        return UNKNOWN_TREND
+    n = len(clean)
+    mx = (n - 1) / 2.0
+    my = sum(clean) / n
+    den = sum((i - mx) ** 2 for i in range(n))
+    slope = sum((i - mx) * (v - my) for i, v in enumerate(clean)) / den
+    span = max(clean) - min(clean)
+    if span == 0:
+        return FLAT
+    # Relative slope: ignore jitter smaller than 1% of span per step.
+    if slope > 0.01 * span:
+        return RISING
+    if slope < -0.01 * span:
+        return FALLING
+    return FLAT
+
+
+def trend_blocks_heavy(tr: str) -> bool:
+    """RISING pressure (or UNKNOWN history) admits no new heavy work."""
+    return tr in (RISING, UNKNOWN_TREND)
+
+
+# -- hysteresis (escalate at once, de-escalate slowly) ------------------------------
+@dataclass
+class HysteresisGate:
+    """Flap guard: one bad sample gates; calm_required good samples release."""
+
+    calm_required: int = 3
+    _calm: int = field(default=0, repr=False)
+    gated: bool = False
+
+    def observe(self, bad: bool) -> bool:
+        if bad:
+            self._calm = 0
+            self.gated = True
+            return True
+        self._calm += 1
+        if self._calm >= self.calm_required:
+            self.gated = False
+        return self.gated
+
+
+# -- lane admission mode ------------------------------------------------------------
+OPEN = "OPEN"
+LIGHT_ONLY = "LIGHT_ONLY"
+CLOSED = "CLOSED"
+
+_LANE_MODES = {
+    "NOMINAL": OPEN,
+    "WATCH": LIGHT_ONLY,
+    "PRESSURED": LIGHT_ONLY,
+    "DEGRADED": LIGHT_ONLY,
+    "RESOURCE_PAUSE": CLOSED,
+    "EMERGENCY": CLOSED,
+    "RECOVERING": CLOSED,
+}
+
+
+def lane_mode(state: str) -> str:
+    """OPEN / LIGHT_ONLY / CLOSED for a mission or capacity state."""
+    try:
+        return _LANE_MODES[str(state).upper()]
+    except KeyError:
+        raise ValueError(f"unknown lane state: {state!r}") from None
+
+
+# -- cleanup evidence ------------------------------------------------------------------
+CLEANUP_PROVEN = "PROVEN"
+CLEANUP_UNKNOWN = "UNKNOWN"
+CLEANUP_FAILED = "FAILED"
+
+
 # -- hibernation -----------------------------------------------------------------
 @dataclass
 class Lane:
     id: str
     state: str = IDLE
+    cleanup: str = CLEANUP_UNKNOWN
 
 
 def plan_hibernation(lanes: list[Lane], health: str,
@@ -166,13 +266,18 @@ def plan_hibernation(lanes: list[Lane], health: str,
     - RESOURCE_PAUSE / EMERGENCY hibernate everything except the canonical
       checkpoint service.
     - Already-HIBERNATED lanes are left alone (idempotent).
+    - FAILED cleanup never hibernates blindly: the lane is listed for
+      TRANSFER (continue or atomic transfer), never dropped.
     """
     hibernate: list[str] = []
     keep: list[str] = []
+    transfer: list[str] = []
     for lane in lanes:
         if lane.state == HIBERNATED:
             continue
-        if health in ("RESOURCE_PAUSE", "EMERGENCY"):
+        if lane.cleanup == CLEANUP_FAILED:
+            transfer.append(lane.id)
+        elif health in ("RESOURCE_PAUSE", "EMERGENCY"):
             hibernate.append(lane.id)
         elif lane.state in HIBERNATE_ELIGIBLE:
             hibernate.append(lane.id)
@@ -182,7 +287,29 @@ def plan_hibernation(lanes: list[Lane], health: str,
         "checkpoint_first": True,
         "hibernate": hibernate,
         "keep": keep,
+        "transfer": transfer,
         "keep_checkpoint_service": True,
         "stop_pollers": bool(quota_exhausted),
         "broad_actions": [],
     }
+
+
+# -- retirement checklist (BEFORE RETIREMENT law) --------------------------------------
+RETIRE = "RETIRE"
+CONTINUE = "CONTINUE"
+TRANSFER = "TRANSFER"
+
+
+def retirement_check(result_durable: bool, dirty_preserved: bool,
+                     uncertainty_preserved: bool, queue_durable: bool,
+                     handoff_durable: bool, cleanup: str) -> str:
+    """RETIRE only when every precondition holds and cleanup is PROVEN or
+    UNKNOWN. FAILED cleanup with durable queue state means TRANSFER
+    (continue or atomic transfer). Anything else means CONTINUE."""
+    if cleanup == CLEANUP_FAILED:
+        return TRANSFER
+    if (result_durable and dirty_preserved and uncertainty_preserved
+            and queue_durable and handoff_durable
+            and cleanup in (CLEANUP_PROVEN, CLEANUP_UNKNOWN)):
+        return RETIRE
+    return CONTINUE

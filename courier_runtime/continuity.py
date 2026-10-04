@@ -135,10 +135,14 @@ class Kirby:
             return self.sessions[slot]
         if len([s for s in self.sessions.values() if s.state in LIVE]) >= self.max_slots:
             raise RuntimeError(f"pool full ({self.max_slots} slots)")
-        sid, pid, ct = self.start_session(slot, 1)
+        # Generations are monotonic per slot: a reopened/archived slot must never
+        # reuse a retired session_id, or owner-equality checks could misattribute
+        # a stale owner to the new physical session.
+        gen = self.sessions[slot].generation + 1 if slot in self.sessions else 1
+        sid, pid, ct = self.start_session(slot, gen)
         now = self.clock()
-        self.sessions[slot] = Session(slot, sid, provider, self.host, IDLE, pid, ct, activity=activity,
-                                      last_heartbeat=now, last_progress=now)
+        self.sessions[slot] = Session(slot, sid, provider, self.host, IDLE, pid, ct, generation=gen,
+                                      activity=activity, last_heartbeat=now, last_progress=now)
         self._save()
         return self.sessions[slot]
 

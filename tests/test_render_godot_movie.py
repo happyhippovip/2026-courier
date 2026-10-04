@@ -76,7 +76,7 @@ def test_main_dry_run(mock_argv, mock_run, tmp_path):
     
     out_dir = tmp_path / "out"
     
-    mock_argv[:] = [
+    test_args = [
         "render.py",
         "--project", str(tmp_path),
         "--scene", "res://main.tscn",
@@ -86,6 +86,8 @@ def test_main_dry_run(mock_argv, mock_run, tmp_path):
         "--dry-run"
     ]
     
-    res = main()
+    with patch("scripts.render_godot_movie.sys.argv", test_args):
+        res = main()
+        
     assert res == 0
     mock_run.assert_not_called()
