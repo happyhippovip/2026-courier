@@ -246,7 +246,6 @@ CLEANUP_PROVEN = "PROVEN"
 CLEANUP_UNKNOWN = "UNKNOWN"
 CLEANUP_FAILED = "FAILED"
 
-
 # -- hibernation -----------------------------------------------------------------
 @dataclass
 class Lane:
@@ -292,8 +291,6 @@ def plan_hibernation(lanes: list[Lane], health: str,
         "stop_pollers": bool(quota_exhausted),
         "broad_actions": [],
     }
-
-
 # -- retirement checklist (BEFORE RETIREMENT law) --------------------------------------
 RETIRE = "RETIRE"
 CONTINUE = "CONTINUE"

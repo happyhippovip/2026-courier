@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="19" time="7.913" timestamp="2026-09-28T21:02:39.465027+02:00" hostname="DESKTOP-JDPRUGR"><testcase classname="tests.test_server_integration_contract" name="test_insecure_default_key_fails_closed" time="0.037" /><testcase classname="tests.test_server_integration_contract" name="test_operator_state_endpoints_require_auth[/workers]" time="0.009" /><testcase classname="tests.test_server_integration_contract" name="test_operator_state_endpoints_require_auth[/walls]" time="0.010" /><testcase classname="tests.test_server_integration_contract" name="test_background_agents_fail_closed_without_api_key[scripts/courier_verifier.py]" time="1.653" /><testcase classname="tests.test_server_integration_contract" name="test_background_agents_fail_closed_without_api_key[scripts/courier_github_dispatcher.py]" time="1.381" /><testcase classname="tests.test_server_integration_contract" name="test_background_agents_fail_closed_without_api_key[scripts/courier_watchdog.py]" time="1.324" /><testcase classname="tests.test_server_integration_contract" name="test_claim_returns_complete_common_identity" time="0.075" /><testcase classname="tests.test_server_integration_contract" name="test_worker_success_cannot_advance_goal_without_independent_verifier" time="0.120" /><testcase classname="tests.test_server_integration_contract" name="test_wrong_attempt_result_fails_closed" time="0.089" /><testcase classname="tests.test_server_integration_contract" name="test_only_independent_verification_advances_goal_exactly_once" time="0.142" /><testcase classname="tests.test_server_integration_contract" name="test_worker_credential_cannot_self_certify_with_forged_verifier_id" time="0.110" /><testcase classname="tests.test_server_integration_contract" name="test_verifier_authority_fails_closed_when_shared_with_worker" time="0.117" /><testcase classname="tests.test_server_integration_contract" name="test_goal_without_manual_plan_uses_existing_planner" time="0.036" /><testcase classname="tests.test_server_integration_contract" name="test_corrupt_state_is_not_treated_as_empty" time="0.009" /><testcase classname="tests.test_server_integration_contract" name="test_retry_gets_new_attempt_and_dispatch_identity" time="0.123"><failure message="AssertionError: assert 'task-1:attempt:3' == 'task-1:attempt:2'&#10;  &#10;  - task-1:attempt:2&#10;  ?                ^&#10;  + task-1:attempt:3&#10;  ?                ^">tmp_path = WindowsPath('C:/Users/lol/AppData/Local/Temp/pytest-of-lol/pytest-443/test_retry_gets_new_attempt_an0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x0000016CA7DB57E0&gt;
+
+    def test_retry_gets_new_attempt_and_dispatch_identity(tmp_path, monkeypatch):
+        http, _, task = setup_claimed_task(tmp_path, monkeypatch)
+        failed = durable_result(task)
+        failed["status"] = "FAILED"
+        failed["artifacts"] = []
+    
+        from scripts.integration_contract import _canonical_hash
+        identity = {
+            "goal_id": failed["goal_id"],
+            "task_id": failed["task_id"],
+            "attempt_id": failed["attempt_id"],
+            "dispatch_id": failed["dispatch_id"],
+            "worker_id": failed["worker_id"],
+            "run_id": failed["run_id"],
+            "status": failed["status"],
+            "artifacts": failed["artifacts"],
+        }
+        failed["result_id"] = f"result-{_canonical_hash(identity)}"
+    
+        assert http.post("/tasks/result", headers=auth(), json=failed).status_code == 200
+    
+        retried = http.post("/tasks/claim", headers=auth(), json={"worker_id": "MAC-01"}).get_json()["task"]
+    
+&gt;       assert retried["attempt_id"] == "task-1:attempt:2"
+E       AssertionError: assert 'task-1:attempt:3' == 'task-1:attempt:2'
+E         
+E         - task-1:attempt:2
+E         ?                ^
+E         + task-1:attempt:3
+E         ?                ^
+
+tests\test_server_integration_contract.py:287: AssertionError</failure></testcase><testcase classname="tests.test_server_integration_contract" name="test_worker_cannot_claim_second_task_while_first_is_active" time="0.139" /><testcase classname="tests.test_server_integration_contract" name="test_reregister_does_not_erase_active_worker_claim" time="0.102" /><testcase classname="tests.test_server_integration_contract" name="test_concurrent_claims_have_exactly_one_winner" time="0.603" /><testcase classname="tests.test_server_integration_contract" name="test_stale_claim_is_quarantined_without_replay_and_other_goal_continues" time="0.214" /></testsuite></testsuites>

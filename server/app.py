@@ -712,8 +712,15 @@ def get_api_state():
         }
     })
 
+def bind_host():
+    """Loopback unless an operator opts in. The legacy remote-worker setup, where
+    workers on other machines reach this server over the LAN, must set
+    COURIER_BIND_HOST explicitly (for example 0.0.0.0); local use never needs it."""
+    return os.environ.get("COURIER_BIND_HOST", "127.0.0.1")
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    app.run(host=bind_host(), port=8080)
 
 
 

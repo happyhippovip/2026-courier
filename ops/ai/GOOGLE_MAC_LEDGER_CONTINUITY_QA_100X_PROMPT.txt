@@ -1,0 +1,64 @@
+COURIER MAC GOOGLE — LEDGER CONTINUITY QA 100X
+
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+REPO=/Users/user/Downloads/2026-courier
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+CONTINUE_BY_DEFAULT=YES
+
+BOOTSTRAP:
+cd /Users/user/Downloads/2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+DO NOT checkout/merge/rebase/reset/clean.
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+RULES:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+FINAL_CANDIDATE_WRITE=NO
+
+Same gate fingerprint is never paid for twice.
+If exact FINAL_SHA durability is required and not available:
+WAITING_FOR_DURABILITY -> claim another independent task.
+
+
+ROLE=MAC_LEDGER_CONTINUITY_QA
+
+TASK:
+Use existing Ledger results to verify Mac-side continuation semantics.
+
+FOCUS:
+- Goal/Task/Attempt/Execution/Result identity survives host handoff
+- pending verification survives
+- reconcile pending survives
+- NEXT_READY remains deterministic
+- stale local state cannot override durable Ledger
+- changed host/provider does not create new logical task
+- completed task cannot resurrect
+- restart checkpoint fields are sufficient
+
+OUTPUT:
+LEDGER_INVARIANT=
+EVIDENCE_REF=
+MAC_CONTINUITY=
+OPEN=
+BLOCKED=
+RETEST_TRIGGER=
+
+Do not redo Google Windows Ledger tests.
+Use summaries/results first.
+
+START NOW.

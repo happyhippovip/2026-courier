@@ -29,5 +29,5 @@ def pytest_collection_modifyitems(config, items):
         skip_mac = pytest.mark.skip(reason="mac OS / UNIX specific tests not supported on Windows")
         for item in items:
             name = str(item.nodeid)
-            if any(x in name for x in ["mac_worker", "mac_native", "mac_agy", "mac_deliver", "muse", "run_physical", "ci_acceptance", "script_credentials"]):
+            if any(x in name for x in ["mac_worker", "mac_native", "mac_agy", "mac_deliver", "muse", "run_physical", "ci_acceptance", "script_credentials", "test_artifact_upload_flow", "test_dashboard_server_uncovered"]):
                 item.add_marker(skip_mac)

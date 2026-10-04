@@ -1,0 +1,15 @@
+COURIER CLAUDE/SONNET — PILOT SEMANTICS PREP
+PROVIDER=SONNET_IF_AVAILABLE
+MODEL_CLASS=C2
+MODE=READ_ONLY
+HARD GATE:
+Do not claim pilot is unlocked before Core Freeze.
+TASK:
+Prepare definitions for positive/negative/unknown pilot value signals, intervention accounting, support burden and privacy-safe evidence.
+OUTPUT:
+AVAILABLE=
+PILOT_SIGNAL_DEFINITION=
+AMBIGUITY=
+PREPARABLE_NOW=
+BLOCKED_UNTIL=
+START NOW.

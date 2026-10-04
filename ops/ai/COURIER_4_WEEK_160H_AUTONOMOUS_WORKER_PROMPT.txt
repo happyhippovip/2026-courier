@@ -1,0 +1,59 @@
+COURIER — 4-WEEK 160H AUTONOMOUS WORKER
+
+HOST=AUTO
+PROVIDER=AUTO
+CONTINUE_BY_DEFAULT=YES
+RUN_PLAN=4_WEEKS_160H
+CLAIM_BEFORE_ANALYSIS=YES
+RESULT_REUSE_FIRST=YES
+SLOT_IDLE_IS_NOT_TERMINAL=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+MAX_HEAVY_JOBS=1
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COURIER_4_WEEK_160H_PLAN_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+QUEUE ORDER:
+ops/ai/4week/WEEK_1_40H_QUEUE.md
+ops/ai/4week/WEEK_2_40H_QUEUE.md
+ops/ai/4week/WEEK_3_40H_QUEUE.md
+ops/ai/4week/WEEK_4_40H_QUEUE.md
+
+LOOP:
+1 harvest unprocessed durable results
+2 choose earliest unlocked incomplete 2h block compatible with host/provider/model
+3 atomically claim one bounded subtask
+4 reuse completed evidence/fingerprint
+5 deterministic/local first
+6 execute bounded work
+7 persist deliverable/verdict/blocker + evidence refs
+8 release claim
+9 update block/day/week checkpoint
+10 immediately claim next unlocked block
+
+WHEN QUEUE APPEARS EMPTY:
+- do not terminate
+- run one bounded PREPARER pass using only current critical path, open blockers, completed summaries and next legal gate
+- replenish real bounded sub-tasks into current block
+- if still no legal work: shell backoff, refresh changed durable metadata, continue
+- do not spend model tokens during backoff
+
+GATES:
+PRE_CODEX unchanged -> one persistence/validation owner only
+CODEX -> exactly one HIGH review after authoritative READY
+RUN_1 -> one physical owner after READY_FOR_PHYSICAL_RUN
+RUN_2 -> one physical owner after RUN_1 PASS
+CORE_FREEZE -> only after physical proofs
+PILOT -> only after Core Freeze
+PRODUCT_SHELL -> only after durable positive pilot signal
+
+RETURN TO HUMAN ONLY:
+auth/2FA/CAPTCHA/payment/admin/legal/safety/permission gate,
+destructive truth/ownership conflict,
+operator-defined time/resource ceiling.
+
+DO NOT ASK FOR NEW WORK WHILE ANY QUEUE BLOCK OR LEGAL PREP EXISTS.
+START NOW.

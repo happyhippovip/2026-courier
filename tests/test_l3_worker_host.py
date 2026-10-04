@@ -20,6 +20,12 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 
+@pytest.fixture(autouse=True)
+def windows_teardown_delay():
+    yield
+    if os.name == "nt":
+        time.sleep(0.1)
+
 from courier_worker import host as H
 from courier_worker.host import ExecutionSpec, Outcome, WorkerHost
 from courier_worker import adapter_bridge as A
@@ -268,6 +274,9 @@ def test_orphan_gate_reaps_dead_owner_tree(tmp_path):
         (claims / "dispatch-orphan-1.json").write_text(json.dumps(record), encoding="utf-8")
         assert H.run_orphan_gate(str(tmp_path)) == 1
         assert list(claims.glob("*.json")) == []
+        # The "orphan" is this test's own child, so it stays a zombie (and its group
+        # stays signalable) until reaped; a real orphan is reaped by init. Reap with a
+        # bound: if the gate did not kill the group, this wait times out and fails.
         proc.wait(timeout=10)
         assert pgid_dead(pgid)
     finally:

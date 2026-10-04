@@ -1,0 +1,59 @@
+{
+  "goals": {
+    "goal-f50422b4": {
+      "goal_id": "goal-f50422b4",
+      "goal_text": "one concurrent claim",
+      "status": "ACTIVE",
+      "workflow_plan": [
+        {
+          "artifacts": [
+            "concurrent.txt"
+          ],
+          "target_agent": "mac",
+          "task_id": "task-concurrent",
+          "goal_id": "goal-f50422b4",
+          "status": "DISPATCHED",
+          "attempts": 1,
+          "worker_id": "MAC-01",
+          "attempt_id": "task-concurrent:attempt:1",
+          "dispatch_id": "dispatch-432d3462fc0240249caf94d514ed3f9d",
+          "run_id": null,
+          "result_id": null,
+          "target_capability": "mac"
+        }
+      ],
+      "current_step_index": 0
+    }
+  },
+  "tasks": {
+    "task-concurrent": {
+      "artifacts": [
+        "concurrent.txt"
+      ],
+      "target_agent": "mac",
+      "task_id": "task-concurrent",
+      "goal_id": "goal-f50422b4",
+      "status": "DISPATCHED",
+      "attempts": 1,
+      "worker_id": "MAC-01",
+      "attempt_id": "task-concurrent:attempt:1",
+      "dispatch_id": "dispatch-432d3462fc0240249caf94d514ed3f9d",
+      "run_id": null,
+      "result_id": null,
+      "target_capability": "mac"
+    }
+  },
+  "workers": {
+    "MAC-01": {
+      "worker_id": "MAC-01",
+      "platform": "mac",
+      "capabilities": [
+        "macos"
+      ],
+      "last_seen": 1790599730.6440814,
+      "available": false,
+      "current_task": "task-concurrent",
+      "cost_class": "unknown"
+    }
+  }
+}

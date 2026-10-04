@@ -283,7 +283,7 @@ class AutonomousLevel6Loop:
                 "reason": "QA verification failed; repair task dispatched.",
                 "created_at": now_iso,
             }
-        elif verdict == "PASS":
+        elif verdict in ("PASS", "ACCEPTED"):
             # Determine if there is a next task in the workflow plan
             next_task_info = None
             if workflow_plan and (round_index + 1) < len(workflow_plan):

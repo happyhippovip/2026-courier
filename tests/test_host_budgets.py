@@ -101,8 +101,6 @@ def test_hibernation_releases_budget_back_to_baseline():
     HB.release(budgets, "LIGHT")
     assert budgets["light_workers"].used == 0  # baseline restored, readmit clean
     assert HB.admit_work(budgets, "LIGHT", "NOMINAL") is True
-
-
 # -- U1: disk floor -------------------------------------------------------------
 def test_disk_floor_blocks_when_below_floor(tmp_path):
     assert HB.disk_floor_ok(str(tmp_path), floor_bytes=1) is True

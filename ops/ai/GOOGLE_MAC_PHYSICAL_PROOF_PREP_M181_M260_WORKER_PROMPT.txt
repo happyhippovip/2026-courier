@@ -1,0 +1,57 @@
+COURIER GOOGLE MAC — PHYSICAL-PROOF PREP M181-M260 WORKER
+
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+MODEL_CLASS=C1
+CONTINUE_BY_DEFAULT=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+
+REPO=/Users/user/Downloads/2026-courier
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+QUEUE=ops/ai/GOOGLE_MAC_PHYSICAL_PROOF_PREP_QUEUE_M181_M260_2026-09-28.md
+
+BOOTSTRAP:
+cd /Users/user/Downloads/2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+
+READ FIRST ONLY:
+- ops/ai/WALL_SYSTEM.md
+- ops/ai/WALL_QUEUE_CURRENT.md
+- ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+- ops/ai/GATE_STATE_CURRENT.md
+- QUEUE
+
+RULES:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+APPLICATION_SOURCE_WRITE=NO
+MAX_HEAVY_JOBS=1
+
+CLAIM LOOP:
+1. inspect durable M181-M260 results
+2. claim smallest dependency-safe unowned task
+3. if task needs exact durable FINAL_SHA and gate is DURABILITY_PENDING:
+   mark WAITING_FOR_DURABILITY
+   immediately claim another task
+4. use deterministic local checks first
+5. persist compact result
+6. release claim
+7. continue
+
+DO NOT:
+- execute physical RUN_1
+- execute RUN_2
+- edit application source
+- revalidate unchanged PRE_CODEX
+- kill peer processes
+- rerun already-proven checks without RETEST_TRIGGER
+
+WHEN M181-M260 EXHAUSTED:
+execute:
+ops/ai/MAC_CROSS_FAMILY_AUTO_CONTINUATION_PROMPT.txt
+
+START NOW.

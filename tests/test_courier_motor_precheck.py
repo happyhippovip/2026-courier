@@ -1,25 +1,124 @@
-from scripts.courier_motor_precheck import has_dispatchable_work
+import pytest
+import json
+import os
+import sys
+from pathlib import Path
+from unittest.mock import patch, mock_open
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+from scripts.courier_motor_precheck import has_dispatchable_work, main
 
-def state(step_status="QUEUED", target="github", goal_status="ACTIVE", index=0, workers=None):
-    return {"goals": {"g1": {"status": goal_status, "current_step_index": index,
-                             "workflow_plan": [{"task_id": "t1", "status": step_status, "target_agent": target}]}},
-            "tasks": {}, "workers": workers or {}}
+def test_has_dispatchable_work_worker_busy():
+    state = {
+        "workers": {
+            "GITHUB-DISPATCHER": {
+                "current_task": "task_1"
+            }
+        }
+    }
+    assert not has_dispatchable_work(state)
 
+def test_has_dispatchable_work_not_active():
+    state = {
+        "goals": {
+            "g1": {
+                "status": "COMPLETED",
+                "workflow_plan": [{"status": "QUEUED", "target_agent": "github"}]
+            }
+        }
+    }
+    assert not has_dispatchable_work(state)
 
-def test_queued_github_step_is_work():
-    assert has_dispatchable_work(state())
-    assert has_dispatchable_work(state(target="GitHub-Hosted"))
+def test_has_dispatchable_work_no_plan():
+    state = {
+        "goals": {
+            "g1": {
+                "status": "ACTIVE"
+            }
+        }
+    }
+    assert not has_dispatchable_work(state)
 
+def test_has_dispatchable_work_out_of_bounds():
+    state = {
+        "goals": {
+            "g1": {
+                "status": "ACTIVE",
+                "workflow_plan": [{"status": "COMPLETED", "target_agent": "github"}],
+                "current_step_index": 1
+            }
+        }
+    }
+    assert not has_dispatchable_work(state)
 
-def test_idle_states_are_not_work():
+def test_has_dispatchable_work_wrong_agent():
+    state = {
+        "goals": {
+            "g1": {
+                "status": "ACTIVE",
+                "workflow_plan": [{"status": "QUEUED", "target_agent": "linux"}],
+                "current_step_index": 0
+            }
+        }
+    }
+    assert not has_dispatchable_work(state)
+
+def test_has_dispatchable_work_success():
+    state = {
+        "goals": {
+            "g1": {
+                "status": "ACTIVE",
+                "workflow_plan": [{"status": "QUEUED", "target_agent": "github-actions"}],
+                "current_step_index": 0
+            }
+        }
+    }
+    assert has_dispatchable_work(state)
+
+def test_has_dispatchable_work_empty():
     assert not has_dispatchable_work({})
-    assert not has_dispatchable_work(state(step_status="DISPATCHED"))
-    assert not has_dispatchable_work(state(target="windows"))
-    assert not has_dispatchable_work(state(goal_status="DONE"))
-    assert not has_dispatchable_work(state(index=1))
 
+def test_main_file_not_exists(capsys):
+    with patch("os.path.exists", return_value=False), \
+         patch("scripts.courier_motor_precheck.STATE_FILE", "dummy.json"):
+        assert main() == 0
+        out = capsys.readouterr().out
+        assert "[Motor precheck] dummy.json: idle" in out
 
-def test_busy_dispatcher_is_not_work():
-    busy = {"GITHUB-DISPATCHER": {"current_task": "t0"}}
-    assert not has_dispatchable_work(state(workers=busy))
+def test_main_file_exists_with_work(capsys, tmp_path):
+    state_file = tmp_path / "state.json"
+    state_file.write_text(json.dumps({
+        "goals": {
+            "g1": {
+                "status": "ACTIVE",
+                "workflow_plan": [{"status": "QUEUED", "target_agent": "github"}],
+                "current_step_index": 0
+            }
+        }
+    }))
+    
+    github_out = tmp_path / "github.out"
+    
+    with patch("scripts.courier_motor_precheck.STATE_FILE", str(state_file)), \
+         patch.dict("os.environ", {"GITHUB_OUTPUT": str(github_out)}):
+        assert main() == 0
+        
+    out = capsys.readouterr().out
+    assert "pending GitHub work" in out
+    
+    assert "has_work=true" in github_out.read_text()
+
+def test_main_file_exists_no_work(capsys, tmp_path):
+    state_file = tmp_path / "state.json"
+    state_file.write_text(json.dumps({}))
+    
+    github_out = tmp_path / "github.out"
+    
+    with patch("scripts.courier_motor_precheck.STATE_FILE", str(state_file)), \
+         patch.dict("os.environ", {"GITHUB_OUTPUT": str(github_out)}):
+        assert main() == 0
+        
+    out = capsys.readouterr().out
+    assert "idle" in out
+    
+    assert "has_work=false" in github_out.read_text()

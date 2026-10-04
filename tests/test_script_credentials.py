@@ -14,6 +14,15 @@ def get_bash():
                 return p
     return "bash"
 
+
+# The scripts under test are POSIX deployment scripts. On Windows they can only
+# run through Git Bash, and Git Bash does not take the POSIX PATH used below to
+# shadow curl, so those two tests are POSIX-only.
+needs_bash = pytest.mark.skipif(sys.platform == "win32" and not os.path.isabs(get_bash()),
+                                reason="needs Git Bash on Windows")
+posix_path_shadowing = pytest.mark.skipif(sys.platform == "win32",
+                                          reason="shadows curl through a POSIX PATH")
+
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ["deploy/install_mac_runtime.sh", "scripts/setup_local_autonomy.sh", "scripts/revenue_v1_goal.sh"]
 # Known leaked values, stored split so this file is not itself a copy.
@@ -44,6 +53,7 @@ def test_scripts_read_key_from_environment(script):
     assert "set -x" not in text
 
 
+@needs_bash
 @pytest.mark.parametrize("script", SCRIPTS)
 @pytest.mark.parametrize("key", [None, "", "   "])
 def test_missing_key_fails_closed_before_side_effects(script, key, tmp_path):
@@ -64,6 +74,7 @@ def test_missing_key_fails_closed_before_side_effects(script, key, tmp_path):
     assert not marker.exists()
 
 
+@posix_path_shadowing
 def test_revenue_script_uses_key_and_never_echoes_it(tmp_path):
     bindir = tmp_path / "bin"
     bindir.mkdir()
@@ -80,6 +91,7 @@ def test_revenue_script_uses_key_and_never_echoes_it(tmp_path):
     assert DUMMY not in r.stdout + r.stderr
 
 
+@posix_path_shadowing
 def test_revenue_script_prefers_canonical_courier_server(tmp_path):
     bindir = tmp_path / "bin"
     bindir.mkdir()

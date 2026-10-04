@@ -1,0 +1,13 @@
+{
+  "schema_version": "2.0",
+  "decision_id": "dec-3088631b35",
+  "task_id": "t1",
+  "correlation_id": "c1",
+  "workflow_id": "wf-1",
+  "round_index": 0,
+  "verdict": "ACCEPTED",
+  "action": "COMPLETE_WORKFLOW",
+  "next_task": null,
+  "reason": "All planned workflow rounds successfully executed.",
+  "created_at": "2026-09-30T10:03:30.599294+00:00"
+}

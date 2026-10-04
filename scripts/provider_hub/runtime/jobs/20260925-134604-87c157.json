@@ -1,0 +1,22 @@
+{
+  "account": "muse-account-1",
+  "created_at": 1790336764.690006,
+  "effort": "low",
+  "error": null,
+  "exit_code": 0,
+  "finished_at": 1790336792.2674909,
+  "job_id": "20260925-134604-87c157",
+  "process": {
+    "create_time": 1790336765.1621444,
+    "pid": 25504
+  },
+  "prompt": "Lege im Workspace die Datei hub_muse.txt mit genau dem Inhalt MUSE-WRITE-OK an. Sonst nichts.",
+  "provider": "muse",
+  "slot_id": "MUSE-H2",
+  "started_at": 1790336765.1688023,
+  "state": "DONE",
+  "timeout_s": 300,
+  "updated_at": 1790336792.2675023,
+  "workdir": "C:\\Users\\lol\\AppData\\Local\\Temp\\claude\\C--Users-lol-2026-workspace-2026-courier\\5ea3208d-72b6-4048-a33e-d29acf5a22b6\\scratchpad\\hubproof\\m_scope",
+  "write_scope": "C:\\Users\\lol\\AppData\\Local\\Temp\\claude\\C--Users-lol-2026-workspace-2026-courier\\5ea3208d-72b6-4048-a33e-d29acf5a22b6\\scratchpad\\hubproof\\m_scope"
+}
