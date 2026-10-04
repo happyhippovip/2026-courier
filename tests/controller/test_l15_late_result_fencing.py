@@ -32,7 +32,7 @@ def test_l15_attack_stale_worker_write_after_transfer(tmp_path):
     
     # 5. Attack: Worker 1 (stale) finally finishes and tries to write result (write-after-transfer)
     try:
-        ctl.result({"dispatch_id": dispatch1, "result_id": "res_w1", "status": "SUCCESS", "artifacts": []})
+        ctl.result({"dispatch_id": dispatch1, "result_id": "res_w1", "outcome": "success", "artifacts": []})
         pytest.fail("Stale worker was allowed to post a result after transfer")
     except ApiError as e:
         assert e.status == 409
@@ -45,7 +45,7 @@ def test_l15_attack_stale_worker_write_after_transfer(tmp_path):
     assert task_after_stale_write["late_results"] == 1
     
     # 7. Worker 2 writes result successfully
-    status, body = ctl.result({"dispatch_id": dispatch2, "result_id": "res_w2", "status": "SUCCESS", "artifacts": []})
+    status, body = ctl.result({"dispatch_id": dispatch2, "result_id": "res_w2", "outcome": "success", "artifacts": []})
     assert status == 200
     assert body["status"] == "ACCEPTED_FOR_VERIFY"
     

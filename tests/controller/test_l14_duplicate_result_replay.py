@@ -14,17 +14,17 @@ def test_l14_attack_duplicate_result_replay(tmp_path):
     ctl.start({"dispatch_id": dispatch_id, "worker_id": "w1"})
     
     # 1. Send result A
-    ctl.result({"dispatch_id": dispatch_id, "result_id": "res_A", "status": "SUCCESS", "artifacts": []})
+    ctl.result({"dispatch_id": dispatch_id, "result_id": "res_A", "outcome": "success", "artifacts": []})
     
     # 2. Worker crashes. Re-claims the same task.
     # But wait, task is VERIFYING, worker cannot claim it.
     
     # 3. Attacker replays exact duplicate
-    status, body = ctl.result({"dispatch_id": dispatch_id, "result_id": "res_A", "status": "SUCCESS", "artifacts": []})
+    status, body = ctl.result({"dispatch_id": dispatch_id, "result_id": "res_A", "outcome": "success", "artifacts": []})
     
     # 4. Attacker sends a DIFFERENT result_id
     try:
-        ctl.result({"dispatch_id": dispatch_id, "result_id": "res_B", "status": "FAILED", "reason": "different", "retryable": True, "artifacts": []})
+        ctl.result({"dispatch_id": dispatch_id, "result_id": "res_B", "outcome": "failure", "reason": "different", "retryable": True, "artifacts": []})
     except ApiError as e:
         print("\nDifferent result_id:", e.status, e.body())
         

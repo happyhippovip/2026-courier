@@ -97,6 +97,7 @@ class FakeWorker:
 def courier(tmp_path):
     probe = tmp_path / "probe"
     (probe / "adapters").mkdir(parents=True)
+    (probe / "adapters" / "__init__.py").touch()
     (probe / "adapters" / "l2probe.py").write_text(PROBE_ADAPTER)
     home, logs = tmp_path / "courier_home", tmp_path / "logs"
     home.mkdir()
@@ -155,7 +156,7 @@ def test_duplicate_result_controller_half(courier):
     ready = next(e for e in courier.task_events(task_id) if e["type"] == "RESULT_READY")
     before = len(courier.all_events())
     response = courier.api.post("/v1/result", {"dispatch_id": ready["dispatch_id"], "result_id": ready["result_id"],
-                                               "artifacts": payload(ready)["artifacts"], "status": "SUCCESS"})
+                                               "artifacts": payload(ready)["artifacts"], "outcome": "success"})
     assert response.status_code == 200 and response.json()["status"] == "ACK_DUPLICATE"
     assert len(courier.all_events()) == before
 
@@ -174,7 +175,7 @@ def test_late_result_controller_half(courier):
     assert complete["attempt"] == 2
     late = courier.api.post("/v1/result", {"dispatch_id": stale["dispatch_id"], "result_id": "late-result-attempt-1",
                                            "artifacts": [{"path": "out.txt", "sha256": GOLDEN_SHA256}],
-                                           "status": "SUCCESS"})
+                                           "outcome": "success"})
     assert late.status_code == 409
     courier.wait_event(task_id, "LATE_RESULT_DISCARDED", timeout=10)
     accepted = [e for e in courier.task_events(task_id) if e["type"] == "RESULT_ACCEPTED"]

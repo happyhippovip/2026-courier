@@ -448,7 +448,7 @@ class Controller:
             raise ApiError(400, "invalid_request", f"artifacts must be a list of at most {MAX_ARTIFACTS} entries")
         if body.get("outcome") not in RESULT_OUTCOMES:
             raise ApiError(400, "invalid_request", f"outcome must be one of {sorted(RESULT_OUTCOMES)}")
-        payload: dict[str, Any] = {"artifacts": artifacts, "status": body["outcome"].upper()}
+        payload: dict[str, Any] = {"artifacts": artifacts, "status": "SUCCESS" if body["outcome"] == "success" else "FAILED"}
         if "retryable" in body:
             payload["retryable"] = body["retryable"]
         if "reason" in body:

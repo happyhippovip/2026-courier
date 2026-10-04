@@ -230,6 +230,7 @@ def build_result_payload(result: ExecutionResult, report: Optional[dict] = None,
     payload = {
         "dispatch_id": result.spec.dispatch_id,
         "result_id": result.spec.result_id,
+        "result_id": result.spec.result_id,
         "artifacts": [{"path": prefix + a.path.replace(os.sep, "/"), "sha256": a.sha256}
                       for a in result.artifacts],
         "outcome": outcome,

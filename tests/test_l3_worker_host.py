@@ -87,7 +87,7 @@ def _adapter_double():
 
 
 def make_spec(home, name="t1", attempt=1, dispatch="d1", argv=None, **over):
-    kw = dict(task_id=name, attempt=attempt, dispatch_id=dispatch, worker_id="w1",
+    kw = dict(task_id=name, attempt=attempt, dispatch_id=dispatch, worker_id="w1", result_id="r-" + dispatch,
               
               argv=tuple(argv if argv is not None else [PY, "-c", "pass"]),
               timeout_s=30.0, lease_ttl_s=30.0,
@@ -470,7 +470,7 @@ def test_claim_start_result_wire_exact_ids(tmp_path, stub):
     assert len(STUB.results) == 1
     payload = STUB.results[0]
     assert payload["dispatch_id"] == "d1"
-    assert payload["status"] == "SUCCESS" and "retryable" not in payload
+    assert payload["outcome"] == "success" and "retryable" not in payload
     digest = hashlib.sha256(b"courier-golden").hexdigest()
     assert payload["artifacts"] == [{"path": "artifacts/d1/out.txt", "sha256": digest}]
     assert (tmp_path / "artifacts" / "d1" / "out.txt").read_bytes() == b"courier-golden"
@@ -485,7 +485,7 @@ def _crash_payload(tmp_path):
     result = host.run_once(spec)
     assert result.outcome == Outcome.CRASH
     payload = S.build_result_payload(result)
-    assert payload["status"] == "FAILED"
+    assert payload["outcome"] == "failure"
     return payload
 
 
@@ -589,7 +589,7 @@ def test_sse_cancel_aborts_run_promptly(tmp_path, stub):
     assert loop.iterate(threading.Event()) == "delivered"
     assert time.monotonic() - started < 8.0
     assert len(STUB.results) == 1
-    assert STUB.results[0]["status"] == "FAILED"
+    assert STUB.results[0]["outcome"] == "failure"
     pass
     assert {"dispatch_ids": [], "worker_id": "w1"} in STUB.beats  # stop confirmation
 
@@ -614,7 +614,7 @@ def test_untrusted_specs_are_refused_before_start(tmp_path, stub, spec_over, par
     assert loop.iterate(threading.Event()) == "spec-rejected"
     assert STUB.starts == []  # nothing started, nothing spawned
     payload = STUB.results[0]
-    assert payload["status"] == "FAILED"
+    assert payload["outcome"] == "failure"
     pass
     assert not (tmp_path / "artifacts").exists() or not any((tmp_path / "artifacts").iterdir())
     assert not (tmp_path.parent / "escape.txt").exists()
@@ -626,7 +626,7 @@ def test_transient_adapter_failure_is_a_retryable_failure(tmp_path, stub):
     loop = S.WorkerLoop(str(tmp_path), stub, "w1", 0.2)
     assert loop.iterate(threading.Event()) == "delivered"
     payload = STUB.results[0]
-    assert payload["status"] == "FAILED"
+    assert payload["outcome"] == "failure"
     assert payload["artifacts"] == []
 
 
@@ -636,7 +636,7 @@ def test_synthetic_crash_is_non_retryable_failure_with_report(tmp_path, stub):
     loop = S.WorkerLoop(str(tmp_path), stub, "w1", 0.2)
     assert loop.iterate(threading.Event()) == "delivered"
     payload = STUB.results[0]
-    assert payload["status"] == "FAILED"
+    assert payload["outcome"] == "failure"
     assert payload["artifacts"][0]["path"] == "artifacts/d1/" + H.CRASH_REPORT_NAME
     report = json.loads((tmp_path / "artifacts" / "d1" / H.CRASH_REPORT_NAME).read_text())
     assert report["returncode"] == 3 and "crashed" in report["stderr_tail"]
@@ -647,7 +647,7 @@ def test_fault_only_on_listed_attempts(tmp_path, stub):
     STUB.claims.append(claim_body(attempt=2, params={"crash_after_s": 0, "fault_attempts": [1]}))
     loop = S.WorkerLoop(str(tmp_path), stub, "w1", 0.2)
     assert loop.iterate(threading.Event()) == "delivered"
-    assert STUB.results[0]["status"] == "SUCCESS"
+    assert STUB.results[0]["outcome"] == "success"
 
 
 def test_exit_zero_without_report_is_never_success(tmp_path):
@@ -657,7 +657,7 @@ def test_exit_zero_without_report_is_never_success(tmp_path):
     result = host.run_once(spec)
     assert result.outcome == Outcome.COMPLETED
     payload = S.build_result_payload(result, None, home=str(tmp_path))
-    assert payload["status"] == "FAILED"
+    assert payload["outcome"] == "failure"
     pass
 
 

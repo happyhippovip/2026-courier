@@ -12,7 +12,7 @@ def test_crash_report_redacts_token():
             f.write("Some crash log\nToken is secret_1234567890_token!\n")
             
         spec = ExecutionSpec(
-            task_id="t1", attempt=1, dispatch_id="d1", worker_id="w1",
+            task_id="t1", attempt=1, dispatch_id="d1", worker_id="w1", result_id="r1",
             argv=("python",), timeout_s=10.0, lease_ttl_s=10.0,
             artifact_dir=artifact_dir, heartbeat_s=0.2
         )

@@ -109,6 +109,7 @@ class ExecutionSpec:
     attempt: int
     dispatch_id: str
     worker_id: str
+    result_id: str
     argv: tuple
     timeout_s: float
     lease_ttl_s: float
