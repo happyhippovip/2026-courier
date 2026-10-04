@@ -1,14 +1,27 @@
-import json, time, os, sys, shutil, subprocess, uuid, traceback
-from pathlib import Path
+import json, time, os, sys, shutil, subprocess, uuid, traceback, fcntl
+from pathlib import Path, PurePosixPath
 import urllib.request
 import urllib.error
 import urllib.parse
+import signal
+# scripts/ must be importable before sibling imports: the daemon is launched
+# standalone (launchd WorkingDirectory=repo root, run_physical spawn), where
+# sys.path[0] is scripts/mac_worker/ and resource_governor is unreachable.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from resource_governor import governor
+from contextlib import nullcontext
 
 # Paths
 BASE_DIR = Path(__file__).parent
-CONFIG_PATH = BASE_DIR / "config.json"
-STATE_DIR = BASE_DIR / "state"
-LOGS_DIR = BASE_DIR / "logs"
+sys.path.insert(0, str(BASE_DIR.resolve()))
+from runtime_state import (CANONICAL_WORKSPACE, atomic_json, control_lock, read_object,
+                           process_identity, same_process, cleanup_group, group_exists)
+CONFIG_PATH = Path(os.environ.get("COURIER_WORKER_CONFIG", BASE_DIR / "config.json"))
+# A supervisor slot runs its own daemon with its own home, so each slot has
+# isolated task state (current_task.json) and logs.
+WORKER_HOME = Path(os.environ["COURIER_WORKER_HOME"]) if os.environ.get("COURIER_WORKER_HOME") else None
+STATE_DIR = WORKER_HOME / "state" if WORKER_HOME else BASE_DIR / "state"
+LOGS_DIR = WORKER_HOME / "logs" if WORKER_HOME else BASE_DIR / "logs"
 
 def load_config():
     with open(CONFIG_PATH, "r") as f:
@@ -18,13 +31,13 @@ def load_config():
     try:
         pw = subprocess.check_output(["security", "find-generic-password", "-a", "courier_worker", "-s", "courier_api_key", "-w"], stderr=subprocess.DEVNULL)
         config["COURIER_API_KEY"] = pw.decode("utf-8").strip()
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, OSError):
         pass
         
     try:
         srv = subprocess.check_output(["security", "find-generic-password", "-a", "courier_worker", "-s", "courier_server_url", "-w"], stderr=subprocess.DEVNULL)
         config["COURIER_SERVER"] = srv.decode("utf-8").strip()
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, OSError):
         pass
     
     # Environment overrides
@@ -32,6 +45,8 @@ def load_config():
         config["COURIER_SERVER"] = os.environ["COURIER_SERVER"]
     if "COURIER_API_KEY" in os.environ:
         config["COURIER_API_KEY"] = os.environ["COURIER_API_KEY"]
+    if os.environ.get("COURIER_WORKER_ID"):
+        config["WORKER_ID"] = os.environ["COURIER_WORKER_ID"]
         
     return config
 
@@ -57,6 +72,207 @@ def http_post(config, endpoint, data):
     except Exception as e:
         return None, str(e)
 
+# current_task.json records how far a claimed task got, so a restart never
+# repeats an effect that may already have happened:
+#   CLAIMED      -> execution has not begun; safe to run
+#   STARTED      -> execution began without a durable result; never re-run
+#   RESULT_READY -> result_payload is final; only (re)deliver it
+#   RELEASE_PENDING -> result was rejected (4xx); release the task to the server
+# Files without worker_phase come from the previous daemon, which wrote them
+# right before executing, so they are treated as STARTED.
+MAX_RESULT_POST_ATTEMPTS = 8
+# In-execution heartbeat cadence for run_agy (mirrors run_muse's 30s): the
+# server reclaims workers unseen for 300s, so a silent agy run must beat.
+AGY_HEARTBEAT_INTERVAL_SECONDS = 30
+# In-execution heartbeat cadence for run_native (mirrors run_muse/run_agy):
+# the server reclaims workers unseen for 300s while NATIVE_TIMEOUT_SECONDS
+# allows up to 600s, so a silent native run must beat.
+NATIVE_HEARTBEAT_INTERVAL_SECONDS = 30
+
+def persist_task(path, task):
+    atomic_json(path, task)
+
+
+def worker_wall():
+    value = os.environ.get("COURIER_WALL_DIR")
+    return Path(value) if value else None
+
+
+def admission_lock():
+    wall = worker_wall()
+    return control_lock(wall) if wall else nullcontext()
+
+
+def stopped():
+    wall = worker_wall()
+    return bool(wall and (wall / "STOP").exists())
+
+
+def resource_ready():
+    if not worker_wall():
+        return True  # Non-wall legacy worker; supervised Muse always has a wall.
+    from muse_supervisor import CapacityGovernor
+    return CapacityGovernor(1).evaluate() > 0
+
+
+class MuseAdmissionBlocked(Exception):
+    """No child has been spawned; retaining CLAIMED is safe."""
+
+
+class WorkerShutdown(BaseException):
+    pass
+
+
+def artifact_path(task, name):
+    return Path(task.get("workspace") or ".") / name
+
+
+def bind_runtime_task(task, config):
+    mode = task.get("mode", os.environ.get("COURIER_WORKER_DEFAULT_MODE", "ANTIGRAVITY"))
+    if mode != "MUSE":
+        return
+    import muse_adapter
+    binding = muse_adapter.task_binding(task, os.environ.get("COURIER_SLOT_ID") or config["WORKER_ID"],
+        os.environ.get("COURIER_MUSE_WORKSPACE", config.get("MUSE_WORKSPACE", CANONICAL_WORKSPACE)))
+    if task.get("runtime_binding") and task["runtime_binding"] != binding:
+        raise muse_adapter.MuseBindingError("Restored runtime binding mismatch; reconciliation required")
+    task["runtime_binding"] = binding
+    if task.get("workspace") and task["workspace"] != binding["workspace"]:
+        raise muse_adapter.MuseBindingError("Restored artifact workspace mismatch")
+    payload = task.get("result_payload")
+    if payload and any(payload.get(key) != task.get(key)
+                       for key in (*muse_adapter.IDENTITY_FIELDS, "worker_id")):
+        raise muse_adapter.MuseBindingError("Stored result identity differs from its task")
+
+
+def require_no_orphan():
+    # Each execution mode (Muse, agy, native) leaves a marker; a non-CLEAN
+    # marker whose group may still be alive (violent daemon death
+    # mid-execution) blocks new claims/executions until an operator
+    # reconciles it. A provably dead group needs no reconciliation: the next
+    # run overwrites the marker.
+    for marker, label in (("muse_process.json", "Muse"), ("agy_process.json", "agy"),
+                          ("native_process.json", "native")):
+        previous = read_object(STATE_DIR / marker)
+        if previous and previous.get("state") != "CLEAN":
+            identity = previous.get("identity")
+            if not identity or group_exists(identity["pgid"]):
+                raise RuntimeError(f"Unreconciled {label} child; no further claims/executions allowed")
+
+
+def persist_ready_result(path, task, config):
+    result = task["result_payload"].get("raw_result", {})
+    if result.get("execution_mode") == "MUSE":
+        import muse_adapter
+        muse_adapter.save_checkpoint(STATE_DIR, task, result,
+            slot_id=os.environ.get("COURIER_SLOT_ID") or config["WORKER_ID"],
+            workspace=os.environ.get("COURIER_MUSE_WORKSPACE", config.get("MUSE_WORKSPACE", CANONICAL_WORKSPACE)))
+    persist_task(path, task)
+
+def is_retryable_post_error(err):
+    # http_post reports server answers as "HTTP Error <code>: ..."; anything
+    # else is a transport failure. Only transport errors and 5xx can change on
+    # resend; a 4xx is the server's final answer for this payload.
+    if not err.startswith("HTTP Error "):
+        return True
+    return err[len("HTTP Error "):].startswith("5")
+
+def upload_enabled(config):
+    """Artifact upload needs the server artifact store (P3 cutover); opt-in until then."""
+    flag = os.environ.get("COURIER_ARTIFACT_UPLOAD", str(config.get("ARTIFACT_UPLOAD", "")))
+    return str(flag).strip().lower() in ("1", "true", "yes")
+
+def http_upload(config, meta, data):
+    """POST raw artifact bytes; returns (record, err) like http_post."""
+    req = urllib.request.Request(config["COURIER_SERVER"].rstrip("/") + "/artifacts", method="POST")
+    req.add_header("Authorization", f"Bearer {config.get('COURIER_API_KEY', '')}")
+    req.add_header("Content-Type", "application/octet-stream")
+    req.add_header("X-Courier-Artifact", json.dumps(meta, separators=(",", ":")))
+    try:
+        with urllib.request.urlopen(req, data=data, timeout=30) as response:
+            return json.loads(response.read().decode("utf-8")), None
+    except urllib.error.HTTPError as e:
+        return None, f"HTTP Error {e.code}: {e.read().decode('utf-8', 'replace')}"
+    except Exception as e:
+        return None, str(e)
+
+def upload_pending_artifacts(config, task, state_file):
+    """Attach server artifact_ids to the stored result; READY|REJECTED|UNDELIVERED."""
+    import hashlib
+    for art in task["result_payload"].get("artifacts", []):
+        if "artifact_id" in art:
+            continue
+        name = art["path"]
+        if not is_safe_artifact_path(name) or not artifact_path(task, name).is_file():
+            return "REJECTED"
+        data = artifact_path(task, name).read_bytes()
+        if hashlib.sha256(data).hexdigest() != art["sha256"]:
+            write_log(f"Artifact {name} changed after hashing; not uploading.")
+            return "REJECTED"
+        meta = {"name": name, "sha256": art["sha256"], "size": len(data),
+                **{f: task.get(f) for f in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")}}
+        record, err = http_upload(config, meta, data)
+        if err:
+            write_log(f"Artifact upload failed: {err.split(':')[0]}")
+            return "UNDELIVERED" if is_retryable_post_error(err) else "REJECTED"
+        if record.get("sha256") != art["sha256"] or record.get("size") != len(data) or not str(record.get("artifact_id", "")).startswith("art-"):
+            return "REJECTED"
+        art["artifact_id"], art["size"] = record["artifact_id"], record["size"]
+        persist_task(state_file, task)
+    return "READY"
+
+def deliver_result(config, payload):
+    """Post the stored result; returns DELIVERED, REJECTED or UNDELIVERED."""
+    for attempt in range(MAX_RESULT_POST_ATTEMPTS):
+        res, err = http_post(config, "/tasks/result", payload)
+        if not err:
+            write_log(f"Result posted successfully: {res}")
+            return "DELIVERED"
+        if not is_retryable_post_error(err):
+            write_log(f"Result rejected permanently: {err}")
+            return "REJECTED"
+        write_log(f"Result post failed: {err}. Retrying in {2**attempt}s...")
+        # A full retry cycle sleeps 255s and slow POSTs add 8x urlopen
+        # timeout on top — past the server 300s reclaim_stale threshold —
+        # while result POSTs never touch last_seen. Beat between attempts
+        # (same guard as the in-execution heartbeats) so an actively
+        # redelivering worker cannot go stale mid-cycle.
+        if config.get("COURIER_SERVER"):
+            http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
+        time.sleep(2 ** attempt)
+    return "UNDELIVERED"
+
+def is_safe_artifact_path(name):
+    """Artifacts are relative to the worker's cwd; reject absolute and '..' paths
+    (same rule as the integration contract) before anything is read."""
+    if not isinstance(name, str) or not name:
+        return False
+    pure = PurePosixPath(name)
+    return not pure.is_absolute() and ".." not in pure.parts
+
+def collect_artifact_evidence(task, result):
+    """Hash expected artifacts; any unsafe, missing or absent evidence makes it FAILED."""
+    import hashlib
+    evidence = []
+    if result.get("status") != "SUCCESS":
+        return evidence
+    for expected in task.get("artifacts", []):
+        name = expected.get("path") if isinstance(expected, dict) else expected
+        if not is_safe_artifact_path(name):
+            problem = f"Unsafe artifact path: {name}"
+        elif not artifact_path(task, name).is_file():
+            problem = f"Missing artifact: {name}"
+        else:
+            evidence.append({"path": name, "sha256": hashlib.sha256(artifact_path(task, name).read_bytes()).hexdigest()})
+            continue
+        result["status"] = "FAILED"
+        result["stderr"] = result.get("stderr", "") + "\n" + problem
+        return []
+    if not evidence:
+        result["status"] = "FAILED"
+        result["stderr"] = result.get("stderr", "") + "\nNo artifact evidence for success"
+    return evidence
+
 def run_native(task, config):
     write_log(f"Running NATIVE task {task['task_id']}")
     instruction = task.get('instruction', task.get('description', ''))
@@ -79,24 +295,104 @@ def run_native(task, config):
             "execution_mode": "NATIVE"
         }
         
-    # Safe bounded execution
+    # Bounded execution: every native child runs in its own process group so a
+    # timeout or daemon interruption (WorkerShutdown) reaps the whole subtree
+    # instead of orphaning it. Like run_agy/run_muse, kill via cleanup_group,
+    # which is PID-reuse safe.
+    timeout = min(float(config.get("NATIVE_TIMEOUT_SECONDS", 120)), 600)
+    if action == "echo":
+        argv, kwargs = instruction, {"shell": True, "executable": "/bin/bash"}
+    elif action == "git_status":
+        argv, kwargs = ["git", "status"], {}
+    else:
+        return {"status": "FAILED", "stderr": f"Action '{action}' is allowed but handler is not implemented yet.", "execution_mode": "NATIVE"}
+    process = None
+    identity = None
+    # Orphan marker (mirrors the muse/agy markers): a violent daemon death
+    # between spawn and exit must be detectable on restart via
+    # require_no_orphan. Overwritten by every run; only non-CLEAN counts.
+    child_file = STATE_DIR / "native_process.json"
     try:
-        if action == "echo":
-            result = subprocess.run(instruction, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, executable="/bin/bash")
-        elif action == "git_status":
-            result = subprocess.run(["git", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        else:
-            return {"status": "FAILED", "stderr": f"Action '{action}' is allowed but handler is not implemented yet.", "execution_mode": "NATIVE"}
-            
+        atomic_json(child_file, {"state": "STARTING"})
+        process = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   text=True, start_new_session=True, **kwargs)
+        identity = process_identity(process.pid)
+        atomic_json(child_file, {"state": "RUNNING", "identity": identity})
+        # Sliced communicate with in-execution heartbeat (same pattern as
+        # run_agy): the overall deadline is unchanged and still handled below.
+        try:
+            deadline = time.monotonic() + timeout
+            while True:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise subprocess.TimeoutExpired(argv, timeout)
+                try:
+                    stdout, stderr = process.communicate(
+                        timeout=min(NATIVE_HEARTBEAT_INTERVAL_SECONDS, remaining))
+                    break
+                except subprocess.TimeoutExpired:
+                    if config.get("COURIER_SERVER"):
+                        http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
+        except subprocess.TimeoutExpired:
+            cleanup_group(process, identity)
+            try:
+                process.wait()
+            except Exception:
+                pass
+            stdout, stderr = process.communicate()
+            return {"status": "FAILED",
+                    "stdout": stdout,
+                    "stderr": ((stderr or "") + f"\nTIMEOUT after {timeout:g}s; "
+                             "process group killed and reaped").strip(),
+                    "exit_code": process.returncode,
+                    "execution_mode": "NATIVE", "reason": "TIMEOUT"}
         return {
-            "status": "SUCCESS" if result.returncode == 0 else "FAILED",
-            "stdout": result.stdout,
-            "stderr": result.stderr,
-            "exit_code": result.returncode,
+            "status": "SUCCESS" if process.returncode == 0 else "FAILED",
+            "stdout": stdout,
+            "stderr": stderr,
+            "exit_code": process.returncode,
             "execution_mode": "NATIVE"
         }
     except Exception as e:
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "NATIVE"}
+    finally:
+        # BaseException (e.g. WorkerShutdown on SIGTERM) skips the FAILED dict
+        # above; still reap the group so no orphan keeps running, then record
+        # the outcome: CLEAN only when the group is provably gone, otherwise
+        # fail closed (outer except → FAILED).
+        if process is not None:
+            if process.poll() is None:
+                cleanup_group(process, identity)
+                try:
+                    process.wait()
+                except Exception:
+                    pass
+            clean = process.poll() is not None and not group_exists(process.pid)
+            atomic_json(child_file, {"state": "CLEAN" if clean else "ORPHANS_REMAIN",
+                                     "identity": identity})
+            if not clean:
+                raise RuntimeError("native child cleanup unproven; no new execution allowed")
+
+
+def _reap_agy_group(process, identity):
+    """Best-effort group reap for the agy wrapper subtree; never raises.
+
+    Called from timeout/finally paths where blocking or leaking is worse
+    than a redundant signal. cleanup_group first (PID-reuse safe); direct
+    kill as fallback; wait() guarantees the direct child is reaped so a
+    later communicate() cannot block.
+    """
+    try:
+        if not cleanup_group(process, identity):
+            process.kill()
+    except Exception:
+        pass
+    try:
+        process.wait()
+    except Exception:
+        pass
+    process.poll()
+
 
 def run_agy(task, config):
     write_log(f"Running AI task {task['task_id']} via agy")
@@ -109,10 +405,48 @@ def run_agy(task, config):
         
     wrapper = os.path.join(os.path.dirname(__file__), "limit_wrapper.sh")
     cmd = [wrapper, agy_bin, "-p", prompt, "--dangerously-skip-permissions"]
-    
+    timeout = min(float(config.get("AGY_TIMEOUT_SECONDS", 300)), 3600)
+
+    # The wrapper spawns agy as a grandchild, so killing only the direct
+    # child would orphan it. Like run_muse, launch a fresh session and reap
+    # the whole process group on timeout or interruption (WorkerShutdown
+    # propagates through communicate and must not leak the child either).
+    process = None
+    identity = None
+    # Orphan marker (mirrors run_muse's muse_process.json): a violent daemon
+    # death between spawn and exit must be detectable on restart via
+    # require_no_orphan. Overwritten by every run; only non-CLEAN counts.
+    child_file = STATE_DIR / "agy_process.json"
     try:
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        stdout, stderr = process.communicate(timeout=300)
+        atomic_json(child_file, {"state": "STARTING"})
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   text=True, start_new_session=True)
+        identity = process_identity(process.pid)
+        atomic_json(child_file, {"state": "RUNNING", "identity": identity})
+        # Sliced communicate with in-execution heartbeat: the server's
+        # reclaim_stale quarantines workers unseen for 300s, and the default
+        # agy window spans exactly that. Same 30s cadence as run_muse; the
+        # overall deadline is unchanged and still handled below.
+        try:
+            deadline = time.monotonic() + timeout
+            while True:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise subprocess.TimeoutExpired(cmd, timeout)
+                try:
+                    stdout, stderr = process.communicate(
+                        timeout=min(AGY_HEARTBEAT_INTERVAL_SECONDS, remaining))
+                    break
+                except subprocess.TimeoutExpired:
+                    if config.get("COURIER_SERVER"):
+                        http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
+        except subprocess.TimeoutExpired:
+            _reap_agy_group(process, identity)
+            stdout, stderr = process.communicate()
+            return {"status": "FAILED",
+                    "stderr": ((stderr or "") + f"\nTIMEOUT after {timeout:g}s; "
+                               "process group killed and reaped").strip(),
+                    "execution_mode": "ANTIGRAVITY", "reason": "TIMEOUT"}
         
         out_clean = stdout.strip()
         parsed = False
@@ -130,34 +464,166 @@ def run_agy(task, config):
         if not parsed:
             res_json["status"] = "FAILED"
             res_json["raw_diagnostic"] = out_clean
-            
+
         return res_json
-        
+
     except Exception as e:
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "ANTIGRAVITY"}
+    finally:
+        # BaseException (e.g. WorkerShutdown on SIGTERM) skips the FAILED
+        # dict above; still reap the group so no orphan keeps running, then
+        # record the outcome: CLEAN only when the group is provably gone,
+        # otherwise fail closed like run_muse (outer except → FAILED).
+        if process is not None:
+            if process.poll() is None:
+                _reap_agy_group(process, identity)
+            clean = process.poll() is not None and not group_exists(process.pid)
+            atomic_json(child_file, {"state": "CLEAN" if clean else "ORPHANS_REMAIN",
+                                     "identity": identity})
+            if not clean:
+                raise RuntimeError("agy child cleanup unproven; no new execution allowed")
+
+def run_muse(task, config):
+    """Muse slot execution through the muse_adapter boundary (no guessed CLI method)."""
+    if str(BASE_DIR) not in sys.path:
+        sys.path.insert(0, str(BASE_DIR))
+    import muse_adapter
+    write_log(f"Running MUSE task {task['task_id']}")
+    slot = os.environ.get("COURIER_SLOT_ID") or config["WORKER_ID"]
+    workspace = os.environ.get("COURIER_MUSE_WORKSPACE", config.get("MUSE_WORKSPACE", CANONICAL_WORKSPACE))
+    binding = muse_adapter.task_binding(task, slot, workspace)
+    bind_runtime_task(task, config)
+    checkpoint = muse_adapter.load_checkpoint(STATE_DIR)
+    action = task.get("muse_action", "exec")
+    if checkpoint and checkpoint.get("binding") != binding:
+        # Preserve evidence, but never feed another task's context to this task.
+        atomic_json(STATE_DIR / ("checkpoint.quarantine-" + uuid.uuid4().hex + ".json"), checkpoint)
+        if action != "exec":
+            raise muse_adapter.MuseBindingError("Foreign checkpoint cannot authorize resume")
+        checkpoint = {}
+    caps = muse_adapter.cli_capabilities(config)
+    prompt = muse_adapter.prepare_prompt(STATE_DIR, task, binding, checkpoint, caps)
+    argv, _ = muse_adapter.build_muse_command(task, checkpoint, caps, slot_id=slot,
+                                             workspace=workspace, action=action, prompt=prompt)
+    child_file = STATE_DIR / "muse_process.json"
+    require_no_orphan()
+    proc = None
+    identity = None
+    task["workspace"] = workspace
+    persist_task(STATE_DIR / "current_task.json", task)
+    # Durable output survives daemon interruption. Bounded by size and wall time.
+    with open(STATE_DIR / "muse.stdout", "w+") as out, open(STATE_DIR / "muse.stderr", "w+") as err:
+        try:
+            with admission_lock():
+                if stopped() or not resource_ready():
+                    raise MuseAdmissionBlocked("STOP or resource admission denied")
+                atomic_json(child_file, {"state": "STARTING", "binding": binding})
+                proc = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=out, stderr=err,
+                                        start_new_session=True)
+                identity = process_identity(proc.pid)
+                atomic_json(child_file, {"state": "RUNNING", "identity": identity, "binding": binding})
+            deadline = time.monotonic() + min(float(config.get("MUSE_TIMEOUT_SECONDS", 3600)), 3600)
+            heartbeat_at = time.monotonic() + 30
+            while proc.poll() is None:
+                if time.monotonic() >= deadline or out.tell() + err.tell() > 8 * 1024 * 1024:
+                    raise RuntimeError("Muse execution ambiguous: timeout/output limit; reconcile, do not retry")
+                if time.monotonic() >= heartbeat_at:
+                    if config.get("COURIER_SERVER"):
+                        http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
+                    heartbeat_at = time.monotonic() + 30
+                time.sleep(0.1)
+            if proc.returncode != 0:
+                raise RuntimeError("Muse nonzero exit has ambiguous effects; reconcile, do not retry")
+            out.seek(0); err.seek(0)
+            result = muse_adapter.parse_result(out.read(8 * 1024 * 1024), proc.returncode, caps)
+            result["stderr"] = err.read(8 * 1024 * 1024)[-4000:]
+        finally:
+            if proc is not None:
+                clean = cleanup_group(proc, identity)
+                atomic_json(child_file, {"state": "CLEAN" if clean else "ORPHANS_REMAIN",
+                                         "identity": identity, "binding": binding})
+                if not clean:
+                    raise RuntimeError("Muse child cleanup unproven; no new execution allowed")
+    return result
+
+def acquire_worker_lock():
+    """One daemon per state directory: a second one would re-claim or re-send."""
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    handle = open(STATE_DIR / "worker.lock", "w")
+    try:
+        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        handle.close()
+        return None
+    return handle
 
 def loop():
+    worker_lock = acquire_worker_lock()
+    if worker_lock is None:
+        print("Another worker daemon already owns this state directory; exiting.")
+        sys.exit(3)
+    # Supervisor slots: exit 0 after one task is delivered or released, so the
+    # slot restarts with a fresh process; task state survives in current_task.json.
+    one_task = os.environ.get("COURIER_WORKER_ONE_TASK") == "1"
     write_log("Starting Mac Worker HTTP Daemon...")
     config = load_config()
+    require_no_orphan()
+    if not str(config.get("COURIER_API_KEY") or "").strip():
+        write_log("FATAL: COURIER_API_KEY is not set (keychain or environment); refusing to contact the server.")
+        sys.exit(2)
     current_task_state_file = STATE_DIR / "current_task.json"
     
     # Load previously claimed task for duplicate protection
     task = None
+    release_ambiguous_task = False
     if current_task_state_file.exists():
-        write_log("Found unfinished task from previous run, resuming...")
         with open(current_task_state_file, 'r') as f:
             task = json.load(f)
-            
+        if task.get("worker_phase") not in ("CLAIMED", "RESULT_READY", "RECOVERY_BLOCKED"):
+            task["worker_phase"] = "STARTED"
+        write_log(f"Found unfinished task {task['task_id']} in phase {task['worker_phase']}, resuming...")
+        if task.get("worker_id") and task["worker_id"] != config["WORKER_ID"]:
+            raise RuntimeError("Restored task belongs to another worker; reconciliation required")
+        if (task.get("worker_phase") == "CLAIMED"
+                and task.get("mode", os.environ.get("COURIER_WORKER_DEFAULT_MODE")) == "MUSE"
+                and not task.get("runtime_binding")):
+            raise RuntimeError("Legacy unbound Muse claim requires reconciliation before execution")
+        bind_runtime_task(task, config)
+
     registered = False
-    
+
     while True:
         try:
+            if task and task.get("worker_phase") == "RECOVERY_BLOCKED":
+                # Storage failure during/after execution must not release and drain
+                # another task. Preserve the marker when storage becomes writable.
+                try:
+                    persist_task(current_task_state_file, task)
+                except OSError:
+                    pass
+                time.sleep(governor.get_poll_interval())
+                continue
+            if stopped() and (not task or task.get("worker_phase") == "CLAIMED"):
+                return
+            if task and task.get("worker_phase") == "STARTED":
+                # Interrupted mid-execution (restart or exception): the effect may
+                # already exist, so never replay it. Re-registering without the
+                # task hands it to Courier's restart recovery (HUMAN_REQUIRED,
+                # WORKER_RESTARTED_AND_LOST_STATE).
+                write_log(f"Task {task['task_id']} was interrupted during execution; not re-running it.")
+                release_ambiguous_task = True
+                registered = False
+                task = None
+
             if not registered:
                 reg_payload = {
                     "worker_id": config["WORKER_ID"],
                     "platform": "macos",
                     "capabilities": ["macos", "linux", "antigravity"]
                 }
+                if release_ambiguous_task:
+                    reg_payload["current_task"] = None
                 res, err = http_post(config, "/workers/register", reg_payload)
                 if err:
                     write_log(f"Failed to register: {err}")
@@ -165,6 +631,12 @@ def loop():
                     continue
                 write_log("Registered successfully.")
                 registered = True
+                if release_ambiguous_task:
+                    # The release was already delivered via the register POST
+                    # above; a missing marker (operator cleanup) must neither
+                    # raise nor leave the flag stale for a duplicate release.
+                    current_task_state_file.unlink(missing_ok=True)
+                    release_ambiguous_task = False
                 
             # Heartbeat
             res, err = http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
@@ -176,7 +648,17 @@ def loop():
                 
             if not task:
                 # Claim Task
-                res, err = http_post(config, "/tasks/claim", {"worker_id": config["WORKER_ID"]})
+                if not governor.admit_job("HEAVY"):
+                    time.sleep(governor.get_poll_interval())
+                    continue
+                with admission_lock():
+                    if stopped():
+                        return
+                    require_no_orphan()
+                    if not resource_ready():
+                        res, err = {"task": None}, None
+                    else:
+                        res, err = http_post(config, "/tasks/claim", {"worker_id": config["WORKER_ID"]})
                 if err:
                     write_log(f"Claim failed: {err}")
                     time.sleep(5)
@@ -184,12 +666,20 @@ def loop():
                     
                 task = res.get("task")
                 if task:
-                    with open(current_task_state_file, 'w') as f:
-                        json.dump(task, f)
-                        
-            if task:
+                    bind_runtime_task(task, config)
+                    task["worker_phase"] = "CLAIMED"
+                    persist_task(current_task_state_file, task)
+
+            if task and task.get("worker_phase") == "CLAIMED":
+                if task.get("worker_id") and task["worker_id"] != config["WORKER_ID"]:
+                    raise RuntimeError("Claimed task worker mismatch")
+                with admission_lock():
+                    if stopped():
+                        return
                 write_log(f"Processing task {task['task_id']}")
-                mode = task.get("mode", "ANTIGRAVITY")
+                task["worker_phase"] = "STARTED"
+                persist_task(current_task_state_file, task)
+                mode = task.get("mode", os.environ.get("COURIER_WORKER_DEFAULT_MODE", "ANTIGRAVITY"))
                 # Fallback to NATIVE if requested via target_agent routing
                 target = task.get("target_agent", "").lower()
                 if "mac" in target and mode == "ANTIGRAVITY" and "echo" in task.get("instruction", "").lower():
@@ -198,26 +688,19 @@ def loop():
 
                 if mode == "NATIVE":
                     result = run_native(task, config)
+                elif mode == "MUSE":
+                    try:
+                        result = run_muse(task, config)
+                    except MuseAdmissionBlocked:
+                        task["worker_phase"] = "CLAIMED"
+                        persist_task(current_task_state_file, task)
+                        time.sleep(governor.get_poll_interval())
+                        continue
                 else:
                     result = run_agy(task, config)
                 
                 # Format result payload
-# Form valid artifacts structure
-                artifact_evidence = []
-                if result.get("status") == "SUCCESS":
-                    expected_arts = task.get("artifacts", [])
-                    import hashlib
-                    for expected in expected_arts:
-                        expected_path = expected.get('path') if isinstance(expected, dict) else expected
-                        p = Path(expected_path)
-                        if p.exists():
-                            artifact_evidence.append({
-                                "path": expected_path,
-                                "sha256": hashlib.sha256(p.read_bytes()).hexdigest()
-                            })
-                        else:
-                            result['status'] = 'FAILED'
-                            result['stderr'] = result.get('stderr', '') + f'\nMissing artifact: {expected_path}'
+                artifact_evidence = collect_artifact_evidence(task, result)
                 payload = {
                     "worker_id": config["WORKER_ID"],
                     "goal_id": task.get("goal_id"),
@@ -231,28 +714,56 @@ def loop():
                     "provider": "mac_" + result.get("execution_mode", "unknown").lower(),
                     "raw_result": result
                 }
+                task["result_payload"] = payload
+                task["worker_phase"] = "RESULT_PENDING"
+
+            if task and task.get("worker_phase") == "RESULT_PENDING":
+                # Do not advance in-memory state until the durable write succeeded.
+                # On ENOSPC we retain this same result and IDs, retry only persistence,
+                # and neither send a success nor claim/execute another task.
+                durable = dict(task, worker_phase="RESULT_READY")
+                persist_ready_result(current_task_state_file, durable, config)
+                task = durable
+
+            if task:
+                outcome = upload_pending_artifacts(config, task, current_task_state_file) if upload_enabled(config) else "READY"
+                if outcome == "READY":
+                    outcome = deliver_result(config, task["result_payload"])
+                if outcome == "UNDELIVERED":
+                    # Keep the finished result; later cycles only redeliver it.
+                    write_log(f"Result for task {task['task_id']} not delivered yet; keeping it for redelivery.")
+                elif outcome == "REJECTED":
+                    persist_task(STATE_DIR / f"rejected_result_{task['task_id']}.json", task)
+                    # The server keeps the task assigned after a 4xx; release it (persisted
+                    # first, so a crash still releases on restart) instead of WORKER_BUSY forever.
+                    task["worker_phase"] = "RELEASE_PENDING"
+                    persist_task(current_task_state_file, task)
+                    write_log(f"Result for task {task['task_id']} rejected; releasing it to Courier recovery.")
+                    release_ambiguous_task = True
+                    registered = False
+                    task = None
+                else:
+                    current_task_state_file.unlink(missing_ok=True)
+                    task = None
+                    if one_task:
+                        write_log("Task delivered; exiting for a fresh slot process.")
+                        return
                 
-                # Backoff loop for posting result
-                retries = 0
-                while retries < 8: # Up to 8 retries (~ 255 seconds)
-                    res, err = http_post(config, "/tasks/result", payload)
-                    if err:
-                        write_log(f"Result post failed: {err}. Retrying in {2**retries}s...")
-                        time.sleep(2 ** retries)
-                        retries += 1
-                    else:
-                        write_log(f"Result posted successfully: {res}")
-                        break
-                        
-                if current_task_state_file.exists():
-                    os.remove(current_task_state_file)
-                    
-                task = None
-                
+        except OSError as e:
+            if task and task.get("worker_phase") == "STARTED":
+                task.update(worker_phase="RECOVERY_BLOCKED", blocker="EXECUTION_STORAGE_FAILURE")
+            print(f"Storage failure: {type(e).__name__}; result/task retained, no completion acknowledged.")
         except Exception as e:
             write_log(f"Error in HTTP poll loop: {e}\n{traceback.format_exc()}")
             
-        time.sleep(config.get("POLL_INTERVAL_SECONDS", 5))
+        time.sleep(governor.get_poll_interval())
 
 if __name__ == "__main__":
-    loop()
+    def shutdown(signum, frame):
+        raise WorkerShutdown()
+    signal.signal(signal.SIGTERM, shutdown)
+    signal.signal(signal.SIGINT, shutdown)
+    try:
+        loop()
+    except WorkerShutdown:
+        pass

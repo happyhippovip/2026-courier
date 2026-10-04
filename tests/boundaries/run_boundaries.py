@@ -1,6 +1,7 @@
 import sys, os, time, subprocess, json, uuid
 import requests
 import importlib.util
+from pathlib import Path
 
 API_URL = "http://127.0.0.1:8082"
 API_KEY = "boundary-secret"
@@ -30,6 +31,7 @@ EXPECTED: {exp}
 CAUSAL_FILE: {causal}
 MINIMUM_FIX: {fix}
 """
+    os.makedirs("tests/boundaries/findings", exist_ok=True)
     path = f"tests/boundaries/findings/{fid}.txt"
     with open(path, "w") as f:
         f.write(finding)
@@ -39,6 +41,8 @@ def start_server(state_file):
     env = os.environ.copy()
     env["COURIER_STATE_FILE"] = state_file
     env["COURIER_API_KEY"] = API_KEY
+    # The server requires a distinct verifier key since worker/verifier authority was split.
+    env["COURIER_VERIFIER_API_KEY"] = "boundary-verifier-secret"
     
     python_bin = "venv/bin/python3" if os.path.exists("venv/bin/python3") else sys.executable
     proc = subprocess.Popen([python_bin, "-m", "flask", "--app", "server.app", "run", "-p", "8082"], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -208,7 +212,9 @@ def run_tests():
         # We can import run_native from daemon.py
         sys.path.append(os.path.abspath("scripts/mac_worker"))
         import daemon
-        
+        import tempfile
+        daemon.LOGS_DIR = Path(tempfile.mkdtemp())  # never write into the tracked worker log
+
         res = daemon.run_native({"task_id": "test", "action": "rm_rf_slash", "instruction": "rm -rf /"}, {})
         if res.get("status") == "FAILED" and "not allowed" in res.get("stderr", ""):
             results["PASS"] += 1
@@ -222,9 +228,9 @@ def run_tests():
         with open(".github/workflows/courier_worker.yml", "r") as f:
             workflow = f.read()
             
-        if "os.system" not in workflow and "subprocess" not in workflow:
-            # We already fixed this in the previous step
-            if "status = \"FAILED_UNSUPPORTED\"" in workflow:
+        # subprocess is used only for fixed commands; the task type is allow-listed.
+        if "os.system" not in workflow and "shell=True" not in workflow:
+            if "unsupported bounded task type" in workflow and "allowed = {" in workflow:
                 results["PASS"] += 1
             else:
                 create_finding("GitHub worker cannot become arbitrary shell service", "GitHub workflow content", "Lack of fail closed", "status=FAILED_UNSUPPORTED", ".github/workflows/courier_worker.yml", "Implement bounded task types")

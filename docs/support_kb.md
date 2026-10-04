@@ -1,0 +1,2 @@
+# Support KB
+Common issues.

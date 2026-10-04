@@ -1,12 +1,19 @@
 import json
+import re
 import subprocess
 import sys
 import uuid
 
+SAFE_TASK_RE = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
+
 def run_worker(task_path, negative_test=False):
     with open(task_path, 'r') as f:
         task = json.load(f)
-    
+
+    task_id = task.get("task_id")
+    if not isinstance(task_id, str) or not SAFE_TASK_RE.fullmatch(task_id):
+        raise ValueError("task_id is not path-safe")
+
     if negative_test:
         prompt = f"Task: {task['task_id']}\nInstruction: Output garbage text, DO NOT output JSON."
     else:

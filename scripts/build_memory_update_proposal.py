@@ -22,7 +22,7 @@ import uuid
 from pathlib import Path
 
 DEFAULT_MEMORY_REPO_PATH = Path("/Users/user/Downloads/2026-project-memory")
-DEFAULT_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schemas/memory_update_proposal.schema.json"
+DEFAULT_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "courier_core/schemas/memory_update_proposal.schema.json"
 
 
 def fail(message: str) -> None:

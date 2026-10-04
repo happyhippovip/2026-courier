@@ -403,7 +403,7 @@ class ChiefCommander:
             repair_task = {
                 "task_id": f"{workflow_id}-REPAIR-{round_index + 1}",
                 "instruction": f"Fix defects reported in {task_id}",
-                "allowed_scope": payload.get("target_files", ["config/local_tools.json"]),
+                "allowed_scope": payload.get("target_files", ["courier_core/config/local_tools.json"]),
                 "target_agent": result_data.get("source", "antigravity"),
                 "cost_class": "ZERO_COST_LOCAL",
                 "risk_level": "MEDIUM",
@@ -433,7 +433,7 @@ class ChiefCommander:
             review_task = {
                 "task_id": f"{workflow_id}-REVIEW-{round_index + 1}",
                 "instruction": f"Perform independent technical QA review on {task_id} delta",
-                "allowed_scope": payload.get("target_files", ["config/local_tools.json"]),
+                "allowed_scope": payload.get("target_files", ["courier_core/config/local_tools.json"]),
                 "target_agent": "codex",
                 "cost_class": "ZERO_COST_LOCAL",
                 "risk_level": "HIGH",
@@ -631,7 +631,7 @@ class ChiefCommander:
         # Step 1: Strategy & Discovery
         step1_desc = f"Formulate execution strategy and inspect context for: {idea_text}"
 
-        step1_scope = ["config/local_tools.json", "config/teamwork_policy.json"]
+        step1_scope = ["courier_core/config/local_tools.json", "courier_core/config/teamwork_policy.json"]
         target_1, reason_1, exec_class_1 = SmartResourceRouter.classify_and_route(step1_desc, step1_scope, context_delta)
 
         step1 = {
@@ -649,10 +649,10 @@ class ChiefCommander:
         # Step 2: Implementation or QA Audit
         if "test" in idea_lower or "verify" in idea_lower or "audit" in idea_lower:
             step2_desc = f"Perform independent technical QA audit and syntax verification for: {idea_text}"
-            step2_scope = ["config/local_tools.json"]
+            step2_scope = ["courier_core/config/local_tools.json"]
         else:
             step2_desc = f"Execute core implementation and asset validation for: {idea_text}"
-            step2_scope = ["config/social_channels.json", "config/teamwork_policy.json"]
+            step2_scope = ["courier_core/config/social_channels.json", "courier_core/config/teamwork_policy.json"]
 
         target_2, reason_2, exec_class_2 = SmartResourceRouter.classify_and_route(step2_desc, step2_scope, context_delta)
         step2 = {
@@ -669,7 +669,7 @@ class ChiefCommander:
 
         # Step 3: Chief Synthesis & Final Acceptance
         step3_desc = f"Finalize results, verify invariants, and assemble completion package for: {idea_text}"
-        step3_scope = ["config/teamwork_policy.json"]
+        step3_scope = ["courier_core/config/teamwork_policy.json"]
         target_3, reason_3, exec_class_3 = SmartResourceRouter.classify_and_route(step3_desc, step3_scope, context_delta)
         step3 = {
             "task_id": f"{workflow_id}-STEP-3-SYNTHESIZE",
