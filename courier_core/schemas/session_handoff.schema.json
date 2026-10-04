@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SessionHandoff",
+  "description": "A strictly machine-readable handoff format that preserves project context, evidence, and safe continuation instructions between Courier sessions.",
+  "type": "object",
+  "required": [
+    "project_identity",
+    "current_gate",
+    "current_sha",
+    "completed_work",
+    "accepted_evidence",
+    "active_writers",
+    "dirty_worktrees",
+    "blocked_paths",
+    "human_decisions",
+    "next_executable_work",
+    "artifacts",
+    "safe_continuation_instructions"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "project_identity": {
+      "type": "string",
+      "description": "The resolved canonical project name (e.g., Courier Symphony)."
+    },
+    "current_gate": {
+      "type": "string",
+      "description": "The current shipping gate or boundary (e.g., REAL_CODING_E2E_CLEAN_VERIFIED)."
+    },
+    "current_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{7,40}$",
+      "description": "The exact commit SHA at the moment of handoff."
+    },
+    "completed_work": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of task keys or IDs completed during this session."
+    },
+    "accepted_evidence": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Pointers to the verification artifacts produced."
+    },
+    "active_writers": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Identities or processes currently holding write locks."
+    },
+    "dirty_worktrees": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Files or paths currently modified but not committed."
+    },
+    "blocked_paths": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Any active blockers preventing progress."
+    },
+    "human_decisions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Decisions explicitly made by a human user during this session."
+    },
+    "next_executable_work": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "The immediate next steps or task IDs to be executed."
+    },
+    "artifacts": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Paths or URIs to files generated during the session."
+    },
+    "safe_continuation_instructions": {
+      "type": "string",
+      "description": "Specific context required for the next agent to resume safely without repeating work."
+    }
+  }
+}

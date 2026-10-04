@@ -519,3 +519,20 @@ waiting on Dennis.
 the next official lane delivery on the critical path:
 L2 Controller/API (`courier_core.serve`) → L3 worker host + L4 synthetic
 adapter / verifier → live golden path.
+
+## Step 11 — PR #70, Compose L2, L3, L4, and L1 Golden zero-skip fix (2026-10-01)
+### `lane/L1-integration` merged `lane/L2-controller`, `lane/L3-bridge-clean`, `lane/L4-bridge-clean`, and `lane/L1-golden-zero-skip`
+
+- Composed newest clean L2 (Controller), L3 (Worker Host/Service), and L4 (Verifier Synthetic Adapter) candidates.
+- Integrated L1 CI Gate fix to enforce Golden tests zero-skip, preventing hidden regressions when tests are omitted on supported platforms.
+- `tests/golden` passes 11/11. No skips on Linux natively.
+
+## Step 12 — Exact-Head CI and Golden 0-Skips Acceptance (L1 cycle 3, 2026-10-01)
+
+| Field | Value |
+|---|---|
+| Resulting integration SHA | `436b3f64` (merge commit PR #70 into `integration/v1`) |
+| Golden harness | 11/11 passed, 0 skipped. Golden zero-skip enforcement is fully active |
+| Overall, CI | Windows `bash_is_wsl` issues fixed and removed from `known_failures.json`. `setpgrp` correctly omitted on Windows in physical runner. |
+
+**After step 12.** The core V1 architecture (L2 Controller, L3 Worker Host, L4 Verifier) is cleanly integrated and fully proven against the exact-head live Golden verification suite. We officially hand over to the Desktop Hub milestone (`DESKTOP HUB` -> `WINDOWS EXE`).

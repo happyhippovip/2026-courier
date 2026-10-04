@@ -1,0 +1,75 @@
+COURIER GOOGLE — PILOT READINESS 100X
+
+HOST=AUTO
+PROVIDER=GOOGLE_CLI
+CONTINUE_BY_DEFAULT=YES
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_BUSYWORK=YES
+NO_IDLE_ANALYSIS=YES
+MAX_HEAVY_JOBS=1
+
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+
+BOOTSTRAP:
+git fetch origin coordination/autofill-task-seed-20260926
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+Same gate fingerprint is NEVER paid for twice.
+If gate work is already owned/validated, skip that family and take another READY task.
+
+APPLICATION_SOURCE_WRITE=NO
+
+
+ROLE=PILOT_READINESS_SPECIALIST
+
+PRECONDITION:
+Do not destabilize Core or physical proof work.
+Pilot prep is lower priority than unresolved critical-path proof.
+
+TASK:
+Prepare only bounded, non-source pilot material.
+
+WORK FAMILIES:
+- Goal Contract template readiness
+- onboarding checklist
+- permissions/data-scope checklist
+- retention/deletion checklist
+- provider/data-flow inventory
+- setup-time capture
+- support-time capture
+- HIPG capture
+- RSR capture
+- NDR capture
+- payment yes/no field design
+- pilot-result summary format
+
+DO NOT:
+- invent customers
+- build Product Shell
+- start sales campaigns
+- change billing
+- edit application source
+
+OUTPUT:
+ITEM=
+READY=
+MISSING=
+DEPENDENCY=
+CAN_PREPARE_NOW=
+NEXT_EXACT_ACTION=
+
+If higher-priority proof work becomes READY:
+yield to it.
+
+If all bounded pilot prep is complete:
+TRUE_IDLE.
+
+START NOW.

@@ -110,8 +110,12 @@ def test_uncertain_non_idempotent_outcome_is_blocked_never_retried():
     assert blocked.status is TaskStatus.BLOCKED
     with pytest.raises(TransitionError, match="human decision"):
         apply(blocked, Attempt(attempt=2).claimed())
-    cancelled = run([task_event(EventType.TASK_CANCEL_REQUESTED), task_event(EventType.TASK_CANCELLED)], blocked)
+    with pytest.raises(TransitionError, match="needs an actor"):
+        run([task_event(EventType.TASK_CANCEL_REQUESTED), task_event(EventType.TASK_CANCELLED)], blocked)
+    cancelled = run([task_event(EventType.TASK_CANCEL_REQUESTED),
+                     task_event(EventType.TASK_CANCELLED, actor="desk:ana")], blocked)
     assert cancelled.status is TaskStatus.CANCELLED
+    assert cancelled.resolution == "cancelled_effect_unknown" and cancelled.decided_by == "desk:ana"
 
 
 def test_non_idempotent_attempt_that_never_started_may_be_retried():
@@ -209,3 +213,15 @@ def test_claim_beyond_max_attempts_is_refused_even_from_a_queued_state():
     exhausted = replace(run([created(max_attempts=2)]), attempt=2)
     with pytest.raises(TransitionError, match="max_attempts 2 exhausted"):
         apply(exhausted, Attempt(attempt=3).claimed())
+
+
+def test_uncertain_non_idempotent_outcome_outranks_a_cancel_request():
+    a = Attempt()
+    lost = run([created(effect_class="non_idempotent"), a.claimed(), a.started(),
+                task_event(EventType.TASK_CANCEL_REQUESTED), a.lease_expired()])
+    assert decide_after_failure(lost) is Decision.BLOCK
+    with pytest.raises(TransitionError, match="BLOCKED before it can be cancelled"):
+        apply(lost, task_event(EventType.TASK_CANCELLED))
+    blocked = apply(lost, task_event(EventType.TASK_BLOCKED, reason="uncertain"))
+    cancelled = apply(blocked, task_event(EventType.TASK_CANCELLED, actor="desk:ana"))
+    assert cancelled.status is TaskStatus.CANCELLED and cancelled.resolution == "cancelled_effect_unknown"

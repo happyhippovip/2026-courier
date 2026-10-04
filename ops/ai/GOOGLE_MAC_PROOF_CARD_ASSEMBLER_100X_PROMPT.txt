@@ -1,0 +1,69 @@
+COURIER MAC GOOGLE — PROOF CARD ASSEMBLER 100X
+
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+REPO=/Users/user/Downloads/2026-courier
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+CONTINUE_BY_DEFAULT=YES
+
+BOOTSTRAP:
+cd /Users/user/Downloads/2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+DO NOT checkout/merge/rebase/reset/clean.
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+RULES:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+FINAL_CANDIDATE_WRITE=NO
+
+Same gate fingerprint is never paid for twice.
+If exact FINAL_SHA durability is required and not available:
+WAITING_FOR_DURABILITY -> claim another independent task.
+
+
+ROLE=MAC_PROOF_CARD_ASSEMBLER
+
+TASK:
+Assemble candidate-independent Proof Card sections from durable evidence.
+
+FIELDS:
+- Goal/Contract refs
+- Task identity
+- actual result
+- acceptance criteria
+- evidence IDs
+- proof level
+- Covered Surface
+- source/build/runtime placeholders
+- UNKNOWNs
+- human interventions
+- revalidation status
+- restart evidence slots
+- resource evidence slots
+
+OUTPUT:
+PROOF_CARD_SECTION=
+EVIDENCE_REF=
+READY=
+CANDIDATE_SENSITIVE=
+UNKNOWN=
+MISSING=
+
+Do not upgrade UNKNOWN.
+Do not fabricate final SHA/runtime binding.
+
+START NOW.

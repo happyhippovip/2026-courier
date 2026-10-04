@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600">
+<rect width="1200" height="1600" fill="white"/>
+<style>
+.t{font-family:Arial,Helvetica,sans-serif;fill:#111}.h{font-weight:700}.box{fill:#fff;stroke:#111;stroke-width:3;rx:18}.line{stroke:#111;stroke-width:3}.small{font-size:25px}.body{font-size:28px}.sub{font-size:34px}.title{font-size:66px}
+</style>
+<text x="55" y="90" class="t h title">COURIER SYMPHONY</text>
+<text x="55" y="140" class="t h sub">Öffentliche Projektskizze / Public Safe Release</text>
+<text x="55" y="180" class="t small">30.09.2026 · High-level, non-enabling public overview</text>
+
+<rect x="45" y="220" width="1110" height="235" class="box"/>
+<text x="75" y="270" class="t h sub">Mission</text>
+<text x="75" y="315" class="t body">DE: Wichtige Arbeit soll unter Veränderung weiterlaufen können —</text>
+<text x="75" y="350" class="t body">über Software, KI-Systeme, Roboter, Fahrzeuge und eines Tages Raumfahrtsysteme hinweg.</text>
+<text x="75" y="400" class="t body">EN: Help important work continue under change across software, AI systems,</text>
+<text x="75" y="435" class="t body">robots, vehicles and, one day, space systems.</text>
+
+<rect x="45" y="490" width="1110" height="330" class="box"/>
+<text x="75" y="545" class="t h sub">Kernidee / Core Idea</text>
+<text x="90" y="600" class="t body">• Kontinuität trotz Wechsel von Tools, Providern und Systemen</text>
+<text x="90" y="645" class="t body">• Kontrollierte Aufnahme neuer Informationen und Updates</text>
+<text x="90" y="690" class="t body">• Weniger unnötige Wiederholungen</text>
+<text x="90" y="735" class="t body">• Prüfung, Berechtigung und lokale Sicherheitsgrenzen vor Wirkung</text>
+<text x="90" y="780" class="t body">• Founder-away continuity als Produktziel</text>
+
+<rect x="45" y="855" width="1110" height="265" class="box"/>
+<text x="75" y="910" class="t h sub">Research Status / Recherche-Status</text>
+<text x="75" y="965" class="t body">Für den vertraulich gehaltenen, eng definierten technischen Kern wurde</text>
+<text x="75" y="1005" class="t body">im aktuellen adversarial Prior-Art-Screen bislang kein direkter 1:1-Gegenpart identifiziert.</text>
+<text x="75" y="1055" class="t small">Research status only — not a conclusion of novelty, inventive step, FTO or patentability.</text>
+
+<rect x="45" y="1155" width="535" height="270" class="box"/>
+<text x="75" y="1210" class="t h sub">ÖFFENTLICH / PUBLIC</text>
+<text x="85" y="1260" class="t body">• Vision</text>
+<text x="85" y="1300" class="t body">• Produktziel</text>
+<text x="85" y="1340" class="t body">• Anwendungsfelder</text>
+<text x="85" y="1380" class="t body">• High-level Update-Idee</text>
+
+<rect x="620" y="1155" width="535" height="270" class="box"/>
+<text x="650" y="1210" class="t h sub">VERTRAULICH / CONFIDENTIAL</text>
+<text x="660" y="1260" class="t body">• Enabling technical core</text>
+<text x="660" y="1300" class="t body">• Detailed implementation logic</text>
+<text x="660" y="1340" class="t body">• Formal patent figures</text>
+<text x="660" y="1380" class="t body">• Private prior-art matrices</text>
+
+<line x1="45" y1="1470" x2="1155" y2="1470" class="line"/>
+<text x="55" y="1525" class="t small">© 2026 Courier Symphony. All rights reserved.</text>
+<text x="55" y="1560" class="t small">Vision sheet only. Confidential technical details are intentionally omitted.</text>
+</svg>

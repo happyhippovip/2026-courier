@@ -1,0 +1,52 @@
+COURIER GOOGLE — HUMAN GATE INTEGRITY 100X
+
+HOST=AUTO
+PROVIDER=GOOGLE_CLI
+CONTINUE_BY_DEFAULT=YES
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/MODEL_AWARE_WALL_ROUTING_POLICY_2026-09-28.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+
+Unchanged gate/evidence fingerprint = reuse, not new work.
+
+
+ROLE=HUMAN_GATE_INTEGRITY
+
+TASK:
+Audit only current human-gate semantics and transitions.
+
+CHECK:
+- real Human/Money/Safety/Permission gates are explicit
+- ordinary worker completion does not become a Human Gate
+- provider-limit Human Gate is deduplicated by fingerprint
+- HUMAN_REQUIRED does not erase other READY work
+- unblock condition is explicit
+- resolved gate does not remain sticky
+- human intervention is counted honestly for autonomy metrics
+
+OUTPUT:
+GATE_ID=
+TYPE=
+VALID=
+DUPLICATE=
+BLOCKED_FAMILY=
+UNBLOCK_CONDITION=
+AUTONOMY_IMPACT=
+GAP=
+
+No account/auth/billing changes.
+No source edits.
+
+START NOW.

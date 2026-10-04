@@ -1,0 +1,35 @@
+COURIER MODEL 3.1 — CONSERVATIVE SELF-ID CANARY
+
+PROVIDER=SELF_IDENTIFY
+MODEL_CLASS=START_AT_C1_READ_ONLY
+AUTHORITY=NO_SOURCE_WRITE_NO_PHYSICAL_RUN
+
+FIRST OUTPUT:
+PROVIDER=
+MODEL=
+VERSION=
+MODE=
+TOOLS=
+KNOWN_LIMITS=
+
+TASK:
+Take exactly one bounded post-Ledger read-only task:
+review one durable handoff/proof packet for one concrete ambiguity.
+
+Do not:
+edit source
+validate PRE_CODEX
+invoke Codex
+run physical proof
+change auth/account/billing
+
+OUTPUT:
+CANARY_STATUS=
+TASK_ID=
+FINDING=
+EVIDENCE_USED=
+HUMAN_CORRECTION_NEEDED=
+RECOMMENDED_CAPABILITY_CLASS=C1|C2|UNSUITABLE
+
+Only after a successful bounded canary may the router expand this provider's workload.
+START NOW.

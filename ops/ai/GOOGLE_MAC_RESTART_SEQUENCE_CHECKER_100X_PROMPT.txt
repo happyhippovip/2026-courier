@@ -1,0 +1,56 @@
+COURIER GOOGLE MAC — RESTART SEQUENCE CHECKER 100X
+
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+CONTINUE_BY_DEFAULT=YES
+FAMILY_COMPLETE_IS_NOT_GLOBAL_IDLE=YES
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+Unchanged gate/evidence fingerprint = reuse.
+PRE_CODEX DURABILITY_PENDING gets at most one persistence owner.
+
+
+ROLE=RESTART_SEQUENCE_CHECKER
+MODE=PREP_ONLY
+
+TASK:
+Validate the planned restart sequence and state transitions without executing RUN_2.
+
+SEQUENCES:
+- after A result persisted
+- before reconcile
+- after reconcile
+- before B dispatch
+- after B dispatch
+- provider outage
+- worker disappearance
+- stale result arrival
+
+OUTPUT:
+SEQUENCE=
+PRE_RESTART_STATE=
+EXPECTED_POST_RESTART_STATE=
+A_REEXEC_ALLOWED=NO
+B_AUTO_CONTINUE_EXPECTED=
+AMBIGUITY=
+EVIDENCE_NEEDED=
+READY=
+
+No physical run.
+No source edits.
+
+START NOW.

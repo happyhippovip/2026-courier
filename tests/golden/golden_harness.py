@@ -51,6 +51,7 @@ def wait_until(predicate, timeout, what, interval=0.2):
         if last:
             return last
         time.sleep(interval)
+    print(f"\nDEBUG TIMEOUT: what={what!r}, last={last!r}")
     raise AssertionError(f"timed out after {timeout}s waiting for {what}; last={last!r}")
 
 
@@ -65,7 +66,8 @@ def pids_alive(pids):
     for pid in pids:
         try:
             proc = psutil.Process(pid)
-            if proc.status() != psutil.STATUS_ZOMBIE:
+            status = proc.status()
+            if status != psutil.STATUS_ZOMBIE:
                 alive.append(pid)
         except psutil.NoSuchProcess:
             continue
@@ -74,7 +76,8 @@ def pids_alive(pids):
 
 def descendants(pid):
     try:
-        return [child.pid for child in psutil.Process(pid).children(recursive=True)]
+        children = psutil.Process(pid).children(recursive=True)
+        return [child.pid for child in children]
     except psutil.NoSuchProcess:
         return []
 
@@ -206,11 +209,40 @@ class Courier:
         worker.kill()
         worker.wait(timeout=10)
 
+    def settled_descendants(self, worker=None, settle_s=1.0, timeout=10):
+        """Descendants that exist before any task runs, once the set stops changing.
+
+        A Windows venv python.exe is a launcher with one child interpreter; a
+        POSIX python has no child at all. Both are valid baselines, so an empty
+        set is returned as-is instead of being waited for.
+        """
+        worker = worker or self.worker
+        deadline = time.monotonic() + timeout
+        last, since = None, time.monotonic()
+        while time.monotonic() < deadline:
+            current = set(self.worker_descendants(worker))
+            if current != last:
+                last, since = current, time.monotonic()
+            elif time.monotonic() - since >= settle_s:
+                break
+            time.sleep(0.2)
+        return last or set()
+
     def worker_descendants(self, worker=None):
         worker = worker or self.worker
         pids = descendants(worker.pid)
-        self.tracked_pids.update(pids)
-        return pids
+        task_pids = []
+        for pid in pids:
+            try:
+                proc = psutil.Process(pid)
+                cmd = proc.cmdline()
+                if cmd and "courier_worker.host" in cmd:
+                    continue
+                task_pids.append(pid)
+            except psutil.Error:
+                pass
+        self.tracked_pids.update(task_pids)
+        return task_pids
 
     # -- journal (read-only; the controller is the only writer) -------------
     @property

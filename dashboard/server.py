@@ -13,9 +13,11 @@ import json
 import os
 import socketserver
 import sys
+import datetime as _dt
 from pathlib import Path
 
 PORT = int(os.environ.get("PORT", 8080))
+BIND_HOST = "127.0.0.1"  # local command center: loopback only
 DASHBOARD_DIR = Path(__file__).resolve().parent
 COURIER_DIR = DASHBOARD_DIR.parent
 MEMORY_DIR = Path(os.environ.get("MEMORY_DIR", COURIER_DIR.parent / "2026-project-memory"))
@@ -136,6 +138,35 @@ def get_commercial_offers_payload() -> dict:
     }
 
 
+def get_ledger_value_payload() -> dict:
+    processed_dir = EVENTS_DIR / "processed"
+    reused = 0
+    work_units = 0
+    evidence = []
+    try:
+        if (processed_dir / "reuse_events.jsonl").exists():
+            for line in (processed_dir / "reuse_events.jsonl").read_text(encoding="utf-8").splitlines():
+                if line.strip():
+                    reused += 1
+                    evidence.append(json.loads(line))
+        if (processed_dir / "task_dedupe_registry.json").exists():
+            data = json.loads((processed_dir / "task_dedupe_registry.json").read_text(encoding="utf-8"))
+            work_units = len(data)
+    except Exception:
+        pass
+        
+    return {
+        "metrics": {
+            "results_reused": {"value": reused},
+            "evidence_files_available": {"value": len(list(processed_dir.glob("result*.json"))) if processed_dir.exists() else 0}
+        },
+        "this_month": {
+            "work_units_completed": {"value": work_units}
+        },
+        "evidence": evidence
+    }
+
+
 class CommandCenterHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path in ("/api/status", "/api/health"):
@@ -158,12 +189,22 @@ class CommandCenterHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps(offers_payload, indent=2).encode("utf-8"))
             return
 
+        if self.path == "/api/ledger-value":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+
+            ledger_payload = get_ledger_value_payload()
+            self.wfile.write(json.dumps(ledger_payload, indent=2).encode("utf-8"))
+            return
+
         return super().do_GET()
 
 
 def create_server(port: int = PORT):
     handler_factory = functools.partial(CommandCenterHandler, directory=str(DASHBOARD_DIR))
-    return socketserver.TCPServer(("", port), handler_factory)
+    return socketserver.TCPServer((BIND_HOST, port), handler_factory)
 
 
 def main() -> None:
@@ -171,7 +212,7 @@ def main() -> None:
     for attempt in range(5):
         try:
             handler_factory = functools.partial(CommandCenterHandler, directory=str(DASHBOARD_DIR))
-            with socketserver.TCPServer(("", port), handler_factory) as httpd:
+            with socketserver.TCPServer((BIND_HOST, port), handler_factory) as httpd:
                 print(f"AI Agent Command Center MVP running at: http://localhost:{port}")
                 print("Press Ctrl+C to stop.")
                 httpd.serve_forever()

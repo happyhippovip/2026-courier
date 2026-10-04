@@ -1,0 +1,58 @@
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+REPO=/Users/user/Downloads/2026-courier
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+
+BOOTSTRAP:
+cd /Users/user/Downloads/2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+DO NOT checkout/merge/rebase/reset/clean.
+
+If required ops/ai file is missing locally:
+git show origin/coordination/autofill-task-seed-20260926:<PATH>
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+
+RULES:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_BUSYWORK=YES
+NO_IDLE_ANALYSIS=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+
+
+ROLE=MAC_RUN_PREP_SPECIALIST
+
+PRE_CODEX_READY=YES DOES NOT END SESSION.
+
+PRIORITY:
+1 exact FINAL_SHA -> Mac binding preparation
+2 RUN_1 isolated workspace/state/log/artifact layout
+3 server/worker/verifier command binding
+4 port/process isolation
+5 key-separation checklist
+6 source/build/runtime/config fingerprints
+7 A execution-count evidence plan
+8 expected-hash/server-byte evidence plan
+9 A verified/reconciled evidence plan
+10 B auto-dispatch evidence plan
+11 HUMAN_RELAY_COUNT evidence plan
+
+PHYSICAL LAW:
+PREP ONLY until READY_FOR_PHYSICAL_RUN=YES.
+Do not execute RUN_1 early.
+Do not execute RUN_2 before RUN_1 PASS.
+
+If one prep item blocks:
+record blocker and take another independent prep item.
+
+If no legal prep remains:
+HARVEST -> bounded refresh -> TRUE_IDLE.
+
+START NOW.

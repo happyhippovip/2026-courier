@@ -355,6 +355,17 @@ Mindestens folgende Matrix wird getestet:
 - stale Result
 - identisches Duplicate Result
 - widersprüchliches Duplicate Result
+- Oberfläche/Explorer eingefroren, Worker läuft weiter
+- Terminal-Host stirbt (z. B. PowerShell Editor Services), Worker läuft weiter
+- IDE-Absturz mit uncommitteter Arbeit
+- Courier-Oberfläche stürzt ab, Controller/Worker laufen weiter
+- erzwungener Neustart nach Checkpoint
+- Neustart mit verifizierter Fortsetzung
+
+Die letzten sechs Szenarien stammen aus dem Windows-GUI-Freeze vom 2026-10-02
+(`docs/WINDOWS_GUI_FREEZE_INCIDENT_2026-10-02.md`) und gehören zum
+FREEZE / INTERRUPTION RECOVERY GATE in `docs/V1_PRODUCT_QUALITY_BAR.md` §10.
+Invariante: **Eine kaputte Oberfläche bedeutet nie verlorene Arbeit.**
 
 Für jedes Szenario gilt:
 

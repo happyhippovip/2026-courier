@@ -6,7 +6,20 @@ baseline in known_failures.json for one platform.
 Exit status:
   0  no new failures (known failures and known flaky tests are tolerated)
   1  at least one test failed that is not recorded as known failing or flaky,
-     or the pytest session itself was broken (collection error, crash, no tests)
+     or the pytest session itself was broken (collection error, crash, no tests),
+     or the Golden zero-skip rule fired (see below)
+
+Golden zero-skip rule (SKIPPED != PASS):
+  tests/golden/** must never be skipped once the runtime modules they drive
+  exist. The gate imports nothing: it probes importlib find_spec for the three
+  modules whose absence the harness itself treats as the skip reason
+  (courier_core.serve, courier_worker.host, adapters.synthetic).
+  - any of the three unimportable: skips are legitimate ("waiting for v1
+    components"); reported informationally, gate unaffected;
+  - all three importable: any skipped Golden test fails the gate, because a
+    skip would hide untested acceptance behavior;
+  - zero Golden outcomes recorded at all: gate fails (suite deleted or never
+    collected — absence of evidence is not PASS).
 
 Known failures that start passing are reported, so the baseline can be
 tightened in the same integration step. If the platform has no baseline
@@ -22,6 +35,7 @@ They stay fully gated on the platforms where the component runs.
 
 import argparse
 import fnmatch
+import importlib.util
 import json
 import os
 import sys
@@ -34,6 +48,65 @@ BROKEN_SESSION = {2, 3, 4, 5}
 def load_json(path):
     with open(path, encoding="utf-8") as handle:
         return json.load(handle)
+
+
+# Modules whose absence is the harness's own documented reason for skipping
+# the Golden suite (tests/golden/golden_harness.py REQUIRED_MODULES, minus
+# courier_core.journal/projection which are already integrated).
+GOLDEN_GATE_MODULES = (
+    "courier_core.serve",
+    "courier_worker.host",
+    "adapters.synthetic",
+)
+
+
+def _repo_root():
+    # .github/ci/check_regressions.py -> repository root.
+    return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+def golden_zero_skip_gate(outcomes):
+    """Enforce SKIPPED != PASS for tests/golden/**.
+
+    Returns (rc, lines). Probes importability with find_spec (imports
+    nothing, runs nothing) against the repository under test.
+    """
+    lines = [""]
+    golden = sorted(
+        node for node in outcomes
+        if node.split("::")[0].replace("\\", "/").startswith("tests/golden/")
+    )
+    if not golden:
+        lines.append("GATE FAIL: no Golden outcomes recorded (suite deleted or never collected).")
+        return 1, lines
+
+    root = _repo_root()
+    if root not in sys.path:
+        sys.path.insert(0, root)
+    missing = []
+    for name in GOLDEN_GATE_MODULES:
+        try:
+            if importlib.util.find_spec(name) is None:
+                missing.append(name)
+        except (ImportError, ValueError):
+            missing.append(name)
+
+    skipped = sorted(node for node in golden if outcomes.get(node) == "skipped")
+    if missing:
+        lines.append(
+            "Golden suite waiting for v1 components: "
+            + ", ".join(missing)
+            + f" ({len(skipped)} skipped, tolerated)."
+        )
+        return 0, lines
+
+    unjustified = [node for node in golden if outcomes.get(node) not in ("passed",)]
+    if unjustified:
+        lines.append("GATE FAIL: Golden zero-skip violated (all runtime modules present):")
+        lines.extend(f"  GOLDEN NOT-PASSED {node} ({outcomes.get(node)})" for node in unjustified)
+        return 1, lines
+    lines.append(f"Golden zero-skip holds: {len(golden)} Golden tests passed, 0 skipped.")
+    return 0, lines
 
 
 def main(argv=None):
@@ -54,6 +127,8 @@ def main(argv=None):
     passed = sorted(node for node, result in outcomes.items() if result == "passed")
     skipped = sorted(node for node, result in outcomes.items() if result == "skipped")
 
+    golden_rc, golden_lines = golden_zero_skip_gate(outcomes)
+
     lines = [f"## Courier v1 regression gate ({args.platform})", ""]
     lines.append(f"passed={len(passed)} failed={len(failed)} skipped={len(skipped)} pytest_exit={exitstatus}")
 
@@ -64,6 +139,10 @@ def main(argv=None):
     if exitstatus in BROKEN_SESSION:
         lines.append(f"GATE FAIL: pytest session broken (exit {exitstatus}).")
         rc = 1
+
+    lines.extend(golden_lines)
+    if golden_rc:
+        rc = golden_rc
 
     if baseline is None:
         lines.append("")

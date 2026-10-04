@@ -1,0 +1,52 @@
+{
+  "schema_version": "2.0",
+  "context_version": 1,
+  "generated_at": "2026-09-30T10:03:30.602316+00:00",
+  "repositories": {
+    "courier_head": "NOT_CONNECTED",
+    "memory_head": "NOT_CONNECTED",
+    "godot_head": "NOT_CONNECTED"
+  },
+  "workflow_state": {
+    "workflow_id": "wf-1",
+    "correlation_id": "c1",
+    "current_task_id": "t1",
+    "is_locked": false,
+    "agent_states": {},
+    "total_decisions": 1,
+    "total_results": 0,
+    "total_approvals": 1,
+    "total_adoptions": 0
+  },
+  "memory_truth": {
+    "latest_verified_milestone": "NOT_RECORDED",
+    "latest_decisions": [],
+    "open_blockers": [],
+    "relevant_ideas": [],
+    "human_gates": [],
+    "files_available": {
+      "project_state": false,
+      "decisions": false,
+      "ideas": false,
+      "changelog": false
+    }
+  },
+  "latest_idea_delta": null,
+  "academy_adoptions": 0,
+  "truth_classifications": {
+    "courier_codebase": "VERIFIED",
+    "project_memory": "VERIFIED",
+    "antigravity_worker": "DETERMINISTIC",
+    "codex_worker": "DETERMINISTIC",
+    "godot_media": "NOT_CONNECTED",
+    "human_ideas": "IDEA",
+    "user_reports": "USER_REPORTED",
+    "truth_invariants": "IDEA != IMPLEMENTED | USER_REPORTED != VERIFIED | DETERMINISTIC != REAL_EXTERNAL"
+  },
+  "changed_since_previous_snapshot": [
+    "initial_snapshot"
+  ],
+  "previous_snapshot_version": 0,
+  "previous_snapshot_hash": null,
+  "snapshot_hash": "355b0b425c5a4d3a75e5ca2cc8bb3271bb097c549bb9d18441ec021e0a42a61e"
+}

@@ -1,0 +1,59 @@
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+REPO=/Users/user/Downloads/2026-courier
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+
+BOOTSTRAP:
+cd /Users/user/Downloads/2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+DO NOT checkout/merge/rebase/reset/clean.
+
+If required ops/ai file is missing locally:
+git show origin/coordination/autofill-task-seed-20260926:<PATH>
+
+READ FIRST ONLY:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+
+RULES:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_DUPLICATE_REVIEW=YES
+NO_BUSYWORK=YES
+NO_IDLE_ANALYSIS=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+
+
+ROLE=MAC_RESTART_PROOF_SPECIALIST
+
+PRIORITY:
+1 restart checkpoint design
+2 persisted Result A survival evidence
+3 restart-after-persist evidence
+4 no-A-reexecution evidence
+5 reconcile-after-restart evidence
+6 B automatic start after restart
+7 A execution-count stays 1
+8 stale result rejection after restart
+9 restart matrix open cells
+10 proof capture locations/fingerprints
+
+DO NOT execute RUN_2 before RUN_1 PASS.
+Before that, prepare evidence/checklists only.
+
+OUTPUT:
+SCENARIO=
+CURRENT_EVIDENCE=
+MISSING=
+CAPTURE_METHOD=
+EXPECTED=
+FAIL_VALUE=
+RETEST_TRIGGER=
+
+Continue across independent restart tasks.
+If none: HARVEST -> bounded refresh -> TRUE_IDLE.
+
+START NOW.

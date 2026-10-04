@@ -27,9 +27,15 @@ def accepted_events(courier, task_id):
 def test_kill_worker_mid_task_is_retried_once(courier):
     courier.start_controller()
     first = courier.start_worker()
+    baseline_descendants = courier.settled_descendants(first)
     task_id = courier.make_task(hang=True, lease_ttl_s=LEASE_TTL_S)
     courier.wait_event(task_id, "TASK_STARTED", timeout=30)
-    orphan_candidates = wait_until(lambda: courier.worker_descendants(first), 10, "attempt 1 child process")
+    
+    def new_descendants():
+        current = set(courier.worker_descendants(first))
+        return list(current - baseline_descendants)
+        
+    orphan_candidates = wait_until(new_descendants, 10, "attempt 1 child process")
 
     courier.kill_worker(first)
     courier.start_worker()
@@ -93,12 +99,17 @@ def test_late_result_from_superseded_attempt_is_discarded(courier):
 def test_timeout_kills_the_task_tree_and_retries(courier):
     courier.start_controller()
     worker = courier.start_worker()
-    time.sleep(2)
+    baseline_descendants = courier.settled_descendants(worker)
     baseline_handles = open_handles(worker.pid)
     task_id = courier.make_task(hang=True, timeout_s=3)
     courier.wait_event(task_id, "TASK_STARTED", timeout=30)
-    attempt1_tree = wait_until(lambda: courier.worker_descendants(worker), 10, "attempt 1 child process")
-
+    
+    def new_descendants():
+        current = set(courier.worker_descendants(worker))
+        return list(current - baseline_descendants)
+        
+    attempt1_tree = wait_until(new_descendants, 10, "attempt 1 child process")
+    
     wait_until(lambda: not pids_alive(attempt1_tree), 3 + 5, "timed-out task tree to be killed")
     courier.wait_event(task_id, "TASK_RETRY_SCHEDULED", timeout=20)
     complete = courier.wait_event(task_id, "TASK_COMPLETE", timeout=60)
@@ -111,14 +122,25 @@ def test_timeout_kills_the_task_tree_and_retries(courier):
 def test_cancel_while_running(courier):
     courier.start_controller()
     worker = courier.start_worker()
+    baseline_descendants = courier.settled_descendants(worker)
     task_id = courier.make_task(hang=True)
     courier.wait_event(task_id, "TASK_STARTED", timeout=30)
-    tree = wait_until(lambda: courier.worker_descendants(worker), 10, "running task child")
+    
+    def new_descendants():
+        current = set(courier.worker_descendants(worker))
+        return list(current - baseline_descendants)
+        
+    tree = wait_until(new_descendants, 10, "running task child")
 
     assert courier.api.post(f"/v1/tasks/{task_id}/cancel").status_code == 200
     courier.wait_event(task_id, "TASK_CANCEL_REQUESTED", timeout=10)
     courier.wait_event(task_id, "TASK_CANCELLED", timeout=20)
-    wait_until(lambda: not pids_alive(tree), 10, "cancelled task tree to be killed")
+    def is_tree_dead():
+        alive = pids_alive(tree)
+        if alive:
+            print(f"DEBUG alive in tree: {alive}")
+        return not alive
+    wait_until(is_tree_dead, 10, "cancelled task tree to be killed")
     time.sleep(3)
     assert accepted_events(courier, task_id) == []
     assert "TASK_COMPLETE" not in types_of(courier.task_events(task_id))

@@ -25,9 +25,9 @@ import uuid
 from pathlib import Path
 
 DEFAULT_MEMORY_REPO_PATH = Path("/Users/user/Downloads/2026-project-memory")
-DEFAULT_PROPOSAL_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schemas/memory_update_proposal.schema.json"
-DEFAULT_APPROVAL_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schemas/memory_update_approval.schema.json"
-DEFAULT_DECISION_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schemas/autonomous_chief_decision.schema.json"
+DEFAULT_PROPOSAL_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "courier_core/schemas/memory_update_proposal.schema.json"
+DEFAULT_APPROVAL_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "courier_core/schemas/memory_update_approval.schema.json"
+DEFAULT_DECISION_SCHEMA_PATH = Path(__file__).resolve().parent.parent / "courier_core/schemas/autonomous_chief_decision.schema.json"
 
 CANONICAL_MEMORY_ALLOWLIST = {
     "AGENTS.md",

@@ -1,0 +1,15 @@
+COURIER CLAUDE/SONNET — POST-LEDGER COST ROUTING
+PROVIDER=SONNET_IF_AVAILABLE
+MODEL_CLASS=C2
+MODE=READ_ONLY
+READ:
+ops/ai/SONNET_COST_ROUTING_REVIEW_100X_PROMPT.txt
+TASK:
+Find work currently routed to Opus that Sonnet/Google can truthfully handle, and preserve Opus only for genuine C4 convergence.
+OUTPUT:
+AVAILABLE=
+WORK_FAMILY=
+BETTER_ROUTE=
+WINDOW_COUNT=
+WHY=
+START NOW.

@@ -1,0 +1,22 @@
+{
+  "account": "muse-account-1",
+  "created_at": 1790336764.406671,
+  "effort": "low",
+  "error": null,
+  "exit_code": 0,
+  "finished_at": 1790336777.2312896,
+  "job_id": "20260925-134604-e02d9b",
+  "process": {
+    "create_time": 1790336765.124113,
+    "pid": 20524
+  },
+  "prompt": "Antworte nur mit: MUSE-JOB-A OK",
+  "provider": "muse",
+  "slot_id": "MUSE-H1",
+  "started_at": 1790336765.1294017,
+  "state": "DONE",
+  "timeout_s": 300,
+  "updated_at": 1790336777.231293,
+  "workdir": "C:\\Users\\lol\\2026-workspace\\2026-courier\\scripts\\provider_hub\\runtime\\work\\20260925-134604-e02d9b",
+  "write_scope": null
+}
