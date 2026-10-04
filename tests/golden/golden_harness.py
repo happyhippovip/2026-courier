@@ -66,7 +66,8 @@ def pids_alive(pids):
     for pid in pids:
         try:
             proc = psutil.Process(pid)
-            if proc.status() != psutil.STATUS_ZOMBIE:
+            status = proc.status()
+            if status != psutil.STATUS_ZOMBIE:
                 alive.append(pid)
         except psutil.NoSuchProcess:
             continue
@@ -75,7 +76,8 @@ def pids_alive(pids):
 
 def descendants(pid):
     try:
-        return [child.pid for child in psutil.Process(pid).children(recursive=True)]
+        children = psutil.Process(pid).children(recursive=True)
+        return [child.pid for child in children]
     except psutil.NoSuchProcess:
         return []
 
@@ -229,8 +231,18 @@ class Courier:
     def worker_descendants(self, worker=None):
         worker = worker or self.worker
         pids = descendants(worker.pid)
-        self.tracked_pids.update(pids)
-        return pids
+        task_pids = []
+        for pid in pids:
+            try:
+                proc = psutil.Process(pid)
+                cmd = proc.cmdline()
+                if cmd and "courier_worker.host" in cmd:
+                    continue
+                task_pids.append(pid)
+            except psutil.Error:
+                pass
+        self.tracked_pids.update(task_pids)
+        return task_pids
 
     # -- journal (read-only; the controller is the only writer) -------------
     @property

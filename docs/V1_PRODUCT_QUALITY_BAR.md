@@ -176,6 +176,15 @@ classes, so V1 acceptance must contain tests for them.
 9. **Runtime state in git**
    - Runtime truth must never depend on a git commit/push/reconcile loop.
 
+10. **Broken surface implies lost work** (incident 2026-10-02,
+    `docs/WINDOWS_GUI_FREEZE_INCIDENT_2026-10-02.md`)
+    - **A BROKEN SURFACE MUST NEVER IMPLY LOST WORK.**
+    - WORK EXECUTION, SURFACE/UI, TERMINAL HOST, AGENT SESSION and PERSISTENT
+      STATE are separate failure domains; losing one must not unnecessarily lose
+      the others, and must never be reported as losing them.
+    - The customer must be able to learn — without a working desktop — what is
+      running, what is saved, and whether reboot is safe.
+
 ## 5. Chosen Windows process-safety direction
 
 For L3 Windows worker execution, prefer **Windows Job Objects** for exact
@@ -379,6 +388,52 @@ all have green targeted tests.
 - diagnostics are redacted and useful;
 - uninstall preserves user data unless the user explicitly chooses removal;
 - no hidden terminal or developer intervention is required.
+
+### FREEZE / INTERRUPTION RECOVERY GATE
+Cross-cutting. Required before **WINDOWS EXE** and **CLEAN-MACHINE ACCEPTANCE**
+may advance. Created by the 2026-10-02 Windows GUI freeze
+(`docs/WINDOWS_GUI_FREEZE_INCIDENT_2026-10-02.md`).
+
+PASS only with evidence that Courier:
+1. identifies its own active work (owned worktrees, tasks, processes);
+2. knows the last accepted/checkpointed state;
+3. preserves uncommitted meaningful work without altering the working state
+   (patch/bundle outside the repo; no secrets, runtime DBs or session contents);
+4. distinguishes surface failure from task failure;
+5. distinguishes terminal-host failure from worker failure;
+6. never kills unrelated processes (exact owned PIDs only, never by name);
+7. writes a Recovery Receipt;
+8. states `SAFE_TO_REBOOT` or `NOT_SAFE_TO_REBOOT` with reasons;
+9. after restart, determines a safe resume point from durable state;
+10. passes a controlled test proving whether work survives an interruption.
+
+Required acceptance tests (synthetic, owned processes only):
+- Explorer/UI freeze while a worker runs → work continues, status readable headlessly;
+- terminal host death (integrated terminal / PowerShell Editor Services) → worker
+  and state unaffected, classified `TERMINAL_HOST_FAILED`, not `WORK_FAILED`;
+- IDE crash → uncommitted work recoverable, no task marked failed;
+- Courier surface crash → controller/worker/journal continue; surface rebuilds;
+- worker survives surface loss → result delivered and visible after surface returns;
+- worker crashes while surface survives → surface shows honest failure, no fake progress;
+- forced reboot after checkpoint → nothing after the checkpoint is claimed done;
+- restart and verified continuation → resume point computed and verified, no
+  duplicate effect.
+
+Implementation workkeys (lane owner in brackets; PREP_ONLY until the owning
+lane's stage gate is open):
+
+| Workkey | Lane | Deliverable |
+|---|---|---|
+| FRZ-01 | L1 | **Right-host guard:** every ops/recovery entrypoint first proves host identity (hostname, OS, device ID) and stops on mismatch; device registry maps sessions to hosts. |
+| FRZ-02 | L2 | **Headless status / Critical Snapshot L0:** one command + JSON file answering what runs, owned PIDs, last progress, dirty/unpushed state, resources; works with explorer/IDE frozen. |
+| FRZ-03 | L3 | **Device Health sampler:** bounded periodic CPU/RAM/disk/handles + explorer/DWM responsiveness into the journal, so incidents have before/after evidence. |
+| FRZ-04 | L1 | **Off-machine checkpoint:** cap unpushed commits/time per owned lane; auto push or `git bundle` of owned work; alert when over the cap. |
+| FRZ-05 | L1 | **Work preservation without mutation:** recovery directory with status, diff, cached diff, untracked list, bundle and manifest; secret/runtime filters. |
+| FRZ-06 | L2 | **Layered health model:** separate states for work, surface, terminal host, agent session, persistent state; classification enum incl. `TERMINAL_HOST_FAILED`, `SURFACE_CORRUPTED`. |
+| FRZ-07 | L2 | **Reboot verdict + Recovery Receipt:** `SAFE_TO_REBOOT`/`NOT_SAFE_TO_REBOOT` with reasons; receipt with the fields of the incident record. |
+| FRZ-08 | L3 | **Exact-owned recovery actions:** escalation ladder (wait → explorer restart on evidence → owned helper restart → owned tree kill) via Job Objects; never by name. |
+| FRZ-09 | L2 | **Safe resume point + verified continuation** after restart from journal/outbox/git state. |
+| FRZ-10 | L1 | **Interruption test harness:** the acceptance tests above as repeatable synthetic scenarios. |
 
 ## 11. Writer-lane activation and model-effort policy
 

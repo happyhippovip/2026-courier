@@ -147,3 +147,26 @@ AWS secure access
 -> Execution Ledger
 -> website / funding evidence
 -> broader competitive-intelligence implementation
+
+## Open-standard advantage rule
+
+When a strong public protocol or interoperability standard solves a real problem, prefer adopting the useful open principle over creating unnecessary proprietary incompatibility.
+
+Process:
+
+OBSERVE STANDARD
+-> VERIFY MATURITY
+-> ASSESS COURIER FIT
+-> PRESERVE COURIER EXECUTION SEMANTICS
+-> IMPLEMENT ADAPTER
+-> TEST
+-> MEASURE
+-> KEEP / REJECT
+
+Priority interoperability areas include API description, agent/tool interoperability, events, authorization, observability, commerce, and payments.
+
+Open standards must never be allowed to bypass Courier's own safety and reliability rules.
+
+Provider lock-in should be avoided where a stable internal Courier contract can preserve optionality without materially harming quality, security, or cost.
+
+The strategic goal is not the largest list of integrations. It is an architecture where a new provider or connector can be added without redesigning the execution core.
