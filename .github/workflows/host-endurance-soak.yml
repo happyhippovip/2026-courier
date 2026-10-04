@@ -1,0 +1,103 @@
+name: Host endurance soak (optional)
+
+# Optional soak only: manual dispatch, never on push/PR/schedule, so this
+# file can never become a permanent CI resource burner.
+on:
+  workflow_dispatch:
+    inputs:
+      cycles:
+        description: "Accelerated admission cycles"
+        default: "5000"
+        required: false
+      slots:
+        description: "Desired logical slots"
+        default: "64"
+        required: false
+      seconds:
+        description: "Timed-soak budget in seconds (0 = cycles only)"
+        default: "0"
+        required: false
+      live_probes:
+        description: "Bounded real-process timeout probes"
+        default: "2"
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: host-soak-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  soak:
+    name: soak (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install pinned dependencies
+        run: python -m pip install -e ".[test]"
+
+      - name: Run accelerated soak harness
+        shell: bash
+        run: |
+          python scripts/soak/soak_host_guardian.py \
+            --cycles "${{ inputs.cycles }}" \
+            --slots "${{ inputs.slots }}" \
+            --seconds "${{ inputs.seconds }}" \
+            --live-probes "${{ inputs.live_probes }}" \
+            --out "${{ runner.temp }}/host-soak"
+
+      - name: Upload soak artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-soak-${{ matrix.os }}
+          path: ${{ runner.temp }}/host-soak/
+          if-no-files-found: error
+          retention-days: 30
+
+  trend:
+    name: failure trend report
+    needs: [soak]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: host-soak-*
+          path: soak-runs
+          merge-multiple: false
+
+      - name: Build trend report (per-platform, never merged)
+        shell: bash
+        run: |
+          python3 scripts/soak/failure_trend.py \
+            soak-runs/host-soak-macos-latest/summary.json \
+            soak-runs/host-soak-windows-latest/summary.json \
+            --out soak-trend.md || true
+          cat soak-trend.md
+
+      - name: Upload trend report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-soak-trend
+          path: soak-trend.md
+          if-no-files-found: warn
+          retention-days: 30
