@@ -62,6 +62,55 @@ def git_files(repo):
     return entries
 
 
+def head_sha(repo):
+    out = subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"], capture_output=True, text=True)
+    return out.stdout.strip() if out.returncode == 0 else "uncommitted"
+
+
+def leak_check(text):
+    """Second pass over the finished report: secret shapes or e-mail addresses
+    must never reach the customer file. Returns the kinds found (never values)."""
+    kinds = [kind for kind, pattern in SECRET_PATTERNS.items() if pattern.search(text)]
+    import re
+    if re.search(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b", text):
+        kinds.append("email_address")
+    return kinds
+
+
+def ci_truth(repo):
+    import subprocess, tempfile, os
+    if not (repo / "tests").exists() and not (repo / "pytest.ini").exists() and not list(repo.glob("test_*.py")):
+        return {"run_attempted": False, "reason": "no tests directory found"}
+    try:
+        import sys
+        kwargs = {"ignore_cleanup_errors": True} if sys.version_info >= (3, 10) else {}
+        with tempfile.TemporaryDirectory(**kwargs) as tmp_dir:
+            tmp = Path(tmp_dir)
+            subprocess.run(["uv", "venv", str(tmp / ".venv")], cwd=repo, capture_output=True, check=True)
+            python_exe = str(tmp / ".venv" / "Scripts" / "python.exe" if os.name == "nt" else tmp / ".venv" / "bin" / "python")
+            
+            if (repo / "requirements.txt").exists():
+                subprocess.run(["uv", "pip", "install", "-p", python_exe, "-r", "requirements.txt"], cwd=repo, capture_output=True)
+            elif (repo / "pyproject.toml").exists():
+                subprocess.run(["uv", "pip", "install", "-p", python_exe, "."], cwd=repo, capture_output=True)
+                
+            subprocess.run(["uv", "pip", "install", "-p", python_exe, "pytest"], cwd=repo, capture_output=True)
+            out = subprocess.run([python_exe, "-m", "pytest"], cwd=repo, capture_output=True, text=True)
+            passed = out.returncode == 0
+            if passed:
+                classification = "ok"
+            else:
+                if "AssertionError" in out.stdout or "FAILED" in out.stdout:
+                    classification = "product"
+                elif "ModuleNotFoundError" in out.stdout or "ImportError" in out.stdout:
+                    classification = "env"
+                else:
+                    classification = "unknown"
+            return {"run_attempted": True, "passed": passed, "classification": classification}
+    except Exception as e:
+        return {"run_attempted": False, "reason": str(e)}
+
+
 def check(repo):
     repo = Path(repo).resolve()
     entries = git_files(repo)
@@ -124,12 +173,23 @@ def check(repo):
                      for p in files for n in [Path(p).name] if n.startswith("requirements") and n.endswith(".txt"))
         if has_py and not hashed:
             add("supply", "medium", "no_lockfile", "repository", "dependencies resolve fresh on every install")
-    return {"repository": repo.name, "files_scanned": len(files), "findings": findings,
+            
+    ci = ci_truth(repo)
+    if ci["run_attempted"]:
+        if ci["passed"]:
+            add("workflows", "low", "ci_passed", "tests", "Clean runner tests passed successfully")
+        else:
+            add("workflows", "high", f"ci_failed_{ci['classification']}", "tests", "Clean runner tests failed")
+    else:
+        add("workflows", "medium", "ci_skipped", "tests", f"Could not run CI: {ci.get('reason')}")
+        
+    return {"repository": repo.name, "sha": head_sha(repo), "files_scanned": len(files), "findings": findings,
             "summary": {sev: sum(f["severity"] == sev for f in findings) for sev in ("high", "medium", "low")}}
 
 
 def to_markdown(result):
     lines = [f"# Repo Reality Check — {result['repository']}", "",
+             f"Commit: `{result.get('sha', 'unknown')}`", "",
              f"Files scanned: {result['files_scanned']} · high {result['summary']['high']} · "
              f"medium {result['summary']['medium']} · low {result['summary']['low']}", "",
              "Read-only scan; no code was executed. Secret findings show location and type only.", ""]
@@ -146,16 +206,80 @@ def to_markdown(result):
     return "\n".join(lines)
 
 
+def to_html(result):
+    lines = [
+        "<!DOCTYPE html><html><head><meta charset='utf-8'><style>",
+        "body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #333; }",
+        "h1, h2 { border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }",
+        "ul { padding-left: 2em; }",
+        "li { margin-bottom: 0.5em; }",
+        "code { background-color: rgba(27,31,35,0.05); border-radius: 3px; font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; padding: 0.2em 0.4em; }",
+        ".high { color: #d73a49; font-weight: 600; }",
+        ".medium { color: #b08800; font-weight: 600; }",
+        ".low { color: #22863a; font-weight: 600; }",
+        "</style></head><body>",
+        f"<h1>Repo Reality Check — {result['repository']}</h1>",
+        f"<p>Commit: <code>{result.get('sha', 'unknown')}</code><br>",
+        f"Files scanned: {result['files_scanned']} &middot; high {result['summary']['high']} &middot; medium {result['summary']['medium']} &middot; low {result['summary']['low']}</p>",
+        "<p>Read-only scan; no code was executed. Secret findings show location and type only.</p>"
+    ]
+    for area in ("secrets", "safety", "hygiene", "supply", "workflows"):
+        items = [f for f in result["findings"] if f["area"] == area]
+        if not items:
+            continue
+        lines.append(f"<h2>{area.capitalize()} ({len(items)})</h2><ul>")
+        for f in sorted(items, key=lambda f: ("high", "medium", "low").index(f["severity"]))[:40]:
+            lines.append(f"<li><span class='{f['severity']}'>{f['severity']}</span> <code>{f['rule']}</code> &mdash; {f['where']}: {f['detail']}</li>")
+        if len(items) > 40:
+            lines.append(f"<li>&hellip; {len(items) - 40} more in report.json</li>")
+        lines.append("</ul>")
+    lines.append("</body></html>")
+    return "\n".join(lines)
+
+
+def export_pdf(html_text, out_pdf):
+    import tempfile
+    import os
+    import subprocess
+    fd, tmp_html = tempfile.mkstemp(suffix=".html")
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        f.write(html_text)
+        
+    edge_paths = [
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe"
+    ]
+    edge_exe = next((p for p in edge_paths if os.path.exists(p)), None)
+    if not edge_exe:
+        os.remove(tmp_html)
+        return False
+        
+    out_pdf = os.path.abspath(out_pdf)
+    try:
+        subprocess.run([edge_exe, "--headless", "--disable-gpu", f"--print-to-pdf={out_pdf}", f"file:///{tmp_html.replace(chr(92), '/')}"])
+    except Exception:
+        pass
+    finally:
+        os.remove(tmp_html)
+    return os.path.exists(out_pdf)
+
+
 def main(argv=None):
     argv = argv or sys.argv[1:]
     if len(argv) != 2:
         print(__doc__.strip().splitlines()[-1], file=sys.stderr)
         return 2
     result = check(argv[0])
+    report_json, report_md = json.dumps(result, indent=1), to_markdown(result)
+    leaks = leak_check(report_json + report_md)
+    if leaks:
+        print(f"refusing to write report: second pass found {', '.join(leaks)}", file=sys.stderr)
+        return 3
     out = Path(argv[1])
     out.mkdir(parents=True, exist_ok=True)
-    (out / "report.json").write_text(json.dumps(result, indent=1), encoding="utf-8")
-    (out / "report.md").write_text(to_markdown(result), encoding="utf-8")
+    (out / "report.json").write_text(report_json, encoding="utf-8")
+    (out / "report.md").write_text(report_md, encoding="utf-8")
+    export_pdf(to_html(result), str(out / "report.pdf"))
     print(json.dumps(result["summary"]))
     return 0
 
