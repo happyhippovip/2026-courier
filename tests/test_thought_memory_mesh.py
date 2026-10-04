@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from run_thought_memory_mesh import canonical_hash, run_mesh
 
-MEMORY = Path("/Users/user/Downloads/2026-project-memory")
+MEMORY = ROOT.parent / "project-memory"
 
 
 def message(message_id, timestamp, source, kind, summary, status_label, requested_status=None):

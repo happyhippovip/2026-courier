@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from run_thought_ingestion import canonical_hash, run_ingestion
 
-MEMORY = Path("/Users/user/Downloads/2026-project-memory")
+MEMORY = ROOT.parent / "project-memory"
 
 
 def envelope(ingestion_id, source_message_id, timestamp, content, *, source_type="CHAT_EXPORT", metadata=None, privacy_class="INTERNAL"):
