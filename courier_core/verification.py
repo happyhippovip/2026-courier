@@ -100,7 +100,7 @@ def _rule(name: str, adapter: str) -> dict:
 
 def run_verifier(resolve: Callable[[str], VerifyFn | None], task: TaskState, result: Event, home: Path) -> Verdict:
     """Apply the fail-closed rules around the adapter's verdict."""
-    if result.payload.get("outcome") != "success":
+    if result.payload.get("status") != "SUCCESS":
         retryable = result.payload.get("retryable", may_auto_retry(task.effect_class))
         reason = str(result.payload.get("reason") or "worker reported failure")
         return Verdict(False, reason[:500], bool(retryable), _rule("worker_reported_failure", task.adapter))

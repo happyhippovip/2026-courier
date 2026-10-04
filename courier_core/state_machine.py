@@ -85,7 +85,9 @@ class TaskState:
     worker_id: str | None = None
     started: bool = False
     pending_result_dispatch_id: str | None = None
+    pending_result_id: str | None = None
     accepted_result_dispatch_id: str | None = None
+    accepted_result_id: str | None = None
     cancel_requested: bool = False
     failure_kind: str | None = None
     retryable: bool | None = None
@@ -213,7 +215,7 @@ def _transition(state: TaskState, event: Event) -> TaskState:
         if s is not TaskStatus.RUNNING:
             raise _fail(event, state, "a result requires a running attempt")
         _fence(state, event)
-        return replace(state, status=TaskStatus.VERIFYING, pending_result_dispatch_id=event.dispatch_id)
+        return replace(state, status=TaskStatus.VERIFYING, pending_result_dispatch_id=event.dispatch_id, pending_result_id=event.result_id)
 
     if t in (EventType.RESULT_ACCEPTED, EventType.RESULT_REJECTED):
         if s is not TaskStatus.VERIFYING:
@@ -222,7 +224,7 @@ def _transition(state: TaskState, event: Event) -> TaskState:
         if event.dispatch_id != state.pending_result_dispatch_id:
             raise _fail(event, state, "verdict is for another result")
         if t is EventType.RESULT_ACCEPTED:
-            return replace(state, status=TaskStatus.ACCEPTED, accepted_result_dispatch_id=event.dispatch_id,
+            return replace(state, status=TaskStatus.ACCEPTED, accepted_result_dispatch_id=event.dispatch_id, accepted_result_id=event.result_id,
                            pending_result_dispatch_id=None, resolution=RESOLVED_VERIFIED)
         return replace(state, status=TaskStatus.RETRY_PENDING, pending_result_dispatch_id=None, failure_kind="rejected",
                        retryable=event.payload["retryable"], last_reason=str(event.payload["reason"]))
