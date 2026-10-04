@@ -292,8 +292,6 @@ def plan_hibernation(lanes: list[Lane], health: str,
         "stop_pollers": bool(quota_exhausted),
         "broad_actions": [],
     }
-<<<<<<< HEAD
-=======
 
 
 # -- retirement checklist (BEFORE RETIREMENT law) --------------------------------------
