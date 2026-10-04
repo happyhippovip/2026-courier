@@ -36,7 +36,7 @@ def test_stale_result_submission_is_rejected():
             "instruction": "test",
             "artifacts": []
         }
-        state_file.write_text(json.dumps(state))
+        server_app.save_state(state)
 
         # 3. Claim the task
         res = http.post("/tasks/claim", headers=auth(), json={"worker_id": "MAC-01"})
@@ -47,7 +47,7 @@ def test_stale_result_submission_is_rejected():
         # 4. Simulate the worker becoming stale and the task being quarantined
         state = json.loads(state_file.read_text())
         state["workers"]["MAC-01"]["last_seen"] = time.time() - 600
-        state_file.write_text(json.dumps(state))
+        server_app.save_state(state)
         http.post("/tasks/reclaim_stale", headers=auth())
         
         # Verify task is quarantined

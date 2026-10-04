@@ -282,7 +282,7 @@ def test_validate_command_for_job_missing_coverage():
     cmd["payload"]["allowed_scope"] = ["03-Wellnesskoenig-Website-Memory"]
     cmd["payload_hash"] = canonical_hash(cmd["payload"])
     valid, msg = validate_command_for_job(cmd)
-    assert not valid and "Forbidden scope requested" in msg
+    assert not valid and "Scope violation" in msg
 
     # 211: scope violation
     cmd = _valid_cmd()

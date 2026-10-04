@@ -62,8 +62,7 @@ def test_movie_command():
     ]
 
 @patch("scripts.render_godot_movie.subprocess.run")
-@patch("scripts.render_godot_movie.sys.argv")
-def test_main_dry_run(mock_argv, mock_run, tmp_path):
+def test_main_dry_run(mock_run, tmp_path):
     godot_exe = tmp_path / "godot.exe"
     godot_exe.write_text("")
     ffmpeg_exe = tmp_path / "ffmpeg.exe"
@@ -76,7 +75,7 @@ def test_main_dry_run(mock_argv, mock_run, tmp_path):
     
     out_dir = tmp_path / "out"
     
-    mock_argv[:] = [
+    test_args = [
         "render.py",
         "--project", str(tmp_path),
         "--scene", "res://main.tscn",
@@ -86,6 +85,8 @@ def test_main_dry_run(mock_argv, mock_run, tmp_path):
         "--dry-run"
     ]
     
-    res = main()
+    with patch("scripts.render_godot_movie.sys.argv", test_args):
+        res = main()
+        
     assert res == 0
     mock_run.assert_not_called()
