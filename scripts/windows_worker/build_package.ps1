@@ -1,6 +1,6 @@
 param(
     [string]$OutDir = "$PSScriptRoot\dist",
-    [string]$PythonUrl = "https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip"
+    [string]$PythonUrl = "https://www.python.org/ftp/python/3.12.5/python-3.12.5-embed-amd64.zip"
 )
 
 Write-Host "Building Courier Windows Package..."
@@ -53,10 +53,12 @@ Write-Host "Extracting Python..."
 Expand-Archive -Path $pyZip -DestinationPath $pyDir -Force
 
 # Enable site packages in embedded python
-$pthFile = "$pyDir\python311._pth"
+$pthFile = "$pyDir\python312._pth"
 $pthContent = Get-Content $pthFile
 $pthContent = $pthContent -replace '#import site', 'import site'
 $pthContent += ".."
+$pthContent += "Lib\site-packages"
+$pthContent += "Scripts"
 Set-Content -Path $pthFile -Value $pthContent
 
 Write-Host "Installing dependencies..."
@@ -77,12 +79,27 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-Write-Host "Installing dependencies using uv..."
+Write-Host "Copying project sources..."
 $projectRoot = (Resolve-Path "$PSScriptRoot\..\..\").Path
-uv pip install --target "$OutDir\libs" $projectRoot
-Add-Content -Path "$pyDir\python311._pth" -Value "..\libs"
+New-Item -ItemType Directory -Force -Path "$OutDir\libs" | Out-Null
+$sourceDirs = @("courier_core", "courier_worker", "courier_app", "courier_overlay", "desktop")
+foreach ($dir in $sourceDirs) {
+    if (Test-Path "$projectRoot\$dir") {
+        Copy-Item -Path "$projectRoot\$dir" -Destination "$OutDir\libs\$dir" -Recurse -Force
+    }
+}
+Add-Content -Path "$pyDir\python312._pth" -Value "..\libs"
 
 # 4. Create ZIP package
+Write-Host "Generating manifest.json..."
+$manifest = @{
+    Version = "1.0.0.dev0"
+    BuildDate = (Get-Date).ToString("o")
+    PythonVersion = "3.12.5"
+    Launcher = "Courier.exe"
+}
+$manifest | ConvertTo-Json | Out-File -FilePath "$OutDir\manifest.json" -Encoding UTF8
+
 $zipOut = "$PSScriptRoot\CourierWorker-v1.zip"
 if (Test-Path $zipOut) { Remove-Item -Force $zipOut }
 Write-Host "Zipping package to $zipOut..."
