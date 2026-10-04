@@ -114,6 +114,60 @@ def verify_result(task: dict[str, Any], result: dict[str, Any], evidence: dict[s
         raise ValueError("bounded verification acceptance failed")
 
 
+
+
+
+def upload_artifact(directory: Path, task: dict[str, Any], artifact: dict[str, Any]) -> None:
+    path = artifact.get("path")
+    if not path: return
+    file_path = directory / path
+    if not file_path.is_file(): return
+    
+    key = os.environ.get("COURIER_API_KEY")
+    url = os.environ.get("COURIER_SERVER", "http://127.0.0.1:8080").rstrip("/") + "/artifacts"
+    
+    with open(file_path, "rb") as f:
+        file_data = f.read()
+        
+    expected_name = path
+    if task.get("artifacts") and isinstance(task["artifacts"], list) and len(task["artifacts"]) > 0:
+        if isinstance(task["artifacts"][0], dict):
+            expected_name = task["artifacts"][0].get("path", path)
+        else:
+            expected_name = task["artifacts"][0]
+            
+    meta = {
+        "name": expected_name,
+        "sha256": artifact.get("sha256"),
+        "size": len(file_data),
+        "goal_id": task.get("goal_id"),
+        "task_id": task.get("task_id"),
+        "attempt_id": task.get("attempt_id"),
+        "dispatch_id": task.get("dispatch_id"),
+        "worker_id": task.get("worker_id"),
+    }
+    
+    import urllib.request
+    req = urllib.request.Request(url, method="POST")
+    req.add_header("Authorization", f"Bearer {key}")
+    req.add_header("Content-Type", "application/octet-stream")
+    req.add_header("X-Courier-Artifact", json.dumps(meta, separators=(",", ":")))
+    
+    try:
+        with urllib.request.urlopen(req, data=file_data, timeout=30) as response:
+            record = json.loads(response.read().decode("utf-8"))
+            artifact["artifact_id"] = record["artifact_id"]
+            artifact["path"] = expected_name
+            artifact["size"] = len(file_data) # update the payload so it matches what we uploaded!
+    except urllib.error.HTTPError as e:
+        raise RuntimeError(f"Courier artifact POST failed: HTTP Error {e.code}: {e.read().decode('utf-8', 'replace')}")
+    except Exception as e:
+        raise RuntimeError(f"Courier artifact POST failed: {e}")
+
+
+
+
+
 def post_result(result: dict[str, Any]) -> None:
     key = os.environ.get("COURIER_API_KEY")
     if not key:
@@ -162,6 +216,8 @@ def run(task_file_name: str) -> int:
             try:
                 result, evidence = download_result(run_id, task["dispatch_id"], directory)
                 verify_result(task, result, evidence, run_id, directory)
+                for a in result.get('artifacts', []):
+                    upload_artifact(directory, task, a)
                 post_result(result)
                 write_state(task_file, {"dispatch_id": task["dispatch_id"], "run_id": run_id, "run_attempt": result["run_attempt"], "result_id": result["result_id"], "status": "POSTED"})
                 return 0
