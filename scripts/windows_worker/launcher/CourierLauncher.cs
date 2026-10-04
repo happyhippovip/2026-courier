@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Security.Principal;
 
 namespace CourierLauncher
 {
@@ -35,6 +36,12 @@ namespace CourierLauncher
         {
             return true;
         }
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        static extern uint SetThreadExecutionState(uint esFlags);
+        
+        const uint ES_CONTINUOUS = 0x80000000;
+        const uint ES_SYSTEM_REQUIRED = 0x00000001;
 
         [StructLayout(LayoutKind.Sequential)]
         struct JOBOBJECT_BASIC_LIMIT_INFORMATION
@@ -77,19 +84,35 @@ namespace CourierLauncher
 
         static void Main(string[] args)
         {
-            string customHome = null;
-            bool isStop = false;
-            bool isStatus = false;
-            for (int i = 0; i < args.Length; i++)
+            try
             {
-                if (args[i] == "--home" && i + 1 < args.Length)
+                using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
                 {
-                    customHome = args[i + 1];
-                    i++;
+                    WindowsPrincipal principal = new WindowsPrincipal(identity);
+                    // if (principal.IsInRole(WindowsBuiltInRole.Administrator))
+                    // {
+                    //     Environment.Exit(3);
+                    // }
+                    // if (identity.IsSystem)
+                    // {
+                    //     Environment.Exit(3);
+                    // }
                 }
-                else if (args[i] == "--stop") isStop = true;
-                else if (args[i] == "--status") isStatus = true;
-            }
+
+                string customHome = null;
+                bool isStop = false;
+                bool isStatus = false;
+                for (int i = 0; i < args.Length; i++)
+                {
+                    if (args[i] == "--home" && i + 1 < args.Length)
+                    {
+                        customHome = args[i + 1];
+                        i++;
+                    }
+                    else if (args[i] == "--stop") isStop = true;
+                    else if (args[i] == "--status") isStatus = true;
+                }
+
 
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             
@@ -126,14 +149,7 @@ namespace CourierLauncher
             }
             else
             {
-                if (Environment.UserName.Equals("SYSTEM", StringComparison.OrdinalIgnoreCase))
-                {
-                    homeDir = Path.Combine(Environment.GetEnvironmentVariable("ProgramData") ?? @"C:\ProgramData", "Courier");
-                }
-                else
-                {
-                    homeDir = Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\Courier");
-                }
+                homeDir = Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\Courier");
             }
 
             string runDirEarly = Path.Combine(homeDir, "run");
@@ -218,7 +234,8 @@ namespace CourierLauncher
             }
 
             var info = new JOBOBJECT_EXTENDED_LIMIT_INFORMATION();
-            info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+            info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE | 0x0100; // 0x0100 is JOB_OBJECT_LIMIT_PROCESS_MEMORY
+            info.ProcessMemoryLimit = new UIntPtr(1024L * 1024 * 1024); // 1 GB memory limit per process
 
             int length = Marshal.SizeOf(typeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
             if (!SetInformationJobObject(hJob, JobObjectExtendedLimitInformation, ref info, length))
@@ -289,6 +306,9 @@ namespace CourierLauncher
                     RedirectStandardError = true,
                     CreateNoWindow = true
                 };
+                psi.EnvironmentVariables["COURIER_API_KEY"] = apiKey;
+                psi.EnvironmentVariables["COURIER_VERIFIER_API_KEY"] = verifierKey;
+
 
                 Process proc = new Process();
                 proc.StartInfo = psi;
@@ -356,15 +376,19 @@ namespace CourierLauncher
                     try { 
                         var request = System.Net.WebRequest.Create(string.Format("{0}/v1/health", controllerUrl));
                         request.Timeout = 1000;
-                        request.Headers.Add("X-Courier-Token", apiKey);
+                        string controllerTokenPath = Path.Combine(homeDir, "run", "controller.token");
+                        string controllerLocalToken = File.Exists(controllerTokenPath) ? File.ReadAllText(controllerTokenPath).Trim() : "";
+                        request.Headers.Add("X-Courier-Token", controllerLocalToken);
                         using (var response = request.GetResponse())
-                        using (var reader = new System.IO.StreamReader(response.GetResponseStream()))
                         {
-                            string content = reader.ReadToEnd();
-                            if (content.Contains("\"mode\""))
+                            using (var reader = new System.IO.StreamReader(response.GetResponseStream()))
                             {
-                                startupState = "READY";
-                                break;
+                                string content = reader.ReadToEnd();
+                                if (content.Contains("\"mode\""))
+                                {
+                                    startupState = "READY";
+                                    break;
+                                }
                             }
                         }
                     }
@@ -451,7 +475,9 @@ namespace CourierLauncher
                             try {
                                 var request = System.Net.WebRequest.Create(string.Format("{0}/v1/health", controllerUrl));
                                 request.Timeout = 2000;
-                                request.Headers.Add("X-Courier-Token", apiKey);
+                                string controllerTokenPath2 = Path.Combine(homeDir, "run", "controller.token");
+                                string controllerLocalToken2 = File.Exists(controllerTokenPath2) ? File.ReadAllText(controllerTokenPath2).Trim() : "";
+                                request.Headers.Add("X-Courier-Token", controllerLocalToken2);
                                 using (var response = request.GetResponse()) {}
                             } catch {
                                 File.AppendAllText(Path.Combine(logDir, "launcher.log"), string.Format("[{0:O}] Controller liveness check failed. Terminating process.\n", DateTime.UtcNow));
@@ -497,6 +523,12 @@ namespace CourierLauncher
                 while (true) {
                     Thread.Sleep(10000);
                 }
+            }
+            }
+            catch (Exception ex)
+            {
+                File.WriteAllText(Path.Combine(Environment.GetEnvironmentVariable("TEMP"), "courier_crash.log"), ex.ToString());
+                Environment.Exit(5);
             }
         }
     }

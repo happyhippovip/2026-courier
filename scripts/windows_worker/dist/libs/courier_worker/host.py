@@ -89,6 +89,18 @@ class Outcome:
     SPAWN_FAILED = "spawn-failed"
 
 
+class LivenessState:
+    DELIVERED = "delivered"
+    ACCEPTED = "accepted"
+    WORKING = "working"
+    QUIET = "quiet"
+    SLOW = "slow"
+    PROBING = "probing"
+    FAILED = "failed"
+    RESULT_DURABLE = "result_durable"
+    RETIRED = "retired"
+
+
 @dataclass(frozen=True)
 class ExecutionSpec:
     """Everything the host needs to run one dispatch, nothing more."""
@@ -98,6 +110,9 @@ class ExecutionSpec:
     dispatch_id: str
     worker_id: str
     result_id: str
+    goal_id: str
+    attempt_id: str
+    run_id: str
     argv: tuple
     timeout_s: float
     lease_ttl_s: float
@@ -111,7 +126,7 @@ class ExecutionSpec:
     effect_key: Optional[str] = None
 
     def __post_init__(self):
-        for name in ("task_id", "dispatch_id", "worker_id", "result_id"):
+        for name in ("task_id", "dispatch_id", "worker_id", "result_id", "goal_id", "attempt_id", "run_id"):
             value = getattr(self, name)
             if not isinstance(value, str) or not value or len(value) > 200:
                 raise SpecError(f"{name} must be a non-empty string of at most 200 chars")
@@ -287,6 +302,22 @@ if os.name == "nt":
 
     def _terminate_job(job: object) -> None:
         _kernel32.TerminateJobObject(job, 1)
+
+    # NtResumeProcess resumes all threads in a process given its handle.
+    # This replaces the psutil dependency for the CREATE_SUSPENDED pattern.
+    _ntdll = ctypes.WinDLL("ntdll", use_last_error=True)
+    _ntdll.NtResumeProcess.restype = wintypes.LONG  # NTSTATUS
+    _ntdll.NtResumeProcess.argtypes = [wintypes.HANDLE]
+
+    def _resume_process(proc: subprocess.Popen) -> None:
+        """Resume a process created with CREATE_SUSPENDED."""
+        # subprocess.Popen on Windows stores the process handle as _handle
+        handle = getattr(proc, "_handle", None)
+        if handle is None:
+            raise ContainmentError("cannot resume: no process handle")
+        status = _ntdll.NtResumeProcess(handle)
+        if status < 0:
+            raise ContainmentError(f"NtResumeProcess failed: NTSTATUS 0x{status & 0xFFFFFFFF:08X}")
 else:
     def _job_for_child() -> object:
         return None
@@ -428,8 +459,7 @@ def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
     if os.name == "nt":
         try:
             _assign_to_job(job, proc.pid)
-            import psutil
-            psutil.Process(proc.pid).resume()
+            _resume_process(proc)
         except BaseException:
             try:
                 proc.kill()
@@ -512,9 +542,14 @@ def run_orphan_gate(home: str) -> int:
     for path in sorted(claims.glob(CLAIM_RECORD_GLOB)):
         try:
             record = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
+            owner_pid = int(record.get("owner_pid", 0) or 0)
+        except (OSError, ValueError, TypeError):
+            try:
+                path.rename(path.with_suffix('.json.corrupt'))
+            except OSError:
+                pass
             continue
-        if _owner_alive(int(record.get("owner_pid", 0))):
+        if _owner_alive(owner_pid):
             continue  # another live host owns this tree; hands off
         _reap_orphan(record)
         try:
@@ -797,10 +832,27 @@ class WorkerHost:
             now = time.monotonic()
             remaining = min(timeout_at, lease_at) - now
             if remaining <= 0:
-                outcome = Outcome.TIMEOUT if timeout_at <= lease_at else Outcome.LEASE_LOST
-                run.terminate_tree()
-                returncode = run.poll()
-                break
+                if timeout_at <= lease_at:
+                    # Time bound reached. LAW: Timeout means SLOW/STALLED/PROBING.
+                    # ONE bounded, non-destructive diagnostic probe.
+                    liveness = LivenessState.PROBING
+                    if run.poll() is not None:
+                        # Process actually exited
+                        outcome = Outcome.TIMEOUT
+                        run.terminate_tree()
+                        returncode = run.poll()
+                        break
+                    else:
+                        # Process is still alive. Do not authorize kill.
+                        # Extend timeout bound, but keep lease cap intact.
+                        liveness = LivenessState.SLOW
+                        timeout_at = now + spec.timeout_s
+                        continue
+                else:
+                    outcome = Outcome.LEASE_LOST
+                    run.terminate_tree()
+                    returncode = run.poll()
+                    break
             if is_cancelled is not None:
                 try:
                     cancelled = is_cancelled()
