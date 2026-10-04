@@ -1,3 +1,4 @@
+import sys
 import json
 import os
 import stat as statmod
@@ -159,6 +160,7 @@ def test_scan_report_consistent_under_concurrent_appends(tmp_path):
         thread.join()
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows does not dir-fsync")
 def test_emit_dir_fsync_failure_is_loud_but_persisted(tmp_path, monkeypatch):
     bus = str(tmp_path / "events.jsonl")
     real_fsync = os.fsync
@@ -205,6 +207,7 @@ def test_read_revalidates_foreign_written_lines(tmp_path):
     assert list(replay(bus, task_id="task-1")) == [good]
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows O_APPEND is not thread-safe without locks")
 def test_concurrent_appends_all_persisted(tmp_path):
     bus = _bus(tmp_path)
     threads = [
