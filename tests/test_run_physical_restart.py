@@ -12,7 +12,7 @@ def test_run_physical_restart_success(tmp_path, monkeypatch):
     run1_evidence = run1_dir / "evidence"
     run1_evidence.mkdir(parents=True)
     (run1_evidence / "run1_exit_code.txt").write_text("0")
-    (run1_evidence / "run1_state_snapshot.json").write_text(json.dumps({"final_status": "SUCCESS", "payload": {}}))
+    (run1_evidence / "run1_state_snapshot.json").write_text(json.dumps({"final_status": "SUCCESS", "candidate_sha": "abcd", "payload": {}}))
     
     run2_evidence = tmp_path / "run2_evidence"
     
@@ -37,7 +37,7 @@ def test_run_physical_restart_run1_fail(tmp_path, monkeypatch):
     run1_evidence = run1_dir / "evidence"
     run1_evidence.mkdir(parents=True)
     (run1_evidence / "run1_exit_code.txt").write_text("1")
-    (run1_evidence / "run1_state_snapshot.json").write_text(json.dumps({"final_status": "FAIL", "payload": {}}))
+    (run1_evidence / "run1_state_snapshot.json").write_text(json.dumps({"final_status": "FAIL", "candidate_sha": "abcd", "payload": {}}))
     
     run2_evidence = tmp_path / "run2_evidence_fail"
     
