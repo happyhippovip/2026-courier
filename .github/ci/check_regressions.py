@@ -136,6 +136,7 @@ def main(argv=None):
     baseline = known_all.get(args.platform)
 
     rc = 0
+    new_failures, now_passing, scoped_out = [], [], []
     if exitstatus in BROKEN_SESSION:
         lines.append(f"GATE FAIL: pytest session broken (exit {exitstatus}).")
         rc = 1
@@ -195,6 +196,10 @@ def main(argv=None):
             counts += (f" new={len(new_failures)} now_passing={len(now_passing)} "
                        f"out_of_scope={len(scoped_out)}")
         print(f"::notice title=v1 gate {args.platform}::{counts}")
+        # Name each new failure too (capped), so agents can triage from the API
+        # without downloading the outcomes artifact.
+        for node in (new_failures or (failed if rc else []))[:10]:
+            print(f"::error title=new failure {args.platform}::{node}")
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary:
         with open(summary, "a", encoding="utf-8") as handle:
