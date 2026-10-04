@@ -24,6 +24,12 @@ TASK_STATES = {
 }
 RESULT_STATES = {"SUCCESS", "FAILED"}
 WORKER_IDS = {
+    "linux_cloud": "GITHUB-HOSTED",
+    "windows_cloud": "GITHUB-HOSTED",
+    "mac_cloud": "GITHUB-HOSTED",
+    "mac_desktop": "MAC-01",
+    "windows_desktop": "WINDOWS-01",
+    "linux_desktop": "AWS-LINUX-01",
     "github": "GITHUB-HOSTED",
     "mac": "MAC-01",
     "windows": "WINDOWS-01",

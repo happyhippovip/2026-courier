@@ -81,7 +81,7 @@ def run_loop():
     
     # Register
     try:
-        requests.post(f"{API_URL}/workers/register", json={"worker_id": WORKER_ID, "platform": "linux", "capabilities": ["github"]}, headers=HEADERS, timeout=10)
+        requests.post(f"{API_URL}/workers/register", json={"worker_id": WORKER_ID, "platform": "linux", "capabilities": ["github", "linux_cloud", "windows_cloud", "mac_cloud"]}, headers=HEADERS, timeout=10)
     except Exception as e:
         log(f"Failed to register: {e}")
 

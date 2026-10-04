@@ -19,7 +19,7 @@ def central(tmp_path, monkeypatch, artifacts=("effect.txt",)):
     http.post("/workers/register", headers=headers,
               json={"worker_id": "MAC-01", "platform": "macos", "capabilities": ["macos"]})
     http.post("/goals", headers=headers, json={"goal_text": "g", "workflow_plan": [
-        {"task_id": "task-1", "target_agent": "mac", "artifacts": list(artifacts)}]})
+        {"task_id": "task-1", "target_agent": "mac_desktop", "artifacts": list(artifacts)}]})
     return srv, http, headers
 
 

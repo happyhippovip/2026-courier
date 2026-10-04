@@ -198,14 +198,22 @@ def submit_goal():
         goal["current_step_index"] = 0
         for step in planned_steps:
             target_agent = str(step.get("target_agent", "linux")).lower()
-            if "github" in target_agent:
-                target_agent = "github"
-            elif "windows" in target_agent or "codex" in target_agent:
-                target_agent = "windows"
-            elif "mac" in target_agent or "antigravity" in target_agent or "gemini" in target_agent:
-                target_agent = "mac"
+            # Translate to strict capabilities (cloud vs desktop)
+            if "desktop" in target_agent:
+                if "windows" in target_agent: target_agent = "windows_desktop"
+                elif "mac" in target_agent: target_agent = "mac_desktop"
+                else: target_agent = "linux_desktop"
+            elif "cloud" in target_agent or "github" in target_agent:
+                if "windows" in target_agent: target_agent = "windows_cloud"
+                elif "mac" in target_agent: target_agent = "mac_cloud"
+                else: target_agent = "linux_cloud"
             else:
-                target_agent = "linux"
+                if "windows" in target_agent or "codex" in target_agent:
+                    target_agent = "windows_desktop"
+                elif "mac" in target_agent or "antigravity" in target_agent or "gemini" in target_agent:
+                    target_agent = "mac_desktop"
+                else:
+                    target_agent = "linux_cloud"
             goal["workflow_plan"].append({
                 "task_id": step.get("task_id", f"task-{uuid.uuid4().hex[:8]}"),
                 "goal_id": goal_id,
@@ -357,7 +365,11 @@ def claim_task():
                     target = next_task.get("target_agent", "linux").lower()
                     
                     matched = False
-                    if "github" in target and "github" in worker["capabilities"]: matched = True
+                    # Direct capability match (e.g. windows_cloud -> windows_cloud)
+                    if target in worker["capabilities"]:
+                        matched = True
+                    # Fallbacks for tests or legacy capabilities
+                    elif "github" in target and "github" in worker["capabilities"]: matched = True
                     elif "mac" in target and "macos" in worker["capabilities"]: matched = True
                     elif "windows" in target and "windows" in worker["capabilities"]: matched = True
                     elif "linux" in target and "linux" in worker["capabilities"]: matched = True
@@ -387,7 +399,8 @@ def claim_task():
                                     
                                 if is_cheaper:
                                     # Is other qualified?
-                                    if "github" in target and "github" in other_w["capabilities"]: cheaper_available = True
+                                    if target in other_w["capabilities"]: cheaper_available = True
+                                    elif "github" in target and "github" in other_w["capabilities"]: cheaper_available = True
                                     elif "mac" in target and "macos" in other_w["capabilities"]: cheaper_available = True
                                     elif "windows" in target and "windows" in other_w["capabilities"]: cheaper_available = True
                                     elif "linux" in target and "linux" in other_w["capabilities"]: cheaper_available = True

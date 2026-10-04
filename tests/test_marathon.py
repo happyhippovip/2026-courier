@@ -37,8 +37,8 @@ def test_marathon_units_4_to_8(tmp_path, monkeypatch):
         json={
             "goal_text": "two steps",
             "workflow_plan": [
-                {"task_id": "t1", "target_agent": "mac", "artifacts": ["dummy1.txt"]},
-                {"task_id": "t2", "target_agent": "mac", "artifacts": ["dummy2.txt"]}
+                {"task_id": "t1", "target_agent": "mac_desktop", "artifacts": ["dummy1.txt"]},
+                {"task_id": "t2", "target_agent": "mac_desktop", "artifacts": ["dummy2.txt"]}
             ],
         },
     ).get_json()
