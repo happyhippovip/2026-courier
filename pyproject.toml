@@ -7,7 +7,7 @@ name = "courier"
 version = "1.0.0.dev0"
 description = "Courier: local dispatcher -> worker -> verifier automation with an append-only event journal and desktop hub."
 readme = "README.md"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.11,<3.13"
 # Runtime dependencies are pinned exactly for reproducible builds and the
 # Windows executable. Change pins only through the L1 integration owner.
 dependencies = [
