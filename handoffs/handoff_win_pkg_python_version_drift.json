@@ -1,0 +1,11 @@
+{
+  "WORKKEY": "WIN_PKG_PYTHON_VERSION_DRIFT",
+  "STATUS": "OPEN",
+  "OWNER_REQUIRED": "L1 integration owner (version pins) + Windows host (rebuild)",
+  "FINDING": "pyproject.toml requires-python '>=3.12,<3.13', but build_package.ps1 embeds python-3.11.9-embed-amd64 and writes python311._pth. Committed dist/python contains python311.dll/_pth; dist/libs native wheels (e.g. psutil) are therefore cp311.",
+  "CURRENT_IMPACT": "None observed: AST check shows courier_worker/ and adapters/ parse under Python 3.11 grammar. Risk: any 3.12-only syntax/stdlib use in source will ship and crash only on Windows; uv pip install --target may also resolve against the wrong interpreter.",
+  "RAW_EVIDENCE": "build_package.ps1:3 PythonUrl=3.11.9; :36,:41 python311._pth; pyproject.toml requires-python >=3.12,<3.13; ls dist/python -> python311.dll python311._pth",
+  "MINIMAL_FIX": "Decide one version. Either (a) bump embed to 3.12.x, update _pth name to python312._pth, add 'uv pip install --python-version 3.12 --python-platform windows' to the libs step, then rebuild dist on Windows; or (b) relax requires-python to include 3.11 and add a CI check parsing sources with feature_version=(3,11).",
+  "TARGETED_TEST": "On Windows: run build_package.ps1, then dist\\python\\python.exe -c \"import sys,psutil,courier_worker.host; print(sys.version)\" and tests/test_win_process_lifecycle.py; on any host: tests/test_windows_dist_source_parity.py stays green.",
+  "NOT_DONE_FROM_MAC_BECAUSE": "Version policy is owned by L1; changing the embed requires a Windows-native rebuild with cp312 wheels, which cannot be produced or verified on macOS."
+}
