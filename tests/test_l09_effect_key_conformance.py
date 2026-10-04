@@ -41,7 +41,7 @@ def test_l09_verifier_enforces_effect_key_in_evidence(tmp_path):
     digest = hashlib.sha256(b"golden").hexdigest()
     
     payload = {
-        "outcome": "success",
+        "status": "SUCCESS",
         "artifacts": [{"path": "out.txt", "sha256": digest}]
     }
     

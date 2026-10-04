@@ -38,7 +38,7 @@ def ready(payload):
 
 def success_payload(workdir, name="out.txt", content="courier-golden"):
     digest = hashlib.sha256(content.encode()).hexdigest()
-    return {"outcome": "success",
+    return {"status": "SUCCESS",
             "artifacts": [{"path": name, "sha256": digest}]}
 
 
@@ -130,7 +130,7 @@ def test_verify_accepts_shape_only_without_declared_content(tmp_path):
     (tmp_path / "free.txt").write_bytes(b"whatever")
     digest = hashlib.sha256(b"whatever").hexdigest()
     t = task(params={})
-    verdict = synthetic.verify(t, ready({"outcome": "success",
+    verdict = synthetic.verify(t, ready({"status": "SUCCESS",
                                          "artifacts": [{"path": "free.txt", "sha256": digest}]}), tmp_path)
     assert verdict.accepted is True
 
@@ -149,13 +149,13 @@ def test_verify_is_deterministic_and_side_effect_free(tmp_path):
 # -- verification: failure outcomes --------------------------------------------
 
 def test_verify_rejects_failure_with_payload_retryable(tmp_path):
-    verdict = synthetic.verify(task(), ready({"outcome": "failure", "artifacts": [],
+    verdict = synthetic.verify(task(), ready({"status": "FAILED", "artifacts": [],
                                               "retryable": True, "reason": "boom"}), tmp_path)
     assert verdict.accepted is False and verdict.retryable is True
 
 
 def test_verify_retryable_defaults_to_effect_class(tmp_path):
-    payload = {"outcome": "failure", "artifacts": []}
+    payload = {"status": "FAILED", "artifacts": []}
     assert synthetic.verify(task(effect_class="idempotent"), ready(payload), tmp_path).retryable is True
     assert synthetic.verify(task(effect_class="non_idempotent"), ready(payload), tmp_path).retryable is False
 
@@ -171,17 +171,17 @@ def test_malformed_evidence_never_reaches_verifier(tmp_path, artifacts):
     verifier's own rejects below, which handle schema-valid but bad evidence."""
     from courier_core.events import EventValidationError
     with pytest.raises(EventValidationError):
-        ready({"outcome": "success", "artifacts": artifacts})
+        ready({"status": "SUCCESS", "artifacts": artifacts})
 
 
 def test_verify_rejects_empty_evidence(tmp_path):
-    verdict = synthetic.verify(task(), ready({"outcome": "success", "artifacts": []}), tmp_path)
+    verdict = synthetic.verify(task(), ready({"status": "SUCCESS", "artifacts": []}), tmp_path)
     assert verdict.accepted is False
 
 
 def test_verify_rejects_missing_file(tmp_path):
     digest = hashlib.sha256(b"courier-golden").hexdigest()
-    verdict = synthetic.verify(task(), ready({"outcome": "success",
+    verdict = synthetic.verify(task(), ready({"status": "SUCCESS",
                                               "artifacts": [{"path": "out.txt", "sha256": digest}]}), tmp_path)
     assert verdict.accepted is False
 
@@ -198,7 +198,7 @@ def test_verify_rejects_tampered_bytes_but_preserves_them(tmp_path):
 def test_verify_rejects_content_mismatch_and_absent_declared_artifact(tmp_path):
     (tmp_path / "other.txt").write_bytes(b"zzz")
     digest = hashlib.sha256(b"zzz").hexdigest()
-    payload = {"outcome": "success", "artifacts": [{"path": "other.txt", "sha256": digest}]}
+    payload = {"status": "SUCCESS", "artifacts": [{"path": "other.txt", "sha256": digest}]}
     verdict = synthetic.verify(task(), ready(payload), tmp_path)
     assert verdict.accepted is False  # declared out.txt absent
 
@@ -207,7 +207,7 @@ def test_verify_rejects_content_mismatch_and_absent_declared_artifact(tmp_path):
 def test_verify_rejects_path_escapes(tmp_path, evil):
     (tmp_path / "out.txt").write_bytes(b"courier-golden")
     digest = hashlib.sha256(b"courier-golden").hexdigest()
-    verdict = synthetic.verify(task(), ready({"outcome": "success",
+    verdict = synthetic.verify(task(), ready({"status": "SUCCESS",
                                               "artifacts": [{"path": evil, "sha256": digest}]}), tmp_path)
     assert verdict.accepted is False
 
@@ -219,7 +219,7 @@ def test_verify_never_raises_on_garbage(tmp_path):
     with pytest.raises(EventValidationError):
         ready({})
     with pytest.raises(EventValidationError):
-        ready({"outcome": "success"})
+        ready({"status": "SUCCESS"})
     # schema-valid but evidence-bad still rejects without raising (see above)
 
 
@@ -265,7 +265,7 @@ def test_run_result_json_round_trips_for_wire_use(tmp_path):
 def test_verify_accepts_worker_host_per_dispatch_layout(tmp_path):
     out = synthetic.run({"write": "out.txt", "content": "courier-golden"}, tmp_path / "artifacts" / "d1")
     path = "artifacts/d1/" + out.artifacts[0]["path"]
-    verdict = synthetic.verify(task(), ready({"outcome": "success",
+    verdict = synthetic.verify(task(), ready({"status": "SUCCESS",
                                               "artifacts": [{"path": path, "sha256": out.artifacts[0]["sha256"]}]}),
                                tmp_path)
     assert verdict.accepted is True, verdict.reason
@@ -275,7 +275,7 @@ def test_verify_pins_only_this_dispatch_directory(tmp_path):
     # Valid golden bytes, but in another dispatch's directory: never the pinned artifact.
     out = synthetic.run({"write": "out.txt", "content": "courier-golden"}, tmp_path / "artifacts" / "d-other")
     evidence = [{"path": "artifacts/d-other/out.txt", "sha256": out.artifacts[0]["sha256"]}]
-    verdict = synthetic.verify(task(), ready({"outcome": "success", "artifacts": evidence}), tmp_path)
+    verdict = synthetic.verify(task(), ready({"status": "SUCCESS", "artifacts": evidence}), tmp_path)
     assert verdict.accepted is False and "absent" in verdict.reason
 
 
@@ -284,7 +284,7 @@ def test_verify_malformed_dispatch_id_falls_back_to_plain_name(tmp_path):
     out = synthetic.run({"write": "out.txt", "content": "courier-golden"}, tmp_path)
     evil = Event(type=EventType.RESULT_READY, task_id="t1", attempt=1,
                  dispatch_id="../evil", worker_id="w1", result_id="r1",
-                 payload={"outcome": "success",
+                 payload={"status": "SUCCESS",
                           "artifacts": [{"path": "out.txt", "sha256": out.artifacts[0]["sha256"]}]})
     verdict = synthetic.verify(task(), evil, tmp_path)
     assert verdict.accepted is True, verdict.reason

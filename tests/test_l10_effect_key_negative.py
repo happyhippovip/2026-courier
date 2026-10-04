@@ -70,7 +70,7 @@ def setup_evidence(tmp_path, write_receipt=None):
         r_digest = hashlib.sha256(write_receipt.encode("utf-8")).hexdigest()
         artifacts.append({"path": "receipt.json", "sha256": r_digest})
         
-    return {"outcome": "success", "artifacts": artifacts}
+    return {"status": "SUCCESS", "artifacts": artifacts}
 
 def test_l10_success_case(tmp_path, mock_strict_verify):
     task = DummyTask(effect_key="cfx-111", params={"write": "out.txt", "content": "golden"})

@@ -45,9 +45,9 @@ class Attempt:
     def progress(self, message="working"):
         return self._ev(EventType.TASK_PROGRESS, payload={"message": message})
 
-    def result_ready(self, outcome="success", sha=SHA, result_id=None):
+    def result_ready(self, outcome="SUCCESS", sha=SHA, result_id=None):
         return self._ev(EventType.RESULT_READY, worker_id=self.worker_id, result_id=result_id or self.result_id,
-                        payload={"artifacts": [{"path": "out.txt", "sha256": sha}], "outcome": outcome})
+                        payload={"artifacts": [{"path": "out.txt", "sha256": sha}], "status": ("SUCCESS" if outcome.lower() == "success" else "FAILED" if outcome.lower() == "failure" else outcome)})
 
     def accepted(self):
         return self._ev(EventType.RESULT_ACCEPTED, result_id=self.result_id)

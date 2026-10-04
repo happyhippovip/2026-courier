@@ -53,9 +53,9 @@ def test_payload_is_a_canonical_copy():
     (dict(type=EventType.LEASE_EXPIRED, task_id="t", attempt=1, dispatch_id="d", worker_id="w",
           payload={"reason": "because"}), "lease expiry reason"),
     (dict(type=EventType.RESULT_READY, task_id="t", attempt=1, dispatch_id="d", worker_id="w", result_id="r",
-          payload={"artifacts": [{"path": "o", "sha256": "ABC"}], "outcome": "success"}), "sha256"),
+          payload={"artifacts": [{"path": "o", "sha256": "ABC"}], "status": "SUCCESS"}), "sha256"),
     (dict(type=EventType.RESULT_READY, task_id="t", attempt=1, dispatch_id="d", worker_id="w", result_id="r",
-          payload={"artifacts": [], "outcome": "maybe"}), "outcome"),
+          payload={"artifacts": [], "status": "maybe"}), "status"),
     (dict(type=EventType.RESULT_REJECTED, task_id="t", attempt=1, dispatch_id="d", result_id="r",
           payload={"reason": "x", "retryable": "yes"}), "retryable"),
 ])

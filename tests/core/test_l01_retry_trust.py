@@ -23,7 +23,7 @@ def test_non_idempotent_rejected_with_retryable_true_is_retried():
         Event(seq=1, type=EventType.TASK_CREATED, task_id="T1", attempt=1, payload=payload_created),
         Event(seq=2, type=EventType.TASK_CLAIMED, task_id="T1", attempt=1, dispatch_id="D1", worker_id="W1", payload={"ttl_s": 60}),
         Event(seq=3, type=EventType.TASK_STARTED, task_id="T1", attempt=1, dispatch_id="D1", worker_id="W1", payload={}),
-        Event(seq=4, type=EventType.RESULT_READY, task_id="T1", attempt=1, dispatch_id="D1", worker_id="W1", result_id="R1", payload={"artifacts": [], "outcome": "failure"}),
+        Event(seq=4, type=EventType.RESULT_READY, task_id="T1", attempt=1, dispatch_id="D1", worker_id="W1", result_id="R1", payload={"artifacts": [], "status": "FAILED"}),
         # The worker/adapter returns a failure but maliciously/incorrectly claims retryable=True
         Event(seq=5, type=EventType.RESULT_REJECTED, task_id="T1", attempt=1, dispatch_id="D1", result_id="R1", payload={"reason": "failed but try again", "retryable": True})
     ]

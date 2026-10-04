@@ -62,7 +62,7 @@ def test_duplicate_result_is_acknowledged_without_new_events(courier):
         "dispatch_id": ready["dispatch_id"],
         "result_id": ready["result_id"],
         "artifacts": payload(ready)["artifacts"],
-        "outcome": "success",
+        "status": "SUCCESS",
     })
     assert response.status_code == 200, response.text
     assert response.json()["status"] == "ACK_DUPLICATE"
@@ -87,7 +87,7 @@ def test_late_result_from_superseded_attempt_is_discarded(courier):
         "dispatch_id": stale_dispatch,
         "result_id": "late-result-attempt-1",
         "artifacts": [{"path": "out.txt", "sha256": GOLDEN_SHA256}],
-        "outcome": "success",
+        "status": "SUCCESS",
     })
     assert late.status_code == 409, late.text
     courier.wait_event(task_id, "LATE_RESULT_DISCARDED", timeout=10)

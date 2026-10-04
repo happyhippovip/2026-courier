@@ -14,7 +14,7 @@ def test_r07_result_api_lacks_worker_identity_check(tmp_path):
         res_status, res_body = ctl.result({
             "dispatch_id": dispatch_id,
             "result_id": "res_fake",
-            "outcome": "success",
+            "status": "SUCCESS",
             "artifacts": []
         })
         assert res_status == 200

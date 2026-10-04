@@ -21,7 +21,7 @@ def test_l16_trace_result_ready_to_accepted(tmp_path):
     ctl.start({"dispatch_id": dispatch_id, "worker_id": "w1"})
     
     # 1. Post RESULT_READY
-    status, body = ctl.result({"dispatch_id": dispatch_id, "result_id": "res1", "outcome": "success", "artifacts": []})
+    status, body = ctl.result({"dispatch_id": dispatch_id, "result_id": "res1", "status": "SUCCESS", "artifacts": []})
     assert status == 200
     assert body["status"] == "ACCEPTED_FOR_VERIFY"
     

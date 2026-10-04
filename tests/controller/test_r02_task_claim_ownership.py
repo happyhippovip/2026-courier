@@ -31,7 +31,7 @@ def test_result_requires_matching_worker_id(tmp_path):
         lease = ctl.claim({"worker_id": "w1"})
         ctl.start({"dispatch_id": lease["dispatch_id"], "worker_id": "w1"})
         
-        err = api_error(ctl.result, {"dispatch_id": lease["dispatch_id"], "worker_id": "w2", "outcome": "success"})
+        err = api_error(ctl.result, {"dispatch_id": lease["dispatch_id"], "worker_id": "w2", "status": "SUCCESS"})
         assert err.status == 409
         assert err.code == "wrong_worker"
     finally:

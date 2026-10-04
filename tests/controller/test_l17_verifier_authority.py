@@ -19,7 +19,7 @@ def test_l17_verifier_cannot_create_authority(tmp_path):
     dispatch_id = lease["dispatch_id"]
     ctl.start({"dispatch_id": dispatch_id, "worker_id": "w1"})
     
-    ctl.result({"dispatch_id": dispatch_id, "result_id": "res1", "outcome": "success", "artifacts": []})
+    ctl.result({"dispatch_id": dispatch_id, "result_id": "res1", "status": "SUCCESS", "artifacts": []})
     
     # Run verifier
     ctl.verify_next()

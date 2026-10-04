@@ -32,7 +32,7 @@ def test_l18_journal_replay_closure_prevents_illegal_transitions(tmp_path):
         apply(state, t_start)
         
     # 4. Result ready
-    t_result = Event(type=EventType.RESULT_READY, task_id="t1", attempt=1, dispatch_id="d1", worker_id="w1", result_id="r1", payload={"outcome": "success", "artifacts": []})
+    t_result = Event(type=EventType.RESULT_READY, task_id="t1", attempt=1, dispatch_id="d1", worker_id="w1", result_id="r1", payload={"status": "SUCCESS", "artifacts": []})
     state = apply(state, t_result)
     
     # Prove that replaying result ready fails

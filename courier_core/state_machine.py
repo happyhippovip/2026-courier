@@ -221,7 +221,7 @@ def _transition(state: TaskState, event: Event) -> TaskState:
         if s is not TaskStatus.VERIFYING:
             raise _fail(event, state, "no result is being verified")
         _fence(state, event, check_worker=False)
-        if event.dispatch_id != state.pending_result_dispatch_id:
+        if event.dispatch_id != state.pending_result_dispatch_id or event.result_id != state.pending_result_id:
             raise _fail(event, state, "verdict is for another result")
         if t is EventType.RESULT_ACCEPTED:
             return replace(state, status=TaskStatus.ACCEPTED, accepted_result_dispatch_id=event.dispatch_id, accepted_result_id=event.result_id,
@@ -233,7 +233,7 @@ def _transition(state: TaskState, event: Event) -> TaskState:
         if s is not TaskStatus.ACCEPTED:
             raise _fail(event, state, "only an accepted result completes a task")
         _fence(state, event, check_worker=False)
-        if event.dispatch_id != state.accepted_result_dispatch_id:
+        if event.dispatch_id != state.accepted_result_dispatch_id or event.result_id != state.accepted_result_id:
             raise _fail(event, state, "completion names a result that was not accepted")
         return replace(state, status=TaskStatus.COMPLETE)
 
