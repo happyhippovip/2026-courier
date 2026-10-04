@@ -1,5 +1,6 @@
 
 import sys
+import os
 def get_bash():
     if sys.platform == "win32":
         for p in [r"C:\Program Files\Git\bin\bash.exe", r"C:\Program Files\Git\usr\bin\bash.exe"]:
