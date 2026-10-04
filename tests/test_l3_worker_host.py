@@ -268,8 +268,8 @@ def test_orphan_gate_reaps_dead_owner_tree(tmp_path):
         (claims / "dispatch-orphan-1.json").write_text(json.dumps(record), encoding="utf-8")
         assert H.run_orphan_gate(str(tmp_path)) == 1
         assert list(claims.glob("*.json")) == []
-        assert pgid_dead(pgid)
         proc.wait(timeout=10)
+        assert pgid_dead(pgid)
     finally:
         if proc.poll() is None:
             proc.kill()
