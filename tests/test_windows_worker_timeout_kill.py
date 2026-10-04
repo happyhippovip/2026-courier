@@ -7,11 +7,12 @@ real subprocess (a portable stand-in for the hard-coded "powershell" call)
 so the timeout/kill path is exercised for real, not mocked away.
 """
 import importlib.util
-import os
 import subprocess
+import sys
 import time
 from pathlib import Path
 
+import psutil
 import pytest
 
 DAEMON_PATH = Path(__file__).resolve().parents[1] / "scripts" / "windows_worker" / "daemon.py"
@@ -32,7 +33,8 @@ def test_timed_out_process_is_killed_not_left_running(monkeypatch):
     def spawn_sleep(cmd, **kwargs):
         # Stand-in for the hard-coded ["powershell", "-Command", instruction];
         # a real child process is what matters for this test, not its name.
-        return real_popen_class(["sleep", "30"], **kwargs)
+        # The interpreter exists on every runner; there is no `sleep` on Windows.
+        return real_popen_class([sys.executable, "-c", "import time; time.sleep(30)"], **kwargs)
 
     def short_timeout(self, input=None, timeout=None):
         return real_communicate(self, input=input, timeout=0.2)
@@ -50,11 +52,13 @@ def test_timed_out_process_is_killed_not_left_running(monkeypatch):
     monkeypatch.setattr(real_popen_class, "communicate", real_communicate)
     deadline = time.monotonic() + 5
     alive = True
+    # psutil, not os.kill(pid, 0): on Windows os.kill(pid, 0) terminates the process.
     while time.monotonic() < deadline:
         try:
-            os.kill(pid, 0)
-        except ProcessLookupError:
+            alive = psutil.Process(pid).status() != psutil.STATUS_ZOMBIE
+        except psutil.NoSuchProcess:
             alive = False
+        if not alive:
             break
         time.sleep(0.05)
     assert not alive, "child process from the timed-out task is still running (orphaned)"
