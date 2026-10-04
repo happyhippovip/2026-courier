@@ -19,24 +19,27 @@ if ($LASTEXITCODE -ne 0) {
 # 2. Copy binaries and scripts
 Copy-Item "$PSScriptRoot\Courier.exe" -Destination $OutDir
 Copy-Item -Recurse "$PSScriptRoot\..\..\courier_worker" -Destination "$OutDir\courier_worker"
-if (Test-Path "$PSScriptRoot\..\..\adapters") {
-    Copy-Item -Recurse "$PSScriptRoot\..\..\adapters" -Destination "$OutDir\adapters"
-}
+# Excluded internal fleet files: adapters
+# if (Test-Path "$PSScriptRoot\..\..\adapters") {
+#     Copy-Item -Recurse "$PSScriptRoot\..\..\adapters" -Destination "$OutDir\adapters"
+# }
 Copy-Item -Recurse "$PSScriptRoot\..\..\server" -Destination "$OutDir\server"
-Copy-Item -Recurse "$PSScriptRoot\..\..\dashboard" -Destination "$OutDir\dashboard"
+if (Test-Path "$OutDir\server\state") { Remove-Item -Recurse -Force "$OutDir\server\state" }
 Copy-Item -Recurse "$PSScriptRoot\..\..\courier_core" -Destination "$OutDir\courier_core"
 if (Test-Path "$PSScriptRoot\..\..\static") {
     Copy-Item -Recurse "$PSScriptRoot\..\..\static" -Destination "$OutDir\static"
 }
-if (Test-Path "$PSScriptRoot\..\..\studio") {
-    Copy-Item -Recurse "$PSScriptRoot\..\..\studio" -Destination "$OutDir\studio"
-}
+# Excluded internal fleet files: studio
+# if (Test-Path "$PSScriptRoot\..\..\studio") {
+#     Copy-Item -Recurse "$PSScriptRoot\..\..\studio" -Destination "$OutDir\studio"
+# }
 
-Copy-Item "$PSScriptRoot\install.ps1" -Destination $OutDir
-Copy-Item "$PSScriptRoot\uninstall.ps1" -Destination $OutDir
+# Copy-Item "$PSScriptRoot\install.ps1" -Destination $OutDir -ErrorAction SilentlyContinue
+# Copy-Item "$PSScriptRoot\uninstall.ps1" -Destination $OutDir -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path "$OutDir\scripts" | Out-Null
 Copy-Item "$PSScriptRoot\..\*.py" -Destination "$OutDir\scripts\"
 New-Item -ItemType File -Force -Path "$OutDir\scripts\__init__.py" | Out-Null
+Get-ChildItem -Path $OutDir -Recurse -Filter "test_*.py" | Remove-Item -Force
 
 # 3. Download and embed Python
 $pyZip = "$env:TEMP\python-embed.zip"
