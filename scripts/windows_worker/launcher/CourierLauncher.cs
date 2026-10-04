@@ -77,33 +77,18 @@ namespace CourierLauncher
 
         static void Main(string[] args)
         {
-            IntPtr mutex = CreateMutex(IntPtr.Zero, true, "Global\\CourierAppMutex_L6");
-            if (mutex == IntPtr.Zero)
+            string customHome = null;
+            bool isStop = false;
+            bool isStatus = false;
+            for (int i = 0; i < args.Length; i++)
             {
-                Console.WriteLine("FATAL: Could not create single-instance mutex.");
-                Environment.Exit(1);
-            }
-            if (GetLastError() == ERROR_ALREADY_EXISTS)
-            {
-                Console.WriteLine("Duplicate instance detected. Exiting.");
-                Environment.Exit(2);
-            }
-
-            SetConsoleCtrlHandler(ConsoleCtrlCheck, true);
-
-            IntPtr hJob = CreateJobObject(IntPtr.Zero, null);
-            if (hJob == IntPtr.Zero)
-            {
-                Environment.Exit(1);
-            }
-
-            var info = new JOBOBJECT_EXTENDED_LIMIT_INFORMATION();
-            info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
-
-            int length = Marshal.SizeOf(typeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
-            if (!SetInformationJobObject(hJob, JobObjectExtendedLimitInformation, ref info, length))
-            {
-                Environment.Exit(1);
+                if (args[i] == "--home" && i + 1 < args.Length)
+                {
+                    customHome = args[i + 1];
+                    i++;
+                }
+                else if (args[i] == "--stop") isStop = true;
+                else if (args[i] == "--status") isStatus = true;
             }
 
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -131,7 +116,11 @@ namespace CourierLauncher
             }
 
             string homeDir;
-            if (isRemoteMode)
+            if (!string.IsNullOrEmpty(customHome))
+            {
+                homeDir = Path.GetFullPath(customHome);
+            }
+            else if (isRemoteMode)
             {
                 homeDir = v1DataDir;
             }
@@ -147,17 +136,105 @@ namespace CourierLauncher
                 }
             }
 
+            string runDirEarly = Path.Combine(homeDir, "run");
+            if (!Directory.Exists(runDirEarly))
+            {
+                Directory.CreateDirectory(runDirEarly);
+            }
+            string pidFile = Path.Combine(runDirEarly, "launcher.pid");
+
+            if (isStop)
+            {
+                if (File.Exists(pidFile))
+                {
+                    string pidStr = File.ReadAllText(pidFile).Trim();
+                    int pid;
+                    if (int.TryParse(pidStr, out pid))
+                    {
+                        try
+                        {
+                            Process p = Process.GetProcessById(pid);
+                            p.Kill();
+                            Console.WriteLine("Stopped Courier.");
+                        }
+                        catch
+                        {
+                            Console.WriteLine("Process not running.");
+                        }
+                    }
+                    File.Delete(pidFile);
+                }
+                else
+                {
+                    Console.WriteLine("PID file not found.");
+                }
+                return;
+            }
+            
+            if (isStatus)
+            {
+                if (File.Exists(pidFile))
+                {
+                    string pidStr = File.ReadAllText(pidFile).Trim();
+                    int pid;
+                    if (int.TryParse(pidStr, out pid))
+                    {
+                        try
+                        {
+                            Process p = Process.GetProcessById(pid);
+                            Console.WriteLine("Status: RUNNING (PID: " + pid + ")");
+                            return;
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }
+                Console.WriteLine("Status: STOPPED");
+                return;
+            }
+
+            string mutexName = "Global\\CourierAppMutex_" + homeDir.Replace("\\", "_").Replace(":", "_").ToLowerInvariant();
+            IntPtr mutex = CreateMutex(IntPtr.Zero, true, mutexName);
+            if (mutex == IntPtr.Zero)
+            {
+                Console.WriteLine("FATAL: Could not create single-instance mutex.");
+                Environment.Exit(1);
+            }
+            if (GetLastError() == ERROR_ALREADY_EXISTS)
+            {
+                Console.WriteLine("Duplicate instance detected for this home directory. Exiting.");
+                Environment.Exit(2);
+            }
+
+            File.WriteAllText(pidFile, Process.GetCurrentProcess().Id.ToString());
+
+            SetConsoleCtrlHandler(ConsoleCtrlCheck, true);
+
+            IntPtr hJob = CreateJobObject(IntPtr.Zero, null);
+            if (hJob == IntPtr.Zero)
+            {
+                Environment.Exit(1);
+            }
+
+            var info = new JOBOBJECT_EXTENDED_LIMIT_INFORMATION();
+            info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+
+            int length = Marshal.SizeOf(typeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
+            if (!SetInformationJobObject(hJob, JobObjectExtendedLimitInformation, ref info, length))
+            {
+                Environment.Exit(1);
+            }
+
             string logDir = Path.Combine(homeDir, "logs");
             if (!Directory.Exists(logDir))
             {
                 Directory.CreateDirectory(logDir);
             }
 
-            int cp = 8080; // Controller port
-            int hp = 8081; // Hub port
-            string controllerUrl = isRemoteMode ? externalServerUrl : string.Format("http://127.0.0.1:{0}", cp);
-            string hubUrl = string.Format("http://127.0.0.1:{0}/", hp);
-
+            int cp = 0; // Controller port
+            string controllerUrl = isRemoteMode ? externalServerUrl : "";
+            
             string runDir = Path.Combine(homeDir, "run");
             if (!Directory.Exists(runDir))
             {
@@ -199,7 +276,7 @@ namespace CourierLauncher
                 Environment.Exit(1);
             }
 
-            Func<string, string, string, Process> StartPythonProcess = (module, arguments, logName) =>
+            Func<string, string, string, Action<string>, Process> StartPythonProcess = (module, arguments, logName, onOutputLine) =>
             {
                 string fullArgs = string.Format("-m {0} {1}", module, arguments);
                 ProcessStartInfo psi = new ProcessStartInfo
@@ -221,6 +298,7 @@ namespace CourierLauncher
                 
                 DataReceivedEventHandler logHandler = (sender, e) => {
                     if (e.Data != null) {
+                        if (onOutputLine != null) { onOutputLine(e.Data); }
                         lock(logLock) {
                             File.AppendAllText(logPath, "[" + DateTime.UtcNow.ToString("O") + "] " + e.Data + Environment.NewLine);
                         }
@@ -249,34 +327,63 @@ namespace CourierLauncher
             if (!isRemoteMode)
             {
                 // 1. Start Controller (Local Mode Only)
-                string controllerArgs = string.Format("--home \"{0}\" --port {1}", homeDir, cp);
-                controllerProc = StartPythonProcess("courier_core.serve", controllerArgs, "controller.log");
+                string controllerArgs = string.Format("--home \"{0}\" --port 0 --print-port", homeDir);
+                controllerProc = StartPythonProcess("courier_core.serve", controllerArgs, "controller.log", (line) => {
+                    int port;
+                    if (cp == 0 && int.TryParse(line.Trim(), out port)) {
+                        cp = port;
+                        controllerUrl = string.Format("http://127.0.0.1:{0}", cp);
+                    }
+                });
 
-                // Wait for health check
-                bool healthy = false;
-                for (int i = 0; i < 30; i++)
+                // Wait for health check with a strict 10 second timeout
+                string startupState = "STARTING";
+                File.AppendAllText(Path.Combine(logDir, "launcher.log"), "Controller state: STARTING\n");
+
+                Stopwatch sw = Stopwatch.StartNew();
+                while (sw.Elapsed.TotalSeconds < 10)
                 {
-                    try { if (controllerProc != null && controllerProc.HasExited) { healthy = false; break; } var request = System.Net.WebRequest.Create(string.Format("{0}/v1/health", controllerUrl));
-                        request.Timeout = 2000;
-                        request.Headers.Add("Authorization", "Bearer " + apiKey);
+                    if (controllerProc != null && controllerProc.HasExited) 
+                    { 
+                        startupState = "FAILED"; 
+                        break; 
+                    }
+                    if (cp == 0 || string.IsNullOrEmpty(controllerUrl))
+                    {
+                        Thread.Sleep(200);
+                        continue;
+                    }
+                    try { 
+                        var request = System.Net.WebRequest.Create(string.Format("{0}/v1/health", controllerUrl));
+                        request.Timeout = 1000;
+                        request.Headers.Add("X-Courier-Token", apiKey);
                         using (var response = request.GetResponse())
                         using (var reader = new System.IO.StreamReader(response.GetResponseStream()))
                         {
                             string content = reader.ReadToEnd();
                             if (content.Contains("\"mode\""))
                             {
-                                healthy = true;
+                                startupState = "READY";
                                 break;
                             }
                         }
                     }
-                    catch { }
-                    Thread.Sleep(500);
+                    catch (Exception ex) { 
+                        File.AppendAllText(Path.Combine(logDir, "launcher.log"), "Ping failed: " + ex.Message + "\n");
+                    }
+                    Thread.Sleep(200);
                 }
+                sw.Stop();
                 
-                if (!healthy)
+                if (startupState == "STARTING")
                 {
-                    File.AppendAllText(Path.Combine(logDir, "launcher.log"), "Controller failed to start or health identity check failed.\n");
+                    startupState = "TIMEOUT";
+                }
+
+                File.AppendAllText(Path.Combine(logDir, "launcher.log"), "Controller state: " + startupState + "\n");
+
+                if (startupState != "READY")
+                {
                     Environment.Exit(1);
                 }
             }
@@ -317,25 +424,16 @@ namespace CourierLauncher
             };
 
             // 2. Start Worker with backoff (Both Modes)
-            string workerArgs = string.Format("--home \"{0}\" --controller \"{1}\" --max-tasks 1 --heartbeat 2", homeDir, controllerUrl);
-            if (!string.IsNullOrEmpty(workerId)) {
-                workerArgs += string.Format(" --worker-id \"{0}\"", workerId);
-            }
-            MonitorProcess(() => StartPythonProcess("courier_worker.host", workerArgs, "worker.log"), "Worker");
+            MonitorProcess(() => {
+                string wArgs = string.Format("--home \"{0}\" --controller \"{1}\" --max-tasks 1 --heartbeat 2", homeDir, controllerUrl);
+                if (!string.IsNullOrEmpty(workerId)) {
+                    wArgs += string.Format(" --worker-id \"{0}\"", workerId);
+                }
+                return StartPythonProcess("courier_worker.host", wArgs, "worker.log", null);
+            }, "Worker");
 
             if (!isRemoteMode)
             {
-                // 3. Start Hub with backoff (Local Mode Only)
-                string hubArgs = string.Format("--home \"{0}\" --controller \"{1}\" --port {2}", homeDir, controllerUrl, hp);
-                MonitorProcess(() => StartPythonProcess("courier_hub", hubArgs, "hub.log"), "Hub");
-
-                // 4. Open Browser
-                try {
-                    Process.Start(new ProcessStartInfo(hubUrl) { UseShellExecute = true });
-                } catch (Exception ex) {
-                    File.AppendAllText(Path.Combine(logDir, "launcher.log"), "Could not open browser: " + ex.Message + "\n");
-                }
-
                 // Wait for controller. Controller crash will restart the whole suite since we exit.
                 int initialControllerBackoff = 2000;
                 int controllerBackoff = initialControllerBackoff;
@@ -346,7 +444,21 @@ namespace CourierLauncher
                 {
                     if (controllerProc != null)
                     {
-                        controllerProc.WaitForExit();
+                        while (!controllerProc.HasExited)
+                        {
+                            Thread.Sleep(5000);
+                            if (cp == 0 || string.IsNullOrEmpty(controllerUrl)) continue;
+                            try {
+                                var request = System.Net.WebRequest.Create(string.Format("{0}/v1/health", controllerUrl));
+                                request.Timeout = 2000;
+                                request.Headers.Add("X-Courier-Token", apiKey);
+                                using (var response = request.GetResponse()) {}
+                            } catch {
+                                File.AppendAllText(Path.Combine(logDir, "launcher.log"), string.Format("[{0:O}] Controller liveness check failed. Terminating process.\n", DateTime.UtcNow));
+                                try { controllerProc.Kill(); } catch { }
+                                break;
+                            }
+                        }
                         
                         if (DateTime.UtcNow - controllerStartTime > healthyControllerUptimeThreshold)
                         {
@@ -361,8 +473,15 @@ namespace CourierLauncher
                     
                     try
                     {
-                        string controllerArgs = string.Format("--home \"{0}\" --port {1}", homeDir, cp);
-                        controllerProc = StartPythonProcess("courier_core.serve", controllerArgs, "controller.log");
+                        cp = 0;
+                        string controllerArgs = string.Format("--home \"{0}\" --port 0 --print-port", homeDir);
+                        controllerProc = StartPythonProcess("courier_core.serve", controllerArgs, "controller.log", (line) => {
+                            int port;
+                            if (cp == 0 && int.TryParse(line.Trim(), out port)) {
+                                cp = port;
+                                controllerUrl = string.Format("http://127.0.0.1:{0}", cp);
+                            }
+                        });
                         controllerStartTime = DateTime.UtcNow;
                     }
                     catch (Exception ex)
