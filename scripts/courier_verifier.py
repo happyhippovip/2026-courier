@@ -97,7 +97,7 @@ def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
             reason = f"Local artifact verification failed for {art.get('path')}"
             log(reason)
             return "FAIL", reason
-    return "PASS", None, None
+    return "PASS", None
 
 def run_loop():
     if not API_KEY:

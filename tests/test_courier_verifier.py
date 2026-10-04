@@ -63,31 +63,31 @@ def test_fetch_artifact_too_large():
 def test_verify_artifacts_missing_expected():
     task = {"artifacts": ["output.txt"]}
     result = {"artifacts": [{"path": "other.txt"}]}
-    assert verify_artifacts(task, result) == "FAIL"
+    assert verify_artifacts(task, result)[0] == "FAIL"
 
 def test_verify_artifacts_no_artifacts():
     task = {}
     result = {"artifacts": []}
-    assert verify_artifacts(task, result) == "FAIL"
+    assert verify_artifacts(task, result)[0] == "FAIL"
 
 def test_verify_artifacts_remote_target_not_uploaded():
     task = {"target_agent": "mac-worker"}
     result = {"artifacts": [{"path": "local.txt", "sha256": "abc"}]}
-    assert verify_artifacts(task, result) == "FAIL"
+    assert verify_artifacts(task, result)[0] == "FAIL"
 
 def test_verify_artifacts_local_verify_success():
     task = {"target_agent": "linux-worker"}
     result = {"artifacts": [{"path": "local.txt", "sha256": "abc"}]}
     
     with patch("scripts.courier_verifier.is_safe_artifact_name", return_value=True):
-        assert verify_artifacts(task, result, local_verify=lambda p, s: True) == "PASS"
+        assert verify_artifacts(task, result, local_verify=lambda p, s: True)[0] == "PASS"
 
 def test_verify_artifacts_local_verify_unsafe():
     task = {"target_agent": "linux-worker"}
     result = {"artifacts": [{"path": "/etc/passwd", "sha256": "abc"}]}
     
     with patch("scripts.courier_verifier.is_safe_artifact_name", return_value=False):
-        assert verify_artifacts(task, result, local_verify=lambda p, s: True) == "FAIL"
+        assert verify_artifacts(task, result, local_verify=lambda p, s: True)[0] == "FAIL"
 
 def test_verify_artifacts_remote_uploaded_success():
     task = {"target_agent": "mac-worker"}
@@ -97,7 +97,7 @@ def test_verify_artifacts_remote_uploaded_success():
         return {"id": aid}, b"hello"
         
     with patch("scripts.courier_verifier.verify_uploaded_artifact", return_value=(True, "")):
-        assert verify_artifacts(task, result, fetch=fake_fetch) == "PASS"
+        assert verify_artifacts(task, result, fetch=fake_fetch)[0] == "PASS"
 
 def test_verify_artifacts_remote_uploaded_hash_mismatch():
     task = {"target_agent": "mac-worker", "expected_artifacts": {"remote.txt": "wronghash"}}
@@ -107,7 +107,7 @@ def test_verify_artifacts_remote_uploaded_hash_mismatch():
         return {"id": aid}, b"hello"
         
     with patch("scripts.courier_verifier.verify_uploaded_artifact", return_value=(True, "")):
-        assert verify_artifacts(task, result, fetch=fake_fetch) == "FAIL"
+        assert verify_artifacts(task, result, fetch=fake_fetch)[0] == "FAIL"
 
 def test_verify_artifacts_remote_uploaded_rejected():
     task = {"target_agent": "mac-worker"}
@@ -117,7 +117,7 @@ def test_verify_artifacts_remote_uploaded_rejected():
         return {"id": aid}, b"hello"
         
     with patch("scripts.courier_verifier.verify_uploaded_artifact", return_value=(False, "bad file")):
-        assert verify_artifacts(task, result, fetch=fake_fetch) == "FAIL"
+        assert verify_artifacts(task, result, fetch=fake_fetch)[0] == "FAIL"
 
 def test_verify_artifacts_fetch_fails():
     task = {"target_agent": "mac-worker"}
@@ -126,7 +126,7 @@ def test_verify_artifacts_fetch_fails():
     def fake_fetch(aid):
         raise Exception("net down")
         
-    assert verify_artifacts(task, result, fetch=fake_fetch) == "FAIL"
+    assert verify_artifacts(task, result, fetch=fake_fetch)[0] == "FAIL"
 
 def test_run_loop_missing_key():
     with patch("scripts.courier_verifier.API_KEY", None):
@@ -138,7 +138,7 @@ def test_run_loop_success():
          patch("scripts.courier_verifier.HEADERS", {}), \
          patch("scripts.courier_verifier.requests.get") as mock_get, \
          patch("scripts.courier_verifier.requests.post") as mock_post, \
-         patch("scripts.courier_verifier.verify_artifacts", return_value="PASS"), \
+         patch("scripts.courier_verifier.verify_artifacts", return_value=("PASS", None)), \
          patch("scripts.courier_verifier.time.sleep", side_effect=KeyboardInterrupt):
          
         mock_resp = MagicMock()

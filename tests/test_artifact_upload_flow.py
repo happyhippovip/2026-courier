@@ -133,10 +133,10 @@ def test_verifier_independently_hashes_server_copy_and_detects_tampering(tmp_pat
     v = load_verifier(monkeypatch)
     local = []
     lv = lambda *a: local.append(a) or True
-    assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http), local_verify=lv) == "PASS"
+    assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http), local_verify=lv)[0] == "PASS"
     blob = tmp_path / "artifact-store" / "blobs" / rec["sha256"][:2] / rec["sha256"]
     blob.write_bytes(b"tampered")
-    assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http), local_verify=lv) == "FAIL"
+    assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http), local_verify=lv)[0] == "FAIL"
     assert local == []  # never opened a local path
 
 
@@ -151,21 +151,21 @@ def test_verifier_checks_expected_sha256(tmp_path, monkeypatch):
     v = load_verifier(monkeypatch)
 
     # 1. Correct bytes, matching task expected_artifacts -> PASS
-    assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http)) == "PASS"
+    assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http))[0] == "PASS"
 
     # 2. Wrong bytes (tampered server copy) -> FAIL
     blob = tmp_path / "artifact-store" / "blobs" / rec["sha256"][:2] / rec["sha256"]
     blob.write_bytes(b"tampered")
-    assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http)) == "FAIL"
+    assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http))[0] == "FAIL"
 
     # 3. Stale/wrong expected hash on task -> FAIL
     blob.write_bytes(b"ok\n")
     pending["expected_artifacts"] = {"win.txt": "f" * 64}
-    assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http)) == "FAIL"
+    assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http))[0] == "FAIL"
 
     # 4. Worker-supplied expected_sha256 in artifact is untrusted and ignored
     pending["result"]["artifacts"][0]["expected_sha256"] = rec["sha256"]
-    assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http)) == "FAIL"
+    assert v.verify_artifacts(pending, pending["result"], fetch=client_fetch(http))[0] == "FAIL"
 
 
 
@@ -175,13 +175,13 @@ def test_verifier_never_opens_remote_worker_paths(monkeypatch, target):
     local = []
     task = {"target_capability": target}
     result = {"artifacts": [{"path": "win.txt", "sha256": "a" * 64}]}
-    assert v.verify_artifacts(task, result, fetch=None, local_verify=lambda *a: local.append(a) or True) == "FAIL"
+    assert v.verify_artifacts(task, result, fetch=None, local_verify=lambda *a: local.append(a) or True)[0] == "FAIL"
     assert local == []
 
 
 def test_verifier_fails_without_evidence(monkeypatch):
     v = load_verifier(monkeypatch)
-    assert v.verify_artifacts({"target_capability": "github"}, {"artifacts": []}) == "FAIL"
+    assert v.verify_artifacts({"target_capability": "github"}, {"artifacts": []})[0] == "FAIL"
 
 
 def test_verifier_fails_when_fetch_fails(monkeypatch):
@@ -189,7 +189,7 @@ def test_verifier_fails_when_fetch_fails(monkeypatch):
     def boom(_):
         raise RuntimeError("down")
     art = {"path": "a", "sha256": "a" * 64, "artifact_id": "art-" + "a" * 64, "size": 1}
-    assert v.verify_artifacts({"target_capability": "windows"}, {"artifacts": [art]}, fetch=boom) == "FAIL"
+    assert v.verify_artifacts({"target_capability": "windows"}, {"artifacts": [art]}, fetch=boom)[0] == "FAIL"
 
 
 # ---------------------------------------------------------------- Windows worker end to end
@@ -382,7 +382,7 @@ def test_mac_worker_uploads_and_verifier_reconciles(tmp_path, monkeypatch):
     assert ref["artifact_id"].startswith("art-")
     (work / "effect.txt").unlink()
     [pending] = http.get("/tasks/pending_verification", headers=VERIFIER).get_json()["tasks"]
-    assert load_verifier(monkeypatch).verify_artifacts(pending, pending["result"], fetch=client_fetch(http)) == "PASS"
+    assert load_verifier(monkeypatch).verify_artifacts(pending, pending["result"], fetch=client_fetch(http))[0] == "PASS"
 
 def test_verifier_rejects_omitted_expected_artifact(monkeypatch):
     v = load_verifier(monkeypatch)
@@ -397,7 +397,7 @@ def test_verifier_rejects_omitted_expected_artifact(monkeypatch):
     }
     def dummy_verify(*args): return True
     verdict = v.verify_artifacts(task, result, local_verify=dummy_verify)
-    assert verdict == "FAIL"
+    assert verdict[0] == "FAIL"
 
 def test_verifier_poison_pill_isolation(monkeypatch):
     import requests
