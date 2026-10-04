@@ -213,7 +213,7 @@ def test_main(tmp_path, monkeypatch):
     
     import runpy
     # Prevent SystemExit due to script reaching the end successfully
-    runpy.run_path("C:/Users/lol/2026-workspace/2026-courier/scripts/consume_chief_command.py", run_name="__main__")
+    runpy.run_path(str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "consume_chief_command.py"), run_name="__main__")
     
     assert (processed_dir / "task-1-result.json").exists()
 

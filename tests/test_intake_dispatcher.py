@@ -9,15 +9,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from scripts import intake_dispatcher
 
 @pytest.fixture(autouse=True)
-def clean_central_state():
-    # Setup
-    state_file = 'central_state.json'
-    if os.path.exists(state_file):
-        os.remove(state_file)
+def clean_central_state(tmp_path, monkeypatch):
+    # dispatch_intake writes central_state.json in the CWD: keep it in tmp_path.
+    monkeypatch.chdir(tmp_path)
     yield
-    # Teardown
-    if os.path.exists(state_file):
-        os.remove(state_file)
 
 def test_dispatch_intake_success(tmp_path):
     intake_file = tmp_path / "intake.json"
@@ -28,16 +23,18 @@ def test_dispatch_intake_success(tmp_path):
         "customer_reference": "CUST-001"
     }))
     
-    with mock.patch("scripts.intake_dispatcher.uuid.uuid4") as mock_uuid, \
-         mock.patch("scripts.intake_dispatcher.subprocess.run") as mock_run, \
+    # Run binding (exactly one new run after dispatch, else UNBOUND) is pinned by
+    # the M05 dispatcher tests; here the dispatch binds to run 9999.
+    with mock.patch("scripts.intake_dispatcher.subprocess.run") as mock_run, \
+         mock.patch("scripts.intake_dispatcher.resolve_execution_ref", return_value="9999"), \
          mock.patch("time.sleep"):
-         
-        mock_uuid.return_value.hex = "abcdef123456"
+
         def fake_run(cmd, *args, **kwargs):
             if cmd[1] == "workflow":
                 return mock.Mock(stdout="dispatched")
             elif cmd[1] == "run":
-                return mock.Mock(stdout="9999\n")
+                # Ensure the created time is strictly > 0 so it matches since_epoch
+                return mock.Mock(stdout='[{"databaseId": 9999, "createdAt": "2030-01-01T00:00:00Z"}]')
             return mock.Mock()
         mock_run.side_effect = fake_run
         
@@ -49,7 +46,8 @@ def test_dispatch_intake_success(tmp_path):
         with open(state_file, "r") as f:
             state = json.load(f)
             
-        task_id = "task-revenue-abcdef12"
+        # M05-Q3: the task id is a stable fingerprint of the intake, not a random uuid.
+        task_id = intake_dispatcher.fingerprint_task_id(json.loads(intake_file.read_text()))
         assert task_id in state["tasks"]
         assert state["tasks"][task_id]["execution_ref"] == "9999"
 
@@ -77,7 +75,9 @@ def test_dispatch_intake_subprocess_error(tmp_path):
             intake_dispatcher.dispatch_intake(str(intake_file))
         assert exc.value.code == 1
 
-def test_dispatch_intake_corrupt_state_wiped(tmp_path):
+def test_dispatch_intake_corrupt_state_fails_closed(tmp_path):
+    # M05-Q2: a corrupt central state is never reset-and-overwritten (that would
+    # silently wipe every recorded task); the dispatch exits non-zero, unrecorded.
     intake_file = tmp_path / "intake.json"
     intake_file.write_text(json.dumps({
         "target_owner": "test_owner",
@@ -85,19 +85,17 @@ def test_dispatch_intake_corrupt_state_wiped(tmp_path):
         "target_sha": "123456",
         "customer_reference": "CUST-001"
     }))
-    
+
     state_file = "central_state.json"
     with open(state_file, "w") as f:
         f.write("not a valid json")
-        
+
     with mock.patch("scripts.intake_dispatcher.subprocess.run") as mock_run, \
          mock.patch("time.sleep"):
-         
         mock_run.return_value = mock.Mock(stdout="9999")
-        intake_dispatcher.dispatch_intake(str(intake_file))
-        
-        with open(state_file, "r") as f:
-            state = json.load(f)
-            
-        assert "tasks" in state
-        assert len(state["tasks"]) == 1
+        with pytest.raises(SystemExit) as exc:
+            intake_dispatcher.dispatch_intake(str(intake_file))
+        assert exc.value.code == 1
+
+    with open(state_file, "r") as f:
+        assert f.read() == "not a valid json"

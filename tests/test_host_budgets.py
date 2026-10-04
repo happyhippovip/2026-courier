@@ -101,3 +101,85 @@ def test_hibernation_releases_budget_back_to_baseline():
     HB.release(budgets, "LIGHT")
     assert budgets["light_workers"].used == 0  # baseline restored, readmit clean
     assert HB.admit_work(budgets, "LIGHT", "NOMINAL") is True
+
+
+
+# -- U1: disk floor -------------------------------------------------------------
+def test_disk_floor_blocks_when_below_floor(tmp_path):
+    assert HB.disk_floor_ok(str(tmp_path), floor_bytes=1) is True
+    assert HB.disk_floor_ok(str(tmp_path), floor_bytes=10 ** 18) is False
+
+
+def test_disk_floor_unknown_path_fails_closed():
+    assert HB.disk_floor_ok("/nonexistent-courier-path-xyz", floor_bytes=1) is False
+    assert HB.disk_free_bytes("/nonexistent-courier-path-xyz") is None
+
+
+# -- U2: swap/memory trend -------------------------------------------------------
+def test_trend_classifies_direction():
+    assert HB.trend([10.0, 11.0, 12.5, 14.0]) == "RISING"
+    assert HB.trend([14.0, 12.0, 11.0, 10.0]) == "FALLING"
+    assert HB.trend([10.0, 10.0, 10.0, 10.0]) == "FLAT"
+
+
+def test_trend_needs_history_and_rejects_gaps():
+    assert HB.trend([]) == "UNKNOWN"
+    assert HB.trend([10.0, 11.0]) == "UNKNOWN"
+    assert HB.trend([10.0, None, 12.0, 14.0]) == "UNKNOWN"
+
+
+def test_rising_trend_blocks_new_heavy():
+    assert HB.trend_blocks_heavy("RISING") is True
+    assert HB.trend_blocks_heavy("FLAT") is False
+    assert HB.trend_blocks_heavy("FALLING") is False
+    assert HB.trend_blocks_heavy("UNKNOWN") is True  # unknown is not permission
+
+
+# -- U3: hysteresis --------------------------------------------------------------
+def test_hysteresis_gates_immediately_and_clears_slowly():
+    gate = HB.HysteresisGate(calm_required=3)
+    assert gate.observe(False) is False
+    assert gate.observe(True) is True  # escalate at once
+    assert gate.observe(False) is True  # 1 calm: still gated
+    assert gate.observe(False) is True  # 2 calm: still gated
+    assert gate.observe(False) is False  # 3 calm: released
+    assert gate.observe(True) is True  # flap re-gates at once
+
+
+# -- U4: OPEN / LIGHT_ONLY / CLOSED ----------------------------------------------
+def test_lane_mode_tristate():
+    assert HB.lane_mode("NOMINAL") == "OPEN"
+    for s in ("WATCH", "PRESSURED", "DEGRADED"):
+        assert HB.lane_mode(s) == "LIGHT_ONLY"
+    for s in ("RESOURCE_PAUSE", "EMERGENCY", "RECOVERING"):
+        assert HB.lane_mode(s) == "CLOSED"
+
+
+def test_lane_mode_unknown_raises():
+    with pytest.raises(ValueError):
+        HB.lane_mode("COZY")
+
+
+# -- U5: cleanup evidence gates retirement ---------------------------------------
+def test_failed_cleanup_transfers_instead_of_hibernating():
+    lanes = [HB.Lane("bad-1", HB.IDLE, cleanup=HB.CLEANUP_FAILED),
+             HB.Lane("ok-1", HB.IDLE, cleanup=HB.CLEANUP_UNKNOWN)]
+    plan = HB.plan_hibernation(lanes, health="NOMINAL", quota_exhausted=False)
+    assert plan["transfer"] == ["bad-1"]  # continue or transfer, never drop
+    assert "bad-1" not in plan["hibernate"]
+    assert "ok-1" in plan["hibernate"]  # UNKNOWN allowed, checkpoint-first
+
+
+# -- U6: retirement checklist ------------------------------------------------------
+def test_retirement_check_all_green_retires():
+    assert HB.retirement_check(True, True, True, True, True, HB.CLEANUP_UNKNOWN) == "RETIRE"
+    assert HB.retirement_check(True, True, True, True, True, HB.CLEANUP_PROVEN) == "RETIRE"
+
+
+def test_retirement_check_missing_evidence_continues():
+    assert HB.retirement_check(True, False, True, True, True, HB.CLEANUP_PROVEN) == "CONTINUE"
+    assert HB.retirement_check(True, True, True, False, True, HB.CLEANUP_PROVEN) == "CONTINUE"
+
+
+def test_retirement_check_failed_cleanup_transfers():
+    assert HB.retirement_check(True, True, True, True, True, HB.CLEANUP_FAILED) == "TRANSFER"

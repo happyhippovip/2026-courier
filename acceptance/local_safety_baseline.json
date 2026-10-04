@@ -1,0 +1,4 @@
+[
+ "KILL_BY_NAME:scripts/windows_worker/stop.bat:d5c9fb10da8a3e7c",
+ "WILDCARD_BIND:deploy/run-supervisor.sh:67ec4caffa389bc0"
+]

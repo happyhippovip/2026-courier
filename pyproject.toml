@@ -39,10 +39,17 @@ include = [
     "adapters*",
     "desktop*",
     "courier_hub*",
+    "courier_runtime*",
 ]
 
 [tool.setuptools.package-data]
 courier_hub = ["static/*"]
+courier_core = ["schemas/*", "config/*"]
 
 # pytest configuration lives in pytest.ini (single source; pytest ignores this
 # file's [tool.pytest.ini_options] whenever pytest.ini exists).
+
+[project.scripts]
+courier-core = "courier_core.cli:main"
+courier-worker = "courier_worker.cli:main"
+courier-hub = "courier_hub.cli:main"
