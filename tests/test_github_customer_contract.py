@@ -103,7 +103,6 @@ def test_user_disconnects_while_work_is_running():
     with pytest.raises(CourierGitHubError) as exc:
         check_connection(False)
     assert exc.value.category == ErrorCategory.NEEDS_YOU
-
 def test_translate_github_success():
     # Translating a success isn't typically an error, but in a mocked context, we can test that 200/201 doesn't raise, or just document it.
     # The adapter itself handles 200/201. We'll simulate a 200 check here.
