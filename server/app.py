@@ -148,8 +148,9 @@ app.register_blueprint(create_blueprint(
 
 @app.route("/health", methods=["GET"])
 @app.route("/v1/health", methods=["GET"])
+@require_auth
 def health():
-    return jsonify({"status": "healthy", "service": "courier-controller", "time": time.time()})
+    return jsonify({"status": "healthy", "service": "courier-controller", "mode": "local", "time": time.time()})
 
 
 
@@ -720,6 +721,38 @@ def get_api_state():
                 "ingested_at": datetime.datetime.utcnow().isoformat() + "Z"
             })
             
+    def calculate_reboot_safety(st):
+        has_active_owned_work = any(t.get("status") in ["DISPATCHED", "CLAIMED", "WORKING", "RUNNING"] for t in st.get("tasks", {}).values())
+        has_uncommitted_work = st.get("uncommitted_work", False)
+        has_unpushed_commits = st.get("unpushed_commits", False)
+        has_checkpoint_state = True
+        has_open_writes = st.get("open_writes", False)
+        has_recovery_artifacts = st.get("recovery_artifacts_present", False)
+        has_resume_point = st.get("resume_point_present", True)
+        
+        if not has_checkpoint_state and has_active_owned_work:
+            return "UNKNOWN"
+        if has_open_writes:
+            return "NOT_SAFE_TO_REBOOT"
+        if has_active_owned_work and not has_recovery_artifacts:
+            return "NOT_SAFE_TO_REBOOT"
+        if (has_uncommitted_work or has_unpushed_commits) and not has_resume_point:
+            return "NOT_SAFE_TO_REBOOT"
+        
+        return "SAFE_TO_REBOOT"
+
+    def calculate_recovery_classification(st, agents):
+        agent_alive = len(agents) > 0
+        if not agent_alive:
+            return "NOT_RECOVERED"
+        gui_healthy = st.get("gui_healthy", True)
+        terminal_healthy = st.get("terminal_healthy", True)
+        if gui_healthy and terminal_healthy:
+            return "FULL_SYSTEM_RECOVERY"
+        if gui_healthy or terminal_healthy:
+            return "PARTIAL_SYSTEM_RECOVERY"
+        return "AGENT_ONLY_RECOVERY"
+
     return jsonify({
         "agents": active_agents,
         "auto_runtime": {
@@ -729,6 +762,8 @@ def get_api_state():
         "endurance": {
             "elapsed_seconds": 0
         },
+        "reboot_safety": calculate_reboot_safety(state),
+        "recovery_classification": calculate_recovery_classification(state, active_agents),
         "human_attention_required": needs_you,
         "human_attention_reason": human_reason,
         "task_board": task_board,
@@ -742,7 +777,7 @@ def get_api_state():
     })
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    app.run(host="127.0.0.1", port=8080)
 
 
 
