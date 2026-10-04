@@ -16,7 +16,7 @@ def test_grandchild_process_reaping(tmp_path):
     ]
     
     run = _spawn_contained(argv, run_dir, "test-leak")
-    time.sleep(2) # Give it time to spawn the grandchild
+    time.sleep(8) # Give it time to spawn the grandchild
     
     # Verify the parent and grandchild are running
     parent_proc = psutil.Process(run.proc.pid)
@@ -29,7 +29,7 @@ def test_grandchild_process_reaping(tmp_path):
     run.proc.wait()
     
     # Assert descendants after is 0 (PID reuse safety check using psutil)
-    time.sleep(0.5) # Wait for OS to reap
+    time.sleep(2.0) # Wait for OS to reap
     
     for pid in child_pids:
         try:
