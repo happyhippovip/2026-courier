@@ -22,6 +22,7 @@ import hashlib
 import json
 import os
 import sys
+from scripts.host_guardian import HostGuardian, AdmissionState
 import time
 import uuid
 from pathlib import Path
@@ -106,6 +107,7 @@ class AutonomousLevel6Loop:
         else:
             self.max_iterations = max_iterations
         self.timeout_seconds = timeout_seconds
+        self.host_guardian = HostGuardian(max_heavy_local_jobs=1)
 
         self.locks_dir = repo_dir / "events/locks"
         self.locks_dir.mkdir(parents=True, exist_ok=True)
@@ -385,6 +387,33 @@ class AutonomousLevel6Loop:
                 payload_override = current_task_info.get("payload_override")
                 target_agent_raw = current_task_info.get("target_agent", "antigravity").lower()
 
+                
+                # --- HOST GUARDIAN ADMISSION CHECK ---
+                admission = self.host_guardian.evaluate_admission()
+                if admission == AdmissionState.CLOSED:
+                    self.host_guardian.stabilize([])
+                    admission = self.host_guardian.evaluate_admission()
+                    if admission == AdmissionState.CLOSED:
+                        status = "RESOURCE_PAUSE"
+                        stop_reason = f"Host admission is CLOSED ({self.host_guardian.state.name}). Lane hibernating."
+                        break
+
+                is_heavy = "codex" in target_agent_raw or "engineer" in target_agent_raw
+                has_lease = False
+                if is_heavy:
+                    if not self.host_guardian.request_heavy_lease():
+                        self.host_guardian.stabilize([])
+                        if not self.host_guardian.request_heavy_lease():
+                            status = "RESOURCE_PAUSE"
+                            if self.host_guardian.cleanup_unknown:
+                                stop_reason = "Host admission blocked (LIGHT_ONLY) due to UNCLEAN previous shutdown (cleanup UNKNOWN)."
+                            elif self.host_guardian.state.name == "LIGHT_ONLY":
+                                stop_reason = "Host pressure limits heavy jobs. LIGHT_ONLY active. Lane hibernating."
+                            else:
+                                stop_reason = "MAX_HEAVY_LOCAL_JOBS exceeded. Lane hibernating."
+                            break
+                    has_lease = True
+                
                 is_codex = "codex" in target_agent_raw
                 target_agent_name = "courier-codex-bridge" if is_codex else "courier-antigravity-bridge"
                 active_tracker = self.codex_state_tracker if is_codex else self.state_tracker
@@ -533,6 +562,10 @@ class AutonomousLevel6Loop:
                 action = decision["action"]
                 verdict = decision["verdict"]
 
+                if has_lease:
+                    self.host_guardian.release_heavy_lease(cleanup_proven=True)
+                    has_lease = False
+
                 round_record = {
                     "round": iteration + 1,
                     "task_id": task_id,
@@ -623,6 +656,8 @@ class AutonomousLevel6Loop:
                 stop_reason = f"Terminated after reaching limit of {self.max_iterations} iterations."
 
         finally:
+            if 'has_lease' in locals() and has_lease:
+                self.host_guardian.release_heavy_lease(cleanup_proven=False)
             self.release_workflow_lock(workflow_id)
 
         print(f"\n=== LEVEL 6 LOOP FINISHED: {status} ({stop_reason}) ===")
