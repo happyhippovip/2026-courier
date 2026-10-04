@@ -127,3 +127,25 @@ This policy must not interrupt the active AWS live-write lane.
 
 Current path:
 AWS secure access -> reproducible AWS state -> Machine A -> Machine B -> headless runtime -> Execution Ledger.
+
+## API / connector confidentiality boundary
+
+Public-safe architecture may describe protocols, capability classes, connector categories, SDK plans, trust principles, and implemented public interfaces.
+
+The following remain confidential and must not be committed to the public repository:
+
+- negotiated provider pricing and discounts
+- internal routing weights and ranking logic
+- internal margins and unit-economics assumptions
+- private partner/vendor terms
+- unreleased commercial agreements
+- private security findings
+- abuse-detection heuristics
+- secret provider fallback priorities
+- account-specific credentials or infrastructure identifiers
+- sensitive recovery details
+- unpublished funding/application content
+
+Public documentation may state that Courier is designed for provider abstraction, policy routing, Cost Guard, and connector interoperability, but it should not disclose the confidential parameters that make specific routing or commercial decisions.
+
+External agent platforms, including Meta Muse and others, are treated as integration surfaces unless a formal relationship is documented. Public wording must not imply partnership, endorsement, or exclusivity without evidence.

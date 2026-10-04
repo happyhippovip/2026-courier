@@ -303,3 +303,59 @@ secure AWS access
 -> Execution Ledger
 -> first public website version
 
+## Developer and integration expansion
+
+The future developer surface should reflect the Universal API & Connector architecture while clearly distinguishing implemented capabilities from planned ones.
+
+### /developers
+
+Planned sections:
+
+- API Reference
+- OpenAPI
+- SDKs
+- MCP
+- A2A
+- Webhooks and Events
+- Authentication / Authorization
+- Quickstarts
+- Examples
+- Connector SDK
+- Capability model
+- Changelog
+- Status
+
+### /integrations
+
+Planned integration categories:
+
+- AI / model providers
+- productivity
+- communications
+- developer tools
+- cloud
+- data / analytics
+- CRM / ERP / support
+- commerce
+- payments
+
+Only integrations that are actually implemented and tested may be presented as available.
+
+### Public architecture story
+
+The public architecture should show:
+
+INPUTS / AGENTS / APPS
+-> UNIVERSAL GATEWAY
+-> ADMISSION
+-> POLICY
+-> COST GUARD
+-> EXECUTION
+-> EXECUTION LEDGER
+-> VERIFY
+-> RECONCILE
+-> RESULT
+
+Meta Muse or any other external agent should be presented, when implemented, as one possible entry point to Courier rather than as the owner of Courier's architecture.
+
+Do not publish internal routing weights, negotiated provider pricing, private partner terms, credentials, account-specific infrastructure details, or unreleased security findings.
