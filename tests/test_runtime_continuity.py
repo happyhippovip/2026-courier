@@ -140,6 +140,20 @@ def test_no_duplicate_writer_after_rotation(tmp_path):
     assert k.workkeys["W1"].state == "CLAIMED"
 
 
+def test_reopened_archived_slot_never_reuses_retired_session_identity(tmp_path):
+    k, _, world = kirby(tmp_path)
+    k.add_workkeys(["W1"])
+    first = k.open_slot("s1", "muse")
+    world.alive.pop(first.pid)                              # executor died idle
+    assert k.reconcile_after_restart() == {"s1": "ARCHIVED_STALE"}
+    second = k.open_slot("s1", "muse")                      # same slot, later
+    assert second.session_id != first.session_id
+    assert second.generation == first.generation + 1
+    assert len(world.started) == 2
+    # the retired identity can never own new work: a stale owner string matches nothing live
+    assert all(w.owner != first.session_id for w in k.workkeys.values())
+
+
 def test_stalled_provider_detected_by_fast_tick_not_after_15_minutes(tmp_path):
     k, clock, world = kirby(tmp_path)
     k.add_workkeys(["W1"])
