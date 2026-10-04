@@ -28,6 +28,10 @@ import os
 import re
 import subprocess
 import sys
+import os
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent))
+from ci_truth import run_ci_truth
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -140,7 +144,7 @@ def leak_check(text):
     return kinds
 
 
-def check(repo):
+def check(repo, run_ci=False):
     repo = Path(repo).resolve()
     entries = git_files(repo)
     files = [p for mode, p in entries if mode != "160000"]
@@ -220,6 +224,14 @@ def check(repo):
     result = {"repository": repo.name, "sha": head_sha(repo), "tool": TOOL_VERSION, "files_scanned": len(files),
               "findings": findings,
               "summary": {sev: sum(f["severity"] == sev for f in findings) for sev in ("high", "medium", "low")}}
+    
+    if run_ci:
+        try:
+            ci_res = run_ci_truth(str(repo), result.get("sha", "HEAD"))
+            result["ci_truth"] = ci_res
+        except Exception as e:
+            result["ci_truth"] = {"status": "error", "error": str(e)}
+    
     result["digest"] = digest(result)
     return result
 
@@ -301,6 +313,8 @@ def to_html(result):
 
 def main(argv=None):
     argv = argv or sys.argv[1:]
+    run_ci = "--ci-truth" in argv
+    argv = [a for a in argv if a != "--ci-truth"]
     if len(argv) == 3 and argv[0] == "--verify":
         ok = verify(argv[1], argv[2])
         print("VERIFIED: report matches this checkout" if ok else "MISMATCH: report does not match this checkout")
@@ -308,7 +322,7 @@ def main(argv=None):
     if len(argv) != 2:
         print("\n".join(__doc__.strip().splitlines()[-2:]), file=sys.stderr)
         return 2
-    result = check(argv[0])
+    result = check(argv[0], run_ci=run_ci)
     report_json, report_md, report_html = json.dumps(result, indent=1), to_markdown(result), to_html(result)
     leaks = leak_check(report_json + report_md + report_html)
     if leaks:
