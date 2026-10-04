@@ -482,8 +482,6 @@ def task_result():
                     if "artifact_id" in ref:
                         ARTIFACT_STORE.check_reference(ref, task)
             except (ContractError, ArtifactError) as exc:
-                with open("val_err.txt", "w") as f:
-                    f.write(f"Validation failed for task_id {task_id}: {exc}, payload={data}")
                 return jsonify({"error": str(exc)}), 400
             task["status"] = "RESULT_RECEIVED"
             task["result"] = durable_result
