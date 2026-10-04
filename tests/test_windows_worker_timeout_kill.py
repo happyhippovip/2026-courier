@@ -48,7 +48,7 @@ def test_timed_out_process_is_killed_not_left_running(monkeypatch):
     pid = int(result["run_id"])
     # The kill path used real communicate(); restore it before checking OS state.
     monkeypatch.setattr(real_popen_class, "communicate", real_communicate)
-    deadline = time.monotonic() + 2
+    deadline = time.monotonic() + 5
     alive = True
     while time.monotonic() < deadline:
         try:

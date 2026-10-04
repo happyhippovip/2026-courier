@@ -1,6 +1,7 @@
 import json
 import subprocess
 
+import sys
 import pytest
 
 from scripts.repo_reality_check import check, main, to_markdown
@@ -76,7 +77,7 @@ def test_second_pass_blocks_a_leaking_report(repo, tmp_path, monkeypatch):
     import scripts.repo_reality_check as rrc
     real = rrc.check
 
-    def leaky(path):
+    def leaky(path, run_ci=False):
         result = real(path)
         result["findings"][0]["detail"] = f"oops {FAKE_TOKEN} owner@example.org"
         return result
@@ -143,6 +144,7 @@ def test_maintainer_acknowledged_bind_pinned_reqs_and_test_archives_are_low(tmp_
     assert found["test_data_archive"] == "low" and "no_lockfile" not in found
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows forbids < in filenames")
 def test_printable_html_is_escaped_and_complete(repo, tmp_path):
     (repo / "x<script>.py").write_text("print(1)\n")
     (repo / "x<script>.exe").write_bytes(b"MZ")
