@@ -26,7 +26,7 @@ class HandoffValidationError(Exception):
     pass
 
 def load_schema() -> dict:
-    schema_path = Path(__file__).parent.parent / "schemas" / "session_handoff.schema.json"
+    schema_path = Path(__file__).parent.parent / "courier_core" / "schemas" / "session_handoff.schema.json"
     if not schema_path.exists():
         raise FileNotFoundError(f"Schema not found at {schema_path}")
     return json.loads(schema_path.read_text(encoding="utf-8"))

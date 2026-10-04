@@ -1,3 +1,4 @@
+import ntpath
 import os
 import subprocess
 from pathlib import Path
@@ -33,7 +34,7 @@ Section "Uninstall"
   Delete "$INSTDIR\\uninstall.exe"
 """
         for file in files_to_install:
-            filename = os.path.basename(file)
+            filename = ntpath.basename(file)  # NSIS paths are Windows paths on every host
             script += f'  Delete "$INSTDIR\\{filename}"\n'
             
         script += """

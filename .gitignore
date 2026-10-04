@@ -173,3 +173,6 @@ courier.db-shm
 
 # PyInstaller rotates the previous bundle to dist_old_<ticks>; never commit it.
 scripts/windows_worker/dist_old_*/
+# Extraction dirs recreated by the bundle test scripts on every run.
+scripts/windows_worker/dist_multi_test/
+scripts/windows_worker/dist_allowlist_test/
