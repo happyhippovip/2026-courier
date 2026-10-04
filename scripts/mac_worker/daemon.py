@@ -294,6 +294,24 @@ def admit_surface(provider, task, config, needs_visible=True, allow_headless=Tru
         raise MuseAdmissionBlocked("SURFACE_BUDGET_EXHAUSTED")
     return supervisor, decision
 
+
+def attach_surface(supervisor, decision, pid):
+    """Bind the surface to (pid, create_time) - the identity the surface
+    supervisor checks via courier_runtime.ownership. Best effort: a missing
+    record only means the surface cannot be reclaimed, never a failed task."""
+    try:
+        import psutil
+        supervisor.attach(decision.surface_id, pid, psutil.Process(pid).create_time())
+    except Exception as exc:
+        write_log(f"surface attach skipped for pid {pid}: {exc}")
+
+
+def coalesced_result(decision, mode):
+    # Joining work that is already running is not a completion: fail closed so
+    # the controller never records an execution that did not happen here.
+    return {"status": "FAILED", "reason": "COALESCED_INTO_RUNNING_WORK", "execution_mode": mode,
+            "surface_id": decision.surface_id}
+
 def run_native(task, config):
     write_log(f"Running NATIVE task {task['task_id']}")
     instruction = task.get('instruction', task.get('description', ''))
@@ -421,7 +439,7 @@ def run_agy(task, config):
     
     supervisor, decision = admit_surface("antigravity", task, config, needs_visible=False, allow_headless=True)
     if decision.action == "COALESCED":
-        return {"status": "SUCCESS", "stdout_summary": "Task coalesced into existing surface."}
+        return coalesced_result(decision, "ANTIGRAVITY")
         
     prompt = "Task ID: " + str(task["task_id"]) + "\nInstruction: " + str(instruction) + "\n\nYou are a headless worker on Mac. You MUST execute the instruction. After you have successfully executed the instruction, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did. IMPORTANT: Your current working directory is " + os.getcwd() + ". Any file artifacts you create MUST be relative to this directory."
     agy_bin = shutil.which("agy") or shutil.which("agy", path=os.environ.get("PATH", "") + ":/Users/user/.local/bin:/usr/local/bin:/opt/homebrew/bin")
@@ -440,7 +458,7 @@ def run_agy(task, config):
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    text=True, start_new_session=True)
         identity = process_identity(process.pid)
-        supervisor.attach(decision.surface_id, process.pid, float(identity.create_time))
+        attach_surface(supervisor, decision, process.pid)
         atomic_json(child_file, {"state": "RUNNING", "identity": identity})
         # Sliced communicate with in-execution heartbeat: the server's
         # reclaim_stale quarantines workers unseen for 300s, and the default
@@ -517,7 +535,7 @@ def run_muse(task, config):
     
     supervisor, decision = admit_surface("muse", task, config, needs_visible=True, allow_headless=False)
     if decision.action == "COALESCED":
-        return {"status": "SUCCESS", "stdout_summary": "Task coalesced into existing surface."}
+        return coalesced_result(decision, "MUSE")
     
     slot = os.environ.get("COURIER_SLOT_ID") or config["WORKER_ID"]
     workspace = os.environ.get("COURIER_MUSE_WORKSPACE", config.get("MUSE_WORKSPACE", CANONICAL_WORKSPACE))
@@ -551,7 +569,7 @@ def run_muse(task, config):
                 proc = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=out, stderr=err,
                                         start_new_session=True)
                 identity = process_identity(proc.pid)
-                supervisor.attach(decision.surface_id, proc.pid, float(identity.create_time))
+                attach_surface(supervisor, decision, proc.pid)
                 atomic_json(child_file, {"state": "RUNNING", "identity": identity, "binding": binding})
             deadline = time.monotonic() + min(float(config.get("MUSE_TIMEOUT_SECONDS", 3600)), 3600)
             heartbeat_at = time.monotonic() + 30
