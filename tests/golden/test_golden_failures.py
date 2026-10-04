@@ -27,7 +27,8 @@ def accepted_events(courier, task_id):
 def test_kill_worker_mid_task_is_retried_once(courier):
     courier.start_controller()
     first = courier.start_worker()
-    wait_until(lambda: courier.worker_descendants(first), 10, "worker host process to spawn")
+    wait_until(lambda: (courier.home / "run" / "worker.lock").exists(), 10, "worker lock to be created")
+    time.sleep(1.0)  # Let handles stabilize
     baseline_descendants = set(courier.worker_descendants(first))
     task_id = courier.make_task(hang=True, lease_ttl_s=LEASE_TTL_S)
     courier.wait_event(task_id, "TASK_STARTED", timeout=30)
@@ -100,7 +101,8 @@ def test_late_result_from_superseded_attempt_is_discarded(courier):
 def test_timeout_kills_the_task_tree_and_retries(courier):
     courier.start_controller()
     worker = courier.start_worker()
-    wait_until(lambda: courier.worker_descendants(worker), 10, "worker host process to spawn")
+    wait_until(lambda: (courier.home / "run" / "worker.lock").exists(), 10, "worker lock to be created")
+    time.sleep(1.0)  # Let handles stabilize
     baseline_handles = open_handles(worker.pid)
     baseline_descendants = set(courier.worker_descendants(worker))
     task_id = courier.make_task(hang=True, timeout_s=3)
@@ -124,7 +126,8 @@ def test_timeout_kills_the_task_tree_and_retries(courier):
 def test_cancel_while_running(courier):
     courier.start_controller()
     worker = courier.start_worker()
-    wait_until(lambda: courier.worker_descendants(worker), 10, "worker host process to spawn")
+    wait_until(lambda: (courier.home / "run" / "worker.lock").exists(), 10, "worker lock to be created")
+    time.sleep(1.0)  # Let handles stabilize
     baseline_descendants = set(courier.worker_descendants(worker))
     task_id = courier.make_task(hang=True)
     courier.wait_event(task_id, "TASK_STARTED", timeout=30)

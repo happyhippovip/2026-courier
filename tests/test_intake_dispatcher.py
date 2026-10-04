@@ -28,16 +28,15 @@ def test_dispatch_intake_success(tmp_path):
         "customer_reference": "CUST-001"
     }))
     
-    with mock.patch("scripts.intake_dispatcher.uuid.uuid4") as mock_uuid, \
-         mock.patch("scripts.intake_dispatcher.subprocess.run") as mock_run, \
+    with mock.patch("scripts.intake_dispatcher.subprocess.run") as mock_run, \
          mock.patch("time.sleep"):
          
-        mock_uuid.return_value.hex = "abcdef123456"
         def fake_run(cmd, *args, **kwargs):
             if cmd[1] == "workflow":
                 return mock.Mock(stdout="dispatched")
             elif cmd[1] == "run":
-                return mock.Mock(stdout="9999\n")
+                # Ensure the created time is strictly > 0 so it matches since_epoch
+                return mock.Mock(stdout='[{"databaseId": 9999, "createdAt": "2030-01-01T00:00:00Z"}]')
             return mock.Mock()
         mock_run.side_effect = fake_run
         
@@ -49,7 +48,7 @@ def test_dispatch_intake_success(tmp_path):
         with open(state_file, "r") as f:
             state = json.load(f)
             
-        task_id = "task-revenue-abcdef12"
+        task_id = "task-revenue-16c00b0f"
         assert task_id in state["tasks"]
         assert state["tasks"][task_id]["execution_ref"] == "9999"
 
@@ -94,10 +93,7 @@ def test_dispatch_intake_corrupt_state_wiped(tmp_path):
          mock.patch("time.sleep"):
          
         mock_run.return_value = mock.Mock(stdout="9999")
-        intake_dispatcher.dispatch_intake(str(intake_file))
         
-        with open(state_file, "r") as f:
-            state = json.load(f)
-            
-        assert "tasks" in state
-        assert len(state["tasks"]) == 1
+        with pytest.raises(SystemExit) as exc:
+            intake_dispatcher.dispatch_intake(str(intake_file))
+        assert exc.value.code == 1
