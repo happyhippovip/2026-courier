@@ -7,7 +7,7 @@ ever opens a window or spawns a process (world.started only grows when a
 rotation/recovery legitimately starts exactly one successor).
 """
 from courier_runtime.continuity import DONE, WAKE_PENDING, Kirby
-from courier_runtime.host_loop import run_once
+from courier_runtime.host_loop import drain_pending, emit_signal, run_once
 
 
 class Clock:
@@ -151,6 +151,39 @@ def test_missing_and_truncated_signal_file_are_fail_closed(tmp_path):
     append(signals, "HEARTBEAT")
     results, _, _ = run_once(k, "s1", signals, state)
     assert results == ["HEARTBEAT"]
+
+
+def test_drain_pending_hands_single_wake_to_provider_once(tmp_path):
+    k, _, world, signals, state = setup(tmp_path, ["W1"], slot="s1", provider="muse")
+    assert drain_pending(k, "s1") is None                     # nothing pending yet
+    append(signals, "IDLE")
+    run_once(k, "s1", signals, state)
+    assert drain_pending(k, "s1") == "W1"                      # one wake -> one execution
+    assert drain_pending(k, "s1") is None                     # already WORKING: no second execution
+    assert k.sessions["s1"].state == "WORKING"
+    assert drain_pending(k, "nope") is None                   # unknown slot: no crash
+    assert len(world.started) == 1                            # taking a wake never spawns
+
+
+def test_emit_signal_appends_exact_lines(tmp_path):
+    _, _, _, signals, _ = setup(tmp_path, ["W1"], slot="s1", provider="muse")
+    signals.unlink()
+    assert emit_signal(signals, "IDLE") == "IDLE"
+    assert emit_signal(signals, "TURN_ENDED outcome=DONE") == "TURN_ENDED outcome=DONE"
+    assert signals.read_text(encoding="utf-8") == "IDLE\nTURN_ENDED outcome=DONE\n"
+
+
+def test_full_chain_emit_notice_drain_turn_end_advances_unaided(tmp_path):
+    k, _, world, signals, state = setup(tmp_path, ["W0", "W1"], slot="s1", provider="muse")
+    emit_signal(signals, "IDLE")
+    _, _, notices = run_once(k, "s1", signals, state)
+    assert (len(notices), drain_pending(k, "s1")) == (1, "W0")
+    emit_signal(signals, "TURN_ENDED outcome=DONE checkpoint=step-done")
+    results, _, notices = run_once(k, "s1", signals, state)
+    assert results == [WAKE_PENDING] and len(notices) == 1
+    assert drain_pending(k, "s1") == "W1"
+    assert k.workkeys["W0"].state == DONE and k.counters["manual_continue"] == 0
+    assert len(world.started) == 1
 
 
 def test_lines_for_unknown_slot_are_ignored(tmp_path):

@@ -8,8 +8,8 @@ notice per pending continuation.
 
 It never prequeues prompts, never opens windows or processes, and never
 kills anything: session start/termination stay Kirby's injected callables.
-Delivery of a pending wake to the provider (``Kirby.deliver``) stays the
-provider lane's job; this loop only makes the wake exist and visible.
+``drain_pending`` is the provider lane's take-one-wake contract;
+``emit_signal`` is how lanes append protocol lines to the signal file.
 """
 import argparse
 import json
@@ -27,6 +27,32 @@ def _file_size(path):
         return os.path.getsize(path)
     except OSError:
         return None
+
+
+def emit_signal(signal_path, line):
+    """Provider lanes append one protocol line (see provider_events). Atomic
+    append + fsync; unknown lines stay fail-closed downstream (IGNORED)."""
+    from pathlib import Path
+
+    p = Path(signal_path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    with open(p, "a", encoding="utf-8") as f:
+        f.write((line or "") + "\n")
+        f.flush()
+        os.fsync(f.fileno())
+    return line
+
+
+def drain_pending(kirby, slot):
+    """Provider lane takes the single pending wake, if any. Returns the
+    workkey and moves the session to WORKING, else None. A second call
+    returns None: one wake becomes exactly one execution."""
+    from courier_runtime.continuity import WAKE_PENDING
+
+    session = kirby.sessions.get(slot)
+    if session is None or session.state != WAKE_PENDING:
+        return None
+    return kirby.deliver(slot)
 
 
 def run_once(kirby, slot, signal_path, state):
