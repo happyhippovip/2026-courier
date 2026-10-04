@@ -1,5 +1,6 @@
 name: Courier Motor
 
+on:
   # Runtime state must never be committed to git. The 5-minute cron and the
   # commit/push of server/state/central_state.json are disabled; the motor can
   # still be run manually for diagnostics, but it no longer persists state.
