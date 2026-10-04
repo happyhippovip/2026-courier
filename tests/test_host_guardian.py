@@ -21,7 +21,7 @@ def test_host_guardian_memory_warning_light_only():
     guardian.evaluate_admission = mock_eval
     assert guardian.evaluate_admission() == AdmissionState.LIGHT_ONLY
 
-def test_host_guardian_cleanup_unknown():
+def test_host_guardian_cleanup_unknown(monkeypatch):
     guardian = HostGuardian(max_heavy_local_jobs=1)
     # Give it a lease
     guardian.admitted_heavy = 1
@@ -39,14 +39,14 @@ def test_host_guardian_cleanup_unknown():
         free = 100 * (1024**3)
         
     import scripts.host_guardian as hg
-    hg.psutil.virtual_memory = lambda: MockMem()
-    hg.psutil.swap_memory = lambda: MockSwap()
-    hg.psutil.disk_usage = lambda path: MockDisk()
+    monkeypatch.setattr(hg.psutil, "virtual_memory", lambda: MockMem())
+    monkeypatch.setattr(hg.psutil, "swap_memory", lambda: MockSwap())
+    monkeypatch.setattr(hg.psutil, "disk_usage", lambda path: MockDisk())
 
     assert guardian.evaluate_admission() == AdmissionState.LIGHT_ONLY
     assert guardian.request_heavy_lease() is False
 
-def test_host_guardian_critical_pressure_closed():
+def test_host_guardian_critical_pressure_closed(monkeypatch):
     guardian = HostGuardian(max_heavy_local_jobs=1)
     
     class MockMem:
@@ -57,14 +57,14 @@ def test_host_guardian_critical_pressure_closed():
         free = 100 * (1024**3)
         
     import scripts.host_guardian as hg
-    hg.psutil.virtual_memory = lambda: MockMem()
-    hg.psutil.swap_memory = lambda: MockSwap()
-    hg.psutil.disk_usage = lambda path: MockDisk()
+    monkeypatch.setattr(hg.psutil, "virtual_memory", lambda: MockMem())
+    monkeypatch.setattr(hg.psutil, "swap_memory", lambda: MockSwap())
+    monkeypatch.setattr(hg.psutil, "disk_usage", lambda path: MockDisk())
 
     assert guardian.evaluate_admission() == AdmissionState.CLOSED
     assert guardian.request_heavy_lease() is False
 
-def test_recovery_tranche_of_one():
+def test_recovery_tranche_of_one(monkeypatch):
     # max_heavy_local_jobs is 1, so burst is impossible by definition.
     guardian = HostGuardian(max_heavy_local_jobs=1)
     
@@ -76,9 +76,9 @@ def test_recovery_tranche_of_one():
         free = 100 * (1024**3)
         
     import scripts.host_guardian as hg
-    hg.psutil.virtual_memory = lambda: MockMem()
-    hg.psutil.swap_memory = lambda: MockSwap()
-    hg.psutil.disk_usage = lambda path: MockDisk()
+    monkeypatch.setattr(hg.psutil, "virtual_memory", lambda: MockMem())
+    monkeypatch.setattr(hg.psutil, "swap_memory", lambda: MockSwap())
+    monkeypatch.setattr(hg.psutil, "disk_usage", lambda path: MockDisk())
     
     assert guardian.request_heavy_lease() is True
     assert guardian.request_heavy_lease() is False # tranche of 1
