@@ -1299,7 +1299,7 @@ export class LivingHQController {
           if (avatarBody) avatarBody.appendChild(propEl);
         }
         propEl.className = `agent-prop prop-${agent.prop}`;
-        propEl.textContent = agent.prop === "cigarette" ? "🚬" : (agent.prop === "shisha" ? "🏺💨" : "🍹");
+        propEl.textContent = agent.prop === "radio" ? "📻" : (agent.prop === "tablet" ? "📋" : "☕");
         propEl.style.display = "inline-block";
       } else if (propEl) {
         propEl.style.display = "none";

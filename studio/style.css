@@ -1750,13 +1750,13 @@ body.mode-zen .chief-alert-bar:hover {
   z-index: 10;
 }
 
-.prop-cigarette {
-  animation: smoke-puff 2s ease-in-out infinite alternate;
+.prop-radio {
+  animation: radio-blink 2s ease-in-out infinite alternate;
 }
 
-.prop-shisha {
+.prop-tablet {
   font-size: 16px;
-  animation: shisha-glow 3s ease-in-out infinite alternate;
+  animation: tablet-glow 3s ease-in-out infinite alternate;
 }
 
 .prop-drink {
@@ -1768,12 +1768,12 @@ body.mode-zen .chief-alert-bar:hover {
   100% { transform: translateY(-3px); }
 }
 
-@keyframes smoke-puff {
+@keyframes radio-blink {
   0% { transform: scale(1) rotate(0deg); opacity: 0.85; }
   100% { transform: scale(1.15) rotate(3deg); opacity: 1; filter: drop-shadow(0 0 6px rgba(200, 200, 255, 0.6)); }
 }
 
-@keyframes shisha-glow {
+@keyframes tablet-glow {
   0% { transform: scale(1); filter: drop-shadow(0 0 4px #00d2ff); }
   100% { transform: scale(1.1); filter: drop-shadow(0 0 10px #00ffaa); }
 }

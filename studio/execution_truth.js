@@ -87,74 +87,74 @@ export function resolveSpeechBubble(agentId, agentState, busState) {
     return 'Warte auf Chief-Freigabe (Human Gate).';
   }
   if (state === 'MONEY_GATE') {
-    return '0 EUR Spend Limit aktiv — Ausgaben verweigert.';
+    return '0 EUR spend limit active — spending refused.';
   }
   if (state === 'HUNG') {
-    return 'WARNUNG: Worker blockiert — keine Liveness seit >300s.';
+    return 'WARNING: worker blocked — no liveness for >300s.';
   }
   if (state === 'RUNNING_NO_PROGRESS') {
-    return 'Task aktiv — warte auf nächsten Fortschrittsschritt.';
+    return 'Task active — waiting for next progress step.';
   }
   if (state === 'PROVIDER_ERROR') {
-    return 'Provider-Verbindung unterbrochen — lokaler Modus aktiv.';
+    return 'Provider connection lost — local mode active.';
   }
   if (state === 'NETWORK_DEGRADED') {
-    return 'Netzwerk instabil — lokaler Fallback aktiv.';
+    return 'Network unstable — local fallback active.';
   }
   if (state === 'ORPHANED') {
-    return 'KRITISCH: Verwaister Prozess ohne aktiven PID.';
+    return 'CRITICAL: orphaned process with no active PID.';
   }
   if (state === 'COMPLETED') {
-    return task ? `Mission abgeschlossen: ${task}` : 'Mission abgeschlossen. Ergebnis persistiert.';
+    return task ? `Mission complete: ${task}` : 'Mission complete. Result persisted.';
   }
 
   // Active / Progressing states
   if (state === 'PROGRESSING' || state === 'RUNNING' || state === 'WORKING') {
     if (agentId === 'worker-google' || agentId === 'agent-antigravity-bridge') {
-      return task ? `Arbeite an: ${task}` : 'Teste Heavy Authority & Autonomie-Logik.';
+      return task ? `Working on: ${task}` : 'Testing heavy authority & autonomy logic.';
     }
     if (agentId === 'worker-codex' || agentId === 'agent-codex-bridge') {
-      return task ? `Prüfe: ${task}` : 'Prüfe Googles Delta & Test-Orakel.';
+      return task ? `Reviewing: ${task}` : 'Reviewing Google delta & test oracle.';
     }
     if (agentId === 'agent-snitch') {
-      return 'Überwache Worker-Zustände & Berechtigungen.';
+      return 'Monitoring worker states & permissions.';
     }
     if (agentId === 'smart-resource-router') {
-      return 'Suche nächste sichere Aufgabe im Backlog.';
+      return 'Finding next safe task in backlog.';
     }
     if (agentId === 'agent-courier-relay') {
-      return task ? `Courier transportiert: ${task}` : 'Transportiere Nachrichten & ResultEnvelopes.';
+      return task ? `Courier transporting: ${task}` : 'Transporting messages & result envelopes.';
     }
-    return task ? `Arbeite an: ${task}` : 'Führe deterministische Aufgabe aus.';
+    return task ? `Working on: ${task}` : 'Running deterministic task.';
   }
 
   // Safe Idle & Standby states
   if (state === 'SAFE_IDLE' || state === 'AVAILABLE' || state === 'STANDBY' || state === 'IDLE' || state === 'IDLE_EXPECTED') {
     if (agentId === 'agent-chief-commander') {
-      return 'HQ im sicheren Standby. Bereit für Direktiven.';
+      return 'HQ in safe standby. Ready for directives.';
     }
     if (agentId === 'agent-snitch') {
-      return 'Alle Systeme gesund. Keine Anomalien.';
+      return 'All systems healthy. No anomalies.';
     }
     if (agentId === 'worker-google') {
-      return 'SAFE_IDLE — Google Worker bereit für neue Aufgaben.';
+      return 'SAFE_IDLE — Google worker ready for new tasks.';
     }
     if (agentId === 'worker-codex') {
-      return 'SAFE_IDLE — Codex QA bereit für Review.';
+      return 'SAFE_IDLE — Codex QA ready for review.';
     }
     if (agentId === 'worker-cli1') {
-      return 'SAFE_IDLE — CLI 1 Terminal aktiv & bereit.';
+      return 'SAFE_IDLE — CLI 1 terminal active & ready.';
     }
     if (agentId === 'worker-cli2') {
-      return 'SAFE_IDLE — CLI 2 Beata Terminal aktiv & bereit.';
+      return 'SAFE_IDLE — CLI 2 Beata terminal active & ready.';
     }
     if (agentId.startsWith('bodyguard-') || agentState?.is_bodyguard) {
-      if (agentState.leisure_area === 'SAUNA') return 'Bereitschaft in der Sauna.';
-      if (agentState.leisure_area === 'COFFEE_BAR') return 'Bereitschaft an der Bar.';
-      if (agentState.leisure_area === 'VISITOR_LOUNGE') return 'Bereitschaft in der Lounge.';
-      return 'Bereitschaft im Aufenthaltsraum.';
+      if (agentState.leisure_area === 'SAUNA') return 'On standby at Security Post.';
+      if (agentState.leisure_area === 'COFFEE_BAR') return 'On standby at Coffee Bar.';
+      if (agentState.leisure_area === 'VISITOR_LOUNGE') return 'On standby in Visitor Lounge.';
+      return 'On standby in ready room.';
     }
-    return 'SAFE_IDLE — warte auf neue Arbeit.';
+    return 'SAFE_IDLE — waiting for new work.';
   }
 
   if (state === 'SLEEPING') {
@@ -171,7 +171,7 @@ export function resolveSpeechBubble(agentId, agentState, busState) {
   if (state === 'EXPECTED_LONG_RUNNING') return 'Intentionally running continuously.';
   if (state === 'STALLED') return 'Stalled. Informed Chief.';
     if (agentId === 'agent-chief-commander' && state === 'UNKNOWN') return 'No current machine evidence.';
-  return 'Neutraler Status — keine aktive Ausführung.';
+  return 'Neutral status — no active execution.';
 }
 
 /**
@@ -1284,8 +1284,8 @@ export function resolveLivingRoomAgents(stateData) {
 
   // Bodyguard leisure vs active positions
   const bodyguardStandbySlots = [
-    { callsign: 'ALPHA', leisure_area: 'SAUNA', x: 79.0, y: 14.0, prop: 'cigarette' },
-    { callsign: 'BRAVO', leisure_area: 'SAUNA', x: 84.0, y: 14.0, prop: 'shisha' },
+    { callsign: 'ALPHA', leisure_area: 'SAUNA', x: 79.0, y: 14.0, prop: 'radio' },
+    { callsign: 'BRAVO', leisure_area: 'SAUNA', x: 84.0, y: 14.0, prop: 'tablet' },
     { callsign: 'CHARLIE', leisure_area: 'COFFEE_BAR', x: 80.0, y: 91.0, prop: 'drink' },
     { callsign: 'DELTA', leisure_area: 'COFFEE_BAR', x: 85.0, y: 91.0, prop: 'drink' },
     { callsign: 'ECHO', leisure_area: 'VISITOR_LOUNGE', x: 12.0, y: 84.0, prop: 'drink' },
@@ -1455,17 +1455,17 @@ export function resolveLivingRoomAgents(stateData) {
 
     let speechText = bg.speech;
     if (hasSecurityAlert) {
-      speechText = `EINSATZ / ALARM: ${alertSummary}`;
+      speechText = `DEPLOY / ALARM: ${alertSummary}`;
     } else if (!speechText || speechText.includes('on reserve') || speechText.includes('Ready for reserve duty')) {
       if (bodyguardState === 'SAFE_IDLE' || bodyguardState === 'STANDBY') {
-        if (slot.leisure_area === 'COFFEE_BAR') speechText = `Bereitschaft an der Bar (Drink).`;
-        else if (slot.leisure_area === 'SAUNA') speechText = slot.callsign === 'ALPHA' ? `Bereitschaft in der Sauna (Pause).` : `Bereitschaft in der Sauna (Shisha).`;
-        else if (slot.leisure_area === 'VISITOR_LOUNGE') speechText = `Bereitschaft in der Lounge.`;
-        else speechText = `Bereitschaft im Aufenthaltsraum.`;
+        if (slot.leisure_area === 'COFFEE_BAR') speechText = `On standby at Coffee Bar (drink).`;
+        else if (slot.leisure_area === 'SAUNA') speechText = slot.callsign === 'ALPHA' ? `On standby at Security Post (rest).` : `On standby at Security Post (radio check).`;
+        else if (slot.leisure_area === 'VISITOR_LOUNGE') speechText = `On standby in Visitor Lounge.`;
+        else speechText = `On standby in ready room.`;
       } else if (bodyguardState === 'PROGRESSING' || bodyguardState === 'WORKING') {
-        speechText = `Sichere Arbeitsbereich: ${bg.temporary_role || 'Task'}.`;
+        speechText = `Securing work area: ${bg.temporary_role || 'Task'}.`;
       } else if (bodyguardState === 'RETURNING') {
-        speechText = `Aufgabe abgeschlossen. Kehre zur Bereitschaft zurück.`;
+        speechText = `Task complete. Returning to standby.`;
       }
     }
 
@@ -1528,32 +1528,32 @@ export function resolveChiefAlerts(stateData) {
 
   // 1. Permission Prompts
   if (snitch?.permission_blocked_count > 0) {
-    addAlert('WAITING_PERMISSION', 'WARNING', `Warte auf Berechtigung für ${snitch.permission_blocked_count} Worker`);
+    addAlert('WAITING_PERMISSION', 'WARNING', `Waiting for permission for ${snitch.permission_blocked_count} workers`);
   }
 
   // 2. Hung Workers
   if (snitch?.hung_workers_count > 0) {
-    addAlert('HUNG', 'CRITICAL', `${snitch.hung_workers_count} Worker blockiert (>300s keine Aktivität)`);
+    addAlert('HUNG', 'CRITICAL', `${snitch.hung_workers_count} workers blocked (>300s no activity)`);
   }
 
   // 3. Stale Orphans
   if (snitch?.stale_orphans_count > 0) {
-    addAlert('ORPHANED', 'CRITICAL', `${snitch.stale_orphans_count} verwaiste Worker-Prozesse erkannt`);
+    addAlert('ORPHANED', 'CRITICAL', `${snitch.stale_orphans_count} orphaned worker processes detected`);
   }
 
   // 4. Human Gate
   if (bus?.human_gate || runtime?.human_gates?.length > 0) {
-    addAlert('HIGH_RISK_GATE', 'WARNING', 'Human Gate aktiv — Chief Freigabe erforderlich');
+    addAlert('HIGH_RISK_GATE', 'WARNING', 'Human gate active — chief approval required');
   }
 
   // 5. Money Gate
   if (runtime?.money_gates?.length > 0) {
-    addAlert('HIGH_RISK_GATE', 'WARNING', '0 EUR Spend Limit Gate aktiv — Fremdausgaben blockiert');
+    addAlert('HIGH_RISK_GATE', 'WARNING', '0 EUR spend limit gate active — external spending blocked');
   }
 
   // 6. Quarantined Branches
   if (anomalies?.quarantined_branches?.length > 0) {
-    addAlert('ANOMALY', 'CRITICAL', `Branch Quarantäne aktiv: ${anomalies.quarantined_branches.join(', ')}`);
+    addAlert('ANOMALY', 'CRITICAL', `Branch quarantine active: ${anomalies.quarantined_branches.join(', ')}`);
   }
 
   // 7. Recent Worker Completions
@@ -2030,7 +2030,7 @@ export function resolveStoryLivingAgents(step, baseLivingAgents) {
         state = 'TASK RECEIVED';
         anim = 'idle';
         isBusy = true;
-        speech = (activeAgentId === 'agent-courier-relay') ? caption : 'Bereit für Dispatch';
+        speech = (activeAgentId === 'agent-courier-relay') ? caption : 'Ready for dispatch';
       } else if (phase === 'RESULT_PREPARED') {
         targetX = HQ_WAYPOINTS['DESK_16'].x;
         targetY = HQ_WAYPOINTS['DESK_16'].y;
