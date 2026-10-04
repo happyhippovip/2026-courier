@@ -89,6 +89,18 @@ class Outcome:
     SPAWN_FAILED = "spawn-failed"
 
 
+class LivenessState:
+    DELIVERED = "delivered"
+    ACCEPTED = "accepted"
+    WORKING = "working"
+    QUIET = "quiet"
+    SLOW = "slow"
+    PROBING = "probing"
+    FAILED = "failed"
+    RESULT_DURABLE = "result_durable"
+    RETIRED = "retired"
+
+
 @dataclass(frozen=True)
 class ExecutionSpec:
     """Everything the host needs to run one dispatch, nothing more."""
@@ -97,7 +109,6 @@ class ExecutionSpec:
     attempt: int
     dispatch_id: str
     worker_id: str
-    result_id: str
     argv: tuple
     timeout_s: float
     lease_ttl_s: float
@@ -111,7 +122,7 @@ class ExecutionSpec:
     effect_key: Optional[str] = None
 
     def __post_init__(self):
-        for name in ("task_id", "dispatch_id", "worker_id", "result_id"):
+        for name in ("task_id", "dispatch_id", "worker_id"):
             value = getattr(self, name)
             if not isinstance(value, str) or not value or len(value) > 200:
                 raise SpecError(f"{name} must be a non-empty string of at most 200 chars")
@@ -287,6 +298,22 @@ if os.name == "nt":
 
     def _terminate_job(job: object) -> None:
         _kernel32.TerminateJobObject(job, 1)
+
+    # NtResumeProcess resumes all threads in a process given its handle.
+    # This replaces the psutil dependency for the CREATE_SUSPENDED pattern.
+    _ntdll = ctypes.WinDLL("ntdll", use_last_error=True)
+    _ntdll.NtResumeProcess.restype = wintypes.LONG  # NTSTATUS
+    _ntdll.NtResumeProcess.argtypes = [wintypes.HANDLE]
+
+    def _resume_process(proc: subprocess.Popen) -> None:
+        """Resume a process created with CREATE_SUSPENDED."""
+        # subprocess.Popen on Windows stores the process handle as _handle
+        handle = getattr(proc, "_handle", None)
+        if handle is None:
+            raise ContainmentError("cannot resume: no process handle")
+        status = _ntdll.NtResumeProcess(handle)
+        if status < 0:
+            raise ContainmentError(f"NtResumeProcess failed: NTSTATUS 0x{status & 0xFFFFFFFF:08X}")
 else:
     def _job_for_child() -> object:
         return None
@@ -428,8 +455,7 @@ def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
     if os.name == "nt":
         try:
             _assign_to_job(job, proc.pid)
-            import psutil
-            psutil.Process(proc.pid).resume()
+            _resume_process(proc)
         except BaseException:
             try:
                 proc.kill()
@@ -464,9 +490,21 @@ def _claim_path(home: str, dispatch_id: str) -> Path:
     return _claims_dir(home) / f"dispatch-{safe or 'unnamed'}.json"
 
 
-def _owner_alive(owner_pid: int) -> bool:
+def _owner_alive(owner_pid: int, owner_create_time: float = None) -> bool:
     if owner_pid <= 0:
         return False
+    try:
+        import psutil
+        p = psutil.Process(owner_pid)
+        if not p.is_running():
+            return False
+        if owner_create_time is not None and owner_create_time > 0:
+            if abs(p.create_time() - owner_create_time) > 1.0:
+                return False
+        return True
+    except (ImportError, Exception):
+        pass
+        
     try:
         if os.name == "nt":
             import ctypes
@@ -481,10 +519,18 @@ def _owner_alive(owner_pid: int) -> bool:
         return False
 
 
+
+def _get_my_create_time() -> float:
+    try:
+        import psutil
+        return psutil.Process().create_time()
+    except Exception:
+        return 0.0
+
 def _write_claim_record(home: str, spec: ExecutionSpec, run: ContainedRun) -> Path:
     _claims_dir(home).mkdir(parents=True, exist_ok=True)
     record = {"task_id": spec.task_id, "attempt": spec.attempt, "dispatch_id": spec.dispatch_id,
-              "worker_id": spec.worker_id, "owner_pid": os.getpid(), "child_pid": run.pid,
+              "worker_id": spec.worker_id, "owner_pid": os.getpid(), "owner_create_time": _get_my_create_time(), "child_pid": run.pid,
               "pgid": run.group_id()}
     path = _claim_path(home, spec.dispatch_id)
     fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".claim-", suffix=".tmp")
@@ -512,9 +558,15 @@ def run_orphan_gate(home: str) -> int:
     for path in sorted(claims.glob(CLAIM_RECORD_GLOB)):
         try:
             record = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
+            owner_pid = int(record.get("owner_pid", 0) or 0)
+        except (OSError, ValueError, TypeError):
+            try:
+                path.rename(path.with_suffix('.json.corrupt'))
+            except OSError:
+                pass
             continue
-        if _owner_alive(int(record.get("owner_pid", 0))):
+        owner_create_time = record.get("owner_create_time")
+        if _owner_alive(owner_pid, owner_create_time):
             continue  # another live host owns this tree; hands off
         _reap_orphan(record)
         try:
@@ -658,13 +710,16 @@ def _tail(path: str, limit: int = MAX_STDIO_TAIL) -> str:
 
 
 def write_crash_report(artifact_dir: str, spec: ExecutionSpec, outcome: str,
-                       returncode: Optional[int], duration_s: float, stderr_path: str) -> str:
+                       returncode: Optional[int], duration_s: float, stderr_path: str, redact_string: Optional[str] = None) -> str:
     """Persist the abnormal end as evidence; the report itself is an artifact."""
     os.makedirs(artifact_dir, exist_ok=True)
+    tail = _tail(stderr_path)[-8000:]
+    if redact_string and len(redact_string) > 4:
+        tail = tail.replace(redact_string, "[REDACTED_TOKEN]")
     report = {"dispatch_id": spec.dispatch_id, "task_id": spec.task_id, "attempt": spec.attempt,
               "worker_id": spec.worker_id, "outcome": outcome, "returncode": returncode,
               "duration_s": round(duration_s, 3),
-              "stderr_tail": _tail(stderr_path)[-8000:]}
+              "stderr_tail": tail}
     path = os.path.join(artifact_dir, CRASH_REPORT_NAME)
     fd, tmp = tempfile.mkstemp(dir=artifact_dir, prefix=".crash-", suffix=".tmp")
     try:
@@ -797,10 +852,27 @@ class WorkerHost:
             now = time.monotonic()
             remaining = min(timeout_at, lease_at) - now
             if remaining <= 0:
-                outcome = Outcome.TIMEOUT if timeout_at <= lease_at else Outcome.LEASE_LOST
-                run.terminate_tree()
-                returncode = run.poll()
-                break
+                if timeout_at <= lease_at:
+                    # Time bound reached. LAW: Timeout means SLOW/STALLED/PROBING.
+                    # ONE bounded, non-destructive diagnostic probe.
+                    liveness = LivenessState.PROBING
+                    if run.poll() is not None:
+                        # Process actually exited
+                        outcome = Outcome.TIMEOUT
+                        run.terminate_tree()
+                        returncode = run.poll()
+                        break
+                    else:
+                        # Process is still alive. Do not authorize kill.
+                        # Extend timeout bound, but keep lease cap intact.
+                        liveness = LivenessState.SLOW
+                        timeout_at = now + spec.timeout_s
+                        continue
+                else:
+                    outcome = Outcome.LEASE_LOST
+                    run.terminate_tree()
+                    returncode = run.poll()
+                    break
             if is_cancelled is not None:
                 try:
                     cancelled = is_cancelled()
@@ -825,8 +897,14 @@ class WorkerHost:
         duration_s = time.monotonic() - start
         crash_report_path = None
         if outcome != Outcome.COMPLETED:
+            token = None
+            try:
+                with open(os.path.join(self.home, "run", "controller.token"), encoding="utf-8") as f:
+                    token = f.read().strip()
+            except OSError:
+                pass
             crash_report_path = write_crash_report(
-                spec.artifact_dir, spec, outcome, returncode, duration_s, run.stderr_path)
+                spec.artifact_dir, spec, outcome, returncode, duration_s, run.stderr_path, redact_string=token)
         artifacts = collect_artifacts(spec.artifact_dir)
         return ExecutionResult(
             spec=spec, outcome=outcome, returncode=returncode,
