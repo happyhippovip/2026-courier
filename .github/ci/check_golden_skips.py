@@ -27,6 +27,7 @@ import subprocess
 import sys
 
 EXPECTED_TOTAL = 11
+EXPECTED_SKIPPED_DEFAULT = 0
 EXPECTED_REASON_PREFIX = "golden harness waiting for v1 components"
 
 SUMMARY_RE = re.compile(r"^(\d+) skipped", re.MULTILINE)
@@ -48,7 +49,7 @@ def main(argv=None):
     here = os.path.abspath(__file__)  # <root>/.github/ci/check_golden_skips.py
     repo_root = os.path.dirname(os.path.dirname(os.path.dirname(here)))
     expected_skipped = int(os.environ.get("COURIER_EXPECTED_GOLDEN_SKIPS",
-                                           str(EXPECTED_TOTAL)))
+                                           str(EXPECTED_SKIPPED_DEFAULT)))
     expected_total = int(os.environ.get("COURIER_EXPECTED_GOLDEN_TOTAL",
                                         str(EXPECTED_TOTAL)))
     returncode, output = run_golden(repo_root)
@@ -64,10 +65,12 @@ def main(argv=None):
         grouped = grouped_re.match(line)
         collected += int(grouped.group(1)) if grouped else 1
     summary_match = SUMMARY_RE.search(output)
-    summary_skipped = int(summary_match.group(1)) if summary_match else -1
+    summary_skipped = int(summary_match.group(1)) if summary_match else (0 if not skipped_lines else -1)
     bad_reasons = [line for line in skipped_lines
                    if EXPECTED_REASON_PREFIX not in line]
     failed = "failed" in output.splitlines()[-1] if output.strip() else True
+    if "passed" in output.splitlines()[-1] and "failed" not in output.splitlines()[-1]:
+        failed = False
 
     lines = ["## Courier v1 golden skip ratchet", ""]
     lines.append("collected-skips=%d summary-skips=%d expected-skipped=%d "
