@@ -31,13 +31,18 @@ def test_timed_out_process_is_killed_not_left_running(monkeypatch):
     real_communicate = subprocess.Popen.communicate  # captured before patching, else infinite recursion
 
     def spawn_sleep(cmd, **kwargs):
-        # Stand-in for the hard-coded ["powershell", "-Command", instruction];
-        # a real child process is what matters for this test, not its name.
-        # The interpreter exists on every runner; there is no `sleep` on Windows.
-        return real_popen_class([sys.executable, "-c", "import time; time.sleep(30)"], **kwargs)
+        # Stand-in for the hard-coded ["powershell", ...] call only; every other
+        # Popen (e.g. taskkill inside kill_process_tree on Windows) stays real,
+        # otherwise the kill path itself would be replaced and never kill.
+        if cmd and cmd[0] == "powershell":
+            # The interpreter exists on every runner; there is no `sleep` on Windows.
+            cmd = [sys.executable, "-c", "import time; time.sleep(30)"]
+        return real_popen_class(cmd, **kwargs)
 
     def short_timeout(self, input=None, timeout=None):
-        return real_communicate(self, input=input, timeout=0.2)
+        # Shorten only run_task's 600 s wait; taskkill and the post-kill drain
+        # keep their real timeouts.
+        return real_communicate(self, input=input, timeout=0.2 if timeout == 600 else timeout)
 
     monkeypatch.setattr(daemon.subprocess, "Popen", spawn_sleep)
     monkeypatch.setattr(real_popen_class, "communicate", short_timeout)
