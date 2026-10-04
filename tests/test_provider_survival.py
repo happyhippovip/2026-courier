@@ -25,8 +25,8 @@ def test_1_provider_quota_exhausted():
     scheduler.handle_wake("wake-1", [task])
     
     # Circuit opens
-    assert scheduler.breaker.is_open("muse", "completion") is True
-    circuit = scheduler.breaker.get_circuit("muse", "completion")
+    assert scheduler.breaker.is_open("muse", "default", "completion") is True
+    circuit = scheduler.breaker.get_circuit("muse", "default", "completion")
     assert circuit.state == ProviderState.QUOTA_EXHAUSTED
     assert circuit.reset_time == reset_time
     assert "task-1" not in scheduler.completed_tasks
@@ -34,7 +34,7 @@ def test_1_provider_quota_exhausted():
 def test_2_100_duplicate_wakes_coalesce():
     scheduler = CourierScheduler()
     # Manually open the circuit
-    scheduler.breaker.record_failure("muse", "completion", 429, "quota exhausted")
+    scheduler.breaker.record_failure("muse", "default", "completion", 429, "quota exhausted")
     scheduler.providers = [Provider("muse", True, ["completion"])]
     
     task = TaskContext("task-1")
@@ -60,11 +60,11 @@ def test_2_100_duplicate_wakes_coalesce():
 
 def test_3_provider_unavailable_but_local_work_proceeds():
     scheduler = CourierScheduler()
-    scheduler.breaker.record_failure("muse", "completion", 503, "Unavailable")
+    scheduler.breaker.record_failure("muse", "default", "completion", 503, "Unavailable")
     scheduler.providers = [Provider("muse", True, ["completion"])]
     
     t_provider = TaskContext("t-prov", is_deterministic=False)
-    t_local = TaskContext("t-loc", is_deterministic=True)
+    t_local = TaskContext("t-loc", is_deterministic=True, accepted_evidence="yes")
     
     scheduler.handle_wake("wake-1", [t_provider, t_local])
     
@@ -73,30 +73,31 @@ def test_3_provider_unavailable_but_local_work_proceeds():
 
 def test_4_authorized_fallback_exists():
     scheduler = CourierScheduler()
-    scheduler.breaker.record_failure("muse", "completion", 429, "quota")
+    scheduler.breaker.record_failure("muse", "default", "completion", 429, "quota")
     # Both authorized
     scheduler.providers = [
         Provider("muse", True, ["completion"]),
         Provider("gemini", True, ["completion"])
     ]
     
-    t_provider = TaskContext("t-prov")
+    t_provider = TaskContext("t-prov", accepted_evidence="yes")
     scheduler.handle_wake("wake-1", [t_provider])
     
-    # It should fallback to gemini and complete
+    # Handoff is consumed immediately and task executes on fallback.
     assert "t-prov" in scheduler.completed_tasks
+    assert len(scheduler.pending_handoffs) == 0
 
 def test_5_no_authorized_fallback_exists():
     scheduler = CourierScheduler()
-    scheduler.breaker.record_failure("muse", "completion", 429, "quota")
+    scheduler.breaker.record_failure("muse", "default", "completion", 429, "quota")
     # Gemini NOT authorized
     scheduler.providers = [
         Provider("muse", True, ["completion"]),
         Provider("gemini", False, ["completion"])
     ]
     
-    t_provider = TaskContext("t-prov")
-    t_local = TaskContext("t-loc", is_deterministic=True)
+    t_provider = TaskContext("t-prov", accepted_evidence="yes")
+    t_local = TaskContext("t-loc", is_deterministic=True, accepted_evidence="yes")
     
     scheduler.handle_wake("wake-1", [t_provider, t_local])
     
@@ -105,7 +106,7 @@ def test_5_no_authorized_fallback_exists():
 
 def test_6_human_desk_not_bypassed():
     scheduler = CourierScheduler()
-    scheduler.breaker.record_failure("muse", "completion", 429, "quota")
+    scheduler.breaker.record_failure("muse", "default", "completion", 429, "quota")
     scheduler.providers = [
         Provider("muse", True, ["completion"]),
         Provider("gemini", True, ["completion"])
@@ -120,13 +121,13 @@ def test_6_human_desk_not_bypassed():
 
 def test_7_external_effect_uncertain_no_retry():
     scheduler = CourierScheduler()
-    scheduler.breaker.record_failure("muse", "completion", 502, "Bad Gateway")
+    scheduler.breaker.record_failure("muse", "default", "completion", 502, "Bad Gateway")
     scheduler.providers = [
         Provider("muse", True, ["completion"]),
         Provider("gemini", True, ["completion"])
     ]
     
-    t_uncertain = TaskContext("t-eff", effect_uncertain=True)
+    t_uncertain = TaskContext("t-eff", accepted_evidence="yes", effect_uncertain=True)
     
     scheduler.handle_wake("wake-1", [t_uncertain])
     
@@ -134,12 +135,12 @@ def test_7_external_effect_uncertain_no_retry():
 
 def test_8_restart_preserves_circuit():
     breaker = ProviderCircuitBreaker()
-    breaker.record_failure("muse", "completion", 429, "quota")
+    breaker.record_failure("muse", "default", "completion", 429, "quota")
     
     # Restart
     breaker2 = copy.deepcopy(breaker)
-    assert breaker2.is_open("muse", "completion") is True
-    assert breaker2.get_circuit("muse", "completion").state == ProviderState.QUOTA_EXHAUSTED
+    assert breaker2.is_open("muse", "default", "completion") is True
+    assert breaker2.get_circuit("muse", "default", "completion").state == ProviderState.QUOTA_EXHAUSTED
 
 def test_9_provider_reset_time_arrives_recovery_probe():
     scheduler = CourierScheduler()
@@ -147,32 +148,36 @@ def test_9_provider_reset_time_arrives_recovery_probe():
     
     # Time in the past
     reset = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(seconds=1)
-    scheduler.breaker.record_failure("muse", "completion", 429, "quota", reset_time=reset)
+    scheduler.breaker.record_failure("muse", "default", "completion", 429, "quota", reset_time=reset)
     
-    circuit = scheduler.breaker.get_circuit("muse", "completion")
+    circuit = scheduler.breaker.get_circuit("muse", "default", "completion")
     
     # First check opens it for probe
-    assert scheduler.breaker.is_open("muse", "completion") is False
+    assert scheduler.breaker.is_open("muse", "default", "completion") is False
     assert circuit.state == ProviderState.RECOVERY_PROBE_DUE
     
     # Second check still allows probe, keeps it RECOVERY_PROBE_DUE until success or failure is recorded
-    assert scheduler.breaker.is_open("muse", "completion") is False
+    assert scheduler.breaker.is_open("muse", "default", "completion") is False
 
 def test_10_provider_recovers_exactly_one_continuation():
     scheduler = CourierScheduler()
     scheduler.providers = [Provider("muse", True, ["completion"])]
     
     reset = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(seconds=1)
-    scheduler.breaker.record_failure("muse", "completion", 429, "quota", reset_time=reset)
+    scheduler.breaker.record_failure("muse", "default", "completion", 429, "quota", reset_time=reset)
     
-    t_prov = TaskContext("t-prov")
+    t_prov = TaskContext("t-prov", accepted_evidence="yes")
     
     # Simulate success
     scheduler.handle_wake("wake-1", [t_prov])
     
-    # completed_tasks only has 1
+    # Probe re-arms the circuit but task is NOT complete
+    assert "t-prov" not in scheduler.completed_tasks
+    assert scheduler.breaker.get_circuit("muse", "default", "completion").state == ProviderState.AVAILABLE
+    
+    # Second wake: now circuit is AVAILABLE, task actually executes
+    scheduler.handle_wake("wake-2", [t_prov])
     assert scheduler.completed_tasks.count("t-prov") == 1
-    assert scheduler.breaker.get_circuit("muse", "completion").state == ProviderState.AVAILABLE
 
 def test_11_emfile_resource_pause():
     scheduler = CourierScheduler()
@@ -182,7 +187,7 @@ def test_11_emfile_resource_pause():
         
     scheduler.execute_local = fail_local
     
-    t_local = TaskContext("t-loc", is_deterministic=True)
+    t_local = TaskContext("t-loc", is_deterministic=True, accepted_evidence="yes")
     
     scheduler.handle_wake("wake-1", [t_local])
     
