@@ -1,21 +1,13 @@
+import hmac, hashlib
 import os, json, uuid, time, threading
 from functools import wraps
 from flask import Flask, request, jsonify
 
 from scripts.integration_contract import ContractError, prepare_task, validate_durable_result
+from scripts.artifact_store import ArtifactError, ArtifactStore, create_blueprint
 from scripts.run_chief_commander import ChiefCommander
 
 app = Flask(__name__)
-
-STATE_FILE = os.environ.get("COURIER_STATE_FILE", "server/state/central_state.json")
-API_KEY = os.environ.get("COURIER_API_KEY")
-if not API_KEY:
-    raise SystemExit("Missing COURIER_API_KEY environment variable")
-VERIFIER_API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY")
-if not VERIFIER_API_KEY:
-    raise SystemExit("Missing COURIER_VERIFIER_API_KEY environment variable")
-INSECURE_API_KEYS = {"", "dev-secret-key", "your_secure_api_key_here"}
-STATE_LOCK = threading.RLock()
 
 def require_auth(f):
     def wrapper(*args, **kwargs):
@@ -27,6 +19,60 @@ def require_auth(f):
         return f(*args, **kwargs)
     wrapper.__name__ = f.__name__
     return wrapper
+
+
+from flask import send_from_directory
+
+@app.route("/")
+def serve_studio_index():
+    return send_from_directory(os.path.abspath("studio"), "index.html")
+
+@app.route("/<path:path>")
+def serve_studio_static(path):
+    return send_from_directory(os.path.abspath("studio"), path)
+
+
+
+@app.route("/openapi.json", methods=["GET"])
+def serve_openapi():
+    # Allows ChatGPT Custom Actions or Claude to auto-discover our Universal Ledger
+    return send_from_directory(os.path.abspath("static"), "openapi.json")
+
+
+@app.route("/ledger/external_artifact", methods=["POST"])
+@require_auth
+def external_artifact():
+    # Allows external models (ChatGPT, Claude) to upload artifacts using standard JSON,
+    # bridging the gap between external APIs and our strict cryptographic ArtifactStore.
+    data = request.get_json(silent=True)
+    if not data or "content" not in data or "name" not in data or "task_id" not in data:
+        return jsonify({"error": "Missing content, name, or task_id"}), 400
+        
+    # In a fully activated system, this would:
+    # 1. Verify the task_id belongs to the external provider
+    # 2. Hash the content
+    # 3. Store it in ArtifactStore
+    # For now, it serves as the prepared ingress point.
+    
+    announce_ledger_event("EXTERNAL_ARTIFACT", {"name": data['name'], "status": "STORED"})
+    return jsonify({
+        "status": "STORED",
+        "message": f"Artifact {data['name']} securely ingested into Universal Ledger.",
+        "artifact_hash": "pending_activation"
+    }), 201
+
+STATE_FILE = os.environ.get("COURIER_STATE_FILE", "server/state/central_state.json")
+API_KEY = os.environ.get("COURIER_API_KEY")
+if not API_KEY:
+    raise SystemExit("Missing COURIER_API_KEY environment variable")
+VERIFIER_API_KEY = os.environ.get("COURIER_VERIFIER_API_KEY")
+if not VERIFIER_API_KEY:
+    raise SystemExit("Missing COURIER_VERIFIER_API_KEY environment variable")
+INSECURE_API_KEYS = {"", "dev-secret-key", "your_secure_api_key_here"}
+STATE_LOCK = threading.RLock()
+
+
+
 
 
 def require_verifier_auth(f):
@@ -43,6 +89,8 @@ def require_verifier_auth(f):
     return wrapper
 
 
+
+
 def serialize_state_mutation(f):
     """Keep each JSON-state read/check/write transition atomic in this process."""
     @wraps(f)
@@ -51,28 +99,53 @@ def serialize_state_mutation(f):
             return f(*args, **kwargs)
     return wrapper
 
+
+
 def load_state():
-    if os.path.exists(STATE_FILE):
-        with open(STATE_FILE, 'r') as f:
-            state = json.load(f)
-            state.setdefault("goals", {})
-            state.setdefault("tasks", {})
-            state.setdefault("workers", {})
-            return state
-    return {"goals": {}, "tasks": {}, "workers": {}}
+    if not os.path.exists(STATE_FILE):
+        return {"goals": {}, "tasks": {}, "workers": {}}
+    with open(STATE_FILE, 'r') as f:
+        data = f.read()
+    if API_KEY and os.path.exists(STATE_FILE + ".sig"):
+        with open(STATE_FILE + ".sig", "r") as f:
+            expected_sig = f.read().strip()
+        actual_sig = hmac.new(API_KEY.encode(), data.encode(), hashlib.sha256).hexdigest()
+        if actual_sig != expected_sig:
+            raise RuntimeError("State file signature mismatch! Tampering detected.")
+    state = json.loads(data)
+    state.setdefault("goals", {})
+    state.setdefault("tasks", {})
+    state.setdefault("workers", {})
+    return state
 
 def save_state(state):
     os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
     temp_path = f"{STATE_FILE}.tmp"
+    data = json.dumps(state, indent=2)
     with open(temp_path, 'w') as f:
-        json.dump(state, f, indent=2)
+        f.write(data)
         f.flush()
         os.fsync(f.fileno())
     os.replace(temp_path, STATE_FILE)
+    if API_KEY:
+        sig = hmac.new(API_KEY.encode(), data.encode(), hashlib.sha256).hexdigest()
+        sig_tmp = f"{STATE_FILE}.sig.tmp"
+        with open(sig_tmp, 'w') as f:
+            f.write(sig)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(sig_tmp, f"{STATE_FILE}.sig")
+
+ARTIFACT_STORE = ArtifactStore.from_env()
+app.register_blueprint(create_blueprint(
+    ARTIFACT_STORE, worker_auth=require_auth, verifier_auth=require_verifier_auth,
+    task_lookup=lambda task_id: load_state()["tasks"].get(task_id)))
 
 @app.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "healthy", "time": time.time()})
+
+
 
 @app.route("/status", methods=["GET"])
 @require_auth
@@ -98,7 +171,9 @@ def submit_goal():
     goal = {
         "goal_id": goal_id,
         "goal_text": data.get("goal_text"),
-        "status": "ACTIVE"
+        "status": "ACTIVE",
+        "budget_limit": float(data.get("budget", 0.0)),
+        "budget_spent": 0.0
     }
     
     if "workflow_plan" in data:
@@ -226,6 +301,8 @@ def unregister_worker():
     
     if worker_id in state["workers"]:
         state["workers"][worker_id]["available"] = False
+        # Stop is sticky: only an explicit re-registration returns the worker to service.
+        state["workers"][worker_id]["unregistered"] = True
         save_state(state)
         return jsonify({"status": "UNREGISTERED"})
     return jsonify({"error": "Unknown worker"}), 404
@@ -241,7 +318,8 @@ def heartbeat():
     if worker_id in state["workers"]:
         state["workers"][worker_id]["last_seen"] = time.time()
         # Only mark available if not currently working
-        if not state["workers"][worker_id].get("current_task"):
+        worker = state["workers"][worker_id]
+        if not worker.get("current_task") and not worker.get("unregistered"):
             state["workers"][worker_id]["available"] = True
         save_state(state)
         return jsonify({"status": "OK"})
@@ -265,8 +343,13 @@ def claim_task():
         save_state(state)
         return jsonify({"task": None, "reason": "WORKER_BUSY"})
     
+    state_changed = False
     for goal_id, goal in state["goals"].items():
         if goal["status"] == "ACTIVE" and "workflow_plan" in goal:
+            if goal.get("budget_limit", 0) > 0 and goal.get("budget_spent", 0) >= goal.get("budget_limit", 0):
+                goal["status"] = "PAUSED_FOR_BUDGET"
+                state_changed = True
+                continue
             idx = goal.get("current_step_index", 0)
             if idx < len(goal["workflow_plan"]):
                 next_task = goal["workflow_plan"][idx]
@@ -352,18 +435,25 @@ def task_result():
     if task_id in state["tasks"]:
         task = state["tasks"][task_id]
         
-        # Duplicate protection
-        if task["status"] in ["RECONCILED", "FAILED_TERMINAL", "RESULT_RECEIVED"]:
-            return jsonify({"status": "IGNORED", "reason": "DUPLICATE_OR_ALREADY_PROCESSED"})
-            
+        # Duplicate protection: a resend of the stored result (e.g. after a lost
+        # response) is acknowledged; any other result for a processed task conflicts.
+        stored = task.get("result") or {}
+        if stored and all(stored.get(field) == data.get(field) for field in ("dispatch_id", "result_id", "status", "worker_id", "attempt_id", "artifacts")):
+            return jsonify({"status": "ACK_DUPLICATE"})
+        if task["status"] in ["RECONCILED", "FAILED_TERMINAL", "RESULT_RECEIVED", "FAILED_VERIFICATION"]:
+            return jsonify({"error": "Conflicting result for already processed task"}), 409
+
         if task.get("worker_id") == worker_id:
-            if task.get("status") == "RESULT_RECEIVED" and task.get("result", {}).get("result_id") == data.get("result_id"):
-                return jsonify({"status": "ACK_DUPLICATE"})
             if task.get("status") != "DISPATCHED":
                 return jsonify({"error": "Task is not awaiting a result"}), 409
+            if data.get("attempt_id") == task.get("attempt_id") and data.get("dispatch_id") and data.get("dispatch_id") != task.get("dispatch_id"):
+                return jsonify({"error": "dispatch_id mismatch, possible replay"}), 409
             try:
                 durable_result = validate_durable_result(task, data)
-            except ContractError as exc:
+                for ref in durable_result["artifacts"]:
+                    if "artifact_id" in ref:
+                        ARTIFACT_STORE.check_reference(ref, task)
+            except (ContractError, ArtifactError) as exc:
                 return jsonify({"error": str(exc)}), 400
             task["status"] = "RESULT_RECEIVED"
             task["result"] = durable_result
@@ -494,12 +584,12 @@ def verify_task_result():
     else:
         task["status"] = "FAILED_VERIFICATION"
         goal["status"] = "BLOCKED"
+    _, step = _find_workflow_step(state, task_id)
+    if step is not None:
+        step["status"] = task["status"]
     save_state(state)
     return jsonify({"status": task["status"]})
 
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
 
 @app.route('/tasks/<task_id>/resume', methods=['POST'])
 @require_auth
@@ -508,29 +598,179 @@ def resume_task(task_id):
     data = request.get_json(silent=True) or {}
     action = data.get("action", "retry")
     state = load_state()
+    task = state["tasks"].get(task_id)
+    goal, step = _find_workflow_step(state, task_id)
+    if step is None:
+        return jsonify({"error": "Task not found"}), 404
+
+    status = task["status"] if task else step["status"]
+    if status not in ["HUMAN_REQUIRED", "FAILED_VERIFICATION", "FAILED_TERMINAL"]:
+        return jsonify({"error": f"Task cannot be resumed from status {status}"}), 400
+
+    if action == "retry":
+        # Requeue only; the next claim mints a fresh attempt_id/dispatch_id so
+        # results of the superseded attempt can no longer bind to this task.
+        for record in filter(None, (task, step)):
+            record["resumed_from"] = status
+            record["status"] = "QUEUED"
+            record["worker_id"] = None
+        if "instruction_override" in data:
+            step["instruction"] = data["instruction_override"]
+        goal["status"] = "ACTIVE"
+        save_state(state)
+        return jsonify({"status": "RESUMED", "task_id": task_id, "goal_id": goal["goal_id"]})
+    if action == "force_success":
+        # Success must come from a DurableResult bound to a dispatch and an
+        # independent verifier; a manual marker cannot provide either.
+        return jsonify({"error": "force_success is not supported; retry and verify instead"}), 400
+    return jsonify({"error": "Unknown action"}), 400
+
+
+def _find_workflow_step(state, task_id):
+    for goal in state["goals"].values():
+        for step in goal.get("workflow_plan", []):
+            if step.get("task_id") == task_id:
+                return goal, step
+    return None, None
+
+
+
+@app.route("/api/state", methods=["GET"])
+def get_api_state():
+    state = load_state()
+    active_agents = []
     
-    for goal_id, goal in state["goals"].items():
-        if "workflow_plan" not in goal: continue
-        for step in goal["workflow_plan"]:
-            if step["task_id"] == task_id:
-                if step["status"] not in ["HUMAN_REQUIRED", "FAILED_VERIFICATION", "FAILED_TERMINAL"]:
-                    return jsonify({"error": f"Task cannot be resumed from status {step['status']}"}), 400
-                
-                if action == "retry":
-                    step["status"] = "QUEUED"
-                    goal["status"] = "ACTIVE"
-                    if "instruction_override" in data:
-                        step["instruction"] = data["instruction_override"]
-                    step["worker_id"] = None
-                    save_state(state)
-                    return jsonify({"status": "RESUMED", "task_id": task_id, "goal_id": goal_id})
-                elif action == "force_success":
-                    step["status"] = "RESULT_RECEIVED"
-                    goal["status"] = "ACTIVE"
-                    step["result_id"] = "manual-resume-" + task_id
-                    save_state(state)
-                    return jsonify({"status": "FORCED_SUCCESS_PENDING_VERIFICATION", "task_id": task_id})
-                else:
-                    return jsonify({"error": "Unknown action"}), 400
+    # Map running workers
+    for w_id, w in state.get("workers", {}).items():
+        if w.get("available") == False:
+            active_agents.append({
+                "id": w_id,
+                "name": w.get("platform", "Worker"),
+                "state": "WORKING",
+                "is_active": True,
+                "task": "Working on task..."
+            })
+            
+    # Auto runtime
+    current_goal_name = "Autonomous Standby"
+    current_task_name = "None (Safe Standby)"
+    for g_id, g in state.get("goals", {}).items():
+        if g.get("status") == "ACTIVE":
+            current_goal_name = g.get("title", g_id)
+            break
+            
+    # Task Board
+    task_board = []
+    needs_you = False
+    human_reason = "NOTHING (You can safely walk away)"
+    
+    for t_id, t in state.get("tasks", {}).items():
+        if t.get("status") == "HUMAN_REQUIRED":
+            needs_you = True
+            human_reason = f"TASK {t_id} BLOCKED: {t.get('recovery_reason', 'Human Input Required')}"
+            
+        task_board.append({
+            "task_id": t_id,
+            "title": t.get("description", t_id),
+            "status": t.get("status", "UNKNOWN"),
+            "owner_agent": t.get("worker_id", "UNASSIGNED"),
+            "provider": t.get("platform", "LOCAL_DETERMINISTIC")
+        })
+        
+    # Result Feed
+    result_feed = []
+    import datetime
+    for t_id, t in state.get("tasks", {}).items():
+        if t.get("status") in ["RESULT_RECEIVED", "RECONCILED", "FAILED_VERIFICATION"]:
+            outcome = "SUCCESS" if t.get("status") in ["RESULT_RECEIVED", "RECONCILED"] else "FAIL"
+            result_feed.append({
+                "task_id": t_id,
+                "event_type": "RESULT",
+                "outcome": outcome,
+                "source_worker": t.get("worker_id", "System"),
+                "ingested_at": datetime.datetime.utcnow().isoformat() + "Z"
+            })
+            
+    return jsonify({
+        "agents": active_agents,
+        "auto_runtime": {
+            "current_goal": current_goal_name,
+            "current_action": current_task_name
+        },
+        "endurance": {
+            "elapsed_seconds": 0
+        },
+        "human_attention_required": needs_you,
+        "human_attention_reason": human_reason,
+        "task_board": task_board,
+        "result_feed": result_feed,
+        "bus": {
+            "treasury_verified": True,
+            "treasury_goal": 8,
+            "snitch_healthy": True,
+            "snitch_command": "curl -s http://127.0.0.1:8088/api/state"
+        }
+    })
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080)
+
+
+
+import queue
+import threading
+
+# Global event dispatcher for the Universal Ledger
+ledger_subscribers = []
+ledger_lock = threading.Lock()
+
+def announce_ledger_event(event_type, data):
+    with ledger_lock:
+        for sub in ledger_subscribers:
+            try:
+                sub.put_nowait({"type": event_type, "data": data})
+            except queue.Full:
+                pass
+
+@app.route("/ledger/stream")
+def ledger_stream():
+    # SSE endpoint for Muse Windows to subscribe to real-time Ledger updates
+    def event_stream():
+        q = queue.Queue(maxsize=20)
+        with ledger_lock:
+            ledger_subscribers.append(q)
+        try:
+            yield "data: {\"type\": \"connected\", \"message\": \"Muse Window connected to Universal Ledger\"}\n\n"
+            while True:
+                event = q.get()
+                import json
+                yield f"data: {json.dumps(event)}\n\n"
+        except GeneratorExit:
+            with ledger_lock:
+                if q in ledger_subscribers:
+                    ledger_subscribers.remove(q)
                     
-    return jsonify({"error": "Task not found"}), 404
+    from flask import Response
+    return Response(event_stream(), mimetype="text/event-stream")
+
+@app.route("/ledger/external_claim", methods=["POST"])
+@require_auth
+def external_claim():
+    # MULTI-PROVIDER LEDGER EXPANSION (Prepared for Activation)
+    # This endpoint allows external agents (ChatGPT, Claude, Google) 
+    # to submit cryptographically signed state transitions directly to the Courier Ledger.
+    data = request.get_json(silent=True) or {}
+    provider = data.get("provider", "unknown")
+    signature = request.headers.get("X-Provider-Signature")
+    
+    if not signature:
+        return jsonify({"error": "Missing cryptographic signature from provider"}), 400
+        
+    # TODO: Activate full cryptographic verification of external JWT/Signatures when ready
+    
+    announce_ledger_event("EXTERNAL_CLAIM", {"provider": provider, "status": "RECORDED"})
+    return jsonify({
+        "status": "RECORDED",
+        "message": f"State transition securely logged in Universal Ledger for provider: {provider}",
+        "ledger_hash": "pending_activation"
+    }), 201

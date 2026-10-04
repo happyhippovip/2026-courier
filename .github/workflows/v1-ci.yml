@@ -1,0 +1,98 @@
+name: Courier v1 CI
+
+# Verification authority for the v1 trunk (integration/v1) and lane branches.
+# Runs only on lane pushes and PRs into integration/v1 to keep Actions usage small.
+on:
+  push:
+    branches: ["lane/**"]
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+  pull_request:
+    branches: ["integration/v1"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v1-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: pytest (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install pinned dependencies
+        run: python -m pip install -e ".[test]"
+
+      - name: Run test suite through the regression gate
+        shell: bash
+        env:
+          PYTHONPATH: .github/ci
+          COURIER_CI_OUTCOMES: ${{ runner.temp }}/outcomes.json
+        run: |
+          # Ephemeral, distinct authorities for the legacy server tests; never persisted.
+          export COURIER_API_KEY="$(python -c 'import secrets; print(secrets.token_hex(32))')"
+          export COURIER_VERIFIER_API_KEY="$(python -c 'import secrets; print(secrets.token_hex(32))')"
+          set +e
+          # A module that cannot be imported on this platform is recorded as a failure of
+          # <module>::<collection> instead of aborting the whole session.
+          python -m pytest -q -p outcomes_plugin --timeout=180 --continue-on-collection-errors tests
+          echo "pytest exit status: $?"
+          set -e
+          python .github/ci/check_regressions.py \
+            --outcomes "$COURIER_CI_OUTCOMES" \
+            --known .github/ci/known_failures.json \
+            --platform "${{ runner.os }}"
+
+      - name: Upload per-test outcomes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: outcomes-${{ matrix.os }}
+          path: ${{ runner.temp }}/outcomes.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Fail if tests wrote into the working tree
+        shell: bash
+        run: |
+          status="$(git status --porcelain)"
+          if [ -n "$status" ]; then
+            echo "Tests modified or created non-ignored files in the repository:"
+            echo "$status"
+            exit 1
+          fi
+
+  desktop-js:
+    name: desktop JS tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Run tests/desktop (when present)
+        shell: bash
+        run: |
+          if [ -d tests/desktop ]; then
+            node --test tests/desktop/
+          else
+            echo "tests/desktop not present yet; nothing to run."
+          fi
