@@ -21,7 +21,7 @@ def test_script_execution_no_change(tmp_path, monkeypatch):
     setup_dummy_files(tmp_path)
     
     import runpy
-    runpy.run_path("C:/Users/lol/2026-workspace/2026-courier/scripts/fix_save_json.py")
+    runpy.run_path(str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "fix_save_json.py"))
     # If it runs without raising exception, it passed
 
 
@@ -38,7 +38,7 @@ def save_json(path: Path, data: dict) -> None:
 """, encoding="utf-8")
     
     import runpy
-    runpy.run_path("C:/Users/lol/2026-workspace/2026-courier/scripts/fix_save_json.py")
+    runpy.run_path(str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "fix_save_json.py"))
     
     new_content = target.read_text(encoding="utf-8")
     assert "temp.unlink()" in new_content
@@ -59,7 +59,7 @@ def save_json(path: Path, some_str: str) -> None:
 """, encoding="utf-8")
     
     import runpy
-    runpy.run_path("C:/Users/lol/2026-workspace/2026-courier/scripts/fix_save_json.py")
+    runpy.run_path(str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "fix_save_json.py"))
     
     new_content = target.read_text(encoding="utf-8")
     assert "temp.write_text(some_str, encoding=\"utf-8\")" in new_content
@@ -79,7 +79,7 @@ def save_json(path: Path, data) -> None:
 """, encoding="utf-8")
     
     import runpy
-    runpy.run_path("C:/Users/lol/2026-workspace/2026-courier/scripts/fix_save_json.py")
+    runpy.run_path(str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "fix_save_json.py"))
     
     new_content = target.read_text(encoding="utf-8")
     # Should not be replaced because `data` lacks type hint `data: dict`
@@ -99,7 +99,7 @@ def save_json(path: Path, data: dict) -> None:
 """, encoding="utf-8")
     
     import runpy
-    runpy.run_path("C:/Users/lol/2026-workspace/2026-courier/scripts/fix_save_json.py")
+    runpy.run_path(str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "fix_save_json.py"))
     
     new_content = target.read_text(encoding="utf-8")
     # Should not be replaced

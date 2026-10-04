@@ -47,7 +47,7 @@ def test_main_arguments_error(monkeypatch, capsys):
     monkeypatch.setattr("sys.argv", ["revenue_customer_intake.py", "owner"])
     import runpy
     try:
-        runpy.run_path("C:/Users/lol/2026-workspace/2026-courier/scripts/revenue_customer_intake.py", run_name="__main__")
+        runpy.run_path(str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "revenue_customer_intake.py"), run_name="__main__")
     except SystemExit as e:
         assert e.code == 1
     out, _ = capsys.readouterr()
@@ -60,5 +60,5 @@ def test_main_arguments_success(mock_post, monkeypatch):
     mock_post.return_value = mock_resp
     monkeypatch.setattr("sys.argv", ["revenue_customer_intake.py", "ow", "re", "sh", "cu"])
     import runpy
-    runpy.run_path("C:/Users/lol/2026-workspace/2026-courier/scripts/revenue_customer_intake.py", run_name="__main__")
+    runpy.run_path(str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "revenue_customer_intake.py"), run_name="__main__")
     mock_post.assert_called_once()

@@ -165,7 +165,7 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
         # 1. Spawn Server
         print("[RUN] Spawning Server...")
         server_proc = subprocess.Popen(
-            [sys.executable, "-c", "import sys, os; sys.path.append(os.getcwd()); from server.app import app; app.run(host='0.0.0.0', port=int(sys.argv[1]))", str(port)],
+            [sys.executable, "-c", "import sys, os; sys.path.append(os.getcwd()); from server.app import app; app.run(host='127.0.0.1', port=int(sys.argv[1]))", str(port)],
             env=env, cwd=REPO_ROOT, stdout=server_out, stderr=server_err,
             **( {} if __import__("sys").platform == "win32" else {"preexec_fn": getattr(os, "setpgrp", None)} )
         )

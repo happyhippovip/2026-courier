@@ -1,10 +1,11 @@
 name: Courier v1 CI
 
 # Verification authority for the v1 trunk (integration/v1) and lane branches.
-# Runs only on lane pushes and PRs into integration/v1 to keep Actions usage small.
+# Runs on lane pushes, on every push to integration/v1 itself (direct pushes and
+# merges must carry exact-SHA evidence) and on PRs into integration/v1.
 on:
   push:
-    branches: ["lane/**"]
+    branches: ["lane/**", "integration/v1"]
     paths-ignore:
       - "**/*.md"
       - "docs/**"
@@ -59,6 +60,18 @@ jobs:
             --outcomes "$COURIER_CI_OUTCOMES" \
             --known .github/ci/known_failures.json \
             --platform "${{ runner.os }}"
+
+      - name: Tests leave tracked files unchanged
+        if: always()
+        shell: bash
+        # Blocking on Linux; reported only on Windows until a clean Windows run is evidenced.
+        continue-on-error: ${{ runner.os == 'Windows' }}
+        run: git diff --stat --exit-code
+
+      - name: Local safety ratchet (no new kill-by-name or wildcard binds)
+        if: always()
+        shell: bash
+        run: python scripts/check_local_safety.py . --baseline acceptance/local_safety_baseline.json
 
       - name: Upload per-test outcomes
         if: always()

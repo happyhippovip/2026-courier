@@ -1,3 +1,4 @@
+import os
 import json
 import runpy
 from pathlib import Path
@@ -49,6 +50,11 @@ import sys
 
 def test_main_execution(tmp_path):
     # Run the module to cover the __main__ block
-    result = subprocess.run([sys.executable, "-m", "scripts.invoice_generator"], capture_output=True, text=True)
+    # INVOICE_DIR is CWD-relative: run from tmp_path so no invoice lands in the repo.
+    repo_root = str(Path(__file__).resolve().parent.parent)
+    env = dict(os.environ, PYTHONPATH=os.pathsep.join([repo_root, os.environ.get("PYTHONPATH", "")]))
+    result = subprocess.run([sys.executable, "-m", "scripts.invoice_generator"], capture_output=True, text=True,
+                            cwd=str(tmp_path), env=env)
+    assert list((tmp_path / "events" / "invoices").glob("*.json")), "invoice should be written under tmp_path"
     assert result.returncode == 0
     assert "Generated Invoice: " in result.stdout

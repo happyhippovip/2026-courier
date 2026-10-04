@@ -829,16 +829,14 @@ class WorkerHost:
             now = time.monotonic()
             remaining = min(timeout_at, lease_at) - now
             if remaining <= 0:
-                if timeout_at <= lease_at:
-                    outcome = Outcome.TIMEOUT
-                    run.terminate_tree()
-                    returncode = run.poll()
-                    break
-                else:
-                    outcome = Outcome.LEASE_LOST
-                    run.terminate_tree()
-                    returncode = run.poll()
-                    break
+                # spec.timeout_s is the task's declared hard bound, not a silence
+                # heuristic: when it passes, the owned tree is stopped and the
+                # attempt is a retryable TIMEOUT. (Session liveness - QUIET/SLOW/
+                # PROBING - applies to surfaces and sessions, not to this bound.)
+                outcome = Outcome.TIMEOUT if timeout_at <= lease_at else Outcome.LEASE_LOST
+                run.terminate_tree()
+                returncode = run.poll()
+                break
             if is_cancelled is not None:
                 try:
                     cancelled = is_cancelled()

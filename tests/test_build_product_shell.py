@@ -53,6 +53,6 @@ def test_main(tmp_path, monkeypatch):
             
             import runpy
             try:
-                runpy.run_path("C:/Users/lol/2026-workspace/2026-courier/scripts/build_product_shell.py", run_name="__main__")
+                runpy.run_path(__import__("os").path.join(__import__("os").path.dirname(__import__("os").path.dirname(__import__("os").path.abspath(__file__))), "scripts", "build_product_shell.py"), run_name="__main__")
             except SystemExit as e:
                 assert e.code == 0

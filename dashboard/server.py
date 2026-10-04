@@ -17,6 +17,7 @@ import datetime as _dt
 from pathlib import Path
 
 PORT = int(os.environ.get("PORT", 8080))
+BIND_HOST = "127.0.0.1"  # local command center: loopback only
 DASHBOARD_DIR = Path(__file__).resolve().parent
 COURIER_DIR = DASHBOARD_DIR.parent
 MEMORY_DIR = Path(os.environ.get("MEMORY_DIR", COURIER_DIR.parent / "2026-project-memory"))
@@ -203,7 +204,7 @@ class CommandCenterHandler(http.server.SimpleHTTPRequestHandler):
 
 def create_server(port: int = PORT):
     handler_factory = functools.partial(CommandCenterHandler, directory=str(DASHBOARD_DIR))
-    return socketserver.TCPServer(("", port), handler_factory)
+    return socketserver.TCPServer((BIND_HOST, port), handler_factory)
 
 
 def main() -> None:
@@ -211,7 +212,7 @@ def main() -> None:
     for attempt in range(5):
         try:
             handler_factory = functools.partial(CommandCenterHandler, directory=str(DASHBOARD_DIR))
-            with socketserver.TCPServer(("", port), handler_factory) as httpd:
+            with socketserver.TCPServer((BIND_HOST, port), handler_factory) as httpd:
                 print(f"AI Agent Command Center MVP running at: http://localhost:{port}")
                 print("Press Ctrl+C to stop.")
                 httpd.serve_forever()

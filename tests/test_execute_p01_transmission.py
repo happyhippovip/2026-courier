@@ -72,7 +72,7 @@ def test_main(tmp_path, monkeypatch):
         json.dump(spec, f)
         
     import runpy
-    runpy.run_path("C:/Users/lol/2026-workspace/2026-courier/scripts/execute_p01_transmission.py", run_name="__main__")
+    runpy.run_path(str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "execute_p01_transmission.py"), run_name="__main__")
         
     with open(spec_path, "r") as f:
         updated_spec = json.load(f)
