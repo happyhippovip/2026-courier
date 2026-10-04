@@ -170,3 +170,6 @@ courier.db-shm
 /server/state/test_state.json.sig
 /server/state/*.lock
 /scripts/logs/
+
+# PyInstaller rotates the previous bundle to dist_old_<ticks>; never commit it.
+scripts/windows_worker/dist_old_*/

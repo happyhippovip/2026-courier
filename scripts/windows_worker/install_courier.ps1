@@ -26,7 +26,6 @@ if (Test-Path $installDir) {
             Stop-Process -Id $pidStr -Force -ErrorAction SilentlyContinue
         } catch {}
     }
-    Stop-Process -Name "Courier" -Force -ErrorAction SilentlyContinue
     
     # Wait for file locks to release
     Start-Sleep -Seconds 2

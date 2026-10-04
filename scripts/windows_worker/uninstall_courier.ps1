@@ -10,7 +10,6 @@ if (Test-Path "$installDir\run\launcher.pid") {
         Stop-Process -Id $pidStr -Force -ErrorAction SilentlyContinue
     } catch {}
 }
-Stop-Process -Name "Courier" -Force -ErrorAction SilentlyContinue
 Start-Sleep -Seconds 2
 
 Write-Host "Removing auto-start shortcut..."
