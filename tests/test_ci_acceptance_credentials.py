@@ -1,5 +1,6 @@
 
 import sys
+import os
 def get_bash():
     if sys.platform == "win32":
         for p in [r"C:\Program Files\Git\bin\bash.exe", r"C:\Program Files\Git\usr\bin\bash.exe"]:
@@ -10,9 +11,11 @@ def get_bash():
 import re
 import subprocess
 import sys
+import os
 from pathlib import Path
 
-import yaml
+import pytest
+yaml = pytest.importorskip("yaml")
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github" / "workflows" / "courier_motor.yml"
