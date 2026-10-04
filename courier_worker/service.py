@@ -508,8 +508,22 @@ def main(argv: Optional[list] = None) -> int:
     parser.add_argument("--controller", required=True)
     parser.add_argument("--max-tasks", type=int, default=1)
     parser.add_argument("--heartbeat", type=float, default=2.0)
-    parser.add_argument("--worker-id", default=f"worker-{os.getpid()}")
+    parser.add_argument("--worker-id", default=None)
     args = parser.parse_args(argv)
+    
+    if args.worker_id is None:
+        import uuid
+        worker_id_file = os.path.join(args.home, ".worker_id")
+        try:
+            if os.path.exists(worker_id_file):
+                with open(worker_id_file, "r") as f:
+                    args.worker_id = f.read().strip()
+            if not args.worker_id:
+                args.worker_id = f"worker-{uuid.uuid4().hex[:8]}"
+                with open(worker_id_file, "w") as f:
+                    f.write(args.worker_id)
+        except OSError:
+            args.worker_id = f"worker-{os.getpid()}"
     if args.max_tasks != 1:
         parser.error("--max-tasks supports exactly 1 (single-flight ownership)")
         return 2
