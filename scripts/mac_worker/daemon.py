@@ -273,6 +273,27 @@ def collect_artifact_evidence(task, result):
         result["stderr"] = result.get("stderr", "") + "\nNo artifact evidence for success"
     return evidence
 
+
+def admit_surface(provider, task, config, needs_visible=True, allow_headless=True):
+    if str(BASE_DIR) not in sys.path:
+        sys.path.insert(0, str(BASE_DIR))
+    from courier_runtime.surfaces import SurfaceSupervisor
+    import psutil
+    
+    host = os.environ.get("COURIER_SLOT_ID") or config.get("WORKER_ID", "host")
+    supervisor = SurfaceSupervisor(STATE_DIR / "surfaces.json", host, sys.platform)
+    prompt = task.get('instruction', task.get('description', ''))
+    ram_used = psutil.virtual_memory().percent
+    
+    decision = supervisor.admit(provider, task["task_id"], prompt, 
+                                needs_visible=needs_visible, 
+                                allow_headless=allow_headless, 
+                                ram_used_pct=ram_used)
+    
+    if decision.action == "QUEUED":
+        raise MuseAdmissionBlocked("SURFACE_BUDGET_EXHAUSTED")
+    return supervisor, decision
+
 def run_native(task, config):
     write_log(f"Running NATIVE task {task['task_id']}")
     instruction = task.get('instruction', task.get('description', ''))
@@ -398,7 +419,11 @@ def run_agy(task, config):
     write_log(f"Running AI task {task['task_id']} via agy")
     instruction = task.get('instruction', task.get('description', ''))
     
-    prompt = f"Task ID: {task['task_id']}\nInstruction: {instruction}\n\nYou are a headless worker on Mac. You MUST execute the instruction. After you have successfully executed the instruction, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did. IMPORTANT: Your current working directory is {os.getcwd()}. Any file artifacts you create MUST be relative to this directory."
+    supervisor, decision = admit_surface("antigravity", task, config, needs_visible=False, allow_headless=True)
+    if decision.action == "COALESCED":
+        return {"status": "SUCCESS", "stdout_summary": "Task coalesced into existing surface."}
+        
+    prompt = "Task ID: " + str(task["task_id"]) + "\nInstruction: " + str(instruction) + "\n\nYou are a headless worker on Mac. You MUST execute the instruction. After you have successfully executed the instruction, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did. IMPORTANT: Your current working directory is " + os.getcwd() + ". Any file artifacts you create MUST be relative to this directory."
     agy_bin = shutil.which("agy") or shutil.which("agy", path=os.environ.get("PATH", "") + ":/Users/user/.local/bin:/usr/local/bin:/opt/homebrew/bin")
     if not agy_bin:
         return {"status": "FAILED", "reason": "AGY_NOT_FOUND", "execution_mode": "ANTIGRAVITY"}
@@ -407,21 +432,15 @@ def run_agy(task, config):
     cmd = [wrapper, agy_bin, "-p", prompt, "--dangerously-skip-permissions"]
     timeout = min(float(config.get("AGY_TIMEOUT_SECONDS", 300)), 3600)
 
-    # The wrapper spawns agy as a grandchild, so killing only the direct
-    # child would orphan it. Like run_muse, launch a fresh session and reap
-    # the whole process group on timeout or interruption (WorkerShutdown
-    # propagates through communicate and must not leak the child either).
     process = None
     identity = None
-    # Orphan marker (mirrors run_muse's muse_process.json): a violent daemon
-    # death between spawn and exit must be detectable on restart via
-    # require_no_orphan. Overwritten by every run; only non-CLEAN counts.
     child_file = STATE_DIR / "agy_process.json"
     try:
         atomic_json(child_file, {"state": "STARTING"})
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    text=True, start_new_session=True)
         identity = process_identity(process.pid)
+        supervisor.attach(decision.surface_id, process.pid, float(identity.create_time))
         atomic_json(child_file, {"state": "RUNNING", "identity": identity})
         # Sliced communicate with in-execution heartbeat: the server's
         # reclaim_stale quarantines workers unseen for 300s, and the default
@@ -480,6 +499,12 @@ def run_agy(task, config):
             clean = process.poll() is not None and not group_exists(process.pid)
             atomic_json(child_file, {"state": "CLEAN" if clean else "ORPHANS_REMAIN",
                                      "identity": identity})
+
+            if clean:
+                try:
+                    supervisor.finish(decision.surface_id, "checkpoint")
+                except Exception:
+                    pass
             if not clean:
                 raise RuntimeError("agy child cleanup unproven; no new execution allowed")
 
@@ -489,6 +514,11 @@ def run_muse(task, config):
         sys.path.insert(0, str(BASE_DIR))
     import muse_adapter
     write_log(f"Running MUSE task {task['task_id']}")
+    
+    supervisor, decision = admit_surface("muse", task, config, needs_visible=True, allow_headless=False)
+    if decision.action == "COALESCED":
+        return {"status": "SUCCESS", "stdout_summary": "Task coalesced into existing surface."}
+    
     slot = os.environ.get("COURIER_SLOT_ID") or config["WORKER_ID"]
     workspace = os.environ.get("COURIER_MUSE_WORKSPACE", config.get("MUSE_WORKSPACE", CANONICAL_WORKSPACE))
     binding = muse_adapter.task_binding(task, slot, workspace)
@@ -521,6 +551,7 @@ def run_muse(task, config):
                 proc = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=out, stderr=err,
                                         start_new_session=True)
                 identity = process_identity(proc.pid)
+                supervisor.attach(decision.surface_id, proc.pid, float(identity.create_time))
                 atomic_json(child_file, {"state": "RUNNING", "identity": identity, "binding": binding})
             deadline = time.monotonic() + min(float(config.get("MUSE_TIMEOUT_SECONDS", 3600)), 3600)
             heartbeat_at = time.monotonic() + 30
@@ -542,6 +573,12 @@ def run_muse(task, config):
                 clean = cleanup_group(proc, identity)
                 atomic_json(child_file, {"state": "CLEAN" if clean else "ORPHANS_REMAIN",
                                          "identity": identity, "binding": binding})
+
+                if clean:
+                    try:
+                        supervisor.finish(decision.surface_id, "checkpoint")
+                    except Exception:
+                        pass
                 if not clean:
                     raise RuntimeError("Muse child cleanup unproven; no new execution allowed")
     return result
@@ -697,7 +734,13 @@ def loop():
                         time.sleep(governor.get_poll_interval())
                         continue
                 else:
-                    result = run_agy(task, config)
+                    try:
+                        result = run_agy(task, config)
+                    except MuseAdmissionBlocked:
+                        task["worker_phase"] = "CLAIMED"
+                        persist_task(current_task_state_file, task)
+                        time.sleep(governor.get_poll_interval())
+                        continue
                 
                 # Format result payload
                 artifact_evidence = collect_artifact_evidence(task, result)
