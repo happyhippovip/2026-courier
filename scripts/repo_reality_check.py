@@ -311,6 +311,16 @@ def to_html(result):
             + "\n".join(body) + "</body></html>")
 
 
+
+def to_pdf(html_str, out_path):
+    try:
+        from weasyprint import HTML
+        HTML(string=html_str).write_pdf(out_path)
+        return True
+    except ImportError:
+        return False
+
+
 def main(argv=None):
     argv = argv or sys.argv[1:]
     run_ci = "--ci-truth" in argv
@@ -333,6 +343,8 @@ def main(argv=None):
     (out / "report.json").write_text(report_json, encoding="utf-8")
     (out / "report.md").write_text(report_md, encoding="utf-8")
     (out / "report.html").write_text(report_html, encoding="utf-8")
+    if not to_pdf(report_html, out / "report.pdf"):
+        print("Note: PDF generation skipped. Install 'weasyprint' to enable PDF output.", file=sys.stderr)
     print(json.dumps(result["summary"]))
     return 0
 
