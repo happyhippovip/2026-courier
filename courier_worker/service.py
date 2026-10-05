@@ -25,6 +25,7 @@ import signal
 import socket
 import sys
 import threading
+import time
 import urllib.parse
 from typing import Callable, Optional
 
@@ -52,6 +53,7 @@ STARTUP_HEALTH_ATTEMPTS = 5
 STARTUP_HEALTH_SLEEP_S = 1.0
 FLUSH_TIMEOUT_S = 3.0
 SSE_RECONNECTS = 3
+SSE_POLL_S = 0.25  # bounds how long stop() waits for the watcher thread
 
 CANCEL_TYPES = frozenset({"TASK_CANCEL_REQUESTED", "TASK_CANCELLED"})
 
@@ -264,7 +266,6 @@ class CancelWatcher:
         self._cancelled = threading.Event()
         self._stop = threading.Event()
         self._thread: Optional[threading.Thread] = None
-        self._sock: Optional[socket.socket] = None
         self.degraded = False
 
     def start(self) -> None:
@@ -274,15 +275,6 @@ class CancelWatcher:
 
     def stop(self) -> None:
         self._stop.set()
-        # Unblock a pending readline now instead of after timeout_s, so the
-        # socket and the thread are released when the run ends (Windows
-        # handle-leak root cause; see test_stop_releases_blocked_stream).
-        sock = self._sock
-        if sock is not None:
-            try:
-                sock.shutdown(socket.SHUT_RDWR)
-            except OSError:
-                pass
         thread, self._thread = self._thread, None
         if thread is not None:
             thread.join(timeout=2.0)
@@ -304,45 +296,61 @@ class CancelWatcher:
                 self._stop.wait(1.0)
 
     def _subscribe(self) -> None:
+        # Raw socket with a short poll instead of a blocking http.client read:
+        # a blocked read held the socket and this thread for timeout_s after
+        # the run ended (Windows golden handle leak), and neither shutdown()
+        # nor a timed-out SocketIO can end it portably. The controller streams
+        # with Connection: close and no chunking (courier_core/serve.py).
         parts = urllib.parse.urlparse(self.base_url)
-        cls = http.client.HTTPSConnection if parts.scheme == "https" else http.client.HTTPConnection
-        conn = cls(parts.hostname, parts.port or (443 if parts.scheme == "https" else 80),
-                   timeout=self.timeout_s)
-        resp = None
+        host = parts.hostname or "127.0.0.1"
+        port = parts.port or (443 if parts.scheme == "https" else 80)
+        sock = socket.create_connection((host, port), timeout=self.timeout_s)
         try:
-            conn.request("GET", "/v1/events",
-                         headers={"X-Courier-Token": self.token, "Accept": "text/event-stream"})
-            # getresponse() drops conn.sock for a streaming (will-close) reply,
-            # so keep the raw socket: stop() shuts it down to end a blocked read.
-            self._sock = conn.sock
-            if self._stop.is_set():
-                return
-            resp = conn.getresponse()
-            if resp.status != 200:
-                raise ControllerError(f"sse: status {resp.status}")
+            if parts.scheme == "https":
+                import ssl
+                sock = ssl.create_default_context().wrap_socket(sock, server_hostname=host)
+            sock.sendall((f"GET /v1/events HTTP/1.1\r\nHost: {host}:{port}\r\n"
+                          f"X-Courier-Token: {self.token}\r\nAccept: text/event-stream\r\n"
+                          "Connection: close\r\n\r\n").encode())
+            sock.settimeout(SSE_POLL_S)
+            header_deadline = time.monotonic() + self.timeout_s
+            buf = b""
+            in_body = False
             data_lines: list = []
             while not self._stop.is_set() and not self._cancelled.is_set():
                 try:
-                    line = resp.readline()
-                except (OSError, socket.timeout, http.client.HTTPException) as e:
-                    if self._stop.is_set() or self._cancelled.is_set():
-                        return
-                    raise ControllerError("sse read timeout or error") from e
-                if not line:
+                    chunk = sock.recv(65536)
+                except socket.timeout:
+                    if not in_body and time.monotonic() > header_deadline:
+                        raise ControllerError("sse: no response headers")
+                    continue  # quiet stream; re-check stop/cancel
+                if not chunk:
                     return
-                text = line.decode("utf-8", errors="replace").strip()
-                if text == "":
-                    self._dispatch_event(data_lines)
-                    data_lines = []
-                elif text.startswith("data:"):
-                    data_lines.append(text[5:].strip())
-                elif text.startswith(":"):
-                    pass  # comment keep-alive
+                buf += chunk
+                if not in_body:
+                    if b"\r\n\r\n" not in buf:
+                        if len(buf) > 65536:
+                            raise ControllerError("sse: oversized headers")
+                        continue
+                    head, buf = buf.split(b"\r\n\r\n", 1)
+                    status = head.split(b"\r\n", 1)[0].split()
+                    code = status[1].decode("ascii", "replace") if len(status) > 1 else "?"
+                    if code != "200":
+                        raise ControllerError(f"sse: status {code}")
+                    if b"transfer-encoding: chunked" in head.lower():
+                        raise ControllerError("sse: chunked stream not supported")
+                    in_body = True
+                while b"\n" in buf:
+                    line, buf = buf.split(b"\n", 1)
+                    text = line.decode("utf-8", errors="replace").strip()
+                    if text == "":
+                        self._dispatch_event(data_lines)
+                        data_lines = []
+                    elif text.startswith("data:"):
+                        data_lines.append(text[5:].strip())
+                    # ":" comments (keep-alive), "id:" and "event:" need no action
         finally:
-            self._sock = None
-            if resp is not None:
-                resp.close()  # owns the socket once conn has let go of it
-            conn.close()
+            sock.close()
 
     def _dispatch_event(self, data_lines: list) -> None:
         if not data_lines:

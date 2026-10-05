@@ -599,18 +599,25 @@ def test_stop_releases_blocked_stream(tmp_path, stub):
     # timeout_s after the run ends (that was the Windows golden handle leak).
     watcher = S.CancelWatcher(stub, TOKEN, "t-quiet", timeout_s=30.0)
     watcher.start()
-    deadline = time.monotonic() + 5
-    while watcher._sock is None and time.monotonic() < deadline:
-        time.sleep(0.05)
-    assert watcher._sock is not None, "watcher never subscribed"
-    time.sleep(0.5)  # now blocked in readline on the silent stream
+    time.sleep(1.0)  # subscribed and waiting on the silent stream
     thread = watcher._thread
+    assert thread.is_alive()
     started = time.monotonic()
     watcher.stop()
     assert time.monotonic() - started < 1.5
     assert not thread.is_alive()
-    assert watcher._sock is None
     assert not watcher.degraded
+
+
+def test_sse_rejected_subscription_degrades(tmp_path, stub, monkeypatch):
+    monkeypatch.setattr(S, "SSE_RECONNECTS", 0)
+    watcher = S.CancelWatcher(stub, "wrong-token", "t-x", timeout_s=5.0)
+    watcher.start()
+    deadline = time.monotonic() + 5
+    while not watcher.degraded and time.monotonic() < deadline:
+        time.sleep(0.05)
+    watcher.stop()
+    assert watcher.degraded and not watcher.cancelled()
 
 
 @pytest.mark.parametrize("spec_over, params, needle", [
