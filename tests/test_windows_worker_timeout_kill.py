@@ -32,6 +32,7 @@ def test_timed_out_process_is_killed_not_left_running(monkeypatch):
     def spawn_sleep(cmd, **kwargs):
         # Stand-in for the hard-coded ["powershell", "-Command", instruction];
         # a real child process is what matters for this test, not its name.
+        if cmd[0] == "taskkill": return real_popen_class(cmd, **kwargs)
         return real_popen_class(["sleep", "30"], **kwargs)
 
     def short_timeout(self, input=None, timeout=None):
