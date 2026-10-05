@@ -1,14 +1,23 @@
 import sys
+import os
 from pathlib import Path
 from courier_runtime.revenue import Lead, CONTACTED, HUMAN_GATED
 
 # Add project root to sys.path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+env_path = Path(__file__).parent.parent / ".env"
+if env_path.exists():
+    with open(env_path, "r") as f:
+        for line in f:
+            if "=" in line and not line.startswith("#"):
+                key, val = line.strip().split("=", 1)
+                os.environ[key] = val
+
 class ExternalEmailConnector:
     def __init__(self, api_key=None):
-        self.api_key = api_key
-        self.is_authorized = bool(api_key)
+        self.api_key = api_key or os.environ.get("REVENUE_OUTREACH_API_KEY")
+        self.is_authorized = bool(self.api_key)
 
     def send_outreach(self, lead: Lead, message: str, human_approval_id: str):
         if not self.is_authorized:
