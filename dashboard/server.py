@@ -82,8 +82,11 @@ def get_status_payload() -> dict:
         except Exception:
             pass
 
+    # Check for Emergency Latch
+    is_emergency = (EVENTS_DIR / "EMERGENCY_LATCH").exists()
+
     return {
-        "status": "ONLINE",
+        "status": "EMERGENCY" if is_emergency else "ONLINE",
         "version": "3.0-live-autonomy",
         "courier_head": courier_commit,
         "memory_head": mem_commit,
@@ -91,6 +94,14 @@ def get_status_payload() -> dict:
         "active_workers_count": len(active_workers),
         "active_workers": active_workers,
         "hq_snapshot": hq_snapshot,
+        "host_capacity": {
+            "health": "EMERGENCY" if is_emergency else "HEALTHY",
+            "active_leases": 2, # Simulated values for dashboard
+            "max_total_slots": 16,
+            "active_heavy_leases": 0,
+            "max_heavy_slots": 4,
+            "profile": "normal laptop"
+        },
         "active_cost_policy": "ZERO_COST_ONLY",
         "spend_eur": 0.0,
         "unauthorized_spend_eur": 0.0,
@@ -159,7 +170,21 @@ class CommandCenterHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps(offers_payload, indent=2).encode("utf-8"))
             return
 
-        return super().do_GET()
+    def do_POST(self) -> None:
+        if self.path == "/api/emergency":
+            # Latch EMERGENCY MODE by creating a file indicator
+            EVENTS_DIR.mkdir(parents=True, exist_ok=True)
+            latch_file = EVENTS_DIR / "EMERGENCY_LATCH"
+            latch_file.write_text("EMERGENCY_MODE=ON\n")
+            
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps({"status": "EMERGENCY_LATCHED"}).encode("utf-8"))
+            return
+            
+        return super().do_POST()
 
 
 def create_server(port: int = PORT):
