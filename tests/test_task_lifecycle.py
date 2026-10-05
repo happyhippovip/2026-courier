@@ -20,7 +20,7 @@ class TestZeroHangTaskLifecycle(unittest.TestCase):
             workkey="wk_01",
             owner_session="sess_1",
             owner_host="host_1",
-            pid_or_execution_id="1234",
+            pid_or_execution_id="9999999",
             process_start_identity="ident_1",
             started_at=time.time(),
             expected_activity_class=ActivityClass.COMPUTE
