@@ -8,9 +8,11 @@ durable outbox. Every HTTP call is a single attempt with an explicit
 timeout; there is no retry loop. An unreachable controller means the result
 stays in the outbox, not a storm.
 
-Claim ``spec`` mapping (proposal to L2/serve, fail-closed): ``spec`` must
-carry an explicit ``argv`` command and may carry ``timeout_s`` (default
-bounded). The host never invents an adapter command line.
+Claim ``spec`` mapping (L2 contract, fail-closed): ``spec`` is declarative,
+``{adapter, params, effect_class, timeout_s, effect_key}``. The adapter must
+be allowlisted and its params must validate (:mod:`courier_worker.adapter_bridge`);
+the host then runs Courier's own adapter runner. A spec that carries ``argv``
+is refused: the worker never executes a command supplied by a claim.
 """
 
 from __future__ import annotations
@@ -26,12 +28,15 @@ import threading
 import urllib.parse
 from typing import Callable, Optional
 
+from courier_worker import adapter_bridge
 from courier_worker.host import (
     DEFAULT_TIMEOUT_S,
     MAX_TIMEOUT_S,
     ExecutionResult,
     ExecutionSpec,
     HostBusy,
+    Outcome,
+    ResourcePaused,
     SpecError,
     WorkerHost,
     acquire_home_lock,
@@ -120,9 +125,6 @@ class ControllerClient:
         if status == 204:
             return None
         if status == 200 and isinstance(payload, dict):
-            task_payload = payload.get("task")
-            if task_payload is not None:
-                return task_payload
             return payload
         return None
 
@@ -159,16 +161,14 @@ class ControllerClient:
         raise ControllerError(f"result: status {status}")
 
 
-def resolve_spec(claim: dict, worker_id: str, artifacts_root: str, heartbeat_s: float) -> ExecutionSpec:
+def resolve_spec(claim: dict, worker_id: str, artifacts_root: str, heartbeat_s: float,
+                 home: Optional[str] = None) -> ExecutionSpec:
     """Map one ``POST /claim`` answer to an executable spec, fail-closed."""
     if not isinstance(claim, dict):
         raise SpecError("claim is not an object")
     task_id = claim.get("task_id")
     dispatch_id = claim.get("dispatch_id")
-    attempt = claim.get("attempts", 1)
-    goal_id = claim.get("goal_id", "unknown-goal")
-    attempt_id = claim.get("attempt_id", f"{task_id}:attempt:{attempt}")
-    run_id = f"run-{dispatch_id}"
+    attempt = claim.get("attempt")
     ttl_s = claim.get("ttl_s")
     spec = claim.get("spec")
     if not isinstance(task_id, str) or not task_id:
@@ -179,11 +179,8 @@ def resolve_spec(claim: dict, worker_id: str, artifacts_root: str, heartbeat_s: 
         raise SpecError("claim carries no valid attempt")
     if not isinstance(ttl_s, (int, float)) or ttl_s < 1:
         raise SpecError("claim carries no valid ttl_s")
-    if not isinstance(spec, dict):
-        raise SpecError("claim carries no spec object")
-    argv = spec.get("argv")
-    if not isinstance(argv, list) or not argv:
-        raise SpecError("claim spec carries no executable argv; refusing to invent a command")
+    adapter, params, effect_key = adapter_bridge.validate_request(spec)
+    home = home or os.path.dirname(os.path.abspath(artifacts_root))
     timeout_s = spec.get("timeout_s") or DEFAULT_TIMEOUT_S
     if not isinstance(timeout_s, (int, float)) or not 0 < timeout_s <= MAX_TIMEOUT_S:
         raise SpecError("claim spec timeout_s is out of bounds")
@@ -195,31 +192,60 @@ def resolve_spec(claim: dict, worker_id: str, artifacts_root: str, heartbeat_s: 
         raise SpecError("dispatch_id leaves no room for a result_id within 200 chars")
     return ExecutionSpec(
         task_id=task_id, attempt=attempt, dispatch_id=dispatch_id, worker_id=worker_id,
-        result_id=result_id, goal_id=goal_id, attempt_id=attempt_id, run_id=run_id,
-        argv=tuple(argv), timeout_s=float(timeout_s), lease_ttl_s=float(ttl_s),
-        artifact_dir=os.path.join(artifacts_root, dispatch_id), heartbeat_s=heartbeat_s)
+        result_id=result_id, argv=adapter_bridge.runner_argv(home, dispatch_id),
+        timeout_s=float(timeout_s), lease_ttl_s=float(ttl_s),
+        artifact_dir=os.path.join(artifacts_root, dispatch_id), heartbeat_s=heartbeat_s,
+        adapter=adapter, params=params, effect_key=effect_key)
 
 
-def build_result_payload(result: ExecutionResult) -> dict:
-    return {
+def _artifact_prefix(artifact_dir: str, home: Optional[str]) -> str:
+    """``artifacts/<dispatch>/`` when the artifact dir lies inside home, else ''."""
+    if not home:
+        return ""
+    rel = os.path.relpath(os.path.abspath(artifact_dir), os.path.abspath(home))
+    if rel == os.curdir or rel.startswith(os.pardir) or os.path.isabs(rel):
+        return ""
+    return rel.replace(os.sep, "/") + "/"
+
+
+def build_result_payload(result: ExecutionResult, report: Optional[dict] = None,
+                         home: Optional[str] = None) -> dict:
+    """The result the controller verifies; never claims more than the run proved.
+
+    A bridged run (``result.spec.adapter`` set) that exited 0 is only a
+    success if the runner wrote a report saying so; a missing report is a
+    non-retryable failure. Artifact paths are relative to ``home`` when given,
+    which is the scope the controller's verifier reads from.
+    """
+    prefix = _artifact_prefix(result.spec.artifact_dir, home)
+    outcome, retryable, reason = result.l2_outcome, result.retryable, None
+    if outcome != "success":
+        reason = f"worker outcome: {result.outcome}"
+    elif result.spec.adapter is not None:
+        if report is None:
+            outcome, retryable, reason = "failure", False, "adapter runner produced no structured result"
+        elif report["outcome"] != "success":
+            outcome, retryable = "failure", bool(report.get("retryable", False))
+            reason = str(report.get("reason") or "adapter reported failure")[:500]
+    payload = {
         "dispatch_id": result.spec.dispatch_id,
         "result_id": result.spec.result_id,
-        "worker_id": result.spec.worker_id,
-        "task_id": result.spec.task_id,
-        "goal_id": result.spec.goal_id,
-        "attempt_id": result.spec.attempt_id,
-        "run_id": result.spec.run_id,
-        "artifacts": [{"path": a.path.replace(os.sep, "/"), "sha256": a.sha256}
+        "artifacts": [{"path": prefix + a.path.replace(os.sep, "/"), "sha256": a.sha256}
                       for a in result.artifacts],
-        "status": "SUCCESS" if result.l2_outcome == "completed" else "FAILED",
+        "outcome": outcome,
     }
+    if outcome != "success":
+        # Only failures carry retryability; a success is exactly the golden
+        # wire shape, so an identical re-send is acknowledged as a duplicate.
+        payload["retryable"] = retryable
+        if reason:
+            payload["reason"] = reason
+    return payload
 
 
-def build_spec_failure_payload(dispatch_id: str, result_id: str, worker_id: str, task_id: str, goal_id: str, attempt_id: str, reason: str) -> dict:
+def build_spec_failure_payload(dispatch_id: str, result_id: str, reason: str) -> dict:
     return {"dispatch_id": dispatch_id, "result_id": result_id,
-            "worker_id": worker_id or "unknown-worker", "task_id": task_id or "unknown-task", 
-            "goal_id": goal_id or "unknown-goal", "attempt_id": attempt_id or "unknown-attempt", 
-            "run_id": f"run-{dispatch_id}", "artifacts": [], "status": "FAILED"}
+            "artifacts": [], "outcome": "failure", "retryable": False, "reason": reason}
 
 
 class CancelWatcher:
@@ -374,17 +400,19 @@ class WorkerLoop:
         if claim is None:
             return "idle"
         try:
-            spec = resolve_spec(claim, self.worker_id, self.artifacts_root(), self.heartbeat_s)
+            spec = resolve_spec(claim, self.worker_id, self.artifacts_root(), self.heartbeat_s,
+                                home=self.home)
         except SpecError as exc:
             payload = build_spec_failure_payload(
                 str(claim.get("dispatch_id", "")), "r-" + str(claim.get("dispatch_id", "")),
-                self.worker_id, str(claim.get("task_id", "")), str(claim.get("goal_id", "")),
-                str(claim.get("attempt_id", "")), f"spec-invalid: {exc}")
+                f"spec-invalid: {exc}")
             self._deliver_payload(payload)
             return "spec-rejected"
+        adapter_bridge.write_request(self.home, spec)
         try:
             client.start(spec.dispatch_id)
         except StaleDispatch:
+            adapter_bridge.cleanup(self.home, spec.dispatch_id)
             return "stale"
         watcher = CancelWatcher(self.base_url, client.token, spec.task_id,
                                 timeout_s=max(self.heartbeat_s, 1.0))
@@ -398,7 +426,23 @@ class WorkerLoop:
         finally:
             watcher.stop()
             self._watchers.pop(spec.dispatch_id, None)
-        self._deliver_payload(build_result_payload(result))
+        if result.outcome == Outcome.CANCELLED and not watcher.cancelled():
+            # Host shutdown, not a task cancel: the attempt's effect is unknown, so
+            # report nothing and let the lease expire. The controller then retries
+            # an idempotent task and BLOCKs anything else; a fabricated failure
+            # here would wrongly FAIL the task.
+            adapter_bridge.cleanup(self.home, spec.dispatch_id)
+            return "abandoned"
+        report = adapter_bridge.read_report(self.home, spec.dispatch_id)
+        self._deliver_payload(build_result_payload(result, report, home=self.home))
+        adapter_bridge.cleanup(self.home, spec.dispatch_id)
+        if result.outcome == Outcome.CANCELLED:
+            # The tree is reaped: a heartbeat without this dispatch is the stop
+            # confirmation the controller needs to journal TASK_CANCELLED.
+            try:
+                client.heartbeat(self.worker_id, [])
+            except ControllerError:
+                pass
         return "delivered"
 
     def _send_heartbeat(self, client: ControllerClient, spec: ExecutionSpec) -> None:
@@ -442,6 +486,9 @@ class WorkerLoop:
                     action = "idle"
                 except HostBusy:
                     return 0
+                except ResourcePaused as exc:
+                    print(f"courier_worker.service: paused due to resource pressure: {exc}", file=sys.stderr)
+                    action = "idle"
                 if action == "idle":
                     stop.wait(self.heartbeat_s)
             try:

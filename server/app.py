@@ -14,12 +14,7 @@ def require_auth(f):
         if API_KEY in INSECURE_API_KEYS:
             return jsonify({"error": "Courier API key is not configured"}), 503
         auth_header = request.headers.get("Authorization")
-        token_header = request.headers.get("X-Courier-Token")
-        
-        valid_auth = auth_header and auth_header == f"Bearer {API_KEY}"
-        valid_token = token_header and token_header == API_KEY
-        
-        if not (valid_auth or valid_token):
+        if not auth_header or auth_header != f"Bearer {API_KEY}":
             return jsonify({"error": "Unauthorized"}), 401
         return f(*args, **kwargs)
     wrapper.__name__ = f.__name__
@@ -147,10 +142,8 @@ app.register_blueprint(create_blueprint(
     task_lookup=lambda task_id: load_state()["tasks"].get(task_id)))
 
 @app.route("/health", methods=["GET"])
-@app.route("/v1/health", methods=["GET"])
-@require_auth
 def health():
-    return jsonify({"status": "healthy", "service": "courier-controller", "mode": "local", "time": time.time()})
+    return jsonify({"status": "healthy", "time": time.time()})
 
 
 
@@ -315,7 +308,6 @@ def unregister_worker():
     return jsonify({"error": "Unknown worker"}), 404
 
 @app.route("/workers/heartbeat", methods=["POST"])
-@app.route("/v1/heartbeat", methods=["POST"])
 @require_auth
 @serialize_state_mutation
 def heartbeat():
@@ -323,14 +315,6 @@ def heartbeat():
     worker_id = data.get("worker_id")
     state = load_state()
     
-    if worker_id not in state["workers"]:
-        state["workers"][worker_id] = {
-            "current_task": None,
-            "last_seen": time.time(),
-            "available": True,
-            "system_info": {}
-        }
-        
     if worker_id in state["workers"]:
         state["workers"][worker_id]["last_seen"] = time.time()
         # Only mark available if not currently working
@@ -342,13 +326,7 @@ def heartbeat():
     else:
         return jsonify({"error": "Unknown worker"}), 404
 
-@app.route("/v1/start", methods=["POST"])
-@require_auth
-def start_dispatch():
-    return jsonify({"status": "ok"})
-
 @app.route("/tasks/claim", methods=["POST"])
-@app.route("/v1/claim", methods=["POST"])
 @require_auth
 @serialize_state_mutation
 def claim_task():
@@ -357,12 +335,7 @@ def claim_task():
     state = load_state()
     
     if worker_id not in state["workers"]:
-        state["workers"][worker_id] = {
-            "current_task": None,
-            "last_seen": time.time(),
-            "available": True,
-            "system_info": {}
-        }
+        return jsonify({"error": "Unknown worker"}), 404
         
     worker = state["workers"][worker_id]
     worker["last_seen"] = time.time()
@@ -451,7 +424,6 @@ def claim_task():
     return jsonify({"task": None})
 
 @app.route("/tasks/result", methods=["POST"])
-@app.route("/v1/result", methods=["POST"])
 @require_auth
 @serialize_state_mutation
 def task_result():
@@ -482,8 +454,6 @@ def task_result():
                     if "artifact_id" in ref:
                         ARTIFACT_STORE.check_reference(ref, task)
             except (ContractError, ArtifactError) as exc:
-                with open("val_err.txt", "w") as f:
-                    f.write(f"Validation failed for task_id {task_id}: {exc}, payload={data}")
                 return jsonify({"error": str(exc)}), 400
             task["status"] = "RESULT_RECEIVED"
             task["result"] = durable_result
@@ -721,38 +691,6 @@ def get_api_state():
                 "ingested_at": datetime.datetime.utcnow().isoformat() + "Z"
             })
             
-    def calculate_reboot_safety(st):
-        has_active_owned_work = any(t.get("status") in ["DISPATCHED", "CLAIMED", "WORKING", "RUNNING"] for t in st.get("tasks", {}).values())
-        has_uncommitted_work = st.get("uncommitted_work", False)
-        has_unpushed_commits = st.get("unpushed_commits", False)
-        has_checkpoint_state = True
-        has_open_writes = st.get("open_writes", False)
-        has_recovery_artifacts = st.get("recovery_artifacts_present", False)
-        has_resume_point = st.get("resume_point_present", True)
-        
-        if not has_checkpoint_state and has_active_owned_work:
-            return "UNKNOWN"
-        if has_open_writes:
-            return "NOT_SAFE_TO_REBOOT"
-        if has_active_owned_work and not has_recovery_artifacts:
-            return "NOT_SAFE_TO_REBOOT"
-        if (has_uncommitted_work or has_unpushed_commits) and not has_resume_point:
-            return "NOT_SAFE_TO_REBOOT"
-        
-        return "SAFE_TO_REBOOT"
-
-    def calculate_recovery_classification(st, agents):
-        agent_alive = len(agents) > 0
-        if not agent_alive:
-            return "NOT_RECOVERED"
-        gui_healthy = st.get("gui_healthy", True)
-        terminal_healthy = st.get("terminal_healthy", True)
-        if gui_healthy and terminal_healthy:
-            return "FULL_SYSTEM_RECOVERY"
-        if gui_healthy or terminal_healthy:
-            return "PARTIAL_SYSTEM_RECOVERY"
-        return "AGENT_ONLY_RECOVERY"
-
     return jsonify({
         "agents": active_agents,
         "auto_runtime": {
@@ -762,8 +700,6 @@ def get_api_state():
         "endurance": {
             "elapsed_seconds": 0
         },
-        "reboot_safety": calculate_reboot_safety(state),
-        "recovery_classification": calculate_recovery_classification(state, active_agents),
         "human_attention_required": needs_you,
         "human_attention_reason": human_reason,
         "task_board": task_board,

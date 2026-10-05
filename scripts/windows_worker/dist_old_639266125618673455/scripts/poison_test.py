@@ -1,1 +1,0 @@
-def get_state(): return 'V2_STATE'

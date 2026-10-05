@@ -163,7 +163,6 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(data)))
         self.send_header("Cache-Control", "no-store")
-        self.send_header("X-Courier-Token", self.server.token)
         self.end_headers()
         if data:
             self.wfile.write(data)

@@ -110,9 +110,6 @@ class ExecutionSpec:
     dispatch_id: str
     worker_id: str
     result_id: str
-    goal_id: str
-    attempt_id: str
-    run_id: str
     argv: tuple
     timeout_s: float
     lease_ttl_s: float
@@ -126,7 +123,7 @@ class ExecutionSpec:
     effect_key: Optional[str] = None
 
     def __post_init__(self):
-        for name in ("task_id", "dispatch_id", "worker_id", "result_id", "goal_id", "attempt_id", "run_id"):
+        for name in ("task_id", "dispatch_id", "worker_id", "result_id"):
             value = getattr(self, name)
             if not isinstance(value, str) or not value or len(value) > 200:
                 raise SpecError(f"{name} must be a non-empty string of at most 200 chars")
