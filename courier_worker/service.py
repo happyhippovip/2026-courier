@@ -256,7 +256,7 @@ class CancelWatcher:
     controller remains the authority; this only shortens cancel latency.
     """
 
-    def __init__(self, base_url: str, token: str, task_id: str, timeout_s: float = 20.0):
+    def __init__(self, base_url: str, token: str, task_id: str, timeout_s: float = REQUEST_TIMEOUT_S):
         self.base_url = base_url
         self.token = token
         self.task_id = task_id
@@ -264,6 +264,7 @@ class CancelWatcher:
         self._cancelled = threading.Event()
         self._stop = threading.Event()
         self._thread: Optional[threading.Thread] = None
+        self._sock: Optional[socket.socket] = None
         self.degraded = False
 
     def start(self) -> None:
@@ -273,6 +274,15 @@ class CancelWatcher:
 
     def stop(self) -> None:
         self._stop.set()
+        # Unblock a pending readline now instead of after timeout_s, so the
+        # socket and the thread are released when the run ends (Windows
+        # handle-leak root cause; see test_stop_releases_blocked_stream).
+        sock = self._sock
+        if sock is not None:
+            try:
+                sock.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
         thread, self._thread = self._thread, None
         if thread is not None:
             thread.join(timeout=2.0)
@@ -298,15 +308,18 @@ class CancelWatcher:
         cls = http.client.HTTPSConnection if parts.scheme == "https" else http.client.HTTPConnection
         conn = cls(parts.hostname, parts.port or (443 if parts.scheme == "https" else 80),
                    timeout=self.timeout_s)
+        resp = None
         try:
             conn.request("GET", "/v1/events",
                          headers={"X-Courier-Token": self.token, "Accept": "text/event-stream"})
+            # getresponse() drops conn.sock for a streaming (will-close) reply,
+            # so keep the raw socket: stop() shuts it down to end a blocked read.
+            self._sock = conn.sock
+            if self._stop.is_set():
+                return
             resp = conn.getresponse()
             if resp.status != 200:
                 raise ControllerError(f"sse: status {resp.status}")
-            sock = conn.sock
-            if sock is not None:
-                sock.settimeout(self.timeout_s)
             data_lines: list = []
             while not self._stop.is_set() and not self._cancelled.is_set():
                 try:
@@ -326,6 +339,9 @@ class CancelWatcher:
                 elif text.startswith(":"):
                     pass  # comment keep-alive
         finally:
+            self._sock = None
+            if resp is not None:
+                resp.close()  # owns the socket once conn has let go of it
             conn.close()
 
     def _dispatch_event(self, data_lines: list) -> None:
@@ -501,17 +517,6 @@ class WorkerLoop:
 
 
 def main(argv: Optional[list] = None) -> int:
-    import threading, sys, traceback, time
-    def dumper():
-        while True:
-            time.sleep(1)
-            with open("dump.txt", "w") as f:
-                for tid, frame in sys._current_frames().items():
-                    f.write(f"Thread {tid}:\n")
-                    traceback.print_stack(frame, file=f)
-                    f.write("\n")
-    threading.Thread(target=dumper, daemon=True).start()
-
     parser = argparse.ArgumentParser(prog="courier_worker.host",
                                      description="Bounded Courier v1 worker host (single-flight).")
     parser.add_argument("--home", default=os.environ.get("COURIER_HOME", os.getcwd()))

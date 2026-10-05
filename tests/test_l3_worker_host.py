@@ -594,6 +594,25 @@ def test_sse_cancel_aborts_run_promptly(tmp_path, stub):
     assert {"dispatch_ids": [], "worker_id": "w1"} in STUB.beats  # stop confirmation
 
 
+def test_stop_releases_blocked_stream(tmp_path, stub):
+    # A silent SSE stream must not pin the socket and the watcher thread for
+    # timeout_s after the run ends (that was the Windows golden handle leak).
+    watcher = S.CancelWatcher(stub, TOKEN, "t-quiet", timeout_s=30.0)
+    watcher.start()
+    deadline = time.monotonic() + 5
+    while watcher._sock is None and time.monotonic() < deadline:
+        time.sleep(0.05)
+    assert watcher._sock is not None, "watcher never subscribed"
+    time.sleep(0.5)  # now blocked in readline on the silent stream
+    thread = watcher._thread
+    started = time.monotonic()
+    watcher.stop()
+    assert time.monotonic() - started < 1.5
+    assert not thread.is_alive()
+    assert watcher._sock is None
+    assert not watcher.degraded
+
+
 @pytest.mark.parametrize("spec_over, params, needle", [
     ({"argv": [PY, "-c", "import os; os.system('echo pwned')"]}, None, "argv"),
     ({"adapter": "shell"}, None, "not allowlisted"),
