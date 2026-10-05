@@ -1,3 +1,0 @@
-adapters
-courier_core
-courier_worker

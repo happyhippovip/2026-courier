@@ -22,6 +22,7 @@ test = [
     "pytest==9.1.1",
     "pytest-timeout==2.4.0",
     "PyYAML==6.0.3",
+    "jsonschema==4.26.0",
 ]
 build = [
     "pyinstaller==6.22.3",

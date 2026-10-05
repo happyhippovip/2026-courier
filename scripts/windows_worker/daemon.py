@@ -36,7 +36,9 @@ def require_api_key():
 
 def get_app_data_dir():
     pd = os.environ.get("PROGRAMDATA")
-    base = Path(pd) / "CourierWorker" if pd else Path(__file__).parent / "data"
+    # Never inside the source tree: off Windows use COURIER_HOME or ~/.courier.
+    fallback = Path(os.environ.get("COURIER_HOME") or Path.home() / ".courier")
+    base = (Path(pd) if pd else fallback) / "CourierWorker"
     base.mkdir(parents=True, exist_ok=True)
     return base
 
