@@ -1,5 +1,11 @@
 """Mac worker surface admission: coalesced work is never reported as a success,
 and a real agy/muse run is bound to its (pid, create_time) surface."""
+import sys
+import pytest
+
+if sys.platform == 'win32':
+    pytest.skip('Mac worker admission tests require Unix (fcntl)', allow_module_level=True)
+
 import importlib.util
 from pathlib import Path
 
