@@ -256,7 +256,7 @@ class CancelWatcher:
     controller remains the authority; this only shortens cancel latency.
     """
 
-    def __init__(self, base_url: str, token: str, task_id: str, timeout_s: float = REQUEST_TIMEOUT_S):
+    def __init__(self, base_url: str, token: str, task_id: str, timeout_s: float = 20.0):
         self.base_url = base_url
         self.token = token
         self.task_id = task_id
@@ -311,10 +311,10 @@ class CancelWatcher:
             while not self._stop.is_set() and not self._cancelled.is_set():
                 try:
                     line = resp.readline()
-                except (OSError, socket.timeout, http.client.HTTPException):
+                except (OSError, socket.timeout, http.client.HTTPException) as e:
                     if self._stop.is_set() or self._cancelled.is_set():
                         return
-                    continue  # keep-alive gap; the socket timeout bounds it
+                    raise ControllerError("sse read timeout or error") from e
                 if not line:
                     return
                 text = line.decode("utf-8", errors="replace").strip()
@@ -501,6 +501,17 @@ class WorkerLoop:
 
 
 def main(argv: Optional[list] = None) -> int:
+    import threading, sys, traceback, time
+    def dumper():
+        while True:
+            time.sleep(1)
+            with open("dump.txt", "w") as f:
+                for tid, frame in sys._current_frames().items():
+                    f.write(f"Thread {tid}:\n")
+                    traceback.print_stack(frame, file=f)
+                    f.write("\n")
+    threading.Thread(target=dumper, daemon=True).start()
+
     parser = argparse.ArgumentParser(prog="courier_worker.host",
                                      description="Bounded Courier v1 worker host (single-flight).")
     parser.add_argument("--home", default=os.environ.get("COURIER_HOME", os.getcwd()))
