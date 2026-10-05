@@ -65,6 +65,7 @@ class Job:
     execution_minutes: int = 0
     reworks: int = 0
     failed: bool = False
+    max_liability_eur: float = 0.0
     evidence: list = field(default_factory=list)
 
     @property

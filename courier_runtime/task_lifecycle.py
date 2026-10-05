@@ -116,6 +116,9 @@ class TaskRecord:
     provider: Optional[str] = None
     fallback_provider: Optional[str] = None
     provider_degraded: bool = False
+    work_classification: Any = None # WorkClassification
+    required_capability: Optional[str] = None
+    project_constraints: Dict[str, str] = field(default_factory=dict)
 
 @dataclass
 class RecoveryReceipt:
@@ -544,12 +547,25 @@ class TaskLifecycleManager:
             if receipt:
                 receipt.old_owner = old_owner
 
-    def request_wake(self, workkey: str, check_resource_limits: bool = True) -> bool:
+    def request_wake(self, workkey: str, check_resource_limits: bool = True, provider: str = None, capability: str = None, constraints: dict = None) -> bool:
         """
         Enforce the Queue Law: 100 equivalent wakes must become 1 active execution + at most 1 RECHECK_NEEDED marker.
         Returns True if the wake should actually start an execution, False if it's bounded (deduplicated).
         Also enforces RESOURCE PROTECTION to apply backpressure before resource exhaustion.
         """
+        # Slice E: scheduled work resolves through WorkKey + circuit state
+        if provider and capability and hasattr(self, 'circuit_breaker'):
+            state = self.circuit_breaker.get_state(provider, capability)
+            if state.open_circuit and not state.check_recovery():
+                # Circuit is open. Try fallback
+                fallback = None
+                if hasattr(self, 'fallback_router'):
+                    fallback = self.fallback_router.find_fallback(capability, constraints or {})
+                if not fallback:
+                    # No fallback, return False to coalesce duplicates (wait safely)
+                    return False
+                # If fallback found, we could use it
+
         # Resource Backpressure
         if check_resource_limits:
             total_active = len([t for t in self.active_tasks.values() if t.current_state not in [TaskState.DONE, TaskState.FAILED_FINAL, TaskState.CANCELLED, TaskState.SUPERSEDED]])

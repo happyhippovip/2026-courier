@@ -54,7 +54,7 @@ class NoEligibleHost(Exception):
 
 def can_admit(requirement: Requirement, host: Host) -> bool:
     """Evaluate host capacity policy."""
-    if requirement.capabilities > host.capabilities:
+    if not requirement.capabilities.issubset(host.capabilities):
         return False
     if requirement.privacy is not None and host.privacy != requirement.privacy:
         return False
@@ -77,7 +77,7 @@ def can_admit(requirement: Requirement, host: Host) -> bool:
         return True
     elif host.health == DEGRADED:
         # reduce concurrency, prefer remote, pause local
-        if host.privacy == "own" and requirement.is_heavy:
+        if host.privacy == "own":
             return False
         # Treat max slots as halved
         if host.active_leases >= max(1, host.profile.max_total_slots // 2):

@@ -100,18 +100,51 @@ namespace CourierLauncher
             if (File.Exists(configPath))
             {
                 string json = File.ReadAllText(configPath);
-                
-                // Simple regex to extract JSON values
                 System.Text.RegularExpressions.Match serverMatch = System.Text.RegularExpressions.Regex.Match(json, "\"COURIER_SERVER\"\\s*:\\s*\"([^\"]+)\"");
-                if (serverMatch.Success) {
-                    serverUrl = serverMatch.Groups[1].Value;
-                }
-                
+                if (serverMatch.Success) serverUrl = serverMatch.Groups[1].Value;
                 System.Text.RegularExpressions.Match workerMatch = System.Text.RegularExpressions.Regex.Match(json, "\"COURIER_WORKER_ID\"\\s*:\\s*\"([^\"]+)\"");
-                if (workerMatch.Success) {
-                    workerId = workerMatch.Groups[1].Value;
+                if (workerMatch.Success) workerId = workerMatch.Groups[1].Value;
+            }
+
+            if (string.IsNullOrEmpty(serverUrl) || string.IsNullOrEmpty(workerId))
+            {
+                // Create a basic form to prompt
+                System.Windows.Forms.Form form = new System.Windows.Forms.Form();
+                form.Text = "Courier Windows Worker Configuration";
+                form.Size = new System.Drawing.Size(400, 250);
+                form.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+                form.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+                form.MaximizeBox = false;
+
+                System.Windows.Forms.Label lblServer = new System.Windows.Forms.Label { Text = "Server URL:", Left = 20, Top = 20, Width = 100 };
+                System.Windows.Forms.TextBox txtServer = new System.Windows.Forms.TextBox { Left = 120, Top = 20, Width = 200, Text = serverUrl == "" ? "http://" : serverUrl };
+                System.Windows.Forms.Label lblWorker = new System.Windows.Forms.Label { Text = "Worker ID:", Left = 20, Top = 60, Width = 100 };
+                System.Windows.Forms.TextBox txtWorker = new System.Windows.Forms.TextBox { Left = 120, Top = 60, Width = 200, Text = workerId == "" ? Environment.MachineName : workerId };
+                
+                System.Windows.Forms.Button btnSave = new System.Windows.Forms.Button { Text = "Save & Start", Left = 120, Top = 100, Width = 100 };
+                btnSave.Click += (sender, e) => {
+                    serverUrl = txtServer.Text;
+                    workerId = txtWorker.Text;
+                    
+                    if (!Directory.Exists(dataDir)) Directory.CreateDirectory(dataDir);
+                    File.WriteAllText(configPath, "{\n  \"COURIER_SERVER\": \"" + serverUrl + "\",\n  \"COURIER_WORKER_ID\": \"" + workerId + "\"\n}");
+                    form.DialogResult = System.Windows.Forms.DialogResult.OK;
+                    form.Close();
+                };
+                
+                form.Controls.Add(lblServer);
+                form.Controls.Add(txtServer);
+                form.Controls.Add(lblWorker);
+                form.Controls.Add(txtWorker);
+                form.Controls.Add(btnSave);
+                form.AcceptButton = btnSave;
+                
+                if (form.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+                {
+                    Environment.Exit(1);
                 }
             }
+
 
             // Path priorities:
             // 1. Packaged embedded python (no external dependencies)
