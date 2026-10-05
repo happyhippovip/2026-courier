@@ -1,6 +1,6 @@
 param(
     [string]$OutDir = "$PSScriptRoot\dist",
-    [string]$PythonUrl = "https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip"
+    [string]$PythonUrl = "https://www.python.org/ftp/python/3.12.6/python-3.12.6-embed-amd64.zip"
 )
 
 Write-Host "Building Courier Windows Package..."
@@ -33,12 +33,12 @@ $pyDir = Join-Path $OutDir "python"
 New-Item -ItemType Directory -Force -Path $pyDir | Out-Null
 Write-Host "Extracting Python..."
 Expand-Archive -Path $pyZip -DestinationPath $pyDir -Force
-Add-Content -Path "$pyDir\python311._pth" -Value ".."
+Add-Content -Path "$pyDir\python312._pth" -Value ".."
 
 Write-Host "Installing dependencies using uv..."
 $projectRoot = (Resolve-Path "$PSScriptRoot\..\..\").Path
 uv pip install --target "$OutDir\libs" $projectRoot
-Add-Content -Path "$pyDir\python311._pth" -Value "..\libs"
+Add-Content -Path "$pyDir\python312._pth" -Value "..\libs"
 
 # 4. Create ZIP package
 $zipOut = "$PSScriptRoot\CourierWorker-v1.zip"
