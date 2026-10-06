@@ -12,9 +12,16 @@ import time
 import zipfile
 
 def get_app_data_dir():
-    # V1 data directory is COURIER_HOME or ~/.courier
-    fallback = Path(os.environ.get("COURIER_HOME") or Path.home() / ".courier")
-    return fallback
+    import sys
+    if os.environ.get("COURIER_HOME"):
+        return Path(os.environ["COURIER_HOME"])
+    
+    if sys.platform == "win32":
+        return Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local")) / "Courier"
+    elif sys.platform == "darwin":
+        return Path.home() / "Library" / "Application Support" / "Courier"
+    else:
+        return Path.home() / ".courier"
 
 def load_config():
     config_path = get_app_data_dir() / "config.json"
