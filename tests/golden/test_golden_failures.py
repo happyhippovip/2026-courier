@@ -116,17 +116,8 @@ def test_timeout_kills_the_task_tree_and_retries(courier):
     complete = courier.wait_event(task_id, "TASK_COMPLETE", timeout=60)
     assert complete["attempt"] == 2
     assert len(accepted_events(courier, task_id)) == 1
-    time.sleep(6)
-    import os
-    tolerance = 30 if os.name == "nt" else 4
-    if open_handles(worker.pid) > baseline_handles + tolerance:
-        import psutil, gc
-        gc.collect()
-        p = psutil.Process(worker.pid)
-        print(f"Open files: {p.open_files()}")
-        print(f"Connections: {p.connections()}")
-        print(f"Threads: {len(p.threads())}")
-        assert False, f"worker host leaked handles/descriptors: {open_handles(worker.pid)} vs {baseline_handles}"
+    time.sleep(2)
+    assert open_handles(worker.pid) <= baseline_handles + 4, "worker host leaked handles/descriptors"
 
 
 def test_cancel_while_running(courier):
