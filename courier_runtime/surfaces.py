@@ -305,3 +305,87 @@ class WindowsAdapter(PlatformAdapter):
 
 def adapter_for(platform_name):
     return {"darwin": MacAdapter, "win32": WindowsAdapter}.get(platform_name, PlatformAdapter)()
+
+
+# ---- wall launch guard -----------------------------------------------------
+# A "wall" launcher opening 32/64 visible AI windows at once exhausted a 16 GB
+# MacBook on 2026-10-05 (kernel panic: watchdog timeout, VM compressor at 100%
+# of its segment limit with 58 swapfiles). Before any multi-window launch the
+# host is asked how many windows it can really carry; above that the owner is
+# warned and offered the safe number instead.
+
+GB_PER_WINDOW = 1.0          # measured order of magnitude for one IDE/agent window
+RESERVED_GB = 4.0            # OS, browser and the Courier runtime itself
+MAX_WALL = 12                # never more visible agent windows on one host
+LONG_UPTIME_H = 48.0         # memory fragmentation/leaks: plan smaller after this
+
+
+@dataclass(frozen=True)
+class WallPlan:
+    verdict: str              # OK | WARN | REFUSE
+    requested: int
+    recommended: int
+    limit: int
+    reasons: tuple = ()
+
+    def question(self):
+        if self.verdict == "OK":
+            return ""
+        why = "; ".join(self.reasons)
+        if self.verdict == "REFUSE" and self.recommended == 0:
+            return f"Gerade keine neuen Fenster: {why}. Erst Fenster schliessen oder neu starten."
+        return (f"{self.requested} Fenster sind für diesen Rechner zu viel ({why}). "
+                f"Lieber {self.recommended} Fenster öffnen?")
+
+
+def wall_plan(requested, ram_gb, uptime_hours=0.0, swap_pressure=False, already_open=0):
+    """How many visible agent windows this host may open now. Pure: callers pass measurements."""
+    limit = max(0, min(MAX_WALL, int((ram_gb - RESERVED_GB) / GB_PER_WINDOW)))
+    recommended = (limit * 2) // 3
+    reasons = []
+    if uptime_hours >= LONG_UPTIME_H:
+        recommended = recommended * 3 // 4
+        reasons.append(f"läuft seit {int(uptime_hours // 24)} Tagen ohne Neustart")
+    if swap_pressure:
+        limit = recommended = 0
+        reasons.append("Arbeitsspeicher ist bereits voll (Swap/Kompressor am Limit)")
+    limit = max(0, limit - already_open)
+    recommended = max(0, min(recommended - already_open, limit))
+    if requested > limit:
+        reasons.insert(0, f"höchstens {limit} bei {ram_gb:g} GB RAM")
+        return WallPlan("REFUSE", requested, recommended, limit, tuple(reasons))
+    if requested > recommended:
+        reasons.insert(0, f"empfohlen sind {recommended} bei {ram_gb:g} GB RAM")
+        return WallPlan("WARN", requested, recommended, limit, tuple(reasons))
+    return WallPlan("OK", requested, recommended, limit, tuple(reasons))
+
+
+def measure_host():
+    """(ram_gb, uptime_hours, swap_pressure) of this computer via psutil."""
+    import psutil
+    vm, swap = psutil.virtual_memory(), psutil.swap_memory()
+    pressure = vm.percent >= Budget().ram_stop_pct or (swap.total > 0 and swap.percent >= 75.0)
+    return round(vm.total / 2**30), (time.time() - psutil.boot_time()) / 3600.0, pressure
+
+
+def main(argv=None):
+    """`python -m courier_runtime.surfaces wall-check N [--open K]`: exit 0 OK, 1 WARN, 2 REFUSE.
+
+    Wall launchers (.command / .ps1) call this before opening windows and open
+    only `recommended` unless the owner explicitly confirms the warning.
+    """
+    import argparse
+    p = argparse.ArgumentParser(prog="courier_runtime.surfaces")
+    sub = p.add_subparsers(dest="cmd", required=True)
+    w = sub.add_parser("wall-check")
+    w.add_argument("requested", type=int)
+    w.add_argument("--open", type=int, default=0, help="agent windows already open")
+    a = p.parse_args(argv)
+    ram_gb, uptime_h, pressure = measure_host()
+    plan = wall_plan(a.requested, ram_gb, uptime_h, pressure, a.open)
+    print(json.dumps({**dataclasses.asdict(plan), "question": plan.question()}, ensure_ascii=False))
+    return {"OK": 0, "WARN": 1, "REFUSE": 2}[plan.verdict]
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
