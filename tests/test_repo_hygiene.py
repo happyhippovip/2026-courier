@@ -30,3 +30,7 @@ def test_no_gitlinks_without_gitmodules():
     gitlinks = [line.split("\t", 1)[1] for line in _git("ls-files", "-s").splitlines() if line.startswith("160000 ")]
     if gitlinks:
         assert os.path.exists(os.path.join(REPO, ".gitmodules")), f"embedded repos without .gitmodules: {gitlinks}"
+
+def test_no_tracked_crash_logs():
+    tracked = [p for p in _git("ls-files").splitlines() if p.endswith(".log") or p.endswith(".out")]
+    assert tracked == [], f"crash logs or output logs are tracked: {tracked[:5]} (+{max(0, len(tracked) - 5)})"
