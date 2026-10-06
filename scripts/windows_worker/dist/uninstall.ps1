@@ -20,4 +20,4 @@ if (Test-Path $InstallDir) {
     Write-Host "Removed installation directory: $InstallDir"
 }
 
-Write-Host "Uninstall complete. User data in %PROGRAMDATA%\CourierWorker was preserved."
+Write-Host "Uninstall complete. User data in %LOCALAPPDATA%\Courier was preserved."

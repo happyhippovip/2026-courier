@@ -35,10 +35,10 @@ def require_api_key():
         raise MissingCredentialError("COURIER_API_KEY is not set (environment or config.json); refusing to contact the Courier server.")
 
 def get_app_data_dir():
-    pd = os.environ.get("PROGRAMDATA")
+    pd = os.environ.get("LOCALAPPDATA")
     # Never inside the source tree: off Windows use COURIER_HOME or ~/.courier.
     fallback = Path(os.environ.get("COURIER_HOME") or Path.home() / ".courier")
-    base = (Path(pd) if pd else fallback) / "CourierWorker"
+    base = (Path(pd) if pd else fallback) / "Courier"
     base.mkdir(parents=True, exist_ok=True)
     return base
 
