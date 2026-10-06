@@ -42,7 +42,14 @@ def test_win_clean_machine_harness(tmp_path):
     }))
 
     # 0x01000000 is CREATE_BREAKAWAY_FROM_JOB
-    launcher = subprocess.Popen([str(launcher_exe)], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | 0x01000000)
+    try:
+        launcher = subprocess.Popen([str(launcher_exe)], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | 0x01000000)
+    except PermissionError as e:
+        if e.winerror == 5:
+            # Cannot break away from Job object (e.g. GitHub Actions runner)
+            launcher = subprocess.Popen([str(launcher_exe)], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+        else:
+            raise
 
     try:
         # Wait for token
@@ -162,7 +169,14 @@ def test_win_clean_machine_harness(tmp_path):
         launcher.wait(10)
 
     # 4. Restart and Replay
-    launcher2 = subprocess.Popen([str(launcher_exe)], env=env, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+    # 0x01000000 is CREATE_BREAKAWAY_FROM_JOB
+    try:
+        launcher2 = subprocess.Popen([str(launcher_exe)], env=env, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | 0x01000000)
+    except PermissionError as e:
+        if getattr(e, "winerror", None) == 5:
+            launcher2 = subprocess.Popen([str(launcher_exe)], env=env, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+        else:
+            raise
     try:
         start_time = time.monotonic()
         while time.monotonic() - start_time < 30:
