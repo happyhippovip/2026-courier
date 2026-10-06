@@ -130,7 +130,11 @@ namespace CourierLauncher
             }
 
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string dataDir = Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\Courier");
+            string dataDir = Environment.GetEnvironmentVariable("COURIER_HOME");
+            if (string.IsNullOrEmpty(dataDir))
+            {
+                dataDir = Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\Courier");
+            }
             
             string oldDataDir = Environment.ExpandEnvironmentVariables(@"%PROGRAMDATA%\CourierWorker");
             string oldConfigPath = Path.Combine(oldDataDir, "config.json");
