@@ -18,16 +18,18 @@ For stronger unattended behavior when the terminal may be closed, this repo prov
 - durable state lives under `~/.courier/dev-night/`;
 - each Muse invocation is a deep batch, targeting 4–8 non-duplicate read-only work units;
 - no workflow/child-agent/subagent fanout;
-- no product-source writes.
+- no product-source writes;
+- before each batch the checkout is fast-forwarded when it is clean, so the runner reviews current code (`COURIER_NIGHT_AUTO_UPDATE=0` turns this off).
 
 This is deliberately separate from the customer runtime. Courier V1 itself continues to use the canonical ledger/controller/worker architecture.
 
 ## Install
 
-From the repository checkout on macOS:
+Use a clone that only the runner touches, on `integration/v1`, and run the installer from a terminal where `muse` works:
 
 ```bash
-bash scripts/install_macos_muse_night_runner.sh
+git clone --branch integration/v1 https://github.com/happyhippovip/2026-courier.git ~/courier-night
+cd ~/courier-night && bash scripts/install_macos_muse_night_runner.sh
 ```
 
 The installer creates one user LaunchAgent:

@@ -105,6 +105,21 @@ trap 'rm -f "$run_log" 2>/dev/null || true; cleanup' EXIT INT TERM
 
 cd "$REPO_ROOT" || exit 66
 
+# Follow the checked-out branch so each batch reviews current code instead of
+# the commit the runner was installed from. Fast-forward only, and only when
+# the checkout is clean; a failed update never blocks a run.
+if [ "${COURIER_NIGHT_AUTO_UPDATE:-1}" = "1" ]; then
+  if [ -z "$(git status --porcelain 2>/dev/null)" ]; then
+    if git pull --ff-only --quiet >/dev/null 2>&1; then
+      echo "update=ok head=$(git rev-parse --short HEAD 2>/dev/null)" >> "$LOG_FILE"
+    else
+      echo "update=skipped (no fast-forward, no upstream or offline)" >> "$LOG_FILE"
+    fi
+  else
+    echo "update=skipped (checkout not clean)" >> "$LOG_FILE"
+  fi
+fi
+
 muse exec --prompt-file "$PROMPT_FILE" >"$run_log" 2>&1
 rc=$?
 
