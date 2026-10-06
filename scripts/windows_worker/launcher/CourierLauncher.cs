@@ -85,7 +85,16 @@ namespace CourierLauncher
             DataReceivedEventHandler logHandler = (s, e) => {
                 if (e.Data != null) {
                     lock(logLock) {
-                        File.AppendAllText(Path.Combine(logDir, logFile), string.Format("[{0:O}] {1}{2}", DateTime.UtcNow, e.Data, Environment.NewLine));
+                        string logPath = Path.Combine(logDir, logFile);
+                        if (File.Exists(logPath)) {
+                            var info = new FileInfo(logPath);
+                            if (info.Length > 5 * 1024 * 1024) { // 5MB limit
+                                string backup = logPath + ".1";
+                                if (File.Exists(backup)) File.Delete(backup);
+                                File.Move(logPath, backup);
+                            }
+                        }
+                        File.AppendAllText(logPath, string.Format("[{0:O}] {1}{2}", DateTime.UtcNow, e.Data, Environment.NewLine));
                     }
                 }
             };
