@@ -16,12 +16,26 @@ def test_grandchild_process_reaping(tmp_path):
     ]
     
     run = _spawn_contained(argv, run_dir, "test-leak")
-    time.sleep(8) # Give it time to spawn the grandchild
     
     # Verify the parent and grandchild are running
-    parent_proc = psutil.Process(run.proc.pid)
-    children = parent_proc.children(recursive=True)
-    assert len(children) > 0, "Grandchild was not spawned"
+    try:
+        parent_proc = psutil.Process(run.proc.pid)
+    except psutil.NoSuchProcess:
+        pytest.fail(f"Parent process exited immediately. Return code: {run.proc.poll()}")
+        
+    start_time = time.monotonic()
+    children = []
+    while time.monotonic() - start_time < 30:
+        try:
+            children = parent_proc.children(recursive=True)
+            if len(children) > 0:
+                break
+        except psutil.NoSuchProcess:
+            pytest.fail(f"Parent process died before spawning grandchild. Return code: {run.proc.poll()}")
+        time.sleep(0.5)
+        
+    if not children:
+        pytest.fail(f"Grandchild was not spawned within 30s. Parent return code: {run.proc.poll()}")
     
     child_pids = [c.pid for c in children]
     

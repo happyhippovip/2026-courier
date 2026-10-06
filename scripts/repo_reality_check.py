@@ -317,7 +317,7 @@ def to_pdf(html_str, out_path):
         from weasyprint import HTML
         HTML(string=html_str).write_pdf(out_path)
         return True
-    except ImportError:
+    except Exception:
         return False
 
 

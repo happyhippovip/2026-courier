@@ -92,24 +92,42 @@ class CourierScheduler:
         # When None, a claimed probe succeeds and completes the unit.
         self.recovery_probe: Optional[Callable[[], Tuple[bool, int, str]]] = None
 
-    def handle_wake(self, wake_id: str, tasks: List[TaskContext]):
+    def handle_wake(self, wake_id: str, tasks: List[TaskContext],
+                    hibernator: Optional[LaneHibernator] = None,
+                    checkpoint: Optional[Any] = None):
         self.automation_ctx.enqueue_wake(Wakeup(trigger_id=wake_id))
         
         if not self.automation_ctx.start_execution():
             return
 
         try:
+            local_tasks = []
+            provider_tasks = []
+            
             for task in tasks:
                 if task.task_id in self.completed_tasks:
                     continue
                 
                 state = self.evaluate_task_state(task)
                 if state == WorkState.LOCAL_READY:
+                    local_tasks.append(task)
                     self.execute_local(task)
                 elif state == WorkState.PROVIDER_READY:
+                    provider_tasks.append(task)
                     self.execute_with_provider(task, "muse")
                 elif state == WorkState.WAITING_PROVIDER:
+                    provider_tasks.append(task)
                     pass
+            
+            if hibernator and checkpoint:
+                self.hibernate_if_quota_blocked_idle(hibernator, checkpoint, local_tasks, provider_tasks)
+            
+            # Compaction (Issue #75)
+            if len(self.completed_tasks) > 1000:
+                self.completed_tasks = self.completed_tasks[-1000:]
+            if len(self.provider_calls) > 1000:
+                self.provider_calls = self.provider_calls[-1000:]
+                
         except OSError as e:
             if e.errno == 24: # EMFILE
                 self.automation_ctx.resource_exhausted()

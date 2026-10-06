@@ -300,14 +300,38 @@ def run_task(task, config):
     
     return res_json
 
+_last_sys_times = None
+
 def is_resource_pressure_high():
+    global _last_sys_times
     try:
-        # Check CPU load
-        out = subprocess.check_output(["powershell", "-NoProfile", "-Command", "(Get-WmiObject Win32_Processor).LoadPercentage"], text=True, timeout=5)
-        loads = [int(x.strip()) for x in out.split() if x.strip().isdigit()]
-        if loads and sum(loads)/len(loads) > 85:
-            return True
-        return False
+        import ctypes
+        class FILETIME(ctypes.Structure):
+            _fields_ = [("dwLowDateTime", ctypes.c_uint), ("dwHighDateTime", ctypes.c_uint)]
+        idle = FILETIME()
+        kernel = FILETIME()
+        user = FILETIME()
+        ctypes.windll.kernel32.GetSystemTimes(ctypes.byref(idle), ctypes.byref(kernel), ctypes.byref(user))
+        
+        i = (idle.dwHighDateTime << 32) | idle.dwLowDateTime
+        k = (kernel.dwHighDateTime << 32) | kernel.dwLowDateTime
+        u = (user.dwHighDateTime << 32) | user.dwLowDateTime
+        t = k + u
+        
+        if _last_sys_times is None:
+            _last_sys_times = (i, t)
+            return False
+            
+        i_prev, t_prev = _last_sys_times
+        _last_sys_times = (i, t)
+        
+        dt = t - t_prev
+        di = i - i_prev
+        if dt == 0:
+            return False
+            
+        load = (dt - di) / dt * 100.0
+        return load > 85.0
     except Exception:
         # Defaults to safe (no pressure) if check fails to prevent starvation, but we could also back off
         return False
@@ -431,8 +455,22 @@ def loop():
             time.sleep(10)
             
     finally:
-        if os.path.exists(lock_path):
-            os.remove(lock_path)
+        if _lock_fd is not None:
+            try:
+                import msvcrt
+                os.lseek(_lock_fd, 0, os.SEEK_SET)
+                msvcrt.locking(_lock_fd, msvcrt.LK_UNLCK, 1)
+            except Exception:
+                pass
+            try:
+                os.close(_lock_fd)
+            except OSError:
+                pass
+        if lock_path and os.path.exists(lock_path):
+            try:
+                os.remove(lock_path)
+            except OSError:
+                pass
 
 if __name__ == "__main__":
     try:

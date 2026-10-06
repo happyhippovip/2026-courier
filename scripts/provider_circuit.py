@@ -109,8 +109,11 @@ class CircuitState:
         self.probe_in_flight = False
 
 class ProviderCircuitBreaker:
+    _shared_circuits: dict[str, CircuitState] = {}
+
     def __init__(self):
-        self.circuits: dict[str, CircuitState] = {}
+        self.circuits = self._shared_circuits
+        
         
     def get_circuit(self, provider_id: str, capability: str) -> CircuitState:
         key = f"{provider_id}|{capability}"
