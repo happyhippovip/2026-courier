@@ -8,6 +8,15 @@ import json
 import signal
 from pathlib import Path
 
+@pytest.fixture(autouse=True)
+def restore_courier_exe():
+    yield
+    if os.name == 'nt':
+        try:
+            subprocess.run(["git", "restore", "scripts/windows_worker/Courier.exe"], check=False)
+        except Exception:
+            pass
+
 @pytest.mark.skipif(os.name != 'nt', reason="Windows specific clean-machine harness")
 def test_win_clean_machine_harness(tmp_path):
     """
