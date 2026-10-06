@@ -160,7 +160,7 @@ namespace CourierLauncher
 
             
             bool createdNew;
-            using (Mutex singleInstanceMutex = new Mutex(true, "Global\\CourierLauncherMutex", out createdNew))
+            using (Mutex singleInstanceMutex = new Mutex(true, "Local\\CourierLauncherMutex", out createdNew))
             {
                 if (!createdNew)
                 {
