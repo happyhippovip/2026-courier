@@ -314,9 +314,11 @@ def adapter_for(platform_name):
 # host is asked how many windows it can really carry; above that the owner is
 # warned and offered the safe number instead.
 
-GB_PER_WINDOW = 1.0          # measured order of magnitude for one IDE/agent window
+GB_PER_WINDOW = 1.5          # one Muse/IDE agent window incl. its node runtime (two 16 GB panics)
 RESERVED_GB = 4.0            # OS, browser and the Courier runtime itself
 MAX_WALL = 12                # never more visible agent windows on one host
+RAMP_START = 3               # first run on a host: 2 working + 1 test window
+RAMP_STABLE_H = 2.0          # hours without memory pressure before one more window is allowed
 LONG_UPTIME_H = 48.0         # memory fragmentation/leaks: plan smaller after this
 
 
@@ -338,11 +340,20 @@ class WallPlan:
                 f"Lieber {self.recommended} Fenster öffnen?")
 
 
-def wall_plan(requested, ram_gb, uptime_hours=0.0, swap_pressure=False, already_open=0):
-    """How many visible agent windows this host may open now. Pure: callers pass measurements."""
+def wall_plan(requested, ram_gb, uptime_hours=0.0, swap_pressure=False, already_open=0, ramp=None):
+    """How many visible agent windows this host may open now. Pure: callers pass measurements.
+
+    `ramp` is the count this host has proven it can carry (see ramp_step); the
+    recommendation never exceeds it, so a host climbs 3 -> 4 -> ... slowly.
+    """
     limit = max(0, min(MAX_WALL, int((ram_gb - RESERVED_GB) / GB_PER_WINDOW)))
     recommended = (limit * 2) // 3
     reasons = []
+    if ramp is not None:
+        # a proven ramp replaces the static guess, up to the RAM limit
+        if ramp < limit:
+            reasons.append(f"Hochfahren: dieser Rechner hat erst {ramp} Fenster stabil geschafft")
+        recommended = min(ramp, limit)
     if uptime_hours >= LONG_UPTIME_H:
         recommended = recommended * 3 // 4
         reasons.append(f"läuft seit {int(uptime_hours // 24)} Tagen ohne Neustart")
@@ -358,6 +369,29 @@ def wall_plan(requested, ram_gb, uptime_hours=0.0, swap_pressure=False, already_
         reasons.insert(0, f"empfohlen sind {recommended} bei {ram_gb:g} GB RAM")
         return WallPlan("WARN", requested, recommended, limit, tuple(reasons))
     return WallPlan("OK", requested, recommended, limit, tuple(reasons))
+
+
+def ramp_step(state, now, open_count, pressure, last_panic=0.0):
+    """Advance the per-host ramp. state = {"level": n, "since": ts}. Returns the new state.
+
+    A kernel panic or memory pressure after the level was set drops back to
+    RAMP_START; RAMP_STABLE_H calm hours at the full level allow one more.
+    """
+    level, since = state.get("level", RAMP_START), state.get("since", now)
+    if last_panic > since or pressure:
+        return {"level": RAMP_START, "since": now}
+    if open_count >= level and now - since >= RAMP_STABLE_H * 3600:
+        return {"level": min(level + 1, MAX_WALL), "since": now}
+    return {"level": level, "since": since}
+
+
+def last_panic_time(dirs=("/Library/Logs/DiagnosticReports", "/Library/Logs/DiagnosticReports/Retired")):
+    """mtime of the newest macOS kernel panic report, 0.0 when none is visible."""
+    newest = 0.0
+    for d in dirs:
+        for f in Path(d).glob("*.panic") if Path(d).is_dir() else ():
+            newest = max(newest, f.stat().st_mtime)
+    return newest
 
 
 def measure_host():
@@ -380,9 +414,16 @@ def main(argv=None):
     w = sub.add_parser("wall-check")
     w.add_argument("requested", type=int)
     w.add_argument("--open", type=int, default=0, help="agent windows already open")
+    w.add_argument("--state", default=str(Path(os.environ.get("COURIER_HOME") or Path.home() / ".courier")
+                                          / "wall_ramp.json"))
     a = p.parse_args(argv)
     ram_gb, uptime_h, pressure = measure_host()
-    plan = wall_plan(a.requested, ram_gb, uptime_h, pressure, a.open)
+    state_path = Path(a.state)
+    state = json.loads(state_path.read_text(encoding="utf-8")) if state_path.exists() else {}
+    state = ramp_step(state, time.time(), a.open, pressure, last_panic_time())
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+    state_path.write_text(json.dumps(state), encoding="utf-8")
+    plan = wall_plan(a.requested, ram_gb, uptime_h, pressure, a.open, ramp=state["level"])
     print(json.dumps({**dataclasses.asdict(plan), "question": plan.question()}, ensure_ascii=False))
     return {"OK": 0, "WARN": 1, "REFUSE": 2}[plan.verdict]
 
