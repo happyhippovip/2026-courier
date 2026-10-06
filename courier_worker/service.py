@@ -445,12 +445,13 @@ class WorkerLoop:
                 pass
         return "delivered"
 
-    def _send_heartbeat(self, client: ControllerClient, spec: ExecutionSpec) -> None:
+    def _send_heartbeat(self, client: ControllerClient, spec: ExecutionSpec) -> bool:
         payload = client.heartbeat(self.worker_id, [spec.dispatch_id])
         if spec.dispatch_id in payload.get("cancel", []) or spec.dispatch_id in payload.get("stop", []):
             watcher = self._watchers.get(spec.dispatch_id)
             if watcher:
                 watcher._cancelled.set()
+        return True
 
     def _deliver_payload(self, payload: dict) -> None:
         outbox_write(self.home, payload)

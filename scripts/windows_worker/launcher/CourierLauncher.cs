@@ -95,7 +95,9 @@ namespace CourierLauncher
             p.Start();
             p.BeginOutputReadLine();
             p.BeginErrorReadLine();
-            AssignProcessToJobObject(hJob, p.Handle);
+            if (hJob != IntPtr.Zero) {
+                AssignProcessToJobObject(hJob, p.Handle);
+            }
             return p;
         }
 
@@ -103,21 +105,25 @@ namespace CourierLauncher
         {
             SetConsoleCtrlHandler(ConsoleCtrlCheck, true);
 
-            IntPtr hJob = CreateJobObject(IntPtr.Zero, null);
-            if (hJob == IntPtr.Zero)
+            IntPtr hJob = IntPtr.Zero;
+            if (Environment.GetEnvironmentVariable("COURIER_TEST_NO_JOB") != "1")
             {
-                Console.WriteLine("Failed to create Job Object.");
-                Environment.Exit(1);
-            }
+                hJob = CreateJobObject(IntPtr.Zero, null);
+                if (hJob == IntPtr.Zero)
+                {
+                    Console.WriteLine("Failed to create Job Object.");
+                    Environment.Exit(1);
+                }
 
-            var info = new JOBOBJECT_EXTENDED_LIMIT_INFORMATION();
-            info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+                var info = new JOBOBJECT_EXTENDED_LIMIT_INFORMATION();
+                info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
 
-            int length = Marshal.SizeOf(typeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
-            if (!SetInformationJobObject(hJob, JobObjectExtendedLimitInformation, ref info, length))
-            {
-                Console.WriteLine("Failed to set Job Object limits.");
-                Environment.Exit(1);
+                int length = Marshal.SizeOf(typeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
+                if (!SetInformationJobObject(hJob, JobObjectExtendedLimitInformation, ref info, length))
+                {
+                    Console.WriteLine("Failed to set Job Object limits.");
+                    Environment.Exit(1);
+                }
             }
 
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -187,12 +193,18 @@ namespace CourierLauncher
             if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir);
             
             string ctrlArgs = string.Format("run python -m courier_core.serve --home \"{0}\" --port {1}", dataDir, cp);
-            string workerArgs = string.Format("run python -m courier_worker.host --home \"{0}\" --controller http://127.0.0.1:{1} --worker-id \"{2}\" --max-tasks 1 --heartbeat 2", dataDir, cp, workerId);
+            string workerArgs = string.Format("run python -m courier_worker.host --home \"{0}\" --controller http://127.0.0.1:{1} --max-tasks 1 --heartbeat 2", dataDir, cp);
+            if (!string.IsNullOrEmpty(workerId)) {
+                workerArgs += string.Format(" --worker-id \"{0}\"", workerId);
+            }
             string hubArgs = string.Format("run python -m courier_hub --home \"{0}\" --controller http://127.0.0.1:{1} --port {2}", dataDir, cp, hp);
             
             if (pythonExe != "uv") {
                 ctrlArgs = string.Format("-m courier_core.serve --home \"{0}\" --port {1}", dataDir, cp);
-                workerArgs = string.Format("-m courier_worker.host --home \"{0}\" --controller http://127.0.0.1:{1} --worker-id \"{2}\" --max-tasks 1 --heartbeat 2", dataDir, cp, workerId);
+                workerArgs = string.Format("-m courier_worker.host --home \"{0}\" --controller http://127.0.0.1:{1} --max-tasks 1 --heartbeat 2", dataDir, cp);
+                if (!string.IsNullOrEmpty(workerId)) {
+                    workerArgs += string.Format(" --worker-id \"{0}\"", workerId);
+                }
                 hubArgs = string.Format("-m courier_hub --home \"{0}\" --controller http://127.0.0.1:{1} --port {2}", dataDir, cp, hp);
             }
 
