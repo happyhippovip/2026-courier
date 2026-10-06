@@ -501,16 +501,7 @@ class WorkerLoop:
 
 
 def main(argv: Optional[list] = None) -> int:
-    import threading, sys, traceback, time
-    def dumper():
-        while True:
-            time.sleep(1)
-            with open("dump.txt", "w") as f:
-                for tid, frame in sys._current_frames().items():
-                    f.write(f"Thread {tid}:\n")
-                    traceback.print_stack(frame, file=f)
-                    f.write("\n")
-    threading.Thread(target=dumper, daemon=True).start()
+
 
     parser = argparse.ArgumentParser(prog="courier_worker.host",
                                      description="Bounded Courier v1 worker host (single-flight).")
