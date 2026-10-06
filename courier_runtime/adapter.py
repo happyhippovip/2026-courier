@@ -7,6 +7,7 @@ from the Permission Broker; an uncertain external effect is never retried
 automatically. No network, credentials or spending live here.
 """
 from dataclasses import dataclass, field
+from typing import Optional
 
 from courier_runtime.grants import GRANTED, Request
 
@@ -24,7 +25,7 @@ class AdapterSpec:
 class CallResult:
     status: str                   # DONE | NEEDS_USER | REFUSED | FAILED
     evidence: dict = field(default_factory=dict)
-    failure: str | None = None
+    failure: Optional[str] = None
     retry_eligible: bool = False
     reason: str = ""
 

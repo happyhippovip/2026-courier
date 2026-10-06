@@ -6,6 +6,7 @@ requirement only if that device actually has the required capability, so
 Linux evidence can never satisfy a Windows-native requirement.
 """
 from dataclasses import dataclass
+from typing import Optional
 
 HEALTHY, BUSY, IDLE, DEGRADED, OFFLINE, RECOVERING = "HEALTHY", "BUSY", "IDLE", "DEGRADED", "OFFLINE", "RECOVERING"
 SELECTABLE = {HEALTHY, IDLE, BUSY}
@@ -25,7 +26,7 @@ class Host:
 @dataclass(frozen=True)
 class Requirement:
     capabilities: frozenset
-    privacy: str | None = None    # "own" forces the user's own devices
+    privacy: Optional[str] = None    # "own" forces the user's own devices
 
 
 class NoEligibleHost(Exception):
