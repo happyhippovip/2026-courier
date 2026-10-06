@@ -12,29 +12,33 @@ import time
 import zipfile
 
 def get_app_data_dir():
-    pd = os.environ.get("PROGRAMDATA")
+    # V1 data directory is COURIER_HOME or ~/.courier
     fallback = Path(os.environ.get("COURIER_HOME") or Path.home() / ".courier")
-    base = (Path(pd) if pd else fallback) / "CourierWorker"
-    return base
+    return fallback
 
 def load_config():
     config_path = get_app_data_dir() / "config.json"
-    if not config_path.exists():
-        config_path = Path(__file__).parent / "windows_worker" / "config.json"
     if config_path.exists():
         with open(config_path, "r") as f:
             return json.load(f)
     return {}
 
 def check_ledger():
-    state_dir = get_app_data_dir() / "state"
-    if not state_dir.exists():
-        return False, f"Missing {state_dir}"
+    db_path = get_app_data_dir() / "courier.db"
+    if not db_path.exists():
+        return False, f"Missing ledger at {db_path}"
+    
     try:
-        tasks = list(state_dir.glob("*.json"))
-        return True, f"State directory exists. Contains {len(tasks)} JSON files."
+        # We don't import sqlite3 here strictly but we could
+        import sqlite3
+        conn = sqlite3.connect(db_path.as_uri() + "?mode=ro", uri=True)
+        cursor = conn.execute("SELECT seq FROM events ORDER BY seq DESC LIMIT 1")
+        row = cursor.fetchone()
+        conn.close()
+        seq = row[0] if row else 0
+        return True, f"Ledger exists. {seq} events recorded."
     except Exception as e:
-        return False, f"Error reading state: {e}"
+        return False, f"Error reading ledger: {e}"
 
 def check_server():
     config = load_config()
@@ -43,7 +47,7 @@ def check_server():
         server = "http://127.0.0.1:8080"
     server = server.rstrip("/")
     try:
-        req = urllib.request.Request(f"{server}/health")
+        req = urllib.request.Request(f"{server}/v1/health")
         with urllib.request.urlopen(req, timeout=2) as response:
             pass
         return True, f"Server responding at {server}"
@@ -55,54 +59,46 @@ def check_server():
         return False, f"Server unreachable at {server}: {e}"
 
 def check_stuck_tasks():
-    state_dir = get_app_data_dir() / "state"
-    if not state_dir.exists():
+    # In V1 we could query the DB, but without pulling in full courier_core
+    # we just report "Check ledger via `courier status`" for now.
+    db_path = get_app_data_dir() / "courier.db"
+    if not db_path.exists():
         return True, "No local state to check"
-    try:
-        current_task_path = state_dir / "current_task.json"
-        if not current_task_path.exists():
-            return True, "No current task."
-        
-        with open(current_task_path, "r") as f:
-            task = json.load(f)
-        
-        phase = task.get("worker_phase")
-        task_id = task.get("task_id", "unknown")
-        
-        # We can't really know if it's stuck without timestamps, but we can report its state
-        if phase == "STARTED":
-            return True, f"Task {task_id} is currently running."
-        elif phase == "RESULT_READY":
-            return True, f"Task {task_id} is waiting to be delivered."
-        elif phase == "RELEASE_PENDING":
-            return False, f"Task {task_id} result was rejected and is pending release."
-        else:
-            return True, f"Task {task_id} is in phase {phase}."
-    except Exception as e:
-        return False, f"Could not check tasks: {e}"
+    return True, "Use `python -m courier_core.cli status` to check tasks."
 
-def redact_api_key(content, key):
-    if key and len(key) > 4:
-        return content.replace(key, "***REDACTED_API_KEY***")
+def redact_secrets(content, secrets):
+    for secret in secrets:
+        if secret and len(secret) > 4:
+            content = content.replace(secret, "***REDACTED***")
     return content
 
 def export_diagnostics(out_path):
     app_data = get_app_data_dir()
     config = load_config()
     
+    secrets = []
+    
+    # Extract any obvious keys from config
+    for k, v in config.items():
+        if ("KEY" in k.upper() or "TOKEN" in k.upper()) and isinstance(v, str):
+            secrets.append(v.strip())
+
+    # And from environment
     api_key = os.environ.get("COURIER_API_KEY", "").strip()
-    if not api_key:
-        api_key = str(config.get("COURIER_API_KEY") or "").strip()
+    if api_key:
+        secrets.append(api_key)
         
+    token_file = app_data / "run" / "controller.token"
+    if token_file.exists():
+        token = token_file.read_text(encoding="utf-8").strip()
+        if token:
+            secrets.append(token)
+            
     with zipfile.ZipFile(out_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        # Export state files
-        state_dir = app_data / "state"
-        if state_dir.exists():
-            for f in state_dir.glob("*.json"):
-                text = f.read_text(encoding="utf-8", errors="replace")
-                if api_key:
-                    text = redact_api_key(text, api_key)
-                zf.writestr(f"state/{f.name}", text)
+        # Export V1 ledger
+        db_path = app_data / "courier.db"
+        if db_path.exists():
+            zf.write(db_path, "courier.db")
                 
         # Export logs
         log_dir = app_data / "logs"
@@ -110,8 +106,8 @@ def export_diagnostics(out_path):
             for f in log_dir.glob("*.log*"):
                 try:
                     text = f.read_text(encoding="utf-8", errors="replace")
-                    if api_key:
-                        text = redact_api_key(text, api_key)
+                    if secrets:
+                        text = redact_secrets(text, secrets)
                     zf.writestr(f"logs/{f.name}", text)
                 except Exception:
                     pass
@@ -120,8 +116,8 @@ def export_diagnostics(out_path):
         config_path = app_data / "config.json"
         if config_path.exists():
             text = config_path.read_text(encoding="utf-8", errors="replace")
-            if api_key:
-                text = redact_api_key(text, api_key)
+            if secrets:
+                text = redact_secrets(text, secrets)
             zf.writestr("config.json", text)
             
     print(f"Diagnostics bundle exported to {out_path}")

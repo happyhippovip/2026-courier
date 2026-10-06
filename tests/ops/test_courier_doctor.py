@@ -1,49 +1,63 @@
-import os
-import zipfile
 import json
+import os
 from pathlib import Path
-import tempfile
+import sqlite3
+import zipfile
+
 import pytest
 
-from scripts.courier_doctor import export_diagnostics, get_app_data_dir
+from scripts.courier_doctor import export_diagnostics, get_app_data_dir, load_config
 
-def test_diagnostics_bundle_redacts_api_key(monkeypatch, tmp_path):
-    # Setup mock data directory
-    mock_app_data = tmp_path / "mock_app_data"
-    mock_app_data.mkdir()
-    
-    # Mock get_app_data_dir to return our mock dir
-    monkeypatch.setattr("scripts.courier_doctor.get_app_data_dir", lambda: mock_app_data)
-    
-    # Create mock config with API key
-    secret_key = "secret_api_key_12345"
-    config_path = mock_app_data / "config.json"
-    with open(config_path, "w") as f:
-        json.dump({"COURIER_API_KEY": secret_key, "COURIER_SERVER": "http://testserver"}, f)
-        
-    # Create mock state and logs containing the API key
-    state_dir = mock_app_data / "state"
-    state_dir.mkdir()
-    with open(state_dir / "current_task.json", "w") as f:
-        json.dump({"auth": f"Bearer {secret_key}", "worker_phase": "STARTED"}, f)
-        
-    log_dir = mock_app_data / "logs"
-    log_dir.mkdir()
-    with open(log_dir / "daemon.log", "w") as f:
-        f.write(f"Connecting with {secret_key}...")
-        
-    # Ensure environment doesn't override with something else
+def test_diagnostics_bundle_v1(tmp_path, monkeypatch):
+    home = tmp_path / "home"
+    home.mkdir()
+    monkeypatch.setenv("COURIER_HOME", str(home))
+    monkeypatch.delenv("PROGRAMDATA", raising=False)
     monkeypatch.delenv("COURIER_API_KEY", raising=False)
     
-    # Run export
-    bundle_path = tmp_path / "diagnostics.zip"
+    # Create V1 files
+    db_path = home / "courier.db"
+    conn = sqlite3.connect(db_path)
+    conn.execute("CREATE TABLE events (seq INTEGER PRIMARY KEY, type TEXT)")
+    conn.execute("INSERT INTO events (type) VALUES ('START')")
+    conn.commit()
+    conn.close()
+    
+    run_dir = home / "run"
+    run_dir.mkdir()
+    token_file = run_dir / "controller.token"
+    token_file.write_text("secret_token_12345")
+    
+    logs_dir = home / "logs"
+    logs_dir.mkdir()
+    log_file = logs_dir / "worker.log"
+    log_file.write_text("worker log with secret_token_12345 and other things")
+    
+    config_file = home / "config.json"
+    config_file.write_text(json.dumps({"COURIER_API_KEY": "secret_api_key_abc"}))
+    
+    # Test debug
+    print("CONFIG IS:", load_config())
+    print("APP_DATA:", get_app_data_dir())
+
+    bundle_path = tmp_path / "bundle.zip"
     export_diagnostics(bundle_path)
     
-    # Verify bundle contents
     assert bundle_path.exists()
     
     with zipfile.ZipFile(bundle_path, "r") as zf:
-        for name in zf.namelist():
-            content = zf.read(name).decode("utf-8")
-            assert secret_key not in content, f"Secret leaked in {name}"
-            assert "***REDACTED_API_KEY***" in content, f"Secret not redacted in {name}"
+        names = zf.namelist()
+        assert "courier.db" in names
+        assert "config.json" in names
+        assert "logs/worker.log" in names
+        
+        # Check redaction and token exclusion
+        assert "run/controller.token" not in names
+        assert "controller.token" not in names
+        
+        log_content = zf.read("logs/worker.log").decode("utf-8")
+        assert "secret_token_12345" not in log_content
+        
+        config_content = zf.read("config.json").decode("utf-8")
+        assert "secret_api_key_abc" not in config_content
+        
