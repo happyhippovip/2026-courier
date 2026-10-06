@@ -20,7 +20,7 @@ def test_run_success(tmp_path, monkeypatch):
         with open(outbox_file, "w") as f:
             json.dump({"status": "SUCCESS"}, f)
             
-    with mock.patch("time.sleep", side_effect=mock_sleep):
+    with mock.patch("scripts.mac_worker_adapter.time.sleep", side_effect=mock_sleep):
         mac_worker_adapter.run(str(task_file))
         
     incoming = Path("results/incoming/mac1_result.json")
@@ -49,7 +49,7 @@ def test_run_timeout(tmp_path, monkeypatch):
         start_time += 400
         return res
         
-    with mock.patch("time.time", side_effect=mock_time):
+    with mock.patch("scripts.mac_worker_adapter.time.time", side_effect=mock_time):
         mac_worker_adapter.run(str(task_file))
         
     incoming = Path("results/incoming/mac2_result.json")
@@ -68,18 +68,23 @@ def test_main(tmp_path, monkeypatch):
     with open(task_file, "w") as f:
         json.dump({"task_id": "mac3", "goal_id": "g3"}, f)
         
-    def mock_sleep(seconds):
+    import threading
+    def background_writer():
+        time.sleep(0.1)
         outbox_file = Path("scripts/mac_worker/outbox/mac3_result.json")
         outbox_file.parent.mkdir(parents=True, exist_ok=True)
         with open(outbox_file, "w") as f:
             json.dump({"status": "SUCCESS"}, f)
             
+    t = threading.Thread(target=background_writer)
+    t.start()
+            
     import sys
     import runpy
     
-    with mock.patch("time.sleep", side_effect=mock_sleep):
-        sys.argv = ["mac_worker_adapter.py", str(task_file)]
-        runpy.run_path(str(Path(str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "mac_worker_adapter.py"))), run_name="__main__")
+    sys.argv = ["mac_worker_adapter.py", str(task_file)]
+    runpy.run_path(str(Path(str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "mac_worker_adapter.py"))), run_name="__main__")
+    t.join()
         
     incoming = Path("results/incoming/mac3_result.json")
     assert incoming.exists()
