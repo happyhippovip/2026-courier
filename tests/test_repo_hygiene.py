@@ -34,3 +34,17 @@ def test_no_gitlinks_without_gitmodules():
 def test_no_tracked_crash_logs():
     tracked = [p for p in _git("ls-files").splitlines() if p.endswith(".log") or p.endswith(".out")]
     assert tracked == [], f"crash logs or output logs are tracked: {tracked[:5]} (+{max(0, len(tracked) - 5)})"
+
+def test_no_tracked_root_temp_files():
+    temp_prefixes = (
+        "mytmp/", "mytemp/", "mytempdir/", "mytmp2/", "temp/", "temp_dir/", "temp_dir2/",
+        "test_tmp_path", "results"
+    )
+    temp_suffixes = (
+        ".xml", ".coverage", "pytest.log"
+    )
+    tracked = [p for p in _git("ls-files").splitlines() if (p.startswith(temp_prefixes) or p.endswith(temp_suffixes) or p == ".coverage" or p == "temp_test.py" or p.startswith("temp_queue")) and not p.startswith("test_")]
+    # filter out tests/ and other valid stuff, only root temp files
+    tracked = [p for p in tracked if not (p.startswith("tests/") or p.startswith("scripts/"))]
+    assert tracked == [], f"temp files or outputs are tracked: {tracked[:5]} (+{max(0, len(tracked) - 5)})"
+

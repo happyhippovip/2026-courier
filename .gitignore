@@ -181,3 +181,22 @@ scripts/windows_worker/dist_allowlist_test/
 /*.log
 /server/*.log
 /scripts/provider_hub/runtime/jobs/*.out
+
+# Temp and output files (beat 8)
+mytmp/
+mytemp/
+mytempdir/
+mytmp2/
+temp/
+temp_dir/
+temp_dir2/
+test_tmp_path/
+test_tmp_path_eval/
+test_tmp_path_eval2/
+test_tmp_path_mem/
+results*.xml
+pytest.log
+.coverage
+temp_queue*.md
+temp_test.py
+report*.xml
