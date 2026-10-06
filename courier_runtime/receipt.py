@@ -1,3 +1,4 @@
+from typing import Optional
 """Recovery Receipt: what failed, what survived, what was done, where to resume.
 
 validate() enforces the hard rules from the contract: only owned processes
@@ -26,17 +27,17 @@ class RecoveryReceipt:
     detected_state: str
     detected_at: float
     what_failed: str
-    positive_evidence: str | None
+    positive_evidence: Optional[str]
     survived: dict
     action: str
     outcome: str
-    effect_class: str | None = None
+    effect_class: Optional[str] = None
     effect_confirmed: bool = False
     retired: list = field(default_factory=list)
-    before_snapshot: str | None = None
-    after_snapshot: str | None = None
+    before_snapshot: Optional[str] = None
+    after_snapshot: Optional[str] = None
     progress_after_detection: bool = False
-    resume_from: dict | None = None
+    resume_from: Optional[dict] = None
     evidence_refs: list = field(default_factory=list)
     receipt_id: str = field(default_factory=lambda: "rr-" + uuid.uuid4().hex)
 

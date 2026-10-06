@@ -1,3 +1,4 @@
+from typing import Optional
 """Capability registry, host selection and host-qualified evidence.
 
 A workkey declares what it needs; Symphony picks an eligible, healthy host.
@@ -25,7 +26,7 @@ class Host:
 @dataclass(frozen=True)
 class Requirement:
     capabilities: frozenset
-    privacy: str | None = None    # "own" forces the user's own devices
+    privacy: Optional[str] = None    # "own" forces the user's own devices
 
 
 class NoEligibleHost(Exception):

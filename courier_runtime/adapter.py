@@ -1,3 +1,4 @@
+from typing import Optional
 """Provider-neutral adapter core and the campaign authority boundary.
 
 An adapter declares, per version and immutably, what it can do and with which
@@ -24,7 +25,7 @@ class AdapterSpec:
 class CallResult:
     status: str                   # DONE | NEEDS_USER | REFUSED | FAILED
     evidence: dict = field(default_factory=dict)
-    failure: str | None = None
+    failure: Optional[str] = None
     retry_eligible: bool = False
     reason: str = ""
 

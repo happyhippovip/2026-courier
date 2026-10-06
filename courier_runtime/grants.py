@@ -1,3 +1,4 @@
+from typing import Optional
 """Permission Broker core: ask once for the smallest useful authority, reuse it
 until it expires or is revoked, never widen it silently.
 
@@ -43,7 +44,7 @@ class Grant:
     data_class: str
     access: str
     effect_class: str
-    expires_at: float | None      # None only for project-duration grants
+    expires_at: Optional[float]      # None only for project-duration grants
     once: bool = False
     granted_by: str = "user"
     source_request: str = ""
