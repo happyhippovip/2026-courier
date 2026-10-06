@@ -2,6 +2,8 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.IO;
+using System.Threading;
+using System.Net;
 
 namespace CourierLauncher
 {
@@ -23,7 +25,6 @@ namespace CourierLauncher
 
         static bool ConsoleCtrlCheck(uint ctrlType)
         {
-            // Ignore events to let the python child process handle them
             return true;
         }
 
@@ -65,6 +66,38 @@ namespace CourierLauncher
 
         const int JobObjectExtendedLimitInformation = 9;
         const UInt32 JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x2000;
+        
+        static object logLock = new object();
+        
+        static Process StartComponent(IntPtr hJob, string pythonExe, string baseDir, string logDir, string name, string args, string logFile) {
+            var psi = new ProcessStartInfo {
+                FileName = pythonExe,
+                Arguments = args,
+                UseShellExecute = false,
+                WorkingDirectory = baseDir,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+            Process p = new Process();
+            p.StartInfo = psi;
+            
+            DataReceivedEventHandler logHandler = (s, e) => {
+                if (e.Data != null) {
+                    lock(logLock) {
+                        File.AppendAllText(Path.Combine(logDir, logFile), string.Format("[{0:O}] {1}{2}", DateTime.UtcNow, e.Data, Environment.NewLine));
+                    }
+                }
+            };
+            
+            p.OutputDataReceived += logHandler;
+            p.ErrorDataReceived += logHandler;
+            p.Start();
+            p.BeginOutputReadLine();
+            p.BeginErrorReadLine();
+            AssignProcessToJobObject(hJob, p.Handle);
+            return p;
+        }
 
         static void Main(string[] args)
         {
@@ -88,100 +121,129 @@ namespace CourierLauncher
             }
 
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string workerModule = "courier_worker.host";
+            string dataDir = Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\Courier");
             
-            string dataDir = Environment.ExpandEnvironmentVariables(@"%PROGRAMDATA%\CourierWorker");
+            string oldDataDir = Environment.ExpandEnvironmentVariables(@"%PROGRAMDATA%\CourierWorker");
+            string oldConfigPath = Path.Combine(oldDataDir, "config.json");
             string configPath = Path.Combine(dataDir, "config.json");
             string logDir = Path.Combine(dataDir, "logs");
-            string logPath = Path.Combine(logDir, "host.log");
-            string serverUrl = "";
+            
+            int cp = 8765;
+            int hp = 8766;
             string workerId = "";
             
+            if (File.Exists(oldConfigPath)) {
+                string json = File.ReadAllText(oldConfigPath);
+                System.Text.RegularExpressions.Match workerMatch = System.Text.RegularExpressions.Regex.Match(json, "\"COURIER_WORKER_ID\"\\s*:\\s*\"([^\"]+)\"");
+                if (workerMatch.Success) workerId = workerMatch.Groups[1].Value;
+            }
+
             if (File.Exists(configPath))
             {
                 string json = File.ReadAllText(configPath);
+                System.Text.RegularExpressions.Match cpMatch = System.Text.RegularExpressions.Regex.Match(json, "\"COURIER_CONTROLLER_PORT\"\\s*:\\s*(\\d+)");
+                if (cpMatch.Success) int.TryParse(cpMatch.Groups[1].Value, out cp);
                 
-                // Simple regex to extract JSON values
-                System.Text.RegularExpressions.Match serverMatch = System.Text.RegularExpressions.Regex.Match(json, "\"COURIER_SERVER\"\\s*:\\s*\"([^\"]+)\"");
-                if (serverMatch.Success) {
-                    serverUrl = serverMatch.Groups[1].Value;
-                }
+                System.Text.RegularExpressions.Match hpMatch = System.Text.RegularExpressions.Regex.Match(json, "\"COURIER_HUB_PORT\"\\s*:\\s*(\\d+)");
+                if (hpMatch.Success) int.TryParse(hpMatch.Groups[1].Value, out hp);
                 
                 System.Text.RegularExpressions.Match workerMatch = System.Text.RegularExpressions.Regex.Match(json, "\"COURIER_WORKER_ID\"\\s*:\\s*\"([^\"]+)\"");
-                if (workerMatch.Success) {
-                    workerId = workerMatch.Groups[1].Value;
-                }
+                if (workerMatch.Success) workerId = workerMatch.Groups[1].Value;
             }
 
-            // Path priorities:
-            // 1. Packaged embedded python (no external dependencies)
-            // 2. uv fallback for dev environments
+            string tokenPath = Path.Combine(dataDir, @"run\controller.token");
+            string token = "";
+            if (File.Exists(tokenPath))
+            {
+                token = File.ReadAllText(tokenPath).Trim();
+            }
+
+            bool alreadyRunning = false;
+            if (!string.IsNullOrEmpty(token))
+            {
+                try {
+                    var req = (HttpWebRequest)WebRequest.Create(string.Format("http://127.0.0.1:{0}/v1/health", cp));
+                    req.Headers.Add("X-Courier-Token", token);
+                    req.Timeout = 2000;
+                    using (var res = (HttpWebResponse)req.GetResponse()) {
+                        if (res.StatusCode == HttpStatusCode.OK) alreadyRunning = true;
+                    }
+                } catch { }
+            }
+
+            if (alreadyRunning)
+            {
+                ProcessStartInfo psi = new ProcessStartInfo(string.Format("http://127.0.0.1:{0}/", hp));
+                psi.UseShellExecute = true;
+                Process.Start(psi);
+                return;
+            }
+
             string pythonExe = "uv";
-            string arguments = string.Format("run python -m {0} --home \"{1}\" --controller \"{2}\" --worker-id \"{3}\"", workerModule, dataDir, serverUrl, workerId);
-            
             if (File.Exists(Path.Combine(baseDir, "python", "python.exe"))) {
                 pythonExe = Path.Combine(baseDir, "python", "python.exe");
-                arguments = string.Format("-m {0} --home \"{1}\" --controller \"{2}\" --worker-id \"{3}\"", workerModule, dataDir, serverUrl, workerId);
             }
             
-            ProcessStartInfo psi = new ProcessStartInfo
-            {
-                FileName = pythonExe,
-                Arguments = arguments,
-                UseShellExecute = false,
-                WorkingDirectory = baseDir,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true
-            };
+            if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir);
             
+            string ctrlArgs = string.Format("run python -m courier_core.serve --home \"{0}\" --port {1}", dataDir, cp);
+            string workerArgs = string.Format("run python -m courier_worker.host --home \"{0}\" --controller http://127.0.0.1:{1} --worker-id \"{2}\" --max-tasks 1 --heartbeat 2", dataDir, cp, workerId);
+            string hubArgs = string.Format("run python -m courier_hub --home \"{0}\" --controller http://127.0.0.1:{1} --port {2}", dataDir, cp, hp);
+            
+            if (pythonExe != "uv") {
+                ctrlArgs = string.Format("-m courier_core.serve --home \"{0}\" --port {1}", dataDir, cp);
+                workerArgs = string.Format("-m courier_worker.host --home \"{0}\" --controller http://127.0.0.1:{1} --worker-id \"{2}\" --max-tasks 1 --heartbeat 2", dataDir, cp, workerId);
+                hubArgs = string.Format("-m courier_hub --home \"{0}\" --controller http://127.0.0.1:{1} --port {2}", dataDir, cp, hp);
+            }
+
             try
             {
-                if (!Directory.Exists(logDir))
-                {
-                    Directory.CreateDirectory(logDir);
+                var pCtrl = StartComponent(hJob, pythonExe, baseDir, logDir, "controller", ctrlArgs, "controller.log");
+                
+                bool healthOk = false;
+                for (int i = 0; i < 30; i++) {
+                    Thread.Sleep(500);
+                    if (pCtrl.HasExited) break;
+                    
+                    if (File.Exists(tokenPath)) {
+                        string t = File.ReadAllText(tokenPath).Trim();
+                        try {
+                            var req = (HttpWebRequest)WebRequest.Create(string.Format("http://127.0.0.1:{0}/v1/health", cp));
+                            req.Headers.Add("X-Courier-Token", t);
+                            req.Timeout = 1000;
+                            using (var res = (HttpWebResponse)req.GetResponse()) {
+                                if (res.StatusCode == HttpStatusCode.OK) {
+                                    healthOk = true;
+                                    break;
+                                }
+                            }
+                        } catch { }
+                    }
                 }
 
-                object logLock = new object();
-                
-                DataReceivedEventHandler logHandler = (sender, e) => {
-                    if (e.Data != null) {
-                        lock(logLock) {
-                            File.AppendAllText(logPath, "[" + DateTime.UtcNow.ToString("O") + "] " + e.Data + Environment.NewLine);
-                        }
-                    }
-                };
+                if (!healthOk) {
+                    File.WriteAllText(Path.Combine(dataDir, "crash.txt"), "Controller failed to start or become healthy.");
+                    return;
+                }
+
+                var pWorker = StartComponent(hJob, pythonExe, baseDir, logDir, "worker", workerArgs, "worker.log");
+                var pHub = StartComponent(hJob, pythonExe, baseDir, logDir, "hub", hubArgs, "hub.log");
+
+                ProcessStartInfo pBrowser = new ProcessStartInfo(string.Format("http://127.0.0.1:{0}/", hp));
+                pBrowser.UseShellExecute = true;
+                Process.Start(pBrowser);
 
                 while (true)
                 {
-                    Process proc = new Process();
-                    proc.StartInfo = psi;
-                    proc.OutputDataReceived += logHandler;
-                    proc.ErrorDataReceived += logHandler;
-
-                    proc.Start();
-                    proc.BeginOutputReadLine();
-                    proc.BeginErrorReadLine();
-
-                    if (!AssignProcessToJobObject(hJob, proc.Handle))
-                    {
-                        Console.WriteLine("Failed to assign process to Job Object. Warning: Orphans possible.");
-                    }
-
-                    proc.WaitForExit();
-                    
-                    lock(logLock) {
-                        File.AppendAllText(logPath, "[" + DateTime.UtcNow.ToString("O") + "] Worker exited with code " + proc.ExitCode + ". Restarting in 5 seconds..." + Environment.NewLine);
-                    }
-                    
-                    System.Threading.Thread.Sleep(5000);
+                    Thread.Sleep(5000);
+                    if (pCtrl.HasExited) pCtrl = StartComponent(hJob, pythonExe, baseDir, logDir, "controller", ctrlArgs, "controller.log");
+                    if (pWorker.HasExited) pWorker = StartComponent(hJob, pythonExe, baseDir, logDir, "worker", workerArgs, "worker.log");
+                    if (pHub.HasExited) pHub = StartComponent(hJob, pythonExe, baseDir, logDir, "hub", hubArgs, "hub.log");
                 }
             }
             catch (Exception ex)
             {
-                File.WriteAllText("crash.txt", "Error launching daemon: " + ex.ToString());
-                Console.WriteLine("Error launching daemon: " + ex.Message);
-                Environment.Exit(1);
+                File.WriteAllText(Path.Combine(dataDir, "crash.txt"), "Error launching daemon: " + ex.ToString());
             }
         }
     }
