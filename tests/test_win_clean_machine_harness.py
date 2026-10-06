@@ -43,6 +43,7 @@ def test_win_clean_machine_harness(tmp_path):
     env = os.environ.copy()
     env["LOCALAPPDATA"] = str(tmp_path)
     env["COURIER_TEST_NO_JOB"] = "1"
+    env["PYTHONPATH"] = str(Path.cwd())
     # We will use Courier's default ports or force them via config.json
     courier_dir = tmp_path / "Courier"
     courier_dir.mkdir(parents=True)
@@ -147,6 +148,13 @@ def test_win_clean_machine_harness(tmp_path):
                     break
             except Exception:
                 pass
+        
+        
+        if worker_pid is None:
+            print(f"Claims dir {claims_dir} contents: {list(claims_dir.glob('*'))}")
+            print(f"Looking for task_id: {blocked_id}")
+            for p in claims_dir.glob("dispatch-*.json"):
+                print(f"File {p.name}: {p.read_text()}")
         
         assert worker_pid is not None, "Could not find worker_pid from claims"
         subprocess.run(["taskkill", "/F", "/PID", str(worker_pid)], check=False)
