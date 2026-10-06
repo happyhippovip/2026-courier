@@ -119,11 +119,34 @@ class Hub:
         journal = self._open()
         try:
             tasks = journal.tasks()
-            events_by_task: dict = {}
-            for event in journal.events():
-                if event.task_id:
-                    events_by_task.setdefault(event.task_id, []).append(event)
             head = journal.head()[0]
+            events_by_task: dict = {}
+
+            from courier_hub.model import pile_of, PILE_DONE
+            active_ids = {t.task_id for t in tasks if pile_of(t) != PILE_DONE}
+            done_tasks = [t for t in tasks if pile_of(t) == PILE_DONE]
+            
+            if done_tasks:
+                rows = journal.conn.execute("SELECT task_id, MAX(seq) as m FROM events WHERE task_id IS NOT NULL GROUP BY task_id").fetchall()
+                max_seqs = {row["task_id"]: row["m"] for row in rows}
+                done_tasks.sort(key=lambda t: max_seqs.get(t.task_id, 0), reverse=True)
+                keep_done = {t.task_id for t in done_tasks[:50]}
+            else:
+                keep_done = set()
+                
+            keep_ids = active_ids | keep_done
+            
+            if keep_ids:
+                from courier_core.events import Event
+                keep_list = list(keep_ids)
+                chunk_size = 900
+                for i in range(0, len(keep_list), chunk_size):
+                    chunk = keep_list[i:i + chunk_size]
+                    placeholders = ','.join('?' * len(chunk))
+                    q = f"SELECT * FROM events WHERE task_id IN ({placeholders}) ORDER BY seq"
+                    for row in journal.conn.execute(q, chunk):
+                        events_by_task.setdefault(row["task_id"], []).append(Event.from_row(row))
+                        
             return tasks, events_by_task, head
         except sqlite3.DatabaseError as exc:
             raise TruthUnavailable("unreadable") from exc
