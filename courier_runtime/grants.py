@@ -7,6 +7,7 @@ is not covered. Nothing here talks to an OS or provider; it decides and
 records, so it is pure and fully testable.
 """
 from dataclasses import dataclass, field, replace
+from typing import Optional
 
 ACCESS_ORDER = {"read": 0, "write": 1, "execute": 2, "control": 3}
 DATA_ORDER = {"public": 0, "project": 1, "personal": 2}
@@ -43,7 +44,7 @@ class Grant:
     data_class: str
     access: str
     effect_class: str
-    expires_at: float | None      # None only for project-duration grants
+    expires_at: Optional[float]      # None only for project-duration grants
     once: bool = False
     granted_by: str = "user"
     source_request: str = ""
