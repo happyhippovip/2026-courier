@@ -124,6 +124,7 @@ class LaneHibernator:
         self.state: LaneState = LaneState.ACTIVE
         self.resources: Dict[str, Resource] = {}
         self.release_hooks: Dict[str, Callable[[str], None]] = {}
+        self.reacquire_hooks: Dict[str, Callable[[str], None]] = {}
         self.checkpoint: Optional[ContinuationCheckpoint] = None
         self.release_report: Dict[str, Any] = {}
 
@@ -133,10 +134,13 @@ class LaneHibernator:
         kind: str,
         essential: bool = False,
         release_hook: Optional[Callable[[str], None]] = None,
+        reacquire_hook: Optional[Callable[[str], None]] = None,
     ) -> None:
         self.resources[name] = Resource(name=name, kind=kind, essential=essential)
         if release_hook is not None:
             self.release_hooks[name] = release_hook
+        if reacquire_hook is not None:
+            self.reacquire_hooks[name] = reacquire_hook
 
     def _releasable(self, res: Resource) -> bool:
         if res.essential:
@@ -145,14 +149,17 @@ class LaneHibernator:
 
     def hibernate(self, checkpoint: ContinuationCheckpoint) -> Dict[str, Any]:
         if self.state == LaneState.HIBERNATED:
-            raise RuntimeError("lane already HIBERNATED")
+            return dict(self.release_report)
         released: List[str] = []
         retained: List[str] = []
         for res in self.resources.values():
             if self._releasable(res):
                 hook = self.release_hooks.get(res.name)
-                if hook is not None:
-                    hook(res.name)
+                if hook is not None and not res.released:
+                    try:
+                        hook(res.name)
+                    except Exception:
+                        pass
                 res.released = True
                 released.append(res.name)
             else:
@@ -171,6 +178,17 @@ class LaneHibernator:
             raise RuntimeError("lane is not HIBERNATED")
         if self.checkpoint is None:
             raise RuntimeError("no checkpoint to resume from")
+        
+        for name, res in self.resources.items():
+            if res.released:
+                hook = self.reacquire_hooks.get(name)
+                if hook is not None:
+                    try:
+                        hook(name)
+                    except Exception:
+                        pass
+                res.released = False
+                
         self.state = LaneState.ACTIVE
         return self.checkpoint
 
