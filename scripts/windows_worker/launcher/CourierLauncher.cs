@@ -158,28 +158,40 @@ namespace CourierLauncher
                 token = File.ReadAllText(tokenPath).Trim();
             }
 
-            bool alreadyRunning = false;
-            if (!string.IsNullOrEmpty(token))
+            
+            bool createdNew;
+            using (Mutex singleInstanceMutex = new Mutex(true, "Global\\CourierLauncherMutex", out createdNew))
             {
-                try {
-                    var req = (HttpWebRequest)WebRequest.Create(string.Format("http://127.0.0.1:{0}/v1/health", cp));
-                    req.Headers.Add("X-Courier-Token", token);
-                    req.Timeout = 2000;
-                    using (var res = (HttpWebResponse)req.GetResponse()) {
-                        if (res.StatusCode == HttpStatusCode.OK) alreadyRunning = true;
-                    }
-                } catch { }
-            }
+                if (!createdNew)
+                {
+                    ProcessStartInfo psi = new ProcessStartInfo(string.Format("http://127.0.0.1:{0}/", hp));
+                    psi.UseShellExecute = true;
+                    Process.Start(psi);
+                    return;
+                }
 
-            if (alreadyRunning)
-            {
-                ProcessStartInfo psi = new ProcessStartInfo(string.Format("http://127.0.0.1:{0}/", hp));
-                psi.UseShellExecute = true;
-                Process.Start(psi);
-                return;
-            }
+                bool alreadyRunning = false;
+                if (!string.IsNullOrEmpty(token))
+                {
+                    try {
+                        var req = (HttpWebRequest)WebRequest.Create(string.Format("http://127.0.0.1:{0}/v1/health", cp));
+                        req.Headers.Add("X-Courier-Token", token);
+                        req.Timeout = 2000;
+                        using (var res = (HttpWebResponse)req.GetResponse()) {
+                            if (res.StatusCode == HttpStatusCode.OK) alreadyRunning = true;
+                        }
+                    } catch { }
+                }
 
-            string pythonExe = "uv";
+                if (alreadyRunning)
+                {
+                    ProcessStartInfo psi = new ProcessStartInfo(string.Format("http://127.0.0.1:{0}/", hp));
+                    psi.UseShellExecute = true;
+                    Process.Start(psi);
+                    return;
+                }
+
+string pythonExe = "uv";
             if (File.Exists(Path.Combine(baseDir, "python", "python.exe"))) {
                 pythonExe = Path.Combine(baseDir, "python", "python.exe");
             }
@@ -245,6 +257,8 @@ namespace CourierLauncher
             {
                 File.WriteAllText(Path.Combine(dataDir, "crash.txt"), "Error launching daemon: " + ex.ToString());
             }
+        }
+
         }
     }
 }
