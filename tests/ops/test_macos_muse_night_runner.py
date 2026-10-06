@@ -7,6 +7,16 @@ import subprocess
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 RUNNER = ROOT / "scripts" / "macos_muse_night_once.sh"
+INSTALLER = ROOT / "scripts" / "install_macos_muse_night_runner.sh"
+
+
+def test_installer_hands_path_to_launchd() -> None:
+    # launchd starts agents with a minimal PATH; without the installing
+    # shell's PATH in the job the runner cannot find muse and only backs off.
+    text = INSTALLER.read_text(encoding="utf-8")
+    assert "<key>PATH</key>" in text
+    assert "<string>$PATH</string>" in text
+    assert "command -v muse" in text
 
 
 def _fake_muse(tmp_path: pathlib.Path, body: str, exit_code: int = 0) -> pathlib.Path:

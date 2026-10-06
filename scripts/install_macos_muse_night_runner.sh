@@ -25,6 +25,14 @@ if [ ! -f "$RUNNER" ]; then
   exit 66
 fi
 
+# launchd starts agents with a minimal PATH. Without the installing shell's
+# PATH the runner cannot find muse and only backs off, so refuse to install
+# from a shell where muse does not resolve, and hand that PATH to the job.
+if ! command -v muse >/dev/null 2>&1; then
+  echo "Muse executable not found in PATH. Run this installer from a terminal where 'muse' works." >&2
+  exit 69
+fi
+
 cat > "$PLIST" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -51,6 +59,8 @@ cat > "$PLIST" <<EOF
     <string>$REPO_ROOT</string>
     <key>COURIER_NIGHT_STATE_DIR</key>
     <string>$STATE_DIR</string>
+    <key>PATH</key>
+    <string>$PATH</string>
   </dict>
   <key>StandardOutPath</key>
   <string>$STATE_DIR/launchd.out.log</string>
