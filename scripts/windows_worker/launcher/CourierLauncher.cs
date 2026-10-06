@@ -21,6 +21,9 @@ namespace CourierLauncher
         [DllImport("kernel32.dll")]
         static extern bool SetConsoleCtrlHandler(ConsoleCtrlDelegate HandlerRoutine, bool Add);
 
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
+
         delegate bool ConsoleCtrlDelegate(uint CtrlType);
 
         static bool ConsoleCtrlCheck(uint ctrlType)
@@ -104,7 +107,9 @@ namespace CourierLauncher
             p.Start();
             p.BeginOutputReadLine();
             p.BeginErrorReadLine();
-            AssignProcessToJobObject(hJob, p.Handle);
+            if (hJob != IntPtr.Zero) {
+                AssignProcessToJobObject(hJob, p.Handle);
+            }
             return p;
         }
 
@@ -112,25 +117,33 @@ namespace CourierLauncher
         {
             SetConsoleCtrlHandler(ConsoleCtrlCheck, true);
 
-            IntPtr hJob = CreateJobObject(IntPtr.Zero, null);
-            if (hJob == IntPtr.Zero)
+            IntPtr hJob = IntPtr.Zero;
+            if (Environment.GetEnvironmentVariable("COURIER_TEST_NO_JOB") != "1")
             {
-                Console.WriteLine("Failed to create Job Object.");
-                Environment.Exit(1);
-            }
+                hJob = CreateJobObject(IntPtr.Zero, null);
+                if (hJob == IntPtr.Zero)
+                {
+                    MessageBox(IntPtr.Zero, "Failed to create Job Object.", "Courier Launcher Error", 0x10);
+                    Environment.Exit(1);
+                }
 
-            var info = new JOBOBJECT_EXTENDED_LIMIT_INFORMATION();
-            info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+                var info = new JOBOBJECT_EXTENDED_LIMIT_INFORMATION();
+                info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
 
-            int length = Marshal.SizeOf(typeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
-            if (!SetInformationJobObject(hJob, JobObjectExtendedLimitInformation, ref info, length))
-            {
-                Console.WriteLine("Failed to set Job Object limits.");
-                Environment.Exit(1);
+                int length = Marshal.SizeOf(typeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
+                if (!SetInformationJobObject(hJob, JobObjectExtendedLimitInformation, ref info, length))
+                {
+                    MessageBox(IntPtr.Zero, "Failed to set Job Object limits.", "Courier Launcher Error", 0x10);
+                    Environment.Exit(1);
+                }
             }
 
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string dataDir = Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\Courier");
+            string dataDir = Environment.GetEnvironmentVariable("COURIER_HOME");
+            if (string.IsNullOrEmpty(dataDir))
+            {
+                dataDir = Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\Courier");
+            }
             
             string oldDataDir = Environment.ExpandEnvironmentVariables(@"%PROGRAMDATA%\CourierWorker");
             string oldConfigPath = Path.Combine(oldDataDir, "config.json");
@@ -188,20 +201,26 @@ namespace CourierLauncher
                 return;
             }
 
-            string pythonExe = "uv";
+            string pythonExe = "python";
             if (File.Exists(Path.Combine(baseDir, "python", "python.exe"))) {
                 pythonExe = Path.Combine(baseDir, "python", "python.exe");
             }
             
             if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir);
             
-            string ctrlArgs = string.Format("run python -m courier_core.serve --home \"{0}\" --port {1}", dataDir, cp);
-            string workerArgs = string.Format("run python -m courier_worker.host --home \"{0}\" --controller http://127.0.0.1:{1} --worker-id \"{2}\" --max-tasks 1 --heartbeat 2", dataDir, cp, workerId);
-            string hubArgs = string.Format("run python -m courier_hub --home \"{0}\" --controller http://127.0.0.1:{1} --port {2}", dataDir, cp, hp);
+            string ctrlArgs = string.Format("-m courier_core.serve --home \"{0}\" --port {1}", dataDir, cp);
+            string workerArgs = string.Format("-m courier_worker.host --home \"{0}\" --controller http://127.0.0.1:{1} --max-tasks 1 --heartbeat 2", dataDir, cp);
+            if (!string.IsNullOrEmpty(workerId)) {
+                workerArgs += string.Format(" --worker-id \"{0}\"", workerId);
+            }
+            string hubArgs = string.Format("-m courier_hub --home \"{0}\" --controller http://127.0.0.1:{1} --port {2}", dataDir, cp, hp);
             
             if (pythonExe != "uv") {
                 ctrlArgs = string.Format("-m courier_core.serve --home \"{0}\" --port {1}", dataDir, cp);
-                workerArgs = string.Format("-m courier_worker.host --home \"{0}\" --controller http://127.0.0.1:{1} --worker-id \"{2}\" --max-tasks 1 --heartbeat 2", dataDir, cp, workerId);
+                workerArgs = string.Format("-m courier_worker.host --home \"{0}\" --controller http://127.0.0.1:{1} --max-tasks 1 --heartbeat 2", dataDir, cp);
+                if (!string.IsNullOrEmpty(workerId)) {
+                    workerArgs += string.Format(" --worker-id \"{0}\"", workerId);
+                }
                 hubArgs = string.Format("-m courier_hub --home \"{0}\" --controller http://127.0.0.1:{1} --port {2}", dataDir, cp, hp);
             }
 
@@ -231,7 +250,9 @@ namespace CourierLauncher
                 }
 
                 if (!healthOk) {
-                    File.WriteAllText(Path.Combine(dataDir, "crash.txt"), "Controller failed to start or become healthy.");
+                    string msg = "Controller failed to start or become healthy.\nCheck logs at: " + logDir;
+                    File.WriteAllText(Path.Combine(dataDir, "crash.txt"), msg);
+                    MessageBox(IntPtr.Zero, msg, "Courier Launcher Error", 0x10);
                     return;
                 }
 
@@ -252,7 +273,9 @@ namespace CourierLauncher
             }
             catch (Exception ex)
             {
+                string msg = "Error launching daemon: " + ex.Message + "\nCheck logs at: " + logDir;
                 File.WriteAllText(Path.Combine(dataDir, "crash.txt"), "Error launching daemon: " + ex.ToString());
+                MessageBox(IntPtr.Zero, msg, "Courier Launcher Error", 0x10);
             }
         }
     }
