@@ -192,19 +192,19 @@ namespace CourierLauncher
                 return;
             }
 
-            string pythonExe = "uv";
+            string pythonExe = "python";
             if (File.Exists(Path.Combine(baseDir, "python", "python.exe"))) {
                 pythonExe = Path.Combine(baseDir, "python", "python.exe");
             }
             
             if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir);
             
-            string ctrlArgs = string.Format("run python -m courier_core.serve --home \"{0}\" --port {1}", dataDir, cp);
-            string workerArgs = string.Format("run python -m courier_worker.host --home \"{0}\" --controller http://127.0.0.1:{1} --max-tasks 1 --heartbeat 2", dataDir, cp);
+            string ctrlArgs = string.Format("-m courier_core.serve --home \"{0}\" --port {1}", dataDir, cp);
+            string workerArgs = string.Format("-m courier_worker.host --home \"{0}\" --controller http://127.0.0.1:{1} --max-tasks 1 --heartbeat 2", dataDir, cp);
             if (!string.IsNullOrEmpty(workerId)) {
                 workerArgs += string.Format(" --worker-id \"{0}\"", workerId);
             }
-            string hubArgs = string.Format("run python -m courier_hub --home \"{0}\" --controller http://127.0.0.1:{1} --port {2}", dataDir, cp, hp);
+            string hubArgs = string.Format("-m courier_hub --home \"{0}\" --controller http://127.0.0.1:{1} --port {2}", dataDir, cp, hp);
             
             if (pythonExe != "uv") {
                 ctrlArgs = string.Format("-m courier_core.serve --home \"{0}\" --port {1}", dataDir, cp);
