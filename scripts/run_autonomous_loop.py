@@ -146,26 +146,34 @@ class AutonomousLevel6Loop:
             try:
                 data = load_json(lock_file)
                 existing_pid = data.get("pid")
-                # Check if process is actually alive on Unix
+                existing_create_time = data.get("process_create_time")
+                
                 if existing_pid and existing_pid != pid:
+                    import psutil
                     try:
-                        os.kill(existing_pid, 0)
-                        # Process is still alive
-                        raise WorkflowLockedError(
-                            f"Workflow {workflow_id} is already locked by PID {existing_pid}."
-                        )
-                    except OSError:
+                        p = psutil.Process(existing_pid)
+                        # Process exists, check if it's the exact same process by creation time
+                        if not existing_create_time or p.create_time() == existing_create_time:
+                            raise WorkflowLockedError(
+                                f"Workflow {workflow_id} is already locked by PID {existing_pid}."
+                            )
+                        else:
+                            # PID was reused by a different process -> can safely reclaim
+                            print(f"[LOCK] PID {existing_pid} reused; reclaiming stale lock for {workflow_id}")
+                    except psutil.NoSuchProcess:
                         # Stale lock from crashed process -> can safely reclaim
                         print(f"[LOCK] Reclaiming stale lock for {workflow_id} from dead PID {existing_pid}")
             except (json.JSONDecodeError, KeyError):
                 pass
 
+        import psutil
         lock_data = {
             "workflow_id": workflow_id,
             "correlation_id": correlation_id or "UNKNOWN",
             "current_task_id": current_task_id or "UNKNOWN",
             "status": "LOCKED",
             "pid": pid,
+            "process_create_time": psutil.Process(pid).create_time(),
             "created_at": now_iso,
             "updated_at": now_iso,
         }

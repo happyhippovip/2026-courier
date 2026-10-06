@@ -15,7 +15,13 @@ for d in [STATE_DIR, LOGS_DIR]:
 
 def write_log(msg):
     print(msg)
-    with open(LOGS_DIR / "revenue_worker.log", "a") as f:
+    log_file = LOGS_DIR / "revenue_worker.log"
+    if log_file.exists() and log_file.stat().st_size > 5 * 1024 * 1024:
+        backup = log_file.with_name(log_file.name + ".1")
+        if backup.exists():
+            backup.unlink()
+        log_file.rename(backup)
+    with open(log_file, "a") as f:
         f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
 
 def get_config():

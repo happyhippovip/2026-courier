@@ -52,7 +52,13 @@ def load_config():
 
 def write_log(msg):
     print(msg)
-    with open(LOGS_DIR / "worker.log", "a") as f:
+    log_file = LOGS_DIR / "worker.log"
+    if log_file.exists() and log_file.stat().st_size > 5 * 1024 * 1024:
+        backup = log_file.with_name(log_file.name + ".1")
+        if backup.exists():
+            backup.unlink()
+        log_file.rename(backup)
+    with open(log_file, "a") as f:
         f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
 
 def http_post(config, endpoint, data):

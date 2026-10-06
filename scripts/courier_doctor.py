@@ -12,6 +12,12 @@ import time
 import zipfile
 
 def get_app_data_dir():
+    import sys
+    if sys.platform != "win32":
+        if os.environ.get("COURIER_WORKER_HOME"):
+            return Path(os.environ["COURIER_WORKER_HOME"])
+        return Path(__file__).parent / "mac_worker"
+        
     pd = os.environ.get("PROGRAMDATA")
     fallback = Path(os.environ.get("COURIER_HOME") or Path.home() / ".courier")
     base = (Path(pd) if pd else fallback) / "CourierWorker"
