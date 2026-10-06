@@ -1,9 +1,33 @@
-# 2026-Courier — Autonomous Engineering & Control Plane (Computer A)
+# Courier Symphony
 
-> **Central Motto:** *"WIR MÜSSEN JEDEN TAG BESSER WERDEN WIE DIE ANDEREN."*
-> **Permanent Research Question:** *"Wie können wir aus Werkzeugen, die uns heute helfen, Werkzeuge und Agenten bauen, die morgen selbst herausfinden, wie sie uns noch besser helfen können?"*
+Courier Symphony carries computer work to a verified finish. It is a local-first runtime for Windows: every task is recorded in an append-only event journal, run by a bounded worker, checked by a verifier, and shown in a desktop hub. It is built so that after a crash or restart the same state is rebuilt from the journal and no work is done twice.
 
-`2026-courier` is the deterministic, safe, zero-spend autonomous operations and engineering engine for **Computer A** (Primary Builder: Google / Antigravity).
+**Status: pre-release.** There is no installer yet. The work happens on the branch `integration/v1`, and every change is tested on Windows and Linux in public CI. The goal of V1 is an installable Windows application; see [docs/V1_RULE_0.md](docs/V1_RULE_0.md).
+
+## Try it (developers)
+
+Requires Python 3.12.
+
+```bash
+git clone https://github.com/happyhippovip/2026-courier.git
+cd 2026-courier
+git switch integration/v1
+python -m pip install -e ".[test]"
+python -m pytest -q tests
+```
+
+## Take part
+
+- Questions, bug reports and test ideas: open an issue.
+- How changes are made and landed: [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md).
+- Security reports: [SECURITY.md](SECURITY.md).
+
+## License
+
+No license has been chosen yet. Until a license file is added, all rights are reserved by the author.
+
+> **Motto:** *"WIR MÜSSEN JEDEN TAG BESSER WERDEN WIE DIE ANDEREN."*
+> **Permanent research question:** *"Wie können wir aus Werkzeugen, die uns heute helfen, Werkzeuge und Agenten bauen, die morgen selbst herausfinden, wie sie uns noch besser helfen können?"*
 
 ---
 
