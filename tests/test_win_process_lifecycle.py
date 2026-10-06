@@ -16,11 +16,14 @@ def test_grandchild_process_reaping(tmp_path):
     ]
     
     run = _spawn_contained(argv, run_dir, "test-leak")
-    time.sleep(8) # Give it time to spawn the grandchild
-    
-    # Verify the parent and grandchild are running
+    # PowerShell start-up on a cold CI runner can exceed a fixed 8 s sleep;
+    # wait (bounded, well inside the 30 s sleep) until the grandchild exists.
     parent_proc = psutil.Process(run.proc.pid)
+    deadline = time.monotonic() + 25.0
     children = parent_proc.children(recursive=True)
+    while not children and time.monotonic() < deadline:
+        time.sleep(0.25)
+        children = parent_proc.children(recursive=True)
     assert len(children) > 0, "Grandchild was not spawned"
     
     child_pids = [c.pid for c in children]
