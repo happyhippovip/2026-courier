@@ -21,6 +21,9 @@ namespace CourierLauncher
         [DllImport("kernel32.dll")]
         static extern bool SetConsoleCtrlHandler(ConsoleCtrlDelegate HandlerRoutine, bool Add);
 
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
+
         delegate bool ConsoleCtrlDelegate(uint CtrlType);
 
         static bool ConsoleCtrlCheck(uint ctrlType)
@@ -111,7 +114,7 @@ namespace CourierLauncher
                 hJob = CreateJobObject(IntPtr.Zero, null);
                 if (hJob == IntPtr.Zero)
                 {
-                    Console.WriteLine("Failed to create Job Object.");
+                    MessageBox(IntPtr.Zero, "Failed to create Job Object.", "Courier Launcher Error", 0x10);
                     Environment.Exit(1);
                 }
 
@@ -121,7 +124,7 @@ namespace CourierLauncher
                 int length = Marshal.SizeOf(typeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
                 if (!SetInformationJobObject(hJob, JobObjectExtendedLimitInformation, ref info, length))
                 {
-                    Console.WriteLine("Failed to set Job Object limits.");
+                    MessageBox(IntPtr.Zero, "Failed to set Job Object limits.", "Courier Launcher Error", 0x10);
                     Environment.Exit(1);
                 }
             }
@@ -234,7 +237,9 @@ namespace CourierLauncher
                 }
 
                 if (!healthOk) {
-                    File.WriteAllText(Path.Combine(dataDir, "crash.txt"), "Controller failed to start or become healthy.");
+                    string msg = "Controller failed to start or become healthy.\nCheck logs at: " + logDir;
+                    File.WriteAllText(Path.Combine(dataDir, "crash.txt"), msg);
+                    MessageBox(IntPtr.Zero, msg, "Courier Launcher Error", 0x10);
                     return;
                 }
 
@@ -255,7 +260,9 @@ namespace CourierLauncher
             }
             catch (Exception ex)
             {
+                string msg = "Error launching daemon: " + ex.Message + "\nCheck logs at: " + logDir;
                 File.WriteAllText(Path.Combine(dataDir, "crash.txt"), "Error launching daemon: " + ex.ToString());
+                MessageBox(IntPtr.Zero, msg, "Courier Launcher Error", 0x10);
             }
         }
     }
