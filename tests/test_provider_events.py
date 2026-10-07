@@ -109,6 +109,19 @@ def test_saturation_output_rotates_once_and_successor_resumes_checkpoint(tmp_pat
     assert len(world.started) == 3                    # second signal rotates the NEW session, never double
 
 
+def test_unproven_rotation_is_reported_as_blocked_not_rotated(tmp_path):
+    k, _, world, ev = kirby(tmp_path)
+    k.add_workkeys(["W1"])
+    k.open_slot("s1", "muse")
+    ev.drive(k, "s1", ["IDLE"])
+    k.deliver("s1")
+    k.terminate = lambda s: {"result": "ORPHANS_REMAIN", "still_alive": [2000]}
+    assert ev.drive(k, "s1", ["OUTPUT hard_threshold_failed"] * 2) == ["RECOVERY_BLOCKED"] * 2
+    assert len(world.started) == 1
+    assert ev.drive(k, "s1", ["TURN_ENDED outcome=DONE"]) == ["REJECTED_STALE_WRITER"]
+    assert k.workkeys["W1"].state != DONE
+
+
 def test_turn_ended_without_claim_reconciles_and_wakes_next_work(tmp_path):
     k, _, _, ev = kirby(tmp_path)
     k.add_workkeys(["W1"])

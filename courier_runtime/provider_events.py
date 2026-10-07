@@ -68,6 +68,8 @@ def handle(kirby, slot, line):
     if kind == "OUTPUT":
         receipt = kirby.on_provider_output(slot, raw)
         kirby.heartbeat(slot)                              # alive, but output is not progress
+        if receipt and receipt.get("action") == "RECOVERY_BLOCKED":
+            return "RECOVERY_BLOCKED"
         return "ROTATED" if receipt else "OUTPUT"
     if kind == "TURN_ENDED":
         outcome = fields.get("outcome")
