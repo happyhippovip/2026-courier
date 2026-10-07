@@ -23,6 +23,7 @@ from typing import Any
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 from build_memory_update_proposal import get_memory_commit, validate_proposal_against_schema
+from foundry_kill_engine import run_kill_engine
 
 INITIAL_ANCHOR = "2026-08-25"
 SUPPORTED_SOURCES = {
@@ -293,8 +294,17 @@ def run_mesh(messages: list[dict[str, Any]], prior_ledger: dict[str, Any], memor
     memory_commit = get_memory_commit(memory_repo)
     manager = thought_manager(delta)
     boss_a = thought_boss_a(manager)
-    boss_b = thought_boss_b(manager, memory_commit)
-    proposal = build_proposal(boss_b["accepted_candidates"], memory_commit)
+    
+    # Phase 2: Red Team / Kill Engine
+    kill_engine_results = run_kill_engine(manager)
+    surviving_candidates = kill_engine_results["survivors"]
+    
+    boss_b = thought_boss_b(surviving_candidates, memory_commit)
+    
+    # Boss B only includes surviving, non-protected candidates
+    accepted_for_proposal = boss_b["accepted_candidates"] + kill_engine_results["killed"]
+    proposal = build_proposal(accepted_for_proposal, memory_commit)
+    
     ledger = {
         "schema_version": "thought-coverage-ledger-1.0",
         "initial_anchor": INITIAL_ANCHOR,
@@ -307,7 +317,16 @@ def run_mesh(messages: list[dict[str, Any]], prior_ledger: dict[str, Any], memor
         "message_counts": {"input": len(messages), "valid_unique": len(valid), "delta_processed": len(delta), "duplicates": len(duplicates), "rejected": len(rejected)},
         "processed_messages": processed,
     }
-    return {"coverage_ledger": ledger, "scene_audit": audit, "thought_manager": manager, "thought_boss_a": boss_a, "thought_boss_b": boss_b, "memory_update_proposal": proposal, "chief_delivery_adapter": build_delivery(proposal)}
+    return {
+        "coverage_ledger": ledger, 
+        "scene_audit": audit, 
+        "thought_manager": manager, 
+        "foundry_kill_engine": kill_engine_results,
+        "thought_boss_a": boss_a, 
+        "thought_boss_b": boss_b, 
+        "memory_update_proposal": proposal, 
+        "chief_delivery_adapter": build_delivery(proposal)
+    }
 
 
 def main() -> None:
