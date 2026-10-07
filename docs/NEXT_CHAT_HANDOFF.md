@@ -282,7 +282,7 @@ state, current active stage, or next exact task.
 **Historical snapshot only — verify again before acting.**
 
 At update time (2026-10-07):
-- `integration/v1` = `8d5b23fa`;
+- `integration/v1` = `baffc520`;
 - the V1 locked route (`ACTIVE LEDGER -> RELIABLE AUTOMATION -> GOLDEN PATH -> DESKTOP HUB -> WINDOWS EXE -> CLEAN-MACHINE ACCEPTANCE -> REAL ADAPTERS -> DESKTOP ROBOT OVERLAY`) has been completely merged;
 - L5 (Desktop Hub Overlay) and L6 (Windows Launcher & Packaging) are integrated;
 - next critical implementation path:
