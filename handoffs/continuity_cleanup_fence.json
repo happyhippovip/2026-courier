@@ -2,22 +2,24 @@
   "WORKKEY": "CONTINUITY-CLEANUP-FENCE",
   "OWNER": "codex-cloud",
   "BRANCH": "codex/continuity-cleanup-fence",
-  "HEAD/COMMIT": "b01d6c3ec76731d8ebac082e406d09c9bea886f9",
+  "HEAD/COMMIT": "457e3f2be13012e702ec12f46708f71871f1d626",
   "CURRENT_STATE": "FINAL",
   "MUTABLE_SCOPE": "courier_runtime.continuity.Kirby successor launch when cleanup is unproven",
   "FILES": [
     "courier_runtime/continuity.py",
+    "courier_runtime/provider_events.py",
     "tests/test_runtime_continuity.py",
+    "tests/test_provider_events.py",
     "handoffs/continuity_cleanup_fence.json"
   ],
   "TEST_EVIDENCE": [
     {
       "command": ".venv/bin/python -m pytest -q tests/test_runtime_continuity.py tests/test_provider_events.py tests/test_host_loop.py --timeout=30",
-      "passed": 48,
+      "passed": 49,
       "failed": 0,
       "skipped": 0,
       "platform": "Linux",
-      "seconds": 0.34
+      "seconds": 0.36
     },
     {
       "command": "git diff --check",
