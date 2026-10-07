@@ -5,11 +5,17 @@ Courier Doctor: Beginner UX tool to diagnose the health of the local Courier Sym
 
 import json
 import os
+import re
 import urllib.request
 import urllib.error
 from pathlib import Path
 import time
 import zipfile
+
+# Env/config names that plausibly carry credentials. Mirrors the config-key
+# heuristic below so a credential moved from config to environment (or vice
+# versa) stays redacted in diagnostics bundles either way.
+SECRET_NAME_RE = re.compile(r"(KEY|TOKEN|SECRET|PASSWORD)", re.IGNORECASE)
 
 def get_app_data_dir():
     import sys
@@ -84,17 +90,19 @@ def export_diagnostics(out_path):
     config = load_config()
     
     secrets = []
-    
+
     # Extract any obvious keys from config
     for k, v in config.items():
         if ("KEY" in k.upper() or "TOKEN" in k.upper()) and isinstance(v, str):
             secrets.append(v.strip())
 
-    # And from environment
-    api_key = os.environ.get("COURIER_API_KEY", "").strip()
-    if api_key:
-        secrets.append(api_key)
-        
+    # And from the environment: every credential-looking variable, not just
+    # COURIER_API_KEY, so verifier/provider keys set via env cannot leak
+    # into the bundled logs and config copies.
+    for name, value in os.environ.items():
+        if SECRET_NAME_RE.search(name) and isinstance(value, str) and value.strip():
+            secrets.append(value.strip())
+
     token_file = app_data / "run" / "controller.token"
     if token_file.exists():
         token = token_file.read_text(encoding="utf-8").strip()

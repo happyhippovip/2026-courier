@@ -57,7 +57,35 @@ def test_diagnostics_bundle_v1(tmp_path, monkeypatch):
         
         log_content = zf.read("logs/worker.log").decode("utf-8")
         assert "secret_token_12345" not in log_content
-        
+
         config_content = zf.read("config.json").decode("utf-8")
         assert "secret_api_key_abc" not in config_content
+
+
+def test_diagnostics_redacts_credential_env_vars(tmp_path, monkeypatch):
+    """Credential-looking env vars beyond COURIER_API_KEY (verifier /
+    provider keys) must not leak into bundled logs. Only the environment
+    sweep can catch these: they appear nowhere in config or the token file."""
+    home = tmp_path / "home"
+    home.mkdir()
+    monkeypatch.setenv("COURIER_HOME", str(home))
+    monkeypatch.delenv("COURIER_API_KEY", raising=False)
+    monkeypatch.setenv("COURIER_VERIFIER_API_KEY", "verifier_key_xyz789")
+    monkeypatch.setenv("PROVIDER_SECRET", "provider_secret_456")
+
+    logs_dir = home / "logs"
+    logs_dir.mkdir()
+    (logs_dir / "worker.log").write_text(
+        "using verifier_key_xyz789 and provider_secret_456 today")
+
+    bundle_path = tmp_path / "bundle.zip"
+    export_diagnostics(bundle_path)
+
+    assert bundle_path.exists()
+
+    with zipfile.ZipFile(bundle_path, "r") as zf:
+        log_content = zf.read("logs/worker.log").decode("utf-8")
+        assert "verifier_key_xyz789" not in log_content
+        assert "provider_secret_456" not in log_content
+        assert "***REDACTED***" in log_content
         
