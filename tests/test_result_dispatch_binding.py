@@ -29,7 +29,7 @@ def test_result_with_wrong_dispatch_id_is_rejected(tmp_path, monkeypatch):
     assert bad["dispatch_id"] != task["dispatch_id"]
     resp = http.post("/tasks/result", headers=auth(), json=bad)
     assert resp.status_code == 409
-    assert "dispatch_id mismatch" in resp.get_json()["error"]
+    assert "attempt or dispatch mismatch, possible replay" in resp.get_json()["error"]
 
 
 def test_result_with_matching_dispatch_id_is_accepted(tmp_path, monkeypatch):

@@ -4,6 +4,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+pytest.importorskip("fcntl")
 
 import sys
 import os
