@@ -303,6 +303,62 @@ class CodexContinuityTests(unittest.TestCase):
         sched = CourierScheduler(primary_provider="codex", state_path=self.path)
         self.assertFalse(next(p for p in sched.providers if p.id == "codex").is_authorized)
 
+    def test_changed_checkpoint_is_not_silently_discarded(self):
+        sched = self.scheduler()
+        self.block(sched)
+        latest = ContinuationCheckpoint.from_dict(self.saved()["lane"]["checkpoint"])
+        latest.repo_sha = "c" * 40
+        latest.next_action = "new accepted boundary"
+        before = self.path.read_bytes()
+        with self.assertRaisesRegex(ValueError, "expected_checkpoint"):
+            sched.record_provider_failure(latest, 429, "quota exhausted")
+        self.assertEqual(self.path.read_bytes(), before)
+
+    def test_checkpoint_update_persists_latest_progress_without_losing_evidence(self):
+        sched = self.scheduler()
+        self.block(sched)
+        expected = self.saved()["lane"]["checkpoint"]
+        latest = ContinuationCheckpoint.from_dict(expected)
+        latest.repo_sha = "c" * 40
+        latest.pr = "456"
+        latest.next_action = "continue after new accepted unit"
+        latest.completed_fingerprints = ["new-accepted"]
+        latest.source_refs = ["evidence:new"]
+        sched.record_provider_failure(latest, 429, "quota exhausted", expected_checkpoint=expected)
+        saved = self.saved()["lane"]["checkpoint"]
+        self.assertEqual(saved["repo_sha"], "c" * 40)
+        self.assertEqual(saved["pr"], "456")
+        self.assertEqual(saved["next_action"], latest.next_action)
+        self.assertEqual(saved["completed_fingerprints"], ["accepted-old", "new-accepted"])
+        self.assertEqual(saved["source_refs"], ["evidence:old", "evidence:new"])
+        self.assertEqual(saved["workkey"], "same-work")
+
+    def test_delayed_checkpoint_update_cannot_overwrite_newer_progress(self):
+        sched = self.scheduler()
+        self.block(sched)
+        old = self.saved()["lane"]["checkpoint"]
+        newer = ContinuationCheckpoint.from_dict(old)
+        newer.next_action = "new current action"
+        sched.record_provider_failure(newer, 429, "quota exhausted", expected_checkpoint=old)
+        before = self.path.read_bytes()
+        delayed = ContinuationCheckpoint.from_dict(old)
+        delayed.next_action = "stale action"
+        with self.assertRaisesRegex(ValueError, "stale"):
+            self.scheduler().record_provider_failure(delayed, 429, "quota exhausted", expected_checkpoint=old)
+        self.assertEqual(self.path.read_bytes(), before)
+
+    def test_checkpoint_update_cannot_retarget_scope_or_connection(self):
+        sched = self.scheduler()
+        self.block(sched)
+        expected = self.saved()["lane"]["checkpoint"]
+        before = self.path.read_bytes()
+        for key in ("mutable_scope", "provider_connection_id", "project"):
+            latest = ContinuationCheckpoint.from_dict(expected)
+            setattr(latest, key, "different-owner")
+            with self.subTest(field=key), self.assertRaises(ValueError):
+                sched.record_provider_failure(latest, 429, "quota exhausted", expected_checkpoint=expected)
+            self.assertEqual(self.path.read_bytes(), before)
+
 
 if __name__ == "__main__":
     unittest.main()

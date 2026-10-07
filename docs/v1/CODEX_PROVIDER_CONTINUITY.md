@@ -61,6 +61,14 @@ logical continuation one stable state path, not one path per window. Corrupt or
 incompatible snapshots fail closed. Do not put credentials or prompts containing
 secrets in checkpoint fields.
 
+If a connector also supplies newer progress, pass `expected_checkpoint` containing
+the exact previously read checkpoint dictionary. Comparison and replacement happen
+under the same runtime owner lock. A stale comparison or attempted scope/connection/
+authority retarget is refused without changing the saved snapshot. Already accepted
+fingerprints and evidence references are retained. A changed checkpoint without this
+comparison is rejected rather than silently discarded. Duplicate failure metadata
+for otherwise identical progress needs no checkpoint replacement.
+
 Register only proven-owned release/reacquire hooks on `LaneHibernator`.
 Hooks must be idempotent and verify process identity, not executable name.
 Release failures remain visible; resource acquisition failures are not swallowed.

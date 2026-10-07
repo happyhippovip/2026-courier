@@ -336,14 +336,40 @@ class CourierScheduler:
         })
 
     def record_provider_failure(self, checkpoint, error_code, message, *,
-                                capability="completion", reset_time=None, retry_after=None):
-        """Accept trusted connector metadata, not text-derived guessed reset times."""
+                                capability="completion", reset_time=None, retry_after=None,
+                                expected_checkpoint=None):
+        """Accept trusted connector metadata and compare-and-swap progress updates.
+
+        When progress changed, expected_checkpoint is the last observed checkpoint
+        dictionary. Compare under the owner lock; never silently discard new work
+        or let a delayed event overwrite a newer continuation.
+        """
         from courier_worker.host import acquire_home_lock, release_home_lock
         if self.state_path is None:
             raise ValueError("durable state is required")
         lock = acquire_home_lock(str(self.state_path) + ".owner")
         try:
             self._load(checkpoint)
+            current = self.lane.checkpoint.to_dict()
+            incoming = checkpoint.to_dict()
+            incoming["provider_connection_id"] = incoming["provider_connection_id"] or self.primary_provider
+            if expected_checkpoint is not None:
+                if expected_checkpoint != current:
+                    raise ValueError("stale expected_checkpoint; reload current continuation")
+                for key in ("workkey", "project", "mutable_scope", "provider_connection_id", "authority_boundary"):
+                    if incoming[key] != current[key]:
+                        raise ValueError(f"checkpoint cannot retarget {key}")
+                # Accepted evidence is monotonic, even if the producer sent only
+                # its latest accepted unit. Started/uncertain records stay intact.
+                for key in ("completed_fingerprints", "source_refs"):
+                    incoming[key] = list(dict.fromkeys(current[key] + incoming[key]))
+                self.lane.checkpoint = ContinuationCheckpoint.from_dict(incoming)
+            else:
+                # Failure metadata is replaced below, not a progress update.
+                progress = lambda value: {k: v for k, v in value.items()
+                                          if k not in ("provider_failure_class", "provider_reset_time")}
+                if progress(incoming) != progress(current):
+                    raise ValueError("changed progress requires expected_checkpoint")
             if retry_after is not None:
                 if not isinstance(retry_after, (int, float)) or not 0 <= retry_after < float("inf"):
                     raise ValueError("invalid trusted retry_after")
