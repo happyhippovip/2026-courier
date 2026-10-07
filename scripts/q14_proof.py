@@ -17,7 +17,7 @@ if os.path.exists(os.environ["COURIER_STATE_FILE"]):
 import threading
 from server.app import app
 def run_server():
-    app.run(host="0.0.0.0", port=8080, use_reloader=False)
+    app.run(host="127.0.0.1", port=8080, use_reloader=False)
 
 server_thread = threading.Thread(target=run_server, daemon=True)
 server_thread.start()

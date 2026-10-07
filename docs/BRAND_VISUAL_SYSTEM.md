@@ -93,3 +93,21 @@ Use only:
 Do not clone competitor artwork or visual identity.
 
 Ideas and patterns may inspire the design, but the final visual language must be recognizably Courier Symphony.
+
+## Signature motion: red beam, green proof (since 2026-10-04)
+
+From the first product video: a storm of windows, the bird removes the noise
+with a red beam, and only the real work stays, linked by green lines.
+
+| Colour | Meaning | Rule |
+|---|---|---|
+| RED beam | actually closed / reclaimed / failed | only what `reclaim()`/`reconcile()` really closed |
+| GREEN proof | verified done, or safely reused | no shadow, no claim |
+| AMBER | waiting (human, OS, wake, capacity) or parked | never shown as done |
+| BLUE | working, outcome not yet proven | |
+| GREY | unknown / orphaned / not ours | shown, never touched |
+
+The single source of truth is `courier_runtime/visual_language.py`;
+`tests/test_visual_language.py` fails if a runtime state has no colour, so
+every future overlay, video and status page keeps this language.
+Video ending: the green state stays on screen last.

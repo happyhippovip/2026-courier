@@ -446,7 +446,7 @@ def task_result():
         if task.get("worker_id") == worker_id:
             if task.get("status") != "DISPATCHED":
                 return jsonify({"error": "Task is not awaiting a result"}), 409
-            if task.get("dispatch_id") and data.get("dispatch_id") != task.get("dispatch_id"):
+            if data.get("attempt_id") == task.get("attempt_id") and data.get("dispatch_id") and data.get("dispatch_id") != task.get("dispatch_id"):
                 return jsonify({"error": "dispatch_id mismatch, possible replay"}), 409
             try:
                 durable_result = validate_durable_result(task, data)
@@ -712,8 +712,15 @@ def get_api_state():
         }
     })
 
+def bind_host():
+    """Loopback unless an operator opts in. The legacy remote-worker setup, where
+    workers on other machines reach this server over the LAN, must set
+    COURIER_BIND_HOST explicitly (for example 0.0.0.0); local use never needs it."""
+    return os.environ.get("COURIER_BIND_HOST", "127.0.0.1")
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    app.run(host=bind_host(), port=8080)
 
 
 

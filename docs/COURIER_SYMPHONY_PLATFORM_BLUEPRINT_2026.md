@@ -390,3 +390,33 @@ The current live priority remains:
 secure AWS access -> reproducible cloud state -> Machine A -> Machine B -> headless runtime -> Execution Ledger.
 
 This blueprint must not interrupt or overlap with the active AWS live-write lane.
+
+## Universal API and Connector Architecture
+
+Courier's platform layer now has a dedicated API/connector target architecture.
+
+The guiding model is:
+
+ANY INPUT
+-> CANONICAL COURIER CONTRACT
+-> ADMISSION
+-> POLICY
+-> COST GUARD
+-> EXECUTE
+-> RESULT
+-> PERSIST
+-> VERIFY
+-> RECONCILE
+-> DONE
+
+Detailed specifications:
+
+- [Universal API & Connector Blueprint 2026](./UNIVERSAL_API_CONNECTOR_BLUEPRINT_2026.md)
+- [Connector and Capability Contract](./CONNECTOR_AND_CAPABILITY_CONTRACT.md)
+- [Connector Security and Trust Model](./CONNECTOR_SECURITY_AND_TRUST_MODEL.md)
+
+Planned protocol adapters include REST/OpenAPI, MCP, A2A, Webhooks/AsyncAPI/CloudEvents, streaming transports, and later commerce/payment/UI interoperability where justified.
+
+The execution core remains protocol- and provider-neutral. External agents or connectors never bypass Courier admission, policy, cost, lineage, verification, reconciliation, or fail-closed behavior.
+
+Current implementation order remains foundation first. API/connector implementation begins only after the secure cloud/runtime and trust-layer prerequisites are sufficiently stable.

@@ -52,7 +52,13 @@ def load_config():
 
 def write_log(msg):
     print(msg)
-    with open(LOGS_DIR / "worker.log", "a") as f:
+    log_file = LOGS_DIR / "worker.log"
+    if log_file.exists() and log_file.stat().st_size > 5 * 1024 * 1024:
+        backup = log_file.with_name(log_file.name + ".1")
+        if backup.exists():
+            backup.unlink()
+        log_file.rename(backup)
+    with open(log_file, "a") as f:
         f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
 
 def http_post(config, endpoint, data):
@@ -81,6 +87,13 @@ def http_post(config, endpoint, data):
 # Files without worker_phase come from the previous daemon, which wrote them
 # right before executing, so they are treated as STARTED.
 MAX_RESULT_POST_ATTEMPTS = 8
+# In-execution heartbeat cadence for run_agy (mirrors run_muse's 30s): the
+# server reclaims workers unseen for 300s, so a silent agy run must beat.
+AGY_HEARTBEAT_INTERVAL_SECONDS = 30
+# In-execution heartbeat cadence for run_native (mirrors run_muse/run_agy):
+# the server reclaims workers unseen for 300s while NATIVE_TIMEOUT_SECONDS
+# allows up to 600s, so a silent native run must beat.
+NATIVE_HEARTBEAT_INTERVAL_SECONDS = 30
 
 def persist_task(path, task):
     atomic_json(path, task)
@@ -139,11 +152,18 @@ def bind_runtime_task(task, config):
 
 
 def require_no_orphan():
-    previous = read_object(STATE_DIR / "muse_process.json")
-    if previous and previous.get("state") != "CLEAN":
-        identity = previous.get("identity")
-        if not identity or group_exists(identity["pgid"]):
-            raise RuntimeError("Unreconciled Muse child; no further claims/executions allowed")
+    # Each execution mode (Muse, agy, native) leaves a marker; a non-CLEAN
+    # marker whose group may still be alive (violent daemon death
+    # mid-execution) blocks new claims/executions until an operator
+    # reconciles it. A provably dead group needs no reconciliation: the next
+    # run overwrites the marker.
+    for marker, label in (("muse_process.json", "Muse"), ("agy_process.json", "agy"),
+                          ("native_process.json", "native")):
+        previous = read_object(STATE_DIR / marker)
+        if previous and previous.get("state") != "CLEAN":
+            identity = previous.get("identity")
+            if not identity or group_exists(identity["pgid"]):
+                raise RuntimeError(f"Unreconciled {label} child; no further claims/executions allowed")
 
 
 def persist_ready_result(path, task, config):
@@ -218,6 +238,13 @@ def deliver_result(config, payload):
             write_log(f"Result rejected permanently: {err}")
             return "REJECTED"
         write_log(f"Result post failed: {err}. Retrying in {2**attempt}s...")
+        # A full retry cycle sleeps 255s and slow POSTs add 8x urlopen
+        # timeout on top — past the server 300s reclaim_stale threshold —
+        # while result POSTs never touch last_seen. Beat between attempts
+        # (same guard as the in-execution heartbeats) so an actively
+        # redelivering worker cannot go stale mid-cycle.
+        if config.get("COURIER_SERVER"):
+            http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
         time.sleep(2 ** attempt)
     return "UNDELIVERED"
 
@@ -252,6 +279,45 @@ def collect_artifact_evidence(task, result):
         result["stderr"] = result.get("stderr", "") + "\nNo artifact evidence for success"
     return evidence
 
+
+def admit_surface(provider, task, config, needs_visible=True, allow_headless=True):
+    if str(BASE_DIR) not in sys.path:
+        sys.path.insert(0, str(BASE_DIR))
+    from courier_runtime.surfaces import SurfaceSupervisor
+    import psutil
+    
+    host = os.environ.get("COURIER_SLOT_ID") or config.get("WORKER_ID", "host")
+    supervisor = SurfaceSupervisor(STATE_DIR / "surfaces.json", host, sys.platform)
+    prompt = task.get('instruction', task.get('description', ''))
+    ram_used = psutil.virtual_memory().percent
+    
+    decision = supervisor.admit(provider, task["task_id"], prompt, 
+                                needs_visible=needs_visible, 
+                                allow_headless=allow_headless, 
+                                ram_used_pct=ram_used)
+    
+    if decision.action == "QUEUED":
+        raise MuseAdmissionBlocked("SURFACE_BUDGET_EXHAUSTED")
+    return supervisor, decision
+
+
+def attach_surface(supervisor, decision, pid):
+    """Bind the surface to (pid, create_time) - the identity the surface
+    supervisor checks via courier_runtime.ownership. Best effort: a missing
+    record only means the surface cannot be reclaimed, never a failed task."""
+    try:
+        import psutil
+        supervisor.attach(decision.surface_id, pid, psutil.Process(pid).create_time())
+    except Exception as exc:
+        write_log(f"surface attach skipped for pid {pid}: {exc}")
+
+
+def coalesced_result(decision, mode):
+    # Joining work that is already running is not a completion: fail closed so
+    # the controller never records an execution that did not happen here.
+    return {"status": "FAILED", "reason": "COALESCED_INTO_RUNNING_WORK", "execution_mode": mode,
+            "surface_id": decision.surface_id}
+
 def run_native(task, config):
     write_log(f"Running NATIVE task {task['task_id']}")
     instruction = task.get('instruction', task.get('description', ''))
@@ -274,40 +340,156 @@ def run_native(task, config):
             "execution_mode": "NATIVE"
         }
         
-    # Safe bounded execution
+    # Bounded execution: every native child runs in its own process group so a
+    # timeout or daemon interruption (WorkerShutdown) reaps the whole subtree
+    # instead of orphaning it. Like run_agy/run_muse, kill via cleanup_group,
+    # which is PID-reuse safe.
+    timeout = min(float(config.get("NATIVE_TIMEOUT_SECONDS", 120)), 600)
+    if action == "echo":
+        argv, kwargs = instruction, {"shell": True, "executable": "/bin/bash"}
+    elif action == "git_status":
+        argv, kwargs = ["git", "status"], {}
+    else:
+        return {"status": "FAILED", "stderr": f"Action '{action}' is allowed but handler is not implemented yet.", "execution_mode": "NATIVE"}
+    process = None
+    identity = None
+    # Orphan marker (mirrors the muse/agy markers): a violent daemon death
+    # between spawn and exit must be detectable on restart via
+    # require_no_orphan. Overwritten by every run; only non-CLEAN counts.
+    child_file = STATE_DIR / "native_process.json"
     try:
-        if action == "echo":
-            result = subprocess.run(instruction, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, executable="/bin/bash")
-        elif action == "git_status":
-            result = subprocess.run(["git", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        else:
-            return {"status": "FAILED", "stderr": f"Action '{action}' is allowed but handler is not implemented yet.", "execution_mode": "NATIVE"}
-            
+        atomic_json(child_file, {"state": "STARTING"})
+        process = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   text=True, start_new_session=True, **kwargs)
+        identity = process_identity(process.pid)
+        atomic_json(child_file, {"state": "RUNNING", "identity": identity})
+        # Sliced communicate with in-execution heartbeat (same pattern as
+        # run_agy): the overall deadline is unchanged and still handled below.
+        try:
+            deadline = time.monotonic() + timeout
+            while True:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise subprocess.TimeoutExpired(argv, timeout)
+                try:
+                    stdout, stderr = process.communicate(
+                        timeout=min(NATIVE_HEARTBEAT_INTERVAL_SECONDS, remaining))
+                    break
+                except subprocess.TimeoutExpired:
+                    if config.get("COURIER_SERVER"):
+                        http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
+        except subprocess.TimeoutExpired:
+            cleanup_group(process, identity)
+            try:
+                process.wait()
+            except Exception:
+                pass
+            stdout, stderr = process.communicate()
+            return {"status": "FAILED",
+                    "stdout": stdout,
+                    "stderr": ((stderr or "") + f"\nTIMEOUT after {timeout:g}s; "
+                             "process group killed and reaped").strip(),
+                    "exit_code": process.returncode,
+                    "execution_mode": "NATIVE", "reason": "TIMEOUT"}
         return {
-            "status": "SUCCESS" if result.returncode == 0 else "FAILED",
-            "stdout": result.stdout,
-            "stderr": result.stderr,
-            "exit_code": result.returncode,
+            "status": "SUCCESS" if process.returncode == 0 else "FAILED",
+            "stdout": stdout,
+            "stderr": stderr,
+            "exit_code": process.returncode,
             "execution_mode": "NATIVE"
         }
     except Exception as e:
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "NATIVE"}
+    finally:
+        # BaseException (e.g. WorkerShutdown on SIGTERM) skips the FAILED dict
+        # above; still reap the group so no orphan keeps running, then record
+        # the outcome: CLEAN only when the group is provably gone, otherwise
+        # fail closed (outer except → FAILED).
+        if process is not None:
+            if process.poll() is None:
+                cleanup_group(process, identity)
+                try:
+                    process.wait()
+                except Exception:
+                    pass
+            clean = process.poll() is not None and not group_exists(process.pid)
+            atomic_json(child_file, {"state": "CLEAN" if clean else "ORPHANS_REMAIN",
+                                     "identity": identity})
+            if not clean:
+                raise RuntimeError("native child cleanup unproven; no new execution allowed")
+
+
+def _reap_agy_group(process, identity):
+    """Best-effort group reap for the agy wrapper subtree; never raises.
+
+    Called from timeout/finally paths where blocking or leaking is worse
+    than a redundant signal. cleanup_group first (PID-reuse safe); direct
+    kill as fallback; wait() guarantees the direct child is reaped so a
+    later communicate() cannot block.
+    """
+    try:
+        if not cleanup_group(process, identity):
+            process.kill()
+    except Exception:
+        pass
+    try:
+        process.wait()
+    except Exception:
+        pass
+    process.poll()
+
 
 def run_agy(task, config):
     write_log(f"Running AI task {task['task_id']} via agy")
     instruction = task.get('instruction', task.get('description', ''))
     
-    prompt = f"Task ID: {task['task_id']}\nInstruction: {instruction}\n\nYou are a headless worker on Mac. You MUST execute the instruction. After you have successfully executed the instruction, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did. IMPORTANT: Your current working directory is {os.getcwd()}. Any file artifacts you create MUST be relative to this directory."
+    supervisor, decision = admit_surface("antigravity", task, config, needs_visible=False, allow_headless=True)
+    if decision.action == "COALESCED":
+        return coalesced_result(decision, "ANTIGRAVITY")
+        
+    prompt = "Task ID: " + str(task["task_id"]) + "\nInstruction: " + str(instruction) + "\n\nYou are a headless worker on Mac. You MUST execute the instruction. After you have successfully executed the instruction, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did. IMPORTANT: Your current working directory is " + os.getcwd() + ". Any file artifacts you create MUST be relative to this directory."
     agy_bin = shutil.which("agy") or shutil.which("agy", path=os.environ.get("PATH", "") + ":/Users/user/.local/bin:/usr/local/bin:/opt/homebrew/bin")
     if not agy_bin:
         return {"status": "FAILED", "reason": "AGY_NOT_FOUND", "execution_mode": "ANTIGRAVITY"}
         
     wrapper = os.path.join(os.path.dirname(__file__), "limit_wrapper.sh")
     cmd = [wrapper, agy_bin, "-p", prompt, "--dangerously-skip-permissions"]
-    
+    timeout = min(float(config.get("AGY_TIMEOUT_SECONDS", 300)), 3600)
+
+    process = None
+    identity = None
+    child_file = STATE_DIR / "agy_process.json"
     try:
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        stdout, stderr = process.communicate(timeout=300)
+        atomic_json(child_file, {"state": "STARTING"})
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   text=True, start_new_session=True)
+        identity = process_identity(process.pid)
+        attach_surface(supervisor, decision, process.pid)
+        atomic_json(child_file, {"state": "RUNNING", "identity": identity})
+        # Sliced communicate with in-execution heartbeat: the server's
+        # reclaim_stale quarantines workers unseen for 300s, and the default
+        # agy window spans exactly that. Same 30s cadence as run_muse; the
+        # overall deadline is unchanged and still handled below.
+        try:
+            deadline = time.monotonic() + timeout
+            while True:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise subprocess.TimeoutExpired(cmd, timeout)
+                try:
+                    stdout, stderr = process.communicate(
+                        timeout=min(AGY_HEARTBEAT_INTERVAL_SECONDS, remaining))
+                    break
+                except subprocess.TimeoutExpired:
+                    if config.get("COURIER_SERVER"):
+                        http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
+        except subprocess.TimeoutExpired:
+            _reap_agy_group(process, identity)
+            stdout, stderr = process.communicate()
+            return {"status": "FAILED",
+                    "stderr": ((stderr or "") + f"\nTIMEOUT after {timeout:g}s; "
+                               "process group killed and reaped").strip(),
+                    "execution_mode": "ANTIGRAVITY", "reason": "TIMEOUT"}
         
         out_clean = stdout.strip()
         parsed = False
@@ -325,11 +507,30 @@ def run_agy(task, config):
         if not parsed:
             res_json["status"] = "FAILED"
             res_json["raw_diagnostic"] = out_clean
-            
+
         return res_json
-        
+
     except Exception as e:
         return {"status": "FAILED", "stderr": str(e), "execution_mode": "ANTIGRAVITY"}
+    finally:
+        # BaseException (e.g. WorkerShutdown on SIGTERM) skips the FAILED
+        # dict above; still reap the group so no orphan keeps running, then
+        # record the outcome: CLEAN only when the group is provably gone,
+        # otherwise fail closed like run_muse (outer except → FAILED).
+        if process is not None:
+            if process.poll() is None:
+                _reap_agy_group(process, identity)
+            clean = process.poll() is not None and not group_exists(process.pid)
+            atomic_json(child_file, {"state": "CLEAN" if clean else "ORPHANS_REMAIN",
+                                     "identity": identity})
+
+            if clean:
+                try:
+                    supervisor.finish(decision.surface_id, "checkpoint")
+                except Exception:
+                    pass
+            if not clean:
+                raise RuntimeError("agy child cleanup unproven; no new execution allowed")
 
 def run_muse(task, config):
     """Muse slot execution through the muse_adapter boundary (no guessed CLI method)."""
@@ -337,6 +538,11 @@ def run_muse(task, config):
         sys.path.insert(0, str(BASE_DIR))
     import muse_adapter
     write_log(f"Running MUSE task {task['task_id']}")
+    
+    supervisor, decision = admit_surface("muse", task, config, needs_visible=True, allow_headless=False)
+    if decision.action == "COALESCED":
+        return coalesced_result(decision, "MUSE")
+    
     slot = os.environ.get("COURIER_SLOT_ID") or config["WORKER_ID"]
     workspace = os.environ.get("COURIER_MUSE_WORKSPACE", config.get("MUSE_WORKSPACE", CANONICAL_WORKSPACE))
     binding = muse_adapter.task_binding(task, slot, workspace)
@@ -369,6 +575,7 @@ def run_muse(task, config):
                 proc = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=out, stderr=err,
                                         start_new_session=True)
                 identity = process_identity(proc.pid)
+                attach_surface(supervisor, decision, proc.pid)
                 atomic_json(child_file, {"state": "RUNNING", "identity": identity, "binding": binding})
             deadline = time.monotonic() + min(float(config.get("MUSE_TIMEOUT_SECONDS", 3600)), 3600)
             heartbeat_at = time.monotonic() + 30
@@ -390,6 +597,12 @@ def run_muse(task, config):
                 clean = cleanup_group(proc, identity)
                 atomic_json(child_file, {"state": "CLEAN" if clean else "ORPHANS_REMAIN",
                                          "identity": identity, "binding": binding})
+
+                if clean:
+                    try:
+                        supervisor.finish(decision.surface_id, "checkpoint")
+                    except Exception:
+                        pass
                 if not clean:
                     raise RuntimeError("Muse child cleanup unproven; no new execution allowed")
     return result
@@ -480,7 +693,10 @@ def loop():
                 write_log("Registered successfully.")
                 registered = True
                 if release_ambiguous_task:
-                    os.remove(current_task_state_file)
+                    # The release was already delivered via the register POST
+                    # above; a missing marker (operator cleanup) must neither
+                    # raise nor leave the flag stale for a duplicate release.
+                    current_task_state_file.unlink(missing_ok=True)
                     release_ambiguous_task = False
                 
             # Heartbeat
@@ -542,7 +758,13 @@ def loop():
                         time.sleep(governor.get_poll_interval())
                         continue
                 else:
-                    result = run_agy(task, config)
+                    try:
+                        result = run_agy(task, config)
+                    except MuseAdmissionBlocked:
+                        task["worker_phase"] = "CLAIMED"
+                        persist_task(current_task_state_file, task)
+                        time.sleep(governor.get_poll_interval())
+                        continue
                 
                 # Format result payload
                 artifact_evidence = collect_artifact_evidence(task, result)
@@ -588,7 +810,7 @@ def loop():
                     registered = False
                     task = None
                 else:
-                    os.remove(current_task_state_file)
+                    current_task_state_file.unlink(missing_ok=True)
                     task = None
                     if one_task:
                         write_log("Task delivered; exiting for a fresh slot process.")

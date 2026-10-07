@@ -1,34 +1,127 @@
 {
   "schema_version": "2.0",
-  "context_version": 59,
-  "generated_at": "2026-09-15T20:35:15.668223+00:00",
+  "context_version": 62,
+  "generated_at": "2026-10-06T15:13:11.064796+00:00",
   "repositories": {
-    "courier_head": "a7e1b6e6707de83c7c81fbd209494520f4174a7b",
-    "memory_head": "3098d0c09c20de0c002f92af73ede44c021d8876",
+    "courier_head": "a3caf9433452b6cae97461aec7c1c7a24a50021e",
+    "memory_head": "b7a2d3507ef64b275f614b361b852af87557150b",
     "godot_head": "NOT_CONNECTED"
   },
   "workflow_state": {
-    "workflow_id": "IDLE",
-    "correlation_id": "UNKNOWN",
-    "current_task_id": "NONE",
+    "workflow_id": "wf-crash",
+    "correlation_id": "corr-wf-c5a1ebcc",
+    "current_task_id": "test_crash",
     "is_locked": false,
     "agent_states": {
+      "agent-codex-bridge": {
+        "state": "RUNNING",
+        "task": "test_crash",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-10-02T14:06:26.883752+00:00"
+      },
       "agent-update-steward": {
         "state": "CHECKING",
         "task": "Compiling Project Context Snapshot",
         "progress": 0.1,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-09-15T20:35:15.668593+00:00"
+        "updated_at": "2026-10-06T15:13:11.080882+00:00"
+      },
+      "agent-bodyguard-hotel": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.433673+00:00"
+      },
+      "agent-bodyguard-golf": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.432782+00:00"
+      },
+      "agent-bodyguard-alpha": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.421296+00:00"
+      },
+      "agent-thought-curator": {
+        "state": "SENT TO CHIEF",
+        "task": "Curated idea-b3414e6d",
+        "progress": 1.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-10-04T15:25:48.879736+00:00"
+      },
+      "agent-academy-director": {
+        "state": "ADOPTION APPROVED",
+        "task": null,
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-26T13:49:22.693951+00:00"
+      },
+      "agent-bodyguard-delta": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.429672+00:00"
+      },
+      "agent-antigravity-bridge": {
+        "state": "COMPLETED",
+        "task": "test",
+        "progress": 1.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-10-02T09:13:13.308648+00:00"
+      },
+      "agent-bodyguard-charlie": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.428088+00:00"
+      },
+      "agent-bodyguard-echo": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.430719+00:00"
+      },
+      "agent-bodyguard-foxtrot": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.431696+00:00"
+      },
+      "agent-bodyguard-bravo": {
+        "state": "STANDBY",
+        "task": "Reserve Duty (Standby)",
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-17T12:57:51.427320+00:00"
+      },
+      "agent-academy-teacher": {
+        "state": "PENDING_REVIEW",
+        "task": null,
+        "progress": 0.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-09-26T13:49:22.645794+00:00"
       }
     },
-    "total_decisions": 0,
-    "total_results": 3,
-    "total_approvals": 0,
-    "total_adoptions": 12
+    "total_decisions": 10,
+    "total_results": 23,
+    "total_approvals": 1,
+    "total_adoptions": 14
   },
   "memory_truth": {
     "latest_verified_milestone": "**VERIFIED_CURRENT** | Source: direct GitHub fetch/API readback for `happyhippovip/2026-project-memory` | Verified: 2026-09-06. The earlier repository-inaccessible/404 conclusion is **SUPERSEDED**. Remote `main` is readable, and prior same-chat commit `4b6c93ed0675ed0b6218beaf14c3340f438dcbf5` was successfully pushed and remotely read back. This proves the canonical Memory read/write path at that time; it does not authorize access to other repositories or secret values.",
     "latest_decisions": [
+      "D-040 \u2014 Canonical steering precision",
+      "D-039 \u2014 Canonical Courier Symphony product plan",
       "D-035 \u2014 Courier Normal Operations and evidence-triggered repair",
       "D-036 \u2014 Single-writer and cheapest-sufficient worker routing",
       "D-037 \u2014 Original healthy social platform is the first real product direction",
@@ -105,7 +198,7 @@
     },
     "timestamp": "2026-08-30T17:22:41.293196+00:00"
   },
-  "academy_adoptions": 12,
+  "academy_adoptions": 14,
   "truth_classifications": {
     "courier_codebase": "VERIFIED",
     "project_memory": "VERIFIED",
@@ -117,9 +210,12 @@
     "truth_invariants": "IDEA != IMPLEMENTED | USER_REPORTED != VERIFIED | DETERMINISTIC != REAL_EXTERNAL"
   },
   "changed_since_previous_snapshot": [
-    "courier_head"
+    "courier_head",
+    "memory_head",
+    "decisions",
+    "workflow_id"
   ],
-  "previous_snapshot_version": 58,
-  "previous_snapshot_hash": "a1fb83704fd6da06d69ca6eaed70b9aa3e83e8a55e28d7b438ac352a53a22896",
-  "snapshot_hash": "4ced48b4d34481c6918462e91714a6da512f32ed5ba1854f423692c05d7a2d25"
+  "previous_snapshot_version": 61,
+  "previous_snapshot_hash": "fe3f21cf3d25b171bb4677456e6e85a1bf2711bd9544c529c3800937126928d5",
+  "snapshot_hash": "1bb4082260448cee807d9d1f07b0c7f506e7664094da56a58d7d89f1a174ea03"
 }

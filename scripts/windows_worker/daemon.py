@@ -34,12 +34,48 @@ def require_api_key():
     if not API_KEY:
         raise MissingCredentialError("COURIER_API_KEY is not set (environment or config.json); refusing to contact the Courier server.")
 
+def get_app_data_dir():
+    pd = os.environ.get("LOCALAPPDATA")
+    # Never inside the source tree: off Windows use COURIER_HOME or ~/.courier.
+    fallback = Path(os.environ.get("COURIER_HOME") or Path.home() / ".courier")
+    base = (Path(pd) if pd else fallback) / "Courier"
+    base.mkdir(parents=True, exist_ok=True)
+    return base
+
+APP_DATA_DIR = get_app_data_dir()
+STATE_DIR = APP_DATA_DIR / "state"
+LOG_DIR = APP_DATA_DIR / "logs"
+STATE_DIR.mkdir(exist_ok=True)
+LOG_DIR.mkdir(exist_ok=True)
+
+def setup_logging():
+    import logging
+    from logging.handlers import RotatingFileHandler
+    log_file = LOG_DIR / "daemon.log"
+    logging.basicConfig(
+        handlers=[RotatingFileHandler(log_file, maxBytes=5*1024*1024, backupCount=3)],
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
+    class StreamToLogger:
+        def __init__(self, logger, level):
+            self.logger = logger
+            self.level = level
+        def write(self, buf):
+            for line in buf.rstrip().splitlines():
+                if line.rstrip(): self.logger.log(self.level, line.rstrip())
+        def flush(self): pass
+    sys.stdout = StreamToLogger(logging.getLogger('STDOUT'), logging.INFO)
+    sys.stderr = StreamToLogger(logging.getLogger('STDERR'), logging.ERROR)
+
+setup_logging()
+
 def load_config():
-    config_path = Path(__file__).parent / "config.json"
+    config_path = APP_DATA_DIR / "config.json"
+    if not config_path.exists():
+        config_path = Path(__file__).parent / "config.json"
     with open(config_path, "r") as f:
         return json.load(f)
-
-STATE_DIR = Path(__file__).parent / "state"
 MAX_RESULT_POST_ATTEMPTS = 5
 
 # Only capabilities run_task() can actually execute (native PowerShell). config.json
@@ -197,15 +233,30 @@ def build_result_payload(task, result, config):
         "stderr": result.get("stderr", ""),
     }
 
+def kill_process_tree(pid):
+    """Best-effort: stop the child and anything PowerShell spawned under it.
+
+    communicate(timeout=...) never kills the child on TimeoutExpired (Python
+    docs), so a hung/long instruction otherwise keeps running and mutating
+    the workspace after run_task() already returned FAILED. taskkill /T
+    reaches the process tree on Windows; elsewhere only the direct child can
+    be stopped, so its own children (if any) may still need a tree kill.
+    """
+    if os.name == "nt":
+        subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=15)
+    else:
+        os.kill(pid, 9)  # non-Windows test/dev path; no tree kill available here.
+
 def run_task(task, config):
     print(f"[{config['WORKER_ID']}] Running task {task['task_id']}...")
-    
+
     instruction = task.get("instruction", "")
-    
+
     out_clean = ""
     stderr = ""
     run_id = "win-native"
-    
+
     print(f"[{config['WORKER_ID']}] Executing native PowerShell instruction.")
     import base64
     utf8_instruction = f"[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;\n{instruction}"
@@ -214,10 +265,23 @@ def run_task(task, config):
     try:
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace")
         run_id = str(process.pid)
-        stdout, stderr_out = process.communicate(timeout=600)
-        out_clean = stdout.strip()
-        stderr = stderr_out
-        status = "SUCCESS" if process.returncode == 0 else "FAILED"
+        try:
+            stdout, stderr_out = process.communicate(timeout=600)
+            out_clean = stdout.strip()
+            stderr = stderr_out
+            status = "SUCCESS" if process.returncode == 0 else "FAILED"
+        except subprocess.TimeoutExpired:
+            try:
+                kill_process_tree(process.pid)
+            except (OSError, subprocess.SubprocessError):
+                pass
+            try:
+                stdout, stderr_out = process.communicate(timeout=15)
+            except subprocess.TimeoutExpired:
+                stdout, stderr_out = "", ""
+            out_clean = (stdout or "").strip()
+            status = "FAILED"
+            stderr = (stderr_out or "") + "\nTimed out after 600s; process killed, not left running."
     except Exception as e:
         status = "FAILED"
         stderr = str(e)
@@ -236,14 +300,38 @@ def run_task(task, config):
     
     return res_json
 
+_last_sys_times = None
+
 def is_resource_pressure_high():
+    global _last_sys_times
     try:
-        # Check CPU load
-        out = subprocess.check_output(["powershell", "-NoProfile", "-Command", "(Get-WmiObject Win32_Processor).LoadPercentage"], text=True, timeout=5)
-        loads = [int(x.strip()) for x in out.split() if x.strip().isdigit()]
-        if loads and sum(loads)/len(loads) > 85:
-            return True
-        return False
+        import ctypes
+        class FILETIME(ctypes.Structure):
+            _fields_ = [("dwLowDateTime", ctypes.c_uint), ("dwHighDateTime", ctypes.c_uint)]
+        idle = FILETIME()
+        kernel = FILETIME()
+        user = FILETIME()
+        ctypes.windll.kernel32.GetSystemTimes(ctypes.byref(idle), ctypes.byref(kernel), ctypes.byref(user))
+        
+        i = (idle.dwHighDateTime << 32) | idle.dwLowDateTime
+        k = (kernel.dwHighDateTime << 32) | kernel.dwLowDateTime
+        u = (user.dwHighDateTime << 32) | user.dwLowDateTime
+        t = k + u
+        
+        if _last_sys_times is None:
+            _last_sys_times = (i, t)
+            return False
+            
+        i_prev, t_prev = _last_sys_times
+        _last_sys_times = (i, t)
+        
+        dt = t - t_prev
+        di = i - i_prev
+        if dt == 0:
+            return False
+            
+        load = (dt - di) / dt * 100.0
+        return load > 85.0
     except Exception:
         # Defaults to safe (no pressure) if check fails to prevent starvation, but we could also back off
         return False
@@ -252,12 +340,14 @@ _lock_fd = None
 def acquire_lock(worker_id):
     global _lock_fd
     import msvcrt
+    import psutil
     lock_file = Path(tempfile.gettempdir()) / f"courier_worker_{worker_id}.lock"
     try:
         fd = os.open(str(lock_file), os.O_CREAT | os.O_RDWR)
         msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
         os.ftruncate(fd, 0)
-        os.write(fd, str(os.getpid()).encode())
+        lock_data = json.dumps({'pid': os.getpid(), 'process_create_time': psutil.Process(os.getpid()).create_time()})
+        os.write(fd, lock_data.encode('utf-8'))
         _lock_fd = fd
         return lock_file
     except OSError:
@@ -367,8 +457,22 @@ def loop():
             time.sleep(10)
             
     finally:
-        if os.path.exists(lock_path):
-            os.remove(lock_path)
+        if _lock_fd is not None:
+            try:
+                import msvcrt
+                os.lseek(_lock_fd, 0, os.SEEK_SET)
+                msvcrt.locking(_lock_fd, msvcrt.LK_UNLCK, 1)
+            except Exception:
+                pass
+            try:
+                os.close(_lock_fd)
+            except OSError:
+                pass
+        if lock_path and os.path.exists(lock_path):
+            try:
+                os.remove(lock_path)
+            except OSError:
+                pass
 
 if __name__ == "__main__":
     try:

@@ -2,6 +2,11 @@ import hashlib
 
 import pytest
 
+import sys
+from pathlib import Path
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
 from scripts.artifact_store import (ArtifactError, ArtifactStore, artifact_id_for, is_safe_artifact_name,
                                     verify_uploaded_artifact)
 

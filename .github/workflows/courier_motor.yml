@@ -1,12 +1,9 @@
 name: Courier Motor
 
 on:
-  # No cron: the motor only reads committed state, so new work can only
-  # arrive via a push to that file. Manual runs skip the precheck.
-  push:
-    branches: [main]
-    paths:
-      - "server/state/central_state.json"
+  # Runtime state must never be committed to git. The 5-minute cron and the
+  # commit/push of server/state/central_state.json are disabled; the motor can
+  # still be run manually for diagnostics, but it no longer persists state.
   workflow_dispatch:
 
 # One motor at a time; queued runs wait instead of dispatching twice.
@@ -42,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write
+      contents: read
       actions: write
     steps:
       - uses: actions/checkout@v4
@@ -52,7 +49,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install dependencies
         run: pip install flask requests
@@ -70,7 +67,17 @@ jobs:
           # repository secrets, fall back to per-run random keys (never committed).
           for var in COURIER_API_KEY COURIER_VERIFIER_API_KEY; do
             if [ -z "${!var}" ]; then
-              export "$var=$(python3 -c 'import secrets; print(secrets.token_hex(24))')"
+              if command -v python3 >/dev/null 2>&1; then
+                _k=$(python3 -c 'import secrets; print(secrets.token_hex(24))')
+              elif command -v openssl >/dev/null 2>&1; then
+                _k=$(openssl rand -hex 24)
+              else
+                echo "[Motor] ERROR: no key generator (python3/openssl) available" >&2
+                exit 1
+              fi
+              [ -n "$_k" ] || { echo "[Motor] ERROR: ephemeral key generation produced an empty key" >&2; exit 1; }
+              export "$var=$_k"
+              unset _k
               echo "[Motor] $var secret not set; using an ephemeral per-run key."
             fi
             echo "::add-mask::${!var}"
@@ -102,9 +109,4 @@ jobs:
           echo "[Motor] Stopping background processes..."
           kill $VERIFIER_PID || true
           kill $SERVER_PID || true
-          
-          echo "[Motor] Persisting central_state.json if changed..."
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add central_state.json
-          git diff-index --quiet HEAD || (git commit -m "Auto-reconcile Courier State" && git push)
+          echo "[Motor] Run complete. State is not persisted to git (runtime state stays out of the repository)."

@@ -1,0 +1,67 @@
+COURIER MAC GOOGLE — RESTART NEGATIVE CASES 100X
+
+HOST=MAC
+PROVIDER=GOOGLE_CLI
+REPO=/Users/user/Downloads/2026-courier
+COORDINATION_BRANCH=coordination/autofill-task-seed-20260926
+CONTINUE_BY_DEFAULT=YES
+
+BOOTSTRAP:
+cd /Users/user/Downloads/2026-courier
+git fetch origin coordination/autofill-task-seed-20260926
+DO NOT checkout/merge/rebase/reset/clean.
+
+READ FIRST:
+ops/ai/WALL_SYSTEM.md
+ops/ai/WALL_QUEUE_CURRENT.md
+ops/ai/COST_SAFE_GATE_TRANSITION_POLICY_2026-09-28.md
+ops/ai/GATE_STATE_CURRENT.md
+
+RULES:
+RESULT_REUSE_FIRST=YES
+MINIMUM_NECESSARY_READS=YES
+NO_BROAD_REPO_SCAN=YES
+NO_REPEATED_UNCHANGED_READS=YES
+NO_DUPLICATE_REVIEW=YES
+NO_IDLE_ANALYSIS=YES
+NO_BUSYWORK=YES
+NO_EVIDENCE_NO_PASS=YES
+MAX_HEAVY_JOBS=1
+APPLICATION_SOURCE_WRITE=NO
+FINAL_CANDIDATE_WRITE=NO
+
+Same gate fingerprint is never paid for twice.
+If exact FINAL_SHA durability is required and not available:
+WAITING_FOR_DURABILITY -> claim another independent task.
+
+
+ROLE=MAC_RESTART_NEGATIVE_CASE_REVIEWER
+
+TASK:
+Prepare/falsify restart cases that are not dependent on executing RUN_2 yet.
+
+CASES:
+- restart before persist
+- after persist before validate
+- after validate before verify
+- after verify before reconcile
+- after reconcile before dispatch
+- after dispatch before result
+- worker disappearance
+- provider outage
+- stale result after restart
+- duplicate result after restart
+- conflicting result after restart
+- stale local cache after restart
+
+OUTPUT:
+SCENARIO=
+EXPECTED_STATE=
+FORBIDDEN_OUTCOME=
+EVIDENCE_NEEDED=
+CURRENT_GAP=
+PHYSICAL_RUN_REQUIRED=
+
+Do not execute RUN_2 before RUN_1 PASS.
+
+START NOW.

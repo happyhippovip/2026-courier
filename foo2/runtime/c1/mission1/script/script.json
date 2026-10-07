@@ -1,0 +1,28 @@
+{
+  "schema_version": "2.0",
+  "title": "Topic1",
+  "content_project": "FruitKI",
+  "format": "9:16_VERTICAL",
+  "duration_seconds": 7.125,
+  "scenes": [
+    {
+      "scene_id": 1,
+      "start_time": 0.0,
+      "end_time": 2.5,
+      "name": "Hook"
+    },
+    {
+      "scene_id": 2,
+      "start_time": 2.5,
+      "end_time": 5.5,
+      "name": "Action"
+    },
+    {
+      "scene_id": 3,
+      "start_time": 5.5,
+      "end_time": 7.125,
+      "name": "Payoff"
+    }
+  ],
+  "created_at": "2026-09-30T18:00:56.286457+00:00"
+}

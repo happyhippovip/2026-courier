@@ -1,7 +1,7 @@
 # Requires Run as Administrator
 $action = "Create"
 $taskName = "CourierWindowsWorker"
-$scriptPath = "$PSScriptRoot\start.bat"
+$scriptPath = "$PSScriptRoot\Courier.exe"
 
 if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
     Unregister-ScheduledTask -TaskName $taskName -Confirm:$false

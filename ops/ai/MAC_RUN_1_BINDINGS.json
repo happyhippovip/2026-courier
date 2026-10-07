@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "phase": "MAC_EXACT_BINDING",
+  "bindings": {
+    "COURIER_SERVER": {
+      "expected": "http://127.0.0.1:8080",
+      "actual": "PENDING_MAC_EXECUTION",
+      "status": "UNVERIFIED"
+    },
+    "FINAL_SHA": {
+      "expected": "3c2aa5160002bdb7e2647ab87a0cef2a6f2a3ec4",
+      "actual": "PENDING_MAC_EXECUTION",
+      "status": "UNVERIFIED"
+    },
+    "python_version": {
+      "expected": "3",
+      "actual": "PENDING_MAC_EXECUTION",
+      "status": "UNVERIFIED"
+    }
+  },
+  "runtime_signature": null,
+  "verified": false
+}

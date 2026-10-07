@@ -114,27 +114,48 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
         import signal
         if worker_proc:
             try:
-                os.killpg(os.getpgid(worker_proc.pid), signal.SIGTERM)
+                if sys.platform == "win32":
+                    worker_proc.terminate()
+                else:
+                    os.killpg(os.getpgid(worker_proc.pid), signal.SIGTERM)
                 worker_proc.wait(timeout=5)
             except Exception as e:
                 print(f"Worker cleanup error: {e}")
-                try: os.killpg(os.getpgid(worker_proc.pid), signal.SIGKILL)
+                try:
+                    if sys.platform == "win32":
+                        worker_proc.kill()
+                    else:
+                        os.killpg(os.getpgid(worker_proc.pid), signal.SIGKILL)
                 except: pass
         if verifier_proc:
             try:
-                os.killpg(os.getpgid(verifier_proc.pid), signal.SIGTERM)
+                if sys.platform == "win32":
+                    verifier_proc.terminate()
+                else:
+                    os.killpg(os.getpgid(verifier_proc.pid), signal.SIGTERM)
                 verifier_proc.wait(timeout=5)
             except Exception as e:
                 print(f"Verifier cleanup error: {e}")
-                try: os.killpg(os.getpgid(verifier_proc.pid), signal.SIGKILL)
+                try:
+                    if sys.platform == "win32":
+                        verifier_proc.kill()
+                    else:
+                        os.killpg(os.getpgid(verifier_proc.pid), signal.SIGKILL)
                 except: pass
         if server_proc:
             try:
-                os.killpg(os.getpgid(server_proc.pid), signal.SIGTERM)
+                if sys.platform == "win32":
+                    server_proc.terminate()
+                else:
+                    os.killpg(os.getpgid(server_proc.pid), signal.SIGTERM)
                 server_proc.wait(timeout=5)
             except Exception as e:
                 print(f"Server cleanup error: {e}")
-                try: os.killpg(os.getpgid(server_proc.pid), signal.SIGKILL)
+                try:
+                    if sys.platform == "win32":
+                        server_proc.kill()
+                    else:
+                        os.killpg(os.getpgid(server_proc.pid), signal.SIGKILL)
                 except: pass
 
     try:
@@ -144,9 +165,9 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
         # 1. Spawn Server
         print("[RUN] Spawning Server...")
         server_proc = subprocess.Popen(
-            [sys.executable, "-c", "import sys, os; sys.path.append(os.getcwd()); from server.app import app; app.run(host='0.0.0.0', port=int(sys.argv[1]))", str(port)],
+            [sys.executable, "-c", "import sys, os; sys.path.append(os.getcwd()); from server.app import app; app.run(host='127.0.0.1', port=int(sys.argv[1]))", str(port)],
             env=env, cwd=REPO_ROOT, stdout=server_out, stderr=server_err,
-            preexec_fn=os.setpgrp
+            **( {} if __import__("sys").platform == "win32" else {"preexec_fn": getattr(os, "setpgrp", None)} )
         )
         with open(server_pid_path, "w") as f: f.write(str(server_proc.pid))
 
@@ -154,7 +175,10 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
         ready = False
         for _ in range(40):
             try:
-                urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=1).read()
+                # /health is authenticated since H2_AUTHENTICATED_HEALTH.
+                req = urllib.request.Request(f"http://127.0.0.1:{port}/health",
+                                             headers={"Authorization": f"Bearer {env['COURIER_API_KEY']}"})
+                urllib.request.urlopen(req, timeout=1).read()
                 ready = True
                 break
             except Exception:
@@ -167,7 +191,7 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
         worker_proc = subprocess.Popen(
             [sys.executable, "scripts/mac_worker/daemon.py"],
             env=env, cwd=REPO_ROOT, stdout=server_out, stderr=server_err,
-            preexec_fn=os.setpgrp
+            **( {} if __import__("sys").platform == "win32" else {"preexec_fn": getattr(os, "setpgrp", None)} )
         )
         # 3. Spawn Mac Verifier
         print("[RUN] Spawning Mac Verifier...")
@@ -175,7 +199,7 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
         verifier_proc = subprocess.Popen(
             [sys.executable, "scripts/courier_verifier.py"],
             env=env, cwd=REPO_ROOT, stdout=server_out, stderr=server_err,
-            preexec_fn=os.setpgrp
+            **( {} if __import__("sys").platform == "win32" else {"preexec_fn": getattr(os, "setpgrp", None)} )
         )
         with open(verifier_pid_path, "w") as f: f.write(str(verifier_proc.pid))
 

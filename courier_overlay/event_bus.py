@@ -13,6 +13,7 @@ import datetime
 import json
 import os
 import re
+import sys
 
 EVENT_TYPES = frozenset({
     "ORCHESTRATOR_CREATED_TASK",
@@ -114,9 +115,30 @@ def emit(bus_path, agent_id, task_id, event_type, short_summary):
     os.makedirs(os.path.dirname(os.path.abspath(bus_path)), exist_ok=True)
     line = (json.dumps(record, separators=(",", ":")) + "\n").encode("utf-8")
     with open(bus_path, "ab") as f:
-        f.write(line)
-        f.flush()
-        os.fsync(f.fileno())
+        if sys.platform == "win32":
+            import msvcrt
+            pos = f.tell()
+            f.seek(1073741824)  # Lock 1GB mark to not block readers
+            msvcrt.locking(f.fileno(), msvcrt.LK_LOCK, 1)
+            try:
+                f.seek(0, os.SEEK_END)
+                f.write(line)
+                f.flush()
+                os.fsync(f.fileno())
+            finally:
+                f.seek(1073741824)
+                msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+                f.seek(pos)
+        else:
+            import fcntl
+            fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+            try:
+                f.seek(0, os.SEEK_END)
+                f.write(line)
+                f.flush()
+                os.fsync(f.fileno())
+            finally:
+                fcntl.flock(f.fileno(), fcntl.LOCK_UN)
     _fsync_dir(bus_path)
     return record
 
