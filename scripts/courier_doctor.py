@@ -4,7 +4,9 @@ Courier Doctor: Beginner UX tool to diagnose the health of the local Courier Sym
 """
 
 import json
+import math
 import os
+import re
 import sqlite3
 import tempfile
 import urllib.request
@@ -83,8 +85,32 @@ def redact_secrets(content, secrets):
 
 
 # Same KEY/TOKEN rule as config collection, plus the password-like names that
-# show up inside task params. Matched on the key, not the value.
+# show up inside task params. Key walk is not enough: the same names also
+# appear as "api_key=..." inside an otherwise harmless string.
 _SENSITIVE_KEY_MARKERS = ("KEY", "TOKEN", "PASSWORD", "SECRET", "PASSWD", "CREDENTIAL")
+
+# Assignment shapes follow scripts/resolve_project_memory.py SENSITIVE_PATTERNS.
+# Token prefixes and high-entropy values cover secrets that have no label.
+_ASSIGNMENT_RE = re.compile(
+    r"(?i)\b(password|passwd|secret|token|api[_-]?key|credential|oauth)\s*[:=]\s*['\"]?([A-Za-z0-9_\-\.]{5,})"
+)
+_BEARER_RE = re.compile(r"(?i)\bBearer\s+([A-Za-z0-9\-._~+/]{5,}={0,2})")
+_TOKEN_SHAPE_RE = re.compile(
+    r"ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}|"
+    r"AIza[0-9A-Za-z\-_]{35}|AKIA[0-9A-Z]{16}"
+)
+_ENTROPY_RE = re.compile(r"(?<![A-Za-z0-9])[A-Za-z0-9+/_\-]{20,}={0,2}(?![A-Za-z0-9])")
+_HEX_RE = re.compile(r"^[0-9a-fA-F]+$")
+_UUID_RE = re.compile(
+    r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+)
+
+_REDACTION_NOTE = (
+    "courier.db in a diagnostics bundle is a redacted copy of the local ledger.\n"
+    "Secret-shaped values are replaced with ***REDACTED***. The live ledger is not modified.\n"
+    "The copy will not verify against the journal hash chain, because payload bytes "
+    "no longer match the stored hashes. That is expected.\n"
+)
 
 
 def _quote_ident(name):
@@ -116,7 +142,41 @@ def _walk_sensitive(value, found, sensitive):
         found.append(value)
 
 
+def _is_high_entropy(token):
+    """Long mixed tokens only. Hex hashes and ids stay; they are not secrets."""
+    if len(token) < 20 or _HEX_RE.match(token) or _UUID_RE.match(token):
+        return False
+    if not (re.search(r"[A-Z]", token) and re.search(r"[a-z]", token) and re.search(r"[0-9]", token)):
+        return False
+    counts = {}
+    for ch in token:
+        counts[ch] = counts.get(ch, 0) + 1
+    n = len(token)
+    entropy = 0.0
+    for count in counts.values():
+        p = count / n
+        entropy -= p * math.log2(p)
+    return entropy >= 3.5
+
+
+def _learn_value_secrets(text, secrets):
+    """Learn secret strings from the text itself, whatever key they sit under."""
+    if not isinstance(text, str) or not text:
+        return
+    for match in _ASSIGNMENT_RE.finditer(text):
+        _remember_secret(secrets, match.group(2).rstrip(".,;:"))
+    for match in _BEARER_RE.finditer(text):
+        _remember_secret(secrets, match.group(1).rstrip(".,;:"))
+    for match in _TOKEN_SHAPE_RE.finditer(text):
+        _remember_secret(secrets, match.group(0))
+    for match in _ENTROPY_RE.finditer(text):
+        token = match.group(0)
+        if _is_high_entropy(token):
+            _remember_secret(secrets, token)
+
+
 def _collect_text_secrets(text, secrets):
+    _learn_value_secrets(text, secrets)
     try:
         parsed = json.loads(text)
     except (json.JSONDecodeError, TypeError, ValueError):
@@ -127,6 +187,23 @@ def _collect_text_secrets(text, secrets):
     _walk_sensitive(parsed, found, False)
     for value in found:
         _remember_secret(secrets, value)
+        if isinstance(value, str):
+            _learn_value_secrets(value, secrets)
+
+
+def _learn_text_file(path, secrets):
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return
+    _collect_text_secrets(text, secrets)
+
+
+def _bundle_redaction_note(omission):
+    note = _REDACTION_NOTE
+    if omission:
+        note += omission.rstrip() + "\n"
+    return note
 
 
 def _user_tables(conn):
@@ -146,11 +223,11 @@ def _open_readonly(db_path):
 
 
 def _collect_db_secrets(db_path, secrets):
-    """Pull secret strings out of JSON values stored under sensitive keys.
+    """Pull secret strings out of ledger text.
 
-    Task params are written verbatim into events.payload and tasks.params.
-    Config and the controller token never see those strings, so the text
-    redaction list has to learn them from the ledger itself.
+    Task params are stored verbatim. Sensitive keys are one source. Values
+    shaped like credentials are the other, so a secret under "note" is learned
+    too. Config and the controller token never see those strings.
     """
     conn = _open_readonly(db_path)
     try:
@@ -261,18 +338,32 @@ def export_diagnostics(out_path):
             secrets.append(token)
 
     db_path = app_data / "courier.db"
+    log_dir = app_data / "logs"
+    config_path = app_data / "config.json"
     db_redactable = False
+    harvest_failed = False
     if db_path.exists():
         try:
             _collect_db_secrets(db_path, secrets)
             db_redactable = True
         except sqlite3.Error:
             db_redactable = False
+            harvest_failed = True
+
+    # Inline secrets in logs and config have to join the list before any
+    # member is written. Skip logs when the ledger could not be read: a raw
+    # token copied out of it may not match a pattern, so those files stay out.
+    if not harvest_failed and log_dir.exists():
+        for log_file in log_dir.glob("*.log*"):
+            _learn_text_file(log_file, secrets)
+    if config_path.exists():
+        _learn_text_file(config_path, secrets)
     secrets = _finalize_secrets(secrets)
             
     with zipfile.ZipFile(out_path, "w", zipfile.ZIP_DEFLATED) as zf:
         # Export a redacted copy of the V1 ledger. Never the raw file:
         # task params are stored verbatim and may hold tokens.
+        omission = None
         if db_path.exists() and db_redactable:
             try:
                 with tempfile.TemporaryDirectory(prefix="courier-diag-") as tmp:
@@ -280,19 +371,21 @@ def export_diagnostics(out_path):
                     _write_redacted_database(db_path, redacted_path, secrets)
                     zf.write(redacted_path, "courier.db")
             except sqlite3.Error:
-                zf.writestr(
-                    "courier.db.redaction_error.txt",
-                    "ledger omitted because a redacted copy could not be built\n",
+                omission = (
+                    "A redacted ledger copy could not be built, so courier.db "
+                    "was omitted from this bundle."
                 )
         elif db_path.exists():
-            zf.writestr(
-                "courier.db.redaction_error.txt",
-                "ledger omitted because a redacted copy could not be built\n",
+            omission = (
+                "The ledger could not be read, so courier.db was omitted from this bundle. "
+                "Log files were also omitted so a secret that exists only in the unread "
+                "ledger cannot leak through logs."
             )
+        if db_path.exists():
+            zf.writestr("courier.db.REDACTION.txt", _bundle_redaction_note(omission))
                 
-        # Export logs
-        log_dir = app_data / "logs"
-        if log_dir.exists():
+        # Export logs. Omitted entirely when ledger secret harvest failed.
+        if log_dir.exists() and not harvest_failed:
             for f in log_dir.glob("*.log*"):
                 try:
                     text = f.read_text(encoding="utf-8", errors="replace")
@@ -303,7 +396,6 @@ def export_diagnostics(out_path):
                     pass
                     
         # Export config (redacted)
-        config_path = app_data / "config.json"
         if config_path.exists():
             text = config_path.read_text(encoding="utf-8", errors="replace")
             if secrets:
