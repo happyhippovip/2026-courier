@@ -8,8 +8,21 @@ class TkinterRenderer:
         self.engine = engine
         self.root = tk.Tk()
         self.root.title("Courier Desktop Swarm")
-        self.root.geometry("800x600")
-        self.canvas = tk.Canvas(self.root, width=800, height=600, bg="black")
+        
+        # Frameless and fullscreen overlay
+        self.root.overrideredirect(True)
+        self.root.attributes("-topmost", True)
+        
+        import sys
+        if sys.platform == "win32":
+            self.root.attributes("-transparentcolor", "black")
+            self.root.state('zoomed')
+        else:
+            # macOS fallback for transparency
+            self.root.attributes("-alpha", 0.7)
+            self.root.attributes("-fullscreen", True)
+            
+        self.canvas = tk.Canvas(self.root, bg="black", highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
         
     def render(self, states: List[WorkerState]):
@@ -42,20 +55,23 @@ class TkinterRenderer:
             )
             
             # Draw task summary
-            text_x = rect.x + 10
-            text_y = rect.y + 20
+            text_x = rect.x + 15
+            text_y = rect.y + 25
+            font_title = ("Helvetica", 14, "bold")
+            font_body = ("Helvetica", 12)
+            
             self.canvas.create_text(
-                text_x, text_y, text=f"Agent: {state.agent_id}", fill="white", anchor="w"
+                text_x, text_y, text=f"Agent: {state.agent_id}", fill="white", anchor="w", font=font_title
             )
             if state.current_task:
                 self.canvas.create_text(
-                    text_x, text_y + 20, text=f"Task: {state.current_task}", fill="white", anchor="w"
+                    text_x, text_y + 25, text=f"Task: {state.current_task}", fill="white", anchor="w", font=font_body
                 )
             if state.last_summary:
                 # Truncate summary to prevent overflow
                 summary = state.last_summary[:240]
                 self.canvas.create_text(
-                    text_x, text_y + 40, text=summary, fill="lightgray", anchor="w"
+                    text_x, text_y + 50, text=summary, fill="lightgray", anchor="w", font=font_body, width=rect.width - 30
                 )
 
     def update(self):
