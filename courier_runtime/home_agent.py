@@ -147,7 +147,11 @@ def _git(repo, *args, timeout=120):
 
 
 def _single_instance(lock_path):
-    """One home agent per computer. A stale lock (process gone or pid reused) is taken over."""
+    """One home agent per computer. A stale lock (process gone or pid reused) is taken over.
+
+    Access denial is not proof of exit: a holder this user cannot read (e.g.
+    an agent running as someone else) may still be alive, so an unverifiable
+    lock is never taken over."""
     import os
     from courier_runtime.ownership import OwnedProcess, is_same_process
     lock = Path(lock_path)
@@ -156,6 +160,19 @@ def _single_instance(lock_path):
             old = OwnedProcess(**json.loads(lock.read_text(encoding="utf-8")))
             if is_same_process(old):
                 return False
+            try:
+                import psutil
+            except ImportError:
+                pass
+            else:
+                try:
+                    # Constructor alone proves nothing on most platforms; the
+                    # attribute read is where access denial surfaces.
+                    psutil.Process(old.pid).create_time()
+                except psutil.NoSuchProcess:
+                    pass  # provably dead (zombies count as exited): take over below
+                except psutil.AccessDenied:
+                    return False  # unreadable holder may be alive: never take over
         except (ValueError, TypeError, json.JSONDecodeError):
             pass
     lock.parent.mkdir(parents=True, exist_ok=True)
