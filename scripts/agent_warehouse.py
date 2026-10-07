@@ -76,15 +76,25 @@ class CapabilitySelector:
         for agent in self.catalog.agents:
             if required_capability in agent.capabilities:
                 if required_host is None or not agent.supported_hosts or required_host in agent.supported_hosts:
+                    # Exclude active owners to prevent duplicate writers
+                    if agent.id in current_owners:
+                        continue
+                    
+                    # Also exclude if any of its owner_files are claimed by current_owners
+                    active_owner_files = set()
+                    for owner_id in current_owners:
+                        for a in self.catalog.agents:
+                            if a.id == owner_id:
+                                active_owner_files.update(a.owner_files)
+                    
+                    if set(agent.owner_files).intersection(active_owner_files):
+                        continue
+                        
                     candidates.append(agent)
                     
         if not candidates:
-            raise ValueError(f"No agent found for capability {required_capability}")
+            raise ValueError(f"No agent found for capability {required_capability} (or all capable agents are blocked by duplicate writer constraints)")
             
-        # Filter out duplicates
-        # "why it is not duplicating another writer"
-        # If there's an exact match in current_owners, we should probably prefer them, or if someone else is already doing this capability.
-        
         # Sort by cost (local > free > low > medium > high > routed)
         # Sort by class (core > specialist > provider > reserve)
         cost_ranks = {"local_first": 0, "free": 1, "low": 2, "medium": 3, "high": 4, "local_or_routed": 5}
