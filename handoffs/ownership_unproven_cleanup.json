@@ -3,7 +3,7 @@
   "OWNER": "codex-cloud",
   "BRANCH": "codex/ownership-unproven-cleanup",
   "HEAD/COMMIT": "b3af8aa1ea6361812aaed4781b351579b2f0eca8",
-  "CURRENT_STATE": "PARTIAL",
+  "CURRENT_STATE": "FINAL",
   "MUTABLE_SCOPE": "courier_runtime.ownership identity and unresolved cleanup receipts",
   "FILES": [
     "courier_runtime/ownership.py",
@@ -30,6 +30,7 @@
     "Windows-native cleanup",
     "automatic descendant reconciliation when a cleanup-pending parent disappears"
   ],
-  "NEXT_EXACT_ACTION": "Create PR into integration/v1; L1 review cleanup_pending backward compatibility and fail-closed descendant reconciliation. Do not repeat unchanged tests.",
-  "OWNERSHIP_STATE": "IMPLEMENTATION_COMPLETE_REVIEW_PENDING"
+  "NEXT_EXACT_ACTION": "L1 review PR #160; reuse recorded tests and preserve unresolved descendant cleanup evidence.",
+  "OWNERSHIP_STATE": "PR_REVIEW_OWNER",
+  "PR": 160
 }
