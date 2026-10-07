@@ -1,5 +1,6 @@
 import json
 import os
+from io import BytesIO
 from pathlib import Path
 import sqlite3
 import zipfile
@@ -138,4 +139,33 @@ def test_check_server_degraded_is_not_healthy(tmp_path, monkeypatch):
     ok, msg = check_server()
     assert ok is False
     assert "degraded_readonly" in msg
+
+
+def test_check_server_http_401_is_not_healthy(tmp_path, monkeypatch):
+    home = tmp_path / "home"
+    (home / "run").mkdir(parents=True)
+    (home / "run" / "controller.token").write_text("tok", encoding="utf-8")
+    monkeypatch.setenv("COURIER_HOME", str(home))
+
+    def fake_urlopen(req, timeout=2):
+        raise urllib.error.HTTPError(req.full_url, 401, "Unauthorized", {}, BytesIO(b""))
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    ok, msg = check_server()
+    assert ok is False
+    assert "401" in msg
+
+
+def test_check_server_http_500_is_not_healthy(tmp_path, monkeypatch):
+    home = tmp_path / "home"
+    (home / "run").mkdir(parents=True)
+    (home / "run" / "controller.token").write_text("tok", encoding="utf-8")
+    monkeypatch.setenv("COURIER_HOME", str(home))
+
+    def fake_urlopen(req, timeout=2):
+        raise urllib.error.HTTPError(req.full_url, 500, "Internal Server Error", {}, BytesIO(b""))
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    ok, msg = check_server()
+    assert ok is False
 
