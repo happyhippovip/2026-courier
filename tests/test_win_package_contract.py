@@ -20,8 +20,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILD_SCRIPT = ROOT / "scripts" / "windows_worker" / "build_package.ps1"
+SMOKE_SCRIPT = ROOT / "scripts" / "windows_worker" / "smoke_package.ps1"
 LAUNCHER = ROOT / "scripts" / "windows_worker" / "launcher" / "CourierLauncher.cs"
 PYPROJECT = ROOT / "pyproject.toml"
+
+# CPython SPDX package checksum for python-3.12.10-embed-amd64.zip.
+EMBED_SHA256 = "4acbed6dd1c744b0376e3b1cf57ce906f9dc9e95e68824584c8099a63025a3c3"
 
 _VERSION_ASSIGNED = re.compile(r'\$PythonVersion\s*=\s*"(\d+\.\d+\.\d+)"')
 _VERSION_URL = re.compile(r"python-(\d+\.\d+\.\d+)-embed-amd64\.zip")
@@ -223,3 +227,30 @@ def test_libs_install_targets_embedded_python():
     assert re.search(r"\$LASTEXITCODE\s*-ne\s*0", after), (
         "uv pip install failure must abort the package build"
     )
+
+
+def test_embed_zip_sha256_is_checked_before_extract():
+    text = BUILD_SCRIPT.read_text(encoding="utf-8")
+    match = re.search(r'\$PythonSha256\s*=\s*"([0-9A-Fa-f]{64})"', text)
+    assert match, "build_package.ps1 must pin PythonSha256 for the embed zip"
+    assert match.group(1).lower() == EMBED_SHA256
+    filehash_at = text.find("Get-FileHash")
+    expand_at = text.find("Expand-Archive")
+    assert 0 <= match.start() < filehash_at < expand_at, (
+        "SHA256 check must run after the pin is declared and before Expand-Archive"
+    )
+    assert "SHA256" in text[filehash_at:expand_at]
+
+
+def test_smoke_checks_the_same_package_set_without_system_python():
+    smoke = SMOKE_SCRIPT.read_text(encoding="utf-8")
+    declared = set(re.findall(
+        r'"([A-Za-z_][A-Za-z0-9_]*)"',
+        re.search(r"^\$RequiredPackages\s*=\s*@\((.*?)\)", smoke, re.M | re.S).group(1),
+    ))
+    assert declared == staged_packages(BUILD_SCRIPT.read_text(encoding="utf-8"))
+    assert "PYTHONPATH" in smoke and "PYTHONHOME" in smoke
+    assert "Courier.exe" in smoke
+    assert "python312._pth" in smoke
+    assert "taskkill.exe /F /T /PID" in smoke
+    assert "/IM" not in smoke

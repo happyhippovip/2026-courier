@@ -265,7 +265,9 @@ namespace CourierLauncher
                 var pCtrl = StartComponent(hJob, pythonExe, baseDir, logDir, "controller", ctrlArgs, "controller.log");
                 
                 bool healthOk = false;
-                for (int i = 0; i < 30; i++) {
+                // Cold start of the embedded interpreter can take longer than a
+                // source-tree launch. 90 * 500ms = 45s.
+                for (int i = 0; i < 90; i++) {
                     Thread.Sleep(500);
                     if (pCtrl.HasExited) break;
                     

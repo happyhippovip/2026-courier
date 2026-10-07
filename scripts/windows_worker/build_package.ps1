@@ -6,11 +6,11 @@ param(
     [string]$PythonVersion = "3.12.10"
 )
 
-# C# launcher + embeddable CPython. docs/V1_RULE_0.md also names PyInstaller
-# onedir and a per-user Inno Setup installer. Switching to that baseline is
-# an open owner decision; this script keeps the launcher + embed path.
+# Decided package architecture: C# launcher + embeddable CPython.
+# PyInstaller onedir and Inno Setup are not used.
 
 $ErrorActionPreference = "Stop"
+$ProgressPreference = "SilentlyContinue"
 
 Write-Host "Building Courier Windows Package (embedded Python $PythonVersion)..."
 if (Test-Path $OutDir) {
@@ -60,10 +60,19 @@ foreach ($pkg in $RuntimePackages) {
 
 # 3. Download and embed Python. The ._pth name is the file that CPython
 # actually reads (python312._pth for 3.12.x).
+# SHA256 of python-3.12.10-embed-amd64.zip, package "CPython" in
+# python-3.12.10-embed-amd64.zip.spdx.json published next to the zip.
+$PythonSha256 = "4acbed6dd1c744b0376e3b1cf57ce906f9dc9e95e68824584c8099a63025a3c3"
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $PythonUrl = "https://www.python.org/ftp/python/$PythonVersion/python-$PythonVersion-embed-amd64.zip"
 $pyZip = Join-Path $env:TEMP "courier-python-embed.zip"
 Write-Host "Downloading Embedded Python from $PythonUrl..."
 Invoke-WebRequest -Uri $PythonUrl -OutFile $pyZip
+$actualHash = (Get-FileHash -Algorithm SHA256 -Path $pyZip).Hash
+if ($actualHash.ToLowerInvariant() -ne $PythonSha256.ToLowerInvariant()) {
+    Write-Error "Embedded Python zip hash mismatch. Expected $PythonSha256 got $actualHash"
+    exit 1
+}
 $pyDir = Join-Path $OutDir "python"
 New-Item -ItemType Directory -Force -Path $pyDir | Out-Null
 Write-Host "Extracting Python..."
@@ -83,8 +92,8 @@ if (-not (Test-Path -LiteralPath $pthPath)) {
 # Paths are relative to the python directory. ".." is the package root
 # (staged packages). "..\libs" is the dependency target. import site stays
 # commented so the embed does not pick up the machine's site-packages.
-Add-Content -Path $pthPath -Value ".."
-Add-Content -Path $pthPath -Value "..\libs"
+Add-Content -Path $pthPath -Encoding ascii -Value ".."
+Add-Content -Path $pthPath -Encoding ascii -Value "..\libs"
 
 $pythonExe = Join-Path $pyDir "python.exe"
 if (-not (Test-Path -LiteralPath $pythonExe)) {
