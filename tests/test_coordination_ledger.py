@@ -3,73 +3,83 @@ from scripts.coordination_ledger import (
 )
 import datetime
 
+def create_event(eid, mid, etype, status, created_at, agent=AgentID.GOOGLE_WINDOWS, host=HostID.WINDOWS_REMOTE, deps=None, owner=None):
+    return CoordinationEvent(
+        event_id=eid,
+        mission_id=mid,
+        agent_id=agent,
+        host_id=host,
+        event_type=etype,
+        status=status,
+        depends_on=deps or [],
+        head="sha",
+        evidence_ref="ref",
+        created_at=created_at,
+        payload_hash="hash",
+        ownership=owner
+    )
+
 def test_coordination_reducer():
     reducer = CoordinationReducer()
     
-    e1 = CoordinationEvent(
-        event_id="e1",
-        mission_id="m1",
-        agent_id=AgentID.GOOGLE_WINDOWS,
-        host_id=HostID.WINDOWS_REMOTE,
-        event_type=EventType.ASSIGNED,
-        status=MissionStatus.WORKING,
-        depends_on=[],
-        head="sha1",
-        evidence_ref="issue/1#issuecomment-123",
-        created_at="2026-10-07T12:00:00Z",
-        payload_hash="hash1"
-    )
-    
+    e1 = create_event("e1", "m1", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z")
     reducer.apply(e1)
     
     mission = reducer.get_mission("m1")
     assert mission["status"] == MissionStatus.WORKING
     
-    e2 = CoordinationEvent(
-        event_id="e2",
-        mission_id="m1",
-        agent_id=AgentID.GOOGLE_WINDOWS,
-        host_id=HostID.WINDOWS_REMOTE,
-        event_type=EventType.PARTIAL,
-        status=MissionStatus.WORKING,
-        depends_on=[],
-        head="sha2",
-        evidence_ref="issue/1#issuecomment-124",
-        created_at="2026-10-07T12:05:00Z",
-        payload_hash="hash2"
-    )
-    
+    # 3. PARTIAL checkpoint remains resumable
+    e2 = create_event("e2", "m1", EventType.PARTIAL, MissionStatus.WORKING, "2026-10-07T12:05:00Z")
     reducer.apply(e2)
     mission = reducer.get_mission("m1")
     assert mission["status"] == MissionStatus.WORKING
-    assert mission["head"] == "sha2"
     
-    e3 = CoordinationEvent(
-        event_id="e3",
-        mission_id="m1",
-        agent_id=AgentID.GOOGLE_WINDOWS,
-        host_id=HostID.WINDOWS_REMOTE,
-        event_type=EventType.FINAL,
-        status=MissionStatus.DONE,
-        depends_on=[],
-        head="sha3",
-        evidence_ref="issue/1#issuecomment-125",
-        created_at="2026-10-07T12:10:00Z",
-        payload_hash="hash3"
-    )
-    
+    e3 = create_event("e3", "m1", EventType.FINAL, MissionStatus.DONE, "2026-10-07T12:10:00Z")
     reducer.apply(e3)
     mission = reducer.get_mission("m1")
     assert mission["status"] == MissionStatus.DONE
-    assert mission["head"] == "sha3"
+    assert mission["ownership"] is None # ownership released
 
 def test_replay_protection():
+    # 4. duplicate/replayed event has no duplicate effect
     reducer = CoordinationReducer()
-    e1 = CoordinationEvent("1", "m1", AgentID.GOOGLE_WINDOWS, HostID.WINDOWS_REMOTE, EventType.ASSIGNED, MissionStatus.WORKING, [], "sha1", "ref", "time", "hash")
+    e1 = create_event("1", "m1", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z")
     reducer.apply(e1)
-    
     assert len(reducer.events) == 1
     
     # Replay
     reducer.apply(e1)
     assert len(reducer.events) == 1 # still 1!
+
+def test_stale_checkpoint_ignored():
+    # 5. stale checkpoint cannot overwrite newer progress.
+    reducer = CoordinationReducer()
+    e1 = create_event("1", "m1", EventType.FINAL, MissionStatus.DONE, "2026-10-07T12:10:00Z")
+    reducer.apply(e1)
+    
+    e2_stale = create_event("2", "m1", EventType.PARTIAL, MissionStatus.WORKING, "2026-10-07T12:05:00Z")
+    reducer.apply(e2_stale)
+    
+    mission = reducer.get_mission("m1")
+    assert mission["status"] == MissionStatus.DONE
+
+def test_conflicting_ownership():
+    # 6. conflicting writer ownership fails safely.
+    reducer = CoordinationReducer()
+    e1 = create_event("1", "m1", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z", owner="AGENT_A")
+    reducer.apply(e1)
+    
+    # AGENT_B tries to send PARTIAL
+    e2 = create_event("2", "m1", EventType.PARTIAL, MissionStatus.WORKING, "2026-10-07T12:05:00Z", owner="AGENT_B")
+    reducer.apply(e2)
+    
+    mission = reducer.get_mission("m1")
+    assert mission["latest_event_id"] == "1" # Event 2 rejected
+
+def test_unknown_authority():
+    # 9. unknown authority fails closed
+    reducer = CoordinationReducer()
+    e1 = create_event("1", "m1", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z", agent=AgentID.UNKNOWN)
+    reducer.apply(e1)
+    
+    assert reducer.get_mission("m1") is None
