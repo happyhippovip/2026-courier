@@ -145,6 +145,18 @@ def test_dispatch_plugs_in_with_zero_caller_changes():
     assert adapter_verifier("local_shell") is local_shell.verify
 
 
+def test_claim_driven_argv_stays_out_of_scope():
+    """Boundary pin: the L3 bridge must keep refusing claim specs for this
+    adapter (claims never carry a command line). Admitting claim-driven argv
+    needs its own allowlisted-command design, not a silent widening here."""
+    from courier_worker.adapter_bridge import validate_request
+    from courier_worker.host import SpecError
+    with pytest.raises(SpecError):
+        validate_request({"adapter": "local_shell",
+                          "params": {"command": write_argv(), "write": "out.txt"},
+                          "effect_key": "k1"})
+
+
 def test_run_verifier_accepts_end_to_end(tmp_path):
     res = local_shell.run({"command": write_argv(), "write": "out.txt"}, tmp_path)
     verdict = run_verifier(adapter_verifier, task(),

@@ -15,6 +15,13 @@ adapter itself writes nowhere (it only reads the declared evidence file back
 to hash it). There is deliberately no ``shell=True`` path and no content
 pinning at execution time: what the bytes mean is the verifier's job.
 
+Scope boundary: ``run`` is for host-composed invocations, where the worker
+host itself supplies ``argv``. Claim specs must never carry a command line
+(:mod:`courier_worker.adapter_bridge` rejects specs containing ``argv`` and
+the runner allowlists adapters), so bridge/runner registration is
+deliberately NOT part of this module: admitting claim-driven argv needs its
+own allowlisted-command design, which is a separate product decision.
+
 Verification contract (for ``courier_core.verification.run_verifier``)::
 
     verify(task, result, home) -> Verdict-like
