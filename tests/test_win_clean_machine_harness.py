@@ -29,7 +29,7 @@ def test_win_clean_machine_harness(tmp_path):
     - shutdown & restart
     - clean uninstall
     """
-    state_dir = tmp_path / "CourierWorker" # Because LOCALAPPDATA doesn't include "Courier" but CourierLauncher appends "Courier" to LOCALAPPDATA. wait, it is %LOCALAPPDATA%\Courier. So it will be tmp_path / "Courier".
+    state_dir = tmp_path / "Courier"
     
     # 1. Fresh install & first launch
     build_script = Path("scripts/windows_worker/launcher/build_launcher.ps1").resolve()
