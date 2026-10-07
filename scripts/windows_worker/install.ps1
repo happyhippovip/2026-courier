@@ -1,88 +1,104 @@
-param (
-    [string]$ServerArg = "",
-    [string]$ApiKeyArg = "",
-    [string]$WorkerIdArg = ""
+# Install Courier for the current user.
+# Program files default to Program Files\CourierWorker (-InstallRoot overrides).
+# The data directory defaults to %LOCALAPPDATA%\Courier (-DataRoot overrides).
+# The logon task is CourierWindowsWorker, the name uninstall.ps1 removes.
+# -NoTask copies files and leaves task registration to the caller.
+# Exit 0: success.
+# Exit 1: a directory was rejected or could not be prepared.
+# Exit 2: copying program files failed.
+# Exit 3: the logon task could not be registered.
+# Running the script again refreshes program files and replaces that same task.
+# Files already in the data directory are left in place. This script does not
+# ask questions and does not write a controller credential.
+
+param(
+    [string]$InstallRoot = "",
+    [string]$DataRoot = "",
+    [switch]$NoTask
 )
 
-$IsAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-Not $IsAdmin) {
-    Write-Host "WARNING: Not running as Administrator. Scheduled Task will not be registered." -ForegroundColor Yellow
-}
+$ErrorActionPreference = "Stop"
+$TaskName = "CourierWindowsWorker"
 
-$InstallDir = "$env:ProgramFiles\CourierWorker"
-$DataDir = "$env:LOCALAPPDATA\Courier"
-$ConfigPath = Join-Path $DataDir "config.json"
-
-Write-Host "========================================"
-Write-Host " Courier Windows Worker Installer"
-Write-Host "========================================"
-
-New-Item -ItemType Directory -Force -Path $DataDir | Out-Null
-New-Item -ItemType Directory -Force -Path (Join-Path $DataDir "run") | Out-Null
-New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
-
-$Server = $ServerArg
-$ApiKey = $ApiKeyArg
-$WorkerId = $WorkerIdArg
-
-if (Test-Path $ConfigPath) {
-    Write-Host "Found existing configuration."
-    $existing = Get-Content $ConfigPath | ConvertFrom-Json
-    if (-not $Server) { $Server = $existing.COURIER_SERVER }
-    if (-not $ApiKey) {
-        $tokenPath = Join-Path $DataDir "run\controller.token"
-        if (Test-Path $tokenPath) {
-            $ApiKey = Get-Content $tokenPath
-        }
+function Test-IsNestedUnder {
+    param(
+        [string]$Child,
+        [string]$Parent
+    )
+    $parentFull = [System.IO.Path]::GetFullPath($Parent)
+    $childFull = [System.IO.Path]::GetFullPath($Child)
+    if (-not $parentFull.EndsWith('\')) {
+        $parentFull = $parentFull + '\'
     }
-    if (-not $WorkerId) { $WorkerId = $existing.COURIER_WORKER_ID }
-}
-
-if (-not $Server) {
-    $Server = Read-Host "Enter Courier Server URL (default: http://192.168.178.162:8080)"
-    if (-not $Server) { $Server = "http://192.168.178.162:8080" }
-}
-if (-not $ApiKey) {
-    $ApiKey = Read-Host "Enter Courier API Key"
-}
-if (-not $WorkerId) {
-    $WorkerId = Read-Host "Enter a unique Worker ID (default: auto-generated)"
-    if (-not $WorkerId) { $WorkerId = "WIN-$( [guid]::NewGuid().ToString().Substring(0,8) )" }
-}
-
-$configObj = @{
-    COURIER_SERVER = $Server
-    COURIER_WORKER_ID = $WorkerId
-}
-$configObj | ConvertTo-Json | Set-Content $ConfigPath
-
-$tokenPath = Join-Path $DataDir "run\controller.token"
-$ApiKey | Set-Content $tokenPath -NoNewline
-
-Write-Host "Configuration saved to $ConfigPath."
-Write-Host "Token saved to $tokenPath."
-
-Write-Host "Copying files to $InstallDir..."
-Copy-Item "$PSScriptRoot\*" -Destination $InstallDir -Recurse -Force
-
-if ($IsAdmin) {
-    Write-Host "Registering Scheduled Task..."
-    $taskName = "CourierWindowsWorker"
-    $scriptPath = "$InstallDir\Courier.exe"
-
-    if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
-        Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
+    if (-not $childFull.EndsWith('\')) {
+        $childFull = $childFull + '\'
     }
-
-    $trigger = New-ScheduledTaskTrigger -AtStartup
-    $action = New-ScheduledTaskAction -Execute $scriptPath -WorkingDirectory $InstallDir
-    $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
-    Register-ScheduledTask -TaskName $taskName -Trigger $trigger -Action $action -Principal $principal | Out-Null
-
-    Write-Host "Starting Service..."
-    Start-ScheduledTask -TaskName $taskName
-} else {
-    Write-Host "Skipped Scheduled Task registration (requires Administrator)." -ForegroundColor Yellow
+    return $childFull.StartsWith($parentFull, [System.StringComparison]::OrdinalIgnoreCase)
 }
 
-Write-Host "Courier installed successfully!"
+try {
+    if ([string]::IsNullOrWhiteSpace($InstallRoot)) {
+        $InstallRoot = Join-Path $env:ProgramFiles "CourierWorker"
+    }
+    if ([string]::IsNullOrWhiteSpace($DataRoot)) {
+        $DataRoot = Join-Path $env:LOCALAPPDATA "Courier"
+    }
+    if (Test-IsNestedUnder -Child $InstallRoot -Parent $PSScriptRoot) {
+        Write-Host "InstallRoot must be outside the installer source directory."
+        exit 1
+    }
+    if (Test-IsNestedUnder -Child $DataRoot -Parent $PSScriptRoot) {
+        Write-Host "DataRoot must be outside the installer source directory."
+        exit 1
+    }
+    New-Item -ItemType Directory -Force -Path $InstallRoot | Out-Null
+    New-Item -ItemType Directory -Force -Path $DataRoot | Out-Null
+} catch {
+    Write-Host "Cannot prepare Courier directories: $($_.Exception.Message)"
+    exit 1
+}
+
+try {
+    # Copy each child on its own. A wildcard plus -Recurse is unreliable on
+    # Windows PowerShell 5.1 and can skip or reject directories.
+    Get-ChildItem -LiteralPath $PSScriptRoot -Force | ForEach-Object {
+        Copy-Item -LiteralPath $_.FullName -Destination $InstallRoot -Recurse -Force
+    }
+} catch {
+    Write-Host "Failed to copy Courier files: $($_.Exception.Message)"
+    exit 2
+}
+
+if ($NoTask) {
+    Write-Host "Courier files installed to $InstallRoot. Scheduled task was not registered."
+    exit 0
+}
+
+try {
+    $principalUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+    if ([string]::IsNullOrWhiteSpace($principalUser)) {
+        Write-Host "Cannot determine the installing user for task $TaskName."
+        exit 3
+    }
+    $existing = $null
+    try {
+        $existing = Get-ScheduledTask -TaskName $TaskName -ErrorAction Stop
+    } catch {
+        $existing = $null
+    }
+    if ($existing) {
+        Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
+    }
+    $exePath = Join-Path $InstallRoot "Courier.exe"
+    $trigger = New-ScheduledTaskTrigger -AtLogOn -User $principalUser
+    $action = New-ScheduledTaskAction -Execute $exePath -WorkingDirectory $InstallRoot
+    $principal = New-ScheduledTaskPrincipal -UserId $principalUser -LogonType Interactive -RunLevel Limited
+    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::Zero)
+    Register-ScheduledTask -TaskName $TaskName -Trigger $trigger -Action $action -Principal $principal -Settings $settings -Description "Starts Courier at logon for the installing user." | Out-Null
+} catch {
+    Write-Host "Failed to register scheduled task ${TaskName}: $($_.Exception.Message)"
+    exit 3
+}
+
+Write-Host "Courier installed to $InstallRoot. Task $TaskName runs at logon as $principalUser."
+exit 0
