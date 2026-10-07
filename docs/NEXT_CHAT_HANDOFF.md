@@ -282,14 +282,11 @@ state, current active stage, or next exact task.
 **Historical snapshot only — verify again before acting.**
 
 At update time (2026-10-07):
-- `integration/v1` = `baffc520`;
+- `integration/v1` = `e212cbd0c`;
 - the V1 locked route (`ACTIVE LEDGER -> RELIABLE AUTOMATION -> GOLDEN PATH -> DESKTOP HUB -> WINDOWS EXE -> CLEAN-MACHINE ACCEPTANCE -> REAL ADAPTERS -> DESKTOP ROBOT OVERLAY`) has been completely merged;
-- L5 (Desktop Hub Overlay) and L6 (Windows Launcher & Packaging) are integrated;
-  **PR #123** (Phase 1 Real Adapters) is open and waiting for CI.
-  **PR #124** (Phase 2 Real Adapters - Telegram Output & Lifecycle fixes) is open and waiting for CI.
-  **PR #122** (Overlay Polish) is open and waiting for CI.
+- L5 (Desktop Hub Overlay UI Polish) and server idempotency fixes (PR #129) are integrated;
 - next critical implementation path:
-  **Merge PR #122, #123, #124 -> L1 lane promotes to integration/v1 -> Extended Integrations**.
+  **EXTENDED INTEGRATIONS**.
 
 Never trust this SHA after new work without checking GitHub.
 
