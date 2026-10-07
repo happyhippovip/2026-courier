@@ -14,9 +14,20 @@ class TkinterRenderer:
         
     def render(self, states: List[WorkerState]):
         self.canvas.delete("all")
-        # For simplicity, assign each worker to a grid slot based on its index
+        # Ensure we ask for 12, 14, or 16 profiles. For simplicity, just use 12 if less.
+        num_profiles = max(12, len(states))
+        if num_profiles not in (12, 14, 16):
+            if num_profiles < 14: num_profiles = 14
+            elif num_profiles < 16: num_profiles = 16
+            else: num_profiles = 16 # cap at 16 or throw
+
+        screen = self.engine.adapter.get_screen()
+        rects = self.engine.calculate_grid(screen, num_profiles)
+
         for idx, state in enumerate(states):
-            rect = self.engine.calculate_rect(idx)
+            if idx >= len(rects):
+                break
+            rect = rects[idx]
             
             # Map status to color
             color = "gray"
