@@ -214,21 +214,30 @@ def build_result_payload(result: ExecutionResult, report: Optional[dict] = None,
                          home: Optional[str] = None) -> dict:
     """The result the controller verifies; never claims more than the run proved.
 
-    A bridged run (``result.spec.adapter`` set) that exited 0 is only a
-    success if the runner wrote a report saying so; a missing report is a
-    non-retryable failure. Artifact paths are relative to ``home`` when given,
-    which is the scope the controller's verifier reads from.
+    A bridged run (``result.spec.adapter`` set) trusts the runner's structured
+    report when present (even if the child exited non-zero after writing it).
+    Exit 0 without a success report is a non-retryable failure. Artifact paths
+    are relative to ``home`` when given, which is the scope the controller's
+    verifier reads from.
     """
     prefix = _artifact_prefix(result.spec.artifact_dir, home)
     outcome, retryable, reason = result.l2_outcome, result.retryable, None
-    if outcome != "success":
-        reason = f"worker outcome: {result.outcome}"
-    elif result.spec.adapter is not None:
+    if result.spec.adapter is not None:
         if report is None:
-            outcome, retryable, reason = "failure", False, "adapter runner produced no structured result"
+            if outcome == "success":
+                outcome, retryable, reason = (
+                    "failure", False, "adapter runner produced no structured result")
+            else:
+                reason = f"worker outcome: {result.outcome}"
+        elif report.get("outcome") not in adapter_bridge.REPORT_OUTCOMES:
+            outcome, retryable, reason = "failure", False, "adapter runner produced a malformed result"
         elif report["outcome"] != "success":
             outcome, retryable = "failure", bool(report.get("retryable", False))
             reason = str(report.get("reason") or "adapter reported failure")[:500]
+        elif outcome != "success":
+            outcome, retryable, reason = "failure", False, f"worker outcome: {result.outcome}"
+    elif outcome != "success":
+        reason = f"worker outcome: {result.outcome}"
     payload = {
         "dispatch_id": result.spec.dispatch_id,
         "result_id": result.spec.result_id,

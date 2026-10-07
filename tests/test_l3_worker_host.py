@@ -687,6 +687,15 @@ def test_exit_zero_without_report_is_never_success(tmp_path):
     assert "no structured result" in payload["reason"]
 
 
+def test_adapter_failure_report_honored_on_nonzero_runner_exit(tmp_path):
+    spec = S.resolve_spec(claim_body(), "w1", str(tmp_path / "artifacts"), 0.2, home=str(tmp_path))
+    result = H.ExecutionResult(spec=spec, outcome=Outcome.CRASH, returncode=2)
+    report = {"outcome": "failure", "reason": "params rejected: bad argv", "retryable": False}
+    payload = S.build_result_payload(result, report, home=str(tmp_path))
+    assert payload["outcome"] == "failure" and payload["retryable"] is False
+    assert "params rejected" in payload["reason"]
+
+
 def test_bridge_request_preserves_identity_and_effect_key(tmp_path):
     spec = S.resolve_spec(claim_body(dispatch="dsp-7", task="t7", attempt=3), "w1",
                           str(tmp_path / "artifacts"), 0.2, home=str(tmp_path))
