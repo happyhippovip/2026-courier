@@ -62,3 +62,14 @@ def test_coordination_reducer():
     mission = reducer.get_mission("m1")
     assert mission["status"] == MissionStatus.DONE
     assert mission["head"] == "sha3"
+
+def test_replay_protection():
+    reducer = CoordinationReducer()
+    e1 = CoordinationEvent("1", "m1", AgentID.GOOGLE_WINDOWS, HostID.WINDOWS_REMOTE, EventType.ASSIGNED, MissionStatus.WORKING, [], "sha1", "ref", "time", "hash")
+    reducer.apply(e1)
+    
+    assert len(reducer.events) == 1
+    
+    # Replay
+    reducer.apply(e1)
+    assert len(reducer.events) == 1 # still 1!
