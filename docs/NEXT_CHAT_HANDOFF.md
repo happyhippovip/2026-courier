@@ -286,9 +286,10 @@ At update time (2026-10-07):
 - the V1 locked route (`ACTIVE LEDGER -> RELIABLE AUTOMATION -> GOLDEN PATH -> DESKTOP HUB -> WINDOWS EXE -> CLEAN-MACHINE ACCEPTANCE -> REAL ADAPTERS -> DESKTOP ROBOT OVERLAY`) has been completely merged;
 - L5 (Desktop Hub Overlay) and L6 (Windows Launcher & Packaging) are integrated;
   **PR #123** (Phase 1 Real Adapters) is open and waiting for CI.
+  **PR #124** (Phase 2 Real Adapters - Telegram Output & Lifecycle fixes) is open and waiting for CI.
   **PR #122** (Overlay Polish) is open and waiting for CI.
 - next critical implementation path:
-  **First Real Provider Adapter -> Overlay UI/UX Polish -> Extended Integrations**.
+  **Merge PR #122, #123, #124 -> L1 lane promotes to integration/v1 -> Extended Integrations**.
 
 Never trust this SHA after new work without checking GitHub.
 
