@@ -94,8 +94,19 @@ def main(argv: list) -> int:
             _write_report(report, {"outcome": "failure", "reason": str(exc)[:500], "retryable": True})
             return 0
         except local_shell.LocalShellError as exc:
+            _write_report(report, {"outcome": "failure", "reason": str(exc)[:500], "retryable": False})
             print(f"adapter_runner: params rejected: {exc}", file=sys.stderr)
             return 2
+        except BaseException as exc:
+            if isinstance(exc, (KeyboardInterrupt, SystemExit)):
+                raise
+            _write_report(report, {
+                "outcome": "failure",
+                "reason": f"local_shell unexpected error: {type(exc).__name__}: {exc}"[:500],
+                "retryable": False,
+            })
+            print(f"adapter_runner: local_shell crashed: {exc}", file=sys.stderr)
+            return 1
     else:
         print(f"adapter_runner: adapter {adapter!r} is not allowlisted", file=sys.stderr)
         return 2

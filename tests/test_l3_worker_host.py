@@ -501,6 +501,30 @@ def test_runner_executes_local_shell_request(tmp_path):
     assert hashlib.sha256((workdir / "out.txt").read_bytes()).hexdigest()
 
 
+def test_runner_rejects_null_byte_local_shell_argv(tmp_path):
+    workdir = tmp_path / "w"
+    report = tmp_path / "r.json"
+    request = tmp_path / "req.json"
+    bad_argv = [PY, "-c", "print('x')", "safe\x00evil"]
+    request.write_text(json.dumps({
+        "adapter": "local_shell",
+        "params": {"command": bad_argv, "write": "out.txt"},
+        "attempt": 1,
+        "workdir": str(workdir),
+        "report": str(report),
+    }), encoding="utf-8")
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    proc = subprocess.run(
+        [PY, A.RUNNER_SCRIPT, str(request)],
+        cwd=repo_root, env={**os.environ, "PYTHONPATH": repo_root},
+        capture_output=True, text=True, timeout=30)
+    assert proc.returncode != 0
+    assert report.exists()
+    body = json.loads(report.read_text(encoding="utf-8"))
+    assert body["outcome"] == "failure" and body["retryable"] is False
+    assert "null" in body["reason"].lower()
+
+
 def test_claim_start_result_wire_exact_ids(tmp_path, stub):
     write_token(tmp_path)
     STUB.claims.append(claim_body())
