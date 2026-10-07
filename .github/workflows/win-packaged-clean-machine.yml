@@ -1,0 +1,115 @@
+name: Windows packaged clean-machine
+
+# L1 owns .github/workflows. This job proves Rule 0 against the packaged
+# artifact (C# launcher + embedded CPython). It needs L1 approval before it
+# merges. It does not replace Courier v1 CI.
+# The package is produced by the existing L6 package script. This file does
+# not reimplement the embed, and it does not call the installer script.
+
+on:
+  pull_request:
+    branches: ["integration/v1"]
+    paths:
+      - "scripts/windows_worker/**"
+      - "pyproject.toml"
+      - "courier_core/**"
+      - "courier_worker/**"
+      - "courier_hub/**"
+      - "courier_overlay/**"
+      - "courier_runtime/**"
+      - "adapters/**"
+      - "tests/test_win_clean_machine_harness.py"
+      - "tests/test_win_packaged_clean_machine.py"
+      - "tests/golden/**"
+      - ".github/workflows/win-packaged-clean-machine.yml"
+  push:
+    branches: ["lane/**"]
+    paths:
+      - "scripts/windows_worker/**"
+      - "pyproject.toml"
+      - "courier_core/**"
+      - "courier_worker/**"
+      - "courier_hub/**"
+      - "courier_overlay/**"
+      - "courier_runtime/**"
+      - "adapters/**"
+      - "tests/test_win_clean_machine_harness.py"
+      - "tests/test_win_packaged_clean_machine.py"
+      - "tests/golden/**"
+      - ".github/workflows/win-packaged-clean-machine.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: win-packaged-clean-machine-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  packaged-clean-machine:
+    name: packaged Rule 0
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.2.0
+        with:
+          version: "0.12.23"
+          enable-cache: false
+
+      - name: Install test dependencies
+        run: python -m pip install -e ".[test]"
+
+      - name: Build the Windows package
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/windows_worker/build_package.ps1
+
+      - name: Rule 0 against the packaged artifact
+        shell: powershell
+        run: |
+          $evidence = Join-Path $env:RUNNER_TEMP "clean-machine-evidence"
+          New-Item -ItemType Directory -Force -Path $evidence | Out-Null
+          @(
+            "sha=$env:GITHUB_SHA"
+            "ref=$env:GITHUB_REF"
+            "package=scripts/windows_worker/dist"
+          ) | Set-Content -Path (Join-Path $evidence "source.txt") -Encoding ascii
+          $env:COURIER_HARNESS_EVIDENCE_DIR = $evidence
+          $env:COURIER_HARNESS_PACKAGE_DIR = Join-Path $env:GITHUB_WORKSPACE "scripts\windows_worker\dist"
+          $env:COURIER_HARNESS_LIVE_UNINSTALL = "1"
+          Remove-Item Env:PYTHONPATH -ErrorAction SilentlyContinue
+          Remove-Item Env:PYTHONHOME -ErrorAction SilentlyContinue
+          Remove-Item Env:PYTHONSTARTUP -ErrorAction SilentlyContinue
+          python -m pytest -q --tb=short --timeout=600 tests/test_win_clean_machine_harness.py tests/test_win_packaged_clean_machine.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Record process list
+        if: always()
+        shell: powershell
+        run: |
+          $evidence = Join-Path $env:RUNNER_TEMP "clean-machine-evidence"
+          New-Item -ItemType Directory -Force -Path $evidence | Out-Null
+          Get-CimInstance Win32_Process |
+            Where-Object { $_.Name -match '^(?i)(Courier|python)' } |
+            Select-Object ProcessId, Name, ExecutablePath |
+            Format-List |
+            Out-File -FilePath (Join-Path $evidence "processes-after-job.txt") -Encoding utf8
+
+      - name: Upload clean-machine evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: clean-machine-evidence
+          path: ${{ runner.temp }}/clean-machine-evidence
+          retention-days: 3
+          if-no-files-found: error

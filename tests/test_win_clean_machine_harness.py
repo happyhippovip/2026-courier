@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import shutil
 import sqlite3
 import subprocess
 import sys
@@ -16,10 +17,101 @@ sys.path.insert(0, str(GOLDEN_DIR))
 from golden_harness import Courier, descendants, pids_alive  # noqa: E402
 
 UNINSTALL_SCRIPT = Path("scripts/windows_worker/uninstall.ps1")
-# Live uninstall.ps1 is not executed. It requires Administrator and edits
-# machine-wide state: the CourierWindowsWorker scheduled task, Program Files,
-# and config/run under every profile in C:\Users. Rule 0 step 12 is checked
-# by parsing that script. A live run on a clean machine remains unproven.
+# The parse-level Rule 0 contract below does not execute uninstall.ps1.
+# prove_live_uninstall() does, and only when live_uninstall_permitted() is
+# true: GITHUB_ACTIONS=true and COURIER_HARNESS_LIVE_UNINSTALL=1. CI=true
+# alone is not permission. A dev machine must never hit Program Files.
+PACKAGE_DIR_ENV = "COURIER_HARNESS_PACKAGE_DIR"
+LIVE_UNINSTALL_ENV = "COURIER_HARNESS_LIVE_UNINSTALL"
+EVIDENCE_ENV = "COURIER_HARNESS_EVIDENCE_DIR"
+_JOURNAL_MARKER = b"courier-clean-machine-journal-marker\n"
+_LOG_MARKER = "courier-clean-machine-log-marker\n"
+_CONFIG_MARKER = "courier-clean-machine"
+_DROPPED_ENV = (
+    "PYTHONPATH",
+    "PYTHONHOME",
+    "PYTHONSTARTUP",
+    "PYTHONUSERBASE",
+    "VIRTUAL_ENV",
+    "COURIER_HOME",
+)
+_SECRET_ENV = re.compile(r"(?i)(TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|API_KEY|PRIVATE_KEY)")
+_SECRET_TEXT = re.compile(r"(?i)(token|secret|password|api[_-]?key)(\s*[=:]\s*)(\S+)")
+_LONG_HEX = re.compile(r"\b[0-9a-fA-F]{32,}\b")
+
+
+def packaged_root() -> Path | None:
+    """Package directory from COURIER_HARNESS_PACKAGE_DIR, or None for repo mode."""
+    raw = os.environ.get(PACKAGE_DIR_ENV, "").strip()
+    if not raw:
+        return None
+    path = Path(raw)
+    if not path.is_dir():
+        raise AssertionError(f"{PACKAGE_DIR_ENV} is not a directory: {raw}")
+    return path.resolve()
+
+
+def package_child_env(local_app_data: Path, base: dict | None = None) -> dict:
+    """Environment for the packaged launcher.
+
+    System Python is removed from PATH. PYTHONPATH and PYTHONHOME are unset.
+    LOCALAPPDATA is an isolated root; the launcher appends \\Courier.
+    """
+    env = dict(os.environ if base is None else base)
+    dropped = {name.casefold() for name in _DROPPED_ENV}
+    dropped.add("path")
+    for key in list(env):
+        if key.casefold() in dropped or _SECRET_ENV.search(key):
+            env.pop(key, None)
+    system_root = str(env.get("SystemRoot") or env.get("SYSTEMROOT") or r"C:\Windows").rstrip("\\/")
+    env["PATH"] = ";".join([
+        system_root + r"\system32",
+        system_root,
+        system_root + r"\System32\Wbem",
+    ])
+    env["LOCALAPPDATA"] = str(local_app_data)
+    env["COURIER_TEST_NO_JOB"] = "1"
+    return env
+
+
+def live_uninstall_permitted() -> bool:
+    """True only for the GitHub-hosted job that opted into the live proof."""
+    return os.environ.get("GITHUB_ACTIONS") == "true" and os.environ.get(LIVE_UNINSTALL_ENV) == "1"
+
+
+def redact_evidence(text: str) -> str:
+    text = _SECRET_TEXT.sub(r"\1\2[redacted]", text)
+    return _LONG_HEX.sub("[redacted]", text)
+
+
+def evidence_root(repo: Path | None = None) -> Path | None:
+    raw = os.environ.get(EVIDENCE_ENV, "").strip()
+    if not raw:
+        return None
+    path = Path(raw).resolve()
+    root = (repo or Path.cwd()).resolve()
+    if path == root or root in path.parents:
+        raise AssertionError(f"evidence directory is inside the working tree: {path}")
+    return path
+
+
+def write_evidence(name: str, text: str, repo: Path | None = None) -> None:
+    if name != Path(name).name or name in {"", ".", ".."}:
+        raise AssertionError(f"evidence name must be a single file name: {name}")
+    root = evidence_root(repo)
+    if root is None:
+        return
+    root.mkdir(parents=True, exist_ok=True)
+    (root / name).write_text(redact_evidence(text), encoding="utf-8")
+
+
+def _powershell(command: str) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", command],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
 
 
 @pytest.fixture(autouse=True)
@@ -162,6 +254,150 @@ def test_uninstall_contract_rejects_user_data_destruction(extra):
         assert_uninstall_preserves_user_data(script + "\n" + extra + "\n")
 
 
+def _task_query() -> subprocess.CompletedProcess:
+    return _powershell(
+        "if (Get-ScheduledTask -TaskName 'CourierWindowsWorker' -ErrorAction SilentlyContinue) "
+        "{ exit 0 } else { exit 2 }"
+    )
+
+
+def _cleanup_live_uninstall(home: Path, install_dir: Path) -> None:
+    """Remove only the markers this proof created. Leave any other user data."""
+    db = home / "courier.db"
+    try:
+        if db.is_file() and db.read_bytes().startswith(_JOURNAL_MARKER):
+            db.unlink()
+    except OSError:
+        pass
+    log = home / "logs" / "courier.log"
+    logs = home / "logs"
+    try:
+        if log.is_file() and _LOG_MARKER in log.read_text(encoding="utf-8", errors="replace"):
+            log.unlink()
+        if logs.is_dir() and not any(logs.iterdir()):
+            logs.rmdir()
+    except OSError:
+        pass
+    config = home / "config.json"
+    try:
+        if config.is_file() and _CONFIG_MARKER in config.read_text(encoding="utf-8", errors="replace"):
+            config.unlink()
+    except OSError:
+        pass
+    run = home / "run"
+    try:
+        marker = run / "marker.txt"
+        if marker.is_file() and marker.read_text(encoding="utf-8").strip() == "remove-me":
+            marker.unlink()
+        if run.is_dir() and not any(run.iterdir()):
+            run.rmdir()
+    except OSError:
+        pass
+    try:
+        if home.is_dir() and not any(home.iterdir()):
+            home.rmdir()
+    except OSError:
+        pass
+    if install_dir.exists():
+        shutil.rmtree(install_dir, ignore_errors=True)
+    _powershell(
+        "Unregister-ScheduledTask -TaskName 'CourierWindowsWorker' -Confirm:$false "
+        "-ErrorAction SilentlyContinue"
+    )
+
+
+def prove_live_uninstall(package: Path) -> dict:
+    """Install the package where uninstall.ps1 looks, run it, report step 12.
+
+    Refuses unless live_uninstall_permitted() is true. Does not call install.ps1.
+    """
+    if not live_uninstall_permitted():
+        raise AssertionError("live uninstall is refused outside a GitHub Actions runner")
+    if os.name != "nt":
+        raise AssertionError("live uninstall is Windows-only")
+    script = package / "uninstall.ps1"
+    if not script.is_file():
+        raise AssertionError(f"packaged uninstall.ps1 missing: {script}")
+    assert_uninstall_preserves_user_data(script.read_text(encoding="utf-8"))
+
+    admin = _powershell(
+        "$p = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent()); "
+        "if ($p.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { exit 0 } else { exit 3 }"
+    )
+    if admin.returncode != 0:
+        raise AssertionError("live uninstall needs an Administrator runner; refusing to continue")
+
+    profile = Path(os.environ["USERPROFILE"]).resolve()
+    if profile.parent != Path(r"C:\Users"):
+        raise AssertionError("USERPROFILE is not under C:\\Users, so uninstall.ps1 would not see this data")
+    home = profile / "AppData" / "Local" / "Courier"
+    install_dir = Path(os.environ["ProgramFiles"]) / "CourierWorker"
+    db = home / "courier.db"
+    log = home / "logs" / "courier.log"
+    config = home / "config.json"
+    run = home / "run"
+    if db.exists() and not db.read_bytes().startswith(_JOURNAL_MARKER):
+        raise AssertionError("refusing to overwrite an existing courier.db")
+    if log.exists() and _LOG_MARKER not in log.read_text(encoding="utf-8", errors="replace"):
+        raise AssertionError("refusing to overwrite an existing courier log")
+    if config.exists() and _CONFIG_MARKER not in config.read_text(encoding="utf-8", errors="replace"):
+        raise AssertionError("refusing to overwrite an existing config.json")
+
+    try:
+        if install_dir.exists():
+            shutil.rmtree(install_dir)
+        shutil.copytree(package, install_dir)
+        registered = _powershell(
+            "$ErrorActionPreference = 'Stop'; "
+            "Import-Module ScheduledTasks; "
+            "$action = New-ScheduledTaskAction -Execute (Join-Path $env:SystemRoot 'System32\\cmd.exe') "
+            "-Argument '/c exit 0'; "
+            "Register-ScheduledTask -TaskName 'CourierWindowsWorker' -Action $action -Force | Out-Null"
+        )
+        if registered.returncode != 0:
+            raise AssertionError(
+                "could not register CourierWindowsWorker\n"
+                + registered.stdout[-2000:]
+                + "\n"
+                + registered.stderr[-2000:]
+            )
+        if _task_query().returncode != 0:
+            raise AssertionError("CourierWindowsWorker was not visible to Get-ScheduledTask")
+
+        (home / "logs").mkdir(parents=True, exist_ok=True)
+        run.mkdir(parents=True, exist_ok=True)
+        db.write_bytes(_JOURNAL_MARKER)
+        log.write_text(_LOG_MARKER, encoding="utf-8")
+        config.write_text(
+            json.dumps({"COURIER_CONTROLLER_PORT": 9, "marker": _CONFIG_MARKER}),
+            encoding="utf-8",
+        )
+        (run / "marker.txt").write_text("remove-me\n", encoding="utf-8")
+
+        completed = subprocess.run(
+            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script)],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        write_evidence(
+            "uninstall-log.txt",
+            (completed.stdout or "")[-4000:] + "\n" + (completed.stderr or "")[-4000:],
+        )
+        if completed.returncode != 0:
+            raise AssertionError(f"uninstall.ps1 exited {completed.returncode}")
+        return {
+            "config_removed": not config.exists(),
+            "courier_db_preserved": db.is_file() and db.read_bytes() == _JOURNAL_MARKER,
+            "logs_preserved": log.is_file() and log.read_text(encoding="utf-8") == _LOG_MARKER,
+            "program_dir_removed": not install_dir.exists(),
+            "run_removed": not run.exists(),
+            "task_removed": _task_query().returncode != 0,
+        }
+    finally:
+        _cleanup_live_uninstall(home, install_dir)
+
+
 def _courier_tree(root_pid):
     """The root pid plus Courier-owned descendants. The hub browser is left out."""
     owned = []
@@ -256,8 +492,115 @@ def _assert_replay_matches_live(home: Path, workdir: Path):
     return live
 
 
+def _popen_launcher(launcher_exe: Path, env: dict, **kwargs):
+    """Start Courier.exe. WinError 5 means the runner job forbids breakaway."""
+    breakaway = subprocess.CREATE_NEW_PROCESS_GROUP | 0x01000000
+    try:
+        return subprocess.Popen([str(launcher_exe)], env=env, creationflags=breakaway, **kwargs)
+    except PermissionError as exc:
+        if getattr(exc, "winerror", None) == 5:
+            return subprocess.Popen(
+                [str(launcher_exe)],
+                env=env,
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+                **kwargs,
+            )
+        raise
+
+
+def _assert_no_system_python(env: dict) -> None:
+    for name in ("PYTHONPATH", "PYTHONHOME", "PYTHONSTARTUP", "VIRTUAL_ENV", "COURIER_HOME"):
+        if name in env:
+            raise AssertionError(f"packaged launch env still has {name}")
+    where = Path(env["PATH"].split(";")[0]) / "where.exe"
+    probe = subprocess.run([str(where), "python"], env=env, capture_output=True, text=True, check=False)
+    if probe.returncode == 0:
+        raise AssertionError(f"system python is still visible: {probe.stdout}")
+
+
+def _processes_under(package_dir: Path) -> list[str]:
+    prefix = str(package_dir.resolve()).lower()
+    if not prefix.endswith("\\"):
+        prefix += "\\"
+    found = []
+    for proc in psutil.process_iter(["pid", "name", "exe"]):
+        try:
+            exe = proc.info["exe"] or ""
+            pid = proc.info["pid"]
+            name = proc.info["name"] or ""
+        except (psutil.Error, TypeError):
+            continue
+        if exe.lower().startswith(prefix):
+            found.append(f"{pid} {name} {exe}")
+    return found
+
+
+def _assert_no_package_processes(package_dir: Path, timeout=15) -> None:
+    """Rule 0 step 7 for the packaged tree: no executable under the package dir."""
+    deadline = time.monotonic() + timeout
+    offenders = _processes_under(package_dir)
+    while offenders and time.monotonic() < deadline:
+        time.sleep(0.25)
+        offenders = _processes_under(package_dir)
+    assert offenders == [], f"package processes still alive: {offenders}"
+
+
+def _stop_package_processes(package_dir: Path) -> None:
+    """Best-effort reap after the assertion, so a failed run does not lock the package."""
+    for line in _processes_under(package_dir):
+        pid = line.split()[0]
+        subprocess.run(["taskkill", "/F", "/T", "/PID", pid], check=False)
+
+
+@pytest.fixture
+def _package_process_cleanup():
+    """Reap packaged executables after the harness returns, including on failure."""
+    yield
+    if os.name != "nt":
+        return
+    try:
+        package = packaged_root()
+    except AssertionError:
+        return
+    if package is not None:
+        _stop_package_processes(package)
+
+
+def _process_snapshot(package_dir: Path | None) -> str:
+    prefix = None
+    if package_dir is not None:
+        prefix = str(package_dir.resolve()).lower()
+        if not prefix.endswith("\\"):
+            prefix += "\\"
+    rows = []
+    for proc in psutil.process_iter(["pid", "name", "exe"]):
+        try:
+            name = proc.info["name"] or ""
+            exe = proc.info["exe"] or ""
+            pid = proc.info["pid"]
+        except (psutil.Error, TypeError):
+            continue
+        under = bool(prefix and exe.lower().startswith(prefix))
+        if under or "courier" in name.lower() or name.lower().startswith("python"):
+            rows.append(f"{pid}\t{name}\t{exe}")
+    return "\n".join(rows) + ("\n" if rows else "")
+
+
+def _copy_logs(courier_dir: Path) -> None:
+    chunks = []
+    for rel in ("crash.txt", "logs/controller.log", "logs/worker.log", "logs/hub.log"):
+        path = courier_dir / rel
+        chunks.append(f"----- {rel} -----")
+        if path.is_file():
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()[-80:]
+            chunks.append("\n".join(lines))
+        else:
+            chunks.append("(missing)")
+    write_evidence("logs.txt", "\n".join(chunks) + "\n")
+
+
 @pytest.mark.skipif(os.name != 'nt', reason="Windows specific clean-machine harness")
-def test_win_clean_machine_harness(tmp_path):
+def test_win_clean_machine_harness(tmp_path, _package_process_cleanup):
     """
     Proves:
     - fresh install
@@ -268,48 +611,56 @@ def test_win_clean_machine_harness(tmp_path):
     - shutdown leaves no orphan Courier processes (Rule 0 step 7)
     - restart, and replay/rebuild hash equals the live projection (Rule 0 step 10)
     - user data the uninstall contract preserves is actually on disk (Rule 0 step 12)
+
+    COURIER_HARNESS_PACKAGE_DIR selects the packaged artifact. That mode does
+    not compile the repo launcher and does not put the checkout on PYTHONPATH.
     """
-    # 1. Fresh install & first launch
-    build_script = Path("scripts/windows_worker/launcher/build_launcher.ps1").resolve()
-    if build_script.exists():
-        subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", str(build_script)], check=True)
-
-    launcher_exe = Path("scripts/windows_worker/Courier.exe").resolve()
-    assert launcher_exe.exists(), "Courier.exe must be built before tests"
-
-    # Start the launcher
-    env = os.environ.copy()
-    env["LOCALAPPDATA"] = str(tmp_path)
-    env["COURIER_TEST_NO_JOB"] = "1"
-    env["PYTHONPATH"] = str(Path.cwd())
-    # We will use Courier's default ports or force them via config.json
+    package_dir = packaged_root()
+    if package_dir is not None:
+        launcher_exe = package_dir / "Courier.exe"
+        embed = package_dir / "python" / "python.exe"
+        assert launcher_exe.is_file(), f"packaged launcher missing: {launcher_exe}"
+        assert embed.is_file(), f"embedded python missing: {embed}"
+        env = package_child_env(tmp_path)
+        _assert_no_system_python(env)
+        ready_timeout = 90
+    else:
+        # Repo checkout: compile the launcher and let it import this tree.
+        build_script = Path("scripts/windows_worker/launcher/build_launcher.ps1").resolve()
+        if build_script.exists():
+            subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", str(build_script)], check=True)
+        launcher_exe = Path("scripts/windows_worker/Courier.exe").resolve()
+        assert launcher_exe.exists(), "Courier.exe must be built before tests"
+        env = os.environ.copy()
+        env["LOCALAPPDATA"] = str(tmp_path)
+        env["COURIER_TEST_NO_JOB"] = "1"
+        env["PYTHONPATH"] = str(Path.cwd())
+        ready_timeout = 30
+    # Packaged runs use a high port pair so they do not collide with a
+    # source-tree harness that still binds 8800/8801.
+    controller_port = 18770 if package_dir is not None else 8800
+    hub_port = 18771 if package_dir is not None else 8801
     courier_dir = tmp_path / "Courier"
     courier_dir.mkdir(parents=True)
     
     # Force specific ports via config.json to avoid conflicts
     config_file = courier_dir / "config.json"
     config_file.write_text(json.dumps({
-        "COURIER_CONTROLLER_PORT": 8800,
-        "COURIER_HUB_PORT": 8801
+        "COURIER_CONTROLLER_PORT": controller_port,
+        "COURIER_HUB_PORT": hub_port
     }))
 
     owned_pids = []
 
-    # 0x01000000 is CREATE_BREAKAWAY_FROM_JOB
-    try:
-        launcher = subprocess.Popen([str(launcher_exe)], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | 0x01000000)
-    except PermissionError as e:
-        if e.winerror == 5:
-            # Cannot break away from Job object (e.g. GitHub Actions runner)
-            launcher = subprocess.Popen([str(launcher_exe)], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
-        else:
-            raise
+    launcher = _popen_launcher(
+        launcher_exe, env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+    )
 
     try:
         # Wait for token
         token_file = courier_dir / "run" / "controller.token"
         start_time = time.monotonic()
-        while time.monotonic() - start_time < 30:
+        while time.monotonic() - start_time < ready_timeout:
             if launcher.poll() is not None:
                 out = launcher.stdout.read()
                 pytest.fail(f"Launcher exited early with code {launcher.returncode}:\n{out}")
@@ -321,8 +672,8 @@ def test_win_clean_machine_harness(tmp_path):
         else:
             pytest.fail(f"Timeout waiting for controller.token. Launcher output:\n{launcher.stdout.read()}")
 
-        controller_url = "http://127.0.0.1:8800"
-        hub_url = "http://127.0.0.1:8801"
+        controller_url = f"http://127.0.0.1:{controller_port}"
+        hub_url = f"http://127.0.0.1:{hub_port}"
 
         def api(method, path, body=None):
             data = json.dumps(body).encode() if body is not None else None
@@ -333,7 +684,7 @@ def test_win_clean_machine_harness(tmp_path):
 
         # Wait for Hub to be up
         start_time = time.monotonic()
-        while time.monotonic() - start_time < 30:
+        while time.monotonic() - start_time < ready_timeout:
             try:
                 req = urllib.request.Request(hub_url + "/hub/api/status")
                 with urllib.request.urlopen(req, timeout=2) as resp:
@@ -441,23 +792,21 @@ def test_win_clean_machine_harness(tmp_path):
 
     # Rule 0 step 7 — close leaves no Courier processes.
     _assert_no_orphan_courier_processes(courier_dir, owned_pids)
+    if package_dir is not None:
+        _assert_no_package_processes(package_dir)
+        write_evidence("processes-after-close.txt", _process_snapshot(package_dir))
     # Frozen journal after close replays to the same projection.
     _checkpoint_journal(courier_dir)
-    _assert_replay_matches_live(courier_dir, tmp_path / "replay-after-close")
+    close_hash = _assert_replay_matches_live(courier_dir, tmp_path / "replay-after-close")
+    if package_dir is not None:
+        write_evidence("hashes-after-close.txt", f"{close_hash}\n")
 
     # 4. Restart and Replay
-    # 0x01000000 is CREATE_BREAKAWAY_FROM_JOB
-    try:
-        launcher2 = subprocess.Popen([str(launcher_exe)], env=env, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | 0x01000000)
-    except PermissionError as e:
-        if getattr(e, "winerror", None) == 5:
-            launcher2 = subprocess.Popen([str(launcher_exe)], env=env, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
-        else:
-            raise
+    launcher2 = _popen_launcher(launcher_exe, env)
     restart_pids = []
     try:
         start_time = time.monotonic()
-        while time.monotonic() - start_time < 30:
+        while time.monotonic() - start_time < ready_timeout:
             try:
                 req = urllib.request.Request(hub_url + "/hub/api/status")
                 with urllib.request.urlopen(req, timeout=2) as resp:
@@ -483,7 +832,7 @@ def test_win_clean_machine_harness(tmp_path):
         # Rule 0 step 10 — after restart, replay/rebuild equals the live projection.
         # An in-flight lease may journal LEASE_EXPIRED during restart grace, so this
         # compares rebuild to the live projection at this moment, not to the pre-close hash.
-        _assert_replay_matches_live(courier_dir, tmp_path / "replay-after-restart")
+        restart_hash = _assert_replay_matches_live(courier_dir, tmp_path / "replay-after-restart")
 
     finally:
         restart_pids.extend(_courier_tree(launcher2.pid))
@@ -491,6 +840,14 @@ def test_win_clean_machine_harness(tmp_path):
         launcher2.wait(10)
 
     _assert_no_orphan_courier_processes(courier_dir, restart_pids)
+    if package_dir is not None:
+        _assert_no_package_processes(package_dir)
+        write_evidence("processes-after-restart.txt", _process_snapshot(package_dir))
+        write_evidence(
+            "hashes-after-restart.txt",
+            f"after_close={close_hash}\nafter_restart={restart_hash}\nstep7=no-orphans\nstep10=replay-equals-live\n",
+        )
+        _copy_logs(courier_dir)
 
     # Rule 0 step 12 — the run produced the user data uninstall must keep.
     # The script itself is not executed here (see the module note).
