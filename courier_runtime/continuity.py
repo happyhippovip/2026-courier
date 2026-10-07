@@ -115,9 +115,23 @@ class Kirby:
              "sessions": {k: dataclasses.asdict(v) for k, v in self.sessions.items()},
              "counters": self.counters, "last_snapshot": self.last_snapshot}
         fd, tmp = tempfile.mkstemp(dir=self.path.parent, prefix=".kirby.")
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump(d, f, sort_keys=True)
-        os.replace(tmp, self.path)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump(d, f, sort_keys=True)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp, self.path)
+            if os.name == "posix":
+                directory = os.open(self.path.parent, os.O_RDONLY | os.O_DIRECTORY)
+                try:
+                    os.fsync(directory)
+                finally:
+                    os.close(directory)
+        finally:
+            try:
+                os.unlink(tmp)
+            except FileNotFoundError:
+                pass
 
     def _log(self, name, record):
         with open(self.path.parent / name, "a", encoding="utf-8") as f:

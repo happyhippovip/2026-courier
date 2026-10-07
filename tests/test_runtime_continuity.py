@@ -189,6 +189,26 @@ def test_recovery_checkpoint_precedes_external_effects(tmp_path, failing_hook):
     assert len(world.started) == (2 if failing_hook == "start_session" else 1)
 
 
+def test_checkpoint_sync_failure_prevents_cleanup_and_launch(tmp_path, monkeypatch):
+    from courier_runtime import continuity
+
+    k, _, world = kirby(tmp_path)
+    k.add_workkeys(["W1"])
+    k.open_slot("s1", "muse")
+    k.wake("s1")
+    k.deliver("s1")
+
+    def fail_sync(fd):
+        raise OSError("checkpoint storage unavailable")
+
+    monkeypatch.setattr(continuity.os, "fsync", fail_sync)
+    with pytest.raises(OSError, match="checkpoint storage unavailable"):
+        k.rotate("s1", "context pressure", checkpoint="accepted-step-8")
+    assert world.terminated == []
+    assert len(world.started) == 1
+    assert list(tmp_path.glob(".kirby.*")) == []
+
+
 def test_no_duplicate_writer_after_rotation(tmp_path):
     k, _, _ = kirby(tmp_path)
     k.add_workkeys(["W1"])
