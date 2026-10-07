@@ -61,7 +61,7 @@ def test_failed_verification_can_be_resumed_with_new_attempt(srv):
     retried = http.post("/tasks/claim", headers=WORKER, json={"worker_id": "MAC-01"}).get_json()["task"]
     assert retried["attempt_id"] == "task-1:attempt:2" and retried["dispatch_id"] != task["dispatch_id"]
     # The superseded attempt's result can no longer bind to the task.
-    assert http.post("/tasks/result", headers=WORKER, json=result).status_code == 400
+    assert http.post("/tasks/result", headers=WORKER, json=result).status_code == 409
 
 
 def test_resume_cannot_force_success_without_bound_evidence(srv):
