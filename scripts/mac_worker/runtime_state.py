@@ -110,7 +110,7 @@ def cleanup_group(proc, identity, grace=2.0):
             return False
         try:
             os.killpg(pgid, sig)
-        except ProcessLookupError:
+        except (ProcessLookupError, PermissionError):
             return True
         deadline = time.monotonic() + grace
         while time.monotonic() < deadline:

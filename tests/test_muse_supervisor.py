@@ -87,11 +87,27 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setattr(sup, "DAEMON", bootstrap)
     http = server.app.test_client()
     auth = {"Authorization": f"Bearer {WORKER_KEY}"}
+    
+    spawned_pids = []
+    original_start = sup.ProcessLauncher.start
+    def tracked_start(self, slot_id, env):
+        pid = original_start(self, slot_id, env)
+        if pid:
+            spawned_pids.append(pid)
+        return pid
+    monkeypatch.setattr(sup.ProcessLauncher, "start", tracked_start)
+    
     try:
         yield sup, server, http, auth, tmp_path
     finally:
         sup.cmd_stop(terminate=True)
         httpd.shutdown()
+        import signal
+        for pid in spawned_pids:
+            try:
+                os.killpg(pid, signal.SIGKILL)
+            except Exception:
+                pass
 
 
 def add_goal(http, auth, task_id):
@@ -123,7 +139,10 @@ def supervisor(sup, target=4, clock=None):
 
 
 def task_state(server, task_id):
-    return server.load_state()["tasks"].get(task_id, {})
+    try:
+        return server.load_state()["tasks"].get(task_id, {})
+    except RuntimeError:
+        return {}
 
 
 def test_slot_claims_canonical_task_runs_muse_exits_and_restarts_with_checkpoint(env):
@@ -295,3 +314,4 @@ def test_unconfirmed_prompt_method_fails_closed():
     argv, stdin = muse_adapter.build_muse_command(task, {}, {"protocol": "headless-v1"},
         slot_id="01", workspace="/Users/user/Downloads/2026-courier")
     assert argv[:2] == ["muse", "exec"] and "d-1" in argv[-1] and stdin is None
+

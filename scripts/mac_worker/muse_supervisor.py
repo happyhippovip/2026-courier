@@ -375,11 +375,11 @@ def _stop(terminate=False, launcher=None):
     launcher = launcher or ProcessLauncher()
     slots = load_slots()
     for slot in slots.values():
-        if slot["state"] == RUNNING:
-            if terminate:
+        if terminate:
+            if slot.get("pid"):
                 if not launcher.terminate(slot["slot_id"], slot.get("pid"), slot.get("process_identity")):
                     slot["blocker"] = "CLEANUP_NOT_PROVEN: reconcile owned processes"
-        else:
+        if slot["state"] != RUNNING:
             slot["state"] = STOPPED
     save_slots(slots)
     print("STOP set: no new starts or restarts.")
