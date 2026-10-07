@@ -282,11 +282,13 @@ state, current active stage, or next exact task.
 **Historical snapshot only — verify again before acting.**
 
 At update time (2026-10-07):
-- `integration/v1` = `e212cbd0c`;
+- `integration/v1` = `4b0eed7d`;
 - the V1 locked route (`ACTIVE LEDGER -> RELIABLE AUTOMATION -> GOLDEN PATH -> DESKTOP HUB -> WINDOWS EXE -> CLEAN-MACHINE ACCEPTANCE -> REAL ADAPTERS -> DESKTOP ROBOT OVERLAY`) has been completely merged;
-- L5 (Desktop Hub Overlay UI Polish) and server idempotency fixes (PR #129) are integrated;
+- L5 (Desktop Hub Overlay Replay) and server idempotency fixes (PR #129) are integrated;
+- L5 (Desktop Robot Overlay UI/UX Polish) is implemented and pending review in **PR #122** (`lane/L5-overlay-ui-polish`);
+- L6 (Launcher Robustification) is implemented and pending review in **PR #130** (`lane/L6-launcher-robustification`);
 - next critical implementation path:
-  **EXTENDED INTEGRATIONS**.
+  **Merge PR #122 & PR #130 -> Extended Integrations**.
 
 Never trust this SHA after new work without checking GitHub.
 
