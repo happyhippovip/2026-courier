@@ -281,16 +281,12 @@ state, current active stage, or next exact task.
 
 **Historical snapshot only — verify again before acting.**
 
-At update time (2026-10-01):
-- `integration/v1` = `5dea64730f5185cec421ccab8d11115e192f7929`;
-- the V1 product-quality/customer-experience contract had been integrated as Step 10;
-- L2 journal/state-machine/projection had been integrated as Step 9;
-- Golden harness had found journal/projection and still awaited:
-  - `courier_core.serve` (L2);
-  - `courier_worker.host` (L3);
-  - `adapters.synthetic` (L4);
+At update time (2026-10-07):
+- `integration/v1` = `8d5b23fa`;
+- the V1 locked route (`ACTIVE LEDGER -> RELIABLE AUTOMATION -> GOLDEN PATH -> DESKTOP HUB -> WINDOWS EXE -> CLEAN-MACHINE ACCEPTANCE -> REAL ADAPTERS -> DESKTOP ROBOT OVERLAY`) has been completely merged;
+- L5 (Desktop Hub Overlay) and L6 (Windows Launcher & Packaging) are integrated;
 - next critical implementation path:
-  **L2 Controller/API -> L3/L4 -> live Golden Path**.
+  **First Real Provider Adapter -> Overlay UI/UX Polish -> Extended Integrations**.
 
 Never trust this SHA after new work without checking GitHub.
 
@@ -326,4 +322,4 @@ Never trust this SHA after new work without checking GitHub.
 
 ## One-line bootstrap
 
-**Courier Symphony — verify CURRENT integration/v1, then read AGENTS.md + docs/V1_RULE_0.md + docs/V1_PRODUCT_QUALITY_BAR.md + docs/V1_ORCHESTRATION_PLAYBOOK.md + docs/V1_WINDOW_CUSTODY_PROTOCOL.md + docs/NEXT_CHAT_HANDOFF.md + newest GitHub Issue #54 + docs/v1/INTEGRATION_LOG.md; keep the Dennis+ChatGPT+Opus V1 architecture locked and continue the first unproven gate on ACTIVE LEDGER -> RELIABLE AUTOMATION -> GOLDEN PATH -> DESKTOP HUB -> WINDOWS EXE -> CLEAN-MACHINE ACCEPTANCE.**
+**Courier Symphony — verify CURRENT integration/v1, then read AGENTS.md + docs/V1_RULE_0.md + docs/V1_PRODUCT_QUALITY_BAR.md + docs/V1_ORCHESTRATION_PLAYBOOK.md + docs/V1_WINDOW_CUSTODY_PROTOCOL.md + docs/NEXT_CHAT_HANDOFF.md + newest GitHub Issue #54 + docs/v1/INTEGRATION_LOG.md; keep the Dennis+ChatGPT+Opus V1 architecture locked and continue the next unproven gate on FIRST REAL PROVIDER ADAPTER -> OVERLAY UI POLISH -> EXTENDED INTEGRATIONS.**
