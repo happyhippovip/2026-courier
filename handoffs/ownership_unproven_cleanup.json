@@ -1,0 +1,20 @@
+{
+  "WORKKEY": "OWNERSHIP-UNPROVEN-CLEANUP",
+  "OWNER": "codex-cloud",
+  "BRANCH": "codex/ownership-unproven-cleanup",
+  "HEAD/COMMIT": "b9fc486ac9bb99c8d2983622a3876a6deb9b6839",
+  "CURRENT_STATE": "CLAIMED",
+  "MUTABLE_SCOPE": "courier_runtime.ownership identity and unresolved cleanup receipts",
+  "FILES": [
+    "courier_runtime/ownership.py",
+    "tests/test_runtime_ownership.py",
+    "handoffs/ownership_unproven_cleanup.json"
+  ],
+  "OWNERSHIP_EVIDENCE": "Open PRs #132-#159 inspected; none touch selected files; integration refreshed unchanged.",
+  "TEST_EVIDENCE": [],
+  "UNPROVEN": [
+    "fix",
+    "targeted tests"
+  ],
+  "NEXT_EXACT_ACTION": "Reproduce record loss on orphan cleanup and access denial; retain failed receipts and reuse the verified Process instance."
+}
