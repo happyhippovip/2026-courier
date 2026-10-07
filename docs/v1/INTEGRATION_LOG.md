@@ -552,3 +552,19 @@ adapter / verifier → live golden path.
 - Resolved integration tests for `TkinterRenderer` and `OverlayStateMachine`.
 
 **After step 14.** The locked V1 route is fully merged: ACTIVE LEDGER -> RELIABLE AUTOMATION -> GOLDEN PATH -> DESKTOP HUB -> WINDOWS EXE -> CLEAN-MACHINE ACCEPTANCE -> REAL ADAPTERS -> DESKTOP ROBOT OVERLAY.
+
+## Step 15 — PR #115, L6 Windows Robustness Fixes
+### `integration/v1` merged `lane/L6-windows-fixes`
+
+- Replaced brittle file deletions (`bom.json` cleanup) in Python code to prevent test suite interference.
+- Fixed log rotation Windows file locks.
+- Clean machine harness and other Windows acceptance tests made stable.
+
+## Step 16 — PR #116, L4 First Real Provider Adapter (GitHub)
+### `integration/v1` merged `lane/L4-real-adapter-github`
+
+- Implemented `github_worker_adapter` to run GitHub-hosted Actions securely.
+- Resolved Windows `PermissionError` sharing violations on concurrent lock files and state publishing (`os.replace` + `os.unlink` retry logic).
+- Resulting integration SHA: `912c44034ae891de189edce5b6a96503ba40c36b`
+
+**After step 16.** The first real provider adapter is live. The next path is OVERLAY UI POLISH -> EXTENDED INTEGRATIONS.
