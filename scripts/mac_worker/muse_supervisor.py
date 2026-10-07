@@ -35,7 +35,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from runtime_state import (CANONICAL_WORKSPACE, atomic_json, read_object, control_lock,
-                           process_identity, same_process, cleanup_group, sync_directory)
+                           capture_process_identity, same_process, cleanup_group, sync_directory)
 
 WALL_DIR = Path(os.environ.get("COURIER_WALL_DIR", Path.home() / "Downloads" / "courier_work" / "muse_wall"))
 SLOTS_FILE = WALL_DIR / "slots.json"
@@ -170,7 +170,7 @@ class ProcessLauncher:
             proc = subprocess.Popen(["bash", "-c", cmd], env=env, stdout=out, stderr=subprocess.STDOUT,
                                     stdin=subprocess.DEVNULL, start_new_session=True, cwd=home / "work")
         self.children[slot_id] = proc
-        self.identities[slot_id] = process_identity(proc.pid)
+        self.identities[slot_id] = capture_process_identity(proc)
         return proc.pid
 
     def identity(self, slot_id):

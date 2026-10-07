@@ -87,6 +87,9 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setattr(sup, "DAEMON", bootstrap)
     http = server.app.test_client()
     auth = {"Authorization": f"Bearer {WORKER_KEY}"}
+    sys.path.insert(0, str(ROOT / "scripts" / "mac_worker"))
+    reaper_mod = load_module(f"reaper_{tmp_path.name}", ROOT / "scripts" / "mac_worker" / "supervisor_test_reaper.py")
+    reaper = reaper_mod.SupervisorTestReaper()
     launchers = []
     real_launcher = sup.ProcessLauncher
 
@@ -101,8 +104,10 @@ def env(tmp_path, monkeypatch):
         def start(self, slot_id, env):
             pid = super().start(slot_id, env)
             proc = self.children.get(slot_id)
-            if proc is not None and proc not in self.spawned:
-                self.spawned.append(proc)
+            if proc is not None:
+                if proc not in self.spawned:
+                    self.spawned.append(proc)
+                reaper.register(proc, label=f"slot-{slot_id}")
             return pid
 
     monkeypatch.setattr(sup, "ProcessLauncher", RecordingLauncher)
@@ -116,20 +121,16 @@ def env(tmp_path, monkeypatch):
                     sup.cmd_stop(terminate=True, launcher=launcher)
             else:
                 sup.cmd_stop(terminate=True)
-            alive = []
             for launcher in recorded:
                 current = {id(proc) for proc in launcher.children.values()}
                 for proc in launcher.spawned:
                     if proc.poll() is not None and _group_gone(proc.pid):
                         continue
-                    # cmd_stop only sees the latest Popen for a slot. A replaced
-                    # child is still one this test spawned; signal only that.
                     if id(proc) not in current and proc.poll() is None:
                         sup.cleanup_group(proc, None)
-                    if proc.poll() is None or not _group_gone(proc.pid):
-                        alive.append(proc.pid)
-            if alive:
-                raise AssertionError("slot Popen still alive: " + ",".join(str(pid) for pid in alive))
+            reaper.cleanup_all()
+        except RuntimeError as exc:
+            raise AssertionError(str(exc)) from exc
         finally:
             httpd.shutdown()
 
@@ -330,11 +331,17 @@ def test_owned_popen_stops_when_ps_identity_is_missing(env, monkeypatch):
     sleeper = tmp / "sleep_daemon.py"
     sleeper.write_text("import time\nwhile True:\n    time.sleep(0.2)\n")
     monkeypatch.setattr(sup, "DAEMON", sleeper)
-    monkeypatch.setattr(sup, "process_identity", lambda pid: None)
+    import importlib
+    rt = importlib.import_module("runtime_state")
+    monkeypatch.setattr(rt, "process_identity", lambda pid: None)
     s = supervisor(sup, target=1)
     assert run_until(s, lambda: sup.load_slots().get("01", {}).get("state") == "RUNNING")
     proc = s.launcher.children["01"]
     assert proc.poll() is None
+    s.launcher.identities["01"] = None
+    slots = sup.load_slots()
+    slots["01"]["process_identity"] = None
+    sup.save_slots(slots)
     sup.cmd_stop(terminate=True, launcher=s.launcher)
     deadline = time.monotonic() + 10
     while proc.poll() is None and time.monotonic() < deadline:

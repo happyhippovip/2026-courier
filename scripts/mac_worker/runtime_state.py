@@ -5,6 +5,7 @@ import json
 import os
 import signal
 import subprocess
+import sys
 import tempfile
 import time
 from contextlib import contextmanager
@@ -13,6 +14,10 @@ from pathlib import Path
 CANONICAL_WORKSPACE = "/Users/user/Downloads/2026-courier"
 # Captured before tests replace subprocess.Popen with a recorder.
 _POPEN_TYPE = subprocess.Popen
+
+_PS_IDENTITY_TIMEOUT_S = 0.25
+_CLEANUP_MAX_ROUNDS = 3
+_CLEANUP_ROUND_GRACE_S = 2.0
 
 
 def read_object(path, default=None):
@@ -59,24 +64,107 @@ def control_lock(wall):
         yield
 
 
-def process_identity(pid):
-    """No command arguments/secrets persisted; include OS start time, PGID, executable."""
+def _fingerprint(pid, pgid, extra=()):
+    material = ":".join([str(int(pid)), str(int(pgid)), *map(str, extra)])
+    return hashlib.sha256(material.encode()).hexdigest()
+
+
+def _pgid_for_pid(pid):
+    try:
+        return int(os.getpgid(int(pid)))
+    except (OSError, ValueError):
+        return None
+
+
+def _linux_start_fields(pid):
+    try:
+        stat = Path(f"/proc/{int(pid)}/stat").read_text().split()
+        comm = Path(f"/proc/{int(pid)}/comm").read_text().strip()
+    except OSError:
+        return None
+    if len(stat) < 22:
+        return None
+    return stat[21], comm
+
+
+def _ps_identity(pid, timeout_s=_PS_IDENTITY_TIMEOUT_S):
+    """Optional enrichment; must never be the only way to obtain pgid."""
     try:
         value = subprocess.check_output(
             ["ps", "-p", str(int(pid)), "-o", "pid=,pgid=,lstart=,comm="],
-            text=True, timeout=2, stderr=subprocess.DEVNULL).strip()
+            text=True, timeout=timeout_s, stderr=subprocess.DEVNULL).strip()
         parts = value.split()
         if len(parts) < 8 or int(parts[0]) != int(pid):
             return None
         return {"pid": int(pid), "pgid": int(parts[1]),
-                # exec() may change executable names without changing ownership.
-                "fingerprint": hashlib.sha256(" ".join(parts[:7]).encode()).hexdigest()}
+                "fingerprint": hashlib.sha256(" ".join(parts[:7]).encode()).hexdigest(),
+                "source": "ps"}
     except (OSError, ValueError, subprocess.SubprocessError):
         return None
 
 
+def capture_process_identity(proc):
+    """Identity from a Popen we own. Never depends on a later ps discovery."""
+    pid = int(proc.pid)
+    pgid = _pgid_for_pid(pid)
+    if pgid is None:
+        return None
+    extra = []
+    if sys.platform.startswith("linux"):
+        fields = _linux_start_fields(pid)
+        if fields:
+            extra.extend(fields)
+    ident = {"pid": pid, "pgid": pgid, "fingerprint": _fingerprint(pid, pgid, extra),
+             "captured_at_spawn": True, "source": "spawn"}
+    enriched = _ps_identity(pid)
+    if enriched and enriched.get("pgid") == pgid:
+        ident["fingerprint"] = enriched["fingerprint"]
+        ident["source"] = "spawn+ps"
+    return ident
+
+
+def process_identity(pid):
+    """Best-effort identity for a live pid. OS primitives first; ps is optional."""
+    pid = int(pid)
+    pgid = _pgid_for_pid(pid)
+    if pgid is None:
+        return None
+    extra = []
+    if sys.platform.startswith("linux"):
+        fields = _linux_start_fields(pid)
+        if fields:
+            extra.extend(fields)
+    ident = {"pid": pid, "pgid": pgid, "fingerprint": _fingerprint(pid, pgid, extra),
+             "source": "os"}
+    enriched = _ps_identity(pid)
+    if enriched and enriched.get("pgid") == pgid:
+        return enriched
+    return ident
+
+
+def identity_matches(pid, identity):
+    if not identity or int(identity.get("pid", -1)) != int(pid):
+        return False
+    try:
+        os.kill(int(pid), 0)
+    except ProcessLookupError:
+        pgid = identity.get("pgid")
+        return pgid is not None and not group_exists(pgid)
+    except OSError:
+        return False
+    pgid = _pgid_for_pid(pid)
+    if pgid is None:
+        return False
+    if int(identity.get("pgid", -1)) != pgid:
+        return False
+    current = process_identity(pid)
+    if current is not None and current.get("fingerprint") == identity.get("fingerprint"):
+        return True
+    return bool(identity.get("captured_at_spawn"))
+
+
 def same_process(pid, identity):
-    return bool(identity and process_identity(pid) == identity)
+    return identity_matches(pid, identity)
 
 
 def group_exists(pgid):
@@ -169,3 +257,14 @@ def cleanup_group(proc, identity, grace=2.0):
                 return True
     _reap_direct(proc, 0)
     return not group_exists(pgid)
+
+
+def process_group_stopped(proc, identity):
+    """True only when the owned session group is gone or the direct child exited."""
+    pgid = identity.get("pgid") if identity else _pgid_for_pid(proc.pid)
+    if pgid is None:
+        return proc.poll() is not None
+    if not group_exists(pgid):
+        _reap_direct(proc, 0)
+        return True
+    return proc.poll() is not None and not group_exists(pgid)
