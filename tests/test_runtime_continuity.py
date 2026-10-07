@@ -126,6 +126,69 @@ def test_old_session_cannot_be_replaced_twice(tmp_path):
     assert len(world.started) == 2
 
 
+@pytest.mark.parametrize("receipt", [
+    {"result": "ORPHANS_REMAIN", "still_alive": [2000]},
+    {"result": "STOPPED", "still_alive": [2000]},
+    {"result": "NOT_RUNNING"},
+    {"result": "NONE"},
+    {},
+])
+def test_unproven_cleanup_never_launches_successor(tmp_path, receipt):
+    k, _, world = kirby(tmp_path)
+    k.add_workkeys(["W1", "W2"])
+    k.open_slot("s1", "muse")
+    k.wake("s1")
+    k.deliver("s1")
+    old = k.sessions["s1"]
+    k.terminate = lambda s: receipt
+
+    result = k.rotate("s1", "context pressure", checkpoint="W1:step-8")
+
+    assert result["action"] == "RECOVERY_BLOCKED"
+    assert world.started == [("s1", 1)]
+    assert k.sessions["s1"].session_id == old.session_id
+    assert k.workkeys["W1"].owner == old.session_id
+    assert k.workkeys["W1"].checkpoint == "W1:step-8"
+    assert k.workkeys["W2"].state == "OPEN"
+    assert k.on_turn_end("s1", "DONE", old.token) == "REJECTED_STALE_WRITER"
+    assert k.deliver("s1") is None
+    assert k.recover("s1", "repeat")["action"] == "RECOVERY_BLOCKED"
+
+    restored = Kirby(tmp_path / "kirby.json", "mac-1", identity=world.identity,
+                     terminate=world.terminate, start_session=world.start)
+    assert restored.reconcile_after_restart() == {"s1": "RECOVERY_BLOCKED"}
+    assert restored.wake("s1") == "COALESCED"
+    assert restored.deliver("s1") is None
+    assert restored.user_state() == "RECOVERING"
+    assert len(world.started) == 1
+
+
+@pytest.mark.parametrize("failing_hook", ["terminate", "start_session"])
+def test_recovery_checkpoint_precedes_external_effects(tmp_path, failing_hook):
+    k, _, world = kirby(tmp_path)
+    k.add_workkeys(["W1"])
+    k.open_slot("s1", "muse")
+    k.wake("s1")
+    k.deliver("s1")
+
+    def crash(*args):
+        state = json.loads((tmp_path / "kirby.json").read_text())
+        assert state["sessions"]["s1"]["state"] == "RECOVERING"
+        assert state["sessions"]["s1"]["accepting"] is False
+        assert state["workkeys"]["W1"]["checkpoint"] == "accepted-step-8"
+        if failing_hook == "start_session":
+            world.start(*args)  # the launch happened, but its response was lost
+        raise RuntimeError("injected uncertain recovery")
+
+    setattr(k, failing_hook, crash)
+    with pytest.raises(RuntimeError, match="injected uncertain recovery"):
+        k.rotate("s1", "context pressure", checkpoint="accepted-step-8")
+    restored = Kirby(tmp_path / "kirby.json", "mac-1", identity=world.identity,
+                     terminate=world.terminate, start_session=world.start)
+    assert restored.reconcile_after_restart() == {"s1": "RECOVERY_BLOCKED"}
+    assert len(world.started) == (2 if failing_hook == "start_session" else 1)
+
+
 def test_no_duplicate_writer_after_rotation(tmp_path):
     k, _, _ = kirby(tmp_path)
     k.add_workkeys(["W1"])

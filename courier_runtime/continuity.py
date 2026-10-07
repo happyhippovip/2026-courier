@@ -194,7 +194,7 @@ class Kirby:
         The stale-token check is the duplicate-writer guard."""
         s = self.sessions[slot]
         w = self.workkeys.get(s.workkey)
-        if w is None or w.owner != s.session_id or w.token != token:
+        if w is None or w.owner != s.session_id or w.token != token or not s.accepting:
             return "REJECTED_STALE_WRITER"
         w.checkpoint = checkpoint or w.checkpoint
         if outcome == "DONE":
@@ -274,13 +274,29 @@ class Kirby:
         old = self.sessions[slot]
         if old.state == RETIRED or old.successor:
             return {"slot": slot, "action": "ALREADY_REPLACED", "successor": old.successor}
+        if old.state == RECOVERING:
+            # Cleanup or launch may have had an effect before a crash. A fresh
+            # wake is not authority to replay that uncertain replacement.
+            return {"slot": slot, "action": "RECOVERY_BLOCKED", "workkey": old.workkey}
         old.accepting = False
+        old.state, old.recovering_since = RECOVERING, self.clock()
         w = self.workkeys.get(old.workkey)
         if w is not None and checkpoint is not None:
             w.checkpoint = checkpoint
+        # Write ahead of both injected side effects. A restart must retain the
+        # checkpoint and fence, even when a hook fails after doing its work.
+        self._save()
         cleanup = "NOT_OWNED_OR_GONE"
         if old.pid and self.identity(old):
-            cleanup = self.terminate(old).get("result", "?")      # proven-owned tree only
+            proof = self.terminate(old)                         # proven-owned tree only
+            cleanup = proof.get("result", "?")
+            if cleanup != "STOPPED" or proof.get("still_alive"):
+                receipt = {"slot": slot, "kind": kind, "action": "RECOVERY_BLOCKED",
+                           "reason": reason, "old_session": old.session_id,
+                           "workkey": old.workkey, "checkpoint": w.checkpoint if w else "",
+                           "cleanup": cleanup, "at": self.clock()}
+                self._log("recovery_receipts.jsonl", receipt)
+                return receipt
         gen = old.generation + 1
         sid, pid, ct = self.start_session(slot, gen)
         now = self.clock()
@@ -319,6 +335,9 @@ class Kirby:
         for slot, s in list(self.sessions.items()):
             if s.state not in LIVE:
                 continue
+            if s.state == RECOVERING:
+                result[slot] = "RECOVERY_BLOCKED"
+                continue
             if not s.pid or self.identity(s):
                 result[slot] = "RESUMED"
             elif s.workkey:
@@ -337,6 +356,8 @@ class Kirby:
             return "DONE"
         if any(s.state in (WORKING, WAKE_PENDING) for s in live):
             return "WORKING"
+        if any(s.state == RECOVERING for s in live):
+            return "RECOVERING"
         if any(w.state == BLOCKED for w in self.workkeys.values()) and not any(
                 w.state == OPEN for w in self.workkeys.values()):
             return "NEEDS YOU"
