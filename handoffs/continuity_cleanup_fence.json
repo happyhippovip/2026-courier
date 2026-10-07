@@ -2,7 +2,7 @@
   "WORKKEY": "CONTINUITY-CLEANUP-FENCE",
   "OWNER": "codex-cloud",
   "BRANCH": "codex/continuity-cleanup-fence",
-  "HEAD/COMMIT": "b7aef7ad7968c17b8f16a5e55d40d9e421f12958",
+  "HEAD/COMMIT": "df20e51861fe63aa0f675ac52f008ce1a0ad547c",
   "CURRENT_STATE": "FINAL",
   "MUTABLE_SCOPE": "courier_runtime.continuity.Kirby successor launch when cleanup is unproven",
   "FILES": [
@@ -10,16 +10,17 @@
     "courier_runtime/provider_events.py",
     "tests/test_runtime_continuity.py",
     "tests/test_provider_events.py",
-    "handoffs/continuity_cleanup_fence.json"
+    "handoffs/continuity_cleanup_fence.json",
+    "docs/v1/KIRBY_RECOVERY_RECONCILIATION.md"
   ],
   "TEST_EVIDENCE": [
     {
-      "command": ".venv/bin/python -m pytest -q tests/test_runtime_continuity.py tests/test_provider_events.py tests/test_host_loop.py --timeout=30",
-      "passed": 50,
+      "command": ".venv/bin/python -m pytest -q tests/test_runtime_continuity.py tests/test_provider_events.py tests/test_host_loop.py tests/test_runtime_grants.py --timeout=30",
+      "passed": 80,
       "failed": 0,
       "skipped": 0,
       "platform": "Linux",
-      "seconds": 0.29
+      "seconds": 0.31
     },
     {
       "command": "git diff --check",
@@ -27,11 +28,11 @@
     }
   ],
   "UNPROVEN": [
-    "remote CI",
+    "exact latest PR-head CI",
     "Windows-native execution",
-    "external reconciliation of blocked uncertain recovery"
+    "production binding of authorize_recovery/reconcile_recovery to existing broker, ownership and effect authority"
   ],
-  "NEXT_EXACT_ACTION": "L1 review PR #159 and its RECOVERY_BLOCKED reconciliation boundary; do not duplicate this scope.",
+  "NEXT_EXACT_ACTION": "L1 review PR #159, including MUSE-REV-159-F8 response: audited scoped resolution and uniform refusal receipts. Runtime owner binds the two documented trusted adapters; no JSON/SQLite state surgery.",
   "OWNERSHIP_EVIDENCE": "23 open PRs #132-#154 fetched; no changes to selected files; historical Muse hostloop branch is ancestor of integration.",
   "OWNERSHIP_STATE": "PR_REVIEW_OWNER",
   "PR": 159
