@@ -97,3 +97,19 @@ def test_check_stuck_tasks_flags_retry_pending(tmp_path, monkeypatch):
     ok, msg = check_stuck_tasks()
     assert not ok and "stuck" in msg and "retry-pending" in msg.lower()
 
+
+def test_check_stuck_tasks_zero_byte_journal(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_HOME", str(tmp_path))
+    (tmp_path / "courier.db").write_bytes(b"")
+    ok, msg = check_stuck_tasks()
+    assert ok is False
+    assert "journal" in msg.lower() or "integrity" in msg.lower()
+
+
+def test_check_stuck_tasks_non_database_file(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_HOME", str(tmp_path))
+    (tmp_path / "courier.db").write_text("not a sqlite database", encoding="utf-8")
+    ok, msg = check_stuck_tasks()
+    assert ok is False
+    assert "journal" in msg.lower() or "integrity" in msg.lower()
+

@@ -5,6 +5,7 @@ Courier Doctor: Beginner UX tool to diagnose the health of the local Courier Sym
 
 import json
 import os
+import sqlite3
 import urllib.request
 import urllib.error
 from pathlib import Path
@@ -77,7 +78,7 @@ def check_stuck_tasks():
     journal = Journal(db_path, readonly=True)
     try:
         journal.open()
-    except JournalError as exc:
+    except (JournalError, sqlite3.Error, OSError) as exc:
         return False, f"Could not open journal: {exc}"
 
     try:
@@ -106,7 +107,7 @@ def check_stuck_tasks():
         if active:
             return True, f"{len(active)} active task(s); none blocked or retry-pending."
         return True, "No active tasks."
-    except JournalError as exc:
+    except (JournalError, sqlite3.Error, OSError) as exc:
         return False, f"Journal read failed: {exc}"
     finally:
         journal.close()
