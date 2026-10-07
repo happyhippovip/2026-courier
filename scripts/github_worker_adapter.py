@@ -10,6 +10,7 @@ import os
 import shutil
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 from typing import Any
@@ -20,6 +21,93 @@ REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "happyhippovip/2026-courier")
 WORKFLOW = "courier_worker.yml"
 LOCAL_WAIT_SECONDS = int(os.environ.get("GITHUB_WORKER_LOCAL_WAIT_SECONDS", "60"))
 POLL_SECONDS = 5
+# How long a resumed adapter waits for a run from an interrupted dispatch to
+# appear before dispatching exactly once more. Covers GitHub list latency so
+# a crash between `gh workflow run` and the WAITING record cannot create a
+# second external run (which would wedge find_run on multiple title matches).
+DISPATCH_GRACE_SECONDS = int(os.environ.get("GITHUB_WORKER_DISPATCH_GRACE_SECONDS", "300"))
+# A packet must never be worked by two adapters at once (duplicate external
+# dispatch + duplicate POST). The lock is per packet, held only for one run()
+# call; a crashed holder's lock goes stale and is stolen, so work is delayed
+# but never lost and never duplicated.
+LOCK_TIMEOUT_SECONDS = int(os.environ.get("GITHUB_WORKER_LOCK_TIMEOUT_SECONDS", "600"))
+
+
+def lock_path(task_file: Path) -> Path:
+    # Leading dot: dispatcher resume globs `dispatch-*.json`, which never
+    # matches dotfiles, so a lock is never mistaken for a packet.
+    return task_file.with_name(f".{task_file.stem}.lock")
+
+
+def _write_lock_tmp(task_file: Path) -> Path:
+    """Stage this worker's lock claim in a thread-unique tmp file.
+
+    The claim is published with os.link(), which is atomic and exclusive:
+    readers of the lock path only ever see complete content or nothing, so
+    a racing reader can never observe a torn claim.
+    """
+    tmp = task_file.with_name(f".{task_file.stem}.{os.getpid()}.{threading.get_ident()}.locktmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump({"pid": os.getpid(), "started_at": time.time()}, f)
+        f.flush()
+        os.fsync(f.fileno())
+    return tmp
+
+
+def acquire_packet_lock(task_file: Path) -> bool:
+    """Take the per-packet lock. True when this worker owns the packet."""
+    path = lock_path(task_file)
+    tmp = _write_lock_tmp(task_file)
+    try:
+        os.link(tmp, path)
+    except FileExistsError:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        return _steal_stale_lock(task_file, path)
+    try:
+        os.unlink(tmp)
+    except OSError:
+        pass
+    return True
+
+
+def _steal_stale_lock(task_file: Path, path: Path) -> bool:
+    # Lock content is published atomically (link of a complete tmp), so a
+    # present lock always parses; unparseable means a foreign writer — treat
+    # as live and defer rather than risk duplicating its work.
+    try:
+        started_at = float(json.loads(path.read_text(encoding="utf-8")).get("started_at") or 0)
+    except (OSError, ValueError, TypeError, AttributeError):
+        return False
+    if time.time() - started_at < LOCK_TIMEOUT_SECONDS:
+        return False  # live holder owns the packet; defer to it
+    try:
+        os.unlink(path)
+    except OSError:
+        return False
+    tmp = _write_lock_tmp(task_file)
+    try:
+        os.link(tmp, path)
+    except FileExistsError:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        return False  # another worker stole it first
+    try:
+        os.unlink(tmp)
+    except OSError:
+        pass
+    return True
+
+
+def release_packet_lock(task_file: Path) -> None:
+    try:
+        os.unlink(lock_path(task_file))
+    except OSError:
+        pass
 IDENTITY_FIELDS = ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")
 ALLOW_LIST = {"metadata", "report", "deterministic_transform", "verify_file", "static_analysis", "run_tests"}
 
@@ -34,7 +122,17 @@ def state_path(task_file: Path) -> Path:
 
 
 def write_state(task_file: Path, state: dict[str, Any]) -> None:
-    state_path(task_file).write_text(json.dumps(state, sort_keys=True) + "\n", encoding="utf-8")
+    # Atomic publish: a kill between truncate and content commit must never
+    # leave a torn state file behind (torn state crashes every future run
+    # with JSONDecodeError while resume keeps respawning into the crash).
+    # The tmp name is thread-unique and has no .json suffix, so neither the
+    # resume glob nor the lock logic can mistake it for a packet or a lock.
+    tmp = task_file.with_name(f".{task_file.stem}.{os.getpid()}.{threading.get_ident()}.statetmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write(json.dumps(state, sort_keys=True) + "\n")
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp, state_path(task_file))
 
 
 def validate_task(task: dict[str, Any]) -> None:
@@ -129,9 +227,59 @@ def post_result(result: dict[str, Any]) -> None:
         raise RuntimeError(f"Courier result POST failed: {response.status_code} {response.text}")
 
 
+def dispatch_external(task_file: Path, task: dict[str, Any]) -> None:
+    """Dispatch exactly one external run, bracketed by durable state.
+
+    The DISPATCHING marker goes down first so a crash around the `gh` call
+    is distinguishable from a fresh admission on resume; the WAITING record
+    confirms the dispatch completed.
+    """
+    ref = os.environ.get("GITHUB_WORKER_REF") or run_cmd(["git", "branch", "--show-current"])[1]
+    if not ref:
+        raise RuntimeError("cannot determine dispatch ref")
+    write_state(task_file, {"dispatch_id": task["dispatch_id"], "status": "DISPATCHING",
+                            "dispatched_at": time.time()})
+    rc, _, error = run_cmd(["gh", "workflow", "run", WORKFLOW, "--repo", REPOSITORY, "--ref", ref,
+                            "--raw-field", "task_payload_base64=" + base64.b64encode(
+                                json.dumps(task, separators=(",", ":")).encode("utf-8")).decode("ascii"),
+                            "--field", f"dispatch_id={task['dispatch_id']}"])
+    if rc:
+        raise RuntimeError(f"workflow dispatch failed: {error}")
+    write_state(task_file, {"dispatch_id": task["dispatch_id"], "status": "WAITING_FOR_WORKER"})
+
+
+def await_dispatched_run(task: dict[str, Any], prior: dict[str, Any]) -> bool:
+    """Wait up to the marker's grace for the interrupted dispatch's run.
+
+    Returns True when a run for this dispatch_id becomes visible (the caller
+    adopts it instead of dispatching again).
+    """
+    try:
+        deadline = float(prior.get("dispatched_at") or 0) + DISPATCH_GRACE_SECONDS
+    except (TypeError, ValueError):
+        return False
+    while time.time() < deadline:
+        time.sleep(POLL_SECONDS)
+        run_id, _ = find_run(task["dispatch_id"])
+        if run_id:
+            return True
+    run_id, _ = find_run(task["dispatch_id"])
+    return bool(run_id)
+
+
 def run(task_file_name: str) -> int:
     task_file = Path(task_file_name)
     task = json.loads(task_file.read_text(encoding="utf-8"))
+    if not acquire_packet_lock(task_file):
+        print(f"Packet {task.get('dispatch_id')} is already being processed; deferring.")
+        return 0
+    try:
+        return _run(task_file, task)
+    finally:
+        release_packet_lock(task_file)
+
+
+def _run(task_file: Path, task: dict[str, Any]) -> int:
     validate_task(task)
     prior = {}
     if state_path(task_file).is_file():
@@ -143,16 +291,15 @@ def run(task_file_name: str) -> int:
 
     run_id, status = find_run(task["dispatch_id"])
     if not run_id and not prior:
-        ref = os.environ.get("GITHUB_WORKER_REF") or run_cmd(["git", "branch", "--show-current"])[1]
-        if not ref:
-            raise RuntimeError("cannot determine dispatch ref")
-        rc, _, error = run_cmd(["gh", "workflow", "run", WORKFLOW, "--repo", REPOSITORY, "--ref", ref,
-                                "--raw-field", "task_payload_base64=" + base64.b64encode(
-                                    json.dumps(task, separators=(",", ":")).encode("utf-8")).decode("ascii"),
-                                "--field", f"dispatch_id={task['dispatch_id']}"])
-        if rc:
-            raise RuntimeError(f"workflow dispatch failed: {error}")
-        write_state(task_file, {"dispatch_id": task["dispatch_id"], "status": "WAITING_FOR_WORKER"})
+        dispatch_external(task_file, task)
+    elif not run_id and prior.get("status") == "DISPATCHING":
+        # An earlier attempt recorded its intent but never confirmed WAITING:
+        # either it crashed around the external dispatch or GitHub has not
+        # listed the new run yet. Adopt the run if it appears within grace;
+        # dispatch exactly once more only when the marker is stale and no
+        # run exists, so a crash can neither duplicate nor lose the dispatch.
+        if not await_dispatched_run(task, prior):
+            dispatch_external(task_file, task)
 
     deadline = time.monotonic() + LOCAL_WAIT_SECONDS
     while time.monotonic() < deadline:
