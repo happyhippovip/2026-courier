@@ -156,6 +156,33 @@ def test_check_server_http_401_is_not_healthy(tmp_path, monkeypatch):
     assert "401" in msg
 
 
+def test_check_server_invalid_health_json(tmp_path, monkeypatch):
+    home = tmp_path / "home"
+    (home / "run").mkdir(parents=True)
+    (home / "run" / "controller.token").write_text("tok", encoding="utf-8")
+    monkeypatch.setenv("COURIER_HOME", str(home))
+
+    def fake_urlopen(req, timeout=2):
+        body = b"not-json"
+
+        class Resp:
+            def read(self):
+                return body
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+        return Resp()
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    ok, msg = check_server()
+    assert ok is False
+    assert "invalid JSON" in msg
+
+
 def test_check_server_http_500_is_not_healthy(tmp_path, monkeypatch):
     home = tmp_path / "home"
     (home / "run").mkdir(parents=True)

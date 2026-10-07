@@ -85,6 +85,8 @@ def check_server():
         )
         with urllib.request.urlopen(req, timeout=2) as response:
             payload = json.loads(response.read().decode("utf-8"))
+    except json.JSONDecodeError:
+        return False, f"Controller health check returned invalid JSON at {server}"
     except urllib.error.HTTPError as e:
         if e.code == 401:
             return False, f"Controller rejected the install token at {server} (401)"
