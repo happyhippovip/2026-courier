@@ -380,6 +380,48 @@ class CourierScheduler:
         finally:
             release_home_lock(lock)
 
+    def reconcile_started(self, task_id, *, effect_completed, evidence=()):
+        """Explicit operator reconciliation of an effect-uncertain unit.
+
+        A task parked in `started` (interrupted execution, lost result) never
+        resumes on its own: replays stay excluded so a duplicate wake cannot
+        duplicate an effect. This method is the only exit. With
+        effect_completed=True the externally verified effect is recorded with
+        its evidence (same acceptance gate as DONE: non-empty references).
+        With False the caller asserts no effect occurred and the unit is
+        released for exactly the normal re-execution path. Unknown task ids
+        fail closed. Saved under the owner lock like every other mutation.
+        """
+        from courier_worker.host import acquire_home_lock, release_home_lock
+        if self.state_path is None:
+            raise ValueError("durable state is required")
+        lock = acquire_home_lock(str(self.state_path) + ".owner")
+        try:
+            self._load()
+            if task_id not in self.started:
+                raise ValueError(f"task {task_id} is not parked as effect-uncertain")
+            if effect_completed:
+                refs = [ref for ref in evidence
+                        if isinstance(ref, str) and ref]
+                if not refs:
+                    raise ValueError("completing a parked unit requires evidence")
+                saved = self.saved_tasks.get(task_id, {})
+                fingerprint = saved.get("fingerprint", task_id) if isinstance(saved, dict) else task_id
+                cp = self.lane.checkpoint
+                self.completed_tasks.append(task_id)
+                if fingerprint not in cp.completed_fingerprints:
+                    cp.completed_fingerprints.append(fingerprint)
+                cp.source_refs.extend(refs)
+                self.started.remove(task_id)
+                outcome = "COMPLETED"
+            else:
+                self.started.remove(task_id)
+                outcome = "RETRY_RELEASED"
+            self._save()
+            return {"task_id": task_id, "outcome": outcome}
+        finally:
+            release_home_lock(lock)
+
     def _checkpoint_failure(self, capability):
         circuit = self.breaker.get_circuit(self.primary_provider, capability)
         cp = self.lane.checkpoint
