@@ -30,6 +30,8 @@ REQUIRED_MODULES = (
 )
 GOLDEN_CONTENT = "courier-golden"
 GOLDEN_SHA256 = hashlib.sha256(GOLDEN_CONTENT.encode("utf-8")).hexdigest()
+LOCAL_SHELL_GOLDEN_CONTENT = "courier-golden-local-shell"
+LOCAL_SHELL_SHA256 = hashlib.sha256(LOCAL_SHELL_GOLDEN_CONTENT.encode("utf-8")).hexdigest()
 
 
 def missing_modules():
@@ -96,6 +98,23 @@ def synthetic_params(**overrides):
         "hang": False,
         "fail_transient_n": 0,
         "fault_attempts": [1],
+    }
+    params.update(overrides)
+    return params
+
+
+def local_shell_params(content=None, write="out.txt", timeout_s=30, **overrides):
+    """Declarative local_shell task params: bounded interpreter write, no shell."""
+    text = content if content is not None else LOCAL_SHELL_GOLDEN_CONTENT
+    params = {
+        "command": [
+            sys.executable,
+            "-c",
+            "import sys; open('out.txt', 'w').write(sys.argv[1])",
+            text,
+        ],
+        "write": write,
+        "timeout_s": timeout_s,
     }
     params.update(overrides)
     return params
@@ -335,6 +354,20 @@ class Courier:
         }
         if timeout_s is not None:
             body["timeout_s"] = timeout_s
+        response = self.api.post("/v1/tasks", body)
+        assert response.status_code in (200, 201), response.text
+        return response.json()["task_id"]
+
+    def make_local_shell_task(self, effect_class="idempotent", max_attempts=3, lease_ttl_s=6,
+                              timeout_s=30, **params):
+        body = {
+            "adapter": "local_shell",
+            "params": local_shell_params(timeout_s=timeout_s, **params),
+            "effect_class": effect_class,
+            "max_attempts": max_attempts,
+            "lease_ttl_s": lease_ttl_s,
+            "timeout_s": timeout_s,
+        }
         response = self.api.post("/v1/tasks", body)
         assert response.status_code in (200, 201), response.text
         return response.json()["task_id"]
