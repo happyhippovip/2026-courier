@@ -128,6 +128,15 @@ For a broad read-only orchestration question, at most two independent background
 No recursive subagents.
 No parallel product writers.
 
+
+## Repository search safety
+
+Persistent workspace rule: `.agents/rules/NO_GREP_FAMILY.md`.
+
+For Courier repository discovery, do not invoke `grep`, `egrep`, `fgrep`, `git grep`, `rg`, or `ripgrep`.
+Prefer Antigravity/editor indexed search, direct known-file reads, or GitHub code/file APIs.
+If a grep-family task is already running, cancel it and do not retry it.
+
 ## Persistence
 
 If the user explicitly asks to make a new orchestration rule durable:
