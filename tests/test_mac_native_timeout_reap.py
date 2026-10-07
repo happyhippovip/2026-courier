@@ -35,11 +35,29 @@ def stray_sleep(seconds):
     return {int(p) for p in out.split()}
 
 
+def hang_sleep_63_instead(daemon, monkeypatch):
+    """Echo no longer spawns a shell, so task text cannot hang a child. Tests
+    needing a hung native child simulate one here: the timeout machinery, not
+    task text, is what they exercise."""
+    real_popen = daemon.subprocess.Popen
+
+    def hang_instead(*args, **kwargs):
+        assert kwargs.get("shell") in (None, False)  # no shell anywhere
+        if not kwargs.get("start_new_session"):
+            # ps probes (process_identity) and friends run untouched: only the
+            # daemon's session-leader child spawn becomes the hung sleep.
+            return real_popen(*args, **kwargs)
+        return real_popen(["sleep", "63"], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                          text=True, start_new_session=True)
+
+    monkeypatch.setattr(daemon.subprocess, "Popen", hang_instead)
+
+
 def test_native_timeout_kills_group_and_reaps(tmp_path, monkeypatch):
     daemon = load_daemon(tmp_path, monkeypatch)
     assert stray_sleep(63) == set()  # distinctive duration: no foreign process
-    task = {"task_id": "task-native-1", "action": "echo",
-            "instruction": "echo go; sleep 63"}
+    hang_sleep_63_instead(daemon, monkeypatch)
+    task = {"task_id": "task-native-1", "action": "echo", "instruction": "echo go"}
     started = time.monotonic()
     result = daemon.run_native(task, {"NATIVE_TIMEOUT_SECONDS": 2})
     elapsed = time.monotonic() - started
@@ -74,30 +92,63 @@ def test_native_interruption_reaps_and_propagates(tmp_path, monkeypatch):
 
     class RaiseOnce(real_popen):
         def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self._is_shell = bool(kwargs.get("shell"))
+            assert kwargs.get("shell") in (None, False)  # no shell anywhere
+            if kwargs.get("start_new_session"):
+                # A hung child without shell semantics: the interruption path,
+                # not task text, is what this test exercises.
+                super().__init__(["sleep", "64"], stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE, text=True,
+                                 start_new_session=True)
+                instances.append(self)
+                self._is_target = True
+            else:
+                # ps probes (process_identity) and friends run untouched.
+                super().__init__(*args, **kwargs)
+                self._is_target = False
 
         def communicate(self, *args, **kwargs):
-            if self._is_shell:
+            if self._is_target:
                 raise daemon.WorkerShutdown("SIGTERM during native exec")
             return super().communicate(*args, **kwargs)
 
     orig_popen = daemon.subprocess.Popen
-
-    def recording(*args, **kwargs):
-        proc = RaiseOnce(*args, **kwargs)
-        if kwargs.get("shell"):
-            instances.append(proc)
-        return proc
-
-    monkeypatch.setattr(daemon.subprocess, "Popen", recording)
+    monkeypatch.setattr(daemon.subprocess, "Popen", RaiseOnce)
     try:
         with pytest.raises(daemon.WorkerShutdown):
             daemon.run_native({"task_id": "t-i", "action": "echo",
-                               "instruction": "echo go; sleep 64"},
+                               "instruction": "echo go"},
                               {"WORKER_ID": "MAC-01"})
     finally:
         monkeypatch.setattr(daemon.subprocess, "Popen", orig_popen)
     assert len(instances) == 1
     assert instances[0].poll() is not None  # reaped by finally: no zombie/orphan
     assert stray_sleep(64) == set()
+
+
+def test_native_echo_has_no_shell(tmp_path, monkeypatch):
+    """Separators, substitutions and redirects in echo text are literal output,
+    never worker shell: chained commands must not execute while SUCCESS is
+    reported (shell-escape fix)."""
+    daemon = load_daemon(tmp_path, monkeypatch)
+    spawns = []
+    real_popen = daemon.subprocess.Popen
+
+    def recording(*args, **kwargs):
+        spawns.append((args, kwargs))
+        return real_popen(*args, **kwargs)
+
+    monkeypatch.setattr(daemon.subprocess, "Popen", recording)
+    marker = tmp_path / "pwned"
+    marker2 = tmp_path / "pwned2"
+    result = daemon.run_native({"task_id": "t-x", "action": "echo",
+                                "instruction": "echo hi; touch %s" % marker},
+                               {"WORKER_ID": "MAC-01"})
+    assert result["status"] == "SUCCESS"
+    assert result["stdout"] == "hi; touch %s\n" % marker
+    assert not marker.exists()
+    chained = daemon.run_native({"task_id": "t-y", "action": "echo",
+                                 "instruction": "echo $(touch %s) `touch %s`" % (marker, marker2)},
+                                {"WORKER_ID": "MAC-01"})
+    assert chained["status"] == "SUCCESS"
+    assert not marker.exists() and not marker2.exists()
+    assert spawns and all(not kw.get("shell") for _, kw in spawns)

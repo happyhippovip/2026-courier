@@ -346,7 +346,12 @@ def run_native(task, config):
     # which is PID-reuse safe.
     timeout = min(float(config.get("NATIVE_TIMEOUT_SECONDS", 120)), 600)
     if action == "echo":
-        argv, kwargs = instruction, {"shell": True, "executable": "/bin/bash"}
+        # Never a shell: the canary routes arbitrary instruction text here,
+        # so separators, substitutions and redirects must be literal output,
+        # not worker shell (a chained instruction executed with worker
+        # privilege while reporting SUCCESS). Drop only the matched first word.
+        rest = instruction.split(None, 1)
+        argv, kwargs = ["/bin/echo", rest[1] if len(rest) > 1 else ""], {}
     elif action == "git_status":
         argv, kwargs = ["git", "status"], {}
     else:
