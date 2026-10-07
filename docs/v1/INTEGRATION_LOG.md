@@ -581,4 +581,13 @@ adapter / verifier → live golden path.
 - Fixed `test_p3_server_idempotency.py` regression: server correctly returns 409 (Conflict) when a result is received with a superseded `attempt_id` or `dispatch_id`, enforcing proper state mutation guarantees.
 - Resulting integration SHA: `e212cbd0c457af72f44bb2b0b7b7a0076ba6936f`
 
-**After step 18.** The overlay UI is polished and server idempotency verified. The next path is EXTENDED INTEGRATIONS.
+## Step 19 — L6 Launcher Robustification (2026-10-07)
+### `lane/L6-launcher-robustification`
+
+- **Retention Policy & Uninstallation:**
+  * `courier.db` and logs are preserved on uninstall (user data & journal history).
+  * `config.json` and the `run/` directory are deleted on uninstall to remove credentials.
+  * DB/Run paths are strictly chmod 0o600/0o700 to protect params stored verbatim.
+- **Graceful Shutdown:** `CourierLauncher.cs` calls `/v1/shutdown` on Ctrl+C / close events to allow the hub and worker to gracefully exit before the job object is killed.
+
+**After step 19.** The L6 Windows Launcher robustness and privacy guarantees are implemented.

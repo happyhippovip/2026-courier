@@ -115,6 +115,21 @@ class Journal:
             self._conn = conn
             return self
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            os.chmod(self.path.parent, 0o700)
+        except Exception:
+            pass
+        if not self.path.exists():
+            try:
+                fd = os.open(self.path, os.O_CREAT | os.O_RDWR, 0o600)
+                os.close(fd)
+            except Exception:
+                pass
+        else:
+            try:
+                os.chmod(self.path, 0o600)
+            except Exception:
+                pass
         conn = sqlite3.connect(str(self.path), isolation_level=None, check_same_thread=False, timeout=30)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA journal_mode=WAL")
