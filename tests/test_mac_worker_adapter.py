@@ -1,4 +1,5 @@
-﻿import os
+import pytest; pytest.importorskip("fcntl")
+import os
 import json
 import time
 from unittest import mock

@@ -96,6 +96,10 @@ time.sleep(10)
         assert backup_log.stat().st_size >= 5 * 1024 * 1024, "Backup log is too small"
         
         # Current log might be small, but it should exist
+        for _ in range(10):
+            if current_log.exists():
+                break
+            time.sleep(0.1)
         assert current_log.exists(), "Current log controller.log was not recreated"
         
     finally:

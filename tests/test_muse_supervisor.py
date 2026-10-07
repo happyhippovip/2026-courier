@@ -1,3 +1,4 @@
+import pytest; pytest.importorskip("fcntl")
 """SIMULATED proof: Muse slots on the canonical Courier path.
 
 Real server/app.py (temp state, test keys) on a local port, real
