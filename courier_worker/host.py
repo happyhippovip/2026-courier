@@ -32,6 +32,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
 
+import psutil
+
 # -- bounds (all of them are load-bearing contracts) --------------------------
 MAX_TIMEOUT_S = 3600.0
 DEFAULT_TIMEOUT_S = 300.0
@@ -45,6 +47,7 @@ MAX_ARTIFACT_BYTES = 16 * 1024 * 1024
 MAX_STDIO_TAIL = 64 * 1024
 OUTBOX_CAP = 32
 ORPHAN_TERM_GRACE_S = 2.0
+CLAIM_CREATE_TIME_TOLERANCE_S = 0.05
 LOAD_PRESSURE_FACTOR = 4.0
 
 CLAIM_RECORD_GLOB = "dispatch-*.json"
@@ -470,13 +473,14 @@ def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
 
 # -- claim records, orphan gate, home lock ------------------------------------
 #
-# `<home>/run/claims/dispatch-<dispatch_id>.json` names the live tree of one
-# dispatch: the host pid that owns it, the child root pid and, on POSIX, the
-# process group. A new host runs the orphan gate before claiming anything:
-# records whose owner is dead name trees no host will reap, so the gate
-# reaps them. This is how no child of a hard-killed host survives on POSIX;
-# on Windows the Job Object already guarantees it and the gate only drops
-# the stale record.
+# `<home>/run/claims/dispatch-<dispatch_id>.json` names one dispatch tree:
+# owner pid and create time, child pid and create time, the POSIX process
+# group, and the boot id. A PID alone is not identity — the kernel reuses
+# them. The orphan gate signals a group only when the recorded child start
+# time and boot id still match a live process in that group. A reused owner
+# PID does not count as the owner, so it cannot hide the tree. On Windows
+# the Job Object already reaps the tree when the host dies; the gate drops
+# the stale record and does not signal by PID.
 
 def _run_dir(home: str) -> Path:
     return Path(home) / "run"
@@ -491,28 +495,136 @@ def _claim_path(home: str, dispatch_id: str) -> Path:
     return _claims_dir(home) / f"dispatch-{safe or 'unnamed'}.json"
 
 
-def _owner_alive(owner_pid: int) -> bool:
-    if owner_pid <= 0:
+def current_boot_id() -> str:
+    """Identity of this boot. A PID from another boot is a different process."""
+    try:
+        return f"{psutil.boot_time():.3f}"
+    except (psutil.Error, OSError, ValueError):
+        return ""
+
+
+def _process_create_time(pid: int) -> Optional[float]:
+    if pid <= 0:
+        return None
+    try:
+        return float(psutil.Process(pid).create_time())
+    except (psutil.Error, OSError, ValueError):
+        return None
+
+
+def _create_times_match(live: Optional[float], recorded) -> bool:
+    if live is None or recorded is None:
         return False
     try:
-        if os.name == "nt":
-            import ctypes
-            handle = ctypes.windll.kernel32.OpenProcess(0x100000, False, owner_pid)
-            if not handle:
-                return False
-            ctypes.windll.kernel32.CloseHandle(handle)
-            return True
-        os.kill(owner_pid, 0)
-        return True
-    except (OSError, ProcessLookupError):
+        return abs(live - float(recorded)) <= CLAIM_CREATE_TIME_TOLERANCE_S
+    except (TypeError, ValueError):
         return False
+
+
+def _boot_matches(record: dict) -> bool:
+    recorded = record.get("boot_id")
+    if not recorded:
+        return False
+    current = current_boot_id()
+    return bool(current) and current == str(recorded)
+
+
+def _owner_alive(record: dict) -> bool:
+    """True only if the recorded owner is still that same process.
+
+    Open-process and kill(pid, 0) succeed for any reused PID. Those checks
+    are not identity on Windows or POSIX.
+    """
+    try:
+        owner_pid = int(record.get("owner_pid", 0) or 0)
+    except (TypeError, ValueError):
+        return False
+    if not _boot_matches(record):
+        return False
+    return _create_times_match(_process_create_time(owner_pid), record.get("owner_create_time"))
+
+
+def _pid_running(pid: int) -> bool:
+    """True when pid is a live process. Zombies are already terminated."""
+    try:
+        proc = psutil.Process(pid)
+        return proc.status() != psutil.STATUS_ZOMBIE
+    except (psutil.Error, OSError, ValueError):
+        return False
+
+
+def _running_group_member(pgid: int) -> bool:
+    """True if a non-zombie process is in ``pgid``. Does not signal the group.
+
+    Pids that cannot be classified are skipped. Where ``/proc`` is absent, a
+    permission error on the group probe counts as occupied.
+    """
+    if pgid <= 0:
+        return False
+    if os.path.isdir("/proc"):
+        for name in os.listdir("/proc"):
+            if not name.isdigit():
+                continue
+            pid = int(name)
+            try:
+                if os.getpgid(pid) != pgid:
+                    continue
+            except (OSError, ProcessLookupError, PermissionError):
+                continue
+            if _pid_running(pid):
+                return True
+        return False
+    try:
+        os.killpg(pgid, 0)
+        return True
+    except ProcessLookupError:
+        return False
+    except (OSError, PermissionError):
+        return True
+
+
+def _signal_owned_group(pgid: int) -> bool:
+    """SIGTERM, then SIGKILL. True only when no running member remains."""
+    try:
+        os.killpg(pgid, signal.SIGTERM)
+    except ProcessLookupError:
+        return True
+    except (PermissionError, OSError):
+        return False
+    deadline = time.monotonic() + ORPHAN_TERM_GRACE_S
+    while time.monotonic() < deadline:
+        if not _running_group_member(pgid):
+            return True
+        time.sleep(0.05)
+    try:
+        os.killpg(pgid, signal.SIGKILL)
+    except ProcessLookupError:
+        return True
+    except (PermissionError, OSError):
+        return False
+    deadline = time.monotonic() + ORPHAN_TERM_GRACE_S
+    while time.monotonic() < deadline:
+        if not _running_group_member(pgid):
+            return True
+        time.sleep(0.05)
+    return not _running_group_member(pgid)
 
 
 def _write_claim_record(home: str, spec: ExecutionSpec, run: ContainedRun) -> Path:
     _claims_dir(home).mkdir(parents=True, exist_ok=True)
+    owner_pid = os.getpid()
+    child_pid = run.pid
+    owner_create_time = _process_create_time(owner_pid)
+    child_create_time = _process_create_time(child_pid)
+    boot_id = current_boot_id()
+    if owner_create_time is None or child_create_time is None or not boot_id:
+        run.terminate_tree()
+        raise ContainmentError("cannot record process identity; owned tree was terminated")
     record = {"task_id": spec.task_id, "attempt": spec.attempt, "dispatch_id": spec.dispatch_id,
-              "worker_id": spec.worker_id, "owner_pid": os.getpid(), "child_pid": run.pid,
-              "pgid": run.group_id()}
+              "worker_id": spec.worker_id, "owner_pid": owner_pid,
+              "owner_create_time": owner_create_time, "child_pid": child_pid,
+              "child_create_time": child_create_time, "pgid": run.group_id(),
+              "boot_id": boot_id}
     path = _claim_path(home, spec.dispatch_id)
     fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".claim-", suffix=".tmp")
     try:
@@ -539,16 +651,19 @@ def run_orphan_gate(home: str) -> int:
     for path in sorted(claims.glob(CLAIM_RECORD_GLOB)):
         try:
             record = json.loads(path.read_text(encoding="utf-8"))
-            owner_pid = int(record.get("owner_pid", 0) or 0)
+            if not isinstance(record, dict):
+                raise ValueError("claim record is not an object")
+            record["owner_pid"] = int(record.get("owner_pid", 0) or 0)
         except (OSError, ValueError, TypeError):
             try:
                 path.rename(path.with_suffix('.json.corrupt'))
             except OSError:
                 pass
             continue
-        if _owner_alive(owner_pid):
-            continue  # another live host owns this tree; hands off
-        _reap_orphan(record)
+        if _owner_alive(record):
+            continue  # the same owner process still holds this tree
+        if not _reap_orphan(record):
+            continue  # not signalled, or still running: claim stays
         try:
             path.unlink()
         except OSError:
@@ -557,37 +672,54 @@ def run_orphan_gate(home: str) -> int:
     return handled
 
 
-def _reap_orphan(record: dict) -> None:
-    child_pid = int(record.get("child_pid", 0) or 0)
+def _windows_job_reaps() -> bool:
+    """Windows containment is the job object, not a PID signal."""
+    return os.name == "nt"
+
+
+def _reap_orphan(record: dict) -> bool:
+    """Reap a proven orphan. True only when the claim is safe to delete.
+
+    Never signals unless the child start time and boot id match the live
+    process and that process is still in the recorded group. Permission
+    errors and a group that is still running leave the claim in place.
+    """
+    if _windows_job_reaps():
+        # KILL_ON_JOB_CLOSE already reaped the tree at host death. Do not
+        # signal a PID; the record is bookkeeping once the owner is gone.
+        return True
+    if not _boot_matches(record):
+        return True
+    try:
+        child_pid = int(record.get("child_pid", 0) or 0)
+    except (TypeError, ValueError):
+        child_pid = 0
     pgid = record.get("pgid")
-    if os.name == "nt":
-        return  # KILL_ON_JOB_CLOSE already reaped the tree at host death
     if pgid is None and child_pid:
         pgid = child_pid
-    if not pgid:
-        return
-    if child_pid:
-        try:
-            alive_pgid = os.getpgid(child_pid)
-        except (OSError, ProcessLookupError):
-            alive_pgid = None
-        if alive_pgid is not None and alive_pgid != pgid:
-            return  # pid reused by an unrelated group; not ours
     try:
-        os.killpg(pgid, signal.SIGTERM)
-    except (OSError, ProcessLookupError):
-        return
-    deadline = time.monotonic() + ORPHAN_TERM_GRACE_S
-    while time.monotonic() < deadline:
-        try:
-            os.killpg(pgid, 0)
-        except (OSError, ProcessLookupError):
-            return
-        time.sleep(0.05)
+        pgid = int(pgid)
+    except (TypeError, ValueError):
+        return True
+    if pgid <= 0:
+        return True
+    recorded_create = record.get("child_create_time")
+    live_create = _process_create_time(child_pid) if child_pid else None
+    if recorded_create is None:
+        # No start time was stored. Never signal. A still-running group is not
+        # a finished reap, so the claim stays.
+        return not _running_group_member(pgid)
+    if not _create_times_match(live_create, recorded_create):
+        if live_create is not None:
+            return True  # this PID is a different process; do not signal it
+        return not _running_group_member(pgid)
     try:
-        os.killpg(pgid, signal.SIGKILL)
+        current_pgid = os.getpgid(child_pid)
     except (OSError, ProcessLookupError):
-        pass
+        current_pgid = None
+    if current_pgid != pgid:
+        return False
+    return _signal_owned_group(pgid)
 
 
 def acquire_home_lock(home: str):
