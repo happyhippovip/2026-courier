@@ -10,7 +10,7 @@ if (-Not $IsAdmin) {
 }
 
 $InstallDir = "$env:ProgramFiles\CourierWorker"
-$DataDir = "$env:PROGRAMDATA\CourierWorker"
+$DataDir = "$env:LOCALAPPDATA\Courier"
 $ConfigPath = Join-Path $DataDir "config.json"
 
 Write-Host "========================================"

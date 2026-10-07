@@ -13,6 +13,18 @@ from pathlib import Path
 import pytest
 import requests
 
+import os
+import requests
+os.environ["NO_PROXY"] = "*"
+
+# Monkeypatch requests to force no proxies on Mac (system proxy can cause 127.0.0.1 routing issues)
+_orig_request = requests.Session.request
+def _no_proxy_request(self, method, url, **kwargs):
+    kwargs.setdefault("proxies", {"http": None, "https": None})
+    return _orig_request(self, method, url, **kwargs)
+requests.Session.request = _no_proxy_request
+
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "controller"))
 from ctrl_helpers import FakeClock, LiveService, result_body, task_body  # noqa: E402
 

@@ -108,7 +108,11 @@ namespace CourierLauncher
             p.BeginOutputReadLine();
             p.BeginErrorReadLine();
             if (hJob != IntPtr.Zero) {
-                AssignProcessToJobObject(hJob, p.Handle);
+                if (!AssignProcessToJobObject(hJob, p.Handle)) {
+                    lock(logLock) {
+                        File.AppendAllText(Path.Combine(logDir, logFile), string.Format("[{0:O}] WARNING: AssignProcessToJobObject failed. Orphans possible.{1}", DateTime.UtcNow, Environment.NewLine));
+                    }
+                }
             }
             return p;
         }

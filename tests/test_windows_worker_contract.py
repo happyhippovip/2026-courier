@@ -18,7 +18,7 @@ class StopLoop(BaseException):
 
 
 def load_daemon(tmp_path, monkeypatch):
-    monkeypatch.setenv("PROGRAMDATA", str(tmp_path))
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
     spec = importlib.util.spec_from_file_location("windows_worker_daemon_under_test", DAEMON_PATH)
     daemon = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(daemon)
@@ -110,7 +110,7 @@ def state_file(daemon):
 
 def load_daemon_again(tmp_path, monkeypatch):
     import shutil
-    pd = tmp_path / "CourierWorker"
+    pd = tmp_path / "Courier"
     for d in ("state", "logs"):
         shutil.copytree(pd / d, pd / f"{d}.bak", dirs_exist_ok=True)
         shutil.rmtree(pd / d)
