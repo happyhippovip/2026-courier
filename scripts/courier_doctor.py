@@ -89,6 +89,11 @@ def check_stuck_tasks():
                 detail = f"{detail} (first_bad_seq={chain.first_bad_seq})"
             return False, f"Journal integrity failed: {detail}"
 
+        if not journal.projection_current() or not journal.verify_projection():
+            return False, (
+                "Journal integrity failed: stored task projection does not match event replay"
+            )
+
         tasks = journal.tasks()
         attention = [
             t for t in tasks

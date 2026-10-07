@@ -106,6 +106,21 @@ def test_check_stuck_tasks_zero_byte_journal(tmp_path, monkeypatch):
     assert "journal" in msg.lower() or "integrity" in msg.lower()
 
 
+def test_check_stuck_tasks_tampered_projection(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_HOME", str(tmp_path))
+    from tests.core.core_builders import golden_path
+
+    with Journal(tmp_path / "courier.db") as journal:
+        for event in golden_path():
+            journal.append(event)
+        assert journal.verify_chain().ok
+        journal.conn.execute("UPDATE tasks SET status = 'FAILED' WHERE task_id = 't1'")
+        assert not journal.verify_projection()
+    ok, msg = check_stuck_tasks()
+    assert ok is False
+    assert "projection" in msg.lower() and "replay" in msg.lower()
+
+
 def test_check_stuck_tasks_non_database_file(tmp_path, monkeypatch):
     monkeypatch.setenv("COURIER_HOME", str(tmp_path))
     (tmp_path / "courier.db").write_text("not a sqlite database", encoding="utf-8")
