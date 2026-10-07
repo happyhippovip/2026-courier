@@ -708,6 +708,29 @@ def test_runner_refuses_a_non_allowlisted_request(tmp_path):
     assert not (tmp_path / "r.json").exists() and not (tmp_path / "w").exists()
 
 
+def test_runner_synthetic_params_error_writes_failure_report(tmp_path):
+    workdir = tmp_path / "w"
+    report = tmp_path / "r.json"
+    request = tmp_path / "req.json"
+    request.write_text(json.dumps({
+        "adapter": "synthetic",
+        "params": {"sleep_s": -1, "write": "out.txt", "content": "x"},
+        "attempt": 1,
+        "workdir": str(workdir),
+        "report": str(report),
+    }), encoding="utf-8")
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    proc = subprocess.run(
+        [PY, A.RUNNER_SCRIPT, str(request)],
+        cwd=repo_root, env={**os.environ, "PYTHONPATH": repo_root},
+        capture_output=True, text=True, timeout=30,
+    )
+    assert proc.returncode == 2
+    body = json.loads(report.read_text(encoding="utf-8"))
+    assert body["outcome"] == "failure" and body["retryable"] is False
+    assert "rejected" in body["reason"].lower() or "sleep" in body["reason"].lower()
+
+
 def test_missing_adapter_fails_closed_with_spec_error(monkeypatch):
     """No real L4 and no double importable: validate_request must refuse."""
     monkeypatch.setitem(sys.modules, "adapters", None)
