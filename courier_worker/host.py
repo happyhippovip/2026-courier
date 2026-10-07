@@ -46,6 +46,10 @@ MAX_STDIO_TAIL = 64 * 1024
 OUTBOX_CAP = 32
 ORPHAN_TERM_GRACE_S = 2.0
 LOAD_PRESSURE_FACTOR = 4.0
+# Newest task stdio pairs kept in <home>/run; older pairs are pruned at run
+# start. Durable evidence (crash report, artifacts) lives per dispatch and is
+# never pruned; these files are only recent-run debugging aid.
+RUN_STDIO_RETAIN_PAIRS = 8
 
 CLAIM_RECORD_GLOB = "dispatch-*.json"
 CRASH_REPORT_NAME = "crash.json"
@@ -468,6 +472,54 @@ def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
     return ContainedRun(proc, job, stdout_path, stderr_path)
 
 
+def _prune_run_stdio(run_dir: str) -> int:
+    """Delete the oldest task stdio pairs, keeping the newest few.
+
+    Every run leaves ``task-<dispatch>.out/.err`` behind; without a bound
+    the home grows forever (on Windows: inside %LOCALAPPDATA%). Durable
+    evidence already lives per dispatch (crash report, artifacts); these
+    files are only recent-run debugging aid, so the oldest pairs go.
+    Never raises: pruning must not kill a run.
+    """
+    try:
+        entries = os.listdir(run_dir)
+    except OSError:
+        return 0
+    groups: dict = {}
+    for name in entries:
+        if not name.startswith("task-"):
+            continue
+        if name.endswith(".out"):
+            tag = name[:-len(".out")]
+        elif name.endswith(".err"):
+            tag = name[:-len(".err")]
+        else:
+            continue
+        if tag:
+            groups.setdefault(tag, []).append(name)
+    if len(groups) <= RUN_STDIO_RETAIN_PAIRS:
+        return 0
+
+    def _group_age(item) -> tuple:
+        _tag, names = item
+        try:
+            newest = max(os.path.getmtime(os.path.join(run_dir, n)) for n in names)
+        except OSError:
+            newest = 0.0
+        return (newest, _tag)
+
+    victims = sorted(groups.items(), key=_group_age)[:len(groups) - RUN_STDIO_RETAIN_PAIRS]
+    pruned = 0
+    for _tag, names in victims:
+        for name in names:
+            try:
+                os.unlink(os.path.join(run_dir, name))
+                pruned += 1
+            except OSError:
+                pass
+    return pruned
+
+
 # -- claim records, orphan gate, home lock ------------------------------------
 #
 # `<home>/run/claims/dispatch-<dispatch_id>.json` names the live tree of one
@@ -801,6 +853,7 @@ class WorkerHost:
             raise ResourcePaused(reason)
         run_dir = str(_run_dir(self.home))
         os.makedirs(run_dir, exist_ok=True)
+        _prune_run_stdio(run_dir)
         os.makedirs(spec.artifact_dir, exist_ok=True)
         run = _spawn_contained(list(spec.argv), run_dir, f"task-{spec.dispatch_id}")
         self._active = spec.dispatch_id
