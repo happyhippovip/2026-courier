@@ -152,3 +152,33 @@ def test_native_echo_has_no_shell(tmp_path, monkeypatch):
     assert chained["status"] == "SUCCESS"
     assert not marker.exists() and not marker2.exists()
     assert spawns and all(not kw.get("shell") for _, kw in spawns)
+
+
+def test_native_echo_redirect_writes_declared_canary(tmp_path, monkeypatch):
+    """The canary contract without a shell: `text > name` creates the file
+    only when `name` is task-declared evidence and path-safe (physical gate)."""
+    daemon = load_daemon(tmp_path, monkeypatch)
+    work = tmp_path / "work"
+    task = {"task_id": "process_a", "action": "echo",
+            "instruction": "echo A > courier_canary_process_a.txt",
+            "artifacts": ["courier_canary_process_a.txt"],
+            "workspace": str(work)}
+    result = daemon.run_native(task, {"WORKER_ID": "MAC-01"})
+    assert result["status"] == "SUCCESS"
+    assert (work / "courier_canary_process_a.txt").read_text() == "A "
+
+
+def test_native_echo_redirect_refuses_undeclared_or_unsafe(tmp_path, monkeypatch):
+    daemon = load_daemon(tmp_path, monkeypatch)
+    work = tmp_path / "work"
+    base = {"task_id": "t-r", "action": "echo", "workspace": str(work),
+            "artifacts": ["courier_canary_t-r.txt"]}
+    outside = tmp_path / "escape.txt"
+    for instruction, forbidden in (
+            ("echo hi > other.txt", work / "other.txt"),
+            ("echo x > ../escape.txt", outside),
+            ("echo a > b > courier_canary_t-r.txt", work / "courier_canary_t-r.txt")):
+        result = daemon.run_native(dict(base, instruction=instruction),
+                                   {"WORKER_ID": "MAC-01"})
+        assert result["status"] == "SUCCESS"  # literal output, never a write
+        assert not forbidden.exists()

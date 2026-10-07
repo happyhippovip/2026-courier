@@ -312,6 +312,32 @@ def attach_surface(supervisor, decision, pid):
         write_log(f"surface attach skipped for pid {pid}: {exc}")
 
 
+def write_echo_redirect(task, text):
+    """Shell-free `text > name` for task-declared evidence files only.
+
+    The canary contract (prepare_task) expects files like
+    `courier_canary_<task_id>.txt` as result evidence; historically a shell
+    redirect created them. With no shell, honor exactly one trailing
+    `> name` and only when `name` is already declared in task["artifacts"]
+    and passes the artifact-path rule; anything else stays literal output.
+    Write errors propagate so the action fails instead of claiming success.
+    """
+    parts = text.split(">")
+    if len(parts) != 2:
+        return
+    body, name = parts[0], parts[1].strip()
+    if not name or not is_safe_artifact_path(name):
+        return
+    declared = set()
+    for expected in task.get("artifacts", []):
+        declared.add(expected.get("path") if isinstance(expected, dict) else expected)
+    if name not in declared:
+        return
+    target = artifact_path(task, name)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(body, encoding="utf-8")
+
+
 def coalesced_result(decision, mode):
     # Joining work that is already running is not a completion: fail closed so
     # the controller never records an execution that did not happen here.
@@ -351,7 +377,8 @@ def run_native(task, config):
         # not worker shell (a chained instruction executed with worker
         # privilege while reporting SUCCESS). Drop only the matched first word.
         rest = instruction.split(None, 1)
-        argv, kwargs = ["/bin/echo", rest[1] if len(rest) > 1 else ""], {}
+        echo_text = rest[1] if len(rest) > 1 else ""
+        argv, kwargs = ["/bin/echo", echo_text], {}
     elif action == "git_status":
         argv, kwargs = ["git", "status"], {}
     else:
@@ -383,6 +410,10 @@ def run_native(task, config):
                 except subprocess.TimeoutExpired:
                     if config.get("COURIER_SERVER"):
                         http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
+            if action == "echo" and process.returncode == 0:
+                # Declared-evidence redirect without a shell; write errors
+                # fail the action via the outer handler, never silent SUCCESS.
+                write_echo_redirect(task, echo_text)
         except subprocess.TimeoutExpired:
             cleanup_group(process, identity)
             try:
