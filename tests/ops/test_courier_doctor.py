@@ -6,7 +6,10 @@ import zipfile
 
 import pytest
 
-from scripts.courier_doctor import export_diagnostics, get_app_data_dir, load_config
+from tests.core.core_builders import Attempt, created
+
+from courier_core.journal import Journal
+from scripts.courier_doctor import check_stuck_tasks, export_diagnostics, get_app_data_dir, load_config
 
 def test_diagnostics_bundle_v1(tmp_path, monkeypatch):
     home = tmp_path / "home"
@@ -60,4 +63,37 @@ def test_diagnostics_bundle_v1(tmp_path, monkeypatch):
         
         config_content = zf.read("config.json").decode("utf-8")
         assert "secret_api_key_abc" not in config_content
-        
+
+
+def test_check_stuck_tasks_no_journal(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_HOME", str(tmp_path))
+    ok, msg = check_stuck_tasks()
+    assert ok and "No local state" in msg
+
+
+def test_check_stuck_tasks_healthy_journal(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_HOME", str(tmp_path))
+    from tests.core.core_builders import golden_path
+
+    with Journal(tmp_path / "courier.db") as journal:
+        for event in golden_path("ok-task"):
+            journal.append(event)
+    ok, msg = check_stuck_tasks()
+    assert ok and "No active tasks" in msg
+
+
+def test_check_stuck_tasks_flags_retry_pending(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_HOME", str(tmp_path))
+    attempt = Attempt("stuck", 1)
+    events = [
+        created("stuck", effect_class="non_idempotent"),
+        attempt.claimed(),
+        attempt.started(),
+        attempt.lease_expired(),
+    ]
+    with Journal(tmp_path / "courier.db") as journal:
+        for event in events:
+            journal.append(event)
+    ok, msg = check_stuck_tasks()
+    assert not ok and "stuck" in msg and "retry-pending" in msg.lower()
+
