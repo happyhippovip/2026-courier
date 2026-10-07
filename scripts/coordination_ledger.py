@@ -52,8 +52,12 @@ class CoordinationReducer:
     def __init__(self):
         self.events: List[CoordinationEvent] = []
         self.missions: Dict[str, Dict] = {}
+        self.processed_event_ids = set()
 
     def apply(self, event: CoordinationEvent):
+        if event.event_id in self.processed_event_ids:
+            return
+        self.processed_event_ids.add(event.event_id)
         self.events.append(event)
         
         # Reducer logic to update mission state
