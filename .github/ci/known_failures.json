@@ -50,9 +50,7 @@
       "tests/test_muse_supervisor.py::test_stop_prevents_restart",
       "tests/test_muse_supervisor.py::test_unconfirmed_prompt_method_fails_closed"
     ],
-    "flaky": [
-      "tests/test_resource_policy_mission_093.py::TestMission093And095And097HardenedPolicy::test_03b_atomic_expired_lease_reclaim_single_winner"
-    ],
+    "flaky": [],
     "causes": {
       "fcntl": "scripts/mac_worker/runtime_state.py imports the POSIX-only fcntl module: test_mac_worker_contract, test_mac_worker_recovery, test_mac_worker_standalone_boot, test_muse_supervisor, test_muse_convergence (collection)"
     },
@@ -63,6 +61,6 @@
       "reason": "POSIX-only legacy Mac worker: scripts/mac_worker imports fcntl and targets macOS; gated on Linux",
       "decision": "L1 CI policy 2026-10-01, docs/v1/INTEGRATION_LOG.md 'CI policy - platform scope'"
     },
-    "flaky_note": "test_03b_atomic_expired_lease_reclaim_single_winner: pre-existing (unchanged since e95aa787), failed once on windows-latest in run 36810693808 attempt 1 on a docs-only commit and passed on re-run (attempt 2) and in ~10 other Windows runs. Indicates a real intermittent single-winner race in the expired-lease reclaim on Windows; tracked as a finding for the owner, still run and reported every time."
+    "flaky_note": "Removed test_03b_atomic_expired_lease_reclaim_single_winner. Run 36810693808 attempt 1 failed at scripts/resource_policy.py os.replace with PermissionError WinError 5 while the other racer held the lease file open. acquire_lease now retries that sharing violation. A future failure of this test is a regression."
   }
 }
