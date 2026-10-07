@@ -28,7 +28,7 @@ from pathlib import Path
 # derived from this file instead of trusting the inherited environment.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-ALLOWED = frozenset({"synthetic"})
+ALLOWED = frozenset({"synthetic", "decrypt"})
 
 
 def _write_report(path: str, report: dict) -> None:
@@ -70,10 +70,13 @@ def main(argv: list) -> int:
         return 2
     os.makedirs(workdir, exist_ok=True)
 
-    from adapters import synthetic
+    from adapters import synthetic, decrypt
 
     try:
-        result = synthetic.run(params, workdir, attempt)
+        if adapter == "synthetic":
+            result = synthetic.run(params, workdir, attempt)
+        elif adapter == "decrypt":
+            result = decrypt.run(params, workdir, attempt)
     except synthetic.SyntheticHang:
         print("adapter_runner: synthetic hang (waiting to be terminated)", file=sys.stderr, flush=True)
         while True:
