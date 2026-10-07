@@ -97,6 +97,17 @@ def test_missing_identity_fails_closed(reaper_mod):
     proc.wait(timeout=5)
 
 
+def test_failure_to_terminate_raises(reaper_mod, monkeypatch):
+    reaper = reaper_mod.SupervisorTestReaper()
+    proc = subprocess.Popen(SLEEPER, stdin=subprocess.DEVNULL, start_new_session=True)
+    reaper.register(proc, "ignores-signals")
+    monkeypatch.setattr(reaper_mod, "cleanup_group", lambda *args, **kwargs: False)
+    with pytest.raises(RuntimeError, match="CLEANUP_NOT_PROVEN"):
+        reaper.cleanup_all()
+    proc.kill()
+    proc.wait(timeout=5)
+
+
 def test_unrelated_process_not_killed(reaper_mod, rt):
     reaper = reaper_mod.SupervisorTestReaper()
     foreign = subprocess.Popen(SLEEPER, stdin=subprocess.DEVNULL, start_new_session=True)

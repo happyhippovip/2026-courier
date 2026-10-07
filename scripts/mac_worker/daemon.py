@@ -15,7 +15,8 @@ from contextlib import nullcontext
 BASE_DIR = Path(__file__).parent
 sys.path.insert(0, str(BASE_DIR.resolve()))
 from runtime_state import (CANONICAL_WORKSPACE, atomic_json, control_lock, read_object,
-                           process_identity, same_process, cleanup_group, group_exists)
+                           capture_process_identity, process_identity, same_process,
+                           cleanup_group, group_exists)
 CONFIG_PATH = Path(os.environ.get("COURIER_WORKER_CONFIG", BASE_DIR / "config.json"))
 # A supervisor slot runs its own daemon with its own home, so each slot has
 # isolated task state (current_task.json) and logs.
@@ -361,7 +362,7 @@ def run_native(task, config):
         atomic_json(child_file, {"state": "STARTING"})
         process = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    text=True, start_new_session=True, **kwargs)
-        identity = process_identity(process.pid)
+        identity = capture_process_identity(process)
         atomic_json(child_file, {"state": "RUNNING", "identity": identity})
         # Sliced communicate with in-execution heartbeat (same pattern as
         # run_agy): the overall deadline is unchanged and still handled below.
@@ -463,7 +464,7 @@ def run_agy(task, config):
         atomic_json(child_file, {"state": "STARTING"})
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    text=True, start_new_session=True)
-        identity = process_identity(process.pid)
+        identity = capture_process_identity(process)
         attach_surface(supervisor, decision, process.pid)
         atomic_json(child_file, {"state": "RUNNING", "identity": identity})
         # Sliced communicate with in-execution heartbeat: the server's
@@ -574,7 +575,7 @@ def run_muse(task, config):
                 atomic_json(child_file, {"state": "STARTING", "binding": binding})
                 proc = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=out, stderr=err,
                                         start_new_session=True)
-                identity = process_identity(proc.pid)
+                identity = capture_process_identity(proc)
                 attach_surface(supervisor, decision, proc.pid)
                 atomic_json(child_file, {"state": "RUNNING", "identity": identity, "binding": binding})
             deadline = time.monotonic() + min(float(config.get("MUSE_TIMEOUT_SECONDS", 3600)), 3600)
