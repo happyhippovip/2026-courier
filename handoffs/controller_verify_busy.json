@@ -3,7 +3,7 @@
   "OWNER": "codex-cloud",
   "BRANCH": "codex/controller-verify-busy-requeue",
   "HEAD/COMMIT": "b6e30827f504bc836ac16895c0d88715ec67f722",
-  "CURRENT_STATE": "PARTIAL",
+  "CURRENT_STATE": "FINAL",
   "MUTABLE_SCOPE": "Controller.verify_next queue preservation on lock timeout",
   "FILES": [
     "courier_core/controller.py",
@@ -29,6 +29,7 @@
     "remote CI",
     "Windows-native execution"
   ],
-  "NEXT_EXACT_ACTION": "Create PR into integration/v1 and retain single queue ownership; review contention recovery for both verdict outcomes. Do not repeat unchanged targeted proof.",
-  "OWNERSHIP_STATE": "IMPLEMENTATION_COMPLETE_REVIEW_PENDING"
+  "NEXT_EXACT_ACTION": "L1 review PR #161 and preserve existing verifier read-only contract; reuse recorded 80-test proof.",
+  "OWNERSHIP_STATE": "PR_REVIEW_OWNER",
+  "PR": 161
 }
