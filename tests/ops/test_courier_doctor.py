@@ -92,3 +92,16 @@ def test_check_ledger_rejects_non_v1_sqlite(tmp_path, monkeypatch):
     assert ok is False
     assert "journal" in msg.lower() or "integrity" in msg.lower()
 
+
+def test_check_ledger_rejects_tampered_projection(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_HOME", str(tmp_path))
+    with Journal(tmp_path / "courier.db") as journal:
+        for event in golden_path():
+            journal.append(event)
+        assert journal.verify_chain().ok
+        journal.conn.execute("UPDATE tasks SET status = 'FAILED' WHERE task_id = 't1'")
+        assert not journal.verify_projection()
+    ok, msg = check_ledger()
+    assert ok is False
+    assert "projection" in msg.lower() and "replay" in msg.lower()
+
