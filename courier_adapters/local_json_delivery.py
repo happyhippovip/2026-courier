@@ -42,13 +42,18 @@ def deliver(hub_url, token, worker_id):
                             out_file = out_dir / f"{article_id}.json"
                             with open(out_file, "w", encoding="utf-8") as f:
                                 json.dump(params, f, indent=2)
+                            
+                            import hashlib
+                            with open(out_file, "rb") as f:
+                                file_hash = hashlib.sha256(f.read()).hexdigest()
+                                
                             print(f"Delivered {article_id} to {out_file}")
                             
                             res2 = requests.post(f"{hub_url}/v1/result", json={
                                 "dispatch_id": task["dispatch_id"],
                                 "result_id": f"res-{article_id}",
                                 "outcome": "success",
-                                "artifacts": [{"path": str(out_file), "sha256": "0" * 64}]
+                                "artifacts": [{"path": str(out_file), "sha256": file_hash}]
                             }, headers=headers)
                             if not res2.ok:
                                 print(f"Error reporting success: {res2.text}")
