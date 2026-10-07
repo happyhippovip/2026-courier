@@ -79,13 +79,38 @@ def run_once(kirby, slot, signal_path, state):
     return results, actions, notices
 
 
+def _tail_triple(notices_path):
+    """Last notice (session_id, workkey, token) in the file, or None."""
+    try:
+        with open(notices_path, "rb") as handle:
+            handle.seek(0, os.SEEK_END)
+            size = handle.tell()
+            if not size:
+                return None
+            handle.seek(max(0, size - 1024))
+            lines = handle.read().splitlines()
+    except OSError:
+        return None
+    if not lines:
+        return None
+    try:
+        last = json.loads(lines[-1].decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return None
+    if not isinstance(last, dict):
+        return None
+    return (last.get("session_id"), last.get("workkey"), last.get("token"))
+
+
 def _notice(kirby, slot, state):
     """Append one wake notice when THIS slot newly holds a pending wake.
 
     Duplicate IDLE lines while a wake is pending (or while the provider is
     working) produce no further notice: the recorded triple
     (session_id, workkey, token) only changes when a genuinely new
-    continuation arises.
+    continuation arises. The in-memory record is lost on loop restart, so
+    the file tail is re-checked too: an identical triple at the tail can
+    only be a restart replay of the signal file being re-driven.
     """
     from courier_runtime.continuity import WAKE_PENDING
 
@@ -94,6 +119,9 @@ def _notice(kirby, slot, state):
         return []
     triple = [session.session_id, session.workkey, session.token]
     if state.get("notified", {}).get(slot) == triple:
+        return []
+    if _tail_triple(kirby.path.parent / NOTICES) == tuple(triple):
+        state.setdefault("notified", {})[slot] = triple
         return []
     state.setdefault("notified", {})[slot] = triple
     record = {"at": kirby.clock(), "slot": slot, "session_id": session.session_id,

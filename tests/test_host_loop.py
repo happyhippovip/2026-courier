@@ -186,6 +186,18 @@ def test_full_chain_emit_notice_drain_turn_end_advances_unaided(tmp_path):
     assert len(world.started) == 1
 
 
+def test_restart_replays_signal_without_duplicate_notice(tmp_path):
+    k, _, _, signals, _ = setup(tmp_path, ["W1"], slot="s1", provider="muse")
+    append(signals, "IDLE")
+    _, _, n1 = run_once(k, "s1", signals, {"offset": 0, "last_tick": 0.0, "notified": {}})
+    assert len(n1) == 1
+    # Loop process restarts: in-memory offset/notified are lost, the whole
+    # signal file re-drives, but the identical triple is already on file.
+    _, _, n2 = run_once(k, "s1", signals, {"offset": 0, "last_tick": 0.0, "notified": {}})
+    assert n2 == []
+    assert len((tmp_path / "wakeups.jsonl").read_text().splitlines()) == 1
+
+
 def test_lines_for_unknown_slot_are_ignored(tmp_path):
     k, _, world, signals, state = setup(tmp_path, ["W1"], slot="s1", provider="muse")
     results, _, notices = run_once(k, "nope", signals, state)
