@@ -139,7 +139,7 @@ def test_wrong_attempt_result_fails_closed(tmp_path, monkeypatch):
 
     rejected = http.post("/tasks/result", headers=auth(), json=result)
 
-    assert rejected.status_code == 400
+    assert rejected.status_code == 409
     state = server_app.load_state()
     assert state["tasks"][task["task_id"]]["status"] == "DISPATCHED"
     assert state["goals"][goal_id]["current_step_index"] == 0
