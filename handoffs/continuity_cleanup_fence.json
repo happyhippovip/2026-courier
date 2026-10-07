@@ -1,0 +1,21 @@
+{
+  "WORKKEY": "CONTINUITY-CLEANUP-FENCE",
+  "OWNER": "codex-cloud",
+  "BRANCH": "codex/continuity-cleanup-fence",
+  "HEAD/COMMIT": "b9fc486ac9bb99c8d2983622a3876a6deb9b6839",
+  "CURRENT_STATE": "CLAIMED",
+  "MUTABLE_SCOPE": "courier_runtime.continuity.Kirby successor launch when cleanup is unproven",
+  "FILES": [
+    "courier_runtime/continuity.py",
+    "tests/test_runtime_continuity.py",
+    "handoffs/continuity_cleanup_fence.json"
+  ],
+  "TEST_EVIDENCE": [],
+  "UNPROVEN": [
+    "regression reproduction",
+    "fix",
+    "targeted verification"
+  ],
+  "NEXT_EXACT_ACTION": "Prove orphan cleanup currently launches a duplicate successor; fence recovery before side effects.",
+  "OWNERSHIP_EVIDENCE": "23 open PRs #132-#154 fetched; no changes to selected files; historical Muse hostloop branch is ancestor of integration."
+}
