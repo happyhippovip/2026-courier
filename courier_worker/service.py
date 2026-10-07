@@ -128,17 +128,18 @@ class ControllerClient:
             return None
         if status == 200 and isinstance(payload, dict):
             return payload
-        return None
+        # Any other status (401/403/400/...) is an auth or contract failure,
+        # never "no work": fail closed so misconfiguration cannot idle silently.
+        raise ControllerError(f"claim: status {status}")
 
     def start(self, dispatch_id: str) -> None:
-        try:
-            status, _ = self._call("POST", "/start", {"dispatch_id": dispatch_id})
-        except ControllerError as exc:
-            raise StaleDispatch(f"start for {dispatch_id} failed: {exc}") from exc
+        # Transport errors and 5xx propagate as ControllerError (transient);
+        # only 404/409 mean the controller no longer owns this dispatch.
+        status, _ = self._call("POST", "/start", {"dispatch_id": dispatch_id})
         if status in (404, 409):
             raise StaleDispatch(f"controller rejects dispatch {dispatch_id}: {status}")
         if status != 200:
-            raise StaleDispatch(f"start for {dispatch_id}: status {status}")
+            raise ControllerError(f"start for {dispatch_id}: status {status}")
 
     def heartbeat(self, worker_id: str, dispatch_ids: list) -> dict:
         status, payload = self._call("POST", "/heartbeat",
@@ -438,6 +439,13 @@ class WorkerLoop:
         except StaleDispatch:
             adapter_bridge.cleanup(self.home, spec.dispatch_id)
             return "stale"
+        except ControllerError:
+            # Transient (transport/5xx/auth): the claim stays owned
+            # server-side, so drop only our local request file and idle.
+            # The lease expiry path retries what is retryable; nothing here
+            # fabricates or discards the attempt.
+            adapter_bridge.cleanup(self.home, spec.dispatch_id)
+            return "idle"
         watcher = CancelWatcher(self.base_url, client.token, spec.task_id,
                                 timeout_s=max(self.heartbeat_s, 1.0))
         self._watchers[spec.dispatch_id] = watcher
