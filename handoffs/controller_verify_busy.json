@@ -1,0 +1,21 @@
+{
+  "WORKKEY": "CONTROLLER-VERIFY-BUSY-REQUEUE",
+  "OWNER": "codex-cloud",
+  "BRANCH": "codex/controller-verify-busy-requeue",
+  "HEAD/COMMIT": "b9fc486ac9bb99c8d2983622a3876a6deb9b6839",
+  "CURRENT_STATE": "CLAIMED",
+  "MUTABLE_SCOPE": "Controller.verify_next queue preservation on lock timeout",
+  "FILES": [
+    "courier_core/controller.py",
+    "tests/controller/test_ctrl_verify_busy.py",
+    "handoffs/controller_verify_busy.json"
+  ],
+  "OWNERSHIP_EVIDENCE": "Fresh integration fetch and open PRs #132-#160; no other PR mutates selected controller method or test file.",
+  "TEST_EVIDENCE": [],
+  "UNPROVEN": [
+    "causal concurrency reproduction",
+    "fix",
+    "verification"
+  ],
+  "NEXT_EXACT_ACTION": "Reproduce load- and verdict-commit lock timeouts with real threads; retain queued result on busy without duplicate decisions."
+}
