@@ -568,3 +568,8 @@ adapter / verifier → live golden path.
 - Resulting integration SHA: `912c44034ae891de189edce5b6a96503ba40c36b`
 
 **After step 16.** The first real provider adapter is live. The next path is OVERLAY UI POLISH -> EXTENDED INTEGRATIONS.
+
+### Retention Policy & Uninstallation
+* `courier.db` and logs are preserved on uninstall (user data & journal history).
+* `config.json` and the `run/` directory are deleted on uninstall to remove credentials.
+* DB/Run paths are strictly chmod 0o600/0o700 to protect params stored verbatim.

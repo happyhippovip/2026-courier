@@ -20,4 +20,16 @@ if (Test-Path $InstallDir) {
     Write-Host "Removed installation directory: $InstallDir"
 }
 
-Write-Host "Uninstall complete. User data in %LOCALAPPDATA%\Courier was preserved."
+Write-Host "Removing credentials (config.json and run/) from user profiles..."
+$usersDir = "C:\Users"
+Get-ChildItem -Path $usersDir | Where-Object { $_.PSIsContainer } | ForEach-Object {
+    $userCourierDir = Join-Path $_.FullName "AppData\Local\Courier"
+    if (Test-Path $userCourierDir) {
+        $configFile = Join-Path $userCourierDir "config.json"
+        $runDir = Join-Path $userCourierDir "run"
+        if (Test-Path $configFile) { Remove-Item -Force $configFile }
+        if (Test-Path $runDir) { Remove-Item -Recurse -Force $runDir }
+    }
+}
+
+Write-Host "Uninstall complete. Database and logs in %LOCALAPPDATA%\Courier were preserved."

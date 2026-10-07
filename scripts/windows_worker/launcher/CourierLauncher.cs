@@ -26,8 +26,26 @@ namespace CourierLauncher
 
         delegate bool ConsoleCtrlDelegate(uint CtrlType);
 
+        static int s_controllerPort = 8765;
+        static string s_token = "";
+
         static bool ConsoleCtrlCheck(uint ctrlType)
         {
+            if (ctrlType == 0 || ctrlType == 2 || ctrlType == 5 || ctrlType == 6)
+            {
+                if (!string.IsNullOrEmpty(s_token))
+                {
+                    try {
+                        var req = (HttpWebRequest)WebRequest.Create(string.Format("http://127.0.0.1:{0}/v1/shutdown", s_controllerPort));
+                        req.Method = "POST";
+                        req.Headers.Add("X-Courier-Token", s_token);
+                        req.Timeout = 3000;
+                        req.ContentLength = 0;
+                        using (var res = (HttpWebResponse)req.GetResponse()) { }
+                        Thread.Sleep(2000);
+                    } catch { }
+                }
+            }
             return true;
         }
 
@@ -184,7 +202,9 @@ namespace CourierLauncher
                 token = File.ReadAllText(tokenPath).Trim();
             }
 
-            
+            s_controllerPort = cp;
+            s_token = token;
+
             bool createdNew;
             using (Mutex singleInstanceMutex = new Mutex(true, "Local\\CourierLauncherMutex", out createdNew))
             {
