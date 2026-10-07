@@ -1,12 +1,26 @@
-import os
-import pytest
-import subprocess
-import time
-import shutil
-import urllib.request
 import json
-import signal
+import os
+import re
+import sqlite3
+import subprocess
+import sys
+import time
+import urllib.request
 from pathlib import Path
+
+import psutil
+import pytest
+
+GOLDEN_DIR = Path(__file__).resolve().parent / "golden"
+sys.path.insert(0, str(GOLDEN_DIR))
+from golden_harness import Courier, descendants, pids_alive  # noqa: E402
+
+UNINSTALL_SCRIPT = Path("scripts/windows_worker/uninstall.ps1")
+# Live uninstall.ps1 is not executed. It requires Administrator and edits
+# machine-wide state: the CourierWindowsWorker scheduled task, Program Files,
+# and config/run under every profile in C:\Users. Rule 0 step 12 is checked
+# by parsing that script. A live run on a clean machine remains unproven.
+
 
 @pytest.fixture(autouse=True)
 def restore_courier_exe():
@@ -17,6 +31,159 @@ def restore_courier_exe():
         except Exception:
             pass
 
+
+def _powershell_remove_targets(script: str) -> list[str]:
+    """Inline simple ``$var = ...`` assignments into Remove-Item targets.
+
+    This is a parse of the script text. It does not execute PowerShell.
+    """
+    assigns = {}
+    for raw in script.splitlines():
+        line = raw.split("#", 1)[0].strip()
+        match = re.match(r"\$(\w+)\s*=\s*(.+)$", line)
+        if match:
+            assigns[match.group(1)] = match.group(2).strip()
+    targets = []
+    for match in re.finditer(r"Remove-Item\b([^\r\n]*)", script):
+        args = match.group(1).split("#", 1)[0]
+        for token in args.split():
+            if token.startswith("-"):
+                continue
+            token = token.strip("{}")
+            if not token or token in {"|"}:
+                continue
+            if token.startswith("$") and token[1:] in assigns:
+                targets.append(assigns[token[1:]])
+            else:
+                targets.append(token)
+    return targets
+
+
+def assert_uninstall_preserves_user_data(script: str) -> None:
+    """Rule 0 step 12: remove program files, config and run; keep the journal and logs."""
+    targets = _powershell_remove_targets(script)
+    rendered = "\n".join(targets)
+    assert any("ProgramFiles" in target and "CourierWorker" in target for target in targets), rendered
+    assert any("config.json" in target for target in targets), rendered
+    assert any(re.search(r"""['"]run['"]""", target) for target in targets), rendered
+    for preserved in ("courier.db", "logs"):
+        assert not any(preserved in target.lower() for target in targets), rendered
+    # The per-user Courier directory itself is user data. Only config and run go.
+    assert not any(target.rstrip('"').endswith("\\Courier") for target in targets), rendered
+    assert "Database and logs" in script
+    assert "preserved" in script.lower()
+
+
+def test_uninstall_preserves_journal_and_logs_contract():
+    """Parse-level Rule 0 uninstall contract. See UNINSTALL_SCRIPT note above."""
+    script = UNINSTALL_SCRIPT.read_text(encoding="utf-8")
+    assert_uninstall_preserves_user_data(script)
+
+
+def test_uninstall_contract_rejects_deleting_the_journal():
+    script = UNINSTALL_SCRIPT.read_text(encoding="utf-8")
+    for extra in (
+        'Remove-Item -Force (Join-Path $userCourierDir "courier.db")\n',
+        'Remove-Item -Recurse -Force (Join-Path $userCourierDir "logs")\n',
+    ):
+        with pytest.raises(AssertionError):
+            assert_uninstall_preserves_user_data(script + extra)
+
+
+def _courier_tree(root_pid):
+    """The root pid plus Courier-owned descendants. The hub browser is left out."""
+    owned = []
+    for pid in [root_pid, *descendants(root_pid)]:
+        try:
+            proc = psutil.Process(pid)
+            name = (proc.name() or "").lower()
+            try:
+                cmd = " ".join(proc.cmdline()).lower()
+            except psutil.Error:
+                cmd = ""
+        except psutil.Error:
+            continue
+        if pid == root_pid or "courier" in name or "courier" in cmd or name.startswith("python"):
+            owned.append(pid)
+    return owned
+
+
+def _offending_pids(home: Path, tracked):
+    """Tracked pids still alive, plus any process whose command line uses this home."""
+    offenders = set(pids_alive(tracked))
+    needle = str(home).lower()
+    me = os.getpid()
+    for proc in psutil.process_iter(["pid", "cmdline"]):
+        pid = proc.info["pid"]
+        if pid == me or pid in offenders:
+            continue
+        try:
+            cmd = " ".join(proc.info["cmdline"] or [])
+        except (psutil.Error, TypeError):
+            continue
+        if needle and needle in cmd.lower():
+            offenders.add(pid)
+    return sorted(offenders)
+
+
+def _assert_no_orphan_courier_processes(home: Path, tracked, timeout=15):
+    """Rule 0 step 7: after Courier closes, none of its processes remain."""
+    deadline = time.monotonic() + timeout
+    offenders = _offending_pids(home, tracked)
+    while offenders and time.monotonic() < deadline:
+        time.sleep(0.25)
+        offenders = _offending_pids(home, tracked)
+    assert offenders == [], f"orphan Courier processes still alive: {offenders}"
+
+
+def _checkpoint_journal(home: Path):
+    """Recover a hard-killed WAL so the read-only golden helpers can open it.
+
+    A read-only open cannot replay a WAL left by taskkill. Checkpointing only
+    folds already-committed pages; it does not append a journal event.
+    """
+    db = home / "courier.db"
+    if not db.is_file():
+        raise AssertionError(f"missing journal: {db}")
+    last_error = None
+    for _ in range(5):
+        try:
+            conn = sqlite3.connect(str(db), timeout=5)
+            try:
+                conn.execute("PRAGMA wal_checkpoint(FULL)")
+            finally:
+                conn.close()
+            return
+        except sqlite3.OperationalError as exc:
+            last_error = exc
+            time.sleep(0.5)
+    raise AssertionError(f"could not checkpoint journal after close: {last_error}")
+
+
+def _assert_replay_matches_live(home: Path, workdir: Path):
+    """Rule 0 step 10: rebuild of the journal matches the live projection."""
+    workdir.mkdir(parents=True, exist_ok=True)
+    logs = workdir / "logs"
+    logs.mkdir(exist_ok=True)
+    reader = Courier(home, logs)
+    last_error = None
+    live = report = copy_hash = rebuilt_hash = None
+    for _ in range(5):
+        try:
+            live = reader.projection_hash()
+            report, copy_hash, rebuilt_hash = reader.verify_and_rebuild(workdir)
+            break
+        except sqlite3.OperationalError as exc:
+            last_error = exc
+            time.sleep(0.5)
+    else:
+        raise AssertionError(f"journal stayed locked during replay: {last_error}")
+    assert report.ok, report
+    assert copy_hash == live, (copy_hash, live)
+    assert rebuilt_hash == live, (rebuilt_hash, live)
+    return live
+
+
 @pytest.mark.skipif(os.name != 'nt', reason="Windows specific clean-machine harness")
 def test_win_clean_machine_harness(tmp_path):
     """
@@ -26,11 +193,10 @@ def test_win_clean_machine_harness(tmp_path):
     - single instance
     - Hub/controller startup
     - synthetic work execution
-    - shutdown & restart
-    - clean uninstall
+    - shutdown leaves no orphan Courier processes (Rule 0 step 7)
+    - restart, and replay/rebuild hash equals the live projection (Rule 0 step 10)
+    - user data the uninstall contract preserves is actually on disk (Rule 0 step 12)
     """
-    state_dir = tmp_path / "Courier"
-    
     # 1. Fresh install & first launch
     build_script = Path("scripts/windows_worker/launcher/build_launcher.ps1").resolve()
     if build_script.exists():
@@ -54,6 +220,8 @@ def test_win_clean_machine_harness(tmp_path):
         "COURIER_CONTROLLER_PORT": 8800,
         "COURIER_HUB_PORT": 8801
     }))
+
+    owned_pids = []
 
     # 0x01000000 is CREATE_BREAKAWAY_FROM_JOB
     try:
@@ -164,6 +332,8 @@ def test_win_clean_machine_harness(tmp_path):
                     print(f"File {p.name} read error: {e}")
         
         assert worker_pid is not None, "Could not find worker_pid from claims"
+        # Record the worker tree before the crash injection. Close must not leave it behind.
+        owned_pids.extend(_courier_tree(worker_pid))
         subprocess.run(["taskkill", "/F", "/PID", str(worker_pid)], check=False)
         
         # Wait for blocked task to be blocked (lease expiration takes 6s)
@@ -193,8 +363,15 @@ def test_win_clean_machine_harness(tmp_path):
         wait_for(blocked_id, "COMPLETE")
 
     finally:
+        owned_pids.extend(_courier_tree(launcher.pid))
         subprocess.run(["taskkill", "/T", "/F", "/PID", str(launcher.pid)], check=False)
         launcher.wait(10)
+
+    # Rule 0 step 7 — close leaves no Courier processes.
+    _assert_no_orphan_courier_processes(courier_dir, owned_pids)
+    # Frozen journal after close replays to the same projection.
+    _checkpoint_journal(courier_dir)
+    _assert_replay_matches_live(courier_dir, tmp_path / "replay-after-close")
 
     # 4. Restart and Replay
     # 0x01000000 is CREATE_BREAKAWAY_FROM_JOB
@@ -205,6 +382,7 @@ def test_win_clean_machine_harness(tmp_path):
             launcher2 = subprocess.Popen([str(launcher_exe)], env=env, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
         else:
             raise
+    restart_pids = []
     try:
         start_time = time.monotonic()
         while time.monotonic() - start_time < 30:
@@ -230,13 +408,22 @@ def test_win_clean_machine_harness(tmp_path):
 
         # Check that no worker lock exists from old process, wait for worker to boot up
         time.sleep(2)
-        
+        # Rule 0 step 10 — after restart, replay/rebuild equals the live projection.
+        # An in-flight lease may journal LEASE_EXPIRED during restart grace, so this
+        # compares rebuild to the live projection at this moment, not to the pre-close hash.
+        _assert_replay_matches_live(courier_dir, tmp_path / "replay-after-restart")
+
     finally:
+        restart_pids.extend(_courier_tree(launcher2.pid))
         subprocess.run(["taskkill", "/T", "/F", "/PID", str(launcher2.pid)], check=False)
         launcher2.wait(10)
 
-    # 6. Clean uninstall
-    if courier_dir.exists():
-        # wait a bit for file handles to close
-        time.sleep(2)
-        shutil.rmtree(courier_dir, ignore_errors=True)
+    _assert_no_orphan_courier_processes(courier_dir, restart_pids)
+
+    # Rule 0 step 12 — the run produced the user data uninstall must keep.
+    # The script itself is not executed here (see the module note).
+    assert (courier_dir / "courier.db").is_file()
+    assert (courier_dir / "logs").is_dir()
+    assert (courier_dir / "config.json").is_file()
+    assert (courier_dir / "run").is_dir()
+    assert_uninstall_preserves_user_data(UNINSTALL_SCRIPT.read_text(encoding="utf-8"))
