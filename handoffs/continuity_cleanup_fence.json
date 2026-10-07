@@ -2,20 +2,35 @@
   "WORKKEY": "CONTINUITY-CLEANUP-FENCE",
   "OWNER": "codex-cloud",
   "BRANCH": "codex/continuity-cleanup-fence",
-  "HEAD/COMMIT": "b9fc486ac9bb99c8d2983622a3876a6deb9b6839",
-  "CURRENT_STATE": "CLAIMED",
+  "HEAD/COMMIT": "b01d6c3ec76731d8ebac082e406d09c9bea886f9",
+  "CURRENT_STATE": "PARTIAL",
   "MUTABLE_SCOPE": "courier_runtime.continuity.Kirby successor launch when cleanup is unproven",
   "FILES": [
     "courier_runtime/continuity.py",
     "tests/test_runtime_continuity.py",
     "handoffs/continuity_cleanup_fence.json"
   ],
-  "TEST_EVIDENCE": [],
-  "UNPROVEN": [
-    "regression reproduction",
-    "fix",
-    "targeted verification"
+  "TEST_EVIDENCE": [
+    {
+      "command": ".venv/bin/python -m pytest -q tests/test_runtime_continuity.py tests/test_provider_events.py tests/test_host_loop.py --timeout=30",
+      "passed": 48,
+      "failed": 0,
+      "skipped": 0,
+      "platform": "Linux",
+      "seconds": 0.34
+    },
+    {
+      "command": "git diff --check",
+      "exit_status": 0
+    }
   ],
-  "NEXT_EXACT_ACTION": "Prove orphan cleanup currently launches a duplicate successor; fence recovery before side effects.",
-  "OWNERSHIP_EVIDENCE": "23 open PRs #132-#154 fetched; no changes to selected files; historical Muse hostloop branch is ancestor of integration."
+  "UNPROVEN": [
+    "PR creation: api.github.com denied by egress proxy",
+    "remote CI",
+    "Windows-native execution",
+    "external reconciliation of blocked uncertain recovery"
+  ],
+  "NEXT_EXACT_ACTION": "After network activation, create PR into integration/v1; review fail-closed RECOVERY_BLOCKED behavior. Do not repeat unchanged 48-test proof.",
+  "OWNERSHIP_EVIDENCE": "23 open PRs #132-#154 fetched; no changes to selected files; historical Muse hostloop branch is ancestor of integration.",
+  "OWNERSHIP_STATE": "IMPLEMENTATION_COMPLETE_REVIEW_PENDING"
 }
