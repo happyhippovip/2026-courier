@@ -8,7 +8,8 @@ import sys
 import time
 from typing import Optional
 
-from runtime_state import capture_process_identity, cleanup_group, identity_matches, process_group_stopped
+from runtime_state import (capture_process_identity, cleanup_group, cleanup_identity_authority,
+                           identity_matches, process_group_stopped)
 
 _MAX_CLEANUP_ROUNDS = 5
 _ROUND_SLEEP_S = 0.1
@@ -64,7 +65,7 @@ class SupervisorTestReaper:
         for _ in range(_MAX_CLEANUP_ROUNDS):
             if identity is None:
                 return False, "missing spawn identity"
-            if not identity_matches(proc.pid, identity):
+            if not cleanup_identity_authority(proc.pid, identity):
                 return False, "identity no longer matches (fail closed)"
             if cleanup_group(proc, identity):
                 proc.wait(timeout=5)

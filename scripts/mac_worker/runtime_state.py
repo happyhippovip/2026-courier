@@ -165,6 +165,20 @@ def fingerprints_match(pid, identity):
 
 
 def identity_matches(pid, identity):
+    """True only when the recorded pid is live and still matches pgid+fingerprint."""
+    if not identity or int(identity.get("pid", -1)) != int(pid):
+        return False
+    try:
+        os.kill(int(pid), 0)
+    except ProcessLookupError:
+        return False
+    except OSError:
+        return False
+    return fingerprints_match(pid, identity)
+
+
+def cleanup_identity_authority(pid, identity):
+    """True when we may signal the recorded session group (including after leader exit)."""
     if not identity or int(identity.get("pid", -1)) != int(pid):
         return False
     try:
@@ -173,7 +187,6 @@ def identity_matches(pid, identity):
         pgid = identity.get("pgid")
         if pgid is None:
             return False
-        # Recorded leader exited; keep authority to signal the session group.
         if int(identity.get("pid", -1)) == int(pid):
             return True
         return not group_exists(pgid)
@@ -273,7 +286,7 @@ def _authorized(proc, identity):
         return False
     if proc.poll() is not None and int(identity.get("pid", -1)) == int(proc.pid):
         return True
-    return identity_matches(proc.pid, identity)
+    return cleanup_identity_authority(proc.pid, identity)
 
 
 def cleanup_group(proc, identity, grace=_CLEANUP_ROUND_GRACE_S):
@@ -294,7 +307,7 @@ def cleanup_group(proc, identity, grace=_CLEANUP_ROUND_GRACE_S):
             _reap_direct(proc, 0)
             return True
         if identity is not None and proc.poll() is not None:
-            if not identity_matches(proc.pid, identity) and not _owned_unreaped_session(proc):
+            if not cleanup_identity_authority(proc.pid, identity) and not _owned_unreaped_session(proc):
                 return False
         for sig in (signal.SIGTERM, signal.SIGKILL):
             if gone():

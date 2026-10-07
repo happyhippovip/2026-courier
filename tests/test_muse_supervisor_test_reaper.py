@@ -145,6 +145,16 @@ def test_launcher_b_terminates_group_spawned_by_launcher_a(rt):
     proc.wait(timeout=5)
 
 
+def test_identity_matches_false_when_recorded_pid_is_dead(rt):
+    """N1: liveness checks must not treat a dead leader as still owned."""
+    proc = subprocess.Popen([sys.executable, "-c", "pass"], stdin=subprocess.DEVNULL, start_new_session=True)
+    ident = rt.capture_process_identity(proc)
+    pid = proc.pid
+    proc.wait(timeout=5)
+    assert rt.identity_matches(pid, ident) is False
+    assert rt.cleanup_identity_authority(pid, ident) is True
+
+
 def test_identity_matches_rejects_fake_fingerprint_on_live_leader(rt):
     """F3: captured_at_spawn does not bypass fingerprint mismatch."""
     foreign = subprocess.Popen(SLEEPER, stdin=subprocess.DEVNULL, start_new_session=True)

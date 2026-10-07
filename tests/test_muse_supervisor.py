@@ -8,6 +8,7 @@ no Mac: nothing here is physical proof.
 import importlib.util
 import json
 import os
+import subprocess
 import sys
 import threading
 import time
@@ -319,6 +320,33 @@ def test_four_slots_are_isolated(env):
     cwds = {c["cwd"] for c in muse_calls(tmp)}
     assert len(cwds) == 4 and len(muse_calls(tmp)) == 4
     sup.cmd_stop()
+
+
+def test_tick_exits_running_slot_when_recorded_pid_is_dead(env):
+    """N1: dead pid with stale identity must not keep the slot RUNNING forever."""
+    sup, _, _, _, _ = env
+    proc = subprocess.Popen([sys.executable, "-c", "pass"], stdin=subprocess.DEVNULL, start_new_session=True)
+    sys.path.insert(0, str(ROOT / "scripts" / "mac_worker"))
+    rt = importlib.import_module("runtime_state")
+    ident = rt.capture_process_identity(proc)
+    pid = str(proc.pid)
+    proc.wait(timeout=5)
+    slots = sup.load_slots()
+    slots["01"] = {
+        "slot_id": "01",
+        "state": "RUNNING",
+        "pid": pid,
+        "process_identity": ident,
+        "last_started_at": time.time() - 120,
+        "restart_count": 0,
+        "crash_count": 0,
+        "backoff_until": 0,
+    }
+    sup.save_slots(slots)
+    s = supervisor(sup, target=1)
+    s._tick(s.gov.evaluate("read"))
+    assert sup.load_slots()["01"]["state"] != "RUNNING"
+    assert sup.load_slots()["01"].get("pid") == ""
 
 
 def test_owned_popen_stops_when_ps_identity_is_missing(env, monkeypatch):
