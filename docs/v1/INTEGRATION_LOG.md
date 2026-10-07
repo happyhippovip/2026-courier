@@ -536,3 +536,19 @@ adapter / verifier → live golden path.
 | Overall, CI | Windows `bash_is_wsl` issues fixed and removed from `known_failures.json`. `setpgrp` correctly omitted on Windows in physical runner. |
 
 **After step 12.** The core V1 architecture (L2 Controller, L3 Worker Host, L4 Verifier) is cleanly integrated and fully proven against the exact-head live Golden verification suite. We officially hand over to the Desktop Hub milestone (`DESKTOP HUB` -> `WINDOWS EXE`).
+
+## Step 13 — PR #104, L6 Windows Launcher & PR #93, Clean-Machine Acceptance
+### `integration/v1` merged `lane/L6-windows-packaging` and clean machine harness
+
+- Merged the native Windows C# Launcher with Job Object containment (`Courier.exe`), solving orphan processes and single-instance guards.
+- Implemented zero-dependency Windows package generation and PowerShell installers (`install.ps1`, `uninstall.ps1`).
+- Clean-Machine Acceptance tests integrated and proven on Windows runner, enforcing the V1 clean-machine lifecycle.
+
+## Step 14 — PR #111, L5 Desktop Hub Overlay
+### `integration/v1` merged `lane/L5-overlay`
+
+- Implemented the transparent Desktop Robot Overlay (`courier_overlay`) driven by the event bus.
+- Synchronized Hub execution to optionally run with `--with-overlay` providing live desktop robot visualizations of active tasks.
+- Resolved integration tests for `TkinterRenderer` and `OverlayStateMachine`.
+
+**After step 14.** The locked V1 route is fully merged: ACTIVE LEDGER -> RELIABLE AUTOMATION -> GOLDEN PATH -> DESKTOP HUB -> WINDOWS EXE -> CLEAN-MACHINE ACCEPTANCE -> REAL ADAPTERS -> DESKTOP ROBOT OVERLAY.
