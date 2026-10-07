@@ -34,13 +34,25 @@ Any local fallback must be bounded:
 - stop after 20 seconds;
 - never scan `.git`, build artifacts, caches, dependency/vendor trees, generated outputs, logs, or unrelated worktrees.
 
-## Stuck-task rule
+## Running grep = immediate termination
 
-If a grep-family command is already running:
-- stop/cancel that command;
-- do not retry it with broader flags;
+If ANY grep-family command is already running, including a task shown in Antigravity such as:
+
+`grep -ri "EXTENDED INTEGRATIONS..."`
+
+then this is an ACTIVE BLOCKER and must be terminated immediately.
+
+Required behavior:
+- actively STOP/CANCEL/TERMINATE the running grep-family task;
+- do not wait for it to finish naturally;
+- do not merely ignore it;
+- do not leave it visible as "task running";
+- do not retry it with other flags;
 - do not queue another grep-family replacement;
-- switch immediately to indexed/code search or a bounded tracked-file fallback.
+- verify that the grep-family task is no longer running;
+- then continue the same logical work using indexed/code search, direct file reads, GitHub APIs, or another bounded non-grep method.
+
+A running grep-family task is not a valid reason to stall Courier work.
 
 ## Scope
 
