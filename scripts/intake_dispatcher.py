@@ -1,3 +1,4 @@
+import contextlib
 import hashlib
 import json
 import sys
@@ -24,6 +25,50 @@ INTAKE_DISPATCH_GRACE_SECONDS = 300
 
 ADMISSION_DISPATCHING = "DISPATCHING"
 ADMISSION_ADMITTED = "ADMITTED"
+
+
+@contextlib.contextmanager
+def _central_state_locked(state_file):
+    """Exclusive cross-process lock for one central-state read-modify-write.
+
+    save_central_state is atomic (tmp+replace) but two interleaved writers
+    still lose updates: each saves a stale base. Hold this across
+    load -> mutate -> save, and re-load under it before a final save that
+    follows a slow external call. Blocking acquire: a crashed holder's OS
+    lock dies with it, and dispatches are rare enough that waiting beats
+    dropping a record. Same fcntl/msvcrt pattern as the worker home lock.
+    """
+    lock_path = state_file + ".lock"
+    fd = os.open(lock_path, os.O_RDWR | os.O_CREAT, 0o600)
+    try:
+        if os.name == "nt":
+            import msvcrt
+            msvcrt.locking(fd, msvcrt.LK_LOCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(fd, fcntl.LOCK_EX)
+        yield
+    finally:
+        try:
+            if os.name == "nt":
+                import msvcrt
+                msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(fd, fcntl.LOCK_UN)
+        finally:
+            os.close(fd)
+
+
+def _load_or_exit(state_file):
+    """Load or fail closed (never reset-and-overwrite)."""
+    try:
+        return load_central_state(state_file)
+    except (ValueError, OSError) as e:
+        # Never silently wipe every recorded task; queue_processor treats
+        # SystemExit as retryable, so the intake stays pending.
+        print(f"Refusing dispatch record: unreadable {state_file}: {e}")
+        sys.exit(1)
 
 
 def _parse_created_at(value):
@@ -100,52 +145,68 @@ def dispatch_intake(intake_file):
         "-f", f"delivery_destination={intake.get('delivery_destination', 'none')}"
     ]
 
-    # Update Central State
+    # Update Central State. Every load -> mutate -> save runs under the
+    # central-state lock: concurrent writers otherwise save stale bases and
+    # lose each other's records (and share one tmp name). Slow external
+    # calls stay outside the lock; the final save re-loads under it and
+    # verifies our marker is still current before merging.
     state_file = 'central_state.json'
-    try:
-        state = load_central_state(state_file)
-    except (ValueError, OSError) as e:
-        # Fail closed: never reset-and-overwrite (that would silently wipe
-        # every recorded task) and never record this dispatch. queue_processor
-        # treats SystemExit as retryable, so the intake stays pending.
-        print(f"Refusing dispatch record: unreadable {state_file}: {e}")
-        sys.exit(1)
+    with _central_state_locked(state_file):
+        state = _load_or_exit(state_file)
+        existing = state["tasks"].get(task_id)
+        if existing is not None and existing.get(
+                "admission", ADMISSION_ADMITTED) == ADMISSION_ADMITTED:
+            print(f"Task {task_id} already admitted; skipping re-dispatch")
+            return task_id
+        if (existing is not None
+                and existing.get("admission") == ADMISSION_DISPATCHING
+                and time.time() - existing.get("dispatched_at", 0)
+                < INTAKE_DISPATCH_GRACE_SECONDS):
+            # Fresh marker: a dispatch may already be in flight. Adopt its run
+            # if exactly one is visible, else stay pending for a later retry.
+            # The (slow) resolve runs outside the lock; the marker snapshot
+            # is re-verified before the adopt is recorded.
+            snapshot = dict(existing)
+            decision = "adopt"
+        else:
+            # Fresh admission or stale marker: record DISPATCHING *before* the
+            # external call so recovery can adopt instead of blind re-dispatch.
+            # A stale marker means the old attempt is dead; exactly one new
+            # dispatch replaces it.
+            dispatch_start = time.time()
+            state["tasks"][task_id] = {
+                "task_id": task_id,
+                "customer_reference": intake.get('customer_reference'),
+                "admission": ADMISSION_DISPATCHING,
+                "dispatched_at": dispatch_start,
+            }
+            save_central_state(state_file, state)
+            decision = "dispatch"
 
-    existing = state["tasks"].get(task_id)
-    if existing is not None and existing.get(
-            "admission", ADMISSION_ADMITTED) == ADMISSION_ADMITTED:
-        print(f"Task {task_id} already admitted; skipping re-dispatch")
-        return task_id
-    if (existing is not None
-            and existing.get("admission") == ADMISSION_DISPATCHING
-            and time.time() - existing.get("dispatched_at", 0)
-            < INTAKE_DISPATCH_GRACE_SECONDS):
-        # Fresh marker: a dispatch may already be in flight. Adopt its run
-        # if exactly one is visible, else stay pending for a later retry.
+    if decision == "adopt":
         adopted = resolve_execution_ref(
-            "revenue_v1_baseline.yml", existing["dispatched_at"])
+            "revenue_v1_baseline.yml", snapshot["dispatched_at"])
         if adopted is None:
             print(f"No run yet for {task_id}; leaving DISPATCHING for retry")
             sys.exit(1)
-        existing["execution_ref"] = adopted
-        existing["admission"] = ADMISSION_ADMITTED
-        existing["last_transition"] = "AUTOMATIC_ADOPT"
-        save_central_state(state_file, state)
+        with _central_state_locked(state_file):
+            state = _load_or_exit(state_file)
+            current = state["tasks"].get(task_id)
+            if current is not None and current.get(
+                    "admission", ADMISSION_ADMITTED) == ADMISSION_ADMITTED:
+                print(f"Task {task_id} admitted while adopting; skipping re-dispatch")
+                return task_id
+            if (current is None or current.get("admission") != ADMISSION_DISPATCHING
+                    or current.get("dispatched_at") != snapshot["dispatched_at"]):
+                print(f"Marker for {task_id} changed during adopt; leaving for retry")
+                sys.exit(1)
+            current["execution_ref"] = adopted
+            current["admission"] = ADMISSION_ADMITTED
+            current["last_transition"] = "AUTOMATIC_ADOPT"
+            save_central_state(state_file, state)
         print(f"Adopted run {adopted} for {task_id}")
         return task_id
 
-    # Fresh admission or stale marker: record DISPATCHING *before* the
-    # external call so recovery can adopt instead of blind re-dispatch.
-    # A stale marker means the old attempt is dead; exactly one new
-    # dispatch replaces it.
-    dispatch_start = time.time()
-    state["tasks"][task_id] = {
-        "task_id": task_id,
-        "customer_reference": intake.get('customer_reference'),
-        "admission": ADMISSION_DISPATCHING,
-        "dispatched_at": dispatch_start,
-    }
-    save_central_state(state_file, state)
     try:
         subprocess.run(cmd, check=True, capture_output=True, text=True)
         print(f"Successfully dispatched to GitHub Actions worker.")
@@ -160,22 +221,34 @@ def dispatch_intake(intake_file):
     execution_ref = resolve_execution_ref(
         "revenue_v1_baseline.yml", dispatch_start) or UNBOUND_EXECUTION_REF
 
-    state["tasks"][task_id] = {
-        "task_id": task_id,
-        "customer_reference": intake['customer_reference'],
-        "worker_id": "github-actions-revenue-v1",
-        "platform": "github",
-        "dispatch_ref": "intake_dispatcher_local",
-        "execution_ref": execution_ref,
-        "admission": ADMISSION_ADMITTED,
-        "dispatched_at": dispatch_start,
-        "state": "DISPATCHED_TO_EXTERNAL",
-        "last_transition": "AUTOMATIC_DISPATCH",
-        "next_explicit_transition": "WAIT_FOR_GITHUB_PR",
-        "real_wall": "HUMAN_REVIEW_REQUIRED_ON_PR"
-    }
-
-    save_central_state(state_file, state)
+    with _central_state_locked(state_file):
+        state = _load_or_exit(state_file)
+        current = state["tasks"].get(task_id)
+        if current is not None and current.get(
+                "admission", ADMISSION_ADMITTED) == ADMISSION_ADMITTED \
+                and current.get("dispatched_at") != dispatch_start:
+            print(f"Task {task_id} admitted by a concurrent actor; keeping its record")
+            return task_id
+        if current is None or current.get("dispatched_at") != dispatch_start:
+            # Defensive: only this call writes our marker, so a mismatch means
+            # an unexpected writer. Never clobber it; stay pending for retry.
+            print(f"Marker for {task_id} superseded during dispatch; leaving for retry")
+            sys.exit(1)
+        state["tasks"][task_id] = {
+            "task_id": task_id,
+            "customer_reference": intake['customer_reference'],
+            "worker_id": "github-actions-revenue-v1",
+            "platform": "github",
+            "dispatch_ref": "intake_dispatcher_local",
+            "execution_ref": execution_ref,
+            "admission": ADMISSION_ADMITTED,
+            "dispatched_at": dispatch_start,
+            "state": "DISPATCHED_TO_EXTERNAL",
+            "last_transition": "AUTOMATIC_DISPATCH",
+            "next_explicit_transition": "WAIT_FOR_GITHUB_PR",
+            "real_wall": "HUMAN_REVIEW_REQUIRED_ON_PR"
+        }
+        save_central_state(state_file, state)
 
     print(f"Central state updated. System chain fully connected for intake -> execution -> PR.")
     return task_id
