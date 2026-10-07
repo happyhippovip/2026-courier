@@ -159,7 +159,7 @@ def test_unproven_cleanup_never_launches_successor(tmp_path, receipt):
     assert restored.reconcile_after_restart() == {"s1": "RECOVERY_BLOCKED"}
     assert restored.wake("s1") == "COALESCED"
     assert restored.deliver("s1") is None
-    assert restored.user_state() == "RECOVERING"
+    assert restored.user_state() == "NEEDS YOU"
     assert len(world.started) == 1
 
 
@@ -207,6 +207,152 @@ def test_checkpoint_sync_failure_prevents_cleanup_and_launch(tmp_path, monkeypat
     assert world.terminated == []
     assert len(world.started) == 1
     assert list(tmp_path.glob(".kirby.*")) == []
+
+
+def fenced_kirby(tmp_path):
+    k, _, world = kirby(tmp_path)
+    k.add_workkeys(["W1"])
+    k.open_slot("s1", "muse")
+    k.wake("s1")
+    k.deliver("s1")
+    k.terminate = lambda s: {"result": "ORPHANS_REMAIN", "still_alive": [2000]}
+    k.rotate("s1", "context pressure", checkpoint="accepted-step-8")
+    return k, world
+
+
+def recovery_proof(context):
+    return {"session_id": context["session"]["session_id"], "token": context["session"]["token"],
+            "workkey": context["workkey"]["key"] if context["workkey"] else "",
+            "cleanup": "STOPPED", "still_alive": [],
+            "resume_safe": True, "evidence": ["accepted-reconciliation-8"]}
+
+
+def test_fenced_slot_repeat_blocks_have_complete_audit_receipts(tmp_path):
+    k, world = fenced_kirby(tmp_path)
+    k.rotate("s1", "repeat one")
+    k.recover("s1", "repeat two")
+    receipts = [json.loads(line) for line in (tmp_path / "recovery_receipts.jsonl").read_text().splitlines()]
+    assert len(receipts) == 3
+    assert all(set(r) == set(receipts[0]) for r in receipts)
+    assert [r["cleanup"] for r in receipts] == ["ORPHANS_REMAIN", "ALREADY_FENCED", "ALREADY_FENCED"]
+    assert len(world.started) == 1
+
+
+@pytest.mark.parametrize("invalid", [
+    {"cleanup": "ORPHANS_REMAIN"}, {"still_alive": [2000]}, {"resume_safe": False},
+    {"token": 999}, {"token": True}, {"session_id": "foreign"},
+    {"workkey": "other"}, {"evidence": []}, {"evidence": [""]},
+])
+def test_recovery_resolution_rejects_unbound_or_uncertain_proof(tmp_path, invalid):
+    k, world = fenced_kirby(tmp_path)
+    old = k.sessions["s1"]
+    k.authorize_recovery = lambda context: True
+    k.reconcile_recovery = lambda context: {**recovery_proof(context), **invalid}
+    result = k.resolve_recovery("s1", session_id=old.session_id, token=old.token, actor="operator")
+    assert result["action"] == "RECOVERY_BLOCKED"
+    assert len(world.started) == 1
+    assert k.deliver("s1") is None
+
+
+def test_recovery_resolution_requires_current_authority(tmp_path):
+    k, world = fenced_kirby(tmp_path)
+    old = k.sessions["s1"]
+    k.reconcile_recovery = lambda context: pytest.fail("no reconciliation without authority")
+    result = k.resolve_recovery("s1", session_id=old.session_id, token=old.token, actor="operator")
+    assert result["cleanup"] == "UNAUTHORIZED"
+    assert len(world.started) == 1
+
+
+def test_recovery_resolution_resumes_once_from_verified_checkpoint(tmp_path):
+    k, world = fenced_kirby(tmp_path)
+    old = k.sessions["s1"]
+    k.authorize_recovery = lambda context: context["actor"] == "operator"
+
+    def reconcile(context):
+        world.alive.clear()  # independently confirmed no owned predecessor/successor survives
+        return recovery_proof(context)
+
+    k.reconcile_recovery = reconcile
+    result = k.resolve_recovery("s1", session_id=old.session_id, token=old.token, actor="operator")
+    assert result["cleanup"] == "RECONCILED"
+    assert result["actor"] == "operator" and result["evidence"] == ["accepted-reconciliation-8"]
+    assert len(world.started) == 2
+    assert k.sessions["s1"].state == WAKE_PENDING
+    assert k.workkeys["W1"].owner == k.sessions["s1"].session_id
+    assert k.workkeys["W1"].checkpoint == "accepted-step-8"
+    assert k.resolve_recovery("s1", session_id=old.session_id, token=old.token,
+                              actor="operator") == "REJECTED_STALE_WRITER"
+    assert len(world.started) == 2
+
+
+def test_recovery_resolution_rechecks_fence_after_hooks(tmp_path):
+    k, world = fenced_kirby(tmp_path)
+    old = k.sessions["s1"]
+    k.authorize_recovery = lambda context: True
+
+    def reconcile(context):
+        k.workkeys["W1"].token += 1  # ownership changed while reconciliation was in progress
+        return recovery_proof(context)
+
+    k.reconcile_recovery = reconcile
+    assert k.resolve_recovery("s1", session_id=old.session_id, token=old.token,
+                              actor="operator") == "REJECTED_STALE_WRITER"
+    assert len(world.started) == 1
+
+
+def test_recovery_authority_uses_existing_broker_and_revocation(tmp_path):
+    from courier_runtime.grants import Broker, Request
+
+    k, world = fenced_kirby(tmp_path)
+    old = k.sessions["s1"]
+    broker = Broker(k.clock)
+    request = Request("reconcile-s1", "courier", "reconcile_recovery",
+                      frozenset({"session:" + old.session_id, "workkey:W1"}),
+                      k.host, old.provider, "project", "control", "non_idempotent")
+    broker.authorize(request)
+    broker.grant(request, "recovery-grant", expires_at=k.clock() + 60, granted_by="operator")
+
+    def authorize(context):
+        grant, _, _ = broker.authorize(request)
+        return grant is not None and grant.granted_by == context["actor"]
+
+    k.authorize_recovery = authorize
+    k.reconcile_recovery = lambda context: pytest.fail("revoked grants must prevent reconciliation")
+    broker.revoke("recovery-grant")
+    result = k.resolve_recovery("s1", session_id=old.session_id, token=old.token, actor="operator")
+    assert result["cleanup"] == "UNAUTHORIZED"
+    assert len(world.started) == 1
+
+
+def test_recovery_authority_is_not_restored_from_checkpoint(tmp_path):
+    k, world = fenced_kirby(tmp_path)
+    k.authorize_recovery = lambda context: True
+    k.reconcile_recovery = recovery_proof
+    old = k.sessions["s1"]
+    restored = Kirby(tmp_path / "kirby.json", "mac-1", start_session=world.start)
+    result = restored.resolve_recovery("s1", session_id=old.session_id, token=old.token, actor="operator")
+    assert result["cleanup"] == "UNAUTHORIZED"
+    assert len(world.started) == 1
+
+
+def test_recovery_resolution_of_idle_slot_does_not_invent_work(tmp_path):
+    k, _, world = kirby(tmp_path)
+    old = k.open_slot("s1", "muse")
+    k.terminate = lambda s: {"result": "ORPHANS_REMAIN", "still_alive": [2000]}
+    k.rotate("s1", "idle context pressure")
+    k.authorize_recovery = lambda context: True
+
+    def reconcile(context):
+        assert context["workkey"] is None
+        world.alive.clear()
+        return recovery_proof(context)
+
+    k.reconcile_recovery = reconcile
+    result = k.resolve_recovery("s1", session_id=old.session_id, token=old.token, actor="operator")
+    assert result["cleanup"] == "RECONCILED"
+    assert len(world.started) == 2
+    assert k.sessions["s1"].workkey == "" and k.deliver("s1") is None
+    assert k.workkeys == {}
 
 
 def test_no_duplicate_writer_after_rotation(tmp_path):
