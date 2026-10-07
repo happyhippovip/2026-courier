@@ -6,7 +6,7 @@ from scripts.coordination_ledger import AgentID, CoordinationEvent, EventType, M
 class NextActionType(str, Enum):
     WAIT = "WAIT"
     PREPARE_MISSION = "PREPARE_MISSION"
-    HUMAN_DELIVERY_REQUIRED = "HUMAN_DELIVERY_REQUIRED"
+    DISCOVERABLE_CHECKPOINT_READY = "DISCOVERABLE_CHECKPOINT_READY"
     RECONCILE = "RECONCILE"
     CANCEL_REQUIRED = "CANCEL_REQUIRED"
     INTEGRATE_RESULTS = "INTEGRATE_RESULTS"
@@ -30,10 +30,11 @@ class CoordinationDelivery:
             # Here we would dispatch to the programmatic inbox
             pass
         
-        # Default for unsupported inboxes
+        # We NO LONGER require Dennis to copy-paste.
+        # We persist the payload/prompt as a discoverable payload so the agent can discover it upon wakeup.
         return NextAction(
-            action_type=NextActionType.HUMAN_DELIVERY_REQUIRED,
-            reason=f"Agent {agent_id} has no programmatic inbox. Human copy/paste required.",
+            action_type=NextActionType.DISCOVERABLE_CHECKPOINT_READY,
+            reason=f"Programmatic inbox unavailable for {agent_id}. Durable checkpoint persisted. Agent will discover on wakeup without human relay.",
             target_agent=agent_id,
             mission_id=mission_id,
             payload=prompt
