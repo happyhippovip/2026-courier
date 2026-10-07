@@ -451,6 +451,7 @@ def main(argv: Optional[list] = None) -> int:
     parser.add_argument("--port", type=int, default=0, help="hub port on 127.0.0.1 (0 = pick a free port)")
     parser.add_argument("--actor", default=None, help="who decides in this hub (default desktop:<login name>)")
     parser.add_argument("--print-url", action="store_true")
+    parser.add_argument("--with-overlay", action="store_true", help="start the desktop robot overlay on the main thread")
     args = parser.parse_args(argv)
     if not args.home:
         parser.error("--home (or COURIER_HOME) is required")
@@ -463,7 +464,36 @@ def main(argv: Optional[list] = None) -> int:
     log.info("desktop hub on %s (home %s)", server.url, args.home)
     stop = threading.Event()
     try:
-        server.serve_forever(poll_interval=0.5)
+        if args.with_overlay:
+            t = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.5}, daemon=True)
+            t.start()
+            
+            from courier_overlay.state_machine import OverlayStateMachine
+            from courier_overlay.layout_engine import LayoutEngine, WindowAdapter, Screen, Rect
+            from courier_overlay.renderer_tk import TkinterRenderer
+            
+            class DesktopAdapter(WindowAdapter):
+                def get_screen(self):
+                    return Screen(1920, 1080, Rect(0, 0, 1920, 1080))
+                def list_windows(self):
+                    return []
+                def move_window(self, wid, rect):
+                    return True
+            
+            bus_path = Path(args.home) / "bus.jsonl"
+            sm = OverlayStateMachine(str(bus_path))
+            engine = LayoutEngine(DesktopAdapter())
+            renderer = TkinterRenderer(engine)
+            
+            def _sync_loop():
+                sm.sync()
+                renderer.render(sm.get_snapshot())
+                renderer.root.after(100, _sync_loop)
+                
+            _sync_loop()
+            renderer.root.mainloop()
+        else:
+            server.serve_forever(poll_interval=0.5)
     except KeyboardInterrupt:
         stop.set()
     finally:
