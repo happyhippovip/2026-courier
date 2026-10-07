@@ -21,10 +21,27 @@ class TkinterRenderer:
             # Make window click-through
             try:
                 import ctypes
-                hwnd = ctypes.windll.user32.GetParent(self.root.winfo_id())
-                style = ctypes.windll.user32.GetWindowLongW(hwnd, -20)
-                ctypes.windll.user32.SetWindowLongW(hwnd, -20, style | 0x00080000 | 0x00000020)
-            except Exception as e:
+                from ctypes import wintypes
+                user32 = ctypes.windll.user32
+                
+                # Prevent 64-bit pointer truncation
+                user32.GetParent.argtypes = [wintypes.HWND]
+                user32.GetParent.restype = wintypes.HWND
+                
+                GetWindowLong = getattr(user32, "GetWindowLongPtrW", getattr(user32, "GetWindowLongW"))
+                GetWindowLong.argtypes = [wintypes.HWND, ctypes.c_int]
+                GetWindowLong.restype = ctypes.c_void_p
+                
+                SetWindowLong = getattr(user32, "SetWindowLongPtrW", getattr(user32, "SetWindowLongW"))
+                SetWindowLong.argtypes = [wintypes.HWND, ctypes.c_int, ctypes.c_void_p]
+                SetWindowLong.restype = ctypes.c_void_p
+                
+                hwnd = user32.GetParent(self.root.winfo_id())
+                if hwnd:
+                    style = GetWindowLong(hwnd, -20)
+                    if style is not None:
+                        SetWindowLong(hwnd, -20, style | 0x00080000 | 0x00000020)
+            except Exception:
                 pass
         else:
             # macOS fallback for transparency
