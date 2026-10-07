@@ -47,23 +47,57 @@ def check_ledger():
     except Exception as e:
         return False, f"Error reading ledger: {e}"
 
+def _controller_base_url(config):
+    """Resolve the V1 controller URL from env or install config."""
+    server = (os.environ.get("COURIER_SERVER") or os.environ.get("COURIER_SERVER_URL")
+              or config.get("COURIER_SERVER"))
+    if server:
+        if str(server).lower() == "local":
+            return "http://127.0.0.1:8080"
+        return str(server).rstrip("/")
+    port = config.get("COURIER_CONTROLLER_PORT", 8080)
+    try:
+        port = int(port)
+    except (TypeError, ValueError):
+        port = 8080
+    return f"http://127.0.0.1:{port}"
+
+
+def _read_controller_token(app_data):
+    token_file = app_data / "run" / "controller.token"
+    try:
+        token = token_file.read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+    return token or None
+
+
 def check_server():
     config = load_config()
-    server = os.environ.get("COURIER_SERVER") or os.environ.get("COURIER_SERVER_URL") or config.get("COURIER_SERVER") or "http://127.0.0.1:8080"
-    if server.lower() == "local":
-        server = "http://127.0.0.1:8080"
-    server = server.rstrip("/")
+    server = _controller_base_url(config)
+    token = _read_controller_token(get_app_data_dir())
+    if not token:
+        return False, "Missing controller token (run/controller.token); cannot check V1 controller health"
     try:
-        req = urllib.request.Request(f"{server}/v1/health")
+        req = urllib.request.Request(
+            f"{server}/v1/health",
+            headers={"X-Courier-Token": token},
+        )
         with urllib.request.urlopen(req, timeout=2) as response:
-            pass
-        return True, f"Server responding at {server}"
+            payload = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
-        if e.code in (401, 403, 404):
-            return True, f"Server responding at {server} ({e.code})"
-        return True, f"Server responding at {server} ({e.code})"
+        if e.code == 401:
+            return False, f"Controller rejected the install token at {server} (401)"
+        return False, f"Controller health check failed at {server} ({e.code})"
     except Exception as e:
-        return False, f"Server unreachable at {server}: {e}"
+        return False, f"Controller unreachable at {server}: {e}"
+    mode = payload.get("mode")
+    if mode == "degraded_readonly":
+        return False, f"Controller at {server} is in safe mode (degraded_readonly)"
+    if mode != "normal":
+        return False, f"Controller at {server} reports unexpected mode: {mode!r}"
+    head = payload.get("head_seq", "?")
+    return True, f"Controller healthy at {server} (head_seq={head})"
 
 def check_stuck_tasks():
     # In V1 we could query the DB, but without pulling in full courier_core
