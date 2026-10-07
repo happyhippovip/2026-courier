@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sqlite3
 import sys
 from collections import Counter
 from pathlib import Path
@@ -23,43 +24,46 @@ def _inspect(home: Path) -> dict:
         }
     journal = Journal(db, readonly=True)
     try:
-        journal.open()
-    except JournalError as exc:
-        return {"ok": False, "code": "journal_error", "message": str(exc)}
+        try:
+            journal.open()
+        except (JournalError, sqlite3.Error, OSError) as exc:
+            return {"ok": False, "code": "journal_error", "message": str(exc)}
 
-    try:
-        chain = journal.verify_chain()
-        if not chain.ok:
+        try:
+            chain = journal.verify_chain()
+            if not chain.ok:
+                return {
+                    "ok": False,
+                    "code": "journal_corrupt",
+                    "message": chain.reason or "journal hash chain failed",
+                    "first_bad_seq": chain.first_bad_seq,
+                }
+            tasks = journal.tasks()
+            counts = Counter(t.status.value for t in tasks)
+            active = [
+                {
+                    "task_id": t.task_id,
+                    "status": t.status.value,
+                    "adapter": t.adapter,
+                    "attempt": t.attempt,
+                }
+                for t in tasks
+                if t.status not in TERMINAL
+            ]
+            needs_attention = [
+                t for t in active if t["status"] in (TaskStatus.BLOCKED.value, TaskStatus.RETRY_PENDING.value)
+            ]
             return {
-                "ok": False,
-                "code": "journal_corrupt",
-                "message": chain.reason or "journal hash chain failed",
-                "first_bad_seq": chain.first_bad_seq,
+                "ok": True,
+                "home": str(home),
+                "head_seq": chain.head_seq,
+                "task_counts": dict(sorted(counts.items())),
+                "active_count": len(active),
+                "needs_attention": needs_attention,
+                "active_tasks": active[:32],
             }
-        tasks = journal.tasks()
-        counts = Counter(t.status.value for t in tasks)
-        active = [
-            {
-                "task_id": t.task_id,
-                "status": t.status.value,
-                "adapter": t.adapter,
-                "attempt": t.attempt,
-            }
-            for t in tasks
-            if t.status not in TERMINAL
-        ]
-        needs_attention = [
-            t for t in active if t["status"] in (TaskStatus.BLOCKED.value, TaskStatus.RETRY_PENDING.value)
-        ]
-        return {
-            "ok": True,
-            "home": str(home),
-            "head_seq": chain.head_seq,
-            "task_counts": dict(sorted(counts.items())),
-            "active_count": len(active),
-            "needs_attention": needs_attention,
-            "active_tasks": active[:32],
-        }
+        except (JournalError, sqlite3.Error, OSError) as exc:
+            return {"ok": False, "code": "journal_error", "message": str(exc)}
     finally:
         journal.close()
 
@@ -73,7 +77,6 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if not args.home:
         parser.error("--home or COURIER_HOME is required")
-        return 2
     home = Path(args.home).expanduser().resolve()
     report = _inspect(home)
     if args.json:

@@ -46,3 +46,33 @@ def test_status_missing_journal(tmp_path):
     home = tmp_path / "empty"
     home.mkdir()
     assert status_main(["--home", str(home)]) == 1
+
+
+def _status_json(home: Path) -> tuple[int, dict]:
+    proc = subprocess.run(
+        [sys.executable, "-m", "courier_core.cli", "status", "--home", str(home), "--json"],
+        cwd=str(REPO_ROOT), capture_output=True, text=True, check=False,
+    )
+    return proc.returncode, json.loads(proc.stdout)
+
+
+def test_status_zero_byte_journal_json(tmp_path):
+    home = tmp_path / "home"
+    home.mkdir()
+    (home / "courier.db").write_bytes(b"")
+    code, payload = _status_json(home)
+    assert code == 1
+    assert payload["ok"] is False
+    assert payload["code"] in ("journal_error", "journal_corrupt")
+    assert status_main(["--home", str(home)]) == 1
+
+
+def test_status_non_database_journal_json(tmp_path):
+    home = tmp_path / "home"
+    home.mkdir()
+    (home / "courier.db").write_text("not a sqlite database", encoding="utf-8")
+    code, payload = _status_json(home)
+    assert code == 1
+    assert payload["ok"] is False
+    assert payload["code"] in ("journal_error", "journal_corrupt")
+    assert status_main(["--home", str(home)]) == 1
