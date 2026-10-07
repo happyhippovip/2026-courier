@@ -3,7 +3,7 @@
   "OWNER": "codex-cloud",
   "BRANCH": "codex/continuity-cleanup-fence",
   "HEAD/COMMIT": "b01d6c3ec76731d8ebac082e406d09c9bea886f9",
-  "CURRENT_STATE": "PARTIAL",
+  "CURRENT_STATE": "FINAL",
   "MUTABLE_SCOPE": "courier_runtime.continuity.Kirby successor launch when cleanup is unproven",
   "FILES": [
     "courier_runtime/continuity.py",
@@ -25,12 +25,12 @@
     }
   ],
   "UNPROVEN": [
-    "PR creation: api.github.com denied by egress proxy",
     "remote CI",
     "Windows-native execution",
     "external reconciliation of blocked uncertain recovery"
   ],
-  "NEXT_EXACT_ACTION": "After network activation, create PR into integration/v1; review fail-closed RECOVERY_BLOCKED behavior. Do not repeat unchanged 48-test proof.",
+  "NEXT_EXACT_ACTION": "L1 review PR #159 and its RECOVERY_BLOCKED reconciliation boundary; do not duplicate this scope.",
   "OWNERSHIP_EVIDENCE": "23 open PRs #132-#154 fetched; no changes to selected files; historical Muse hostloop branch is ancestor of integration.",
-  "OWNERSHIP_STATE": "IMPLEMENTATION_COMPLETE_REVIEW_PENDING"
+  "OWNERSHIP_STATE": "PR_REVIEW_OWNER",
+  "PR": 159
 }
