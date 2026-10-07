@@ -18,6 +18,10 @@ Rules enforced here:
 """
 
 import enum
+import json
+import os
+from pathlib import Path
+import tempfile
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
@@ -63,6 +67,10 @@ class ContinuationCheckpoint:
     authority_boundary: str = "PRESERVED"
     next_units: List[str] = field(default_factory=list)
     source_refs: List[str] = field(default_factory=list)
+    workkey: str = ""
+    mutable_scope: str = ""
+    next_action: str = ""
+    provider_connection_id: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -85,6 +93,10 @@ class ContinuationCheckpoint:
             "authority_boundary": self.authority_boundary,
             "next_units": list(self.next_units),
             "source_refs": list(self.source_refs),
+            "workkey": self.workkey,
+            "mutable_scope": self.mutable_scope,
+            "next_action": self.next_action,
+            "provider_connection_id": self.provider_connection_id,
         }
 
     @classmethod
@@ -147,11 +159,17 @@ class LaneHibernator:
             return False
         return res.kind in RELEASABLE_KINDS
 
-    def hibernate(self, checkpoint: ContinuationCheckpoint) -> Dict[str, Any]:
+    def hibernate(self, checkpoint: ContinuationCheckpoint,
+                  persist: Optional[Callable[[], None]] = None) -> Dict[str, Any]:
+        self.checkpoint = checkpoint
+        # Persist the continuation BEFORE releasing even the first resource.
+        if persist is not None:
+            persist()
         if self.state == LaneState.HIBERNATED:
             return dict(self.release_report)
         released: List[str] = []
         retained: List[str] = []
+        failed: List[str] = []
         for res in self.resources.values():
             if self._releasable(res):
                 hook = self.release_hooks.get(res.name)
@@ -159,18 +177,21 @@ class LaneHibernator:
                     try:
                         hook(res.name)
                     except Exception:
-                        pass
+                        failed.append(res.name)
+                        continue
                 res.released = True
                 released.append(res.name)
             else:
                 retained.append(res.name)
-        self.checkpoint = checkpoint
-        self.state = LaneState.HIBERNATED
+        self.state = LaneState.ACTIVE if failed else LaneState.HIBERNATED
         self.release_report = {
             "released": sorted(released),
             "retained": sorted(retained),
             "checkpoint_tasks": [checkpoint.task_id],
+            "failed": sorted(failed),
         }
+        if persist is not None:
+            persist()
         return dict(self.release_report)
 
     def resume(self) -> ContinuationCheckpoint:
@@ -183,10 +204,7 @@ class LaneHibernator:
             if res.released:
                 hook = self.reacquire_hooks.get(name)
                 if hook is not None:
-                    try:
-                        hook(name)
-                    except Exception:
-                        pass
+                    hook(name)  # Failure must not pretend the resource is acquired.
                 res.released = False
                 
         self.state = LaneState.ACTIVE
@@ -196,6 +214,7 @@ class LaneHibernator:
         return {
             "state": self.state.value,
             "checkpoint": self.checkpoint.to_dict() if self.checkpoint else None,
+            "release_report": self.release_report,
             "resources": {
                 name: {
                     "kind": res.kind,
@@ -210,6 +229,7 @@ class LaneHibernator:
     def from_dict(cls, data: Dict[str, Any]) -> "LaneHibernator":
         lane = cls()
         lane.state = LaneState(data.get("state", "ACTIVE"))
+        lane.release_report = dict(data.get("release_report", {}))
         if data.get("checkpoint"):
             lane.checkpoint = ContinuationCheckpoint.from_dict(data["checkpoint"])
         for name, spec in (data.get("resources") or {}).items():
@@ -220,3 +240,29 @@ class LaneHibernator:
                 released=bool(spec.get("released", False)),
             )
         return lane
+
+
+def save_continuation(path, value):
+    """Atomic, fsynced snapshot. Caller holds the existing runtime home lock.
+
+    This is state persistence, not a new scheduler/claim mechanism. Never put
+    secrets in continuation packets. An invalid snapshot must fail closed.
+    """
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(dir=path.parent, prefix=".continuation-")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            json.dump(value, stream, sort_keys=True)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+        if os.name != "nt":
+            directory = os.open(path.parent, os.O_RDONLY)
+            try:
+                os.fsync(directory)
+            finally:
+                os.close(directory)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
