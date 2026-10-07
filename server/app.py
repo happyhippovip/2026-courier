@@ -446,8 +446,8 @@ def task_result():
         if task.get("worker_id") == worker_id:
             if task.get("status") != "DISPATCHED":
                 return jsonify({"error": "Task is not awaiting a result"}), 409
-            if data.get("attempt_id") == task.get("attempt_id") and data.get("dispatch_id") and data.get("dispatch_id") != task.get("dispatch_id"):
-                return jsonify({"error": "dispatch_id mismatch, possible replay"}), 409
+            if data.get("attempt_id") != task.get("attempt_id") or (data.get("dispatch_id") and data.get("dispatch_id") != task.get("dispatch_id")):
+                return jsonify({"error": "attempt or dispatch mismatch, possible replay"}), 409
             try:
                 durable_result = validate_durable_result(task, data)
                 for ref in durable_result["artifacts"]:

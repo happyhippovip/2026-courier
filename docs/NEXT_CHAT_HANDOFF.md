@@ -282,14 +282,13 @@ state, current active stage, or next exact task.
 **Historical snapshot only — verify again before acting.**
 
 At update time (2026-10-07):
-- `integration/v1` = `baffc520`;
+- `integration/v1` = `4b0eed7d`;
 - the V1 locked route (`ACTIVE LEDGER -> RELIABLE AUTOMATION -> GOLDEN PATH -> DESKTOP HUB -> WINDOWS EXE -> CLEAN-MACHINE ACCEPTANCE -> REAL ADAPTERS -> DESKTOP ROBOT OVERLAY`) has been completely merged;
-- L5 (Desktop Hub Overlay) and L6 (Windows Launcher & Packaging) are integrated;
-  **PR #123** (Phase 1 Real Adapters) is open and waiting for CI.
-  **PR #124** (Phase 2 Real Adapters - Telegram Output & Lifecycle fixes) is open and waiting for CI.
-  **PR #122** (Overlay Polish) is open and waiting for CI.
+- L5 (Desktop Hub Overlay Replay) and server idempotency fixes (PR #129) are integrated;
+- L5 (Desktop Robot Overlay UI/UX Polish) is implemented and pending review in **PR #122** (`lane/L5-overlay-ui-polish`);
+- L6 (Launcher Robustification) is implemented and pending review in **PR #130** (`lane/L6-launcher-robustification`);
 - next critical implementation path:
-  **Merge PR #122, #123, #124 -> L1 lane promotes to integration/v1 -> Extended Integrations**.
+  **Merge PR #122 & PR #130 -> Extended Integrations**.
 
 Never trust this SHA after new work without checking GitHub.
 
@@ -325,4 +324,4 @@ Never trust this SHA after new work without checking GitHub.
 
 ## One-line bootstrap
 
-**Courier Symphony — verify CURRENT integration/v1, then read AGENTS.md + docs/V1_RULE_0.md + docs/V1_PRODUCT_QUALITY_BAR.md + docs/V1_ORCHESTRATION_PLAYBOOK.md + docs/V1_WINDOW_CUSTODY_PROTOCOL.md + docs/NEXT_CHAT_HANDOFF.md + newest GitHub Issue #54 + docs/v1/INTEGRATION_LOG.md; keep the Dennis+ChatGPT+Opus V1 architecture locked and continue the next unproven gate on FIRST REAL PROVIDER ADAPTER -> OVERLAY UI POLISH -> EXTENDED INTEGRATIONS.**
+**Courier Symphony — verify CURRENT integration/v1, then read AGENTS.md + docs/V1_RULE_0.md + docs/V1_PRODUCT_QUALITY_BAR.md + docs/V1_ORCHESTRATION_PLAYBOOK.md + docs/V1_WINDOW_CUSTODY_PROTOCOL.md + docs/NEXT_CHAT_HANDOFF.md + newest GitHub Issue #54 + docs/v1/INTEGRATION_LOG.md; keep the Dennis+ChatGPT+Opus V1 architecture locked and continue the next unproven gate on EXTENDED INTEGRATIONS.**

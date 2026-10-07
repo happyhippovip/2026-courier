@@ -565,6 +565,29 @@ adapter / verifier → live golden path.
 
 - Implemented `github_worker_adapter` to run GitHub-hosted Actions securely.
 - Resolved Windows `PermissionError` sharing violations on concurrent lock files and state publishing (`os.replace` + `os.unlink` retry logic).
-- Resulting integration SHA: `912c44034ae891de189edce5b6a96503ba40c36b`
-
 **After step 16.** The first real provider adapter is live. The next path is OVERLAY UI POLISH -> EXTENDED INTEGRATIONS.
+
+## Step 17 — PR #123 & PR #124, Phase 1 & 2 Real Adapters (RSS & Telegram)
+### `integration/v1` merged `lane/L4-real-adapters-phase1` and `lane/L4-real-adapters-phase2`
+
+- Implemented `decrypt_rss_adapter` for news ingestion.
+- Implemented `local_json_delivery` and Telegram delivery adapters.
+- Handled lifecycle hooks and API status codes properly.
+
+## Step 18 — PR #129, L5 Overlay UI Polish and Server Idempotency Fix
+### `integration/v1` merged `lane/L5-overlay-replay-windows-fix`
+
+- Finalized L5 desktop overlay UI polish (transparent `TkinterRenderer` on Windows, improved UI styling).
+- Fixed `test_p3_server_idempotency.py` regression: server correctly returns 409 (Conflict) when a result is received with a superseded `attempt_id` or `dispatch_id`, enforcing proper state mutation guarantees.
+- Resulting integration SHA: `e212cbd0c457af72f44bb2b0b7b7a0076ba6936f`
+
+## Step 19 — L6 Launcher Robustification (2026-10-07)
+### `lane/L6-launcher-robustification`
+
+- **Retention Policy & Uninstallation:**
+  * `courier.db` and logs are preserved on uninstall (user data & journal history).
+  * `config.json` and the `run/` directory are deleted on uninstall to remove credentials.
+  * DB/Run paths are strictly chmod 0o600/0o700 to protect params stored verbatim.
+- **Graceful Shutdown:** `CourierLauncher.cs` calls `/v1/shutdown` on Ctrl+C / close events to allow the hub and worker to gracefully exit before the job object is killed.
+
+**After step 19.** The L6 Windows Launcher robustness and privacy guarantees are implemented.

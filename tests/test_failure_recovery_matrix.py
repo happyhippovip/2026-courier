@@ -37,7 +37,7 @@ def test_result_from_another_worker_is_rejected(tmp_path, monkeypatch):
 
 
 @pytest.mark.parametrize(
-    "field,status", [("goal_id", 400), ("attempt_id", 400), ("dispatch_id", 409)])
+    "field,status", [("goal_id", 400), ("attempt_id", 409), ("dispatch_id", 409)])
 def test_result_with_wrong_identity_is_rejected(tmp_path, monkeypatch, field, status):
     http, _, task = setup_claimed_task(tmp_path, monkeypatch)
     wrong = dict(durable_result(task), **{field: "wrong"})
