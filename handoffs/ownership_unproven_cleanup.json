@@ -2,8 +2,8 @@
   "WORKKEY": "OWNERSHIP-UNPROVEN-CLEANUP",
   "OWNER": "codex-cloud",
   "BRANCH": "codex/ownership-unproven-cleanup",
-  "HEAD/COMMIT": "b9fc486ac9bb99c8d2983622a3876a6deb9b6839",
-  "CURRENT_STATE": "CLAIMED",
+  "HEAD/COMMIT": "b3af8aa1ea6361812aaed4781b351579b2f0eca8",
+  "CURRENT_STATE": "PARTIAL",
   "MUTABLE_SCOPE": "courier_runtime.ownership identity and unresolved cleanup receipts",
   "FILES": [
     "courier_runtime/ownership.py",
@@ -11,10 +11,25 @@
     "handoffs/ownership_unproven_cleanup.json"
   ],
   "OWNERSHIP_EVIDENCE": "Open PRs #132-#159 inspected; none touch selected files; integration refreshed unchanged.",
-  "TEST_EVIDENCE": [],
-  "UNPROVEN": [
-    "fix",
-    "targeted tests"
+  "TEST_EVIDENCE": [
+    {
+      "command": ".venv/bin/python -m pytest -q tests/test_runtime_ownership.py tests/test_runtime_snapshot.py tests/test_runtime_continuity.py --timeout=30",
+      "passed": 48,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 10.28,
+      "platform": "Linux"
+    },
+    {
+      "command": "git diff --check",
+      "exit_status": 0
+    }
   ],
-  "NEXT_EXACT_ACTION": "Reproduce record loss on orphan cleanup and access denial; retain failed receipts and reuse the verified Process instance."
+  "UNPROVEN": [
+    "remote CI",
+    "Windows-native cleanup",
+    "automatic descendant reconciliation when a cleanup-pending parent disappears"
+  ],
+  "NEXT_EXACT_ACTION": "Create PR into integration/v1; L1 review cleanup_pending backward compatibility and fail-closed descendant reconciliation. Do not repeat unchanged tests.",
+  "OWNERSHIP_STATE": "IMPLEMENTATION_COMPLETE_REVIEW_PENDING"
 }
