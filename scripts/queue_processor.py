@@ -48,10 +48,16 @@ def _load_counts():
 
 
 def _save_counts(counts):
-    tmp = _counts_path() + ".tmp"
-    with open(tmp, 'w') as f:
-        json.dump(counts, f)
-    os.replace(tmp, _counts_path())
+    try:
+        os.makedirs("intakes", exist_ok=True)
+        tmp = _counts_path() + ".tmp"
+        with open(tmp, 'w') as f:
+            json.dump(counts, f)
+        os.replace(tmp, _counts_path())
+    except OSError:
+        # Best-effort only: counts accelerate quarantine but must never
+        # break dispatch (e.g. under test doubles that stub makedirs).
+        pass
 
 
 def _record_success(intake_file):

@@ -33,9 +33,11 @@ def test_process_queue_success(tmp_path):
     mock_dispatch.assert_called_once_with(str(task_file))
     mock_move.assert_called_once_with(str(task_file), os.path.join("intakes/processed", "test_intake.json"))
 
-def test_process_queue_systemexit_continues_batch(tmp_path):
+def test_process_queue_systemexit_continues_batch(tmp_path, monkeypatch):
     # dispatch_intake signals failure via sys.exit(); the failing intake
     # stays pending but must not abort the rest of the batch.
+    # Isolated CWD: failure accounting writes CWD-relative state.
+    monkeypatch.chdir(tmp_path)
     def mock_glob(pattern):
         if pattern == "intakes/pending/*.json":
             return ["fail.json", "ok.json"]
@@ -65,7 +67,9 @@ def test_process_queue_empty():
                 
     mock_dispatch.assert_not_called()
 
-def test_process_queue_error(tmp_path):
+def test_process_queue_error(tmp_path, monkeypatch):
+    # Isolated CWD: failure accounting writes CWD-relative state.
+    monkeypatch.chdir(tmp_path)
     pending_dir = tmp_path / "intakes" / "pending"
     processed_dir = tmp_path / "intakes" / "processed"
     pending_dir.mkdir(parents=True, exist_ok=True)
