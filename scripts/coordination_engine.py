@@ -37,12 +37,13 @@ class CoordinationEngine:
         elif status == MissionStatus.BLOCKED:
             return NextAction(
                 action_type=NextActionType.HUMAN_ACTION_REQUIRED,
-                reason=f"Mission {mission_id} is BLOCKED. Human intervention required. Evidence: {mission['evidence_ref']}.",
+                reason=f"Mission {mission_id} is BLOCKED (Blocker: {mission.get('blocker')}). Human intervention required. Evidence: {mission['evidence_ref']}.",
                 mission_id=mission_id,
                 target_agent=mission["agent_id"]
             )
             
         elif status == MissionStatus.ERROR:
+            # 8. ERROR can be reconciled/reassigned safely
             return NextAction(
                 action_type=NextActionType.CANCEL_REQUIRED,
                 reason=f"Mission {mission_id} failed with ERROR. Need to cancel or reassign.",
@@ -62,7 +63,8 @@ class CoordinationEngine:
         missions = self.reducer.get_all_missions()
         actions = []
         for mid, m in missions.items():
-            # If all dependencies are DONE, and we are not DONE, evaluate
+            # 7. BLOCKED mission does not freeze unrelated DAG work.
+            # We evaluate each mission independently based on its dependencies.
             deps_done = True
             for dep in m.get("depends_on", []):
                 dep_m = self.reducer.get_mission(dep)
@@ -70,6 +72,8 @@ class CoordinationEngine:
                     deps_done = False
                     break
                     
+            # 1. Worker A FINAL result unlocks dependent Worker B mission.
+            # If all dependencies are DONE, and we are not DONE, evaluate
             if deps_done and m["status"] != MissionStatus.DONE:
                 actions.append(self.evaluate_next_action(mid))
                 
