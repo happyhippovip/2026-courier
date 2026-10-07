@@ -602,3 +602,15 @@ adapter / verifier → live golden path.
 - Durable Codex continuity and guarded resume logic.
 
 **After step 21.** The EXTENDED INTEGRATIONS path is unblocked. Next path: Cost-Aware Provider Routing (Issue #118) and real adapters.
+
+## Step 22 — PR #131, L11 Antigravity Grep Rule
+### `integration/v1` merged `ops/antigravity-no-grep-rule`
+- Implemented strict prohibition of grep-family repository scans (`NO_GREP_FAMILY.md`).
+- Enforces use of indexed search or direct API reads.
+
+## Step 23 — PR #121, L2 Agent Warehouse Bootstrap
+### `integration/v1` merged `docs/agent-warehouse-bootstrap`
+- Bootstrapped durable agent warehouse catalog (`AGENT_CATALOG.json`) and selection policy (`SELECTION_POLICY.md`).
+- Prescribes cost-aware provider routing, reasoning effort thresholds, and deterministic ownership.
+
+**After step 23.** Agent Warehouse and constraints established. Next path: Cost-Aware Provider Routing (Issue #118) and real adapters.

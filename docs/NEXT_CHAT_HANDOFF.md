@@ -282,12 +282,12 @@ state, current active stage, or next exact task.
 **Historical snapshot only — verify again before acting.**
 
 At update time (2026-10-07):
-- `integration/v1` = `e8b11f76`;
+- `integration/v1` = `498cb57a` (latest integration head);
 - the V1 locked route (`ACTIVE LEDGER -> RELIABLE AUTOMATION -> GOLDEN PATH -> DESKTOP HUB -> WINDOWS EXE -> CLEAN-MACHINE ACCEPTANCE -> REAL ADAPTERS -> DESKTOP ROBOT OVERLAY`) has been completely merged;
 - L5 (PR #122) and L6 (PR #130) have been successfully merged.
 - L10 Codex Provider Continuity (PR #128) has been successfully merged.
-- PR #121 (L2) is waiting for Windows CI.
-- PR #131 (L11) failed on Windows CI (`test_win_clean_machine_harness.py`).
+- L11 Antigravity Grep Rule (PR #131) has been successfully merged.
+- L2 Agent Warehouse Bootstrap (PR #121) has been successfully merged.
 - next critical implementation path:
   **EXTENDED INTEGRATIONS** (Cost-Aware Provider Routing Issue #118).
 
