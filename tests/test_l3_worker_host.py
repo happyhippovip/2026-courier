@@ -147,6 +147,36 @@ def test_second_claim_while_busy_is_refused(tmp_path):
     assert host.busy is False
 
 
+def test_claim_write_failure_reaps_child_and_frees_host(tmp_path, monkeypatch):
+    host = make_host(tmp_path)
+    spec = make_spec(tmp_path, dispatch="d-claim-fail",
+                     argv=[PY, "-c", "import time; time.sleep(30)"])
+    captured = {}
+    real_spawn = H._spawn_contained
+
+    def spy_spawn(argv, run_dir, tag):
+        run = real_spawn(argv, run_dir, tag)
+        captured["run"] = run
+        return run
+
+    def boom(home, spec_arg, run):
+        raise OSError("simulated claim-write failure")
+
+    with monkeypatch.context() as m:
+        m.setattr(H, "_spawn_contained", spy_spawn)
+        m.setattr(H, "_write_claim_record", boom)
+        with pytest.raises(OSError, match="simulated claim-write failure"):
+            host.run_once(spec)
+    assert host.busy is False
+    assert captured["run"].poll() is not None  # reaped, not escaped
+    claims = tmp_path / "run" / "claims"
+    assert not claims.exists() or list(claims.glob("*.json")) == []
+    # The host is reusable after the failure.
+    result = host.run_once(make_spec(tmp_path, dispatch="d-after", argv=[PY, "-c", "pass"]))
+    assert result.outcome == Outcome.COMPLETED
+    assert host.busy is False
+
+
 def test_timeout_kills_whole_tree_within_bound(tmp_path):
     pgid_file = tmp_path / "pgid.txt"
     gpid_file = tmp_path / "gpid.txt"

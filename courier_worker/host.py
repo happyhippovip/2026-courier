@@ -804,7 +804,15 @@ class WorkerHost:
         os.makedirs(spec.artifact_dir, exist_ok=True)
         run = _spawn_contained(list(spec.argv), run_dir, f"task-{spec.dispatch_id}")
         self._active = spec.dispatch_id
-        claim_record = _write_claim_record(self.home, spec, run)
+        try:
+            claim_record = _write_claim_record(self.home, spec, run)
+        except BaseException:
+            # The child is spawned but no live dispatch owns it yet: reap the
+            # owned tree and free the host before propagating, so a claim-write
+            # failure can neither leak a child nor wedge the host HostBusy.
+            self._active = None
+            run.terminate_tree()
+            raise
         try:
             return self._wait(spec, run, on_heartbeat, is_cancelled)
         finally:
