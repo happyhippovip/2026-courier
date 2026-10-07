@@ -130,6 +130,59 @@ def test_cleanup_verification_detects_live_orphan(reaper_mod, rt, tmp_path):
     assert not reaper_mod.detect_stale_slot_with_live_process(slot, str(proc.pid), ident)
 
 
+def test_launcher_b_terminates_group_spawned_by_launcher_a(rt):
+    """F2: terminate using pgid+fingerprint, not launcher-local Popen handle."""
+    sys.path.insert(0, str(MAC))
+    sup = _load("muse_supervisor_reaper", MAC / "muse_supervisor.py")
+    proc = subprocess.Popen(SLEEPER, stdin=subprocess.DEVNULL, start_new_session=True)
+    launcher_a = sup.ProcessLauncher()
+    launcher_a.children["01"] = proc
+    launcher_a.identities["01"] = rt.capture_process_identity(proc)
+    identity = launcher_a.identities["01"]
+    launcher_b = sup.ProcessLauncher()
+    assert launcher_b.terminate("01", proc.pid, identity)
+    assert not rt.group_exists(identity["pgid"])
+    proc.wait(timeout=5)
+
+
+def test_identity_matches_rejects_fake_fingerprint_on_live_leader(rt):
+    """F3: captured_at_spawn does not bypass fingerprint mismatch."""
+    foreign = subprocess.Popen(SLEEPER, stdin=subprocess.DEVNULL, start_new_session=True)
+    try:
+        pgid = os.getpgid(foreign.pid)
+        fake = {
+            "pid": foreign.pid,
+            "pgid": pgid,
+            "fingerprint": "0" * 64,
+            "captured_at_spawn": True,
+            "spawn_recorded_at": time.time(),
+        }
+        assert rt.identity_matches(foreign.pid, fake) is False
+    finally:
+        foreign.kill()
+        foreign.wait(timeout=5)
+
+
+def test_cleanup_kills_child_that_ignores_sigterm(rt):
+    """F6: SIGKILL after leader reaps while group still exists."""
+    child = (
+        "import signal,time\n"
+        "signal.signal(signal.SIGTERM, signal.SIG_IGN)\n"
+        "time.sleep(120)\n"
+    )
+    cmd = f'{sys.executable} -c "{child}" & wait'
+    proc = subprocess.Popen(["bash", "-c", cmd], stdin=subprocess.DEVNULL, start_new_session=True)
+    identity = rt.capture_process_identity(proc)
+    assert identity is not None
+    assert rt.cleanup_group(proc, identity)
+    deadline = time.monotonic() + 15
+    while time.monotonic() < deadline:
+        if not rt.group_exists(identity["pgid"]):
+            break
+        time.sleep(0.05)
+    assert not rt.group_exists(identity["pgid"])
+
+
 def test_bounded_cleanup_no_infinite_retry(reaper_mod, monkeypatch):
     calls = {"n": 0}
     real_cleanup = reaper_mod.cleanup_group

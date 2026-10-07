@@ -208,8 +208,30 @@ class ProcessLauncher:
         if proc is None:
             # Recovered process: no waitpid ownership, but identity is verified.
             class Recovered:
-                def __init__(self, value): self.pid = int(value)
-                def poll(self): return None
+                def __init__(self, value):
+                    self.pid = int(value)
+                    self.returncode = None
+
+                def poll(self):
+                    try:
+                        os.kill(self.pid, 0)
+                    except ProcessLookupError:
+                        self.returncode = -9
+                        return self.returncode
+                    return None
+
+                def wait(self, timeout=None):
+                    if self.returncode is not None:
+                        return self.returncode
+                    deadline = None if timeout is None else time.monotonic() + timeout
+                    while True:
+                        code = self.poll()
+                        if code is not None:
+                            return code
+                        if deadline is not None and time.monotonic() >= deadline:
+                            raise subprocess.TimeoutExpired(cmd=[], timeout=timeout)
+                        time.sleep(0.05)
+
             proc = Recovered(pid)
         return cleanup_group(proc, identity)
 

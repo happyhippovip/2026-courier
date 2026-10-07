@@ -12,11 +12,10 @@ from contextlib import contextmanager
 from pathlib import Path
 
 CANONICAL_WORKSPACE = "/Users/user/Downloads/2026-courier"
-# Captured before tests replace subprocess.Popen with a recorder.
 _POPEN_TYPE = subprocess.Popen
 
 _PS_IDENTITY_TIMEOUT_S = 0.25
-_CLEANUP_MAX_ROUNDS = 3
+_CLEANUP_SIGNAL_ROUNDS = 3
 _CLEANUP_ROUND_GRACE_S = 2.0
 
 
@@ -27,7 +26,7 @@ def read_object(path, default=None):
         return {} if default is None else default
     if not isinstance(value, dict):
         raise ValueError(f"Non-object state: {path}")
-    return value  # Corruption/permission errors are NOT an empty installation.
+    return value
 
 
 def sync_directory(path):
@@ -56,7 +55,6 @@ def atomic_json(path, value):
 
 @contextmanager
 def control_lock(wall):
-    """STOP, admission, spawn and claim use the same linearization lock."""
     wall = Path(wall)
     wall.mkdir(parents=True, exist_ok=True)
     with open(wall / "control.lock", "a") as handle:
@@ -88,7 +86,6 @@ def _linux_start_fields(pid):
 
 
 def _ps_identity(pid, timeout_s=_PS_IDENTITY_TIMEOUT_S):
-    """Optional enrichment; must never be the only way to obtain pgid."""
     try:
         value = subprocess.check_output(
             ["ps", "-p", str(int(pid)), "-o", "pid=,pgid=,lstart=,comm="],
@@ -114,17 +111,22 @@ def capture_process_identity(proc):
         fields = _linux_start_fields(pid)
         if fields:
             extra.extend(fields)
-    ident = {"pid": pid, "pgid": pgid, "fingerprint": _fingerprint(pid, pgid, extra),
-             "captured_at_spawn": True, "source": "spawn"}
+    ident = {
+        "pid": pid,
+        "pgid": pgid,
+        "fingerprint": _fingerprint(pid, pgid, extra),
+        "captured_at_spawn": True,
+        "spawn_recorded_at": time.time(),
+        "source": "spawn",
+    }
     enriched = _ps_identity(pid)
     if enriched and enriched.get("pgid") == pgid:
-        ident["fingerprint"] = enriched["fingerprint"]
+        ident["ps_fingerprint"] = enriched["fingerprint"]
         ident["source"] = "spawn+ps"
     return ident
 
 
 def process_identity(pid):
-    """Best-effort identity for a live pid. OS primitives first; ps is optional."""
     pid = int(pid)
     pgid = _pgid_for_pid(pid)
     if pgid is None:
@@ -134,12 +136,32 @@ def process_identity(pid):
         fields = _linux_start_fields(pid)
         if fields:
             extra.extend(fields)
-    ident = {"pid": pid, "pgid": pgid, "fingerprint": _fingerprint(pid, pgid, extra),
-             "source": "os"}
+    ident = {"pid": pid, "pgid": pgid, "fingerprint": _fingerprint(pid, pgid, extra), "source": "os"}
     enriched = _ps_identity(pid)
     if enriched and enriched.get("pgid") == pgid:
         return enriched
     return ident
+
+
+def fingerprints_match(pid, identity):
+    """True when live pid/pgid matches the recorded fingerprint (not whole dict)."""
+    if not identity or "fingerprint" not in identity:
+        return False
+    pgid = _pgid_for_pid(pid)
+    if pgid is None or int(identity.get("pgid", -1)) != pgid:
+        return False
+    extra = []
+    if sys.platform.startswith("linux"):
+        fields = _linux_start_fields(pid)
+        if fields:
+            extra.extend(fields)
+    if _fingerprint(pid, pgid, extra) == identity.get("fingerprint"):
+        return True
+    ps_stored = identity.get("ps_fingerprint")
+    if ps_stored:
+        current = _ps_identity(pid)
+        return bool(current and current.get("fingerprint") == ps_stored)
+    return False
 
 
 def identity_matches(pid, identity):
@@ -149,18 +171,15 @@ def identity_matches(pid, identity):
         os.kill(int(pid), 0)
     except ProcessLookupError:
         pgid = identity.get("pgid")
-        return pgid is not None and not group_exists(pgid)
+        if pgid is None:
+            return False
+        # Recorded leader exited; keep authority to signal the session group.
+        if int(identity.get("pid", -1)) == int(pid):
+            return True
+        return not group_exists(pgid)
     except OSError:
         return False
-    pgid = _pgid_for_pid(pid)
-    if pgid is None:
-        return False
-    if int(identity.get("pgid", -1)) != pgid:
-        return False
-    current = process_identity(pid)
-    if current is not None and current.get("fingerprint") == identity.get("fingerprint"):
-        return True
-    return bool(identity.get("captured_at_spawn"))
+    return fingerprints_match(pid, identity)
 
 
 def same_process(pid, identity):
@@ -170,101 +189,138 @@ def same_process(pid, identity):
 def group_exists(pgid):
     try:
         os.killpg(int(pgid), 0)
-        return True
     except ProcessLookupError:
         return False
     except PermissionError:
+        return _pgroup_has_live_members(pgid)
+    return _pgroup_has_live_members(pgid)
+
+
+def _pgroup_has_live_members(pgid):
+    """True when the group still has a non-zombie member (killpg(0) can lie after leader exit)."""
+    try:
+        out = subprocess.check_output(
+            ["ps", "-g", str(int(pgid)), "-o", "stat="],
+            text=True,
+            timeout=_PS_IDENTITY_TIMEOUT_S,
+            stderr=subprocess.DEVNULL,
+        )
+    except subprocess.CalledProcessError:
+        return False
+    except (OSError, subprocess.SubprocessError):
         return True
+    for stat in out.split():
+        if stat and not stat.startswith("Z"):
+            return True
+    return False
+
+
+def _group_is_gone(pgid, leader_pid=None):
+    if leader_pid is not None:
+        try:
+            os.kill(int(leader_pid), 0)
+        except ProcessLookupError:
+            return not _pgroup_has_live_members(pgid)
+    try:
+        os.killpg(int(pgid), 0)
+    except ProcessLookupError:
+        return True
+    except PermissionError:
+        return not _pgroup_has_live_members(pgid)
+    return not _pgroup_has_live_members(pgid)
 
 
 def _owned_unreaped_session(proc):
-    """True for our unreaped start_new_session child (pgid == pid).
-
-    The PID cannot be reused until this Popen is reaped, and killpg(pid)
-    reaches only that session. Recovered handles are not Popen objects.
-    """
     if not isinstance(proc, _POPEN_TYPE) or proc.returncode is not None:
         return False
-    getpgid = getattr(os, "getpgid", None)
-    if getpgid is None:
-        return False
     try:
-        return getpgid(proc.pid) == proc.pid
+        return os.getpgid(proc.pid) == proc.pid
     except OSError:
         return False
 
 
 def _reap_direct(proc, timeout):
-    """Collect the direct child. Recovered processes have no wait()."""
     if isinstance(proc, _POPEN_TYPE) and proc.returncode is None:
         try:
             proc.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
             pass
-    else:
+    elif isinstance(proc, _POPEN_TYPE):
         proc.poll()
+    else:
+        pid = int(getattr(proc, "pid", 0) or 0)
+        if pid:
+            try:
+                os.waitpid(pid, os.WNOHANG)
+            except ChildProcessError:
+                pass
+        poll = getattr(proc, "poll", None)
+        if callable(poll):
+            poll()
 
 
-def cleanup_group(proc, identity, grace=2.0):
-    """Only an owned Popen session or a revalidated identity authorizes signals.
+def _session_pgid(proc, identity):
+    if identity and identity.get("pgid") is not None:
+        return int(identity["pgid"])
+    pgid = _pgid_for_pid(proc.pid)
+    return pgid if pgid is not None else int(proc.pid)
 
-    If a different leader has reused the PID, do not signal it. A surviving
-    child group without a leader remains ours while its PGID exists.
-    A real subprocess.Popen that is still unreaped and is its own session
-    leader authorizes SIGTERM then SIGKILL without a recorded identity.
-    Recovered (non-Popen) processes still require identity.
-    """
-    pgid = proc.pid
-    if proc.poll() is not None and not group_exists(pgid):
-        return True
-    owned_session = _owned_unreaped_session(proc)
+
+def _authorized(proc, identity):
     if identity is None:
-        if not owned_session:
-            return False
-    elif identity.get("pgid") != pgid:
+        return _owned_unreaped_session(proc)
+    if _session_pgid(proc, identity) != int(identity["pgid"]):
         return False
-    elif not owned_session:
-        current = process_identity(pgid)
-        if current is not None and current != identity:
-            return False
-    for sig in (signal.SIGTERM, signal.SIGKILL):
-        if not group_exists(pgid):
+    if proc.poll() is not None and int(identity.get("pid", -1)) == int(proc.pid):
+        return True
+    return identity_matches(proc.pid, identity)
+
+
+def cleanup_group(proc, identity, grace=_CLEANUP_ROUND_GRACE_S):
+    """Signal only an authorized session group until it is gone or rounds exhaust."""
+    pgid = _session_pgid(proc, identity)
+    leader_pid = int(identity.get("pid", proc.pid)) if identity else int(proc.pid)
+
+    def gone():
+        return _group_is_gone(pgid, leader_pid)
+
+    if proc.poll() is not None and gone():
+        _reap_direct(proc, 0)
+        return True
+    if not _authorized(proc, identity):
+        return False
+    for _round in range(_CLEANUP_SIGNAL_ROUNDS):
+        if gone():
             _reap_direct(proc, 0)
             return True
-        # Once the direct child is reaped, a missing identity no longer proves
-        # this PGID. Do not signal a recovered group on that basis.
-        if identity is None and not _owned_unreaped_session(proc):
-            _reap_direct(proc, 0)
-            return not group_exists(pgid)
-        if identity is not None and not _owned_unreaped_session(proc):
-            current = process_identity(pgid)
-            if current is not None and current != identity:
+        if identity is not None and proc.poll() is not None:
+            if not identity_matches(proc.pid, identity) and not _owned_unreaped_session(proc):
                 return False
-        try:
-            os.killpg(pgid, sig)
-        except ProcessLookupError:
-            _reap_direct(proc, 0)
-            return True
-        deadline = time.monotonic() + grace
-        while time.monotonic() < deadline:
-            remaining = max(0.0, deadline - time.monotonic())
-            if isinstance(proc, _POPEN_TYPE) and proc.returncode is None:
-                _reap_direct(proc, min(0.05, remaining))
-            else:
-                proc.poll()
-                time.sleep(min(0.05, remaining))
-            if not group_exists(pgid):
+        for sig in (signal.SIGTERM, signal.SIGKILL):
+            if gone():
+                _reap_direct(proc, 0)
                 return True
+            try:
+                os.killpg(pgid, sig)
+            except ProcessLookupError:
+                _reap_direct(proc, 0)
+                return True
+            deadline = time.monotonic() + grace
+            while time.monotonic() < deadline:
+                _reap_direct(proc, min(0.05, max(0.0, deadline - time.monotonic())))
+                if gone():
+                    return True
+                time.sleep(0.05)
     _reap_direct(proc, 0)
-    return not group_exists(pgid)
+    return gone()
 
 
 def process_group_stopped(proc, identity):
-    """True only when the owned session group is gone or the direct child exited."""
-    pgid = identity.get("pgid") if identity else _pgid_for_pid(proc.pid)
+    pgid = _session_pgid(proc, identity) if identity else _pgid_for_pid(proc.pid)
     if pgid is None:
         return proc.poll() is not None
-    if not group_exists(pgid):
+    leader_pid = int(identity.get("pid", proc.pid)) if identity else int(proc.pid)
+    if _group_is_gone(pgid, leader_pid):
         _reap_direct(proc, 0)
         return True
-    return proc.poll() is not None and not group_exists(pgid)
+    return proc.poll() is not None and _group_is_gone(pgid, leader_pid)
