@@ -61,8 +61,16 @@ foreach ($required in @($pythonExe, $pthPath, $launcher, $libsDir)) {
     }
 }
 
-$pthText = Get-Content -Raw -LiteralPath $pthPath
-if ($pthText -notmatch '(?m)^\.\.$' -or $pthText -notmatch '(?m)^\.\.\\libs$') {
+$hasPackageRoot = $false
+$hasLibs = $false
+foreach ($line in @(Get-Content -LiteralPath $pthPath)) {
+    $trimmed = $line.Trim()
+    if ($trimmed -eq "..") { $hasPackageRoot = $true }
+    if ($trimmed -eq "..\libs") { $hasLibs = $true }
+}
+if (-not $hasPackageRoot -or -not $hasLibs) {
+    Write-Host "python312._pth contents:"
+    Get-Content -LiteralPath $pthPath | ForEach-Object { Write-Host ("[{0}]" -f $_) }
     Write-Error "python312._pth does not expose the package root and libs"
     exit 1
 }
