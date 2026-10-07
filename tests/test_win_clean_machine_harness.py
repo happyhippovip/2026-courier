@@ -32,17 +32,57 @@ def restore_courier_exe():
             pass
 
 
-def _powershell_remove_targets(script: str) -> list[str]:
-    """Inline simple ``$var = ...`` assignments into Remove-Item targets.
+# Destructive forms the contract must see. Remove-Item is not the only one:
+# truncation and cmd/IO deletes destroy courier.db and logs just as thoroughly.
+_DESTRUCTIVE_RE = re.compile(
+    r"(?i)(?:\b(?:Remove-Item|Clear-Content|Set-Content|Out-File|del|erase|rd|rmdir)\b"
+    r"|\[(?:System\.)?IO\.(?:File|Directory)\]::Delete)"
+)
+_USER_COURIER_DIR_RE = re.compile(
+    r"(?i)(?:\$userCourierDir|AppData\\Local\\Courier|LOCALAPPDATA\\Courier)"
+)
+# An allowlisted child of the user Courier dir. The directory itself, a glob of
+# it, or any other child still covers courier.db and logs.
+_ALLOWED_CHILD_RE = re.compile(
+    r"(?i)Join-Path\s+(?:Join-Path\s+\$_\.FullName\s+\"AppData\\Local\\Courier\"|\$userCourierDir)"
+    r"\s+\"(?:config\.json|run)\""
+    r"|(?:\$userCourierDir|AppData\\Local\\Courier|LOCALAPPDATA\\Courier)\\(?:config\.json|run)\b"
+)
+_LOGS_PATH_RE = re.compile(r"(?i)(?:\\|/|['\"])logs(?:\\|/|['\"]|\b)")
 
-    This is a parse of the script text. It does not execute PowerShell.
-    """
+
+def _powershell_assignments(script: str) -> dict[str, str]:
     assigns = {}
     for raw in script.splitlines():
         line = raw.split("#", 1)[0].strip()
         match = re.match(r"\$(\w+)\s*=\s*(.+)$", line)
         if match:
             assigns[match.group(1)] = match.group(2).strip()
+    return assigns
+
+
+def _expand_assignments(text: str, assigns: dict[str, str]) -> str:
+    names = sorted(assigns, key=len, reverse=True)
+    for _ in range(8):
+        updated = text
+        for name in names:
+            updated = re.sub(
+                rf"\${name}\b",
+                lambda _m, value=assigns[name]: value,
+                updated,
+            )
+        if updated == text:
+            break
+        text = updated
+    return text
+
+
+def _powershell_remove_targets(script: str) -> list[str]:
+    """Inline simple ``$var = ...`` assignments into Remove-Item targets.
+
+    This is a parse of the script text. It does not execute PowerShell.
+    """
+    assigns = _powershell_assignments(script)
     targets = []
     for match in re.finditer(r"Remove-Item\b([^\r\n]*)", script):
         args = match.group(1).split("#", 1)[0]
@@ -52,11 +92,21 @@ def _powershell_remove_targets(script: str) -> list[str]:
             token = token.strip("{}")
             if not token or token in {"|"}:
                 continue
-            if token.startswith("$") and token[1:] in assigns:
-                targets.append(assigns[token[1:]])
-            else:
-                targets.append(token)
+            expanded = _expand_assignments(token, assigns)
+            targets.append(expanded)
     return targets
+
+
+def _preserved_data_destroyed(expanded: str) -> str | None:
+    """Why this destructive line wipes courier.db or logs, or None if it does not."""
+    if re.search(r"(?i)courier\.db", expanded):
+        return "destroys courier.db"
+    if _LOGS_PATH_RE.search(expanded):
+        return "destroys logs"
+    residual = _ALLOWED_CHILD_RE.sub(" ", expanded)
+    if _USER_COURIER_DIR_RE.search(residual):
+        return "wipes the user Courier directory (courier.db and logs)"
+    return None
 
 
 def assert_uninstall_preserves_user_data(script: str) -> None:
@@ -66,10 +116,13 @@ def assert_uninstall_preserves_user_data(script: str) -> None:
     assert any("ProgramFiles" in target and "CourierWorker" in target for target in targets), rendered
     assert any("config.json" in target for target in targets), rendered
     assert any(re.search(r"""['"]run['"]""", target) for target in targets), rendered
-    for preserved in ("courier.db", "logs"):
-        assert not any(preserved in target.lower() for target in targets), rendered
-    # The per-user Courier directory itself is user data. Only config and run go.
-    assert not any(target.rstrip('"').endswith("\\Courier") for target in targets), rendered
+    assigns = _powershell_assignments(script)
+    for raw in script.splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if not line or not _DESTRUCTIVE_RE.search(line):
+            continue
+        reason = _preserved_data_destroyed(_expand_assignments(line, assigns))
+        assert reason is None, f"{reason}: {line}"
     assert "Database and logs" in script
     assert "preserved" in script.lower()
 
@@ -80,14 +133,33 @@ def test_uninstall_preserves_journal_and_logs_contract():
     assert_uninstall_preserves_user_data(script)
 
 
-def test_uninstall_contract_rejects_deleting_the_journal():
+@pytest.mark.parametrize("extra", [
+    'Remove-Item -Force (Join-Path $userCourierDir "courier.db")',
+    'Remove-Item -Recurse -Force (Join-Path $userCourierDir "logs")',
+    'Remove-Item -Recurse -Force "$userCourierDir\\*"',
+    "Remove-Item -Recurse -Force $userCourierDir",
+    'Remove-Item -Recurse -Force "$env:LOCALAPPDATA\\Courier\\*"',
+    'Remove-Item -Recurse -Force (Join-Path $_.FullName "AppData\\Local\\Courier")',
+    'Clear-Content -Force (Join-Path $userCourierDir "courier.db")',
+    'Clear-Content -Force (Join-Path $userCourierDir "logs\\courier.log")',
+    'Set-Content -Path (Join-Path $userCourierDir "courier.db") -Value ""',
+    'Out-File -FilePath (Join-Path $userCourierDir "courier.db") -InputObject ""',
+    'Out-File -FilePath (Join-Path $userCourierDir "logs\\courier.log") -InputObject ""',
+    'cmd /c del /f /q (Join-Path $userCourierDir "courier.db")',
+    'cmd /c rd /s /q (Join-Path $userCourierDir "logs")',
+    'del /f /q (Join-Path $userCourierDir "courier.db")',
+    'rd /s /q (Join-Path $userCourierDir "logs")',
+    'rmdir /s /q (Join-Path $userCourierDir "logs")',
+    '[IO.File]::Delete((Join-Path $userCourierDir "courier.db"))',
+    '[IO.Directory]::Delete((Join-Path $userCourierDir "logs"), $true)',
+    '[System.IO.File]::Delete((Join-Path $userCourierDir "courier.db"))',
+    '[System.IO.Directory]::Delete((Join-Path $userCourierDir "logs"), $true)',
+])
+def test_uninstall_contract_rejects_user_data_destruction(extra):
+    """Each forbidden wipe of courier.db or logs must fail the contract."""
     script = UNINSTALL_SCRIPT.read_text(encoding="utf-8")
-    for extra in (
-        'Remove-Item -Force (Join-Path $userCourierDir "courier.db")\n',
-        'Remove-Item -Recurse -Force (Join-Path $userCourierDir "logs")\n',
-    ):
-        with pytest.raises(AssertionError):
-            assert_uninstall_preserves_user_data(script + extra)
+    with pytest.raises(AssertionError, match=r"courier\.db|logs|user Courier directory"):
+        assert_uninstall_preserves_user_data(script + "\n" + extra + "\n")
 
 
 def _courier_tree(root_pid):
