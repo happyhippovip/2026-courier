@@ -1,0 +1,363 @@
+{
+  "schema_version": "0.1-bootstrap",
+  "authority": "inventory_only_not_runtime_authority",
+  "related_issues": [
+    118,
+    119,
+    120,
+    112
+  ],
+  "agents": [
+    {
+      "id": "agent-chief-commander",
+      "display_name": "Chief Commander",
+      "class": "core",
+      "status": "implemented",
+      "owner_files": [
+        "scripts/run_chief_commander.py"
+      ],
+      "capabilities": [
+        "orchestration",
+        "review"
+      ],
+      "provider_binding": null,
+      "cost_class": "local_or_routed",
+      "heavy_job_class": "coordinator",
+      "evidence_sources": [
+        "scripts/run_chief_commander.py",
+        "studio/studio.js"
+      ]
+    },
+    {
+      "id": "smart-resource-router",
+      "display_name": "Smart Resource Router",
+      "class": "router",
+      "status": "partial",
+      "owner_files": [],
+      "capabilities": [
+        "routing_candidate"
+      ],
+      "provider_binding": null,
+      "cost_class": "routing",
+      "heavy_job_class": "none",
+      "evidence_sources": [
+        "studio/studio.js"
+      ]
+    },
+    {
+      "id": "agent-human-gate-monitor",
+      "display_name": "Human Gate Monitor",
+      "class": "gate",
+      "status": "partial",
+      "owner_files": [],
+      "capabilities": [
+        "human_gate_visibility"
+      ],
+      "provider_binding": null,
+      "cost_class": "local",
+      "heavy_job_class": "none",
+      "evidence_sources": [
+        "studio/studio.js",
+        "studio/execution_truth.js"
+      ]
+    },
+    {
+      "id": "agent-thought-curator",
+      "display_name": "Thought Curator",
+      "class": "core",
+      "status": "partial",
+      "owner_files": [],
+      "capabilities": [
+        "thought_curation"
+      ],
+      "provider_binding": null,
+      "cost_class": "unknown",
+      "heavy_job_class": "unknown",
+      "evidence_sources": [
+        "studio/studio.js",
+        "studio/execution_truth.js"
+      ]
+    },
+    {
+      "id": "agent-update-steward",
+      "display_name": "Update Steward",
+      "class": "core",
+      "status": "partial",
+      "owner_files": [],
+      "capabilities": [
+        "context_freshness"
+      ],
+      "provider_binding": null,
+      "cost_class": "local_or_routed",
+      "heavy_job_class": "none",
+      "evidence_sources": [
+        "studio/studio.js",
+        "studio/execution_truth.js"
+      ]
+    },
+    {
+      "id": "agent-courier-relay",
+      "display_name": "Courier Relay",
+      "class": "core",
+      "status": "partial",
+      "owner_files": [],
+      "capabilities": [
+        "result_relay"
+      ],
+      "provider_binding": null,
+      "cost_class": "local",
+      "heavy_job_class": "none",
+      "evidence_sources": [
+        "studio/execution_truth.js"
+      ]
+    },
+    {
+      "id": "agent-snitch",
+      "display_name": "SNITCH Watchdog",
+      "class": "core",
+      "status": "partial",
+      "owner_files": [],
+      "capabilities": [
+        "watchdog"
+      ],
+      "provider_binding": null,
+      "cost_class": "local",
+      "heavy_job_class": "none",
+      "evidence_sources": [
+        "studio/studio.js",
+        "studio/execution_truth.js"
+      ]
+    },
+    {
+      "id": "agent-memory-mesh",
+      "display_name": "Memory Mesh Indexer",
+      "class": "specialist",
+      "status": "partial",
+      "owner_files": [],
+      "capabilities": [
+        "memory_indexing"
+      ],
+      "provider_binding": null,
+      "cost_class": "local_or_routed",
+      "heavy_job_class": "unknown",
+      "evidence_sources": [
+        "studio/studio.js",
+        "studio/execution_truth.js"
+      ]
+    },
+    {
+      "id": "agent-test-guardian",
+      "display_name": "Test Guardian",
+      "class": "specialist",
+      "status": "partial",
+      "owner_files": [],
+      "capabilities": [
+        "qa"
+      ],
+      "provider_binding": "codex_candidate",
+      "cost_class": "provider_dependent",
+      "heavy_job_class": "bounded",
+      "evidence_sources": [
+        "studio/studio.js",
+        "studio/execution_truth.js"
+      ]
+    },
+    {
+      "id": "agent-loop-supervisor",
+      "display_name": "Loop Supervisor",
+      "class": "core",
+      "status": "partial",
+      "owner_files": [],
+      "capabilities": [
+        "supervision"
+      ],
+      "provider_binding": null,
+      "cost_class": "local",
+      "heavy_job_class": "none",
+      "evidence_sources": [
+        "studio/studio.js",
+        "studio/execution_truth.js"
+      ]
+    },
+    {
+      "id": "agent-academy-teacher",
+      "display_name": "Academy Teacher",
+      "class": "specialist",
+      "status": "partial",
+      "owner_files": [],
+      "capabilities": [
+        "learning_improvement"
+      ],
+      "provider_binding": null,
+      "cost_class": "provider_dependent",
+      "heavy_job_class": "bounded",
+      "evidence_sources": [
+        "studio/studio.js",
+        "studio/execution_truth.js"
+      ]
+    },
+    {
+      "id": "agent-academy-director",
+      "display_name": "Academy Director",
+      "class": "specialist",
+      "status": "partial",
+      "owner_files": [],
+      "capabilities": [
+        "learning_coordination"
+      ],
+      "provider_binding": null,
+      "cost_class": "provider_dependent",
+      "heavy_job_class": "bounded",
+      "evidence_sources": [
+        "studio/studio.js"
+      ]
+    },
+    {
+      "id": "agent-asset-validator",
+      "display_name": "Asset Validator",
+      "class": "specialist",
+      "status": "partial",
+      "owner_files": [],
+      "capabilities": [
+        "asset_validation"
+      ],
+      "provider_binding": "antigravity_candidate",
+      "cost_class": "provider_dependent",
+      "heavy_job_class": "bounded",
+      "evidence_sources": [
+        "studio/studio.js",
+        "studio/execution_truth.js"
+      ]
+    },
+    {
+      "id": "agent-video-synth",
+      "display_name": "Video Synth",
+      "class": "specialist",
+      "status": "partial",
+      "owner_files": [],
+      "capabilities": [
+        "video_synthesis"
+      ],
+      "provider_binding": "antigravity_candidate",
+      "cost_class": "provider_dependent",
+      "heavy_job_class": "heavy",
+      "evidence_sources": [
+        "studio/studio.js",
+        "studio/execution_truth.js"
+      ]
+    },
+    {
+      "id": "agent-channel-dispatcher",
+      "display_name": "Channel Dispatcher",
+      "class": "specialist",
+      "status": "partial",
+      "owner_files": [],
+      "capabilities": [
+        "channel_dispatch"
+      ],
+      "provider_binding": null,
+      "cost_class": "provider_dependent",
+      "heavy_job_class": "bounded",
+      "evidence_sources": [
+        "studio/studio.js",
+        "studio/execution_truth.js"
+      ]
+    },
+    {
+      "id": "agent-antigravity-bridge",
+      "display_name": "Antigravity Bridge",
+      "class": "provider",
+      "status": "implemented",
+      "owner_files": [
+        "scripts/run_antigravity_bridge.py"
+      ],
+      "capabilities": [
+        "provider_execution",
+        "structured_result"
+      ],
+      "provider_binding": "google_antigravity",
+      "cost_class": "subscription_or_provider",
+      "heavy_job_class": "heavy",
+      "evidence_sources": [
+        "scripts/run_antigravity_bridge.py",
+        "studio/execution_truth.js"
+      ]
+    },
+    {
+      "id": "agent-codex-bridge",
+      "display_name": "Codex Bridge",
+      "class": "provider",
+      "status": "implemented",
+      "owner_files": [
+        "scripts/run_codex_bridge.py"
+      ],
+      "capabilities": [
+        "provider_execution",
+        "structured_result"
+      ],
+      "provider_binding": "codex",
+      "cost_class": "subscription_or_provider",
+      "heavy_job_class": "heavy",
+      "evidence_sources": [
+        "scripts/run_codex_bridge.py",
+        "studio/execution_truth.js"
+      ]
+    },
+    {
+      "id": "muse-runtime",
+      "display_name": "Muse Runtime",
+      "class": "provider",
+      "status": "implemented",
+      "owner_files": [
+        "scripts/mac_worker/daemon.py",
+        "scripts/mac_worker/muse_adapter.py",
+        "scripts/mac_worker/muse_supervisor.py"
+      ],
+      "capabilities": [
+        "provider_execution",
+        "checkpoint_resume"
+      ],
+      "provider_binding": "muse",
+      "cost_class": "subscription_or_provider",
+      "heavy_job_class": "heavy",
+      "evidence_sources": [
+        "scripts/mac_worker/daemon.py",
+        "scripts/mac_worker/muse_adapter.py",
+        "scripts/mac_worker/muse_supervisor.py"
+      ]
+    },
+    {
+      "id": "agent-bodyguard-alpha..hotel",
+      "display_name": "Bodyguard Reserve Pool (8)",
+      "class": "reserve",
+      "status": "implemented",
+      "owner_files": [
+        "scripts/run_bodyguards.py",
+        "scripts/bodyguard_daemon.py"
+      ],
+      "capabilities": [
+        "temporary_role_assignment",
+        "capability_checked_reserve"
+      ],
+      "provider_binding": "role_dependent",
+      "cost_class": "standby_zero_calls",
+      "heavy_job_class": "only_when_assigned",
+      "evidence_sources": [
+        "scripts/run_bodyguards.py",
+        "scripts/bodyguard_daemon.py"
+      ]
+    }
+  ],
+  "planned_or_unproven": [
+    {
+      "id": "claude-provider-bridge",
+      "status": "planned",
+      "reason": "No first-class Claude bridge/agent proven in current repo audit."
+    },
+    {
+      "id": "canonical-agent-selector",
+      "status": "planned",
+      "reason": "Prefer extending Smart Resource Router; do not create a new runtime agent unless responsibility conflict is proven."
+    }
+  ]
+}
