@@ -731,6 +731,32 @@ def test_runner_synthetic_params_error_writes_failure_report(tmp_path):
     assert "rejected" in body["reason"].lower() or "sleep" in body["reason"].lower()
 
 
+def test_runner_synthetic_unexpected_error_writes_failure_report(tmp_path, monkeypatch):
+    """Pin adapter_runner exit 1: catch-all after SyntheticError must write a report (MUSE-REV-165-F14)."""
+    from adapters import synthetic
+    from courier_worker import adapter_runner as runner_mod
+
+    workdir = tmp_path / "w"
+    report = tmp_path / "r.json"
+    request = tmp_path / "req.json"
+    request.write_text(json.dumps({
+        "adapter": "synthetic",
+        "params": {"sleep_s": 0, "write": "out.txt", "content": "x"},
+        "attempt": 1,
+        "workdir": str(workdir),
+        "report": str(report),
+    }), encoding="utf-8")
+
+    def boom(_params, _workdir, _attempt):
+        raise RuntimeError("injected unexpected failure")
+
+    monkeypatch.setattr(synthetic, "run", boom)
+    assert runner_mod.main([str(request)]) == 1
+    body = json.loads(report.read_text(encoding="utf-8"))
+    assert body["outcome"] == "failure" and body["retryable"] is False
+    assert "RuntimeError" in body["reason"] and "injected unexpected failure" in body["reason"]
+
+
 def test_missing_adapter_fails_closed_with_spec_error(monkeypatch):
     """No real L4 and no double importable: validate_request must refuse."""
     monkeypatch.setitem(sys.modules, "adapters", None)
