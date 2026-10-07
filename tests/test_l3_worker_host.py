@@ -147,6 +147,18 @@ def test_second_claim_while_busy_is_refused(tmp_path):
     assert host.busy is False
 
 
+def test_hostile_dispatch_id_is_refused_before_touching_disk(tmp_path):
+    for evil in ("../escape", "..", ".", "a/b", "a\\b", "d:1", "d 1", ""):
+        with pytest.raises(H.SpecError):
+            make_spec(tmp_path, dispatch=evil)
+    # Same refusal at the network boundary: a hostile claim never becomes a spec.
+    with pytest.raises(H.SpecError):
+        S.resolve_spec(claim_body(dispatch="../escape"), "w1",
+                       str(tmp_path / "artifacts"), 0.2)
+    assert list(tmp_path.glob("*")) == []  # no makedirs escape, no stdio file
+    assert make_host(tmp_path).busy is False
+
+
 def test_timeout_kills_whole_tree_within_bound(tmp_path):
     pgid_file = tmp_path / "pgid.txt"
     gpid_file = tmp_path / "gpid.txt"
