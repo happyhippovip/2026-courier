@@ -38,6 +38,12 @@ def _inspect(home: Path) -> dict:
                     "message": chain.reason or "journal hash chain failed",
                     "first_bad_seq": chain.first_bad_seq,
                 }
+            if not journal.projection_current() or not journal.verify_projection():
+                return {
+                    "ok": False,
+                    "code": "projection_mismatch",
+                    "message": "stored task projection does not match event replay",
+                }
             tasks = journal.tasks()
             counts = Counter(t.status.value for t in tasks)
             active = [

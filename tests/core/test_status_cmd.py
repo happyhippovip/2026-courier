@@ -67,6 +67,22 @@ def test_status_zero_byte_journal_json(tmp_path):
     assert status_main(["--home", str(home)]) == 1
 
 
+def test_status_tampered_projection_json(tmp_path):
+    home = tmp_path / "home"
+    home.mkdir()
+    with Journal(home / "courier.db") as journal:
+        for event in golden_path():
+            journal.append(event)
+        assert journal.verify_chain().ok
+        journal.conn.execute("UPDATE tasks SET status = 'FAILED' WHERE task_id = 't1'")
+        assert not journal.verify_projection()
+    code, payload = _status_json(home)
+    assert code == 1
+    assert payload["ok"] is False
+    assert payload["code"] == "projection_mismatch"
+    assert status_main(["--home", str(home), "--json"]) == 1
+
+
 def test_status_non_database_journal_json(tmp_path):
     home = tmp_path / "home"
     home.mkdir()
