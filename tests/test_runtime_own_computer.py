@@ -97,6 +97,20 @@ def test_lost_device_still_holding_the_lease_blocks_takeover(world):
     assert result["state"] == "WAITING"                                  # no second writer while the lease lives
 
 
+def test_second_workkey_on_same_device_waits_for_live_scope_lease(world):
+    # Issue #188 F12: holder is host.device_id, so a different workkey on the same device
+    # used to be treated as the lease owner and co-write the scope with the same token.
+    ws, _, _, tmp = world
+    mac = next(h for h in ws.hosts if h.device_id == "mac-1")
+    ws.run("wk-A", Requirement(frozenset({"python"})), "project:p1", request("r1"),
+           [write_step(n, str(tmp / "a.txt")) for n in ("a1", "a2")], host=mac, stop_after=0)
+    ws.registry.stop("wk-A")
+    result = ws.run("wk-B", Requirement(frozenset({"python"})), "project:p1", request("r2"),
+                    [write_step("b1", str(tmp / "b.txt"))], host=mac)
+    assert result["state"] == "WAITING" and not (tmp / "b1.out").exists()
+    assert ws.log.facts("wk-B") == []
+
+
 def test_no_grant_means_needs_user_not_execution(world):
     ws, _, _, tmp = world
     wider = Request("r9", "p1", "fs.write", frozenset({"workspace:p1", "home:~"}), "any", "", "project", "write",

@@ -52,6 +52,26 @@ def test_heartbeat_extends_and_same_holder_reacquire_keeps_token(leases):
     assert store.acquire("scope", "h", "wk", ttl_s=10).token == lease.token
 
 
+def test_same_holder_different_workkey_conflicts_while_lease_is_live(leases):
+    # Issue #188 F12: Workspace uses host.device_id as holder, so two workkeys on one
+    # device used to share the scope AND the fencing token; both writers passed check_write.
+    store, _ = leases
+    first = store.acquire("scope", "mac", "wk-A", ttl_s=30)
+    with pytest.raises(LeaseConflict):
+        store.acquire("scope", "mac", "wk-B", ttl_s=30)
+    assert store.check_write("scope", first.token).workkey == "wk-A"
+
+
+def test_same_holder_new_workkey_after_expiry_gets_new_token_and_fences_old(leases):
+    store, clock = leases
+    old = store.acquire("scope", "mac", "wk-A", ttl_s=30)
+    clock.t += 31
+    new = store.acquire("scope", "mac", "wk-B", ttl_s=30)
+    assert new.token == old.token + 1
+    with pytest.raises(StaleLease):
+        store.check_write("scope", old.token)
+
+
 def test_release_frees_scope_but_token_keeps_increasing(leases):
     store, _ = leases
     first = store.acquire("scope", "a", "wk", ttl_s=10)
