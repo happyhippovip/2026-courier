@@ -10,6 +10,7 @@ import datetime
 import hashlib
 import json
 import os
+import time
 from pathlib import Path
 from typing import Any
 
@@ -210,9 +211,10 @@ class TaskLeaseManager:
         try:
             lock_fd = os.open(reclaim_lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
         except FileExistsError:
-            # Another competing process is currently in the middle of reclaiming this expired lease
-            current_existing = load_json(lease_path) or existing or {}
-            return False, "TASK_ALREADY_CLAIMED_BY_ANOTHER_BUILDER", current_existing
+            # Another process holds the reclaim lock and is replacing the lease.
+            # Do not open lease_path here: that open is what makes Windows
+            # os.replace fail with WinError 5 (sharing violation).
+            return False, "TASK_ALREADY_CLAIMED_BY_ANOTHER_BUILDER", existing or {}
 
         try:
             # Re-read lease under reclaim lock to ensure it is still expired
@@ -223,10 +225,23 @@ class TaskLeaseManager:
                     # Another process finished reclaiming just before us
                     return False, "TASK_ALREADY_CLAIMED_BY_ANOTHER_BUILDER", current_existing
 
-            # Atomic replace under reclaim lock
+            # Atomic replace under reclaim lock. Retry only PermissionError:
+            # the loser may still be inside its earlier load_json, and Windows
+            # refuses to replace a file another handle has open (WinError 5,
+            # run 36810693808 attempt 1).
             temp_reclaim = lease_path.with_suffix(f".tmp.{os.getpid()}.{now_ts}")
             save_json(temp_reclaim, lease_data)
-            os.replace(temp_reclaim, lease_path)
+            last_error = None
+            for _ in range(40):
+                try:
+                    os.replace(temp_reclaim, lease_path)
+                    last_error = None
+                    break
+                except PermissionError as exc:
+                    last_error = exc
+                    time.sleep(0.05)
+            if last_error is not None:
+                raise last_error
             return True, "LEASE_RECLAIMED_EXPIRED", lease_data
         finally:
             try:
