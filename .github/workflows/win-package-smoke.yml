@@ -16,6 +16,7 @@ on:
       - "courier_overlay/**"
       - "courier_runtime/**"
       - "adapters/**"
+      - "tests/test_win_package_contract.py"
       - ".github/workflows/win-package-smoke.yml"
   push:
     branches: ["lane/**"]
@@ -28,6 +29,7 @@ on:
       - "courier_overlay/**"
       - "courier_runtime/**"
       - "adapters/**"
+      - "tests/test_win_package_contract.py"
       - ".github/workflows/win-package-smoke.yml"
   workflow_dispatch:
 

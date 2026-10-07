@@ -182,12 +182,55 @@ def test_pth_file_matches_embedded_python():
         f"build_package.ps1 patches {sorted(found) or 'no ._pth'}, "
         f"but Python {version} reads {expected}"
     )
-    tags = set(_LAUNCHER_PYTHON_TAG.findall(LAUNCHER.read_text(encoding="utf-8")))
-    expected_tag = expected.removesuffix("._pth")
-    assert tags <= {expected_tag.removeprefix("python")}, (
-        f"CourierLauncher.cs hardcodes python tag(s) {sorted(tags)}; "
-        f"the embedded interpreter is {expected_tag}"
+
+
+# The packaged layout is <launcher dir>\python\python.exe. The launcher must
+# select that file from its own base directory. An empty pythonXY-tag set is
+# not enough: CourierLauncher.cs never writes "python312".
+_EMBEDDED_LAUNCHER_EXE = 'Path.Combine(baseDir, "python", "python.exe")'
+
+
+def assert_launcher_binds_embedded_interpreter(text: str) -> None:
+    """Fail unless the launcher starts the embed next to itself and names no other interpreter."""
+    tags = sorted(set(_LAUNCHER_PYTHON_TAG.findall(text)))
+    if tags:
+        raise AssertionError(
+            f"CourierLauncher.cs must not reference a pythonXY tag; found {tags}"
+        )
+    if _EMBEDDED_LAUNCHER_EXE not in text:
+        raise AssertionError(
+            "CourierLauncher.cs must resolve python\\python.exe relative to its base directory"
+        )
+    # A system interpreter (bare "python", python3, or a drive path) must not
+    # replace the embed. The unversioned "python" fallback may exist only
+    # beside the baseDir-relative embed path checked above.
+    if re.search(r'pythonExe\s*=\s*@"?\s*[A-Za-z]:\\', text):
+        raise AssertionError("CourierLauncher.cs must not select a system Python path")
+    if re.search(r'pythonExe\s*=\s*"python\d', text):
+        raise AssertionError("CourierLauncher.cs must not select a versioned system python")
+
+
+def test_launcher_binds_embedded_python_next_to_itself():
+    launcher = LAUNCHER.read_text(encoding="utf-8")
+    build = BUILD_SCRIPT.read_text(encoding="utf-8")
+    assert_launcher_binds_embedded_interpreter(launcher)
+    # Courier.exe is copied to the package root, and the embed is extracted to
+    # <package>\python\python.exe, which is baseDir\python\python.exe.
+    assert 'Copy-Item "$PSScriptRoot\\Courier.exe" -Destination $OutDir' in build
+    assert 'Join-Path $OutDir "python"' in build
+    assert re.search(r'\$pythonExe\s*=\s*Join-Path\s+\$pyDir\s+"python\.exe"', build)
+
+    versioned = launcher.replace(
+        _EMBEDDED_LAUNCHER_EXE,
+        'Path.Combine(baseDir, "python311", "python.exe")',
     )
+    system_only = launcher.replace(_EMBEDDED_LAUNCHER_EXE, '"python"')
+    for mutated in (versioned, system_only):
+        try:
+            assert_launcher_binds_embedded_interpreter(mutated)
+        except AssertionError:
+            continue
+        raise AssertionError("mutated launcher was accepted: " + mutated[mutated.find("pythonExe"):mutated.find("pythonExe") + 180])
 
 
 def test_staged_packages_match_pyproject_and_launcher():
