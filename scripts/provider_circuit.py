@@ -39,14 +39,14 @@ class CircuitState:
     def classify_error(self, error_code: int, error_message: str):
         msg = error_message.lower()
         if error_code == 429:
-            if "quota" in msg or "exhausted" in msg:
+            if "quota" in msg or "exhausted" in msg or "usage limit" in msg:
                 return ErrorCategory.QUOTA_EXHAUSTED
             return ErrorCategory.RATE_LIMITED
         if error_code in (401, 403):
             return ErrorCategory.AUTH_ERROR
         if error_code >= 500:
             return ErrorCategory.UNAVAILABLE
-        if "quota" in msg or "exhausted" in msg:
+        if "quota" in msg or "exhausted" in msg or "usage limit" in msg:
             return ErrorCategory.QUOTA_EXHAUSTED
         return ErrorCategory.UNKNOWN
 
@@ -64,8 +64,8 @@ class CircuitState:
         else:
             self.state = ProviderState.DEGRADED
             
-        if reset_time:
-            self.reset_time = self._as_aware(reset_time)
+        # Never recycle an already-consumed reset after a failed probe.
+        self.reset_time = self._as_aware(reset_time)
 
         # A fresh failure supersedes any outstanding recovery probe.
         self.probe_in_flight = False
@@ -108,11 +108,29 @@ class CircuitState:
         self.reset_time = None
         self.probe_in_flight = False
 
+    def to_dict(self):
+        return {"state": self.state.value,
+                "reset_time": self.reset_time.isoformat() if self.reset_time else None,
+                "probe_in_flight": self.probe_in_flight}
+
+    @classmethod
+    def from_dict(cls, value):
+        reset = value.get("reset_time")
+        return cls(ProviderState(value["state"]),
+                   cls._as_aware(datetime.datetime.fromisoformat(reset)) if reset else None,
+                   bool(value.get("probe_in_flight")))
+
 class ProviderCircuitBreaker:
     _shared_circuits: dict[str, CircuitState] = {}
 
-    def __init__(self):
-        self.circuits = self._shared_circuits
+    def __init__(self, *, isolated=False):
+        self.circuits = {} if isolated else self._shared_circuits
+
+    def to_dict(self):
+        return {key: circuit.to_dict() for key, circuit in self.circuits.items()}
+
+    def restore(self, value):
+        self.circuits = {key: CircuitState.from_dict(circuit) for key, circuit in value.items()}
         
         
     def get_circuit(self, provider_id: str, capability: str) -> CircuitState:
@@ -129,4 +147,3 @@ class ProviderCircuitBreaker:
         
     def record_success(self, provider_id: str, capability: str):
         self.get_circuit(provider_id, capability).record_success()
-
