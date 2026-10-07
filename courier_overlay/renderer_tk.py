@@ -17,6 +17,15 @@ class TkinterRenderer:
         if sys.platform == "win32":
             self.root.attributes("-transparentcolor", "black")
             self.root.state('zoomed')
+            
+            # Make window click-through
+            try:
+                import ctypes
+                hwnd = ctypes.windll.user32.GetParent(self.root.winfo_id())
+                style = ctypes.windll.user32.GetWindowLongW(hwnd, -20)
+                ctypes.windll.user32.SetWindowLongW(hwnd, -20, style | 0x00080000 | 0x00000020)
+            except Exception as e:
+                pass
         else:
             # macOS fallback for transparency
             self.root.attributes("-alpha", 0.7)
