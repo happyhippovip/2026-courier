@@ -581,8 +581,9 @@ adapter / verifier → live golden path.
 - Fixed `test_p3_server_idempotency.py` regression: server correctly returns 409 (Conflict) when a result is received with a superseded `attempt_id` or `dispatch_id`, enforcing proper state mutation guarantees.
 - Resulting integration SHA: `e212cbd0c457af72f44bb2b0b7b7a0076ba6936f`
 
-## Step 19 — L6 Launcher Robustification (2026-10-07)
-### `lane/L6-launcher-robustification`
+## Step 19 — PR #130, L6 Launcher Robustification (2026-10-07)
+### `integration/v1` merged `lane/L6-launcher-robustification`
+
 
 - **Retention Policy & Uninstallation:**
   * `courier.db` and logs are preserved on uninstall (user data & journal history).
@@ -591,3 +592,13 @@ adapter / verifier → live golden path.
 - **Graceful Shutdown:** `CourierLauncher.cs` calls `/v1/shutdown` on Ctrl+C / close events to allow the hub and worker to gracefully exit before the job object is killed.
 
 **After step 19.** The L6 Windows Launcher robustness and privacy guarantees are implemented.
+
+## Step 20 — PR #122, L5 Desktop Overlay UI Polish
+### `integration/v1` merged `lane/L5-overlay-ui-polish`
+- Completed final desktop overlay UX refinements.
+
+## Step 21 — PR #128, L10 Codex Provider Continuity
+### `integration/v1` merged `codex/provider-continuity-resume`
+- Durable Codex continuity and guarded resume logic.
+
+**After step 21.** The EXTENDED INTEGRATIONS path is unblocked. Next path: Cost-Aware Provider Routing (Issue #118) and real adapters.
