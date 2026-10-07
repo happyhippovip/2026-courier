@@ -25,6 +25,7 @@ def load_daemon(tmp_path, monkeypatch):
         "COURIER_API_KEY": "dummy-test-key-not-real",
     })
     monkeypatch.setattr(daemon.time, "sleep", lambda seconds: None)
+    monkeypatch.setattr(daemon.governor, "measure_pressure", lambda: "GREEN")
     return daemon
 
 
