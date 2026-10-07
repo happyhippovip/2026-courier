@@ -159,8 +159,9 @@ def test_scan_report_consistent_under_concurrent_appends(tmp_path):
         stop.set()
         thread.join()
 
+import sys
 
-@pytest.mark.skipif(sys.platform == "win32", reason="Windows does not dir-fsync")
+@pytest.mark.skipif(sys.platform == 'win32', reason="Windows does not dir-fsync")
 def test_emit_dir_fsync_failure_is_loud_but_persisted(tmp_path, monkeypatch):
     bus = str(tmp_path / "events.jsonl")
     real_fsync = os.fsync

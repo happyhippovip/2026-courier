@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+import pytest; pytest.importorskip("fcntl")
 DAEMON_PATH = Path(__file__).resolve().parents[1] / "scripts" / "mac_worker" / "daemon.py"
 
 

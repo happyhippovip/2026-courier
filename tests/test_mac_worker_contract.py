@@ -1,3 +1,4 @@
+import pytest; pytest.importorskip("fcntl")
 """Mac worker recovery against the real server contract (no live Mac)."""
 import hashlib
 import importlib

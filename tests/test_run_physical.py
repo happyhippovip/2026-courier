@@ -5,6 +5,7 @@ from pathlib import Path
 import json
 import os
 
+import pytest; pytest.importorskip("fcntl")
 @pytest.mark.skipif(
     sys.platform == "win32",
     reason="mac-physical run spawns scripts/mac_worker/daemon.py, which requires "
