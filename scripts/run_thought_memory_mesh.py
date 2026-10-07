@@ -25,6 +25,7 @@ sys.path.insert(0, str(SCRIPT_DIR))
 from build_memory_update_proposal import get_memory_commit, validate_proposal_against_schema
 from foundry_synthesizer import run_synthesizer
 from foundry_kill_engine import run_kill_engine
+from foundry_portfolio_scoring import run_portfolio_scoring
 
 INITIAL_ANCHOR = "2026-08-25"
 SUPPORTED_SOURCES = {
@@ -307,8 +308,11 @@ def run_mesh(messages: list[dict[str, Any]], prior_ledger: dict[str, Any], memor
     
     boss_b = thought_boss_b(surviving_candidates, memory_commit)
     
-    # Boss B only includes surviving, non-protected candidates
-    accepted_for_proposal = boss_b["accepted_candidates"] + kill_engine_results["killed"]
+    # Phase 2: Portfolio Scoring
+    scoring_results = run_portfolio_scoring(boss_b["accepted_candidates"])
+    
+    # Build proposal with sorted surviving candidates + killed candidates
+    accepted_for_proposal = scoring_results["sorted_portfolio"] + kill_engine_results["killed"]
     proposal = build_proposal(accepted_for_proposal, memory_commit)
     ledger = {
         "schema_version": "thought-coverage-ledger-1.0",
@@ -330,6 +334,7 @@ def run_mesh(messages: list[dict[str, Any]], prior_ledger: dict[str, Any], memor
         "foundry_kill_engine": kill_engine_results,
         "thought_boss_a": boss_a, 
         "thought_boss_b": boss_b, 
+        "foundry_portfolio_scoring": scoring_results,
         "memory_update_proposal": proposal, 
         "chief_delivery_adapter": build_delivery(proposal)
     }
