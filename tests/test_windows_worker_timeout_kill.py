@@ -69,14 +69,82 @@ def test_timed_out_process_is_killed_not_left_running(monkeypatch):
     assert not alive, "child process from the timed-out task is still running (orphaned)"
 
 
+def test_timeout_does_not_claim_killed_when_termination_fails(monkeypatch):
+    """A failed kill must not be reported as termination. The child stays alive."""
+    daemon = load_daemon()
+    real_popen_class = subprocess.Popen
+    real_communicate = subprocess.Popen.communicate
+
+    def spawn_sleep(cmd, **kwargs):
+        if cmd and cmd[0] == "powershell":
+            cmd = [sys.executable, "-c", "import time; time.sleep(30)"]
+        return real_popen_class(cmd, **kwargs)
+
+    def short_timeout(self, input=None, timeout=None):
+        if timeout in (600, 15):
+            timeout = 0.2
+        return real_communicate(self, input=input, timeout=timeout)
+
+    def deny(_pid):
+        raise OSError("access denied")
+
+    monkeypatch.setattr(daemon.subprocess, "Popen", spawn_sleep)
+    monkeypatch.setattr(real_popen_class, "communicate", short_timeout)
+    monkeypatch.setattr(daemon, "kill_process_tree", deny)
+
+    result = daemon.run_task({"task_id": "t-unproven", "instruction": "irrelevant", "goal_id": "g1"},
+                             {"WORKER_ID": "WIN-TEST"})
+    pid = int(result["run_id"])
+    monkeypatch.setattr(real_popen_class, "communicate", real_communicate)
+    try:
+        assert result["status"] == "FAILED"
+        assert "Timed out" in result["stderr"]
+        assert "termination not proven" in result["stderr"]
+        assert "process killed" not in result["stderr"]
+        assert "not left running" not in result["stderr"]
+        proc = psutil.Process(pid)
+        assert proc.is_running()
+        assert proc.status() != psutil.STATUS_ZOMBIE
+    finally:
+        try:
+            psutil.Process(pid).kill()
+            psutil.Process(pid).wait(timeout=5)
+        except psutil.NoSuchProcess:
+            pass
+
+
+def test_taskkill_failure_is_not_a_successful_tree_kill(monkeypatch):
+    """taskkill's exit code is the kill result. A non-zero exit is not success."""
+    daemon = load_daemon()
+    real_name = daemon.os.name
+
+    class _Completed:
+        def __init__(self, returncode):
+            self.returncode = returncode
+
+    monkeypatch.setattr(
+        daemon.subprocess, "run", lambda *a, **k: _Completed(1))
+    try:
+        daemon.os.name = "nt"
+        with pytest.raises(subprocess.SubprocessError):
+            daemon.kill_process_tree(4242)
+    finally:
+        daemon.os.name = real_name
+
+
 def test_kill_process_tree_uses_taskkill_on_windows(monkeypatch):
     daemon = load_daemon()
     calls = []
+
+    class _Completed:
+        returncode = 0
+
     # daemon.os is the real os module (shared, singleton); patch only the
     # name it reads inside kill_process_tree, and always restore it, so this
     # test cannot leak "nt" into pathlib/pytest's own os.name for the process.
     real_name = daemon.os.name
-    monkeypatch.setattr(daemon.subprocess, "run", lambda *a, **k: calls.append((a, k)))
+    monkeypatch.setattr(
+        daemon.subprocess, "run", lambda *a, **k: calls.append((a, k)) or _Completed())
     try:
         daemon.os.name = "nt"
         daemon.kill_process_tree(4242)
