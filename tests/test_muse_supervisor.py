@@ -87,11 +87,51 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setattr(sup, "DAEMON", bootstrap)
     http = server.app.test_client()
     auth = {"Authorization": f"Bearer {WORKER_KEY}"}
+    launchers = []
+    real_launcher = sup.ProcessLauncher
+
+    class RecordingLauncher(real_launcher):
+        """Remember every slot Popen this test starts so teardown can reap it."""
+
+        def __init__(self):
+            super().__init__()
+            launchers.append(self)
+            self.spawned = []
+
+        def start(self, slot_id, env):
+            pid = super().start(slot_id, env)
+            proc = self.children.get(slot_id)
+            if proc is not None and proc not in self.spawned:
+                self.spawned.append(proc)
+            return pid
+
+    monkeypatch.setattr(sup, "ProcessLauncher", RecordingLauncher)
     try:
         yield sup, server, http, auth, tmp_path
     finally:
-        sup.cmd_stop(terminate=True)
-        httpd.shutdown()
+        recorded = list(launchers)
+        try:
+            if recorded:
+                for launcher in recorded:
+                    sup.cmd_stop(terminate=True, launcher=launcher)
+            else:
+                sup.cmd_stop(terminate=True)
+            alive = []
+            for launcher in recorded:
+                current = {id(proc) for proc in launcher.children.values()}
+                for proc in launcher.spawned:
+                    if proc.poll() is not None and _group_gone(proc.pid):
+                        continue
+                    # cmd_stop only sees the latest Popen for a slot. A replaced
+                    # child is still one this test spawned; signal only that.
+                    if id(proc) not in current and proc.poll() is None:
+                        sup.cleanup_group(proc, None)
+                    if proc.poll() is None or not _group_gone(proc.pid):
+                        alive.append(proc.pid)
+            if alive:
+                raise AssertionError("slot Popen still alive: " + ",".join(str(pid) for pid in alive))
+        finally:
+            httpd.shutdown()
 
 
 def add_goal(http, auth, task_id):
@@ -112,6 +152,16 @@ def run_until(sup_obj, predicate, clock=None, timeout=60.0):
         if predicate():
             return True
         time.sleep(0.1)
+    return False
+
+
+def _group_gone(pgid):
+    try:
+        os.killpg(int(pgid), 0)
+    except ProcessLookupError:
+        return True
+    except (OSError, ValueError):
+        return False
     return False
 
 
@@ -268,6 +318,30 @@ def test_four_slots_are_isolated(env):
     cwds = {c["cwd"] for c in muse_calls(tmp)}
     assert len(cwds) == 4 and len(muse_calls(tmp)) == 4
     sup.cmd_stop()
+
+
+def test_owned_popen_stops_when_ps_identity_is_missing(env, monkeypatch):
+    """ps timeout (process_identity is None) must not spare a live owned session.
+
+    The slot child ignores the STOP file. Exit has to come from the signal
+    sent to that unreaped session, which is what a deleted tmp dir cannot do.
+    """
+    sup, _, _, _, tmp = env
+    sleeper = tmp / "sleep_daemon.py"
+    sleeper.write_text("import time\nwhile True:\n    time.sleep(0.2)\n")
+    monkeypatch.setattr(sup, "DAEMON", sleeper)
+    monkeypatch.setattr(sup, "process_identity", lambda pid: None)
+    s = supervisor(sup, target=1)
+    assert run_until(s, lambda: sup.load_slots().get("01", {}).get("state") == "RUNNING")
+    proc = s.launcher.children["01"]
+    assert proc.poll() is None
+    sup.cmd_stop(terminate=True, launcher=s.launcher)
+    deadline = time.monotonic() + 10
+    while proc.poll() is None and time.monotonic() < deadline:
+        time.sleep(0.05)
+    blocker = sup.load_slots()["01"].get("blocker") or ""
+    assert proc.poll() is not None and _group_gone(proc.pid)
+    assert "CLEANUP_NOT_PROVEN" not in blocker
 
 
 def test_stop_prevents_restart(env):

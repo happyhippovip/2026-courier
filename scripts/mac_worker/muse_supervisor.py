@@ -297,6 +297,8 @@ class Supervisor:
             slot.update(state=RUNNING, pid=pid, last_started_at=now, backoff_until=0)
             if hasattr(self.launcher, "identity"):
                 slot["process_identity"] = self.launcher.identity(slot["slot_id"])
+                if slot["process_identity"] is None:
+                    slot["blocker"] = "PROCESS_IDENTITY_UNRECORDED: ps identity unavailable at spawn"
             save_slots(slots)
             active += 1
             new_starts += 1
