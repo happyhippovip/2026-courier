@@ -54,12 +54,25 @@ def test_cost_aware_routing(client):
         "cost_class": "high"
     }, headers=headers)
     
-    # 3. Expensive worker tries to claim but there's no escalation_reason in task -> Refused (task: null)
+    # 3. Register an opaque worker
+    client.post("/workers/register", json={
+        "worker_id": "opaque-worker",
+        "platform": "opus",
+        "capabilities": ["linux"]
+        # no cost_class
+    }, headers=headers)
+    
+    # 4. Expensive worker tries to claim but there's no escalation_reason in task -> Refused (task: null)
     res = client.post("/tasks/claim", json={"worker_id": "expensive-worker"}, headers=headers)
     data = res.get_json()
     assert data.get("task") is None, "Expensive worker should be refused because cheap worker is available"
     
-    # 4. Cheap worker claims it -> Succeeds
+    # 5. Opaque worker tries to claim -> Refused (task: null)
+    res = client.post("/tasks/claim", json={"worker_id": "opaque-worker"}, headers=headers)
+    data = res.get_json()
+    assert data.get("task") is None, "Opaque worker should be refused because unknown defaults to high"
+    
+    # 6. Cheap worker claims it -> Succeeds
     res = client.post("/tasks/claim", json={"worker_id": "cheap-worker"}, headers=headers)
     data = res.get_json()
     assert data.get("task") is not None

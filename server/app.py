@@ -365,6 +365,9 @@ def claim_task():
                     
                     if matched:
                         worker_cost = worker.get("cost_class", "high")
+                        if worker_cost not in ("free", "low", "medium", "high", "local_first"):
+                            worker_cost = "high"
+                            
                         cheaper_available = False
                         cheapest_alt = "none"
                         now = time.time()
