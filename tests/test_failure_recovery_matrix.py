@@ -40,7 +40,8 @@ def test_result_from_another_worker_is_rejected(tmp_path, monkeypatch):
 def test_result_with_wrong_identity_is_rejected(tmp_path, monkeypatch, field):
     http, _, task = setup_claimed_task(tmp_path, monkeypatch)
     wrong = dict(durable_result(task), **{field: "wrong"})
-    assert http.post("/tasks/result", headers=auth(), json=wrong).status_code == 400
+    expected_status = 409 if field == "dispatch_id" else 400
+    assert http.post("/tasks/result", headers=auth(), json=wrong).status_code == expected_status
     assert server_app.load_state()["tasks"][task["task_id"]]["status"] == "DISPATCHED"
 
 

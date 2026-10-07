@@ -4,6 +4,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+pytest.importorskip("fcntl")
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ["deploy/install_mac_runtime.sh", "scripts/setup_local_autonomy.sh", "scripts/revenue_v1_goal.sh"]

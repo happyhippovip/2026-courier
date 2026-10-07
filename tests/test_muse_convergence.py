@@ -8,6 +8,8 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "mac_worker"))
+pytest.importorskip("fcntl")  # Skip entire module on Windows
+
 import muse_adapter as adapter
 import runtime_state as runtime
 from test_mac_worker_recovery import load_daemon, FakeServer, StopLoop, task, run, state_file
