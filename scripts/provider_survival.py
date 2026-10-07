@@ -427,6 +427,13 @@ class CourierScheduler:
                 if previous is not None and previous != asdict(task):
                     raise ValueError("task identity changed; reconcile explicitly")
                 self.saved_tasks[task.task_id] = asdict(task)
+                
+                if task.task_id not in self.completed_tasks and (task.fingerprint or task.task_id) not in cp.completed_fingerprints:
+                    if task.is_deterministic and task.task_id not in cp.open_local_units:
+                        cp.open_local_units.append(task.task_id)
+                    elif not task.is_deterministic and task.task_id not in cp.open_provider_units:
+                        cp.open_provider_units.append(task.task_id)
+                        
             self._save()
             tasks = [TaskContext(**value) for value in self.saved_tasks.values()]
             pending = [t for t in tasks if t.task_id not in self.completed_tasks
@@ -528,6 +535,10 @@ class CourierScheduler:
                         cp.completed_fingerprints.append(task.fingerprint or task.task_id)
                         cp.source_refs.extend(result["evidence"])
                         self.started.remove(task.task_id)
+                        if task.task_id in cp.open_local_units:
+                            cp.open_local_units.remove(task.task_id)
+                        if task.task_id in cp.open_provider_units:
+                            cp.open_provider_units.remove(task.task_id)
                     elif result.get("status") in ("QUOTA_EXHAUSTED", "RATE_LIMITED") and provider:
                         self.breaker.record_failure(provider.id, task.required_capability, 429,
                                                     result["status"], result.get("reset_time"))
