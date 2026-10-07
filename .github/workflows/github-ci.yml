@@ -2,17 +2,22 @@ name: GitHub Customer-Reality Gate
 
 on:
   push:
-    branches:
-      - '**'
+    branches: ["integration/v1", "main"]
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
   pull_request:
-    branches:
-      - '**'
 
 permissions:
   contents: read
 
+concurrency:
+  group: acceptance-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test-github-integration:
+    timeout-minutes: 15
     name: GitHub Acceptance Tests (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
