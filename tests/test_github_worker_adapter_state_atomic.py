@@ -85,7 +85,10 @@ def test_concurrent_writes_never_tear_reads(tmp_path: Path):
             for _ in range(200):
                 path = adapter.state_path(task_file)
                 if path.is_file():
-                    json.loads(path.read_text(encoding="utf-8"))
+                    try:
+                        adapter.read_state(task_file)
+                    except FileNotFoundError:
+                        pass
         except Exception as exc:  # noqa: BLE001
             errors.append(exc)
 

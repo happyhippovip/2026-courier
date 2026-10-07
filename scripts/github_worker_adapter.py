@@ -104,10 +104,17 @@ def _steal_stale_lock(task_file: Path, path: Path) -> bool:
 
 
 def release_packet_lock(task_file: Path) -> None:
-    try:
-        os.unlink(lock_path(task_file))
-    except OSError:
-        pass
+    path = lock_path(task_file)
+    for _ in range(100):
+        try:
+            os.unlink(path)
+            return
+        except FileNotFoundError:
+            return
+        except PermissionError:
+            time.sleep(0.01)
+        except OSError:
+            pass
 IDENTITY_FIELDS = ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")
 ALLOW_LIST = {"metadata", "report", "deterministic_transform", "verify_file", "static_analysis", "run_tests"}
 
@@ -121,6 +128,16 @@ def state_path(task_file: Path) -> Path:
     return task_file.with_name(f"{task_file.stem}.github-worker-state.json")
 
 
+def read_state(task_file: Path) -> dict[str, Any]:
+    path = state_path(task_file)
+    for _ in range(100):
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except PermissionError:
+            time.sleep(0.01)
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 def write_state(task_file: Path, state: dict[str, Any]) -> None:
     # Atomic publish: a kill between truncate and content commit must never
     # leave a torn state file behind (torn state crashes every future run
@@ -132,6 +149,13 @@ def write_state(task_file: Path, state: dict[str, Any]) -> None:
         f.write(json.dumps(state, sort_keys=True) + "\n")
         f.flush()
         os.fsync(f.fileno())
+    
+    for _ in range(100):
+        try:
+            os.replace(tmp, state_path(task_file))
+            return
+        except PermissionError:
+            time.sleep(0.01)
     os.replace(tmp, state_path(task_file))
 
 
@@ -283,7 +307,7 @@ def _run(task_file: Path, task: dict[str, Any]) -> int:
     validate_task(task)
     prior = {}
     if state_path(task_file).is_file():
-        prior = json.loads(state_path(task_file).read_text(encoding="utf-8"))
+        prior = read_state(task_file)
         if prior.get("dispatch_id") != task["dispatch_id"]:
             raise ValueError("persisted GitHub state belongs to another dispatch")
         if prior.get("status") == "POSTED":
