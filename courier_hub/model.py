@@ -381,6 +381,92 @@ def unrecognised_receipt(task: Any, events: Iterable[Any]) -> dict:
     }
 
 
+def host_installation(state_dir, evidence, now, *, host_id: str = "this-computer") -> dict:
+    """One host's installation card, derived only from the install-state contract.
+
+    A missing or unreadable journal is unknown and needs a person. It is never
+    treated as healthy, and a script's success text is not an input.
+    """
+    from pathlib import Path
+
+    from courier_core.install_state import (
+        FAILED,
+        HEALTHY,
+        INSTALLING,
+        INSTALLED_UNVERIFIED,
+        JOURNAL_NAME,
+        NOT_INSTALLED,
+        REPAIR_REQUIRED,
+        InstallJournal,
+        JournalUnreadable,
+        derive_state,
+        scrub_secrets,
+    )
+
+    host = _public_text(host_id, fallback="this-computer")
+    path = Path(state_dir) / JOURNAL_NAME
+    if not path.is_file():
+        return _installation_card(host, "unknown", "needs_human", "Unknown — needs a person",
+                                  "STATUS_MISSING", None, None)
+    try:
+        journal = InstallJournal(state_dir).load()
+    except (JournalUnreadable, OSError):
+        return _installation_card(host, "unknown", "needs_human", "Unknown — needs a person",
+                                  "STATUS_UNREADABLE", None, None)
+    derived = derive_state(journal, evidence, now)
+    contract_state = derived.get("state")
+    reason = derived.get("reason_code")
+    version = derived.get("version")
+    if contract_state == HEALTHY:
+        bucket, tone, label = "working", "ok", "Working"
+    elif contract_state == INSTALLED_UNVERIFIED:
+        bucket, tone, label = "unverified", "unverified", "Unverified"
+    elif contract_state in (REPAIR_REQUIRED, FAILED):
+        bucket, tone, label = "needs_human", "needs_human", "Needs a person"
+    elif contract_state == INSTALLING:
+        bucket, tone, label = "in_progress", "in_progress", "Installing"
+    elif contract_state == NOT_INSTALLED:
+        bucket, tone, label = "not_installed", "not_installed", "Not installed"
+    else:
+        return _installation_card(host, "unknown", "needs_human", "Unknown — needs a person",
+                                  "STATUS_UNREADABLE", None, None)
+    return _installation_card(host, bucket, tone, label, reason, contract_state, version, scrub_secrets)
+
+
+def _public_text(value, *, fallback: str) -> str:
+    from courier_core.install_state import REDACTED, scrub_secrets
+
+    if not isinstance(value, str) or not value.strip():
+        return fallback
+    cleaned = scrub_secrets(value)
+    if not isinstance(cleaned, str) or cleaned == REDACTED or not cleaned.strip():
+        return fallback
+    return cleaned
+
+
+def _installation_card(host, bucket, tone, label, reason, contract_state, version, scrub=None) -> dict:
+    from courier_core.install_state import scrub_secrets
+
+    scrub = scrub or scrub_secrets
+    card = {
+        "host_id": host,
+        "bucket": bucket,
+        "tone": tone,
+        "label": label,
+        "reason_code": reason,
+        "contract_state": contract_state,
+        "version": version,
+    }
+    cleaned = scrub(card)
+    # Scrubbing must not be able to rename the bucket into a healthy one.
+    if cleaned.get("bucket") != bucket or cleaned.get("tone") != tone:
+        cleaned["bucket"] = "unknown"
+        cleaned["tone"] = "needs_human"
+        cleaned["label"] = "Unknown — needs a person"
+        cleaned["contract_state"] = None
+    return cleaned
+
+
 def home(tasks: Iterable[Any], events_by_task: dict, done_limit: int = 50) -> dict:
     piles = {PILE_NEEDS_YOU: [], PILE_WORKING: [], PILE_DONE: []}
     for task in tasks:
