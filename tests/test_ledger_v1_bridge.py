@@ -366,6 +366,75 @@ def test_bad_config_exits_2_without_posting(tmp_path):
         bridge._git_head = previous
 
 
+def test_goal_fields_round_trip_into_evidence_and_replay_is_noop(tmp_path):
+    goal_id = "g" * 128
+    goal_fp = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec(goal_id=goal_id, goal_fingerprint=goal_fp)})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 0, err
+    assert len(http.posts) == 1
+    posted = http.posts[0]
+    assert posted["idempotency_key"].startswith("ledger:claim-")
+    assert "goal_id" not in posted["idempotency_key"]
+    assert "goal_id" not in posted
+    assert posted["params"]["unit"] == "a"
+    assert posted["params"]["goal_id"] == goal_id
+    assert posted["params"]["goal_fingerprint"] == goal_fp
+    task_id = "task-" + hashlib.sha256(posted["idempotency_key"].encode()).hexdigest()[:32]
+    http.views[task_id]["status"] = "COMPLETE"
+    http.views[task_id]["accepted_result_id"] = "result-goal"
+    http.views[task_id]["attempt"] = 1
+    code, out, err, log, lines = _run(home, http)
+    assert code == 0, err
+    assert len(http.posts) == 1
+    reducer = reduce_store(FileCoordinationStore(home / "coordination_ledger.jsonl"))
+    finals = [event for event in reducer.events if event.event_type == EventType.FINAL]
+    assert len(finals) == 1
+    assert f"goal_id={goal_id}" in finals[0].evidence_ref
+    assert f"goal_fingerprint={goal_fp}" in finals[0].evidence_ref
+    assert finals[0].payload_hash == hashlib.sha256(finals[0].evidence_ref.encode("utf-8")).hexdigest()
+    before = (home / "coordination_ledger.jsonl").read_text(encoding="utf-8")
+    assert _run(home, http)[0] == 0
+    assert len(http.posts) == 1
+    assert (home / "coordination_ledger.jsonl").read_text(encoding="utf-8") == before
+
+
+def test_half_or_invalid_goal_is_blocked_and_not_posted(tmp_path):
+    cases = [
+        {"goal_id": "only-id"},
+        {"goal_fingerprint": "b" * 64},
+        {"goal_id": "ok-id", "goal_fingerprint": "bad fp"},
+        {"goal_id": "a" * 129, "goal_fingerprint": "fp"},
+        {"goal_id": "", "goal_fingerprint": "fp"},
+        {"goal_id": "goal\nid", "goal_fingerprint": "fp"},
+        {"goal_id": 12, "goal_fingerprint": "fp"},
+        {"goal_id": "ok-id", "goal_fingerprint": "fp/extra"},
+    ]
+    for index, extra in enumerate(cases):
+        http = FakeHTTP()
+        home = _home(tmp_path / str(index), {"A": _spec(**extra)})
+        _seed(home, [_ready("A", "a-assign")])
+        code, out, err, log, lines = _run(home, http)
+        assert code == 0, (extra, err, out)
+        assert http.posts == [], extra
+        reducer = reduce_store(FileCoordinationStore(home / "coordination_ledger.jsonl"))
+        mission = reducer.get_mission("A")
+        assert mission["status"] == MissionStatus.BLOCKED, extra
+        assert mission["blocker"]
+        assert "goal" in mission["blocker"]
+        blocked = [event for event in reducer.events if event.event_type == EventType.BLOCKED]
+        assert len(blocked) == 1, extra
+        assert blocked[0].payload_hash == hashlib.sha256(blocked[0].evidence_ref.encode("utf-8")).hexdigest()
+        assert not any(event.event_type == EventType.FINAL for event in reducer.events)
+        assert not any(event.event_type == EventType.STARTED for event in reducer.events)
+        before = (home / "coordination_ledger.jsonl").read_text(encoding="utf-8")
+        assert _run(home, http)[0] == 0
+        assert http.posts == []
+        assert (home / "coordination_ledger.jsonl").read_text(encoding="utf-8") == before
+
+
 def test_token_never_appears_in_stdout_stderr_or_log(tmp_path):
     http = FakeHTTP()
     home = _home(tmp_path, {"A": _spec()})

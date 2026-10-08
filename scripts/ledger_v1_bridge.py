@@ -18,6 +18,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
 import tempfile
 import urllib.error
@@ -48,6 +49,9 @@ EXIT_RETRY = 75
 DEFAULT_CONTROLLER = "http://127.0.0.1:8080"
 TASK_FIELDS = ("adapter", "params", "effect_class", "max_attempts", "lease_ttl_s", "timeout_s")
 TERMINAL_FAILURE = frozenset({"FAILED", "CANCELLED"})
+GOAL_FIELDS = ("goal_id", "goal_fingerprint")
+MAX_GOAL_LEN = 128
+GOAL_TOKEN = re.compile(r"[A-Za-z0-9._:-]+\Z")
 
 
 class ConfigError(Exception):
@@ -115,13 +119,19 @@ def _feedback(store, state, specs, agent, host, args, transport, token, emit, ho
             emit({"mission_id": mission_id, "outcome": "skipped", "reason": "unmapped"})
             ok = False
             continue
+        spec = specs.get(mission_id)
+        goal_kind, goal_reason = _goal_binding(spec)
+        if goal_kind == "blocked":
+            _park_goal(store, reducer, mission, agent, host, goal_reason)
+            emit({"mission_id": mission_id, "outcome": "blocked", "reason": goal_reason})
+            continue
         view = _task_view(transport, args, token, mapping.get("task_id"))
         if view is None:
             if mapping.get("posted"):
                 emit({"mission_id": mission_id, "outcome": "skipped", "reason": "task_missing"})
                 ok = False
             continue
-        event = _feedback_event(mission, mapping, specs.get(mission_id), agent, host, view)
+        event = _feedback_event(mission, mapping, spec, agent, host, view)
         if event is None:
             if view.get("status") in ("COMPLETE", "BLOCKED", *TERMINAL_FAILURE):
                 emit({"mission_id": mission_id, "outcome": "skipped", "reason": "identity_missing"})
@@ -155,6 +165,14 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
             emit({"mission_id": mission_id, "outcome": "skipped", "reason": "malformed_spec"})
             ok = False
             continue
+        goal_kind, goal_value = _goal_binding(spec)
+        if goal_kind == "blocked":
+            mission = reducer.get_mission(mission_id)
+            if mission is not None:
+                _park_goal(store, reducer, mission, agent, host, goal_value)
+            emit({"mission_id": mission_id, "outcome": "blocked", "reason": goal_value})
+            continue
+        goal = goal_value if goal_kind == "ok" else None
         source = _recorded_source(state["missions"].get(mission_id) or {}, spec)
         if source is None:
             emit({"mission_id": mission_id, "outcome": "skipped", "reason": "source_sha_missing"})
@@ -181,8 +199,11 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
                 "attempt": None,
                 "spec_fingerprint": _fingerprint(spec),
                 "source_sha": source,
-                "evidence_ref": _identity(task_id, None, 0, _fingerprint(spec), source),
+                "evidence_ref": _identity(task_id, None, 0, _fingerprint(spec), source, goal),
             }
+            if goal is not None:
+                mapping["goal_id"] = goal[0]
+                mapping["goal_fingerprint"] = goal[1]
             state["missions"][mission_id] = mapping
             _save_state(home / "ledger_bridge_state.json", state)
         if mapping.get("posted"):
@@ -203,7 +224,7 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
         mapping["attempt"] = attempt
         mapping["accepted_result_id"] = result_id
         mapping["evidence_ref"] = _identity(
-            mapping["task_id"], result_id, attempt, mapping["spec_fingerprint"], mapping["source_sha"],
+            mapping["task_id"], result_id, attempt, mapping["spec_fingerprint"], mapping["source_sha"], goal,
         )
         _save_state(home / "ledger_bridge_state.json", state)
         outcome = "duplicate" if posted.get("duplicate") is True else "queued"
@@ -224,7 +245,9 @@ def _feedback_event(mission, mapping, spec, agent, host, view):
     if not source or not fingerprint or not isinstance(task_id, str) or not task_id:
         return None
     result_id = _result_id(view)
-    evidence = _identity(task_id, result_id, attempt, fingerprint, source)
+    goal_kind, goal_value = _goal_binding(spec)
+    goal = goal_value if goal_kind == "ok" else None
+    evidence = _identity(task_id, result_id, attempt, fingerprint, source, goal)
     if status == "COMPLETE":
         if result_id is None:
             return None
@@ -260,12 +283,15 @@ def _feedback_event(mission, mapping, spec, agent, host, view):
     )
 
 
-def _identity(task_id, result_id, attempt, fingerprint, source_sha) -> str:
+def _identity(task_id, result_id, attempt, fingerprint, source_sha, goal=None) -> str:
     result = result_id if isinstance(result_id, str) and result_id else "none"
-    return (
+    text = (
         f"task_id={task_id};accepted_result_id={result};attempt={attempt};"
         f"spec_fingerprint={fingerprint};source_sha={source_sha}"
     )
+    if goal:
+        text += f";goal_id={goal[0]};goal_fingerprint={goal[1]}"
+    return text
 
 
 def _result_id(view):
@@ -349,6 +375,14 @@ def _task_view(transport, args, token, task_id):
 def _post_task(transport, args, token, spec, key):
     task = {name: spec[name] for name in TASK_FIELDS if name in spec}
     task["idempotency_key"] = key
+    # The controller persists adapter, params, and the attempt fields. Goal
+    # identity is copied into that payload and is not part of the idempotency key.
+    kind, goal = _goal_binding(spec)
+    if kind == "ok":
+        params = dict(task["params"])
+        params["goal_id"] = goal[0]
+        params["goal_fingerprint"] = goal[1]
+        task["params"] = params
     url = args.controller.rstrip("/") + "/v1/tasks"
     status, raw = _request(
         transport, "POST", url,
@@ -392,7 +426,7 @@ def _load_specs(path: Path):
 def _spec_ok(spec) -> bool:
     if not isinstance(spec, dict):
         return False
-    allowed = set(TASK_FIELDS) | {"source_sha"}
+    allowed = set(TASK_FIELDS) | {"source_sha", *GOAL_FIELDS}
     if set(spec) - allowed or any(name not in spec for name in ("adapter", "params", "effect_class", "max_attempts", "lease_ttl_s")):
         return False
     adapter = spec.get("adapter")
@@ -411,6 +445,52 @@ def _spec_ok(spec) -> bool:
     if "source_sha" in spec and not _sha_ok(spec.get("source_sha")):
         return False
     return True
+
+
+def _goal_binding(spec):
+    """Return ('absent', None), ('ok', (id, fingerprint)), or ('blocked', reason).
+
+    Neither field is the default. Exactly one field, or a field that is not a
+    short token, parks the mission instead of posting it.
+    """
+    if not isinstance(spec, dict):
+        return "absent", None
+    present = [name for name in GOAL_FIELDS if name in spec]
+    if not present:
+        return "absent", None
+    if len(present) != len(GOAL_FIELDS):
+        return "blocked", "goal_id and goal_fingerprint must both be present"
+    for name in GOAL_FIELDS:
+        if not _goal_token(spec.get(name)):
+            return "blocked", f"{name} must be at most {MAX_GOAL_LEN} characters matching [A-Za-z0-9._:-]+"
+    return "ok", (spec["goal_id"], spec["goal_fingerprint"])
+
+
+def _goal_token(value) -> bool:
+    return isinstance(value, str) and len(value) <= MAX_GOAL_LEN and GOAL_TOKEN.fullmatch(value) is not None
+
+
+def _park_goal(store, reducer, mission, agent, host, reason) -> bool:
+    evidence = f"goal_blocked;reason={reason}"
+    digest = hashlib.sha256(f"{mission['mission_id']}|{reason}".encode("utf-8")).hexdigest()[:16]
+    event = CoordinationEvent(
+        event_id=f"blocked-{digest}",
+        mission_id=mission["mission_id"],
+        agent_id=agent,
+        host_id=host,
+        event_type=EventType.BLOCKED,
+        status=MissionStatus.BLOCKED,
+        depends_on=list(mission.get("depends_on") or []),
+        head=mission.get("head"),
+        evidence_ref=evidence,
+        created_at=_not_before(mission.get("updated_at")),
+        payload_hash=hashlib.sha256(evidence.encode("utf-8")).hexdigest(),
+        branch=mission.get("branch"),
+        pr=mission.get("pr"),
+        blocker=reason,
+        ownership=agent.value,
+    )
+    return _write_new(store, reducer, event)
 
 
 def _in_range(value, low, high) -> bool:

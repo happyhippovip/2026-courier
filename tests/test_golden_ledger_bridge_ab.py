@@ -8,6 +8,7 @@ OS, not on Windows alone. This file lives outside that directory, so that
 skip does not apply. It runs wherever the rest of pytest runs.
 """
 
+import hashlib
 import importlib.util
 import json
 import os
@@ -25,6 +26,8 @@ from scripts.github_coordination import FileCoordinationStore
 REPO = Path(__file__).resolve().parents[1]
 AGENT = "GOOGLE_WINDOWS"
 HOST = "WINDOWS_REMOTE"
+GOAL_ID = "goal.bridge.ab"
+GOAL_FP = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 
 
 def _courier_cls():
@@ -57,6 +60,8 @@ def _spec(unit):
         "effect_class": "idempotent",
         "max_attempts": 1,
         "lease_ttl_s": 30,
+        "goal_id": GOAL_ID,
+        "goal_fingerprint": GOAL_FP,
     }
 
 
@@ -101,6 +106,9 @@ def _assert_identity(event, view, source_sha):
     assert f"attempt={view['attempt']}" in evidence
     assert f"source_sha={source_sha}" in evidence
     assert "spec_fingerprint=" in evidence
+    assert f"goal_id={GOAL_ID}" in evidence
+    assert f"goal_fingerprint={GOAL_FP}" in evidence
+    assert event.payload_hash == hashlib.sha256(evidence.encode("utf-8")).hexdigest()
     assert event.event_type == EventType.FINAL
 
 
@@ -129,7 +137,11 @@ def test_real_controller_ab_and_restart_before_feedback(tmp_path):
         state = json.loads((home / "ledger_bridge_state.json").read_text(encoding="utf-8"))
         assert state["missions"]["A"]["task_id"] == task_a
         assert state["missions"]["A"]["idempotency_key"].startswith("ledger:claim-")
+        assert "goal" not in state["missions"]["A"]["idempotency_key"]
         assert "B" not in state["missions"]
+        posted_a = courier.api.get(f"/v1/tasks/{task_a}", timeout=5).json()
+        assert posted_a["params"]["goal_id"] == GOAL_ID
+        assert posted_a["params"]["goal_fingerprint"] == GOAL_FP
 
         worker = courier.start_worker()
         view_a = _wait_complete(courier, task_a)
@@ -148,6 +160,9 @@ def test_real_controller_ab_and_restart_before_feedback(tmp_path):
         created = _created(courier)
         assert len(created) == 2
         task_b = next(event["task_id"] for event in created if event["task_id"] != task_a)
+        posted_b = courier.api.get(f"/v1/tasks/{task_b}", timeout=5).json()
+        assert posted_b["params"]["goal_id"] == GOAL_ID
+        assert posted_b["params"]["goal_fingerprint"] == GOAL_FP
         keys = {json.loads((home / "ledger_bridge_state.json").read_text(encoding="utf-8"))["missions"][mid]["idempotency_key"]
                 for mid in ("A", "B")}
         assert len(keys) == 2
