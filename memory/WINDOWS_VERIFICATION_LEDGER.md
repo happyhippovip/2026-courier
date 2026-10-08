@@ -257,3 +257,11 @@ This ledger tracks the verification status of modules in this repository on Wind
 - [x] dashboard/server.py: 🟢 VERIFIED (verified in test_dashboard_server_uncovered.py)
 - [x] scripts/windows_worker/daemon.py: 🟢 VERIFIED (verified in test_windows_worker_daemon_uncovered.py, 87% coverage)
 - [x] scripts/mac_worker/runtime_state.py: ✔️ VERIFIED (verified in test_mac_worker_runtime_state_uncovered.py, 100% coverage)
+
+## scripts/courier_budget_alert.py
+**Status**: VERIFIED (fail-closed stub, no live check claimed)
+**Date**: 2026-10-08
+**Findings**:
+- **False-success stub eliminated**: the file unconditionally printed `Budget check: OK. Under €2.00.` at import time while measuring nothing — a hardcoded cost-gate pass with zero evidence. Zero in-repo callers confirmed.
+- Minimal fail-closed fix: explicit STUB notice on stderr + exit 2, import side effect removed (`__main__` guard), docstring routes future work to the cost-aware routing / resource-policy lanes. No live check invented here.
+- **Testing**: new `tests/test_courier_budget_alert.py` (2 tests: nonzero exit with STUB marker and no `OK` claim; import side-effect-free). Both fail on the base stub, both pass on the fix. Hermetic real-subprocess proof.
