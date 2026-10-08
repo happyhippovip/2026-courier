@@ -819,7 +819,9 @@ class WorkerHost:
                 break
             if on_heartbeat is not None:
                 try:
-                    on_heartbeat(time.monotonic() - start)
+                    # Packaged WorkerLoop returns None. False is the only refusal.
+                    if on_heartbeat(time.monotonic() - start) is not False:
+                        lease_at = time.monotonic() + spec.lease_ttl_s
                 except Exception:
                     pass  # a failed heartbeat never kills a healthy run
         duration_s = time.monotonic() - start
