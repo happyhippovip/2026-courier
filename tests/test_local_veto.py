@@ -283,7 +283,7 @@ def test_veto_releases_item_and_records_receipt_without_secrets(tmp_path):
     assert str(tmp_path / "PAUSE") not in text
 
 
-def test_accept_does_not_release(tmp_path):
+def test_accept_releases_item_back_to_queue(tmp_path):
     queue = FakeQueue([_item()])
     verdict, kept = consider(
         queue, "host-a",
@@ -294,9 +294,26 @@ def test_accept_does_not_release(tmp_path):
     )
     assert verdict.decision == ACCEPT
     assert kept["dispatch_id"] == "d1"
-    assert queue.released == []
-    assert queue.held["dispatch_id"] == "d1"
+    assert [item["dispatch_id"] for item in queue.released] == ["d1"]
+    assert queue.held is None
+    assert [item["dispatch_id"] for item in queue.items] == ["d1"]
     assert list((tmp_path / "receipts").glob("*.json")) == []
+
+
+def test_accepted_item_can_be_claimed_by_host(tmp_path):
+    queue = FakeQueue([_item()])
+    verdict, kept = consider(
+        queue, "host-a",
+        config_path=_config(tmp_path),
+        receipt_dir=str(tmp_path / "receipts"),
+        governor=FakeGovernor(),
+        now=datetime(2026, 10, 8, 12, 0, tzinfo=UTC),
+    )
+    assert verdict.decision == ACCEPT
+    rerun = queue.claim("host-a")
+    assert rerun is not None
+    assert rerun["dispatch_id"] == kept["dispatch_id"] == "d1"
+    assert queue.failed == []
 
 
 def test_empty_queue_accepts_without_release(tmp_path):

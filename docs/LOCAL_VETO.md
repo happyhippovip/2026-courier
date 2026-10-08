@@ -76,10 +76,11 @@ item does not write a receipt.
 ## Queue
 
 `consider(queue, worker_id, ...)` returns `(verdict, item)`. It asks the queue
-for one item (`claim`). On `ACCEPT`, `item` is the one the host keeps. On
-`VETO`, the receipt is written, the item is returned (`release`), and `item`
-is `None`. `release` does not fail the item. An empty queue is
-`(ACCEPT, None)`.
+for one item (`claim`). On `ACCEPT`, the item is returned to the queue
+(`release`) so the host claim path can take it and run it; `item` only names
+what was accepted. On `VETO`, the receipt is written, the item is returned
+(`release`), and `item` is `None`. `release` does not fail the item. An empty
+queue is `(ACCEPT, None)`.
 
 ## Boundary
 

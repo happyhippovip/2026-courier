@@ -118,8 +118,11 @@ def consider(queue: WorkQueue, worker_id: str, *, config_path: str, receipt_dir:
              governor: Any = None, now: Optional[datetime] = None) -> tuple:
     """Take one item. A veto is recorded and the item is released, not failed.
 
-    Returns ``(verdict, item)``. ``item`` is set only for ACCEPT. An empty
-    queue is ``(ACCEPT, None)``. A veto is ``(VETO(...), None)`` after release.
+    An ACCEPT also releases the item back to the queue so the host claim
+    path can take it and run it; the returned ``item`` only names what was
+    accepted. Returns ``(verdict, item)``. ``item`` is set only for ACCEPT.
+    An empty queue is ``(ACCEPT, None)``. A veto is ``(VETO(...), None)``
+    after release.
     """
     item = queue.claim(worker_id)
     if item is None:
@@ -131,6 +134,7 @@ def consider(queue: WorkQueue, worker_id: str, *, config_path: str, receipt_dir:
         finally:
             queue.release(item)
         return verdict, None
+    queue.release(item)
     return verdict, item
 
 
