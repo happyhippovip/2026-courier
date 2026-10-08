@@ -178,15 +178,37 @@ def fingerprints_match(pid, identity):
     return False
 
 
+def _pid_liveness(pid):
+    """'live', 'zombie', 'gone', or 'unknown'.
+
+    On Darwin, kill(pid, 0) succeeds for an unreaped zombie while getpgid
+    returns ESRCH. That split is a dead child, not a live process.
+    """
+    try:
+        os.kill(int(pid), 0)
+    except ProcessLookupError:
+        return "gone"
+    except OSError:
+        return "unknown"
+    if _pgid_for_pid(pid) is None:
+        return "zombie"
+    return "live"
+
+
+def _exited_leader_authorized(pid, identity):
+    pgid = identity.get("pgid")
+    if pgid is None:
+        return False
+    if int(identity.get("pid", -1)) == int(pid):
+        return True
+    return not group_exists(pgid)
+
+
 def identity_matches(pid, identity):
     """True only when the recorded pid is live and still matches pgid+fingerprint."""
     if not identity or int(identity.get("pid", -1)) != int(pid):
         return False
-    try:
-        os.kill(int(pid), 0)
-    except ProcessLookupError:
-        return False
-    except OSError:
+    if _pid_liveness(pid) != "live":
         return False
     return fingerprints_match(pid, identity)
 
@@ -195,16 +217,10 @@ def cleanup_identity_authority(pid, identity):
     """True when we may signal the recorded session group (including after leader exit)."""
     if not identity or int(identity.get("pid", -1)) != int(pid):
         return False
-    try:
-        os.kill(int(pid), 0)
-    except ProcessLookupError:
-        pgid = identity.get("pgid")
-        if pgid is None:
-            return False
-        if int(identity.get("pid", -1)) == int(pid):
-            return True
-        return not group_exists(pgid)
-    except OSError:
+    state = _pid_liveness(pid)
+    if state in ("gone", "zombie"):
+        return _exited_leader_authorized(pid, identity)
+    if state != "live":
         return False
     return fingerprints_match(pid, identity)
 
@@ -244,9 +260,11 @@ def _pgroup_has_live_members(pgid):
 
 def _group_is_gone(pgid, leader_pid=None):
     if leader_pid is not None:
-        try:
-            os.kill(int(leader_pid), 0)
-        except ProcessLookupError:
+        state = _pid_liveness(leader_pid)
+        # A Darwin zombie still accepts kill(pid, 0). That is not a verified termination.
+        if state == "zombie":
+            return False
+        if state == "gone":
             return not _pgroup_has_live_members(pgid)
     try:
         os.killpg(int(pgid), 0)
@@ -309,10 +327,12 @@ def cleanup_group(proc, identity, grace=_CLEANUP_ROUND_GRACE_S):
     leader_pid = int(identity.get("pid", proc.pid)) if identity else int(proc.pid)
 
     def gone():
+        # wait(), not poll(): Darwin poll() misses a zombie that kill(pid, 0)
+        # still reports while getpgid returns ESRCH.
+        _reap_direct(proc, 0)
         return _group_is_gone(pgid, leader_pid)
 
-    if proc.poll() is not None and gone():
-        _reap_direct(proc, 0)
+    if gone():
         return True
     if not _authorized(proc, identity):
         return False
@@ -332,6 +352,11 @@ def cleanup_group(proc, identity, grace=_CLEANUP_ROUND_GRACE_S):
             except ProcessLookupError:
                 _reap_direct(proc, 0)
                 return True
+            except PermissionError:
+                # Darwin killpg on a zombie leader is EPERM. Reap and re-check.
+                _reap_direct(proc, 0)
+                if _group_is_gone(pgid, leader_pid):
+                    return True
             deadline = time.monotonic() + grace
             while time.monotonic() < deadline:
                 _reap_direct(proc, min(0.05, max(0.0, deadline - time.monotonic())))
@@ -347,6 +372,8 @@ def process_group_stopped(proc, identity):
     if pgid is None:
         return proc.poll() is not None
     leader_pid = int(identity.get("pid", proc.pid)) if identity else int(proc.pid)
+    if _pid_liveness(leader_pid) == "zombie":
+        return False
     if _group_is_gone(pgid, leader_pid):
         _reap_direct(proc, 0)
         return True

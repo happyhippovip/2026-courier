@@ -62,6 +62,52 @@ def test_normal_termination_verified(reaper_mod):
     reaper.cleanup_all()
 
 
+def _await_unreaped_zombie(pid, timeout=2.0):
+    """True when kill(pid, 0) succeeds and getpgid returns ESRCH, without reaping."""
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            os.kill(pid, 0)
+        except OSError:
+            return False
+        try:
+            os.getpgid(pid)
+        except ProcessLookupError:
+            return True
+        time.sleep(0.01)
+    return False
+
+
+def test_dead_or_zombie_child_is_not_a_verified_termination(rt):
+    """A dead or zombie child is not a verified termination.
+
+    Darwin reports that child as existing via kill(pid, 0) while getpgid
+    returns ESRCH. Cleanup may still reap it; the zombie itself is not proof.
+    """
+    proc = subprocess.Popen(SLEEPER, stdin=subprocess.DEVNULL, start_new_session=True)
+    try:
+        ident = rt.capture_process_identity(proc)
+        assert ident is not None
+        os.kill(proc.pid, signal.SIGTERM)
+        assert _await_unreaped_zombie(proc.pid)
+        assert proc.returncode is None
+        assert rt.identity_matches(proc.pid, ident) is False
+        assert rt.process_group_stopped(proc, ident) is False
+        assert proc.returncode is None
+        os.kill(proc.pid, 0)
+        with pytest.raises(ProcessLookupError):
+            os.getpgid(proc.pid)
+        assert rt.cleanup_identity_authority(proc.pid, ident) is True
+        assert rt.cleanup_group(proc, ident) is True
+        assert proc.returncode is not None
+        with pytest.raises(ProcessLookupError):
+            os.kill(proc.pid, 0)
+    finally:
+        if proc.returncode is None:
+            proc.kill()
+            proc.wait(timeout=5)
+
+
 def test_forced_termination(reaper_mod):
     reaper = reaper_mod.SupervisorTestReaper()
     proc = subprocess.Popen(SLEEPER, stdin=subprocess.DEVNULL, start_new_session=True)
