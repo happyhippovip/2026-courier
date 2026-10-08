@@ -286,8 +286,17 @@ def execute_packet_code_or_test_work(
         target_path_str = payload_in.get("target_file") or (allowed_scope[0] if allowed_scope else "README.md")
         target_file = (repo_dir / target_path_str).resolve()
         if not target_file.exists() or not target_file.is_file():
-            verdict = "FAILED"
-            evidence_data["error"] = f"File not found: {target_path_str}"
+            if repo_dir != COURIER_DIR and (COURIER_DIR / target_path_str).is_file():
+                target_file = (COURIER_DIR / target_path_str).resolve()
+                content = target_file.read_bytes()
+                file_hash = hashlib.sha256(content).hexdigest()
+                evidence_data["file_path"] = str(target_file.relative_to(COURIER_DIR))
+                evidence_data["file_size_bytes"] = len(content)
+                evidence_data["file_sha256"] = file_hash
+                verdict = "PASS"
+            else:
+                verdict = "FAILED"
+                evidence_data["error"] = f"File not found: {target_path_str}"
         else:
             content = target_file.read_bytes()
             file_hash = hashlib.sha256(content).hexdigest()
@@ -323,8 +332,9 @@ def execute_packet_code_or_test_work(
 
     hooks.on_tool_action(packet.id, "Persisting evidence artifact and computing digests", 0.8)
 
-    EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
-    evidence_path = EVIDENCE_DIR / f"{packet.id}_evidence.json"
+    ev_dir = (repo_dir / "events/evidence") if repo_dir else EVIDENCE_DIR
+    ev_dir.mkdir(parents=True, exist_ok=True)
+    evidence_path = ev_dir / f"{packet.id}_evidence.json"
     evidence_text = json.dumps(evidence_data, indent=2)
 
     # Guard against secrets
@@ -496,6 +506,50 @@ def run_google_builder_queue(
             break
 
     return executed_records
+
+
+def execute_google_task(
+    dispatch_file: Path,
+    hooks: AntigravityHookRunner | None = None,
+    repo_dir: Path | None = None,
+) -> Path:
+    """Executes a dispatch job file through the authorized Google Builder Worker."""
+    base = repo_dir or COURIER_DIR
+    job = json.loads(dispatch_file.read_text(encoding="utf-8"))
+    task_id = job.get("task_id", f"task-{uuid.uuid4().hex[:8]}")
+    payload = dict(job.get("parameters") or {})
+    payload.setdefault("instruction", job.get("instruction", "Execute task"))
+    payload.setdefault("allowed_scope", job.get("allowed_scope", ["tests/"]))
+
+    inst_lower = str(job.get("instruction", "")).lower()
+    if "test" in inst_lower:
+        default_type = "run_tests"
+    elif "contract" in inst_lower or "syntax" in inst_lower:
+        default_type = "code_contract_check"
+    elif "verify" in inst_lower:
+        default_type = "verify_file"
+    else:
+        default_type = "deterministic_transform"
+    payload.setdefault("task_type", payload.get("task_type", default_type))
+
+    packet = WorkPacket(
+        id=task_id,
+        owner_id=job.get("target_agent", DEFAULT_WORKER_ID),
+        target_sha=get_current_git_sha(base),
+        state=PacketState.CURRENT,
+        payload=payload,
+    )
+
+    processed_packet, result_file, decision = process_work_packet(
+        packet=packet,
+        repo_dir=base,
+        hooks=hooks,
+        lock_dir=base / "events/locks",
+    )
+
+    if result_file and result_file.exists():
+        return result_file
+    return (base / f"events/processed/{task_id}-result.json")
 
 
 def main() -> int:

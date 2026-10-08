@@ -13,6 +13,9 @@ events/thought-processed/*.json
 events/thought-rejected/*.json
 events/thoughts/*.json
 events/agent-states/*.json
+events/workflows/*.json
+events/workflows/*.statetmp
+!events/workflows/.gitkeep
 
 # Python & bytecode caches
 __pycache__/
