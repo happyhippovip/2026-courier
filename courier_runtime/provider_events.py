@@ -89,8 +89,21 @@ def drive(kirby, slot, lines):
 
 
 def read_new_lines(path, offset):
-    """Incremental file read for the host loop: returns (lines, new_offset)."""
-    with open(path, encoding="utf-8") as f:
+    """Return only newline-terminated records and a physical byte offset.
+
+    A provider may be interrupted halfway through a write, including a UTF-8
+    character. Preserve that suffix for the next read, never promote a partial
+    DONE record. A malformed complete record is ignored as a whole rather
+    than poisoning all later signals or decoding into a valid terminal event.
+    """
+    with open(path, "rb") as f:
         f.seek(offset)
-        lines = [ln.rstrip("\n") for ln in f]
-        return lines, f.tell()
+        data = f.read()
+    end = data.rfind(b"\n") + 1
+    lines = []
+    for record in data[:end].split(b"\n")[:-1]:
+        try:
+            lines.append(record.decode("utf-8"))
+        except UnicodeDecodeError:
+            lines.append("INVALID_UTF8")  # unknown protocol kind: fail closed
+    return lines, offset + end

@@ -147,3 +147,42 @@ def test_read_new_lines_is_incremental(tmp_path):
     p.write_text("IDLE\nTURN_ENDED outcome=DONE\nOUTPUT x\n", encoding="utf-8")
     lines, _ = provider_events.read_new_lines(p, off)
     assert lines == ["OUTPUT x"]
+
+
+def test_partial_terminal_record_is_not_consumed(tmp_path):
+    from courier_runtime.provider_events import read_new_lines
+
+    p = tmp_path / "provider.log"
+    p.write_bytes(b"IDLE\nTURN_ENDED outcome=DONE checkpoint=par")
+    lines, offset = read_new_lines(p, 0)
+    assert lines == ["IDLE"] and offset == len(b"IDLE\n")
+    with p.open("ab") as handle:
+        handle.write(b"tial-complete\n")
+    lines, final = read_new_lines(p, offset)
+    assert lines == ["TURN_ENDED outcome=DONE checkpoint=partial-complete"]
+    assert final == p.stat().st_size
+    assert read_new_lines(p, final) == ([], final)
+
+
+def test_split_utf8_record_waits_for_its_complete_line(tmp_path):
+    from courier_runtime.provider_events import read_new_lines
+
+    p = tmp_path / "provider.log"
+    p.write_bytes(b"HEARTBEAT checkpoint=\xc3")
+    assert read_new_lines(p, 0) == ([], 0)
+    with p.open("ab") as handle:
+        handle.write(b"\xa4\n")
+    assert read_new_lines(p, 0) == (["HEARTBEAT checkpoint=ä"], p.stat().st_size)
+
+
+def test_invalid_utf8_terminal_record_cannot_complete_work(tmp_path):
+    k, _, _, ev = kirby(tmp_path)
+    k.add_workkeys(["W1"])
+    k.open_slot("s1", "muse")
+    ev.handle(k, "s1", "IDLE")
+    k.deliver("s1")
+    p = tmp_path / "provider.log"
+    p.write_bytes(b"TURN_ENDED outcome=DONE checkpoint=\xff\nHEARTBEAT\n")
+    lines, offset = ev.read_new_lines(p, 0)
+    assert ev.drive(k, "s1", lines) == ["IGNORED", "HEARTBEAT"]
+    assert k.workkeys["W1"].state != DONE and offset == p.stat().st_size
