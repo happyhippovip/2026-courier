@@ -59,6 +59,15 @@ _EVIDENCE_REQUIRED = frozenset({PAYMENT_CONFIRMED, DELIVERED, REFUNDED, FAILED})
 _PENDING = frozenset({PAYMENT_CONFIRMED, RUNNING})
 _MAX_ID = 80
 _MAX_EVIDENCE = 500
+_MAX_PAYMENT_EVIDENCE = 100
+REPO_INPUT_MESSAGE = (
+    "Beta nimmt nur öffentliche GitHub-Links an (https://github.com/owner/repo), keine ZIP-Dateien. "
+    "/ The beta accepts public GitHub links only (https://github.com/owner/repo), no ZIP files."
+)
+PAYMENT_EVIDENCE_MESSAGE = (
+    "Zahlungsbeleg: Transaktionsnummer des Anbieters, ohne Leerzeichen, höchstens 100 Zeichen. "
+    "/ Payment evidence: the provider transaction id, no whitespace, at most 100 characters."
+)
 _GITHUB_HOST = "github.com"
 _SHA40 = re.compile(r"^[0-9a-f]{40}$")
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
@@ -142,6 +151,7 @@ class OrderBook:
 
     def confirm_payment(self, order_id: str, evidence_ref: str) -> dict[str, Any]:
         """Record that payment was confirmed. This is never inferred from a later step."""
+        _payment_evidence(evidence_ref)
         return self._move(order_id, PAYMENT_CONFIRMED, evidence_ref, allow_payment=True)
 
     def mark_running(self, order_id: str) -> dict[str, Any]:
@@ -541,10 +551,23 @@ def _evidence(value: Any) -> str:
     return cleaned
 
 
+def _payment_evidence(value: Any) -> str:
+    """A provider transaction id: non-empty, no whitespace, short. No provider lookup."""
+    if (
+        not isinstance(value, str)
+        or not value.strip()
+        or len(value.strip()) > _MAX_PAYMENT_EVIDENCE
+        or any(ch.isspace() for ch in value.strip())
+        or "@" in value
+    ):
+        raise OrderError(PAYMENT_EVIDENCE_MESSAGE)
+    return value.strip()
+
+
 def github_repo_url(value: str) -> str:
     """Accept only https://github.com/owner/repo. Anything else is refused."""
     if not isinstance(value, str):
-        raise OrderError("repo must be https://github.com/owner/repo")
+        raise OrderError(REPO_INPUT_MESSAGE)
     parsed = urllib.parse.urlsplit(value.strip())
     if (
         parsed.scheme != "https"
@@ -554,15 +577,15 @@ def github_repo_url(value: str) -> str:
         or parsed.query
         or parsed.fragment
     ):
-        raise OrderError("repo must be https://github.com/owner/repo")
+        raise OrderError(REPO_INPUT_MESSAGE)
     parts = [part for part in parsed.path.split("/") if part]
     if len(parts) != 2:
-        raise OrderError("repo must be https://github.com/owner/repo")
+        raise OrderError(REPO_INPUT_MESSAGE)
     owner, repo = parts
     if repo.endswith(".git"):
         repo = repo[:-4]
     if not _github_segment(owner) or not _github_segment(repo):
-        raise OrderError("repo must be https://github.com/owner/repo")
+        raise OrderError(REPO_INPUT_MESSAGE)
     return f"https://github.com/{owner}/{repo}"
 
 

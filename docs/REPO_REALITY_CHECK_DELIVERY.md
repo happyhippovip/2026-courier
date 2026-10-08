@@ -17,7 +17,9 @@ Tarball-Prüfsumme.
 
 1. Eine Bestellung kommt per E-Mail an die hinterlegte Bestelladresse. Die
    Nachricht nennt die öffentliche Repository-URL
-   `https://github.com/owner/repo`. Andere Adressen werden nicht angenommen.
+   `https://github.com/owner/repo`. Andere Adressen und ZIP-Dateien werden
+   nicht angenommen; `new` lehnt sie mit einer Meldung auf Deutsch und
+   Englisch ab.
 
 2. Auftrag anlegen. Die gedruckte Auftragsnummer für die nächsten Schritte
    notieren.
@@ -34,7 +36,8 @@ Tarball-Prüfsumme.
    aus einem späteren Schritt abgeleitet.
 
 4. Zahlung mit der Transaktionsnummer eintragen, so wie sie beim Anbieter
-   steht.
+   steht: ohne Leerzeichen, höchstens 100 Zeichen. Der Anbieter wird nicht
+   abgefragt.
 
    ```
    python -m courier_core.reality_orders confirm-payment AUFTRAGSNUMMER --evidence TRANSAKTIONSNUMMER

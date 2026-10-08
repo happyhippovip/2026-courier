@@ -169,3 +169,25 @@ def test_new_test_order_is_listed_and_kept_out_of_revenue(tmp_path, capsys):
         "pending 5.00 EUR (1)",
         "test orders, not revenue (1)",
     ]
+
+
+def test_new_rejects_zip_and_non_github_with_bilingual_message(tmp_path, capsys):
+    for repo in ("zip-upload", "repo.zip", "https://example.com/repo.zip",
+                 "https://gitlab.com/example/repo", "git@github.com:example/repo.git"):
+        assert _run(tmp_path, "new", "--repo", repo, "--contact", _contact()) == 2
+        err = capsys.readouterr().err
+        assert "Beta nimmt nur öffentliche GitHub-Links an" in err
+        assert "public GitHub links only" in err
+    assert not (tmp_path / "receipts.jsonl").exists()
+
+
+def test_confirm_payment_evidence_must_be_a_short_txn_id(tmp_path, capsys):
+    assert _run(tmp_path, "new", "--repo", URL, "--contact", _contact()) == 0
+    order_id = capsys.readouterr().out.strip()
+    for bad in ("", "   ", "paid by paypal", "txn\t1", "x" * 101):
+        assert _run(tmp_path, "confirm-payment", order_id, "--evidence", bad) == 2
+        assert "Zahlungsbeleg" in capsys.readouterr().err
+    assert _run(tmp_path, "list") == 0
+    assert " NEW " in capsys.readouterr().out
+    assert _run(tmp_path, "confirm-payment", order_id, "--evidence", "x" * 100) == 0
+    assert capsys.readouterr().out.strip() == order_id + " PAYMENT_CONFIRMED"
