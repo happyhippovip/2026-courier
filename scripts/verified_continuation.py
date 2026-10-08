@@ -60,6 +60,9 @@ class VerifiedContinuation:
         self.checkpoints_dir = self.ledger_dir / "checkpoints"
         self.results_dir = self.ledger_dir / "results"
 
+        if str(self.root_dir) not in sys.path:
+            sys.path.insert(0, str(self.root_dir))
+
         for directory in [self.claims_dir, self.checkpoints_dir, self.results_dir]:
             directory.mkdir(parents=True, exist_ok=True)
 
