@@ -189,3 +189,89 @@ def test_11_emfile_resource_pause():
     # It should catch EMFILE and transition to RESOURCE_PAUSE
     assert scheduler.automation_ctx.state == AutoState.RESOURCE_PAUSE
 
+def test_12_multi_capability_hibernation_refused_when_one_circuit_available():
+    from scripts.provider_hibernation import ContinuationCheckpoint, LaneHibernator, LaneState
+    scheduler = CourierScheduler()
+    # Muse handles both completion and embedding, no fallbacks
+    scheduler.providers = [Provider("muse", True, ["completion", "embedding"])]
+
+    # Open completion circuit only
+    scheduler.breaker.record_failure("muse", "completion", 429, "completion quota exhausted")
+    assert scheduler.breaker.is_open("muse", "completion") is True
+    assert scheduler.breaker.is_open("muse", "embedding") is False
+
+    lane = LaneHibernator()
+    checkpoint = ContinuationCheckpoint(task_id="t-1", workkey="W1", mutable_scope="S1")
+
+    t_completion = TaskContext("t-completion", required_capability="completion")
+    t_embedding = TaskContext("t-embedding", required_capability="embedding")
+
+    # Order 1: completion first, embedding second.
+    # Because embedding is still available on primary, the lane is NOT quota-blocked/idle!
+    result = scheduler.hibernate_if_quota_blocked_idle(
+        lane, checkpoint, [], [t_completion, t_embedding]
+    )
+    assert result is None
+    assert lane.state == LaneState.ACTIVE
+
+    # Order 2: embedding first, completion second.
+    result2 = scheduler.hibernate_if_quota_blocked_idle(
+        lane, checkpoint, [], [t_embedding, t_completion]
+    )
+    assert result2 is None
+    assert lane.state == LaneState.ACTIVE
+
+    # Now open embedding circuit as well: ALL provider circuits are OPEN
+    scheduler.breaker.record_failure("muse", "embedding", 429, "embedding quota exhausted")
+    assert scheduler.breaker.is_open("muse", "embedding") is True
+
+    result3 = scheduler.hibernate_if_quota_blocked_idle(
+        lane, checkpoint, [], [t_completion, t_embedding]
+    )
+    assert result3 is not None
+    assert lane.state == LaneState.HIBERNATED
+
+def test_13_customer_state_edge_cases():
+    scheduler = CourierScheduler()
+    # Empty task list returns DONE
+    assert scheduler.customer_state([]) == "DONE"
+
+    # Completed tasks return DONE
+    scheduler.completed_tasks = ["task-1"]
+    assert scheduler.customer_state([TaskContext("task-1")]) == "DONE"
+
+    # Pending task returns WORKING
+    assert scheduler.customer_state([TaskContext("task-2")]) == "WORKING"
+
+    # Needs connection flag returns NEEDS YOU
+    assert scheduler.customer_state([TaskContext("task-2")], needs_connection=True) == "NEEDS YOU"
+
+    # Human gated task returns NEEDS YOU
+    assert scheduler.customer_state([TaskContext("task-3", requires_human_gate=True)]) == "NEEDS YOU"
+
+    # Dict-based tasks do not crash customer_state
+    dict_task = {"task_id": "task-4", "requires_human_gate": True}
+    assert scheduler.customer_state([dict_task]) == "NEEDS YOU"
+
+def test_14_load_checkpoint_validation_and_workkey_mismatch(tmp_path):
+    from scripts.provider_hibernation import ContinuationCheckpoint, LaneHibernator
+    state_file = tmp_path / "state.json"
+    scheduler = CourierScheduler(primary_provider="muse", state_path=state_file)
+
+    # Empty file or missing workkey raises ValueError
+    cp_invalid = ContinuationCheckpoint(task_id="t-1", workkey="")
+    with pytest.raises(ValueError, match="durable workkey/checkpoint is required"):
+        scheduler._load(checkpoint=cp_invalid)
+
+    # Valid checkpoint initializes properly
+    cp_valid = ContinuationCheckpoint(task_id="t-1", workkey="W-1", mutable_scope="S-1")
+    scheduler._load(checkpoint=cp_valid)
+    assert scheduler.lane.checkpoint.workkey == "W-1"
+    scheduler._save()
+
+    # Mismatched workkey raises ValueError
+    cp_different = ContinuationCheckpoint(task_id="t-1", workkey="W-2", mutable_scope="S-1")
+    with pytest.raises(ValueError, match="checkpoint belongs to another workkey"):
+        scheduler._load(checkpoint=cp_different)
+
+

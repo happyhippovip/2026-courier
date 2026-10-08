@@ -257,3 +257,12 @@ This ledger tracks the verification status of modules in this repository on Wind
 - [x] dashboard/server.py: 🟢 VERIFIED (verified in test_dashboard_server_uncovered.py)
 - [x] scripts/windows_worker/daemon.py: 🟢 VERIFIED (verified in test_windows_worker_daemon_uncovered.py, 87% coverage)
 - [x] scripts/mac_worker/runtime_state.py: ✔️ VERIFIED (verified in test_mac_worker_runtime_state_uncovered.py, 100% coverage)
+
+## scripts/provider_survival.py
+**Status**: VERIFIED
+**Date**: 2026-10-08
+**Findings**:
+- **Real defect 1 (multi-task capability check in hibernate_if_quota_blocked_idle)**: `hibernate_if_quota_blocked_idle` inspected only the first element's capability (`provider_tasks[0].required_capability`) to decide if circuits were open. If task 0 had an open circuit while task 1 had an available closed circuit, the lane would prematurely hibernate even though work could continue on primary. Fixed by checking `all(self.breaker.is_open(self.primary_provider, getattr(t, "required_capability", "completion")) for t in provider_tasks)`.
+- **Real defect 2 (customer_state introspection & edge cases)**: `customer_state` crashed on dict tasks or missing attributes. Added defensive attribute extraction and empty task list handling.
+- **Real defect 3 (_load guard against None restored checkpoint)**: Prevented `AttributeError` if `restored.checkpoint` was None during workkey mismatch checks.
+- **Testing**: Added unit tests in `tests/test_provider_survival.py` (14 tests total). 55/55 provider tests green locally across `test_provider_survival.py`, `test_provider_hibernation_mac03.py`, and `test_codex_provider_continuity.py`.
