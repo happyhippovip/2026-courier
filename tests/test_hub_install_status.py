@@ -1,6 +1,7 @@
 """Hub installation cards come only from the install-state contract."""
 
 import json
+import os
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -116,6 +117,44 @@ def test_installing_and_not_installed_are_not_healthy(tmp_path):
     gone = model.host_installation(removed, _evidence(), _at(30), host_id="host-a")
     assert gone["bucket"] == "not_installed"
     assert gone["tone"] != "ok"
+
+
+def test_unreadable_install_dir_is_unknown_without_traceback(tmp_path, capsys):
+    """A directory the customer cannot read is unknown. It must not raise, and the
+    private path must not appear in the card or the command output."""
+    state = tmp_path / "state"
+    state.mkdir()
+    (state / "install_journal.json").write_text("{not json", encoding="utf-8")
+    evidence_path = tmp_path / "evidence.json"
+    evidence_path.write_text("{}", encoding="utf-8")
+    os.chmod(state, 0)
+    try:
+        card = model.host_installation(state, _evidence(), _at(40), host_id="host-a")
+        rendered = json.dumps(card)
+        assert card["bucket"] == "unknown"
+        assert card["tone"] != "ok"
+        assert card["bucket"] != "working"
+        assert card["contract_state"] != "HEALTHY"
+        assert card["reason_code"] == "STATUS_UNREADABLE"
+        assert str(tmp_path) not in rendered
+        assert "Traceback" not in rendered
+
+        from courier_hub.cli import main
+
+        code = main(["courier-hub", "install-status", "--state-dir", str(state),
+                     "--evidence", str(evidence_path), "--now", _at(40).isoformat(), "--host", "host-a"])
+        captured = capsys.readouterr()
+        assert code == 0
+        assert "Traceback" not in captured.out
+        assert "Traceback" not in captured.err
+        assert str(tmp_path) not in captured.out
+        assert str(tmp_path) not in captured.err
+        body = json.loads(captured.out)
+        assert body["bucket"] == "unknown"
+        assert body["tone"] != "ok"
+        assert body["reason_code"] == "STATUS_UNREADABLE"
+    finally:
+        os.chmod(state, 0o755)
 
 
 def test_secret_values_never_appear_in_model_or_cli_output(tmp_path, capsys):
