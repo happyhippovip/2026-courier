@@ -18,6 +18,18 @@ def run(events, state=None):
     return state
 
 
+def test_decide_after_failure_requires_retry_pending():
+    state = run([created()])
+    with pytest.raises(ValueError, match="not RETRY_PENDING"):
+        decide_after_failure(state)
+
+
+def test_apply_requires_matching_task_id():
+    state = run([created("task_a")])
+    with pytest.raises(TransitionError, match="event belongs to another task"):
+        apply(state, task_event(EventType.TASK_CANCEL_REQUESTED, task_id="task_b"))
+
+
 def test_golden_path_statuses():
     statuses = []
     state = None
@@ -151,9 +163,37 @@ def test_late_results_never_change_the_outcome():
     running = run([created(), a.claimed(), a.started()])
     with pytest.raises(TransitionError, match="not late"):
         apply(running, a.late_result())
+    with pytest.raises(TransitionError, match="not late"):
+        apply(running, a._ev(EventType.LATE_RESULT_DISCARDED, dispatch_id=running.dispatch_id, result_id="r1", payload={"reason": "x"}))
     done = run(golden_path())
     after = apply(done, a.late_result())
     assert after.status is TaskStatus.COMPLETE and after.late_results == 1
+
+
+def test_task_blocked_requires_queued_or_retry_pending():
+    a = Attempt()
+    running = run([created(), a.claimed(), a.started()])
+    with pytest.raises(TransitionError, match="only a queued or failed attempt can be blocked"):
+        apply(running, task_event(EventType.TASK_BLOCKED, reason="reason"))
+
+
+def test_retry_authorized_fails_if_cancel_requested_or_max_attempts_limit():
+    from courier_core.events import MAX_ATTEMPTS_LIMIT
+    a = Attempt()
+    lost = run([created(effect_class="non_idempotent"), a.claimed(), a.started(), a.lease_expired()])
+    blocked = apply(lost, task_event(EventType.TASK_BLOCKED, reason="uncertain"))
+    
+    # Cancel requested blocks RETRY_AUTHORIZED
+    cancel_requested = apply(blocked, task_event(EventType.TASK_CANCEL_REQUESTED))
+    with pytest.raises(TransitionError, match="cancellation was requested; cancel or confirm the effect instead"):
+        apply(cancel_requested, a._ev(EventType.RETRY_AUTHORIZED, payload={"actor": "a", "reason": "r"}))
+        
+    # max attempts
+    from dataclasses import replace
+    exhausted_blocked = replace(blocked, attempt=MAX_ATTEMPTS_LIMIT)
+    exhausted_attempt = Attempt(attempt=MAX_ATTEMPTS_LIMIT)
+    with pytest.raises(TransitionError, match="attempt limit"):
+        apply(exhausted_blocked, exhausted_attempt._ev(EventType.RETRY_AUTHORIZED, payload={"actor": "a", "reason": "r"}))
 
 
 def test_fold_is_deterministic():
