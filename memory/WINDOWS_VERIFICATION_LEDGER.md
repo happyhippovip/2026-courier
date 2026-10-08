@@ -257,3 +257,11 @@ This ledger tracks the verification status of modules in this repository on Wind
 - [x] dashboard/server.py: 🟢 VERIFIED (verified in test_dashboard_server_uncovered.py)
 - [x] scripts/windows_worker/daemon.py: 🟢 VERIFIED (verified in test_windows_worker_daemon_uncovered.py, 87% coverage)
 - [x] scripts/mac_worker/runtime_state.py: ✔️ VERIFIED (verified in test_mac_worker_runtime_state_uncovered.py, 100% coverage)
+
+## scripts/host_guardian.py
+**Status**: VERIFIED
+**Date**: 2026-10-08
+**Findings**:
+- **Real defect 1 (swap jitter false positive)**: `swap_increasing = swap.used > self._last_swap_used` triggered on sub-megabyte pagefile allocations, erroneously forcing `HostState.STABILIZING` and `AdmissionState.CLOSED` on healthy hosts. Fixed by adding configurable `swap_surge_threshold_bytes` (default 10 MB) to ignore routine OS pagefile jitter while accurately detecting genuine swap surges.
+- **Real defect 2 (hardcoded root path & unhandled exceptions)**: hardcoded `psutil.disk_usage('/')` was fragile across Windows drive mappings and non-root workspaces. Fixed by introducing configurable `root_path` (defaulting to `os.path.abspath(os.sep)`) with safe fallback to `os.sep` / `.` and guarding psutil metrics against environment exceptions.
+- **Testing**: verified existing 18 tests across `test_host_guardian`, `test_host_guardian_hardening`, `test_self_stabilization`, `test_run_autonomous_loop_guardian`, and `test_run_autonomous_loop_cleanup`. Added 4 targeted tests in `tests/test_host_guardian.py` (swap jitter tolerance, swap surge trips stabilizing, root path fallback, metrics robustness); 22/22 green in 2.8s.
