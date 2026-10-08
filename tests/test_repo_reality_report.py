@@ -13,6 +13,7 @@ from courier_core.repo_reality_report import analyze, build_report, main
 
 ROOT = Path(__file__).resolve().parents[1]
 HEADINGS = (
+    "## Kurzfassung",
     "## Repositorygröße",
     "## Testdateien",
     "## Testergebnisse",
@@ -22,6 +23,7 @@ HEADINGS = (
     "## Abhängigkeiten",
     "## Größte Dateien",
     "## Hinweise auf Geheimnisse",
+    "## Repo-Hygiene",
     "## Realitätswert",
     "## Nächste fünf Schritte",
     "## Grenzen",
@@ -401,8 +403,12 @@ def test_top_5_next_steps_follow_findings(tmp_path):
     text = build_report(repo)
     steps = [line for line in text.splitlines() if line[:3] in {f"{n}. " for n in range(1, 6)}]
     assert len(steps) == 5
-    assert steps[0].startswith("1. Remove secret-shaped strings")
+    assert steps[0].startswith("1. Remove ")
+    assert "production code" in steps[0]
+    assert "config/app.env" in steps[0]
+    assert "1" in steps[0]
     assert "hunter2hunter2" not in "\n".join(steps)
+    assert all(any(char.isdigit() for char in line) for line in steps)
     assert "_Top 5 next steps_" in text
 
     clean = build_report(_perfect(tmp_path))
@@ -507,6 +513,188 @@ def test_module_entrypoint(tmp_path):
     assert str(repo) not in out.read_text(encoding="utf-8")
 
 
+def test_executive_summary_uses_measured_counts(tmp_path):
+    repo = _perfect(tmp_path)
+    data = analyze(repo)
+    text = build_report(repo)
+    assert data["summary_sentences"] == [
+        "Der Checkout enthält 6 Dateien und 11 Zeilen.",
+        "Statisch gezählt wurden 1 Testdatei, 1 Testfunktion und 0 Test-Hilfsdateien; Pytest-JSON nicht geliefert, 0 Zählwerte.",
+        "CI: 1 Konfiguration und 1 Job.",
+        "Abhängigkeiten: 1 Manifest, 1 von 1 geparsten Eintrag mit exakter Version.",
+        "Geheimnis-Risiko: 0 Treffer in Produktionscode und 0 Treffer in Tests, Fixtures oder Docs.",
+        "Repo-Hygiene: 0 fehlende LICENSE, 0 Binär- oder Archivdateien über 1048576 Bytes, 0 scratch/attic-Verzeichnisse, 0 JSON/JSONL-Dateien über 1048576 Bytes, 0 verstreute Testdateien.",
+    ]
+    assert [row["area"] for row in data["ampel"]] == [
+        "Tests",
+        "CI",
+        "Abhängigkeiten",
+        "Geheimnis-Risiko",
+        "Repo-Hygiene",
+    ]
+    assert [row["light"] for row in data["ampel"]] == ["Gelb", "Grün", "Grün", "Grün", "Grün"]
+    summary = text.split("## Kurzfassung", 1)[1].split("## Repositorygröße", 1)[0]
+    sentences = [line for line in summary.splitlines() if line.endswith(".")]
+    assert sentences == data["summary_sentences"]
+    assert 3 <= len(sentences) <= 6
+    assert "| Tests | Gelb |" in text
+    assert "Pytest nicht geliefert" in text
+    assert text.index("## Kurzfassung") < text.index("## Repositorygröße")
+
+    empty = analyze(_repo(tmp_path))
+    lights = {row["area"]: row["light"] for row in empty["ampel"]}
+    assert lights == {
+        "Tests": "Rot",
+        "CI": "Rot",
+        "Abhängigkeiten": "Rot",
+        "Geheimnis-Risiko": "Grün",
+        "Repo-Hygiene": "Rot",
+    }
+
+
+def test_secrets_split_production_and_fixture_score(tmp_path):
+    repo = _perfect(tmp_path)
+    value = "example-token-value"
+    _write(repo, "src/settings.py", f'api_key = "{value}"\n')
+    _write(repo, "tests/fixtures/sample.env", f'password = "{value}"\n')
+    _write(repo, "docs/guide.md", f'secret = "{value}"\n')
+    _write(repo, "README.md", f'token = "{value}"\n')
+    data = analyze(repo)
+    text = build_report(repo)
+    assert value not in text
+    assert value not in json.dumps(data)
+    assert data["secrets"]["production_hits"] == 1
+    assert data["secrets"]["production_rows"] == [{"path": "src/settings.py", "hits": 1, "bucket": "production"}]
+    assert data["secrets"]["non_production_hits"] == 3
+    assert [row["path"] for row in data["secrets"]["non_production_rows"]] == [
+        "README.md",
+        "docs/guide.md",
+        "tests/fixtures/sample.env",
+    ]
+    secrets_row = next(row for row in data["score"]["components"] if row["id"] == "secrets")
+    assert secrets_row["awarded"] == 0
+    assert "production hit" in secrets_row["observation"]
+    assert {row["light"] for row in data["ampel"] if row["area"] == "Geheimnis-Risiko"} == {"Rot"}
+
+    fixture_only = _perfect(tmp_path, "fixture-only")
+    _write(fixture_only, "tests/fixtures/sample.env", f'password = "{value}"\n')
+    fixture_data = analyze(fixture_only)
+    fixture_row = next(row for row in fixture_data["score"]["components"] if row["id"] == "secrets")
+    assert fixture_data["secrets"]["production_hits"] == 0
+    assert fixture_data["secrets"]["non_production_hits"] == 1
+    assert fixture_row["awarded"] == 8
+    assert fixture_data["score"]["value"] == 98
+    fixture_text = build_report(fixture_only)
+    assert "Tests, fixtures, and docs" in fixture_text
+    assert "cost 2 points" in fixture_text
+    assert value not in fixture_text
+    lights = {row["area"]: row["light"] for row in fixture_data["ampel"]}
+    assert lights["Geheimnis-Risiko"] == "Gelb"
+
+
+def test_helpers_and_stray_tests_are_separate(tmp_path):
+    repo = _repo(tmp_path)
+    _write(repo, "tests/test_app.py", "def test_one():\n    pass\n")
+    _write(repo, "tests/test_empty.py", "# placeholder\n")
+    _write(repo, "tests/conftest.py", "import os\n")
+    _write(repo, "tests/_fakes.py", "class Fake:\n    pass\n")
+    _write(repo, "tests/builders.py", "def build():\n    return 1\n")
+    _write(repo, "tests/unit/conftest.py", "x = 1\n")
+    _write(repo, "src/app.py", "def test_not_counted():\n    pass\n")
+    _write(repo, "src/builders.py", "def build():\n    return 1\n")
+    _write(repo, "test_scratch.py", "def test_root():\n    pass\n")
+    _write(repo, "scripts/test_tool.py", "def test_script():\n    pass\n")
+    _write(repo, "scripts/check.py", "def test_not_named():\n    pass\n")
+    _write(repo, "web/demo.test.js", "test('a', () => {})\n")
+    data = analyze(repo)
+    assert data["test_file_rows"] == [
+        {"path": "scripts/test_tool.py", "functions": 1},
+        {"path": "test_scratch.py", "functions": 1},
+        {"path": "tests/test_app.py", "functions": 1},
+        {"path": "tests/test_empty.py", "functions": 0},
+        {"path": "web/demo.test.js", "functions": 1},
+    ]
+    assert data["test_functions"] == 4
+    assert data["test_helpers"] == [
+        "tests/_fakes.py",
+        "tests/builders.py",
+        "tests/conftest.py",
+        "tests/unit/conftest.py",
+    ]
+    assert data["hygiene"]["stray_tests"] == [
+        {"path": "scripts/test_tool.py", "functions": 1},
+        {"path": "test_scratch.py", "functions": 1},
+    ]
+    text = build_report(repo)
+    assert "### Test-Hilfsdateien" in text
+    assert "tests/conftest.py" in text
+    assert "src/builders.py" not in text.split("### Test-Hilfsdateien", 1)[1].split("## ", 1)[0]
+    assert "src/app.py" not in text.split("## Testdateien", 1)[1].split("## Testergebnisse", 1)[0]
+    assert "stray" in text.lower() or "Stray test files: 2" in text
+
+
+def test_hygiene_findings_use_sizes_and_keep_missing_license(tmp_path):
+    repo = _repo(tmp_path)
+    _write(repo, "README.md", "# Demo\n")
+    _write(repo, "scratch/note.txt", "hi\n")
+    _write(repo, "Attic/old.txt", "x\n")
+    (repo / "payload.zip").write_bytes(b"\0" * (1024 * 1024 + 1))
+    (repo / "small.zip").write_bytes(b"PK\x03\x04")
+    (repo / "exact.zip").write_bytes(b"\0" * (1024 * 1024))
+    (repo / "data").mkdir()
+    (repo / "data" / "events.jsonl").write_bytes(b"{" + b"a" * (1024 * 1024))
+    (repo / "data" / "tiny.json").write_text("{}\n", encoding="utf-8")
+    data = analyze(repo)
+    assert data["project_files"]["license"]["present"] is False
+    assert data["hygiene"]["large_binaries"] == [{"path": "payload.zip", "bytes": 1048577}]
+    assert data["hygiene"]["scratch_dirs"] == ["Attic", "scratch"]
+    assert data["hygiene"]["large_json"] == [{"path": "data/events.jsonl", "bytes": 1048577}]
+    assert "binaries" in data["hygiene"]["flags"]
+    assert "license" in data["hygiene"]["flags"]
+    text = build_report(repo)
+    assert "- LICENSE: absent" in text
+    assert "payload.zip" in text
+    assert "1048577" in text
+    assert "small.zip" not in text.split("## Repo-Hygiene", 1)[1].split("## Realitätswert", 1)[0]
+    assert "exact.zip" not in text.split("## Repo-Hygiene", 1)[1].split("## Realitätswert", 1)[0]
+    hygiene_light = next(row["light"] for row in data["ampel"] if row["area"] == "Repo-Hygiene")
+    assert hygiene_light == "Rot"
+    steps = [line for line in text.splitlines() if line[:2] in {f"{n}." for n in range(1, 6)}]
+    assert any("payload.zip" in line and "1048577" in line for line in steps)
+    assert any("events.jsonl" in line and "1048577" in line for line in steps)
+    assert all("LICENSE count" not in line for line in steps)
+
+
+def test_languages_collapse_other_extensions(tmp_path):
+    repo = _repo(tmp_path)
+    _write(repo, "src/app.py", "x = 1\n")
+    _write(repo, "Makefile", "all:\n")
+    _write(repo, "a.xyz", "yy\n")
+    _write(repo, "b.qqq", "z\n")
+    _write(repo, "c.xyz", "www\n")
+    data = analyze(repo)
+    assert data["languages"] == [
+        {"name": "Python", "files": 1, "lines": 1},
+        {"name": "no extension", "files": 1, "lines": 1},
+        {"name": "Sonstige (2)", "files": 3, "lines": 3},
+    ]
+    text = build_report(repo)
+    assert "Other (" not in text
+    assert "| Sonstige (2) | 3 | 3 |" in text
+    assert text.index("| Python |") < text.index("| no extension |") < text.index("| Sonstige (2) |")
+
+
+def test_same_tree_stays_deterministic_with_hygiene(tmp_path):
+    repo = _repo(tmp_path)
+    _write(repo, "tests/fixtures/sample.env", 'password = "example-token-value"\n')
+    _write(repo, "notes.xyz", "alpha\n")
+    _write(repo, "more.qqq", "beta\n")
+    _write(repo, "scratch/a.txt", "c\n")
+    first = build_report(repo)
+    second = build_report(repo)
+    assert first == second
+
+
 def test_customer_doc_has_no_secret_material():
     doc = (ROOT / "docs" / "REPO_REALITY_CHECK.md").read_text(encoding="utf-8")
     assert "python -m courier_core.repo_reality_report" in doc
@@ -516,8 +704,8 @@ def test_customer_doc_has_no_secret_material():
         assert banned not in doc
 
 
-def _perfect(tmp_path: Path) -> Path:
-    repo = tmp_path / "perfect"
+def _perfect(tmp_path: Path, name: str = "perfect") -> Path:
+    repo = tmp_path / name
     repo.mkdir()
     _write(repo, "README.md", "# Demo\n")
     _write(repo, "LICENSE", "synthetic\n")
