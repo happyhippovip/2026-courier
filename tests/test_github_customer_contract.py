@@ -113,3 +113,10 @@ def test_translate_github_malformed_response():
     # Simulating a scenario where response is garbled
     err = translate_github_error(502, "Bad Gateway - HTML returned instead of JSON")
     assert err.category == ErrorCategory.GITHUB_UNAVAILABLE
+
+def test_translate_429_rate_limit_retries_safely_never_fails_hard():
+    # 429 has no dedicated branch; it must fall through to safe retry,
+    # never to NEEDS_YOU / PERMISSION_REQUIRED / ACTION_NOT_AUTHORIZED.
+    for message in ("", "API rate limit exceeded", "secondary rate limit"):
+        err = translate_github_error(429, message)
+        assert err.category == ErrorCategory.RETRYING_SAFELY

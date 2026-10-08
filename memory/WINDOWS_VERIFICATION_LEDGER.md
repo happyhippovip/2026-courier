@@ -257,3 +257,11 @@ This ledger tracks the verification status of modules in this repository on Wind
 - [x] dashboard/server.py: 🟢 VERIFIED (verified in test_dashboard_server_uncovered.py)
 - [x] scripts/windows_worker/daemon.py: 🟢 VERIFIED (verified in test_windows_worker_daemon_uncovered.py, 87% coverage)
 - [x] scripts/mac_worker/runtime_state.py: ✔️ VERIFIED (verified in test_mac_worker_runtime_state_uncovered.py, 100% coverage)
+
+## scripts/github_customer_contract.py
+**Status**: VERIFIED
+**Date**: 2026-10-08
+**Findings**:
+- Pure error-translation contract (timeout/mutation matrix, 401/403/404/409/422/5xx mapping, forbidden-action gate, header sanitizer, event dedupe/staleness). Reviewed end to end; mappings match GitHub API semantics. No product change needed.
+- Pinned with a durable test: 429 has no dedicated branch and must fall through to RETRYING_SAFELY (never fail-hard / needs-you / permission). Guards future remapping.
+- **Testing**: 21/21 green (`tests/test_github_customer_contract.py`, incl. new 429 test). Hermetic, no network.
