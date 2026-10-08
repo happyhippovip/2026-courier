@@ -126,6 +126,7 @@ def make_handler(config: Config):
         do_PUT = do_PATCH = do_DELETE
 
         def do_POST(self):
+            self._body_read = False
             path = self.path.split("?", 1)[0]
             route = self._route(path)
             if route is None:
@@ -149,6 +150,7 @@ def make_handler(config: Config):
             if length < 0 or length > MAX_BODY_BYTES:
                 return self._json(413, _error(None, -32600, "Request too large"))
             raw = self.rfile.read(length)
+            self._body_read = True
             try:
                 message = json.loads(raw.decode("utf-8"))
             except (UnicodeError, ValueError):
@@ -186,6 +188,11 @@ def make_handler(config: Config):
         def _send(self, status, data, content_type=None, extra=None):
             self._status = status
             self.send_response(status)
+            if self.command == "POST" and not getattr(self, "_body_read", False):
+                # The request body was not consumed; reusing the connection would
+                # parse it as the next request line.
+                self.close_connection = True
+                self.send_header("Connection", "close")
             if content_type:
                 self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(data)))

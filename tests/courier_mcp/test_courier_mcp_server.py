@@ -287,3 +287,24 @@ def test_state_dir_mode_over_http(running, tmp_path):
                                 "params": {"name": "list_missions", "arguments": {}}})
     assert body["result"]["structuredContent"]["source"] == "OK"
     assert body["result"]["structuredContent"]["total"] == 2
+
+
+def test_rejected_request_does_not_poison_keep_alive(running):
+    import http.client
+    base = running(["--demo"], {"COURIER_MCP_TOKEN": TOKEN})
+    port = int(base.rsplit(":", 1)[1])
+    conn = http.client.HTTPConnection("127.0.0.1", port, timeout=10)
+    body = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "ping"})
+    conn.request("POST", "/mcp", body=body, headers={"Content-Type": "application/json",
+                                                     "Authorization": "Bearer " + "x" * 40})
+    first = conn.getresponse()
+    first.read()
+    assert first.status == 401
+    assert first.getheader("Connection") == "close"
+    conn.close()
+    conn = http.client.HTTPConnection("127.0.0.1", port, timeout=10)
+    conn.request("POST", "/mcp", body=body, headers={"Content-Type": "application/json",
+                                                     "Authorization": "Bearer " + TOKEN})
+    second = conn.getresponse()
+    assert second.status == 200 and json.loads(second.read())["result"] == {}
+    conn.close()
