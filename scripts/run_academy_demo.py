@@ -34,7 +34,66 @@ from run_academy import AcademyTeacher, AcademyDirector
 from run_context_sync import UpdateSteward
 
 
-def run_academy_demo(reset: bool = False) -> dict:
+_LITERAL_RUNTIMES = (12.5, 6.8)
+
+
+def _is_number(value) -> bool:
+    return type(value) in (int, float)
+
+
+def _read_measurement(path: str | None) -> dict | None:
+    """Read a measurement twice. Literals and unreadable files are not a result."""
+    if not path:
+        return None
+    file_path = Path(path)
+    if not file_path.is_file():
+        return None
+    try:
+        first = json.loads(file_path.read_text(encoding="utf-8"))
+        second = json.loads(file_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, UnicodeError):
+        return None
+    if first != second or not isinstance(first, dict):
+        return None
+    baseline = first.get("baseline")
+    candidate = first.get("candidate")
+    if not isinstance(baseline, dict) or not isinstance(candidate, dict):
+        return None
+    if not _is_number(baseline.get("runtime_seconds")) or not _is_number(candidate.get("runtime_seconds")):
+        return None
+    if (baseline.get("runtime_seconds"), candidate.get("runtime_seconds")) == _LITERAL_RUNTIMES:
+        return None
+    if not _is_number(baseline.get("test_pass_rate")) or not _is_number(candidate.get("test_pass_rate")):
+        return None
+    if type(baseline.get("error_count")) is not int or type(candidate.get("error_count")) is not int:
+        return None
+    return first
+
+
+def _matches_hundred_percent(record: dict) -> bool:
+    baseline = record["baseline"]
+    candidate = record["candidate"]
+    return (
+        baseline["test_pass_rate"] == 1.0
+        and candidate["test_pass_rate"] == 1.0
+        and candidate["error_count"] <= baseline["error_count"]
+    )
+
+
+def _not_measured(lesson_id: str) -> dict:
+    print("Academy result was not measured. Not reporting a measured pass.")
+    return {
+        "status": "NOT_MEASURED",
+        "exit_code": 1,
+        "lesson_id": lesson_id,
+        "eval_verdict": None,
+        "context_version_before": None,
+        "context_version_after": None,
+        "measured_minutes_saved": None,
+    }
+
+
+def run_academy_demo(reset: bool = False, measurement_path: str | None = None) -> dict:
     print("=======================================================")
     print("🎓 STARTING AI ACADEMY DETERMINISTIC DEMO PIPELINE")
     print("   Teacher: Agentenlehrer | Director: Schuldirektor")
@@ -78,22 +137,26 @@ def run_academy_demo(reset: bool = False) -> dict:
     assert reviewed["status"] == "APPROVED_FOR_TEST"
     print(f"   -> Status: {reviewed['status']} (Director State: TEST REQUIRED)")
 
-    # 4. Evaluation Loop
+    # 4. Evaluation uses a measurement file. In-source literals are not a result.
     print("\n[STAGE 4] EVALUATION LOOP (BASELINE vs CANDIDATE)...")
-    baseline = {
-        "method": "Full prompt reconstruction",
-        "runtime_seconds": 12.5,
-        "error_count": 0,
-        "test_pass_rate": 1.0,
-    }
-    candidate = {
-        "method": "Prefix cached prompt protocol",
-        "runtime_seconds": 6.8,
-        "error_count": 0,
-        "test_pass_rate": 1.0,
-    }
+    measured = _read_measurement(measurement_path)
+    if measured is None or not _matches_hundred_percent(measured):
+        return _not_measured(lesson_id)
+    baseline = measured["baseline"]
+    candidate = measured["candidate"]
     eval_record = director.evaluate_lesson(lesson_id, baseline, candidate)
-    assert eval_record["verdict"] == "PASS"
+    reread = _read_measurement(measurement_path)
+    if reread != measured or eval_record.get("verdict") != "PASS" or not _matches_hundred_percent(reread):
+        print("Measured result does not match the pass claim. Not reporting success.")
+        return {
+            "status": "NOT_MEASURED",
+            "exit_code": 1,
+            "lesson_id": lesson_id,
+            "eval_verdict": eval_record.get("verdict"),
+            "context_version_before": None,
+            "context_version_after": None,
+            "measured_minutes_saved": None,
+        }
     print(f"   -> Eval Verdict: {eval_record['verdict']} (Time saved: {eval_record['metrics']['measured_minutes_saved']} min)")
 
     # 5. Adoption Gate
@@ -125,6 +188,7 @@ def run_academy_demo(reset: bool = False) -> dict:
 
     return {
         "status": "COMPLETED",
+        "exit_code": 0,
         "lesson_id": lesson_id,
         "eval_verdict": eval_record["verdict"],
         "context_version_before": v_before,
@@ -133,9 +197,14 @@ def run_academy_demo(reset: bool = False) -> dict:
     }
 
 
-if __name__ == "__main__":
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="AI Academy Demo Runner")
     parser.add_argument("--reset", action="store_true", help="Reset academy test data before running")
-    args = parser.parse_args()
+    parser.add_argument("--measurement", default=None, help="Path to a measured baseline and candidate result")
+    args = parser.parse_args(argv)
+    result = run_academy_demo(reset=args.reset, measurement_path=args.measurement)
+    sys.exit(result.get("exit_code", 1))
 
-    run_academy_demo(reset=args.reset)
+
+if __name__ == "__main__":
+    main()
