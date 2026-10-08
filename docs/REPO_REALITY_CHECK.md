@@ -26,12 +26,13 @@ The checkout is already on disk. When pass, fail, and skip counts are wanted, py
 
 ```
 python -m courier_core.repo_reality_report <repo_path> [--pytest-json FILE] [--out report.md]
+python -m courier_core.repo_reality_report --github owner/repo[@ref] [--out report.md]
 ```
 
 - `<repo_path>` is a local directory.
 - `--pytest-json` is optional. Without it, the pytest section says the results were not supplied.
 - `--out` writes the markdown to a file. Without it, the markdown goes to stdout.
-- The process does not open network connections.
+- A local directory scan does not open network connections. `--github` downloads one public tarball; see below.
 - The process does not execute files from the checkout and does not import them.
 - The same tree and the same JSON produce the same markdown. Paths in the report are relative to the checkout root.
 - Directories named `.git`, `node_modules`, virtual environments, and build output are skipped. The full skip list is printed in the report.
@@ -40,6 +41,19 @@ python -m courier_core.repo_reality_report <repo_path> [--pytest-json FILE] [--o
 A missing checkout directory stops the command. A pytest JSON file that is missing, unreadable, or not valid JSON does not stop the command. That section says what happened, and the score table lists a deduction for unusable JSON. A parser error is not copied into the report, so a broken JSON file cannot echo its contents.
 
 An exact pin is `==` or `===` in requirements and PEP 621 lists, a bare `major.minor.patch` in `package.json`, and a leading `=` for Poetry, Cargo, and Composer. Lockfiles are listed and are not counted as unpinned.
+
+## Public GitHub checkout
+
+```
+python -m courier_core.repo_reality_report --github owner/repo[@ref] --out report.md
+```
+
+- The tarball comes from codeload.github.com over HTTPS, using the Python standard library, with a 30 second timeout.
+- A download larger than 50 MB is aborted. Extraction stops at 20,000 archive entries and 200 MB of file bytes.
+- The archive is unpacked into a fresh temporary directory. Absolute paths, paths that contain `..`, device files, and symlinks or hardlinks that point outside that directory are rejected. Links that stay inside the checkout are not written; the scan does not follow them. The temporary directory is removed when the command finishes.
+- The report header records the commit SHA and the sha256 of the downloaded tarball. When the archive's top directory does not already end with the full SHA, the commit is read from the public GitHub commit API.
+- Nothing in the archive is executed.
+- A missing or private repository exits 2 with a not-found message. No credentials are sent.
 
 ## Sample report
 

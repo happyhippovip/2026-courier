@@ -1,10 +1,12 @@
 """Repo Reality Check: a local markdown report for one checkout.
 
-The scan reads files on disk. It does not open network connections and it does
-not execute customer code. Pytest pass, fail, and skip counts are taken only
-from an optional pytest-json-report file the caller already produced.
+The scan reads files on disk. It does not execute customer code. Pytest pass,
+fail, and skip counts are taken only from an optional pytest-json-report file
+the caller already produced. ``--github`` downloads one public tarball first
+(see repo_reality_fetch); a local directory scan does not use the network.
 
 CLI: python -m courier_core.repo_reality_report <repo_path> [--pytest-json FILE] [--out report.md]
+     python -m courier_core.repo_reality_report --github owner/repo[@ref] [--out report.md]
 """
 
 from __future__ import annotations
@@ -13,8 +15,11 @@ import argparse
 import json
 import os
 import re
+import shutil
 import sys
 from pathlib import Path
+
+from courier_core.repo_reality_fetch import FetchError, fetch_public
 
 MAX_FILES = 5000
 MAX_FILE_READ_BYTES = 256 * 1024
@@ -186,9 +191,13 @@ assert sum(weight for _, weight, _ in WEIGHTS) == 100
 _WEIGHT = {key: weight for key, weight, _rule in WEIGHTS}
 
 
-def build_report(repo_path: Path | str, pytest_json: Path | str | None = None) -> str:
+def build_report(
+    repo_path: Path | str,
+    pytest_json: Path | str | None = None,
+    evidence: dict | None = None,
+) -> str:
     """Return the markdown report. Never includes matched secret text."""
-    return render_markdown(analyze(repo_path, pytest_json))
+    return render_markdown(analyze(repo_path, pytest_json), evidence)
 
 
 def analyze(repo_path: Path | str, pytest_json: Path | str | None = None) -> dict:
@@ -343,15 +352,25 @@ def analyze(repo_path: Path | str, pytest_json: Path | str | None = None) -> dic
     return summary
 
 
-def render_markdown(data: dict) -> str:
+def render_markdown(data: dict, evidence: dict | None = None) -> str:
     """Render ``analyze`` output. The text contains counts and paths only."""
-    lines: list[str] = [
-        "# Repo Reality Check",
-        "",
-        "Read-only scan of one local checkout. No network calls. Customer code was not executed. "
-        "Pytest counts are included only when a pytest JSON file is supplied.",
-        "",
-    ]
+    lines: list[str] = ["# Repo Reality Check", ""]
+    if evidence:
+        lines.append(
+            "Read-only scan of a public GitHub tarball. Customer code was not executed. "
+            "Pytest counts are included only when a pytest JSON file is supplied."
+        )
+        lines.append("")
+        lines.append(f"- Source: {evidence['source']}")
+        lines.append(f"- Commit: {evidence['sha']}")
+        lines.append(f"- Tarball sha256: {evidence['tarball_sha256']}")
+        lines.append("")
+    else:
+        lines.append(
+            "Read-only scan of one local checkout. No network calls. Customer code was not executed. "
+            "Pytest counts are included only when a pytest JSON file is supplied."
+        )
+        lines.append("")
     lines.extend(_heading("Repositorygröße", "Repository size"))
     lines.append(f"- Files: {data['files']}")
     lines.append(f"- Lines: {data['lines']}")
@@ -555,20 +574,47 @@ def main(argv: list[str] | None = None) -> int:
         prog="python -m courier_core.repo_reality_report",
         description="Write a local Repo Reality Check markdown report.",
     )
-    parser.add_argument("repo_path", help="local checkout directory")
+    parser.add_argument("repo_path", nargs="?", default=None, help="local checkout directory")
+    parser.add_argument("--github", default=None, help="public owner/repo or owner/repo@ref")
     parser.add_argument("--pytest-json", default=None, help="pytest-json-report file")
     parser.add_argument("--out", default=None, help="write the report here instead of stdout")
     args = parser.parse_args(argv)
-    repo = Path(args.repo_path)
-    if not repo.is_dir():
-        print("repo path is not a directory", file=sys.stderr)
+    if args.github and args.repo_path:
+        print("pass either a local directory or --github, not both", file=sys.stderr)
         return 2
-    report = build_report(repo, args.pytest_json)
+    if args.github:
+        try:
+            report = _report_from_github(args.github, args.pytest_json)
+        except FetchError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+    elif args.repo_path:
+        repo = Path(args.repo_path)
+        if not repo.is_dir():
+            print("repo path is not a directory", file=sys.stderr)
+            return 2
+        report = build_report(repo, args.pytest_json)
+    else:
+        print("pass a local directory or --github owner/repo[@ref]", file=sys.stderr)
+        return 2
     if args.out:
         Path(args.out).write_text(report, encoding="utf-8")
         return 0
     sys.stdout.write(report)
     return 0
+
+
+def _report_from_github(spec: str, pytest_json: str | None) -> str:
+    fetched = fetch_public(spec)
+    try:
+        evidence = {
+            "source": f"github.com/{fetched.owner}/{fetched.repo}@{fetched.ref}",
+            "sha": fetched.sha,
+            "tarball_sha256": fetched.tarball_sha256,
+        }
+        return build_report(fetched.root, pytest_json, evidence)
+    finally:
+        shutil.rmtree(fetched.temp_dir, ignore_errors=True)
 
 
 def is_test_file(rel: str) -> bool:
