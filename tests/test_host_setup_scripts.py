@@ -521,6 +521,16 @@ def test_sh_swapusage_sysctl_failure_fails_closed(mac_env):
     assert "admission: PARKED (swap metric unreadable: sysctl vm.swapusage failed)" in r.stdout
 
 
+@needs_posix_bash
+def test_sh_swapusage_garbage_fails_closed(mac_env):
+    _, env = mac_env
+    r = run_sh({**env, "COURIER_SETUP_SWAPUSAGE_FIXTURE": "not a swapusage line"}, "--check")
+    assert r.returncode in (0, 2), r.stdout + r.stderr
+    assert "swap_mb: total unknown, free unknown" in r.stdout
+    assert "admission: PARKED (swap metric unreadable: vm.swapusage not parsed)" in r.stdout
+    assert "sysctl vm.swapusage failed" not in r.stdout
+
+
 @pytest.mark.parametrize(
     ("page_size", "free_mb", "admission"),
     [
