@@ -257,3 +257,11 @@ This ledger tracks the verification status of modules in this repository on Wind
 - [x] dashboard/server.py: 🟢 VERIFIED (verified in test_dashboard_server_uncovered.py)
 - [x] scripts/windows_worker/daemon.py: 🟢 VERIFIED (verified in test_windows_worker_daemon_uncovered.py, 87% coverage)
 - [x] scripts/mac_worker/runtime_state.py: ✔️ VERIFIED (verified in test_mac_worker_runtime_state_uncovered.py, 100% coverage)
+
+## courier_runtime/deadlines.py
+**Status**: VERIFIED
+**Date**: 2026-10-08
+**Findings**:
+- **Date Coercion & Type Safety**: Previously, passing string ISO dates (e.g. from JSON payloads or CLI invocations) or `datetime.datetime` instances raised `TypeError: can only concatenate str to datetime.timedelta`. Added helper `_coerce_date` to normalize strings, datetimes, and dates, with clear error messaging for invalid types.
+- **CLI Interface**: Added executable `main()` CLI entrypoint for `python -m courier_runtime.deadlines` supporting `--months`, `--posted-on`, `--received-on`, and `--fiction-days` with clean JSON outputs.
+- **Testing**: Enhanced `tests/test_runtime_deadlines.py` with 9 comprehensive unit tests covering Lower Saxony holiday calculation, month-end boundary rolling, weekend shift, late receipt rules, string ISO dates, datetime instances, type validation, and CLI invocation. 16/16 runtime tests passing green locally.
