@@ -81,9 +81,9 @@
         }
       }
     },
-    "/goals/{d}": {
+    "/goals/{goal_id}": {
       "get": {
-        "summary": "Auto-generated GET for /goals/{d}",
+        "summary": "Auto-generated GET for /goals/{goal_id}",
         "responses": {
           "200": {
             "description": "OK"
@@ -191,9 +191,19 @@
         }
       }
     },
-    "/tasks/{d}/resume": {
+    "/tasks/{task_id}/resume": {
       "post": {
-        "summary": "Auto-generated POST for /tasks/{d}/resume",
+        "summary": "Auto-generated POST for /tasks/{task_id}/resume",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/state": {
+      "get": {
+        "summary": "Auto-generated GET for /api/state",
         "responses": {
           "200": {
             "description": "OK"
