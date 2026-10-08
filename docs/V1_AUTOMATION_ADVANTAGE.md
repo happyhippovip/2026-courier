@@ -222,9 +222,6 @@ Avoid both extremes:
 
 Courier should periodically re-evaluate its differentiation as external agent platforms add new commodity primitives.
 
-Canonical review template:
-`docs/v1/orchestration/OPUS_STRATEGIC_MOAT_REVIEW.md`
-
 The rule is:
 
 **do not chase features; protect guarantees.**
@@ -259,6 +256,3 @@ The stronger product-level guarantee is the combination of:
 The journal is the foundation that makes those guarantees enforceable.
 
 This distinction matters commercially: customers pay for trustworthy outcomes and reduced babysitting, not for the existence of an append-only data structure.
-
-Canonical review harvest:
-`docs/v1/orchestration/OPUS_MOAT_REVIEW_2026-10-01.md`
