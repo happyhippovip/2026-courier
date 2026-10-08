@@ -344,6 +344,50 @@ def test_sh_refuses_non_mac_without_changes(tmp_path):
 
 
 @needs_posix_bash
+@pytest.mark.parametrize(
+    "osrelease, pwd, wsl, drive_warning",
+    [
+        ("5.15.167.4-microsoft-standard-WSL2", "/home/u/courier-night", True, False),
+        ("5.15.167.4-microsoft-standard-WSL2", "/mnt/c/Users/u/2026-courier", True, True),
+        ("4.4.0-19041-Microsoft", "/mnt/d", True, True),
+        ("6.8.0-1015-azure", "/mnt/c/x", False, False),
+    ],
+)
+def test_sh_wsl_guidance_without_changes(tmp_path, osrelease, pwd, wsl, drive_warning):
+    home = tmp_path / "home"
+    home.mkdir()
+    env = {
+        "HOME": str(home),
+        "PATH": "/usr/bin:/bin",
+        "COURIER_SETUP_UNAME": "Linux",
+        "COURIER_SETUP_OSRELEASE": osrelease,
+        "COURIER_SETUP_PWD": pwd,
+    }
+    r = run_sh(env)
+    assert r.returncode == 3
+    assert "HOST BLOCKED" in r.stderr and "Nothing was changed" in r.stderr
+    assert ("WSL detected" in r.stderr) is wsl
+    assert ("not under /mnt/c" in r.stderr) is wsl
+    assert ("Windows drive" in r.stderr) is drive_warning
+    assert ("section 'Windows through WSL'" in r.stderr) is wsl
+    assert pwd not in r.stderr  # the folder itself is never printed
+    assert list(home.iterdir()) == []
+
+
+def test_doc_wsl_section_uses_linux_home_checkout():
+    doc = DOC.read_text(encoding="utf-8")
+    start = doc.index("## Windows through WSL")
+    sec = doc[start:doc.index("\n## ", start + 1)]
+    assert "wsl --install -d Ubuntu" in sec
+    assert "curl https://cursor.com/install -fsS | bash" in sec
+    assert "git clone --branch integration/v1 https://github.com/happyhippovip/2026-courier.git ~/courier-night" in sec
+    assert 'agent worker --name win-wsl-courier --worker-dir "$HOME/courier-night" start' in sec
+    assert "/mnt/c/" not in sec.replace("`/mnt/c`", "")
+    for flag in ("--yolo", "--api-key", "--pool", "--computer-use"):
+        assert flag not in sec, flag
+
+
+@needs_posix_bash
 def test_sh_check_mode_writes_nothing(mac_env):
     home, env = mac_env
     before = snapshot(home)

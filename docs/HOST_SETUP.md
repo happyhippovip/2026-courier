@@ -23,6 +23,37 @@ irm https://raw.githubusercontent.com/happyhippovip/2026-courier/lane/L6-host-se
 
 Once this branch is merged, replace `lane/L6-host-setup` with `integration/v1`.
 
+## Windows through WSL
+
+When a native Windows tool cannot run (for example a Node module built for a
+different Node version), Windows can host a Linux checkout through WSL. This
+setup script does not automate Linux; on WSL it stops with `HOST BLOCKED`
+and points here. Nothing below needs this repository's scripts.
+
+1. PowerShell **as administrator** (your own action; Windows may ask for a
+   restart, and on first start Ubuntu asks you to create a Linux user):
+
+   ```
+   wsl --install -d Ubuntu
+   ```
+
+2. In the Ubuntu window, as your normal Linux user:
+
+   ```
+   sudo apt-get update && sudo apt-get install -y git curl ca-certificates python3 python3-venv
+   curl https://cursor.com/install -fsS | bash
+   echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && export PATH="$HOME/.local/bin:$PATH"
+   agent login
+   git clone --branch integration/v1 https://github.com/happyhippovip/2026-courier.git ~/courier-night
+   cd ~/courier-night && agent worker --name win-wsl-courier --worker-dir "$HOME/courier-night" start
+   ```
+
+Keep the checkout in the Linux file system (`~/courier-night`), never under
+`/mnt/c`: file watching and permissions on the Windows drive behave
+differently. `agent login` opens a browser sign-in; no key is stored by this
+repository. The worker keeps running while that window is open. Run one
+worker per checkout. A WSL run is not a native Windows proof.
+
 ## Flags
 
 | Flag | Effect |
@@ -146,5 +177,7 @@ yours to do.
 let the tests run the scripts with stub tools on Linux.
 `COURIER_SETUP_SWAPUSAGE_FIXTURE` supplies a `vm.swapusage` line instead of
 running sysctl; the value `FAIL` simulates a sysctl failure.
-`COURIER_SETUP_VMSTAT_FIXTURE` supplies `vm_stat` text. Leave both unset on
+`COURIER_SETUP_VMSTAT_FIXTURE` supplies `vm_stat` text.
+`COURIER_SETUP_OSRELEASE` and `COURIER_SETUP_PWD` stand in for the kernel
+release string and the current folder in the WSL guidance test. Leave both unset on
 a real machine.

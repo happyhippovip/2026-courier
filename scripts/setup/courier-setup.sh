@@ -30,6 +30,18 @@ CS_MIN_SWAP_FREE_MB=1024
 CS_MIN_FREE_RAM_MB=2048
 CS_MIN_DISK_FREE_MB=10240
 
+# WSL kernels carry "microsoft" or "WSL" in their release string.
+cs_is_wsl() {
+  local rel="${COURIER_SETUP_OSRELEASE-}"
+  if [ -z "$rel" ] && [ -r /proc/sys/kernel/osrelease ]; then
+    IFS= read -r rel < /proc/sys/kernel/osrelease || true
+  fi
+  case "$rel" in
+    *[Mm]icrosoft*|*WSL*) return 0 ;;
+  esac
+  return 1
+}
+
 cs_usage() {
   cat <<'USAGE'
 Courier host setup (macOS)
@@ -788,6 +800,15 @@ courier_setup_main() {
   local os_name="${COURIER_SETUP_UNAME:-$(uname -s 2>/dev/null)}"
   if [ "$os_name" != "Darwin" ]; then
     cs_say "HOST BLOCKED: this script is for macOS; detected '${os_name:-unknown}'. Nothing was changed."
+    if [ "$os_name" = "Linux" ] && cs_is_wsl; then
+      cs_say "WSL detected: this setup does not automate Linux yet."
+      cs_say "Keep the checkout in the Linux file system (for example ~/courier-night), not under /mnt/c."
+      case "${COURIER_SETUP_PWD:-$PWD}" in
+        /mnt/[a-zA-Z]|/mnt/[a-zA-Z]/*)
+          cs_say "WARNING: the current folder is on a Windows drive (/mnt/<letter>). Change to your Linux home first." ;;
+      esac
+      cs_say "Steps: docs/HOST_SETUP.md, section 'Windows through WSL'."
+    fi
     cs_say "Windows: use scripts/setup/courier-setup.ps1."
     return 3
   fi
