@@ -227,8 +227,21 @@ def test_auto_resume_pending_workflows_unattended(repo_dir):
     assert loop.load_workflow_state(wf2)["status"] == "COMPLETED"
 
 
-def test_google_builder_worker_integration_in_autonomous_loop(repo_dir):
+def test_google_builder_worker_integration_in_autonomous_loop(repo_dir, monkeypatch):
     """Verifies that steps targeting 'google-mac' / 'builder' execute through google_builder_worker."""
+    # Deterministic host sample; real overload refusal is covered in
+    # tests/test_google_builder_real_execution.py.
+    calm = lambda: {"memory_percent": 40.0, "swap_percent": 10.0}
+    try:
+        import google_builder_worker
+        monkeypatch.setattr(google_builder_worker, "sample_host_capacity", calm)
+    except ImportError:
+        pass
+    try:
+        import scripts.google_builder_worker
+        monkeypatch.setattr(scripts.google_builder_worker, "sample_host_capacity", calm)
+    except ImportError:
+        pass
     loop = AutonomousLevel6Loop(repo_dir=repo_dir, max_iterations=3)
     wf_id = f"wf-google-builder-{uuid.uuid4().hex[:6]}"
 

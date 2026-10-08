@@ -60,6 +60,37 @@ STATES_DIR = EVENTS_DIR / "agent-states"
 LOCK_TIMEOUT_SECONDS = int(os.environ.get("COURIER_PACKET_LOCK_TIMEOUT_SECONDS", "300"))
 DEFAULT_WORKER_ID = "google-mac"
 
+HEAVY_MEMORY_CEILING_PERCENT = float(os.environ.get("COURIER_HEAVY_MEMORY_CEILING_PERCENT", "80"))
+HEAVY_SWAP_CEILING_PERCENT = float(os.environ.get("COURIER_HEAVY_SWAP_CEILING_PERCENT", "85"))
+AGENT_PRINT_TIMEOUT_SECONDS = int(os.environ.get("COURIER_AGENT_PRINT_TIMEOUT_SECONDS", "600"))
+
+# Verdicts that park a packet instead of failing it or halting the queue.
+VERDICT_PROVIDER_LIMIT = "PAUSED_PROVIDER_LIMIT"
+VERDICT_HUMAN_APPROVAL = "BLOCKED_HUMAN_APPROVAL"
+
+QUOTA_MARKERS = (
+    "resource_exhausted",
+    "resource exhausted",
+    "quota",
+    "rate limit",
+    "rate-limit",
+    "usage limit",
+    "too many requests",
+    " 429",
+    "status 429",
+    "code 429",
+)
+
+# Supported, non-interactive Antigravity CLI surface (agy --print). No UI automation,
+# no exported browser credentials. Tests replace this runner.
+AGENT_RUNNER = subprocess.run
+
+PARKED_VERDICT_STATES = {
+    VERDICT_PROVIDER_LIMIT: PacketState.PARKED_PROVIDER_LIMIT,
+    VERDICT_HUMAN_APPROVAL: PacketState.BLOCKED_HUMAN_APPROVAL,
+}
+PARKED_STATES = frozenset(PARKED_VERDICT_STATES.values())
+
 
 def probe_integration_surface() -> dict[str, Any]:
     """Inspects available Google execution surface and account entitlements.
@@ -135,7 +166,42 @@ def get_current_git_sha(repo_dir: Path | None = None) -> str:
         return "UNKNOWN_SHA"
 
 
-def is_host_safe(repo_dir: Path | None = None) -> bool:
+def sample_host_capacity() -> Optional[dict[str, float]]:
+    """Samples real host memory/swap pressure. Returns None when unavailable."""
+    try:
+        import psutil  # local import: optional dependency on minimal hosts
+
+        return {
+            "memory_percent": float(psutil.virtual_memory().percent),
+            "swap_percent": float(psutil.swap_memory().percent),
+        }
+    except Exception:
+        return None
+
+
+def host_capacity_admission(sampler=None) -> tuple[bool, dict[str, Any]]:
+    """Decides whether a NEW heavy Google execution may be admitted on this host.
+
+    Fail-closed: if metrics cannot be sampled, no heavy work is admitted.
+    Thresholds align with HostGuardian (memory > 80% is high pressure) and add an
+    absolute swap ceiling because a nearly full swap file on a 16 GB Mac is the
+    observed cause of severe desktop lag.
+    """
+    sample = (sampler or sample_host_capacity)()
+    if not sample:
+        return False, {"reason": "HOST_METRICS_UNAVAILABLE"}
+    detail: dict[str, Any] = dict(sample)
+    if sample.get("memory_percent", 100.0) > HEAVY_MEMORY_CEILING_PERCENT:
+        detail["reason"] = "HOST_MEMORY_PRESSURE"
+        return False, detail
+    if sample.get("swap_percent", 100.0) >= HEAVY_SWAP_CEILING_PERCENT:
+        detail["reason"] = "HOST_SWAP_PRESSURE"
+        return False, detail
+    detail["reason"] = "HOST_CAPACITY_OK"
+    return True, detail
+
+
+def is_host_safe(repo_dir: Path | None = None, sampler=None) -> bool:
     """Verifies that host admission limits and thermal/stop conditions permit execution."""
     base = repo_dir or COURIER_DIR
     # Explicit stop walls
@@ -149,6 +215,11 @@ def is_host_safe(repo_dir: Path | None = None) -> bool:
             return False
 
     if os.environ.get("COURIER_STOP") == "1" or os.environ.get("COURIER_HOST_UNSAFE") == "1":
+        return False
+
+    admitted, detail = host_capacity_admission(sampler)
+    if not admitted:
+        print(f"[HOST_ADMISSION] Refused heavy Google execution: {detail}")
         return False
 
     return True
@@ -229,6 +300,110 @@ def release_packet_lock(packet_id: str, lock_dir: Path | None = None) -> None:
             os.unlink(lpath)
     except OSError:
         pass
+
+
+def classify_agent_failure(returncode: int, output_text: str) -> str:
+    """Maps a failed agent invocation to a verdict. Only called for non-zero exits."""
+    lowered = (output_text or "").lower()
+    if any(marker in lowered for marker in QUOTA_MARKERS):
+        return VERDICT_PROVIDER_LIMIT
+    return "FAILED"
+
+
+def run_google_agent_task(
+    payload_in: dict[str, Any],
+    repo_dir: Path,
+    evidence_data: dict[str, Any],
+    surface: dict[str, Any],
+) -> str:
+    """Runs one authorized WorkPacket through the supported Antigravity CLI print mode.
+
+    Order is deliberate: authorization and human gate are checked before any
+    provider call; quota failures park (never retried here); a PASS requires an
+    independent verify command run by Courier, not the agent's self-report.
+    """
+    workkey = payload_in.get("workkey")
+    instruction = payload_in.get("instruction")
+    evidence_data["workkey"] = workkey
+
+    if not workkey or not isinstance(instruction, str) or not instruction.strip():
+        evidence_data["error"] = "UNAUTHORIZED_PACKET: missing ledger workkey or instruction"
+        return "FAILED"
+
+    if payload_in.get("requires_human_approval") and not payload_in.get("human_approval_ref"):
+        evidence_data["blocked_reason"] = "HUMAN_APPROVAL_REQUIRED"
+        evidence_data["provider_invoked"] = False
+        return VERDICT_HUMAN_APPROVAL
+
+    if not surface.get("has_agy_cli"):
+        evidence_data["error"] = "NO_SUPPORTED_GOOGLE_INTERFACE: agy CLI unavailable"
+        evidence_data["provider_invoked"] = False
+        return "FAILED"
+
+    timeout_s = int(payload_in.get("timeout_seconds") or AGENT_PRINT_TIMEOUT_SECONDS)
+    argv = [
+        "agy",
+        "--print",
+        instruction,
+        "--output-format",
+        "json",
+        "--print-timeout",
+        f"{timeout_s}s",
+        "--sandbox",
+        "--disable-slash-commands",
+        # Required for unattended print mode (no human to answer tool prompts);
+        # bounded by --sandbox, the packet's authorization and the verify step.
+        "--dangerously-skip-permissions",
+    ]
+    if payload_in.get("model"):
+        argv += ["--model", str(payload_in["model"])]
+    argv += ["--effort", str(payload_in.get("effort") or "low")]
+
+    evidence_data["provider_invoked"] = True
+    evidence_data["interface"] = "agy --print (supported CLI)"
+    evidence_data["instruction_sha256"] = hashlib.sha256(instruction.encode("utf-8")).hexdigest()
+    started = time.time()
+    try:
+        proc = AGENT_RUNNER(
+            argv, cwd=repo_dir, capture_output=True, text=True, timeout=timeout_s + 30
+        )
+    except subprocess.TimeoutExpired:
+        evidence_data["error"] = "AGENT_TIMEOUT: effects uncertain, not retried automatically"
+        evidence_data["effects_uncertain"] = True
+        return "FAILED"
+    except OSError as exc:
+        evidence_data["error"] = f"AGENT_LAUNCH_FAILED: {exc}"
+        return "FAILED"
+
+    evidence_data["agent_exit_code"] = proc.returncode
+    evidence_data["agent_duration_seconds"] = round(time.time() - started, 2)
+    out = (proc.stdout or "").strip()
+    err = (proc.stderr or "").strip()
+    evidence_data["agent_output_excerpt"] = out[-1500:]
+    if err:
+        evidence_data["agent_stderr_excerpt"] = err[-500:]
+
+    if proc.returncode != 0:
+        verdict = classify_agent_failure(proc.returncode, f"{out}\n{err}")
+        if verdict == VERDICT_PROVIDER_LIMIT:
+            evidence_data["blocked_reason"] = "PROVIDER_QUOTA_OR_RATE_LIMIT"
+        return verdict
+
+    verify_cmd = payload_in.get("verify_command")
+    if not verify_cmd:
+        evidence_data["error"] = "NO_INDEPENDENT_VERIFICATION: verify_command required"
+        return "FAILED"
+    try:
+        vproc = subprocess.run(
+            verify_cmd, cwd=repo_dir, capture_output=True, text=True, timeout=300
+        )
+    except (subprocess.TimeoutExpired, OSError) as exc:
+        evidence_data["error"] = f"VERIFY_FAILED_TO_RUN: {exc}"
+        return "FAILED"
+    evidence_data["verify_command"] = verify_cmd
+    evidence_data["verify_exit_code"] = vproc.returncode
+    evidence_data["verify_output_excerpt"] = (vproc.stdout or "").strip()[-500:]
+    return "PASS" if vproc.returncode == 0 else "FAILED"
 
 
 def execute_packet_code_or_test_work(
@@ -325,10 +500,13 @@ def execute_packet_code_or_test_work(
         evidence_data["syntax_verified"] = syntax_ok
         verdict = "PASS"
 
+    elif task_type == "google_agent_execute":
+        verdict = run_google_agent_task(payload_in, repo_dir, evidence_data, surface)
+
     else:
-        # Generic bounded task
-        evidence_data["status"] = "COMPLETED"
-        verdict = "PASS"
+        # Fail closed: an unrecognized task type must never be auto-accepted.
+        evidence_data["error"] = f"UNSUPPORTED_TASK_TYPE: {task_type}"
+        verdict = "FAILED"
 
     hooks.on_tool_action(packet.id, "Persisting evidence artifact and computing digests", 0.8)
 
@@ -427,12 +605,19 @@ def process_work_packet(
         )
 
         # 7. Record durable checkpoint in central_state.json
+        verdict = result_payload.get("verdict")
+        if verdict == "PASS":
+            ledger_status = "SUCCESS"
+        elif verdict in PARKED_VERDICT_STATES:
+            ledger_status = verdict
+        else:
+            ledger_status = "FAILED"
         consume(
             {
-                "status": "SUCCESS" if result_payload.get("verdict") == "PASS" else "FAILED",
+                "status": ledger_status,
                 "dispatch_ref": correlation_id,
                 "pid": os.getpid(),
-                "verdict": result_payload.get("verdict"),
+                "verdict": verdict,
                 "target_sha": evaluated.target_sha,
                 "evidence_file": result_payload.get("evidence_file"),
                 "evidence_sha256": result_payload.get("evidence_sha256"),
@@ -440,6 +625,18 @@ def process_work_packet(
             evaluated.id,
             result_ref=str(result_file.name),
         )
+
+        if verdict in PARKED_VERDICT_STATES:
+            # Park without review: nothing to accept, nothing to retry blindly.
+            decision = {"verdict": "PARKED", "reason": verdict, "task_id": evaluated.id}
+            parked = WorkPacket(
+                id=evaluated.id,
+                owner_id=evaluated.owner_id,
+                target_sha=evaluated.target_sha,
+                state=PARKED_VERDICT_STATES[verdict],
+                payload=evaluated.payload,
+            )
+            return parked, result_file, decision
 
         # 8. Verifier: run Chief Review Router
         decision = run_chief_review_router(evaluated.id, result_file)
@@ -501,11 +698,30 @@ def run_google_builder_queue(
         if decision and decision.get("verdict") == "ACCEPTED":
             # Update packet state in queue so next packet can be promoted
             queue.update_packet_state(admissible.id, PacketState.WAITING_FOR_EVIDENCE)
+        elif processed.state in PARKED_STATES:
+            # Park only this packet; unrelated ready work stays eligible.
+            queue.update_packet_state(admissible.id, processed.state)
+            print(f"[GOOGLE_BUILDER] Packet {admissible.id} parked as {processed.state.value}; continuing.")
         else:
             print(f"[GOOGLE_BUILDER] Packet {admissible.id} was not auto-accepted: {decision}. Halting queue progression.")
             break
 
     return executed_records
+
+
+def resume_provider_parked_packets(queue: PacketQueue, provider_available: bool) -> list[str]:
+    """Re-queues provider-limit parked packets ONLY on a legitimate availability signal.
+
+    Human-approval blocks are never released here. No polling, no account rotation.
+    """
+    if not provider_available:
+        return []
+    resumed = []
+    for pid, p in list(queue.packets.items()):
+        if p.state == PacketState.PARKED_PROVIDER_LIMIT:
+            queue.update_packet_state(pid, PacketState.NEXT)
+            resumed.append(pid)
+    return resumed
 
 
 def execute_google_task(

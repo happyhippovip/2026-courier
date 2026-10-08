@@ -9,6 +9,12 @@ class PacketState(enum.Enum):
     WAITING_FOR_EVIDENCE = "WAITING_FOR_EVIDENCE"
     SUPERSEDED = "SUPERSEDED"
     PARKED_BY_HOST = "PARKED_BY_HOST"
+    # Sticky parks: never auto-woken by host admission. Provider-limit parks are
+    # released only by an explicit availability signal; human blocks only by approval.
+    PARKED_PROVIDER_LIMIT = "PARKED_PROVIDER_LIMIT"
+    BLOCKED_HUMAN_APPROVAL = "BLOCKED_HUMAN_APPROVAL"
+
+STICKY_PARK_STATES = (PacketState.PARKED_PROVIDER_LIMIT, PacketState.BLOCKED_HUMAN_APPROVAL)
 
 @dataclass(frozen=True)
 class WorkPacket:
@@ -36,6 +42,9 @@ def evaluate_packet(packet: WorkPacket, current_sha: str, host_safe: bool) -> Wo
             payload=packet.payload,
         )
         
+    if packet.state in STICKY_PARK_STATES:
+        return packet
+
     if not host_safe:
         return WorkPacket(
             id=packet.id,

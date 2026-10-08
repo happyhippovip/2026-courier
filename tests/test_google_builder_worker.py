@@ -75,21 +75,24 @@ def test_stale_lock_stealing(tmp_path):
     release_packet_lock(packet_id, lock_dir=lock_dir)
 
 
+CALM_HOST = lambda: {"memory_percent": 40.0, "swap_percent": 10.0}  # noqa: E731
+
+
 def test_host_safe_checks(tmp_path, monkeypatch):
-    assert is_host_safe(tmp_path) is True
+    assert is_host_safe(tmp_path, sampler=CALM_HOST) is True
 
     # Host STOP file
     stop_file = tmp_path / "events/STOP"
     stop_file.parent.mkdir(parents=True, exist_ok=True)
     stop_file.write_text("STOP")
-    assert is_host_safe(tmp_path) is False
+    assert is_host_safe(tmp_path, sampler=CALM_HOST) is False
 
     stop_file.unlink()
-    assert is_host_safe(tmp_path) is True
+    assert is_host_safe(tmp_path, sampler=CALM_HOST) is True
 
     # Environment flag
     monkeypatch.setenv("COURIER_STOP", "1")
-    assert is_host_safe(tmp_path) is False
+    assert is_host_safe(tmp_path, sampler=CALM_HOST) is False
 
 
 def test_sha_mismatch_supersedes_packet(tmp_path, monkeypatch):
