@@ -383,11 +383,12 @@ class WorkerLoop:
         self.worker_id = worker_id
         self.heartbeat_s = heartbeat_s
         self.engine = engine or WorkerHost(home)
+        # Thermal relief (#139): local only, never sent to the V1 controller.
+        self._last_resource_state = "NORMAL"
+        self._cooldown_until = 0.0
         self._client_factory = client_factory or self._default_client
         self._client: Optional[ControllerClient] = None
         self._watchers: dict = {}
-        self._last_resource_state = "NORMAL"
-        self._cooldown_until = 0.0
 
     def _default_client(self) -> ControllerClient:
         token_path = os.path.join(self.home, "run", "controller.token")
