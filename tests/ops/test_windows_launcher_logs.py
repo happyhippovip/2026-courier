@@ -69,6 +69,12 @@ time.sleep(10)
     for f in glob.glob(str(py_dir_orig / "python*.dll")):
         shutil.copy(f, py_dir)
     shutil.copy(sys.executable, py_dir / "python.exe")
+    
+    if (py_dir_orig / "pyvenv.cfg").exists():
+        shutil.copy(py_dir_orig / "pyvenv.cfg", py_dir / "pyvenv.cfg")
+    elif (py_dir_orig.parent / "pyvenv.cfg").exists():
+        shutil.copy(py_dir_orig.parent / "pyvenv.cfg", py_dir / "pyvenv.cfg")
+
 
     
     exe_copy = base_dir / "CourierTest.exe"
