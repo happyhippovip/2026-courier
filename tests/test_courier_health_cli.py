@@ -7,9 +7,20 @@ Courier running. It must call ``GET <base>/v1/health`` and stay actionable.
 """
 
 import http.server
+import os
 import subprocess
+import sys
 import threading
 from pathlib import Path
+
+
+def get_bash():
+    if sys.platform == "win32":
+        for p in [r"C:\Program Files\Git\bin\bash.exe", r"C:\Program Files\Git\usr\bin\bash.exe"]:
+            if os.path.exists(p):
+                return p
+    return "bash"
+
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "deploy" / "courier-health.sh"
@@ -49,10 +60,19 @@ def _serve():
 
 
 def _run(base, token=None):
-    env = {"PATH": "/usr/bin:/bin", "COURIER_SERVER": base}
+    # Bare "bash" resolves to WSL on Windows runners (UTF-16 "install a
+    # distro" noise, exit 1); Git bash is required for mktemp/grep/curl.
+    # Inherit the OS env (SystemRoot/TEMP on Windows) and control only the
+    # Courier vars, so the check runs the same under Git bash and POSIX sh.
+    env = dict(os.environ)
+    env.pop("COURIER_CONTROLLER", None)
+    env.pop("COURIER_HOME", None)
+    env["COURIER_SERVER"] = base
     if token is not None:
         env["COURIER_TOKEN"] = token
-    return subprocess.run(["bash", str(SCRIPT)], capture_output=True, text=True, timeout=30, env=env)
+    else:
+        env.pop("COURIER_TOKEN", None)
+    return subprocess.run([get_bash(), str(SCRIPT)], capture_output=True, text=True, timeout=30, env=env)
 
 
 def test_health_calls_versioned_endpoint_with_token():
