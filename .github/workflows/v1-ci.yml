@@ -111,7 +111,7 @@ jobs:
           fi
 
   golden-skip-ratchet:
-    # The 11 Golden tests skip by design until the v1 modules land; the
+    # The 15 Golden tests skip by design until the v1 modules land; the
     # regression gate tolerates skips silently. This job pins the expected
     # skip shape instead: any change in either direction fails until the
     # pin in .github/ci/check_golden_skips.py is deliberately updated by
