@@ -154,8 +154,11 @@ def _feedback(store, state, specs, agent, host, args, transport, token, emit, ho
             spec_fingerprint=mapping.get("spec_fingerprint") or _fingerprint(spec or {}),
             source_sha=_recorded_source(mapping, spec),
         )
-        if wrote:
-            emit({"mission_id": mission_id, "outcome": event.event_type.value.lower(), "task_id": mapping.get("task_id")})
+        outcome = event.event_type.value.lower()
+        # The ledger line is durable before the log line. A crash in between
+        # must still produce that receipt exactly once on the next invocation.
+        if wrote or not _receipt_present(home, mission_id, outcome):
+            emit({"mission_id": mission_id, "outcome": outcome, "task_id": mapping.get("task_id")})
     return ok
 
 
@@ -642,6 +645,28 @@ def _atomic_write(path: Path, text: str) -> None:
         if tmp.exists():
             tmp.unlink()
         raise
+
+
+def _receipt_present(home, mission_id, outcome) -> bool:
+    path = home / "run" / "ledger_bridge.log"
+    try:
+        size = path.stat().st_size
+    except OSError:
+        return False
+    if size > MAX_STATE_BYTES:
+        return True
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return True
+    for line in text.splitlines():
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if record.get("mission_id") == mission_id and record.get("outcome") == outcome:
+            return True
+    return False
 
 
 def _append(path: Path, text: str) -> None:
