@@ -26,6 +26,9 @@ MAX_FILE_READ_BYTES = 256 * 1024
 LARGEST_LIMIT = 10
 MARKER_FILE_LIMIT = 10
 LIST_LIMIT = 30
+ONE_MB = 1024 * 1024
+FIXTURE_SECRET_POINTS = 2
+MARKER_HYGIENE_FLOOR = 5
 
 SKIP_DIR_NAMES = frozenset(
     {
@@ -106,7 +109,7 @@ WEIGHTS: tuple[tuple[str, int, str], ...] = (
     ("manifest", 8, "at least one dependency manifest"),
     ("pinning", 14, "share of parsed dependencies with an exact version pin"),
     ("markers", 10, "one point off per 5 TODO, FIXME, or HACK markers, floor 0"),
-    ("secrets", 10, "no secrets-risk pattern hits"),
+    ("secrets", 10, "production secrets-risk hits score 0; hits only in tests, fixtures, or docs cost 2"),
 )
 
 PYTEST_FAIL_POINTS = 3
@@ -186,6 +189,61 @@ _GITLAB_RESERVED = frozenset(
     {"default", "include", "spec", "stages", "variables", "workflow"}
 )
 _NPM_EXACT = re.compile(r"v?\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?\Z")
+_HELPER_NAME = re.compile(
+    r"(?i)^(?:conftest|(?:_?fakes?)|(?:_?builders?))(?:\.[A-Za-z0-9]+)?$"
+)
+_DOC_NAME = re.compile(
+    r"(?i)^(?:readme|changelog|changes|contributing|authors|history)(?:\.[A-Za-z0-9]+)?$"
+)
+_NON_PROD_DIRS = frozenset(
+    {
+        "__fixtures__",
+        "__tests__",
+        "doc",
+        "docs",
+        "documentation",
+        "fixture",
+        "fixtures",
+        "test",
+        "testdata",
+        "tests",
+    }
+)
+_HELPER_DIRS = frozenset({"builder", "builders", "fake", "fakes", "_fake", "_fakes"})
+_SCRATCH_DIR_NAMES = frozenset({"attic", "scratch", "scratches", "scratchpad"})
+_BINARY_ARCHIVE_EXTS = frozenset(
+    {
+        ".7z",
+        ".a",
+        ".apk",
+        ".bin",
+        ".bz2",
+        ".class",
+        ".deb",
+        ".dll",
+        ".dmg",
+        ".exe",
+        ".gz",
+        ".iso",
+        ".jar",
+        ".lib",
+        ".msi",
+        ".o",
+        ".obj",
+        ".pyc",
+        ".rar",
+        ".rpm",
+        ".so",
+        ".tar",
+        ".tgz",
+        ".war",
+        ".wasm",
+        ".whl",
+        ".xz",
+        ".zip",
+    }
+)
+_LARGE_DATA_EXTS = frozenset({".json", ".jsonl", ".ndjson"})
 
 assert sum(weight for _, weight, _ in WEIGHTS) == 100
 _WEIGHT = {key: weight for key, weight, _rule in WEIGHTS}
@@ -203,16 +261,21 @@ def build_report(
 def analyze(repo_path: Path | str, pytest_json: Path | str | None = None) -> dict:
     """Scan ``repo_path`` and return a JSON-ready summary. Paths are relative."""
     root = Path(repo_path)
-    files, capped = _walk(root)
+    files, capped, scratch_dirs = _walk(root)
     languages: dict[str, list[int]] = {}
+    other_exts: set[str] = set()
     test_rows: list[dict] = []
+    helper_rows: list[str] = []
+    stray_rows: list[dict] = []
     test_functions = 0
     marker_rows: list[dict] = []
     marker_totals = {"todo": 0, "fixme": 0, "hack": 0}
     ci_rows: list[dict] = []
     manifest_rows: list[dict] = []
     largest: list[dict] = []
-    secret_files: dict[str, int] = {}
+    large_binaries: list[dict] = []
+    large_json: list[dict] = []
+    secret_files: dict[str, dict[str, int]] = {}
     secret_patterns: dict[str, int] = {}
     project = {
         "readme": {"present": False, "path": None},
@@ -234,10 +297,17 @@ def analyze(repo_path: Path | str, pytest_json: Path | str | None = None) -> dic
             partial_files += 1
         if not binary:
             total_lines += line_count
-        lang = _language(path.name)
+        lang, other_ext = _language(path.name)
+        if other_ext:
+            other_exts.add(other_ext)
         bucket = languages.setdefault(lang, [0, 0])
         bucket[0] += 1
         bucket[1] += 0 if binary else line_count
+        suffix = Path(path.name).suffix.lower()
+        if size > ONE_MB and suffix in _BINARY_ARCHIVE_EXTS:
+            large_binaries.append({"path": rel, "bytes": size})
+        if size > ONE_MB and suffix in _LARGE_DATA_EXTS:
+            large_json.append({"path": rel, "bytes": size})
         largest.append(
             {
                 "path": rel,
@@ -248,10 +318,14 @@ def analyze(repo_path: Path | str, pytest_json: Path | str | None = None) -> dic
             }
         )
         text = "" if binary else blob.decode("utf-8", errors="replace")
-        if is_test_file(rel):
-            funcs = 0 if binary else _count_test_functions(path.name, text)
+        funcs = 0 if binary else _count_test_functions(path.name, text)
+        if is_test_file(rel, funcs):
             test_functions += funcs
             test_rows.append({"path": rel, "functions": funcs})
+        elif _is_helper_file(rel):
+            helper_rows.append(rel)
+        if _is_stray_test(rel):
+            stray_rows.append({"path": rel, "functions": funcs})
         if text:
             todo, fixme, hack = len(_TODO.findall(text)), len(_FIXME.findall(text)), len(_HACK.findall(text))
             if todo or fixme or hack:
@@ -261,9 +335,11 @@ def analyze(repo_path: Path | str, pytest_json: Path | str | None = None) -> dic
                 marker_rows.append(
                     {"path": rel, "todo": todo, "fixme": fixme, "hack": hack, "total": todo + fixme + hack}
                 )
+            bucket_name = _secret_bucket(rel)
             for pattern_name, hits in _secret_hits(text).items():
                 secret_patterns[pattern_name] = secret_patterns.get(pattern_name, 0) + hits
-                secret_files[rel] = secret_files.get(rel, 0) + hits
+                file_bucket = secret_files.setdefault(rel, {"hits": 0, "bucket": bucket_name})
+                file_bucket["hits"] += hits
         if "/" not in rel:
             _note_project_file(project, rel)
         kind = _ci_kind(rel)
@@ -285,18 +361,23 @@ def analyze(repo_path: Path | str, pytest_json: Path | str | None = None) -> dic
                 }
             )
 
-    language_rows = [
-        {"name": name, "files": counts[0], "lines": counts[1]}
-        for name, counts in languages.items()
-    ]
-    language_rows.sort(key=lambda row: row["name"])
+    language_rows = _collapse_languages(languages, other_exts)
     test_rows.sort(key=lambda row: row["path"])
+    helper_rows.sort()
+    stray_rows.sort(key=lambda row: row["path"])
     marker_rows.sort(key=lambda row: (-row["total"], row["path"]))
     ci_rows.sort(key=lambda row: (row["kind"], row["path"]))
     manifest_rows.sort(key=lambda row: row["path"])
     largest.sort(key=lambda row: (-row["bytes"], row["path"]))
-    secret_file_rows = [{"path": path, "hits": hits} for path, hits in secret_files.items()]
+    large_binaries.sort(key=lambda row: (-row["bytes"], row["path"]))
+    large_json.sort(key=lambda row: (-row["bytes"], row["path"]))
+    secret_file_rows = [
+        {"path": path, "hits": info["hits"], "bucket": info["bucket"]}
+        for path, info in secret_files.items()
+    ]
     secret_file_rows.sort(key=lambda row: row["path"])
+    production_rows = [row for row in secret_file_rows if row["bucket"] == "production"]
+    non_production_rows = [row for row in secret_file_rows if row["bucket"] != "production"]
     secret_pattern_rows = [
         {"pattern": name, "hits": hits} for name, hits in secret_patterns.items()
     ]
@@ -315,6 +396,7 @@ def analyze(repo_path: Path | str, pytest_json: Path | str | None = None) -> dic
         "test_files": len(test_rows),
         "test_functions": test_functions,
         "test_file_rows": test_rows,
+        "test_helpers": helper_rows,
         "pytest": pytest_info,
         "markers": {
             "todo": marker_totals["todo"],
@@ -344,10 +426,25 @@ def analyze(repo_path: Path | str, pytest_json: Path | str | None = None) -> dic
             "hits": sum(row["hits"] for row in secret_file_rows),
             "file_rows": secret_file_rows,
             "pattern_rows": secret_pattern_rows,
+            "production_files": len(production_rows),
+            "production_hits": sum(row["hits"] for row in production_rows),
+            "production_rows": production_rows,
+            "non_production_files": len(non_production_rows),
+            "non_production_hits": sum(row["hits"] for row in non_production_rows),
+            "non_production_rows": non_production_rows,
+        },
+        "hygiene": {
+            "large_binaries": large_binaries,
+            "scratch_dirs": scratch_dirs,
+            "large_json": large_json,
+            "stray_tests": stray_rows,
         },
         "limits": _limits(),
     }
+    summary["hygiene"]["flags"] = _hygiene_flags(summary)
     summary["score"] = _score(summary)
+    summary["ampel"] = _ampel(summary)
+    summary["summary_sentences"] = _summary_sentences(summary)
     summary["next_steps"] = _next_steps(summary)
     return summary
 
@@ -371,6 +468,7 @@ def render_markdown(data: dict, evidence: dict | None = None) -> str:
             "Pytest counts are included only when a pytest JSON file is supplied."
         )
         lines.append("")
+    lines.extend(_render_summary(data))
     lines.extend(_heading("Repositorygröße", "Repository size"))
     lines.append(f"- Files: {data['files']}")
     lines.append(f"- Lines: {data['lines']}")
@@ -395,6 +493,7 @@ def render_markdown(data: dict, evidence: dict | None = None) -> str:
     lines.extend(_heading("Testdateien", "Test files (static scan)"))
     lines.append(f"- Test files: {data['test_files']}")
     lines.append(f"- Test functions: {data['test_functions']}")
+    lines.append(f"- Test-Hilfsdateien: {len(data['test_helpers'])}")
     lines.append("")
     shown, extra = _cap(data["test_file_rows"], LIST_LIMIT)
     if shown:
@@ -403,6 +502,15 @@ def render_markdown(data: dict, evidence: dict | None = None) -> str:
             lines.append(f"Showing {len(shown)} of {data['test_files']} test files.")
     else:
         lines.append("No test files.")
+    lines.append("")
+    lines.extend(_heading_level(3, "Test-Hilfsdateien", "Test helper files"))
+    helpers, helper_extra = _cap(data["test_helpers"], LIST_LIMIT)
+    if helpers:
+        lines.extend(_table(["File"], [[path] for path in helpers]))
+        if helper_extra:
+            lines.append(f"Showing {len(helpers)} of {len(data['test_helpers'])} test helper files.")
+    else:
+        lines.append("No test helper files.")
     lines.append("")
 
     lines.extend(_heading("Testergebnisse", "Pytest results (pytest-json-report)"))
@@ -495,29 +603,8 @@ def render_markdown(data: dict, evidence: dict | None = None) -> str:
         lines.append("No files.")
     lines.append("")
 
-    secrets = data["secrets"]
-    lines.extend(_heading("Hinweise auf Geheimnisse", "Secrets-risk patterns"))
-    lines.append("Counts and file paths only. Matched text is not included.")
-    lines.append("")
-    lines.append(f"- Files: {secrets['files']}")
-    lines.append(f"- Pattern hits: {secrets['hits']}")
-    lines.append("")
-    file_rows, file_extra = _cap(secrets["file_rows"], LIST_LIMIT)
-    if file_rows:
-        lines.extend(_table(["File", "Hits"], [[row["path"], row["hits"]] for row in file_rows]))
-        if file_extra:
-            lines.append(f"Showing {len(file_rows)} of {secrets['files']} files.")
-    else:
-        lines.append("No secrets-risk patterns.")
-    if secrets["pattern_rows"]:
-        lines.append("")
-        lines.extend(
-            _table(
-                ["Pattern", "Hits"],
-                [[row["pattern"], row["hits"]] for row in secrets["pattern_rows"]],
-            )
-        )
-    lines.append("")
+    lines.extend(_render_secrets(data["secrets"]))
+    lines.extend(_render_hygiene(data))
 
     score = data["score"]
     lines.extend(_heading("Realitätswert", "Reality score"))
@@ -560,10 +647,42 @@ def render_markdown(data: dict, evidence: dict | None = None) -> str:
     lines.append(f"- Max bytes read per file: {limits['max_file_read_bytes']}")
     lines.append("- Symlinks are skipped.")
     lines.append("- Directories skipped: " + ", ".join(f"`{name}`" for name in limits["skip_dirs"]))
+    lines.append(
+        "- A test file matches test_*.py, *_test.py, *.test.js, *.spec.js, or *_test.go, and either contains at least one test function or lives under test, tests, or __tests__."
+    )
+    lines.append(
+        "- Test-Hilfsdateien are conftest.py anywhere, plus fake/fakes and builder/builders files under a test directory. They are not test files."
+    )
+    lines.append(
+        "- Stray tests are test-named files at the checkout root or under scripts/. They are a hygiene finding."
+    )
     lines.append("- Test files and test functions are counted with text patterns. Files are not imported.")
     lines.append("- Marker words are the uppercase tokens TODO, FIXME, and HACK.")
     lines.append("- Pytest is not run. Pass, fail, and skip come from the optional JSON file.")
-    lines.append("- Secrets-risk checks keep a pattern name, a count, and a path. Match text is discarded.")
+    lines.append(
+        "- Secrets-risk hits in tests, fixtures, docs, test-named files, or doc names such as README cost 2 points. Production hits set that component to 0. Match text is discarded."
+    )
+    lines.append(
+        f"- Binaries and archives over {ONE_MB} bytes, and JSON, JSONL, or NDJSON over {ONE_MB} bytes, are hygiene findings."
+    )
+    lines.append(
+        "- Scratch directory names: attic, scratch, scratches, scratchpad."
+    )
+    lines.append(
+        "- Ampel Tests: Rot when test files or test functions are 0; Grün when both are positive and pytest JSON has 0 failed and 0 errors; otherwise Gelb."
+    )
+    lines.append(
+        "- Ampel CI: Rot at 0 configs; Gelb when configs exist and jobs are 0; Grün when jobs are positive."
+    )
+    lines.append(
+        "- Ampel Abhängigkeiten: Rot at 0 manifests; Grün when every parsed dependency is pinned; otherwise Gelb."
+    )
+    lines.append(
+        "- Ampel Geheimnis-Risiko: Rot when production hits are positive; Gelb when only tests, fixtures, or docs have hits; Grün at 0 hits."
+    )
+    lines.append(
+        "- Ampel Repo-Hygiene: Rot when a large binary/archive, a large JSON/JSONL file, or a scratch/attic directory is present, or when 3 or more hygiene flags are set; Gelb for 1 or 2 other flags; Grün at 0 flags. Flags: missing README, LICENSE, or .gitignore; 5 or more markers; large binaries; large JSON/JSONL; scratch/attic; stray tests."
+    )
     lines.append("- A score is a sum of the weights above. It is not a security verdict.")
     lines.append("")
     return "\n".join(lines)
@@ -617,27 +736,77 @@ def _report_from_github(spec: str, pytest_json: str | None) -> str:
         shutil.rmtree(fetched.temp_dir, ignore_errors=True)
 
 
-def is_test_file(rel: str) -> bool:
+def is_test_file(rel: str, function_count: int = 0) -> bool:
+    """A test-named file counts when it has a test function, or it lives under a tests directory."""
     name = rel.rsplit("/", 1)[-1]
-    if _PY_TEST_NAME.match(name) or _JS_TEST_NAME.match(name) or _GO_TEST_NAME.match(name):
+    if not _test_name_match(name):
+        return False
+    if function_count >= 1:
         return True
+    return _under_test_dir(rel)
+
+
+def _test_name_match(name: str) -> bool:
+    return bool(_PY_TEST_NAME.match(name) or _JS_TEST_NAME.match(name) or _GO_TEST_NAME.match(name))
+
+
+def _under_test_dir(rel: str) -> bool:
     parents = [part.lower() for part in rel.split("/")[:-1]]
-    if any(part in _TEST_DIR_NAMES for part in parents):
-        return name.lower().endswith(
-            (".py", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".go", ".rb", ".java", ".kt")
-        )
+    return any(part in _TEST_DIR_NAMES for part in parents)
+
+
+def _is_helper_file(rel: str) -> bool:
+    name = rel.rsplit("/", 1)[-1]
+    parents = [part.lower() for part in rel.split("/")[:-1]]
+    if name.lower() == "conftest.py":
+        return True
+    if not _under_test_dir(rel):
+        return False
+    if _HELPER_NAME.match(name):
+        return True
+    return any(part in _HELPER_DIRS for part in parents)
+
+
+def _is_stray_test(rel: str) -> bool:
+    name = rel.rsplit("/", 1)[-1]
+    if not _test_name_match(name) or _under_test_dir(rel):
+        return False
+    if "/" not in rel:
+        return True
+    return rel.split("/", 1)[0].lower() == "scripts"
+
+
+def _secret_bucket(rel: str) -> str:
+    if _non_production_path(rel):
+        return "non_production"
+    return "production"
+
+
+def _non_production_path(rel: str) -> bool:
+    parts = rel.split("/")
+    name = parts[-1]
+    parents = [part.lower() for part in parts[:-1]]
+    if any(part in _NON_PROD_DIRS for part in parents):
+        return True
+    if _test_name_match(name) or _HELPER_NAME.match(name) or _DOC_NAME.match(name):
+        return True
     return False
 
 
-def _walk(root: Path) -> tuple[list[Path], bool]:
+def _walk(root: Path) -> tuple[list[Path], bool, list[str]]:
     found: list[Path] = []
+    scratch: list[str] = []
     for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
+        rel_parent = Path(dirpath).relative_to(root)
+        parent_posix = "" if rel_parent == Path(".") else rel_parent.as_posix()
         kept: list[str] = []
         for name in sorted(dirnames):
             if name in SKIP_DIR_NAMES or name.endswith(".egg-info"):
                 continue
             if (Path(dirpath) / name).is_symlink():
                 continue
+            if name.lower() in _SCRATCH_DIR_NAMES:
+                scratch.append(f"{parent_posix}/{name}" if parent_posix else name)
             kept.append(name)
         dirnames[:] = kept
         for name in sorted(filenames):
@@ -646,8 +815,8 @@ def _walk(root: Path) -> tuple[list[Path], bool]:
                 continue
             found.append(path)
             if len(found) >= MAX_FILES:
-                return found, True
-    return found, False
+                return found, True, sorted(set(scratch))
+    return found, False, sorted(set(scratch))
 
 
 def _read_prefix(path: Path) -> tuple[bytes, bool, bool]:
@@ -671,11 +840,33 @@ def _line_count(blob: bytes) -> int:
     return lines
 
 
-def _language(filename: str) -> str:
+def _language(filename: str) -> tuple[str, str | None]:
     suffix = Path(filename).suffix.lower()
     if not suffix:
-        return "no extension"
-    return EXT_LANGUAGE.get(suffix, f"Other ({suffix})")
+        return "no extension", None
+    named = EXT_LANGUAGE.get(suffix)
+    if named:
+        return named, None
+    return "Sonstige", suffix
+
+
+def _collapse_languages(languages: dict[str, list[int]], other_exts: set[str]) -> list[dict]:
+    rows = [
+        {"name": name, "files": counts[0], "lines": counts[1]}
+        for name, counts in languages.items()
+        if name != "Sonstige"
+    ]
+    rows.sort(key=lambda row: row["name"])
+    if "Sonstige" in languages:
+        counts = languages["Sonstige"]
+        rows.append(
+            {
+                "name": f"Sonstige ({len(other_exts)})",
+                "files": counts[0],
+                "lines": counts[1],
+            }
+        )
+    return rows
 
 
 def _count_test_functions(filename: str, text: str) -> int:
@@ -1199,9 +1390,7 @@ def _score(data: dict) -> dict:
         "ci_jobs": _count_phrase(data["ci"]["jobs"], "job", "jobs"),
         "manifest": _count_phrase(deps["manifests"], "manifest", "manifests"),
         "markers": _count_phrase(data["markers"]["total"], "marker", "markers"),
-        "secrets": "none"
-        if secrets["hits"] == 0
-        else f"{secrets['hits']} hits in {_count_phrase(secrets['files'], 'file', 'files')}",
+        "secrets": _secrets_observation(secrets),
     }
     ratio_total = deps["ratio_pinned"] + deps["ratio_unpinned"]
     if ratio_total == 0:
@@ -1223,7 +1412,7 @@ def _score(data: dict) -> dict:
         "manifest": _WEIGHT["manifest"] if deps["manifests"] else 0,
         "pinning": pin_awarded,
         "markers": marker_awarded,
-        "secrets": _WEIGHT["secrets"] if secrets["hits"] == 0 else 0,
+        "secrets": _secrets_award(secrets),
     }
     components = []
     for key, weight, rule in WEIGHTS:
@@ -1258,6 +1447,10 @@ def _count_phrase(count: int, singular: str, plural: str) -> str:
     return f"{count} {word}"
 
 
+def _de(count: int, singular: str, plural: str) -> str:
+    return _count_phrase(count, singular, plural)
+
+
 def _present_obs(item: dict) -> str:
     if item["present"]:
         return f"present ({item['path']})"
@@ -1290,6 +1483,36 @@ def _pytest_deductions(info: dict) -> dict:
     }
 
 
+def _secrets_award(secrets: dict) -> int:
+    if secrets["production_hits"]:
+        return 0
+    if secrets["non_production_hits"]:
+        return max(0, _WEIGHT["secrets"] - FIXTURE_SECRET_POINTS)
+    return _WEIGHT["secrets"]
+
+
+def _secrets_observation(secrets: dict) -> str:
+    if secrets["production_hits"]:
+        return (
+            f"{_count_phrase(secrets['production_hits'], 'production hit', 'production hits')} in "
+            f"{_count_phrase(secrets['production_files'], 'file', 'files')}"
+        )
+    if secrets["non_production_hits"]:
+        return (
+            "0 production hits; "
+            f"{_count_phrase(secrets['non_production_hits'], 'hit', 'hits')} in tests, fixtures, or docs in "
+            f"{_count_phrase(secrets['non_production_files'], 'file', 'files')}"
+        )
+    return "none"
+
+
+def _listed_paths(rows: list[dict], limit: int = 3) -> str:
+    shown = [row["path"] for row in rows[:limit]]
+    extra = len(rows) - len(shown)
+    suffix = f" and {extra} more" if extra else ""
+    return ", ".join(shown) + suffix
+
+
 def _next_steps(data: dict) -> list[str]:
     steps: list[str] = []
 
@@ -1297,47 +1520,118 @@ def _next_steps(data: dict) -> list[str]:
         if len(steps) < 5 and text not in steps:
             steps.append(text)
 
-    if data["secrets"]["hits"]:
+    secrets = data["secrets"]
+    hygiene = data["hygiene"]
+    deps = data["dependencies"]
+    pytest_info = data["pytest"]
+    ratio_total = deps["ratio_pinned"] + deps["ratio_unpinned"]
+    if secrets["production_hits"]:
         add(
-            "Remove secret-shaped strings from the listed files and load those values from outside the checkout, then re-run this report."
+            "Remove "
+            f"{_count_phrase(secrets['production_hits'], 'secrets-risk hit', 'secrets-risk hits')} "
+            f"in production code ({_count_phrase(secrets['production_files'], 'file', 'files')}: "
+            f"{_listed_paths(secrets['production_rows'])})."
+        )
+    if pytest_info["status"] == "ok" and (pytest_info["failed"] + pytest_info["errors"]) > 0:
+        add(
+            f"Fix {pytest_info['failed']} failed and {pytest_info['errors']} error pytest results, "
+            "then pass a fresh pytest JSON file."
         )
     if data["test_files"] == 0:
-        add("Add at least one test file with a test function. This scan counts tests from text and does not run them.")
+        add(
+            f"Add at least one test file. The scan counted {data['test_files']} test files and "
+            f"{data['test_functions']} test functions."
+        )
     elif data["test_functions"] == 0:
-        add("Add test functions to the existing test files so the static count is not zero.")
-    pytest_info = data["pytest"]
-    if pytest_info["status"] == "ok" and (pytest_info["failed"] + pytest_info["errors"]) > 0:
-        add("Fix the failing tests recorded in the pytest JSON, then pass a fresh JSON file.")
-    if pytest_info["status"] in {"malformed", "unexpected", "unreadable"}:
-        add("Pass a readable pytest-json-report object, or omit --pytest-json. The current input was not used for counts.")
+        add(
+            f"Add test functions. {data['test_files']} test files contain {data['test_functions']} test functions."
+        )
+    if hygiene["large_binaries"]:
+        top = hygiene["large_binaries"][0]
+        add(
+            f"Remove {len(hygiene['large_binaries'])} committed binaries or archives over {ONE_MB} bytes. "
+            f"Largest: {top['path']} ({top['bytes']} bytes)."
+        )
+    if hygiene["large_json"]:
+        top = hygiene["large_json"][0]
+        add(
+            f"Move {len(hygiene['large_json'])} JSON or JSONL files over {ONE_MB} bytes out of the checkout. "
+            f"Largest: {top['path']} ({top['bytes']} bytes)."
+        )
     if data["ci"]["configs"] == 0:
-        add("Add a CI config with at least one job, such as GitHub Actions or GitLab CI.")
+        add(f"Add a CI config. The scan found {data['ci']['configs']} configs and {data['ci']['jobs']} jobs.")
     elif data["ci"]["jobs"] == 0:
-        add("Define at least one job in the CI config that was found.")
-    if data["dependencies"]["unpinned"] > 0:
-        add("Pin dependency versions to exact releases in the manifests, then re-count unpinned entries.")
-    elif data["dependencies"]["manifests"] == 0:
-        add("Add a dependency manifest such as requirements.txt, pyproject.toml, or package.json.")
+        add(f"Define at least one CI job. {data['ci']['configs']} configs declare {data['ci']['jobs']} jobs.")
+    if deps["unpinned"] > 0:
+        add(
+            f"Pin {_count_phrase(deps['unpinned'], 'unpinned dependency', 'unpinned dependencies')} "
+            f"({deps['ratio_pinned']} pinned of {ratio_total} parsed)."
+        )
+    elif deps["manifests"] == 0:
+        add(f"Add a dependency manifest. The scan found {deps['manifests']} manifests.")
+    if hygiene["scratch_dirs"]:
+        shown = hygiene["scratch_dirs"][:3]
+        extra = len(hygiene["scratch_dirs"]) - len(shown)
+        suffix = f" and {extra} more" if extra else ""
+        add(
+            f"Remove {len(hygiene['scratch_dirs'])} scratch or attic directories: "
+            f"{', '.join(shown)}{suffix}."
+        )
+    if hygiene["stray_tests"]:
+        add(
+            f"Move {len(hygiene['stray_tests'])} stray test files from the repo root or scripts into a tests directory: "
+            f"{_listed_paths(hygiene['stray_tests'])}."
+        )
+    if secrets["non_production_hits"] and not secrets["production_hits"]:
+        add(
+            f"Review {secrets['non_production_hits']} secrets-risk hits in tests, fixtures, or docs "
+            f"({_count_phrase(secrets['non_production_files'], 'file', 'files')}). Production hits: 0."
+        )
     if not data["project_files"]["readme"]["present"]:
-        add("Add a README at the checkout root that says what the project is and how to run its tests.")
+        add("Add a README at the checkout root. README count at root: 0.")
     if not data["project_files"]["gitignore"]["present"]:
-        add("Add a .gitignore for virtual environments, build output, and local secret files.")
-    if data["markers"]["total"] >= 5:
-        add("Triage TODO, FIXME, and HACK markers, starting with the files at the top of that list.")
+        add("Add a .gitignore at the checkout root. .gitignore count at root: 0.")
+    if data["markers"]["total"] >= MARKER_HYGIENE_FLOOR:
+        top = data["markers"]["top_files"][0]
+        add(
+            f"Triage {data['markers']['total']} TODO, FIXME, and HACK markers, "
+            f"starting with {top['path']} ({top['total']})."
+        )
     if not data["project_files"]["license"]["present"]:
-        add("Add a LICENSE file at the checkout root.")
+        add("Add a LICENSE file at the checkout root. LICENSE count at root: 0.")
+    if pytest_info["status"] in {"malformed", "unexpected", "unreadable"}:
+        add(f"Pass a readable pytest JSON file. Status: {pytest_info['status']}. Parsed counts: 0.")
     if pytest_info["status"] == "not_supplied":
-        add("Pass a pytest JSON report with --pytest-json to include pass, fail, and skip counts. This tool does not run pytest.")
+        add("Pass a pytest JSON report with --pytest-json. Status: not supplied. Parsed counts: 0.")
     if data["scan_capped"]:
-        add("The file cap was hit. Counts cover the first files in sorted walk order only.")
+        add(f"The file cap was hit at {data['files']} files. Counts cover sorted walk order only.")
     if data["lines_partial_files"]:
-        add("Some files were larger than the read cap, so line and marker counts for those files cover the prefix only.")
+        add(
+            f"{data['lines_partial_files']} files exceeded the {data['limits']['max_file_read_bytes']} byte read cap, "
+            "so their line counts cover the prefix only."
+        )
     for filler in (
-        "Re-run the report after changes. The same tree and the same JSON produce the same markdown.",
-        "Keep dependency folders, virtual environments, and build directories out of the tree that you scan.",
-        "Read the score table before using the number. Each component weight is listed next to the points awarded.",
-        "Review the largest files and drop generated artifacts that do not belong in the checkout.",
-        "Check the skipped-directory list in this report against the folders you expect to ignore.",
+        (
+            "Keep the measured test baseline: "
+            f"{_count_phrase(data['test_files'], 'test file', 'test files')} and "
+            f"{_count_phrase(data['test_functions'], 'test function', 'test functions')}."
+        ),
+        (
+            "CI measurement: "
+            f"{_count_phrase(data['ci']['configs'], 'config', 'configs')} and "
+            f"{_count_phrase(data['ci']['jobs'], 'job', 'jobs')}."
+        ),
+        f"Dependency pin share: {deps['ratio_pinned']} pinned of {ratio_total} parsed, across {deps['manifests']} manifests.",
+        (
+            f"Secrets-risk measurement: {secrets['production_hits']} production hits and "
+            f"{secrets['non_production_hits']} hits in tests, fixtures, or docs."
+        ),
+        (
+            f"Repo-Hygiene measurement: {len(hygiene['large_binaries'])} binaries over {ONE_MB} bytes, "
+            f"{len(hygiene['scratch_dirs'])} scratch directories, "
+            f"{len(hygiene['large_json'])} JSON files over {ONE_MB} bytes, "
+            f"{len(hygiene['stray_tests'])} stray test files."
+        ),
     ):
         add(filler)
     return steps
@@ -1384,7 +1678,311 @@ def _limits() -> dict:
 
 
 def _heading(german: str, english: str) -> list[str]:
-    return [f"## {german}", f"_{english}_", ""]
+    return _heading_level(2, german, english)
+
+
+def _heading_level(level: int, german: str, english: str) -> list[str]:
+    return [f"{'#' * level} {german}", f"_{english}_", ""]
+
+
+def _render_summary(data: dict) -> list[str]:
+    lines = _heading("Kurzfassung", "Executive summary")
+    lines.extend(data["summary_sentences"])
+    lines.append("")
+    lines.extend(
+        _table(
+            ["Bereich", "Ampel", "Gemessen"],
+            [[row["area"], row["light"], row["measured"]] for row in data["ampel"]],
+        )
+    )
+    lines.append("")
+    return lines
+
+
+def _render_secrets(secrets: dict) -> list[str]:
+    lines = _heading("Hinweise auf Geheimnisse", "Secrets-risk patterns")
+    lines.append("Counts and file paths only. Matched text is not included.")
+    lines.append("")
+    lines.append(
+        f"- Production hits: {secrets['production_hits']} in "
+        f"{_count_phrase(secrets['production_files'], 'file', 'files')}"
+    )
+    lines.append(
+        f"- Tests, fixtures, and docs hits: {secrets['non_production_hits']} in "
+        f"{_count_phrase(secrets['non_production_files'], 'file', 'files')}"
+    )
+    lines.append(
+        "- Production hits set the secrets-risk component to 0. "
+        "Hits only in tests, fixtures, or docs cost 2 points."
+    )
+    lines.append("")
+    lines.extend(_secret_bucket_table("Production code", secrets["production_rows"]))
+    lines.append("")
+    lines.extend(_secret_bucket_table("Tests, fixtures, and docs", secrets["non_production_rows"]))
+    if secrets["pattern_rows"]:
+        lines.append("")
+        lines.extend(
+            _table(
+                ["Pattern", "Hits"],
+                [[row["pattern"], row["hits"]] for row in secrets["pattern_rows"]],
+            )
+        )
+    lines.append("")
+    return lines
+
+
+def _secret_bucket_table(title: str, rows: list[dict]) -> list[str]:
+    lines = [f"### {title}", ""]
+    shown, extra = _cap(rows, LIST_LIMIT)
+    if shown:
+        lines.extend(_table(["File", "Hits"], [[row["path"], row["hits"]] for row in shown]))
+        if extra:
+            lines.append(f"Showing {len(shown)} of {len(rows)} files.")
+    else:
+        lines.append("No secrets-risk patterns.")
+    return lines
+
+
+def _render_hygiene(data: dict) -> list[str]:
+    hygiene = data["hygiene"]
+    license_item = data["project_files"]["license"]
+    lines = _heading("Repo-Hygiene", "Repository hygiene")
+    if license_item["present"]:
+        lines.append(f"- LICENSE: present ({license_item['path']})")
+    else:
+        lines.append("- LICENSE: absent")
+    lines.append(f"- Binaries and archives over {ONE_MB} bytes: {len(hygiene['large_binaries'])}")
+    lines.append(f"- Scratch or attic directories: {len(hygiene['scratch_dirs'])}")
+    lines.append(f"- JSON or JSONL over {ONE_MB} bytes: {len(hygiene['large_json'])}")
+    lines.append(f"- Stray test files: {len(hygiene['stray_tests'])}")
+    lines.append("")
+    if hygiene["large_binaries"]:
+        shown, extra = _cap(hygiene["large_binaries"], LIST_LIMIT)
+        lines.extend(_table(["Bytes", "File"], [[row["bytes"], row["path"]] for row in shown]))
+        if extra:
+            lines.append(f"Showing {len(shown)} of {len(hygiene['large_binaries'])} files.")
+        lines.append("")
+    if hygiene["scratch_dirs"]:
+        shown, extra = _cap(hygiene["scratch_dirs"], LIST_LIMIT)
+        lines.extend(_table(["Directory"], [[path] for path in shown]))
+        if extra:
+            lines.append(f"Showing {len(shown)} of {len(hygiene['scratch_dirs'])} directories.")
+        lines.append("")
+    if hygiene["large_json"]:
+        shown, extra = _cap(hygiene["large_json"], LIST_LIMIT)
+        lines.extend(_table(["Bytes", "File"], [[row["bytes"], row["path"]] for row in shown]))
+        if extra:
+            lines.append(f"Showing {len(shown)} of {len(hygiene['large_json'])} files.")
+        lines.append("")
+    if hygiene["stray_tests"]:
+        shown, extra = _cap(hygiene["stray_tests"], LIST_LIMIT)
+        lines.extend(
+            _table(
+                ["File", "Test functions"],
+                [[row["path"], row["functions"]] for row in shown],
+            )
+        )
+        if extra:
+            lines.append(f"Showing {len(shown)} of {len(hygiene['stray_tests'])} files.")
+        lines.append("")
+    if not any(
+        (
+            hygiene["large_binaries"],
+            hygiene["scratch_dirs"],
+            hygiene["large_json"],
+            hygiene["stray_tests"],
+        )
+    ):
+        lines.append("No large binaries, scratch directories, large JSON files, or stray tests.")
+        lines.append("")
+    return lines
+
+
+def _hygiene_flags(data: dict) -> list[str]:
+    flags: list[str] = []
+    if not data["project_files"]["readme"]["present"]:
+        flags.append("readme")
+    if not data["project_files"]["license"]["present"]:
+        flags.append("license")
+    if not data["project_files"]["gitignore"]["present"]:
+        flags.append("gitignore")
+    if data["markers"]["total"] >= MARKER_HYGIENE_FLOOR:
+        flags.append("markers")
+    hygiene = data["hygiene"]
+    if hygiene["large_binaries"]:
+        flags.append("binaries")
+    if hygiene["scratch_dirs"]:
+        flags.append("scratch")
+    if hygiene["large_json"]:
+        flags.append("json")
+    if hygiene["stray_tests"]:
+        flags.append("stray")
+    return flags
+
+
+def _ampel(data: dict) -> list[dict]:
+    return [
+        {"area": "Tests", "light": _tests_light(data), "measured": _tests_measured(data)},
+        {"area": "CI", "light": _ci_light(data), "measured": _ci_measured(data)},
+        {
+            "area": "Abhängigkeiten",
+            "light": _deps_light(data),
+            "measured": _deps_measured(data),
+        },
+        {
+            "area": "Geheimnis-Risiko",
+            "light": _secrets_light(data),
+            "measured": _secrets_measured(data),
+        },
+        {
+            "area": "Repo-Hygiene",
+            "light": _hygiene_light(data),
+            "measured": _hygiene_measured(data),
+        },
+    ]
+
+
+def _tests_light(data: dict) -> str:
+    if data["test_files"] == 0 or data["test_functions"] == 0:
+        return "Rot"
+    info = data["pytest"]
+    if info["status"] == "ok" and info["failed"] == 0 and info["errors"] == 0:
+        return "Grün"
+    return "Gelb"
+
+
+def _tests_measured(data: dict) -> str:
+    base = (
+        f"{_de(data['test_files'], 'Testdatei', 'Testdateien')}, "
+        f"{_de(data['test_functions'], 'Testfunktion', 'Testfunktionen')}"
+    )
+    info = data["pytest"]
+    if info["status"] == "ok":
+        return f"{base}, Pytest {info['failed']} fehlgeschlagen, {info['errors']} Fehler"
+    if info["status"] == "not_supplied":
+        return f"{base}, Pytest nicht geliefert"
+    return f"{base}, Pytest nicht verwendbar"
+
+
+def _ci_light(data: dict) -> str:
+    if data["ci"]["configs"] == 0:
+        return "Rot"
+    if data["ci"]["jobs"] == 0:
+        return "Gelb"
+    return "Grün"
+
+
+def _ci_measured(data: dict) -> str:
+    return (
+        f"{_de(data['ci']['configs'], 'Konfiguration', 'Konfigurationen')}, "
+        f"{_de(data['ci']['jobs'], 'Job', 'Jobs')}"
+    )
+
+
+def _deps_light(data: dict) -> str:
+    deps = data["dependencies"]
+    if deps["manifests"] == 0:
+        return "Rot"
+    ratio_total = deps["ratio_pinned"] + deps["ratio_unpinned"]
+    if ratio_total > 0 and deps["ratio_unpinned"] == 0:
+        return "Grün"
+    return "Gelb"
+
+
+def _deps_measured(data: dict) -> str:
+    deps = data["dependencies"]
+    ratio_total = deps["ratio_pinned"] + deps["ratio_unpinned"]
+    return (
+        f"{_de(deps['manifests'], 'Manifest', 'Manifeste')}, "
+        f"{deps['ratio_unpinned']} ungepinnt von {ratio_total}"
+    )
+
+
+def _secrets_light(data: dict) -> str:
+    secrets = data["secrets"]
+    if secrets["production_hits"] > 0:
+        return "Rot"
+    if secrets["non_production_hits"] > 0:
+        return "Gelb"
+    return "Grün"
+
+
+def _secrets_measured(data: dict) -> str:
+    secrets = data["secrets"]
+    return (
+        f"{secrets['production_hits']} Produktions-Treffer, "
+        f"{secrets['non_production_hits']} Treffer in Tests/Fixtures/Docs"
+    )
+
+
+def _hygiene_light(data: dict) -> str:
+    flags = data["hygiene"]["flags"]
+    if any(name in flags for name in ("binaries", "json", "scratch")) or len(flags) >= 3:
+        return "Rot"
+    if flags:
+        return "Gelb"
+    return "Grün"
+
+
+def _hygiene_measured(data: dict) -> str:
+    hygiene = data["hygiene"]
+    license_gaps = 0 if data["project_files"]["license"]["present"] else 1
+    return (
+        f"{_de(len(hygiene['flags']), 'Auffälligkeit', 'Auffälligkeiten')}, "
+        f"{license_gaps} fehlende LICENSE, "
+        f"{_de(len(hygiene['large_binaries']), 'Binärdatei', 'Binärdateien')}, "
+        f"{_de(len(hygiene['scratch_dirs']), 'scratch/attic-Verzeichnis', 'scratch/attic-Verzeichnisse')}, "
+        f"{_de(len(hygiene['large_json']), 'JSON/JSONL-Datei', 'JSON/JSONL-Dateien')}, "
+        f"{_de(len(hygiene['stray_tests']), 'verstreute Testdatei', 'verstreute Testdateien')}"
+    )
+
+
+def _summary_sentences(data: dict) -> list[str]:
+    hygiene = data["hygiene"]
+    deps = data["dependencies"]
+    secrets = data["secrets"]
+    ratio_total = deps["ratio_pinned"] + deps["ratio_unpinned"]
+    license_gaps = 0 if data["project_files"]["license"]["present"] else 1
+    info = data["pytest"]
+    if info["status"] == "ok":
+        pytest_clause = (
+            f"Pytest-JSON {info['passed']} bestanden, {info['failed']} fehlgeschlagen, "
+            f"{info['skipped']} übersprungen, {info['errors']} Fehler"
+        )
+    elif info["status"] == "not_supplied":
+        pytest_clause = "Pytest-JSON nicht geliefert, 0 Zählwerte"
+    else:
+        pytest_clause = "Pytest-JSON nicht verwendbar, 0 Zählwerte"
+    parsed_noun = "Eintrag" if ratio_total == 1 else "Einträgen"
+    return [
+        f"Der Checkout enthält {_de(data['files'], 'Datei', 'Dateien')} und {_de(data['lines'], 'Zeile', 'Zeilen')}.",
+        (
+            f"Statisch gezählt wurden {_de(data['test_files'], 'Testdatei', 'Testdateien')}, "
+            f"{_de(data['test_functions'], 'Testfunktion', 'Testfunktionen')} und "
+            f"{_de(len(data['test_helpers']), 'Test-Hilfsdatei', 'Test-Hilfsdateien')}; "
+            f"{pytest_clause}."
+        ),
+        (
+            f"CI: {_de(data['ci']['configs'], 'Konfiguration', 'Konfigurationen')} und "
+            f"{_de(data['ci']['jobs'], 'Job', 'Jobs')}."
+        ),
+        (
+            f"Abhängigkeiten: {_de(deps['manifests'], 'Manifest', 'Manifeste')}, "
+            f"{deps['ratio_pinned']} von {ratio_total} geparsten {parsed_noun} mit exakter Version."
+        ),
+        (
+            f"Geheimnis-Risiko: {secrets['production_hits']} Treffer in Produktionscode und "
+            f"{secrets['non_production_hits']} Treffer in Tests, Fixtures oder Docs."
+        ),
+        (
+            f"Repo-Hygiene: {license_gaps} fehlende LICENSE, "
+            f"{_de(len(hygiene['large_binaries']), 'Binär- oder Archivdatei', 'Binär- oder Archivdateien')} "
+            f"über {ONE_MB} Bytes, "
+            f"{_de(len(hygiene['scratch_dirs']), 'scratch/attic-Verzeichnis', 'scratch/attic-Verzeichnisse')}, "
+            f"{_de(len(hygiene['large_json']), 'JSON/JSONL-Datei', 'JSON/JSONL-Dateien')} über {ONE_MB} Bytes, "
+            f"{_de(len(hygiene['stray_tests']), 'verstreute Testdatei', 'verstreute Testdateien')}."
+        ),
+    ]
 
 
 def _cell(value: object) -> str:
