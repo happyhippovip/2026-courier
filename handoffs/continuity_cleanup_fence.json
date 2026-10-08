@@ -2,8 +2,8 @@
   "WORKKEY": "CONTINUITY-CLEANUP-FENCE",
   "OWNER": "codex-cloud",
   "BRANCH": "codex/continuity-cleanup-fence",
-  "HEAD/COMMIT": "df20e51861fe63aa0f675ac52f008ce1a0ad547c",
-  "CURRENT_STATE": "FINAL",
+  "HEAD/COMMIT": "a97d78d4d0047cbd8bbb0f6baefcf64c2974ecf1",
+  "CURRENT_STATE": "FINAL_IMPLEMENTATION_REVIEW_PENDING",
   "MUTABLE_SCOPE": "courier_runtime.continuity.Kirby successor launch when cleanup is unproven",
   "FILES": [
     "courier_runtime/continuity.py",
@@ -25,15 +25,26 @@
     {
       "command": "git diff --check",
       "exit_status": 0
+    },
+    {
+      "WORKKEY": "PROVIDER-PARTIAL-RECORD-FENCE",
+      "before": "3 causal regressions failed before fix",
+      "command": ".venv/bin/python -m pytest -q tests/test_provider_events.py tests/test_runtime_continuity.py tests/test_host_loop.py tests/test_runtime_grants.py --timeout=30",
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 0.32,
+      "platform": "Linux"
     }
   ],
   "UNPROVEN": [
     "exact latest PR-head CI",
     "Windows-native execution",
-    "production binding of authorize_recovery/reconcile_recovery to existing broker, ownership and effect authority"
+    "production binding of authorize_recovery/reconcile_recovery to existing broker, ownership and effect authority",
+    "Provider terminal signals lack session/workkey/token attribution: replay can falsely finish a subsequent workkey. Fix requires coordinated producer/consumer contract with occupied host-loop #185; no unfenced completion should be treated as product acceptance."
   ],
-  "NEXT_EXACT_ACTION": "L1 review PR #159, including MUSE-REV-159-F8 response: audited scoped resolution and uniform refusal receipts. Runtime owner binds the two documented trusted adapters; no JSON/SQLite state surgery.",
-  "OWNERSHIP_EVIDENCE": "23 open PRs #132-#154 fetched; no changes to selected files; historical Muse hostloop branch is ancestor of integration.",
+  "NEXT_EXACT_ACTION": "L1 reviews #159 updated partial-record fence. Existing ingress/host-loop owners coordinate source-bound terminal event fencing and independent acceptance evidence; runtime owner binds trusted recovery adapters. No duplicate scheduler or state surgery.",
+  "OWNERSHIP_EVIDENCE": "Fresh integration f425d328 and 63 open PR file scopes examined on 2026-10-08. Existing #159 scope reused; no new continuity branch. #185 host_loop and #137 continuity scopes unchanged by this delta.",
   "OWNERSHIP_STATE": "PR_REVIEW_OWNER",
   "PR": 159
 }
