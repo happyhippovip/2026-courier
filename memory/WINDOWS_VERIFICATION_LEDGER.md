@@ -196,7 +196,7 @@ This ledger tracks the verification status of modules in this repository on Wind
 
 | 37 | scripts/courier_motor_precheck.py | 97% | Verified existing tests for checking if dispatchable work exists | ? |
 
-| 38 | scripts/check_pilot_readiness.py | 92% | Added missing test file, verified file existence logic and sys.exit handling | ? |
+| 38 | scripts/check_pilot_readiness.py | 100% | Added test for the main execution block to reach 100% coverage | 🟢 |
 
 | 39 | scripts/consume_chief_command.py | 100% | Verified existing tests for chief command validation and result creation | ? |
 
