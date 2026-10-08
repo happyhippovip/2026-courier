@@ -31,25 +31,25 @@ def test_measure_pressure_thresholds(monkeypatch):
     monkeypatch.setattr(os, "cpu_count", lambda: 4)
 
     # 1. GREEN: norm_load <= 1.0 (load1 = 4.0, cores = 4 -> 1.0)
-    monkeypatch.setattr(os, "getloadavg", lambda: (4.0, 4.0, 4.0))
+    monkeypatch.setattr(os, "getloadavg", lambda: (4.0, 4.0, 4.0), raising=False)
     assert ctrl.measure_pressure() == "GREEN"
 
     # 2. YELLOW: 1.0 < norm_load <= 1.5 (load1 = 5.0, cores = 4 -> 1.25)
-    monkeypatch.setattr(os, "getloadavg", lambda: (5.0, 4.0, 4.0))
+    monkeypatch.setattr(os, "getloadavg", lambda: (5.0, 4.0, 4.0), raising=False)
     assert ctrl.measure_pressure() == "YELLOW"
 
     # 3. ORANGE: 1.5 < norm_load <= 2.0 (load1 = 7.0, cores = 4 -> 1.75)
-    monkeypatch.setattr(os, "getloadavg", lambda: (7.0, 4.0, 4.0))
+    monkeypatch.setattr(os, "getloadavg", lambda: (7.0, 4.0, 4.0), raising=False)
     assert ctrl.measure_pressure() == "ORANGE"
 
     # 4. RED: norm_load > 2.0 (load1 = 10.0, cores = 4 -> 2.5)
-    monkeypatch.setattr(os, "getloadavg", lambda: (10.0, 4.0, 4.0))
+    monkeypatch.setattr(os, "getloadavg", lambda: (10.0, 4.0, 4.0), raising=False)
     assert ctrl.measure_pressure() == "RED"
 
 
 def test_measure_pressure_handles_exception(monkeypatch):
     ctrl = HostPressureController()
-    monkeypatch.setattr(os, "getloadavg", lambda: (_ for _ in ()).throw(OSError("mock error")))
+    monkeypatch.setattr(os, "getloadavg", lambda: (_ for _ in ()).throw(OSError("mock error")), raising=False)
     assert ctrl.measure_pressure() == "UNKNOWN"
 
 
