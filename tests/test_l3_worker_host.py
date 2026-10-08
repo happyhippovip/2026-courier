@@ -591,7 +591,7 @@ def test_sse_cancel_aborts_run_promptly(tmp_path, stub):
     assert len(STUB.results) == 1
     assert STUB.results[0]["outcome"] == "failure"
     assert STUB.results[0]["retryable"] is False
-    assert {"dispatch_ids": [], "worker_id": "w1"} in STUB.beats  # stop confirmation
+    assert {"dispatch_ids": [], "worker_id": "w1", "resource_state": "NORMAL"} in STUB.beats  # stop confirmation
 
 
 def test_stop_releases_blocked_stream(tmp_path, stub):
@@ -749,4 +749,36 @@ def test_job_object_kills_tree_on_terminate(tmp_path):
     assert result.outcome == Outcome.CANCELLED
     leftovers = [p.pid for p in me.children(recursive=True) if p.pid not in before]
     assert leftovers == []
+
+
+def _thermal_loop(tmp_path, stub, probe):
+    write_token(tmp_path)
+    engine = H.WorkerHost(str(tmp_path), pressure_probe=probe)
+    return S.WorkerLoop(str(tmp_path), stub, "w1", 0.2, engine=engine)
+
+
+def test_thermal_healthy_probe_claims_and_reports_normal(tmp_path, stub):
+    loop = _thermal_loop(tmp_path, stub, lambda: None)
+    STUB.claims.append(claim_body())
+    assert loop.iterate(threading.Event()) == "delivered"
+    assert loop._last_resource_state == "NORMAL"
+
+
+def test_thermal_pressured_probe_skips_claim_and_reports(tmp_path, stub):
+    loop = _thermal_loop(tmp_path, stub, lambda: "thermal-pressure: speed limit 50%")
+    STUB.claims.append(claim_body())
+    assert loop.iterate(threading.Event()) == "idle"
+    assert loop._last_resource_state == "PRESSURED"
+    assert len(STUB.claims) == 1  # claim never fetched while pressured
+    assert STUB.beats and STUB.beats[-1].get("resource_state") == "PRESSURED"
+
+
+def test_thermal_cooldown_holds_after_pressure_clears(tmp_path, stub):
+    loop = _thermal_loop(tmp_path, stub, lambda: "thermal-pressure: speed limit 50%")
+    STUB.claims.append(claim_body())
+    assert loop.iterate(threading.Event()) == "idle"
+    loop.engine._pressure_probe = lambda: None
+    assert loop.iterate(threading.Event()) == "idle"
+    assert loop._last_resource_state == "COOLDOWN"
+    assert len(STUB.claims) == 1  # still no claim during cooldown
 
