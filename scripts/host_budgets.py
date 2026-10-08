@@ -263,8 +263,10 @@ def plan_hibernation(lanes: list[Lane], health: str,
       logical waiting), on any health.
     - Provider quota exhausted also stops pollers: an API-quiet night must
       be a cool night.
-    - RESOURCE_PAUSE / EMERGENCY hibernate everything except the canonical
-      checkpoint service.
+    - RESOURCE_PAUSE / EMERGENCY hibernate every lane except FAILED-cleanup
+      ones (listed for TRANSFER). The canonical checkpoint service is NOT
+      filtered out of the list by id (this module does not know its lane
+      id): the executor must spare it per the keep_checkpoint_service flag.
     - Already-HIBERNATED lanes are left alone (idempotent).
     - FAILED cleanup never hibernates blindly: the lane is listed for
       TRANSFER (continue or atomic transfer), never dropped.
