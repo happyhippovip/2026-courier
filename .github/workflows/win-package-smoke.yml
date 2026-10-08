@@ -1,0 +1,73 @@
+name: Windows package build smoke
+
+# L1 owns .github/workflows. This job is the L6 package proof and needs
+# L1 approval before it merges. It does not replace Courier v1 CI.
+# Path filters keep it off pull requests that do not touch the package.
+
+on:
+  pull_request:
+    branches: ["integration/v1"]
+    paths:
+      - "scripts/windows_worker/**"
+      - "pyproject.toml"
+      - "courier_core/**"
+      - "courier_worker/**"
+      - "courier_hub/**"
+      - "courier_overlay/**"
+      - "courier_runtime/**"
+      - "adapters/**"
+      - "tests/test_win_package_contract.py"
+      - ".github/workflows/win-package-smoke.yml"
+  push:
+    branches: ["lane/**"]
+    paths:
+      - "scripts/windows_worker/**"
+      - "pyproject.toml"
+      - "courier_core/**"
+      - "courier_worker/**"
+      - "courier_hub/**"
+      - "courier_overlay/**"
+      - "courier_runtime/**"
+      - "adapters/**"
+      - "tests/test_win_package_contract.py"
+      - ".github/workflows/win-package-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: win-package-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package-smoke:
+    name: build and smoke
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.2.0
+        with:
+          version: "0.12.23"
+          enable-cache: false
+
+      - name: Build the Windows package
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/windows_worker/build_package.ps1
+
+      - name: Smoke-launch the package without system Python
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/windows_worker/smoke_package.ps1
+
+      - name: Upload the built package
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: courier-windows-package
+          path: scripts/windows_worker/CourierWorker-v1.zip
+          retention-days: 7
+          if-no-files-found: error
