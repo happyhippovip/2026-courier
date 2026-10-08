@@ -2,23 +2,25 @@
   "WORKKEY": "RECOVERY-RECEIPT-EFFECT-FENCE",
   "OWNER": "codex-cloud / existing L2 recovery contract",
   "BRANCH": "codex/recovery-receipt-effect-fence",
-  "HEAD/COMMIT": "c7afaf6f3342da0bb321537633610b74219715a1",
+  "HEAD/COMMIT": "8d41edcd69e69152cbf1d5f07fdd928453d050a9",
   "CURRENT_STATE": "FINAL_IMPLEMENTATION_REVIEW_PENDING",
   "FILES": [
     "courier_runtime/receipt.py",
     "tests/test_runtime_receipt.py"
   ],
-  "ROOT_CAUSE": "Only the literal non_idempotent class was guarded; unknown classes inherited automatic resume. Truthy strings/numbers were accepted as effect confirmation.",
+  "ROOT_CAUSE": "Only the literal non_idempotent class was guarded; unknown classes inherited automatic resume. Truthy strings/numbers were accepted as effect confirmation. RECOVERED also accepted truthy non-boolean progress and non-string/blank snapshot references.",
   "TEST_EVIDENCE": {
     "before": "12 failed, 9 passed on f425d328",
-    "after": "21 passed, 0 failed, 0 skipped in 0.04s",
+    "after": "29 passed, 0 failed, 0 skipped in 0.04s",
     "command": ".venv/bin/python -m pytest -q tests/test_runtime_receipt.py --timeout=30",
-    "platform": "Linux"
+    "platform": "Linux",
+    "additional_before": "8 additional false-RECOVERED regressions failed before the progress/snapshot fix"
   },
   "UNPROVEN": [
     "Integration/L1 review and exact PR-head CI",
     "This validator does not authenticate evidence; production authority and safe continuation remain existing runtime owners responsibilities.",
     "Continuation.decide has the analogous unknown-effect guard gap; continuation.py is owned by PR #193 and is not modified."
   ],
-  "NEXT_EXACT_ACTION": "L1 reviews this receipt validator change; the existing continuation owner reconciles its same effect-class boundary without duplicate writers."
+  "NEXT_EXACT_ACTION": "L1 reviews this receipt validator change; the existing continuation owner reconciles its same effect-class boundary without duplicate writers.",
+  "PR": 202
 }
