@@ -97,3 +97,15 @@ def test_without_baseline_any_finding_fails(tmp_path):
     clean.mkdir()
     (clean / "ok.py").write_text('app.run(host="127.0.0.1")\n')
     assert main([str(clean)]) == 0
+
+
+def test_finding_text_scrubs_credential_shapes_but_key_stays_raw(tmp_path):
+    from scripts.check_local_safety import finding_key
+    fake = "ghp_" + "B" * 36  # built at runtime, never a literal credential
+    (tmp_path / "run.sh").write_text(f'pkill -f myservice # rotate "{fake}"\n')
+    findings = scan(str(tmp_path))
+    assert len(findings) == 1
+    assert fake not in findings[0]["text"]
+    assert "[redacted]" in findings[0]["text"]
+    raw_line = f'pkill -f myservice # rotate "{fake}"'
+    assert findings[0]["key"] == finding_key("KILL_BY_NAME", "run.sh", raw_line)

@@ -53,6 +53,28 @@ COMMENT_LINE = re.compile(r"^\s*(#|//|::|REM\b|rem\b)")
 #   subprocess.run(["taskkill", "/IM", ...])  # local-safety: allow <reason>
 ALLOW_PRAGMA = re.compile(r"local-safety:\s*allow\s+\S")
 
+# Credential-shaped substrings must never leave this module inside finding
+# text: findings print to CI logs and feed customer reports. Patterns mirror
+# scripts/repo_reality_check.py SECRET_PATTERNS (+ e-mail); that module owns
+# the canonical set and already imports this file, so this ratchet keeps a
+# local copy instead of creating a circular import.
+_SCRUB_PATTERNS = (
+    re.compile(r"\b(ghp|gho|ghs|ghu)_[A-Za-z0-9]{30,}\b|\bgithub_pat_[A-Za-z0-9_]{40,}\b"),
+    re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
+    re.compile(r"-----BEGIN (RSA |EC |OPENSSH |)PRIVATE KEY-----"),
+    re.compile(r"\bxox[abpr]-[A-Za-z0-9-]{10,}\b"),
+    re.compile(r"\bsk-[A-Za-z0-9]{32,}\b"),
+    re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"),
+)
+REDACTED = "[redacted]"
+
+
+def scrub_credential_shapes(text):
+    """Replace credential-shaped substrings with a marker (see above)."""
+    for pattern in _SCRUB_PATTERNS:
+        text = pattern.sub(REDACTED, text)
+    return text
+
 
 def iter_files(root):
     for dirpath, dirnames, filenames in os.walk(root):
@@ -92,7 +114,8 @@ def scan(root, skip=()):
         except OSError:
             continue
         for rule, number, line in scan_text(text):
-            findings.append({"rule": rule, "path": relpath, "line": number, "text": line[:200],
+            findings.append({"rule": rule, "path": relpath, "line": number,
+                             "text": scrub_credential_shapes(line[:200]),
                              "key": finding_key(rule, relpath, line)})
     return findings
 
