@@ -241,6 +241,9 @@ class TaskLeaseManager:
                     last_error = exc
                     time.sleep(0.05)
             if last_error is not None:
+                # Retries exhausted: do not leave the per-pid temp file behind
+                # in the lease dir (nothing sweeps it). MUSE-REV-175-F16.
+                temp_reclaim.unlink(missing_ok=True)
                 raise last_error
             return True, "LEASE_RECLAIMED_EXPIRED", lease_data
         finally:
