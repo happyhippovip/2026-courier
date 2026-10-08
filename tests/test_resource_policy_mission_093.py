@@ -205,18 +205,23 @@ class TestMission093And095And097HardenedPolicy(unittest.TestCase):
         lease_path.write_text(json.dumps(seed), encoding="utf-8")
 
         real_replace = os.replace
+        denied = {"lease": 0}
 
         def always_denied(src, dst):
             if Path(dst) == lease_path:
+                denied["lease"] += 1
                 raise PermissionError(13, "Access is denied")
             return real_replace(src, dst)
 
         with mock.patch("scripts.resource_policy.os.replace", side_effect=always_denied), \
-                mock.patch("scripts.resource_policy.time.sleep") as fake_sleep:
+                mock.patch("scripts.resource_policy.time") as fake_time:
             with self.assertRaises(PermissionError):
                 mgr.acquire_lease(task_id, "hash_share", owner_id="reclaimer-exhausted", duration_sec=60)
 
-        self.assertEqual(fake_sleep.call_count, 40)
+        # Patch only the module's own `time` name: patching time.sleep globally
+        # also counts sleeps from unrelated threads in the full suite.
+        self.assertEqual(denied["lease"], 40)
+        self.assertEqual(fake_time.sleep.call_count, 40)
         leftovers = sorted(p.name for p in lease_path.parent.iterdir() if p.name != lease_path.name)
         self.assertEqual(leftovers, [], "no temp or reclaim-lock file may remain")
         self.assertEqual(json.loads(lease_path.read_text(encoding="utf-8"))["owner_id"], "old-expired-owner")
