@@ -1,19 +1,24 @@
 {
   "id": "P6",
-  "title": "Worker tokens: scoped tokens with salted hashes, expiry, revoke",
+  "title": "worker tokens",
   "lane": "L2",
   "branch": "lane/L2-worker-tokens-P6",
-  "files_scope": [
-    "courier_core/worker_tokens.py",
-    "tests/test_worker_tokens.py"
-  ],
+  "files_scope": ["courier_core/worker_tokens.py"],
   "depends_on": [],
-  "acceptance": ["tests", "draft PR"],
-  "provider_hints": ["headless", "interactive"],
+  "acceptance": [
+    "per-worker scoped tokens",
+    "store only salted hashes",
+    "expiry and revoke",
+    "never log token values",
+    "tests",
+    "draft PR"
+  ],
+  "provider_hints": [],
+  "pull_request": "304",
   "status": "CLAIMED",
   "lease": {
-    "holder": "pr-304",
-    "host": "feeder",
-    "expires_at": "2027-10-01T00:00:00Z"
+    "holder": "pr:304",
+    "host": "local",
+    "expires_at": null
   }
 }

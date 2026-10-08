@@ -75,9 +75,25 @@
       "items": {
         "type": "string",
         "minLength": 1,
-        "maxLength": 64,
-        "pattern": "^[A-Za-z0-9._:-]+$"
+        "maxLength": 80,
+        "pattern": "^[A-Za-z0-9._:/ -]+$"
       }
+    },
+    "publish_gate": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "pattern": "^[A-Za-z0-9._:-]+$"
+    },
+    "pull_request": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "template": {
+      "type": "boolean"
+    },
+    "claim_once": {
+      "type": "boolean"
     },
     "status": {
       "type": "string",
@@ -94,8 +110,8 @@
             "holder": {
               "type": "string",
               "minLength": 1,
-              "maxLength": 64,
-              "pattern": "^[A-Za-z0-9._:-]+$"
+              "maxLength": 80,
+              "pattern": "^[A-Za-z0-9._:/-]+$"
             },
             "host": {
               "type": "string",
@@ -104,8 +120,13 @@
               "pattern": "^[A-Za-z0-9._:-]+$"
             },
             "expires_at": {
-              "type": "string",
-              "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+              "anyOf": [
+                {"type": "null"},
+                {
+                  "type": "string",
+                  "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+                }
+              ]
             }
           }
         }

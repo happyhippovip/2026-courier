@@ -23,6 +23,8 @@ MAX_ITEM_BYTES = 64 * 1024
 MAX_LEDGER_BYTES = 1024 * 1024
 MAX_TTL_SECONDS = 7 * 24 * 3600
 _TOKEN = re.compile(r"^[A-Za-z0-9._:-]+$")
+_HOLDER = re.compile(r"^[A-Za-z0-9._:/-]+$")
+_MODULE = re.compile(r"^[A-Za-z0-9._-]+$")
 _TIME = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$")
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -55,6 +57,10 @@ def release(queue: "WorkQueue", item, holder, result, now=None) -> dict:
     return queue.release(item, holder, result, now=now)
 
 
+def spawn(queue: "WorkQueue", template, module, now=None) -> dict:
+    return queue.spawn(template, module, now=now)
+
+
 class WorkQueue:
     def __init__(self, items_dir=None, ledger_path=None, schema_path=None):
         self.items_dir = Path(items_dir) if items_dir is not None else DEFAULT_ITEMS
@@ -82,7 +88,7 @@ class WorkQueue:
 
     def claim(self, item, holder, ttl, host="local", now=None, done_prs=None, open_pr_files=None) -> dict:
         item_id = _require_token(item, "ITEM")
-        holder = _require_token(holder, "HOLDER")
+        holder = _require_holder(holder)
         host = _require_token(host, "HOST")
         ttl = _require_ttl(ttl)
         moment = _now(now)
@@ -97,6 +103,8 @@ class WorkQueue:
                 if current["lease"]["holder"] == holder:
                     return _claim_view(current, idempotent=True)
                 raise WorkQueueError("DUPLICATE_CLAIM")
+            if current.get("template") or _sticky(current) or (current.get("claim_once") and current["status"] == "CLAIMED"):
+                raise WorkQueueError("NOT_CLAIMABLE")
             if not _claimable_status(current, moment) or not _deps_met(current, items, done):
                 raise WorkQueueError("NOT_CLAIMABLE")
             occupied = [row for row in items.values() if _held(row, moment)]
@@ -117,7 +125,7 @@ class WorkQueue:
 
     def renew(self, item, holder, ttl, now=None) -> dict:
         item_id = _require_token(item, "ITEM")
-        holder = _require_token(holder, "HOLDER")
+        holder = _require_holder(holder)
         ttl = _require_ttl(ttl)
         moment = _now(now)
         with self._lock():
@@ -125,6 +133,8 @@ class WorkQueue:
             current = items.get(item_id)
             if current is None:
                 raise WorkQueueError("UNKNOWN_ITEM")
+            if _sticky(current):
+                raise WorkQueueError("NOT_RENEWABLE")
             if not _held(current, moment) or current["lease"]["holder"] != holder:
                 raise WorkQueueError("NOT_HOLDER")
             expires = _stamp(moment + timedelta(seconds=ttl))
@@ -141,7 +151,7 @@ class WorkQueue:
 
     def release(self, item, holder, result, now=None) -> dict:
         item_id = _require_token(item, "ITEM")
-        holder = _require_token(holder, "HOLDER")
+        holder = _require_holder(holder)
         result = _require_result(result)
         moment = _now(now)
         with self._lock():
@@ -164,6 +174,36 @@ class WorkQueue:
             })
             return {"item_id": item_id, "status": "DONE", "result": result, "idempotent": False}
 
+    def spawn(self, template, module, now=None) -> dict:
+        template_id = _require_token(template, "ITEM")
+        module_name = _require_module(module)
+        item_id = template_id + "-" + module_name
+        if len(item_id) > 64:
+            raise WorkQueueError("INVALID_MODULE")
+        moment = _now(now)
+        with self._lock():
+            items = self._effective(moment)
+            parent = items.get(template_id)
+            if parent is None:
+                raise WorkQueueError("UNKNOWN_TEMPLATE")
+            if not parent.get("template"):
+                raise WorkQueueError("NOT_TEMPLATE")
+            current = items.get(item_id)
+            if current is not None:
+                return _spawn_view(current, idempotent=True)
+            child = _child_from_template(parent, item_id, module_name)
+            _validate(child, _read_json(self.schema_path, MAX_ITEM_BYTES))
+            self._append({
+                "type": "SPAWN",
+                "template_id": template_id,
+                "module": module_name,
+                "item_id": item_id,
+                "at": _stamp(moment),
+            })
+            child["result"] = None
+            child["released_by"] = None
+            return _spawn_view(child, idempotent=False)
+
     def items(self, now=None) -> list[dict]:
         moment = _now(now)
         with self._lock():
@@ -176,7 +216,7 @@ class WorkQueue:
         for event in events:
             _apply(seeds, event)
         for item in seeds.values():
-            if item["status"] == "CLAIMED" and not _held(item, moment):
+            if item["status"] == "CLAIMED" and not _held(item, moment) and not item.get("claim_once"):
                 item["status"] = "READY"
                 item["lease"] = None
         return seeds
@@ -231,6 +271,9 @@ def render_prompt(item: dict, holder: str) -> str:
     acceptance = "\n".join(f"- {line}" for line in item["acceptance"])
     hints = ", ".join(item["provider_hints"]) or "none"
     deps = ", ".join(item["depends_on"]) or "none"
+    gate = ""
+    if item.get("publish_gate"):
+        gate = f"publish_gate: {item['publish_gate']}\n"
     return (
         f"id: {item['id']}\n"
         f"title: {item['title']}\n"
@@ -238,6 +281,7 @@ def render_prompt(item: dict, holder: str) -> str:
         f"branch: {item['branch']}\n"
         f"holder: {holder}\n"
         f"depends_on: {deps}\n"
+        f"{gate}"
         f"provider_hints: {hints}\n"
         f"files_scope:\n{scope}\n"
         f"acceptance:\n{acceptance}\n"
@@ -278,6 +322,10 @@ def main(argv=None) -> int:
     rel.add_argument("--holder", required=True)
     rel.add_argument("--result", required=True)
 
+    spawned = sub.add_parser("spawn")
+    spawned.add_argument("--template", required=True)
+    spawned.add_argument("--module", required=True)
+
     args = parser.parse_args(argv)
     queue = WorkQueue(args.items, args.ledger, args.schema)
     try:
@@ -287,6 +335,10 @@ def main(argv=None) -> int:
                 print("NO_READY_ITEM")
                 return 0
             print(render_prompt(ready[0], args.holder), end="")
+            return 0
+        if args.command == "spawn":
+            spawned = queue.spawn(args.template, args.module)
+            print(json.dumps(spawned, sort_keys=True))
             return 0
         if args.command == "claim":
             claimed = queue.claim(
@@ -360,6 +412,8 @@ def _matches(value, rules) -> bool:
         return any(_matches(value, {**rules, "type": one}) for one in expected)
     if expected == "null":
         return value is None
+    if expected == "boolean":
+        return isinstance(value, bool)
     if expected == "string":
         if not isinstance(value, str):
             return False
@@ -417,19 +471,84 @@ def _read_ledger(path: Path) -> list[dict]:
             event = json.loads(line.decode("utf-8"))
         except (UnicodeError, ValueError) as exc:
             raise WorkQueueError("UNREADABLE") from exc
-        if not isinstance(event, dict) or event.get("type") not in ("CLAIM", "RENEW", "RELEASE"):
+        if not isinstance(event, dict) or event.get("type") not in ("CLAIM", "RENEW", "RELEASE", "SPAWN"):
+            raise WorkQueueError("UNREADABLE")
+        if event["type"] == "SPAWN" and not _valid_spawn_event(event):
             raise WorkQueueError("UNREADABLE")
         events.append(event)
     return events
 
 
+def _valid_spawn_event(event: dict) -> bool:
+    template_id = event.get("template_id")
+    module_name = event.get("module")
+    if not _event_token(template_id):
+        return False
+    if not isinstance(module_name, str) or _MODULE.fullmatch(module_name) is None or module_name in (".", ".."):
+        return False
+    if event.get("item_id") != template_id + "-" + module_name:
+        return False
+    return _TIME.fullmatch(str(event.get("at") or "")) is not None
+
+
+def _child_from_template(parent: dict, item_id: str, module_name: str) -> dict:
+    branch = parent["branch"] + "-" + module_name
+    title = parent["title"]
+    if len(branch) > 200 or len(title) > 200:
+        raise WorkQueueError("INVALID_MODULE")
+    return {
+        "id": item_id,
+        "title": title,
+        "lane": parent["lane"],
+        "branch": branch,
+        "files_scope": ["tests/"],
+        "depends_on": [],
+        "acceptance": list(parent["acceptance"]),
+        "provider_hints": list(parent["provider_hints"]),
+        "claim_once": True,
+        "status": "READY",
+        "lease": None,
+    }
+
+
+def _materialize_spawn(items: dict[str, dict], event: dict) -> None:
+    item_id = event["item_id"]
+    if item_id in items:
+        return
+    parent = items.get(event["template_id"])
+    if parent is None or not parent.get("template"):
+        raise WorkQueueError("UNREADABLE")
+    child = _child_from_template(parent, item_id, event["module"])
+    child["result"] = None
+    child["released_by"] = None
+    items[item_id] = child
+
+
+def _spawn_view(item: dict, idempotent: bool) -> dict:
+    return {
+        "item_id": item["id"],
+        "status": item["status"],
+        "branch": item["branch"],
+        "files_scope": list(item["files_scope"]),
+        "claim_once": bool(item.get("claim_once")),
+        "idempotent": idempotent,
+    }
+
+
 def _apply(items: dict[str, dict], event: dict) -> None:
+    if event["type"] == "SPAWN":
+        _materialize_spawn(items, event)
+        return
     item = items.get(event.get("item_id"))
-    if item is None or item["status"] in ("DONE", "BLOCKED"):
+    if item is None or item["status"] in ("DONE", "BLOCKED") or item.get("template"):
+        return
+    if _sticky(item) and event["type"] != "RELEASE":
         return
     kind = event["type"]
     if kind == "CLAIM":
-        if not _event_token(event.get("holder")) or not _event_token(event.get("host")):
+        if item.get("claim_once") and item["status"] == "CLAIMED":
+            return
+        if not _event_holder(event.get("holder")) or not _event_token(event.get("host")):
             raise WorkQueueError("UNREADABLE")
         if _TIME.fullmatch(str(event.get("expires_at") or "")) is None:
             raise WorkQueueError("UNREADABLE")
@@ -450,7 +569,7 @@ def _apply(items: dict[str, dict], event: dict) -> None:
     result = event.get("result")
     if not isinstance(result, str) or not result.strip() or len(result) > 200 or any(ch in result for ch in "\n\r"):
         raise WorkQueueError("UNREADABLE")
-    if not _event_token(event.get("holder")) or item["lease"]["holder"] != event["holder"]:
+    if not _event_holder(event.get("holder")) or item["lease"]["holder"] != event["holder"]:
         return
     item["status"] = "DONE"
     item["lease"] = None
@@ -476,11 +595,24 @@ def _read_json(path: Path, cap: int):
 def _held(item: dict, moment: datetime) -> bool:
     if item["status"] != "CLAIMED" or not isinstance(item.get("lease"), dict):
         return False
+    if _sticky(item):
+        return True
     expires = _parse_time(item["lease"].get("expires_at"))
     return expires is not None and expires > moment
 
 
+def _sticky(item: dict) -> bool:
+    if item.get("pull_request"):
+        return item.get("status") == "CLAIMED"
+    lease = item.get("lease")
+    return item.get("status") == "CLAIMED" and isinstance(lease, dict) and lease.get("expires_at") is None
+
+
 def _claimable_status(item: dict, moment: datetime) -> bool:
+    if item.get("template") or _sticky(item):
+        return False
+    if item.get("claim_once") and item["status"] == "CLAIMED":
+        return False
     if item["status"] == "READY":
         return True
     return item["status"] == "CLAIMED" and not _held(item, moment)
@@ -545,7 +677,7 @@ def _wild(value: str) -> bool:
 
 
 def _public(item: dict) -> dict:
-    return {
+    view = {
         "id": item["id"],
         "title": item["title"],
         "lane": item["lane"],
@@ -556,7 +688,12 @@ def _public(item: dict) -> dict:
         "provider_hints": list(item["provider_hints"]),
         "status": "READY" if item["status"] == "READY" else item["status"],
         "lease": None if item["lease"] is None else dict(item["lease"]),
+        "publish_gate": item.get("publish_gate"),
+        "pull_request": item.get("pull_request"),
+        "template": bool(item.get("template")),
+        "claim_once": bool(item.get("claim_once")),
     }
+    return view
 
 
 def _claim_view(item: dict, idempotent: bool) -> dict:
@@ -577,6 +714,18 @@ def _require_token(value, code: str) -> str:
     return value
 
 
+def _require_holder(value) -> str:
+    if not isinstance(value, str) or _HOLDER.fullmatch(value) is None or len(value) > 80:
+        raise WorkQueueError("HOLDER")
+    return value
+
+
+def _require_module(value) -> str:
+    if not isinstance(value, str) or _MODULE.fullmatch(value) is None or value in (".", "..") or len(value) > 40:
+        raise WorkQueueError("INVALID_MODULE")
+    return value
+
+
 def _require_ttl(value) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or not 1 <= value <= MAX_TTL_SECONDS:
         raise WorkQueueError("TTL")
@@ -591,6 +740,10 @@ def _require_result(value) -> str:
 
 def _event_token(value) -> bool:
     return isinstance(value, str) and _TOKEN.fullmatch(value) is not None and len(value) <= 64
+
+
+def _event_holder(value) -> bool:
+    return isinstance(value, str) and _HOLDER.fullmatch(value) is not None and len(value) <= 80
 
 
 def _now(value) -> datetime:

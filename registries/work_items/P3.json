@@ -1,19 +1,22 @@
 {
   "id": "P3",
-  "title": "YouTube dryrun: offline private-only upload request builder",
+  "title": "youtube dryrun",
   "lane": "L3",
   "branch": "lane/L3-youtube-dryrun-P3",
-  "files_scope": [
-    "courier_worker/publish/youtube_dryrun.py",
-    "tests/test_youtube_dryrun.py"
-  ],
+  "files_scope": ["courier_worker/publish/youtube_dryrun.py"],
   "depends_on": [],
-  "acceptance": ["tests", "draft PR"],
-  "provider_hints": ["headless", "interactive"],
+  "acceptance": [
+    "build the YouTube Data API upload request with visibility always private",
+    "no network calls and no credentials",
+    "tests",
+    "draft PR"
+  ],
+  "provider_hints": ["no network", "no credentials", "visibility private"],
+  "pull_request": "298",
   "status": "CLAIMED",
   "lease": {
-    "holder": "pr-298",
-    "host": "feeder",
-    "expires_at": "2027-10-01T00:00:00Z"
+    "holder": "pr:298",
+    "host": "local",
+    "expires_at": null
   }
 }

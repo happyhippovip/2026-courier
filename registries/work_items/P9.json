@@ -1,12 +1,19 @@
 {
   "id": "P9",
-  "title": "Audit one work-queue ledger for consistency",
+  "title": "Repeatable per-module tests",
   "lane": "L2",
-  "branch": "lane/L2-queue-audit-P9",
-  "files_scope": ["courier_core/work_queue_audit.py", "tests/test_work_queue_audit.py"],
+  "branch": "lane/L2-P9",
+  "files_scope": ["tests/"],
   "depends_on": [],
-  "acceptance": ["tests", "draft PR"],
-  "provider_hints": ["headless", "interactive"],
+  "acceptance": [
+    "spawn one P9-<module> item",
+    "each module is claimable once",
+    "files_scope is tests/ only",
+    "draft PR"
+  ],
+  "provider_hints": [],
+  "template": true,
+  "claim_once": true,
   "status": "READY",
   "lease": null
 }
