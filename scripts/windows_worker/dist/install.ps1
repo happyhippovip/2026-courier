@@ -63,7 +63,16 @@ Write-Host "Configuration saved to $ConfigPath."
 Write-Host "Token saved to $tokenPath."
 
 Write-Host "Copying files to $InstallDir..."
-Copy-Item "$PSScriptRoot\*" -Destination $InstallDir -Recurse -Force
+try {
+    Copy-Item "$PSScriptRoot\*" -Destination $InstallDir -Recurse -Force -ErrorAction Stop
+} catch {
+    Write-Error "Courier install not proven: files were not copied."
+    exit 1
+}
+if (-not (Test-Path -LiteralPath $InstallDir)) {
+    Write-Error "Courier install not proven: install directory is missing."
+    exit 1
+}
 
 if ($IsAdmin) {
     Write-Host "Registering Scheduled Task..."
