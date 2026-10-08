@@ -1,12 +1,19 @@
 {
   "id": "P6",
-  "title": "Dry-run host setup and list the planned steps",
-  "lane": "L6",
-  "branch": "lane/L6-setup-dry-run-P6",
-  "files_scope": ["scripts/setup/dry_run.py", "tests/test_setup_dry_run.py"],
+  "title": "Worker tokens: scoped tokens with salted hashes, expiry, revoke",
+  "lane": "L2",
+  "branch": "lane/L2-worker-tokens-P6",
+  "files_scope": [
+    "courier_core/worker_tokens.py",
+    "tests/test_worker_tokens.py"
+  ],
   "depends_on": [],
   "acceptance": ["tests", "draft PR"],
   "provider_hints": ["headless", "interactive"],
-  "status": "READY",
-  "lease": null
+  "status": "CLAIMED",
+  "lease": {
+    "holder": "pr-304",
+    "host": "feeder",
+    "expires_at": "2027-10-01T00:00:00Z"
+  }
 }

@@ -1,12 +1,19 @@
 {
   "id": "P3",
-  "title": "Write a manifest for one finished render",
+  "title": "YouTube dryrun: offline private-only upload request builder",
   "lane": "L3",
-  "branch": "lane/L3-render-manifest-P3",
-  "files_scope": ["courier_core/render_manifest.py", "tests/test_render_manifest.py"],
+  "branch": "lane/L3-youtube-dryrun-P3",
+  "files_scope": [
+    "courier_worker/publish/youtube_dryrun.py",
+    "tests/test_youtube_dryrun.py"
+  ],
   "depends_on": [],
   "acceptance": ["tests", "draft PR"],
   "provider_hints": ["headless", "interactive"],
-  "status": "READY",
-  "lease": null
+  "status": "CLAIMED",
+  "lease": {
+    "holder": "pr-298",
+    "host": "feeder",
+    "expires_at": "2027-10-01T00:00:00Z"
+  }
 }

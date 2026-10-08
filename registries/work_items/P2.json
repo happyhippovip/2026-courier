@@ -1,12 +1,20 @@
 {
   "id": "P2",
-  "title": "Summarize accepted results for one home",
+  "title": "Short video mission template plus validator",
   "lane": "L2",
-  "branch": "lane/L2-result-digest-P2",
-  "files_scope": ["courier_core/result_digest.py", "tests/test_result_digest.py"],
+  "branch": "lane/L2-short-video-P2",
+  "files_scope": [
+    "courier_core/short_video.py",
+    "missions/templates/short_video.json",
+    "tests/test_short_video.py"
+  ],
   "depends_on": [],
   "acceptance": ["tests", "draft PR"],
   "provider_hints": ["headless", "interactive"],
-  "status": "READY",
-  "lease": null
+  "status": "CLAIMED",
+  "lease": {
+    "holder": "pr-287",
+    "host": "feeder",
+    "expires_at": "2027-10-01T00:00:00Z"
+  }
 }

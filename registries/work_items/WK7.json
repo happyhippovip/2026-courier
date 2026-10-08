@@ -1,18 +1,19 @@
 {
-  "id": "P4",
-  "title": "TikTok dryrun: offline inbox-draft request builder",
+  "id": "WK7",
+  "title": "Local host veto: a host can refuse work locally with a recorded reason",
   "lane": "L3",
-  "branch": "lane/L3-tiktok-dryrun-P4",
+  "branch": "lane/L3-local-veto",
   "files_scope": [
-    "courier_worker/publish/tiktok_dryrun.py",
-    "tests/test_tiktok_dryrun.py"
+    "courier_worker/local_veto.py",
+    "docs/LOCAL_VETO.md",
+    "tests/test_local_veto.py"
   ],
   "depends_on": [],
   "acceptance": ["tests", "draft PR"],
   "provider_hints": ["headless", "interactive"],
   "status": "CLAIMED",
   "lease": {
-    "holder": "pr-301",
+    "holder": "pr-305",
     "host": "feeder",
     "expires_at": "2027-10-01T00:00:00Z"
   }
