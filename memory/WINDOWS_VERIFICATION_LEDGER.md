@@ -257,3 +257,10 @@ This ledger tracks the verification status of modules in this repository on Wind
 - [x] dashboard/server.py: 🟢 VERIFIED (verified in test_dashboard_server_uncovered.py)
 - [x] scripts/windows_worker/daemon.py: 🟢 VERIFIED (verified in test_windows_worker_daemon_uncovered.py, 87% coverage)
 - [x] scripts/mac_worker/runtime_state.py: ✔️ VERIFIED (verified in test_mac_worker_runtime_state_uncovered.py, 100% coverage)
+
+## scripts/poison_test.py
+**Status**: REMOVED (empty residue, nothing to verify)
+**Date**: 2026-10-08
+**Findings**:
+- The file was 0 bytes. Name matches the dummy module the cache-poisoning demo (`scripts/test_cache_poison.py`, ledger-verified harness) writes into its CWD at runtime — almost certainly stray residue from running that demo inside `scripts/`.
+- Verified unreferenced: substring scan over scripts/tests/courier_runtime/courier_core/courier_worker/server finds only the demo's own tmp-dir writes, no import of this file. Deletion cannot change any behavior; pytest collection unaffected (empty non-test module).
