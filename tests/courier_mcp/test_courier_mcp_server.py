@@ -55,8 +55,8 @@ def test_status_running_and_counts(tmp_path):
     card = call_tool(source, "courier_status", {}, now=NOW)["card"]
     assert card["state"] == "RUNNING" and card["in_flight"] == 1
     summary = call_tool(source, "receipts_summary", {}, now=NOW)
-    assert summary["counts"] == {"POSTED": 1, "FINAL_DONE": 1, "BLOCKED": 0, "ERROR": 0}
-    assert summary["receipts"] == 1 and summary["last_updated"] == _stamp(2)
+    assert summary["counts"] == {"BLOCKED": 0, "ERROR": 0, "FINAL_DONE": 1, "POSTED": 1, "UNSET": 0}
+    assert summary["total"] == 2 and summary["last_updated"] == _stamp(2)
 
 
 def test_status_precedence_error_blocked_stale_idle(tmp_path):
@@ -77,7 +77,7 @@ def test_status_precedence_error_blocked_stale_idle(tmp_path):
 def test_list_and_get_missions(tmp_path):
     source = _write(tmp_path, _missions())
     listed = call_tool(source, "list_missions", {}, now=NOW)
-    assert [m["mission_id"] for m in listed["missions"]] == ["m2", "m1"]
+    assert [m["mission_id"] for m in listed["missions"]] == ["m1", "m2"]
     only = call_tool(source, "list_missions", {"status": "FINAL_DONE", "limit": 1}, now=NOW)
     assert only["total"] == 1 and only["missions"][0]["mission_id"] == "m1"
     found = call_tool(source, "get_mission", {"mission_id": "m1"}, now=NOW)
@@ -87,15 +87,18 @@ def test_list_and_get_missions(tmp_path):
 
 
 def test_list_receipts_only_accepted(tmp_path):
+    from courier_core.receipt_read_model import ReceiptReadModel
     receipts = call_tool(_write(tmp_path, _missions()), "list_receipts", {}, now=NOW)
-    assert receipts["total"] == 1
-    assert receipts["receipts"][0]["accepted_result_id"] == "r1"
+    assert receipts["receipts"] == ReceiptReadModel(tmp_path).list_receipts()["receipts"]
+    assert [row["accepted_result_id"] for row in receipts["receipts"]] == ["r1", None]
 
 
-def test_legacy_rows_without_status_are_derived(tmp_path):
+def test_legacy_rows_without_status_match_the_read_model(tmp_path):
+    from courier_core.receipt_read_model import ReceiptReadModel
     source = _write(tmp_path, {"a": {"task_id": "ta", "accepted_result_id": "r"}, "b": {"task_id": "tb"}})
-    statuses = {m["mission_id"]: m["status"] for m in call_tool(source, "list_missions", {}, now=NOW)["missions"]}
-    assert statuses == {"a": "FINAL_DONE", "b": "POSTED"}
+    listed = call_tool(source, "list_missions", {}, now=NOW)["missions"]
+    assert listed == ReceiptReadModel(tmp_path).list_receipts()["receipts"]
+    assert [row["status"] for row in listed] == [None, None]
 
 
 @pytest.mark.parametrize("arguments", [{"limit": 0}, {"limit": 101}, {"limit": True}, {"status": "DONE"},

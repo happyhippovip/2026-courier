@@ -12,15 +12,17 @@ SDK is not in the pinned dependency set, and pins change only through L1.
 | --- | --- |
 | `courier_about` | Public product text ("Ideas travel further.") |
 | `courier_status` | One card: RUNNING, IDLE, BLOCKED, ATTENTION, NOT_CONFIGURED |
-| `list_missions` | Missions with status, newest first (`status`, `limit` ≤ 100) |
+| `list_missions` | Missions from the receipt read model (`status`, `limit` ≤ 100) |
 | `get_mission` | One mission by `mission_id` |
-| `list_receipts` | Missions with an accepted result (`limit` ≤ 100) |
-| `receipts_summary` | Counts per status, receipt count, latest update |
+| `list_receipts` | The receipt read model's receipts (`limit` ≤ 100) |
+| `receipts_summary` | Counts per status, total, latest update |
 
-No write tools, no commands, no arbitrary paths. The only file read is
-`<state_dir>/ledger_bridge_state.json` (1 MiB cap, no symlinks). Unknown
-status/reason values, bad JSON, duplicate task ids or bad timestamps make the
-state `UNREADABLE` and return no missions.
+No write tools, no commands, no arbitrary paths. Real mode calls
+`courier_core.receipt_read_model.ReceiptReadModel`, which reads only
+`<state_dir>/ledger_bridge_state.json` and `<state_dir>/courier.db`
+(1 MiB cap each). Symlinks are refused. Unknown status/reason values, bad
+JSON, duplicate task ids, a bad timestamp, or an unreadable journal make the
+state `UNREADABLE` and return no missions. `--demo` does not read either file.
 
 ## Running
 
@@ -42,5 +44,4 @@ accepts `POST /mcp/<token>` for clients that cannot send a header; the token
 is then part of the URL, so use it with demo data or a short-lived token only.
 Browser `Origin` headers are rejected unless allow-listed (`--allow-origin`).
 
-Follow-up: switch the reader to `courier_core.receipt_read_model` once
-`lane/L2-receipt-read-model` is merged (same file, same fail-closed rules).
+Real mode is the receipt read model. It lands with `lane/L2-receipt-read-model`.
