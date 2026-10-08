@@ -141,13 +141,17 @@ def test_get_all_active_sent_experiments():
 def test_scan_inboxes():
     observer = InboundResponseObserver()
     res = observer.scan_inboxes()
-    assert res["status"] == "MONITORING_ACTIVE"
+    assert res["status"] != "MONITORING_ACTIVE"
+    assert res["raw_check"] != "INBOX_CHECKED_CLEAN"
+    assert res["raw_check"] == "INBOX_NOT_READ"
 
 def test_main_scan(monkeypatch, capsys):
     monkeypatch.setattr("sys.argv", ["inbound_response_observer.py", "--scan"])
-    assert main() == 0
+    assert main() != 0
     out, _ = capsys.readouterr()
-    assert "MONITORING_ACTIVE" in out
+    assert "MONITORING_ACTIVE" not in out
+    assert "INBOX_CHECKED_CLEAN" not in out
+    assert "INBOX_NOT_READ" in out
 
 def test_main_mock_reply(monkeypatch, capsys):
     monkeypatch.setattr("sys.argv", ["inbound_response_observer.py", "--mock-reply", "EXP123"])
