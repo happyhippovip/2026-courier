@@ -72,6 +72,21 @@ def test_codex_hook_runner_success(tmp_path, monkeypatch):
     assert data["source"] == "codex"
     assert data["status"] == "COMPLETED"
 
+
+def test_completion_success_requires_a_readable_result_file(tmp_path, monkeypatch, capsys):
+    import scripts.run_codex_bridge as codex_bridge
+    monkeypatch.setattr(codex_bridge, "PROCESSED_DIR", tmp_path / "processed")
+    monkeypatch.setattr(codex_bridge, "save_json", lambda path, data: None)
+
+    tracker = CodexVisualStateTracker(repo_dir=tmp_path)
+    hooks = CodexHookRunner(tracker)
+
+    with pytest.raises(SystemExit) as exc:
+        hooks.on_task_completion("task-miss", "corr-miss", None, {"result": "Safe data"})
+    assert exc.value.code not in (0, None)
+    assert "completed successfully" not in capsys.readouterr().out
+    assert not (tmp_path / "processed" / "task-miss-result.json").exists()
+
 def test_run_chief_review_router(tmp_path, monkeypatch):
     import scripts.run_codex_bridge as codex_bridge
     monkeypatch.setattr(codex_bridge, "DECISIONS_DIR", tmp_path / "decisions")
