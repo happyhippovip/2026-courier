@@ -257,3 +257,12 @@ This ledger tracks the verification status of modules in this repository on Wind
 - [x] dashboard/server.py: 🟢 VERIFIED (verified in test_dashboard_server_uncovered.py)
 - [x] scripts/windows_worker/daemon.py: 🟢 VERIFIED (verified in test_windows_worker_daemon_uncovered.py, 87% coverage)
 - [x] scripts/mac_worker/runtime_state.py: ✔️ VERIFIED (verified in test_mac_worker_runtime_state_uncovered.py, 100% coverage)
+
+## scripts/generate_openapi.py
+**Status**: VERIFIED
+**Date**: 2026-10-08
+**Findings**:
+- **Real defect 1 (wrong output)**: the Flask-param converter `<[^:]*:?([^>]+)>` let `[^:]*` greedily eat plain names, mangling `<task_id>` into `{d}`. The COMMITTED `static/openapi.json` carries the damage (`/goals/{d}`, `/tasks/{d}/resume`). Fixed to `<(?:[^:>]+:)?([^>]+)>` (converter prefix all-or-nothing); `<task_id>` -> `{task_id}`, `<int:uid>` -> `{uid}` both verified live.
+- **Real defect 2 (import side effects + CWD paths)**: the module regenerated the spec at import time with CWD-relative `server/app.py` / `static/openapi.json` — proven live when a test-collection import of the base file rewrote the tracked artifact as a side effect. Refactored to pure `build_spec()` + `main(root=None)` anchored at REPO_ROOT; import is side-effect-free. Output bytes unchanged for identical input.
+- Note for owner: `static/openapi.json` itself was NOT regenerated here (route drift since its last regen would add unrelated diff); one `main()` run after merge refreshes it, fixing the two mangled params.
+- **Testing**: new `tests/test_generate_openapi.py` (4 tests: method/param parsing, write-under-root, CWD-independence, import purity). Base file fails at collection (no importable API + side effect); 4/4 green on fix. Hermetic (tmp fixture app).
