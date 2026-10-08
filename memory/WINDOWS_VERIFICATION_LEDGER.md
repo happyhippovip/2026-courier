@@ -257,3 +257,11 @@ This ledger tracks the verification status of modules in this repository on Wind
 - [x] dashboard/server.py: 🟢 VERIFIED (verified in test_dashboard_server_uncovered.py)
 - [x] scripts/windows_worker/daemon.py: 🟢 VERIFIED (verified in test_windows_worker_daemon_uncovered.py, 87% coverage)
 - [x] scripts/mac_worker/runtime_state.py: ✔️ VERIFIED (verified in test_mac_worker_runtime_state_uncovered.py, 100% coverage)
+
+## scripts/check_local_safety.py
+**Status**: VERIFIED
+**Date**: 2026-10-08
+**Findings**:
+- Read-only KILL_BY_NAME / WILDCARD_BIND ratchet, wired into CI (`v1-ci.yml`) — findings print to CI logs and feed `repo_reality_check` customer reports. 35 pre-existing tests green.
+- **Real defect found and fixed (secret hygiene)**: finding `text` carried raw matched source lines, so a credential-shaped value on a flagged line printed verbatim into CI logs and flowed downstream. New local `scrub_credential_shapes()` (mirrors the canonical SECRET_PATTERNS + e-mail owned by `repo_reality_check`, kept local to avoid a circular import) applied at finding construction. Baseline `key` still derives from the raw line, so existing baselines are stable.
+- **Testing**: +1 test (real `scan()` over a tmp tree: value absent + `[redacted]` present in text, key identical to raw-line recomputation). Fails on base, passes on fix. 36/36 green; downstream `test_repo_reality_check.py` 12/12 green on trunk base. Hermetic.
