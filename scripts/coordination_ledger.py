@@ -1,3 +1,13 @@
+"""Lightweight append-only coordination ledger for Courier Symphony (Issue #6).
+
+Relationship to existing claim machinery:
+- `scripts/local_swarm_claim.py` and `scripts/queue_processor.py` manage local file-based
+  task-bank claims under `.courier_swarm/` on a single machine.
+- `scripts/coordination_ledger.py` (and the `coordination_*` modules) provide cross-agent,
+  cross-session, event-sourced continuity backed by GitHub issue comments and durable
+  JSONL mirrors. It tracks distributed mission lifecycle across heterogeneous agents.
+"""
+
 import dataclasses
 from typing import List, Optional, Dict
 from datetime import datetime, timezone
@@ -7,6 +17,8 @@ class AgentID(str, Enum):
     GOOGLE_WINDOWS = "GOOGLE_WINDOWS"
     GOOGLE_MAC = "GOOGLE_MAC"
     CODEX_MAC = "CODEX_MAC"
+    MUSE_WINDOWS = "MUSE_WINDOWS"
+    MUSE_MAC = "MUSE_MAC"
     UNKNOWN = "UNKNOWN"
 
 class HostID(str, Enum):

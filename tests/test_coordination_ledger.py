@@ -83,3 +83,20 @@ def test_unknown_authority():
     reducer.apply(e1)
     
     assert reducer.get_mission("m1") is None
+
+
+def test_muse_agent_ids_supported():
+    reducer = CoordinationReducer()
+    e1 = create_event("1", "m1", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z", agent=AgentID.MUSE_MAC, host=HostID.MAC_LOCAL)
+    reducer.apply(e1)
+    m = reducer.get_mission("m1")
+    assert m is not None
+    assert m["agent_id"] == AgentID.MUSE_MAC
+    assert m["status"] == MissionStatus.WORKING
+
+    e2 = create_event("2", "m2", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z", agent=AgentID.MUSE_WINDOWS, host=HostID.WINDOWS_REMOTE)
+    reducer.apply(e2)
+    m2 = reducer.get_mission("m2")
+    assert m2 is not None
+    assert m2["agent_id"] == AgentID.MUSE_WINDOWS
+
