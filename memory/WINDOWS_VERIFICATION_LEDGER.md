@@ -257,3 +257,13 @@ This ledger tracks the verification status of modules in this repository on Wind
 - [x] dashboard/server.py: 🟢 VERIFIED (verified in test_dashboard_server_uncovered.py)
 - [x] scripts/windows_worker/daemon.py: 🟢 VERIFIED (verified in test_windows_worker_daemon_uncovered.py, 87% coverage)
 - [x] scripts/mac_worker/runtime_state.py: ✔️ VERIFIED (verified in test_mac_worker_runtime_state_uncovered.py, 100% coverage)
+
+## scripts/resource_governor.py
+**Status**: VERIFIED
+**Date**: 2026-10-08
+**Findings**:
+- **Real defect 1 (blind pressure metrics on Windows)**: `measure_pressure` relied exclusively on `hasattr(os, "getloadavg")`, which does not exist in standard Python on Windows. On Windows machines, `measure_pressure` permanently returned "GREEN", failing to detect CPU and memory spikes. Fixed by adding cross-platform `psutil` metrics fallback (CPU/memory thresholds).
+- **Real defect 2 (missing active job accounting)**: `HostPressureController` defined `self.active_jobs` and checked `active_jobs["HEAVY"] >= MAX_HEAVY_JOBS` in `admit_job`, but provided no methods to increment or decrement active jobs. Added `start_job` and `finish_job` with case-insensitive budget class normalization.
+- **Real defect 3 (empty post-run snapshot on Windows)**: `post_run_resource_snapshot` reported `load: None` on Windows without alternative metrics. Enhanced with `cpu_percent` and `memory_percent` fallback.
+- **Testing**: verified consumers in `tests/test_host_budgets.py` (22 tests passed). Added dedicated unit suite `tests/test_resource_governor.py` (6 tests: POSIX loadavg calculation, Windows psutil fallback, FSM admission & quiesce/recovery window, active job accounting, bounded backoff intervals, and post-run snapshots); 28/28 green in 0.5s.
+- **Real defect 4, residual of defect 1 (blind fallback still reported GREEN)**: when `getloadavg` is absent AND `psutil` is missing/unreadable, the fallback `except` returned "GREEN" — healthy while blind. Fixed to "UNKNOWN" (matches the outer handler precedent; admission-neutral since `admit_job` admits both, poll interval defaults to base). Regression `test_blind_measurement_reports_unknown_not_green` failed red pre-fix, 7/7 green post-fix.
