@@ -10,7 +10,7 @@ from courier_core.repo_reality_fetch import FetchError, FetchedRepo
 URL = "https://github.com/example/repo"
 SHA = "a" * 40
 TARBALL = "b" * 64
-MARKER = "Read-only scan of a public GitHub tarball"
+MARKER = "Nur lesende Prüfung eines öffentlichen GitHub-Tarballs"
 
 
 def _contact():

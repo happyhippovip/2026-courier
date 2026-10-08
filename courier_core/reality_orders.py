@@ -598,7 +598,8 @@ def _github_spec(repo_url: str) -> str:
 def _ready_evidence(path: Path) -> str:
     text = path.read_text(encoding="utf-8")
     commit = _labeled(text, "Commit: ")
-    tarball = _labeled(text, "Tarball sha256: ")
+    # Current German label first; older reports on disk still carry the English one.
+    tarball = _labeled(text, "Tarball-Prüfsumme (sha256): ") or _labeled(text, "Tarball sha256: ")
     if _SHA40.fullmatch(commit) is None or _SHA256.fullmatch(tarball) is None:
         raise OrderError("report is missing fetch evidence")
     return f"{report_evidence(path)};commit:{commit};tarball:{tarball}"

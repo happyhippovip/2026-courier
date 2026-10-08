@@ -99,17 +99,17 @@ EXT_LANGUAGE = {
 
 # Component id, weight, rule. Weights sum to 100.
 WEIGHTS: tuple[tuple[str, int, str], ...] = (
-    ("readme", 10, "README file at the checkout root"),
-    ("license", 5, "LICENSE file at the checkout root"),
-    ("gitignore", 8, ".gitignore at the checkout root"),
-    ("test_files", 12, "at least one test file"),
-    ("test_functions", 8, "at least one test function"),
-    ("ci_config", 10, "at least one CI config"),
-    ("ci_jobs", 5, "at least one CI job"),
-    ("manifest", 8, "at least one dependency manifest"),
-    ("pinning", 14, "share of parsed dependencies with an exact version pin"),
-    ("markers", 10, "one point off per 5 TODO, FIXME, or HACK markers, floor 0"),
-    ("secrets", 10, "production secrets-risk hits score 0; hits only in tests, fixtures, or docs cost 2"),
+    ("readme", 10, "README-Datei im Wurzelverzeichnis"),
+    ("license", 5, "LICENSE-Datei im Wurzelverzeichnis"),
+    ("gitignore", 8, ".gitignore im Wurzelverzeichnis"),
+    ("test_files", 12, "mindestens eine Testdatei"),
+    ("test_functions", 8, "mindestens eine Testfunktion"),
+    ("ci_config", 10, "mindestens eine CI-Konfiguration"),
+    ("ci_jobs", 5, "mindestens ein CI-Job"),
+    ("manifest", 8, "mindestens ein Abhängigkeits-Manifest"),
+    ("pinning", 14, "Anteil der Abhängigkeiten mit exakter Version oder Lockfile"),
+    ("markers", 10, "1 Punkt Abzug je 5 TODO-, FIXME- oder HACK-Marker, nicht unter 0"),
+    ("secrets", 10, "Treffer im Produktionscode ergeben 0; Treffer nur in Tests, Fixtures, Beispielen oder Doku kosten 2"),
 )
 
 PYTEST_FAIL_POINTS = 3
@@ -120,14 +120,14 @@ COMPONENT_LABELS = {
     "readme": "README",
     "license": "LICENSE",
     "gitignore": ".gitignore",
-    "test_files": "Test files",
-    "test_functions": "Test functions",
-    "ci_config": "CI config",
-    "ci_jobs": "CI jobs",
-    "manifest": "Dependency manifest",
-    "pinning": "Pinned dependencies",
-    "markers": "Marker hygiene",
-    "secrets": "Secrets-risk hygiene",
+    "test_files": "Testdateien",
+    "test_functions": "Testfunktionen",
+    "ci_config": "CI-Konfiguration",
+    "ci_jobs": "CI-Jobs",
+    "manifest": "Abhängigkeits-Manifest",
+    "pinning": "Gepinnte Abhängigkeiten",
+    "markers": "Marker-Hygiene",
+    "secrets": "Geheimnis-Hygiene",
 }
 
 _PY_TEST_NAME = re.compile(r"^(?:test_.+\.py|.+_test\.py)$", re.IGNORECASE)
@@ -135,8 +135,14 @@ _JS_TEST_NAME = re.compile(r"^.+\.(?:test|spec)\.(?:js|jsx|ts|tsx|mjs|cjs)$", re
 _GO_TEST_NAME = re.compile(r"^.+_test\.go$", re.IGNORECASE)
 _TEST_DIR_NAMES = frozenset({"test", "tests", "__tests__"})
 _PY_FUNC = re.compile(r"(?m)^[ \t]*(?:async[ \t]+def|def)[ \t]+test_[A-Za-z0-9_]*")
-_JS_FUNC = re.compile(r"(?m)^[ \t]*(?:it|test)[ \t]*\(")
+_JS_FUNC = re.compile(r"(?m)^[ \t]*(?:it|test)(?:\.(?:only|skip|each|concurrent|todo))?[ \t]*\(")
 _GO_FUNC = re.compile(r"(?m)^func[ \t]+Test[A-Za-z0-9_]*[ \t]*\(")
+# Rust: #[test], #[tokio::test] and similar attribute paths ending in ``test``.
+_RS_FUNC = re.compile(r"(?m)^[ \t]*#\[(?:[A-Za-z_][A-Za-z0-9_]*::)*test\]")
+_RS_CFG_TEST = re.compile(r"#\[cfg\(test\)\]")
+_JS_EXTS = (".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs")
+# A GitHub Actions expression such as ${{ secrets.NAME }} is a reference, not a value.
+_GHA_EXPRESSION = "${{"
 _TODO = re.compile(r"\bTODO\b")
 _FIXME = re.compile(r"\bFIXME\b")
 _HACK = re.compile(r"\bHACK\b")
@@ -202,6 +208,8 @@ _NON_PROD_DIRS = frozenset(
         "doc",
         "docs",
         "documentation",
+        "example",
+        "examples",
         "fixture",
         "fixtures",
         "test",
@@ -209,6 +217,24 @@ _NON_PROD_DIRS = frozenset(
         "tests",
     }
 )
+_FIXTURE_DIRS = frozenset({"__fixtures__", "fixture", "fixtures", "testdata"})
+# Lockfile name -> manifest kinds it pins when it sits in the manifest's folder or above.
+_LOCK_COVERS = {
+    "cargo.lock": ("cargo",),
+    "composer.lock": ("composer",),
+    "gemfile.lock": ("gemfile",),
+    "go.sum": ("go.mod",),
+    "package-lock.json": ("package.json",),
+    "pipfile.lock": ("pipfile",),
+    "pnpm-lock.yaml": ("package.json",),
+    "poetry.lock": ("pyproject",),
+    "uv.lock": ("pyproject",),
+    "yarn.lock": ("package.json",),
+}
+_NOTE_LOCKFILE = "Lockfile"
+_NOTE_UNPARSED = "nicht lesbar"
+_NOTE_PREFIX = "nur Anfang gelesen"
+_UNSUPPORTED_TEST_LANGUAGES = frozenset({"C", "C#", "C++", "Java", "Kotlin", "PHP", "Ruby", "Swift"})
 _HELPER_DIRS = frozenset({"builder", "builders", "fake", "fakes", "_fake", "_fakes"})
 _SCRATCH_DIR_NAMES = frozenset({"attic", "scratch", "scratches", "scratchpad"})
 _BINARY_ARCHIVE_EXTS = frozenset(
@@ -319,7 +345,7 @@ def analyze(repo_path: Path | str, pytest_json: Path | str | None = None) -> dic
         )
         text = "" if binary else blob.decode("utf-8", errors="replace")
         funcs = 0 if binary else _count_test_functions(path.name, text)
-        if is_test_file(rel, funcs):
+        if is_test_file(rel, funcs, text):
             test_functions += funcs
             test_rows.append({"path": rel, "functions": funcs})
         elif _is_helper_file(rel):
@@ -349,7 +375,7 @@ def analyze(repo_path: Path | str, pytest_json: Path | str | None = None) -> dic
         if manifest_kind:
             pinned, unpinned, note = _count_dependencies(manifest_kind, text)
             if truncated:
-                note = (note + "; " if note else "") + "prefix only"
+                note = (note + "; " if note else "") + _NOTE_PREFIX
             manifest_rows.append(
                 {
                     "path": rel,
@@ -361,6 +387,7 @@ def analyze(repo_path: Path | str, pytest_json: Path | str | None = None) -> dic
                 }
             )
 
+    _apply_lockfiles(manifest_rows)
     language_rows = _collapse_languages(languages, other_exts)
     test_rows.sort(key=lambda row: row["path"])
     helper_rows.sort()
@@ -386,6 +413,7 @@ def analyze(repo_path: Path | str, pytest_json: Path | str | None = None) -> dic
     ratio_pinned = sum(row["pinned"] for row in manifest_rows if row["in_ratio"])
     ratio_unpinned = sum(row["unpinned"] for row in manifest_rows if row["in_ratio"])
     parsed_manifests = sum(1 for row in manifest_rows if row["in_ratio"])
+    locked_manifests = sum(1 for row in manifest_rows if row.get("locked_by"))
     pytest_info = _parse_pytest(None if pytest_json is None else Path(pytest_json))
     summary = {
         "files": len(largest),
@@ -418,6 +446,7 @@ def analyze(repo_path: Path | str, pytest_json: Path | str | None = None) -> dic
             "ratio_pinned": ratio_pinned,
             "ratio_unpinned": ratio_unpinned,
             "parsed_manifests": parsed_manifests,
+            "locked_manifests": locked_manifests,
             "rows": manifest_rows,
         },
         "largest": largest[:LARGEST_LIMIT],
@@ -450,84 +479,86 @@ def analyze(repo_path: Path | str, pytest_json: Path | str | None = None) -> dic
 
 
 def render_markdown(data: dict, evidence: dict | None = None) -> str:
-    """Render ``analyze`` output. The text contains counts and paths only."""
+    """Render ``analyze`` output in German. The text contains counts and paths only."""
     lines: list[str] = ["# Repo Reality Check", ""]
     if evidence:
         lines.append(
-            "Read-only scan of a public GitHub tarball. Customer code was not executed. "
-            "Pytest counts are included only when a pytest JSON file is supplied."
+            "Nur lesende Prüfung eines öffentlichen GitHub-Tarballs. Der Code des Repos wurde nicht ausgeführt. "
+            "Testergebnisse erscheinen nur, wenn eine Pytest-JSON-Datei mitgeliefert wurde."
         )
         lines.append("")
-        lines.append(f"- Source: {evidence['source']}")
+        lines.append(f"- Quelle: {evidence['source']}")
         lines.append(f"- Commit: {evidence['sha']}")
-        lines.append(f"- Tarball sha256: {evidence['tarball_sha256']}")
+        lines.append(f"- Tarball-Prüfsumme (sha256): {evidence['tarball_sha256']}")
         lines.append("")
     else:
         lines.append(
-            "Read-only scan of one local checkout. No network calls. Customer code was not executed. "
-            "Pytest counts are included only when a pytest JSON file is supplied."
+            "Nur lesende Prüfung eines lokalen Checkouts, ohne Netzwerkzugriff. Der Code des Repos wurde nicht ausgeführt. "
+            "Testergebnisse erscheinen nur, wenn eine Pytest-JSON-Datei mitgeliefert wurde."
         )
         lines.append("")
     lines.extend(_render_summary(data))
-    lines.extend(_heading("Repositorygröße", "Repository size"))
-    lines.append(f"- Files: {data['files']}")
-    lines.append(f"- Lines: {data['lines']}")
+    lines.extend(_heading("Repositorygröße", ""))
+    lines.append(f"- Dateien: {data['files']}")
+    lines.append(f"- Zeilen: {data['lines']}")
     if data["lines_partial_files"]:
         lines.append(
-            f"- Files read only up to the byte cap: {data['lines_partial_files']}"
+            f"- Nur teilweise gelesen (größer als {_kb(MAX_FILE_READ_BYTES)}): {data['lines_partial_files']}"
         )
     if data["scan_capped"]:
-        lines.append(f"- File cap hit: counted the first {data['files']} files in sorted walk order")
+        lines.append(
+            f"- Dateigrenze erreicht: gezählt wurden die ersten {data['files']} Dateien in sortierter Reihenfolge"
+        )
     lines.append("")
     if data["languages"]:
         lines.extend(
             _table(
-                ["Language", "Files", "Lines"],
+                ["Sprache", "Dateien", "Zeilen"],
                 [[row["name"], row["files"], row["lines"]] for row in data["languages"]],
             )
         )
     else:
-        lines.append("No files.")
+        lines.append("Keine Dateien.")
     lines.append("")
 
-    lines.extend(_heading("Testdateien", "Test files (static scan)"))
-    lines.append(f"- Test files: {data['test_files']}")
-    lines.append(f"- Test functions: {data['test_functions']}")
+    lines.extend(_heading("Testdateien", ""))
+    lines.append(f"- Testdateien: {data['test_files']}")
+    lines.append(f"- Testfunktionen: {data['test_functions']}")
     lines.append(f"- Test-Hilfsdateien: {len(data['test_helpers'])}")
     lines.append("")
     shown, extra = _cap(data["test_file_rows"], LIST_LIMIT)
     if shown:
-        lines.extend(_table(["File", "Test functions"], [[row["path"], row["functions"]] for row in shown]))
+        lines.extend(_table(["Datei", "Testfunktionen"], [[row["path"], row["functions"]] for row in shown]))
         if extra:
-            lines.append(f"Showing {len(shown)} of {data['test_files']} test files.")
+            lines.append(f"Angezeigt: {len(shown)} von {data['test_files']} Testdateien.")
     else:
-        lines.append("No test files.")
+        lines.append("Keine Testdateien gefunden.")
     lines.append("")
-    lines.extend(_heading_level(3, "Test-Hilfsdateien", "Test helper files"))
+    lines.extend(_heading_level(3, "Test-Hilfsdateien", ""))
     helpers, helper_extra = _cap(data["test_helpers"], LIST_LIMIT)
     if helpers:
-        lines.extend(_table(["File"], [[path] for path in helpers]))
+        lines.extend(_table(["Datei"], [[path] for path in helpers]))
         if helper_extra:
-            lines.append(f"Showing {len(helpers)} of {len(data['test_helpers'])} test helper files.")
+            lines.append(f"Angezeigt: {len(helpers)} von {len(data['test_helpers'])} Test-Hilfsdateien.")
     else:
-        lines.append("No test helper files.")
+        lines.append("Keine Test-Hilfsdateien.")
     lines.append("")
 
-    lines.extend(_heading("Testergebnisse", "Pytest results (pytest-json-report)"))
+    lines.extend(_heading("Testergebnisse", ""))
     lines.extend(_pytest_lines(data["pytest"]))
     lines.append("")
 
     markers = data["markers"]
-    lines.extend(_heading("Offene Marker", "TODO, FIXME, and HACK"))
+    lines.extend(_heading("Offene Marker", ""))
     lines.append(f"- TODO: {markers['todo']}")
     lines.append(f"- FIXME: {markers['fixme']}")
     lines.append(f"- HACK: {markers['hack']}")
-    lines.append(f"- Total: {markers['total']}")
+    lines.append(f"- Gesamt: {markers['total']}")
     lines.append("")
     if markers["top_files"]:
         lines.extend(
             _table(
-                ["File", "TODO", "FIXME", "HACK", "Total"],
+                ["Datei", "TODO", "FIXME", "HACK", "Gesamt"],
                 [
                     [row["path"], row["todo"], row["fixme"], row["hack"], row["total"]]
                     for row in markers["top_files"]
@@ -535,48 +566,47 @@ def render_markdown(data: dict, evidence: dict | None = None) -> str:
             )
         )
     else:
-        lines.append("No markers.")
+        lines.append("Keine Marker.")
     lines.append("")
 
     ci = data["ci"]
-    lines.extend(_heading("CI-Konfiguration", "Continuous integration"))
-    lines.append(f"- Configs: {ci['configs']}")
+    lines.extend(_heading("CI-Konfiguration", ""))
+    lines.append(f"- Konfigurationen: {ci['configs']}")
     lines.append(f"- Jobs: {ci['jobs']}")
     lines.append("")
     if ci["rows"]:
         lines.extend(
             _table(
-                ["Kind", "File", "Jobs"],
+                ["Art", "Datei", "Jobs"],
                 [[row["kind"], row["path"], row["jobs"]] for row in ci["rows"]],
             )
         )
     else:
-        lines.append("No CI config found.")
+        lines.append("Keine CI-Konfiguration gefunden.")
     lines.append("")
 
-    lines.extend(_heading("Projektdateien", "README, LICENSE, and gitignore"))
+    lines.extend(_heading("Projektdateien", ""))
     for key, label in (("readme", "README"), ("license", "LICENSE"), ("gitignore", ".gitignore")):
-        item = data["project_files"][key]
-        if item["present"]:
-            lines.append(f"- {label}: present ({item['path']})")
-        else:
-            lines.append(f"- {label}: absent")
+        lines.append(f"- {label}: {_present_obs(data['project_files'][key])}")
     lines.append("")
 
     deps = data["dependencies"]
-    lines.extend(_heading("Abhängigkeiten", "Dependency manifests"))
-    lines.append(f"- Manifests: {deps['manifests']}")
-    lines.append(f"- Unpinned dependencies: {deps['unpinned']}")
-    lines.append(f"- Pinned dependencies: {deps['pinned']}")
+    lines.extend(_heading("Abhängigkeiten", ""))
+    lines.append(f"- Manifeste: {deps['manifests']}")
+    lines.append(f"- Ohne exakte Version und ohne Lockfile: {deps['unpinned']}")
+    lines.append(f"- Exakt gepinnt oder per Lockfile gesperrt: {deps['pinned']}")
     lines.append(
-        "- Pin rule: requirements and PEP 621 count as pinned with `==` or `===`; "
-        "package.json counts a bare major.minor.patch; Poetry, Cargo, and Composer count a leading `=`."
+        "- Regel: requirements und PEP 621 gelten mit `==` oder `===` als gepinnt, package.json mit einer "
+        "reinen Version major.minor.patch, Poetry, Cargo und Composer mit führendem `=`. Liegt ein passendes "
+        "Lockfile (Cargo.lock, package-lock.json, yarn.lock, pnpm-lock.yaml, poetry.lock, uv.lock, Pipfile.lock, "
+        "go.sum, Gemfile.lock, composer.lock) im selben oder einem übergeordneten Ordner, gelten alle Einträge "
+        "des Manifests als gepinnt."
     )
     lines.append("")
     if deps["rows"]:
         lines.extend(
             _table(
-                ["Manifest", "Kind", "Pinned", "Unpinned", "Note"],
+                ["Manifest", "Art", "Gepinnt", "Ungepinnt", "Hinweis"],
                 [
                     [row["path"], row["kind"], row["pinned"], row["unpinned"], row["note"] or "-"]
                     for row in deps["rows"]
@@ -584,40 +614,40 @@ def render_markdown(data: dict, evidence: dict | None = None) -> str:
             )
         )
     else:
-        lines.append("No dependency manifest found.")
+        lines.append("Kein Abhängigkeits-Manifest gefunden.")
     lines.append("")
 
-    lines.extend(_heading("Größte Dateien", "Largest files"))
+    lines.extend(_heading("Größte Dateien", ""))
     if data["largest"]:
         rows = []
         for row in data["largest"]:
             if row["binary"]:
-                shown_lines = "binary"
+                shown_lines = "binär"
             elif row["partial"]:
-                shown_lines = f"{row['lines']} (prefix)"
+                shown_lines = f"{row['lines']} (Anfang)"
             else:
                 shown_lines = row["lines"]
             rows.append([row["bytes"], shown_lines, row["path"]])
-        lines.extend(_table(["Bytes", "Lines", "File"], rows))
+        lines.extend(_table(["Bytes", "Zeilen", "Datei"], rows))
     else:
-        lines.append("No files.")
+        lines.append("Keine Dateien.")
     lines.append("")
 
     lines.extend(_render_secrets(data["secrets"]))
     lines.extend(_render_hygiene(data))
 
     score = data["score"]
-    lines.extend(_heading("Realitätswert", "Reality score"))
+    lines.extend(_heading("Realitätswert", ""))
     lines.append(f"Score: {score['value']} / 100")
     lines.append("")
     lines.append(
-        f"Formula: {score['awarded']} awarded - {score['deducted']} deducted = {score['raw']}, "
-        f"clamped to {score['value']}."
+        f"Berechnung: {score['awarded']} Punkte vergeben, {score['deducted']} abgezogen = {score['raw']}, "
+        f"auf 0 bis 100 begrenzt: {score['value']}."
     )
     lines.append("")
     lines.extend(
         _table(
-            ["Component", "Weight", "Awarded", "Rule", "Observation"],
+            ["Komponente", "Gewicht", "Vergeben", "Regel", "Beobachtung"],
             [
                 [row["label"], row["weight"], row["awarded"], row["rule"], row["observation"]]
                 for row in score["components"]
@@ -627,7 +657,7 @@ def render_markdown(data: dict, evidence: dict | None = None) -> str:
     lines.append("")
     lines.extend(
         _table(
-            ["Deduction", "Points", "Rule", "Observation"],
+            ["Abzug", "Punkte", "Regel", "Beobachtung"],
             [
                 [row["label"], row["points"], row["rule"], row["observation"]]
                 for row in score["deductions"]
@@ -636,54 +666,76 @@ def render_markdown(data: dict, evidence: dict | None = None) -> str:
     )
     lines.append("")
 
-    lines.extend(_heading("Nächste fünf Schritte", "Top 5 next steps"))
+    lines.extend(_heading("Nächste fünf Schritte", ""))
     for index, step in enumerate(data["next_steps"], start=1):
         lines.append(f"{index}. {step}")
     lines.append("")
 
     limits = data["limits"]
-    lines.extend(_heading("Grenzen", "Limits"))
-    lines.append(f"- Max files: {limits['max_files']}")
-    lines.append(f"- Max bytes read per file: {limits['max_file_read_bytes']}")
-    lines.append("- Symlinks are skipped.")
-    lines.append("- Directories skipped: " + ", ".join(f"`{name}`" for name in limits["skip_dirs"]))
+    lines.extend(_heading("Grenzen", ""))
     lines.append(
-        "- A test file matches test_*.py, *_test.py, *.test.js, *.spec.js, or *_test.go, and either contains at least one test function or lives under test, tests, or __tests__."
+        f"- Höchstens {limits['max_files']} Dateien; je Datei werden höchstens "
+        f"{_kb(limits['max_file_read_bytes'])} gelesen."
+    )
+    lines.append("- Symbolische Links werden übersprungen.")
+    lines.append("- Übersprungene Ordner: " + ", ".join(f"`{name}`" for name in limits["skip_dirs"]))
+    lines.append(
+        "- Als Testdatei gilt: test_*.py, *_test.py, *.test.* und *.spec.* (JS/TS) sowie *_test.go, wenn die Datei "
+        "mindestens eine Testfunktion enthält oder in test/, tests/ oder __tests__/ liegt. Außerdem JS/TS-Dateien in "
+        "diesen Ordnern mit mindestens einem it()- oder test()-Aufruf, Rust-Dateien mit #[test] oder #[cfg(test)] "
+        "und Rust-Dateien in tests/. Fixture-Ordner zählen nicht."
     )
     lines.append(
-        "- Test-Hilfsdateien are conftest.py anywhere, plus fake/fakes and builder/builders files under a test directory. They are not test files."
+        "- Testfunktionen werden per Textmuster gezählt (Python `def test_*`, JS/TS `it(`/`test(`, Go `func Test*`, "
+        "Rust `#[test]`). Dateien werden nicht importiert. Rust-Tests aus eigenen Makros und Tests in anderen "
+        "Sprachen (z. B. Java, Ruby, PHP) werden nicht erkannt."
     )
     lines.append(
-        "- Stray tests are test-named files at the checkout root or under scripts/. They are a hygiene finding."
-    )
-    lines.append("- Test files and test functions are counted with text patterns. Files are not imported.")
-    lines.append("- Marker words are the uppercase tokens TODO, FIXME, and HACK.")
-    lines.append("- Pytest is not run. Pass, fail, and skip come from the optional JSON file.")
-    lines.append(
-        "- Secrets-risk hits in tests, fixtures, docs, test-named files, or doc names such as README cost 2 points. Production hits set that component to 0. Match text is discarded."
+        "- Test-Hilfsdateien sind conftest.py sowie fake/fakes- und builder/builders-Dateien in einem Testordner. "
+        "Sie zählen nicht als Testdateien."
     )
     lines.append(
-        f"- Binaries and archives over {ONE_MB} bytes, and JSON, JSONL, or NDJSON over {ONE_MB} bytes, are hygiene findings."
+        "- Testdateien direkt im Wurzelverzeichnis oder in scripts/ sind ein Hygiene-Hinweis. Go-Testdateien "
+        "neben dem Code sind üblich und zählen nicht dazu."
+    )
+    lines.append("- Marker sind die großgeschriebenen Wörter TODO, FIXME und HACK.")
+    lines.append(
+        "- Tests werden nicht ausgeführt. Bestanden, fehlgeschlagen und übersprungen stammen nur aus der "
+        "optionalen Pytest-JSON-Datei."
     )
     lines.append(
-        "- Scratch directory names: attic, scratch, scratches, scratchpad."
+        "- Geheimnis-Treffer in Tests, Fixtures, testdata/, Beispielen (examples/, example/), Doku oder Dateien "
+        "wie README kosten 2 Punkte. Treffer im Produktionscode setzen die Komponente auf 0. GitHub-Actions-"
+        "Ausdrücke wie `${{ secrets.NAME }}` zählen nicht. Der gefundene Text wird verworfen."
     )
     lines.append(
-        "- Ampel Tests: Rot when test files or test functions are 0; Grün when both are positive and pytest JSON has 0 failed and 0 errors; otherwise Gelb."
+        "- Binär- und Archivdateien über 1 MB sowie JSON-, JSONL- und NDJSON-Dateien über 1 MB sind "
+        "Hygiene-Hinweise."
+    )
+    lines.append("- Als scratch-Ordner gelten: attic, scratch, scratches, scratchpad.")
+    lines.append(
+        "- Ampel Tests: Rot bei 0 Testdateien oder 0 Testfunktionen; Grün, wenn beide vorhanden sind und das "
+        "Pytest-Ergebnis 0 Fehlschläge und 0 Fehler zeigt; sonst Gelb."
     )
     lines.append(
-        "- Ampel CI: Rot at 0 configs; Gelb when configs exist and jobs are 0; Grün when jobs are positive."
+        "- Ampel CI: Rot ohne Konfiguration; Gelb, wenn Konfigurationen keinen Job enthalten; Grün mit "
+        "mindestens einem Job."
     )
     lines.append(
-        "- Ampel Abhängigkeiten: Rot at 0 manifests; Grün when every parsed dependency is pinned; otherwise Gelb."
+        "- Ampel Abhängigkeiten: Rot ohne Manifest; Grün, wenn jede erkannte Abhängigkeit gepinnt oder per "
+        "Lockfile gesperrt ist; sonst Gelb."
     )
     lines.append(
-        "- Ampel Geheimnis-Risiko: Rot when production hits are positive; Gelb when only tests, fixtures, or docs have hits; Grün at 0 hits."
+        "- Ampel Geheimnis-Risiko: Rot bei Treffern im Produktionscode; Gelb bei Treffern nur in Tests, "
+        "Fixtures, Beispielen oder Doku; Grün ohne Treffer."
     )
     lines.append(
-        "- Ampel Repo-Hygiene: Rot when a large binary/archive, a large JSON/JSONL file, or a scratch/attic directory is present, or when 3 or more hygiene flags are set; Gelb for 1 or 2 other flags; Grün at 0 flags. Flags: missing README, LICENSE, or .gitignore; 5 or more markers; large binaries; large JSON/JSONL; scratch/attic; stray tests."
+        "- Ampel Repo-Hygiene: Rot bei großen Binär- oder JSON-Dateien, scratch/attic-Ordnern oder ab 3 "
+        "Auffälligkeiten; Gelb bei 1 oder 2; Grün bei 0. Auffälligkeiten: fehlende README, LICENSE oder "
+        ".gitignore, 5 oder mehr Marker, große Binärdateien, große JSON-Dateien, scratch/attic-Ordner, "
+        "Testdateien außerhalb eines Testordners."
     )
-    lines.append("- A score is a sum of the weights above. It is not a security verdict.")
+    lines.append("- Der Wert ist die Summe der Gewichte oben. Er ist kein Sicherheitsurteil.")
     lines.append("")
     return "\n".join(lines)
 
@@ -736,14 +788,26 @@ def _report_from_github(spec: str, pytest_json: str | None) -> str:
         shutil.rmtree(fetched.temp_dir, ignore_errors=True)
 
 
-def is_test_file(rel: str, function_count: int = 0) -> bool:
-    """A test-named file counts when it has a test function, or it lives under a tests directory."""
+def is_test_file(rel: str, function_count: int = 0, text: str = "") -> bool:
+    """Decide whether ``rel`` is a test file.
+
+    Test-named files (test_*.py, *_test.py, *.test.*, *.spec.*, *_test.go) count when they
+    have a test function or live under a tests directory. JS/TS files inside test/, tests/
+    or __tests__/ count when they call it() or test(). Rust files count when they contain
+    #[test] or #[cfg(test)], or live under a tests directory.
+    """
     name = rel.rsplit("/", 1)[-1]
-    if not _test_name_match(name):
-        return False
-    if function_count >= 1:
-        return True
-    return _under_test_dir(rel)
+    lower = name.lower()
+    if _test_name_match(name):
+        if function_count >= 1:
+            return True
+        return _under_test_dir(rel)
+    in_test_dir = _under_test_dir(rel) and not _under_fixture_dir(rel)
+    if lower.endswith(".rs"):
+        return function_count >= 1 or bool(_RS_CFG_TEST.search(text)) or in_test_dir
+    if lower.endswith(_JS_EXTS):
+        return in_test_dir and function_count >= 1
+    return False
 
 
 def _test_name_match(name: str) -> bool:
@@ -753,6 +817,11 @@ def _test_name_match(name: str) -> bool:
 def _under_test_dir(rel: str) -> bool:
     parents = [part.lower() for part in rel.split("/")[:-1]]
     return any(part in _TEST_DIR_NAMES for part in parents)
+
+
+def _under_fixture_dir(rel: str) -> bool:
+    parents = [part.lower() for part in rel.split("/")[:-1]]
+    return any(part in _FIXTURE_DIRS for part in parents)
 
 
 def _is_helper_file(rel: str) -> bool:
@@ -770,6 +839,9 @@ def _is_helper_file(rel: str) -> bool:
 def _is_stray_test(rel: str) -> bool:
     name = rel.rsplit("/", 1)[-1]
     if not _test_name_match(name) or _under_test_dir(rel):
+        return False
+    if name.lower().endswith(".go"):
+        # Go keeps *_test.go next to the code it tests. That is the convention, not clutter.
         return False
     if "/" not in rel:
         return True
@@ -843,7 +915,7 @@ def _line_count(blob: bytes) -> int:
 def _language(filename: str) -> tuple[str, str | None]:
     suffix = Path(filename).suffix.lower()
     if not suffix:
-        return "no extension", None
+        return "ohne Endung", None
     named = EXT_LANGUAGE.get(suffix)
     if named:
         return named, None
@@ -873,17 +945,23 @@ def _count_test_functions(filename: str, text: str) -> int:
     lower = filename.lower()
     if lower.endswith(".py"):
         return len(_PY_FUNC.findall(text))
-    if lower.endswith((".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs")):
+    if lower.endswith(_JS_EXTS):
         return len(_JS_FUNC.findall(text))
     if lower.endswith(".go"):
         return len(_GO_FUNC.findall(text))
+    if lower.endswith(".rs"):
+        return len(_RS_FUNC.findall(text))
     return 0
 
 
 def _secret_hits(text: str) -> dict[str, int]:
     counts: dict[str, int] = {}
     for name, pattern in _SECRET_PATTERNS:
-        hits = sum(1 for _match in pattern.finditer(text))
+        hits = sum(
+            1
+            for match in pattern.finditer(text)
+            if not (name == "assigned_secret" and _GHA_EXPRESSION in match.group(0))
+        )
         if hits:
             counts[name] = hits
     return counts
@@ -1009,12 +1087,41 @@ def _manifest_kind(rel: str) -> str | None:
 def _in_pin_ratio(kind: str, note: str) -> bool:
     if kind == "lockfile":
         return False
-    return "could not parse" not in note
+    return _NOTE_UNPARSED not in note
+
+
+def _apply_lockfiles(rows: list[dict]) -> None:
+    """A manifest whose ecosystem lockfile sits in its folder or above counts as fully pinned."""
+    locks: dict[str, list[tuple[str, str]]] = {}
+    for row in rows:
+        if row["kind"] != "lockfile":
+            continue
+        name = row["path"].rsplit("/", 1)[-1].lower()
+        folder = row["path"].rsplit("/", 1)[0] if "/" in row["path"] else ""
+        for kind in _LOCK_COVERS.get(name, ()):
+            locks.setdefault(kind, []).append((folder, row["path"]))
+    for row in rows:
+        if row["kind"] == "lockfile" or not row["in_ratio"]:
+            continue
+        covering = [
+            (folder, path)
+            for folder, path in locks.get(row["kind"], ())
+            if folder == "" or row["path"].startswith(folder + "/")
+        ]
+        if not covering:
+            continue
+        covering.sort(key=lambda item: (-len(item[0]), item[1]))
+        lock_path = covering[0][1]
+        row["pinned"] += row["unpinned"]
+        row["unpinned"] = 0
+        row["locked_by"] = lock_path
+        note = f"gesperrt durch {lock_path}"
+        row["note"] = f"{row['note']}; {note}" if row["note"] else note
 
 
 def _count_dependencies(kind: str, text: str) -> tuple[int, int, str]:
     if kind == "lockfile":
-        return 0, 0, "lockfile"
+        return 0, 0, _NOTE_LOCKFILE
     if kind == "requirements":
         return (*_parse_requirements(text), "")
     if kind == "pyproject":
@@ -1129,9 +1236,9 @@ def _parse_package_json(text: str) -> tuple[int, int, str]:
     try:
         data = json.loads(text)
     except json.JSONDecodeError:
-        return 0, 0, "could not parse"
+        return 0, 0, _NOTE_UNPARSED
     if not isinstance(data, dict):
-        return 0, 0, "could not parse"
+        return 0, 0, _NOTE_UNPARSED
     pinned = unpinned = 0
     for key in ("dependencies", "devDependencies", "optionalDependencies"):
         table = data.get(key) or {}
@@ -1221,9 +1328,9 @@ def _parse_composer(text: str) -> tuple[int, int, str]:
     try:
         data = json.loads(text)
     except json.JSONDecodeError:
-        return 0, 0, "could not parse"
+        return 0, 0, _NOTE_UNPARSED
     if not isinstance(data, dict):
-        return 0, 0, "could not parse"
+        return 0, 0, _NOTE_UNPARSED
     pinned = unpinned = 0
     for key in ("require", "require-dev"):
         table = data.get(key) or {}
@@ -1384,21 +1491,24 @@ def _score(data: dict) -> dict:
         "readme": _present_obs(data["project_files"]["readme"]),
         "license": _present_obs(data["project_files"]["license"]),
         "gitignore": _present_obs(data["project_files"]["gitignore"]),
-        "test_files": _count_phrase(data["test_files"], "file", "files"),
-        "test_functions": _count_phrase(data["test_functions"], "function", "functions"),
-        "ci_config": _count_phrase(data["ci"]["configs"], "config", "configs"),
-        "ci_jobs": _count_phrase(data["ci"]["jobs"], "job", "jobs"),
-        "manifest": _count_phrase(deps["manifests"], "manifest", "manifests"),
-        "markers": _count_phrase(data["markers"]["total"], "marker", "markers"),
+        "test_files": _de(data["test_files"], "Datei", "Dateien"),
+        "test_functions": _de(data["test_functions"], "Funktion", "Funktionen"),
+        "ci_config": _de(data["ci"]["configs"], "Konfiguration", "Konfigurationen"),
+        "ci_jobs": _de(data["ci"]["jobs"], "Job", "Jobs"),
+        "manifest": _de(deps["manifests"], "Manifest", "Manifeste"),
+        "markers": _de(data["markers"]["total"], "Marker", "Marker"),
         "secrets": _secrets_observation(secrets),
     }
     ratio_total = deps["ratio_pinned"] + deps["ratio_unpinned"]
-    if ratio_total == 0:
+    if ratio_total == 0 and deps.get("locked_manifests"):
+        pin_awarded = _WEIGHT["pinning"]
+        observations["pinning"] = "keine einzelnen Einträge, Lockfile vorhanden"
+    elif ratio_total == 0:
         pin_awarded = 0
-        observations["pinning"] = "no parsed dependencies"
+        observations["pinning"] = "keine erkannten Abhängigkeiten"
     else:
         pin_awarded = (_WEIGHT["pinning"] * deps["ratio_pinned"]) // ratio_total
-        observations["pinning"] = f"{deps['ratio_pinned']} pinned of {ratio_total}"
+        observations["pinning"] = f"{deps['ratio_pinned']} von {ratio_total} gepinnt"
     marker_weight = _WEIGHT["markers"]
     marker_awarded = marker_weight - min(marker_weight, data["markers"]["total"] // 5)
     awarded_for = {
@@ -1453,33 +1563,36 @@ def _de(count: int, singular: str, plural: str) -> str:
 
 def _present_obs(item: dict) -> str:
     if item["present"]:
-        return f"present ({item['path']})"
-    return "absent"
+        return f"vorhanden ({item['path']})"
+    return "fehlt"
 
 
 def _pytest_deductions(info: dict) -> dict:
-    rule = f"{PYTEST_FAIL_POINTS} points each for failed and error, capped at {PYTEST_FAIL_CAP}; unusable JSON is {PYTEST_JSON_POINTS}"
+    rule = (
+        f"je {PYTEST_FAIL_POINTS} Punkte pro Fehlschlag oder Fehler, höchstens {PYTEST_FAIL_CAP}; "
+        f"unbrauchbares JSON kostet {PYTEST_JSON_POINTS}"
+    )
     if info["status"] == "ok":
         points = min(PYTEST_FAIL_CAP, (info["failed"] + info["errors"]) * PYTEST_FAIL_POINTS)
-        observation = f"{info['failed']} failed, {info['errors']} errors"
+        observation = f"{info['failed']} fehlgeschlagen, {info['errors']} Fehler"
         return {
-            "label": "pytest failures and errors",
+            "label": "Pytest: Fehlschläge und Fehler",
             "points": points,
             "rule": rule,
             "observation": observation,
         }
     if info["status"] == "not_supplied":
         return {
-            "label": "pytest failures and errors",
+            "label": "Pytest: Fehlschläge und Fehler",
             "points": 0,
             "rule": rule,
-            "observation": "not supplied; no deduction",
+            "observation": "nicht mitgeliefert, kein Abzug",
         }
     return {
-        "label": "pytest JSON unusable",
+        "label": "Pytest-JSON unbrauchbar",
         "points": PYTEST_JSON_POINTS,
         "rule": rule,
-        "observation": info["status"],
+        "observation": _PYTEST_STATUS_DE[info["status"]],
     }
 
 
@@ -1494,26 +1607,27 @@ def _secrets_award(secrets: dict) -> int:
 def _secrets_observation(secrets: dict) -> str:
     if secrets["production_hits"]:
         return (
-            f"{_count_phrase(secrets['production_hits'], 'production hit', 'production hits')} in "
-            f"{_count_phrase(secrets['production_files'], 'file', 'files')}"
+            f"{secrets['production_hits']} Treffer im Produktionscode in "
+            f"{_de(secrets['production_files'], 'Datei', 'Dateien')}"
         )
     if secrets["non_production_hits"]:
         return (
-            "0 production hits; "
-            f"{_count_phrase(secrets['non_production_hits'], 'hit', 'hits')} in tests, fixtures, or docs in "
-            f"{_count_phrase(secrets['non_production_files'], 'file', 'files')}"
+            "0 im Produktionscode; "
+            f"{secrets['non_production_hits']} in Tests, Fixtures, Beispielen oder Doku in "
+            f"{_de(secrets['non_production_files'], 'Datei', 'Dateien')}"
         )
-    return "none"
+    return "keine"
 
 
 def _listed_paths(rows: list[dict], limit: int = 3) -> str:
     shown = [row["path"] for row in rows[:limit]]
     extra = len(rows) - len(shown)
-    suffix = f" and {extra} more" if extra else ""
+    suffix = f" und {extra} weitere" if extra else ""
     return ", ".join(shown) + suffix
 
 
 def _next_steps(data: dict) -> list[str]:
+    """Up to five German next steps, findings first. Advice depends on the languages found."""
     steps: list[str] = []
 
     def add(text: str) -> None:
@@ -1525,149 +1639,153 @@ def _next_steps(data: dict) -> list[str]:
     deps = data["dependencies"]
     pytest_info = data["pytest"]
     ratio_total = deps["ratio_pinned"] + deps["ratio_unpinned"]
+    python_tests = any(row["path"].lower().endswith(".py") for row in data["test_file_rows"])
+    unsupported = sorted(
+        row["name"] for row in data["languages"] if row["name"] in _UNSUPPORTED_TEST_LANGUAGES
+    )
     if secrets["production_hits"]:
         add(
-            "Remove "
-            f"{_count_phrase(secrets['production_hits'], 'secrets-risk hit', 'secrets-risk hits')} "
-            f"in production code ({_count_phrase(secrets['production_files'], 'file', 'files')}: "
+            f"{secrets['production_hits']} mögliche Geheimnis-Treffer im Produktionscode prüfen und echte Werte "
+            f"entfernen ({_de(secrets['production_files'], 'Datei', 'Dateien')}: "
             f"{_listed_paths(secrets['production_rows'])})."
         )
     if pytest_info["status"] == "ok" and (pytest_info["failed"] + pytest_info["errors"]) > 0:
         add(
-            f"Fix {pytest_info['failed']} failed and {pytest_info['errors']} error pytest results, "
-            "then pass a fresh pytest JSON file."
+            f"{pytest_info['failed']} fehlgeschlagene und {pytest_info['errors']} fehlerhafte Pytest-Ergebnisse "
+            "beheben, danach eine neue Pytest-JSON-Datei mitgeben."
         )
     if data["test_files"] == 0:
-        add(
-            f"Add at least one test file. The scan counted {data['test_files']} test files and "
-            f"{data['test_functions']} test functions."
-        )
+        if unsupported:
+            add(
+                "Keine Testdateien erkannt. Erkannt werden Python, JavaScript/TypeScript, Go und Rust; Tests in "
+                f"{', '.join(unsupported)} bitte von Hand prüfen oder ergänzen."
+            )
+        else:
+            add("Mindestens eine Testdatei anlegen. Der Scan hat keine Testdatei gefunden.")
     elif data["test_functions"] == 0:
         add(
-            f"Add test functions. {data['test_files']} test files contain {data['test_functions']} test functions."
+            f"Testfunktionen ergänzen: {_de(data['test_files'], 'Testdatei enthält', 'Testdateien enthalten')} "
+            "keine erkannte Testfunktion."
         )
     if hygiene["large_binaries"]:
         top = hygiene["large_binaries"][0]
         add(
-            "Remove "
-            f"{_count_phrase(len(hygiene['large_binaries']), 'committed binary or archive', 'committed binaries or archives')} "
-            f"over {ONE_MB} bytes. Largest: {top['path']} ({top['bytes']} bytes)."
+            f"{_de(len(hygiene['large_binaries']), 'committete Binär- oder Archivdatei', 'committete Binär- oder Archivdateien')} "
+            f"über 1 MB aus dem Repo entfernen. Größte: {top['path']} ({_mb(top['bytes'])})."
         )
     if hygiene["large_json"]:
         top = hygiene["large_json"][0]
         add(
-            "Move "
-            f"{_count_phrase(len(hygiene['large_json']), 'JSON or JSONL file', 'JSON or JSONL files')} "
-            f"over {ONE_MB} bytes out of the checkout. Largest: {top['path']} ({top['bytes']} bytes)."
+            f"{_de(len(hygiene['large_json']), 'JSON/JSONL-Datei', 'JSON/JSONL-Dateien')} über 1 MB aus dem Repo "
+            f"auslagern. Größte: {top['path']} ({_mb(top['bytes'])})."
         )
     if data["ci"]["configs"] == 0:
-        add(f"Add a CI config. The scan found {data['ci']['configs']} configs and {data['ci']['jobs']} jobs.")
+        add("Eine CI-Konfiguration anlegen, damit Tests bei jedem Push laufen. Gefunden wurde keine.")
     elif data["ci"]["jobs"] == 0:
-        add(f"Define at least one CI job. {data['ci']['configs']} configs declare {data['ci']['jobs']} jobs.")
+        add(
+            f"Mindestens einen CI-Job definieren: {_de(data['ci']['configs'], 'Konfiguration', 'Konfigurationen')} "
+            "ohne erkannten Job."
+        )
     if deps["unpinned"] > 0:
         add(
-            f"Pin {_count_phrase(deps['unpinned'], 'unpinned dependency', 'unpinned dependencies')} "
-            f"({deps['ratio_pinned']} pinned of {ratio_total} parsed)."
+            f"{_de(deps['unpinned'], 'Abhängigkeit hat', 'Abhängigkeiten haben')} weder eine exakte Version noch "
+            f"ein Lockfile ({deps['ratio_pinned']} von {ratio_total} gepinnt). Für Anwendungen ein Lockfile "
+            "committen oder exakt pinnen; bei Bibliotheken sind Versionsbereiche üblich."
         )
     elif deps["manifests"] == 0:
-        add(f"Add a dependency manifest. The scan found {deps['manifests']} manifests.")
+        add("Ein Abhängigkeits-Manifest anlegen (z. B. pyproject.toml, package.json, go.mod oder Cargo.toml).")
     if hygiene["scratch_dirs"]:
         shown = hygiene["scratch_dirs"][:3]
         extra = len(hygiene["scratch_dirs"]) - len(shown)
-        suffix = f" and {extra} more" if extra else ""
+        suffix = f" und {extra} weitere" if extra else ""
         add(
-            "Remove "
-            f"{_count_phrase(len(hygiene['scratch_dirs']), 'scratch or attic directory', 'scratch or attic directories')}: "
+            f"{_de(len(hygiene['scratch_dirs']), 'scratch/attic-Ordner', 'scratch/attic-Ordner')} entfernen: "
             f"{', '.join(shown)}{suffix}."
         )
     if hygiene["stray_tests"]:
         add(
-            f"Move {len(hygiene['stray_tests'])} stray test files from the repo root or scripts into a tests directory: "
-            f"{_listed_paths(hygiene['stray_tests'])}."
+            f"{_de(len(hygiene['stray_tests']), 'Testdatei', 'Testdateien')} aus dem Wurzelverzeichnis oder "
+            f"scripts/ in einen Testordner verschieben: {_listed_paths(hygiene['stray_tests'])}."
         )
     if secrets["non_production_hits"] and not secrets["production_hits"]:
         add(
-            f"Review {secrets['non_production_hits']} secrets-risk hits in tests, fixtures, or docs "
-            f"({_count_phrase(secrets['non_production_files'], 'file', 'files')}). Production hits: 0."
+            f"{secrets['non_production_hits']} Geheimnis-Treffer in Tests, Fixtures, Beispielen oder Doku kurz "
+            f"prüfen ({_de(secrets['non_production_files'], 'Datei', 'Dateien')}). Im Produktionscode wurde "
+            "nichts gefunden."
         )
     if not data["project_files"]["readme"]["present"]:
-        add("Add a README at the checkout root. README count at root: 0.")
+        add("Eine README im Wurzelverzeichnis anlegen.")
     if not data["project_files"]["gitignore"]["present"]:
-        add("Add a .gitignore at the checkout root. .gitignore count at root: 0.")
+        add("Eine .gitignore im Wurzelverzeichnis anlegen.")
     if data["markers"]["total"] >= MARKER_HYGIENE_FLOOR:
         top = data["markers"]["top_files"][0]
         add(
-            f"Triage {data['markers']['total']} TODO, FIXME, and HACK markers, "
-            f"starting with {top['path']} ({top['total']})."
+            f"{data['markers']['total']} TODO-, FIXME- und HACK-Marker sichten, beginnend mit "
+            f"{top['path']} ({top['total']})."
         )
     if not data["project_files"]["license"]["present"]:
-        add("Add a LICENSE file at the checkout root. LICENSE count at root: 0.")
+        add("Eine LICENSE-Datei im Wurzelverzeichnis anlegen.")
     if pytest_info["status"] in {"malformed", "unexpected", "unreadable"}:
-        add(f"Pass a readable pytest JSON file. Status: {pytest_info['status']}. Parsed counts: 0.")
-    if pytest_info["status"] == "not_supplied":
-        add("Pass a pytest JSON report with --pytest-json. Status: not supplied. Parsed counts: 0.")
-    if data["scan_capped"]:
-        add(f"The file cap was hit at {data['files']} files. Counts cover sorted walk order only.")
-    if data["lines_partial_files"]:
+        add(f"Eine lesbare Pytest-JSON-Datei mitgeben (Status: {_PYTEST_STATUS_DE[pytest_info['status']]}).")
+    if pytest_info["status"] == "not_supplied" and python_tests:
         add(
-            f"{data['lines_partial_files']} files exceeded the {data['limits']['max_file_read_bytes']} byte read cap, "
-            "so their line counts cover the prefix only."
+            "Pytest-Ergebnisse mitliefern (pytest-json-report, Option --pytest-json), dann zeigt der Report "
+            "bestandene und fehlgeschlagene Tests."
         )
-    for filler in (
-        (
-            "Keep the measured test baseline: "
-            f"{_count_phrase(data['test_files'], 'test file', 'test files')} and "
-            f"{_count_phrase(data['test_functions'], 'test function', 'test functions')}."
-        ),
-        (
-            "CI measurement: "
-            f"{_count_phrase(data['ci']['configs'], 'config', 'configs')} and "
-            f"{_count_phrase(data['ci']['jobs'], 'job', 'jobs')}."
-        ),
-        f"Dependency pin share: {deps['ratio_pinned']} pinned of {ratio_total} parsed, across {deps['manifests']} manifests.",
-        (
-            f"Secrets-risk measurement: {secrets['production_hits']} production hits and "
-            f"{secrets['non_production_hits']} hits in tests, fixtures, or docs."
-        ),
-        (
-            f"Repo-Hygiene measurement: {len(hygiene['large_binaries'])} binaries over {ONE_MB} bytes, "
-            f"{len(hygiene['scratch_dirs'])} scratch directories, "
-            f"{len(hygiene['large_json'])} JSON files over {ONE_MB} bytes, "
-            f"{len(hygiene['stray_tests'])} stray test files."
-        ),
-    ):
-        add(filler)
+    if data["scan_capped"]:
+        add(
+            f"Die Dateigrenze wurde erreicht: Die Zahlen decken nur die ersten {data['files']} Dateien ab. "
+            "Für ein vollständiges Bild den Umfang absprechen."
+        )
+    if data["test_files"] and data["test_functions"]:
+        add(
+            f"Testbasis halten: {_de(data['test_files'], 'Testdatei', 'Testdateien')} mit "
+            f"{_de(data['test_functions'], 'Testfunktion', 'Testfunktionen')} bei jedem Push in der CI ausführen."
+        )
+    if data["ci"]["jobs"]:
+        add(
+            f"CI beibehalten: {_de(data['ci']['configs'], 'Konfiguration', 'Konfigurationen')} mit "
+            f"{_de(data['ci']['jobs'], 'Job', 'Jobs')}."
+        )
+    if deps["manifests"] and deps["unpinned"] == 0 and (ratio_total or deps.get("locked_manifests")):
+        add("Versionsstand halten: alle erkannten Abhängigkeiten sind exakt gepinnt oder per Lockfile gesperrt.")
+    if not secrets["production_hits"]:
+        add("Geheimnis-Prüfung vor jedem Release wiederholen; im Produktionscode gab es diesmal keinen Treffer.")
+    add("Diesen Check nach größeren Änderungen für den neuen Commit wiederholen und die Werte vergleichen.")
     return steps
 
 
 def _pytest_lines(info: dict) -> list[str]:
-    status = {
-        "not_supplied": "not supplied",
-        "ok": "parsed",
-        "malformed": "could not be parsed",
-        "unreadable": "could not be read",
-        "unexpected": "unexpected shape",
-    }[info["status"]]
-    lines = [f"- Status: {status}"]
+    lines = [f"- Status: {_PYTEST_STATUS_DE[info['status']]}"]
     if info["status"] == "ok":
         lines.extend(
             [
-                f"- Passed: {info['passed']}",
-                f"- Failed: {info['failed']}",
-                f"- Skipped: {info['skipped']}",
-                f"- Errors: {info['errors']}",
+                f"- Bestanden: {info['passed']}",
+                f"- Fehlgeschlagen: {info['failed']}",
+                f"- Übersprungen: {info['skipped']}",
+                f"- Fehler: {info['errors']}",
             ]
         )
     else:
-        lines.extend(
-            [
-                "- Passed: n/a",
-                "- Failed: n/a",
-                "- Skipped: n/a",
-                "- Errors: n/a",
-            ]
-        )
+        lines.append("- Bestanden, fehlgeschlagen, übersprungen, Fehler: keine Angabe")
     return lines
+
+
+_PYTEST_STATUS_DE = {
+    "not_supplied": "nicht mitgeliefert",
+    "ok": "ausgewertet",
+    "malformed": "kein gültiges JSON",
+    "unreadable": "Datei nicht lesbar",
+    "unexpected": "unerwartetes Format",
+}
+
+
+def _kb(size: int) -> str:
+    return f"{size // 1024} KB"
+
+
+def _mb(size: int) -> str:
+    return f"{size / ONE_MB:.1f} MB".replace(".", ",")
 
 
 def _limits() -> dict:
@@ -1684,12 +1802,12 @@ def _heading(german: str, english: str) -> list[str]:
     return _heading_level(2, german, english)
 
 
-def _heading_level(level: int, german: str, english: str) -> list[str]:
-    return [f"{'#' * level} {german}", f"_{english}_", ""]
+def _heading_level(level: int, german: str, _english: str = "") -> list[str]:
+    return [f"{'#' * level} {german}", ""]
 
 
 def _render_summary(data: dict) -> list[str]:
-    lines = _heading("Kurzfassung", "Executive summary")
+    lines = _heading("Kurzfassung", "")
     lines.extend(data["summary_sentences"])
     lines.append("")
     lines.extend(
@@ -1703,30 +1821,30 @@ def _render_summary(data: dict) -> list[str]:
 
 
 def _render_secrets(secrets: dict) -> list[str]:
-    lines = _heading("Hinweise auf Geheimnisse", "Secrets-risk patterns")
-    lines.append("Counts and file paths only. Matched text is not included.")
+    lines = _heading("Hinweise auf Geheimnisse", "")
+    lines.append("Nur Anzahl und Dateipfad. Der gefundene Text wird nicht übernommen.")
     lines.append("")
     lines.append(
-        f"- Production hits: {secrets['production_hits']} in "
-        f"{_count_phrase(secrets['production_files'], 'file', 'files')}"
+        f"- Treffer im Produktionscode: {secrets['production_hits']} in "
+        f"{_de(secrets['production_files'], 'Datei', 'Dateien')}"
     )
     lines.append(
-        f"- Tests, fixtures, and docs hits: {secrets['non_production_hits']} in "
-        f"{_count_phrase(secrets['non_production_files'], 'file', 'files')}"
+        f"- Treffer in Tests, Fixtures, Beispielen und Doku: {secrets['non_production_hits']} in "
+        f"{_de(secrets['non_production_files'], 'Datei', 'Dateien')}"
     )
     lines.append(
-        "- Production hits set the secrets-risk component to 0. "
-        "Hits only in tests, fixtures, or docs cost 2 points."
+        "- Treffer im Produktionscode setzen die Geheimnis-Komponente auf 0. Treffer nur in Tests, Fixtures, "
+        "Beispielen oder Doku kosten 2 Punkte und sind ein Hinweis zum Prüfen."
     )
     lines.append("")
-    lines.extend(_secret_bucket_table("Production code", secrets["production_rows"]))
+    lines.extend(_secret_bucket_table("Produktionscode", secrets["production_rows"]))
     lines.append("")
-    lines.extend(_secret_bucket_table("Tests, fixtures, and docs", secrets["non_production_rows"]))
+    lines.extend(_secret_bucket_table("Tests, Fixtures, Beispiele und Doku", secrets["non_production_rows"]))
     if secrets["pattern_rows"]:
         lines.append("")
         lines.extend(
             _table(
-                ["Pattern", "Hits"],
+                ["Muster", "Treffer"],
                 [[row["pattern"], row["hits"]] for row in secrets["pattern_rows"]],
             )
         )
@@ -1738,55 +1856,51 @@ def _secret_bucket_table(title: str, rows: list[dict]) -> list[str]:
     lines = [f"### {title}", ""]
     shown, extra = _cap(rows, LIST_LIMIT)
     if shown:
-        lines.extend(_table(["File", "Hits"], [[row["path"], row["hits"]] for row in shown]))
+        lines.extend(_table(["Datei", "Treffer"], [[row["path"], row["hits"]] for row in shown]))
         if extra:
-            lines.append(f"Showing {len(shown)} of {len(rows)} files.")
+            lines.append(f"Angezeigt: {len(shown)} von {len(rows)} Dateien.")
     else:
-        lines.append("No secrets-risk patterns.")
+        lines.append("Keine Treffer.")
     return lines
 
 
 def _render_hygiene(data: dict) -> list[str]:
     hygiene = data["hygiene"]
-    license_item = data["project_files"]["license"]
-    lines = _heading("Repo-Hygiene", "Repository hygiene")
-    if license_item["present"]:
-        lines.append(f"- LICENSE: present ({license_item['path']})")
-    else:
-        lines.append("- LICENSE: absent")
-    lines.append(f"- Binaries and archives over {ONE_MB} bytes: {len(hygiene['large_binaries'])}")
-    lines.append(f"- Scratch or attic directories: {len(hygiene['scratch_dirs'])}")
-    lines.append(f"- JSON or JSONL over {ONE_MB} bytes: {len(hygiene['large_json'])}")
-    lines.append(f"- Stray test files: {len(hygiene['stray_tests'])}")
+    lines = _heading("Repo-Hygiene", "")
+    lines.append(f"- LICENSE: {_present_obs(data['project_files']['license'])}")
+    lines.append(f"- Binär- oder Archivdateien über 1 MB: {len(hygiene['large_binaries'])}")
+    lines.append(f"- scratch/attic-Ordner: {len(hygiene['scratch_dirs'])}")
+    lines.append(f"- JSON/JSONL-Dateien über 1 MB: {len(hygiene['large_json'])}")
+    lines.append(f"- Testdateien außerhalb eines Testordners: {len(hygiene['stray_tests'])}")
     lines.append("")
     if hygiene["large_binaries"]:
         shown, extra = _cap(hygiene["large_binaries"], LIST_LIMIT)
-        lines.extend(_table(["Bytes", "File"], [[row["bytes"], row["path"]] for row in shown]))
+        lines.extend(_table(["Bytes", "Datei"], [[row["bytes"], row["path"]] for row in shown]))
         if extra:
-            lines.append(f"Showing {len(shown)} of {len(hygiene['large_binaries'])} files.")
+            lines.append(f"Angezeigt: {len(shown)} von {len(hygiene['large_binaries'])} Dateien.")
         lines.append("")
     if hygiene["scratch_dirs"]:
         shown, extra = _cap(hygiene["scratch_dirs"], LIST_LIMIT)
-        lines.extend(_table(["Directory"], [[path] for path in shown]))
+        lines.extend(_table(["Ordner"], [[path] for path in shown]))
         if extra:
-            lines.append(f"Showing {len(shown)} of {len(hygiene['scratch_dirs'])} directories.")
+            lines.append(f"Angezeigt: {len(shown)} von {len(hygiene['scratch_dirs'])} Ordnern.")
         lines.append("")
     if hygiene["large_json"]:
         shown, extra = _cap(hygiene["large_json"], LIST_LIMIT)
-        lines.extend(_table(["Bytes", "File"], [[row["bytes"], row["path"]] for row in shown]))
+        lines.extend(_table(["Bytes", "Datei"], [[row["bytes"], row["path"]] for row in shown]))
         if extra:
-            lines.append(f"Showing {len(shown)} of {len(hygiene['large_json'])} files.")
+            lines.append(f"Angezeigt: {len(shown)} von {len(hygiene['large_json'])} Dateien.")
         lines.append("")
     if hygiene["stray_tests"]:
         shown, extra = _cap(hygiene["stray_tests"], LIST_LIMIT)
         lines.extend(
             _table(
-                ["File", "Test functions"],
+                ["Datei", "Testfunktionen"],
                 [[row["path"], row["functions"]] for row in shown],
             )
         )
         if extra:
-            lines.append(f"Showing {len(shown)} of {len(hygiene['stray_tests'])} files.")
+            lines.append(f"Angezeigt: {len(shown)} von {len(hygiene['stray_tests'])} Dateien.")
         lines.append("")
     if not any(
         (
@@ -1796,7 +1910,10 @@ def _render_hygiene(data: dict) -> list[str]:
             hygiene["stray_tests"],
         )
     ):
-        lines.append("No large binaries, scratch directories, large JSON files, or stray tests.")
+        lines.append(
+            "Keine großen Binär- oder JSON-Dateien, keine scratch-Ordner und keine Testdateien außerhalb "
+            "eines Testordners."
+        )
         lines.append("")
     return lines
 
@@ -1863,8 +1980,8 @@ def _tests_measured(data: dict) -> str:
     if info["status"] == "ok":
         return f"{base}, Pytest {info['failed']} fehlgeschlagen, {info['errors']} Fehler"
     if info["status"] == "not_supplied":
-        return f"{base}, Pytest nicht geliefert"
-    return f"{base}, Pytest nicht verwendbar"
+        return f"{base}, nicht ausgeführt"
+    return f"{base}, Pytest-Datei nicht verwendbar"
 
 
 def _ci_light(data: dict) -> str:
@@ -1887,7 +2004,7 @@ def _deps_light(data: dict) -> str:
     if deps["manifests"] == 0:
         return "Rot"
     ratio_total = deps["ratio_pinned"] + deps["ratio_unpinned"]
-    if ratio_total > 0 and deps["ratio_unpinned"] == 0:
+    if deps["ratio_unpinned"] == 0 and (ratio_total > 0 or deps.get("locked_manifests")):
         return "Grün"
     return "Gelb"
 
@@ -1895,9 +2012,12 @@ def _deps_light(data: dict) -> str:
 def _deps_measured(data: dict) -> str:
     deps = data["dependencies"]
     ratio_total = deps["ratio_pinned"] + deps["ratio_unpinned"]
+    if ratio_total == 0:
+        tail = "Lockfile vorhanden" if deps.get("locked_manifests") else "keine Einträge erkannt"
+        return f"{_de(deps['manifests'], 'Manifest', 'Manifeste')}, {tail}"
     return (
         f"{_de(deps['manifests'], 'Manifest', 'Manifeste')}, "
-        f"{deps['ratio_unpinned']} ungepinnt von {ratio_total}"
+        f"{deps['ratio_unpinned']} von {ratio_total} ohne exakte Version oder Lockfile"
     )
 
 
@@ -1913,8 +2033,8 @@ def _secrets_light(data: dict) -> str:
 def _secrets_measured(data: dict) -> str:
     secrets = data["secrets"]
     return (
-        f"{secrets['production_hits']} Produktions-Treffer, "
-        f"{secrets['non_production_hits']} Treffer in Tests/Fixtures/Docs"
+        f"{secrets['production_hits']} im Produktionscode, "
+        f"{secrets['non_production_hits']} in Tests/Fixtures/Beispielen/Doku"
     )
 
 
@@ -1928,17 +2048,29 @@ def _hygiene_light(data: dict) -> str:
 
 
 def _hygiene_measured(data: dict) -> str:
+    flags = data["hygiene"]["flags"]
+    if not flags:
+        return "keine Auffälligkeiten"
+    return f"{_de(len(flags), 'Auffälligkeit', 'Auffälligkeiten')}: " + ", ".join(_hygiene_findings(data))
+
+
+def _hygiene_findings(data: dict) -> list[str]:
     hygiene = data["hygiene"]
-    license_gaps = 0 if data["project_files"]["license"]["present"] else 1
-    return (
-        f"{_de(len(hygiene['flags']), 'Auffälligkeit', 'Auffälligkeiten')}, "
-        f"{data['markers']['total']} Marker, "
-        f"{license_gaps} fehlende LICENSE, "
-        f"{_de(len(hygiene['large_binaries']), 'Binärdatei', 'Binärdateien')}, "
-        f"{_de(len(hygiene['scratch_dirs']), 'scratch/attic-Verzeichnis', 'scratch/attic-Verzeichnisse')}, "
-        f"{_de(len(hygiene['large_json']), 'JSON/JSONL-Datei', 'JSON/JSONL-Dateien')}, "
-        f"{_de(len(hygiene['stray_tests']), 'verstreute Testdatei', 'verstreute Testdateien')}"
-    )
+    texts = {
+        "readme": "README fehlt",
+        "license": "LICENSE fehlt",
+        "gitignore": ".gitignore fehlt",
+        "markers": f"{data['markers']['total']} Marker",
+        "binaries": _de(len(hygiene["large_binaries"]), "Binärdatei über 1 MB", "Binärdateien über 1 MB"),
+        "scratch": _de(len(hygiene["scratch_dirs"]), "scratch/attic-Ordner", "scratch/attic-Ordner"),
+        "json": _de(len(hygiene["large_json"]), "JSON/JSONL-Datei über 1 MB", "JSON/JSONL-Dateien über 1 MB"),
+        "stray": _de(
+            len(hygiene["stray_tests"]),
+            "Testdatei außerhalb eines Testordners",
+            "Testdateien außerhalb eines Testordners",
+        ),
+    }
+    return [texts[name] for name in hygiene["flags"]]
 
 
 def _summary_sentences(data: dict) -> list[str]:
@@ -1946,22 +2078,47 @@ def _summary_sentences(data: dict) -> list[str]:
     deps = data["dependencies"]
     secrets = data["secrets"]
     ratio_total = deps["ratio_pinned"] + deps["ratio_unpinned"]
-    license_gaps = 0 if data["project_files"]["license"]["present"] else 1
     info = data["pytest"]
     if info["status"] == "ok":
         pytest_clause = (
-            f"Pytest-JSON {info['passed']} bestanden, {info['failed']} fehlgeschlagen, "
+            f"Pytest-Ergebnis: {info['passed']} bestanden, {info['failed']} fehlgeschlagen, "
             f"{info['skipped']} übersprungen, {info['errors']} Fehler"
         )
     elif info["status"] == "not_supplied":
-        pytest_clause = "Pytest-JSON nicht geliefert, 0 Zählwerte"
+        pytest_clause = "die Tests wurden nicht ausgeführt"
     else:
-        pytest_clause = "Pytest-JSON nicht verwendbar, 0 Zählwerte"
-    parsed_noun = "Eintrag" if ratio_total == 1 else "Einträgen"
+        pytest_clause = "die mitgelieferte Pytest-Datei war nicht verwendbar"
+    if ratio_total == 0:
+        tail = "Lockfile vorhanden, keine einzelnen Einträge" if deps.get("locked_manifests") else "keine einzelnen Einträge erkannt"
+        deps_sentence = f"Abhängigkeiten: {_de(deps['manifests'], 'Manifest', 'Manifeste')}, {tail}."
+    else:
+        noun = "Eintrag" if ratio_total == 1 else "Einträgen"
+        deps_sentence = (
+            f"Abhängigkeiten: {_de(deps['manifests'], 'Manifest', 'Manifeste')}, {deps['ratio_pinned']} von "
+            f"{ratio_total} {noun} exakt gepinnt oder per Lockfile gesperrt."
+        )
+    license_text = "LICENSE vorhanden" if data["project_files"]["license"]["present"] else "LICENSE fehlt"
+    findings = [
+        text
+        for text, count in (
+            (_de(len(hygiene["large_binaries"]), "Binär- oder Archivdatei über 1 MB", "Binär- oder Archivdateien über 1 MB"), len(hygiene["large_binaries"])),
+            (_de(len(hygiene["scratch_dirs"]), "scratch/attic-Ordner", "scratch/attic-Ordner"), len(hygiene["scratch_dirs"])),
+            (_de(len(hygiene["large_json"]), "JSON/JSONL-Datei über 1 MB", "JSON/JSONL-Dateien über 1 MB"), len(hygiene["large_json"])),
+            (
+                _de(len(hygiene["stray_tests"]), "Testdatei außerhalb eines Testordners", "Testdateien außerhalb eines Testordners"),
+                len(hygiene["stray_tests"]),
+            ),
+        )
+        if count
+    ]
+    if findings:
+        hygiene_sentence = f"Repo-Hygiene: {license_text}; {', '.join(findings)}."
+    else:
+        hygiene_sentence = f"Repo-Hygiene: {license_text}, keine weiteren Auffälligkeiten."
     return [
         f"Der Checkout enthält {_de(data['files'], 'Datei', 'Dateien')} und {_de(data['lines'], 'Zeile', 'Zeilen')}.",
         (
-            f"Statisch gezählt wurden {_de(data['test_files'], 'Testdatei', 'Testdateien')}, "
+            f"Statisch gezählt: {_de(data['test_files'], 'Testdatei', 'Testdateien')}, "
             f"{_de(data['test_functions'], 'Testfunktion', 'Testfunktionen')} und "
             f"{_de(len(data['test_helpers']), 'Test-Hilfsdatei', 'Test-Hilfsdateien')}; "
             f"{pytest_clause}."
@@ -1970,22 +2127,12 @@ def _summary_sentences(data: dict) -> list[str]:
             f"CI: {_de(data['ci']['configs'], 'Konfiguration', 'Konfigurationen')} und "
             f"{_de(data['ci']['jobs'], 'Job', 'Jobs')}."
         ),
+        deps_sentence,
         (
-            f"Abhängigkeiten: {_de(deps['manifests'], 'Manifest', 'Manifeste')}, "
-            f"{deps['ratio_pinned']} von {ratio_total} geparsten {parsed_noun} mit exakter Version."
+            f"Geheimnis-Risiko: {secrets['production_hits']} Treffer im Produktionscode, "
+            f"{secrets['non_production_hits']} in Tests, Fixtures, Beispielen oder Doku."
         ),
-        (
-            f"Geheimnis-Risiko: {secrets['production_hits']} Treffer in Produktionscode und "
-            f"{secrets['non_production_hits']} Treffer in Tests, Fixtures oder Docs."
-        ),
-        (
-            f"Repo-Hygiene: {license_gaps} fehlende LICENSE, "
-            f"{_de(len(hygiene['large_binaries']), 'Binär- oder Archivdatei', 'Binär- oder Archivdateien')} "
-            f"über {ONE_MB} Bytes, "
-            f"{_de(len(hygiene['scratch_dirs']), 'scratch/attic-Verzeichnis', 'scratch/attic-Verzeichnisse')}, "
-            f"{_de(len(hygiene['large_json']), 'JSON/JSONL-Datei', 'JSON/JSONL-Dateien')} über {ONE_MB} Bytes, "
-            f"{_de(len(hygiene['stray_tests']), 'verstreute Testdatei', 'verstreute Testdateien')}."
-        ),
+        hygiene_sentence,
     ]
 
 

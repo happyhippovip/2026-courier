@@ -140,13 +140,13 @@ def test_normal_tarball_records_evidence_and_cleans_up(tmp_path, monkeypatch):
     text = out.read_text(encoding="utf-8")
     digest = hashlib.sha256(payload).hexdigest()
     assert text.startswith("# Repo Reality Check\n")
-    assert "Source: github.com/acme/widgets@main" in text
+    assert "- Quelle: github.com/acme/widgets@main" in text
     assert f"- Commit: {SHA}" in text
-    assert f"- Tarball sha256: {digest}" in text
-    assert text.index("- Tarball sha256:") < text.index("## Repositorygröße")
-    assert "- README: present (README.md)" in text
-    assert "- Passed: 1" in text
-    assert "- Skipped: 2" in text
+    assert f"- Tarball-Prüfsumme (sha256): {digest}" in text
+    assert text.index("- Tarball-Prüfsumme (sha256):") < text.index("## Repositorygröße")
+    assert "- README: vorhanden (README.md)" in text
+    assert "- Bestanden: 1" in text
+    assert "- Übersprungen: 2" in text
     assert token not in text
     assert "customer-code-ran" not in text
     assert "config/app.env" in text
