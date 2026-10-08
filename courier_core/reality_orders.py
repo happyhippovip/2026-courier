@@ -99,7 +99,10 @@ class OrderBook:
         self._closed = False
         self._load()
 
-    def create_order(self, order_id: str, repo_ref: str, contact: str) -> dict[str, Any]:
+    def create_order(
+        self, order_id: str, repo_ref: str, contact: str, *, test: bool = False,
+    ) -> dict[str, Any]:
+        """Create an order. ``test=True`` marks a probe order that never counts as revenue."""
         order_id = _order_id(order_id)
         repo_ref = _repo_ref(repo_ref)
         normalized = _contact(contact)
@@ -112,6 +115,7 @@ class OrderBook:
                 or existing["product"] != PRODUCT
                 or existing["price_cents"] != PRICE_CENTS
                 or existing["currency"] != CURRENCY
+                or bool(existing.get("test")) != bool(test)
             ):
                 raise OrderError("order already exists with a different identity")
             return _public(existing)
@@ -131,6 +135,8 @@ class OrderBook:
             "failure_evidence": None,
             "ready_evidence": None,
         }
+        if test:
+            order["test"] = True
         self._commit(order, NEW, None, from_status=None)
         return _public(order)
 
@@ -239,11 +245,14 @@ class OrderBook:
         """Verified revenue is delivered work that has not been refunded.
 
         Pending is payment that is confirmed and not yet delivered, refunded,
-        or failed. An unpaid order is neither.
+        or failed. An unpaid order is neither. Test orders are never revenue;
+        they are only counted in ``test_count``.
         """
-        verified = [order for order in self._orders.values() if order["status"] == DELIVERED]
-        pending = [order for order in self._orders.values() if order["status"] in _PENDING]
+        real = [order for order in self._orders.values() if not order.get("test")]
+        verified = [order for order in real if order["status"] == DELIVERED]
+        pending = [order for order in real if order["status"] in _PENDING]
         return {
+            "test_count": len(self._orders) - len(real),
             "currency": CURRENCY,
             "verified_count": len(verified),
             "verified_cents": sum(order["price_cents"] for order in verified),
@@ -410,7 +419,7 @@ def _fold_one(orders: dict[str, dict[str, Any]], receipt: Mapping[str, Any]) -> 
 
 
 def _public(order: Mapping[str, Any]) -> dict[str, Any]:
-    return {
+    public = {
         "order_id": order["order_id"],
         "product": order["product"],
         "price_cents": order["price_cents"],
@@ -425,6 +434,11 @@ def _public(order: Mapping[str, Any]) -> dict[str, Any]:
         "failure_evidence": order["failure_evidence"],
         "ready_evidence": order.get("ready_evidence"),
     }
+    # Only present on test orders, so real order snapshots and their
+    # receipt hashes stay exactly as before.
+    if order.get("test"):
+        public["test"] = True
+    return public
 
 
 def _receipt_hash(receipt: Mapping[str, Any]) -> str:
@@ -659,6 +673,10 @@ def main(argv: list[str] | None = None) -> int:
     create = commands.add_parser("new")
     create.add_argument("--repo", required=True)
     create.add_argument("--contact", required=True)
+    create.add_argument(
+        "--test", action="store_true",
+        help="probe order; never counted as revenue",
+    )
 
     confirm = commands.add_parser("confirm-payment")
     confirm.add_argument("order_id")
@@ -692,7 +710,9 @@ def main(argv: list[str] | None = None) -> int:
         directory = resolve_orders_dir(args.data_dir)
         book = OrderBook(directory)
         if args.cmd == "new":
-            order = book.create_order(_new_order_id(), github_repo_url(args.repo), args.contact)
+            order = book.create_order(
+                _new_order_id(), github_repo_url(args.repo), args.contact, test=args.test,
+            )
             print(order["order_id"])
         elif args.cmd == "confirm-payment":
             order = book.confirm_payment(args.order_id, args.evidence)
@@ -723,11 +743,14 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{order['order_id']} {order['status']}")
         elif args.cmd == "list":
             for order in book.orders():
-                print(f"{order['order_id']} {order['status']} {order['repo_ref']} {_eur(order['price_cents'])}")
+                marker = " TEST" if order.get("test") else ""
+                print(f"{order['order_id']} {order['status']} {order['repo_ref']} {_eur(order['price_cents'])}{marker}")
         elif args.cmd == "revenue":
             summary = book.revenue_summary()
             print(f"verified {_eur(summary['verified_cents'])} ({summary['verified_count']})")
             print(f"pending {_eur(summary['pending_cents'])} ({summary['pending_count']})")
+            if summary["test_count"]:
+                print(f"test orders, not revenue ({summary['test_count']})")
         else:
             parser.error(f"unknown command {args.cmd}")
     except FulfillmentError as exc:

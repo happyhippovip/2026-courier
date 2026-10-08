@@ -80,6 +80,16 @@ Tarball-Prüfsumme.
     python -m courier_core.reality_orders revenue
     ```
 
+## Probebestellung
+
+Eine Probe ohne echte Zahlung wird mit `--test` angelegt. Sie läuft durch
+dieselben Schritte, zählt aber nie als Einnahme. `list` markiert sie mit
+`TEST`, `revenue` nennt sie in einer eigenen Zeile.
+
+```
+python -m courier_core.reality_orders new --test --repo https://github.com/owner/repo --contact KONTAKTADRESSE
+```
+
 Offene Aufträge anzeigen:
 
 ```

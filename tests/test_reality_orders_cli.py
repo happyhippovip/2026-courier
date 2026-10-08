@@ -147,3 +147,25 @@ def _inside(path, root):
     except ValueError:
         return False
     return True
+
+
+def test_new_test_order_is_listed_and_kept_out_of_revenue(tmp_path, capsys):
+    assert _run(tmp_path, "new", "--repo", URL, "--contact", _contact(), "--test") == 0
+    probe = capsys.readouterr().out.strip()
+    assert _run(tmp_path, "new", "--repo", URL, "--contact", _contact()) == 0
+    real = capsys.readouterr().out.strip()
+    assert _run(tmp_path, "confirm-payment", probe, "--evidence", "TEST-TXN-0000") == 0
+    assert _run(tmp_path, "confirm-payment", real, "--evidence", "pay-1") == 0
+    capsys.readouterr()
+
+    assert _run(tmp_path, "list") == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert any(line.startswith(probe + " ") and line.endswith(" TEST") for line in lines)
+    assert any(line.startswith(real + " ") and not line.endswith(" TEST") for line in lines)
+
+    assert _run(tmp_path, "revenue") == 0
+    assert capsys.readouterr().out.splitlines() == [
+        "verified 0.00 EUR (0)",
+        "pending 5.00 EUR (1)",
+        "test orders, not revenue (1)",
+    ]

@@ -42,7 +42,7 @@ def test_happy_path_counts_only_delivered_revenue(tmp_path):
     assert _contact() not in created["contact_hash"]
     assert book.revenue_summary() == {
         "currency": "EUR", "verified_count": 0, "verified_cents": 0,
-        "pending_count": 0, "pending_cents": 0,
+        "pending_count": 0, "pending_cents": 0, "test_count": 0,
     }
 
     book.confirm_payment(ORDER, "pay-1")
@@ -139,13 +139,13 @@ def test_refund_leaves_verified_revenue(tmp_path):
     book.mark_running("ord-2")
     assert book.revenue_summary() == {
         "currency": "EUR", "verified_count": 1, "verified_cents": 500,
-        "pending_count": 1, "pending_cents": 500,
+        "pending_count": 1, "pending_cents": 500, "test_count": 0,
     }
     refunded = book.mark_refunded(ORDER, "refund-1")
     assert refunded["status"] == "REFUNDED"
     assert book.revenue_summary() == {
         "currency": "EUR", "verified_count": 0, "verified_cents": 0,
-        "pending_count": 1, "pending_cents": 500,
+        "pending_count": 1, "pending_cents": 500, "test_count": 0,
     }
     assert book.mark_refunded(ORDER, "refund-1")["status"] == "REFUNDED"
     assert _contact() not in _persisted(tmp_path)
@@ -161,3 +161,32 @@ def test_payment_is_not_inferred_and_identity_conflicts_fail(tmp_path):
         book.create_order(ORDER, REPO, "other" + chr(64) + "example.invalid")
     assert book.get(ORDER)["status"] == NEW
     assert book.get(ORDER)["repo_ref"] == REPO
+
+
+def test_test_orders_are_never_revenue_and_survive_reopen(tmp_path):
+    book = OrderBook(tmp_path)
+    real = book.create_order(ORDER, REPO, _contact())
+    assert "test" not in real
+    probe = book.create_order("ord-probe", REPO, _contact(), test=True)
+    assert probe["test"] is True
+    book.confirm_payment(ORDER, "pay-1")
+    book.confirm_payment("ord-probe", "TEST-TXN-0000")
+    assert book.revenue_summary()["pending_cents"] == 500
+    book.run_report(ORDER, _runner)
+    book.run_report("ord-probe", _runner)
+    expected = {
+        "currency": "EUR", "verified_count": 1, "verified_cents": 500,
+        "pending_count": 0, "pending_cents": 0, "test_count": 1,
+    }
+    assert book.revenue_summary() == expected
+
+    reopened = OrderBook(tmp_path)
+    assert reopened.get("ord-probe")["test"] is True
+    assert "test" not in reopened.get(ORDER)
+    assert reopened.revenue_summary() == expected
+    with pytest.raises(OrderError):
+        reopened.create_order("ord-probe", REPO, _contact())
+    with pytest.raises(OrderError):
+        reopened.create_order(ORDER, REPO, _contact(), test=True)
+    assert reopened.create_order("ord-probe", REPO, _contact(), test=True)["test"] is True
+    assert "@" not in _persisted(tmp_path)
