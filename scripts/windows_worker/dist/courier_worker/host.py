@@ -395,6 +395,27 @@ class ContainedRun:
             self.job = None
 
 
+def _ntdll_resume(handle: int) -> int:
+    """Resume one suspended process by its handle via NtResumeProcess."""
+    import ctypes
+    from ctypes import wintypes
+    ntdll = ctypes.WinDLL("ntdll", use_last_error=True)
+    ntdll.NtResumeProcess.restype = wintypes.LONG
+    ntdll.NtResumeProcess.argtypes = [wintypes.HANDLE]
+    return int(ntdll.NtResumeProcess(handle))
+
+
+def _resume_process(proc: subprocess.Popen) -> None:
+    """Resume a CREATE_SUSPENDED child. A missing handle does not launch it."""
+    handle = getattr(proc, "_handle", None)
+    if handle is None:
+        raise ContainmentError("cannot resume: no process handle")
+    status = _ntdll_resume(handle)
+    if status < 0:
+        raise ContainmentError(
+            f"NtResumeProcess failed: NTSTATUS 0x{status & 0xFFFFFFFF:08X}")
+
+
 def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
     """Spawn argv contained. EMFILE/ENFILE becomes ResourcePaused, once."""
     stdout_path = os.path.join(run_dir, f"{tag}.out")
@@ -428,8 +449,7 @@ def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
     if os.name == "nt":
         try:
             _assign_to_job(job, proc.pid)
-            import psutil
-            psutil.Process(proc.pid).resume()
+            _resume_process(proc)
         except BaseException:
             try:
                 proc.kill()
@@ -512,9 +532,14 @@ def run_orphan_gate(home: str) -> int:
     for path in sorted(claims.glob(CLAIM_RECORD_GLOB)):
         try:
             record = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
+            owner_pid = int(record.get("owner_pid", 0) or 0)
+        except (OSError, ValueError, TypeError):
+            try:
+                path.rename(path.with_suffix(".json.corrupt"))
+            except OSError:
+                pass
             continue
-        if _owner_alive(int(record.get("owner_pid", 0))):
+        if _owner_alive(owner_pid):
             continue  # another live host owns this tree; hands off
         _reap_orphan(record)
         try:
@@ -819,7 +844,9 @@ class WorkerHost:
                 break
             if on_heartbeat is not None:
                 try:
-                    on_heartbeat(time.monotonic() - start)
+                    # Packaged WorkerLoop returns None. False is the only refusal.
+                    if on_heartbeat(time.monotonic() - start) is not False:
+                        lease_at = time.monotonic() + spec.lease_ttl_s
                 except Exception:
                     pass  # a failed heartbeat never kills a healthy run
         duration_s = time.monotonic() - start
