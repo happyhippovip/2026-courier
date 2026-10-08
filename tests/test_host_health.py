@@ -1,3 +1,5 @@
+import sys
+
 from scripts.host_health import diagnose, main, render, snapshot
 
 
@@ -37,3 +39,9 @@ def test_live_snapshot_runs_read_only(capsys):
     assert s["ram_total_gb"] > 0 and isinstance(s["groups"], list)
     assert "Dieser Check liest nur" in render(s, diagnose(s))
     assert main([]) == 0 and "BEFUND" in capsys.readouterr().out
+
+
+def test_missing_psutil_fails_readable_not_traceback(monkeypatch, capsys):
+    monkeypatch.setitem(sys.modules, "psutil", None)
+    assert main([]) == 2
+    assert "psutil" in capsys.readouterr().out
