@@ -149,6 +149,21 @@ def test_read_new_lines_is_incremental(tmp_path):
     assert lines == ["OUTPUT x"]
 
 
+def test_read_new_lines_normalizes_crlf(tmp_path):
+    from courier_runtime.provider_events import read_new_lines
+
+    p = tmp_path / "provider.log"
+    p.write_bytes(b"IDLE\r\nTURN_ENDED outcome=DONE\r\n")
+    lines, offset = read_new_lines(p, 0)
+    assert lines == ["IDLE", "TURN_ENDED outcome=DONE"]
+    assert offset == len(b"IDLE\r\nTURN_ENDED outcome=DONE\r\n")
+    with p.open("ab") as handle:
+        handle.write(b"OUTPUT x\r\n")
+    lines, final = read_new_lines(p, offset)
+    assert lines == ["OUTPUT x"]
+    assert final == p.stat().st_size
+
+
 def test_partial_terminal_record_is_not_consumed(tmp_path):
     from courier_runtime.provider_events import read_new_lines
 

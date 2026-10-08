@@ -102,6 +102,8 @@ def read_new_lines(path, offset):
     end = data.rfind(b"\n") + 1
     lines = []
     for record in data[:end].split(b"\n")[:-1]:
+        if record.endswith(b"\r"):
+            record = record[:-1]  # CRLF (Windows) provider logs: normalize at the boundary
         try:
             lines.append(record.decode("utf-8"))
         except UnicodeDecodeError:
