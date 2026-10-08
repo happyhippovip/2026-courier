@@ -399,11 +399,17 @@ class WorkerLoop:
 
     # -- one bounded step ------------------------------------------------------
     def flush_outbox(self, timeout_s: float = FLUSH_TIMEOUT_S) -> int:
-        """Deliver every pending result once. Returns the remaining count."""
+        """Deliver every pending result once within timeout_s budget. Returns the remaining count."""
         client = self._client or self._client_factory()
         self._client = client
         remaining = 0
-        for _path, payload in outbox_read_all(self.home):
+        deadline = time.monotonic() + timeout_s if (timeout_s is not None and timeout_s > 0) else None
+        all_items = list(outbox_read_all(self.home))
+        for idx, (_path, payload) in enumerate(all_items):
+            if deadline is not None and time.monotonic() >= deadline:
+                # Flush budget exceeded: stop delivering and leave remaining results durable in outbox
+                remaining += len(all_items) - idx
+                break
             try:
                 client.deliver(payload)
             except ControllerError:
