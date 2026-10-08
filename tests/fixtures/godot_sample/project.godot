@@ -1,0 +1,22 @@
+; Engine configuration file.
+; Neutral sample used by the optional real-render proof. No imported assets.
+
+config_version=5
+
+[application]
+
+config/name="Sample"
+run/main_scene="res://sample.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+
+[display]
+
+window/size/viewport_width=720
+window/size/viewport_height=1280
+window/size/window_width_override=720
+window/size/window_height_override=1280
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
