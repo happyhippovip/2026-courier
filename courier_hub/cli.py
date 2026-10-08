@@ -4,6 +4,8 @@
 ``courier-hub install-status`` prints one host's installation card as JSON.
 That card is derived by courier_hub.model from the install-state contract.
 It does not read a success message from an installer script.
+``courier-hub automation-status`` prints one card from the local ledger-bridge
+state file. It does not contact the controller.
 """
 
 import json
@@ -13,6 +15,7 @@ from pathlib import Path
 
 from courier_core.install_state import Evidence, JournalUnreadable, scrub_secrets
 from courier_hub import model
+from courier_hub.automation_status import automation_card
 
 from .server import main as _main
 
@@ -109,8 +112,34 @@ def _text(value):
     return value
 
 
+def automation_status_cli(argv) -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser(prog="courier-hub automation-status")
+    parser.add_argument("--home", required=True)
+    parser.add_argument("--now", required=True)
+    args = parser.parse_args(argv)
+    try:
+        now = datetime.fromisoformat(args.now)
+    except ValueError:
+        card = {
+            "state": "ATTENTION",
+            "label": "Needs attention",
+            "detail": "The time for this check could not be read.",
+            "in_flight": None,
+            "record_age_seconds": None,
+            "reason_code": "CLOCK",
+        }
+        sys.stdout.write(json.dumps(card, sort_keys=True) + "\n")
+        return 0
+    sys.stdout.write(json.dumps(automation_card(args.home, now), sort_keys=True) + "\n")
+    return 0
+
+
 def main(argv=None) -> int:
     args = sys.argv if argv is None else argv
+    if len(args) > 1 and args[1] == "automation-status":
+        return automation_status_cli(args[2:])
     if len(args) > 1 and args[1] == "install-status":
         return install_status_cli(args[2:])
     return _main(args)
