@@ -272,3 +272,10 @@ This ledger tracks the verification status of modules in this repository on Wind
 **Findings**:
 - Revenue-prospecting demo (RV-07): shells `gh search issues` over the public network and auto-writes QUALIFIED revenue leads (`approval: None`) into the revenue store. Off the Windows EXE / Desktop Robot acceptance route.
 - Cannot be verified honestly here: live run needs network + writes prospect records; hermetic tests would only mock `subprocess`/`gh`, i.e. simulated green without real proof — rejected per project proof standard. Read-only review only (58 lines); no defect claimed, no change made. Revisit only if this module enters an acceptance path.
+
+## scripts/ingest_docs.py
+**Status**: VERIFIED
+**Date**: 2026-10-08
+**Findings**:
+- **Real defect found and fixed**: `main()` used CWD-relative `docs/*.md` and `docs/ingestion_ready.jsonl`. Run from any directory other than the repo root it crashed with bare `FileNotFoundError` (reproduced); run where a foreign `docs/` exists it would silently ingest the wrong tree and report success. Paths are now anchored at the script's repo root (`REPO_ROOT`), with an optional `main(root=...)` override; record schema unchanged (`source` still `docs/<name>.md`); glob sorted for deterministic output.
+- **Testing**: new `tests/test_ingest_docs.py` (3 tests: header chunking, record content/ids under a tmp root, CWD-independence with no stray output). 2/3 fail on the base file (red), 3/3 pass on the fix (green). `py_compile` clean. No other in-repo importers; hermetic (tmp dirs only, no repo writes).
