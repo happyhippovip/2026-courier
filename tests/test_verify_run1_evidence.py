@@ -75,6 +75,26 @@ def test_verify_run1_evidence_missing_status(capsys, mock_evidence_clean):
     assert "Task A is not RECONCILED. Current: MISSING" in captured.out
     m_exit.assert_called_once_with(1)
 
+def test_verify_run1_evidence_missing_server_log_is_not_valid(capsys, mock_evidence_clean):
+    mock_evidence_clean["exists"].side_effect = lambda path: "server_run1.log" not in str(path)
+    m_exit = run_script()
+    captured = capsys.readouterr()
+    assert "RUN_1 EVIDENCE VALID" not in captured.out
+    assert "EXACTLY_ONCE" not in captured.out
+    assert "NO_FAILURES" not in captured.out
+    m_exit.assert_called_once_with(1)
+
+
+def test_verify_run1_evidence_log_failure_is_not_valid(capsys, mock_evidence_clean):
+    with patch("builtins.open", mock_open(read_data="Claimed task A\nResult for task A\nFAILED\n")):
+        m_exit = run_script()
+    captured = capsys.readouterr()
+    assert "RUN_1 EVIDENCE VALID" not in captured.out
+    assert "NO_FAILURES" not in captured.out
+    assert "records a failure" in captured.out
+    m_exit.assert_called_once_with(1)
+
+
 def test_verify_run1_evidence_wrong_counts(capsys, mock_evidence_clean):
     mock_log_content = "Claimed task A\nClaimed task A\n" # Missing result, double claim
     with patch("builtins.open", mock_open(read_data=mock_log_content)):
