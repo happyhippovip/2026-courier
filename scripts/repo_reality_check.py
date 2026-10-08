@@ -238,6 +238,13 @@ def to_html(result):
 
 
 def export_pdf(html_text, out_pdf):
+    try:
+        from weasyprint import HTML
+        HTML(string=html_text).write_pdf(out_pdf)
+        return True
+    except ImportError:
+        pass
+
     import tempfile
     import os
     import subprocess
