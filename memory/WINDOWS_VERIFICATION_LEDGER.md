@@ -279,3 +279,11 @@ This ledger tracks the verification status of modules in this repository on Wind
 **Findings**:
 - **Real defect found and fixed**: `main()` used CWD-relative `docs/*.md` and `docs/ingestion_ready.jsonl`. Run from any directory other than the repo root it crashed with bare `FileNotFoundError` (reproduced); run where a foreign `docs/` exists it would silently ingest the wrong tree and report success. Paths are now anchored at the script's repo root (`REPO_ROOT`), with an optional `main(root=...)` override; record schema unchanged (`source` still `docs/<name>.md`); glob sorted for deterministic output.
 - **Testing**: new `tests/test_ingest_docs.py` (3 tests: header chunking, record content/ids under a tmp root, CWD-independence with no stray output). 2/3 fail on the base file (red), 3/3 pass on the fix (green). `py_compile` clean. No other in-repo importers; hermetic (tmp dirs only, no repo writes).
+
+## scripts/provider_health_check.py
+**Status**: VERIFIED (fail-closed stub, no live check claimed)
+**Date**: 2026-10-08
+**Findings**:
+- **False-success stub eliminated**: the file unconditionally printed `Provider keys valid.` at import time while performing zero validation — any gate invoking it would record a passing health check with no evidence. Zero in-repo callers confirmed (scripts/tests/workflows scan).
+- Minimal fail-closed fix: explicit STUB notice on stderr + exit 2, import side effect removed (`__main__` guard), docstring points at the owning live lanes (provider_survival / provider_circuit). No live check invented here — that scope belongs to lanes #182/#195.
+- **Testing**: new `tests/test_provider_health_check.py` (2 tests: nonzero exit with STUB marker and no `valid` claim; import is side-effect-free and `main()` returns 2). Both fail on the base stub, both pass on the fix. Hermetic real-subprocess proof.
