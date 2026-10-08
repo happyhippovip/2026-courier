@@ -257,3 +257,33 @@ This ledger tracks the verification status of modules in this repository on Wind
 - [x] dashboard/server.py: 🟢 VERIFIED (verified in test_dashboard_server_uncovered.py)
 - [x] scripts/windows_worker/daemon.py: 🟢 VERIFIED (verified in test_windows_worker_daemon_uncovered.py, 87% coverage)
 - [x] scripts/mac_worker/runtime_state.py: ✔️ VERIFIED (verified in test_mac_worker_runtime_state_uncovered.py, 100% coverage)
+
+## scripts/automation_wake_coalescing.py
+**Status**: VERIFIED
+**Date**: 2026-10-08
+**Findings**:
+- Pure hermetic state machine (IDLE/PENDING/RUNNING/RESOURCE_PAUSE, no I/O); matches `docs/v1/AUTOMATION_WAKE_COALESCING_CONTRACT.md` invariants 1-6 (bounded queue, coalescence into single recheck flag, superseding, cancel-wins, EMFILE backoff without retry storm).
+- **Real defect found and fixed**: `cancel_requested` latch was never cleared — neither `start_execution()` nor `finish_execution()` reset the flag, so one cancel permanently bricked the scope (all later wakes ignored, every `start_execution()` False). The code comment promised recovery "until explicitly reset or handled" but no reset path existed. Fixed with 2 lines (`self.cancel_requested = False` in both lifecycle handlers).
+- **Testing**: new regression `test_cancel_latches_until_next_lifecycle_tick` FAILED pre-fix (flag stuck True) and passes post-fix. Full file 7/7 green; neighbors `test_provider_survival.py` + `test_provider_hibernation_mac03.py` (reference this module) 26/26 green. No mocks — deterministic real execution.
+
+## scripts/lead_research_helper.py
+**Status**: OUT_OF_SCOPE (not verifiable on the acceptance route)
+**Date**: 2026-10-08
+**Findings**:
+- Revenue-prospecting demo (RV-07): shells `gh search issues` over the public network and auto-writes QUALIFIED revenue leads (`approval: None`) into the revenue store. Off the Windows EXE / Desktop Robot acceptance route.
+- Cannot be verified honestly here: live run needs network + writes prospect records; hermetic tests would only mock `subprocess`/`gh`, i.e. simulated green without real proof — rejected per project proof standard. Read-only review only (58 lines); no defect claimed, no change made. Revisit only if this module enters an acceptance path.
+
+## scripts/ingest_docs.py
+**Status**: VERIFIED
+**Date**: 2026-10-08
+**Findings**:
+- **Real defect found and fixed**: `main()` used CWD-relative `docs/*.md` and `docs/ingestion_ready.jsonl`. Run from any directory other than the repo root it crashed with bare `FileNotFoundError` (reproduced); run where a foreign `docs/` exists it would silently ingest the wrong tree and report success. Paths are now anchored at the script's repo root (`REPO_ROOT`), with an optional `main(root=...)` override; record schema unchanged (`source` still `docs/<name>.md`); glob sorted for deterministic output.
+- **Testing**: new `tests/test_ingest_docs.py` (3 tests: header chunking, record content/ids under a tmp root, CWD-independence with no stray output). 2/3 fail on the base file (red), 3/3 pass on the fix (green). `py_compile` clean. No other in-repo importers; hermetic (tmp dirs only, no repo writes).
+
+## scripts/provider_health_check.py
+**Status**: VERIFIED (fail-closed stub, no live check claimed)
+**Date**: 2026-10-08
+**Findings**:
+- **False-success stub eliminated**: the file unconditionally printed `Provider keys valid.` at import time while performing zero validation — any gate invoking it would record a passing health check with no evidence. Zero in-repo callers confirmed (scripts/tests/workflows scan).
+- Minimal fail-closed fix: explicit STUB notice on stderr + exit 2, import side effect removed (`__main__` guard), docstring points at the owning live lanes (provider_survival / provider_circuit). No live check invented here — that scope belongs to lanes #182/#195.
+- **Testing**: new `tests/test_provider_health_check.py` (2 tests: nonzero exit with STUB marker and no `valid` claim; import is side-effect-free and `main()` returns 2). Both fail on the base stub, both pass on the fix. Hermetic real-subprocess proof.

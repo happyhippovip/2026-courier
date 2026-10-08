@@ -100,3 +100,19 @@ def test_no_double_external_effect_for_duplicate_wakes():
     
     ctx.finish_execution()
     assert ctx.state == AutoState.IDLE
+
+def test_cancel_latches_until_next_lifecycle_tick():
+    # Cancel while IDLE latches: later wakes are ignored until the next
+    # lifecycle tick (start/finish) explicitly clears the latch.
+    ctx = AutomationContext()
+    ctx.enqueue_wake(Wakeup(trigger_id="t1", is_cancel=True))
+    assert ctx.state == AutoState.IDLE
+    assert ctx.cancel_requested is True
+    ctx.enqueue_wake(Wakeup(trigger_id="t2"))
+    assert ctx.state == AutoState.IDLE
+    assert ctx.pending_instruction is None
+    # Next tick clears the latch without starting work from IDLE.
+    assert ctx.start_execution() is False
+    assert ctx.cancel_requested is False
+    ctx.enqueue_wake(Wakeup(trigger_id="t3"))
+    assert ctx.state == AutoState.PENDING

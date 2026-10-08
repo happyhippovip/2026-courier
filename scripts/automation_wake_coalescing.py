@@ -50,6 +50,7 @@ class AutomationContext:
     def start_execution(self) -> bool:
         """Attempt to transition to RUNNING. Returns True if execution should begin."""
         if self.cancel_requested:
+            self.cancel_requested = False
             self.state = AutoState.IDLE
             self.recheck_needed = False
             self.pending_instruction = None
@@ -68,6 +69,7 @@ class AutomationContext:
     def finish_execution(self):
         """Called when the current logical execution completes."""
         if self.cancel_requested:
+            self.cancel_requested = False
             self.state = AutoState.IDLE
             self.recheck_needed = False
             self.pending_instruction = None
