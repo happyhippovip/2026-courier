@@ -9,8 +9,9 @@ wählen ein anderes Verzeichnis. Ein Verzeichnis innerhalb einer
 Git-Arbeitskopie wird abgelehnt.
 
 Die Kontaktadresse der Bestellung wird nur als gesalzener Hash gespeichert.
-Der Bericht selbst wird nicht in das Auftragsbuch geschrieben, sondern nur
-Prüfsumme und Dateigröße.
+Der Bericht selbst wird nicht in das Auftragsbuch geschrieben. Vorgemerkt
+werden Prüfsumme und Größe der Berichtsdatei, der Commit und die
+Tarball-Prüfsumme.
 
 ## Ablauf
 
@@ -39,37 +40,41 @@ Prüfsumme und Dateigröße.
    python -m courier_core.reality_orders confirm-payment AUFTRAGSNUMMER --evidence TRANSAKTIONSNUMMER
    ```
 
-5. Auftrag als in Arbeit markieren.
+5. Bericht in einem Schritt erzeugen. Das geht nur nach bestätigter Zahlung.
+   Der Auftrag wird als in Arbeit markiert. Der Bericht liegt danach unter
+   `AUSGABE/AUFTRAGSNUMMER-report.md`. Er gilt noch nicht als geliefert.
 
    ```
-   python -m courier_core.reality_orders start AUFTRAGSNUMMER
+   python -m courier_core.reality_orders fulfill AUFTRAGSNUMMER --out-dir AUSGABE
    ```
 
-6. Das Repository lokal auschecken und den Bericht erzeugen. Der Befehl
-   schreibt eine Markdown-Datei und gehört zum Berichtsgenerator:
+   Dabei wird der Bericht für die GitHub-URL mit
+   `python -m courier_core.repo_reality_report` erzeugt. Ein zweiter Aufruf
+   für denselben begonnenen Auftrag benutzt die vorhandene Datei und holt
+   das Repository nicht erneut.
 
-   ```
-   python -m courier_core.repo_reality_report PFAD_ZUM_CHECKOUT --out report.md
-   ```
+   Fehlt das Repository oder ist es nicht öffentlich, wird der Auftrag als
+   fehlgeschlagen markiert. Die Ausgabe nennt den Pfad dieser Datei. Die
+   Erstattungsmail steht unten.
 
-7. Den Bericht lesen, bevor er verschickt wird.
+6. Den Bericht lesen, bevor er verschickt wird.
 
    - Keine Zugangsdaten, Token, Schlüssel oder Sitzungsdaten.
    - Keine personenbezogenen Daten, die für die Feststellung nicht nötig sind.
    - Nur Feststellungen aus dem Repository. Keine Vermutungen über Personen.
 
-8. Den Bericht mit der Liefermail unten an die bestellende Person senden.
+7. Den Bericht mit der Liefermail unten an die bestellende Person senden.
+   Das Programm verschickt keine Mail.
 
-9. Lieferung eintragen. Gespeichert werden Prüfsumme und Größe der Datei,
-   nicht der Dateiinhalt.
+8. Erst nach dem Versand die Lieferung bestätigen.
 
    ```
-   python -m courier_core.reality_orders deliver AUFTRAGSNUMMER --report report.md
+   python -m courier_core.reality_orders deliver AUFTRAGSNUMMER --confirm-sent
    ```
 
-10. Stand der Einnahmen prüfen. Verifiziert ist nur gelieferte und nicht
-    erstattete Arbeit. Bestätigte, noch nicht gelieferte Zahlungen stehen
-    unter pending.
+9. Stand der Einnahmen prüfen. Verifiziert ist nur gelieferte und nicht
+   erstattete Arbeit. Bestätigte, noch nicht gelieferte Zahlungen stehen
+   unter pending.
 
     ```
     python -m courier_core.reality_orders revenue

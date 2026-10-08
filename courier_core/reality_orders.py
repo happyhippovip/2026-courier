@@ -6,8 +6,9 @@ The order file is a projection of that log. A receipt is made durable before
 the projection is replaced, so a crash between the two is repaired by folding
 the log again on the next open.
 
-Payment becomes PAYMENT_CONFIRMED only through confirm_payment. A report
-runner is passed in by the caller. This module does not import one.
+Payment becomes PAYMENT_CONFIRMED only through confirm_payment. ``fulfill``
+fetches a public GitHub repository and writes the report. The order becomes
+DELIVERED only after ``deliver --confirm-sent``.
 """
 
 from __future__ import annotations
@@ -16,6 +17,8 @@ import argparse
 import hashlib
 import json
 import os
+import re
+import shutil
 import sys
 import tempfile
 import urllib.parse
@@ -24,6 +27,8 @@ from pathlib import Path
 from typing import Any, Callable, Mapping
 
 from courier_core.events import GENESIS_HASH, canonical_json, utc_now
+from courier_core.repo_reality_fetch import FetchError, fetch_public
+from courier_core.repo_reality_report import build_report
 
 PRODUCT = "Repo Reality Check beta"
 PRICE_CENTS = 500
@@ -55,10 +60,22 @@ _PENDING = frozenset({PAYMENT_CONFIRMED, RUNNING})
 _MAX_ID = 80
 _MAX_EVIDENCE = 500
 _GITHUB_HOST = "github.com"
+_SHA40 = re.compile(r"^[0-9a-f]{40}$")
+_SHA256 = re.compile(r"^[0-9a-f]{64}$")
+FETCH_FAIL_REASON = "public repository could not be fetched"
+REFUND_TEMPLATE = Path(__file__).resolve().parents[1] / "docs" / "REPO_REALITY_CHECK_DELIVERY.md"
 
 
 class OrderError(ValueError):
     """The order cannot take this step. Nothing new is written."""
+
+
+class FulfillmentError(OrderError):
+    """The report was not written. ``template`` is the refund mail document."""
+
+    def __init__(self, message: str, template: Path):
+        super().__init__(message)
+        self.template = template
 
 
 def contact_hash(contact: str, salt: bytes) -> str:
@@ -112,6 +129,7 @@ class OrderBook:
             "delivery_evidence": None,
             "refund_evidence": None,
             "failure_evidence": None,
+            "ready_evidence": None,
         }
         self._commit(order, NEW, None, from_status=None)
         return _public(order)
@@ -131,6 +149,67 @@ class OrderBook:
 
     def mark_failed(self, order_id: str, evidence_ref: str) -> dict[str, Any]:
         return self._move(order_id, FAILED, evidence_ref, allow_payment=False)
+
+    def record_delivery_ready(self, order_id: str, evidence_ref: str) -> dict[str, Any]:
+        """Remember report evidence while the order stays in progress."""
+        order_id = _order_id(order_id)
+        key = f"{order_id}:DELIVERY_READY"
+        if key in self._seen:
+            return _public(self._require(order_id))
+        order = self._require(order_id)
+        if order["status"] != RUNNING:
+            raise OrderError("report evidence requires a started order")
+        evidence = _evidence(evidence_ref)
+        updated = dict(order)
+        updated["ready_evidence"] = evidence
+        self._commit(
+            updated, "DELIVERY_READY", evidence, from_status=RUNNING, to_status=RUNNING,
+        )
+        return _public(updated)
+
+    def fulfill(self, order_id: str, out_dir: str | os.PathLike) -> dict[str, Any]:
+        """Prepare a report for a paid order. Delivery waits for confirm-sent.
+
+        A started order that already has ``<order_id>-report.md`` reuses that
+        file and does not fetch the repository again.
+        """
+        order = self._require(order_id)
+        if order["status"] == NEW:
+            raise OrderError("order is not paid")
+        if order["status"] in {REFUNDED, FAILED, DELIVERED}:
+            raise OrderError(f"{order['status']} cannot be fulfilled")
+        report_path = Path(out_dir) / f"{order['order_id']}-report.md"
+        if order["status"] == PAYMENT_CONFIRMED:
+            self.mark_running(order_id)
+            order = self._require(order_id)
+        if order["status"] != RUNNING:
+            raise OrderError(f"{order['status']} cannot be fulfilled")
+        if report_path.is_file():
+            if not order.get("ready_evidence"):
+                self.record_delivery_ready(order_id, _ready_evidence(report_path))
+            return _public(self._require(order_id))
+        spec = _github_spec(order["repo_ref"])
+        try:
+            fetched = fetch_public(spec)
+        except FetchError as exc:
+            self.mark_failed(order_id, FETCH_FAIL_REASON)
+            raise FulfillmentError(FETCH_FAIL_REASON, REFUND_TEMPLATE) from exc
+        try:
+            markdown = build_report(
+                fetched.root,
+                None,
+                {
+                    "source": f"github.com/{fetched.owner}/{fetched.repo}@{fetched.ref}",
+                    "sha": fetched.sha,
+                    "tarball_sha256": fetched.tarball_sha256,
+                },
+            )
+        finally:
+            shutil.rmtree(fetched.temp_dir, ignore_errors=True)
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text(markdown, encoding="utf-8")
+        self.record_delivery_ready(order_id, _ready_evidence(report_path))
+        return _public(self._require(order_id))
 
     def run_report(self, order_id: str, runner: Callable[[Mapping[str, Any]], str]) -> dict[str, Any]:
         """Run an injected report callable and deliver its evidence reference.
@@ -198,7 +277,15 @@ class OrderBook:
         self._commit(updated, status, evidence, from_status=order["status"])
         return _public(updated)
 
-    def _commit(self, order: dict[str, Any], transition: str, evidence_ref: str | None, *, from_status: str | None) -> None:
+    def _commit(
+        self,
+        order: dict[str, Any],
+        transition: str,
+        evidence_ref: str | None,
+        *,
+        from_status: str | None,
+        to_status: str | None = None,
+    ) -> None:
         if self._closed:
             raise OrderError("order book stopped after a receipt and must be reopened")
         key = f"{order['order_id']}:{transition}"
@@ -210,7 +297,7 @@ class OrderBook:
             "order_id": order["order_id"],
             "transition": transition,
             "from_status": from_status,
-            "to_status": transition,
+            "to_status": transition if to_status is None else to_status,
             "dedupe_key": key,
             "evidence_ref": evidence_ref,
             "order": _public(order),
@@ -312,6 +399,11 @@ def _fold_one(orders: dict[str, dict[str, Any]], receipt: Mapping[str, Any]) -> 
             raise OrderError("duplicate create in the log")
         orders[order_id] = dict(snapshot)
         return
+    if receipt.get("transition") == "DELIVERY_READY":
+        if current is None or current["status"] != RUNNING or status != RUNNING:
+            raise OrderError("receipt log contains a transition the order cannot take")
+        orders[order_id] = dict(snapshot)
+        return
     if current is None or status not in _NEXT[current["status"]]:
         raise OrderError("receipt log contains a transition the order cannot take")
     orders[order_id] = dict(snapshot)
@@ -331,6 +423,7 @@ def _public(order: Mapping[str, Any]) -> dict[str, Any]:
         "delivery_evidence": order["delivery_evidence"],
         "refund_evidence": order["refund_evidence"],
         "failure_evidence": order["failure_evidence"],
+        "ready_evidence": order.get("ready_evidence"),
     }
 
 
@@ -459,6 +552,30 @@ def github_repo_url(value: str) -> str:
     return f"https://github.com/{owner}/{repo}"
 
 
+def _github_spec(repo_url: str) -> str:
+    parsed = urllib.parse.urlsplit(repo_url)
+    owner, repo = [part for part in parsed.path.split("/") if part]
+    return f"{owner}/{repo}"
+
+
+def _ready_evidence(path: Path) -> str:
+    text = path.read_text(encoding="utf-8")
+    commit = _labeled(text, "Commit: ")
+    tarball = _labeled(text, "Tarball sha256: ")
+    if _SHA40.fullmatch(commit) is None or _SHA256.fullmatch(tarball) is None:
+        raise OrderError("report is missing fetch evidence")
+    return f"{report_evidence(path)};commit:{commit};tarball:{tarball}"
+
+
+def _labeled(text: str, label: str) -> str:
+    prefix = "- " + label
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith(prefix):
+            return stripped[len(prefix):].strip()
+    return ""
+
+
 def _github_segment(value: str) -> bool:
     if not value or value in {".", ".."} or value.startswith(".") or value.endswith("."):
         return False
@@ -550,9 +667,14 @@ def main(argv: list[str] | None = None) -> int:
     start = commands.add_parser("start")
     start.add_argument("order_id")
 
+    fulfill = commands.add_parser("fulfill")
+    fulfill.add_argument("order_id")
+    fulfill.add_argument("--out-dir", required=True)
+
     deliver = commands.add_parser("deliver")
     deliver.add_argument("order_id")
-    deliver.add_argument("--report", required=True)
+    deliver.add_argument("--report", default=None)
+    deliver.add_argument("--confirm-sent", action="store_true")
 
     refund = commands.add_parser("refund")
     refund.add_argument("order_id")
@@ -578,8 +700,20 @@ def main(argv: list[str] | None = None) -> int:
         elif args.cmd == "start":
             order = book.mark_running(args.order_id)
             print(f"{order['order_id']} {order['status']}")
+        elif args.cmd == "fulfill":
+            order = book.fulfill(args.order_id, args.out_dir)
+            print(f"{order['order_id']} {order['status']}")
+            print(Path(args.out_dir) / f"{order['order_id']}-report.md")
         elif args.cmd == "deliver":
-            order = book.mark_delivered(args.order_id, report_evidence(args.report))
+            if args.confirm_sent == bool(args.report):
+                raise OrderError("deliver needs --report or --confirm-sent")
+            if args.confirm_sent:
+                current = book.get(args.order_id)
+                if not current.get("ready_evidence"):
+                    raise OrderError("report has not been prepared")
+                order = book.mark_delivered(args.order_id, current["ready_evidence"])
+            else:
+                order = book.mark_delivered(args.order_id, report_evidence(args.report))
             print(f"{order['order_id']} {order['status']}")
         elif args.cmd == "refund":
             order = book.mark_refunded(args.order_id, args.reason)
@@ -596,6 +730,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"pending {_eur(summary['pending_cents'])} ({summary['pending_count']})")
         else:
             parser.error(f"unknown command {args.cmd}")
+    except FulfillmentError as exc:
+        print(exc.template)
+        print(str(exc), file=sys.stderr)
+        return 2
     except OrderError as exc:
         print(str(exc), file=sys.stderr)
         return 2
