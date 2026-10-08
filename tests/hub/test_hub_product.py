@@ -718,3 +718,77 @@ def test_support_export_is_one_item_read_only_and_holds_no_secrets(world):
     foreign = requests.get(f"{hub.base}/hub/api/items/{task_id}/support",
                            headers={"Host": "evil.example"}, timeout=10)
     assert foreign.status_code == 421
+
+
+def test_model_summary_empty_tasks():
+    s = model.summary([], {})
+    assert s == {
+        model.PILE_NEEDS_YOU: {"count": 0, "latest_change": None},
+        model.PILE_WORKING: {"count": 0, "latest_change": None},
+        model.PILE_DONE: {"count": 0, "latest_change": None},
+    }
+
+
+def test_model_summary_counts_and_latest_changes():
+    t_blocked = state("BLOCKED", task_id="t-b")
+    t_working1 = state("RUNNING", task_id="t-w1")
+    t_working2 = state("QUEUED", task_id="t-w2")
+    t_done = state("COMPLETE", task_id="t-d", resolution="verified")
+
+    events = {
+        "t-b": [{"type": "TASK_BLOCKED", "task_id": "t-b", "ts_utc": "2026-10-08T01:00:00Z"}],
+        "t-w1": [{"type": "TASK_STARTED", "task_id": "t-w1", "ts_utc": "2026-10-08T02:00:00Z"}],
+        "t-w2": [{"type": "TASK_CREATED", "task_id": "t-w2", "ts_utc": "2026-10-08T02:30:00Z"}],
+        "t-d": [{"type": "TASK_COMPLETE", "task_id": "t-d", "ts_utc": "2026-10-08T03:00:00Z"}],
+    }
+    tasks = [t_blocked, t_working1, t_working2, t_done]
+    s = model.summary(tasks, events)
+    assert s["needs_you"]["count"] == 1
+    assert s["needs_you"]["latest_change"] == "2026-10-08T01:00:00Z"
+    assert s["working"]["count"] == 2
+    assert s["working"]["latest_change"] == "2026-10-08T02:30:00Z"
+    assert s["done"]["count"] == 1
+    assert s["done"]["latest_change"] == "2026-10-08T03:00:00Z"
+
+
+def test_model_summary_input_resilience():
+    t1 = state("RUNNING", task_id="t1")
+    ev_list = [{"type": "TASK_STARTED", "task_id": "t1", "ts_utc": "2026-10-08T05:00:00Z"}]
+    # Pass events as list instead of dict
+    s1 = model.summary([t1], ev_list)
+    assert s1["working"]["count"] == 1
+    assert s1["working"]["latest_change"] == "2026-10-08T05:00:00Z"
+    # Pass events as None
+    s2 = model.summary([t1], None)
+    assert s2["working"]["count"] == 1
+    assert s2["working"]["latest_change"] is None
+
+
+def test_server_home_payload_includes_summary(world):
+    live, hub, clock = world
+    verified_task(live)
+    home = hub.home()
+    assert "summary" in home
+    s = home["summary"]
+    assert set(s.keys()) == {"needs_you", "working", "done"}
+    for k in ("needs_you", "working", "done"):
+        assert isinstance(s[k]["count"], int)
+        assert s[k]["count"] == home["counts"][k]
+        assert s[k]["latest_change"] is None or isinstance(s[k]["latest_change"], str)
+
+
+def test_home_summary_and_view_zero_agent_vocabulary(world):
+    live, hub, clock = world
+    verified_task(live)
+    home = hub.home()
+    # Customer-facing home payload and summary must contain zero agent machinery vocabulary
+    customer_visible = {
+        "needs_you": home.get("needs_you"),
+        "working": home.get("working"),
+        "done": home.get("done"),
+        "summary": home.get("summary"),
+        "counts": home.get("counts"),
+    }
+    vis_serialized = json.dumps(customer_visible).lower()
+    for bad in ["workkey", "lane", "agent", "provider"]:
+        assert bad not in vis_serialized, f"Customer UI leaked forbidden agent vocabulary: {bad!r}"

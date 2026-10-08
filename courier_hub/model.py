@@ -381,9 +381,51 @@ def unrecognised_receipt(task: Any, events: Iterable[Any]) -> dict:
     }
 
 
-def home(tasks: Iterable[Any], events_by_task: dict, done_limit: int = 50) -> dict:
-    piles = {PILE_NEEDS_YOU: [], PILE_WORKING: [], PILE_DONE: []}
+def summary(tasks: Iterable[Any], events: Any = None) -> dict:
+    """Per-pile summary with count and latest change timestamp.
+
+    Pure function: TaskState + events in, plain dict out.
+    Computed from journal tasks + events only.
+    """
+    if events is None:
+        events_by_task: dict = {}
+    elif isinstance(events, dict):
+        events_by_task = events
+    else:
+        events_by_task = {}
+        for e in events:
+            tid = _get(e, "task_id")
+            if tid:
+                events_by_task.setdefault(tid, []).append(e)
+
+    res = {
+        PILE_NEEDS_YOU: {"count": 0, "latest_change": None},
+        PILE_WORKING: {"count": 0, "latest_change": None},
+        PILE_DONE: {"count": 0, "latest_change": None},
+    }
+
     for task in tasks:
+        try:
+            pile = pile_of(task)
+        except ValueError:
+            pile = PILE_WORKING
+        res[pile]["count"] += 1
+        tid = _get(task, "task_id")
+        task_events = events_by_task.get(tid, [])
+        lc = _last_change(task_events)
+        if lc and lc.get("at"):
+            at = lc["at"]
+            curr = res[pile]["latest_change"]
+            if curr is None or at > curr:
+                res[pile]["latest_change"] = at
+
+    return res
+
+
+def home(tasks: Iterable[Any], events_by_task: dict, done_limit: int = 50) -> dict:
+    tasks_list = list(tasks)
+    piles = {PILE_NEEDS_YOU: [], PILE_WORKING: [], PILE_DONE: []}
+    for task in tasks_list:
         try:
             item = card(task, events_by_task.get(_get(task, "task_id"), []))
         except ValueError:  # one unknown state must not take the whole Home down
@@ -397,6 +439,7 @@ def home(tasks: Iterable[Any], events_by_task: dict, done_limit: int = 50) -> di
     piles[PILE_WORKING].sort(key=changed, reverse=True)
     piles[PILE_DONE].sort(key=changed, reverse=True)
     counts = {k: len(v) for k, v in piles.items()}  # totals, before Done is trimmed for display
+    summ = summary(tasks_list, events_by_task)
     piles[PILE_DONE] = piles[PILE_DONE][:done_limit]
     return {"needs_you": piles[PILE_NEEDS_YOU], "working": piles[PILE_WORKING], "done": piles[PILE_DONE],
-            "counts": counts, "done_shown": len(piles[PILE_DONE])}
+            "counts": counts, "done_shown": len(piles[PILE_DONE]), "summary": summ}

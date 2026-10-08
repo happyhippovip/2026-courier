@@ -750,3 +750,49 @@ def test_job_object_kills_tree_on_terminate(tmp_path):
     leftovers = [p.pid for p in me.children(recursive=True) if p.pid not in before]
     assert leftovers == []
 
+
+def test_worker_exit_flush_bounded_by_timeout(tmp_path):
+    """Worker exit flush respects timeout_s budget, exiting quickly with remaining results durable."""
+    home = str(tmp_path)
+    os.makedirs(os.path.join(home, "outbox"), exist_ok=True)
+
+    # Fill outbox to OUTBOX_CAP (32 items)
+    for i in range(H.OUTBOX_CAP):
+        payload = {
+            "dispatch_id": f"d-{i:03d}",
+            "task_id": f"t-{i:03d}",
+            "outcome": "COMPLETE",
+            "attempt": 1,
+            "worker_id": "test-worker",
+            "result_id": f"r-{i:03d}",
+            "output": {},
+        }
+        S.outbox_write(home, payload)
+
+    assert len(S.outbox_read_all(home)) == H.OUTBOX_CAP
+
+    # Client whose deliver sleeps for 0.5s per item
+    class SlowHangingClient:
+        def __init__(self):
+            self.delivered = []
+
+        def deliver(self, payload):
+            time.sleep(0.5)
+            self.delivered.append(payload["dispatch_id"])
+
+    loop = S.WorkerLoop(home, "http://127.0.0.1:9", "test-w", 2.0)
+    loop._client = SlowHangingClient()
+
+    t0 = time.monotonic()
+    # Flush with a tight 1.2s budget (should deliver ~2 items, not all 32)
+    remaining = loop.flush_outbox(timeout_s=1.2)
+    elapsed = time.monotonic() - t0
+
+    # Must exit within bounded time (well under 3.5s, not 32 * 0.5 = 16s)
+    assert elapsed < 3.5, f"flush_outbox took too long: {elapsed:.2f}s"
+    assert remaining > 0, "should have undelivered remaining items"
+    # Undelivered results must stay durable in outbox
+    remaining_in_outbox = len(S.outbox_read_all(home))
+    assert remaining_in_outbox == remaining
+    assert remaining_in_outbox > 0
+

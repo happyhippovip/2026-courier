@@ -2,7 +2,7 @@
 // live in hub_core.mjs; this file only fetches, renders and handles input.
 import {
   createDecisionClient, decisionsAllowed, findChoice, initialConnection, nextConnection,
-  renderHome, renderReceipt, retryDelayMs, statusLine, viewSignature,
+  renderHome, renderReceipt, renderWorkspaceStrip, retryDelayMs, statusLine, viewSignature,
 } from './hub_core.mjs';
 
 const $ = (sel) => document.querySelector(sel);
@@ -27,6 +27,13 @@ function render({ force = false } = {}) {
   status.textContent = line.text;
   status.dataset.tone = line.tone;
   if (state.view) {
+    const strip = $('#workspace-strip');
+    if (strip) {
+      let watermark = null;
+      try { watermark = localStorage.getItem('courier_last_visit'); } catch {}
+      strip.innerHTML = renderWorkspaceStrip(state.view, { watermark });
+      strip.hidden = !state.view.summary;
+    }
     const focusedId = document.activeElement?.dataset?.id;
     const focusedAction = document.activeElement?.dataset?.action;
     $('#piles').innerHTML = renderHome(state.view, {
@@ -51,6 +58,11 @@ async function refresh() {
     state.connection = nextConnection(state.connection, { type: 'fail' });
   }
   render();
+  try {
+    if (state.view?.read_at) {
+      localStorage.setItem('courier_last_visit', state.view.read_at);
+    }
+  } catch {}
   if (state.openItem && state.view && state.view.head_seq !== state.openItemSeq) {
     state.openItemSeq = state.view.head_seq;  // reload the receipt only when the record changed
     await loadItem(state.openItem, { quiet: true });

@@ -252,3 +252,22 @@ export function findChoice(view, id, decision) {
   const card = (view?.needs_you || []).find((c) => c.id === id);
   return card ? card.needs_you.choices.find((c) => c.decision === decision) || null : null;
 }
+
+export function renderWorkspaceStrip(view, opts = {}) {
+  const summary = view?.summary;
+  if (!summary) return '';
+  const watermark = opts.watermark;
+  const now = opts.now ?? Date.now();
+  const items = PILES.map((pile) => {
+    const s = summary[pile.key] || { count: 0, latest_change: null };
+    const when = s.latest_change ? timeAgo(s.latest_change, now) : 'no activity';
+    const isNew = Boolean(watermark && s.latest_change && s.latest_change > watermark);
+    const badge = isNew ? ' <span class="strip-marker">Updated</span>' : '';
+    return `<div class="strip-item strip-${pile.key}">` +
+      `<span class="strip-label">${escapeHtml(pile.title)}</span>: ` +
+      `<span class="strip-count">${s.count}</span> ` +
+      `<span class="strip-when">(${escapeHtml(when)})</span>` +
+      `${badge}</div>`;
+  }).join('');
+  return `<div class="workspace-strip-inner">${items}</div>`;
+}

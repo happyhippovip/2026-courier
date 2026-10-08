@@ -49,3 +49,10 @@ button.primary { border-color: var(--gold); }
 .support pre { white-space: pre-wrap; font-size: 12px; color: var(--quiet); }
 dialog { background: #151a22; color: var(--ink); border: 1px solid var(--gold); border-radius: 12px; max-width: 460px; }
 .dialog-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.workspace-strip { margin: 8px 16px; padding: 6px 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 8px; font-size: 13px; }
+.workspace-strip-inner { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+.strip-item { display: inline-flex; align-items: center; gap: 4px; }
+.strip-label { font-weight: 500; color: var(--ink); }
+.strip-count { font-weight: 600; color: var(--gold); }
+.strip-when { color: var(--quiet); font-size: 12px; }
+.strip-marker { background: var(--gold); color: #000; font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 4px; text-transform: uppercase; }

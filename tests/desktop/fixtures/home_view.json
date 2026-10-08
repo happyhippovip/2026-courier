@@ -124,6 +124,20 @@
     "done": 4
   },
   "done_shown": 4,
+  "summary": {
+    "needs_you": {
+      "count": 1,
+      "latest_change": "2026-10-02T08:00:00.000000Z"
+    },
+    "working": {
+      "count": 1,
+      "latest_change": "2026-10-02T08:00:00.000000Z"
+    },
+    "done": {
+      "count": 4,
+      "latest_change": "2026-10-02T08:00:00.000000Z"
+    }
+  },
   "status": {
     "controller": "running",
     "checked_at": "2026-10-02T08:00:00.000000Z"

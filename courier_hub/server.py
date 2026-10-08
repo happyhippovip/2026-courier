@@ -180,6 +180,7 @@ class Hub:
         except TruthUnavailable as exc:
             return {"status": status, "truth": exc.args[0], "head_seq": None,
                     "needs_you": [], "working": [], "done": [], "counts": {"needs_you": 0, "working": 0, "done": 0},
+                    "summary": {"needs_you": {"count": 0, "latest_change": None}, "working": {"count": 0, "latest_change": None}, "done": {"count": 0, "latest_change": None}},
                     "read_at": utc_now()}
         view.update({"status": status, "truth": "ok", "read_at": utc_now()})
         return view
