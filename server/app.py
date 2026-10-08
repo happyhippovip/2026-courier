@@ -285,7 +285,8 @@ def register_worker():
         "last_seen": time.time(),
         "available": current_task is None,
         "current_task": current_task,
-        "cost_class": data.get("cost_class", "unknown")
+        "cost_class": data.get("cost_class", "unknown"),
+        "resource_state": data.get("resource_state", "NORMAL")
     }
     
     save_state(state)
@@ -317,10 +318,14 @@ def heartbeat():
     
     if worker_id in state["workers"]:
         state["workers"][worker_id]["last_seen"] = time.time()
-        # Only mark available if not currently working
         worker = state["workers"][worker_id]
-        if not worker.get("current_task") and not worker.get("unregistered"):
-            state["workers"][worker_id]["available"] = True
+        if "resource_state" in data:
+            worker["resource_state"] = data["resource_state"]
+        # Only mark available if not currently working AND normal pressure
+        if not worker.get("current_task") and not worker.get("unregistered") and worker.get("resource_state", "NORMAL") == "NORMAL":
+            worker["available"] = True
+        else:
+            worker["available"] = False
         save_state(state)
         return jsonify({"status": "OK"})
     else:
@@ -339,6 +344,11 @@ def claim_task():
         
     worker = state["workers"][worker_id]
     worker["last_seen"] = time.time()
+    if "resource_state" in data:
+        worker["resource_state"] = data["resource_state"]
+        if worker["resource_state"] != "NORMAL":
+            worker["available"] = False
+            
     if worker.get("current_task") or not worker.get("available", False):
         save_state(state)
         return jsonify({"task": None, "reason": "WORKER_BUSY"})

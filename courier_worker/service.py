@@ -119,7 +119,9 @@ class ControllerClient:
             return False
         return status == 200
 
-    def claim(self, worker_id: str) -> Optional[dict]:
+    def claim(self, worker_id: str, resource_state: str = "NORMAL") -> Optional[dict]:
+        # The V1 controller rejects unknown body fields (400), so resource_state stays
+        # local: the worker only claims when NORMAL and holds back otherwise.
         try:
             status, payload = self._call("POST", "/claim", {"worker_id": worker_id})
         except ControllerError:
@@ -140,7 +142,9 @@ class ControllerClient:
         if status != 200:
             raise StaleDispatch(f"start for {dispatch_id}: status {status}")
 
-    def heartbeat(self, worker_id: str, dispatch_ids: list) -> dict:
+    def heartbeat(self, worker_id: str, dispatch_ids: list, resource_state: str = "NORMAL") -> dict:
+        # resource_state is accepted for the thermal-relief callers but not sent:
+        # /heartbeat on the V1 controller allows only worker_id and dispatch_ids.
         status, payload = self._call("POST", "/heartbeat",
                                {"worker_id": worker_id, "dispatch_ids": dispatch_ids})
         if status != 200:
@@ -380,6 +384,9 @@ class WorkerLoop:
         self.worker_id = worker_id
         self.heartbeat_s = heartbeat_s
         self.engine = engine or WorkerHost(home)
+        # Thermal relief (#139): local only, never sent to the V1 controller.
+        self._last_resource_state = "NORMAL"
+        self._cooldown_until = 0.0
         self._client_factory = client_factory or self._default_client
         self._client: Optional[ControllerClient] = None
         self._watchers: dict = {}
@@ -424,8 +431,33 @@ class WorkerLoop:
             return "idle"
         client = self._client or self._client_factory()
         self._client = client
-        claim = client.claim(self.worker_id)
+
+        reason = self.engine._pressure_probe()
+        now = time.time()
+        
+        if reason is not None:
+            self._last_resource_state = "PRESSURED"
+            self._cooldown_until = now + 60.0  # 1 minute hysteresis
+        elif now < self._cooldown_until:
+            self._last_resource_state = "COOLDOWN"
+        else:
+            self._last_resource_state = "NORMAL"
+            
+        if self._last_resource_state != "NORMAL":
+            # Just send heartbeat to report state and remain idle
+            try:
+                client.heartbeat(self.worker_id, [], resource_state=self._last_resource_state)
+            except ControllerError:
+                pass
+            return "idle"
+            
+        claim = client.claim(self.worker_id, resource_state=self._last_resource_state)
         if claim is None:
+            # Send idle heartbeat
+            try:
+                client.heartbeat(self.worker_id, [], resource_state=self._last_resource_state)
+            except ControllerError:
+                pass
             return "idle"
         try:
             spec = resolve_spec(claim, self.worker_id, self.artifacts_root(), self.heartbeat_s,
@@ -474,7 +506,7 @@ class WorkerLoop:
         return "delivered"
 
     def _send_heartbeat(self, client: ControllerClient, spec: ExecutionSpec) -> bool:
-        payload = client.heartbeat(self.worker_id, [spec.dispatch_id])
+        payload = client.heartbeat(self.worker_id, [spec.dispatch_id], resource_state=self._last_resource_state)
         if spec.dispatch_id in payload.get("cancel", []) or spec.dispatch_id in payload.get("stop", []):
             watcher = self._watchers.get(spec.dispatch_id)
             if watcher:
