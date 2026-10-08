@@ -45,3 +45,24 @@ is then part of the URL, so use it with demo data or a short-lived token only.
 Browser `Origin` headers are rejected unless allow-listed (`--allow-origin`).
 
 Real mode is the receipt read model. It lands with `lane/L2-receipt-read-model`.
+
+## OAuth 2.1 (for hosted connectors that require it)
+
+`--oauth --public-url https://<host> --oauth-store <file>` turns on a minimal
+authorization server (standard library only):
+
+- Metadata: `/.well-known/oauth-authorization-server` (RFC 8414) and
+  `/.well-known/oauth-protected-resource` (RFC 9728). 401 responses carry
+  `WWW-Authenticate: Bearer resource_metadata="…"`.
+- Public clients only (`token_endpoint_auth_method: none`), PKCE `S256`
+  required, scope `courier.read`. Fixed client id `courier-grok`; dynamic
+  client registration at `POST /register` (RFC 7591).
+- `GET /authorize` shows a consent page; the owner approves by typing the
+  server token (`COURIER_MCP_TOKEN`) as approval password. Wrong passwords:
+  5 per 10 minutes, then 429.
+- Codes: in memory, single use, 120 s, bound to client, redirect URI and
+  challenge. Access tokens 1 h, refresh tokens 30 d (rotated on use). Only
+  SHA-256 hashes are stored, in the store file (mode 0600).
+- `redirect_uri` must be `https` on `grok.com`, `x.ai` or a subdomain.
+  Rejected hosts are logged (host only) so the list can be widened.
+- The static bearer and the optional path token keep working.
