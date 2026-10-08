@@ -1,0 +1,378 @@
+"""Ledger mission to V1 controller task. Injected HTTP only; no providers."""
+
+import hashlib
+import json
+import subprocess
+from pathlib import Path
+
+from scripts.coordination_ledger import (
+    AgentID, CoordinationEvent, EventType, HostID, MissionStatus,
+)
+from scripts.coordination_resume import reduce_store
+from scripts.github_coordination import FileCoordinationStore
+from scripts.ledger_v1_bridge import main
+
+TOKEN = "controller-token-value-0123456789abcdef"
+AGENT = "GOOGLE_WINDOWS"
+HOST = "WINDOWS_REMOTE"
+REPO = Path(__file__).resolve().parents[1]
+SHA = "0123456789abcdef0123456789abcdef01234567"
+
+
+def _event(eid, mid, etype, status, ts, deps=None):
+    return CoordinationEvent(
+        event_id=eid, mission_id=mid, agent_id=AgentID.GOOGLE_WINDOWS, host_id=HostID.WINDOWS_REMOTE,
+        event_type=etype, status=status, depends_on=deps or [], head="sha", evidence_ref="ref",
+        created_at=ts, payload_hash="h", ownership=AGENT,
+    )
+
+
+def _spec(**overrides):
+    body = {
+        "adapter": "synthetic",
+        "params": {"unit": "a"},
+        "effect_class": "idempotent",
+        "max_attempts": 1,
+        "lease_ttl_s": 30,
+    }
+    body.update(overrides)
+    return body
+
+
+class FakeHTTP:
+    def __init__(self):
+        self.posts = []
+        self.views = {}
+        self.fail_post = False
+        self.down = False
+
+    def __call__(self, method, url, headers, body, timeout):
+        assert timeout > 0
+        assert TOKEN not in url
+        assert "Bearer" not in url
+        if "127.0.0.1" in url or "[::1]" in url or "localhost" in url:
+            assert headers.get("X-Courier-Token") == TOKEN
+        if self.down or (method == "POST" and self.fail_post):
+            raise OSError("controller unreachable")
+        if method == "POST" and url.endswith("/v1/tasks"):
+            posted = json.loads(body.decode("utf-8"))
+            key = posted["idempotency_key"]
+            task_id = "task-" + hashlib.sha256(key.encode("utf-8")).hexdigest()[:32]
+            duplicate = any(item["idempotency_key"] == key for item in self.posts)
+            if not duplicate:
+                self.posts.append(posted)
+                self.views.setdefault(task_id, {
+                    "task_id": task_id, "status": "QUEUED", "attempt": 0,
+                    "accepted_result_id": None, "last_reason": None,
+                })
+            return (200 if duplicate else 201), json.dumps(
+                {"task_id": task_id, "duplicate": duplicate}).encode()
+        if method == "GET" and "/v1/tasks/" in url:
+            task_id = url.rstrip("/").rsplit("/", 1)[-1]
+            view = self.views.get(task_id)
+            if view is None:
+                return 404, b'{"error":"unknown_task"}'
+            return 200, json.dumps(view).encode()
+        raise AssertionError(url)
+
+
+def _home(tmp_path, specs):
+    home = tmp_path / "home"
+    (home / "run").mkdir(parents=True)
+    (home / "run" / "controller.token").write_text(TOKEN + "\n", encoding="utf-8")
+    if specs is not None:
+        (home / "ledger_tasks.json").write_text(json.dumps(specs), encoding="utf-8")
+    return home
+
+
+def _seed(home, events):
+    store = FileCoordinationStore(home / "coordination_ledger.jsonl")
+    for event in events:
+        store.write_event(event)
+    return store
+
+
+def _run(home, http, *, extra=None):
+    out, err = [], []
+    code = main(
+        [
+            "--home", str(home),
+            "--agent-id", AGENT,
+            "--host-id", HOST,
+            "--controller", "http://127.0.0.1:9",
+            *(extra or []),
+        ],
+        http=http,
+        stdout=out.append,
+        stderr=err.append,
+    )
+    log_path = home / "run" / "ledger_bridge.log"
+    log = log_path.read_text(encoding="utf-8") if log_path.exists() else ""
+    ledger = home / "coordination_ledger.jsonl"
+    lines = ledger.read_text(encoding="utf-8").splitlines() if ledger.exists() else []
+    return code, "".join(out), "".join(err), log, lines
+
+
+def _ready(mid, eid, ts="2026-10-08T04:00:00Z", deps=None):
+    return _event(eid, mid, EventType.ASSIGNED, MissionStatus.WORKING, ts, deps)
+
+
+def _git_head():
+    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO, text=True).strip()
+
+
+def _mapped(task_id="task-a", claim="claim-a", fingerprint="fp", source=SHA, attempt=1):
+    return {
+        "task_id": task_id,
+        "claim_event_id": claim,
+        "idempotency_key": "ledger:" + claim,
+        "posted": True,
+        "accepted_result_id": None,
+        "attempt": attempt,
+        "spec_fingerprint": fingerprint,
+        "source_sha": source,
+        "evidence_ref": "seed",
+    }
+
+
+def test_ready_mission_is_claimed_and_posted_once(tmp_path):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec()})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 0
+    assert len(http.posts) == 1
+    posted = http.posts[0]
+    assert posted["idempotency_key"].startswith("ledger:claim-")
+    assert posted["adapter"] == "synthetic"
+    assert posted["params"] == {"unit": "a"}
+    assert posted["effect_class"] == "idempotent"
+    assert posted["max_attempts"] == 1
+    assert posted["lease_ttl_s"] == 30
+    assert "source_sha" not in posted
+    assert sum(1 for line in lines if '"event_type": "STARTED"' in line or '"event_type":"STARTED"' in line) == 1
+    record = json.loads((home / "ledger_bridge_state.json").read_text(encoding="utf-8"))["missions"]["A"]
+    assert record["posted"] is True
+    assert record["task_id"].startswith("task-")
+    assert record["accepted_result_id"] is None
+    assert record["attempt"] == 0
+    assert len(record["spec_fingerprint"]) == 64
+    assert record["source_sha"] == _git_head()
+    evidence = record["evidence_ref"]
+    assert record["task_id"] in evidence
+    assert "accepted_result_id=none" in evidence
+    assert "attempt=0" in evidence
+    assert record["spec_fingerprint"] in evidence
+    assert record["source_sha"] in evidence
+    assert "queued" in out
+
+
+def test_replay_writes_nothing_and_posts_nothing(tmp_path):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec()})
+    _seed(home, [_ready("A", "a-assign")])
+    assert _run(home, http)[0] == 0
+    before = (home / "coordination_ledger.jsonl").read_text(encoding="utf-8")
+    code, out, err, log, lines = _run(home, http)
+    assert code == 0
+    assert len(http.posts) == 1
+    assert (home / "coordination_ledger.jsonl").read_text(encoding="utf-8") == before
+
+
+def test_post_failure_after_claim_retries_same_key(tmp_path):
+    http = FakeHTTP()
+    http.fail_post = True
+    home = _home(tmp_path, {"A": _spec()})
+    _seed(home, [_ready("A", "a-assign")])
+    code, *_ = _run(home, http)
+    assert code == 75
+    assert http.posts == []
+    claim_lines = [ln for ln in (home / "coordination_ledger.jsonl").read_text(encoding="utf-8").splitlines()
+                   if '"STARTED"' in ln]
+    assert len(claim_lines) == 1
+    http.fail_post = False
+    code2, *_ = _run(home, http)
+    assert code2 == 0
+    assert len(http.posts) == 1
+    again = [ln for ln in (home / "coordination_ledger.jsonl").read_text(encoding="utf-8").splitlines()
+             if '"STARTED"' in ln]
+    assert again == claim_lines
+    assert http.posts[0]["idempotency_key"].startswith("ledger:claim-")
+
+
+def test_complete_a_finalizes_and_posts_b_in_the_same_pass(tmp_path):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec(), "B": _spec(params={"unit": "b"})})
+    _seed(home, [
+        _ready("A", "a-assign", "2026-10-08T04:00:00Z"),
+        _ready("B", "b-assign", "2026-10-08T04:00:01Z", deps=["A"]),
+    ])
+    assert _run(home, http)[0] == 0
+    assert len(http.posts) == 1
+    assert http.posts[0]["params"] == {"unit": "a"}
+    task_id = "task-" + hashlib.sha256(http.posts[0]["idempotency_key"].encode()).hexdigest()[:32]
+    http.views[task_id]["status"] = "COMPLETE"
+    http.views[task_id]["accepted_result_id"] = "result-a"
+    http.views[task_id]["attempt"] = 1
+    record = json.loads((home / "ledger_bridge_state.json").read_text(encoding="utf-8"))["missions"]["A"]
+    before = len((home / "coordination_ledger.jsonl").read_text(encoding="utf-8").splitlines())
+    code, out, err, log, lines = _run(home, http)
+    assert code == 0
+    assert len(http.posts) == 2
+    assert http.posts[1]["params"] == {"unit": "b"}
+    assert http.posts[1]["idempotency_key"].startswith("ledger:claim-")
+    reducer = reduce_store(FileCoordinationStore(home / "coordination_ledger.jsonl"))
+    assert reducer.get_mission("A")["status"] == MissionStatus.DONE
+    final = [e for e in reducer.events if e.event_type == EventType.FINAL]
+    assert len(final) == 1
+    assert final[0].event_id.startswith("final-")
+    assert task_id in final[0].evidence_ref
+    assert "accepted_result_id=result-a" in final[0].evidence_ref
+    assert "attempt=1" in final[0].evidence_ref
+    assert record["spec_fingerprint"] in final[0].evidence_ref
+    assert record["source_sha"] in final[0].evidence_ref
+    assert final[0].payload_hash == hashlib.sha256(final[0].evidence_ref.encode("utf-8")).hexdigest()
+    assert len(lines) == before + 2  # FINAL for A, claim for B
+    assert "final" in out
+
+
+def test_blocked_a_parks_and_unrelated_c_dispatches(tmp_path):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec(), "C": _spec(params={"unit": "c"})})
+    _seed(home, [
+        _ready("A", "a-assign"),
+        _ready("C", "c-assign", "2026-10-08T04:00:01Z"),
+    ])
+    state = {
+        "missions": {
+            "A": _mapped(claim="claim-already"),
+        }
+    }
+    (home / "ledger_bridge_state.json").write_text(json.dumps(state), encoding="utf-8")
+    http.views["task-a"] = {
+        "task_id": "task-a", "status": "BLOCKED", "attempt": 2,
+        "accepted_result_id": None, "last_reason": "needs a person",
+    }
+    code, out, err, log, lines = _run(home, http)
+    assert code == 0
+    assert len(http.posts) == 1
+    assert http.posts[0]["params"] == {"unit": "c"}
+    reducer = reduce_store(FileCoordinationStore(home / "coordination_ledger.jsonl"))
+    assert reducer.get_mission("A")["status"] == MissionStatus.BLOCKED
+    assert reducer.get_mission("A")["blocker"] == "needs a person"
+    blocked = [e for e in reducer.events if e.event_type == EventType.BLOCKED]
+    assert len(blocked) == 1
+    assert "task_id=task-a" in blocked[0].evidence_ref
+    assert "attempt=2" in blocked[0].evidence_ref
+    assert "spec_fingerprint=fp" in blocked[0].evidence_ref
+    assert f"source_sha={SHA}" in blocked[0].evidence_ref
+    assert not any(e.event_type == EventType.FINAL for e in reducer.events)
+
+
+def test_failed_or_cancelled_becomes_error_not_final(tmp_path):
+    for status in ("FAILED", "CANCELLED"):
+        http = FakeHTTP()
+        home = _home(tmp_path / status, {"A": _spec()})
+        _seed(home, [_ready("A", "a-assign")])
+        (home / "ledger_bridge_state.json").write_text(
+            json.dumps({"missions": {"A": _mapped()}}), encoding="utf-8")
+        http.views["task-a"] = {
+            "task_id": "task-a", "status": status, "attempt": 1,
+            "accepted_result_id": None, "last_reason": "boom",
+        }
+        code, out, err, log, lines = _run(home, http)
+        assert code == 0 and http.posts == []
+        reducer = reduce_store(FileCoordinationStore(home / "coordination_ledger.jsonl"))
+        assert reducer.get_mission("A")["status"] == MissionStatus.ERROR
+        errors = [e for e in reducer.events if e.event_type == EventType.ERROR]
+        assert len(errors) == 1
+        assert "task_id=task-a" in errors[0].evidence_ref
+        assert "attempt=1" in errors[0].evidence_ref
+        assert f"source_sha={SHA}" in errors[0].evidence_ref
+        assert not any(e.event_type == EventType.FINAL for e in reducer.events)
+        before = (home / "coordination_ledger.jsonl").read_text(encoding="utf-8")
+        assert _run(home, http)[0] == 0
+        assert http.posts == []
+        assert (home / "coordination_ledger.jsonl").read_text(encoding="utf-8") == before
+
+
+def test_restart_on_complete_task_writes_one_final_and_no_post(tmp_path):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec(source_sha=SHA)})
+    _seed(home, [_ready("A", "a-assign")])
+    (home / "ledger_bridge_state.json").write_text(
+        json.dumps({"missions": {"A": _mapped()}}), encoding="utf-8")
+    http.views["task-a"] = {
+        "task_id": "task-a", "status": "COMPLETE", "attempt": 1,
+        "accepted_result_id": "result-a", "last_reason": None,
+    }
+    code, out, err, log, lines = _run(home, http)
+    assert code == 0 and http.posts == []
+    reducer = reduce_store(FileCoordinationStore(home / "coordination_ledger.jsonl"))
+    finals = [e for e in reducer.events if e.event_type == EventType.FINAL]
+    assert len(finals) == 1
+    assert "task_id=task-a" in finals[0].evidence_ref
+    assert "accepted_result_id=result-a" in finals[0].evidence_ref
+    assert "attempt=1" in finals[0].evidence_ref
+    assert "spec_fingerprint=fp" in finals[0].evidence_ref
+    assert f"source_sha={SHA}" in finals[0].evidence_ref
+    before = (home / "coordination_ledger.jsonl").read_text(encoding="utf-8")
+    assert _run(home, http)[0] == 0
+    assert http.posts == []
+    assert (home / "coordination_ledger.jsonl").read_text(encoding="utf-8") == before
+
+
+def test_bad_config_exits_2_without_posting(tmp_path):
+    http = FakeHTTP()
+    home = _home(tmp_path, None)
+    _seed(home, [_ready("A", "a-assign")])
+    assert _run(home, http)[0] == 2 and http.posts == []
+
+    home = _home(tmp_path / "bad", {"A": {"adapter": "Nope", "params": [], "effect_class": "maybe"}})
+    _seed(home, [_ready("A", "a-assign")])
+    assert _run(home, http)[0] == 2 and http.posts == []
+
+    home = _home(tmp_path / "agent", {"A": _spec()})
+    _seed(home, [_ready("A", "a-assign")])
+    out, err = [], []
+    code = main(
+        ["--home", str(home), "--agent-id", "COURIER_V1_BRIDGE", "--host-id", HOST,
+         "--controller", "http://127.0.0.1:9"],
+        http=http, stdout=out.append, stderr=err.append,
+    )
+    assert code == 2 and http.posts == []
+
+    home = _home(tmp_path / "url", {"A": _spec()})
+    _seed(home, [_ready("A", "a-assign")])
+    code = main(
+        ["--home", str(home), "--agent-id", AGENT, "--host-id", HOST,
+         "--controller", "http://10.1.2.3:9"],
+        http=http, stdout=out.append, stderr=err.append,
+    )
+    assert code == 2 and http.posts == []
+
+    home = _home(tmp_path / "declared", {"A": _spec(source_sha="nope")})
+    _seed(home, [_ready("A", "a-assign")])
+    assert _run(home, http)[0] == 2 and http.posts == []
+
+    home = _home(tmp_path / "nosha", {"A": _spec()})
+    _seed(home, [_ready("A", "a-assign")])
+    import scripts.ledger_v1_bridge as bridge
+    previous = bridge._git_head
+    bridge._git_head = lambda: ""
+    try:
+        assert _run(home, http)[0] == 2 and http.posts == []
+    finally:
+        bridge._git_head = previous
+
+
+def test_token_never_appears_in_stdout_stderr_or_log(tmp_path):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec()})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 0 and len(http.posts) == 1
+    blob = out + err + log + (home / "ledger_bridge_state.json").read_text(encoding="utf-8")
+    blob += (home / "coordination_ledger.jsonl").read_text(encoding="utf-8")
+    assert TOKEN not in blob
+    assert "Bearer" not in out + err + log
