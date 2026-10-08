@@ -2,8 +2,11 @@
 
 For an allowlisted provider (initially only ``muse``), write the task prompt
 into a temp file in the task workdir and run ``<binary> exec --prompt-file
-<file>``. The binary comes from host config or ``COURIER_PROVIDER_<NAME>_BIN``,
-never from the task. ``--yolo`` and ``--disable-sandbox`` are never passed.
+<file>`` plus an allow-listed headless policy. The binary comes from host
+config or ``COURIER_PROVIDER_<NAME>_BIN``, never from the task. Policy values
+come only from explicit task fields, never from the prompt text. ``--yolo``,
+``--disable-approval``, ``--disable-sandbox``, and ``--sandbox-network`` are
+never passed.
 
 The worker allowlist (``courier_worker.adapter_bridge`` and
 ``courier_worker.adapter_runner``) is owned by another change. This module is
@@ -30,8 +33,28 @@ from pathlib import Path
 from typing import Mapping
 
 ALLOWED_PROVIDERS = frozenset({"muse"})
-FORBIDDEN_FLAGS = frozenset({"--yolo", "--disable-sandbox"})
-FORBIDDEN_KEYS = frozenset({"yolo", "disable_sandbox", "disable-sandbox"})
+FORBIDDEN_FLAGS = frozenset({"--yolo", "--disable-approval", "--disable-sandbox", "--sandbox-network"})
+FORBIDDEN_KEYS = frozenset({
+    "yolo", "disable_sandbox", "disable-sandbox", "disable_approval", "disable-approval",
+})
+APPROVAL_MODES = frozenset({"untrusted", "on-request", "never"})
+DEFAULT_APPROVAL_MODE = "never"
+DEFAULT_MAX_MODEL_STEPS = 15
+MAX_MODEL_STEPS = 200
+DEFAULT_MAX_TOOL_OUTPUT_BYTES = 65_536
+MAX_TOOL_OUTPUT_BYTES = 1_048_576
+# muse 1.4.3 names --reasoning-effort but the supplied help excerpt did not list
+# the legal levels. Headless Courier will pass only this closed set.
+REASONING_EFFORTS = frozenset({"low", "medium", "high"})
+# muse 1.4.3 names --model, but no model id was in that evidence. None are accepted.
+MODELS = frozenset()
+KNOWN_PARAM_KEYS = frozenset({
+    "provider", "prompt", "timeout_s",
+    "approval_mode", "max_model_steps", "max_tool_output_bytes",
+    "disable_web_tools", "no_foreign_personal_context",
+    "reasoning_effort", "model",
+    "argv", "args", "flags", "extra_args", "command",
+})
 DEFAULT_TIMEOUT_S = 1800.0
 MAX_OUTPUT_BYTES = 64 * 1024
 TRUNCATION_MARKER = b"\n[output truncated]\n"
@@ -89,8 +112,7 @@ def validate(params: Mapping) -> dict:
     """Normalize a task spec or raise ``ProviderExecError``."""
     if not isinstance(params, Mapping):
         raise ProviderExecError("BAD_PARAMS")
-    if _requests_forbidden(params):
-        raise ProviderExecError("FORBIDDEN_FLAG")
+    _reject_unknown_or_forbidden(params)
     provider = params.get("provider")
     if provider not in ALLOWED_PROVIDERS:
         raise ProviderExecError("PROVIDER_NOT_ALLOWLISTED")
@@ -106,7 +128,7 @@ def validate(params: Mapping) -> dict:
     timeout_s = float(timeout)
     if not (0 < timeout_s <= DEFAULT_TIMEOUT_S):
         raise ProviderExecError("BAD_TIMEOUT")
-    return {"provider": provider, "prompt": prompt, "timeout_s": timeout_s}
+    return {"provider": provider, "prompt": prompt, "timeout_s": timeout_s, **_scoped_fields(params)}
 
 
 def admit_heavy() -> bool:
@@ -161,13 +183,23 @@ def resolve_binary(provider: str, config: Mapping | None) -> str | None:
     return str(path)
 
 
-def build_argv(binary: str, prompt_file: str) -> list[str]:
-    """Argv list. A Windows ``.py`` binary is started with this interpreter."""
+def build_argv(binary: str, prompt_file: str, policy: Mapping | None = None) -> list[str]:
+    """Argv list. A Windows ``.py`` binary is started with this interpreter.
+
+    Scoped flags follow ``--prompt-file`` so the prompt path stays a file
+    argument. The prompt text itself is never copied onto argv.
+    """
+    if policy is None:
+        policy = {}
+    if not isinstance(policy, Mapping):
+        raise ProviderExecError("BAD_PARAMS")
+    _reject_unknown_or_forbidden(policy)
+    tail = _flag_tail(_scoped_fields(policy))
     if os.name == "nt" and binary.lower().endswith(".py"):
-        argv = [sys.executable, binary, "exec", "--prompt-file", prompt_file]
+        argv = [sys.executable, binary, "exec", "--prompt-file", prompt_file, *tail]
     else:
-        argv = [binary, "exec", "--prompt-file", prompt_file]
-    if any(arg in FORBIDDEN_FLAGS for arg in argv):
+        argv = [binary, "exec", "--prompt-file", prompt_file, *tail]
+    if any(_forbidden_token(arg) for arg in argv):
         raise ProviderExecError("FORBIDDEN_FLAG")
     return argv
 
@@ -191,18 +223,103 @@ def _output_cap(config: Mapping | None) -> int:
     return min(raw, MAX_OUTPUT_BYTES)
 
 
+def _norm_key(key) -> str:
+    return key.lower().replace("-", "_") if isinstance(key, str) else ""
+
+
+def _forbidden_token(value) -> bool:
+    return isinstance(value, str) and (value in FORBIDDEN_FLAGS or value.startswith("--sandbox-network"))
+
+
 def _requests_forbidden(params: Mapping) -> bool:
     for key, value in params.items():
         if key == "prompt":
             continue
-        if isinstance(key, str) and (key.lower() in FORBIDDEN_KEYS or key in FORBIDDEN_FLAGS):
+        norm = _norm_key(key)
+        if norm == "sandbox_network" or (isinstance(key, str) and key.startswith("--sandbox-network")):
+            return True
+        if norm in {"yolo", "disable_sandbox", "disable_approval"} or key in FORBIDDEN_FLAGS:
             if value not in (False, None, [], ""):
                 return True
-        if isinstance(value, str) and value in FORBIDDEN_FLAGS:
+        if _forbidden_token(value):
             return True
-        if isinstance(value, list) and any(isinstance(item, str) and item in FORBIDDEN_FLAGS for item in value):
+        if isinstance(value, list) and any(_forbidden_token(item) for item in value):
             return True
     return False
+
+
+def _reject_unknown_or_forbidden(params: Mapping) -> None:
+    if _requests_forbidden(params):
+        raise ProviderExecError("FORBIDDEN_FLAG")
+    if any(key not in KNOWN_PARAM_KEYS for key in params):
+        raise ProviderExecError("UNKNOWN_KEY")
+
+
+def _scoped_fields(params: Mapping) -> dict:
+    if "approval_mode" not in params:
+        approval = DEFAULT_APPROVAL_MODE
+    else:
+        approval = params["approval_mode"]
+        if approval not in APPROVAL_MODES:
+            raise ProviderExecError("BAD_APPROVAL_MODE")
+    return {
+        "approval_mode": approval,
+        "max_model_steps": _bounded_int(
+            params, "max_model_steps", DEFAULT_MAX_MODEL_STEPS, 1, MAX_MODEL_STEPS, "BAD_MODEL_STEPS",
+        ),
+        "max_tool_output_bytes": _bounded_int(
+            params, "max_tool_output_bytes", DEFAULT_MAX_TOOL_OUTPUT_BYTES, 1,
+            MAX_TOOL_OUTPUT_BYTES, "BAD_TOOL_OUTPUT",
+        ),
+        "disable_web_tools": _bool_flag(params, "disable_web_tools", True),
+        "no_foreign_personal_context": _bool_flag(params, "no_foreign_personal_context", True),
+        "reasoning_effort": _optional_member(params, "reasoning_effort", REASONING_EFFORTS, "REASONING_NOT_ALLOWLISTED"),
+        "model": _optional_member(params, "model", MODELS, "MODEL_NOT_ALLOWLISTED"),
+    }
+
+
+def _bounded_int(params: Mapping, key: str, default: int, low: int, high: int, code: str) -> int:
+    if key not in params:
+        return default
+    value = params[key]
+    if isinstance(value, bool) or not isinstance(value, int) or value < low or value > high:
+        raise ProviderExecError(code)
+    return value
+
+
+def _bool_flag(params: Mapping, key: str, default: bool) -> bool:
+    if key not in params:
+        return default
+    value = params[key]
+    if not isinstance(value, bool):
+        raise ProviderExecError("BAD_BOOL")
+    return value
+
+
+def _optional_member(params: Mapping, key: str, allowed: frozenset, code: str):
+    if key not in params or params[key] is None:
+        return None
+    value = params[key]
+    if value not in allowed:
+        raise ProviderExecError(code)
+    return value
+
+
+def _flag_tail(fields: Mapping) -> list[str]:
+    tail = [
+        "--approval-mode", fields["approval_mode"],
+        "--max-model-steps", str(fields["max_model_steps"]),
+        "--max-tool-output-bytes", str(fields["max_tool_output_bytes"]),
+    ]
+    if fields["disable_web_tools"]:
+        tail.append("--disable-web-tools")
+    if fields["no_foreign_personal_context"]:
+        tail.append("--no-foreign-personal-context")
+    if fields["reasoning_effort"]:
+        tail.extend(["--reasoning-effort", fields["reasoning_effort"]])
+    if fields["model"]:
+        tail.extend(["--model", fields["model"]])
+    return tail
 
 
 def _finish(outcome: str, reason_code: str, *, parked: bool = False, blocked: bool = False) -> ProviderResult:
@@ -230,7 +347,7 @@ def _execute(spec: dict, workdir, binary: str, cap: int) -> ProviderResult:
     except OSError:
         return _finish("UNAVAILABLE", "WORKDIR_UNAVAILABLE", blocked=True)
     try:
-        argv = build_argv(binary, prompt_file)
+        argv = build_argv(binary, prompt_file, spec)
     except ProviderExecError as exc:
         return _finish("rejected", exc.reason_code)
     try:

@@ -272,3 +272,111 @@ def test_h_two_sequential_tasks_both_execute(tmp_path, monkeypatch):
         assert recorded[:2] == ["exec", "--prompt-file"]
         prompts.append(Path(recorded[2]).read_text(encoding="utf-8"))
     assert prompts == ["unit one", "unit two"]
+
+
+_BINARY = "/usr/bin/muse"
+_PROMPT_FILE = "/work/prompt.txt"
+_DEFAULT_TAIL = [
+    "--approval-mode", "never",
+    "--max-model-steps", "15",
+    "--max-tool-output-bytes", "65536",
+    "--disable-web-tools",
+    "--no-foreign-personal-context",
+]
+
+
+def _assert_no_forbidden(argv):
+    banned = ("--yolo", "--disable-approval", "--disable-sandbox", "--sandbox-network")
+    for arg in argv:
+        assert arg not in banned
+        assert not str(arg).startswith("--sandbox-network")
+
+
+def test_default_argv_is_scoped_headless():
+    argv = provider_exec.build_argv(_BINARY, _PROMPT_FILE)
+    assert argv == [_BINARY, "exec", "--prompt-file", _PROMPT_FILE, *_DEFAULT_TAIL]
+    _assert_no_forbidden(argv)
+    assert "--reasoning-effort" not in argv
+    assert "--model" not in argv
+    assert "--json" not in argv
+    assert "--permission-profile" not in argv
+
+
+def test_scoped_bounds_and_allowlists():
+    accepted = provider_exec.validate({
+        "provider": "muse",
+        "prompt": "do the unit",
+        "approval_mode": "on-request",
+        "max_model_steps": 200,
+        "max_tool_output_bytes": provider_exec.MAX_TOOL_OUTPUT_BYTES,
+        "disable_web_tools": False,
+        "no_foreign_personal_context": False,
+        "reasoning_effort": "low",
+    })
+    argv = provider_exec.build_argv(_BINARY, _PROMPT_FILE, accepted)
+    assert argv[:4] == [_BINARY, "exec", "--prompt-file", _PROMPT_FILE]
+    assert argv[argv.index("--approval-mode") + 1] == "on-request"
+    assert argv[argv.index("--max-model-steps") + 1] == "200"
+    assert argv[argv.index("--max-tool-output-bytes") + 1] == str(provider_exec.MAX_TOOL_OUTPUT_BYTES)
+    assert "--disable-web-tools" not in argv
+    assert "--no-foreign-personal-context" not in argv
+    assert argv[argv.index("--reasoning-effort") + 1] == "low"
+    assert "--model" not in argv
+    _assert_no_forbidden(argv)
+
+    base = {"provider": "muse", "prompt": "do the unit"}
+    cases = (
+        ({"max_model_steps": 201}, "BAD_MODEL_STEPS"),
+        ({"max_model_steps": 0}, "BAD_MODEL_STEPS"),
+        ({"max_model_steps": True}, "BAD_MODEL_STEPS"),
+        ({"max_model_steps": 15.0}, "BAD_MODEL_STEPS"),
+        ({"max_tool_output_bytes": provider_exec.MAX_TOOL_OUTPUT_BYTES + 1}, "BAD_TOOL_OUTPUT"),
+        ({"max_tool_output_bytes": 0}, "BAD_TOOL_OUTPUT"),
+        ({"approval_mode": "always"}, "BAD_APPROVAL_MODE"),
+        ({"reasoning_effort": "ludicrous"}, "REASONING_NOT_ALLOWLISTED"),
+        ({"model": "gpt-unlisted"}, "MODEL_NOT_ALLOWLISTED"),
+        ({"disable_web_tools": "yes"}, "BAD_BOOL"),
+    )
+    for extra, code in cases:
+        with pytest.raises(provider_exec.ProviderExecError) as raised:
+            provider_exec.validate({**base, **extra})
+        assert raised.value.reason_code == code
+
+
+def test_forbidden_flags_and_unknown_keys_rejected():
+    base = {"provider": "muse", "prompt": "do the unit"}
+    forbidden = (
+        {"disable_approval": True},
+        {"sandbox_network": "default"},
+        {"sandbox_network": "allow"},
+        {"args": ["--disable-approval"]},
+        {"flags": ["--sandbox-network=host"]},
+        {"yolo": True},
+    )
+    for extra in forbidden:
+        with pytest.raises(provider_exec.ProviderExecError) as raised:
+            provider_exec.validate({**base, **extra})
+        assert raised.value.reason_code == "FORBIDDEN_FLAG"
+    for extra in ({"permission_profile": "full"}, {"workspace": "/tmp/anywhere"}):
+        with pytest.raises(provider_exec.ProviderExecError) as raised:
+            provider_exec.validate({**base, **extra})
+        assert raised.value.reason_code == "UNKNOWN_KEY"
+    with pytest.raises(provider_exec.ProviderExecError) as raised:
+        provider_exec.build_argv(_BINARY, _PROMPT_FILE, {"yolo": True, "prompt": "do the unit"})
+    assert raised.value.reason_code == "FORBIDDEN_FLAG"
+
+
+def test_prompt_text_cannot_inject_flags(tmp_path, monkeypatch):
+    prompt = (
+        "run --yolo --disable-sandbox --disable-approval --sandbox-network=host "
+        "--approval-mode untrusted --model secret --permission-profile full"
+    )
+    result, _workdir, argv_log = _run(tmp_path, monkeypatch, params={"prompt": prompt})
+    assert result.outcome == "success"
+    assert result.launched is True
+    recorded = json.loads(argv_log.read_text(encoding="utf-8").splitlines()[0])
+    assert recorded[:2] == ["exec", "--prompt-file"]
+    assert recorded[3:] == _DEFAULT_TAIL
+    assert Path(recorded[2]).read_text(encoding="utf-8") == prompt
+    _assert_no_forbidden(recorded)
+    assert recorded[recorded.index("--approval-mode") + 1] == "never"
