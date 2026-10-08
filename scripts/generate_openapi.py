@@ -28,8 +28,8 @@ for match in route_pattern.finditer(app_code):
     if methods_str:
         methods = [m.strip(' "\'') for m in methods_str.split(',')]
     
-    # Convert Flask <param> to OpenAPI {param}
-    openapi_path = re.sub(r'<[^:]*:?([^>]+)>', r'{\1}', raw_path)
+    # Convert Flask <param> or <type:param> to OpenAPI {param}
+    openapi_path = re.sub(r'<(?:[^:]+:)?([^>]+)>', r'{\1}', raw_path)
     
     if openapi_path not in openapi["paths"]:
         openapi["paths"][openapi_path] = {}
