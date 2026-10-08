@@ -28,9 +28,8 @@ def run_ci_truth(repo_path_str: str, sha: str = "HEAD") -> dict:
     # We create a temporary directory to copy the codebase at the given SHA
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir)
-        # Archive the specific SHA and extract to tmp_path
-        subprocess.run(["git", "archive", "--format=tar", sha], cwd=repo, stdout=subprocess.PIPE, check=True)
-        # Wait, git archive writes to stdout. We can extract it in tmpdir.
+        # Archive the specific SHA and extract to tmp_path (single archive
+        # stream piped straight into tar; the result is used, not discarded).
         archive_proc = subprocess.Popen(["git", "archive", "--format=tar", sha], cwd=repo, stdout=subprocess.PIPE)
         subprocess.run(["tar", "-xf", "-"], cwd=tmp_path, stdin=archive_proc.stdout, check=True)
         archive_proc.wait()
