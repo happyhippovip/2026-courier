@@ -804,7 +804,12 @@ class WorkerHost:
         os.makedirs(spec.artifact_dir, exist_ok=True)
         run = _spawn_contained(list(spec.argv), run_dir, f"task-{spec.dispatch_id}")
         self._active = spec.dispatch_id
-        claim_record = _write_claim_record(self.home, spec, run)
+        try:
+            claim_record = _write_claim_record(self.home, spec, run)
+        except BaseException:
+            run.terminate_tree()
+            self._active = None
+            raise
         try:
             return self._wait(spec, run, on_heartbeat, is_cancelled)
         finally:
