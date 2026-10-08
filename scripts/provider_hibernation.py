@@ -101,6 +101,8 @@ class ContinuationCheckpoint:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "ContinuationCheckpoint":
+        if not isinstance(data, dict):
+            return cls()
         known = {f for f in cls.__dataclass_fields__}
         return cls(**{k: v for k, v in data.items() if k in known})
 
@@ -227,12 +229,19 @@ class LaneHibernator:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "LaneHibernator":
+        if not isinstance(data, dict):
+            return cls()
         lane = cls()
-        lane.state = LaneState(data.get("state", "ACTIVE"))
+        try:
+            lane.state = LaneState(data.get("state", "ACTIVE"))
+        except ValueError:
+            lane.state = LaneState.ACTIVE
         lane.release_report = dict(data.get("release_report", {}))
         if data.get("checkpoint"):
             lane.checkpoint = ContinuationCheckpoint.from_dict(data["checkpoint"])
         for name, spec in (data.get("resources") or {}).items():
+            if not isinstance(spec, dict):
+                continue
             lane.resources[name] = Resource(
                 name=name,
                 kind=spec.get("kind", "other"),
@@ -256,7 +265,15 @@ def save_continuation(path, value):
             json.dump(value, stream, sort_keys=True)
             stream.flush()
             os.fsync(stream.fileno())
-        os.replace(temporary, path)
+        for attempt in range(5):
+            try:
+                os.replace(temporary, path)
+                break
+            except OSError:
+                if attempt == 4:
+                    raise
+                import time
+                time.sleep(0.02)
         if os.name != "nt":
             directory = os.open(path.parent, os.O_RDONLY)
             try:
@@ -265,4 +282,24 @@ def save_continuation(path, value):
                 os.close(directory)
     finally:
         if os.path.exists(temporary):
-            os.unlink(temporary)
+            try:
+                os.unlink(temporary)
+            except OSError:
+                pass
+
+
+def load_continuation(path) -> Dict[str, Any]:
+    """Safely load and parse an existing continuation checkpoint file.
+
+    Fails closed: returns empty dict on missing file or invalid/corrupt JSON.
+    """
+    p = Path(path)
+    if not p.is_file():
+        return {}
+    try:
+        with open(p, "r", encoding="utf-8") as stream:
+            data = json.load(stream)
+            return data if isinstance(data, dict) else {}
+    except (json.JSONDecodeError, OSError, UnicodeDecodeError):
+        return {}
+

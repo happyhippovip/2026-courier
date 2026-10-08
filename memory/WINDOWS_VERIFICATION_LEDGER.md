@@ -257,3 +257,12 @@ This ledger tracks the verification status of modules in this repository on Wind
 - [x] dashboard/server.py: 🟢 VERIFIED (verified in test_dashboard_server_uncovered.py)
 - [x] scripts/windows_worker/daemon.py: 🟢 VERIFIED (verified in test_windows_worker_daemon_uncovered.py, 87% coverage)
 - [x] scripts/mac_worker/runtime_state.py: ✔️ VERIFIED (verified in test_mac_worker_runtime_state_uncovered.py, 100% coverage)
+
+## scripts/provider_hibernation.py
+**Status**: VERIFIED
+**Date**: 2026-10-08
+**Findings**:
+- **Real defect 1 (from_dict crashes on non-dict / malformed states)**: `ContinuationCheckpoint.from_dict` and `LaneHibernator.from_dict` assumed dict inputs and valid enum values; passing non-dict or unmapped state caused unhandled `AttributeError` / `ValueError`. Hardened both constructors with type checking and safe default fallbacks.
+- **Real defect 2 (missing fail-closed load helper)**: while `save_continuation` provided atomic writes, callers lacked a canonical `load_continuation(path)` helper, leading to ad-hoc parsing. Added `load_continuation` with guaranteed fail-closed behavior (returns empty dict on missing/corrupt files).
+- **Real defect 3 (Windows atomic replace jitter resilience)**: on Windows, anti-virus or search indexers can momentarily hold file handles open causing transient `WinError 5` on `os.replace`. Wrapped `os.replace` in a bounded retry/backoff loop.
+- **Testing**: verified existing 15 MAC03 tests in `tests/test_provider_hibernation_mac03.py` plus 45 tests in `test_codex_provider_continuity` and `test_provider_survival`. Added dedicated unit suite `tests/test_provider_hibernation.py` (8 tests: truth matrix, resource filtering, release failure fail-closed, resume reacquisition, resume guard errors, deserialization resilience, serialization roundtrip, atomic save/load); 60/60 green in 4.1s.
