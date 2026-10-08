@@ -30,7 +30,7 @@ ABOUT = {
 _READ_ONLY = {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False}
 _STATUS_FILTER = {"type": "string", "enum": list(STATUSES), "description": "Only missions with this status."}
 _LIMIT = {"type": "integer", "minimum": 1, "maximum": MAX_LIMIT, "default": DEFAULT_LIMIT,
-          "description": "Maximum number of items (newest first)."}
+          "description": "Maximum number of items."}
 
 TOOLS = [
     {
@@ -50,7 +50,7 @@ TOOLS = [
     {
         "name": "list_missions",
         "title": "List missions",
-        "description": "Missions with their status (POSTED, FINAL_DONE, BLOCKED, ERROR), newest first.",
+        "description": "Missions from the receipt read model (POSTED, FINAL_DONE, BLOCKED, ERROR).",
         "inputSchema": {"type": "object", "properties": {"status": _STATUS_FILTER, "limit": _LIMIT},
                         "additionalProperties": False},
         "annotations": _READ_ONLY,
@@ -67,14 +67,14 @@ TOOLS = [
     {
         "name": "list_receipts",
         "title": "List receipts",
-        "description": "Receipts of missions with an accepted, verified result, newest first.",
+        "description": "Receipts from the receipt read model, including a verified result when one was recorded.",
         "inputSchema": {"type": "object", "properties": {"limit": _LIMIT}, "additionalProperties": False},
         "annotations": _READ_ONLY,
     },
     {
         "name": "receipts_summary",
         "title": "Receipts summary",
-        "description": "Counts of missions per status, number of receipts, and the latest update time.",
+        "description": "The receipt read model's counts per status, total, and latest update time.",
         "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
         "annotations": _READ_ONLY,
     },
@@ -124,19 +124,28 @@ def call_tool(source: Source, name: str, arguments, now: datetime | None = None)
         if status is not None and status not in STATUSES:
             raise ToolError("status must be one of " + ", ".join(STATUSES))
         limit = _limit(arguments)
-        rows = [public_row(row) for row in snapshot.missions
-                if status is None or effective_status(row) == status]
+        rows = _shown_missions(snapshot)
+        if status is not None:
+            rows = [row for row in rows if row.get("status") == status]
         return dict(base, total=len(rows), missions=rows[:limit])
     if name == "get_mission":
         mission_id = arguments.get("mission_id")
         if not isinstance(mission_id, str) or not 0 < len(mission_id) <= 200:
             raise ToolError("mission_id must be a non-empty string")
-        match = [row for row in snapshot.missions if row["mission_id"] == mission_id]
-        return dict(base, found=bool(match), mission=public_row(match[0]) if match else None)
+        match = [row for row in _shown_missions(snapshot) if row["mission_id"] == mission_id]
+        return dict(base, found=bool(match), mission=match[0] if match else None)
     if name == "list_receipts":
         limit = _limit(arguments)
-        rows = [_receipt(row) for row in snapshot.missions if row["accepted_result_id"]]
+        if snapshot.model_receipts is not None:
+            rows = [dict(row) for row in snapshot.model_receipts]
+        else:
+            rows = [_receipt(row) for row in snapshot.missions if row["accepted_result_id"]]
         return dict(base, total=len(rows), receipts=rows[:limit])
+    if snapshot.model_summary is not None:
+        summary = snapshot.model_summary
+        return dict(base, counts=dict(summary["counts"]), total=summary["total"],
+                    last_updated=summary["last_updated"],
+                    bridge=summary["bridge"], results=summary["results"])
     counts = {status: 0 for status in STATUSES}
     for row in snapshot.missions:
         counts[effective_status(row)] += 1
@@ -144,6 +153,13 @@ def call_tool(source: Source, name: str, arguments, now: datetime | None = None)
     return dict(base, counts=counts, total=len(snapshot.missions),
                 receipts=sum(1 for row in snapshot.missions if row["accepted_result_id"]),
                 last_updated=max(stamps) if stamps else None)
+
+
+def _shown_missions(snapshot: Snapshot) -> list[dict]:
+    """Real mode returns the read model's receipts. Demo keeps the synthetic rows."""
+    if snapshot.model_receipts is not None:
+        return [dict(row) for row in snapshot.model_receipts]
+    return [public_row(row) for row in snapshot.missions]
 
 
 def _receipt(row: dict) -> dict:

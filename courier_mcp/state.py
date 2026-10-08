@@ -1,27 +1,32 @@
-"""Fail-closed reader for ``<state_dir>/ledger_bridge_state.json``.
+"""Fail-closed view of one Courier home for the MCP server.
 
-The file is the mission map written by the ledger-to-V1 bridge:
-``{"missions": {mission_id: mapping}}`` or ``{"missions": [mapping, ...]}``
-where every mapping carries a non-empty string ``task_id``. Optional fields
-(``status``, ``reason``, ``goal_id``, ``updated_at``, ``accepted_result_id``,
-``claim_event_id``, ``evidence_ref``) are strings or null.
+Real mode does not parse the bridge file itself. It calls
+``courier_core.receipt_read_model.ReceiptReadModel``, which reads
+``<state_dir>/ledger_bridge_state.json`` and ``<state_dir>/courier.db``.
+Demo mode still parses an in-memory synthetic document.
 
-Rules mirror the receipt read model and the hub automation card: a missing
-file is ``ABSENT`` (empty); a symlink, a file over ``MAX_STATE_BYTES``, bad
-JSON, an unexpected shape, a duplicate task id, or an unknown status/reason is
-``UNREADABLE`` and yields no missions. Callers never get an exception or a
-filesystem path. Nothing here writes.
+A missing bridge is ``ABSENT`` (empty). A symlink, a file the read model
+rejects, or a receipt the MCP server will not show (unknown status/reason,
+unparseable timestamp, non-printable or over-long text) is ``UNREADABLE``
+and yields no missions. Callers never get an exception or a filesystem path.
+Nothing here writes.
 """
 
 from __future__ import annotations
 
-import json
-import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-STATE_NAME = "ledger_bridge_state.json"
-MAX_STATE_BYTES = 1024 * 1024
+from courier_core.receipt_read_model import (
+    BRIDGE_NAME,
+    KNOWN_STATUSES,
+    MAX_FILE_BYTES,
+    RESULTS_NAME,
+    ReceiptReadModel,
+)
+
+STATE_NAME = BRIDGE_NAME
+MAX_STATE_BYTES = MAX_FILE_BYTES
 MAX_MISSIONS = 2000
 MAX_TEXT = 200
 STALE_AFTER_SECONDS = 15 * 60
@@ -44,10 +49,14 @@ PUBLIC_FIELDS = ("mission_id", "task_id", "status", "reason", "goal_id", "update
 class Snapshot:
     """One read of the state. ``source`` is ABSENT, OK, UNREADABLE or DEMO."""
 
-    def __init__(self, source: str, missions: list[dict], mtime: float | None = None):
+    def __init__(self, source: str, missions: list[dict], mtime: float | None = None,
+                 model_receipts: list[dict] | None = None, model_summary: dict | None = None):
         self.source = source
         self.missions = missions
         self.mtime = mtime
+        # Real mode only. These are the read model's own objects; demo leaves them unset.
+        self.model_receipts = model_receipts
+        self.model_summary = model_summary
 
     @property
     def readable(self) -> bool:
@@ -55,31 +64,84 @@ class Snapshot:
 
 
 def read_state_dir(state_dir) -> Snapshot:
-    path = Path(state_dir) / STATE_NAME
+    """One real-mode read. File bytes come only from ``ReceiptReadModel``."""
+    root = Path(state_dir)
+    if _refuses_symlink(root):
+        return _unreadable()
+    model = ReceiptReadModel(root)
+    listed = model.list_receipts()
+    summary = model.summary()
+    if not listed["readable"] or not summary["readable"]:
+        return _unreadable(summary)
+    if listed["bridge"] != "OK":
+        return Snapshot("ABSENT", [], model_receipts=[], model_summary=summary)
+    rows = []
+    for receipt in listed["receipts"]:
+        row = _row_from_receipt(receipt)
+        if row is None:
+            return _unreadable(_zero_summary(summary.get("results")))
+        rows.append(row)
+    return Snapshot("OK", rows, _mtime(root / STATE_NAME),
+                    model_receipts=list(listed["receipts"]), model_summary=summary)
+
+
+def _refuses_symlink(root: Path) -> bool:
+    for name in (STATE_NAME, RESULTS_NAME):
+        try:
+            if (root / name).is_symlink():
+                return True
+        except OSError:
+            return True
+    return False
+
+
+def _mtime(path: Path):
     try:
-        if path.is_symlink():
-            return Snapshot("UNREADABLE", [])
-        if not path.exists():
-            return Snapshot("ABSENT", [])
-        if not path.is_file():
-            return Snapshot("UNREADABLE", [])
-        size = path.stat().st_size
-        if size > MAX_STATE_BYTES:
-            return Snapshot("UNREADABLE", [])
-        flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_BINARY", 0)
-        fd = os.open(path, flags)
-        with os.fdopen(fd, "rb") as handle:
-            raw = handle.read(MAX_STATE_BYTES + 1)
-        mtime = path.stat().st_mtime
+        if path.is_symlink() or not path.is_file():
+            return None
+        return path.stat().st_mtime
     except OSError:
-        return Snapshot("UNREADABLE", [])
-    if len(raw) > MAX_STATE_BYTES:
-        return Snapshot("UNREADABLE", [])
-    try:
-        document = json.loads(raw.decode("utf-8"))
-    except (UnicodeError, ValueError):
-        return Snapshot("UNREADABLE", [])
-    return parse_document(document, source="OK", mtime=mtime)
+        return None
+
+
+def _unreadable(summary: dict | None = None) -> Snapshot:
+    return Snapshot("UNREADABLE", [], model_receipts=[], model_summary=summary or _zero_summary(None))
+
+
+def _zero_summary(results_state) -> dict:
+    return {
+        "readable": False,
+        "bridge": "UNREADABLE",
+        "results": results_state if results_state in ("OK", "ABSENT", "UNREADABLE") else "UNREADABLE",
+        "counts": {name: 0 for name in (*KNOWN_STATUSES, "UNSET")},
+        "total": 0,
+        "last_updated": None,
+    }
+
+
+def _row_from_receipt(receipt) -> dict | None:
+    if not isinstance(receipt, dict):
+        return None
+    mission_id = receipt.get("mission_id")
+    task_id = receipt.get("task_id")
+    if not _text(mission_id) or not _text(task_id):
+        return None
+    row = {"mission_id": mission_id, "task_id": task_id}
+    for name in OPTIONAL_FIELDS:
+        value = receipt.get(name)
+        if value is None:
+            row[name] = None
+            continue
+        if not _text(value):
+            return None
+        row[name] = value
+    if row["status"] is not None and row["status"] not in STATUSES:
+        return None
+    if row["reason"] is not None and row["reason"] not in REASONS:
+        return None
+    if row["updated_at"] is not None and parse_time(row["updated_at"]) is None:
+        return None
+    return row
 
 
 def parse_document(document, source: str = "OK", mtime: float | None = None) -> Snapshot:
