@@ -257,3 +257,12 @@ This ledger tracks the verification status of modules in this repository on Wind
 - [x] dashboard/server.py: 🟢 VERIFIED (verified in test_dashboard_server_uncovered.py)
 - [x] scripts/windows_worker/daemon.py: 🟢 VERIFIED (verified in test_windows_worker_daemon_uncovered.py, 87% coverage)
 - [x] scripts/mac_worker/runtime_state.py: ✔️ VERIFIED (verified in test_mac_worker_runtime_state_uncovered.py, 100% coverage)
+
+## scripts/provider_circuit.py
+**Status**: VERIFIED
+**Date**: 2026-10-08
+**Findings**:
+- **Real defect 1 (shared circuit reference disconnection)**: `ProviderCircuitBreaker.restore(value)` overwrote `self.circuits` with a newly created dict, breaking the shared state reference to `_shared_circuits`. Other instances created without `isolated=True` were disconnected from restored circuit states. Fixed by clearing and updating `_shared_circuits` in-place when unisolated.
+- **Real defect 2 (classify_error crash on None or string codes)**: `classify_error` called `error_message.lower()` unconditionally, crashing on `None` error messages, and failed numeric comparisons if `error_code` was string-typed. Fixed with defensive `(error_message or "").lower()` and safe `int(error_code)` parsing.
+- **Real defect 3 (ISO parsing resilience)**: `CircuitState.from_dict` parsed ISO timestamps without ISO-8601 'Z' UTC normalization or try/except fallback, risking ValueError on malformed payloads. Fixed with robust UTC normalization and safe fallback.
+- **Testing**: verified existing 52 provider tests across `test_provider_survival`, `test_provider_hibernation_mac03`, and `test_codex_provider_continuity`. Added dedicated test suite `tests/test_provider_circuit.py` (8 tests: error classification matrix, state transitions, reset expiry, aware timestamp normalization, single bounded probe claims, ISO serialization roundtrip, and shared vs isolated breaker synchronization); 60/60 green in 3.6s.
