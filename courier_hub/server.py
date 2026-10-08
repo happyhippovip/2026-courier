@@ -50,6 +50,12 @@ STATIC_TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript; ch
                 ".mjs": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
                 ".svg": "image/svg+xml"}
 MAX_BODY_BYTES = 16 * 1024
+# Newest events copied into one item view. The rest stay in the journal, and the
+# view records how many were left out so a long progress history is not silent.
+MAX_ITEM_EVENTS = 200
+# Controller answers are read up to this many bytes, plus one, so an exact-size
+# body is kept and anything larger is refused instead of buffered.
+MAX_CONTROLLER_RESPONSE_BYTES = 64 * 1024
 CONTROLLER_TIMEOUT_S = 5.0
 ACTOR_RE = re.compile(r"^[A-Za-z0-9_.:@-]{1,200}$")
 _ITEM = re.compile(r"^/hub/api/items/([A-Za-z0-9_.:-]{1,200})$")
@@ -95,6 +101,19 @@ class NotSent(ConnectionError):
 
 class ResponseLost(ConnectionError):
     """The request may have reached the controller, but no answer came back."""
+
+
+class ResponseTooLarge(ConnectionError):
+    """The controller answered, but the body is larger than the hub will read."""
+
+
+def _read_capped(stream) -> bytes:
+    """Read at most the cap plus one byte. The extra byte distinguishes 'exact' from 'over'."""
+    data = stream.read(MAX_CONTROLLER_RESPONSE_BYTES + 1)
+    if len(data) > MAX_CONTROLLER_RESPONSE_BYTES:
+        log.warning("hub refused an oversized controller response")
+        raise ResponseTooLarge("controller response exceeds the read limit")
+    return data
 
 
 class Hub:
@@ -208,13 +227,31 @@ class Hub:
         view.update({"status": status, "truth": "ok", "read_at": utc_now()})
         return view
 
+    def _task_events(self, journal, task_id: str):
+        """The newest events for one task, plus the real total.
+
+        A short history is read through Journal.events. A long one is a bounded
+        SELECT so the item view does not materialise every progress row.
+        """
+        from courier_core.events import Event
+        total = journal.conn.execute(
+            "SELECT COUNT(*) AS n FROM events WHERE task_id = ?", (task_id,)
+        ).fetchone()["n"]
+        if total > MAX_ITEM_EVENTS:
+            rows = journal.conn.execute(
+                "SELECT * FROM events WHERE task_id = ? ORDER BY seq DESC LIMIT ?",
+                (task_id, MAX_ITEM_EVENTS),
+            ).fetchall()
+            return [Event.from_row(row) for row in reversed(rows)], total
+        return list(journal.events(task_id=task_id)), total
+
     def item_view(self, task_id: str) -> Optional[dict]:
         journal = self._open()
         try:
             task = journal.task(task_id)
             if task is None:
                 return None
-            events = list(journal.events(task_id=task_id))
+            events, total = self._task_events(journal, task_id)
         except (sqlite3.DatabaseError, ValueError) as exc:
             log.exception("hub could not read item %s", task_id)
             raise TruthUnavailable("unreadable") from exc
@@ -224,7 +261,9 @@ class Hub:
             card, receipt = model.card(task, events), model.receipt(task, events)
         except ValueError:  # a state this hub does not know: still show what was recorded
             card, receipt = model.unrecognised_card(task), model.unrecognised_receipt(task, events)
-        return {"card": card, "receipt": receipt, "support": model.support(task, events), "read_at": utc_now()}
+        return {"card": card, "receipt": receipt, "support": model.support(task, events),
+                "events_total": total, "events_shown": len(events),
+                "events_truncated": total > len(events), "read_at": utc_now()}
 
     def support_export(self, task_id: str) -> Optional[dict]:
         """One item's support record, for the customer to save and send. Read-only;
@@ -233,7 +272,9 @@ class Hub:
         if item is None:
             return None
         return {"kind": "courier.support_export", "version": 1, "exported_at": utc_now(),
-                "hub_build": build_identity(), "item": item["support"], "receipt": item["receipt"]}
+                "hub_build": build_identity(), "item": item["support"], "receipt": item["receipt"],
+                "events_truncated": item["events_truncated"], "events_total": item["events_total"],
+                "events_shown": item["events_shown"]}
 
     # -- controller (the only authority) ----------------------------------------
     def _token(self) -> Optional[str]:
@@ -251,10 +292,16 @@ class Hub:
                                          headers={"X-Courier-Token": token, "Content-Type": "application/json"})
         try:
             with urllib.request.urlopen(request, timeout=self.timeout_s) as response:
-                return response.status, json.loads(response.read() or b"{}")
+                raw = _read_capped(response)
+                return response.status, json.loads(raw or b"{}")
+        except ResponseTooLarge:
+            raise
         except urllib.error.HTTPError as exc:
             try:
-                payload = json.loads(exc.read() or b"{}")
+                raw = _read_capped(exc)
+                payload = json.loads(raw or b"{}")
+            except ResponseTooLarge:
+                raise
             except ValueError:
                 payload = {}
             return exc.code, payload
@@ -309,6 +356,11 @@ class Hub:
         except NotSent:
             return 503, {"result": "offline",
                          "message": "Courier isn't reachable right now. Nothing was sent; try again when it's back."}
+        except ResponseTooLarge:
+            # The request was delivered. Do not claim that nothing was sent.
+            return 503, {"result": "unavailable",
+                         "message": "Courier answered, but the answer was too large to use.",
+                         "item": self._safe_item(task_id)}
         except ResponseLost:
             # Never claim "nothing changed" here: the controller may have recorded it.
             return 504, {"result": "unknown",
