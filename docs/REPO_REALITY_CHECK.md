@@ -94,7 +94,7 @@ Repo-Hygiene: 0 fehlende LICENSE, 0 Binär- oder Archivdateien über 1048576 Byt
 | CI | Grün | 1 Konfiguration, 1 Job |
 | Abhängigkeiten | Gelb | 1 Manifest, 1 ungepinnt von 2 |
 | Geheimnis-Risiko | Rot | 1 Produktions-Treffer, 0 Treffer in Tests/Fixtures/Docs |
-| Repo-Hygiene | Grün | 0 Auffälligkeiten, 0 fehlende LICENSE, 0 Binärdateien, 0 scratch/attic-Verzeichnisse, 0 JSON/JSONL-Dateien, 0 verstreute Testdateien |
+| Repo-Hygiene | Grün | 0 Auffälligkeiten, 1 Marker, 0 fehlende LICENSE, 0 Binärdateien, 0 scratch/attic-Verzeichnisse, 0 JSON/JSONL-Dateien, 0 verstreute Testdateien |
 
 ## Repositorygröße
 _Repository size_

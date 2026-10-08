@@ -1549,14 +1549,16 @@ def _next_steps(data: dict) -> list[str]:
     if hygiene["large_binaries"]:
         top = hygiene["large_binaries"][0]
         add(
-            f"Remove {len(hygiene['large_binaries'])} committed binaries or archives over {ONE_MB} bytes. "
-            f"Largest: {top['path']} ({top['bytes']} bytes)."
+            "Remove "
+            f"{_count_phrase(len(hygiene['large_binaries']), 'committed binary or archive', 'committed binaries or archives')} "
+            f"over {ONE_MB} bytes. Largest: {top['path']} ({top['bytes']} bytes)."
         )
     if hygiene["large_json"]:
         top = hygiene["large_json"][0]
         add(
-            f"Move {len(hygiene['large_json'])} JSON or JSONL files over {ONE_MB} bytes out of the checkout. "
-            f"Largest: {top['path']} ({top['bytes']} bytes)."
+            "Move "
+            f"{_count_phrase(len(hygiene['large_json']), 'JSON or JSONL file', 'JSON or JSONL files')} "
+            f"over {ONE_MB} bytes out of the checkout. Largest: {top['path']} ({top['bytes']} bytes)."
         )
     if data["ci"]["configs"] == 0:
         add(f"Add a CI config. The scan found {data['ci']['configs']} configs and {data['ci']['jobs']} jobs.")
@@ -1574,7 +1576,8 @@ def _next_steps(data: dict) -> list[str]:
         extra = len(hygiene["scratch_dirs"]) - len(shown)
         suffix = f" and {extra} more" if extra else ""
         add(
-            f"Remove {len(hygiene['scratch_dirs'])} scratch or attic directories: "
+            "Remove "
+            f"{_count_phrase(len(hygiene['scratch_dirs']), 'scratch or attic directory', 'scratch or attic directories')}: "
             f"{', '.join(shown)}{suffix}."
         )
     if hygiene["stray_tests"]:
@@ -1929,6 +1932,7 @@ def _hygiene_measured(data: dict) -> str:
     license_gaps = 0 if data["project_files"]["license"]["present"] else 1
     return (
         f"{_de(len(hygiene['flags']), 'Auffälligkeit', 'Auffälligkeiten')}, "
+        f"{data['markers']['total']} Marker, "
         f"{license_gaps} fehlende LICENSE, "
         f"{_de(len(hygiene['large_binaries']), 'Binärdatei', 'Binärdateien')}, "
         f"{_de(len(hygiene['scratch_dirs']), 'scratch/attic-Verzeichnis', 'scratch/attic-Verzeichnisse')}, "
