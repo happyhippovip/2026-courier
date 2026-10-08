@@ -9,6 +9,8 @@ JSON-RPC batches are rejected. The server is stateless and issues no session id.
 Auth: every MCP request needs ``Authorization: Bearer <COURIER_MCP_TOKEN>``.
 With ``--allow-path-token`` the same token may instead be the last path
 segment (``/mcp/<token>``) for clients that cannot send a header.
+With ``--oauth`` the server is also a minimal OAuth 2.1 authorization server
+(see ``oauth.py``); its access tokens are accepted as bearer tokens too.
 """
 
 from __future__ import annotations
@@ -24,6 +26,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from . import __version__
+from .oauth import OAuthError, OAuthServer, consent_page, message_page, parse_form, query_params
 from .tools import TOOLS, Source, ToolError, call_tool, tool_result
 
 TOKEN_ENV = "COURIER_MCP_TOKEN"
@@ -46,11 +49,13 @@ class ConfigError(Exception):
 
 
 class Config:
-    def __init__(self, source: Source, token: str | None, allow_path_token: bool, origins: tuple[str, ...]):
+    def __init__(self, source: Source, token: str | None, allow_path_token: bool, origins: tuple[str, ...],
+                 oauth: OAuthServer | None = None):
         self.source = source
         self.token = token
         self.allow_path_token = allow_path_token
         self.origins = origins
+        self.oauth = oauth
 
 
 def handle_message(config: Config, message) -> dict | None:
@@ -116,6 +121,13 @@ def make_handler(config: Config):
             path = self.path.split("?", 1)[0]
             if path == "/healthz":
                 return self._json(200, {"ok": True})
+            if config.oauth is not None:
+                if path in ("/.well-known/oauth-authorization-server", "/.well-known/openid-configuration"):
+                    return self._json(200, config.oauth.authorization_server_metadata(), cache=True)
+                if path in ("/.well-known/oauth-protected-resource", "/.well-known/oauth-protected-resource/mcp"):
+                    return self._json(200, config.oauth.protected_resource_metadata(), cache=True)
+                if path == "/authorize":
+                    return self._authorize_get()
             if self._route(path) is not None:
                 return self._send(405, b"", extra={"Allow": "POST"})
             return self._json(404, {"error": "not found"})
@@ -128,6 +140,8 @@ def make_handler(config: Config):
         def do_POST(self):
             self._body_read = False
             path = self.path.split("?", 1)[0]
+            if config.oauth is not None and path in ("/authorize", "/token", "/register"):
+                return self._oauth_post(path)
             route = self._route(path)
             if route is None:
                 return self._json(404, {"error": "not found"})
@@ -135,8 +149,8 @@ def make_handler(config: Config):
             if origin is not None and origin not in config.origins:
                 return self._json(403, {"error": "origin not allowed"})
             if not self._authorized(route):
-                return self._json(401, {"error": "unauthorized"},
-                                  extra={"WWW-Authenticate": 'Bearer realm="courier-mcp"'})
+                challenge = config.oauth.www_authenticate() if config.oauth else 'Bearer realm="courier-mcp"'
+                return self._json(401, {"error": "unauthorized"}, extra={"WWW-Authenticate": challenge})
             version = self.headers.get("MCP-Protocol-Version")
             if version is not None and version not in SUPPORTED_VERSIONS:
                 return self._json(400, _error(None, -32600, "Unsupported MCP-Protocol-Version"))
@@ -179,13 +193,92 @@ def make_handler(config: Config):
                 if not header.startswith("Bearer "):
                     return False
                 supplied = header[len("Bearer "):].strip()
+                if config.oauth is not None and config.oauth.access_ok(supplied):
+                    return True
             return hmac.compare_digest(supplied.encode("utf-8"), config.token.encode("utf-8"))
 
-        def _json(self, status, body, extra=None):
-            data = json.dumps(body, ensure_ascii=False).encode("utf-8")
-            self._send(status, data, content_type="application/json", extra=extra)
+        # ---- OAuth ----------------------------------------------------------
+        def _authorize_get(self):
+            params = {}
+            try:
+                params = query_params(self.path)
+                request = config.oauth.check_authorize(params)
+            except OAuthError as exc:
+                return self._authorize_error(exc, params)
+            return self._html(200, consent_page(request))
 
-        def _send(self, status, data, content_type=None, extra=None):
+        def _authorize_error(self, exc, params):
+            if exc.status == 302:
+                target = config.oauth.error_redirect(
+                    {"redirect_uri": params["redirect_uri"], "state": params.get("state") or ""},
+                    exc.error, exc.description)
+                return self._send(302, b"", extra={"Location": target})
+            return self._html(400, message_page("Anfrage abgelehnt", exc.description or exc.error))
+
+        def _read_body(self, limit):
+            try:
+                length = int(self.headers.get("Content-Length", ""))
+            except ValueError:
+                raise OAuthError("invalid_request", "Content-Length required", status=411)
+            if length < 0 or length > limit:
+                raise OAuthError("invalid_request", "request too large", status=413)
+            raw = self.rfile.read(length)
+            self._body_read = True
+            return raw
+
+        def _oauth_post(self, path):
+            ctype = (self.headers.get("Content-Type") or "").split(";", 1)[0].strip().lower()
+            try:
+                raw = self._read_body(MAX_BODY_BYTES)
+                if path == "/register":
+                    if ctype != "application/json":
+                        raise OAuthError("invalid_client_metadata", "Content-Type must be application/json")
+                    try:
+                        body = json.loads(raw.decode("utf-8"))
+                    except (UnicodeError, ValueError):
+                        raise OAuthError("invalid_client_metadata", "invalid JSON")
+                    return self._json(201, config.oauth.register(body))
+                if ctype != "application/x-www-form-urlencoded":
+                    raise OAuthError("invalid_request", "Content-Type must be application/x-www-form-urlencoded")
+                form = parse_form(raw)
+            except OAuthError as exc:
+                return self._json(exc.status if exc.status >= 400 else 400,
+                                  {"error": exc.error, "error_description": exc.description})
+            if path == "/token":
+                try:
+                    return self._json(200, config.oauth.token(form), extra={"Pragma": "no-cache"})
+                except OAuthError as exc:
+                    return self._json(exc.status if exc.status >= 400 else 400,
+                                      {"error": exc.error, "error_description": exc.description})
+            try:
+                request = config.oauth.check_authorize(form)
+            except OAuthError as exc:
+                return self._authorize_error(exc, form)
+            if form.get("decision") != "allow":
+                target = config.oauth.error_redirect(request, "access_denied")
+                return self._send(302, b"", extra={"Location": target})
+            try:
+                target = config.oauth.approve(request, form.get("password") or "")
+            except OAuthError as exc:
+                if exc.error == "wrong_password":
+                    return self._html(401, consent_page(request, "Falsches Passwort."))
+                return self._html(exc.status, message_page("Nicht möglich", exc.description))
+            return self._send(302, b"", extra={"Location": target})
+
+        def _html(self, status, page):
+            self._send(status, page.encode("utf-8"), content_type="text/html; charset=utf-8", extra={
+                "X-Frame-Options": "DENY",
+                "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; "
+                                           "form-action 'self' https:; frame-ancestors 'none'",
+                "Referrer-Policy": "no-referrer",
+                "X-Content-Type-Options": "nosniff",
+            })
+
+        def _json(self, status, body, extra=None, cache=False):
+            data = json.dumps(body, ensure_ascii=False).encode("utf-8")
+            self._send(status, data, content_type="application/json", extra=extra, cache=cache)
+
+        def _send(self, status, data, content_type=None, extra=None, cache=False):
             self._status = status
             self.send_response(status)
             if self.command == "POST" and not getattr(self, "_body_read", False):
@@ -196,7 +289,7 @@ def make_handler(config: Config):
             if content_type:
                 self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(data)))
-            self.send_header("Cache-Control", "no-store")
+            self.send_header("Cache-Control", "public, max-age=300" if cache else "no-store")
             for key, value in (extra or {}).items():
                 self.send_header(key, value)
             self.end_headers()
@@ -226,6 +319,10 @@ def parse_args(argv):
                         help="Also accept the token as the last path segment: /mcp/<token>.")
     parser.add_argument("--allow-origin", action="append", default=[],
                         help="Extra browser Origin to accept (repeatable).")
+    parser.add_argument("--oauth", action="store_true",
+                        help="Also act as a minimal OAuth 2.1 server (PKCE, public clients). Needs --public-url.")
+    parser.add_argument("--public-url", default=None, help="Public https base URL, e.g. https://host (no path).")
+    parser.add_argument("--oauth-store", default=None, help="JSON file for client registrations and token hashes.")
     return parser.parse_args(argv)
 
 
@@ -252,7 +349,19 @@ def build_config(args, environ) -> Config:
         if not Path(state_dir).is_dir():
             raise ConfigError("state dir does not exist or is not a directory.")
         source = Source(state_dir=Path(state_dir).resolve())
-    return Config(source, token, args.allow_path_token, DEFAULT_ORIGINS + tuple(args.allow_origin))
+    oauth = None
+    if args.oauth:
+        if token is None:
+            raise ConfigError(f"--oauth needs {TOKEN_ENV} (it is the owner's approval password).")
+        if not args.public_url or not args.oauth_store:
+            raise ConfigError("--oauth needs --public-url and --oauth-store.")
+        if not Path(args.oauth_store).parent.is_dir():
+            raise ConfigError("--oauth-store directory does not exist.")
+        try:
+            oauth = OAuthServer(args.public_url, token, args.oauth_store)
+        except ValueError as exc:
+            raise ConfigError(str(exc))
+    return Config(source, token, args.allow_path_token, DEFAULT_ORIGINS + tuple(args.allow_origin), oauth)
 
 
 def make_server(config: Config, host: str, port: int) -> ThreadingHTTPServer:
@@ -273,7 +382,8 @@ def main(argv=None, environ=None) -> int:
     auth = "bearer" if config.token else "none (loopback demo)"
     started = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     sys.stderr.write(f"courier-mcp {__version__} listening on {args.host}:{server.server_address[1]} "
-                     f"mode={mode} auth={auth} path_token={config.allow_path_token} started={started}\n")
+                     f"mode={mode} auth={auth} path_token={config.allow_path_token} "
+                     f"oauth={config.oauth is not None} started={started}\n")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
