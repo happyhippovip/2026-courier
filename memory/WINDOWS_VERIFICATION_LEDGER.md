@@ -264,4 +264,14 @@ This ledger tracks the verification status of modules in this repository on Wind
 **Findings**:
 - **Date Coercion & Type Safety**: Previously, passing string ISO dates (e.g. from JSON payloads or CLI invocations) or `datetime.datetime` instances raised `TypeError: can only concatenate str to datetime.timedelta`. Added helper `_coerce_date` to normalize strings, datetimes, and dates, with clear error messaging for invalid types.
 - **CLI Interface**: Added executable `main()` CLI entrypoint for `python -m courier_runtime.deadlines` supporting `--months`, `--posted-on`, `--received-on`, and `--fiction-days` with clean JSON outputs.
-- **Testing**: Enhanced `tests/test_runtime_deadlines.py` with 9 comprehensive unit tests covering Lower Saxony holiday calculation, month-end boundary rolling, weekend shift, late receipt rules, string ISO dates, datetime instances, type validation, and CLI invocation. 16/16 runtime tests passing green locally.
+- **Testing**: Enhanced `tests/test_runtime_deadlines.py` with 9 comprehensive unit tests covering Lower Saxony holiday calculation, month-end boundary rolling, weekend shift, late receipt rules, string ISO dates, datetime instances, type validation, and CLI invocation. 16/16 runtime tests passing green locally. PR #239 passed 8/8 GitHub Actions CI checks (100% green).
+
+## courier_runtime/host_loop.py & automation_wake_coalescing.py
+**Status**: VERIFIED
+**Date**: 2026-10-08
+**Findings**:
+- **Autonomous Continuation & Wake Coalescing**: Verified provider signal tailing (`courier_runtime/host_loop.py`) and single-wake delivery through `Kirby`. Duplicate `IDLE` lines safely coalesce (`results == ["COALESCED"] * 100`, exactly one wake record in `wakeups.jsonl`).
+- **Autonomous Schedule**: Configured bounded native continuation schedule via Google Antigravity `schedule` daemon (`CronExpression: */20 * * * *`, Task ID `task-13460`).
+- **Headless CLI Surface**: Verified unattended zero-prompt invocation via `C:\Users\lol\AppData\Local\agy\bin\agy.exe` and `Test-CourierAgyConfiguration.ps1` (12/12 checks passing).
+- **Testing**: 33/33 tests passing green in `tests/test_host_loop.py` and `tests/test_runtime_continuity.py`. 6/6 tests passing in `tests/test_automation_wake_coalescing.py`.
+
