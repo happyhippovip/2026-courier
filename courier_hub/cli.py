@@ -16,6 +16,10 @@ from courier_hub import model
 
 from .server import main as _main
 
+# Same bound as courier_core.install_state.MAX_STATE_BYTES. Kept local so this
+# branch can load evidence without requiring that name on an older contract.
+MAX_STATE_BYTES = 1024 * 1024
+
 
 def evidence_from_mapping(raw: dict) -> Evidence:
     """Keep only evidence fields. Extra keys, including secrets, are dropped."""
@@ -47,7 +51,20 @@ def evidence_from_mapping(raw: dict) -> Evidence:
 
 
 def load_evidence(path) -> Evidence:
-    document = json.loads(Path(path).read_text(encoding="utf-8"))
+    target = Path(path)
+    try:
+        size = target.stat().st_size
+        if isinstance(size, bool) or not isinstance(size, int) or size < 0 or size > MAX_STATE_BYTES:
+            raise JournalUnreadable("unreadable")
+        with target.open("rb") as handle:
+            raw = handle.read(MAX_STATE_BYTES + 1)
+        if len(raw) > MAX_STATE_BYTES:
+            raise JournalUnreadable("unreadable")
+        document = json.loads(raw.decode("utf-8"))
+    except JournalUnreadable:
+        raise
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise JournalUnreadable("unreadable") from exc
     return evidence_from_mapping(document)
 
 

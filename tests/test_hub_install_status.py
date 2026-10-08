@@ -153,3 +153,51 @@ def test_secret_values_never_appear_in_model_or_cli_output(tmp_path, capsys):
     assert SECRET not in captured
     assert "super-token-value-should-not-leak" not in captured
     assert json.loads(captured)["bucket"] == "working"
+
+
+def test_oversized_evidence_is_an_unreadable_card(tmp_path, monkeypatch, capsys):
+    from pathlib import Path
+
+    from courier_hub.cli import MAX_STATE_BYTES, main
+    evidence = tmp_path / "evidence.json"
+    with evidence.open("wb") as handle:
+        handle.truncate(MAX_STATE_BYTES + (8 * 1024 * 1024))
+    read_bytes = {"n": 0}
+    real_open = Path.open
+
+    def wrapped(self, mode="r", *args, **kwargs):
+        handle = real_open(self, mode, *args, **kwargs)
+        original = handle.read
+
+        def read(n=-1):
+            if n is None or n < 0 or n > MAX_STATE_BYTES + 1:
+                raise AssertionError(f"read beyond cap: {n}")
+            data = original(n)
+            size = len(data.encode("utf-8")) if isinstance(data, str) else len(data)
+            read_bytes["n"] += size
+            if read_bytes["n"] > MAX_STATE_BYTES + 1:
+                raise AssertionError(f"loaded {read_bytes['n']} bytes")
+            return data
+
+        handle.read = read
+        return handle
+
+    monkeypatch.setattr(Path, "open", wrapped)
+    code = main([
+        "courier-hub", "install-status",
+        "--state-dir", str(tmp_path / "state"),
+        "--evidence", str(evidence),
+        "--now", _at(40).isoformat(),
+        "--host", "host-a",
+    ])
+    captured = capsys.readouterr()
+    assert code == 0
+    assert "Traceback" not in captured.out
+    assert "Traceback" not in captured.err
+    assert str(tmp_path) not in captured.out
+    assert str(tmp_path) not in captured.err
+    body = json.loads(captured.out)
+    assert body["bucket"] == "unknown"
+    assert body["reason_code"] == "STATUS_UNREADABLE"
+    assert body.get("contract_state") != "HEALTHY"
+    assert read_bytes["n"] <= MAX_STATE_BYTES + 1
