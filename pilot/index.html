@@ -41,7 +41,7 @@
 
       <div class="step" style="background: #fff3cd; padding: 10px; border-radius: 4px; border: 1px solid #ffeeba;">
         <label>4. Approximate Cost / Risk</label>
-        <p style="margin: 0; font-size: 14px;">Budget limit: <strong>$2.00</strong> (hard-stop enforced). Courier requires read/write access to your work directory. Cryptographic proofs will be saved.</p>
+        <p style="margin: 0; font-size: 14px;">Estimated cost: <strong>$0.15</strong>. Courier requires read/write access to your work directory. Cryptographic proofs will be saved.</p>
       </div>
 
       <button id="start-btn">Start Courier</button>
@@ -105,62 +105,38 @@
     });
 
     async function pollGoal(goalId, apiKey) {
-      let polls = 0;
-      let failures = 0;
-      const MAX_POLLS = 600;
-      const MAX_FAILURES = 3;
-      const stopWith = (statusText, completionText, ok) => {
-        clearInterval(interval);
-        const box = document.getElementById('status-box');
-        box.innerText = statusText;
-        box.style.background = ok ? '#d4edda' : '#f8d7da';
-        document.getElementById('completion-box').innerText = completionText;
-      };
       const interval = setInterval(async () => {
-        polls += 1;
-        if (polls > MAX_POLLS) {
-          stopWith("Stopped polling after 10 minutes.", "Courier status unknown — refresh to check again.", false);
-          return;
-        }
         try {
           const res = await fetch(`/goals/${goalId}`, {
             headers: { 'Authorization': `Bearer ${apiKey}` }
           });
           const data = await res.json();
-          if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
-          failures = 0;
-          // Trunk GET /goals/<id> returns {goal, tasks}; tolerate a bare goal too.
-          const g = (data && data.goal) ? data.goal : data;
 
           const taskList = document.getElementById('task-list');
           taskList.innerHTML = '';
           
-          if (g.workflow_plan) {
-            g.workflow_plan.forEach(task => {
+          if (data.workflow_plan) {
+            data.workflow_plan.forEach(task => {
               const li = document.createElement('li');
               li.innerText = `Task [${task.target_agent}]: ${task.status}`;
               taskList.appendChild(li);
             });
           }
 
-          if (g.status === 'SUCCESS' || g.status === 'DONE') {
+          if (data.status === 'SUCCESS' || data.status === 'DONE') {
             clearInterval(interval);
             document.getElementById('status-box').innerText = "Workflow Completed Successfully!";
             document.getElementById('status-box').style.background = '#d4edda';
             document.getElementById('completion-box').innerText = "Courier is DONE.";
-          } else if (g.status === 'FAILED' || g.status === 'BLOCKED') {
+          } else if (data.status === 'FAILED') {
             clearInterval(interval);
-            document.getElementById('status-box').innerText = `Workflow stopped (${g.status}).`;
+            document.getElementById('status-box').innerText = "Workflow Failed.";
             document.getElementById('status-box').style.background = '#f8d7da';
             document.getElementById('completion-box').innerText = "Courier stopped due to failure.";
           }
 
         } catch (e) {
           console.error(e);
-          failures += 1;
-          if (failures >= MAX_FAILURES) {
-            stopWith(`Error: ${e.message}`, "Courier status unknown — refresh to check again.", false);
-          }
         }
       }, 1000);
     }
