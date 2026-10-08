@@ -71,15 +71,39 @@ class DemoOrchestrator:
 
         print(f"[DEMO RESET] Evidence directory reset at {self.evidence_dir}")
 
+    def _read_recorded_human_gate(self, workflow_id: str, correlation_id: str) -> dict | None:
+        """Return one approval already stored for this workflow. This method does not write one."""
+        approvals_dir = self.repo_dir / "events/approvals"
+        if not approvals_dir.is_dir():
+            return None
+        matches = []
+        for path in sorted(approvals_dir.glob("*.json")):
+            try:
+                data = load_json(path)
+            except (OSError, json.JSONDecodeError):
+                continue
+            if data.get("workflow_id") != workflow_id or data.get("correlation_id") != correlation_id:
+                continue
+            decision = data.get("decision") or data.get("action")
+            if decision not in ("APPROVE", "REJECT"):
+                continue
+            if not isinstance(data.get("approval_id"), str) or not data["approval_id"]:
+                continue
+            matches.append(data)
+        if len(matches) != 1:
+            return None
+        return matches[0]
+
     def run_live_demo(
         self,
         raw_idea: str = "Optimiere FruitKI 3D Video-Render Pipeline und erstelle Release-Metadaten",
         idea_type: str = "GOAL",
-        auto_approve: bool = True,
+        correlation_id: str | None = None,
     ) -> dict:
-        """Executes the full 13-stage deterministic demo."""
+        """Executes the demo. A human gate counts only when its approval file is already on disk."""
         demo_id = f"demo-{uuid.uuid4().hex[:8]}"
-        correlation_id = f"corr-demo-{uuid.uuid4().hex[:8]}"
+        if not correlation_id:
+            correlation_id = f"corr-demo-{uuid.uuid4().hex[:8]}"
         start_time = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
         print("\n=======================================================")
@@ -136,56 +160,47 @@ class DemoOrchestrator:
             if src_file.exists():
                 shutil.copy(src_file, self.evidence_dir / dest_subdir / pattern)
 
-        # STAGE 6: Human Gate Approval Event
-        print("\n[STAGE 6] HUMAN GATE APPROVAL EVENT PERSISTENCE...")
-        appr_id = f"appr-demo-{uuid.uuid4().hex[:8]}"
-        appr_record = {
-            "schema_version": "2.0",
-            "approval_id": appr_id,
-            "action": "APPROVE",
-            "decision": "APPROVE",
-            "workflow_id": workflow_id,
-            "task_id": step1_task,
-            "correlation_id": correlation_id,
-            "operator": "HUMAN_OPERATOR",
-            "reason": "Authorized execution of remaining workflow rounds for live demonstration",
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        }
-        # Save to both active approvals and isolated demo approvals
-        save_json(self.repo_dir / f"events/approvals/{appr_id}.json", appr_record)
-        save_json(self.evidence_dir / f"approvals/{appr_id}.json", appr_record)
-        print(f"   -> Human Approval Event persisted: {appr_id} (Validated correlation: {correlation_id})")
+        recorded_gate = self._read_recorded_human_gate(workflow_id, correlation_id)
+        gate_decision = None
+        if recorded_gate is not None:
+            gate_decision = recorded_gate.get("decision") or recorded_gate.get("action")
 
-        # STAGE 7: Workflow Resume & Step 2/3 Execution
-        print("\n[STAGE 7] WORKFLOW RESUMPTION & COMPLETION...")
-        resume_res = self.loop.resume_workflow(
-            workflow_id=workflow_id,
-            correlation_id=correlation_id,
-            workflow_plan=plan,
-            from_round_index=1,
-        )
-        print(f"   -> Resume Execution Result: Status={resume_res['status']} (Stop Reason={resume_res['stop_reason']})")
-        assert resume_res["status"] == "COMPLETED", "Workflow must reach COMPLETED after resume!"
+        resume_res = None
+        if gate_decision == "APPROVE":
+            print(f"\n[STAGE 6] Recorded human gate read back: {recorded_gate['approval_id']}")
+            print("\n[STAGE 7] WORKFLOW RESUMPTION...")
+            resume_res = self.loop.resume_workflow(
+                workflow_id=workflow_id,
+                correlation_id=correlation_id,
+                workflow_plan=plan,
+                from_round_index=1,
+            )
+            print(f"   -> Resume Execution Result: Status={resume_res['status']} (Stop Reason={resume_res['stop_reason']})")
+            if resume_res.get("status") == "COMPLETED":
+                for step in plan[1:]:
+                    st_task = step["task_id"]
+                    for pattern, dest_subdir in [
+                        (f"{st_task}-worker-job.json", "tasks"),
+                        (f"{st_task}-result.json", "results"),
+                        (f"{st_task}-chief-decision.json", "decisions"),
+                    ]:
+                        src_file = self.repo_dir / f"events/{'dispatch' if 'worker-job' in pattern else ('processed' if 'result' in pattern else 'chief-decisions')}" / pattern
+                        if src_file.exists():
+                            shutil.copy(src_file, self.evidence_dir / dest_subdir / pattern)
+        else:
+            print("\n[STAGE 6] No recorded human gate. Not reporting success.")
 
-        # Copy subsequent tasks, results, and decisions to demo evidence
-        for step in plan[1:]:
-            st_task = step["task_id"]
-            for pattern, dest_subdir in [
-                (f"{st_task}-worker-job.json", "tasks"),
-                (f"{st_task}-result.json", "results"),
-                (f"{st_task}-chief-decision.json", "decisions"),
-            ]:
-                src_file = self.repo_dir / f"events/{'dispatch' if 'worker-job' in pattern else ('processed' if 'result' in pattern else 'chief-decisions')}" / pattern
-                if src_file.exists():
-                    shutil.copy(src_file, self.evidence_dir / dest_subdir / pattern)
-
-        # STAGE 8: Assemble Manifest
+        completed = gate_decision == "APPROVE" and resume_res is not None and resume_res.get("status") == "COMPLETED"
+        status = "COMPLETED" if completed else "BLOCKED_HUMAN_GATE"
+        history_rounds = len(round1_res["history"])
+        if resume_res is not None:
+            history_rounds += len(resume_res["history"])
         manifest = {
             "schema_version": "2.0",
             "demo_id": demo_id,
             "created_at": start_time,
             "completed_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-            "status": "COMPLETED",
+            "status": status,
             "human_input": {
                 "raw_idea": raw_idea,
                 "type": idea_type,
@@ -198,14 +213,14 @@ class DemoOrchestrator:
                 "plan": plan,
             },
             "human_gate": {
-                "approval_id": appr_id,
-                "decision": "APPROVE",
-                "operator": "HUMAN_OPERATOR",
+                "approval_id": recorded_gate.get("approval_id") if recorded_gate else None,
+                "decision": gate_decision or "NOT_RECORDED",
+                "read_back": recorded_gate is not None,
             },
             "execution_summary": {
-                "total_rounds": len(round1_res["history"]) + len(resume_res["history"]),
-                "final_verdict": "ACCEPTED",
-                "final_status": "COMPLETED",
+                "total_rounds": history_rounds,
+                "final_verdict": "ACCEPTED" if completed else "NOT_RECORDED",
+                "final_status": status,
                 "costs_eur": 0.0,
                 "model_calls": 0,
             },
@@ -215,10 +230,11 @@ class DemoOrchestrator:
 
         save_json(self.evidence_dir / "demo_evidence_manifest.json", manifest)
 
-        print("\n=======================================================")
-        print(f"✅ LIVE DEMO COMPLETED SUCCESSFULLY: {manifest['status']}")
         print(f"   Evidence Manifest written to: {self.evidence_dir}/demo_evidence_manifest.json")
-        print("=======================================================\n")
+        if completed:
+            print("\n=======================================================")
+            print(f"✅ LIVE DEMO COMPLETED SUCCESSFULLY: {manifest['status']}")
+            print("=======================================================\n")
         return manifest
 
 
