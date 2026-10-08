@@ -4,21 +4,21 @@ A local markdown report for one checkout. The scan reads files that are already 
 
 ## What the customer gets
 
-One markdown file. Headings are German, with a short English subtitle under each heading. The first section is the summary.
+One markdown file, written in German. The first section is the summary.
 
-- **Kurzfassung** (Executive summary): six German sentences and an Ampel table for Tests, CI, Abhängigkeiten, Geheimnis-Risiko, and Repo-Hygiene. Every sentence and every Ampel cell uses a count from the scan. Grün, Gelb, and Rot follow the rules printed under Grenzen.
+- **Kurzfassung** (Executive summary): six sentences and an Ampel table for Tests, CI, Abhängigkeiten, Geheimnis-Risiko, and Repo-Hygiene. Every sentence and every Ampel cell uses a count from the scan. Grün, Gelb, and Rot follow the rules printed under Grenzen.
 - **Repositorygröße** (Repository size): file count, and line counts grouped by language. Language comes from the filename extension. Extensions that are not in the known map collapse into one Sonstige row. The number in parentheses is how many of those extensions were found. The files and lines in that row are the sums.
-- **Testdateien** (Test files): a file counts only when its name matches `test_*.py`, `*_test.py`, `*.test.js`, `*.spec.js`, or `*_test.go`, and it either contains at least one test function or lives under `test`, `tests`, or `__tests__`. `conftest.py`, fake/fakes, and builder/builders files are listed separately as Test-Hilfsdateien and are not test files.
+- **Testdateien** (Test files): a test-named file (`test_*.py`, `*_test.py`, `*.test.*` or `*.spec.*` for JS/TS, `*_test.go`) counts when it contains at least one test function or lives under `test`, `tests`, or `__tests__`. JS/TS files in those directories count when they call `it()` or `test()`. Rust files count when they contain `#[test]` or `#[cfg(test)]`, or live under `tests`. Fixture directories never count. `conftest.py`, fake/fakes, and builder/builders files are listed separately as Test-Hilfsdateien and are not test files.
 - **Testergebnisse** (Pytest results): passed, failed, skipped, and error counts when a pytest JSON file is supplied.
 - **Offene Marker** (TODO, FIXME, and HACK): counts, plus the files with the most markers.
 - **CI-Konfiguration** (Continuous integration): which CI configs are present and how many jobs they declare. Recognized files include GitHub Actions, GitLab CI, CircleCI, Azure Pipelines, Bitbucket Pipelines, Travis CI, and a Jenkinsfile.
 - **Projektdateien** (README, LICENSE, and gitignore): whether each of those files is present at the checkout root. A missing LICENSE stays in this section.
-- **Abhängigkeiten** (Dependency manifests): manifests that were found, and how many dependencies are unpinned.
+- **Abhängigkeiten** (Dependency manifests): manifests that were found, and how many dependencies have neither an exact version nor a lockfile.
 - **Größte Dateien** (Largest files): the largest files by byte size.
-- **Hinweise auf Geheimnisse** (Secrets-risk patterns): pattern counts and file paths, split into production code and tests, fixtures, or docs. Production hits set that score component to 0. Hits only in tests, fixtures, or docs cost 2 points. Matched text is not in the report.
-- **Repo-Hygiene** (Repository hygiene): missing LICENSE, committed binaries and archives over 1048576 bytes, JSON, JSONL, or NDJSON over 1048576 bytes, directories named attic, scratch, scratches, or scratchpad, and test-named files at the checkout root or under `scripts/`.
-- **Realitätswert** (Reality score): a number from 0 to 100. The report lists every component weight, the points awarded, and any deductions.
-- **Nächste fünf Schritte** (Top 5 next steps): five actions ordered by impact. Each line cites the count or path that produced it.
+- **Hinweise auf Geheimnisse** (Secrets-risk patterns): pattern counts and file paths, split into production code and tests, fixtures, examples, or docs. Production hits set that score component to 0. Hits only in tests, fixtures, examples, or docs cost 2 points. GitHub Actions expressions such as `${{ secrets.NAME }}` are not counted. Matched text is not in the report.
+- **Repo-Hygiene** (Repository hygiene): missing LICENSE, committed binaries and archives over 1 MB, JSON, JSONL, or NDJSON over 1 MB, directories named attic, scratch, scratches, or scratchpad, and test-named files at the checkout root or under `scripts/` (Go `*_test.go` next to the code is normal and not a finding).
+- **Realitätswert** (Reality score): a number from 0 to 100. The report lists every component weight, the points awarded, and any deductions. A high score means the repository structure is complete, not that its tests passed; without real test results the Tests light stays Gelb.
+- **Nächste fünf Schritte** (Top 5 next steps): five actions, findings first. Advice depends on the languages found; pytest advice appears only when Python tests exist.
 
 The report ends with **Grenzen** (Limits): skipped directories, the file cap, and the per-file read cap.
 
@@ -42,9 +42,9 @@ python -m courier_core.repo_reality_report --github owner/repo[@ref] [--out repo
 
 A missing checkout directory stops the command. A pytest JSON file that is missing, unreadable, or not valid JSON does not stop the command. That section says what happened, and the score table lists a deduction for unusable JSON. A parser error is not copied into the report, so a broken JSON file cannot echo its contents.
 
-An exact pin is `==` or `===` in requirements and PEP 621 lists, a bare `major.minor.patch` in `package.json`, and a leading `=` for Poetry, Cargo, and Composer. Lockfiles are listed and are not counted as unpinned.
+An exact pin is `==` or `===` in requirements and PEP 621 lists, a bare `major.minor.patch` in `package.json`, and a leading `=` for Poetry, Cargo, and Composer. A manifest counts as fully pinned when its ecosystem lockfile (Cargo.lock, package-lock.json, yarn.lock, pnpm-lock.yaml, poetry.lock, uv.lock, Pipfile.lock, go.sum, Gemfile.lock, composer.lock) sits in the same directory or above.
 
-A test-named file outside a tests directory counts only when the scan finds at least one test function in it. The same file at the checkout root or under `scripts/` is also a stray-test hygiene finding. A test-named file with no test function still counts when it lives under `test`, `tests`, or `__tests__`.
+A test-named file outside a tests directory counts only when the scan finds at least one test function in it. The same file at the checkout root or under `scripts/` is also a hygiene finding, except Go `*_test.go` files. A test-named file with no test function still counts when it lives under `test`, `tests`, or `__tests__`.
 
 ## Public GitHub checkout
 
@@ -61,228 +61,233 @@ python -m courier_core.repo_reality_report --github owner/repo[@ref] --out repor
 
 ## Sample report
 
-The report below was generated from a small synthetic fixture:
+The report below is the unedited output for the public repository psf/requests at commit `611c6162cbc4ac2020a2f91c7cfa4f3abf9bbb60`, generated with `python -m courier_core.repo_reality_report --github psf/requests@611c6162cbc4ac2020a2f91c7cfa4f3abf9bbb60`. No pytest JSON was supplied, so the tests were not run and the Tests light is Gelb.
 
-- `README.md`, `LICENSE`, and `.gitignore` at the fixture root
-- `requirements.txt` with one exact pin and one unpinned requirement
-- `src/app.py` with one uppercase TODO
-- `tests/test_app.py` with two test functions
-- `tests/conftest.py`, listed as a Test-Hilfsdatei
-- `.github/workflows/ci.yml` with one job
-- `data/notes.txt`
-- `config/app.env` with one synthetic assigned token (the value is not in the report)
-- a pytest JSON summary of 3 passed, 1 failed, and 1 skipped
-
-```markdown
+````markdown
 # Repo Reality Check
 
-Read-only scan of one local checkout. No network calls. Customer code was not executed. Pytest counts are included only when a pytest JSON file is supplied.
+Nur lesende Prüfung eines öffentlichen GitHub-Tarballs. Der Code des Repos wurde nicht ausgeführt. Testergebnisse erscheinen nur, wenn eine Pytest-JSON-Datei mitgeliefert wurde.
+
+- Quelle: github.com/psf/requests@611c6162cbc4ac2020a2f91c7cfa4f3abf9bbb60
+- Commit: 611c6162cbc4ac2020a2f91c7cfa4f3abf9bbb60
+- Tarball-Prüfsumme (sha256): 83a67e83356762c4dfac7e75387826178fbf1041e2d2cd57259f4a5593474aa3
 
 ## Kurzfassung
-_Executive summary_
 
-Der Checkout enthält 10 Dateien und 25 Zeilen.
-Statisch gezählt wurden 1 Testdatei, 2 Testfunktionen und 1 Test-Hilfsdatei; Pytest-JSON 3 bestanden, 1 fehlgeschlagen, 1 übersprungen, 0 Fehler.
-CI: 1 Konfiguration und 1 Job.
-Abhängigkeiten: 1 Manifest, 1 von 2 geparsten Einträgen mit exakter Version.
-Geheimnis-Risiko: 1 Treffer in Produktionscode und 0 Treffer in Tests, Fixtures oder Docs.
-Repo-Hygiene: 0 fehlende LICENSE, 0 Binär- oder Archivdateien über 1048576 Bytes, 0 scratch/attic-Verzeichnisse, 0 JSON/JSONL-Dateien über 1048576 Bytes, 0 verstreute Testdateien.
+Der Checkout enthält 128 Dateien und 20768 Zeilen.
+Statisch gezählt: 9 Testdateien, 347 Testfunktionen und 1 Test-Hilfsdatei; die Tests wurden nicht ausgeführt.
+CI: 8 Konfigurationen und 13 Jobs.
+Abhängigkeiten: 3 Manifeste, 2 von 14 Einträgen exakt gepinnt oder per Lockfile gesperrt.
+Geheimnis-Risiko: 0 Treffer im Produktionscode, 4 in Tests, Fixtures, Beispielen oder Doku.
+Repo-Hygiene: LICENSE vorhanden, keine weiteren Auffälligkeiten.
 
 | Bereich | Ampel | Gemessen |
 | --- | --- | --- |
-| Tests | Gelb | 1 Testdatei, 2 Testfunktionen, Pytest 1 fehlgeschlagen, 0 Fehler |
-| CI | Grün | 1 Konfiguration, 1 Job |
-| Abhängigkeiten | Gelb | 1 Manifest, 1 ungepinnt von 2 |
-| Geheimnis-Risiko | Rot | 1 Produktions-Treffer, 0 Treffer in Tests/Fixtures/Docs |
-| Repo-Hygiene | Grün | 0 Auffälligkeiten, 1 Marker, 0 fehlende LICENSE, 0 Binärdateien, 0 scratch/attic-Verzeichnisse, 0 JSON/JSONL-Dateien, 0 verstreute Testdateien |
+| Tests | Gelb | 9 Testdateien, 347 Testfunktionen, nicht ausgeführt |
+| CI | Grün | 8 Konfigurationen, 13 Jobs |
+| Abhängigkeiten | Gelb | 3 Manifeste, 12 von 14 ohne exakte Version oder Lockfile |
+| Geheimnis-Risiko | Gelb | 0 im Produktionscode, 4 in Tests/Fixtures/Beispielen/Doku |
+| Repo-Hygiene | Gelb | 1 Auffälligkeit: 7 Marker |
 
 ## Repositorygröße
-_Repository size_
 
-- Files: 10
-- Lines: 25
+- Dateien: 128
+- Zeilen: 20768
+- Nur teilweise gelesen (größer als 256 KB): 3
 
-| Language | Files | Lines |
+| Sprache | Dateien | Zeilen |
 | --- | --- | --- |
-| Markdown | 1 | 3 |
-| Python | 3 | 10 |
-| Text | 2 | 4 |
-| YAML | 1 | 5 |
-| no extension | 2 | 2 |
-| Sonstige (1) | 1 | 1 |
+| CSS | 1 | 12 |
+| HTML | 1 | 33 |
+| INI | 1 | 18 |
+| Markdown | 13 | 2524 |
+| Python | 37 | 12032 |
+| TOML | 1 | 125 |
+| Text | 2 | 10 |
+| YAML | 12 | 470 |
+| ohne Endung | 18 | 603 |
+| reStructuredText | 16 | 2939 |
+| Sonstige (12) | 26 | 2002 |
 
 ## Testdateien
-_Test files (static scan)_
 
-- Test files: 1
-- Test functions: 2
+- Testdateien: 9
+- Testfunktionen: 347
 - Test-Hilfsdateien: 1
 
-| File | Test functions |
+| Datei | Testfunktionen |
 | --- | --- |
-| tests/test_app.py | 2 |
+| tests/test_adapters.py | 1 |
+| tests/test_help.py | 3 |
+| tests/test_hooks.py | 2 |
+| tests/test_lowlevel.py | 13 |
+| tests/test_packages.py | 3 |
+| tests/test_requests.py | 237 |
+| tests/test_structures.py | 13 |
+| tests/test_testserver.py | 11 |
+| tests/test_utils.py | 64 |
 
 ### Test-Hilfsdateien
-_Test helper files_
 
-| File |
+| Datei |
 | --- |
 | tests/conftest.py |
 
 ## Testergebnisse
-_Pytest results (pytest-json-report)_
 
-- Status: parsed
-- Passed: 3
-- Failed: 1
-- Skipped: 1
-- Errors: 0
+- Status: nicht mitgeliefert
+- Bestanden, fehlgeschlagen, übersprungen, Fehler: keine Angabe
 
 ## Offene Marker
-_TODO, FIXME, and HACK_
 
-- TODO: 1
+- TODO: 7
 - FIXME: 0
 - HACK: 0
-- Total: 1
+- Gesamt: 7
 
-| File | TODO | FIXME | HACK | Total |
+| Datei | TODO | FIXME | HACK | Gesamt |
 | --- | --- | --- | --- | --- |
-| src/app.py | 1 | 0 | 0 | 1 |
+| src/requests/_types.py | 2 | 0 | 0 | 2 |
+| src/requests/models.py | 2 | 0 | 0 | 2 |
+| src/requests/adapters.py | 1 | 0 | 0 | 1 |
+| src/requests/hooks.py | 1 | 0 | 0 | 1 |
+| tests/test_testserver.py | 1 | 0 | 0 | 1 |
 
 ## CI-Konfiguration
-_Continuous integration_
 
-- Configs: 1
-- Jobs: 1
+- Konfigurationen: 8
+- Jobs: 13
 
-| Kind | File | Jobs |
+| Art | Datei | Jobs |
 | --- | --- | --- |
-| GitHub Actions | .github/workflows/ci.yml | 1 |
+| GitHub Actions | .github/workflows/close-issues.yml | 2 |
+| GitHub Actions | .github/workflows/codeql-analysis.yml | 1 |
+| GitHub Actions | .github/workflows/lint.yml | 1 |
+| GitHub Actions | .github/workflows/lock-issues.yml | 1 |
+| GitHub Actions | .github/workflows/publish.yml | 3 |
+| GitHub Actions | .github/workflows/run-tests.yml | 3 |
+| GitHub Actions | .github/workflows/typecheck.yml | 1 |
+| GitHub Actions | .github/workflows/zizmor.yml | 1 |
 
 ## Projektdateien
-_README, LICENSE, and gitignore_
 
-- README: present (README.md)
-- LICENSE: present (LICENSE)
-- .gitignore: present (.gitignore)
+- README: vorhanden (README.md)
+- LICENSE: vorhanden (LICENSE)
+- .gitignore: vorhanden (.gitignore)
 
 ## Abhängigkeiten
-_Dependency manifests_
 
-- Manifests: 1
-- Unpinned dependencies: 1
-- Pinned dependencies: 1
-- Pin rule: requirements and PEP 621 count as pinned with `==` or `===`; package.json counts a bare major.minor.patch; Poetry, Cargo, and Composer count a leading `=`.
+- Manifeste: 3
+- Ohne exakte Version und ohne Lockfile: 12
+- Exakt gepinnt oder per Lockfile gesperrt: 2
+- Regel: requirements und PEP 621 gelten mit `==` oder `===` als gepinnt, package.json mit einer reinen Version major.minor.patch, Poetry, Cargo und Composer mit führendem `=`. Liegt ein passendes Lockfile (Cargo.lock, package-lock.json, yarn.lock, pnpm-lock.yaml, poetry.lock, uv.lock, Pipfile.lock, go.sum, Gemfile.lock, composer.lock) im selben oder einem übergeordneten Ordner, gelten alle Einträge des Manifests als gepinnt.
 
-| Manifest | Kind | Pinned | Unpinned | Note |
+| Manifest | Art | Gepinnt | Ungepinnt | Hinweis |
 | --- | --- | --- | --- | --- |
-| requirements.txt | requirements | 1 | 1 | - |
+| docs/requirements.txt | requirements | 1 | 0 | - |
+| pyproject.toml | pyproject | 0 | 6 | - |
+| requirements-dev.txt | requirements | 1 | 6 | - |
 
 ## Größte Dateien
-_Largest files_
 
-| Bytes | Lines | File |
+| Bytes | Zeilen | Datei |
 | --- | --- | --- |
-| 51 | 5 | .github/workflows/ci.yml |
-| 51 | 5 | tests/test_app.py |
-| 38 | 4 | src/app.py |
-| 33 | 1 | config/app.env |
-| 25 | 2 | requirements.txt |
-| 13 | 3 | README.md |
-| 11 | 2 | data/notes.txt |
-| 10 | 1 | LICENSE |
-| 10 | 1 | tests/conftest.py |
-| 6 | 1 | .gitignore |
+| 2189478 | 1306 (Anfang) | ext/requests-logo.ai |
+| 883794 | 1 (Anfang) | ext/requests-logo.svg |
+| 306086 | binär | docs/_static/requests-sidebar.png |
+| 192073 | binär | ext/requests-logo-compressed.png |
+| 192073 | binär | ext/requests-logo.png |
+| 108534 | 3094 | tests/test_requests.py |
+| 64563 | 2102 | HISTORY.md |
+| 41903 | 1137 | docs/user/advanced.rst |
+| 41462 | 1184 | src/requests/models.py |
+| 36061 | 1155 | src/requests/utils.py |
 
 ## Hinweise auf Geheimnisse
-_Secrets-risk patterns_
 
-Counts and file paths only. Matched text is not included.
+Nur Anzahl und Dateipfad. Der gefundene Text wird nicht übernommen.
 
-- Production hits: 1 in 1 file
-- Tests, fixtures, and docs hits: 0 in 0 files
-- Production hits set the secrets-risk component to 0. Hits only in tests, fixtures, or docs cost 2 points.
+- Treffer im Produktionscode: 0 in 0 Dateien
+- Treffer in Tests, Fixtures, Beispielen und Doku: 4 in 4 Dateien
+- Treffer im Produktionscode setzen die Geheimnis-Komponente auf 0. Treffer nur in Tests, Fixtures, Beispielen oder Doku kosten 2 Punkte und sind ein Hinweis zum Prüfen.
 
-### Production code
+### Produktionscode
 
-| File | Hits |
+Keine Treffer.
+
+### Tests, Fixtures, Beispiele und Doku
+
+| Datei | Treffer |
 | --- | --- |
-| config/app.env | 1 |
+| tests/certs/expired/ca/ca-private.key | 1 |
+| tests/certs/expired/server/server.key | 1 |
+| tests/certs/mtls/client/client.key | 1 |
+| tests/certs/valid/server/server.key | 1 |
 
-### Tests, fixtures, and docs
-
-No secrets-risk patterns.
-
-| Pattern | Hits |
+| Muster | Treffer |
 | --- | --- |
-| assigned_secret | 1 |
+| private_key | 4 |
 
 ## Repo-Hygiene
-_Repository hygiene_
 
-- LICENSE: present (LICENSE)
-- Binaries and archives over 1048576 bytes: 0
-- Scratch or attic directories: 0
-- JSON or JSONL over 1048576 bytes: 0
-- Stray test files: 0
+- LICENSE: vorhanden (LICENSE)
+- Binär- oder Archivdateien über 1 MB: 0
+- scratch/attic-Ordner: 0
+- JSON/JSONL-Dateien über 1 MB: 0
+- Testdateien außerhalb eines Testordners: 0
 
-No large binaries, scratch directories, large JSON files, or stray tests.
+Keine großen Binär- oder JSON-Dateien, keine scratch-Ordner und keine Testdateien außerhalb eines Testordners.
 
 ## Realitätswert
-_Reality score_
 
-Score: 80 / 100
+Score: 85 / 100
 
-Formula: 83 awarded - 3 deducted = 80, clamped to 80.
+Berechnung: 85 Punkte vergeben, 0 abgezogen = 85, auf 0 bis 100 begrenzt: 85.
 
-| Component | Weight | Awarded | Rule | Observation |
+| Komponente | Gewicht | Vergeben | Regel | Beobachtung |
 | --- | --- | --- | --- | --- |
-| README | 10 | 10 | README file at the checkout root | present (README.md) |
-| LICENSE | 5 | 5 | LICENSE file at the checkout root | present (LICENSE) |
-| .gitignore | 8 | 8 | .gitignore at the checkout root | present (.gitignore) |
-| Test files | 12 | 12 | at least one test file | 1 file |
-| Test functions | 8 | 8 | at least one test function | 2 functions |
-| CI config | 10 | 10 | at least one CI config | 1 config |
-| CI jobs | 5 | 5 | at least one CI job | 1 job |
-| Dependency manifest | 8 | 8 | at least one dependency manifest | 1 manifest |
-| Pinned dependencies | 14 | 7 | share of parsed dependencies with an exact version pin | 1 pinned of 2 |
-| Marker hygiene | 10 | 10 | one point off per 5 TODO, FIXME, or HACK markers, floor 0 | 1 marker |
-| Secrets-risk hygiene | 10 | 0 | production secrets-risk hits score 0; hits only in tests, fixtures, or docs cost 2 | 1 production hit in 1 file |
+| README | 10 | 10 | README-Datei im Wurzelverzeichnis | vorhanden (README.md) |
+| LICENSE | 5 | 5 | LICENSE-Datei im Wurzelverzeichnis | vorhanden (LICENSE) |
+| .gitignore | 8 | 8 | .gitignore im Wurzelverzeichnis | vorhanden (.gitignore) |
+| Testdateien | 12 | 12 | mindestens eine Testdatei | 9 Dateien |
+| Testfunktionen | 8 | 8 | mindestens eine Testfunktion | 347 Funktionen |
+| CI-Konfiguration | 10 | 10 | mindestens eine CI-Konfiguration | 8 Konfigurationen |
+| CI-Jobs | 5 | 5 | mindestens ein CI-Job | 13 Jobs |
+| Abhängigkeits-Manifest | 8 | 8 | mindestens ein Abhängigkeits-Manifest | 3 Manifeste |
+| Gepinnte Abhängigkeiten | 14 | 2 | Anteil der Abhängigkeiten mit exakter Version oder Lockfile | 2 von 14 gepinnt |
+| Marker-Hygiene | 10 | 9 | 1 Punkt Abzug je 5 TODO-, FIXME- oder HACK-Marker, nicht unter 0 | 7 Marker |
+| Geheimnis-Hygiene | 10 | 8 | Treffer im Produktionscode ergeben 0; Treffer nur in Tests, Fixtures, Beispielen oder Doku kosten 2 | 0 im Produktionscode; 4 in Tests, Fixtures, Beispielen oder Doku in 4 Dateien |
 
-| Deduction | Points | Rule | Observation |
+| Abzug | Punkte | Regel | Beobachtung |
 | --- | --- | --- | --- |
-| pytest failures and errors | 3 | 3 points each for failed and error, capped at 15; unusable JSON is 5 | 1 failed, 0 errors |
+| Pytest: Fehlschläge und Fehler | 0 | je 3 Punkte pro Fehlschlag oder Fehler, höchstens 15; unbrauchbares JSON kostet 5 | nicht mitgeliefert, kein Abzug |
 
 ## Nächste fünf Schritte
-_Top 5 next steps_
 
-1. Remove 1 secrets-risk hit in production code (1 file: config/app.env).
-2. Fix 1 failed and 0 error pytest results, then pass a fresh pytest JSON file.
-3. Pin 1 unpinned dependency (1 pinned of 2 parsed).
-4. Keep the measured test baseline: 1 test file and 2 test functions.
-5. CI measurement: 1 config and 1 job.
+1. 12 Abhängigkeiten haben weder eine exakte Version noch ein Lockfile (2 von 14 gepinnt). Für Anwendungen ein Lockfile committen oder exakt pinnen; bei Bibliotheken sind Versionsbereiche üblich.
+2. 4 Geheimnis-Treffer in Tests, Fixtures, Beispielen oder Doku kurz prüfen (4 Dateien). Im Produktionscode wurde nichts gefunden.
+3. 7 TODO-, FIXME- und HACK-Marker sichten, beginnend mit src/requests/_types.py (2).
+4. Pytest-Ergebnisse mitliefern (pytest-json-report, Option --pytest-json), dann zeigt der Report bestandene und fehlgeschlagene Tests.
+5. Testbasis halten: 9 Testdateien mit 347 Testfunktionen bei jedem Push in der CI ausführen.
 
 ## Grenzen
-_Limits_
 
-- Max files: 5000
-- Max bytes read per file: 262144
-- Symlinks are skipped.
-- Directories skipped: `.cache`, `.eggs`, `.env`, `.git`, `.gradle`, `.mypy_cache`, `.next`, `.nuxt`, `.pytest_cache`, `.ruff_cache`, `.tox`, `.venv`, `.virtualenv`, `__pycache__`, `build`, `coverage`, `dist`, `env`, `htmlcov`, `node_modules`, `site-packages`, `target`, `vendor`, `venv`, `virtualenv`
-- A test file matches test_*.py, *_test.py, *.test.js, *.spec.js, or *_test.go, and either contains at least one test function or lives under test, tests, or __tests__.
-- Test-Hilfsdateien are conftest.py anywhere, plus fake/fakes and builder/builders files under a test directory. They are not test files.
-- Stray tests are test-named files at the checkout root or under scripts/. They are a hygiene finding.
-- Test files and test functions are counted with text patterns. Files are not imported.
-- Marker words are the uppercase tokens TODO, FIXME, and HACK.
-- Pytest is not run. Pass, fail, and skip come from the optional JSON file.
-- Secrets-risk hits in tests, fixtures, docs, test-named files, or doc names such as README cost 2 points. Production hits set that component to 0. Match text is discarded.
-- Binaries and archives over 1048576 bytes, and JSON, JSONL, or NDJSON over 1048576 bytes, are hygiene findings.
-- Scratch directory names: attic, scratch, scratches, scratchpad.
-- Ampel Tests: Rot when test files or test functions are 0; Grün when both are positive and pytest JSON has 0 failed and 0 errors; otherwise Gelb.
-- Ampel CI: Rot at 0 configs; Gelb when configs exist and jobs are 0; Grün when jobs are positive.
-- Ampel Abhängigkeiten: Rot at 0 manifests; Grün when every parsed dependency is pinned; otherwise Gelb.
-- Ampel Geheimnis-Risiko: Rot when production hits are positive; Gelb when only tests, fixtures, or docs have hits; Grün at 0 hits.
-- Ampel Repo-Hygiene: Rot when a large binary/archive, a large JSON/JSONL file, or a scratch/attic directory is present, or when 3 or more hygiene flags are set; Gelb for 1 or 2 other flags; Grün at 0 flags. Flags: missing README, LICENSE, or .gitignore; 5 or more markers; large binaries; large JSON/JSONL; scratch/attic; stray tests.
-- A score is a sum of the weights above. It is not a security verdict.
-```
+- Höchstens 5000 Dateien; je Datei werden höchstens 256 KB gelesen.
+- Symbolische Links werden übersprungen.
+- Übersprungene Ordner: `.cache`, `.eggs`, `.env`, `.git`, `.gradle`, `.mypy_cache`, `.next`, `.nuxt`, `.pytest_cache`, `.ruff_cache`, `.tox`, `.venv`, `.virtualenv`, `__pycache__`, `build`, `coverage`, `dist`, `env`, `htmlcov`, `node_modules`, `site-packages`, `target`, `vendor`, `venv`, `virtualenv`
+- Als Testdatei gilt: test_*.py, *_test.py, *.test.* und *.spec.* (JS/TS) sowie *_test.go, wenn die Datei mindestens eine Testfunktion enthält oder in test/, tests/ oder __tests__/ liegt. Außerdem JS/TS-Dateien in diesen Ordnern mit mindestens einem it()- oder test()-Aufruf, Rust-Dateien mit #[test] oder #[cfg(test)] und Rust-Dateien in tests/. Fixture-Ordner zählen nicht.
+- Testfunktionen werden per Textmuster gezählt (Python `def test_*`, JS/TS `it(`/`test(`, Go `func Test*`, Rust `#[test]`). Dateien werden nicht importiert. Rust-Tests aus eigenen Makros und Tests in anderen Sprachen (z. B. Java, Ruby, PHP) werden nicht erkannt.
+- Test-Hilfsdateien sind conftest.py sowie fake/fakes- und builder/builders-Dateien in einem Testordner. Sie zählen nicht als Testdateien.
+- Testdateien direkt im Wurzelverzeichnis oder in scripts/ sind ein Hygiene-Hinweis. Go-Testdateien neben dem Code sind üblich und zählen nicht dazu.
+- Marker sind die großgeschriebenen Wörter TODO, FIXME und HACK.
+- Tests werden nicht ausgeführt. Bestanden, fehlgeschlagen und übersprungen stammen nur aus der optionalen Pytest-JSON-Datei.
+- Geheimnis-Treffer in Tests, Fixtures, testdata/, Beispielen (examples/, example/), Doku oder Dateien wie README kosten 2 Punkte. Treffer im Produktionscode setzen die Komponente auf 0. GitHub-Actions-Ausdrücke wie `${{ secrets.NAME }}` zählen nicht. Der gefundene Text wird verworfen.
+- Binär- und Archivdateien über 1 MB sowie JSON-, JSONL- und NDJSON-Dateien über 1 MB sind Hygiene-Hinweise.
+- Als scratch-Ordner gelten: attic, scratch, scratches, scratchpad.
+- Ampel Tests: Rot bei 0 Testdateien oder 0 Testfunktionen; Grün, wenn beide vorhanden sind und das Pytest-Ergebnis 0 Fehlschläge und 0 Fehler zeigt; sonst Gelb.
+- Ampel CI: Rot ohne Konfiguration; Gelb, wenn Konfigurationen keinen Job enthalten; Grün mit mindestens einem Job.
+- Ampel Abhängigkeiten: Rot ohne Manifest; Grün, wenn jede erkannte Abhängigkeit gepinnt oder per Lockfile gesperrt ist; sonst Gelb.
+- Ampel Geheimnis-Risiko: Rot bei Treffern im Produktionscode; Gelb bei Treffern nur in Tests, Fixtures, Beispielen oder Doku; Grün ohne Treffer.
+- Ampel Repo-Hygiene: Rot bei großen Binär- oder JSON-Dateien, scratch/attic-Ordnern oder ab 3 Auffälligkeiten; Gelb bei 1 oder 2; Grün bei 0. Auffälligkeiten: fehlende README, LICENSE oder .gitignore, 5 oder mehr Marker, große Binärdateien, große JSON-Dateien, scratch/attic-Ordner, Testdateien außerhalb eines Testordners.
+- Der Wert ist die Summe der Gewichte oben. Er ist kein Sicherheitsurteil.
+````

@@ -701,6 +701,12 @@ def test_customer_doc_has_no_secret_material():
     assert "python -m courier_core.repo_reality_report" in doc
     assert "Sample report" in doc
     assert "Repositorygröße" in doc
+    # The sample is the German generator output (psf/requests @ pinned SHA), not the old English one.
+    assert "- Tarball-Prüfsumme (sha256):" in doc
+    assert "## Nächste fünf Schritte" in doc
+    assert "Read-only scan" not in doc
+    assert "clamped to" not in doc
+    assert "not that its tests passed" in doc
     for banned in ("ghp_", "AKIA", "PRIVATE KEY", "hunter2", "/home/", "/Users/", "ubuntu"):
         assert banned not in doc
 
