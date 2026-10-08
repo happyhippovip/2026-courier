@@ -52,17 +52,20 @@ _FAKE_SOURCE = textwrap.dedent(r'''
             handle.write(json.dumps(sys.argv[1:]) + "\n")
     mode = os.environ.get("FAKE_MODE", "success")
     if mode == "fail":
-        sys.stdout.write("provider-fail\n")
+        sys.stdout.buffer.write(b"provider-fail\n")
+        sys.stdout.buffer.flush()
         sys.exit(3)
     if mode == "big":
         sys.stdout.buffer.write(b"Y" * 8000)
+        sys.stdout.buffer.flush()
         sys.exit(0)
     if mode == "timeout":
         child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(120)"])
         Path(os.environ["FAKE_PIDS"]).write_text(f"{os.getpid()}\n{child.pid}\n", encoding="utf-8")
         time.sleep(120)
         sys.exit(0)
-    sys.stdout.write("provider-ok\n")
+    sys.stdout.buffer.write(b"provider-ok\n")
+    sys.stdout.buffer.flush()
     sys.exit(0)
 ''').lstrip()
 
