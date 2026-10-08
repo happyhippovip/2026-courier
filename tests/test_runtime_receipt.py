@@ -74,3 +74,15 @@ def test_unknown_effect_can_be_parked_without_fabricating_completion():
     r = receipt(action="RETRY_AUTHORIZED_REQUIRED", outcome="WAITING", effect_class="future_effect",
                 after_snapshot=None, progress_after_detection=False)
     assert validate(r, set()).outcome == "WAITING"
+
+
+@pytest.mark.parametrize("progress", ["false", "true", 1, [True]])
+def test_recovered_rejects_truthy_values_in_place_of_progress_evidence(progress):
+    with pytest.raises(ReceiptError):
+        validate(receipt(progress_after_detection=progress), set())
+
+
+@pytest.mark.parametrize("snapshot", [True, 1, ["snapshot"], " "])
+def test_recovered_requires_a_nonempty_snapshot_reference(snapshot):
+    with pytest.raises(ReceiptError):
+        validate(receipt(after_snapshot=snapshot), set())

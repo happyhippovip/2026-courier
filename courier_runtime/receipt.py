@@ -65,7 +65,9 @@ def validate(receipt, owned_identities):
             raise ReceiptError("non-idempotent work with an unconfirmed effect needs RETRY_AUTHORIZED, not resume")
     if receipt.action == "RESUME_FROM_CHECKPOINT" and not receipt.resume_from:
         raise ReceiptError("resume needs a resume_from checkpoint")
-    if receipt.outcome == "RECOVERED" and not (receipt.after_snapshot and receipt.progress_after_detection):
+    if receipt.outcome == "RECOVERED" and not (
+            isinstance(receipt.after_snapshot, str) and receipt.after_snapshot.strip()
+            and receipt.progress_after_detection is True):
         raise ReceiptError("RECOVERED needs an after-snapshot showing progress after detection")
     if receipt.what_failed in {"task", "worker_process"} and receipt.outcome == "FAILED" and not receipt.positive_evidence:
         raise ReceiptError("FAILED needs positive failure evidence")
