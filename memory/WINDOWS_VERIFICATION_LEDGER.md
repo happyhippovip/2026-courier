@@ -172,55 +172,55 @@ This ledger tracks the verification status of modules in this repository on Wind
 
 | 25 | scripts/run_bodyguards.py | 99% | Validated error paths and CLI parsing | 🟢 |
 
-| 26 | scripts/run_content_production_pipeline.py | 97% | Validated stage executions, error handling, and pipeline orchestration | ? |
+| 26 | scripts/run_content_production_pipeline.py | 97% | Validated stage executions, error handling, and pipeline orchestration | 🟢 |
 
-| 27 | scripts/run_context_sync.py | 90% | Added Windows tests for UpdateSteward, staleness, subprocess shas | ? |
+| 27 | scripts/run_context_sync.py | 90% | Added Windows tests for UpdateSteward, staleness, subprocess shas | 🟢 |
 
-| 28 | scripts/run_academy.py | 90% | Added comprehensive unit tests for AcademyTeacher and AcademyDirector, including lesson parsing, evaluation logic, and adoption rules | ? |
+| 28 | scripts/run_academy.py | 90% | Added comprehensive unit tests for AcademyTeacher and AcademyDirector, including lesson parsing, evaluation logic, and adoption rules | 🟢 |
 
-| 29 | scripts/run_chief_relay_cycle.py | 79% | Added mocked orchestration tests ensuring full autonomous memory cycle and command validation | ? |
+| 29 | scripts/run_chief_relay_cycle.py | 79% | Added mocked orchestration tests ensuring full autonomous memory cycle and command validation | 🟢 |
 
-| 30 | scripts/run_demo_workflow.py | 99% | Added comprehensive unit tests for orchestrator logic, file creation and copying | ? |
+| 30 | scripts/run_demo_workflow.py | 99% | Added comprehensive unit tests for orchestrator logic, file creation and copying | 🟢 |
 
-| 31 | scripts/validate_chief_relay.py | 98% | Added validation tests for deterministic chief relay message envelopes and hashes | ? |
+| 31 | scripts/validate_chief_relay.py | 98% | Added validation tests for deterministic chief relay message envelopes and hashes | 🟢 |
 
-| 32 | scripts/validate_courier_task.py | 98% | Added validation tests for deterministic courier task message envelopes | ? |
+| 32 | scripts/validate_courier_task.py | 98% | Added validation tests for deterministic courier task message envelopes | 🟢 |
 
-| 33 | scripts/publish_courier_result.py | 98% | Added validation tests for deterministic courier result publishing | ? |
+| 33 | scripts/publish_courier_result.py | 98% | Added validation tests for deterministic courier result publishing | 🟢 |
 
-| 34 | scripts/courier_beacon.py | 98% | Added unit tests for courier beacon value accountant | ? |
+| 34 | scripts/courier_beacon.py | 98% | Added unit tests for courier beacon value accountant | 🟢 |
 
-| 35 | scripts/courier_watchdog.py | 97% | Added unit tests for courier watchdog reclaiming stale tasks | ? |
+| 35 | scripts/courier_watchdog.py | 97% | Added unit tests for courier watchdog reclaiming stale tasks | 🟢 |
 
-| 36 | scripts/courier_github_dispatcher.py | 98% | Verified existing tests for courier dispatcher polling and worker resuming | ? |
+| 36 | scripts/courier_github_dispatcher.py | 98% | Verified existing tests for courier dispatcher polling and worker resuming | 🟢 |
 
-| 37 | scripts/courier_motor_precheck.py | 97% | Verified existing tests for checking if dispatchable work exists | ? |
+| 37 | scripts/courier_motor_precheck.py | 97% | Verified existing tests for checking if dispatchable work exists | 🟢 |
 
 | 38 | scripts/check_pilot_readiness.py | 100% | Added test for the main execution block to reach 100% coverage | 🟢 |
 
-| 39 | scripts/consume_chief_command.py | 100% | Verified existing tests for chief command validation and result creation | ? |
+| 39 | scripts/consume_chief_command.py | 100% | Verified existing tests for chief command validation and result creation | 🟢 |
 
-| 40 | scripts/evaluate_memory_proposal_for_auto_approval.py | 99% | Fixed test import to measure coverage correctly, verified all Auto/Human/Blocked checks | ? |
+| 40 | scripts/evaluate_memory_proposal_for_auto_approval.py | 99% | Fixed test import to measure coverage correctly, verified all Auto/Human/Blocked checks | 🟢 |
 
-| 41 | scripts/fix_save_json.py | N/A | Verified regex string replacements and correct fail-safes via runpy tests | ? |
+| 41 | scripts/fix_save_json.py | N/A | Verified regex string replacements and correct fail-safes via runpy tests | 🟢 |
 
-| 42 | scripts/gemini_worker_adapter.py | N/A | Coverage 80%. Fixed a Mock json serialization issue in test_main_positive. Detected harmless dead code on line 64. | ? |
+| 42 | scripts/gemini_worker_adapter.py | N/A | Coverage 80%. Fixed a Mock json serialization issue in test_main_positive. Detected harmless dead code on line 64. | 🟢 |
 
 | 43 | scripts/resource_policy.py | 99% | Added tests for TaskLeaseManager and TaskDedupeEngine edge cases. OS-level close fallback edge cases remain naturally untestable. | None |
 
-| 44 | scripts/bodyguard_daemon.py | 96% | Added missing tests to verify bodyguard polling, role evaluation, and API interactions. Fully tested under Windows. | ? |
+| 44 | scripts/bodyguard_daemon.py | 96% | Added missing tests to verify bodyguard polling, role evaluation, and API interactions. Fully tested under Windows. | 🟢 |
 
-| 45 | scripts/build_channel_workflow_tasks.py | 99% | Added comprehensive unit tests for channel config validation, project mapping, and deduplication logic. Fully verified. | ? |
+| 45 | scripts/build_channel_workflow_tasks.py | 99% | Added comprehensive unit tests for channel config validation, project mapping, and deduplication logic. Fully verified. | 🟢 |
 
-| 46 | scripts/build_product_shell.py | 96% | Verified existing tests for pilot signal gate logic and build skeleton. Fully functional under Windows. | ? |
+| 46 | scripts/build_product_shell.py | 96% | Verified existing tests for pilot signal gate logic and build skeleton. Fully functional under Windows. | 🟢 |
 
-| 47 | scripts/queue_processor.py | 95% | Verified existing tests for intake processing, error resilience (poison pill protection), and file moving. Fully functional. | ? |
+| 47 | scripts/queue_processor.py | 95% | Verified existing tests for intake processing, error resilience (poison pill protection), and file moving. Fully functional. | 🟢 |
 
-| 48 | scripts/revenue_customer_intake.py | 82% | Added new test suite to verify HTTP POST submission, JSON task structures, and CLI arguments. Fully verified. | ? |
+| 48 | scripts/revenue_customer_intake.py | 82% | Added new test suite to verify HTTP POST submission, JSON task structures, and CLI arguments. Fully verified. | 🟢 |
 
-| 49 | scripts/register_social_channel.py | 96% | Created 10 tests to verify secret detection, workflow config mapping, registry duplicate checks, and JSON I/O. Found unreachable code but no bugs. Fully verified. | ? |
+| 49 | scripts/register_social_channel.py | 96% | Created 10 tests to verify secret detection, workflow config mapping, registry duplicate checks, and JSON I/O. Found unreachable code but no bugs. Fully verified. | 🟢 |
 
-| 50 | scripts/pilot_gate_readiness_check.py | 95% | Created 3 tests to verify file requirement checks and JSON reporting logic. Fully verified. | ? |
+| 50 | scripts/pilot_gate_readiness_check.py | 95% | Created 3 tests to verify file requirement checks and JSON reporting logic. Fully verified. | 🟢 |
 
 | 51 | scripts/artifact_store.py | 100% | Created tests/test_artifact_store_additional.py to cover Flask routes and remaining edge cases. | None |
 
