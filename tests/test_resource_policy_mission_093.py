@@ -10,6 +10,7 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from scripts.resource_policy import (
     ResourcePolicyManager,
@@ -142,6 +143,88 @@ class TestMission093And095And097HardenedPolicy(unittest.TestCase):
         with open(lease_path, "r", encoding="utf-8") as f:
             final_data = json.load(f)
         self.assertEqual(final_data.get("owner_id"), winner_owner, "Final lease file must contain winner as owner")
+
+    def test_03c_reclaim_retries_windows_sharing_violation(self):
+        """os.replace of an expired lease must survive one WinError 5.
+
+        Run 36810693808 attempt 1 failed in acquire_lease at os.replace with
+        PermissionError [WinError 5] Access is denied, because the losing
+        racer still had the lease file open. POSIX replace does not raise.
+        """
+        task_id = "TASK-CONCURRENCY-SHARE-001"
+        mgr = TaskLeaseManager(repo_dir=self.test_dir)
+        lease_path = mgr._get_lease_path(task_id)
+        now_ts = time.time()
+        lease_path.write_text(json.dumps({
+            "task_id": task_id,
+            "task_hash": "seed_old_hash",
+            "owner_id": "old-expired-owner",
+            "acquired_at": now_ts - 1000,
+            "expires_at": now_ts - 500,
+            "acquired_iso": "2026-01-01T00:00:00Z",
+        }), encoding="utf-8")
+
+        real_replace = os.replace
+        denied = {"lease": 0}
+
+        def replace_once_denied(src, dst):
+            if Path(dst) == lease_path and denied["lease"] == 0:
+                denied["lease"] += 1
+                raise PermissionError(13, "Access is denied")
+            return real_replace(src, dst)
+
+        with mock.patch("scripts.resource_policy.os.replace", side_effect=replace_once_denied):
+            success, reason, data = mgr.acquire_lease(
+                task_id, "hash_share", owner_id="reclaimer-share", duration_sec=60)
+
+        self.assertEqual(denied["lease"], 1)
+        self.assertTrue(success)
+        self.assertEqual(reason, "LEASE_RECLAIMED_EXPIRED")
+        self.assertEqual(data["owner_id"], "reclaimer-share")
+        final = json.loads(lease_path.read_text(encoding="utf-8"))
+        self.assertEqual(final["owner_id"], "reclaimer-share")
+
+    def test_03d_reclaim_exhausted_retries_leave_no_temp_file(self):
+        """Exhausted PermissionError retries re-raise and leave no .tmp.* litter.
+
+        MUSE-REV-175-F16: the finally block unlinks the reclaim lock but the
+        per-pid temp lease file used to stay in the lease dir forever.
+        """
+        task_id = "TASK-CONCURRENCY-SHARE-002"
+        mgr = TaskLeaseManager(repo_dir=self.test_dir)
+        lease_path = mgr._get_lease_path(task_id)
+        now_ts = time.time()
+        seed = {
+            "task_id": task_id,
+            "task_hash": "seed_old_hash",
+            "owner_id": "old-expired-owner",
+            "acquired_at": now_ts - 1000,
+            "expires_at": now_ts - 500,
+            "acquired_iso": "2026-01-01T00:00:00Z",
+        }
+        lease_path.write_text(json.dumps(seed), encoding="utf-8")
+
+        real_replace = os.replace
+        denied = {"lease": 0}
+
+        def always_denied(src, dst):
+            if Path(dst) == lease_path:
+                denied["lease"] += 1
+                raise PermissionError(13, "Access is denied")
+            return real_replace(src, dst)
+
+        with mock.patch("scripts.resource_policy.os.replace", side_effect=always_denied), \
+                mock.patch("scripts.resource_policy.time") as fake_time:
+            with self.assertRaises(PermissionError):
+                mgr.acquire_lease(task_id, "hash_share", owner_id="reclaimer-exhausted", duration_sec=60)
+
+        # Patch only the module's own `time` name: patching time.sleep globally
+        # also counts sleeps from unrelated threads in the full suite.
+        self.assertEqual(denied["lease"], 40)
+        self.assertEqual(fake_time.sleep.call_count, 40)
+        leftovers = sorted(p.name for p in lease_path.parent.iterdir() if p.name != lease_path.name)
+        self.assertEqual(leftovers, [], "no temp or reclaim-lock file may remain")
+        self.assertEqual(json.loads(lease_path.read_text(encoding="utf-8"))["owner_id"], "old-expired-owner")
 
     def test_04_cached_result_integrity_and_fail_closed_checks(self):
         """Prove untampered result is reused, while tampered, missing, or empty hash is blocked."""
