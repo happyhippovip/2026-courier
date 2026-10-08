@@ -12,11 +12,14 @@ runner is passed in by the caller. This module does not import one.
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
+import sys
 import tempfile
 import urllib.parse
+import uuid
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
@@ -50,7 +53,8 @@ _NEXT = {
 _EVIDENCE_REQUIRED = frozenset({PAYMENT_CONFIRMED, DELIVERED, REFUNDED, FAILED})
 _PENDING = frozenset({PAYMENT_CONFIRMED, RUNNING})
 _MAX_ID = 80
-_MAX_EVIDENCE = 200
+_MAX_EVIDENCE = 500
+_GITHUB_HOST = "github.com"
 
 
 class OrderError(ValueError):
@@ -148,6 +152,9 @@ class OrderBook:
 
     def get(self, order_id: str) -> dict[str, Any]:
         return _public(self._require(order_id))
+
+    def orders(self) -> list[dict[str, Any]]:
+        return [_public(self._orders[order_id]) for order_id in sorted(self._orders)]
 
     def revenue_summary(self) -> dict[str, Any]:
         """Verified revenue is delivered work that has not been refunded.
@@ -417,6 +424,183 @@ def _evidence(value: Any) -> str:
     if not isinstance(value, str):
         raise OrderError("evidence ref is required")
     cleaned = value.strip()
-    if not cleaned or len(cleaned) > _MAX_EVIDENCE or "@" in cleaned or any(ch.isspace() for ch in cleaned):
+    if (
+        not cleaned
+        or len(cleaned) > _MAX_EVIDENCE
+        or "@" in cleaned
+        or any(ch.isspace() and ch != " " for ch in cleaned)
+    ):
         raise OrderError("evidence ref is required")
     return cleaned
+
+
+def github_repo_url(value: str) -> str:
+    """Accept only https://github.com/owner/repo. Anything else is refused."""
+    if not isinstance(value, str):
+        raise OrderError("repo must be https://github.com/owner/repo")
+    parsed = urllib.parse.urlsplit(value.strip())
+    if (
+        parsed.scheme != "https"
+        or parsed.hostname != _GITHUB_HOST
+        or parsed.username
+        or parsed.password
+        or parsed.query
+        or parsed.fragment
+    ):
+        raise OrderError("repo must be https://github.com/owner/repo")
+    parts = [part for part in parsed.path.split("/") if part]
+    if len(parts) != 2:
+        raise OrderError("repo must be https://github.com/owner/repo")
+    owner, repo = parts
+    if repo.endswith(".git"):
+        repo = repo[:-4]
+    if not _github_segment(owner) or not _github_segment(repo):
+        raise OrderError("repo must be https://github.com/owner/repo")
+    return f"https://github.com/{owner}/{repo}"
+
+
+def _github_segment(value: str) -> bool:
+    if not value or value in {".", ".."} or value.startswith(".") or value.endswith("."):
+        return False
+    return all(ch.isalnum() or ch in "._-" for ch in value)
+
+
+def report_evidence(path: str | os.PathLike) -> str:
+    """sha256 and byte size of a report file. The file contents are not returned."""
+    file_path = Path(path)
+    if not file_path.is_file():
+        raise OrderError("report must be a file")
+    digest = hashlib.sha256()
+    size = 0
+    with file_path.open("rb") as handle:
+        while True:
+            block = handle.read(1024 * 1024)
+            if not block:
+                break
+            size += len(block)
+            digest.update(block)
+    if size == 0:
+        raise OrderError("report is empty")
+    return f"sha256:{digest.hexdigest()};bytes:{size}"
+
+
+def courier_state_dir() -> Path:
+    """Local Courier state directory. Orders live under it, not in a checkout."""
+    configured = os.environ.get("COURIER_HOME")
+    if configured:
+        return Path(configured).expanduser()
+    if sys.platform == "win32":
+        base = os.environ.get("LOCALAPPDATA")
+        root = Path(base) if base else Path.home() / "AppData" / "Local"
+        return root / "Courier"
+    if sys.platform == "darwin":
+        return Path.home() / "Library" / "Application Support" / "Courier"
+    return Path.home() / ".courier"
+
+
+def resolve_orders_dir(explicit: str | None = None) -> Path:
+    """--data-dir, else COURIER_ORDERS_DIR, else <courier state>/reality-orders."""
+    if explicit:
+        chosen = Path(explicit).expanduser()
+    elif os.environ.get("COURIER_ORDERS_DIR"):
+        chosen = Path(os.environ["COURIER_ORDERS_DIR"]).expanduser()
+    else:
+        chosen = courier_state_dir() / "reality-orders"
+    chosen = Path(os.path.abspath(chosen))
+    if _inside_git_checkout(chosen):
+        raise OrderError("data dir must not sit inside a git checkout")
+    return chosen
+
+
+def _inside_git_checkout(path: Path) -> bool:
+    current = path
+    while True:
+        if (current / ".git").exists():
+            return True
+        parent = current.parent
+        if parent == current:
+            return False
+        current = parent
+
+
+def _eur(cents: int) -> str:
+    sign = "-" if cents < 0 else ""
+    amount = abs(int(cents))
+    return f"{sign}{amount // 100}.{amount % 100:02d} EUR"
+
+
+def _new_order_id() -> str:
+    return "ord-" + uuid.uuid4().hex[:16]
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Founder CLI. Payment is recorded only by confirm-payment."""
+    parser = argparse.ArgumentParser(prog="python -m courier_core.reality_orders")
+    parser.add_argument("--data-dir", default=None)
+    commands = parser.add_subparsers(dest="cmd", required=True)
+
+    create = commands.add_parser("new")
+    create.add_argument("--repo", required=True)
+    create.add_argument("--contact", required=True)
+
+    confirm = commands.add_parser("confirm-payment")
+    confirm.add_argument("order_id")
+    confirm.add_argument("--evidence", required=True)
+
+    start = commands.add_parser("start")
+    start.add_argument("order_id")
+
+    deliver = commands.add_parser("deliver")
+    deliver.add_argument("order_id")
+    deliver.add_argument("--report", required=True)
+
+    refund = commands.add_parser("refund")
+    refund.add_argument("order_id")
+    refund.add_argument("--reason", required=True)
+
+    fail = commands.add_parser("fail")
+    fail.add_argument("order_id")
+    fail.add_argument("--reason", required=True)
+
+    commands.add_parser("list")
+    commands.add_parser("revenue")
+
+    args = parser.parse_args(argv)
+    try:
+        directory = resolve_orders_dir(args.data_dir)
+        book = OrderBook(directory)
+        if args.cmd == "new":
+            order = book.create_order(_new_order_id(), github_repo_url(args.repo), args.contact)
+            print(order["order_id"])
+        elif args.cmd == "confirm-payment":
+            order = book.confirm_payment(args.order_id, args.evidence)
+            print(f"{order['order_id']} {order['status']}")
+        elif args.cmd == "start":
+            order = book.mark_running(args.order_id)
+            print(f"{order['order_id']} {order['status']}")
+        elif args.cmd == "deliver":
+            order = book.mark_delivered(args.order_id, report_evidence(args.report))
+            print(f"{order['order_id']} {order['status']}")
+        elif args.cmd == "refund":
+            order = book.mark_refunded(args.order_id, args.reason)
+            print(f"{order['order_id']} {order['status']}")
+        elif args.cmd == "fail":
+            order = book.mark_failed(args.order_id, args.reason)
+            print(f"{order['order_id']} {order['status']}")
+        elif args.cmd == "list":
+            for order in book.orders():
+                print(f"{order['order_id']} {order['status']} {order['repo_ref']} {_eur(order['price_cents'])}")
+        elif args.cmd == "revenue":
+            summary = book.revenue_summary()
+            print(f"verified {_eur(summary['verified_cents'])} ({summary['verified_count']})")
+            print(f"pending {_eur(summary['pending_cents'])} ({summary['pending_count']})")
+        else:
+            parser.error(f"unknown command {args.cmd}")
+    except OrderError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
