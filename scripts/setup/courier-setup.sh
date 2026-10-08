@@ -242,7 +242,8 @@ cs_count_dirty() {
   [ -d "$CS_BASE" ] || return 0
   local d wt
   for d in "$CS_BASE"/*; do
-    [ -d "$d" ] && [ -e "$d/.git" ] || continue
+    [ -d "$d" ] || continue
+    [ -e "$d/.git" ] || continue
     while IFS= read -r wt; do
       [ -n "$wt" ] || continue
       if cs_is_protected_path "$wt"; then CS_DIRTY_SKIPPED=$((CS_DIRTY_SKIPPED + 1)); continue; fi
