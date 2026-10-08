@@ -34,8 +34,9 @@ def restore_courier_exe():
 
 # Destructive forms the contract must see. Remove-Item is not the only one:
 # truncation and cmd/IO deletes destroy courier.db and logs just as thoroughly.
+# rm and ri are the PowerShell aliases for Remove-Item.
 _DESTRUCTIVE_RE = re.compile(
-    r"(?i)(?:\b(?:Remove-Item|Clear-Content|Set-Content|Out-File|del|erase|rd|rmdir)\b"
+    r"(?i)(?:\b(?:Remove-Item|Clear-Content|Set-Content|Out-File|del|erase|rd|rmdir|rm|ri)\b"
     r"|\[(?:System\.)?IO\.(?:File|Directory)\]::Delete)"
 )
 _USER_COURIER_DIR_RE = re.compile(
@@ -150,6 +151,8 @@ def test_uninstall_preserves_journal_and_logs_contract():
     'del /f /q (Join-Path $userCourierDir "courier.db")',
     'rd /s /q (Join-Path $userCourierDir "logs")',
     'rmdir /s /q (Join-Path $userCourierDir "logs")',
+    'rm -Recurse -Force $userCourierDir',
+    'ri -Force (Join-Path $userCourierDir "courier.db")',
     '[IO.File]::Delete((Join-Path $userCourierDir "courier.db"))',
     '[IO.Directory]::Delete((Join-Path $userCourierDir "logs"), $true)',
     '[System.IO.File]::Delete((Join-Path $userCourierDir "courier.db"))',
@@ -160,6 +163,42 @@ def test_uninstall_contract_rejects_user_data_destruction(extra):
     script = UNINSTALL_SCRIPT.read_text(encoding="utf-8")
     with pytest.raises(AssertionError, match=r"courier\.db|logs|user Courier directory"):
         assert_uninstall_preserves_user_data(script + "\n" + extra + "\n")
+
+
+def test_replay_retries_when_live_journal_advances(tmp_path, monkeypatch):
+    """A LEASE_EXPIRED between the live snapshot and the copy is not a hash failure."""
+
+    class Reader:
+        def __init__(self, home, logs):
+            self.reads = 0
+
+        def projection_hash(self, path=None):
+            self.reads += 1
+            return "before" if self.reads == 1 else "after"
+
+        def verify_and_rebuild(self, workdir):
+            return type("Report", (), {"ok": True})(), "after", "after"
+
+    monkeypatch.setattr(f"{__name__}.Courier", Reader)
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    assert _assert_replay_matches_live(tmp_path / "home", tmp_path / "replay") == "after"
+
+
+def test_replay_still_fails_when_hashes_stay_apart(tmp_path, monkeypatch):
+    class Reader:
+        def __init__(self, home, logs):
+            pass
+
+        def projection_hash(self, path=None):
+            return "live"
+
+        def verify_and_rebuild(self, workdir):
+            return type("Report", (), {"ok": True})(), "copy", "copy"
+
+    monkeypatch.setattr(f"{__name__}.Courier", Reader)
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    with pytest.raises(AssertionError, match=r"copy"):
+        _assert_replay_matches_live(tmp_path / "home", tmp_path / "replay")
 
 
 def _courier_tree(root_pid):
@@ -233,7 +272,12 @@ def _checkpoint_journal(home: Path):
 
 
 def _assert_replay_matches_live(home: Path, workdir: Path):
-    """Rule 0 step 10: rebuild of the journal matches the live projection."""
+    """Rule 0 step 10: rebuild of the journal matches the live projection.
+
+    The live snapshot and the journal copy are separate reads. While the
+    controller is still running, a LEASE_EXPIRED append between them is
+    retried. A hash that never settles still fails.
+    """
     workdir.mkdir(parents=True, exist_ok=True)
     logs = workdir / "logs"
     logs.mkdir(exist_ok=True)
@@ -244,11 +288,15 @@ def _assert_replay_matches_live(home: Path, workdir: Path):
         try:
             live = reader.projection_hash()
             report, copy_hash, rebuilt_hash = reader.verify_and_rebuild(workdir)
-            break
         except sqlite3.OperationalError as exc:
             last_error = exc
             time.sleep(0.5)
-    else:
+            continue
+        if report.ok and copy_hash == live and rebuilt_hash == live:
+            return live
+        last_error = (copy_hash, live, rebuilt_hash)
+        time.sleep(0.5)
+    if not isinstance(last_error, tuple):
         raise AssertionError(f"journal stayed locked during replay: {last_error}")
     assert report.ok, report
     assert copy_hash == live, (copy_hash, live)
