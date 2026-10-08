@@ -10,14 +10,32 @@ from .event_bus import (
     scan_report,
     validate_event,
 )
+from .replay import (
+    CANONICAL_SEQUENCES,
+    LIFECYCLE_BLOCKED,
+    LIFECYCLE_CUSTOMS_REJECTED,
+    LIFECYCLE_MULTI_AGENT,
+    LIFECYCLE_SUCCESS,
+    ReplayEvent,
+    ReplayHarness,
+    run_canary_acceptance,
+)
 
 __all__ = [
+    "CANONICAL_SEQUENCES",
     "EVENT_TYPES",
-    "MAX_SUMMARY_LEN",
     "EventBusError",
+    "LIFECYCLE_BLOCKED",
+    "LIFECYCLE_CUSTOMS_REJECTED",
+    "LIFECYCLE_MULTI_AGENT",
+    "LIFECYCLE_SUCCESS",
+    "MAX_SUMMARY_LEN",
+    "ReplayEvent",
+    "ReplayHarness",
     "emit",
     "read_events",
     "replay",
+    "run_canary_acceptance",
     "scan_report",
     "validate_event",
 ]
