@@ -71,8 +71,8 @@ def main():
     print("\nReceipt:")
     print(json.dumps(receipt, indent=2))
     
-    print("\nDone! Check messy_sample.xlsx to see the cleaned results.")
-    
+    print("\nDone! The fixture is removed next; re-run to see the receipt again.")
+
     # Cleanup fixture
     os.remove(sample_path)
 
