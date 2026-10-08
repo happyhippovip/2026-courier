@@ -15,6 +15,12 @@ def _current_ids(queue):
     return [packet.id for packet in queue.packets.values() if packet.state == PacketState.CURRENT]
 
 
+def test_work_packet_stays_frozen():
+    packet = WorkPacket("p1", "w1", "sha1", PacketState.CURRENT, parked_from=PacketState.NEXT)
+    with pytest.raises(AttributeError):
+        packet.state = PacketState.PARKED_BY_HOST
+
+
 def test_unsafe_then_safe_keeps_the_original_writer_only():
     queue = PacketQueue()
     _add(queue, "p1", PacketState.CURRENT)
