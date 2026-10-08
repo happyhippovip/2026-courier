@@ -1,0 +1,26 @@
+{
+  "template_id": "short_video_v1",
+  "title": "Short video mission template (9:16 vertical short)",
+  "schema_version": "1.0",
+  "content_type": "9:16_VERTICAL_SHORT",
+  "platforms": ["YOUTUBE", "TIKTOK"],
+  "production_steps": [
+    "idea",
+    "script",
+    "scene_bind",
+    "render",
+    "mux_audio",
+    "verify",
+    "publish_gate",
+    "publish",
+    "receipt"
+  ],
+  "publish_gate": {
+    "step": "publish_gate",
+    "requires": "explicit_human_approval",
+    "guards_step": "publish",
+    "evidence": "recorded human approval referencing the verified artifact before publish"
+  },
+  "verify_policy": "verify must pass on the rendered artifact before publish_gate opens",
+  "zero_cost_policy": "ZERO_COST_ONLY"
+}
