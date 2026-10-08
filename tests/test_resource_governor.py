@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import pytest
 from scripts.resource_governor import HostPressureController
@@ -127,3 +128,11 @@ def test_post_run_resource_snapshot():
     assert snap["state"] == "GREEN"
     assert "timestamp" in snap
     assert snap["timestamp"] > 0
+
+def test_blind_measurement_reports_unknown_not_green(monkeypatch):
+    """A host with no readable metrics must not report healthy GREEN."""
+    controller = HostPressureController()
+    if hasattr(os, "getloadavg"):
+        monkeypatch.delattr(os, "getloadavg")
+    monkeypatch.setitem(sys.modules, "psutil", None)
+    assert controller.measure_pressure() == "UNKNOWN"

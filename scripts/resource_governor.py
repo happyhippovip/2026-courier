@@ -41,7 +41,9 @@ class HostPressureController:
                     return "YELLOW"
                 return "GREEN"
             except Exception:
-                return "GREEN"
+                # Blind on this host (psutil missing or unreadable):
+                # report UNKNOWN, never a healthy GREEN.
+                return "UNKNOWN"
         except Exception:
             return "UNKNOWN"
 
