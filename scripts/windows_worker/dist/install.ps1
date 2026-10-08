@@ -94,4 +94,10 @@ if ($IsAdmin) {
     Write-Host "Skipped Scheduled Task registration (requires Administrator)." -ForegroundColor Yellow
 }
 
+$InstalledExe = Join-Path $InstallDir "Courier.exe"
+if (-not (Test-Path -LiteralPath $InstalledExe)) {
+    Write-Error "Courier install not proven: Courier.exe is missing."
+    exit 1
+}
+
 Write-Host "Courier installed successfully!"

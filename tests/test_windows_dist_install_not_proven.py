@@ -61,7 +61,7 @@ def test_failed_copy_is_not_installed(tmp_path):
     assert not (tmp_path / "ProgramFiles" / "CourierWorker").exists()
 
 
-def test_copied_files_report_installed(tmp_path):
+def test_missing_courier_exe_is_not_installed(tmp_path):
     pkg = tmp_path / "pkg"
     pkg.mkdir()
     shutil.copy(SCRIPT, pkg / "install.ps1")
@@ -69,6 +69,23 @@ def test_copied_files_report_installed(tmp_path):
     program_files = tmp_path / "ProgramFiles"
     program_files.mkdir()
     proc = _run(pkg, program_files, tmp_path / "data")
+    installed = program_files / "CourierWorker"
+    assert proc.returncode != 0, proc.stdout
+    assert SUCCESS not in proc.stdout
+    assert not (installed / "Courier.exe").exists()
+
+
+def test_copied_files_report_installed(tmp_path):
+    pkg = tmp_path / "pkg"
+    pkg.mkdir()
+    shutil.copy(SCRIPT, pkg / "install.ps1")
+    (pkg / "marker.txt").write_text("marker", encoding="utf-8")
+    (pkg / "Courier.exe").write_bytes(b"MZ-stub-not-a-windows-binary")
+    program_files = tmp_path / "ProgramFiles"
+    program_files.mkdir()
+    proc = _run(pkg, program_files, tmp_path / "data")
     assert proc.returncode == 0, proc.stderr
     assert SUCCESS in proc.stdout
-    assert (program_files / "CourierWorker" / "marker.txt").read_text(encoding="utf-8") == "marker"
+    installed = program_files / "CourierWorker"
+    assert (installed / "marker.txt").read_text(encoding="utf-8") == "marker"
+    assert (installed / "Courier.exe").is_file()
