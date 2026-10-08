@@ -133,7 +133,11 @@ def render(s, findings):
 
 def main(argv=None):
     argv = argv if argv is not None else sys.argv[1:]
-    s = snapshot()
+    try:
+        s = snapshot()
+    except ImportError:
+        print("Host-Check braucht das Paket 'psutil' (pip install psutil).")
+        return 2
     findings = diagnose(s)
     print(render(s, findings))
     if len(argv) == 2 and argv[0] == "--json":

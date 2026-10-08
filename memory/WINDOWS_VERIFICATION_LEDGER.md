@@ -257,3 +257,11 @@ This ledger tracks the verification status of modules in this repository on Wind
 - [x] dashboard/server.py: 🟢 VERIFIED (verified in test_dashboard_server_uncovered.py)
 - [x] scripts/windows_worker/daemon.py: 🟢 VERIFIED (verified in test_windows_worker_daemon_uncovered.py, 87% coverage)
 - [x] scripts/mac_worker/runtime_state.py: ✔️ VERIFIED (verified in test_mac_worker_runtime_state_uncovered.py, 100% coverage)
+
+## scripts/host_health.py
+**Status**: VERIFIED
+**Date**: 2026-10-08
+**Findings**:
+- Read-only diag tool (Win/Mac/Linux); pure `diagnose()`/`render()` plus one live `snapshot()` test. No defect in measurement/diagnosis logic found.
+- **Small real fix**: missing `psutil` (clean-machine case) killed the tool with an `ImportError` traceback. `main()` now prints a readable one-line remedy (`pip install psutil`) and returns 2.
+- **Testing**: +1 test (`test_missing_psutil_fails_readable_not_traceback`, import-block technique on the real import path): fails on base (traceback), passes on fix. 6/6 green incl. live snapshot test. Hermetic.
