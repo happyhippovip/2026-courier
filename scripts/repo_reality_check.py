@@ -51,6 +51,20 @@ SECRET_PATTERNS = {
     "openai_style_key": re.compile(r"\bsk-[A-Za-z0-9]{32,}\b"),
 }
 EMAIL = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
+REDACTED = "[redacted]"
+
+
+def scrub_credential_shapes(text):
+    """Replace credential-shaped substrings and e-mail addresses with a marker.
+
+    Safety findings embed raw source lines; without this, a value on such a
+    line reaches the customer report whenever its shape is outside the
+    second-pass patterns — and a value inside the patterns nukes the whole
+    report via the refusal tripwire instead of being redacted in place.
+    """
+    for pattern in (*SECRET_PATTERNS.values(), EMAIL):
+        text = pattern.sub(REDACTED, text)
+    return text
 TOOL_VERSION = "rrc-2"
 _SECRET_GUIDE = ("A credential-shaped string is in the repository. If it is real, anyone with read access can use it.",
                  "Revoke and rotate it at the provider first, then remove it from the code and load it from the environment "
@@ -168,7 +182,8 @@ def check(repo, run_ci=False):
     for f in scan_local_safety(str(repo), skip={str(checker), str(repo / "scripts" / "check_local_safety.py")}):
         acknowledged = re.search(r"#\s*(noqa:\s*S10[0-9]|nosec)", f["text"])
         severity = "low" if acknowledged else "high" if f["rule"] == "KILL_BY_NAME" else "medium"
-        detail = ("acknowledged in code by the maintainers: " if acknowledged else "") + f["text"][:120]
+        detail = (("acknowledged in code by the maintainers: " if acknowledged else "")
+                  + scrub_credential_shapes(f["text"][:120]))
         add("safety", severity, f["rule"], f"{f['path']}:{f['line']}", detail)
 
     for path in files:

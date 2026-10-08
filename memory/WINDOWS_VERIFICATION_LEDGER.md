@@ -257,3 +257,12 @@ This ledger tracks the verification status of modules in this repository on Wind
 - [x] dashboard/server.py: 🟢 VERIFIED (verified in test_dashboard_server_uncovered.py)
 - [x] scripts/windows_worker/daemon.py: 🟢 VERIFIED (verified in test_windows_worker_daemon_uncovered.py, 87% coverage)
 - [x] scripts/mac_worker/runtime_state.py: ✔️ VERIFIED (verified in test_mac_worker_runtime_state_uncovered.py, 100% coverage)
+
+## scripts/repo_reality_check.py
+**Status**: VERIFIED WITH BOUNDS (pattern-limited redaction, see residual)
+**Date**: 2026-10-08
+**Findings**:
+- **Real defect found and fixed (security-relevant)**: safety findings embedded up to 120 chars of raw matched source line into the customer report. Proven end-to-end on a fixture repo: a credential-shaped value on a `pkill` line landed verbatim in `report.json` (exit 0, tripwire silent). Worse, a value matching the known patterns on such a line tripped the second-pass `leak_check` and refused the ENTIRE report (return 3) instead of redacting in place.
+- Fix: new `scrub_credential_shapes()` (same SECRET_PATTERNS + EMAIL the tripwire uses) applied to safety detail at the source. Known shapes now redact in place; reports write normally.
+- **Testing**: +1 test (fixture repo, real `check()` + real CLI `main()`): fails on base (token in detail / refusal), passes on fix with `[redacted]` present and report written. 13/13 green. Hermetic (tmp fixture repos).
+- Residual (honest, inherent to pattern detection and already disclosed in NOT_CHECKED): a secret in a format outside SECRET_PATTERNS on a safety-matched line still flows into the report unchallenged — the tripwire shares the same patterns, so it cannot catch what the scrub misses. A format-agnostic guard (e.g. entropy-based) is future work, not this unit.

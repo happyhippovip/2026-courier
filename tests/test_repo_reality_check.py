@@ -154,3 +154,14 @@ def test_printable_html_is_escaped_and_complete(repo, tmp_path):
     page = (out / "report.html").read_text()
     assert page.startswith("<!doctype html>") and "<script>" not in page and "x&lt;script&gt;.exe" in page
     assert "What this check did NOT cover" in page
+
+
+def test_safety_detail_redacts_known_secret_shapes_instead_of_refusing(tmp_path):
+    r = _repo_with(tmp_path, {"run.sh": f'pkill -f myservice # rotate "{FAKE_TOKEN}"\n'})
+    safety = [f for f in check(r)["findings"] if f["area"] == "safety"]
+    assert safety, "expected a KILL_BY_NAME finding"
+    assert FAKE_TOKEN not in safety[0]["detail"]
+    assert "[redacted]" in safety[0]["detail"]
+    out = tmp_path / "out"
+    assert main([str(r), str(out)]) == 0  # report written, not refused
+    assert FAKE_TOKEN not in (out / "report.json").read_text()
