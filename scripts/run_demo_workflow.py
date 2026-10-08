@@ -209,8 +209,8 @@ class DemoOrchestrator:
                 "costs_eur": 0.0,
                 "model_calls": 0,
             },
-            "isolation_verified": True,
-            "truth_boundaries_verified": True,
+            "isolation_verified": False,
+            "truth_boundaries_verified": False,
         }
 
         save_json(self.evidence_dir / "demo_evidence_manifest.json", manifest)

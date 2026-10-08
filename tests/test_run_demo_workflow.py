@@ -80,6 +80,8 @@ def test_run_live_demo(mock_curator_cls, mock_chief_cls, mock_loop_cls, repo_dir
     
     # Assertions
     assert manifest["status"] == "COMPLETED"
+    assert manifest["isolation_verified"] is False
+    assert manifest["truth_boundaries_verified"] is False
     assert manifest["human_input"]["raw_idea"] == "Test idea"
     assert manifest["human_input"]["type"] == "IDEA"
     assert manifest["human_gate"]["decision"] == "APPROVE"
