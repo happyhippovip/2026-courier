@@ -248,7 +248,9 @@ def test_refused_exit_zero_is_failed_without_running_tests(tmp_path):
 
 
 def test_timeout_and_crash_are_failed(tmp_path):
-    timed = _layout(tmp_path / "timeout", mode="timeout", providers=["muse"], timeout_s=1)
+    # timeout_s stays below the fake's 30s sleep (deterministic TIMEOUT) but
+    # above process-session startup latency (~1s on a loaded host).
+    timed = _layout(tmp_path / "timeout", mode="timeout", providers=["muse"], timeout_s=10)
     assert _run(timed["cfg"], GitHub()) == 0
     assert "blocker=TIMEOUT" in _events(timed["ledger"])[-1]["result"]
     assert _count(timed["count"]) == 1
