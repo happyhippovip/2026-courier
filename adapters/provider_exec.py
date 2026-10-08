@@ -34,6 +34,8 @@ from adapters.synthetic import SHA256_RE, is_safe_name
 VERIFIER_VERSION = "1"
 EVIDENCE_NAME = "provider_output.txt"
 MAX_EVIDENCE_BYTES = 1024 * 1024  # 1 MiB
+# Customer-visible agy evidence. No response, usage, conversation id, or path.
+AGY_SUCCESS_EVIDENCE = b'{"provider":"agy","status":"SUCCESS"}\n'
 
 _EXIT_RE = re.compile(r"(?:^|\s)exit=(-?\d+)\b")
 
@@ -211,6 +213,7 @@ def _verify(task: Any, result: Any, home: str | os.PathLike):
     if not scope.is_dir():
         return _reject("unreadable evidence scope")
     evidence = 0
+    evidence_bytes = None
     for ref in artifacts:
         if not isinstance(ref, Mapping):
             return _reject("malformed evidence")
@@ -224,11 +227,15 @@ def _verify(task: Any, result: Any, home: str | os.PathLike):
             return _reject(why or "unreadable evidence file")
         if hashlib.sha256(data).hexdigest() != digest:
             return _reject("evidence artifact hash does not match")
+        if isinstance(name, str) and PurePosixPath(name).name == EVIDENCE_NAME:
+            evidence_bytes = data
     if evidence != 1:
         return _reject("missing evidence" if evidence == 0 else "ambiguous evidence file")
     params = getattr(task, "params", {}) or {}
     if not isinstance(params, Mapping):
         return _reject("malformed task spec")
+    if params.get("provider") == "agy" and evidence_bytes != AGY_SUCCESS_EVIDENCE:
+        return _reject("agy evidence is not the checked success envelope")
     pinned = _check_expected(scope, params, result_dispatch)
     if pinned is not None:
         return pinned
