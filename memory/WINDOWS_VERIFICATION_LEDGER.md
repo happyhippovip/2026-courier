@@ -287,3 +287,11 @@ This ledger tracks the verification status of modules in this repository on Wind
 - **False-success stub eliminated**: the file unconditionally printed `Provider keys valid.` at import time while performing zero validation — any gate invoking it would record a passing health check with no evidence. Zero in-repo callers confirmed (scripts/tests/workflows scan).
 - Minimal fail-closed fix: explicit STUB notice on stderr + exit 2, import side effect removed (`__main__` guard), docstring points at the owning live lanes (provider_survival / provider_circuit). No live check invented here — that scope belongs to lanes #182/#195.
 - **Testing**: new `tests/test_provider_health_check.py` (2 tests: nonzero exit with STUB marker and no `valid` claim; import is side-effect-free and `main()` returns 2). Both fail on the base stub, both pass on the fix. Hermetic real-subprocess proof.
+
+## scripts/courier_status.py
+**Status**: VERIFIED
+**Date**: 2026-10-08
+**Findings**:
+- **Real defect found and fixed**: the state path `server/state/central_state.json` was CWD-relative, so the CLI reported `No ledger found` for a healthy tree whenever it ran outside the repo root (false negative). Paths now anchor at the script's repo root with a backwards-compatible `main(root=...)` override; `main()` returns an exit code (`__main__` exits with it).
+- Corrupt state no longer traceback-crashes: clean `state unreadable: ...` message + return 1 (fail-loud, readable). Missing state still reports `No ledger found` with exit 0 (reporter, not a gate; no health line emitted).
+- **Testing**: new `tests/test_courier_status.py` (5 tests: YELLOW counts excluding DONE goals, GREEN path, missing/corrupt handling, CWD-independence). All 5 fail on the base file, all 5 pass on the fix. Hermetic (tmp dirs + capsys). No in-repo importers.
