@@ -61,6 +61,8 @@ def check_server():
     except urllib.error.HTTPError as e:
         if e.code in (401, 403, 404):
             return True, f"Server responding at {server} ({e.code})"
+        if 500 <= e.code < 600:
+            return False, f"Server erroring at {server} ({e.code})"
         return True, f"Server responding at {server} ({e.code})"
     except Exception as e:
         return False, f"Server unreachable at {server}: {e}"

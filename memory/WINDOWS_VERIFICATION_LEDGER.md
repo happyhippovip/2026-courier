@@ -257,3 +257,11 @@ This ledger tracks the verification status of modules in this repository on Wind
 - [x] dashboard/server.py: 🟢 VERIFIED (verified in test_dashboard_server_uncovered.py)
 - [x] scripts/windows_worker/daemon.py: 🟢 VERIFIED (verified in test_windows_worker_daemon_uncovered.py, 87% coverage)
 - [x] scripts/mac_worker/runtime_state.py: ✔️ VERIFIED (verified in test_mac_worker_runtime_state_uncovered.py, 100% coverage)
+
+## scripts/courier_doctor.py
+**Status**: VERIFIED
+**Date**: 2026-10-08
+**Findings**:
+- **Real defect found and fixed**: `check_server()` reported every HTTP error as healthy — the 401/403/404 branch and the fallthrough were identical, so a 500/502/503 backend was diagnosed OK. 5xx now returns `(False, "Server erroring ...")`; 2xx/401/403/404 semantics preserved.
+- Observation (no change, needs product decision): `export_diagnostics()` bundles the raw `courier.db` unredacted while logs/config are redacted — if ledger events ever carry secret-bearing fields, the bundle leaks them. Flagged for the owning lane.
+- **Testing**: +2 tests in `tests/ops/test_courier_doctor.py` using REAL local HTTP servers (ephemeral ports, no mocks): 500 -> unhealthy (fails on base, passes on fix), 200/401/404 -> healthy. 3/3 green with the pre-existing redaction test.

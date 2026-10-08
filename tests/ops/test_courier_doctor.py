@@ -1,12 +1,58 @@
 import json
 import os
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 import sqlite3
+import threading
 import zipfile
 
 import pytest
 
-from scripts.courier_doctor import export_diagnostics, get_app_data_dir, load_config
+from scripts.courier_doctor import check_server, export_diagnostics, get_app_data_dir, load_config
+
+
+class _CodedHandler(BaseHTTPRequestHandler):
+    code = 200
+
+    def do_GET(self):
+        self.send_response(type(self).code)
+        self.end_headers()
+
+    def log_message(self, *args):
+        pass
+
+
+@pytest.fixture
+def http_server():
+    servers = []
+
+    def run(code):
+        handler = type(f"H{code}", (_CodedHandler,), {"code": code})
+        server = HTTPServer(("127.0.0.1", 0), handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        servers.append(server)
+        return server.server_address[1]
+
+    yield run
+    for server in servers:
+        server.shutdown()
+
+
+def test_server_5xx_is_not_healthy(http_server, monkeypatch):
+    port = http_server(500)
+    monkeypatch.setenv("COURIER_SERVER", f"http://127.0.0.1:{port}")
+    passed, msg = check_server()
+    assert passed is False
+    assert "500" in msg
+
+
+def test_server_2xx_and_auth_codes_are_healthy(http_server, monkeypatch):
+    for code, expected in ((200, True), (401, True), (404, True)):
+        port = http_server(code)
+        monkeypatch.setenv("COURIER_SERVER", f"http://127.0.0.1:{port}")
+        passed, _ = check_server()
+        assert passed is expected
 
 def test_diagnostics_bundle_v1(tmp_path, monkeypatch):
     home = tmp_path / "home"
