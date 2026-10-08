@@ -8,7 +8,9 @@ import pytest
 from core_builders import golden_path, mixed_history, stable
 from courier_core.events import Event, EventType
 from courier_core.journal import Journal
-from courier_core.projection import ProjectionError, fold, projection_hash, rebuild
+from courier_core.projection import (
+    ProjectionError, fold, projection_hash, rebuild, is_current, load_task, apply_event, _from_row, PROJECTION_VERSION
+)
 from courier_core.state_machine import TaskStatus
 
 
@@ -127,3 +129,36 @@ def test_fingerprint_distinguishes_states(tmp_path):
         j.conn.execute("UPDATE tasks SET status = 'FAILED' WHERE task_id = 't1'")
         assert projection_hash(j.conn) != complete
         assert not j.verify_projection()
+
+
+def test_is_current_checks_version(tmp_path):
+    path = tmp_path / "courier.db"
+    with contextlib.closing(sqlite3.connect(str(path))) as conn:
+        assert not is_current(conn)
+    fill(path, golden_path())
+    with contextlib.closing(sqlite3.connect(str(path))) as conn:
+        assert is_current(conn)
+        conn.execute("UPDATE projection_meta SET value = '9999' WHERE key = 'version'")
+        assert not is_current(conn)
+
+
+def test_apply_event_rejects_unsealed_events(tmp_path):
+    path = tmp_path / "courier.db"
+    fill(path, golden_path())
+    with Journal(path) as j:
+        unsealed = Event(**stable(type=EventType.CONTROLLER_STARTED))
+        with pytest.raises(ProjectionError, match="only sealed events"):
+            apply_event(j.conn, unsealed)
+
+
+def test_load_non_existent_task(tmp_path):
+    path = tmp_path / "courier.db"
+    fill(path, golden_path())
+    with Journal(path) as j:
+        assert load_task(j.conn, "non_existent") is None
+        assert load_task(j.conn, None) is None
+
+
+def test_from_row_column_count_mismatch():
+    with pytest.raises(ValueError, match="Column count mismatch"):
+        _from_row((1, 2))
