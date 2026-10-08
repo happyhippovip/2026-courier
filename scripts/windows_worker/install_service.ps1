@@ -9,6 +9,23 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+function Test-SameAccount {
+    param([string]$Left, [string]$Right)
+    if ([string]::IsNullOrWhiteSpace($Left) -or [string]::IsNullOrWhiteSpace($Right)) {
+        return $false
+    }
+    if ($Left.Equals($Right, [System.StringComparison]::OrdinalIgnoreCase)) {
+        return $true
+    }
+    # Scheduled tasks store the account name; WindowsIdentity includes the machine.
+    $leftTail = ($Left -split '\\')[-1]
+    $rightTail = ($Right -split '\\')[-1]
+    if ([string]::IsNullOrWhiteSpace($leftTail) -or [string]::IsNullOrWhiteSpace($rightTail)) {
+        return $false
+    }
+    return $leftTail.Equals($rightTail, [System.StringComparison]::OrdinalIgnoreCase)
+}
+
 if ([string]::IsNullOrWhiteSpace($InstallDir)) {
     $InstallDir = $PSScriptRoot
 }
@@ -42,7 +59,7 @@ try {
 }
 
 $checked = Get-ScheduledTask -TaskName $TaskName -ErrorAction Stop
-if ($checked.Principal.UserId -ne $principalUser) {
+if (-not (Test-SameAccount $checked.Principal.UserId $principalUser)) {
     Write-Host "Scheduled task $TaskName principal is '$($checked.Principal.UserId)', expected '$principalUser'."
     exit 1
 }

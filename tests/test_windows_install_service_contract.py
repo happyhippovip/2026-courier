@@ -146,8 +146,11 @@ def test_native_install_service_registers_current_user_and_replaces(tmp_path):
         ])
         assert query.returncode == 0, query.stdout + query.stderr
         payload = json.loads(query.stdout.strip())
-        assert payload["UserId"].upper() != "SYSTEM"
-        assert payload["UserId"].casefold() == payload["Identity"].casefold()
+        user_tail = payload["UserId"].split("\\")[-1].casefold()
+        identity_tail = payload["Identity"].split("\\")[-1].casefold()
+        assert user_tail != "system"
+        assert "system" not in payload["UserId"].casefold()
+        assert user_tail == identity_tail
         assert payload["LogonType"] == "Interactive"
         assert payload["RunLevel"] == "Limited"
         assert "Logon" in payload["Trigger"]
