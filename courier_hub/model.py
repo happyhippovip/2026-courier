@@ -405,7 +405,14 @@ def host_installation(state_dir, evidence, now, *, host_id: str = "this-computer
 
     host = _public_text(host_id, fallback="this-computer")
     path = Path(state_dir) / JOURNAL_NAME
-    if not path.is_file():
+    try:
+        present = path.is_file()
+    except OSError:
+        # Permission denied on the directory is not "missing", and the
+        # private path in the OSError must not reach the customer.
+        return _installation_card(host, "unknown", "needs_human", "Unknown — needs a person",
+                                  "STATUS_UNREADABLE", None, None)
+    if not present:
         return _installation_card(host, "unknown", "needs_human", "Unknown — needs a person",
                                   "STATUS_MISSING", None, None)
     try:
