@@ -99,7 +99,8 @@ class CoordinationEvent:
 
 
 class CoordinationReducer:
-    def __init__(self):
+    def __init__(self, lease_ttl_s: Optional[float] = 1800.0):
+        self.lease_ttl_s = lease_ttl_s
         self.events: List[CoordinationEvent] = []
         self.missions: Dict[str, Dict] = {}
         self.processed_event_ids = set()
@@ -158,7 +159,16 @@ class CoordinationReducer:
                 # Reassignment of a live owned mission is only allowed after ERROR.
                 if mission["status"] != MissionStatus.ERROR:
                     return False
-            elif event.event_type != EventType.CANCELLED:
+            elif event.event_type == EventType.CANCELLED:
+                # A non-owner may only cancel if the lease has expired.
+                last_ts = parse_timestamp(mission["updated_at"])
+                if (
+                    self.lease_ttl_s is not None
+                    and last_ts is not None
+                    and (event_ts - last_ts).total_seconds() < self.lease_ttl_s
+                ):
+                    return False
+            else:
                 return False
 
         # State transition rules

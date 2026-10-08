@@ -7,6 +7,7 @@ from shared truth only and safely claims/resumes it with zero duplicate writers.
 import json
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -15,7 +16,7 @@ from scripts.coordination_ledger import (
 )
 from scripts.coordination_resume import (
     CLAIMED, CONFLICT, NOT_RESUMABLE, REASSIGN, RESUME, UNKNOWN_AUTHORITY,
-    claim_mission, discover_resumable, reduce_store,
+    claim_mission, discover_resumable, reap_expired_missions, reduce_store,
 )
 from scripts.github_coordination import (
     FileCoordinationStore, GitHubCoordinationAdapter, extract_events_from_body, render_event_body,
@@ -235,3 +236,85 @@ def test_github_reader_paginates_and_fails_on_partial_read(mock_get):
         pass
     else:
         raise AssertionError("partial ledger read must not be treated as complete truth")
+
+
+def test_reap_expired_mission_allows_safe_reassignment(tmp_path):
+    store = FileCoordinationStore(tmp_path / "l.jsonl")
+    # Worker A started mission m at 12:00:00
+    store.write_event(_event("1", "m", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z",
+                             agent=AgentID.GOOGLE_WINDOWS, host=HostID.WINDOWS_REMOTE, branch="lane/m"))
+
+    # Before lease expiry (e.g. at 12:15:00, 15 min < 30 min):
+    now_early = datetime(2026, 10, 7, 12, 15, 0, tzinfo=timezone.utc)
+    reaped = reap_expired_missions(store, AgentID.GOOGLE_MAC, HostID.MAC_LOCAL, lease_ttl_s=1800, now=now_early)
+    assert reaped == []
+    # Worker B cannot claim m while active
+    steal = claim_mission(store, AgentID.GOOGLE_MAC, HostID.MAC_LOCAL, "m", now=now_early)
+    assert steal.outcome == CONFLICT
+
+    # After lease expiry (e.g. at 12:45:00, 45 min > 30 min):
+    now_expired = datetime(2026, 10, 7, 12, 45, 0, tzinfo=timezone.utc)
+    reaped = reap_expired_missions(store, AgentID.GOOGLE_MAC, HostID.MAC_LOCAL, lease_ttl_s=1800, now=now_expired)
+    assert len(reaped) == 1
+    assert reaped[0].event_type == EventType.CANCELLED
+    assert reaped[0].status == MissionStatus.ERROR
+    assert "lease_expired" in reaped[0].evidence_ref
+
+    # Fresh discovery by Worker B now offers m for REASSIGN
+    discovered = discover_resumable(reduce_store(store), AgentID.GOOGLE_MAC)
+    assert len(discovered) == 1
+    assert discovered[0].mission_id == "m" and discovered[0].mode == REASSIGN
+
+    # Worker B claims m cleanly with verified ownership
+    claimed = claim_mission(store, AgentID.GOOGLE_MAC, HostID.MAC_LOCAL, "m", now=now_expired)
+    assert claimed.outcome == CLAIMED
+    assert reduce_store(store).get_mission("m")["ownership"] == "GOOGLE_MAC"
+    assert reduce_store(store).get_mission("m")["status"] == MissionStatus.WORKING
+
+
+def test_reap_active_mission_within_lease_ttl_is_rejected_even_if_forged():
+    reducer = CoordinationReducer(lease_ttl_s=1800)
+    # Worker A started m at 12:00:00
+    reducer.apply(_event("1", "m", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z",
+                         agent=AgentID.GOOGLE_WINDOWS, host=HostID.WINDOWS_REMOTE))
+
+    # Worker B tries to forge CANCELLED at 12:10:00 (10 min < 30 min)
+    forged = _event("2", "m", EventType.CANCELLED, MissionStatus.ERROR, "2026-10-07T12:10:00Z",
+                    agent=AgentID.GOOGLE_MAC, host=HostID.MAC_LOCAL)
+    applied = reducer.apply(forged)
+    assert applied is False
+    assert reducer.get_mission("m")["ownership"] == "GOOGLE_WINDOWS"
+    assert reducer.get_mission("m")["status"] == MissionStatus.WORKING
+
+
+def test_racing_reapers_are_deduplicated(tmp_path):
+    store = FileCoordinationStore(tmp_path / "l.jsonl")
+    store.write_event(_event("1", "m", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z",
+                             agent=AgentID.GOOGLE_WINDOWS, host=HostID.WINDOWS_REMOTE))
+    now = datetime(2026, 10, 7, 13, 0, 0, tzinfo=timezone.utc)
+
+    # Worker B reaps
+    r1 = reap_expired_missions(store, AgentID.GOOGLE_MAC, HostID.MAC_LOCAL, lease_ttl_s=1800, now=now)
+    assert len(r1) == 1
+
+    # Worker C also reaps the same expired mission: deduplicated, no new event written
+    r2 = reap_expired_missions(store, AgentID.CODEX_MAC, HostID.MAC_LOCAL, lease_ttl_s=1800, now=now)
+    assert len(r2) == 0
+
+    lines = [l for l in (tmp_path / "l.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+    assert len(lines) == 2  # exactly 1 ASSIGNED + 1 CANCELLED
+
+
+def test_reap_via_cli(tmp_path):
+    ledger = tmp_path / "ledger.jsonl"
+    store = FileCoordinationStore(ledger)
+    store.write_event(_event("1", "m", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z"))
+
+    # CLI --reap with short lease-ttl (1s) and past event
+    res = _run_cli("--events-file", str(ledger), "--agent", "GOOGLE_MAC", "--host", "MAC_LOCAL",
+                   "--reap", "--lease-ttl", "1")
+    assert res.returncode == 0
+    reaped = json.loads(res.stdout)
+    assert len(reaped) == 1
+    assert reaped[0]["event_type"] == "CANCELLED"
+

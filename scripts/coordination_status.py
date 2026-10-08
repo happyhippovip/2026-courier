@@ -6,8 +6,10 @@ from scripts.github_coordination import GitHubCoordinationAdapter, FileCoordinat
 from scripts.coordination_ledger import AgentID, CoordinationReducer, HostID
 from scripts.coordination_resume import (
     CLAIMED,
+    DEFAULT_LEASE_TTL_S,
     claim_mission,
     discover_resumable,
+    reap_expired_missions,
 )
 
 
@@ -28,6 +30,8 @@ def main(argv=None):
     parser.add_argument("--host", help="Host identity for --claim")
     parser.add_argument("--discover", action="store_true", help="Print resumable checkpoints for --agent as JSON")
     parser.add_argument("--claim", metavar="MISSION", help="Claim/resume MISSION for --agent/--host; prints JSON")
+    parser.add_argument("--reap", action="store_true", help="Reap expired WORKING missions into ERROR/CANCELLED")
+    parser.add_argument("--lease-ttl", type=float, default=DEFAULT_LEASE_TTL_S, help="Lease timeout in seconds for --reap (default: 1800)")
     args = parser.parse_args(argv)
 
     if args.events_file:
@@ -37,13 +41,21 @@ def main(argv=None):
     else:
         parser.error("either --events-file or --repo/--issue is required")
 
+    agent = _parse_enum(AgentID, args.agent) if args.agent else AgentID.GOOGLE_WINDOWS
+    host = _parse_enum(HostID, args.host) if args.host else HostID.WINDOWS_REMOTE
+
+    if args.reap:
+        reaped = reap_expired_missions(store, agent, host, lease_ttl_s=args.lease_ttl)
+        if not args.discover and not args.claim:
+            print(json.dumps([e.to_dict() for e in reaped], sort_keys=True))
+            return 0
+
     if args.discover or args.claim:
-        agent = _parse_enum(AgentID, args.agent)
         if args.claim:
-            result = claim_mission(store, agent, _parse_enum(HostID, args.host), args.claim)
+            result = claim_mission(store, agent, host, args.claim)
             print(json.dumps(result.to_dict(), sort_keys=True))
             return 0 if result.outcome == CLAIMED else 2
-        reducer = CoordinationReducer()
+        reducer = CoordinationReducer(lease_ttl_s=args.lease_ttl)
         for event in store.read_events():
             reducer.apply(event)
         print(json.dumps([c.to_dict() for c in discover_resumable(reducer, agent)], sort_keys=True))
