@@ -257,3 +257,11 @@ This ledger tracks the verification status of modules in this repository on Wind
 - [x] dashboard/server.py: 🟢 VERIFIED (verified in test_dashboard_server_uncovered.py)
 - [x] scripts/windows_worker/daemon.py: 🟢 VERIFIED (verified in test_windows_worker_daemon_uncovered.py, 87% coverage)
 - [x] scripts/mac_worker/runtime_state.py: ✔️ VERIFIED (verified in test_mac_worker_runtime_state_uncovered.py, 100% coverage)
+
+## scripts/notice_draft.py
+**Status**: VERIFIED
+**Date**: 2026-10-08
+**Findings**:
+- Outbound-contact drafter with legal guard: severity/area ranking, calm free notice, human-approval gate before sending. No product change needed — implementation already excludes secret values by construction (`draft()` only uses rule name + location for secret rules, never finding payload fields).
+- Adversarial probe (live, hermetic): secret finding carrying a fake token in `detail`/`value`/`secret`/`match` fields produces a draft with the value ABSENT. Pinned as durable regression `test_secret_value_never_reaches_draft_even_if_report_carries_it`.
+- **Testing**: 4/4 green (`tests/test_notice_draft.py`, incl. new test). No mocks on the security path. Hermetic.
