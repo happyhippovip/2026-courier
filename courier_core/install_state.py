@@ -46,6 +46,7 @@ from typing import Any, Mapping
 
 SCHEMA_VERSION = "1"
 JOURNAL_NAME = "install_journal.json"
+MAX_STATE_BYTES = 1024 * 1024
 
 NOT_INSTALLED = "NOT_INSTALLED"
 INSTALLING = "INSTALLING"
@@ -225,11 +226,11 @@ class InstallJournal:
         if not self.path.exists():
             return None
         try:
-            document = json.loads(self.path.read_text(encoding="utf-8"))
+            document = json.loads(_read_capped(self.path).decode("utf-8"))
         except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-            raise JournalUnreadable(str(self.path)) from exc
+            raise JournalUnreadable("unreadable") from exc
         if not isinstance(document, dict):
-            raise JournalUnreadable(str(self.path))
+            raise JournalUnreadable("unreadable")
         return document
 
     def begin(
@@ -420,6 +421,24 @@ class InstallJournal:
             return self.load()
         except JournalUnreadable:
             return None
+
+
+def _read_capped(path: Path, cap: int = MAX_STATE_BYTES) -> bytes:
+    """Read a state file only when os.stat says it fits, and never more than cap+1 bytes."""
+    try:
+        size = path.stat().st_size
+    except OSError as exc:
+        raise JournalUnreadable("unreadable") from exc
+    if isinstance(size, bool) or not isinstance(size, int) or size < 0 or size > cap:
+        raise JournalUnreadable("unreadable")
+    try:
+        with path.open("rb") as handle:
+            raw = handle.read(cap + 1)
+    except OSError as exc:
+        raise JournalUnreadable("unreadable") from exc
+    if len(raw) > cap:
+        raise JournalUnreadable("unreadable")
+    return raw
 
 
 def _status(state: str, now: datetime, *, version, reason_code, worker_id) -> dict[str, Any]:

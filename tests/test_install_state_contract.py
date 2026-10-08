@@ -16,11 +16,14 @@ from courier_core.install_state import (
     INSTALLING,
     INSTALLED_UNVERIFIED,
     INTERRUPTED_INSTALL,
+    JOURNAL_UNREADABLE,
+    MAX_STATE_BYTES,
     NOT_INSTALLED,
     REPAIR_REQUIRED,
     REFUSED_RUNNING_WORKER,
     Evidence,
     InstallJournal,
+    JournalUnreadable,
     SecretRejected,
     derive_state,
     reject_secrets,
@@ -276,3 +279,62 @@ def test_privileged_scheduler_is_not_healthy(tmp_path):
     status = derive_state(completed, _evidence(scheduler_principal="SYSTEM"), _at(40))
     assert status["state"] == REPAIR_REQUIRED
     assert status["reason_code"] == "SCHEDULER_PRIVILEGED_PRINCIPAL"
+
+
+def _bound_open(monkeypatch):
+    """Count bytes returned by file reads and refuse an unbounded read."""
+    read_bytes = {"n": 0}
+    real_open = Path.open
+
+    def wrapped(self, mode="r", *args, **kwargs):
+        handle = real_open(self, mode, *args, **kwargs)
+        original = handle.read
+
+        def read(n=-1):
+            if n is None or n < 0 or n > MAX_STATE_BYTES + 1:
+                raise AssertionError(f"read beyond cap: {n}")
+            data = original(n)
+            size = len(data.encode("utf-8")) if isinstance(data, str) else len(data)
+            read_bytes["n"] += size
+            if read_bytes["n"] > MAX_STATE_BYTES + 1:
+                raise AssertionError(f"loaded {read_bytes['n']} bytes")
+            return data
+
+        handle.read = read
+        return handle
+
+    monkeypatch.setattr(Path, "open", wrapped)
+    return read_bytes
+
+
+def test_oversized_journal_is_unreadable_without_loading_it(tmp_path, monkeypatch):
+    path = tmp_path / "install_journal.json"
+    with path.open("wb") as handle:
+        handle.truncate(MAX_STATE_BYTES + (8 * 1024 * 1024))
+    read_bytes = _bound_open(monkeypatch)
+    with pytest.raises(JournalUnreadable) as raised:
+        InstallJournal(tmp_path).load()
+    assert read_bytes["n"] <= MAX_STATE_BYTES + 1
+    assert str(tmp_path) not in str(raised.value)
+    status = status_from_dir(tmp_path, _evidence(), _at(40))
+    assert status["state"] != HEALTHY
+    assert status["reason_code"] == JOURNAL_UNREADABLE
+    rendered = json.dumps(status)
+    assert str(tmp_path) not in rendered
+    assert "Traceback" not in rendered
+    _assert_schema(status)
+
+
+def test_journal_exactly_at_cap_still_loads(tmp_path):
+    body = b'{"phase":"uninstalled","schema_version":"1"}'
+    pad = MAX_STATE_BYTES - len(body)
+    assert pad > 0
+    raw = body[:-1] + (b" " * pad) + b"}"
+    assert len(raw) == MAX_STATE_BYTES
+    (tmp_path / "install_journal.json").write_bytes(raw)
+    loaded = InstallJournal(tmp_path).load()
+    assert loaded["phase"] == "uninstalled"
+    assert loaded["schema_version"] == "1"
+    status = status_from_dir(tmp_path, _evidence(), _at(40))
+    assert status["state"] == NOT_INSTALLED
+    assert status["state"] != HEALTHY
