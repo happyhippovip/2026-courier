@@ -23,6 +23,7 @@ from typing import Any
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 from build_memory_update_proposal import get_memory_commit, validate_proposal_against_schema
+from foundry_synthesizer import run_foundry
 
 INITIAL_ANCHOR = "2026-08-25"
 SUPPORTED_SOURCES = {
@@ -200,6 +201,8 @@ def thought_manager(delta: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "message_id": message["message_id"], "source": message["source"], "kind": str(payload.get("kind", "OPEN_QUESTION")),
             "summary": summary, "status_label": status_for(message), "payload_hash": message["payload_hash"],
             "requested_status": payload.get("requested_status"),
+            # Explicit structured facets (problem/customer/outcome/...) feed Idea Foundry Phase 2.
+            "facets": payload["facets"] if isinstance(payload.get("facets"), dict) else {},
         })
     return candidates
 
@@ -295,6 +298,8 @@ def run_mesh(messages: list[dict[str, Any]], prior_ledger: dict[str, Any], memor
     boss_a = thought_boss_a(manager)
     boss_b = thought_boss_b(manager, memory_commit)
     proposal = build_proposal(boss_b["accepted_candidates"], memory_commit)
+    # Idea Foundry Phase 2 is advisory evidence only: it never alters the memory proposal.
+    foundry = run_foundry(manager)
     ledger = {
         "schema_version": "thought-coverage-ledger-1.0",
         "initial_anchor": INITIAL_ANCHOR,
@@ -307,7 +312,7 @@ def run_mesh(messages: list[dict[str, Any]], prior_ledger: dict[str, Any], memor
         "message_counts": {"input": len(messages), "valid_unique": len(valid), "delta_processed": len(delta), "duplicates": len(duplicates), "rejected": len(rejected)},
         "processed_messages": processed,
     }
-    return {"coverage_ledger": ledger, "scene_audit": audit, "thought_manager": manager, "thought_boss_a": boss_a, "thought_boss_b": boss_b, "memory_update_proposal": proposal, "chief_delivery_adapter": build_delivery(proposal)}
+    return {"coverage_ledger": ledger, "scene_audit": audit, "thought_manager": manager, "thought_boss_a": boss_a, "thought_boss_b": boss_b, "foundry": foundry, "memory_update_proposal": proposal, "chief_delivery_adapter": build_delivery(proposal)}
 
 
 def main() -> None:
