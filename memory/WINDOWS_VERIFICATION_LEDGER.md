@@ -257,3 +257,11 @@ This ledger tracks the verification status of modules in this repository on Wind
 - [x] dashboard/server.py: 🟢 VERIFIED (verified in test_dashboard_server_uncovered.py)
 - [x] scripts/windows_worker/daemon.py: 🟢 VERIFIED (verified in test_windows_worker_daemon_uncovered.py, 87% coverage)
 - [x] scripts/mac_worker/runtime_state.py: ✔️ VERIFIED (verified in test_mac_worker_runtime_state_uncovered.py, 100% coverage)
+
+## scripts/host_budgets.py
+**Status**: VERIFIED
+**Date**: 2026-10-08
+**Findings**:
+- Budget envelope + checkpoint-first hibernation plan (Issue #76 slice). Pure logic reviewed end to end: all-or-nothing charge with rollback, fail-closed unknowns (mission/health/lane states raise, never default healthy), UNKNOWN trend blocks heavy, hysteresis one-bad-gates / slow-release, RETIRE-gating correct, disk floor fail-closed on unreadable.
+- **Doc/code contradiction fixed**: docstring claimed RESOURCE_PAUSE/EMERGENCY hibernates "everything except the canonical checkpoint service", but the code lists every non-failed lane (it knows no service lane id) and only sets the `keep_checkpoint_service` flag. Docstring now states the executor contract precisely (spare per flag). No behavior change; no production consumers yet (only its test file).
+- **Testing**: existing 22/22 green (doc-only change). Hermetic.
