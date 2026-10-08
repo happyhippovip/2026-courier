@@ -120,8 +120,10 @@ class ControllerClient:
         return status == 200
 
     def claim(self, worker_id: str, resource_state: str = "NORMAL") -> Optional[dict]:
+        # The V1 controller rejects unknown body fields (400), so resource_state stays
+        # local: the worker only claims when NORMAL and holds back otherwise.
         try:
-            status, payload = self._call("POST", "/claim", {"worker_id": worker_id, "resource_state": resource_state})
+            status, payload = self._call("POST", "/claim", {"worker_id": worker_id})
         except ControllerError:
             return None
         if status == 204:
@@ -141,9 +143,10 @@ class ControllerClient:
             raise StaleDispatch(f"start for {dispatch_id}: status {status}")
 
     def heartbeat(self, worker_id: str, dispatch_ids: list, resource_state: str = "NORMAL") -> dict:
+        # resource_state is accepted for the thermal-relief callers but not sent:
+        # /heartbeat on the V1 controller allows only worker_id and dispatch_ids.
         status, payload = self._call("POST", "/heartbeat",
-                               {"worker_id": worker_id, "dispatch_ids": dispatch_ids,
-                                "resource_state": resource_state})
+                               {"worker_id": worker_id, "dispatch_ids": dispatch_ids})
         if status != 200:
             raise ControllerError(f"heartbeat: status {status}")
         return payload or {}

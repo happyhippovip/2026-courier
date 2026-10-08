@@ -591,7 +591,7 @@ def test_sse_cancel_aborts_run_promptly(tmp_path, stub):
     assert len(STUB.results) == 1
     assert STUB.results[0]["outcome"] == "failure"
     assert STUB.results[0]["retryable"] is False
-    assert {"dispatch_ids": [], "worker_id": "w1", "resource_state": "NORMAL"} in STUB.beats  # stop confirmation
+    assert {"dispatch_ids": [], "worker_id": "w1"} in STUB.beats  # stop confirmation
 
 
 def test_stop_releases_blocked_stream(tmp_path, stub):
@@ -770,7 +770,7 @@ def test_thermal_pressured_probe_skips_claim_and_reports(tmp_path, stub):
     assert loop.iterate(threading.Event()) == "idle"
     assert loop._last_resource_state == "PRESSURED"
     assert len(STUB.claims) == 1  # claim never fetched while pressured
-    assert STUB.beats and STUB.beats[-1].get("resource_state") == "PRESSURED"
+    assert STUB.beats and STUB.beats[-1] == {"worker_id": "w1", "dispatch_ids": []}  # liveness only
 
 
 def test_thermal_cooldown_holds_after_pressure_clears(tmp_path, stub):
