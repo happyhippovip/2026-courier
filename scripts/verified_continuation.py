@@ -19,11 +19,21 @@ import enum
 import hashlib
 import json
 import os
+import re
+import shlex
 import subprocess
 import sys
 import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+
+WORKKEY_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
+
+
+def validate_workkey(workkey: str) -> None:
+    """Enforce strict workkey charset and prevent path traversal."""
+    if not isinstance(workkey, str) or not WORKKEY_PATTERN.match(workkey):
+        raise ValueError(f"Invalid workkey format (must match ^[A-Za-z0-9_-]+$): {workkey!r}")
 
 
 class ExecutionMode(str, enum.Enum):
@@ -70,23 +80,42 @@ class VerifiedContinuation:
     # 1. Atomic Claim Management
     # -------------------------------------------------------------------------
     def claim(self, workkey: str, owner: str = "google-antigravity", ttl_s: int = 3600) -> bool:
-        """Atomically claim a workkey using process-level file locking."""
+        """Atomically claim a workkey using O_EXCL file creation and lease verification."""
+        validate_workkey(workkey)
         claim_file = self.claims_dir / f"{workkey}.claim"
         now = datetime.datetime.now(datetime.timezone.utc).timestamp()
 
-        # Check existing claim
+        # Check existing claim for renew or expiry
         if claim_file.exists():
             try:
                 data = json.loads(claim_file.read_text(encoding="utf-8"))
                 created_at = data.get("created_at_ts", 0)
-                if now - created_at < data.get("ttl_s", ttl_s):
+                active_ttl = data.get("ttl_s", ttl_s)
+                if now - created_at < active_ttl:
                     # Active lease exists
-                    if data.get("owner") != owner:
-                        return False
+                    if data.get("owner") == owner:
+                        # Owner renews lease
+                        claim_data = {
+                            "workkey": workkey,
+                            "owner": owner,
+                            "pid": os.getpid(),
+                            "created_at_iso": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                            "created_at_ts": now,
+                            "ttl_s": ttl_s,
+                        }
+                        temp_claim = self.claims_dir / f"{workkey}.claim.{uuid.uuid4().hex[:8]}.tmp"
+                        temp_claim.write_text(json.dumps(claim_data, indent=2), encoding="utf-8")
+                        os.replace(temp_claim, claim_file)
+                        return True
+                    return False
             except Exception:
                 pass
+            # Expired lease: purge stale claim file
+            try:
+                claim_file.unlink(missing_ok=True)
+            except OSError:
+                pass
 
-        temp_claim = self.claims_dir / f"{workkey}.claim.{uuid.uuid4().hex[:8]}.tmp"
         claim_data = {
             "workkey": workkey,
             "owner": owner,
@@ -95,18 +124,19 @@ class VerifiedContinuation:
             "created_at_ts": now,
             "ttl_s": ttl_s,
         }
-        temp_claim.write_text(json.dumps(claim_data, indent=2), encoding="utf-8")
-
+        content = json.dumps(claim_data, indent=2).encode("utf-8")
         try:
-            # Atomic replace
-            os.replace(temp_claim, claim_file)
+            fd = os.open(str(claim_file), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            with os.fdopen(fd, "wb") as handle:
+                handle.write(content)
             return True
-        except Exception:
-            if temp_claim.exists():
-                temp_claim.unlink(missing_ok=True)
+        except FileExistsError:
+            return False
+        except OSError:
             return False
 
     def is_claimed(self, workkey: str) -> Optional[dict]:
+        validate_workkey(workkey)
         claim_file = self.claims_dir / f"{workkey}.claim"
         if not claim_file.exists():
             return None
@@ -115,16 +145,24 @@ class VerifiedContinuation:
         except Exception:
             return None
 
-    def release(self, workkey: str) -> bool:
-        """Release claim cleanly."""
+    def release(self, workkey: str, owner: Optional[str] = None) -> bool:
+        """Release claim cleanly, checking owner if specified."""
+        validate_workkey(workkey)
         claim_file = self.claims_dir / f"{workkey}.claim"
-        if claim_file.exists():
+        if not claim_file.exists():
+            return True
+        if owner is not None:
             try:
-                claim_file.unlink()
-                return True
-            except OSError:
+                data = json.loads(claim_file.read_text(encoding="utf-8"))
+                if data.get("owner") != owner:
+                    return False
+            except Exception:
                 return False
-        return True
+        try:
+            claim_file.unlink(missing_ok=True)
+            return True
+        except OSError:
+            return False
 
     # -------------------------------------------------------------------------
     # 2. Honest Multi-Mode Execution
@@ -133,6 +171,7 @@ class VerifiedContinuation:
         """Execute task packet under the strictly specified mode."""
         task_id = task_packet.get("task_id", f"task-{uuid.uuid4().hex[:8]}")
         workkey = task_packet.get("workkey", task_id)
+        validate_workkey(workkey)
 
         if mode == ExecutionMode.MODE_A_LOCAL_DETERMINISTIC:
             return self._execute_mode_a(task_packet)
@@ -154,7 +193,10 @@ class VerifiedContinuation:
         if test_file:
             argv = [sys.executable, "-m", "pytest", str(test_file), "-q"]
         elif command:
-            argv = command if isinstance(command, list) else command.split()
+            if isinstance(command, list):
+                argv = command
+            else:
+                argv = shlex.split(command, posix=(sys.platform != "win32"))
         else:
             argv = [sys.executable, "-c", "import sys; sys.exit(0)"]
 
@@ -217,20 +259,18 @@ class VerifiedContinuation:
                 "payload": payload,
                 "result_file": str(res_file.name),
                 "model_invoked": True,
-            }
-        else:
-            payload = {
-                "verdict": "PASS",
-                "action_executed": "GOOGLE_BUILDER_FALLBACK",
-                "instruction": instruction,
                 "model_driven": True,
             }
+        else:
+            # Honest fail-closed: NO bridge available -> NO model execution possible
+            # Never mistake simulation for model execution.
             result = {
                 "task_id": task_id,
                 "mode": ExecutionMode.MODE_B_GOOGLE_BUILDER.value,
-                "status": "PASS",
-                "payload": payload,
-                "model_invoked": True,
+                "status": "UNAVAILABLE",
+                "error": "Google Builder bridge script not found; failing closed per zero-simulation policy",
+                "model_invoked": False,
+                "model_driven": False,
             }
 
         result["result_hash"] = canonical_json_hash(result)
@@ -246,7 +286,8 @@ class VerifiedContinuation:
         # Enqueue initial wakeup
         wake1 = Wakeup(trigger_id=f"wake-1-{task_id}", instruction=packet.get("instruction"))
         auto_ctx.enqueue_wake(wake1)
-        assert auto_ctx.state == AutoState.PENDING
+        if auto_ctx.state != AutoState.PENDING:
+            raise RuntimeError(f"Expected state PENDING, got {auto_ctx.state}")
 
         # Coalesce duplicate wakeups (guarantee MAX_PENDING_WAKE=1)
         wake2 = Wakeup(trigger_id=f"wake-2-{task_id}", instruction=packet.get("instruction"))
@@ -254,12 +295,13 @@ class VerifiedContinuation:
 
         # Start execution
         started = auto_ctx.start_execution()
-        assert started is True
-        assert auto_ctx.state == AutoState.RUNNING
+        if not started or auto_ctx.state != AutoState.RUNNING:
+            raise RuntimeError(f"Failed to start execution: state={auto_ctx.state}")
 
         # Finish execution
         auto_ctx.finish_execution()
-        assert auto_ctx.state == AutoState.IDLE
+        if auto_ctx.state != AutoState.IDLE:
+            raise RuntimeError(f"Failed to finish execution: state={auto_ctx.state}")
 
         result = {
             "task_id": task_id,
@@ -273,21 +315,68 @@ class VerifiedContinuation:
         return result
 
     def _execute_mode_d(self, packet: dict) -> dict:
-        """Mode D: Successful recovery after the provider session has ended."""
+        """Mode D: Successful recovery from real on-disk checkpoint after session termination."""
         task_id = packet.get("task_id", "task-recovery")
-        steps = packet.get("steps", ["step0", "step1", "step2"])
-        simulated_crash_at = packet.get("last_accepted_step", 1)
+        workkey = packet.get("workkey", task_id)
+        validate_workkey(workkey)
 
-        # Progress continues from resumed_at_step, not step 0
-        executed_steps = steps[simulated_crash_at + 1 :]
+        checkpoint_file = self.checkpoints_dir / f"{workkey}.checkpoint.json"
+        if not checkpoint_file.exists():
+            result = {
+                "task_id": task_id,
+                "workkey": workkey,
+                "mode": ExecutionMode.MODE_D_RECOVERY_RESUME.value,
+                "status": "FAIL",
+                "error": f"Checkpoint file not found: {checkpoint_file.name}",
+                "checkpoint_recovered": False,
+                "restarted_from_zero": True,
+            }
+            result["result_hash"] = canonical_json_hash(result)
+            return result
+
+        raw_bytes = checkpoint_file.read_bytes()
+        try:
+            cp_data = json.loads(raw_bytes.decode("utf-8"))
+        except Exception as ex:
+            result = {
+                "task_id": task_id,
+                "workkey": workkey,
+                "mode": ExecutionMode.MODE_D_RECOVERY_RESUME.value,
+                "status": "FAIL",
+                "error": f"Corrupted checkpoint: {ex}",
+                "checkpoint_recovered": False,
+                "restarted_from_zero": True,
+            }
+            result["result_hash"] = canonical_json_hash(result)
+            return result
+
+        recorded_hash = cp_data.get("result_hash")
+        details = cp_data.get("details", {})
+        details_hash = details.get("result_hash")
+
+        if recorded_hash and details_hash and recorded_hash != details_hash:
+            result = {
+                "task_id": task_id,
+                "workkey": workkey,
+                "mode": ExecutionMode.MODE_D_RECOVERY_RESUME.value,
+                "status": "FAIL",
+                "error": "Checkpoint hash tampering detected",
+                "checkpoint_recovered": False,
+                "restarted_from_zero": True,
+            }
+            result["result_hash"] = canonical_json_hash(result)
+            return result
 
         result = {
             "task_id": task_id,
+            "workkey": workkey,
             "mode": ExecutionMode.MODE_D_RECOVERY_RESUME.value,
             "status": "PASS",
             "checkpoint_recovered": True,
-            "resumed_from": simulated_crash_at + 1,
-            "completed_steps": steps[: simulated_crash_at + 1] + executed_steps,
+            "recovered_workkey": cp_data.get("workkey"),
+            "recovered_status": cp_data.get("status"),
+            "next_workkey": cp_data.get("next_workkey"),
+            "checkpoint_sha256": hashlib.sha256(raw_bytes).hexdigest(),
             "restarted_from_zero": False,
         }
         result["result_hash"] = canonical_json_hash(result)
@@ -297,7 +386,7 @@ class VerifiedContinuation:
     # 3. Verification & Durability
     # -------------------------------------------------------------------------
     def verify_result(self, result: dict) -> bool:
-        """Verify result integrity, hash consistency, and passing status."""
+        """Verify result integrity: status PASS and strict canonical JSON hash match."""
         if not isinstance(result, dict):
             return False
         if result.get("status") != "PASS":
@@ -306,10 +395,17 @@ class VerifiedContinuation:
         if not expected_hash:
             return False
 
-        return True
+        # Recompute hash over payload excluding result_hash
+        payload_to_hash = {k: v for k, v in result.items() if k != "result_hash"}
+        computed_hash = canonical_json_hash(payload_to_hash)
+        return expected_hash == computed_hash
 
     def checkpoint(self, workkey: str, result: dict, next_workkey: Optional[str] = None) -> Path:
         """Persist durable checkpoint atomically."""
+        validate_workkey(workkey)
+        if next_workkey:
+            validate_workkey(next_workkey)
+
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         checkpoint_data = {
             "schema_version": "2.0",
@@ -339,22 +435,30 @@ class VerifiedContinuation:
         """
         k1 = unit1["workkey"]
         k2 = unit2["workkey"]
+        validate_workkey(k1)
+        validate_workkey(k2)
 
         # Unit 1
-        assert self.claim(k1), f"Failed to claim unit 1: {k1}"
+        if not self.claim(k1):
+            raise RuntimeError(f"Failed to claim unit 1: {k1}")
         mode1 = unit1.get("mode", ExecutionMode.MODE_A_LOCAL_DETERMINISTIC)
         res1 = self.execute_unit(unit1, mode=mode1)
-        assert self.verify_result(res1), f"Unit 1 verification failed: {k1}"
+        if not self.verify_result(res1):
+            raise RuntimeError(f"Unit 1 verification failed: {k1}")
         cp1 = self.checkpoint(k1, res1, next_workkey=k2)
-        assert self.release(k1), f"Failed to release unit 1: {k1}"
+        if not self.release(k1):
+            raise RuntimeError(f"Failed to release unit 1: {k1}")
 
         # Automatic Handoff to Unit 2
-        assert self.claim(k2), f"Failed to claim unit 2: {k2}"
+        if not self.claim(k2):
+            raise RuntimeError(f"Failed to claim unit 2: {k2}")
         mode2 = unit2.get("mode", ExecutionMode.MODE_B_GOOGLE_BUILDER)
         res2 = self.execute_unit(unit2, mode=mode2)
-        assert self.verify_result(res2), f"Unit 2 verification failed: {k2}"
+        if not self.verify_result(res2):
+            raise RuntimeError(f"Unit 2 verification failed: {k2}")
         cp2 = self.checkpoint(k2, res2, next_workkey=None)
-        assert self.release(k2), f"Failed to release unit 2: {k2}"
+        if not self.release(k2):
+            raise RuntimeError(f"Failed to release unit 2: {k2}")
 
         return {
             "status": "PASS",
@@ -370,21 +474,23 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--verify-autonomy", action="store_true", help="Run full two-unit sequential acceptance test")
     parser.add_argument("--workkey", type=str, help="Single workkey to execute")
     parser.add_argument("--mode", type=str, default="MODE_A_LOCAL_DETERMINISTIC", choices=[m.value for m in ExecutionMode])
+    parser.add_argument("--ledger-dir", type=str, default=None, help="Custom ledger directory for isolated testing")
     args = parser.parse_args(argv)
 
-    engine = VerifiedContinuation()
+    ledger_path = Path(args.ledger_dir) if args.ledger_dir else None
+    engine = VerifiedContinuation(ledger_dir=ledger_path)
 
     if args.verify_autonomy:
         print("[CONTINUATION] Running two-unit sequential continuation acceptance test...")
         u1 = {
             "task_id": "task-unit-1",
-            "workkey": "WORKKEY-UNIT-1-LEDGER",
+            "workkey": "WORKKEY_UNIT_1_LEDGER",
             "mode": ExecutionMode.MODE_A_LOCAL_DETERMINISTIC,
             "instruction": "Verify local deterministic test execution",
         }
         u2 = {
             "task_id": "task-unit-2",
-            "workkey": "WORKKEY-UNIT-2-BUILDER",
+            "workkey": "WORKKEY_UNIT_2_BUILDER",
             "mode": ExecutionMode.MODE_B_GOOGLE_BUILDER,
             "instruction": "Verify Google builder execution within allowed scope",
             "allowed_scope": ["happyhippovip/2026-courier"],
