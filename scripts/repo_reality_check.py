@@ -242,7 +242,8 @@ def export_pdf(html_text, out_pdf):
         from weasyprint import HTML
         HTML(string=html_text).write_pdf(out_pdf)
         return True
-    except ImportError:
+    except Exception as e:
+        print(f"WeasyPrint failed: {e}. Falling back to Edge headless print.")
         pass
 
     import tempfile
