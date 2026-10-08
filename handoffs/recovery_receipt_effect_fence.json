@@ -11,7 +11,7 @@
   "ROOT_CAUSE": "Only the literal non_idempotent class was guarded; unknown classes inherited automatic resume. Truthy strings/numbers were accepted as effect confirmation. RECOVERED also accepted truthy non-boolean progress and non-string/blank snapshot references.",
   "TEST_EVIDENCE": {
     "before": "12 failed, 9 passed on f425d328",
-    "after": "29 passed, 0 failed, 0 skipped in 0.04s",
+    "after": "29 passed, 0 failed, 0 skipped in 0.05s",
     "command": ".venv/bin/python -m pytest -q tests/test_runtime_receipt.py --timeout=30",
     "platform": "Linux",
     "additional_before": "8 additional false-RECOVERED regressions failed before the progress/snapshot fix"
