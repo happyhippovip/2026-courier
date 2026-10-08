@@ -52,8 +52,21 @@ class _Stub(http.server.BaseHTTPRequestHandler):
         pass
 
 
-def _serve():
-    server = http.server.HTTPServer(("127.0.0.1", 0), _Stub)
+class _Garbage(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):  # noqa: N802
+        body = b"<html>not a controller</html>"
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, *args):  # pragma: no cover - quiet
+        pass
+
+
+def _serve(handler=_Stub):
+    server = http.server.HTTPServer(("127.0.0.1", 0), handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     return server
@@ -100,6 +113,18 @@ def test_health_unreachable_is_actionable_not_silent():
     assert result.returncode == 1
     assert result.stdout.strip(), "unreachable check must not print empty output"
     assert "isn't reachable" in result.stdout
+    assert "Next:" in result.stdout
+
+
+def test_health_malformed_success_is_not_reported_connected():
+    server = _serve(_Garbage)
+    try:
+        result = _run(f"http://127.0.0.1:{server.server_port}", TOKEN)
+    finally:
+        server.shutdown()
+        server.server_close()
+    assert result.returncode == 3
+    assert "connected" not in result.stdout.lower()
     assert "Next:" in result.stdout
 
 

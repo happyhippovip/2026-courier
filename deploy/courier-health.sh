@@ -48,8 +48,11 @@ seq="$(grep -o '"head_seq"[[:space:]]*:[[:space:]]*[0-9]*' "$body" 2>/dev/null |
 
 case "$code" in
     200)
-        detail=""
-        if [ -n "$mode" ]; then detail=" (mode: $mode"; else detail=" ("; fi
+        if [ -z "$mode" ]; then
+            echo "Courier answered with HTTP 200 at $base but the answer was not a Courier health report: $(read_body). Next: check that this is your Courier controller address, then try again or open the Hub."
+            exit 3
+        fi
+        detail=" (mode: $mode"
         if [ -n "$seq" ]; then detail="$detail, tasks seen: $seq)"; else detail="$detail)"; fi
         if [ "$mode" = "degraded_readonly" ]; then
             echo "Courier is connected at $base but in safe mode$detail. Next: open the Hub to see what needs you."
