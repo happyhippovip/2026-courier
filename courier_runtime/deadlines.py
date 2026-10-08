@@ -13,9 +13,23 @@ Rechtsbehelfsbelehrung always wins):
 """
 import calendar
 import datetime as dt
+import json
+
+
+def _coerce_date(value):
+    if value is None:
+        return None
+    if isinstance(value, dt.datetime):
+        return value.date()
+    if isinstance(value, dt.date):
+        return value
+    if isinstance(value, str):
+        return dt.date.fromisoformat(value)
+    raise TypeError(f"expected date, datetime, or ISO string, got {type(value).__name__}")
 
 
 def easter(year):
+    year = int(year)
     a, b, c = year % 19, year // 100, year % 100
     d, e = b // 4, b % 4
     f = (b + 8) // 25
@@ -30,6 +44,7 @@ def easter(year):
 
 
 def holidays_niedersachsen(year):
+    year = int(year)
     e = easter(year)
     return {dt.date(year, 1, 1), e - dt.timedelta(days=2), e + dt.timedelta(days=1), dt.date(year, 5, 1),
             e + dt.timedelta(days=39), e + dt.timedelta(days=50), dt.date(year, 10, 3), dt.date(year, 10, 31),
@@ -37,12 +52,15 @@ def holidays_niedersachsen(year):
 
 
 def next_working_day(day):
+    day = _coerce_date(day)
     while day.weekday() >= 5 or day in holidays_niedersachsen(day.year):
         day += dt.timedelta(days=1)
     return day
 
 
 def add_months(day, months):
+    day = _coerce_date(day)
+    months = int(months)
     month0 = day.month - 1 + months
     year, month = day.year + month0 // 12, month0 % 12 + 1
     return dt.date(year, month, min(day.day, calendar.monthrange(year, month)[1]))
@@ -51,9 +69,34 @@ def add_months(day, months):
 def deadline(letter_date, months=1, posted_on=None, fiction_days=4, received_on=None):
     """Return dict with bekanntgabe, deadline (legal end) and target (one week earlier).
     A later actual receipt moves Bekanntgabe later; an earlier one never shortens it."""
+    letter_date = _coerce_date(letter_date)
+    posted_on = _coerce_date(posted_on)
+    received_on = _coerce_date(received_on)
+    months = int(months)
+    fiction_days = int(fiction_days)
     posted = posted_on or letter_date
     bekanntgabe = posted + dt.timedelta(days=fiction_days)
     if received_on and received_on > bekanntgabe:
         bekanntgabe = received_on
     end = next_working_day(add_months(bekanntgabe, months))
     return {"bekanntgabe": bekanntgabe, "deadline": end, "target": end - dt.timedelta(days=7)}
+
+
+def main(argv=None):
+    import argparse
+    parser = argparse.ArgumentParser(description="Calculate official German letter deadlines (Bescheide).")
+    parser.add_argument("letter_date", help="Date of letter (YYYY-MM-DD)")
+    parser.add_argument("--months", type=int, default=1, help="Deadline length in months (default: 1)")
+    parser.add_argument("--posted-on", default=None, help="Optional actual posting date (YYYY-MM-DD)")
+    parser.add_argument("--received-on", default=None, help="Optional actual receipt date (YYYY-MM-DD)")
+    parser.add_argument("--fiction-days", type=int, default=4, help="Bekanntgabe fiction days (default: 4)")
+    args = parser.parse_args(argv)
+    res = deadline(args.letter_date, months=args.months, posted_on=args.posted_on,
+                   fiction_days=args.fiction_days, received_on=args.received_on)
+    print(json.dumps({k: v.isoformat() for k, v in res.items()}, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(main())

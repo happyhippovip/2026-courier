@@ -1,4 +1,5 @@
 import datetime as dt
+import pytest
 
 from courier_runtime.deadlines import add_months, deadline, easter, holidays_niedersachsen
 
@@ -30,3 +31,32 @@ def test_end_on_weekend_or_holiday_moves_to_next_working_day():
 def test_late_receipt_extends_early_receipt_does_not_shorten():
     assert deadline(D(2026, 7, 20), received_on=D(2026, 7, 21))["bekanntgabe"] == D(2026, 7, 24)
     assert deadline(D(2026, 7, 20), received_on=D(2026, 7, 30))["bekanntgabe"] == D(2026, 7, 30)
+
+
+def test_string_iso_date_inputs():
+    r = deadline("2026-07-20", months="1", fiction_days="4", posted_on="2026-07-20")
+    assert r["bekanntgabe"] == D(2026, 7, 24)
+    assert r["deadline"] == D(2026, 8, 24)
+    assert r["target"] == D(2026, 8, 17)
+
+
+def test_datetime_inputs():
+    dt_letter = dt.datetime(2026, 7, 20, 14, 30)
+    dt_recv = dt.datetime(2026, 7, 28, 9, 15)
+    r = deadline(dt_letter, received_on=dt_recv)
+    assert r["bekanntgabe"] == D(2026, 7, 28)
+
+
+def test_invalid_date_type_raises():
+    with pytest.raises(TypeError, match="expected date, datetime, or ISO string"):
+        deadline(12345)
+
+
+def test_deadlines_cli_main(capsys):
+    from courier_runtime.deadlines import main
+    assert main(["2026-07-20", "--months", "1", "--fiction-days", "4"]) == 0
+    captured = capsys.readouterr().out
+    assert '"bekanntgabe": "2026-07-24"' in captured
+    assert '"deadline": "2026-08-24"' in captured
+    assert '"target": "2026-08-17"' in captured
+
