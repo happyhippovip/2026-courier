@@ -257,3 +257,11 @@ This ledger tracks the verification status of modules in this repository on Wind
 - [x] dashboard/server.py: 🟢 VERIFIED (verified in test_dashboard_server_uncovered.py)
 - [x] scripts/windows_worker/daemon.py: 🟢 VERIFIED (verified in test_windows_worker_daemon_uncovered.py, 87% coverage)
 - [x] scripts/mac_worker/runtime_state.py: ✔️ VERIFIED (verified in test_mac_worker_runtime_state_uncovered.py, 100% coverage)
+
+## scripts/spreadsheet_cleanup_sample.py
+**Status**: VERIFIED WITH BOUNDS (demo end-to-end not runnable on this host)
+**Date**: 2026-10-08
+**Findings**:
+- RV-09 demo over `courier_runtime.workbook`: planning/cleanup logic reviewed; engine covered by `tests/test_runtime_workbook.py` (8/8 green on this host).
+- **Message fixed**: the script printed "Check messy_sample.xlsx to see the cleaned results" and then deleted the file on the next line. Message now states the fixture is removed. One line, no behavior change.
+- Bounds (honest): the demo itself cannot run here — `openpyxl` is neither a declared dependency (absent from pyproject) nor installed, and installing it into the shared interpreter was declined under host restraint. End-to-end demo proof needs a host with openpyxl; the CWD fixture artifact (`messy_sample.xlsx`, removed afterwards, littered on crash) is demo-accepted and unchanged.
