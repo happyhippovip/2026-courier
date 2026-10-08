@@ -101,3 +101,15 @@ def test_grant_records_exactly_the_requested_scope(broker):
     assert g.resources == frozenset({"api.github.com:443"}) and g.access == "read"
     assert g.source_request == "r1" and g.granted_by == "user"
     assert replace(g, uses=0) == replace(b.grants["g1"], uses=0)
+
+
+@pytest.mark.parametrize("unknown", [
+    dict(access="obliterate"),
+    dict(data_class="topsecret"),
+])
+def test_unknown_access_or_data_class_is_refused_not_raised(broker, unknown):
+    b, _ = broker
+    b.authorize(req("r1"))
+    b.grant(req("r1"), "g1", expires_at=2000)
+    grant, state, reason = b.authorize(req("r2", **unknown))
+    assert grant is None and state == REQUESTED and reason

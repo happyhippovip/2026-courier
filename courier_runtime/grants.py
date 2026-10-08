@@ -78,8 +78,16 @@ def why_not_covered(grant, request, now):
             return f"{dim} differs ({getattr(request, dim)!r} not granted)"
     if not request.resources or not request.resources <= grant.resources:
         return f"resources {sorted(request.resources - grant.resources) or '[]'} not granted"
+    if request.access not in ACCESS_ORDER:
+        return f"access {request.access!r} is not a known access level"
+    if grant.access not in ACCESS_ORDER:
+        return f"grant access {grant.access!r} is not a known access level"
     if ACCESS_ORDER[request.access] > ACCESS_ORDER[grant.access]:
         return f"access {request.access} exceeds {grant.access}"
+    if request.data_class not in DATA_ORDER:
+        return f"data class {request.data_class!r} is not a known data class"
+    if grant.data_class not in DATA_ORDER:
+        return f"grant data class {grant.data_class!r} is not a known data class"
     if DATA_ORDER[request.data_class] > DATA_ORDER[grant.data_class]:
         return f"data class {request.data_class} exceeds {grant.data_class}"
     return None
