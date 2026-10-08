@@ -184,6 +184,43 @@ class TestMission093And095And097HardenedPolicy(unittest.TestCase):
         final = json.loads(lease_path.read_text(encoding="utf-8"))
         self.assertEqual(final["owner_id"], "reclaimer-share")
 
+    def test_03d_reclaim_exhausted_retries_leave_no_temp_file(self):
+        """Exhausted PermissionError retries re-raise and leave no .tmp.* litter.
+
+        MUSE-REV-175-F16: the finally block unlinks the reclaim lock but the
+        per-pid temp lease file used to stay in the lease dir forever.
+        """
+        task_id = "TASK-CONCURRENCY-SHARE-002"
+        mgr = TaskLeaseManager(repo_dir=self.test_dir)
+        lease_path = mgr._get_lease_path(task_id)
+        now_ts = time.time()
+        seed = {
+            "task_id": task_id,
+            "task_hash": "seed_old_hash",
+            "owner_id": "old-expired-owner",
+            "acquired_at": now_ts - 1000,
+            "expires_at": now_ts - 500,
+            "acquired_iso": "2026-01-01T00:00:00Z",
+        }
+        lease_path.write_text(json.dumps(seed), encoding="utf-8")
+
+        real_replace = os.replace
+
+        def always_denied(src, dst):
+            if Path(dst) == lease_path:
+                raise PermissionError(13, "Access is denied")
+            return real_replace(src, dst)
+
+        with mock.patch("scripts.resource_policy.os.replace", side_effect=always_denied), \
+                mock.patch("scripts.resource_policy.time.sleep") as fake_sleep:
+            with self.assertRaises(PermissionError):
+                mgr.acquire_lease(task_id, "hash_share", owner_id="reclaimer-exhausted", duration_sec=60)
+
+        self.assertEqual(fake_sleep.call_count, 40)
+        leftovers = sorted(p.name for p in lease_path.parent.iterdir() if p.name != lease_path.name)
+        self.assertEqual(leftovers, [], "no temp or reclaim-lock file may remain")
+        self.assertEqual(json.loads(lease_path.read_text(encoding="utf-8"))["owner_id"], "old-expired-owner")
+
     def test_04_cached_result_integrity_and_fail_closed_checks(self):
         """Prove untampered result is reused, while tampered, missing, or empty hash is blocked."""
         dedupe = TaskDedupeEngine(repo_dir=self.test_dir)
