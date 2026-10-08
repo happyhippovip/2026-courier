@@ -105,6 +105,15 @@ trap 'rm -f "$run_log" 2>/dev/null || true; cleanup' EXIT INT TERM
 
 cd "$REPO_ROOT" || exit 66
 
+# Refresh the integration/v1 ref even when the checkout is dirty (fetch never
+# touches the working tree). Without this, batches verify "current" truth
+# against a stale remote-tracking ref and idle while trunk has moved.
+if git fetch --quiet origin integration/v1 >/dev/null 2>&1; then
+  echo "refs=ok integration/v1=$(git rev-parse --short origin/integration/v1 2>/dev/null)" >> "$LOG_FILE"
+else
+  echo "refs=stale (fetch failed or offline; worker must note staleness)" >> "$LOG_FILE"
+fi
+
 # Follow the checked-out branch so each batch reviews current code instead of
 # the commit the runner was installed from. Fast-forward only, and only when
 # the checkout is clean; a failed update never blocks a run.
