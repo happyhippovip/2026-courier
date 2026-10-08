@@ -257,3 +257,11 @@ This ledger tracks the verification status of modules in this repository on Wind
 - [x] dashboard/server.py: 🟢 VERIFIED (verified in test_dashboard_server_uncovered.py)
 - [x] scripts/windows_worker/daemon.py: 🟢 VERIFIED (verified in test_windows_worker_daemon_uncovered.py, 87% coverage)
 - [x] scripts/mac_worker/runtime_state.py: ✔️ VERIFIED (verified in test_mac_worker_runtime_state_uncovered.py, 100% coverage)
+
+## scripts/ci_truth.py
+**Status**: VERIFIED WITH BOUNDS (docker orchestration not proven on this host)
+**Date**: 2026-10-08
+**Findings**:
+- **Dead work removed**: `run_ci_truth()` ran `git archive` twice per invocation — first via `subprocess.run` with stdout piped and the result discarded (the author's own "Wait," comment flagged the leftover), then again via `Popen` piped into tar. Single archive stream retained; outputs cannot change (removed call's result was unused).
+- Verified real: `generate_dockerfile()` selection (requirements vs pyproject vs none) by the 2 hermetic tests; the retained git-archive | tar-extract pipeline executed for real against a fixture repo (file extracted intact). Existing 5/5 green.
+- Bounds (honest, for a docker host lane): `docker build`/`run` orchestration is covered only by mock-choreography tests (mocks absorb the very subprocesses under test); no live docker proof on this host. Noted gap, not fixed here: `docker build`/`run` have no timeout — a hung build hangs the tool forever (poison-work class). Needs a docker host + TimeoutExpired mapping.
