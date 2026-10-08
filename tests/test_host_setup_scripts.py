@@ -284,6 +284,7 @@ def mac_env(tmp_path, fixture_repo):
             "#!/bin/sh\ncase \"$2\" in\n"
             " machdep.cpu.brand_string) echo 'Apple M2';;\n hw.ncpu) echo 8;;\n hw.memsize) echo 17179869184;;\n"
             " vm.swapusage) echo \"total = 3072.00M  used = 2500.25M  free = 571.75M  (encrypted)\";;\n"
+            " hw.pagesize) echo \"${COURIER_SETUP_PAGESIZE:-4096}\";;\n"
             " *) exit 1;;\nesac\n"
         ),
         "memory_pressure": "#!/bin/sh\necho 'System-wide memory free percentage: 40%'\n",
@@ -438,6 +439,133 @@ def test_sh_rejects_unknown_and_conflicting_flags(mac_env):
     _, env = mac_env
     assert run_sh(env, "--bogus").returncode == 64
     assert run_sh(env, "--check", "--uninstall").returncode == 64
+
+
+# 100000 + 200000 + 100000 pages. 4096 bytes -> 1562 MB; 16384 bytes -> 6250 MB.
+_VMSTAT_PAGES = (100000, 200000, 100000)
+
+
+def _vmstat_text(page_size, header=True):
+    free, inactive, speculative = _VMSTAT_PAGES
+    if header:
+        head = f"Mach Virtual Memory Statistics: (page size of {page_size} bytes)"
+    else:
+        head = "Mach Virtual Memory Statistics:"
+    return (
+        f"{head}\n"
+        f"Pages free:                                {free}.\n"
+        f"Pages active:                              10.\n"
+        f"Pages inactive:                            {inactive}.\n"
+        f"Pages speculative:                         {speculative}.\n"
+        f"Pages wired down:                          10.\n"
+        f"Pages occupied by compressor:              10.\n"
+    )
+
+
+_ZERO_SWAP = "total = 0.00M  used = 0.00M  free = 0.00M"
+
+
+@pytest.mark.parametrize(
+    ("fixture", "total", "free", "admission"),
+    [
+        (
+            "total = 2048.00M  used = 1024.50M  free = 1023.50M  (encrypted)",
+            "2048",
+            "1023",
+            "admission: PARKED (swap free 1023 MB < 1024 MB)",
+        ),
+        (
+            "total = 8.00G  used = 6.50G  free = 1.50G  (encrypted)",
+            "8192",
+            "1536",
+            "admission: OPEN",
+        ),
+        (
+            _ZERO_SWAP,
+            "0",
+            "0",
+            "admission: OPEN",
+        ),
+        (
+            "total = 2048,00M  used = 1024,50M  free = 1023,50M  (encrypted)",
+            "2048",
+            "1023",
+            "admission: PARKED (swap free 1023 MB < 1024 MB)",
+        ),
+        (
+            "total = 2048.00K  used = 512.00K  free = 1536.00K",
+            "2",
+            "1",
+            "admission: PARKED (swap free 1 MB < 1024 MB)",
+        ),
+    ],
+)
+@needs_posix_bash
+def test_sh_swapusage_formats(mac_env, fixture, total, free, admission):
+    _, env = mac_env
+    r = run_sh({**env, "COURIER_SETUP_SWAPUSAGE_FIXTURE": fixture}, "--check")
+    assert r.returncode in (0, 2), r.stdout + r.stderr
+    assert f"swap_mb: total {total}, free {free}" in r.stdout
+    assert admission in r.stdout
+    assert "swap metric unreadable" not in r.stdout
+    assert "metrics unreadable" not in r.stdout
+
+
+@needs_posix_bash
+def test_sh_swapusage_sysctl_failure_fails_closed(mac_env):
+    _, env = mac_env
+    r = run_sh({**env, "COURIER_SETUP_SWAPUSAGE_FIXTURE": "FAIL"}, "--check")
+    assert r.returncode in (0, 2), r.stdout + r.stderr
+    assert "swap_mb: total unknown, free unknown" in r.stdout
+    assert "swap metric unreadable: sysctl vm.swapusage failed" in r.stdout
+    assert "admission: PARKED (swap metric unreadable: sysctl vm.swapusage failed)" in r.stdout
+
+
+@pytest.mark.parametrize(
+    ("page_size", "free_mb", "admission"),
+    [
+        (4096, 1562, "admission: PARKED (free RAM 1562 MB < 2048 MB)"),
+        (16384, 6250, "admission: OPEN"),
+    ],
+)
+@needs_posix_bash
+def test_sh_vm_stat_uses_header_page_size(mac_env, page_size, free_mb, admission):
+    _, env = mac_env
+    r = run_sh({
+        **env,
+        "COURIER_SETUP_SWAPUSAGE_FIXTURE": _ZERO_SWAP,
+        "COURIER_SETUP_VMSTAT_FIXTURE": _vmstat_text(page_size),
+    }, "--check")
+    assert r.returncode in (0, 2), r.stdout + r.stderr
+    assert f"ram_mb: total 16384, free {free_mb}" in r.stdout
+    assert "swap_mb: total 0, free 0" in r.stdout
+    assert admission in r.stdout
+    assert "swap metric unreadable" not in r.stdout
+
+
+@needs_posix_bash
+def test_sh_vm_stat_pagesize_falls_back_to_sysctl(mac_env):
+    _, env = mac_env
+    r = run_sh({
+        **env,
+        "COURIER_SETUP_SWAPUSAGE_FIXTURE": _ZERO_SWAP,
+        "COURIER_SETUP_VMSTAT_FIXTURE": _vmstat_text(None, header=False),
+        "COURIER_SETUP_PAGESIZE": "16384",
+    }, "--check")
+    assert r.returncode in (0, 2), r.stdout + r.stderr
+    # Same page counts as the header test. 16384 from hw.pagesize, not a
+    # hardcoded 4096 (that would be 1562 MB and would park).
+    assert "ram_mb: total 16384, free 6250" in r.stdout
+    assert "admission: OPEN" in r.stdout
+
+
+def test_sh_probes_name_absolute_macos_tools():
+    text = SH.read_text(encoding="utf-8")
+    assert "/usr/sbin/sysctl" in text
+    assert "/usr/bin/vm_stat" in text
+    assert "hw.pagesize" in text
+    assert "LC_ALL=C" in text
+    assert "COURIER_SETUP_SWAPUSAGE_FIXTURE" in text
 
 
 # ---- Windows script under pwsh with stubbed cmdlets -------------------------

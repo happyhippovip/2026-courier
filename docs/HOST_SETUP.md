@@ -49,6 +49,13 @@ A saved copy also takes `-Check`, `-WithGodot` and `-Uninstall`:
    the number of running Courier processes, and the number of dirty
    worktrees under `~/Courier`. Worktrees inside Desktop, Documents or
    Downloads are counted as skipped and never opened.
+   On macOS, free RAM is `Pages free` + `Pages inactive` + `Pages speculative`
+   from `/usr/bin/vm_stat`, multiplied by the page size in that header, or
+   by `/usr/sbin/sysctl -n hw.pagesize` when the header has none (4096 bytes
+   on Intel, 16384 on Apple Silicon). Swap is `/usr/sbin/sysctl -n
+   vm.swapusage` with `LC_ALL=C`. Values with a K, M or G suffix become
+   whole MB. If that sysctl fails, the report notes `swap metric unreadable:
+   sysctl vm.swapusage failed` and admission parks.
 2. **Prerequisites, user scope only, and only when missing.**
    - macOS: `git`, `python@3.12` and `gh` through Homebrew, with auto-update
      and cleanup turned off. Homebrew itself is not installed, because its
@@ -137,3 +144,7 @@ yours to do.
 `COURIER_REPO_URL` and `COURIER_BRANCH` choose another repository or branch.
 `COURIER_SETUP_UNAME` (macOS script) and `COURIER_SETUP_OS` (Windows script)
 let the tests run the scripts with stub tools on Linux.
+`COURIER_SETUP_SWAPUSAGE_FIXTURE` supplies a `vm.swapusage` line instead of
+running sysctl; the value `FAIL` simulates a sysctl failure.
+`COURIER_SETUP_VMSTAT_FIXTURE` supplies `vm_stat` text. Leave both unset on
+a real machine.

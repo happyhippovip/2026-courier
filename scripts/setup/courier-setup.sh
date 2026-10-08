@@ -192,25 +192,187 @@ cs_detect_tools() {
   fi
 }
 
+# Absolute macOS system binary, unless PATH resolves to a different file
+# (a test stub). curl | bash can omit /usr/sbin, so the absolute path is
+# what runs when the name is missing or is already that binary.
+cs_host_tool() {
+  local name="$1" absolute="$2" found=""
+  if command -v "$name" >/dev/null 2>&1; then
+    found="$(command -v "$name" 2>/dev/null || true)"
+  fi
+  if [ -x "$absolute" ]; then
+    if [ -z "$found" ] || [ "$found" = "$absolute" ]; then
+      printf '%s\n' "$absolute"
+      return 0
+    fi
+  fi
+  if [ -n "$found" ]; then
+    printf '%s\n' "$found"
+    return 0
+  fi
+  return 1
+}
+
+cs_sysctl_n() {
+  local tool
+  tool="$(cs_host_tool sysctl /usr/sbin/sysctl)" || return 127
+  LC_ALL=C "$tool" -n "$@"
+}
+
+# One vm.swapusage line, or failure. COURIER_SETUP_SWAPUSAGE_FIXTURE is a
+# test override: the raw line, or FAIL when sysctl itself fails. Unset on a
+# real host, which always calls /usr/sbin/sysctl under LC_ALL=C.
+cs_read_swapusage() {
+  if [ -n "${COURIER_SETUP_SWAPUSAGE_FIXTURE+x}" ]; then
+    if [ "$COURIER_SETUP_SWAPUSAGE_FIXTURE" = "FAIL" ]; then
+      return 1
+    fi
+    printf '%s\n' "$COURIER_SETUP_SWAPUSAGE_FIXTURE"
+    return 0
+  fi
+  cs_sysctl_n vm.swapusage
+}
+
+# Integer MB from one K/M/G field. Fractional megabytes are truncated.
+# A comma decimal is accepted so a non-C locale cannot hide the number.
+cs_swap_field_mb() {
+  printf '%s\n' "$1" | awk -v field="$2" '
+    function to_mb(token,   n, u, whole, frac, cents, i, rest) {
+      if (!match(token, /[0-9]*[.][0-9]+|[0-9]+/)) return -1
+      n = substr(token, RSTART, RLENGTH)
+      rest = substr(token, RSTART + RLENGTH)
+      sub(/^[[:space:]]+/, "", rest)
+      u = substr(rest, 1, 1)
+      whole = n
+      frac = "0"
+      i = index(n, ".")
+      if (i > 0) {
+        whole = substr(n, 1, i - 1)
+        frac = substr(n, i + 1)
+        if (whole == "") whole = "0"
+      }
+      frac = substr(frac "00", 1, 2) + 0
+      cents = whole * 100 + frac
+      if (u == "G" || u == "g") return int(cents * 1024 / 100)
+      if (u == "K" || u == "k") return int(cents / 102400)
+      if (u == "M" || u == "m") return int(cents / 100)
+      return -1
+    }
+    BEGIN { name = field }
+    {
+      line = $0
+      gsub(/,/, ".", line)
+      re = name "[[:space:]]*=[[:space:]]*[0-9]*[.]?[0-9]+[[:space:]]*[KkMmGg]"
+      if (!match(line, re)) exit 1
+      mb = to_mb(substr(line, RSTART, RLENGTH))
+      if (mb < 0) exit 1
+      print mb
+    }
+  '
+}
+
+# Parse one `sysctl -n vm.swapusage` line into CS_SWAP_TOTAL_MB and
+# CS_SWAP_FREE_MB. Returns 1 when either field is missing.
+cs_parse_swapusage() {
+  local line="$1" total free
+  total="$(cs_swap_field_mb "$line" total)" || return 1
+  free="$(cs_swap_field_mb "$line" free)" || return 1
+  cs_is_int "$total" || return 1
+  cs_is_int "$free" || return 1
+  CS_SWAP_TOTAL_MB="$total"
+  CS_SWAP_FREE_MB="$free"
+  return 0
+}
+
+cs_detect_swap() {
+  local line
+  CS_SWAP_TOTAL_MB="unknown"
+  CS_SWAP_FREE_MB="unknown"
+  CS_SWAP_ERROR=""
+  if ! line="$(cs_read_swapusage 2>/dev/null)"; then
+    CS_SWAP_ERROR="swap metric unreadable: sysctl vm.swapusage failed"
+    cs_note "$CS_SWAP_ERROR"
+    return 0
+  fi
+  if ! cs_parse_swapusage "$line"; then
+    CS_SWAP_ERROR="swap metric unreadable: vm.swapusage not parsed"
+    cs_note "$CS_SWAP_ERROR"
+  fi
+}
+
+# Page size in bytes: the vm_stat header, else sysctl hw.pagesize.
+# Intel is 4096, Apple Silicon is 16384.
+cs_pagesize_bytes() {
+  local text="$1" ps
+  ps="$(printf '%s\n' "$text" | sed -n 's/.*page size of  *\([0-9][0-9]*\) bytes.*/\1/p' | head -n 1)"
+  if cs_is_int "$ps" && [ "$ps" -gt 0 ]; then
+    printf '%s\n' "$ps"
+    return 0
+  fi
+  ps="$(cs_sysctl_n hw.pagesize 2>/dev/null | tr -cd '0-9')"
+  if cs_is_int "$ps" && [ "$ps" -gt 0 ]; then
+    printf '%s\n' "$ps"
+    return 0
+  fi
+  return 1
+}
+
+# Free MB from vm_stat: pages free + inactive + speculative, times the
+# real page size. COURIER_SETUP_VMSTAT_FIXTURE is a test override.
+# Returns 1 when vm_stat cannot be read, so the caller can fall back.
+cs_free_ram_from_vm_stat() {
+  local text ps pages tool
+  if [ -n "${COURIER_SETUP_VMSTAT_FIXTURE+x}" ]; then
+    text="$COURIER_SETUP_VMSTAT_FIXTURE"
+  else
+    tool="$(cs_host_tool vm_stat /usr/bin/vm_stat)" || return 1
+    text="$(LC_ALL=C "$tool" 2>/dev/null)" || return 1
+  fi
+  [ -n "$text" ] || return 1
+  ps="$(cs_pagesize_bytes "$text")" || return 1
+  pages="$(printf '%s\n' "$text" | awk '
+    function grab(line, key,   v) {
+      if (index(line, key) == 0) return ""
+      v = substr(line, index(line, key) + length(key))
+      gsub(/[^0-9]/, "", v)
+      return v
+    }
+    {
+      if (free == "" && index($0, "Pages free:") > 0) free = grab($0, "Pages free:")
+      if (index($0, "Pages inactive:") > 0) inactive = grab($0, "Pages inactive:")
+      if (index($0, "Pages speculative:") > 0) speculative = grab($0, "Pages speculative:")
+    }
+    END {
+      if (free == "") exit 1
+      if (inactive == "") inactive = 0
+      if (speculative == "") speculative = 0
+      print (free + 0) + (inactive + 0) + (speculative + 0)
+    }
+  ')" || return 1
+  cs_is_int "$pages" || return 1
+  CS_FREE_RAM_MB=$((pages * ps / 1048576))
+  return 0
+}
+
 cs_detect_host() {
   CS_OS_VER="$(sw_vers -productVersion 2>/dev/null | cs_oneline)"; [ -n "$CS_OS_VER" ] || CS_OS_VER="unknown"
   CS_ARCH="$(uname -m 2>/dev/null | cs_oneline)"; [ -n "$CS_ARCH" ] || CS_ARCH="unknown"
-  CS_CPU="$(sysctl -n machdep.cpu.brand_string 2>/dev/null | cs_oneline)"; [ -n "$CS_CPU" ] || CS_CPU="unknown"
-  CS_NCPU="$(sysctl -n hw.ncpu 2>/dev/null | cs_oneline)"; cs_is_int "$CS_NCPU" || CS_NCPU="unknown"
+  CS_CPU="$(cs_sysctl_n machdep.cpu.brand_string 2>/dev/null | cs_oneline)"; [ -n "$CS_CPU" ] || CS_CPU="unknown"
+  CS_NCPU="$(cs_sysctl_n hw.ncpu 2>/dev/null | cs_oneline)"; cs_is_int "$CS_NCPU" || CS_NCPU="unknown"
 
   CS_RAM_MB="unknown"; CS_FREE_RAM_MB="unknown"
-  local mem pct swap total free disk
-  mem="$(sysctl -n hw.memsize 2>/dev/null | cs_oneline)"
+  local mem pct disk mtool
+  mem="$(cs_sysctl_n hw.memsize 2>/dev/null | cs_oneline)"
   if cs_is_int "$mem"; then CS_RAM_MB=$((mem / 1048576)); fi
-  pct="$(memory_pressure 2>/dev/null | sed -n 's/.*System-wide memory free percentage: *\([0-9][0-9]*\)%.*/\1/p' | head -n 1)"
-  if cs_is_int "$pct" && cs_is_int "$CS_RAM_MB"; then CS_FREE_RAM_MB=$((CS_RAM_MB * pct / 100)); fi
+  if ! cs_free_ram_from_vm_stat; then
+    mtool="$(cs_host_tool memory_pressure /usr/bin/memory_pressure)" || mtool=""
+    if [ -n "$mtool" ]; then
+      pct="$(LC_ALL=C "$mtool" 2>/dev/null | sed -n 's/.*System-wide memory free percentage: *\([0-9][0-9]*\)%.*/\1/p' | head -n 1)"
+      if cs_is_int "$pct" && cs_is_int "$CS_RAM_MB"; then CS_FREE_RAM_MB=$((CS_RAM_MB * pct / 100)); fi
+    fi
+  fi
 
-  CS_SWAP_TOTAL_MB="unknown"; CS_SWAP_FREE_MB="unknown"
-  swap="$(sysctl -n vm.swapusage 2>/dev/null | head -n 1)"
-  total="$(printf '%s' "$swap" | sed -n 's/.*total = *\([0-9][0-9]*\)[.0-9]*M.*/\1/p')"
-  free="$(printf '%s' "$swap" | sed -n 's/.*free = *\([0-9][0-9]*\)[.0-9]*M.*/\1/p')"
-  cs_is_int "$total" && CS_SWAP_TOTAL_MB="$total"
-  cs_is_int "$free" && CS_SWAP_FREE_MB="$free"
+  cs_detect_swap
 
   CS_DISK_FREE_MB="unknown"
   disk="$(df -Pk "$HOME" 2>/dev/null | awk 'NR==2 {print int($4 / 1024)}')"
@@ -351,8 +513,20 @@ cs_repo_step() {
 
 cs_eval_admission() {
   CS_ADMISSION="OPEN"; CS_ADMISSION_WHY=""
-  if ! cs_is_int "$CS_FREE_RAM_MB" || ! cs_is_int "$CS_SWAP_TOTAL_MB" || ! cs_is_int "$CS_SWAP_FREE_MB"; then
-    CS_ADMISSION="PARKED"; CS_ADMISSION_WHY="metrics unreadable (fails closed)"
+  local ram_ok=0 swap_ok=0
+  cs_is_int "$CS_FREE_RAM_MB" && ram_ok=1
+  if cs_is_int "$CS_SWAP_TOTAL_MB" && cs_is_int "$CS_SWAP_FREE_MB"; then
+    swap_ok=1
+  fi
+  if [ "$ram_ok" -eq 0 ] || [ "$swap_ok" -eq 0 ]; then
+    CS_ADMISSION="PARKED"
+    # A zero swap total is readable and is not this branch. Only a failed
+    # or unparseable sysctl fails closed, and the note says which.
+    if [ "$ram_ok" -eq 1 ] && [ "$swap_ok" -eq 0 ] && [ -n "${CS_SWAP_ERROR:-}" ]; then
+      CS_ADMISSION_WHY="$CS_SWAP_ERROR"
+    else
+      CS_ADMISSION_WHY="metrics unreadable (fails closed)"
+    fi
     return 0
   fi
   if [ "$CS_FREE_RAM_MB" -lt "$CS_MIN_FREE_RAM_MB" ]; then
