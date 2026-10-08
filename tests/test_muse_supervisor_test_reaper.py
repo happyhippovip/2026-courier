@@ -68,8 +68,9 @@ def test_ps_timeout_still_signals_owned_session(rt, monkeypatch):
             return real(args, *a, **k)
 
         monkeypatch.setattr(rt.subprocess, "check_output", timeout_identity)
-        if sys.platform == "darwin":
-            assert rt.fingerprints_match(proc.pid, ident) is False
+        assert rt.fingerprints_match(proc.pid, ident) is True
+        assert rt.cleanup_identity_authority(proc.pid, ident) is True
+        assert rt.same_process(proc.pid, ident) is True
         assert rt.cleanup_group(proc, ident) is True
         proc.wait(timeout=5)
     finally:
@@ -144,6 +145,32 @@ def test_group_ps_includes_ttyless_members(rt, monkeypatch):
         proc.wait(timeout=5)
     if sys.platform == "darwin":
         assert "-x" in seen["args"]
+
+
+def test_reaper_signals_owned_session_when_ps_times_out(reaper_mod, monkeypatch):
+    """The reaper must not fail closed before signaling a Popen it still owns."""
+    import runtime_state as state
+
+    proc = subprocess.Popen(SLEEPER, stdin=subprocess.DEVNULL, start_new_session=True)
+    reaper = reaper_mod.SupervisorTestReaper()
+    ident = reaper.register(proc, "sleeper")
+    real = state.subprocess.check_output
+
+    def timeout_identity(args, *a, **k):
+        if isinstance(args, (list, tuple)) and "-p" in args:
+            raise subprocess.TimeoutExpired(cmd=args, timeout=0.25)
+        return real(args, *a, **k)
+
+    monkeypatch.setattr(state.subprocess, "check_output", timeout_identity)
+    try:
+        assert state.same_process(proc.pid, ident) is True
+        assert state.cleanup_identity_authority(proc.pid, ident) is True
+        reaper.cleanup_all()
+        proc.wait(timeout=5)
+    finally:
+        if proc.returncode is None:
+            proc.kill()
+            proc.wait(timeout=5)
 
 
 def test_normal_termination_verified(reaper_mod):

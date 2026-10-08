@@ -189,7 +189,12 @@ def fingerprints_match(pid, identity):
             and current.get("fingerprint") == ps_stored
         ):
             return True
-        # Linux starttime is inside the spawn hash. pid+pgid is not a fallback.
+        if current is not None:
+            # ps named a different process. pid+pgid must not override that.
+            return bool(extra) and spawn_hash == recorded
+        # ps timed out. This unreaped session leader still holds the pid.
+        if int(identity.get("pid", -1)) == int(pid) and pgid == int(pid):
+            return True
         return bool(extra) and spawn_hash == recorded
     return spawn_hash == recorded
 
