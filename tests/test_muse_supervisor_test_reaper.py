@@ -54,6 +54,98 @@ def test_capture_identity_without_ps(rt, monkeypatch):
         proc.wait(timeout=5)
 
 
+def test_ps_timeout_still_signals_owned_session(rt, monkeypatch):
+    """A ps timeout must not skip a live Popen this process started."""
+    proc = subprocess.Popen(SLEEPER, stdin=subprocess.DEVNULL, start_new_session=True)
+    try:
+        ident = rt.capture_process_identity(proc)
+        assert ident is not None
+        real = rt.subprocess.check_output
+
+        def timeout_identity(args, *a, **k):
+            if isinstance(args, (list, tuple)) and "-p" in args:
+                raise subprocess.TimeoutExpired(cmd=args, timeout=0.25)
+            return real(args, *a, **k)
+
+        monkeypatch.setattr(rt.subprocess, "check_output", timeout_identity)
+        if sys.platform == "darwin":
+            assert rt.fingerprints_match(proc.pid, ident) is False
+        assert rt.cleanup_group(proc, ident) is True
+        proc.wait(timeout=5)
+    finally:
+        if proc.returncode is None:
+            proc.kill()
+            proc.wait(timeout=5)
+
+
+def test_pid_pgid_hash_does_not_override_ps_fingerprint(rt):
+    proc = subprocess.Popen(SLEEPER, stdin=subprocess.DEVNULL, start_new_session=True)
+    try:
+        ident = rt.capture_process_identity(proc)
+        assert ident is not None
+        bare = rt._fingerprint(proc.pid, ident["pgid"])
+        if sys.platform == "darwin":
+            assert ident.get("ps_fingerprint")
+            assert ident["fingerprint"] == ident["ps_fingerprint"]
+            assert ident["fingerprint"] != bare
+        mismatched = dict(ident)
+        mismatched["fingerprint"] = bare
+        mismatched["ps_fingerprint"] = "0" * 64
+        assert rt.fingerprints_match(proc.pid, mismatched) is False
+        assert rt.identity_matches(proc.pid, ident) is True
+    finally:
+        proc.kill()
+        proc.wait(timeout=5)
+
+
+def test_recovered_zombie_without_live_members_is_cleaned(rt, monkeypatch):
+    class Recovered:
+        def __init__(self):
+            self.pid = 424242
+            self.returncode = None
+
+        def poll(self):
+            return self.returncode
+
+        def wait(self, timeout=None):
+            return self.returncode
+
+    monkeypatch.setattr(rt, "_pid_liveness", lambda pid: "zombie")
+    monkeypatch.setattr(rt, "_pgroup_has_live_members", lambda pgid: False)
+    signals = {"n": 0}
+
+    def refuse_killpg(pgid, sig):
+        signals["n"] += 1
+        raise PermissionError("zombie leader")
+
+    monkeypatch.setattr(rt.os, "killpg", refuse_killpg)
+    ident = {"pid": 424242, "pgid": 424242, "fingerprint": "abc", "source": "ps"}
+    proc = Recovered()
+    assert rt.cleanup_group(proc, ident, grace=0.01) is True
+    assert signals["n"] == 0
+    assert rt.process_group_stopped(proc, ident) is True
+
+
+def test_group_ps_includes_ttyless_members(rt, monkeypatch):
+    seen = {}
+    real = rt.subprocess.check_output
+
+    def wrapped(args, *a, **k):
+        if isinstance(args, (list, tuple)) and "-g" in args:
+            seen["args"] = list(args)
+        return real(args, *a, **k)
+
+    monkeypatch.setattr(rt.subprocess, "check_output", wrapped)
+    proc = subprocess.Popen(SLEEPER, stdin=subprocess.DEVNULL, start_new_session=True)
+    try:
+        assert rt.group_exists(os.getpgid(proc.pid)) is True
+    finally:
+        proc.kill()
+        proc.wait(timeout=5)
+    if sys.platform == "darwin":
+        assert "-x" in seen["args"]
+
+
 def test_normal_termination_verified(reaper_mod):
     reaper = reaper_mod.SupervisorTestReaper()
     proc = subprocess.Popen(SLEEPER, stdin=subprocess.DEVNULL, start_new_session=True)
@@ -62,8 +154,12 @@ def test_normal_termination_verified(reaper_mod):
     reaper.cleanup_all()
 
 
-def _await_unreaped_zombie(pid, timeout=2.0):
-    """True when kill(pid, 0) succeeds and getpgid returns ESRCH, without reaping."""
+def _await_unreaped_dead(pid, timeout=2.0):
+    """True when the child is dead and still unreaped.
+
+    Darwin: kill(pid, 0) succeeds and getpgid returns ESRCH.
+    Linux: the zombie still has a pgid; /proc state is Z.
+    """
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         try:
@@ -74,29 +170,37 @@ def _await_unreaped_zombie(pid, timeout=2.0):
             os.getpgid(pid)
         except ProcessLookupError:
             return True
+        if sys.platform.startswith("linux"):
+            try:
+                stat = Path(f"/proc/{int(pid)}/stat").read_text()
+            except OSError:
+                return False
+            end = stat.rfind(")")
+            if end >= 0 and end + 2 < len(stat) and stat[end + 2] == "Z":
+                return True
         time.sleep(0.01)
     return False
 
 
 def test_dead_or_zombie_child_is_not_a_verified_termination(rt):
-    """A dead or zombie child is not a verified termination.
+    """A dead child is not a live identity match.
 
-    Darwin reports that child as existing via kill(pid, 0) while getpgid
-    returns ESRCH. Cleanup may still reap it; the zombie itself is not proof.
+    Darwin reports that child via kill(pid, 0) while getpgid returns ESRCH.
+    Linux keeps the pgid until the parent reaps the zombie. A zombie leader
+    with no live members is still a finished group, so cleanup is proven.
     """
     proc = subprocess.Popen(SLEEPER, stdin=subprocess.DEVNULL, start_new_session=True)
     try:
         ident = rt.capture_process_identity(proc)
         assert ident is not None
         os.kill(proc.pid, signal.SIGTERM)
-        assert _await_unreaped_zombie(proc.pid)
+        assert _await_unreaped_dead(proc.pid)
         assert proc.returncode is None
         assert rt.identity_matches(proc.pid, ident) is False
-        assert rt.process_group_stopped(proc, ident) is False
-        assert proc.returncode is None
-        os.kill(proc.pid, 0)
-        with pytest.raises(ProcessLookupError):
-            os.getpgid(proc.pid)
+        if sys.platform == "darwin":
+            os.kill(proc.pid, 0)
+            with pytest.raises(ProcessLookupError):
+                os.getpgid(proc.pid)
         assert rt.cleanup_identity_authority(proc.pid, ident) is True
         assert rt.cleanup_group(proc, ident) is True
         assert proc.returncode is not None

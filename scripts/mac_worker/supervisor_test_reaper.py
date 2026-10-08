@@ -68,7 +68,11 @@ class SupervisorTestReaper:
             if not cleanup_identity_authority(proc.pid, identity):
                 return False, "identity no longer matches (fail closed)"
             if cleanup_group(proc, identity):
-                proc.wait(timeout=5)
+                try:
+                    proc.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    # Recovered leaders stay zombies until their parent reaps them.
+                    pass
                 if process_group_stopped(proc, identity):
                     return True, "terminated"
             time.sleep(_ROUND_SLEEP_S)

@@ -74,6 +74,17 @@ def _pgid_for_pid(pid):
         return None
 
 
+def _linux_proc_state(pid):
+    try:
+        stat = Path(f"/proc/{int(pid)}/stat").read_text()
+    except OSError:
+        return None
+    end = stat.rfind(")")
+    if end < 0 or end + 2 >= len(stat):
+        return None
+    return stat[end + 2]
+
+
 def _linux_start_fields(pid):
     try:
         stat = Path(f"/proc/{int(pid)}/stat").read_text().split()
@@ -123,6 +134,9 @@ def capture_process_identity(proc):
     if enriched and enriched.get("pgid") == pgid:
         ident["ps_fingerprint"] = enriched["fingerprint"]
         ident["source"] = "spawn+ps"
+        if not extra:
+            # pid+pgid alone matches a reused pid. The ps lstart hash does not.
+            ident["fingerprint"] = enriched["fingerprint"]
     return ident
 
 
@@ -161,28 +175,31 @@ def fingerprints_match(pid, identity):
         if fields:
             extra.extend(fields)
     recorded = identity.get("fingerprint")
-    if _fingerprint(pid, pgid, extra) == recorded:
-        return True
-    # process_identity stores the ps lstart hash in fingerprint. That is the
-    # same process only when a fresh ps read still produces that hash.
+    spawn_hash = _fingerprint(pid, pgid, extra)
+    # A stored ps lstart hash is the identity. A pid+pgid hash must not win
+    # before that check, or a reused pid matches the wrong process.
     ps_stored = identity.get("ps_fingerprint")
     if not ps_stored and identity.get("source") == "ps":
         ps_stored = recorded
     if ps_stored:
         current = _ps_identity(pid)
-        return bool(
+        if (
             current
             and int(current.get("pgid", -1)) == pgid
             and current.get("fingerprint") == ps_stored
-        )
-    return False
+        ):
+            return True
+        # Linux starttime is inside the spawn hash. pid+pgid is not a fallback.
+        return bool(extra) and spawn_hash == recorded
+    return spawn_hash == recorded
 
 
 def _pid_liveness(pid):
     """'live', 'zombie', 'gone', or 'unknown'.
 
     On Darwin, kill(pid, 0) succeeds for an unreaped zombie while getpgid
-    returns ESRCH. That split is a dead child, not a live process.
+    returns ESRCH. On Linux the zombie still has a pgid and /proc state Z.
+    Either way it is a dead child, not a live process.
     """
     try:
         os.kill(int(pid), 0)
@@ -191,6 +208,8 @@ def _pid_liveness(pid):
     except OSError:
         return "unknown"
     if _pgid_for_pid(pid) is None:
+        return "zombie"
+    if sys.platform.startswith("linux") and _linux_proc_state(pid) == "Z":
         return "zombie"
     return "live"
 
@@ -242,8 +261,12 @@ def group_exists(pgid):
 def _pgroup_has_live_members(pgid):
     """True when the group still has a non-zombie member (killpg(0) can lie after leader exit)."""
     try:
+        argv = ["ps", "-g", str(int(pgid)), "-o", "stat="]
+        if sys.platform == "darwin":
+            # Without -x, ps omits session members that have no controlling tty.
+            argv = ["ps", "-x", "-g", str(int(pgid)), "-o", "stat="]
         out = subprocess.check_output(
-            ["ps", "-g", str(int(pgid)), "-o", "stat="],
+            argv,
             text=True,
             timeout=_PS_IDENTITY_TIMEOUT_S,
             stderr=subprocess.DEVNULL,
@@ -261,10 +284,9 @@ def _pgroup_has_live_members(pgid):
 def _group_is_gone(pgid, leader_pid=None):
     if leader_pid is not None:
         state = _pid_liveness(leader_pid)
-        # A Darwin zombie still accepts kill(pid, 0). That is not a verified termination.
-        if state == "zombie":
-            return False
-        if state == "gone":
+        # A zombie leader is already dead. Another parent may still hold it,
+        # so waitpid can fail; no remaining live member means the kill landed.
+        if state in ("zombie", "gone"):
             return not _pgroup_has_live_members(pgid)
     try:
         os.killpg(int(pgid), 0)
@@ -318,7 +340,11 @@ def _authorized(proc, identity):
         return False
     if proc.poll() is not None and int(identity.get("pid", -1)) == int(proc.pid):
         return True
-    return cleanup_identity_authority(proc.pid, identity)
+    if cleanup_identity_authority(proc.pid, identity):
+        return True
+    # A ps timeout fails the lstart hash. This process still owns the live
+    # unreaped session it started, and that pid cannot have been reused.
+    return int(identity.get("pid", -1)) == int(proc.pid) and _owned_unreaped_session(proc)
 
 
 def cleanup_group(proc, identity, grace=_CLEANUP_ROUND_GRACE_S):
@@ -372,8 +398,6 @@ def process_group_stopped(proc, identity):
     if pgid is None:
         return proc.poll() is not None
     leader_pid = int(identity.get("pid", proc.pid)) if identity else int(proc.pid)
-    if _pid_liveness(leader_pid) == "zombie":
-        return False
     if _group_is_gone(pgid, leader_pid):
         _reap_direct(proc, 0)
         return True
