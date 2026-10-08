@@ -1,7 +1,8 @@
 param (
     [string]$ServerArg = "",
     [string]$ApiKeyArg = "",
-    [string]$WorkerIdArg = ""
+    [string]$WorkerIdArg = "",
+    [int]$HealthTimeoutSec = 30
 )
 
 Write-Host "========================================"
@@ -27,22 +28,33 @@ if (-not (Test-Path $daemonPath)) {
 }
 Write-Host "Worker directory: $workerDir"
 
-# 3. Secure env/credential prerequisites
+# 3. Credential file lives in the user profile, merged with whatever is already there.
 Write-Host "`n[3] Configuring Credentials..."
-$configPath = Join-Path $workerDir "config.json"
-$config = @{}
-if (Test-Path $configPath) {
-    $config = Get-Content $configPath -Raw | ConvertFrom-Json
+$dataDir = Join-Path $env:LOCALAPPDATA "Courier"
+New-Item -ItemType Directory -Force -Path $dataDir | Out-Null
+$configPath = Join-Path $dataDir "config.json"
+
+$merged = [ordered]@{}
+if (Test-Path -LiteralPath $configPath) {
+    try {
+        $existing = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json
+    } catch {
+        Write-Host "ERROR: Could not read existing configuration at $configPath." -ForegroundColor Red
+        exit 1
+    }
+    foreach ($prop in $existing.PSObject.Properties) {
+        $merged[$prop.Name] = $prop.Value
+    }
 }
 
-$server = $config.COURIER_SERVER
+$server = [string]$merged["COURIER_SERVER"]
 if (-not [string]::IsNullOrWhiteSpace($ServerArg)) {
     $server = $ServerArg
 } elseif ([string]::IsNullOrWhiteSpace($server) -or $server -eq "local") {
     $server = Read-Host "Enter COURIER_SERVER URL (e.g. http://192.168.1.100:8080)"
 }
 
-$apiKey = $config.COURIER_API_KEY
+$apiKey = [string]$merged["COURIER_API_KEY"]
 if (-not [string]::IsNullOrWhiteSpace($ApiKeyArg)) {
     $apiKey = $ApiKeyArg
 } elseif ([string]::IsNullOrWhiteSpace($apiKey)) {
@@ -50,20 +62,21 @@ if (-not [string]::IsNullOrWhiteSpace($ApiKeyArg)) {
     $apiKey = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureKey))
 }
 
-$workerId = $config.WORKER_ID
+$workerId = [string]$merged["WORKER_ID"]
 if (-not [string]::IsNullOrWhiteSpace($WorkerIdArg)) {
     $workerId = $WorkerIdArg
 } elseif ([string]::IsNullOrWhiteSpace($workerId)) {
     $workerId = "WINDOWS-$($env:COMPUTERNAME)"
 }
 
-$newConfig = @{
-    WORKER_ID = $workerId
-    COURIER_SERVER = $server
-    COURIER_API_KEY = $apiKey
-}
-$newConfig | ConvertTo-Json | Set-Content $configPath
-Write-Host "Configuration saved to $configPath (API Key stored securely in config)."
+$merged["WORKER_ID"] = $workerId
+$merged["COURIER_SERVER"] = $server
+$merged["COURIER_API_KEY"] = $apiKey
+
+$json = $merged | ConvertTo-Json -Depth 6
+$utf8 = New-Object System.Text.UTF8Encoding $false
+[System.IO.File]::WriteAllText($configPath, $json + "`n", $utf8)
+Write-Host "Configuration saved to $configPath."
 
 # 4. Service / Start Command
 Write-Host "`n[4] Installing Service (Scheduled Task)..."
@@ -73,51 +86,65 @@ if (-not (Test-Path $installScript)) {
     exit 1
 }
 
-# Run install_service.ps1
 Write-Host "Running install_service.ps1..."
 $installResult = powershell -ExecutionPolicy Bypass -File $installScript *>&1
 $taskSuccess = $?
 
 if (-not $taskSuccess -or $installResult -match "Zugriff verweigert" -or $installResult -match "Access is denied") {
     Write-Host "UAC elevation missing for Scheduled Task. Falling back to background process for current session." -ForegroundColor Yellow
-    Start-Process -FilePath "uv" -ArgumentList "run python daemon.py" -WorkingDirectory $workerDir -WindowStyle Hidden
+    try {
+        $uvPath = (Get-Command "uv" -ErrorAction Stop).Source
+        # cmd.exe /d /c runs uv and exits with it. Start-Process quoting left a
+        # console waiting, so the fallback outlived a uv that had already returned.
+        $psi = New-Object System.Diagnostics.ProcessStartInfo
+        $psi.FileName = $env:ComSpec
+        $psi.Arguments = '/d /c "' + $uvPath + '" run python daemon.py'
+        $psi.WorkingDirectory = $workerDir
+        $psi.UseShellExecute = $false
+        $psi.CreateNoWindow = $true
+        [void][System.Diagnostics.Process]::Start($psi)
+    } catch {
+        Write-Host "Could not start a fallback worker process." -ForegroundColor Yellow
+    }
 } else {
     Write-Host "Starting the service..."
     Start-ScheduledTask -TaskName "CourierWindowsWorker" -ErrorAction SilentlyContinue
 }
 
 # 5. Worker registration & Health confirmation
+# daemon.py writes %LOCALAPPDATA%\Courier\logs\daemon.log and does not emit a
+# registration-success line. FATAL is the only boot marker in that file.
 Write-Host "`n[5] Waiting for Registration & Health Confirmation..."
-$logDir = Join-Path $workerDir "logs"
-$logFile = Join-Path $logDir "worker.log"
-
-if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir | Out-Null }
-# Clear stale log to avoid false positive
-if (Test-Path $logFile) { Clear-Content $logFile -ErrorAction SilentlyContinue }
-if (-not (Test-Path $logFile)) { New-Item -ItemType File -Path $logFile | Out-Null }
-
-$timeout = 30
+$logFile = Join-Path $env:LOCALAPPDATA "Courier\logs\daemon.log"
+$timeout = $HealthTimeoutSec
+if ($timeout -lt 0) { $timeout = 0 }
 $watch = [System.Diagnostics.Stopwatch]::StartNew()
-$success = $false
+$fatalLine = $null
+$startLength = 0
+if (Test-Path -LiteralPath $logFile) {
+    $startLength = (Get-Item -LiteralPath $logFile).Length
+}
 
 while ($watch.Elapsed.TotalSeconds -lt $timeout) {
-    $content = Get-Content $logFile -Tail 20 -ErrorAction SilentlyContinue
-    if ($content -match "Registered successfully") {
-        $success = $true
-        break
+    if (Test-Path -LiteralPath $logFile) {
+        $lengthNow = (Get-Item -LiteralPath $logFile).Length
+        if ($lengthNow -gt $startLength) {
+            $tail = Get-Content -LiteralPath $logFile -Tail 20 -ErrorAction SilentlyContinue
+            $hit = @($tail | Where-Object { $_ -match "FATAL" })
+            if ($hit.Count -gt 0) {
+                $fatalLine = $hit
+                break
+            }
+        }
     }
-    if ($content -match "FATAL") {
-        Write-Host "Worker encountered a fatal error during boot:" -ForegroundColor Red
-        $content | Where-Object { $_ -match "FATAL" } | Write-Host
-        exit 1
-    }
-    Start-Sleep -Seconds 2
+    Start-Sleep -Seconds 1
 }
 
-if ($success) {
-    Write-Host "`n[SUCCESS] Worker registered and is healthy!" -ForegroundColor Green
-    Write-Host "Bootstrap complete. Worker will now start automatically on boot." -ForegroundColor Green
-} else {
-    Write-Host "`n[WARNING] Timeout waiting for registration confirmation." -ForegroundColor Yellow
-    Write-Host "Check logs at: $logFile"
+if ($fatalLine) {
+    Write-Host "Worker encountered a fatal error during boot:" -ForegroundColor Red
+    $fatalLine | Write-Host
+    exit 1
 }
+
+Write-Host "[WARNING] Worker health not verified. No registration result is written to $logFile." -ForegroundColor Yellow
+exit 2
