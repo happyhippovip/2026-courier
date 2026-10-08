@@ -139,7 +139,12 @@ def process_identity(pid):
     ident = {"pid": pid, "pgid": pgid, "fingerprint": _fingerprint(pid, pgid, extra), "source": "os"}
     enriched = _ps_identity(pid)
     if enriched and enriched.get("pgid") == pgid:
-        return enriched
+        ident["ps_fingerprint"] = enriched["fingerprint"]
+        ident["source"] = "os+ps"
+        if not extra:
+            # pid+pgid alone is not an identity. Keep the ps lstart hash.
+            ident["fingerprint"] = enriched["fingerprint"]
+            ident["source"] = "ps"
     return ident
 
 
@@ -155,12 +160,21 @@ def fingerprints_match(pid, identity):
         fields = _linux_start_fields(pid)
         if fields:
             extra.extend(fields)
-    if _fingerprint(pid, pgid, extra) == identity.get("fingerprint"):
+    recorded = identity.get("fingerprint")
+    if _fingerprint(pid, pgid, extra) == recorded:
         return True
+    # process_identity stores the ps lstart hash in fingerprint. That is the
+    # same process only when a fresh ps read still produces that hash.
     ps_stored = identity.get("ps_fingerprint")
+    if not ps_stored and identity.get("source") == "ps":
+        ps_stored = recorded
     if ps_stored:
         current = _ps_identity(pid)
-        return bool(current and current.get("fingerprint") == ps_stored)
+        return bool(
+            current
+            and int(current.get("pgid", -1)) == pgid
+            and current.get("fingerprint") == ps_stored
+        )
     return False
 
 

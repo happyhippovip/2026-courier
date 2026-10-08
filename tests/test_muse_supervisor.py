@@ -175,7 +175,10 @@ def supervisor(sup, target=4, clock=None):
 
 
 def task_state(server, task_id):
-    return server.load_state()["tasks"].get(task_id, {})
+    # save_state replaces the JSON and then its signature. A read between those
+    # replaces is not tampering; it has to wait until that write finishes.
+    with server.STATE_LOCK:
+        return server.load_state()["tasks"].get(task_id, {})
 
 
 def test_slot_claims_canonical_task_runs_muse_exits_and_restarts_with_checkpoint(env):
