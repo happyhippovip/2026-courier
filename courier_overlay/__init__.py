@@ -10,7 +10,7 @@ from .event_bus import (
     scan_report,
     validate_event,
 )
-from .replay import (
+from .replay_harness import (
     CANONICAL_SEQUENCES,
     LIFECYCLE_BLOCKED,
     LIFECYCLE_CUSTOMS_REJECTED,

@@ -2,7 +2,7 @@ import os
 import tempfile
 import pytest
 
-from courier_overlay.replay import (
+from courier_overlay.replay_harness import (
     CANONICAL_SEQUENCES,
     LIFECYCLE_BLOCKED,
     LIFECYCLE_CUSTOMS_REJECTED,
