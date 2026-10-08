@@ -109,8 +109,8 @@ def test_bootstrap_user_config_merge_and_no_success_claim(tmp_path):
     (bin_dir / "uv.cmd").write_text(
         "@echo off\r\n"
         "echo %*>> \"%~dp0uv-calls.txt\"\r\n"
-        "echo Python 3.12.0\r\n"
-        "exit /b 0\r\n",
+            "echo Python 3.12.0\r\n"
+            "exit 0\r\n",
         encoding="utf-8",
     )
     local_app = tmp_path / "localapp"
@@ -174,7 +174,10 @@ def test_bootstrap_user_config_merge_and_no_success_claim(tmp_path):
     assert "daemon.py" in calls
     assert _scheduled_task_snapshot() == before
     lingering = _process_ids_containing(str(bin_dir))
-    assert lingering == "", lingering
+    try:
+        assert lingering == "", lingering
+    finally:
+        _stop_processes_containing(str(bin_dir))
 
 
 def _process_ids_containing(fragment: str) -> str:
@@ -185,9 +188,9 @@ def _process_ids_containing(fragment: str) -> str:
             "-NoProfile",
             "-NonInteractive",
             "-Command",
-            "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -and $_.CommandLine -like '*"
+            "$me = $PID; Get-CimInstance Win32_Process | Where-Object { $_.ProcessId -ne $me -and $_.CommandLine -and $_.CommandLine -like '*"
             + safe
-            + "*' } | Select-Object -ExpandProperty ProcessId",
+            + "*' } | ForEach-Object { $_.ProcessId.ToString() + ' ' + $_.Name + ' ' + $_.CommandLine }",
         ],
         capture_output=True,
         text=True,
@@ -198,6 +201,27 @@ def _process_ids_containing(fragment: str) -> str:
     )
     assert proc.returncode == 0, proc.stdout + proc.stderr
     return proc.stdout.strip()
+
+
+def _stop_processes_containing(fragment: str) -> None:
+    safe = fragment.replace("'", "''")
+    subprocess.run(
+        [
+            "powershell.exe",
+            "-NoProfile",
+            "-NonInteractive",
+            "-Command",
+            "$me = $PID; Get-CimInstance Win32_Process | Where-Object { $_.ProcessId -ne $me -and $_.CommandLine -and $_.CommandLine -like '*"
+            + safe
+            + "*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }",
+        ],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=30,
+        check=False,
+    )
 
 
 def _scheduled_task_snapshot() -> str:

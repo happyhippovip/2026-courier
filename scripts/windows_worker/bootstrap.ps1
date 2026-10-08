@@ -94,8 +94,15 @@ if (-not $taskSuccess -or $installResult -match "Zugriff verweigert" -or $instal
     Write-Host "UAC elevation missing for Scheduled Task. Falling back to background process for current session." -ForegroundColor Yellow
     try {
         $uvPath = (Get-Command "uv" -ErrorAction Stop).Source
-        # "call" keeps a quoted path intact. cmd /c strips quotes when the command itself starts with one.
-        Start-Process -FilePath $env:ComSpec -ArgumentList "/c call `"$uvPath`" run python daemon.py" -WorkingDirectory $workerDir -WindowStyle Hidden
+        # cmd.exe /d /c runs uv and exits with it. Start-Process quoting left a
+        # console waiting, so the fallback outlived a uv that had already returned.
+        $psi = New-Object System.Diagnostics.ProcessStartInfo
+        $psi.FileName = $env:ComSpec
+        $psi.Arguments = '/d /c "' + $uvPath + '" run python daemon.py'
+        $psi.WorkingDirectory = $workerDir
+        $psi.UseShellExecute = $false
+        $psi.CreateNoWindow = $true
+        [void][System.Diagnostics.Process]::Start($psi)
     } catch {
         Write-Host "Could not start a fallback worker process." -ForegroundColor Yellow
     }
