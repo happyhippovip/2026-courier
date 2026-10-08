@@ -52,6 +52,8 @@ TERMINAL_FAILURE = frozenset({"FAILED", "CANCELLED"})
 GOAL_FIELDS = ("goal_id", "goal_fingerprint")
 MAX_GOAL_LEN = 128
 GOAL_TOKEN = re.compile(r"[A-Za-z0-9._:-]+\Z")
+MISSION_STATUSES = frozenset({"POSTED", "FINAL_DONE", "BLOCKED", "ERROR"})
+REASON_CODE = re.compile(r"[A-Z][A-Z0-9_]{0,31}\Z")
 
 
 class ConfigError(Exception):
@@ -123,6 +125,7 @@ def _feedback(store, state, specs, agent, host, args, transport, token, emit, ho
         goal_kind, goal_reason = _goal_binding(spec)
         if goal_kind == "blocked":
             _park_goal(store, reducer, mission, agent, host, goal_reason)
+            _stamp(home / "ledger_bridge_state.json", state, mapping, "BLOCKED", _goal_reason_code(goal_reason))
             emit({"mission_id": mission_id, "outcome": "blocked", "reason": goal_reason})
             continue
         view = _task_view(transport, args, token, mapping.get("task_id"))
@@ -142,14 +145,15 @@ def _feedback(store, state, specs, agent, host, args, transport, token, emit, ho
             ok = False
             continue
         wrote = _write_new(store, reducer, event)
-        mapping.update({
-            "accepted_result_id": _result_id(view),
-            "attempt": view.get("attempt"),
-            "evidence_ref": event.evidence_ref,
-            "spec_fingerprint": mapping.get("spec_fingerprint") or _fingerprint(specs.get(mission_id) or {}),
-            "source_sha": _recorded_source(mapping, specs.get(mission_id)),
-        })
-        _save_state(home / "ledger_bridge_state.json", state)
+        status_name, reason_code = _status_for_outcome(event, view)
+        _stamp(
+            home / "ledger_bridge_state.json", state, mapping, status_name, reason_code,
+            accepted_result_id=_result_id(view),
+            attempt=view.get("attempt"),
+            evidence_ref=event.evidence_ref,
+            spec_fingerprint=mapping.get("spec_fingerprint") or _fingerprint(spec or {}),
+            source_sha=_recorded_source(mapping, spec),
+        )
         if wrote:
             emit({"mission_id": mission_id, "outcome": event.event_type.value.lower(), "task_id": mapping.get("task_id")})
     return ok
@@ -170,6 +174,12 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
             mission = reducer.get_mission(mission_id)
             if mission is not None:
                 _park_goal(store, reducer, mission, agent, host, goal_value)
+            mapping = state["missions"].get(mission_id)
+            if isinstance(mapping, dict):
+                _stamp(
+                    home / "ledger_bridge_state.json", state, mapping, "BLOCKED",
+                    _goal_reason_code(goal_value),
+                )
             emit({"mission_id": mission_id, "outcome": "blocked", "reason": goal_value})
             continue
         goal = goal_value if goal_kind == "ok" else None
@@ -220,13 +230,18 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
             ok = False
             continue
         result_id = _result_id(view)
-        mapping["posted"] = True
-        mapping["attempt"] = attempt
-        mapping["accepted_result_id"] = result_id
-        mapping["evidence_ref"] = _identity(
-            mapping["task_id"], result_id, attempt, mapping["spec_fingerprint"], mapping["source_sha"], goal,
-        )
-        _save_state(home / "ledger_bridge_state.json", state)
+        posted_fields = {
+            "posted": True,
+            "attempt": attempt,
+            "accepted_result_id": result_id,
+            "evidence_ref": _identity(
+                mapping["task_id"], result_id, attempt, mapping["spec_fingerprint"], mapping["source_sha"], goal,
+            ),
+        }
+        if goal is not None:
+            posted_fields["goal_id"] = goal[0]
+            posted_fields["goal_fingerprint"] = goal[1]
+        _stamp(home / "ledger_bridge_state.json", state, mapping, "POSTED", None, **posted_fields)
         outcome = "duplicate" if posted.get("duplicate") is True else "queued"
         emit({"mission_id": mission_id, "outcome": outcome, "task_id": mapping["task_id"]})
     return ok
@@ -511,6 +526,19 @@ def _load_state(path: Path):
             raise ConfigError("state")
         if not isinstance(mapping.get("task_id"), str) or not isinstance(mapping.get("idempotency_key"), str):
             raise ConfigError("state")
+        if "status" in mapping and mapping["status"] not in MISSION_STATUSES:
+            raise ConfigError("state")
+        if "reason" in mapping and mapping["reason"] is not None and not _reason_ok(mapping["reason"]):
+            raise ConfigError("state")
+        if "updated_at" in mapping and not _time_ok(mapping["updated_at"]):
+            raise ConfigError("state")
+        if "status" not in mapping:
+            derived, derived_reason = _derive_mission_status(mapping)
+            if derived is not None:
+                mapping["status"] = derived
+                mapping["reason"] = derived_reason
+        elif "reason" not in mapping:
+            mapping["reason"] = None
     return {"missions": missions}
 
 
@@ -532,6 +560,68 @@ def _read_json(path: Path):
         return json.loads(raw.decode("utf-8"))
     except (UnicodeError, json.JSONDecodeError) as exc:
         raise ConfigError("json") from exc
+
+
+def _derive_mission_status(mapping):
+    """Legacy entries have no status. A result is FINAL_DONE; a post with none is POSTED."""
+    result = mapping.get("accepted_result_id")
+    if isinstance(result, str) and result:
+        return "FINAL_DONE", None
+    if mapping.get("posted") is True:
+        return "POSTED", None
+    return None, None
+
+
+def _status_for_outcome(event, view):
+    if event.event_type == EventType.FINAL:
+        return "FINAL_DONE", None
+    if event.event_type == EventType.BLOCKED:
+        return "BLOCKED", "CONTROLLER_BLOCKED"
+    if event.event_type == EventType.ERROR:
+        code = "CANCELLED" if view.get("status") == "CANCELLED" else "FAILED"
+        return "ERROR", code
+    raise ConfigError("status")
+
+
+def _goal_reason_code(reason) -> str:
+    if reason == "goal_id and goal_fingerprint must both be present":
+        return "GOAL_PAIR"
+    return "GOAL_TOKEN"
+
+
+def _reason_ok(value) -> bool:
+    return isinstance(value, str) and REASON_CODE.fullmatch(value) is not None
+
+
+def _time_ok(value) -> bool:
+    return (
+        isinstance(value, str) and value.endswith("Z") and "\n" not in value
+        and len(value) <= 40 and parse_timestamp(value) is not None
+    )
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _stamp(path, state, mapping, status, reason, **fields) -> bool:
+    """Write status, reason, and the other fields in one save. Skip when nothing changed."""
+    if status not in MISSION_STATUSES:
+        raise ConfigError("status")
+    if reason is not None and not _reason_ok(reason):
+        raise ConfigError("reason")
+    fields["status"] = status
+    fields["reason"] = reason
+    changed = False
+    for key, value in fields.items():
+        if key not in mapping or mapping[key] != value:
+            mapping[key] = value
+            changed = True
+    if not changed:
+        return False
+    mapping["updated_at"] = _utc_now()
+    _save_state(path, state)
+    return True
 
 
 def _save_state(path: Path, state) -> None:

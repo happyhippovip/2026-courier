@@ -10,7 +10,7 @@ from scripts.coordination_ledger import (
 )
 from scripts.coordination_resume import reduce_store
 from scripts.github_coordination import FileCoordinationStore
-from scripts.ledger_v1_bridge import main
+from scripts.ledger_v1_bridge import _load_state, main
 
 TOKEN = "controller-token-value-0123456789abcdef"
 AGENT = "GOOGLE_WINDOWS"
@@ -433,6 +433,130 @@ def test_half_or_invalid_goal_is_blocked_and_not_posted(tmp_path):
         assert _run(home, http)[0] == 0
         assert http.posts == []
         assert (home / "coordination_ledger.jsonl").read_text(encoding="utf-8") == before
+
+
+def _state(home):
+    return json.loads((home / "ledger_bridge_state.json").read_text(encoding="utf-8"))["missions"]
+
+
+def test_mission_status_posted_then_final_done_and_replay_is_stable(tmp_path):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec()})
+    _seed(home, [_ready("A", "a-assign")])
+    assert _run(home, http)[0] == 0
+    posted = _state(home)["A"]
+    assert posted["status"] == "POSTED"
+    assert posted["reason"] is None
+    assert posted["accepted_result_id"] is None
+    assert posted["updated_at"].endswith("Z") and "T" in posted["updated_at"]
+    task_id = posted["task_id"]
+    http.views[task_id]["status"] = "COMPLETE"
+    http.views[task_id]["accepted_result_id"] = "result-a"
+    http.views[task_id]["attempt"] = 1
+    assert _run(home, http)[0] == 0
+    done = _state(home)["A"]
+    assert done["status"] == "FINAL_DONE"
+    assert done["reason"] is None
+    assert done["accepted_result_id"] == "result-a"
+    assert done["updated_at"] >= posted["updated_at"]
+    frozen = (home / "ledger_bridge_state.json").read_text(encoding="utf-8")
+    assert _run(home, http)[0] == 0
+    assert (home / "ledger_bridge_state.json").read_text(encoding="utf-8") == frozen
+    assert _state(home)["A"]["updated_at"] == done["updated_at"]
+
+
+def test_mission_status_blocked_and_error_never_final_done(tmp_path):
+    http = FakeHTTP()
+    home = _home(tmp_path / "blocked", {"A": _spec()})
+    _seed(home, [_ready("A", "a-assign")])
+    (home / "ledger_bridge_state.json").write_text(json.dumps({"missions": {"A": _mapped()}}), encoding="utf-8")
+    http.views["task-a"] = {
+        "task_id": "task-a", "status": "BLOCKED", "attempt": 2,
+        "accepted_result_id": None, "last_reason": "needs a person",
+    }
+    assert _run(home, http)[0] == 0 and http.posts == []
+    blocked = _state(home)["A"]
+    assert blocked["status"] == "BLOCKED"
+    assert blocked["reason"] == "CONTROLLER_BLOCKED"
+    assert blocked["status"] != "FINAL_DONE"
+    assert "/" not in blocked["reason"] and "\\" not in blocked["reason"]
+    frozen = (home / "ledger_bridge_state.json").read_text(encoding="utf-8")
+    assert _run(home, http)[0] == 0
+    assert (home / "ledger_bridge_state.json").read_text(encoding="utf-8") == frozen
+
+    for controller_status, code in (("FAILED", "FAILED"), ("CANCELLED", "CANCELLED")):
+        http = FakeHTTP()
+        home = _home(tmp_path / controller_status, {"A": _spec()})
+        _seed(home, [_ready("A", "a-assign")])
+        (home / "ledger_bridge_state.json").write_text(json.dumps({"missions": {"A": _mapped()}}), encoding="utf-8")
+        http.views["task-a"] = {
+            "task_id": "task-a", "status": controller_status, "attempt": 1,
+            "accepted_result_id": None, "last_reason": "boom",
+        }
+        assert _run(home, http)[0] == 0 and http.posts == []
+        record = _state(home)["A"]
+        assert record["status"] == "ERROR"
+        assert record["reason"] == code
+        assert record["status"] != "FINAL_DONE"
+        frozen = (home / "ledger_bridge_state.json").read_text(encoding="utf-8")
+        assert _run(home, http)[0] == 0
+        assert (home / "ledger_bridge_state.json").read_text(encoding="utf-8") == frozen
+
+    http = FakeHTTP()
+    home = _home(tmp_path / "goal", {"A": _spec(goal_id="only-id")})
+    _seed(home, [_ready("A", "a-assign")])
+    (home / "ledger_bridge_state.json").write_text(json.dumps({"missions": {"A": _mapped()}}), encoding="utf-8")
+    http.views["task-a"] = {
+        "task_id": "task-a", "status": "COMPLETE", "attempt": 1,
+        "accepted_result_id": "result-a", "last_reason": None,
+    }
+    assert _run(home, http)[0] == 0 and http.posts == []
+    goal = _state(home)["A"]
+    assert goal["status"] == "BLOCKED"
+    assert goal["reason"] == "GOAL_PAIR"
+    assert goal["status"] != "FINAL_DONE"
+    reducer = reduce_store(FileCoordinationStore(home / "coordination_ledger.jsonl"))
+    assert not any(event.event_type == EventType.FINAL for event in reducer.events)
+    frozen = (home / "ledger_bridge_state.json").read_text(encoding="utf-8")
+    assert _run(home, http)[0] == 0
+    assert (home / "ledger_bridge_state.json").read_text(encoding="utf-8") == frozen
+
+
+def test_legacy_state_loads_derived_status_without_rewrite(tmp_path):
+    posted_home = _home(tmp_path / "posted", {"A": _spec()})
+    legacy = {"missions": {"A": _mapped()}}
+    posted_path = posted_home / "ledger_bridge_state.json"
+    posted_path.write_text(json.dumps(legacy), encoding="utf-8")
+    loaded = _load_state(posted_path)
+    assert loaded["missions"]["A"]["status"] == "POSTED"
+    assert loaded["missions"]["A"]["reason"] is None
+    assert "status" not in json.loads(posted_path.read_text(encoding="utf-8"))["missions"]["A"]
+
+    done = _mapped()
+    done["accepted_result_id"] = "result-a"
+    done_path = _home(tmp_path / "done", {"A": _spec()}) / "ledger_bridge_state.json"
+    done_path.write_text(json.dumps({"missions": {"A": done}}), encoding="utf-8")
+    loaded_done = _load_state(done_path)
+    assert loaded_done["missions"]["A"]["status"] == "FINAL_DONE"
+    assert loaded_done["missions"]["A"]["reason"] is None
+
+    waiting = _mapped()
+    waiting["posted"] = False
+    waiting["accepted_result_id"] = None
+    waiting_path = _home(tmp_path / "wait", {"A": _spec()}) / "ledger_bridge_state.json"
+    waiting_path.write_text(json.dumps({"missions": {"A": waiting}}), encoding="utf-8")
+    loaded_wait = _load_state(waiting_path)
+    assert loaded_wait["missions"]["A"].get("status") not in ("FINAL_DONE", "BLOCKED", "ERROR")
+
+    _seed(posted_home, [_ready("A", "a-assign")])
+    http = FakeHTTP()
+    http.views["task-a"] = {
+        "task_id": "task-a", "status": "QUEUED", "attempt": 0,
+        "accepted_result_id": None, "last_reason": None,
+    }
+    frozen = posted_path.read_text(encoding="utf-8")
+    assert _run(posted_home, http)[0] == 0
+    assert posted_path.read_text(encoding="utf-8") == frozen
 
 
 def test_token_never_appears_in_stdout_stderr_or_log(tmp_path):
