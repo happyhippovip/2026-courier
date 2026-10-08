@@ -260,10 +260,18 @@ class CourierScheduler:
         Raw provider internals (429, quota strings, stack traces) never
         appear here: this function does not even accept error text.
         """
-        pending = [t for t in tasks if t.task_id not in self.completed_tasks]
+        if not tasks:
+            return "DONE"
+        pending = [
+            t for t in tasks
+            if (getattr(t, "task_id", None) or (t.get("task_id") if isinstance(t, dict) else str(t))) not in self.completed_tasks
+        ]
         if not pending:
             return "DONE"
-        if any(t.requires_human_gate for t in pending):
+        if any(
+            getattr(t, "requires_human_gate", False) or (isinstance(t, dict) and t.get("requires_human_gate", False))
+            for t in pending
+        ):
             return "NEEDS YOU"
         if needs_connection:
             return "NEEDS YOU"
@@ -282,16 +290,18 @@ class CourierScheduler:
         work (local units, a healthy circuit, or an authorized fallback).
         """
         if provider_tasks:
-            capability = provider_tasks[0].required_capability
-            circuits_open = self.breaker.is_open(self.primary_provider, capability)
+            circuits_open = all(
+                self.breaker.is_open(self.primary_provider, getattr(t, "required_capability", "completion"))
+                for t in provider_tasks
+            )
         else:
             circuits_open = False
         fallback_available = any(
             self.router.find_fallback(self.primary_provider, t) is not None for t in provider_tasks
         )
         if should_hibernate(
-            [t.task_id for t in local_tasks],
-            [t.task_id for t in provider_tasks],
+            [getattr(t, "task_id", str(t)) for t in local_tasks],
+            [getattr(t, "task_id", str(t)) for t in provider_tasks],
             circuits_open,
             fallback_available,
         ):
@@ -307,7 +317,7 @@ class CourierScheduler:
             if data["schema"] != 1 or data["primary_provider"] != self.primary_provider:
                 raise ValueError("incompatible provider continuation")
             restored = LaneHibernator.from_dict(data["lane"])
-            if checkpoint and checkpoint.workkey != restored.checkpoint.workkey:
+            if checkpoint and (restored.checkpoint is None or checkpoint.workkey != restored.checkpoint.workkey):
                 raise ValueError("checkpoint belongs to another workkey")
             # Callables never come from disk. Keep explicitly registered hooks.
             self.lane.state = restored.state
