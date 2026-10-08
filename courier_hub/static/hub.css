@@ -49,3 +49,32 @@ button.primary { border-color: var(--gold); }
 .support pre { white-space: pre-wrap; font-size: 12px; color: var(--quiet); }
 dialog { background: #151a22; color: var(--ink); border: 1px solid var(--gold); border-radius: 12px; max-width: 460px; }
 .dialog-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* Founder Project Base */
+.project-base-container { padding: 12px 24px 0; }
+.project-base { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 8px; backdrop-filter: blur(6px); }
+.base-action { border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; border: 1px solid var(--line); background: rgba(255,255,255,0.02); }
+.base-action-high { border-color: var(--needs); background: rgba(227, 164, 60, 0.08); }
+.base-action-normal { border-color: var(--gold); background: rgba(216, 180, 106, 0.06); }
+.base-action-low { border-color: var(--verified); background: rgba(111, 191, 142, 0.06); }
+.action-badge { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); font-weight: 600; margin-bottom: 4px; }
+.base-action h3 { margin: 0 0 4px; font-size: 15px; }
+.base-action p { margin: 0; color: var(--quiet); font-size: 13px; }
+.base-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 12px; }
+@media (max-width: 900px) { .base-grid { grid-template-columns: 1fr; } }
+.base-card { background: rgba(255,255,255,0.02); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+.base-card h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); }
+.workkey-list { list-style: none; padding: 0; margin: 0; }
+.workkey-item { margin-bottom: 6px; font-size: 13px; }
+.workkey-item strong { display: block; }
+.verified-item { font-size: 13px; }
+.verified-item strong { display: block; }
+.hash-label { font-family: monospace; font-size: 11px; color: var(--quiet); margin: 4px 0 0; }
+.away-item { font-size: 13px; }
+.away-stats { margin: 0 0 4px; font-weight: 500; }
+.away-breakdown { font-size: 12px; color: var(--quiet); margin-bottom: 6px; }
+.milestones { list-style: none; padding: 0; margin: 4px 0 0; font-size: 12px; color: var(--quiet); }
+.milestones li { margin-bottom: 3px; }
+.base-context { font-size: 12px; color: var(--quiet); border-top: 1px solid var(--line); padding-top: 8px; }
+.base-context strong { color: var(--ink); }
+
