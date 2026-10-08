@@ -7,6 +7,7 @@ its tree was killed while the task timeout was still open.
 """
 
 import importlib.util
+import json
 import sys
 import time
 from pathlib import Path
@@ -79,3 +80,19 @@ def test_refused_heartbeat_still_loses_the_lease(tmp_path):
     assert result.outcome == H.Outcome.LEASE_LOST
     assert result.retryable is True
     assert time.monotonic() - started < 1.0 + H.KILL_GRACE_S + 4.0
+
+
+def test_one_unreadable_claim_does_not_freeze_a_later_claim(tmp_path):
+    claims = tmp_path / "run" / "claims"
+    claims.mkdir(parents=True)
+    bad = claims / "dispatch-a.json"
+    later = claims / "dispatch-b.json"
+    bad.write_text(json.dumps({"owner_pid": "not-a-pid"}), encoding="utf-8")
+    later.write_text(json.dumps({"owner_pid": 0}), encoding="utf-8")
+
+    handled = H.run_orphan_gate(str(tmp_path))
+
+    assert not bad.exists()
+    assert (claims / "dispatch-a.json.corrupt").is_file()
+    assert not later.exists()
+    assert handled == 1
