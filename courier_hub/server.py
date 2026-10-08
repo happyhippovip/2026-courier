@@ -37,10 +37,11 @@ from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Optional
-from urllib.parse import urlsplit
+from urllib.parse import parse_qsl, urlsplit
 
 from courier_core.build import build_identity
 from courier_core.journal import Journal, JournalError
+from courier_core.receipt_read_model import ReceiptReadModel
 from courier_hub import model
 
 log = logging.getLogger("courier.hub")
@@ -200,6 +201,20 @@ class Hub:
         except ValueError:  # a state this hub does not know: still show what was recorded
             card, receipt = model.unrecognised_card(task), model.unrecognised_receipt(task, events)
         return {"card": card, "receipt": receipt, "support": model.support(task, events), "read_at": utc_now()}
+
+    def mission_list(self, status=None, goal_id=None, since=None, until=None) -> dict:
+        """Read-only mission list from the receipt read model (pool item P8).
+
+        Pure read path: the read model never raises and never writes; filters
+        are opaque equality keys (status, goal_id) and inclusive UTC instants
+        (since, until). An invalid time window yields an empty list flagged
+        ``INVALID`` instead of an error.
+        """
+        document = ReceiptReadModel(self.home).list_receipts(
+            status=status, goal_id=goal_id, since=since, until=until)
+        document["truth"] = "ok" if document["readable"] else "unreadable"
+        document["read_at"] = utc_now()
+        return document
 
     def support_export(self, task_id: str) -> Optional[dict]:
         """One item's support record, for the customer to save and send. Read-only;
@@ -378,6 +393,11 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(200, hub.home_view())
             if path == "/hub/api/status":
                 return self._send(200, hub.status())
+            if path == "/hub/api/missions":
+                args = dict(parse_qsl(urlsplit(self.path).query, keep_blank_values=True))
+                return self._send(200, hub.mission_list(
+                    status=args.get("status"), goal_id=args.get("goal_id"),
+                    since=args.get("since"), until=args.get("until")))
             match = _ITEM.match(path)
             if match:
                 try:
