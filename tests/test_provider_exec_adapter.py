@@ -92,7 +92,7 @@ def _run(tmp_path, monkeypatch, *, mode="success", params=None, config_extra=Non
     monkeypatch.setenv("FAKE_MODE", mode)
     monkeypatch.setenv("FAKE_ARGV", str(argv_log))
     monkeypatch.delenv("COURIER_PROVIDER_MUSE_BIN", raising=False)
-    workdir = tmp_path / f"work-{mode}"
+    workdir = tmp_path / f"work-{mode}-{len(list(tmp_path.glob('work-*')))}"
     workdir.mkdir()
     extra = dict(config_extra or {})
     result = provider_exec.run(_params(**(params or {})), workdir, config=_config(fake, **extra))
