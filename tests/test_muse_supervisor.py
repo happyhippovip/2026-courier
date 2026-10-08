@@ -292,6 +292,10 @@ def test_unconfirmed_prompt_method_fails_closed():
         muse_adapter.build_muse_command(task, {}, {})
     with pytest.raises(muse_adapter.MuseCapabilityUnknown):
         muse_adapter.build_muse_command(task, {}, {"prompt_via": "arg"})           # flag not confirmed
-    argv, stdin = muse_adapter.build_muse_command(task, {}, {"protocol": "headless-v1"},
+    with pytest.raises(muse_adapter.MuseCapabilityUnknown):
+        muse_adapter.build_muse_command(task, {}, {"protocol": "headless-v1"},
+            slot_id="01", workspace="/Users/user/Downloads/2026-courier")
+    argv, stdin = muse_adapter.build_muse_command(
+        task, {}, {"protocol": "headless-v1", "binary": "/opt/courier/muse"},
         slot_id="01", workspace="/Users/user/Downloads/2026-courier")
-    assert argv[:2] == ["muse", "exec"] and "d-1" in argv[-1] and stdin is None
+    assert argv[:2] == ["/opt/courier/muse", "exec"] and "d-1" in argv[-1] and stdin is None
