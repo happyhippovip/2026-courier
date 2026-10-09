@@ -750,3 +750,39 @@ def test_job_object_kills_tree_on_terminate(tmp_path):
     leftovers = [p.pid for p in me.children(recursive=True) if p.pid not in before]
     assert leftovers == []
 
+
+def test_owner_alive_detects_dead_owner_and_pid_reuse(tmp_path):
+    import psutil
+    from courier_worker.host import _owner_alive, run_orphan_gate, _claims_dir
+
+    # Negative / dead owner tests
+    assert _owner_alive(0) is False
+    assert _owner_alive(-100) is False
+    assert _owner_alive(999999) is False
+
+    # Alive owner with matching create_time
+    proc = psutil.Process(os.getpid())
+    real_create_time = proc.create_time()
+    assert _owner_alive(os.getpid(), real_create_time) is True
+
+    # PID reuse: PID matches live process, but create_time does NOT match
+    fake_create_time = real_create_time - 1000.0
+    assert _owner_alive(os.getpid(), fake_create_time) is False
+
+    # Claim record with reused PID is treated as dead owner by run_orphan_gate
+    claims = _claims_dir(str(tmp_path))
+    claims.mkdir(parents=True, exist_ok=True)
+    claim_file = claims / "dispatch-test-reuse.json"
+    claim_file.write_text(json.dumps({
+        "dispatch_id": "test-reuse",
+        "task_id": "task-reuse",
+        "owner_pid": os.getpid(),
+        "owner_create_time": fake_create_time,
+        "child_pid": 0,
+    }), encoding="utf-8")
+
+    handled = run_orphan_gate(str(tmp_path))
+    assert handled == 1
+    assert not claim_file.exists()
+
+
