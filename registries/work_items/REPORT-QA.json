@@ -1,0 +1,16 @@
+{
+  "id": "REPORT-QA",
+  "title": "repo reality report regression fixtures",
+  "lane": "L4",
+  "branch": "lane/L4-report-qa",
+  "files_scope": ["tests/"],
+  "depends_on": ["281"],
+  "acceptance": [
+    "regression fixtures for the repo reality report",
+    "tests only",
+    "draft PR"
+  ],
+  "provider_hints": [],
+  "status": "READY",
+  "lease": null
+}

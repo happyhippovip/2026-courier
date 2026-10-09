@@ -1,0 +1,136 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WorkItem",
+  "description": "One canonical work-queue item. Claim state after the seed is ledger-backed and is not written back into this file.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "title",
+    "lane",
+    "branch",
+    "files_scope",
+    "depends_on",
+    "acceptance",
+    "provider_hints",
+    "status",
+    "lease"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9._:-]+$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "lane": {
+      "type": "string",
+      "pattern": "^L[0-9]+$"
+    },
+    "branch": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^[A-Za-z0-9._/-]+$"
+    },
+    "files_scope": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 40,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200,
+        "pattern": "^[A-Za-z0-9._/*?-]+$"
+      }
+    },
+    "depends_on": {
+      "type": "array",
+      "maxItems": 40,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64,
+        "pattern": "^[A-Za-z0-9._:-]+$"
+      }
+    },
+    "acceptance": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      }
+    },
+    "provider_hints": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80,
+        "pattern": "^[A-Za-z0-9._:/ -]+$"
+      }
+    },
+    "publish_gate": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "pattern": "^[A-Za-z0-9._:-]+$"
+    },
+    "pull_request": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "template": {
+      "type": "boolean"
+    },
+    "claim_once": {
+      "type": "boolean"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["READY", "CLAIMED", "DONE", "BLOCKED"]
+    },
+    "lease": {
+      "anyOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["holder", "host", "expires_at"],
+          "properties": {
+            "holder": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80,
+              "pattern": "^[A-Za-z0-9._:/-]+$"
+            },
+            "host": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[A-Za-z0-9._:-]+$"
+            },
+            "expires_at": {
+              "anyOf": [
+                {"type": "null"},
+                {
+                  "type": "string",
+                  "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

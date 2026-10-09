@@ -1,0 +1,25 @@
+{
+  "id": "P8",
+  "title": "hub mission list",
+  "lane": "L5",
+  "branch": "lane/L5-hub-mission-list-P8",
+  "files_scope": ["courier_hub/server.py", "tests/hub/test_hub_mission_list.py"],
+  "depends_on": ["272"],
+  "acceptance": [
+    "read-only GET /hub/api/missions from ReceiptReadModel.list_receipts",
+    "filters status, goal_id, since, and until",
+    "unreadable home is flagged and an invalid window returns an empty list",
+    "no writes",
+    "stack on lane/L2-receipt-read-model",
+    "tests",
+    "draft PR"
+  ],
+  "provider_hints": [],
+  "pull_request": "309",
+  "status": "CLAIMED",
+  "lease": {
+    "holder": "pr:309",
+    "host": "local",
+    "expires_at": null
+  }
+}
