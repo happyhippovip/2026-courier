@@ -86,14 +86,48 @@ class KirbySupervisor:
         except Exception:
             return ""
 
-    def on_turn_end(self, workkey: str, state: str):
-        """Primary detection: provider turn-end / idle event."""
-        # 1. Read latest durable checkpoint
-        # 2. Re-fetch current repo/master state
-        # 3. Classify current workkey: COMPLETE / BLOCKED / STILL_OPEN
-        # 4. Reconcile writer ownership
-        # 5. If useful authorized work remains, emit exactly ONE continuation wake
-        pass
+    def on_turn_end(
+        self,
+        workkey: str,
+        state: str,
+        receipt: Optional[Any] = None,
+        owned_identities: Optional[set] = None,
+    ) -> Dict[str, Any]:
+        """Primary detection: provider turn-end / idle event with receipt validation."""
+        self.last_useful_progress = time.time()
+        self.current_workkey = workkey
+
+        # 1. Receipt validation if a receipt is provided
+        validated_receipt_id = None
+        if receipt is not None:
+            from courier_runtime.receipt import validate as validate_receipt
+            validate_receipt(receipt, owned_identities or set())
+            validated_receipt_id = getattr(receipt, "receipt_id", str(time.time()))
+            os.makedirs(self.state_dir, exist_ok=True)
+            receipt_path = os.path.join(self.state_dir, f"receipt_{validated_receipt_id}.json")
+            with open(receipt_path, "w") as f:
+                if hasattr(receipt, "to_json"):
+                    f.write(receipt.to_json())
+                else:
+                    json.dump(receipt, f)
+
+        # 2. Durable ledger checkpointing
+        status = "COMPLETED" if state in ("COMPLETE", "COMPLETED", "SUCCESS") else state
+        summary = {
+            "workkey": workkey,
+            "session_id": self.session_id,
+            "provider": self.provider,
+            "host": self.host,
+            "state": status,
+            "receipt_id": validated_receipt_id,
+            "timestamp": self.last_useful_progress,
+        }
+        os.makedirs(self.state_dir, exist_ok=True)
+        summary_path = os.path.join(self.state_dir, f"ledger_summary_{self.session_id}.json")
+        with open(summary_path, "w") as f:
+            json.dump(summary, f, indent=2)
+
+        return summary
 
 
 class WakeCoalescer:
