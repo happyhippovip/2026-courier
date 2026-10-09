@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import subprocess
 import sys
@@ -6,7 +7,23 @@ import uuid
 
 SAFE_TASK_RE = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
 
-def run_worker(task_path, negative_test=False):
+try:
+    from scripts.intake_dispatcher import (
+        _central_state_locked,
+        load_central_state,
+        save_central_state,
+    )
+except ImportError:
+    _SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
+    if _SCRIPTS_DIR not in sys.path:
+        sys.path.insert(0, _SCRIPTS_DIR)
+    from intake_dispatcher import (
+        _central_state_locked,
+        load_central_state,
+        save_central_state,
+    )
+
+def run_worker(task_path, negative_test=False, state_file="central_state.json"):
     with open(task_path, 'r') as f:
         task = json.load(f)
 
@@ -69,34 +86,28 @@ def run_worker(task_path, negative_test=False):
     with open(result_ref, 'w') as f:
         json.dump(res_json, f, indent=2)
         
-    consume(res_json, task['task_id'], result_ref)
+    consume(res_json, task['task_id'], result_ref, state_file=state_file)
     return pid, dispatch_ref, result_ref
 
-def consume(res_json, task_id, result_ref):
-    try:
-        with open('central_state.json', 'r') as f:
-            state = json.load(f)
-    except Exception:
-        state = {"tasks": {}}
-        
+def consume(res_json, task_id, result_ref, state_file="central_state.json"):
     status = res_json.get("status", "FAILED")
     
-    state["tasks"][task_id] = {
-        "task_id": task_id,
-        "worker_id": "gemini-local-agy",
-        "platform": "antigravity",
-        "dispatch_ref": res_json.get("dispatch_ref"),
-        "pid": res_json.get("pid"),
-        "state": "RECONCILED",
-        "reconciled_status": status,
-        "result_ref": result_ref,
-        "last_transition": "AUTOMATIC_CONSUMPTION",
-        "next_explicit_transition": "HUMAN_REVIEW_REQUIRED" if status == "SUCCESS" else "STOP_FAILED",
-        "real_wall": "HUMAN_REVIEW_REQUIRED" if status == "SUCCESS" else "DIAGNOSTIC_REQUIRED"
-    }
-    
-    with open('central_state.json', 'w') as f:
-        json.dump(state, f, indent=2)
+    with _central_state_locked(state_file):
+        state = load_central_state(state_file)
+        state["tasks"][task_id] = {
+            "task_id": task_id,
+            "worker_id": "gemini-local-agy",
+            "platform": "antigravity",
+            "dispatch_ref": res_json.get("dispatch_ref"),
+            "pid": res_json.get("pid"),
+            "state": "RECONCILED",
+            "reconciled_status": status,
+            "result_ref": result_ref,
+            "last_transition": "AUTOMATIC_CONSUMPTION",
+            "next_explicit_transition": "HUMAN_REVIEW_REQUIRED" if status == "SUCCESS" else "STOP_FAILED",
+            "real_wall": "HUMAN_REVIEW_REQUIRED" if status == "SUCCESS" else "DIAGNOSTIC_REQUIRED"
+        }
+        save_central_state(state_file, state)
 
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "positive"
