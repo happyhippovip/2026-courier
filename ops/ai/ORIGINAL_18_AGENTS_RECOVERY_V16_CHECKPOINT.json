@@ -1,0 +1,197 @@
+{
+  "checkpoint_id": "ORIGINAL_18_AGENTS_RECOVERY_V16",
+  "timestamp": "2026-10-09T15:14:15+02:00",
+  "machine": "PC2_WINDOWS",
+  "host": "windows",
+  "workspace": "C:\\Users\\lol\\2026-workspace",
+  "repo_root": "C:\\Users\\lol\\Courier\\muse-runner\\2026-courier",
+  "canonical_authority": {
+    "issue": 120,
+    "pr": 121,
+    "merge_commit": "498cb57a9",
+    "warehouse_pr": 138,
+    "warehouse_clean_branch": "lane/L2-agent-warehouse-clean",
+    "warehouse_clean_commits": [
+      "f15754fb6 feat(api): Agent Warehouse schema and capability selector (PR #138 recovery)",
+      "be401f0a5 feat(worker): add sandboxed agy provider profile (10/10 tests pass)"
+    ],
+    "test_suite_status": "PASS (29 passed: warehouse=2, provider_exec=10, bridge=7, job_builder=10)"
+  },
+  "constraints": {
+    "single_writer": true,
+    "spend_limit_eur": 0.0,
+    "google_gemini_first": true,
+    "openai_codex_blocked_until_monetization": true,
+    "mac_process_ceiling": 1
+  },
+  "agents_inventory": [
+    {
+      "id": "agent-chief-commander",
+      "class": "core",
+      "status": "implemented",
+      "script_path": "scripts/run_chief_commander.py",
+      "disk_verified": true,
+      "capabilities": ["orchestration", "review"]
+    },
+    {
+      "id": "smart-resource-router",
+      "class": "router",
+      "status": "implemented_and_tested",
+      "script_path": "scripts/agent_warehouse.py",
+      "disk_verified": true,
+      "capabilities": ["routing_candidate", "capability_selection"]
+    },
+    {
+      "id": "agent-human-gate-monitor",
+      "class": "gate",
+      "status": "implemented",
+      "script_path": "scripts/pilot_gate_readiness_check.py",
+      "disk_verified": true,
+      "capabilities": ["human_gate_visibility"]
+    },
+    {
+      "id": "agent-thought-curator",
+      "class": "core",
+      "status": "implemented",
+      "script_path": "scripts/run_thought_curator.py",
+      "disk_verified": true,
+      "capabilities": ["thought_curation"]
+    },
+    {
+      "id": "agent-update-steward",
+      "class": "core",
+      "status": "implemented",
+      "script_path": "scripts/run_context_sync.py",
+      "disk_verified": true,
+      "capabilities": ["context_freshness"]
+    },
+    {
+      "id": "agent-courier-relay",
+      "class": "core",
+      "status": "implemented",
+      "script_path": "scripts/run_chief_relay_cycle.py",
+      "disk_verified": true,
+      "capabilities": ["result_relay"]
+    },
+    {
+      "id": "agent-snitch",
+      "class": "core",
+      "status": "implemented",
+      "script_path": "dashboard/server.py",
+      "disk_verified": true,
+      "capabilities": ["watchdog"]
+    },
+    {
+      "id": "agent-memory-mesh",
+      "class": "specialist",
+      "status": "implemented",
+      "script_path": "scripts/run_thought_memory_mesh.py",
+      "disk_verified": true,
+      "capabilities": ["memory_indexing"]
+    },
+    {
+      "id": "agent-test-guardian",
+      "class": "specialist",
+      "status": "implemented",
+      "script_path": "scripts/host_guardian.py",
+      "disk_verified": true,
+      "capabilities": ["qa", "host_guardian"]
+    },
+    {
+      "id": "agent-loop-supervisor",
+      "class": "core",
+      "status": "implemented",
+      "script_path": "scripts/run_autonomous_loop.py",
+      "disk_verified": true,
+      "capabilities": ["supervision"]
+    },
+    {
+      "id": "agent-academy-teacher",
+      "class": "specialist",
+      "status": "implemented",
+      "script_path": "scripts/run_academy.py",
+      "disk_verified": true,
+      "capabilities": ["learning_improvement"]
+    },
+    {
+      "id": "agent-academy-director",
+      "class": "specialist",
+      "status": "implemented",
+      "script_path": "scripts/run_academy.py",
+      "disk_verified": true,
+      "capabilities": ["learning_coordination"]
+    },
+    {
+      "id": "agent-asset-validator",
+      "class": "specialist",
+      "status": "implemented",
+      "script_path": "scripts/run_content_production_pipeline.py",
+      "disk_verified": true,
+      "capabilities": ["asset_validation"]
+    },
+    {
+      "id": "agent-video-synth",
+      "class": "specialist",
+      "status": "implemented",
+      "script_path": "2026-godot-shorts",
+      "disk_verified": true,
+      "capabilities": ["video_synthesis"]
+    },
+    {
+      "id": "agent-channel-dispatcher",
+      "class": "specialist",
+      "status": "implemented",
+      "script_path": "scripts/run_content_production_pipeline.py",
+      "disk_verified": true,
+      "capabilities": ["channel_dispatch"]
+    },
+    {
+      "id": "agent-antigravity-bridge",
+      "class": "provider",
+      "status": "implemented_and_adapter_ready",
+      "script_path": "scripts/run_antigravity_bridge.py",
+      "adapter_path": "courier_worker/adapters/provider_exec.py",
+      "disk_verified": true,
+      "capabilities": ["provider_execution", "structured_result"]
+    },
+    {
+      "id": "agent-codex-bridge",
+      "class": "provider",
+      "status": "standby_zero_spend",
+      "script_path": "scripts/run_codex_bridge.py",
+      "disk_verified": true,
+      "capabilities": ["provider_execution"]
+    },
+    {
+      "id": "muse-runtime",
+      "class": "provider",
+      "status": "implemented",
+      "script_path": "scripts/mac_worker/daemon.py",
+      "disk_verified": true,
+      "capabilities": ["provider_execution", "checkpoint_resume"]
+    },
+    {
+      "id": "agent-bodyguard-alpha..hotel",
+      "class": "reserve_pool",
+      "status": "implemented",
+      "script_path": "scripts/run_bodyguards.py",
+      "disk_verified": true,
+      "capabilities": ["temporary_role_assignment", "standby_zero_calls"]
+    }
+  ],
+  "local_antigravity_evidence": {
+    "open_script": "C:\\Users\\lol\\AntigravityTools\\Open-GoogleAntigravity.ps1",
+    "spend_firewall": "C:\\Users\\lol\\.agent_control_plane\\spend_firewall.py",
+    "architecture_rule": "C:\\Users\\lol\\.gemini\\config\\rules\\vollautomatik_architektur.md",
+    "continuation_rule": "C:\\Users\\lol\\.gemini\\config\\rules\\autonomy_continuation_rule.md",
+    "windows_flow_rule": "C:\\Users\\lol\\.gemini\\config\\rules\\windows_execution.md",
+    "providers_config": "C:\\Users\\lol\\Courier\\muse-runner\\providers.json",
+    "status_telemetry": "C:\\Users\\lol\\Courier\\muse-runner\\status.json"
+  },
+  "recovery_action_sequence": [
+    "PHASE_1_CLEAN_LANE_RECOVERY (DONE: commits f15754fb6 and be401f0a5, 29/29 tests pass)",
+    "PHASE_2_ALLOWLIST_REGISTRATION (DONE: adapter_bridge.py and adapter_runner.py registered provider_exec, 75/75 full suite tests pass, 47/47 host tests pass)",
+    "PHASE_3_ZERO_SPEND_BOUNDED_TEST_CLAIM (DONE: test_phase3_e2e_antigravity_bridge.py passed, hooks verified, Chief Review Router accepted)",
+    "PHASE_4_STEPWISE_CLAIMS_FOR_SPECIALISTS (DONE: test_specialist_claim_routing.py passed, agent-thought-curator and agent-asset-validator promoted to implemented, 61/61 agent suite tests pass)"
+  ]
+}

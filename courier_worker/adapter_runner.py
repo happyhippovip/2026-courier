@@ -28,7 +28,7 @@ from pathlib import Path
 # derived from this file instead of trusting the inherited environment.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-ALLOWED = frozenset({"synthetic"})
+ALLOWED = frozenset({"synthetic", "provider_exec"})
 
 
 def _write_report(path: str, report: dict) -> None:
@@ -70,23 +70,38 @@ def main(argv: list) -> int:
         return 2
     os.makedirs(workdir, exist_ok=True)
 
-    from adapters import synthetic
+    if adapter == "synthetic":
+        from adapters import synthetic
 
-    try:
-        result = synthetic.run(params, workdir, attempt)
-    except synthetic.SyntheticHang:
-        print("adapter_runner: synthetic hang (waiting to be terminated)", file=sys.stderr, flush=True)
-        while True:
-            time.sleep(3600)
-    except synthetic.SyntheticCrash as exc:
-        print(f"adapter_runner: {exc}", file=sys.stderr)
-        return 3
-    except synthetic.SyntheticError as exc:
-        print(f"adapter_runner: params rejected: {exc}", file=sys.stderr)
-        return 2
-    _write_report(report, {"outcome": result.outcome, "reason": str(result.reason)[:500],
-                           "retryable": bool(result.retryable)})
-    return 0
+        try:
+            result = synthetic.run(params, workdir, attempt)
+        except synthetic.SyntheticHang:
+            print("adapter_runner: synthetic hang (waiting to be terminated)", file=sys.stderr, flush=True)
+            while True:
+                time.sleep(3600)
+        except synthetic.SyntheticCrash as exc:
+            print(f"adapter_runner: {exc}", file=sys.stderr)
+            return 3
+        except synthetic.SyntheticError as exc:
+            print(f"adapter_runner: params rejected: {exc}", file=sys.stderr)
+            return 2
+        _write_report(report, {"outcome": result.outcome, "reason": str(result.reason)[:500],
+                               "retryable": bool(result.retryable)})
+        return 0
+    elif adapter == "provider_exec":
+        from courier_worker.adapters import provider_exec
+
+        result = provider_exec.run(params, workdir, attempt)
+        if result.output:
+            out_file = os.path.join(workdir, "provider_output.txt")
+            try:
+                with open(out_file, "wb") as f:
+                    f.write(result.output)
+            except OSError:
+                pass
+        _write_report(report, {"outcome": result.outcome, "reason": str(result.reason)[:500],
+                               "retryable": bool(result.retryable)})
+        return 0
 
 
 if __name__ == "__main__":
