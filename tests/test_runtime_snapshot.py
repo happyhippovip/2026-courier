@@ -67,3 +67,32 @@ def test_collect_sees_only_owned_processes(tmp_path):
         assert classify(by["s2"], NOW)["state"] == PROBING
     finally:
         mine.kill(), foreign.kill(), mine.wait(), foreign.wait()
+
+
+def test_later_dead_record_does_not_hide_a_live_owned_process(tmp_path):
+    """Two owned processes, one workkey. The later record has exited.
+    The snapshot must still report the earlier process as alive."""
+    import psutil
+
+    reg = Registry(str(tmp_path / "owned.json"))
+    first = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)"])
+    second = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)"])
+    try:
+        reg.add(OwnedProcess.capture(first.pid, "wk-1", "test"))
+        reg.add(OwnedProcess.capture(second.pid, "wk-1", "test"))
+        second.kill()
+        second.wait()
+        snap = collect(reg, {"s1": {"workkey": "wk-1", "exit_code": second.returncode}},
+                       host_id="h1", trigger={"kind": "user_request"}, clock=lambda: NOW)
+        proc = snap["sessions"][0]["process"]
+        assert proc["alive"] is True
+        assert proc["pid"] == first.pid
+        assert psutil.Process(first.pid).is_running()
+        assert proc["pid"] != second.pid
+    finally:
+        if first.poll() is None:
+            first.kill()
+            first.wait()
+        if second.poll() is None:
+            second.kill()
+            second.wait()
