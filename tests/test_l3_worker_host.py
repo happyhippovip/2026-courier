@@ -571,6 +571,30 @@ def test_controller_down_keeps_outbox_then_flushes_identical(tmp_path, stub):
     assert STUB.results[-1] == kept
 
 
+def test_outbox_cap_blocks_claim_until_drained(tmp_path, stub):
+    write_token(tmp_path)
+    outbox = tmp_path / "outbox"
+    outbox.mkdir(parents=True, exist_ok=True)
+    # Populate outbox up to OUTBOX_CAP
+    for i in range(H.OUTBOX_CAP):
+        payload = {"dispatch_id": f"cap-{i}", "result": "ok"}
+        (outbox / f"cap-{i}.json").write_text(json.dumps(payload), encoding="utf-8")
+    STUB.claims.append(claim_body(task="t-new", dispatch="d-new"))
+    STUB.result_mode = "down"  # flush cannot deliver
+    loop = S.WorkerLoop(str(tmp_path), stub, "w1", 0.2)
+    # Since outbox is at capacity and undrained, iterate must back off to idle and NOT claim
+    assert loop.iterate(threading.Event()) == "idle"
+    assert len(STUB.claims) == 1  # claim remains unconsumed
+    assert len(H.outbox_read_all(str(tmp_path))) == H.OUTBOX_CAP
+
+    # Once controller recovers and drains outbox, claiming proceeds
+    STUB.result_mode = "accepted"
+    assert loop.iterate(threading.Event()) == "delivered"
+    assert len(STUB.claims) == 0  # claim consumed now
+    assert H.outbox_read_all(str(tmp_path)) == []
+
+
+
 def test_no_resend_after_accept(tmp_path, stub):
     write_token(tmp_path)
     STUB.claims.append(claim_body())

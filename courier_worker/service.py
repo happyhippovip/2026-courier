@@ -37,6 +37,8 @@ from courier_worker.host import (
     ExecutionSpec,
     HostBusy,
     Outcome,
+    OUTBOX_CAP,
+    OutboxFull,
     ResourcePaused,
     SpecError,
     WorkerHost,
@@ -415,8 +417,11 @@ class WorkerLoop:
     def iterate(self, stop: threading.Event) -> str:
         """Run one claim-execute-deliver cycle. Never loops by itself."""
         try:
-            self.flush_outbox()
+            remaining = self.flush_outbox()
         except ControllerError:
+            return "idle"
+        if remaining >= OUTBOX_CAP:
+            # Outbox at or above capacity: do not claim new work until controller drains it
             return "idle"
         client = self._client or self._client_factory()
         self._client = client
