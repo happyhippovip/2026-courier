@@ -146,8 +146,11 @@ def main():
                     }
                     
                     write_log("Posting result...")
-                    http_post(config, "/tasks/result", res_payload)
-                    write_log(f"Task {task_id} completed.")
+                    posted = http_post(config, "/tasks/result", res_payload)
+                    if posted is None:
+                        write_log(f"Task {task_id} result was not accepted; not reporting completion.")
+                    else:
+                        write_log(f"Task {task_id} completed.")
                     
                 except subprocess.CalledProcessError as e:
                     write_log(f"Task execution failed: {e.output.decode('utf-8', errors='ignore')}")
