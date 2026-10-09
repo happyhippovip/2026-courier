@@ -64,6 +64,7 @@ from __future__ import annotations
 import hashlib
 import os
 import re
+import stat
 import tempfile
 import time
 from dataclasses import dataclass, field
@@ -73,6 +74,32 @@ from typing import Any, Mapping
 VERIFIER_VERSION = "1"
 
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+# Match the existing L3 artifact-set contract, including verifier callers that
+# submit evidence directly rather than through the worker's collector.
+MAX_EVIDENCE_BYTES = 16 * 1024 * 1024
+MAX_EVIDENCE_FILES = 64
+
+
+def _evidence_digest(path: Path, remaining: int) -> tuple[str, int]:
+    # A path check alone races replacement with a FIFO. Open nonblocking, then
+    # check the actual descriptor before reading; never wait for a FIFO writer.
+    flags = os.O_RDONLY | getattr(os, "O_NONBLOCK", 0) | getattr(os, "O_NOFOLLOW", 0)
+    fd = os.open(path, flags)
+    try:
+        info = os.fstat(fd)
+        if not stat.S_ISREG(info.st_mode) or info.st_size > remaining:
+            raise OSError("evidence must be a regular file within the artifact budget")
+        digest, size = hashlib.sha256(), 0
+        while True:
+            chunk = os.read(fd, min(65536, remaining - size + 1))
+            if not chunk:
+                return digest.hexdigest(), size
+            size += len(chunk)
+            if size > remaining:
+                raise OSError("evidence grew beyond the artifact budget")
+            digest.update(chunk)
+    finally:
+        os.close(fd)
 
 
 def _verdict_type():
@@ -251,6 +278,8 @@ def _verify(task: Any, result: Any, home: str | os.PathLike):
     artifacts = _payload_artifacts(payload)
     if artifacts is None:
         return _reject("missing evidence" if isinstance(payload.get("artifacts"), list) else "malformed evidence")
+    if len(artifacts) > MAX_EVIDENCE_FILES:
+        return _reject("evidence artifact set exceeds bounds")
     try:
         scope = Path(home).resolve()
     except OSError:
@@ -273,6 +302,7 @@ def _verify(task: Any, result: Any, home: str | os.PathLike):
                 and "\\" not in dispatch_id:
             want_names.add(f"artifacts/{dispatch_id}/{PurePosixPath(want_name).as_posix()}")
     seen_pinned = False
+    remaining = MAX_EVIDENCE_BYTES
     for ref in artifacts:
         if not isinstance(ref, Mapping):
             return _reject("malformed evidence")
@@ -288,10 +318,11 @@ def _verify(task: Any, result: Any, home: str | os.PathLike):
         if candidate != scope and scope not in candidate.parents:
             return _reject("evidence artifact path escapes the work scope")
         try:
-            data = candidate.read_bytes()
+            actual_digest, size = _evidence_digest(candidate, remaining)
         except OSError:
-            return _reject("evidence file missing")
-        if hashlib.sha256(data).hexdigest() != digest:
+            return _reject("evidence file missing, unreadable, non-regular or exceeds bounds")
+        remaining -= size
+        if actual_digest != digest:
             return _reject("evidence artifact hash does not match")
         if pinned and name in want_names:
             seen_pinned = True
