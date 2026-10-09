@@ -91,6 +91,9 @@ class HostGuardian:
                 if not is_alive or safe_to_retire:
                     if hasattr(res, "terminate"):
                         res.terminate()
+                    # A return from terminate is not proof the process is gone.
+                    if getattr(res, "is_alive", lambda: False)():
+                        self.cleanup_unknown = True
             except Exception:
                 self.cleanup_unknown = True
                 
