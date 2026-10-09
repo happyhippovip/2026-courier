@@ -53,14 +53,17 @@ class LeaseStore:
         return None
 
     def acquire(self, scope, holder, workkey, ttl_s):
-        """Take the scope if it is free or expired. Re-acquire by the same holder renews."""
+        """Take the scope if it is free or expired. Re-acquire by the same holder for the
+        same workkey renews; a live lease for a different workkey conflicts even when the
+        holder (device) is the same, so two workkeys never share one fencing token."""
         now = self.clock()
         self.db.execute("BEGIN IMMEDIATE")
         try:
             row = self._row(scope)
-            if row and row.holder is not None and row.expires_at > now and row.holder != holder:
+            live = row is not None and row.holder is not None and row.expires_at > now
+            if live and (row.holder != holder or row.workkey != workkey):
                 raise LeaseConflict(f"{scope} is held by {row.holder} for {row.workkey} until {row.expires_at}")
-            if row and row.holder == holder and row.expires_at > now:
+            if live:
                 token = row.token
             else:
                 token = (row.token if row else 0) + 1
