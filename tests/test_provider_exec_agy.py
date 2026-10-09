@@ -378,3 +378,110 @@ def test_verifier_accepts_only_redacted_success_envelope(tmp_path):
     assert rejected.accepted is False
     assert "SECRET_RESPONSE" not in rejected.reason
     assert "input_tokens" not in rejected.reason
+
+
+def test_adapter_runner_normalizes_provider_outcome_for_report_reader(tmp_path, monkeypatch):
+    from courier_worker import adapter_runner, adapter_bridge
+    from courier_worker.adapters.provider_exec import ProviderResult
+
+    workdir = tmp_path / "workdir"
+    workdir.mkdir()
+    report_file = tmp_path / "report.json"
+    req_file = tmp_path / "request.json"
+    req_file.write_text(json.dumps({
+        "adapter": "provider_exec",
+        "params": {"provider": "agy", "prompt": "hello"},
+        "workdir": str(workdir),
+        "attempt": 1,
+        "report": str(report_file),
+    }))
+
+    # Non-success deferred outcome (e.g. OUTBOX_CAP park)
+    monkeypatch.setattr(
+        "courier_worker.adapters.provider_exec.run",
+        lambda params, wdir, attempt=1: ProviderResult(
+            outcome="deferred", reason_code="OUTBOX_CAP", parked=True, output=b"deferred-evidence"
+        ),
+    )
+    rc = adapter_runner.main([str(req_file)])
+    assert rc == 0
+    report = json.loads(report_file.read_text())
+    assert report["outcome"] == "failure"
+    assert report["retryable"] is True
+    assert "OUTBOX_CAP" in report["reason"]
+    # Verify adapter_bridge.read_report accepts it
+    home = tmp_path / "home"
+    d_id = "disp_test"
+    rep_target = Path(adapter_bridge.report_path(str(home), d_id))
+    rep_target.parent.mkdir(parents=True, exist_ok=True)
+    rep_target.write_text(json.dumps(report))
+    parsed = adapter_bridge.read_report(str(home), d_id)
+    assert parsed is not None
+    assert parsed["outcome"] == "failure"
+    assert parsed["retryable"] is True
+
+
+def test_adapter_runner_fails_on_evidence_write_error(tmp_path, monkeypatch):
+    from courier_worker import adapter_runner
+    from courier_worker.adapters.provider_exec import ProviderResult
+
+    workdir = tmp_path / "workdir"
+    workdir.mkdir()
+    report_file = tmp_path / "report.json"
+    req_file = tmp_path / "request.json"
+    req_file.write_text(json.dumps({
+        "adapter": "provider_exec",
+        "params": {"provider": "agy", "prompt": "hello"},
+        "workdir": str(workdir),
+        "attempt": 1,
+        "report": str(report_file),
+    }))
+
+    monkeypatch.setattr(
+        "courier_worker.adapters.provider_exec.run",
+        lambda params, wdir, attempt=1: ProviderResult(
+            outcome="success", output=b"ok-evidence"
+        ),
+    )
+    # Simulate unwritable provider_output.txt
+    real_open = open
+    def mock_open(path, *args, **kwargs):
+        if str(path).endswith("provider_output.txt"):
+            raise OSError("Disk write failed")
+        return real_open(path, *args, **kwargs)
+    monkeypatch.setattr("builtins.open", mock_open)
+
+    rc = adapter_runner.main([str(req_file)])
+    assert rc == 1
+    assert not report_file.exists()
+
+
+def test_provider_popen_respects_workdir_and_stays_contained(tmp_path, monkeypatch):
+    from courier_worker.adapters import provider_exec
+
+    workdir = tmp_path / "muse_workdir"
+    workdir.mkdir()
+    captured_kwargs = {}
+
+    class DummyProc:
+        pid = 12345
+        stdout = None
+        def wait(self, timeout=None):
+            return 0
+        def poll(self):
+            return 0
+
+    def mock_popen(**kwargs):
+        captured_kwargs.update(kwargs)
+        return DummyProc()
+
+    monkeypatch.setattr("subprocess.Popen", mock_popen)
+    monkeypatch.setattr(provider_exec, "_wait", lambda proc, to, cap: (b"muse-out", False, "ok", 0))
+
+    spec = {"provider": "muse", "prompt": "build feature", "timeout_s": 30.0}
+    res = provider_exec._execute(spec, workdir, binary="muse", cap=65536)
+
+    assert res.outcome == "success"
+    assert captured_kwargs["cwd"] == str(workdir)
+    assert "creationflags" not in captured_kwargs
+    assert "start_new_session" not in captured_kwargs

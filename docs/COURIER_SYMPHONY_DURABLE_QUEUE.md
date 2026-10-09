@@ -11,8 +11,8 @@
 
 | Metric | Count |
 |---|---|
-| **TOTAL_REAL_CANDIDATES** | 8 |
-| **VERIFIED_DONE** | 6 |
+| **TOTAL_REAL_CANDIDATES** | 9 |
+| **VERIFIED_DONE** | 7 |
 | **WORKING / IN_PROGRESS** | 1 |
 | **READY (Next Eligible)** | 1 |
 | **BLOCKED / OWNER_REQUIRED** | 0 |
@@ -170,3 +170,22 @@
 - **SAFE_TO_RUN:** YES
 - **STATUS:** `READY`
 - **RESULT_RECEIPT:** PENDING_EXECUTION
+
+---
+
+### TASK-09: Bugbot Review Hardening (Process Containment, CWD & Evidence Safety)
+- **TASK_ID:** `WK-L2-BUGBOT-SECURITY-HARDENING`
+- **SOURCE:** Cursor Bugbot PR #410 High Effort Code Review
+- **CURRENT_SHA:** `HEAD` (`lane/L2-agent-warehouse-clean`)
+- **OWNER_LANE:** `lane/L2-agent-warehouse-clean`
+- **EXISTING_PR:** [#410](https://github.com/happyhippovip/2026-courier/pull/410)
+- **DEPENDS_ON:** `WK-REAL-E2E-AGY-001`
+- **ELIGIBILITY:** ELIGIBLE
+- **BLOCKER:** None
+- **EXPECTED_CODE_CHANGE:** (1) Fix workdir escape prefix bypass in `workspace.py` using `os.path.commonpath`; (2) Fail adapter runner on evidence write error; (3) Normalize provider execution outcomes to `"success"` / `"failure"` preserving retryable flags; (4) Confine muse process to task workdir via `cwd=str(workdir)`; (5) Maintain process containment by removing detached session/group flags so host `terminate_tree` cleans up all descendants.
+- **TEST_COMMAND:** `python -m pytest tests/test_runtime_own_computer.py tests/test_provider_exec_agy.py`
+- **ACCEPTANCE_CRITERIA:** All 25 tests pass; prefix bypass rejected; runner handles failures cleanly; child processes stay in owned tree.
+- **RESOURCE_CLASS:** LIGHT
+- **SAFE_TO_RUN:** YES
+- **STATUS:** `VERIFIED_DONE`
+- **RESULT_RECEIPT:** `RECEIPT-BUGBOT-HARDENING-OK` (25/25 PASS in 7.54s)

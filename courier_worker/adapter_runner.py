@@ -97,9 +97,11 @@ def main(argv: list) -> int:
             try:
                 with open(out_file, "wb") as f:
                     f.write(result.output)
-            except OSError:
-                pass
-        _write_report(report, {"outcome": result.outcome, "reason": str(result.reason)[:500],
+            except OSError as exc:
+                print(f"adapter_runner: failed to write provider output evidence: {exc}", file=sys.stderr)
+                return 1
+        report_outcome = "success" if result.outcome == "success" else "failure"
+        _write_report(report, {"outcome": report_outcome, "reason": str(result.reason)[:500],
                                "retryable": bool(result.retryable)})
         return 0
 

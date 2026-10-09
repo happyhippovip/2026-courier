@@ -1,5 +1,6 @@
 """Vertical slice: Courier keeps working on its own host, survives a device loss,
 and never widens authority or accepts evidence from the wrong host."""
+import os
 import sys
 
 import pytest
@@ -153,6 +154,16 @@ def test_workspace_rejects_path_traversal_escaping_workdir(world):
     assert result["state"] == "FAILED"
     assert "output path escapes workdir" in result["reasons"][0]
     assert ws.leases.current("project:p1") is None  # lease cleanly released
+
+
+def test_workspace_rejects_sibling_prefix_path_escape(world):
+    ws, _, _, tmp = world
+    workdir_name = os.path.basename(os.path.normpath(ws.workdir))
+    sibling_escape = Step("prefix_bypass", [sys.executable, "-c", "import sys; sys.exit(0)"], f"../{workdir_name}_evil/out.txt")
+    result = ws.run("wk-sec-2b", Requirement(frozenset({"python"})), "project:p1", request("r1"), [sibling_escape])
+    assert result["state"] == "FAILED"
+    assert "output path escapes workdir" in result["reasons"][0]
+    assert ws.leases.current("project:p1") is None
 
 
 def test_workspace_halts_when_grant_expires_mid_execution(world):

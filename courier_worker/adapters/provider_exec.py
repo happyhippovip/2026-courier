@@ -576,10 +576,6 @@ def _popen_agy(argv: list[str], cwd: str) -> subprocess.Popen:
         "shell": False,
         "close_fds": True,
     }
-    if os.name == "nt":
-        kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
-    else:
-        kwargs["start_new_session"] = True
     return subprocess.Popen(**kwargs)
 
 
@@ -679,7 +675,7 @@ def _execute(spec: dict, workdir, binary: str, cap: int) -> ProviderResult:
     except ProviderExecError as exc:
         return _finish("rejected", exc.reason_code)
     try:
-        proc = _popen(argv)
+        proc = _popen(argv, cwd=str(workdir))
     except OSError:
         return _finish("UNAVAILABLE", "BINARY_MISSING", blocked=True)
     output, truncated, status, code = _wait(proc, spec["timeout_s"], cap)
@@ -708,19 +704,16 @@ def _write_prompt(workdir, prompt: str) -> str:
     return name
 
 
-def _popen(argv: list[str]) -> subprocess.Popen:
+def _popen(argv: list[str], cwd: str | None = None) -> subprocess.Popen:
     kwargs = {
         "args": argv,
         "stdout": subprocess.PIPE,
         "stderr": subprocess.STDOUT,
         "stdin": subprocess.DEVNULL,
+        "cwd": cwd,
         "shell": False,
         "close_fds": True,
     }
-    if os.name == "nt":
-        kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
-    else:
-        kwargs["start_new_session"] = True
     return subprocess.Popen(**kwargs)
 
 
@@ -740,14 +733,9 @@ def _kill_tree(proc: subprocess.Popen) -> None:
         )
         return
     try:
-        os.killpg(pid, signal.SIGKILL)
-    except ProcessLookupError:
-        return
-    except PermissionError:
-        try:
-            proc.kill()
-        except OSError:
-            return
+        proc.kill()
+    except OSError:
+        pass
 
 
 def _wait(proc: subprocess.Popen, timeout_s: float, cap: int):

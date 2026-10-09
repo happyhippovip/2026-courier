@@ -67,8 +67,15 @@ class Workspace:
                 return {"state": "NEEDS_USER", "host": host.device_id, "step": index,
                         "reasons": [f"authority expired during execution: {curr_reason}"]}
             out = os.path.normpath(os.path.join(self.workdir, step.output))
+            out_abs = os.path.normpath(os.path.abspath(out))
             workdir_abs = os.path.normpath(os.path.abspath(self.workdir))
-            if not os.path.abspath(out).startswith(workdir_abs):
+            is_inside = False
+            try:
+                if os.path.commonpath([workdir_abs, out_abs]) == workdir_abs:
+                    is_inside = True
+            except ValueError:
+                is_inside = False
+            if not is_inside:
                 self.leases.release(lease)
                 return {"state": "FAILED", "host": host.device_id, "step": index,
                         "reasons": [f"output path escapes workdir: {step.output}"]}
