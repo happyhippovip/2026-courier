@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 
 
@@ -19,6 +20,19 @@ EXPECTED = {
 
 def fail(message: str) -> None:
     raise SystemExit(f"invalid Codex courier result: {message}")
+
+
+# One label, then optional single dots. Rejects "..", separators, and empty ids.
+_SAFE_MESSAGE_ID = re.compile(
+    r"^(?:[A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9_-]*[A-Za-z0-9])"
+    r"(?:\.(?:[A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9_-]*[A-Za-z0-9]))*$"
+)
+
+
+def safe_message_id(value: object) -> bool:
+    if not isinstance(value, str) or ".." in value or "/" in value or "\\" in value:
+        return False
+    return _SAFE_MESSAGE_ID.fullmatch(value) is not None
 
 
 def payload_hash(payload: object) -> str:
@@ -58,22 +72,43 @@ def main() -> None:
         fail("unexpected payload")
     if result["payload_hash"] != payload_hash(result["payload"]):
         fail("payload hash mismatch")
-    if not result["message_id"].replace("-", "").replace("_", "").replace(".", "").isalnum():
+    if not safe_message_id(result.get("message_id")):
         fail("unsafe result message_id")
+    if not safe_message_id(task.get("message_id")):
+        fail("unsafe task message_id")
 
     processed_dir = Path(args.processed_dir)
+    # The results directory is an input. A missing directory is rejected and not created.
+    if not processed_dir.is_dir():
+        fail("results directory does not exist")
     for candidate in processed_dir.glob("*.json"):
         try:
             existing = json.loads(candidate.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            continue
-        if existing.get("parent_id") == task["message_id"] or existing.get("message_id") == result["message_id"]:
+        except (OSError, json.JSONDecodeError, UnicodeError):
+            fail(f"unreadable history entry {candidate.name}")
+        if not isinstance(existing, dict):
+            fail(f"unreadable history entry {candidate.name}")
+        same_task = (
+            isinstance(existing.get("task_id"), str)
+            and existing["task_id"] == task.get("task_id")
+            and existing.get("type") == "RESULT"
+        )
+        if (
+            existing.get("parent_id") == task["message_id"]
+            or existing.get("message_id") == result["message_id"]
+            or same_task
+        ):
             fail("duplicate terminal result")
 
     target = processed_dir / f"{task['message_id']}.result.json"
-    if target.exists():
+    body = json.dumps(result, sort_keys=True, indent=2) + "\n"
+    try:
+        with target.open("x", encoding="utf-8") as handle:
+            handle.write(body)
+    except FileExistsError:
         fail("terminal result path already exists")
-    target.write_text(json.dumps(result, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    except FileNotFoundError:
+        fail("results directory does not exist")
     with Path(args.github_output).open("a", encoding="utf-8") as output:
         output.write(f"result_path={target.as_posix()}\n")
 
