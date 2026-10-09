@@ -313,6 +313,7 @@ class CourierScheduler:
             self.lane.state = restored.state
             self.lane.checkpoint = restored.checkpoint
             self.lane.release_report = restored.release_report
+            self.lane.resume_report = dict(restored.resume_report)
             self.lane.resources.update(restored.resources)
             self.completed_tasks = data["completed_tasks"]
             self.started = data["started"]
@@ -514,6 +515,13 @@ class CourierScheduler:
                                 self._save()
                                 return self.stop_reason
                             self.lane.resume()
+                            if self.lane.resume_report.get("failed"):
+                                # Resources missing: executing provider work now
+                                # would run without them. Park like a missing
+                                # connector instead of proceeding partially.
+                                self.stop_reason = "WAITING_RESOURCE_CONNECTOR"
+                                self._save()
+                                return self.stop_reason
                     self.started.append(task.task_id)
                     self._save()  # execution uncertainty survives process/provider failure
                     if provider is None:
