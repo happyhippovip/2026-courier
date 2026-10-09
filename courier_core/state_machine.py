@@ -299,7 +299,8 @@ def _human_decision(state: TaskState, event: Event) -> TaskState:
         raise _fail(event, state, "cancellation was requested; cancel or confirm the effect instead")
     if state.attempt >= MAX_ATTEMPTS_LIMIT:
         raise _fail(event, state, f"attempt limit {MAX_ATTEMPTS_LIMIT} reached")
-    # The human grants exactly one fresh attempt, even if the automatic budget is spent.
-    return replace(state, status=TaskStatus.QUEUED, max_attempts=max(state.max_attempts, state.attempt + 1),
+    # Exactly one fresh attempt: the budget becomes this attempt + 1, whether
+    # the automatic budget was already spent or still had attempts left.
+    return replace(state, status=TaskStatus.QUEUED, max_attempts=state.attempt + 1,
                    dispatch_id=None, worker_id=None, started=False, failure_kind=None, retryable=None,
                    last_reason=reason, decided_by=actor)
