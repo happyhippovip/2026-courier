@@ -36,7 +36,7 @@ def test_reset_demo_environment(repo_dir):
 @patch("scripts.run_demo_workflow.AutonomousLevel6Loop")
 @patch("scripts.run_demo_workflow.ChiefCommander")
 @patch("scripts.run_demo_workflow.ThoughtCurator")
-def test_run_live_demo(mock_curator_cls, mock_chief_cls, mock_loop_cls, repo_dir):
+def test_run_live_demo(mock_curator_cls, mock_chief_cls, mock_loop_cls, repo_dir, capsys):
     # Setup mocks
     mock_curator = mock_curator_cls.return_value
     mock_curator.curate_idea.return_value = {
@@ -75,27 +75,88 @@ def test_run_live_demo(mock_curator_cls, mock_chief_cls, mock_loop_cls, repo_dir
     evidence_dir = repo_dir / "events/demo"
     orchestrator = DemoOrchestrator(repo_dir=repo_dir, evidence_dir=evidence_dir)
     orchestrator.reset_demo_environment()
-    
+    (repo_dir / "events/approvals" / "other-workflow.json").write_text(json.dumps({
+        "approval_id": "appr-other",
+        "decision": "APPROVE",
+        "workflow_id": "other-wf",
+        "correlation_id": "other-corr",
+        "operator": "person",
+    }))
+
     manifest = orchestrator.run_live_demo("Test idea", "IDEA")
-    
-    # Assertions
-    assert manifest["status"] == "COMPLETED"
+    captured = capsys.readouterr().out
+
+    assert "LIVE DEMO COMPLETED SUCCESSFULLY" not in captured
+    assert manifest["status"] == "BLOCKED_HUMAN_GATE"
+    assert manifest["isolation_verified"] is False
+    assert manifest["truth_boundaries_verified"] is False
     assert manifest["human_input"]["raw_idea"] == "Test idea"
     assert manifest["human_input"]["type"] == "IDEA"
-    assert manifest["human_gate"]["decision"] == "APPROVE"
-    
-    # Verify files were copied
+    assert manifest["human_gate"]["decision"] != "APPROVE"
+    mock_loop.resume_workflow.assert_not_called()
+
     assert (evidence_dir / "tasks/task-1-worker-job.json").exists()
     assert (evidence_dir / "results/task-1-result.json").exists()
     assert (evidence_dir / "decisions/task-1-chief-decision.json").exists()
-    assert (evidence_dir / "tasks/task-2-worker-job.json").exists()
-    
-    # Verify approvals event created
-    approval_files = list((evidence_dir / "approvals").glob("appr-demo-*.json"))
-    assert len(approval_files) == 1
-    
-    # Check manifest exists
+    assert not (evidence_dir / "tasks/task-2-worker-job.json").exists()
+    assert list((evidence_dir / "approvals").glob("*.json")) == []
+    assert [p.name for p in (repo_dir / "events/approvals").glob("*.json")] == ["other-workflow.json"]
     assert (evidence_dir / "demo_evidence_manifest.json").exists()
+
+@patch("scripts.run_demo_workflow.AutonomousLevel6Loop")
+@patch("scripts.run_demo_workflow.ChiefCommander")
+@patch("scripts.run_demo_workflow.ThoughtCurator")
+def test_run_live_demo_reads_recorded_human_gate(mock_curator_cls, mock_chief_cls, mock_loop_cls, repo_dir, capsys):
+    mock_curator_cls.return_value.curate_idea.return_value = {
+        "idea_id": "idea-123",
+        "classification": "NEW",
+        "sources_indexed": {"a": "b"},
+    }
+    mock_chief_cls.return_value.formulate_workflow_plan.return_value = (
+        "wf-123",
+        [
+            {"target_agent": "antigravity", "task_id": "task-1", "routing_reason": "r1"},
+            {"target_agent": "codex", "task_id": "task-2", "routing_reason": "r2"},
+        ],
+    )
+    mock_loop = mock_loop_cls.return_value
+    mock_loop.run_multi_round_workflow.return_value = {
+        "status": "BLOCKED_HUMAN_GATE",
+        "stop_reason": "Needs human",
+        "history": [{"round": 1}],
+    }
+    mock_loop.resume_workflow.return_value = {
+        "status": "COMPLETED",
+        "stop_reason": "All tasks done",
+        "history": [{"round": 2}],
+    }
+    (repo_dir / "events/approvals" / "human.json").write_text(json.dumps({
+        "approval_id": "appr-human-1",
+        "decision": "APPROVE",
+        "action": "APPROVE",
+        "workflow_id": "wf-123",
+        "task_id": "task-1",
+        "correlation_id": "corr-fixed",
+        "operator": "person",
+    }))
+    (repo_dir / "events/dispatch/task-2-worker-job.json").write_text("{}")
+    evidence_dir = repo_dir / "events/demo"
+    orchestrator = DemoOrchestrator(repo_dir=repo_dir, evidence_dir=evidence_dir)
+    orchestrator.reset_demo_environment()
+
+    manifest = orchestrator.run_live_demo("Test idea", "IDEA", correlation_id="corr-fixed")
+    captured = capsys.readouterr().out
+
+    assert manifest["status"] == "COMPLETED"
+    assert manifest["human_gate"]["approval_id"] == "appr-human-1"
+    assert manifest["human_gate"]["decision"] == "APPROVE"
+    assert manifest["human_gate"]["read_back"] is True
+    assert manifest["isolation_verified"] is False
+    assert manifest["truth_boundaries_verified"] is False
+    assert "LIVE DEMO COMPLETED SUCCESSFULLY" in captured
+    assert list((evidence_dir / "approvals").glob("*.json")) == []
+    assert [p.name for p in (repo_dir / "events/approvals").glob("*.json")] == ["human.json"]
+    mock_loop.resume_workflow.assert_called_once()
 
 @patch("sys.argv", ["run_demo_workflow.py", "--reset", "--idea", "Test idea", "--type", "GOAL"])
 @patch("scripts.run_demo_workflow.DemoOrchestrator")
