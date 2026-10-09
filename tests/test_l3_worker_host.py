@@ -367,6 +367,7 @@ class StubState:
     def reset(self):
         self.token = TOKEN
         self.claims = []          # queued claim dicts ("EMPTY" for 204)
+        self.start_mode = "ok"    # ok | http500 | http404 | http409
         self.starts = []
         self.beats = []
         self.results = []         # delivered payloads
@@ -437,7 +438,14 @@ class StubHandler(BaseHTTPRequestHandler):
                 self._json(204)
         elif self.path == "/v1/start":
             STUB.starts.append(payload)
-            self._json(200, {})
+            if STUB.start_mode == "http500":
+                self._json(500)
+            elif STUB.start_mode == "http404":
+                self._json(404)
+            elif STUB.start_mode == "http409":
+                self._json(409, {"error": "stale"})
+            else:
+                self._json(200, {})
         elif self.path == "/v1/heartbeat":
             STUB.beats.append(payload)
             self._json(200, {})
@@ -505,6 +513,52 @@ def test_claim_start_result_wire_exact_ids(tmp_path, stub):
     assert H.outbox_read_all(str(tmp_path)) == []
     assert not (tmp_path / "run" / "requests" / "d1.json").exists()  # bridge files cleaned up
     assert all(b["dispatch_ids"] == ["d1"] for b in STUB.beats)
+
+
+def _exact_controller_error(fn):
+    """Run fn; return only a base ControllerError (StaleDispatch is a different verdict)."""
+    try:
+        fn()
+    except S.ControllerError as exc:
+        assert type(exc) is S.ControllerError, f"misclassified as {type(exc).__name__}: {exc}"
+        return
+    raise AssertionError("expected ControllerError")
+
+
+def test_start_transport_failure_is_retryable_not_stale(tmp_path, stub):
+    """A 5xx during /start is transient: retryable, never a stale dispatch drop."""
+    STUB.start_mode = "http500"
+    _exact_controller_error(lambda: S.ControllerClient(stub, TOKEN).start("d1"))
+
+
+def test_start_rejected_dispatch_stays_stale(tmp_path, stub):
+    """Only 404/409 mean the controller no longer owns the dispatch."""
+    for mode in ("http404", "http409"):
+        STUB.start_mode = mode
+        with pytest.raises(S.StaleDispatch):
+            S.ControllerClient(stub, TOKEN).start("d1")
+
+
+def test_claim_auth_failure_raises_not_idle(tmp_path, stub):
+    """A 401 on /claim is an auth/config failure, indistinguishable from
+    'no work' today. It must raise instead of idling silently."""
+    _exact_controller_error(lambda: S.ControllerClient(stub, "wrong-token").claim("w1"))
+
+
+def test_start_auth_failure_raises_not_stale(tmp_path, stub):
+    """A 401 on /start must not drop the claim as stale."""
+    _exact_controller_error(lambda: S.ControllerClient(stub, "wrong-token").start("d1"))
+
+
+def test_iterate_idles_on_start_transport_failure(tmp_path, stub):
+    """Full loop: 500 on /start -> 'idle', nothing delivered, no request litter."""
+    write_token(tmp_path)
+    STUB.claims.append(claim_body())
+    STUB.start_mode = "http500"
+    loop = S.WorkerLoop(str(tmp_path), stub, "w1", 0.2)
+    assert loop.iterate(threading.Event()) == "idle"
+    assert STUB.results == []
+    assert not (tmp_path / "run" / "requests" / "d1.json").exists()
 
 
 def _crash_payload(tmp_path):
