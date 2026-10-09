@@ -5,6 +5,7 @@ Courier Doctor: Beginner UX tool to diagnose the health of the local Courier Sym
 
 import json
 import os
+import sqlite3
 import urllib.request
 import urllib.error
 from pathlib import Path
@@ -66,12 +67,55 @@ def check_server():
         return False, f"Server unreachable at {server}: {e}"
 
 def check_stuck_tasks():
-    # In V1 we could query the DB, but without pulling in full courier_core
-    # we just report "Check ledger via `courier status`" for now.
+    """Read-only journal inspect: fail when chain is bad or tasks need human action."""
     db_path = get_app_data_dir() / "courier.db"
     if not db_path.exists():
         return True, "No local state to check"
-    return True, "Use `python -m courier_core.cli status` to check tasks."
+
+    from courier_core.journal import Journal, JournalError
+    from courier_core.state_machine import TERMINAL, TaskStatus
+
+    journal = Journal(db_path, readonly=True)
+    try:
+        journal.open()
+    except (JournalError, sqlite3.Error, OSError) as exc:
+        return False, f"Could not open journal: {exc}"
+
+    try:
+        chain = journal.verify_chain()
+        if not chain.ok:
+            detail = chain.reason or "hash chain verification failed"
+            if chain.first_bad_seq is not None:
+                detail = f"{detail} (first_bad_seq={chain.first_bad_seq})"
+            return False, f"Journal integrity failed: {detail}"
+
+        if not journal.projection_current() or not journal.verify_projection():
+            return False, (
+                "Journal integrity failed: stored task projection does not match event replay"
+            )
+
+        tasks = journal.tasks()
+        attention = [
+            t for t in tasks
+            if t.status in (TaskStatus.BLOCKED, TaskStatus.RETRY_PENDING)
+        ]
+        if attention:
+            sample = ", ".join(t.task_id for t in attention[:5])
+            if len(attention) > 5:
+                sample = f"{sample} (+{len(attention) - 5} more)"
+            return False, (
+                f"{len(attention)} task(s) blocked or retry-pending: {sample}. "
+                "Resolve via the Desktop Hub or controller API."
+            )
+
+        active = [t for t in tasks if t.status not in TERMINAL]
+        if active:
+            return True, f"{len(active)} active task(s); none blocked or retry-pending."
+        return True, "No active tasks."
+    except (JournalError, sqlite3.Error, OSError) as exc:
+        return False, f"Journal read failed: {exc}"
+    finally:
+        journal.close()
 
 def redact_secrets(content, secrets):
     for secret in secrets:
