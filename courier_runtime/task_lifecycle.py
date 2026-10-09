@@ -2,6 +2,7 @@ import time
 import platform
 import psutil
 import os
+import re
 from enum import Enum
 from dataclasses import dataclass, field
 from typing import Optional, Dict, Any, List
@@ -138,6 +139,31 @@ class RecoveryReceipt:
     network_diagnostics: Optional[str] = None
     stall_root_cause: Optional[str] = None
 
+_IDENTITY_RE = re.compile(r"^pid_(\d+)(?:_(?:start|ct)_([\d.]+))?$")
+
+
+def _live_process_matches_record(task: TaskRecord, pid: int) -> bool:
+    """True only when the live process provably is the recorded owner.
+
+    PIDs are recycled by the OS, so a numeric pid alone never proves the
+    recorded task is still alive: a recycled PID with children would mask a
+    real stall as LONG_RUNNING_HEALTHY and recovery would never fire (see
+    test_4_pid_reuse_fails_ownership_validation). Require the live creation
+    time to match the recorded start identity; fail closed otherwise.
+    """
+    recorded = _IDENTITY_RE.match(task.process_start_identity or "")
+    if not recorded or int(recorded.group(1)) != pid or not recorded.group(2):
+        return False
+    live = CrossPlatformProcessManager.get_process_identity(pid)
+    live_match = _IDENTITY_RE.match(live or "")
+    if not live_match or int(live_match.group(1)) != pid or not live_match.group(2):
+        return False
+    try:
+        return abs(float(live_match.group(2)) - float(recorded.group(2))) <= 1.0
+    except ValueError:
+        return False
+
+
 class StallDetector:
     def __init__(self, thresholds: Dict[ActivityClass, float]):
         self.thresholds = thresholds
@@ -171,11 +197,16 @@ class StallDetector:
             threshold *= 2.0  # Double threshold if system is under heavy load
             
         if time_since_progress > threshold:
-            # G38: Check if any child process is active before confirming stall
+            # G38: Check if any child process is active before confirming stall.
+            # PID-reuse fence: only a live tree that provably belongs to the
+            # recorded owner counts as health evidence. A recycled PID with
+            # children must never mask a real stall (fail closed).
             if task.expected_activity_class == ActivityClass.COMPUTE and task.pid_or_execution_id and task.pid_or_execution_id.isdigit():
-                children = CrossPlatformProcessTree.get_descendants(int(task.pid_or_execution_id))
-                if children:
-                    return TaskState.LONG_RUNNING_HEALTHY
+                pid = int(task.pid_or_execution_id)
+                if _live_process_matches_record(task, pid):
+                    children = CrossPlatformProcessTree.get_descendants(pid)
+                    if children:
+                        return TaskState.LONG_RUNNING_HEALTHY
                     
             # G39: Process Fork Disowning Detection
             if task.expected_activity_class == ActivityClass.DAEMON:

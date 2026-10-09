@@ -804,5 +804,55 @@ class TestZeroHangTaskLifecycle(unittest.TestCase):
         self.assertEqual(self.manager.metrics["orphans_adopted"], 0)
         self.assertEqual(self.manager.metrics["stale_locks_cleared"], 0)
 
+    def test_44_recycled_pid_with_children_does_not_mask_stall(self):
+        """A live tree under a recycled PID is not health evidence (fail closed)."""
+        import os
+        from courier_runtime.task_lifecycle import CrossPlatformProcessManager
+        pid = os.getpid()
+        assert CrossPlatformProcessManager.get_process_identity(pid) is not None
+        task = TaskRecord(
+            task_id="task_044",
+            workkey="wk_044",
+            owner_session="sess_44",
+            owner_host="host_44",
+            pid_or_execution_id=str(pid),
+            process_start_identity="pid_%d_start_1" % pid,
+            started_at=time.time(),
+            expected_activity_class=ActivityClass.COMPUTE
+        )
+        self.manager.active_tasks[task.task_id] = task
+        task.last_heartbeat -= 1000
+        task.last_useful_progress -= 1000
+        self.manager.reconcile_lease(task.task_id, owner_exists=True, process_alive=True, other_executor_active=False)
+        self.assertEqual(task.current_state, TaskState.RECOVERING)
+        self.assertEqual(len(self.manager.healer.receipts), 1)
+
+    def test_45_owned_live_tree_still_counts_as_healthy(self):
+        """G38 still protects a genuinely owned forking worker."""
+        import os, subprocess, sys
+        from courier_runtime.task_lifecycle import CrossPlatformProcessManager
+        pid = os.getpid()
+        identity = CrossPlatformProcessManager.get_process_identity(pid)
+        assert identity is not None
+        child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)"])
+        try:
+            task = TaskRecord(
+                task_id="task_045",
+                workkey="wk_045",
+                owner_session="sess_45",
+                owner_host="host_45",
+                pid_or_execution_id=str(pid),
+                process_start_identity=identity,
+                started_at=time.time(),
+                expected_activity_class=ActivityClass.COMPUTE
+            )
+            task.last_heartbeat -= 1000
+            task.last_useful_progress -= 1000
+            state = self.manager.detector.analyze_health(task, True, True, False)
+            self.assertEqual(state, TaskState.LONG_RUNNING_HEALTHY)
+        finally:
+            child.terminate()
+            child.wait(timeout=10)
+
 if __name__ == '__main__':
     unittest.main()
