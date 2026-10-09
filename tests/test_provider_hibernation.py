@@ -55,9 +55,14 @@ def test_lane_hibernator_hibernate_and_resume():
     assert "watch_1" in released_list
     assert "desk_1" not in released_list
     
-    # Attempting to hibernate again should raise error
-    with pytest.raises(RuntimeError):
-        hibernator.hibernate(checkpoint)
+    # A second hibernate is idempotent (#108): stay HIBERNATED, do not
+    # release again, and return the same report. Resume of an active lane
+    # still fails closed below.
+    again = hibernator.hibernate(checkpoint)
+    assert hibernator.state == LaneState.HIBERNATED
+    assert again["released"] == report["released"]
+    assert again["retained"] == report["retained"]
+    assert released_list == ["watch_1"]
         
     # Resume
     resumed_checkpoint = hibernator.resume()

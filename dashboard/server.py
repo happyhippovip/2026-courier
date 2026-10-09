@@ -11,6 +11,7 @@ import functools
 import http.server
 import json
 import os
+import datetime as _dt
 import socketserver
 import sys
 from pathlib import Path
@@ -148,6 +149,35 @@ def get_commercial_offers_payload() -> dict:
     }
 
 
+def get_ledger_value_payload() -> dict:
+    processed_dir = EVENTS_DIR / "processed"
+    reused = 0
+    work_units = 0
+    evidence = []
+    try:
+        if (processed_dir / "reuse_events.jsonl").exists():
+            for line in (processed_dir / "reuse_events.jsonl").read_text(encoding="utf-8").splitlines():
+                if line.strip():
+                    reused += 1
+                    evidence.append(json.loads(line))
+        if (processed_dir / "task_dedupe_registry.json").exists():
+            data = json.loads((processed_dir / "task_dedupe_registry.json").read_text(encoding="utf-8"))
+            work_units = len(data)
+    except Exception:
+        pass
+
+    return {
+        "metrics": {
+            "results_reused": {"value": reused},
+            "evidence_files_available": {"value": len(list(processed_dir.glob("result*.json"))) if processed_dir.exists() else 0}
+        },
+        "this_month": {
+            "work_units_completed": {"value": work_units}
+        },
+        "evidence": evidence
+    }
+
+
 class CommandCenterHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path in ("/api/status", "/api/health"):
@@ -169,6 +199,18 @@ class CommandCenterHandler(http.server.SimpleHTTPRequestHandler):
             offers_payload = get_commercial_offers_payload()
             self.wfile.write(json.dumps(offers_payload, indent=2).encode("utf-8"))
             return
+
+        if self.path == "/api/ledger-value":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+
+            ledger_payload = get_ledger_value_payload()
+            self.wfile.write(json.dumps(ledger_payload, indent=2).encode("utf-8"))
+            return
+
+        return super().do_GET()
 
     def do_POST(self) -> None:
         if self.path == "/api/emergency":
