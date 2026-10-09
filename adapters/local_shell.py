@@ -139,10 +139,11 @@ def run(params: Mapping[str, Any], workdir: str | os.PathLike, attempt: int = 1)
     kills and reaps it, then raises :class:`LocalShellTimeout`. A non-zero
     exit becomes a non-retryable ``failure`` (the command ran; retrying the
     same bytes is a controller decision, not an adapter default). Exit zero
-    with the declared evidence file present becomes ``success`` with its
-    ``{path, sha256, size}``; exit zero without that file becomes a
-    non-retryable ``failure`` (the command broke its evidence contract).
-    ``attempt`` is accepted for host-interface symmetry and validated.
+    with a newly written declared evidence file becomes ``success`` with its
+    ``{path, sha256, size}``; exit zero without that file, or leaving a
+    pre-existing evidence file untouched, becomes a non-retryable ``failure``
+    (the command broke its evidence contract; stale bytes are never receipted
+    as fresh). ``attempt`` is accepted for host-interface symmetry and validated.
     """
     cfg = _params(params)
     root = Path(workdir)
@@ -152,6 +153,12 @@ def run(params: Mapping[str, Any], workdir: str | os.PathLike, attempt: int = 1)
         root.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
         raise LocalShellError(f"unusable workdir: {exc}") from exc
+    evidence = root / cfg["write"]
+    try:
+        before = evidence.stat()
+        before_key = (before.st_mtime_ns, before.st_size)
+    except OSError:
+        before_key = None
     env = dict(os.environ)
     env.update(cfg["env"])
     try:
@@ -170,7 +177,12 @@ def run(params: Mapping[str, Any], workdir: str | os.PathLike, attempt: int = 1)
         return RunResult("failure", [],
                          f"command exited {completed.returncode}: {tail}".strip() or
                          f"command exited {completed.returncode}", False)
-    evidence = root / cfg["write"]
+    try:
+        after = evidence.stat()
+    except OSError:
+        return RunResult("failure", [], "command produced no evidence file", False)
+    if before_key is not None and (after.st_mtime_ns, after.st_size) == before_key:
+        return RunResult("failure", [], "command produced no new evidence file", False)
     try:
         data = evidence.read_bytes()
     except OSError:

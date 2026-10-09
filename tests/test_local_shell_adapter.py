@@ -117,6 +117,25 @@ def test_zero_exit_without_evidence_file_is_failure(tmp_path):
     assert res.artifacts == []
 
 
+def test_zero_exit_with_untouched_preexisting_evidence_is_failure(tmp_path):
+    (tmp_path / "out.txt").write_bytes(b"stale-bytes-from-a-previous-attempt")
+    argv = [sys.executable, "-c", "pass"]
+    res = local_shell.run({"command": argv, "write": "out.txt"}, tmp_path)
+    assert res.outcome == "failure"
+    assert res.retryable is False
+    assert "new evidence" in res.reason
+    assert res.artifacts == []
+    assert (tmp_path / "out.txt").read_bytes() == b"stale-bytes-from-a-previous-attempt"
+
+
+def test_rewriting_identical_bytes_still_counts_as_new_evidence(tmp_path):
+    (tmp_path / "out.txt").write_bytes(b"hello")
+    res = local_shell.run({"command": write_argv("hello"), "write": "out.txt"},
+                          tmp_path)
+    assert res.outcome == "success"
+    assert (tmp_path / "out.txt").read_bytes() == b"hello"
+
+
 def test_timeout_kills_and_raises(tmp_path):
     argv = [sys.executable, "-c", "import time; time.sleep(30)"]
     with pytest.raises(LocalShellTimeout):
