@@ -360,5 +360,21 @@ class CodexContinuityTests(unittest.TestCase):
             self.assertEqual(self.path.read_bytes(), before)
 
 
+    def test_durable_wake_updates_open_units_lists(self):
+        sched = self.scheduler()
+        self.block(sched, self.past())
+        
+        # Verify initial
+        cp = self.saved()["lane"]["checkpoint"]
+        self.assertEqual(cp["open_provider_units"], ["provider"])
+        
+        # Wake up and complete the provider task
+        sched.handle_wake("normal", [self.task()])
+        
+        # Assert it's removed from open_provider_units
+        cp_after = self.saved()["lane"]["checkpoint"]
+        self.assertNotIn("provider", cp_after["open_provider_units"])
+        self.assertIn("fp-provider", cp_after["completed_fingerprints"])
+
 if __name__ == "__main__":
     unittest.main()
