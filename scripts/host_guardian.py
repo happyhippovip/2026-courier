@@ -2,6 +2,7 @@ import enum
 import psutil
 import os
 from dataclasses import dataclass
+from typing import Optional
 
 class HostState(enum.Enum):
     NORMAL = "NORMAL"
@@ -32,25 +33,56 @@ class HostMetrics:
     cleanup_unknown: bool
 
 class HostGuardian:
-    def __init__(self, max_heavy_local_jobs: int = 1):
+    def __init__(
+        self,
+        max_heavy_local_jobs: int = 1,
+        root_path: Optional[str] = None,
+        swap_surge_threshold_bytes: int = 10 * 1024 * 1024,
+    ):
         self.max_heavy_local_jobs = max_heavy_local_jobs
+        self.root_path = root_path or os.path.abspath(os.sep)
+        self.swap_surge_threshold_bytes = swap_surge_threshold_bytes
         self.state = HostState.NORMAL
         self.admitted_heavy = 0
         self.admitted_light = 0
         self.cleanup_unknown = False
-        self._last_swap_used = psutil.swap_memory().used
+        try:
+            self._last_swap_used = psutil.swap_memory().used
+        except Exception:
+            self._last_swap_used = 0
         self._calm_streak = 0
         self.required_calm_streak = 3
 
+    def _safe_disk_usage(self):
+        try:
+            return psutil.disk_usage(self.root_path)
+        except Exception:
+            try:
+                return psutil.disk_usage(os.path.abspath(os.sep))
+            except Exception:
+                return psutil.disk_usage(".")
+
     def evaluate_admission(self) -> AdmissionState:
-        mem = psutil.virtual_memory()
-        swap = psutil.swap_memory()
-        disk = psutil.disk_usage('/')
+        try:
+            mem = psutil.virtual_memory()
+            memory_pressure = mem.percent / 100.0
+        except Exception:
+            memory_pressure = 0.0
+
+        try:
+            swap = psutil.swap_memory()
+            swap_used = swap.used
+        except Exception:
+            swap_used = self._last_swap_used
+
+        try:
+            disk = self._safe_disk_usage()
+            disk_floor_gb = disk.free / (1024 ** 3)
+        except Exception:
+            disk_floor_gb = 100.0
         
-        memory_pressure = mem.percent / 100.0
-        swap_increasing = swap.used > self._last_swap_used
-        self._last_swap_used = swap.used
-        disk_floor_gb = disk.free / (1024 ** 3)
+        swap_increasing = (swap_used - self._last_swap_used) > self.swap_surge_threshold_bytes
+        self._last_swap_used = swap_used
         
         is_high_pressure = memory_pressure > 0.80 or swap_increasing or disk_floor_gb < 2.0
         is_medium_pressure = memory_pressure > 0.70 or self.cleanup_unknown
@@ -121,16 +153,36 @@ class HostGuardian:
             self.cleanup_unknown = False
             
     def get_metrics(self) -> HostMetrics:
+        try:
+            mem_p = psutil.virtual_memory().percent / 100.0
+        except Exception:
+            mem_p = 0.0
+
+        try:
+            swap_p = psutil.swap_memory().percent / 100.0
+        except Exception:
+            swap_p = 0.0
+
+        try:
+            disk_gb = self._safe_disk_usage().free / (1024 ** 3)
+        except Exception:
+            disk_gb = 100.0
+
+        try:
+            pcount = len(psutil.pids())
+        except Exception:
+            pcount = 0
+
         return HostMetrics(
             desired_agent_slots=64,
             admitted_local_light=self.admitted_light,
             admitted_local_heavy=self.admitted_heavy,
             waiting=0,
             handle_pressure=0.0,
-            memory_pressure=psutil.virtual_memory().percent / 100.0,
-            swap_pressure=psutil.swap_memory().percent / 100.0,
-            disk_floor_gb=psutil.disk_usage('/').free / (1024 ** 3),
-            process_count=len(psutil.pids()),
+            memory_pressure=mem_p,
+            swap_pressure=swap_p,
+            disk_floor_gb=disk_gb,
+            process_count=pcount,
             owned_descendants=0,
             heavy_job_lease=self.max_heavy_local_jobs,
             host_health=self.state.value,
