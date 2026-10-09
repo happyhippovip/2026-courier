@@ -31,7 +31,7 @@ def test_rebuild_reproduces_the_live_projection(tmp_path):
     with ro(out) as conn:
         assert projection_hash(conn) == live
         statuses = dict(conn.execute("SELECT task_id, status FROM tasks"))
-    assert statuses == {"ta": "COMPLETE", "tb": "COMPLETE", "tc": "COMPLETE"}
+    assert statuses == {"ta": "COMPLETE", "tb": "COMPLETE", "tc": "BLOCKED"}
 
 
 def test_rebuild_overwrites_a_stale_target(tmp_path):

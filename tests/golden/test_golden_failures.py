@@ -24,7 +24,7 @@ def accepted_events(courier, task_id):
     return [e for e in courier.task_events(task_id) if e["type"] == "RESULT_ACCEPTED"]
 
 
-def test_kill_worker_mid_task_is_retried_once(courier):
+def test_kill_worker_mid_task_stops_for_an_unknown_effect(courier):
     courier.start_controller()
     first = courier.start_worker()
     baseline_descendants = courier.settled_descendants(first)
@@ -42,10 +42,9 @@ def test_kill_worker_mid_task_is_retried_once(courier):
 
     expired = courier.wait_event(task_id, "LEASE_EXPIRED", timeout=LEASE_TTL_S + 20)
     assert payload(expired).get("reason") == "ttl", payload(expired)
-    courier.wait_event(task_id, "TASK_RETRY_SCHEDULED", timeout=20)
-    complete = courier.wait_event(task_id, "TASK_COMPLETE", timeout=60)
-    assert complete["attempt"] == 2
-    assert len(accepted_events(courier, task_id)) == 1
+    courier.wait_event(task_id, "TASK_BLOCKED", timeout=20)
+    events = types_of(courier.task_events(task_id))
+    assert "TASK_RETRY_SCHEDULED" not in events and "TASK_COMPLETE" not in events
     wait_until(lambda: not pids_alive(orphan_candidates), 15, "children of the killed worker host to be gone")
 
 

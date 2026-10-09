@@ -94,9 +94,18 @@ def test_non_retryable_rejection_fails_the_task():
     assert apply(rejected, task_event(EventType.TASK_FAILED, reason="rejected")).status is TaskStatus.FAILED
 
 
-def test_lease_loss_of_idempotent_task_is_retried():
-    state = run(worker_killed_then_retried("t3"))
-    assert state.status is TaskStatus.COMPLETE and state.attempt == 2 and state.late_results == 1
+def test_started_idempotent_lease_loss_stops_and_unstarted_may_retry():
+    a = Attempt()
+    lost = run([created(), a.claimed(), a.started(), a.lease_expired()])
+    assert lost.started and decide_after_failure(lost) is Decision.BLOCK
+    with pytest.raises(TransitionError, match="retry forbidden"):
+        apply(lost, a.retry_scheduled())
+    blocked = apply(lost, task_event(EventType.TASK_BLOCKED, reason="outcome unknown"))
+    assert blocked.status is TaskStatus.BLOCKED and blocked.late_results == 0
+    open_attempt = Attempt("t-open")
+    unstarted = run([created("t-open"), open_attempt.claimed(), open_attempt.lease_expired()])
+    assert not unstarted.started and decide_after_failure(unstarted) is Decision.RETRY
+    assert apply(unstarted, open_attempt.retry_scheduled()).status is TaskStatus.QUEUED
 
 
 def test_uncertain_non_idempotent_outcome_is_blocked_never_retried():

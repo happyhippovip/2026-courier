@@ -161,25 +161,21 @@ def test_duplicate_result_controller_half(courier):
     assert len(courier.all_events()) == before
 
 
-def test_late_result_controller_half(courier):
+def test_late_result_after_started_lease_loss_does_not_resume(courier):
     courier.start_controller()
     task_id = courier.make_probe_task(lease_ttl_s=3)
     stale = courier.api.post("/v1/claim", {"worker_id": "golden-fake-worker"}).json()
     assert courier.api.post("/v1/start", {"dispatch_id": stale["dispatch_id"]}).status_code == 200
     courier.wait_event(task_id, "LEASE_EXPIRED", timeout=20)
-    worker = FakeWorker(courier)
-    lease = worker.claim()
-    worker.start(lease)
-    worker.result(lease)
-    complete = courier.wait_event(task_id, "TASK_COMPLETE", timeout=20)
-    assert complete["attempt"] == 2
+    courier.wait_event(task_id, "TASK_BLOCKED", timeout=20)
+    assert courier.api.post("/v1/claim", {"worker_id": "other-worker"}).status_code == 204
     late = courier.api.post("/v1/result", {"dispatch_id": stale["dispatch_id"], "result_id": "late-result-attempt-1",
                                            "artifacts": [{"path": "out.txt", "sha256": GOLDEN_SHA256}],
                                            "outcome": "success"})
     assert late.status_code == 409
     courier.wait_event(task_id, "LATE_RESULT_DISCARDED", timeout=10)
-    accepted = [e for e in courier.task_events(task_id) if e["type"] == "RESULT_ACCEPTED"]
-    assert len(accepted) == 1 and accepted[0]["attempt"] == 2 and accepted[0]["result_id"] != "late-result-attempt-1"
+    types = [e["type"] for e in courier.task_events(task_id)]
+    assert "TASK_RETRY_SCHEDULED" not in types and "TASK_COMPLETE" not in types and "RESULT_ACCEPTED" not in types
 
 
 def test_transient_failures_controller_half(courier):

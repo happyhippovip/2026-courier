@@ -57,8 +57,8 @@ def test_heartbeat_after_expiry_cannot_resurrect_the_dispatch(tmp_path):
         pass_time(ctl, clock, 7)
         answer = ctl.heartbeat({"worker_id": "w1", "dispatch_ids": [lease["dispatch_id"]]})
         assert answer["stop"] == [lease["dispatch_id"]]
-        new = ctl.claim({"worker_id": "w2"})
-        assert new["attempt"] == 2 and new["dispatch_id"] != lease["dispatch_id"]
+        assert ctl.claim({"worker_id": "w2"}) is None
+        assert types(ctl, body["task_id"])[-1] == "TASK_BLOCKED"
     finally:
         ctl.stop()
 

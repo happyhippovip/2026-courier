@@ -166,14 +166,14 @@ def test_lease_deadline_is_never_stored(ctl):
     assert claim.payload == {"ttl_s": 6}
 
 
-def test_expiry_retries_until_max_attempts_then_fails(ctl, clock):
+def test_started_idempotent_expiry_is_blocked_not_retried(ctl, clock):
     _, body = ctl.create_task(task_body(max_attempts=2))
-    for _ in range(2):
-        lease = ctl.claim({"worker_id": "w1"})
-        ctl.start({"dispatch_id": lease["dispatch_id"]})
-        pass_time(ctl, clock, 6.01)
+    lease = ctl.claim({"worker_id": "w1"})
+    ctl.start({"dispatch_id": lease["dispatch_id"]})
+    pass_time(ctl, clock, 6.01)
     seq = types(ctl, body["task_id"])
-    assert seq.count("LEASE_EXPIRED") == 2 and seq.count("TASK_RETRY_SCHEDULED") == 1 and seq[-1] == "TASK_FAILED"
+    assert seq.count("LEASE_EXPIRED") == 1 and "TASK_RETRY_SCHEDULED" not in seq and seq[-1] == "TASK_BLOCKED"
+    assert ctl.claim({"worker_id": "w2"}) is None
     expiries = [e for e in ctl.journal.events(task_id=body["task_id"]) if e.type.value == "LEASE_EXPIRED"]
     assert {e.payload["reason"] for e in expiries} == {"ttl"}
 
@@ -238,20 +238,19 @@ def test_result_before_start_is_refused(ctl):
     assert (err.status, err.code) == (409, "not_started")
 
 
-def test_late_result_from_superseded_attempt_is_discarded(ctl, clock):
+def test_late_result_from_a_blocked_started_attempt_is_discarded(ctl, clock):
     _, body = ctl.create_task(task_body())
     stale = ctl.claim({"worker_id": "w1"})
     ctl.start({"dispatch_id": stale["dispatch_id"]})
     pass_time(ctl, clock, 7)
-    run_attempt(ctl, worker="w2", result_id="r2")
-    ctl.drain()
+    assert ctl.claim({"worker_id": "w2"}) is None
     for _ in range(2):  # a repeated stale post must not grow the journal
         err = api_error(ctl.result, result_body(stale["dispatch_id"], result_id="late-1"))
         assert err.status == 409 and err.code == "stale_dispatch"
     seq = types(ctl, body["task_id"])
-    assert seq.count("LATE_RESULT_DISCARDED") == 1 and seq.count("RESULT_ACCEPTED") == 1
-    accepted = [e for e in ctl.journal.events(task_id=body["task_id"]) if e.type.value == "RESULT_ACCEPTED"]
-    assert accepted[0].attempt == 2 and accepted[0].result_id == "r2"
+    assert seq.count("LATE_RESULT_DISCARDED") == 1
+    assert "RESULT_ACCEPTED" not in seq and "TASK_RETRY_SCHEDULED" not in seq
+    assert "TASK_BLOCKED" in seq
 
 
 def test_failure_outcome_is_rejected_and_retried(ctl):

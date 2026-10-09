@@ -88,10 +88,12 @@ def test_only_idempotent_is_on_the_auto_retry_whitelist():
         assert not may_auto_retry(effect_class), effect_class
 
 
-def test_idempotent_uncertain_outcome_follows_bounded_retry():
-    assert decide_after_failure(lost_attempt("idempotent")) is Decision.RETRY
+def test_started_idempotent_unknown_stops_before_a_retry():
+    assert decide_after_failure(lost_attempt("idempotent")) is Decision.BLOCK
     assert decide_after_failure(lost_attempt("idempotent", attempt=3, max_attempts=3)) is Decision.FAIL
     assert decide_after_failure(lost_attempt("idempotent", cancel_requested=True)) is Decision.CANCEL
+    unstarted = replace(lost_attempt("idempotent"), started=False)
+    assert decide_after_failure(unstarted) is Decision.RETRY
 
 
 @pytest.mark.parametrize("effect_class", ["non_idempotent", *UNKNOWN_CLASSES])
@@ -452,10 +454,9 @@ def test_effect_key_is_stable_per_task_and_distinct_between_tasks(ctl, clock):
     _, one = ctl.create_task(task_body(lease_ttl_s=3))
     first = ctl.claim({"worker_id": "w1"})
     ctl.start({"dispatch_id": first["dispatch_id"]})
-    pass_time(ctl, clock, 4)  # idempotent: retried automatically
-    second = ctl.claim({"worker_id": "w2"})
-    assert second["task_id"] == one["task_id"] and second["attempt"] == 2
-    assert first["spec"]["effect_key"] == second["spec"]["effect_key"] == effect_key(one["task_id"])
+    pass_time(ctl, clock, 4)  # started and unknown: stopped, not retried
+    assert ctl.claim({"worker_id": "w2"}) is None
+    assert first["spec"]["effect_key"] == effect_key(one["task_id"])
     _, other = ctl.create_task(task_body())
     assert effect_key(other["task_id"]) != effect_key(one["task_id"])
     assert effect_key("task-x") == effect_key("task-x")
