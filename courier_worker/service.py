@@ -120,8 +120,10 @@ class ControllerClient:
         return status == 200
 
     def claim(self, worker_id: str, resource_state: str = "NORMAL") -> Optional[dict]:
+        # The V1 controller rejects unknown body fields (400), so resource_state stays
+        # local: the worker only claims when NORMAL and holds back otherwise.
         try:
-            status, payload = self._call("POST", "/claim", {"worker_id": worker_id, "resource_state": resource_state})
+            status, payload = self._call("POST", "/claim", {"worker_id": worker_id})
         except ControllerError:
             return None
         if status == 204:
@@ -140,7 +142,9 @@ class ControllerClient:
         if status != 200:
             raise StaleDispatch(f"start for {dispatch_id}: status {status}")
 
-    def heartbeat(self, worker_id: str, dispatch_ids: list) -> dict:
+    def heartbeat(self, worker_id: str, dispatch_ids: list, resource_state: str = "NORMAL") -> dict:
+        # resource_state is accepted for the thermal-relief callers but not sent:
+        # /heartbeat on the V1 controller allows only worker_id and dispatch_ids.
         status, payload = self._call("POST", "/heartbeat",
                                {"worker_id": worker_id, "dispatch_ids": dispatch_ids})
         if status != 200:
@@ -379,6 +383,9 @@ class WorkerLoop:
         self.worker_id = worker_id
         self.heartbeat_s = heartbeat_s
         self.engine = engine or WorkerHost(home)
+        # Thermal relief (#139): local only, never sent to the V1 controller.
+        self._last_resource_state = "NORMAL"
+        self._cooldown_until = 0.0
         self._client_factory = client_factory or self._default_client
         self._client: Optional[ControllerClient] = None
         self._watchers: dict = {}
@@ -414,15 +421,14 @@ class WorkerLoop:
 
     def iterate(self, stop: threading.Event) -> str:
         """Run one claim-execute-deliver cycle. Never loops by itself."""
-        import time
         try:
             self.flush_outbox()
         except ControllerError:
             return "idle"
         client = self._client or self._client_factory()
         self._client = client
-        
-        reason = self.host._pressure_probe()
+
+        reason = self.engine._pressure_probe()
         now = time.time()
         
         if reason is not None:
