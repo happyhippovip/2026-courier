@@ -1,6 +1,7 @@
 import subprocess
 import sys
 import time
+from dataclasses import replace
 
 import psutil
 import pytest
@@ -95,3 +96,88 @@ def test_cli_record_and_stop(spawn, tmp_path, capsys):
     assert '"STOPPED"' in capsys.readouterr().out
     proc.wait(timeout=5)
     assert main(["record", "--registry", path, "--pid", str(proc.pid), "--workkey", "wk-cli"]) == 1
+
+
+@pytest.mark.parametrize("receipt", [
+    {"result": "ORPHANS_REMAIN", "still_alive": [222]},
+    {"result": "STOPPED", "still_alive": [222]},
+    {"result": "IDENTITY_UNVERIFIED"},
+    {"result": "UNKNOWN"},
+])
+def test_failed_cleanup_retains_durable_ownership(tmp_path, monkeypatch, receipt):
+    from courier_runtime import ownership
+
+    path = str(tmp_path / "owned.json")
+    registry = Registry(path)
+    failed = OwnedProcess(111, 1.0, "blocked", "test", 0.0)
+    unrelated = OwnedProcess(333, 3.0, "other", "test", 0.0)
+    registry.add(failed)
+    registry.add(unrelated)
+    monkeypatch.setattr(ownership, "terminate_owned", lambda *a, **kw: receipt)
+
+    assert registry.stop("blocked") == [receipt]
+    pending = replace(failed, cleanup_pending=True)
+    assert Registry(path).owned() == [pending, unrelated]
+    assert main(["stop", "--registry", path, "--workkey", "blocked"]) == 1
+    assert Registry(path).owned() == [pending, unrelated]
+
+    monkeypatch.setattr(ownership, "terminate_owned", lambda *a, **kw: {"result": "NOT_RUNNING"})
+    assert registry.stop("blocked")[0]["result"] == "CLEANUP_UNVERIFIED"
+    assert Registry(path).owned() == [pending, unrelated]
+
+    monkeypatch.setattr(ownership, "terminate_owned", lambda *a, **kw: {"result": "STOPPED"})
+    registry.stop("blocked")
+    assert Registry(path).owned() == [unrelated]
+
+
+def test_identity_access_denial_is_not_proof_of_exit(tmp_path, monkeypatch):
+    from courier_runtime import ownership
+
+    record = OwnedProcess(111, 1.0, "blocked", "test", 0.0)
+    registry = Registry(str(tmp_path / "owned.json"))
+    registry.add(record)
+
+    def denied(pid):
+        raise psutil.AccessDenied(pid)
+
+    monkeypatch.setattr(ownership.psutil, "Process", denied)
+    receipt = registry.stop("blocked")[0]
+    assert receipt["result"] == "IDENTITY_UNVERIFIED"
+    assert receipt["action"] == "NONE"
+    assert Registry(registry.path).owned() == [replace(record, cleanup_pending=True)]
+
+
+def test_cleanup_reuses_verified_identity_instead_of_reopening_pid(monkeypatch):
+    from courier_runtime import ownership
+
+    signalled, lookups = [], []
+
+    class Process:
+        pid = 111
+
+        def __init__(self, name, created):
+            self.name, self.created = name, created
+
+        def status(self):
+            return psutil.STATUS_RUNNING
+
+        def create_time(self):
+            return self.created
+
+        def children(self, recursive):
+            return []
+
+        def terminate(self):
+            signalled.append(self.name)
+
+    owned, foreign = Process("owned", 1.0), Process("foreign", 2.0)
+
+    def lookup(pid):
+        lookups.append(pid)
+        return owned if len(lookups) == 1 else foreign
+
+    monkeypatch.setattr(ownership.psutil, "Process", lookup)
+    monkeypatch.setattr(ownership.psutil, "wait_procs", lambda tree, **kw: (tree, []))
+    assert terminate_owned(OwnedProcess(111, 1.0, "w", "test", 0.0))["result"] == "STOPPED"
+    assert signalled == ["owned"]
+    assert lookups == [111]

@@ -14,7 +14,7 @@ import os
 import sys
 import tempfile
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 
 import psutil
 
@@ -28,6 +28,7 @@ class OwnedProcess:
     workkey: str
     owner: str
     recorded_at: float
+    cleanup_pending: bool = False
 
     @classmethod
     def capture(cls, pid, workkey, owner):
@@ -37,14 +38,24 @@ class OwnedProcess:
                    recorded_at=time.time())
 
 
-def is_same_process(record):
-    """True only if the PID is alive and still the process that was recorded."""
+def _owned_process(record):
+    """Return the verified Process instance; access denial is not proof of exit."""
     try:
         proc = psutil.Process(record.pid)
         if proc.status() == psutil.STATUS_ZOMBIE:
-            return False
-        return abs(proc.create_time() - record.create_time) <= CREATE_TIME_TOLERANCE_S
-    except (psutil.NoSuchProcess, psutil.AccessDenied):
+            return None
+        if abs(proc.create_time() - record.create_time) <= CREATE_TIME_TOLERANCE_S:
+            return proc
+    except psutil.NoSuchProcess:
+        pass
+    return None
+
+
+def is_same_process(record):
+    """True only if the PID is alive and still the process that was recorded."""
+    try:
+        return _owned_process(record) is not None
+    except psutil.AccessDenied:
         return False
 
 
@@ -56,12 +67,17 @@ def terminate_owned(record, timeout=5.0):
     """
     receipt = {"pid": record.pid, "workkey": record.workkey, "owner": record.owner,
                "action": "NONE", "terminated": [], "still_alive": [], "result": "NOT_RUNNING"}
-    if not is_same_process(record):
-        return receipt
-    root = psutil.Process(record.pid)
     try:
+        root = _owned_process(record)
+        if root is None:
+            return receipt
+        # Retain the identity-checked instance: reopening the PID here can bind
+        # the signals to an unrelated process if the original exits meanwhile.
         tree = root.children(recursive=True) + [root]
     except psutil.NoSuchProcess:
+        return receipt
+    except psutil.AccessDenied:
+        receipt["result"] = "IDENTITY_UNVERIFIED"
         return receipt
     for proc in tree:
         try:
@@ -75,6 +91,22 @@ def terminate_owned(record, timeout=5.0):
         except psutil.NoSuchProcess:
             pass
     gone2, alive2 = psutil.wait_procs(alive, timeout=timeout)
+    # A zombie has exited and cannot execute or retain open descriptors. Its
+    # parent/reaper may retain the PID, so wait_procs can report it as alive.
+    # Keep unreadable or genuinely running processes in the blocking receipt.
+    survivors = []
+    for proc in alive2:
+        try:
+            exited = proc.status() == psutil.STATUS_ZOMBIE
+        except psutil.NoSuchProcess:
+            exited = True
+        except psutil.AccessDenied:
+            exited = False
+        if exited:
+            gone2.append(proc)
+        else:
+            survivors.append(proc)
+    alive2 = survivors
     receipt.update(action="TERMINATE_OWNED_TREE",
                    terminated=sorted(p.pid for p in gone + gone2),
                    still_alive=sorted(p.pid for p in alive2),
@@ -112,11 +144,18 @@ class Registry:
         return [r for r in self.load() if workkey is None or r.workkey == workkey]
 
     def stop(self, workkey=None, timeout=5.0):
-        """Stop every owned record (optionally one workkey) and drop it from the registry."""
+        """Stop matching records; retain ownership until cleanup is proven."""
         receipts, keep = [], []
         for record in self.load():
             if workkey is None or record.workkey == workkey:
-                receipts.append(terminate_owned(record, timeout=timeout))
+                receipt = terminate_owned(record, timeout=timeout)
+                if record.cleanup_pending and receipt.get("result") == "NOT_RUNNING":
+                    # Losing the parent does not prove previously surviving
+                    # descendants exited. Preserve this uncertainty on retry.
+                    receipt["result"] = "CLEANUP_UNVERIFIED"
+                receipts.append(receipt)
+                if receipt.get("result") not in ("STOPPED", "NOT_RUNNING") or receipt.get("still_alive"):
+                    keep.append(replace(record, cleanup_pending=True))
             else:
                 keep.append(record)
         self._save(keep)
@@ -147,7 +186,8 @@ def main(argv=None):
         return 0
     receipts = registry.stop(args.workkey, timeout=args.timeout)
     print(json.dumps(receipts))
-    return 1 if any(r["result"] == "ORPHANS_REMAIN" for r in receipts) else 0
+    return 1 if any(r.get("result") not in ("STOPPED", "NOT_RUNNING") or r.get("still_alive")
+                    for r in receipts) else 0
 
 
 if __name__ == "__main__":
