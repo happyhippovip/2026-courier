@@ -54,7 +54,8 @@ def test_identity_uses_placeholder_when_verifier_has_no_qualname(tmp_path: Path)
     assert getattr(wrapped, "__qualname__", "?") == "?"
     identity = verifier_identity(wrapped)
     assert identity["kind"] == "adapter"
-    assert identity["name"] == f"{wrapped.__module__}.?"
+    expected_mod = getattr(wrapped, "__module__", "?")
+    assert identity["name"] == f"{expected_mod}.?"
     assert identity["version"] is None
 
 
