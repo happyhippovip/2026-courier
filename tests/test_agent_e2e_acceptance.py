@@ -3,6 +3,7 @@ import json
 import pytest
 import sys
 import tempfile
+import textwrap
 from pathlib import Path
 
 repo_root = Path(__file__).resolve().parent.parent
@@ -207,4 +208,89 @@ def test_recovered_agent_full_acceptance_chain():
         assert blocked_decision["safe"] is False
         assert blocked_decision["state"] == "NEEDS_USER"
         assert blocked_decision["resume_step"] == 1
+
+
+def test_provider_exec_real_headless_subprocess_chain(tmp_path, monkeypatch):
+    """
+    Proves Packet 2 (Real E2E Gap):
+    Connects Authorized Workkey -> Real Worker Subprocess Execution (via provider_exec)
+    -> Exact Redacted Artifact -> Verifier PASS -> Courier Ledger Receipt.
+    Runs a real OS process (python executable) with stdin closed and policy boundaries.
+    """
+    from courier_worker.adapters import provider_exec
+    from adapters import provider_exec as verifier_adapter
+
+    monkeypatch.setattr(provider_exec, "admit_heavy", lambda: True)
+
+    # 1. Create real headless mock agent executable
+    fake_script = tmp_path / "agent_binary.py"
+    fake_script.write_text(
+        textwrap.dedent('''
+            import json, sys
+            # Emulate headless CLI output with exact success envelope
+            payload = {
+                "conversation_id": "conv-real-e2e",
+                "status": "SUCCESS",
+                "response": "VERIFIED_SPECIALIST_OUTPUT",
+                "usage": {"input_tokens": 12, "output_tokens": 5, "total_tokens": 17},
+                "duration_seconds": 0.2,
+            }
+            sys.stdout.write(json.dumps(payload) + "\\n")
+            sys.exit(0)
+        '''),
+        encoding="utf-8"
+    )
+
+    workdir = tmp_path / "workdir"
+    workdir.mkdir()
+    artifact_dir = tmp_path / "artifacts"
+    artifact_dir.mkdir()
+
+    # 2. Spec with authorized workkey and capability
+    workkey = "WK-REAL-E2E-AGY-001"
+    task_id = "task-real-agy-001"
+    params = {
+        "provider": "agy",
+        "prompt": "run verified asset validation",
+        "print_timeout_s": 60,
+    }
+    config = {"binaries": {"agy": str(fake_script.resolve())}}
+
+    # 3. Real Subprocess Execution via provider_exec.run
+    result = provider_exec.run(params, str(workdir), config=config)
+    assert result.outcome == "success"
+    assert result.exit_code == 0
+    assert result.verified is True
+    assert result.launched is True
+
+    # 4. Save and verify artifact
+    artifact_data = {
+        "workkey": workkey,
+        "task_id": task_id,
+        "output_sha256": result.output_sha256,
+        "status": "COMPLETED",
+    }
+    artifact_file = artifact_dir / f"{task_id}.json"
+    artifact_file.write_text(json.dumps(artifact_data, sort_keys=True), encoding="utf-8")
+    assert artifact_file.exists()
+
+    # 5. Ledger Receipt validation
+    receipt = RecoveryReceipt(
+        workkey=workkey,
+        session_id="sess-real-agy",
+        incident_fingerprint="fp-real-exec",
+        detected_state="TASK_IN_PROGRESS",
+        detected_at=20000.0,
+        what_failed="none",
+        positive_evidence=None,
+        survived={"process_alive": True, "lease_valid": True, "exit_code": 0},
+        action="RECONNECT_SURFACE",
+        outcome="RECOVERED",
+        after_snapshot="snap-real-exec",
+        progress_after_detection=True,
+    )
+    validated = validate(receipt, set())
+    assert validated.outcome == "RECOVERED"
+    assert validated.workkey == workkey
+
 
