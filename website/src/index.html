@@ -412,6 +412,26 @@
         </main>
 
         <script>
+            function typeText(element, text, speed, callback) {
+                let i = 0;
+                element.innerHTML = text.startsWith('[System]') ? text : '> ';
+                if (text.startsWith('[System]')) {
+                    callback();
+                    return;
+                }
+                
+                function typeChar() {
+                    if (i < text.length) {
+                        element.innerHTML += text.charAt(i);
+                        i++;
+                        setTimeout(typeChar, speed);
+                    } else {
+                        callback();
+                    }
+                }
+                typeChar();
+            }
+
             function runAuditDemo() {
                 const btn = document.getElementById('start-audit-btn');
                 const content = document.getElementById('terminal-content');
@@ -420,44 +440,48 @@
                 content.innerHTML = '';
                 
                 const lines = [
-                    "[Ledger] Initialisiere Repo Reality Check für Kundencode...",
+                    "[Ledger] Initialisiere Repo Reality Check...",
+                    "[Host] Spawn Worker 'Mac AntiGravity' für Website-Prüfung...",
                     "[Analyzer] Analysiere 'integration/v1' Branch...",
                     "[Foundry] WARNUNG: PR #128 gemergt, aber Tests schlagen fehl.",
-                    "[Codex] Analysiere Code-Pfade: Circular Dependency in 'local_swarm_claim.py' gefunden.",
+                    "[Muse] Analysiere Code-Pfade: Circular Dependency in 'local_swarm_claim.py' gefunden.",
                     "[Ledger] CLAIM-Schritt Fehler erkannt (Write-Abort nicht behandelt).",
+                    "[Codex] Generiere Patch zur Fehlerbehebung...",
                     "[System] ➔ Check abgeschlossen. Bericht bereit zur Überprüfung."
                 ];
 
-                let delay = 0;
-                lines.forEach((text, index) => {
-                    setTimeout(() => {
-                        const div = document.createElement('div');
-                        div.className = 'line sys';
-                        if (text.startsWith('[System]')) {
-                            div.style.color = 'var(--success)';
-                            div.style.fontWeight = 'bold';
-                        } else if (text.includes('WARNUNG')) {
-                            div.style.color = '#f59e0b';
-                        }
-                        div.innerHTML = text.startsWith('[System]') ? text : `> ${text}`;
-                        div.style.opacity = '0';
-                        content.appendChild(div);
-                        
-                        // Trigger reflow for animation
-                        void div.offsetWidth;
-                        div.style.transition = 'opacity 0.3s ease';
-                        div.style.opacity = '1';
-                        
-                        if (index === lines.length - 1) {
-                            setTimeout(() => {
-                                btn.disabled = false;
-                                btn.style.opacity = '1';
-                                btn.innerHTML = 'Erneut testen <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>';
-                            }, 1000);
-                        }
-                    }, delay);
-                    delay += 800 + Math.random() * 800; // Random delay between 800-1600ms
-                });
+                let currentLine = 0;
+
+                function processNextLine() {
+                    if (currentLine >= lines.length) {
+                        setTimeout(() => {
+                            btn.disabled = false;
+                            btn.style.opacity = '1';
+                            btn.innerHTML = 'Erneut testen <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>';
+                        }, 1000);
+                        return;
+                    }
+
+                    const text = lines[currentLine];
+                    const div = document.createElement('div');
+                    div.className = 'line sys';
+                    
+                    if (text.startsWith('[System]')) {
+                        div.style.color = 'var(--success)';
+                        div.style.fontWeight = 'bold';
+                    } else if (text.includes('WARNUNG') || text.includes('Fehler')) {
+                        div.style.color = '#f59e0b';
+                    }
+
+                    content.appendChild(div);
+
+                    typeText(div, text, 15 + Math.random() * 20, () => {
+                        currentLine++;
+                        setTimeout(processNextLine, 300 + Math.random() * 500);
+                    });
+                }
+                
+                processNextLine();
             }
         </script>
 
