@@ -77,7 +77,12 @@ class Workspace:
             if stop_after == index:
                 return {"state": "DEVICE_LOST", "host": host.device_id, "step": index, "pid": proc.pid}
             code = proc.wait(timeout=60)
-            lease = self.leases.renew(lease, ttl_s=self.ttl)          # heartbeat after progress
+            try:
+                lease = self.leases.renew(lease, ttl_s=self.ttl)          # heartbeat after progress
+            except StaleLease:
+                self.registry.stop(workkey)
+                return {"state": "DEVICE_LOST", "host": host.device_id, "step": index,
+                        "reasons": ["lease expired or lost during step execution"]}
             self.registry.stop(workkey)                                  # nothing of ours left behind
             passed = code == 0 and os.path.exists(out)
             ev = Evidence(workkey, "python", host.device_id, _sha256(out) if passed else "", passed)

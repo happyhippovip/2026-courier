@@ -174,3 +174,21 @@ def test_workspace_halts_when_grant_expires_mid_execution(world):
     assert "authority expired during execution" in result["reasons"][0]
     assert ws.leases.current("project:p1") is None
 
+
+def test_workspace_halts_safely_when_lease_lost_during_step(world):
+    ws, clock, _, tmp = world
+    steps = [write_step("s0", str(tmp / "cnt.txt"))]
+    # Advance clock beyond lease TTL during execution
+    original_wait = ws.run
+    # Simulate expired lease by wrapping leases.renew to raise StaleLease
+    from courier_runtime.lease import StaleLease
+    def raise_stale(lease, ttl_s=30):
+        raise StaleLease("lease expired")
+    ws.leases.renew = raise_stale
+
+    result = ws.run("wk-sec-4", Requirement(frozenset({"python"})), "project:p1", request("r1"), steps)
+    assert result["state"] == "DEVICE_LOST"
+    assert "lease expired or lost during step execution" in result["reasons"][0]
+    assert ws.registry.owned("wk-sec-4") == []  # processes reaped cleanly
+
+
