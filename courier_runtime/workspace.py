@@ -52,10 +52,11 @@ class Workspace:
         lease_free = self.leases.current(scope) is None or self.leases.current(scope).holder == host.device_id
         decision = decide(checkpoint, grants_valid={grant.grant_id: True}, owned_alive=owned_alive,
                           lease_available=lease_free)
-        if not decision["safe"]:
+        # resume_step None means do not run. `None or 0` would restart at step 0.
+        if not decision["safe"] or decision.get("resume_step") is None:
             return {**decision, "host": host.device_id}
         lease = self.leases.acquire(scope, host.device_id, workkey, ttl_s=self.ttl)
-        for index in range(decision["resume_step"] or 0, len(steps)):
+        for index in range(decision["resume_step"], len(steps)):
             step = steps[index]
             proc = subprocess.Popen(step.argv, cwd=self.workdir, stdin=subprocess.DEVNULL)
             self.registry.add(OwnedProcess.capture(proc.pid, workkey, host.device_id))
