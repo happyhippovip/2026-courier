@@ -80,6 +80,15 @@ def test_verify_run2_evidence_task_B_not_reconciled(capsys, mock_evidence_clean)
     assert "Task B is not RECONCILED. Current: MISSING" in captured.out
     m_exit.assert_called_once_with(1)
 
+def test_verify_run2_evidence_missing_server_log_is_not_valid(capsys, mock_evidence_clean):
+    mock_evidence_clean["exists"].side_effect = lambda path: "server_run2.log" not in str(path)
+    m_exit = run_script()
+    captured = capsys.readouterr()
+    assert "RUN_2 EVIDENCE VALID" not in captured.out
+    assert "NO_REPLAYS" not in captured.out
+    m_exit.assert_called_once_with(1)
+
+
 def test_verify_run2_evidence_task_A_replayed(capsys, mock_evidence_clean):
     mock_log_content = "Claimed task A\nResult for task B\n"
     with patch("builtins.open", mock_open(read_data=mock_log_content)):
