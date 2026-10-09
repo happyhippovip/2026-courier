@@ -1,0 +1,9 @@
+{
+  "NEXT_ACTION": "L1/L3: Resolve merge conflicts between 'revenue-3' and 'integration/v1'. The 'revenue-3' branch contains the required CLAIM step fix, Website-Optimierung, and Revenue features (WeasyPrint). Rebase or merge 'revenue-3' into 'integration/v1' to unblock production.",
+  "OWNER": "L1-integration / L3",
+  "PRIORITY": "P0",
+  "SCOPE": "Integration / Merge Conflict Resolution",
+  "STAGE": "RELIABLE AUTOMATION",
+  "STATUS": "BLOCKED_BY_MERGE_CONFLICT",
+  "WORKKEY": "CHIEF-COORDINATION-02"
+}
