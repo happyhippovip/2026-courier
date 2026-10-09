@@ -8,6 +8,7 @@ no Mac: nothing here is physical proof.
 import importlib.util
 import json
 import os
+import subprocess
 import sys
 import threading
 import time
@@ -87,11 +88,52 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setattr(sup, "DAEMON", bootstrap)
     http = server.app.test_client()
     auth = {"Authorization": f"Bearer {WORKER_KEY}"}
+    sys.path.insert(0, str(ROOT / "scripts" / "mac_worker"))
+    reaper_mod = load_module(f"reaper_{tmp_path.name}", ROOT / "scripts" / "mac_worker" / "supervisor_test_reaper.py")
+    reaper = reaper_mod.SupervisorTestReaper()
+    launchers = []
+    real_launcher = sup.ProcessLauncher
+
+    class RecordingLauncher(real_launcher):
+        """Remember every slot Popen this test starts so teardown can reap it."""
+
+        def __init__(self):
+            super().__init__()
+            launchers.append(self)
+            self.spawned = []
+
+        def start(self, slot_id, env):
+            pid = super().start(slot_id, env)
+            proc = self.children.get(slot_id)
+            if proc is not None:
+                if proc not in self.spawned:
+                    self.spawned.append(proc)
+                reaper.register(proc, label=f"slot-{slot_id}")
+            return pid
+
+    monkeypatch.setattr(sup, "ProcessLauncher", RecordingLauncher)
     try:
         yield sup, server, http, auth, tmp_path
     finally:
-        sup.cmd_stop(terminate=True)
-        httpd.shutdown()
+        recorded = list(launchers)
+        try:
+            if recorded:
+                for launcher in recorded:
+                    sup.cmd_stop(terminate=True, launcher=launcher)
+            else:
+                sup.cmd_stop(terminate=True)
+            for launcher in recorded:
+                current = {id(proc) for proc in launcher.children.values()}
+                for proc in launcher.spawned:
+                    if proc.poll() is not None and _group_gone(proc.pid):
+                        continue
+                    if id(proc) not in current and proc.poll() is None:
+                        sup.cleanup_group(proc, None)
+            reaper.cleanup_all()
+        except RuntimeError as exc:
+            raise AssertionError(str(exc)) from exc
+        finally:
+            httpd.shutdown()
 
 
 def add_goal(http, auth, task_id):
@@ -115,6 +157,16 @@ def run_until(sup_obj, predicate, clock=None, timeout=60.0):
     return False
 
 
+def _group_gone(pgid):
+    try:
+        os.killpg(int(pgid), 0)
+    except ProcessLookupError:
+        return True
+    except (OSError, ValueError):
+        return False
+    return False
+
+
 def supervisor(sup, target=4, clock=None):
     sup.cmd_start(target, loop=False)
     gov = sup.CapacityGovernor(target, clock=clock or time.time)
@@ -123,7 +175,10 @@ def supervisor(sup, target=4, clock=None):
 
 
 def task_state(server, task_id):
-    return server.load_state()["tasks"].get(task_id, {})
+    # save_state replaces the JSON and then its signature. A read between those
+    # replaces is not tampering; it has to wait until that write finishes.
+    with server.STATE_LOCK:
+        return server.load_state()["tasks"].get(task_id, {})
 
 
 def test_slot_claims_canonical_task_runs_muse_exits_and_restarts_with_checkpoint(env):
@@ -268,6 +323,63 @@ def test_four_slots_are_isolated(env):
     cwds = {c["cwd"] for c in muse_calls(tmp)}
     assert len(cwds) == 4 and len(muse_calls(tmp)) == 4
     sup.cmd_stop()
+
+
+def test_tick_exits_running_slot_when_recorded_pid_is_dead(env):
+    """N1: dead pid with stale identity must not keep the slot RUNNING forever."""
+    sup, _, _, _, _ = env
+    proc = subprocess.Popen([sys.executable, "-c", "pass"], stdin=subprocess.DEVNULL, start_new_session=True)
+    sys.path.insert(0, str(ROOT / "scripts" / "mac_worker"))
+    rt = importlib.import_module("runtime_state")
+    ident = rt.capture_process_identity(proc)
+    pid = str(proc.pid)
+    proc.wait(timeout=5)
+    slots = sup.load_slots()
+    slots["01"] = {
+        "slot_id": "01",
+        "state": "RUNNING",
+        "pid": pid,
+        "process_identity": ident,
+        "last_started_at": time.time() - 120,
+        "restart_count": 0,
+        "crash_count": 0,
+        "backoff_until": 0,
+    }
+    sup.save_slots(slots)
+    s = supervisor(sup, target=1)
+    s._tick(s.gov.evaluate("read"))
+    assert sup.load_slots()["01"]["state"] != "RUNNING"
+    assert sup.load_slots()["01"].get("pid") == ""
+
+
+def test_owned_popen_stops_when_ps_identity_is_missing(env, monkeypatch):
+    """ps timeout (process_identity is None) must not spare a live owned session.
+
+    The slot child ignores the STOP file. Exit has to come from the signal
+    sent to that unreaped session, which is what a deleted tmp dir cannot do.
+    """
+    sup, _, _, _, tmp = env
+    sleeper = tmp / "sleep_daemon.py"
+    sleeper.write_text("import time\nwhile True:\n    time.sleep(0.2)\n")
+    monkeypatch.setattr(sup, "DAEMON", sleeper)
+    import importlib
+    rt = importlib.import_module("runtime_state")
+    monkeypatch.setattr(rt, "process_identity", lambda pid: None)
+    s = supervisor(sup, target=1)
+    assert run_until(s, lambda: sup.load_slots().get("01", {}).get("state") == "RUNNING")
+    proc = s.launcher.children["01"]
+    assert proc.poll() is None
+    s.launcher.identities["01"] = None
+    slots = sup.load_slots()
+    slots["01"]["process_identity"] = None
+    sup.save_slots(slots)
+    sup.cmd_stop(terminate=True, launcher=s.launcher)
+    deadline = time.monotonic() + 10
+    while proc.poll() is None and time.monotonic() < deadline:
+        time.sleep(0.05)
+    blocker = sup.load_slots()["01"].get("blocker") or ""
+    assert proc.poll() is not None and _group_gone(proc.pid)
+    assert "CLEANUP_NOT_PROVEN" not in blocker
 
 
 def test_stop_prevents_restart(env):

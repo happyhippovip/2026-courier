@@ -35,7 +35,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from runtime_state import (CANONICAL_WORKSPACE, atomic_json, read_object, control_lock,
-                           process_identity, same_process, cleanup_group, sync_directory)
+                           capture_process_identity, same_process, cleanup_group, sync_directory)
 
 WALL_DIR = Path(os.environ.get("COURIER_WALL_DIR", Path.home() / "Downloads" / "courier_work" / "muse_wall"))
 SLOTS_FILE = WALL_DIR / "slots.json"
@@ -170,7 +170,7 @@ class ProcessLauncher:
             proc = subprocess.Popen(["bash", "-c", cmd], env=env, stdout=out, stderr=subprocess.STDOUT,
                                     stdin=subprocess.DEVNULL, start_new_session=True, cwd=home / "work")
         self.children[slot_id] = proc
-        self.identities[slot_id] = process_identity(proc.pid)
+        self.identities[slot_id] = capture_process_identity(proc)
         return proc.pid
 
     def identity(self, slot_id):
@@ -208,8 +208,30 @@ class ProcessLauncher:
         if proc is None:
             # Recovered process: no waitpid ownership, but identity is verified.
             class Recovered:
-                def __init__(self, value): self.pid = int(value)
-                def poll(self): return None
+                def __init__(self, value):
+                    self.pid = int(value)
+                    self.returncode = None
+
+                def poll(self):
+                    try:
+                        os.kill(self.pid, 0)
+                    except ProcessLookupError:
+                        self.returncode = -9
+                        return self.returncode
+                    return None
+
+                def wait(self, timeout=None):
+                    if self.returncode is not None:
+                        return self.returncode
+                    deadline = None if timeout is None else time.monotonic() + timeout
+                    while True:
+                        code = self.poll()
+                        if code is not None:
+                            return code
+                        if deadline is not None and time.monotonic() >= deadline:
+                            raise subprocess.TimeoutExpired(cmd=[], timeout=timeout)
+                        time.sleep(0.05)
+
             proc = Recovered(pid)
         return cleanup_group(proc, identity)
 
@@ -297,6 +319,8 @@ class Supervisor:
             slot.update(state=RUNNING, pid=pid, last_started_at=now, backoff_until=0)
             if hasattr(self.launcher, "identity"):
                 slot["process_identity"] = self.launcher.identity(slot["slot_id"])
+                if slot["process_identity"] is None:
+                    slot["blocker"] = "PROCESS_IDENTITY_UNRECORDED: ps identity unavailable at spawn"
             save_slots(slots)
             active += 1
             new_starts += 1
