@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/happyhippovip/2026-courier/schemas/active_mission_record.schema.json",
+  "title": "Active Mission Record",
+  "description": "Durable control-plane rule for agent missions.",
+  "type": "object",
+  "required": [
+    "mission_id", "attempt_id", "assigned_role_id", "parent_mission_id",
+    "policy_version", "started_at", "deadline_monotonic", "lease_expires_at",
+    "heartbeat_at", "expected_artifacts", "write_scope", "resource_class",
+    "finalizer_required", "status"
+  ],
+  "properties": {
+    "mission_id": {"type": "string", "minLength": 1},
+    "attempt_id": {"type": "string", "minLength": 1},
+    "assigned_role_id": {"type": "string", "minLength": 1},
+    "parent_mission_id": {"type": ["string", "null"]},
+    "policy_version": {"type": "string", "minLength": 1},
+    "started_at": {"type": "string", "format": "date-time"},
+    "deadline_monotonic": {"type": "number"},
+    "lease_expires_at": {"type": "number"},
+    "heartbeat_at": {"type": "number"},
+    "expected_artifacts": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "write_scope": {"type": "string"},
+    "resource_class": {"type": "string", "enum": ["LIGHT", "HEAVY", "CRITICAL"]},
+    "finalizer_required": {"type": "boolean"},
+    "status": {"type": "string", "enum": ["QUEUED", "CLAIMED", "RUNNING", "REPORTING", "COMPLETED", "FAILED", "INTERRUPTED", "UNRESOLVED"]},
+    "last_proven_step": {"type": ["string", "null"]},
+    "next_unproven_step": {"type": ["string", "null"]}
+  }
+}
