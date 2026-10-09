@@ -75,6 +75,20 @@ class TruthUnavailable(Exception):
     """The journal cannot be read (not created yet, or written by another build)."""
 
 
+def _task_is_done(task) -> bool:
+    """Whether the model files this task under Done.
+
+    ValueError means a status this hub does not map. Count it as active so
+    Home can show one unrecognised card instead of failing the whole read.
+    """
+    from courier_hub.model import PILE_DONE, pile_of
+    try:
+        return pile_of(task) == PILE_DONE
+    except ValueError:
+        log.exception("hub could not classify task %s", getattr(task, "task_id", None))
+        return False
+
+
 class NotSent(ConnectionError):
     """The controller could not be reached: the request was never delivered."""
 
@@ -118,38 +132,48 @@ class Hub:
     def _read(self):
         journal = self._open()
         try:
-            tasks = journal.tasks()
-            head = journal.head()[0]
-            events_by_task: dict = {}
+            try:
+                tasks = journal.tasks()
+                head = journal.head()[0]
+                events_by_task: dict = {}
 
-            from courier_hub.model import pile_of, PILE_DONE
-            active_ids = {t.task_id for t in tasks if pile_of(t) != PILE_DONE}
-            done_tasks = [t for t in tasks if pile_of(t) == PILE_DONE]
-            
-            if done_tasks:
-                rows = journal.conn.execute("SELECT task_id, MAX(seq) as m FROM events WHERE task_id IS NOT NULL GROUP BY task_id").fetchall()
-                max_seqs = {row["task_id"]: row["m"] for row in rows}
-                done_tasks.sort(key=lambda t: max_seqs.get(t.task_id, 0), reverse=True)
-                keep_done = {t.task_id for t in done_tasks[:50]}
-            else:
-                keep_done = set()
-                
-            keep_ids = active_ids | keep_done
-            
-            if keep_ids:
-                from courier_core.events import Event
-                keep_list = list(keep_ids)
-                chunk_size = 900
-                for i in range(0, len(keep_list), chunk_size):
-                    chunk = keep_list[i:i + chunk_size]
-                    placeholders = ','.join('?' * len(chunk))
-                    q = f"SELECT * FROM events WHERE task_id IN ({placeholders}) ORDER BY seq"
-                    for row in journal.conn.execute(q, chunk):
-                        events_by_task.setdefault(row["task_id"], []).append(Event.from_row(row))
-                        
-            return tasks, events_by_task, head
-        except sqlite3.DatabaseError as exc:
-            raise TruthUnavailable("unreadable") from exc
+                active_ids = set()
+                done_tasks = []
+                for task in tasks:
+                    # A status the model cannot file stays active. model.home then
+                    # renders that one card as unrecognised and leaves the rest up.
+                    if _task_is_done(task):
+                        done_tasks.append(task)
+                    else:
+                        active_ids.add(task.task_id)
+
+                if done_tasks:
+                    rows = journal.conn.execute("SELECT task_id, MAX(seq) as m FROM events WHERE task_id IS NOT NULL GROUP BY task_id").fetchall()
+                    max_seqs = {row["task_id"]: row["m"] for row in rows}
+                    done_tasks.sort(key=lambda t: max_seqs.get(t.task_id, 0), reverse=True)
+                    keep_done = {t.task_id for t in done_tasks[:50]}
+                else:
+                    keep_done = set()
+
+                keep_ids = active_ids | keep_done
+
+                if keep_ids:
+                    from courier_core.events import Event
+                    keep_list = list(keep_ids)
+                    chunk_size = 900
+                    for i in range(0, len(keep_list), chunk_size):
+                        chunk = keep_list[i:i + chunk_size]
+                        placeholders = ','.join('?' * len(chunk))
+                        q = f"SELECT * FROM events WHERE task_id IN ({placeholders}) ORDER BY seq"
+                        for row in journal.conn.execute(q, chunk):
+                            events_by_task.setdefault(row["task_id"], []).append(Event.from_row(row))
+
+                return tasks, events_by_task, head
+            except (sqlite3.DatabaseError, ValueError) as exc:
+                # A newer journal (unknown status, bad JSON, column drift) is unreadable,
+                # not an internal error. The message stays in the log.
+                log.exception("hub could not read the journal")
+                raise TruthUnavailable("unreadable") from exc
         finally:
             journal.close()
 
@@ -191,7 +215,8 @@ class Hub:
             if task is None:
                 return None
             events = list(journal.events(task_id=task_id))
-        except sqlite3.DatabaseError as exc:
+        except (sqlite3.DatabaseError, ValueError) as exc:
+            log.exception("hub could not read item %s", task_id)
             raise TruthUnavailable("unreadable") from exc
         finally:
             journal.close()
