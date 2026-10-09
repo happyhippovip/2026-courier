@@ -5,6 +5,7 @@ Courier Doctor: Beginner UX tool to diagnose the health of the local Courier Sym
 
 import json
 import os
+import sqlite3
 import urllib.request
 import urllib.error
 from pathlib import Path
@@ -34,18 +35,33 @@ def check_ledger():
     db_path = get_app_data_dir() / "courier.db"
     if not db_path.exists():
         return False, f"Missing ledger at {db_path}"
-    
+
+    from courier_core.journal import Journal, JournalError
+
+    journal = Journal(db_path, readonly=True)
     try:
-        # We don't import sqlite3 here strictly but we could
-        import sqlite3
-        conn = sqlite3.connect(db_path.as_uri() + "?mode=ro", uri=True)
-        cursor = conn.execute("SELECT seq FROM events ORDER BY seq DESC LIMIT 1")
-        row = cursor.fetchone()
-        conn.close()
-        seq = row[0] if row else 0
-        return True, f"Ledger exists. {seq} events recorded."
-    except Exception as e:
-        return False, f"Error reading ledger: {e}"
+        try:
+            journal.open()
+        except (JournalError, sqlite3.Error, OSError) as exc:
+            return False, f"Could not open journal: {exc}"
+        try:
+            chain = journal.verify_chain()
+            if not chain.ok:
+                detail = chain.reason or "hash chain verification failed"
+                if chain.first_bad_seq is not None:
+                    detail = f"{detail} (first_bad_seq={chain.first_bad_seq})"
+                return False, f"Journal integrity failed: {detail}"
+            if not journal.projection_current() or not journal.verify_projection():
+                return False, (
+                    "Journal integrity failed: stored task projection does not match event replay"
+                )
+            return True, (
+                f"Journal OK. {chain.count} events recorded (head_seq={chain.head_seq})."
+            )
+        except (JournalError, sqlite3.Error, OSError) as exc:
+            return False, f"Journal read failed: {exc}"
+    finally:
+        journal.close()
 
 def check_server():
     config = load_config()

@@ -6,7 +6,10 @@ import zipfile
 
 import pytest
 
-from scripts.courier_doctor import export_diagnostics, get_app_data_dir, load_config
+from tests.core.core_builders import golden_path
+
+from courier_core.journal import Journal
+from scripts.courier_doctor import check_ledger, export_diagnostics, get_app_data_dir, load_config
 
 def test_diagnostics_bundle_v1(tmp_path, monkeypatch):
     home = tmp_path / "home"
@@ -60,4 +63,45 @@ def test_diagnostics_bundle_v1(tmp_path, monkeypatch):
         
         config_content = zf.read("config.json").decode("utf-8")
         assert "secret_api_key_abc" not in config_content
-        
+
+
+def test_check_ledger_real_journal(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_HOME", str(tmp_path))
+    with Journal(tmp_path / "courier.db") as journal:
+        for event in golden_path():
+            journal.append(event)
+    ok, msg = check_ledger()
+    assert ok is True and "Journal OK" in msg and "head_seq=" in msg
+
+
+def test_check_ledger_rejects_zero_byte(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_HOME", str(tmp_path))
+    (tmp_path / "courier.db").write_bytes(b"")
+    ok, msg = check_ledger()
+    assert ok is False
+    assert "journal" in msg.lower() or "integrity" in msg.lower()
+
+
+def test_check_ledger_rejects_non_v1_sqlite(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_HOME", str(tmp_path))
+    conn = sqlite3.connect(tmp_path / "courier.db")
+    conn.execute("CREATE TABLE events (seq INTEGER PRIMARY KEY, type TEXT)")
+    conn.commit()
+    conn.close()
+    ok, msg = check_ledger()
+    assert ok is False
+    assert "journal" in msg.lower() or "integrity" in msg.lower()
+
+
+def test_check_ledger_rejects_tampered_projection(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_HOME", str(tmp_path))
+    with Journal(tmp_path / "courier.db") as journal:
+        for event in golden_path():
+            journal.append(event)
+        assert journal.verify_chain().ok
+        journal.conn.execute("UPDATE tasks SET status = 'FAILED' WHERE task_id = 't1'")
+        assert not journal.verify_projection()
+    ok, msg = check_ledger()
+    assert ok is False
+    assert "projection" in msg.lower() and "replay" in msg.lower()
+
