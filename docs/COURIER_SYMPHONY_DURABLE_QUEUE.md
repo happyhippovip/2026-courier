@@ -11,8 +11,8 @@
 
 | Metric | Count |
 |---|---|
-| **TOTAL_REAL_CANDIDATES** | 10 |
-| **VERIFIED_DONE** | 8 |
+| **TOTAL_REAL_CANDIDATES** | 11 |
+| **VERIFIED_DONE** | 9 |
 | **WORKING / IN_PROGRESS** | 1 |
 | **READY (Next Eligible)** | 1 |
 | **BLOCKED / OWNER_REQUIRED** | 0 |
@@ -207,5 +207,22 @@
 - **RESOURCE_CLASS:** MEDIUM
 - **SAFE_TO_RUN:** YES
 - **STATUS:** `VERIFIED_DONE`
-- **RESULT_RECEIPT:** `RECEIPT-MULTI-STEP-CONTINUATION-OK` (Commit `59ec77f5a`, 3/3 PASS in 0.82s)
+---
+
+### TASK-11: Specialist Routing Expansion & Single-Writer Conflict Exclusion
+- **TASK_ID:** `WK-L2-SPECIALIST-ROUTING-EXPANSION`
+- **SOURCE:** Marathon Directive V34 / P7 Specialist Routing & Duplicate Writer Exclusion
+- **CURRENT_SHA:** `afc677570`
+- **OWNER_LANE:** `lane/L2-agent-warehouse-clean`
+- **EXISTING_PR:** [#410](https://github.com/happyhippovip/2026-courier/pull/410)
+- **DEPENDS_ON:** `WK-P3-AUTO-CONTINUE-001`
+- **ELIGIBILITY:** ELIGIBLE
+- **BLOCKER:** None
+- **EXPECTED_CODE_CHANGE:** Expand `tests/test_specialist_claim_routing.py` to cover core agents, antigravity/codex bridge providers, reserve agents, single-writer conflict exclusion, and fail-closed unverified implementation filtering.
+- **TEST_COMMAND:** `python -m pytest tests/test_specialist_claim_routing.py`
+- **ACCEPTANCE_CRITERIA:** 3/3 tests pass; all candidate agent owner files verified on disk; duplicate active writers properly filtered out from candidate selection; unverified agents fail closed when require_implemented=True.
+- **RESOURCE_CLASS:** LIGHT
+- **SAFE_TO_RUN:** YES
+- **STATUS:** `VERIFIED_DONE`
+- **RESULT_RECEIPT:** `RECEIPT-SPECIALIST-ROUTING-EXPANSION-OK` (Commit `afc677570`, 3/3 PASS in 0.16s)
 
