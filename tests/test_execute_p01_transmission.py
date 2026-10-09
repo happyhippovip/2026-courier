@@ -1,13 +1,11 @@
 import json
-import time
 import pytest
 from pathlib import Path
-from unittest import mock
 
 from scripts import execute_p01_transmission
 
 
-def test_transmit_p01_success(tmp_path, monkeypatch):
+def test_transmit_p01_success(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     
     # Create mock path
@@ -21,18 +19,16 @@ def test_transmit_p01_success(tmp_path, monkeypatch):
     with open(spec_path, "w") as f:
         json.dump(spec, f)
         
-    def mock_gmtime():
-        # fixed time tuple
-        return time.struct_time((2026, 9, 30, 12, 0, 0, 2, 273, 0))
-        
-    with mock.patch("time.gmtime", side_effect=mock_gmtime):
-        execute_p01_transmission.transmit_p01()
+    code = execute_p01_transmission.transmit_p01()
+    captured = capsys.readouterr().out
         
     with open(spec_path, "r") as f:
         updated_spec = json.load(f)
         
-    assert updated_spec["current_status"] == "TRANSMITTED_BY_CHIEF"
-    assert updated_spec["transmitted_at"] == "2026-09-30T12:00:00+00:00"
+    assert code != 0
+    assert "Success: P-01 Follow-Up Transmitted" not in captured
+    assert updated_spec["current_status"] == "WAITING_FOR_HUMAN"
+    assert "transmitted_at" not in updated_spec
 
 
 def test_transmit_p01_already_transmitted(tmp_path, monkeypatch):
@@ -72,9 +68,12 @@ def test_main(tmp_path, monkeypatch):
         json.dump(spec, f)
         
     import runpy
-    runpy.run_path(str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "execute_p01_transmission.py"), run_name="__main__")
+    with pytest.raises(SystemExit) as caught:
+        runpy.run_path(str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "execute_p01_transmission.py"), run_name="__main__")
+    assert caught.value.code != 0
         
     with open(spec_path, "r") as f:
         updated_spec = json.load(f)
         
-    assert updated_spec["current_status"] == "TRANSMITTED_BY_CHIEF"
+    assert updated_spec["current_status"] == "WAITING_FOR_HUMAN"
+    assert "transmitted_at" not in updated_spec
