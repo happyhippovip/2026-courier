@@ -407,6 +407,37 @@ async function fetchStatusUpdate() {
     if (!res.ok) return;
     const data = await res.json();
     
+    // Update Memory Head
+    const memPill = document.getElementById("memory-commit-pill");
+    if (memPill && data.memory_head) {
+      memPill.textContent = data.memory_head;
+    }
+    
+    // Update Active Directive (Motto)
+    const activeDirective = document.getElementById("active-directive");
+    if (activeDirective && data.central_motto) {
+      activeDirective.textContent = `"${data.central_motto}"`;
+    }
+    
+    // Update active workers in roster if available
+    if (data.active_workers) {
+       const workerIds = Object.keys(data.active_workers).map(k => k.toLowerCase());
+       AGENT_ROSTER.forEach(agent => {
+         // Naive matching: if the agent id is found in any active worker id
+         const isActive = workerIds.some(wId => wId.includes(agent.id) || agent.id.includes(wId));
+         if (isActive) {
+           agent.status = "ACTIVE";
+           agent.statusClass = "status-active";
+         } else if (agent.status === "ACTIVE" && agent.provenance !== "REAL PIPELINE") {
+           // We keep the explicitly "REAL PIPELINE" roles active for visual stability if they are core infrastructure,
+           // but true dynamic status updates should reflect the json.
+           // agent.status = "AVAILABLE";
+           // agent.statusClass = "status-available";
+         }
+       });
+       renderAgentRoster();
+    }
+    
     // Update Host Capacity Card
     const capList = document.getElementById("host-status-list");
     if (capList && data.host_capacity) {
@@ -420,6 +451,65 @@ async function fetchStatusUpdate() {
       html += `<div><strong>Heavy Leases:</strong> ${hc.active_heavy_leases} / ${hc.max_heavy_slots}</div>`;
       
       capList.innerHTML = html;
+    }
+
+    // Update Acceleration Advisor Card
+    const advisorCard = document.getElementById("acceleration-advisor-card");
+    if (advisorCard && data.advisor_state) {
+      const state = data.advisor_state;
+      const badge = document.getElementById("advisor-badge");
+      const msg = document.getElementById("advisor-message");
+      const details = document.getElementById("advisor-details");
+      
+      // Reset classes
+      advisorCard.classList.remove("warning-red", "warning-yellow");
+      badge.className = "badge";
+      
+      if (state.severity === "RED / ACCELERATION_OPPORTUNITY") {
+        advisorCard.classList.add("warning-red");
+        badge.classList.add("red-badge");
+        badge.textContent = "ACCELERATION BLOCKER";
+        msg.innerHTML = `<strong>Capacity recommended.</strong> ${state.reason_existing_cannot_execute || ""}`;
+      } else if (state.severity === "YELLOW") {
+        advisorCard.classList.add("warning-yellow");
+        badge.classList.add("yellow-badge");
+        badge.textContent = "OPTIMAL";
+        msg.innerHTML = `<strong>System nominal.</strong> ${state.reason_existing_cannot_execute || ""}`;
+      } else {
+        badge.classList.add("green-badge");
+        badge.textContent = "GREEN";
+        msg.innerHTML = `<strong>System nominal.</strong> No additional capacity recommended.`;
+      }
+      
+      if (state.type !== "NONE" && state.blocked_task) {
+        details.style.display = "block";
+        document.getElementById("adv-task").textContent = state.blocked_task || "-";
+        document.getElementById("adv-cap").textContent = state.proposed_capability || "-";
+        document.getElementById("adv-cost").textContent = state.known_cost || "-";
+        document.getElementById("adv-approval").textContent = state.human_approval_required ? "YES (Required)" : "NO";
+      } else {
+        details.style.display = "none";
+      }
+
+      // Deduplicate and emit logs on state change
+      const currentStateStr = JSON.stringify(state);
+      if (window._lastAdvisorStateStr !== currentStateStr) {
+        if (window._lastAdvisorStateStr) {
+            const prevState = JSON.parse(window._lastAdvisorStateStr);
+            if (prevState.severity !== state.severity || prevState.blocked_task !== state.blocked_task) {
+                if (state.severity === "RED / ACCELERATION_OPPORTUNITY") {
+                    addLog("GATE", `[ADVISOR] Capacity needed for capability '${state.proposed_capability}'. Approval required: ${state.human_approval_required}`);
+                } else if (state.severity === "YELLOW") {
+                    addLog("POLICY", `[ADVISOR] Capacity update: ${state.reason_existing_cannot_execute}`);
+                } else {
+                    addLog("SUCCESS", `[ADVISOR] Blocker cleared. System nominal.`);
+                }
+            }
+        } else if (state.severity === "RED / ACCELERATION_OPPORTUNITY") {
+            addLog("GATE", `[ADVISOR] Capacity needed for capability '${state.proposed_capability}'. Approval required: ${state.human_approval_required}`);
+        }
+        window._lastAdvisorStateStr = currentStateStr;
+      }
     }
     
   } catch (err) {

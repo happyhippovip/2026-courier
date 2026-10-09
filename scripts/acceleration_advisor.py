@@ -103,3 +103,14 @@ def analyze_capacity_and_recommend(
         reason_existing_cannot_execute="Adding capacity would only duplicate active work.",
         human_approval_required=False
     )
+
+def save_advisor_state(recommendation: Recommendation, events_dir: str):
+    import json
+    import os
+    target_dir = os.path.join(events_dir, "acceleration_advisor")
+    os.makedirs(target_dir, exist_ok=True)
+    target_file = os.path.join(target_dir, "advisor_state.json")
+    
+    state = dataclasses.asdict(recommendation)
+    with open(target_file, "w") as f:
+        json.dump(state, f, indent=2)
