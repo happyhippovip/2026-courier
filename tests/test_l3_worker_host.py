@@ -489,6 +489,70 @@ def claim_body(dispatch="d1", task="t1", spec_over=None, params=None, attempt=1)
     return {"task_id": task, "attempt": attempt, "dispatch_id": dispatch, "ttl_s": 30, "spec": spec}
 
 
+def _local_shell_write_argv(text="courier-l3"):
+    return [PY, "-c", "import sys; open('out.txt', 'w').write(sys.argv[1])", text]
+
+
+def test_local_shell_claim_executes_and_delivers(tmp_path, stub):
+    write_token(tmp_path)
+    STUB.claims.append(claim_body(
+        spec_over={"adapter": "local_shell"},
+        params={"command": _local_shell_write_argv(), "write": "out.txt", "timeout_s": 30},
+    ))
+    loop = S.WorkerLoop(str(tmp_path), stub, "w1", 0.2)
+    assert loop.iterate(threading.Event()) == "delivered"
+    payload = STUB.results[0]
+    assert payload["outcome"] == "success" and "retryable" not in payload
+    digest = hashlib.sha256(b"courier-l3").hexdigest()
+    assert payload["artifacts"] == [{"path": "artifacts/d1/out.txt", "sha256": digest}]
+
+
+def test_runner_executes_local_shell_request(tmp_path):
+    workdir = tmp_path / "w"
+    report = tmp_path / "r.json"
+    request = tmp_path / "req.json"
+    request.write_text(json.dumps({
+        "adapter": "local_shell",
+        "params": {"command": _local_shell_write_argv("runner-ok"), "write": "out.txt"},
+        "attempt": 1,
+        "workdir": str(workdir),
+        "report": str(report),
+    }), encoding="utf-8")
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    proc = subprocess.run(
+        [PY, A.RUNNER_SCRIPT, str(request)],
+        cwd=repo_root, env={**os.environ, "PYTHONPATH": repo_root},
+        capture_output=True, text=True, timeout=30)
+    assert proc.returncode == 0 and report.exists()
+    body = json.loads(report.read_text(encoding="utf-8"))
+    assert body["outcome"] == "success"
+    assert hashlib.sha256((workdir / "out.txt").read_bytes()).hexdigest()
+
+
+def test_runner_rejects_null_byte_local_shell_argv(tmp_path):
+    workdir = tmp_path / "w"
+    report = tmp_path / "r.json"
+    request = tmp_path / "req.json"
+    bad_argv = [PY, "-c", "print('x')", "safe\x00evil"]
+    request.write_text(json.dumps({
+        "adapter": "local_shell",
+        "params": {"command": bad_argv, "write": "out.txt"},
+        "attempt": 1,
+        "workdir": str(workdir),
+        "report": str(report),
+    }), encoding="utf-8")
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    proc = subprocess.run(
+        [PY, A.RUNNER_SCRIPT, str(request)],
+        cwd=repo_root, env={**os.environ, "PYTHONPATH": repo_root},
+        capture_output=True, text=True, timeout=30)
+    assert proc.returncode != 0
+    assert report.exists()
+    body = json.loads(report.read_text(encoding="utf-8"))
+    assert body["outcome"] == "failure" and body["retryable"] is False
+    assert "null" in body["reason"].lower()
+
+
 def test_claim_start_result_wire_exact_ids(tmp_path, stub):
     write_token(tmp_path)
     STUB.claims.append(claim_body())
@@ -654,6 +718,7 @@ def test_sse_rejected_subscription_degrades(tmp_path, stub, monkeypatch):
     ({"adapter": "courier_worker.adapter_runner"}, None, "not allowlisted"),
     ({"adapter": None}, None, "not allowlisted"),
     ({"params": "sleep 1"}, None, "params must be an object"),
+    ({"adapter": "local_shell"}, {"write": "../escape.txt"}, "local_shell params rejected"),
     ({}, {"write": "../escape.txt"}, "synthetic params rejected"),
     ({}, {"write": "/etc/passwd"}, "synthetic params rejected"),
     ({}, {"sleep_s": -1}, "synthetic params rejected"),

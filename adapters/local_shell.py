@@ -98,6 +98,17 @@ class LocalShellTimeout(RuntimeError):
     """The command outlived ``timeout_s`` and was killed (never-finishes analog)."""
 
 
+def _reject_unspawnable_argv(command: Sequence[str]) -> None:
+    """Reject argv values ``subprocess`` cannot spawn (embedded NUL, bad encoding)."""
+    for arg in command:
+        if "\0" in arg:
+            raise LocalShellError("command argv must not contain embedded null bytes")
+        try:
+            os.fsencode(arg)
+        except (UnicodeError, ValueError) as exc:
+            raise LocalShellError(f"command argv cannot be encoded for spawn: {exc}") from exc
+
+
 def _params(params: Mapping[str, Any]) -> dict:
     """Validate local_shell params; raise LocalShellError describing the first gap."""
     if not isinstance(params, Mapping):
@@ -106,6 +117,7 @@ def _params(params: Mapping[str, Any]) -> dict:
     if (not isinstance(command, Sequence) or isinstance(command, (str, bytes))
             or not command or any(not isinstance(a, str) or not a for a in command)):
         raise LocalShellError("command must be a non-empty argv list of non-empty strings")
+    _reject_unspawnable_argv(command)
     out = {
         "command": list(command),
         "write": params.get("write", "out.txt"),
@@ -163,7 +175,7 @@ def run(params: Mapping[str, Any], workdir: str | os.PathLike, attempt: int = 1)
     except subprocess.TimeoutExpired as exc:
         raise LocalShellTimeout(
             f"local_shell command outlived {cfg['timeout_s']}s and was killed") from exc
-    except OSError as exc:
+    except (OSError, ValueError) as exc:
         raise LocalShellError(f"local_shell command could not start: {exc}") from exc
     if completed.returncode != 0:
         tail = completed.stderr.decode("utf-8", errors="replace")[-500:]
