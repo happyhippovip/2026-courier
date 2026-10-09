@@ -374,39 +374,66 @@ def claim_task():
                     elif "antigravity" in target and "antigravity" in worker["capabilities"]: matched = True
                     
                     if matched:
-                        # Cost-based routing check:
-                        # If this worker is expensive, and a cheaper qualified worker is currently active and available,
-                        # decline this claim so the cheaper worker can grab it.
                         worker_cost = worker.get("cost_class", "high")
-                        if worker_cost in ("high", "medium"):
-                            cheaper_available = False
-                            now = time.time()
-                            for other_id, other_w in state["workers"].items():
-                                if other_id == worker_id: continue
-                                if not other_w.get("available", False): continue
-                                if now - other_w.get("last_seen", 0) > 300: continue
+                        if worker_cost not in ("free", "low", "medium", "high", "local_first"):
+                            worker_cost = "high"
+                            
+                        cheaper_available = False
+                        cheapest_alt = "none"
+                        now = time.time()
+                        
+                        # Issue #118: Cost-Aware Routing & Decision Record
+                        for other_id, other_w in state["workers"].items():
+                            if other_id == worker_id: continue
+                            if not other_w.get("available", False): continue
+                            if now - other_w.get("last_seen", 0) > 300: continue
+                            
+                            other_cost = other_w.get("cost_class", "high")
+                            is_cheaper = False
+                            if worker_cost == "high" and other_cost in ("free", "low", "medium"):
+                                is_cheaper = True
+                            elif worker_cost == "medium" and other_cost in ("free", "low"):
+                                is_cheaper = True
                                 
-                                other_cost = other_w.get("cost_class", "high")
-                                # is other cheaper?
-                                if worker_cost == "high" and other_cost in ("free", "low", "medium"):
-                                    is_cheaper = True
-                                elif worker_cost == "medium" and other_cost in ("free", "low"):
-                                    is_cheaper = True
-                                else:
-                                    is_cheaper = False
+                            if is_cheaper:
+                                q = False
+                                if "github" in target and "github" in other_w["capabilities"]: q = True
+                                elif "mac" in target and "macos" in other_w["capabilities"]: q = True
+                                elif "windows" in target and "windows" in other_w["capabilities"]: q = True
+                                elif "linux" in target and "linux" in other_w["capabilities"]: q = True
+                                elif "antigravity" in target and "antigravity" in other_w["capabilities"]: q = True
+                                if q:
+                                    cheaper_available = True
+                                    cheapest_alt = other_id
+                                    break
                                     
-                                if is_cheaper:
-                                    # Is other qualified?
-                                    if "github" in target and "github" in other_w["capabilities"]: cheaper_available = True
-                                    elif "mac" in target and "macos" in other_w["capabilities"]: cheaper_available = True
-                                    elif "windows" in target and "windows" in other_w["capabilities"]: cheaper_available = True
-                                    elif "linux" in target and "linux" in other_w["capabilities"]: cheaper_available = True
-                                    elif "antigravity" in target and "antigravity" in other_w["capabilities"]: cheaper_available = True
-                                
-                            if cheaper_available:
-                                # We decline this claim to let the cheaper worker grab it.
-                                # But we can't return error, we just skip this task and let it return empty.
-                                matched = False
+                        escalation_reason = next_task.get("escalation_reason")
+                        if cheaper_available and not escalation_reason:
+                            # Refuse expensive worker if no reason is given.
+                            matched = False
+                        else:
+                            # Authorized to claim. Build decision record.
+                            reasoning_level = next_task.get("reasoning_level", "low" if worker_cost in ("free", "low") else "high")
+                            routing_decision = {
+                                "TASK_ID": next_task["task_id"],
+                                "REQUIRED_CAPABILITY": target,
+                                "CHOSEN_PROVIDER": worker.get("platform", "unknown"),
+                                "CHOSEN_MODEL": worker.get("model", "unknown"),
+                                "REASONING_LEVEL": reasoning_level,
+                                "COST_CLASS": worker_cost,
+                                "INCLUDED_OR_METERED": "included" if worker_cost in ("free", "low") else "metered",
+                                "CHEAPER_CAPABLE_OPTION_AVAILABLE": cheaper_available,
+                                "ESCALATION_REASON": escalation_reason,
+                                "USER_WARNING_REQUIRED": bool(cheaper_available and escalation_reason),
+                                "PROVIDER_QUOTA_STATE": "ok",
+                                "HOST_PRESSURE_STATE": "ok"
+                            }
+                            next_task["routing_decision"] = routing_decision
+                            
+                            if routing_decision["USER_WARNING_REQUIRED"]:
+                                print(f"COST_WARNING: {routing_decision['CHOSEN_PROVIDER']}/{routing_decision['CHOSEN_MODEL']}/{reasoning_level} is higher-cost or higher-allowance usage. Cheapest capable alternative: {cheapest_alt}. Escalation reason: {escalation_reason}.")
+                            else:
+                                print(f"COST_ROUTING: using cheapest capable authorized option ({routing_decision['CHOSEN_PROVIDER']}).")
 
                     if matched:
                         next_task["worker_id"] = worker_id
