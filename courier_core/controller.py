@@ -580,6 +580,17 @@ class Controller:
             task_id = self._verify_queue.get(timeout=timeout) if timeout else self._verify_queue.get_nowait()
         except queue.Empty:
             return False
+        try:
+            return self._verify_task(task_id)
+        except ApiError as exc:
+            if exc.code == "busy":
+                # A finite lock timeout is transient. The result is still in
+                # the journal; preserve its queue entry rather than stranding
+                # it in VERIFYING until the next controller restart.
+                self._verify_queue.put(task_id)
+            raise
+
+    def _verify_task(self, task_id: str) -> bool:
         with self._locked():
             task = self.journal.task(task_id)
             if task is None or task.status is not TaskStatus.VERIFYING:
