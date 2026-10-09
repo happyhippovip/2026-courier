@@ -45,3 +45,44 @@ def test_failed_needs_positive_evidence():
         validate(receipt(what_failed="worker_process", outcome="FAILED", action="NEEDS_YOU"), set())
     validate(receipt(what_failed="worker_process", outcome="FAILED", action="NEEDS_YOU",
                      positive_evidence="exit_code=1"), set())
+
+
+@pytest.mark.parametrize("effect_class", [None, "", "future_financial_effect", "IDEMPOTENT"])
+@pytest.mark.parametrize("confirmed", [False, True])
+def test_unknown_effect_class_never_authorizes_automatic_resume(effect_class, confirmed):
+    r = receipt(action="RESUME_FROM_CHECKPOINT", effect_class=effect_class,
+                effect_confirmed=confirmed, resume_from={"checkpoint_id": "c7"})
+    with pytest.raises(ReceiptError):
+        validate(RecoveryReceipt.from_json(r.to_json()), set())
+
+
+@pytest.mark.parametrize("confirmation", ["false", "true", 1, {}, [True]])
+def test_non_idempotent_resume_requires_literal_confirmation(confirmation):
+    with pytest.raises(ReceiptError):
+        validate(receipt(action="RESUME_FROM_CHECKPOINT", effect_class="non_idempotent",
+                         effect_confirmed=confirmation, resume_from={"checkpoint_id": "c7"}), set())
+
+
+@pytest.mark.parametrize("effect_class,confirmed", [("idempotent", False), ("non_idempotent", True)])
+def test_known_safe_resume_contract_remains_valid(effect_class, confirmed):
+    r = receipt(action="RESUME_FROM_CHECKPOINT", effect_class=effect_class,
+                effect_confirmed=confirmed, resume_from={"checkpoint_id": "c7"})
+    assert validate(r, set()) is r
+
+
+def test_unknown_effect_can_be_parked_without_fabricating_completion():
+    r = receipt(action="RETRY_AUTHORIZED_REQUIRED", outcome="WAITING", effect_class="future_effect",
+                after_snapshot=None, progress_after_detection=False)
+    assert validate(r, set()).outcome == "WAITING"
+
+
+@pytest.mark.parametrize("progress", ["false", "true", 1, [True]])
+def test_recovered_rejects_truthy_values_in_place_of_progress_evidence(progress):
+    with pytest.raises(ReceiptError):
+        validate(receipt(progress_after_detection=progress), set())
+
+
+@pytest.mark.parametrize("snapshot", [True, 1, ["snapshot"], " "])
+def test_recovered_requires_a_nonempty_snapshot_reference(snapshot):
+    with pytest.raises(ReceiptError):
+        validate(receipt(after_snapshot=snapshot), set())
