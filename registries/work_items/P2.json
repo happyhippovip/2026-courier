@@ -1,0 +1,12 @@
+{
+  "id": "P2",
+  "title": "Summarize accepted results for one home",
+  "lane": "L2",
+  "branch": "lane/L2-result-digest-P2",
+  "files_scope": ["courier_core/result_digest.py", "tests/test_result_digest.py"],
+  "depends_on": [],
+  "acceptance": ["tests", "draft PR"],
+  "provider_hints": ["headless", "interactive"],
+  "status": "READY",
+  "lease": null
+}

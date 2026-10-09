@@ -1,0 +1,12 @@
+{
+  "id": "P8",
+  "title": "Write a read-only status snapshot for one home",
+  "lane": "L5",
+  "branch": "lane/L5-status-snapshot-P8",
+  "files_scope": ["courier_core/status_snapshot.py", "tests/test_status_snapshot.py"],
+  "depends_on": [],
+  "acceptance": ["tests", "draft PR"],
+  "provider_hints": ["headless", "interactive"],
+  "status": "READY",
+  "lease": null
+}
