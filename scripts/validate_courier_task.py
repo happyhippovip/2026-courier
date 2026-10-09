@@ -58,13 +58,19 @@ def main() -> None:
     if task["payload"].get("result_request") not in {"COURIER_CODEX_ACK", "COURIER_SEQUENTIAL_ACK", "COURIER_AUTOMATIC_ACK"}:
         fail("unsupported result_request")
 
-    for candidate in processed_dir.glob("*.json"):
-        try:
+    # Missing or unreadable history cannot establish that this task is new.
+    # Unlike glob(), iterdir() surfaces directory-enumeration failures.
+    try:
+        for candidate in processed_dir.iterdir():
+            if not candidate.match("*.json"):
+                continue
             processed = json.loads(candidate.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            continue
-        if processed.get("parent_id") == task["message_id"] or processed.get("message_id") == task["message_id"]:
-            fail("TASK already has a terminal record")
+            if not isinstance(processed, dict):
+                fail("cannot verify processed records")
+            if processed.get("parent_id") == task["message_id"] or processed.get("message_id") == task["message_id"]:
+                fail("TASK already has a terminal record")
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        fail("cannot verify processed records")
 
     print(task_path.as_posix())
 
