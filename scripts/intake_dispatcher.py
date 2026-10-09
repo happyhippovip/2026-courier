@@ -209,7 +209,6 @@ def dispatch_intake(intake_file):
 
     try:
         subprocess.run(cmd, check=True, capture_output=True, text=True)
-        print(f"Successfully dispatched to GitHub Actions worker.")
     except subprocess.CalledProcessError as e:
         # Marker stays DISPATCHING: adopt on retry, re-dispatch once stale.
         print(f"Failed to dispatch: {e.stderr}")
@@ -250,7 +249,15 @@ def dispatch_intake(intake_file):
         }
         save_central_state(state_file, state)
 
-    print(f"Central state updated. System chain fully connected for intake -> execution -> PR.")
+    recorded = load_central_state(state_file)
+    saved = recorded["tasks"].get(task_id) if isinstance(recorded.get("tasks"), dict) else None
+    if (not isinstance(saved, dict)
+            or saved.get("admission") != ADMISSION_ADMITTED
+            or saved.get("execution_ref") != execution_ref
+            or saved.get("dispatched_at") != dispatch_start):
+        print(f"Dispatch record for {task_id} was not durable; not reporting success")
+        sys.exit(1)
+    print(f"Dispatch record durable for {task_id}.")
     return task_id
 
 
