@@ -11,8 +11,8 @@
 
 | Metric | Count |
 |---|---|
-| **TOTAL_REAL_CANDIDATES** | 9 |
-| **VERIFIED_DONE** | 7 |
+| **TOTAL_REAL_CANDIDATES** | 10 |
+| **VERIFIED_DONE** | 8 |
 | **WORKING / IN_PROGRESS** | 1 |
 | **READY (Next Eligible)** | 1 |
 | **BLOCKED / OWNER_REQUIRED** | 0 |
@@ -189,3 +189,23 @@
 - **SAFE_TO_RUN:** YES
 - **STATUS:** `VERIFIED_DONE`
 - **RESULT_RECEIPT:** `RECEIPT-BUGBOT-HARDENING-OK` (25/25 PASS in 7.54s)
+
+---
+
+### TASK-10: Multi-Step Real Continuation & Crash Recovery Acceptance
+- **TASK_ID:** `WK-P3-AUTO-CONTINUE-001`
+- **SOURCE:** Marathon Directive V34 / P3 Automatic Continuation & P4 Crash Recovery
+- **CURRENT_SHA:** `59ec77f5a`
+- **OWNER_LANE:** `lane/L2-agent-warehouse-clean`
+- **EXISTING_PR:** [#410](https://github.com/happyhippovip/2026-courier/pull/410)
+- **DEPENDS_ON:** `WK-REAL-E2E-AGY-001`
+- **ELIGIBILITY:** ELIGIBLE
+- **BLOCKER:** None
+- **EXPECTED_CODE_CHANGE:** Add `test_two_step_automatic_continuation_with_real_subprocesses_and_crash_recovery` in `tests/test_agent_e2e_acceptance.py`.
+- **TEST_COMMAND:** `python -m pytest tests/test_agent_e2e_acceptance.py`
+- **ACCEPTANCE_CRITERIA:** 2-step plan executed via real OS subprocesses; Step 0 accepted fact recorded in durable log; crash recovery boots new session and resumes Step 1 without repeating Step 0; completion yields state DONE; negative tests verify unconfirmed non-idempotent halts (NEEDS_USER) and missing lease halts (WAITING).
+- **RESOURCE_CLASS:** MEDIUM
+- **SAFE_TO_RUN:** YES
+- **STATUS:** `VERIFIED_DONE`
+- **RESULT_RECEIPT:** `RECEIPT-MULTI-STEP-CONTINUATION-OK` (Commit `59ec77f5a`, 3/3 PASS in 0.82s)
+
