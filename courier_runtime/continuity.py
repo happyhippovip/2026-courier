@@ -168,6 +168,14 @@ class Kirby:
         if s.workkey and self.workkeys[s.workkey].owner == s.session_id:
             s.state = WAKE_PENDING                              # resume own claimed work
         else:
+            # Reconcile stale workkey (session lost fencing owner)
+            if s.workkey and s.workkey in self.workkeys:
+                stale_w = self.workkeys[s.workkey]
+                if stale_w.owner != s.session_id and stale_w.state == CLAIMED:
+                    stale_w.state = OPEN
+                    stale_w.owner = ""
+                s.workkey = ""
+                
             w = self._next_workkey()
             if w is None:
                 s.state = WAITING_FOR_USER if any(x.state == BLOCKED for x in self.workkeys.values()) else IDLE
