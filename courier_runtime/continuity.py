@@ -94,10 +94,13 @@ def saturation_signal(provider_text="", context_used_pct=None, threshold_pct=90.
 
 class Kirby:
     def __init__(self, path, host, max_slots=12, identity=lambda s: True, terminate=lambda s: {"result": "NONE"},
-                 start_session=None, clock=time.time):
+                 start_session=None, clock=time.time, authorize_recovery=None, reconcile_recovery=None):
         self.path, self.host, self.max_slots = Path(path), host, max_slots
         self.identity, self.terminate, self.clock = identity, terminate, clock
         self.start_session = start_session or (lambda slot, gen: (f"{slot}-g{gen}", 0, 0.0))
+        # Trusted existing permission/ownership adapters, never restored from disk.
+        self.authorize_recovery = authorize_recovery
+        self.reconcile_recovery = reconcile_recovery
         self._load()
 
     # ---- persistence --------------------------------------------------------
@@ -115,9 +118,23 @@ class Kirby:
              "sessions": {k: dataclasses.asdict(v) for k, v in self.sessions.items()},
              "counters": self.counters, "last_snapshot": self.last_snapshot}
         fd, tmp = tempfile.mkstemp(dir=self.path.parent, prefix=".kirby.")
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump(d, f, sort_keys=True)
-        os.replace(tmp, self.path)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump(d, f, sort_keys=True)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp, self.path)
+            if os.name == "posix":
+                directory = os.open(self.path.parent, os.O_RDONLY | os.O_DIRECTORY)
+                try:
+                    os.fsync(directory)
+                finally:
+                    os.close(directory)
+        finally:
+            try:
+                os.unlink(tmp)
+            except FileNotFoundError:
+                pass
 
     def _log(self, name, record):
         with open(self.path.parent / name, "a", encoding="utf-8") as f:
@@ -194,7 +211,7 @@ class Kirby:
         The stale-token check is the duplicate-writer guard."""
         s = self.sessions[slot]
         w = self.workkeys.get(s.workkey)
-        if w is None or w.owner != s.session_id or w.token != token:
+        if w is None or w.owner != s.session_id or w.token != token or not s.accepting:
             return "REJECTED_STALE_WRITER"
         w.checkpoint = checkpoint or w.checkpoint
         if outcome == "DONE":
@@ -270,17 +287,39 @@ class Kirby:
         return snap
 
     # ---- rotation / recovery: exactly one successor -------------------------
-    def _replace(self, slot, kind, reason, checkpoint=None):
+    def _blocked_recovery(self, old, kind, reason, cleanup):
+        w = self.workkeys.get(old.workkey)
+        receipt = {"slot": old.slot, "kind": kind, "action": "RECOVERY_BLOCKED",
+                   "reason": reason, "old_session": old.session_id,
+                   "workkey": old.workkey, "checkpoint": w.checkpoint if w else "",
+                   "cleanup": cleanup, "at": self.clock()}
+        self._log("recovery_receipts.jsonl", receipt)
+        return receipt
+
+    def _replace(self, slot, kind, reason, checkpoint=None, reconciliation=None):
         old = self.sessions[slot]
         if old.state == RETIRED or old.successor:
             return {"slot": slot, "action": "ALREADY_REPLACED", "successor": old.successor}
+        if old.state == RECOVERING and reconciliation is None:
+            # Cleanup or launch may have had an effect before a crash. A fresh
+            # wake is not authority to replay that uncertain replacement.
+            return self._blocked_recovery(old, kind, reason, "ALREADY_FENCED")
         old.accepting = False
+        old.state, old.recovering_since = RECOVERING, self.clock()
         w = self.workkeys.get(old.workkey)
         if w is not None and checkpoint is not None:
             w.checkpoint = checkpoint
+        # Write ahead of both injected side effects. A restart must retain the
+        # checkpoint and fence, even when a hook fails after doing its work.
+        self._save()
         cleanup = "NOT_OWNED_OR_GONE"
-        if old.pid and self.identity(old):
-            cleanup = self.terminate(old).get("result", "?")      # proven-owned tree only
+        if reconciliation is not None:
+            cleanup = "RECONCILED"
+        elif old.pid and self.identity(old):
+            proof = self.terminate(old)                         # proven-owned tree only
+            cleanup = proof.get("result", "?")
+            if cleanup != "STOPPED" or proof.get("still_alive"):
+                return self._blocked_recovery(old, kind, reason, cleanup)
         gen = old.generation + 1
         sid, pid, ct = self.start_session(slot, gen)
         now = self.clock()
@@ -297,6 +336,8 @@ class Kirby:
                    "old_session": old.session_id, "new_session": sid, "workkey": new.workkey,
                    "checkpoint": w.checkpoint if w else "", "cleanup": cleanup,
                    "foreign_process_touched": False, "duplicate_execution": False, "at": now}
+        if reconciliation is not None:
+            receipt.update(actor=reconciliation["actor"], evidence=reconciliation["evidence"])
         self._log("recovery_receipts.jsonl", receipt)
         self._save()
         return receipt
@@ -306,6 +347,44 @@ class Kirby:
 
     def recover(self, slot, reason):
         return self._replace(slot, "RECOVER", reason)
+
+    def resolve_recovery(self, slot, *, session_id, token, actor):
+        """Resume a fenced slot only through current authority and independent proof.
+
+        The trusted reconciliation adapter must prove the old tree AND any
+        ambiguously launched successor stopped, and that resuming this workkey
+        cannot repeat an uncertain effect. See the recovery contract.
+        """
+        old = self.sessions[slot]
+        w = self.workkeys.get(old.workkey)
+        if (type(token) is not int or old.state != RECOVERING or old.session_id != session_id or old.token != token
+                or (old.workkey and w is None)
+                or (w is not None and (w.state != CLAIMED or w.owner != session_id or w.token != token))):
+            return "REJECTED_STALE_WRITER"
+        context = {"session": dataclasses.asdict(old), "workkey": dataclasses.asdict(w) if w else None,
+                   "actor": actor}
+        if (not isinstance(actor, str) or not actor.strip() or self.authorize_recovery is None
+                or self.authorize_recovery(context) is not True):
+            return self._blocked_recovery(old, "RESOLVE", "current recovery authority required", "UNAUTHORIZED")
+        proof = self.reconcile_recovery(context) if self.reconcile_recovery is not None else None
+        if (not isinstance(proof, dict) or proof.get("session_id") != session_id
+                or type(proof.get("token")) is not int or proof.get("token") != token
+                or proof.get("workkey") != old.workkey
+                or proof.get("cleanup") != "STOPPED" or proof.get("still_alive") != []
+                or proof.get("resume_safe") is not True
+                or not isinstance(proof.get("evidence"), list) or not proof["evidence"]
+                or not all(isinstance(ref, str) and ref.strip() for ref in proof["evidence"])):
+            return self._blocked_recovery(old, "RESOLVE", "independent effect and cleanup proof required",
+                                          "UNPROVEN")
+        # Hooks may yield to other work; fence the exact context again before
+        # launch, without ever saving an unfenced/accepting intermediate state.
+        if (self.sessions.get(slot) is not old or old.state != RECOVERING or old.accepting
+                or dataclasses.asdict(old) != context["session"]
+                or self.workkeys.get(old.workkey) is not w
+                or (dataclasses.asdict(w) if w else None) != context["workkey"]):
+            return "REJECTED_STALE_WRITER"
+        return self._replace(slot, "RESOLVE", "authorized effect reconciliation",
+                             reconciliation={"actor": actor, "evidence": proof["evidence"]})
 
     def on_provider_output(self, slot, text="", context_used_pct=None, checkpoint=None):
         """Feed provider status lines/telemetry; rotates exactly once on saturation."""
@@ -318,6 +397,9 @@ class Kirby:
         result = {}
         for slot, s in list(self.sessions.items()):
             if s.state not in LIVE:
+                continue
+            if s.state == RECOVERING:
+                result[slot] = "RECOVERY_BLOCKED"
                 continue
             if not s.pid or self.identity(s):
                 result[slot] = "RESUMED"
@@ -337,6 +419,8 @@ class Kirby:
             return "DONE"
         if any(s.state in (WORKING, WAKE_PENDING) for s in live):
             return "WORKING"
+        if any(s.state == RECOVERING for s in live):
+            return "RECOVERING" if self.authorize_recovery and self.reconcile_recovery else "NEEDS YOU"
         if any(w.state == BLOCKED for w in self.workkeys.values()) and not any(
                 w.state == OPEN for w in self.workkeys.values()):
             return "NEEDS YOU"

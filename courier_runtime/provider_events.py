@@ -68,6 +68,8 @@ def handle(kirby, slot, line):
     if kind == "OUTPUT":
         receipt = kirby.on_provider_output(slot, raw)
         kirby.heartbeat(slot)                              # alive, but output is not progress
+        if receipt and receipt.get("action") == "RECOVERY_BLOCKED":
+            return "RECOVERY_BLOCKED"
         return "ROTATED" if receipt else "OUTPUT"
     if kind == "TURN_ENDED":
         outcome = fields.get("outcome")
@@ -87,8 +89,23 @@ def drive(kirby, slot, lines):
 
 
 def read_new_lines(path, offset):
-    """Incremental file read for the host loop: returns (lines, new_offset)."""
-    with open(path, encoding="utf-8") as f:
+    """Return only newline-terminated records and a physical byte offset.
+
+    A provider may be interrupted halfway through a write, including a UTF-8
+    character. Preserve that suffix for the next read, never promote a partial
+    DONE record. A malformed complete record is ignored as a whole rather
+    than poisoning all later signals or decoding into a valid terminal event.
+    """
+    with open(path, "rb") as f:
         f.seek(offset)
-        lines = [ln.rstrip("\n") for ln in f]
-        return lines, f.tell()
+        data = f.read()
+    end = data.rfind(b"\n") + 1
+    lines = []
+    for record in data[:end].split(b"\n")[:-1]:
+        if record.endswith(b"\r"):
+            record = record[:-1]  # CRLF (Windows) provider logs: normalize at the boundary
+        try:
+            lines.append(record.decode("utf-8"))
+        except UnicodeDecodeError:
+            lines.append("INVALID_UTF8")  # unknown protocol kind: fail closed
+    return lines, offset + end
