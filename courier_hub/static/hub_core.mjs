@@ -252,3 +252,76 @@ export function findChoice(view, id, decision) {
   const card = (view?.needs_you || []).find((c) => c.id === id);
   return card ? card.needs_you.choices.find((c) => c.decision === decision) || null : null;
 }
+
+// ----------------------------------------------------------- project base
+export function renderProjectBase(pb, opts = {}) {
+  if (!pb) return '';
+  const now = opts.now ?? Date.now();
+  const next = pb.next_safe_action || { urgency: 'LOW', title: 'Idle', description: '' };
+  const urgencyClass = (next.urgency || 'low').toLowerCase();
+
+  const wks = pb.current_workkeys || [];
+  const workkeysHtml = wks.length === 0
+    ? '<p class="empty">No workkeys currently active.</p>'
+    : `<ul class="workkey-list">${wks.map((w) => `
+        <li class="workkey-item">
+          <strong>${escapeHtml(w.workkey || w.task_id)}</strong>
+          <span class="meta">${escapeHtml(w.status)} · ${escapeHtml(w.worker_id)} (${escapeHtml(w.adapter)})</span>
+        </li>`).join('')}</ul>`;
+
+  const lastV = pb.last_verified_result;
+  const verifiedHtml = !lastV
+    ? '<p class="empty">No verified results recorded yet.</p>'
+    : `<div class="verified-item">
+        <strong>${escapeHtml(lastV.title || lastV.task_id)}</strong>
+        <p class="when">Verified ${escapeHtml(timeAgo(lastV.verified_at, now))}</p>
+        ${lastV.evidence?.length ? `<span class="meta">${lastV.evidence.length} artifact(s) checked</span>` : ''}
+        ${lastV.hash ? `<p class="hash-label">Seq #${lastV.seq} · ${escapeHtml(String(lastV.hash).slice(0, 12))}…</p>` : ''}
+      </div>`;
+
+  const away = pb.away_summary || {};
+  const milestones = away.milestones || [];
+  const awayHtml = `<div class="away-item">
+    <p class="away-stats">${away.events_count || 0} event(s) recorded${away.since_seq ? ` (since seq ${away.since_seq})` : ''}</p>
+    <div class="away-breakdown">
+      <span>Completed: ${away.completed_count || 0}</span> ·
+      <span>Blocked: ${away.blocked_count || 0}</span> ·
+      <span>Failed: ${away.failed_count || 0}</span>
+    </div>
+    ${milestones.length ? `<ul class="milestones">${milestones.slice(-3).map((m) => `
+      <li>${escapeHtml(m.summary)} <span class="when">${escapeHtml(timeAgo(m.at, now))}</span></li>
+    `).join('')}</ul>` : ''}
+  </div>`;
+
+  const ctx = pb.durable_context || {};
+  const contextHtml = `<div class="base-context">
+    <span>Repo: <strong>${escapeHtml(ctx.repository || 'Courier')}</strong></span> ·
+    <span>Trunk: <strong>${escapeHtml(ctx.trunk_branch || 'integration/v1')}</strong></span> ·
+    <span>Journal Head: <strong>#${ctx.head_seq ?? 0}</strong></span> ·
+    <span>Tasks: <strong>${ctx.total_tasks ?? 0}</strong> (${ctx.total_events ?? 0} events)</span>
+  </div>`;
+
+  return `<section class="project-base" aria-label="Founder Project Base">
+    <div class="base-action base-action-${escapeHtml(urgencyClass)}">
+      <div class="action-badge">Next safe action</div>
+      <h3>${escapeHtml(next.title)}</h3>
+      <p>${escapeHtml(next.description)}</p>
+    </div>
+    <div class="base-grid">
+      <div class="base-card">
+        <h4>Current Workkeys (${wks.length})</h4>
+        ${workkeysHtml}
+      </div>
+      <div class="base-card">
+        <h4>Last Verified Result</h4>
+        ${verifiedHtml}
+      </div>
+      <div class="base-card">
+        <h4>While You Were Away</h4>
+        ${awayHtml}
+      </div>
+    </div>
+    ${contextHtml}
+  </section>`;
+}
+
