@@ -86,7 +86,8 @@ def test_vanished_worker_expires_with_restart_grace(tmp_path):
         pass_time(ctl, clock, 1)
         expired = [e for e in ctl.journal.events(task_id=body["task_id"]) if e.type.value == "LEASE_EXPIRED"]
         assert [e.payload["reason"] for e in expired] == ["restart_grace"]
-        assert types(ctl, body["task_id"])[-1] == "TASK_RETRY_SCHEDULED"
+        assert types(ctl, body["task_id"])[-1] == "TASK_BLOCKED"
+        assert ctl.claim({"worker_id": "w2"}) is None
     finally:
         ctl.stop()
 

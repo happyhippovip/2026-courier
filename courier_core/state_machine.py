@@ -13,11 +13,12 @@ Invariants enforced here:
   carry the current attempt, dispatch_id and worker_id;
 - a result is accepted at most once and only the accepted result completes
   the task (exactly-once completion);
-- only an effect explicitly classified "idempotent" may be retried
-  automatically after an uncertain outcome; every other class, including
-  any class this build does not know, fails closed: a started attempt whose
-  outcome is unknown (lease lost) is BLOCKED, never retried, and a pending
-  cancel request does not outrank that uncertainty;
+- a started attempt whose external result is unknown (lease lost) is
+  BLOCKED, even when the effect is classified "idempotent": a key is not
+  evidence the effect did not happen. An attempt that never started may
+  still be retried. Exhausted max_attempts still fails. A pending cancel
+  still cancels an idempotent effect; for every other class, including any
+  class this build does not know, the uncertainty outranks the cancel;
 - a BLOCKED task leaves BLOCKED only by a human decision carrying an actor:
   EFFECT_CONFIRMED (the effect happened; COMPLETE without re-executing it),
   RETRY_AUTHORIZED (one fresh, fenced attempt) or cancellation. Each names
@@ -141,6 +142,12 @@ def decide_after_failure(state: TaskState) -> Decision:
         return Decision.FAIL
     if state.attempt >= state.max_attempts:
         return Decision.FAIL
+    # Idempotent and already started, but the external result is unknown.
+    # The effect key does not prove the effect never happened, so stop.
+    # A human reconciles from BLOCKED. An attempt that never started falls
+    # through and may still be retried.
+    if state.failure_kind == "lease_lost" and state.started:
+        return Decision.BLOCK
     return Decision.RETRY
 
 
@@ -254,7 +261,7 @@ def _transition(state: TaskState, event: Event) -> TaskState:
         if s not in (TaskStatus.RETRY_PENDING, TaskStatus.QUEUED):
             raise _fail(event, state, "only a queued or failed attempt can fail the task")
         if s is TaskStatus.RETRY_PENDING and decide_after_failure(state) is Decision.BLOCK:
-            raise _fail(event, state, "an uncertain non-idempotent outcome must be BLOCKED, not FAILED")
+            raise _fail(event, state, "a started attempt with an unknown outcome must be BLOCKED, not FAILED")
         return replace(state, status=TaskStatus.FAILED, last_reason=str(event.payload["reason"]))
 
     if t is EventType.TASK_BLOCKED:
@@ -273,7 +280,7 @@ def _transition(state: TaskState, event: Event) -> TaskState:
         if s in (TaskStatus.VERIFYING, TaskStatus.ACCEPTED):
             raise _fail(event, state, "a result is already being verified or accepted")
         if s is TaskStatus.RETRY_PENDING and decide_after_failure(state) is Decision.BLOCK:
-            raise _fail(event, state, "an uncertain non-idempotent outcome must be BLOCKED before it can be cancelled")
+            raise _fail(event, state, "a started attempt with an unknown outcome must be BLOCKED before it can be cancelled")
         if s is TaskStatus.BLOCKED:
             # Cancelling does not make the unknown effect known: say so in the state.
             actor = event.payload.get("actor")

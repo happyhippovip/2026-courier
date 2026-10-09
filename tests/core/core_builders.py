@@ -92,9 +92,11 @@ def transient_twice_then_success(task_id="t2"):
 
 
 def worker_killed_then_retried(task_id="t3"):
+    """Started lease loss stops. The name is historical; the attempt is not retried."""
     first = Attempt(task_id, 1)
-    return [created(task_id), first.claimed(), first.started(), first.lease_expired(), first.retry_scheduled(),
-            *Attempt(task_id, 2, worker_id="w2").happy(), first.late_result()]
+    return [created(task_id), first.claimed(), first.started(), first.lease_expired(),
+            task_event(EventType.TASK_BLOCKED, task_id=task_id, reason="outcome unknown"),
+            first.late_result()]
 
 
 def mixed_history():
