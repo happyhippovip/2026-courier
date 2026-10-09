@@ -83,3 +83,84 @@ def test_cli_once_against_a_git_mailbox(tmp_path):
     assert receipt["status"] == "DONE"
     log = subprocess.run(["git", "-C", str(remote), "log", "--oneline", "-1"], capture_output=True, text=True).stdout
     assert "home-agent pc-1: 1 receipt" in log
+
+
+def _lock_record(pid):
+    return {"pid": pid, "create_time": 1.0, "workkey": "home-agent",
+            "owner": "courier", "recorded_at": 0.0}
+
+
+def test_single_instance_denied_lock_is_not_taken_over(tmp_path, monkeypatch):
+    """Access denial is not proof of exit: an unreadable lock holder may
+    still be alive (e.g. another user), so the lock must stay untouched."""
+    import psutil
+
+    from courier_runtime.home_agent import _single_instance
+    lock = tmp_path / "agent.lock"
+    before = _lock_record(999991)
+    lock.write_text(json.dumps(before))
+
+    real_process = psutil.Process
+
+    def denied(pid):
+        if pid == before["pid"]:
+            raise psutil.AccessDenied(pid)
+        return real_process(pid)
+
+    monkeypatch.setattr(psutil, "Process", denied)
+    assert _single_instance(str(lock)) is False
+    assert json.loads(lock.read_text()) == before
+
+
+def test_single_instance_attr_denial_is_not_taken_over(tmp_path, monkeypatch):
+    """Denial can surface on attribute access while construction succeeds
+    (the common POSIX shape): still fence, still untouched."""
+    import psutil
+
+    from courier_runtime.home_agent import _single_instance
+    lock = tmp_path / "agent.lock"
+    before = _lock_record(999991)
+    lock.write_text(json.dumps(before))
+    real_process = psutil.Process
+
+    class AttrDenied:
+        def __init__(self, pid):
+            self._pid = pid
+
+        def status(self):
+            return "running"  # basic state readable; identity detail is not
+
+        def create_time(self):
+            raise psutil.AccessDenied(self._pid)
+
+    def selective(pid):
+        if pid == before["pid"]:
+            return AttrDenied(pid)
+        return real_process(pid)
+
+    monkeypatch.setattr(psutil, "Process", selective)
+    assert _single_instance(str(lock)) is False
+    assert json.loads(lock.read_text()) == before
+
+
+def test_single_instance_dead_lock_is_taken_over(tmp_path, monkeypatch):
+    """A provably dead holder (NoSuchProcess) keeps the documented takeover."""
+    import os
+
+    import psutil
+
+    from courier_runtime.home_agent import _single_instance
+    lock = tmp_path / "agent.lock"
+    lock.write_text(json.dumps(_lock_record(999991)))
+
+    real_process = psutil.Process
+
+    def gone(pid):
+        if pid == 999991:
+            raise psutil.NoSuchProcess(pid)
+        return real_process(pid)
+
+    monkeypatch.setattr(psutil, "Process", gone)
+    assert _single_instance(str(lock)) is True
+    after = json.loads(lock.read_text())
+    assert after["pid"] == os.getpid() and after["workkey"] == "home-agent"
