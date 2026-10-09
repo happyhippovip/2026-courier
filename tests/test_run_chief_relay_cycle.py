@@ -8,6 +8,7 @@ from scripts.run_chief_relay_cycle import (
     is_command_pending,
     discover_pending_command,
     run_cycle,
+    main,
 )
 
 def test_fail():
@@ -508,4 +509,103 @@ def test_run_cycle_dry_run(mock_run, tmp_path):
         memory_dry_run=True,
     )
     assert res["memory_cycle"]["write_result"] == {"success": True, "dry_run": True}
+
+
+def _pending_command(task_id: str, message_id: str) -> dict:
+    return {
+        "schema_version": "2.0",
+        "type": "COMMAND",
+        "status": "NEW",
+        "source": "chief",
+        "destination": "antigravity",
+        "message_id": message_id,
+        "task_id": task_id,
+    }
+
+
+@patch("scripts.run_chief_relay_cycle.subprocess.run")
+def test_unverified_execution_does_not_end_before_next_command(mock_run, tmp_path, monkeypatch, capsys):
+    """A DONE/PASS claim that only records validation is not completion.
+
+    The same cycle must still hand the next distinct pending command to the
+    existing discover/run path instead of stopping after that claim.
+    """
+    incoming = tmp_path / "incoming"
+    processed = tmp_path / "processed"
+    dispatch = tmp_path / "dispatch"
+    for directory in (incoming, processed, dispatch):
+        directory.mkdir()
+
+    first = incoming / "a.json"
+    second = incoming / "b.json"
+    first.write_text(json.dumps(_pending_command("task-1", "msg-1")), encoding="utf-8")
+    second.write_text(json.dumps(_pending_command("task-2", "msg-2")), encoding="utf-8")
+    os_utime = __import__("os").utime
+    os_utime(first, (1, 1_000))
+    os_utime(second, (1, 2_000))
+
+    def ids_from(args):
+        command_path = Path(args[args.index("--command") + 1])
+        data = json.loads(command_path.read_text(encoding="utf-8"))
+        return data["task_id"], data["message_id"]
+
+    def mock_subprocess_run(args, **kwargs):
+        cmd_str = " ".join(str(part) for part in args)
+        if "build_antigravity_worker_job.py" in cmd_str and "--validate" not in cmd_str:
+            task_id, _message_id = ids_from(args)
+            (dispatch / f"{task_id}-worker-job.json").write_text("{}", encoding="utf-8")
+            return MagicMock(returncode=0, stderr="", stdout="")
+        if "consume_chief_command.py" in cmd_str:
+            task_id, message_id = ids_from(args)
+            if task_id == "task-1":
+                record = {
+                    "status": "DONE",
+                    "task_id": task_id,
+                    "message_id": f"result-{message_id}",
+                    "parent_id": message_id,
+                    "payload": {
+                        "summary": f"Executed Chief Command: echo {task_id}",
+                        "test_results": "PASS",
+                        "verified_facts": [f"Command validated successfully: id={message_id}"],
+                    },
+                }
+                code = 0
+            else:
+                record = {
+                    "status": "BLOCKED",
+                    "task_id": task_id,
+                    "message_id": f"result-{message_id}",
+                    "parent_id": message_id,
+                    "payload": {
+                        "summary": f"Command not executed: echo {task_id}",
+                        "test_results": "NOT_RUN",
+                        "verified_facts": ["The command was not run"],
+                    },
+                }
+                code = 1
+            (processed / f"{task_id}-result.json").write_text(json.dumps(record), encoding="utf-8")
+            return MagicMock(returncode=code, stderr="", stdout="")
+        return MagicMock(returncode=0, stderr="", stdout="")
+
+    mock_run.side_effect = mock_subprocess_run
+    monkeypatch.setattr("sys.argv", [
+        "run_chief_relay_cycle.py",
+        "--repo-dir", str(tmp_path),
+        "--incoming-dir", "incoming",
+        "--processed-dir", "processed",
+        "--dispatch-dir", "dispatch",
+        "--disable-auto-memory",
+        "--memory-repo", str(tmp_path / "missing-memory"),
+    ])
+
+    with pytest.raises(SystemExit) as excinfo:
+        main()
+    assert excinfo.value.code == 1
+
+    reported = json.loads(capsys.readouterr().out)
+    items = reported if isinstance(reported, list) else [reported]
+    by_task = {item.get("task_id"): item for item in items if item.get("task_id")}
+    assert "task-1" in by_task and "task-2" in by_task
+    assert by_task["task-1"]["status"] != "COMPLETED"
+    assert by_task["task-2"]["status"] != "COMPLETED"
 

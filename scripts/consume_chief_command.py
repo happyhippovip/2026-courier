@@ -7,8 +7,6 @@ import argparse
 import datetime
 import hashlib
 import json
-import os
-import subprocess
 import sys
 import uuid
 from pathlib import Path
@@ -167,19 +165,20 @@ def process_command(command_file: Path, incoming_dir: Path, processed_dir: Path)
     if not is_valid:
         fail(f"Validation failed: {reason}")
 
-    # Safe Command Execution Dispatcher
+    # Validation is not execution. This publisher does not run one_next_command.
     cmd_text = command_data["payload"]["one_next_command"]
-    
-    summary = f"Executed Chief Command: {cmd_text}"
+
+    summary = f"Command not executed: {cmd_text}"
     verified_facts = [
-        f"Command validated successfully: id={command_data['message_id']}",
-        f"Scope verified: {command_data['payload']['allowed_scope']}",
-        f"Cost policy verified: {command_data['payload']['cost_policy']}",
+        f"Command validated only: id={command_data['message_id']}",
+        f"Scope checked: {command_data['payload']['allowed_scope']}",
+        f"Cost policy checked: {command_data['payload']['cost_policy']}",
+        "The command was not run",
     ]
     files_changed = 0
     commits = []
-    test_results = "PASS"
-    result_status = "DONE"
+    test_results = "NOT_RUN"
+    result_status = "BLOCKED"
     human_gate = "NONE"
     safe_next_state = "WAITING_FOR_CHIEF_COMMAND"
 
@@ -215,7 +214,10 @@ def main() -> None:
     processed_dir = Path(args.processed_dir)
 
     result = process_command(Path(args.command), incoming_dir, processed_dir)
-    print(f"RESULT_PUBLISHED: id={result['message_id']}, task={result['task_id']}, status={result['status']}")
+    print(
+        f"RESULT_NOT_VERIFIED: id={result['message_id']}, task={result['task_id']}, status={result['status']}"
+    )
+    raise SystemExit(1)
 
 
 if __name__ == "__main__":
