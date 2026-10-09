@@ -27,17 +27,12 @@ def build_product_shell(dry_run=True):
         print("Reference: ops/ai/END_TO_END_FINISH_TO_PILOT_PLAYBOOK_2026-09-27.md (Phase 8).")
         return 1
 
-    print("[BUILD SKELETON] Starting Product Shell build pipeline...")
-    stages = [
-        "1. Validate source bundle & commit SHA",
-        "2. Compile client assets (Connect -> Goal -> Status drawer)",
-        "3. Bundle lightweight Python server runtime",
-        "4. Generate release metadata & reproducible package manifest",
-        "5. Output distribution artifact to dist/courier-product-shell"
-    ]
-    for stage in stages:
-        print(f"  -> {stage} (READY)")
-        
+    artifact = repo_root / "dist" / "courier-product-shell"
+    if not artifact.exists():
+        print("[BUILD SKELETON] Distribution artifact is absent; skeleton verification did not run.")
+        print(f"Missing: {artifact}")
+        return 1
+
     print("[BUILD SKELETON] Completed skeleton verification successfully.")
     return 0
 
