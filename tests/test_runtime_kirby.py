@@ -121,3 +121,73 @@ def test_kirby_on_turn_end_without_receipt(tmp_path):
     ledger_file = tmp_path / "ledger_summary_sess-turn-4.json"
     assert ledger_file.exists()
 
+
+def test_kirby_continuation_records_fact_and_advances_decision(tmp_path):
+    from courier_runtime.receipt import RecoveryReceipt
+    from courier_runtime.continuation import AcceptedLog, Checkpoint
+
+    log_path = tmp_path / "accepted.jsonl"
+    log = AcceptedLog(str(log_path))
+    k = KirbySupervisor(provider="muse", host="win-1", session_id="sess-c1", state_dir=str(tmp_path))
+
+    receipt = RecoveryReceipt(
+        workkey="WK-V26-001",
+        session_id="sess-c1",
+        incident_fingerprint="fp-clean-01",
+        detected_state="TASK_IN_PROGRESS",
+        detected_at=time.time(),
+        what_failed="none",
+        positive_evidence=None,
+        survived={"state": "clean"},
+        action="NONE",
+        outcome="WAITING",
+    )
+
+    summary = k.on_turn_end(
+        "WK-V26-001",
+        "COMPLETE",
+        receipt=receipt,
+        owned_identities=set(),
+        accepted_log=log,
+        step=0,
+        statement="Step 0 validated cleanly",
+    )
+
+    assert "accepted_fact" in summary
+    assert summary["accepted_fact"]["step"] == 0
+    assert summary["accepted_fact"]["workkey"] == "WK-V26-001"
+    assert tuple(summary["accepted_fact"]["sources"]) == (f"receipt:{receipt.receipt_id}",)
+
+    facts = log.facts("WK-V26-001")
+    assert len(facts) == 1
+    assert facts[0].step == 0
+
+    plan = ["build_job", "execute_bridge", "verify_artifact"]
+    chk = Checkpoint.from_log("WK-V26-001", plan=plan, log=log)
+    assert chk.last_accepted_step == 0
+
+    decision = k.decide_continuation(chk, lease_available=True)
+    assert decision["safe"] is True
+    assert decision["resume_step"] == 1
+    assert decision["state"] == "RUNNING"
+
+
+def test_kirby_continuation_refused_on_unconfirmed_non_idempotent_effect(tmp_path):
+    from courier_runtime.continuation import Checkpoint
+
+    k = KirbySupervisor(provider="muse", host="win-1", session_id="sess-c2", state_dir=str(tmp_path))
+    plan = ["prepare", "spend_credits", "complete"]
+    chk = Checkpoint(
+        workkey="WK-V26-002",
+        plan=plan,
+        last_accepted_step=0,
+        attempted={"1": {"effect_class": "non_idempotent", "effect_confirmed": False}},
+    )
+
+    decision = k.decide_continuation(chk, lease_available=True)
+    assert decision["safe"] is False
+    assert decision["resume_step"] == 1
+    assert decision["state"] == "NEEDS_USER"
+    assert "confirmation required before retry" in decision["reasons"][0]
+
+

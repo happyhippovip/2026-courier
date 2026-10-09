@@ -92,8 +92,11 @@ class KirbySupervisor:
         state: str,
         receipt: Optional[Any] = None,
         owned_identities: Optional[set] = None,
+        accepted_log: Optional[Any] = None,
+        step: Optional[int] = None,
+        statement: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Primary detection: provider turn-end / idle event with receipt validation."""
+        """Primary detection: provider turn-end / idle event with receipt validation and continuation logging."""
         self.last_useful_progress = time.time()
         self.current_workkey = workkey
 
@@ -122,12 +125,44 @@ class KirbySupervisor:
             "receipt_id": validated_receipt_id,
             "timestamp": self.last_useful_progress,
         }
+
+        # 3. Verified continuation logging
+        if accepted_log is not None and status == "COMPLETED" and validated_receipt_id is not None and step is not None:
+            from dataclasses import asdict
+            from courier_runtime.continuation import AcceptedFact
+            fact = AcceptedFact(
+                workkey=workkey,
+                step=step,
+                statement=statement or f"step {step} completed and verified",
+                sources=(f"receipt:{validated_receipt_id}",),
+                accepted_by="controller",
+                accepted_at=self.last_useful_progress,
+            )
+            accepted_log.append(fact)
+            summary["accepted_fact"] = asdict(fact)
+
         os.makedirs(self.state_dir, exist_ok=True)
         summary_path = os.path.join(self.state_dir, f"ledger_summary_{self.session_id}.json")
         with open(summary_path, "w") as f:
             json.dump(summary, f, indent=2)
 
         return summary
+
+    def decide_continuation(
+        self,
+        checkpoint: Any,
+        grants_valid: Optional[Dict[str, bool]] = None,
+        owned_alive: Optional[list] = None,
+        lease_available: bool = True,
+    ) -> Dict[str, Any]:
+        """Evaluates verified continuation for the supervised session."""
+        from courier_runtime.continuation import decide
+        return decide(
+            checkpoint,
+            grants_valid=grants_valid if grants_valid is not None else {},
+            owned_alive=owned_alive if owned_alive is not None else [],
+            lease_available=lease_available,
+        )
 
 
 class WakeCoalescer:

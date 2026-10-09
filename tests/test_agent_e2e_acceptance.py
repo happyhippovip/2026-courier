@@ -154,3 +154,57 @@ def test_recovered_agent_full_acceptance_chain():
         decision = run_chief_review_router(task_id, result_path)
         assert decision.get("verdict") == "ACCEPTED"
         assert decision.get("action") == "AUTO_APPROVE_SAFE_RESULT"
+
+        # 9. Trusted Ledger Checkpointing via Kirby Supervisor
+        from courier_runtime.kirby import KirbySupervisor
+        from courier_runtime.continuation import AcceptedLog, Checkpoint
+
+        k = KirbySupervisor(
+            provider="antigravity",
+            host="DESKTOP-JDPRUGR",
+            session_id="sess-v26-e2e",
+            state_dir=str(tmp),
+        )
+        accepted_log = AcceptedLog(str(tmp / "accepted.jsonl"))
+
+        turn_summary = k.on_turn_end(
+            workkey=workkey,
+            state="COMPLETE",
+            receipt=validated_receipt,
+            owned_identities=set(),
+            accepted_log=accepted_log,
+            step=0,
+            statement=f"Task {task_id} completed and accepted by Chief router",
+        )
+        assert turn_summary["state"] == "COMPLETED"
+        assert turn_summary["receipt_id"] == validated_receipt.receipt_id
+
+        ledger_file = tmp / "ledger_summary_sess-v26-e2e.json"
+        assert ledger_file.exists(), "Ledger summary file must be persisted"
+        ledger_data = json.loads(ledger_file.read_text(encoding="utf-8"))
+        assert ledger_data["receipt_id"] == validated_receipt.receipt_id
+        assert ledger_data["state"] == "COMPLETED"
+
+        # 10. Automatic Verified Safe Next Task Decision
+        plan = ["asset_validation", "next_safe_downstream_task"]
+        checkpoint = Checkpoint.from_log(workkey, plan=plan, log=accepted_log)
+        assert checkpoint.last_accepted_step == 0
+
+        continuation_decision = k.decide_continuation(checkpoint, lease_available=True)
+        assert continuation_decision["safe"] is True
+        assert continuation_decision["resume_step"] == 1
+        assert continuation_decision["state"] == "RUNNING"
+        assert plan[continuation_decision["resume_step"]] == "next_safe_downstream_task"
+
+        # 11. Negative Continuation Case: Unconfirmed effect halts safely
+        tampered_checkpoint = Checkpoint(
+            workkey=workkey,
+            plan=plan,
+            last_accepted_step=0,
+            attempted={"1": {"effect_class": "non_idempotent", "effect_confirmed": False}},
+        )
+        blocked_decision = k.decide_continuation(tampered_checkpoint, lease_available=True)
+        assert blocked_decision["safe"] is False
+        assert blocked_decision["state"] == "NEEDS_USER"
+        assert blocked_decision["resume_step"] == 1
+
