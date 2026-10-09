@@ -23,6 +23,7 @@ import errno
 import hashlib
 import json
 import os
+import re
 import signal
 import subprocess
 import sys
@@ -49,6 +50,12 @@ LOAD_PRESSURE_FACTOR = 4.0
 
 CLAIM_RECORD_GLOB = "dispatch-*.json"
 CRASH_REPORT_NAME = "crash.json"
+
+# dispatch_id names files under the worker home (claim record, stdio capture,
+# artifact dir, outbox entry, bridge request/report), so it must already be
+# filename-safe when the spec is built: the exact alphabet the per-sink
+# sanitizers keep, minus the dot-only names that still traverse.
+_DISPATCH_ID_RE = re.compile(r"^[A-Za-z0-9_.-]+$")
 
 
 class SpecError(ValueError):
@@ -127,6 +134,10 @@ class ExecutionSpec:
             value = getattr(self, name)
             if not isinstance(value, str) or not value or len(value) > 200:
                 raise SpecError(f"{name} must be a non-empty string of at most 200 chars")
+        if not _DISPATCH_ID_RE.match(self.dispatch_id) or self.dispatch_id in (".", ".."):
+            raise SpecError(
+                "dispatch_id must be filename-safe ([A-Za-z0-9_.-], not '.' or '..'); "
+                "it names files under the worker home")
         if isinstance(self.attempt, bool) or not isinstance(self.attempt, int) or self.attempt < 1:
             raise SpecError("attempt must be an integer >= 1")
         if (not isinstance(self.argv, (list, tuple)) or not self.argv
