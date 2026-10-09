@@ -45,3 +45,30 @@ def test_failed_needs_positive_evidence():
         validate(receipt(what_failed="worker_process", outcome="FAILED", action="NEEDS_YOU"), set())
     validate(receipt(what_failed="worker_process", outcome="FAILED", action="NEEDS_YOU",
                      positive_evidence="exit_code=1"), set())
+
+
+def test_unknown_outcome_and_action_rejected():
+    with pytest.raises(ReceiptError, match="unknown outcome DONE"):
+        validate(receipt(outcome="DONE"), set())
+    with pytest.raises(ReceiptError, match="unknown outcome TASK_COMPLETE"):
+        validate(receipt(outcome="TASK_COMPLETE"), set())
+    with pytest.raises(ReceiptError, match="unknown action UNKNOWN"):
+        validate(receipt(action="UNKNOWN"), set())
+    with pytest.raises(ReceiptError, match="unknown action TASK_COMPLETE"):
+        validate(receipt(action="TASK_COMPLETE"), set())
+
+
+def test_resume_from_checkpoint_requires_resume_from():
+    with pytest.raises(ReceiptError, match="resume needs a resume_from checkpoint"):
+        validate(receipt(action="RESUME_FROM_CHECKPOINT", resume_from=None), set())
+
+
+def test_recovered_needs_after_snapshot():
+    with pytest.raises(ReceiptError, match="RECOVERED needs an after-snapshot"):
+        validate(receipt(after_snapshot=None), set())
+
+
+def test_failed_task_needs_positive_evidence():
+    with pytest.raises(ReceiptError, match="FAILED needs positive failure evidence"):
+        validate(receipt(what_failed="task", outcome="FAILED", action="NEEDS_YOU", positive_evidence=None), set())
+
