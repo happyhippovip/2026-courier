@@ -158,6 +158,24 @@
         </div>
       </div>
 
+      <!-- Host Capacity Card (Issue 76: Developer Mode UX) -->
+      <div class="card glass-card capacity-card" id="host-capacity-card">
+        <div class="card-header">
+          <div class="header-icon">🖥️</div>
+          <div class="header-text">
+            <h2>HOST CAPACITY & HEALTH</h2>
+            <span class="meta-tag">System Resource Monitor</span>
+          </div>
+          <button class="btn btn-sm btn-danger" id="btn-emergency-mode">🚨 Latch EMERGENCY_MODE</button>
+        </div>
+        <div class="capacity-body" style="padding: 1rem;">
+          <div id="host-status-list">
+            <!-- Populated dynamically by app.js -->
+            <div>Loading host status...</div>
+          </div>
+        </div>
+      </div>
+
       <!-- 3. Human Gate & Safety Console -->
       <div class="card glass-card safety-card">
         <div class="card-header">

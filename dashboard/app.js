@@ -368,7 +368,65 @@ document.addEventListener("DOMContentLoaded", () => {
   setupMissionControls();
   setupInitialLogs();
   updateMissionUI();
+  setupEmergencyControls();
+  startStatusPolling();
 });
+
+// EMERGENCY CONTROLS
+function setupEmergencyControls() {
+  const btn = document.getElementById("btn-emergency-mode");
+  if (btn) {
+    btn.addEventListener("click", async () => {
+      if (confirm("Are you sure you want to latch EMERGENCY MODE? This will pause all non-critical workloads.")) {
+        try {
+          const res = await fetch("/api/emergency", { method: "POST" });
+          if (res.ok) {
+            addLog("EMERGENCY", "EMERGENCY_MODE latched successfully.");
+            fetchStatusUpdate();
+          } else {
+            addLog("ERROR", "Failed to latch emergency mode.");
+          }
+        } catch (e) {
+          addLog("ERROR", "API connection failed.");
+        }
+      }
+    });
+  }
+}
+
+// STATUS POLLING
+let statusPollInterval = null;
+function startStatusPolling() {
+  fetchStatusUpdate(); // initial fetch
+  statusPollInterval = setInterval(fetchStatusUpdate, 3000);
+}
+
+async function fetchStatusUpdate() {
+  try {
+    const res = await fetch("/api/status");
+    if (!res.ok) return;
+    const data = await res.json();
+    
+    // Update Host Capacity Card
+    const capList = document.getElementById("host-status-list");
+    if (capList && data.host_capacity) {
+      const hc = data.host_capacity;
+      
+      let html = `<div style="margin-bottom: 8px;"><strong>Health State:</strong> 
+                    <span class="badge ${hc.health === 'EMERGENCY' ? 'status-gate' : 'status-active'}">${hc.health}</span>
+                  </div>`;
+      html += `<div style="margin-bottom: 8px;"><strong>Profile:</strong> ${hc.profile}</div>`;
+      html += `<div style="margin-bottom: 8px;"><strong>Active Leases:</strong> ${hc.active_leases} / ${hc.max_total_slots}</div>`;
+      html += `<div><strong>Heavy Leases:</strong> ${hc.active_heavy_leases} / ${hc.max_heavy_slots}</div>`;
+      
+      capList.innerHTML = html;
+    }
+    
+  } catch (err) {
+    console.warn("Failed to fetch status:", err);
+  }
+}
+
 
 // RENDER AGENT ROSTER
 function renderAgentRoster() {

@@ -1,0 +1,129 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>Repo Reality Check - 2026-courier</title><style>body{font:15px/1.5 system-ui,sans-serif;max-width:860px;margin:32px auto;padding:0 16px;color:#111}code{background:#f2f2f2;padding:1px 4px;border-radius:3px;word-break:break-all}h2{border-bottom:1px solid #ddd;padding-bottom:4px;margin-top:28px}@media print{body{margin:0}}</style></head><body><h1>Repo Reality Check — 2026-courier</h1>
+<p>Commit: <code>9ec988400dca8cd5501a10e7e7f9adfa6b52f700</code></p>
+<p>Files scanned: 1509 · high 9 · medium 32 · low 46</p>
+<p>Read-only scan; no code was executed. Secret findings show location and type only.</p>
+<p>Tool: <code>rrc-2</code> · Digest: <code>58dd1f5d8091526d8029d5bd46e165eae9ab1676fe22c095feaf8ec44090f520</code>  </p>
+<p>Anyone can re-check this report: <code>python scripts/repo_reality_check.py --verify report.json &lt;checkout&gt;</code></p>
+<h2>What the findings mean and how to fix them</h2>
+<ul>
+<li><b><code>KILL_BY_NAME</code></b> — Processes are stopped by name, which can kill unrelated programs with the same name. <b>Fix:</b> Record the process id (plus start time) when starting and stop exactly that process. <b>Effort:</b> 1-2 h</li>
+<li><b><code>WILDCARD_BIND</code></b> — A server listens on all network interfaces, so other machines on the network (or the internet) can reach it. <b>Fix:</b> Bind to 127.0.0.1 by default; open it only through an explicit setting. <b>Effort:</b> 15 min</li>
+<li><b><code>action_pinned_by_tag</code></b> — A CI action is referenced by a movable tag; the tag can be moved to different code. <b>Fix:</b> Pin to the full commit SHA (a comment can keep the version name). <b>Effort:</b> 10 min per action</li>
+<li><b><code>binary_committed</code></b> — A binary is committed without a record of how it was built, so nobody can check what it contains. <b>Fix:</b> Build it in CI from source, or document its source and checksum. <b>Effort:</b> 1 h</li>
+<li><b><code>concurrency</code></b> — Parallel runs can overlap and race. <b>Fix:</b> Add a <code>concurrency</code> group. <b>Effort:</b> 5 min</li>
+<li><b><code>github_token</code></b> — A credential-shaped string is in the repository. If it is real, anyone with read access can use it. <b>Fix:</b> Revoke and rotate it at the provider first, then remove it from the code and load it from the environment or a secret store. Removing it from history alone is not enough - rotate. <b>Effort:</b> 30-60 min per secret</li>
+<li><b><code>mutation_risk</code></b> — A workflow can write to the repository or releases. <b>Fix:</b> Limit write steps to protected branches. <b>Effort:</b> 30 min</li>
+<li><b><code>openai_style_key</code></b> — A credential-shaped string is in the repository. If it is real, anyone with read access can use it. <b>Fix:</b> Revoke and rotate it at the provider first, then remove it from the code and load it from the environment or a secret store. Removing it from history alone is not enough - rotate. <b>Effort:</b> 30-60 min per secret</li>
+<li><b><code>timeout</code></b> — A CI job has no timeout and can hang for hours. <b>Fix:</b> Set <code>timeout-minutes</code> per job. <b>Effort:</b> 5 min</li>
+</ul>
+<h2>Secrets (8)</h2>
+<ul>
+<li><b>low</b> <code>github_token</code> — tests/test_evaluate_memory_proposal_for_auto_approval.py:86: test fixture shape (low entropy, in tests/)</li>
+<li><b>low</b> <code>github_token</code> — tests/test_register_social_channel.py:22: test fixture shape (low entropy, in tests/)</li>
+<li><b>low</b> <code>github_token</code> — tests/test_run_antigravity_bridge.py:16: test fixture shape (low entropy, in tests/)</li>
+<li><b>low</b> <code>openai_style_key</code> — tests/test_run_antigravity_bridge.py:17: test fixture shape (low entropy, in tests/)</li>
+<li><b>low</b> <code>github_token</code> — tests/test_run_antigravity_bridge.py:73: test fixture shape (low entropy, in tests/)</li>
+<li><b>low</b> <code>github_token</code> — tests/test_run_codex_bridge.py:17: test fixture shape (low entropy, in tests/)</li>
+<li><b>low</b> <code>openai_style_key</code> — tests/test_run_codex_bridge.py:18: test fixture shape (low entropy, in tests/)</li>
+<li><b>low</b> <code>github_token</code> — tests/test_run_codex_bridge.py:56: test fixture shape (low entropy, in tests/)</li>
+</ul>
+<h2>Safety (12)</h2>
+<ul>
+<li><b>high</b> <code>KILL_BY_NAME</code> — .carrier-wtv-20261007/scripts/check_local_safety.py:4: 1. Name-based process kills. Cleanup by executable name (``Stop-Process -Name</li>
+<li><b>high</b> <code>KILL_BY_NAME</code> — .carrier-wtv-20261007/scripts/check_local_safety.py:5: python<code>`, </code><code>taskkill /IM</code><code>, </code><code>pkill</code><code>, </code><code>killall</code>`) terminated unrelated</li>
+<li><b>high</b> <code>KILL_BY_NAME</code> — .carrier-wtv-20261007/scripts/check_local_safety.py:34: re.compile(r&quot;Get-Process\b[^\n|]*\|[^\n]*Stop-Process&quot;, re.I),</li>
+<li><b>high</b> <code>KILL_BY_NAME</code> — .carrier-wtv-20261007/scripts/windows_worker/stop.bat:3: taskkill /F /IM Courier.exe 2&gt;NUL</li>
+<li><b>high</b> <code>KILL_BY_NAME</code> — .wt-evidence/scripts/check_local_safety.py:4: 1. Name-based process kills. Cleanup by executable name (``Stop-Process -Name</li>
+<li><b>high</b> <code>KILL_BY_NAME</code> — .wt-evidence/scripts/check_local_safety.py:5: python<code>`, </code><code>taskkill /IM</code><code>, </code><code>pkill</code><code>, </code><code>killall</code>`) terminated unrelated</li>
+<li><b>high</b> <code>KILL_BY_NAME</code> — .wt-evidence/scripts/check_local_safety.py:34: re.compile(r&quot;Get-Process\b[^\n|]*\|[^\n]*Stop-Process&quot;, re.I),</li>
+<li><b>high</b> <code>KILL_BY_NAME</code> — .wt-evidence/scripts/windows_worker/stop.bat:3: taskkill /F /IM Courier.exe 2&gt;NUL</li>
+<li><b>high</b> <code>KILL_BY_NAME</code> — scripts/windows_worker/stop.bat:3: taskkill /F /IM Courier.exe 2&gt;NUL</li>
+<li><b>medium</b> <code>WILDCARD_BIND</code> — .carrier-wtv-20261007/deploy/run-supervisor.sh:23: gunicorn -w 1 --threads 4 -b 0.0.0.0:8080 server.app:app &amp;</li>
+<li><b>medium</b> <code>WILDCARD_BIND</code> — .wt-evidence/deploy/run-supervisor.sh:23: gunicorn -w 1 --threads 4 -b 0.0.0.0:8080 server.app:app &amp;</li>
+<li><b>medium</b> <code>WILDCARD_BIND</code> — deploy/run-supervisor.sh:23: gunicorn -w 1 --threads 4 -b 0.0.0.0:8080 server.app:app &amp;</li>
+</ul>
+<h2>Hygiene (17)</h2>
+<ul>
+<li><b>medium</b> <code>binary_committed</code> — events/digital-assets/dist/FruitKI_3D_Commercial_Pack_v1.0.0.zip: 1 KiB without build provenance</li>
+<li><b>medium</b> <code>binary_committed</code> — events/revenue-opportunities/offerings/kibey_ai_marketplace/dist/KIBEY_PILOT_DELIVERY_PACKAGE_v1.0.0.zip: 2 KiB without build provenance</li>
+<li><b>medium</b> <code>binary_committed</code> — scripts/windows_worker/Courier.exe: 11 KiB without build provenance</li>
+<li><b>medium</b> <code>binary_committed</code> — scripts/windows_worker/CourierWorker-v1.zip: 13787 KiB without build provenance</li>
+<li><b>medium</b> <code>binary_committed</code> — scripts/windows_worker/Courier_Debug.exe: 9 KiB without build provenance</li>
+<li><b>medium</b> <code>binary_committed</code> — scripts/windows_worker/dist/Courier.exe: 9 KiB without build provenance</li>
+<li><b>medium</b> <code>binary_committed</code> — scripts/windows_worker/dist/python/libcrypto-3.dll: 5070 KiB without build provenance</li>
+<li><b>medium</b> <code>binary_committed</code> — scripts/windows_worker/dist/python/libffi-8.dll: 38 KiB without build provenance</li>
+<li><b>medium</b> <code>binary_committed</code> — scripts/windows_worker/dist/python/libssl-3.dll: 768 KiB without build provenance</li>
+<li><b>medium</b> <code>binary_committed</code> — scripts/windows_worker/dist/python/python.exe: 100 KiB without build provenance</li>
+<li><b>medium</b> <code>binary_committed</code> — scripts/windows_worker/dist/python/python3.dll: 65 KiB without build provenance</li>
+<li><b>medium</b> <code>binary_committed</code> — scripts/windows_worker/dist/python/python311.dll: 5664 KiB without build provenance</li>
+<li><b>medium</b> <code>binary_committed</code> — scripts/windows_worker/dist/python/python311.zip: 4185 KiB without build provenance</li>
+<li><b>medium</b> <code>binary_committed</code> — scripts/windows_worker/dist/python/pythonw.exe: 99 KiB without build provenance</li>
+<li><b>medium</b> <code>binary_committed</code> — scripts/windows_worker/dist/python/sqlite3.dll: 1504 KiB without build provenance</li>
+<li><b>medium</b> <code>binary_committed</code> — scripts/windows_worker/dist/python/vcruntime140.dll: 116 KiB without build provenance</li>
+<li><b>medium</b> <code>binary_committed</code> — scripts/windows_worker/dist/python/vcruntime140_1.dll: 48 KiB without build provenance</li>
+</ul>
+<h2>Supply (38)</h2>
+<ul>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\courier-codex.yml:22: actions/checkout@v5</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\courier-codex.yml:57: actions/checkout@v5</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\courier-codex.yml:61: openai/codex-action@v1</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\courier-codex.yml:86: actions/checkout@v5</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\courier_motor.yml:23: actions/checkout@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\courier_motor.yml:45: actions/checkout@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\courier_motor.yml:50: actions/setup-python@v5</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\courier_worker.yml:27: actions/checkout@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\courier_worker.yml:137: actions/upload-artifact@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\deploy-pages.yml:32: actions/checkout@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\deploy-pages.yml:43: actions/configure-pages@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\deploy-pages.yml:46: actions/upload-pages-artifact@v3</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\deploy-pages.yml:52: actions/deploy-pages@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\deploy-static.yml:21: actions/checkout@v5</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\github-ci.yml:25: actions/checkout@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\github-ci.yml:30: actions/setup-python@v5</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\host-endurance-soak.yml:42: actions/checkout@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\host-endurance-soak.yml:44: actions/setup-python@v5</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\host-endurance-soak.yml:65: actions/upload-artifact@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\host-endurance-soak.yml:79: actions/checkout@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\host-endurance-soak.yml:81: actions/download-artifact@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\host-endurance-soak.yml:98: actions/upload-artifact@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\revenue_v1_baseline.yml:38: actions/checkout@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\revenue_v1_baseline.yml:96: actions/upload-artifact@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\revenue_v1_baseline.yml:112: actions/checkout@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\revenue_v1_baseline.yml:115: actions/download-artifact@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\revenue_v1_baseline.yml:124: actions/upload-artifact@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\revenue_v1_baseline.yml:138: actions/checkout@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\revenue_v1_baseline.yml:141: actions/download-artifact@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\revenue_v1_baseline.yml:146: actions/download-artifact@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\revenue_v1_baseline.yml:200: actions/upload-artifact@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\v1-ci.yml:33: actions/checkout@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\v1-ci.yml:35: actions/setup-python@v5</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\v1-ci.yml:78: actions/upload-artifact@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\v1-ci.yml:100: actions/checkout@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\v1-ci.yml:101: actions/setup-node@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\v1-ci.yml:124: actions/checkout@v4</li>
+<li><b>low</b> <code>action_pinned_by_tag</code> — .github\workflows\v1-ci.yml:126: actions/setup-python@v5</li>
+</ul>
+<h2>Workflows (12)</h2>
+<ul>
+<li><b>medium</b> <code>timeout</code> — .github/workflows/courier-codex.yml: Missing timeout-minutes configuration.</li>
+<li><b>medium</b> <code>concurrency</code> — .github/workflows/courier-codex.yml: Missing concurrency block.</li>
+<li><b>medium</b> <code>mutation_risk</code> — .github/workflows/courier-codex.yml: git push detected in workflow.</li>
+<li><b>medium</b> <code>timeout</code> — .github/workflows/courier_worker.yml: Missing timeout-minutes configuration.</li>
+<li><b>medium</b> <code>timeout</code> — .github/workflows/deploy-pages.yml: Missing timeout-minutes configuration.</li>
+<li><b>medium</b> <code>timeout</code> — .github/workflows/deploy-static.yml: Missing timeout-minutes configuration.</li>
+<li><b>medium</b> <code>concurrency</code> — .github/workflows/deploy-static.yml: Missing concurrency block.</li>
+<li><b>medium</b> <code>timeout</code> — .github/workflows/github-ci.yml: Missing timeout-minutes configuration.</li>
+<li><b>medium</b> <code>concurrency</code> — .github/workflows/github-ci.yml: Missing concurrency block.</li>
+<li><b>medium</b> <code>timeout</code> — .github/workflows/revenue_v1_baseline.yml: Missing timeout-minutes configuration.</li>
+<li><b>medium</b> <code>concurrency</code> — .github/workflows/revenue_v1_baseline.yml: Missing concurrency block.</li>
+<li><b>medium</b> <code>mutation_risk</code> — .github/workflows/revenue_v1_baseline.yml: git push detected in workflow.</li>
+</ul>
+<h2>What this check did NOT cover</h2>
+<ul>
+<li>Smart contracts, cryptographic design and business logic were not audited.</li>
+<li>No code was executed and no running system, server or network was tested.</li>
+<li>Git history before this commit was not scanned; secrets removed earlier may still be in history.</li>
+<li>Dependencies were not checked for known vulnerabilities (CVE scan).</li>
+<li>Secret detection uses known patterns; unusual or custom secret formats can be missed.</li>
+<li>A clean report means &#x27;nothing found by these checks&#x27;, not &#x27;secure&#x27;.</li>
+</ul></body></html>

@@ -1,0 +1,796 @@
+{
+ "repository": "2026-courier",
+ "sha": "ba23daa814bb9e0a9db32b908cdcd3e098bc3907",
+ "files_scanned": 2147,
+ "findings": [
+  {
+   "area": "workflows",
+   "severity": "medium",
+   "rule": "timeout",
+   "where": ".github/workflows/courier-codex.yml",
+   "detail": "Missing timeout-minutes configuration."
+  },
+  {
+   "area": "workflows",
+   "severity": "medium",
+   "rule": "concurrency",
+   "where": ".github/workflows/courier-codex.yml",
+   "detail": "Missing concurrency block."
+  },
+  {
+   "area": "workflows",
+   "severity": "medium",
+   "rule": "mutation_risk",
+   "where": ".github/workflows/courier-codex.yml",
+   "detail": "git push detected in workflow."
+  },
+  {
+   "area": "workflows",
+   "severity": "medium",
+   "rule": "timeout",
+   "where": ".github/workflows/courier_worker.yml",
+   "detail": "Missing timeout-minutes configuration."
+  },
+  {
+   "area": "workflows",
+   "severity": "medium",
+   "rule": "timeout",
+   "where": ".github/workflows/deploy-pages.yml",
+   "detail": "Missing timeout-minutes configuration."
+  },
+  {
+   "area": "workflows",
+   "severity": "medium",
+   "rule": "timeout",
+   "where": ".github/workflows/deploy-static.yml",
+   "detail": "Missing timeout-minutes configuration."
+  },
+  {
+   "area": "workflows",
+   "severity": "medium",
+   "rule": "concurrency",
+   "where": ".github/workflows/deploy-static.yml",
+   "detail": "Missing concurrency block."
+  },
+  {
+   "area": "workflows",
+   "severity": "medium",
+   "rule": "timeout",
+   "where": ".github/workflows/github-ci.yml",
+   "detail": "Missing timeout-minutes configuration."
+  },
+  {
+   "area": "workflows",
+   "severity": "medium",
+   "rule": "concurrency",
+   "where": ".github/workflows/github-ci.yml",
+   "detail": "Missing concurrency block."
+  },
+  {
+   "area": "workflows",
+   "severity": "medium",
+   "rule": "timeout",
+   "where": ".github/workflows/revenue_v1_baseline.yml",
+   "detail": "Missing timeout-minutes configuration."
+  },
+  {
+   "area": "workflows",
+   "severity": "medium",
+   "rule": "concurrency",
+   "where": ".github/workflows/revenue_v1_baseline.yml",
+   "detail": "Missing concurrency block."
+  },
+  {
+   "area": "workflows",
+   "severity": "medium",
+   "rule": "mutation_risk",
+   "where": ".github/workflows/revenue_v1_baseline.yml",
+   "detail": "git push detected in workflow."
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\courier-codex.yml:22",
+   "detail": "actions/checkout@v5"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\courier-codex.yml:57",
+   "detail": "actions/checkout@v5"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\courier-codex.yml:61",
+   "detail": "openai/codex-action@v1"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\courier-codex.yml:86",
+   "detail": "actions/checkout@v5"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\courier_motor.yml:22",
+   "detail": "actions/checkout@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\courier_motor.yml:44",
+   "detail": "actions/checkout@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\courier_motor.yml:49",
+   "detail": "actions/setup-python@v5"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\courier_worker.yml:27",
+   "detail": "actions/checkout@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\courier_worker.yml:137",
+   "detail": "actions/upload-artifact@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\deploy-pages.yml:32",
+   "detail": "actions/checkout@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\deploy-pages.yml:43",
+   "detail": "actions/configure-pages@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\deploy-pages.yml:46",
+   "detail": "actions/upload-pages-artifact@v3"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\deploy-pages.yml:52",
+   "detail": "actions/deploy-pages@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\deploy-static.yml:21",
+   "detail": "actions/checkout@v5"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\github-ci.yml:25",
+   "detail": "actions/checkout@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\github-ci.yml:30",
+   "detail": "actions/setup-python@v5"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\host-endurance-soak.yml:42",
+   "detail": "actions/checkout@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\host-endurance-soak.yml:44",
+   "detail": "actions/setup-python@v5"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\host-endurance-soak.yml:65",
+   "detail": "actions/upload-artifact@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\host-endurance-soak.yml:79",
+   "detail": "actions/checkout@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\host-endurance-soak.yml:81",
+   "detail": "actions/download-artifact@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\host-endurance-soak.yml:98",
+   "detail": "actions/upload-artifact@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\revenue_v1_baseline.yml:38",
+   "detail": "actions/checkout@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\revenue_v1_baseline.yml:96",
+   "detail": "actions/upload-artifact@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\revenue_v1_baseline.yml:112",
+   "detail": "actions/checkout@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\revenue_v1_baseline.yml:115",
+   "detail": "actions/download-artifact@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\revenue_v1_baseline.yml:124",
+   "detail": "actions/upload-artifact@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\revenue_v1_baseline.yml:138",
+   "detail": "actions/checkout@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\revenue_v1_baseline.yml:141",
+   "detail": "actions/download-artifact@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\revenue_v1_baseline.yml:146",
+   "detail": "actions/download-artifact@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\revenue_v1_baseline.yml:200",
+   "detail": "actions/upload-artifact@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\v1-ci.yml:33",
+   "detail": "actions/checkout@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\v1-ci.yml:35",
+   "detail": "actions/setup-python@v5"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\v1-ci.yml:78",
+   "detail": "actions/upload-artifact@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\v1-ci.yml:100",
+   "detail": "actions/checkout@v4"
+  },
+  {
+   "area": "supply",
+   "severity": "low",
+   "rule": "action_pinned_by_tag",
+   "where": ".github\\workflows\\v1-ci.yml:101",
+   "detail": "actions/setup-node@v4"
+  },
+  {
+   "area": "safety",
+   "severity": "medium",
+   "rule": "WILDCARD_BIND",
+   "where": ".carrier-wtv-20261007/deploy/run-supervisor.sh:23",
+   "detail": "gunicorn -w 1 --threads 4 -b 0.0.0.0:8080 server.app:app &"
+  },
+  {
+   "area": "safety",
+   "severity": "high",
+   "rule": "KILL_BY_NAME",
+   "where": ".carrier-wtv-20261007/scripts/check_local_safety.py:4",
+   "detail": "1. Name-based process kills. Cleanup by executable name (``Stop-Process -Name"
+  },
+  {
+   "area": "safety",
+   "severity": "high",
+   "rule": "KILL_BY_NAME",
+   "where": ".carrier-wtv-20261007/scripts/check_local_safety.py:5",
+   "detail": "python``, ``taskkill /IM``, ``pkill``, ``killall``) terminated unrelated"
+  },
+  {
+   "area": "safety",
+   "severity": "high",
+   "rule": "KILL_BY_NAME",
+   "where": ".carrier-wtv-20261007/scripts/check_local_safety.py:34",
+   "detail": "re.compile(r\"Get-Process\\b[^\\n|]*\\|[^\\n]*Stop-Process\", re.I),"
+  },
+  {
+   "area": "safety",
+   "severity": "high",
+   "rule": "KILL_BY_NAME",
+   "where": ".carrier-wtv-20261007/scripts/windows_worker/stop.bat:3",
+   "detail": "taskkill /F /IM Courier.exe 2>NUL"
+  },
+  {
+   "area": "safety",
+   "severity": "medium",
+   "rule": "WILDCARD_BIND",
+   "where": ".wt-evidence/deploy/run-supervisor.sh:23",
+   "detail": "gunicorn -w 1 --threads 4 -b 0.0.0.0:8080 server.app:app &"
+  },
+  {
+   "area": "safety",
+   "severity": "high",
+   "rule": "KILL_BY_NAME",
+   "where": ".wt-evidence/scripts/check_local_safety.py:4",
+   "detail": "1. Name-based process kills. Cleanup by executable name (``Stop-Process -Name"
+  },
+  {
+   "area": "safety",
+   "severity": "high",
+   "rule": "KILL_BY_NAME",
+   "where": ".wt-evidence/scripts/check_local_safety.py:5",
+   "detail": "python``, ``taskkill /IM``, ``pkill``, ``killall``) terminated unrelated"
+  },
+  {
+   "area": "safety",
+   "severity": "high",
+   "rule": "KILL_BY_NAME",
+   "where": ".wt-evidence/scripts/check_local_safety.py:34",
+   "detail": "re.compile(r\"Get-Process\\b[^\\n|]*\\|[^\\n]*Stop-Process\", re.I),"
+  },
+  {
+   "area": "safety",
+   "severity": "high",
+   "rule": "KILL_BY_NAME",
+   "where": ".wt-evidence/scripts/windows_worker/stop.bat:3",
+   "detail": "taskkill /F /IM Courier.exe 2>NUL"
+  },
+  {
+   "area": "safety",
+   "severity": "medium",
+   "rule": "WILDCARD_BIND",
+   "where": "deploy/run-supervisor.sh:23",
+   "detail": "gunicorn -w 1 --threads 4 -b 0.0.0.0:8080 server.app:app &"
+  },
+  {
+   "area": "safety",
+   "severity": "high",
+   "rule": "KILL_BY_NAME",
+   "where": "scripts/windows_worker/stop.bat:3",
+   "detail": "taskkill /F /IM Courier.exe 2>NUL"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "events/digital-assets/dist/FruitKI_3D_Commercial_Pack_v1.0.0.zip",
+   "detail": "1 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "events/revenue-opportunities/offerings/kibey_ai_marketplace/dist/KIBEY_PILOT_DELIVERY_PACKAGE_v1.0.0.zip",
+   "detail": "2 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "generated_or_private_file_tracked",
+   "where": "pytest.log",
+   "detail": "tracked; usually belongs in .gitignore"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/Courier.exe",
+   "detail": "11 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/CourierWorker-v1.zip",
+   "detail": "13787 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/Courier_Debug.exe",
+   "detail": "9 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/Courier.exe",
+   "detail": "9 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/libs/bin/bottle.exe",
+   "detail": "45 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/libs/bin/cffi-gen-src.exe",
+   "detail": "45 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/libs/bin/flask.exe",
+   "detail": "45 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/libs/bin/idna.exe",
+   "detail": "45 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/libs/bin/normalizer.exe",
+   "detail": "45 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "high",
+   "rule": "generated_or_private_file_tracked",
+   "where": "scripts/windows_worker/dist/libs/certifi/cacert.pem",
+   "detail": "tracked; usually belongs in .gitignore"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/libs/clr_loader/ffi/dlls/amd64/ClrLoader.dll",
+   "detail": "10 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/libs/clr_loader/ffi/dlls/x86/ClrLoader.dll",
+   "detail": "10 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/libs/pythonnet/runtime/Python.Runtime.dll",
+   "detail": "440 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/libs/webview/lib/Microsoft.Web.WebView2.Core.dll",
+   "detail": "634 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/libs/webview/lib/Microsoft.Web.WebView2.WinForms.dll",
+   "detail": "38 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/libs/webview/lib/WebBrowserInterop.x64.dll",
+   "detail": "7 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/libs/webview/lib/WebBrowserInterop.x86.dll",
+   "detail": "7 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/libs/webview/lib/pywebview-android.jar",
+   "detail": "13 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/libs/webview/lib/runtimes/win-arm64/native/WebView2Loader.dll",
+   "detail": "143 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/libs/webview/lib/runtimes/win-x64/native/WebView2Loader.dll",
+   "detail": "158 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/libs/webview/lib/runtimes/win-x86/native/WebView2Loader.dll",
+   "detail": "119 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/python/libcrypto-3.dll",
+   "detail": "5070 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/python/libffi-8.dll",
+   "detail": "38 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/python/libssl-3.dll",
+   "detail": "768 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/python/python.exe",
+   "detail": "100 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/python/python3.dll",
+   "detail": "65 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/python/python311.dll",
+   "detail": "5664 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/python/python311.zip",
+   "detail": "4185 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/python/pythonw.exe",
+   "detail": "99 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/python/sqlite3.dll",
+   "detail": "1504 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/python/vcruntime140.dll",
+   "detail": "116 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "binary_committed",
+   "where": "scripts/windows_worker/dist/python/vcruntime140_1.dll",
+   "detail": "48 KiB without build provenance"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "generated_or_private_file_tracked",
+   "where": "server/crash.log",
+   "detail": "tracked; usually belongs in .gitignore"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "generated_or_private_file_tracked",
+   "where": "server/server.log",
+   "detail": "tracked; usually belongs in .gitignore"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "generated_or_private_file_tracked",
+   "where": "test_failures.log",
+   "detail": "tracked; usually belongs in .gitignore"
+  },
+  {
+   "area": "hygiene",
+   "severity": "medium",
+   "rule": "generated_or_private_file_tracked",
+   "where": "test_output.log",
+   "detail": "tracked; usually belongs in .gitignore"
+  },
+  {
+   "area": "secrets",
+   "severity": "low",
+   "rule": "github_token",
+   "where": "tests/test_apply_memory_update_proposal.py:83",
+   "detail": "test fixture shape (low entropy, in tests/)"
+  },
+  {
+   "area": "secrets",
+   "severity": "low",
+   "rule": "github_token",
+   "where": "tests/test_apply_memory_update_proposal.py:142",
+   "detail": "test fixture shape (low entropy, in tests/)"
+  },
+  {
+   "area": "secrets",
+   "severity": "low",
+   "rule": "github_token",
+   "where": "tests/test_evaluate_memory_proposal_for_auto_approval.py:86",
+   "detail": "test fixture shape (low entropy, in tests/)"
+  },
+  {
+   "area": "secrets",
+   "severity": "low",
+   "rule": "private_key_block",
+   "where": "tests/test_evaluate_memory_proposal_for_auto_approval.py:89",
+   "detail": "test fixture shape (low entropy, in tests/)"
+  },
+  {
+   "area": "secrets",
+   "severity": "low",
+   "rule": "github_token",
+   "where": "tests/test_register_social_channel.py:22",
+   "detail": "test fixture shape (low entropy, in tests/)"
+  },
+  {
+   "area": "secrets",
+   "severity": "low",
+   "rule": "github_token",
+   "where": "tests/test_run_antigravity_bridge.py:16",
+   "detail": "test fixture shape (low entropy, in tests/)"
+  },
+  {
+   "area": "secrets",
+   "severity": "low",
+   "rule": "openai_style_key",
+   "where": "tests/test_run_antigravity_bridge.py:17",
+   "detail": "test fixture shape (low entropy, in tests/)"
+  },
+  {
+   "area": "secrets",
+   "severity": "low",
+   "rule": "github_token",
+   "where": "tests/test_run_antigravity_bridge.py:73",
+   "detail": "test fixture shape (low entropy, in tests/)"
+  },
+  {
+   "area": "secrets",
+   "severity": "low",
+   "rule": "github_token",
+   "where": "tests/test_run_codex_bridge.py:17",
+   "detail": "test fixture shape (low entropy, in tests/)"
+  },
+  {
+   "area": "secrets",
+   "severity": "low",
+   "rule": "openai_style_key",
+   "where": "tests/test_run_codex_bridge.py:18",
+   "detail": "test fixture shape (low entropy, in tests/)"
+  },
+  {
+   "area": "secrets",
+   "severity": "low",
+   "rule": "github_token",
+   "where": "tests/test_run_codex_bridge.py:56",
+   "detail": "test fixture shape (low entropy, in tests/)"
+  },
+  {
+   "area": "secrets",
+   "severity": "low",
+   "rule": "private_key_block",
+   "where": "tests/test_run_content_production_pipeline.py:49",
+   "detail": "test fixture shape (low entropy, in tests/)"
+  },
+  {
+   "area": "workflows",
+   "severity": "high",
+   "rule": "ci_failed_env",
+   "where": "tests",
+   "detail": "Clean runner tests failed"
+  }
+ ],
+ "summary": {
+  "high": 11,
+  "medium": 53,
+  "low": 48
+ }
+}

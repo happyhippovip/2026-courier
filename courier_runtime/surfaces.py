@@ -249,14 +249,8 @@ class SurfaceSupervisor:
 
     def reclaim_idle(self, closer):
         """Collapse completed/idle owned surfaces; anything unsafe stays (PARK, never kill)."""
-        results = [self.reclaim(sid, closer) for sid, s in list(self.surfaces.items())
-                   if s.state in REUSABLE and s.visible]
-        dead_sids = [sid for sid, s in self.surfaces.items() if s.state in DEAD]
-        for sid in dead_sids:
-            del self.surfaces[sid]
-        if dead_sids:
-            self._save()
-        return results
+        return [self.reclaim(sid, closer) for sid, s in list(self.surfaces.items())
+                if s.state in REUSABLE and s.visible]
 
     # ---- restart -----------------------------------------------------------
     def reconcile(self):

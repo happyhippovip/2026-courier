@@ -200,3 +200,7 @@ pytest.log
 temp_queue*.md
 temp_test.py
 report*.xml
+
+# Courier Continuation runtime state
+.courier_continuation/
+
