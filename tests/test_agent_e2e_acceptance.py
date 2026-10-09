@@ -223,9 +223,11 @@ def test_provider_exec_real_headless_subprocess_chain(tmp_path, monkeypatch):
     monkeypatch.setattr(provider_exec, "admit_heavy", lambda: True)
 
     # 1. Create real headless mock agent executable
+    import stat
     fake_script = tmp_path / "agent_binary.py"
     fake_script.write_text(
-        textwrap.dedent('''
+        "#!/usr/bin/env python3\n"
+        + textwrap.dedent('''
             import json, sys
             # Emulate headless CLI output with exact success envelope
             payload = {
@@ -237,9 +239,10 @@ def test_provider_exec_real_headless_subprocess_chain(tmp_path, monkeypatch):
             }
             sys.stdout.write(json.dumps(payload) + "\\n")
             sys.exit(0)
-        '''),
+        ''').lstrip(),
         encoding="utf-8"
     )
+    fake_script.chmod(fake_script.stat().st_mode | stat.S_IEXEC | stat.S_IREAD | stat.S_IWRITE)
 
     workdir = tmp_path / "workdir"
     workdir.mkdir()
