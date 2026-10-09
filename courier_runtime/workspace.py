@@ -63,7 +63,11 @@ class Workspace:
                 return {"state": "DEVICE_LOST", "host": host.device_id, "step": index, "pid": proc.pid}
             code = proc.wait(timeout=60)
             lease = self.leases.renew(lease, ttl_s=self.ttl)          # heartbeat after progress
-            self.registry.stop(workkey)                                  # nothing of ours left behind
+            receipts = self.registry.stop(workkey)
+            still_alive = _still_alive(receipts)
+            if still_alive is not None:
+                return {"state": "RECOVERING", "host": host.device_id, "step": index,
+                        "reasons": ["termination not proven"], "still_alive": still_alive}
             out = os.path.join(self.workdir, step.output)
             passed = code == 0 and os.path.exists(out)
             ev = Evidence(workkey, "python", host.device_id, _sha256(out) if passed else "", passed)
@@ -80,6 +84,26 @@ class Workspace:
 def _alive(record):
     from courier_runtime.ownership import is_same_process
     return is_same_process(record)
+
+
+def _still_alive(receipts):
+    """Pids a stop receipt still lists, or None when every receipt is clean.
+
+    NOT_RUNNING and STOPPED with an empty still_alive list are clean. A missing
+    receipt list is not proof. ORPHANS_REMAIN is not proof.
+    """
+    if not isinstance(receipts, list):
+        return []
+    alive = []
+    for receipt in receipts:
+        if not isinstance(receipt, dict):
+            return []
+        survivors = receipt.get("still_alive") or []
+        if survivors or receipt.get("result") == "ORPHANS_REMAIN":
+            alive.extend(survivors)
+            if receipt.get("result") == "ORPHANS_REMAIN" and not survivors:
+                alive.append(receipt.get("pid"))
+    return alive or None
 
 
 def _sha256(path):
