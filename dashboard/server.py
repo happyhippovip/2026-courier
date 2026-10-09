@@ -7,6 +7,7 @@ reflecting the canonical repository state from 2026-project-memory and 2026-cour
 
 from __future__ import annotations
 
+import datetime as _dt
 import functools
 import http.server
 import json
@@ -148,6 +149,46 @@ def get_commercial_offers_payload() -> dict:
     }
 
 
+def get_ledger_value_payload() -> dict:
+    """Read-only ledger counts from events/processed. This month follows _dt."""
+    processed_dir = EVENTS_DIR / "processed"
+    reused = 0
+    work_units = 0
+    evidence = []
+    try:
+        month = _dt.datetime.now().strftime("%Y-%m")
+        reuse_path = processed_dir / "reuse_events.jsonl"
+        if reuse_path.exists():
+            for line in reuse_path.read_text(encoding="utf-8").splitlines():
+                if not line.strip():
+                    continue
+                evidence.append(json.loads(line))
+                reused += 1
+        registry_path = processed_dir / "task_dedupe_registry.json"
+        if registry_path.exists():
+            data = json.loads(registry_path.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                for item in data.values():
+                    registered = item.get("registered_at") if isinstance(item, dict) else None
+                    if isinstance(registered, str) and registered.startswith(month):
+                        work_units += 1
+    except Exception:
+        pass
+    evidence_files = (
+        len(list(processed_dir.glob("result*.json"))) if processed_dir.exists() else 0
+    )
+    return {
+        "metrics": {
+            "results_reused": {"value": reused},
+            "evidence_files_available": {"value": evidence_files},
+        },
+        "this_month": {
+            "work_units_completed": {"value": work_units},
+        },
+        "evidence": evidence,
+    }
+
+
 class CommandCenterHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path in ("/api/status", "/api/health"):
@@ -169,6 +210,16 @@ class CommandCenterHandler(http.server.SimpleHTTPRequestHandler):
             offers_payload = get_commercial_offers_payload()
             self.wfile.write(json.dumps(offers_payload, indent=2).encode("utf-8"))
             return
+
+        if self.path == "/api/ledger-value":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps(get_ledger_value_payload(), indent=2).encode("utf-8"))
+            return
+
+        return super().do_GET()
 
     def do_POST(self) -> None:
         if self.path == "/api/emergency":
