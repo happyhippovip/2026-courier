@@ -75,11 +75,10 @@ def test_late_result_from_superseded_attempt_is_discarded(courier):
     assert lease.status_code == 200, lease.text
     stale_dispatch = lease.json()["dispatch_id"]
     assert courier.api.post("/v1/start", {"dispatch_id": stale_dispatch}).status_code == 200
-    # no heartbeats: attempt 1 must expire, then the real worker runs attempt 2
+    # started, then the lease dies with no result: the effect is unknown, so the task stops
     courier.wait_event(task_id, "LEASE_EXPIRED", timeout=LEASE_TTL_S + 20)
-    courier.start_worker()
-    complete = courier.wait_event(task_id, "TASK_COMPLETE", timeout=60)
-    assert complete["attempt"] == 2
+    courier.wait_event(task_id, "TASK_BLOCKED", timeout=20)
+    assert courier.api.post("/v1/claim", {"worker_id": "other-worker"}).status_code == 204
 
     late = courier.api.post("/v1/result", {
         "dispatch_id": stale_dispatch,
@@ -89,10 +88,9 @@ def test_late_result_from_superseded_attempt_is_discarded(courier):
     })
     assert late.status_code == 409, late.text
     courier.wait_event(task_id, "LATE_RESULT_DISCARDED", timeout=10)
-    accepted = accepted_events(courier, task_id)
-    assert len(accepted) == 1
-    assert accepted[0]["attempt"] == 2
-    assert accepted[0]["result_id"] != "late-result-attempt-1"
+    events = types_of(courier.task_events(task_id))
+    assert "TASK_RETRY_SCHEDULED" not in events and "TASK_COMPLETE" not in events
+    assert accepted_events(courier, task_id) == []
 
 
 def test_timeout_kills_the_task_tree_and_retries(courier):
