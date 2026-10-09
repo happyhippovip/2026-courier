@@ -15,8 +15,17 @@ if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
     Write-Host "Task $taskName does not exist."
 }
 
-if (Test-Path $InstallDir) {
-    Remove-Item -Recurse -Force $InstallDir
+if (Test-Path -LiteralPath $InstallDir) {
+    try {
+        Remove-Item -LiteralPath $InstallDir -Recurse -Force -ErrorAction Stop
+    } catch {
+        Write-Error "Courier uninstall not proven: install directory was not removed."
+        exit 1
+    }
+    if (Test-Path -LiteralPath $InstallDir) {
+        Write-Error "Courier uninstall not proven: install directory remains."
+        exit 1
+    }
     Write-Host "Removed installation directory: $InstallDir"
 }
 
