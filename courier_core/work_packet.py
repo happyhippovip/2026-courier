@@ -9,6 +9,12 @@ class PacketState(enum.Enum):
     WAITING_FOR_EVIDENCE = "WAITING_FOR_EVIDENCE"
     SUPERSEDED = "SUPERSEDED"
     PARKED_BY_HOST = "PARKED_BY_HOST"
+    # Sticky parks: never auto-woken by host admission. Provider-limit parks are
+    # released only by an explicit availability signal; human blocks only by approval.
+    PARKED_PROVIDER_LIMIT = "PARKED_PROVIDER_LIMIT"
+    BLOCKED_HUMAN_APPROVAL = "BLOCKED_HUMAN_APPROVAL"
+
+STICKY_PARK_STATES = (PacketState.PARKED_PROVIDER_LIMIT, PacketState.BLOCKED_HUMAN_APPROVAL)
 
 @dataclass(frozen=True)
 class WorkPacket:
@@ -16,6 +22,7 @@ class WorkPacket:
     owner_id: str
     target_sha: str
     state: PacketState
+    payload: Optional[dict] = None
 
 def evaluate_packet(packet: WorkPacket, current_sha: str, host_safe: bool) -> WorkPacket:
     """
@@ -31,15 +38,20 @@ def evaluate_packet(packet: WorkPacket, current_sha: str, host_safe: bool) -> Wo
             id=packet.id,
             owner_id=packet.owner_id,
             target_sha=packet.target_sha,
-            state=PacketState.SUPERSEDED
+            state=PacketState.SUPERSEDED,
+            payload=packet.payload,
         )
         
+    if packet.state in STICKY_PARK_STATES:
+        return packet
+
     if not host_safe:
         return WorkPacket(
             id=packet.id,
             owner_id=packet.owner_id,
             target_sha=packet.target_sha,
-            state=PacketState.PARKED_BY_HOST
+            state=PacketState.PARKED_BY_HOST,
+            payload=packet.payload,
         )
         
     # Wake up from park
@@ -48,7 +60,8 @@ def evaluate_packet(packet: WorkPacket, current_sha: str, host_safe: bool) -> Wo
             id=packet.id,
             owner_id=packet.owner_id,
             target_sha=packet.target_sha,
-            state=PacketState.CURRENT
+            state=PacketState.CURRENT,
+            payload=packet.payload,
         )
         
     return packet
@@ -59,6 +72,23 @@ class PacketQueue:
         
     def add_packet(self, packet: WorkPacket):
         self.packets[packet.id] = packet
+
+    def update_packet_state(self, packet_id: str, new_state: PacketState) -> Optional[WorkPacket]:
+        if packet_id in self.packets:
+            p = self.packets[packet_id]
+            updated = WorkPacket(
+                id=p.id,
+                owner_id=p.owner_id,
+                target_sha=p.target_sha,
+                state=new_state,
+                payload=p.payload,
+            )
+            self.packets[packet_id] = updated
+            return updated
+        return None
+
+    def remove_packet(self, packet_id: str) -> Optional[WorkPacket]:
+        return self.packets.pop(packet_id, None)
         
     def get_admissible_packet(self, current_sha: str, host_safe: bool) -> Optional[WorkPacket]:
         """
@@ -78,7 +108,8 @@ class PacketQueue:
                 id=nexts[0].id,
                 owner_id=nexts[0].owner_id,
                 target_sha=nexts[0].target_sha,
-                state=PacketState.CURRENT
+                state=PacketState.CURRENT,
+                payload=nexts[0].payload,
             )
             self.packets[promoted.id] = promoted
             return promoted

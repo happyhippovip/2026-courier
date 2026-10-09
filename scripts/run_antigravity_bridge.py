@@ -182,8 +182,9 @@ class AntigravityHookRunner:
         if check_secrets_in_text(res_text) > 0:
             raise ValueError(f"Secret detected in result payload for task {task_id}. Rejection triggered.")
 
-        PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
-        result_file = PROCESSED_DIR / f"{task_id}-result.json"
+        proc_dir = (self.state_tracker.repo_dir / "events/processed") if getattr(self.state_tracker, "repo_dir", None) else PROCESSED_DIR
+        proc_dir.mkdir(parents=True, exist_ok=True)
+        result_file = proc_dir / f"{task_id}-result.json"
         save_json(result_file, result_envelope)
 
         self.state_tracker.update_state(
@@ -221,8 +222,9 @@ class AntigravityHookRunner:
             "max_iterations": 1,
         }
 
-        PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
-        result_file = PROCESSED_DIR / f"{task_id}-result.json"
+        proc_dir = (self.state_tracker.repo_dir / "events/processed") if getattr(self.state_tracker, "repo_dir", None) else PROCESSED_DIR
+        proc_dir.mkdir(parents=True, exist_ok=True)
+        result_file = proc_dir / f"{task_id}-result.json"
         save_json(result_file, result_envelope)
 
         self.state_tracker.update_state(
@@ -254,10 +256,17 @@ def execute_bridge_task(worker_job_path: Path, hooks: AntigravityHookRunner, for
     allowed_scope = job.get("allowed_scope", [])
 
     # Deduplication & Replay Protection
-    result_file = PROCESSED_DIR / f"{task_id}-result.json"
+    proc_dir = (hooks.state_tracker.repo_dir / "events/processed") if (hooks and getattr(hooks, "state_tracker", None) and getattr(hooks.state_tracker, "repo_dir", None)) else PROCESSED_DIR
+    proc_dir.mkdir(parents=True, exist_ok=True)
+    result_file = proc_dir / f"{task_id}-result.json"
     if result_file.exists() and not force:
-        print(f"[DEDUPE] Task {task_id} already COMPLETED in {result_file.name}. Skipping duplicate execution.")
-        return result_file
+        try:
+            cached_res = load_json(result_file)
+            if cached_res.get("payload", {}).get("verdict") not in ("PAUSED_PROVIDER_LIMIT", "FAILED"):
+                print(f"[DEDUPE] Task {task_id} already COMPLETED in {result_file.name}. Skipping duplicate execution.")
+                return result_file
+        except Exception:
+            pass
 
     # 1. Trigger ON_TASK_START Hook
     hooks.on_task_start(task_id, correlation_id, instruction)
@@ -325,8 +334,9 @@ def execute_bridge_task(worker_job_path: Path, hooks: AntigravityHookRunner, for
 
 def run_chief_review_router(task_id: str, result_file: Path) -> dict:
     """Evaluates Chief Review Router for the given task result."""
-    DECISIONS_DIR.mkdir(parents=True, exist_ok=True)
-    decision_file = DECISIONS_DIR / f"{task_id}-chief-decision.json"
+    dec_dir = (result_file.parent.parent / "chief-decisions") if (result_file and result_file.parent and result_file.parent.name == "processed") else DECISIONS_DIR
+    dec_dir.mkdir(parents=True, exist_ok=True)
+    decision_file = dec_dir / f"{task_id}-chief-decision.json"
 
     res_data = load_json(result_file)
     payload = res_data.get("payload", {})

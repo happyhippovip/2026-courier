@@ -4,6 +4,22 @@ import subprocess
 import sys
 import uuid
 
+try:
+    from scripts.google_builder_worker import (
+        probe_integration_surface,
+        process_work_packet,
+        run_google_builder_queue,
+    )
+except ImportError:
+    try:
+        from google_builder_worker import (
+            probe_integration_surface,
+            process_work_packet,
+            run_google_builder_queue,
+        )
+    except ImportError:
+        pass
+
 SAFE_TASK_RE = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
 
 def run_worker(task_path, negative_test=False):
