@@ -17,6 +17,25 @@ def restore_courier_exe():
         except Exception:
             pass
 
+def _launcher_output(proc):
+    """Read launcher stdout without blocking the suite.
+
+    The failure path used to call stdout.read() while the launcher was still
+    alive. That waits for EOF, so a 30s token miss became a 180s pytest
+    timeout that killed the process before outcomes were written.
+    """
+    if proc.poll() is None:
+        proc.kill()
+        try:
+            proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            pass
+    try:
+        return proc.stdout.read() if proc.stdout is not None else ""
+    except Exception as exc:
+        return f"<launcher output unavailable: {exc}>"
+
+
 @pytest.mark.skipif(os.name != 'nt', reason="Windows specific clean-machine harness")
 def test_win_clean_machine_harness(tmp_path):
     """
@@ -71,7 +90,7 @@ def test_win_clean_machine_harness(tmp_path):
         start_time = time.monotonic()
         while time.monotonic() - start_time < 30:
             if launcher.poll() is not None:
-                out = launcher.stdout.read()
+                out = _launcher_output(launcher)
                 pytest.fail(f"Launcher exited early with code {launcher.returncode}:\n{out}")
             if token_file.exists():
                 token = token_file.read_text().strip()
@@ -79,7 +98,10 @@ def test_win_clean_machine_harness(tmp_path):
                     break
             time.sleep(0.5)
         else:
-            pytest.fail(f"Timeout waiting for controller.token. Launcher output:\n{launcher.stdout.read()}")
+            pytest.fail(
+                "Timeout waiting for controller.token. Launcher output:\n"
+                + _launcher_output(launcher)
+            )
 
         controller_url = "http://127.0.0.1:8800"
         hub_url = "http://127.0.0.1:8801"
