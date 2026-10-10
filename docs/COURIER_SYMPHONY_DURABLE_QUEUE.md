@@ -12,10 +12,10 @@
 | Metric | Count |
 |---|---|
 | **TOTAL_REAL_CANDIDATES** | 12 |
-| **VERIFIED_DONE** | 10 |
-| **WORKING / IN_PROGRESS** | 1 |
-| **READY (Next Eligible)** | 1 |
-| **BLOCKED / OWNER_REQUIRED** | 0 |
+| **VERIFIED_DONE** | 11 |
+| **WORKING / IN_PROGRESS** | 0 |
+| **READY_FOR_L1_MERGE** | 1 |
+| **READY_FOR_EXECUTION** | 1 |
 
 ---
 
@@ -138,19 +138,19 @@
 ### TASK-07: PR #410 Upstream Integration Gate
 - **TASK_ID:** `WK-L1-PR410-MERGE`
 - **SOURCE:** Integration / L1 Merge Pipeline
-- **CURRENT_SHA:** `7a8849c68`
+- **CURRENT_SHA:** `277d0d91e`
 - **OWNER_LANE:** `integration/v1` (L1 Owner)
 - **EXISTING_PR:** [#410](https://github.com/happyhippovip/2026-courier/pull/410)
-- **DEPENDS_ON:** `WK-WIN-LAUNCHER-PKG`
-- **ELIGIBILITY:** READY
-- **BLOCKER:** Awaiting CI completion & L1 Integration review
+- **DEPENDS_ON:** `WK-L1-GOLDEN-WIN-HANDLE-BOUND`
+- **ELIGIBILITY:** READY_FOR_L1_MERGE
+- **BLOCKER:** Awaiting repository owner squash merge into `integration/v1` (Owner Gate)
 - **EXPECTED_CODE_CHANGE:** Merge branch `lane/L2-agent-warehouse-clean` into `integration/v1`
 - **TEST_COMMAND:** `gh pr checks 410`
-- **ACCEPTANCE_CRITERIA:** All GitHub Actions matrix jobs pass; Customer-Reality Gate green
+- **ACCEPTANCE_CRITERIA:** All 13 GitHub Actions matrix jobs pass; Customer-Reality Gate green; Bugbot pass; zero merge conflicts
 - **RESOURCE_CLASS:** REMOTE_CI
 - **SAFE_TO_RUN:** YES
-- **STATUS:** `WORKING` (CI actively running green)
-- **RESULT_RECEIPT:** PENDING_MERGE
+- **STATUS:** `READY_FOR_L1_MERGE` (13/13 CI checks PASS)
+- **RESULT_RECEIPT:** `RECEIPT-PR410-CI-ALL-PASS` (commit `277d0d91e`, all 13 checks green)
 
 ---
 
