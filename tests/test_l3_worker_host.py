@@ -12,6 +12,8 @@ import errno
 import hashlib
 import json
 import os
+import select
+import socket
 import subprocess
 import sys
 import threading
@@ -372,6 +374,10 @@ class StubState:
         self.results = []         # delivered payloads
         self.result_mode = "accepted"   # accepted | stale | down
         self.sse_plan = []        # payloads to emit on /v1/events
+        # Set by the stub fixture on teardown. Handlers wait on this instead of
+        # time.sleep so a later test cannot turn a leftover stream into a busy loop.
+        self.sse_stop = threading.Event()
+        self.held_client_sockets = []  # kept open across the test to prove teardown reaps them
 
 
 STUB = StubState()
@@ -395,6 +401,28 @@ class StubHandler(BaseHTTPRequestHandler):
     def _auth(self):
         return self.headers.get("X-Courier-Token") == STUB.token
 
+    def _sse_done(self):
+        """True when the idle stream must end: fixture teardown or peer close.
+
+        The wait is threading.Event.wait, not time.sleep. Event.wait stays a
+        blocking wait even if another test replaces time.sleep with a no-op.
+        """
+        if STUB.sse_stop.wait(0.2):
+            return True
+        try:
+            readable, _, _ = select.select([self.connection], [], [], 0)
+        except (OSError, ValueError):
+            return True
+        if not readable:
+            return False
+        try:
+            data = self.connection.recv(1, socket.MSG_PEEK)
+        except BlockingIOError:
+            return False
+        except OSError:
+            return True
+        return data == b""
+
     def do_GET(self):
         if self.path == "/v1/health":
             self._json(200, {"mode": "normal", "head_seq": 0})
@@ -407,12 +435,13 @@ class StubHandler(BaseHTTPRequestHandler):
             self.end_headers()
             try:
                 for payload in STUB.sse_plan:
-                    time.sleep(0.2)
+                    if self._sse_done():
+                        return
                     line = ("data: %s\n\n" % json.dumps(payload)).encode()
                     self.wfile.write(line)
                     self.wfile.flush()
-                while True:
-                    time.sleep(0.2)
+                while not self._sse_done():
+                    pass
             except (BrokenPipeError, ConnectionResetError, OSError):
                 pass
         else:
@@ -457,18 +486,56 @@ class StubHandler(BaseHTTPRequestHandler):
             self._json(404)
 
 
+class _ReapingStubServer(ThreadingHTTPServer):
+    """Records request threads so teardown can join them.
+
+    ThreadingHTTPServer marks those threads daemon and does not join them.
+    An SSE handler left in-process survives the test and, once time.sleep is
+    patched, spins hard enough to trip pytest-timeout.
+    """
+
+    def __init__(self, addr, handler):
+        super().__init__(addr, handler)
+        self.handler_threads = []
+
+    def process_request(self, request, client_address):
+        thread = threading.Thread(
+            target=self.process_request_thread,
+            args=(request, client_address),
+            daemon=True,
+        )
+        self.handler_threads.append(thread)
+        thread.start()
+
+
 @pytest.fixture()
 def stub():
     STUB.reset()
-    server = ThreadingHTTPServer(("127.0.0.1", 0), StubHandler)
+    server = _ReapingStubServer(("127.0.0.1", 0), StubHandler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
         yield f"http://127.0.0.1:{server.server_port}"
     finally:
-        server.shutdown()
-        thread.join(timeout=5)
-        server.server_close()
+        STUB.sse_stop.set()
+        try:
+            server.shutdown()
+            thread.join(timeout=5)
+            server.server_close()
+            deadline = time.monotonic() + 2
+            for handler in server.handler_threads:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    break
+                handler.join(timeout=remaining)
+            alive = [item.name for item in server.handler_threads if item.is_alive()]
+            if thread.is_alive() or alive:
+                names = ", ".join(alive) or "serve_forever"
+                raise RuntimeError("stub server threads still running: " + names)
+        finally:
+            for held in list(STUB.held_client_sockets):
+                held.close()
+            STUB.held_client_sockets = []
 
 
 def write_token(home):
@@ -620,6 +687,36 @@ def test_sse_cancel_aborts_run_promptly(tmp_path, stub):
     assert STUB.results[0]["outcome"] == "failure"
     assert STUB.results[0]["retryable"] is False
     assert {"dispatch_ids": [], "worker_id": "w1"} in STUB.beats  # stop confirmation
+
+
+def test_stub_reaps_an_open_sse_stream(stub):
+    """An idle SSE handler must die in fixture teardown even if the client stays up."""
+    port = int(stub.rsplit(":", 1)[-1])
+    sock = socket.create_connection(("127.0.0.1", port), timeout=5)
+    STUB.held_client_sockets.append(sock)
+    sock.sendall(b"GET /v1/events HTTP/1.1\r\nHost: 127.0.0.1\r\n"
+                 b"X-Courier-Token: " + TOKEN.encode() + b"\r\n"
+                 b"Connection: close\r\n\r\n")
+    deadline = time.monotonic() + 2
+    while time.monotonic() < deadline:
+        if _threads_in_sse_handler():
+            break
+        time.sleep(0.05)
+    assert _threads_in_sse_handler(), "SSE handler never entered the idle wait"
+
+
+def _threads_in_sse_handler():
+    frames = sys._current_frames()
+    found = []
+    for thread in threading.enumerate():
+        frame = frames.get(thread.ident)
+        while frame is not None:
+            if (frame.f_code.co_filename.endswith("test_l3_worker_host.py")
+                    and frame.f_code.co_name in ("do_GET", "_sse_done")):
+                found.append(thread)
+                break
+            frame = frame.f_back
+    return found
 
 
 def test_stop_releases_blocked_stream(tmp_path, stub):
