@@ -83,6 +83,49 @@ class ResponseLost(ConnectionError):
     """The request may have reached the controller, but no answer came back."""
 
 
+def _tolerant_tasks(journal) -> list:
+    """journal.tasks(), except rows with a status this hub does not know come
+    back as plain dicts. model.home() then shows them as unrecognised cards
+    instead of one unknown state failing the whole board read."""
+    from courier_core import projection
+    from courier_core.state_machine import TaskState
+    try:
+        return list(journal.tasks())
+    except ValueError:
+        pass
+    tasks = []
+    query = f"SELECT {', '.join(projection._COLUMNS)} FROM tasks ORDER BY created_seq, task_id"
+    for row in journal.conn.execute(query).fetchall():
+        record = dict(zip(projection._COLUMNS, tuple(row)))
+        for name in projection._JSON_COLUMNS:
+            if isinstance(record[name], str):
+                try:
+                    record[name] = json.loads(record[name])
+                except ValueError:
+                    pass
+        for name in projection._BOOL_COLUMNS:
+            record[name] = bool(record[name])
+        try:
+            tasks.append(TaskState.from_record(record))
+        except ValueError:
+            tasks.append(record)
+    return tasks
+
+
+def _task_id(task) -> str:
+    return task["task_id"] if isinstance(task, dict) else task.task_id
+
+
+def _is_done(task) -> bool:
+    """pile_of(), except a state this hub does not know counts as active so
+    the item stays on the board as an unrecognised card."""
+    from courier_hub.model import pile_of, PILE_DONE
+    try:
+        return pile_of(task) == PILE_DONE
+    except ValueError:
+        return False
+
+
 class Hub:
     """Reads canonical truth and relays human decisions. No state of its own."""
 
@@ -118,13 +161,12 @@ class Hub:
     def _read(self):
         journal = self._open()
         try:
-            tasks = journal.tasks()
+            tasks = _tolerant_tasks(journal)
             head = journal.head()[0]
             events_by_task: dict = {}
 
-            from courier_hub.model import pile_of, PILE_DONE
-            active_ids = {t.task_id for t in tasks if pile_of(t) != PILE_DONE}
-            done_tasks = [t for t in tasks if pile_of(t) == PILE_DONE]
+            active_ids = {_task_id(t) for t in tasks if not _is_done(t)}
+            done_tasks = [t for t in tasks if _is_done(t)]
             
             if done_tasks:
                 rows = journal.conn.execute("SELECT task_id, MAX(seq) as m FROM events WHERE task_id IS NOT NULL GROUP BY task_id").fetchall()
