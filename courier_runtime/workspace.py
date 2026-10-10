@@ -57,14 +57,40 @@ class Workspace:
         lease = self.leases.acquire(scope, host.device_id, workkey, ttl_s=self.ttl)
         for index in range(decision["resume_step"] or 0, len(steps)):
             step = steps[index]
+            if step.effect_class != request.effect_class:
+                self.leases.release(lease)
+                return {"state": "NEEDS_USER", "host": host.device_id, "step": index,
+                        "reasons": [f"step effect {step.effect_class} not covered by request effect {request.effect_class}"]}
+            curr_grant, curr_state, curr_reason = self.broker.authorize(request)
+            if curr_state != GRANTED:
+                self.leases.release(lease)
+                return {"state": "NEEDS_USER", "host": host.device_id, "step": index,
+                        "reasons": [f"authority expired during execution: {curr_reason}"]}
+            out = os.path.normpath(os.path.join(self.workdir, step.output))
+            out_abs = os.path.normpath(os.path.abspath(out))
+            workdir_abs = os.path.normpath(os.path.abspath(self.workdir))
+            is_inside = False
+            try:
+                if os.path.commonpath([workdir_abs, out_abs]) == workdir_abs:
+                    is_inside = True
+            except ValueError:
+                is_inside = False
+            if not is_inside:
+                self.leases.release(lease)
+                return {"state": "FAILED", "host": host.device_id, "step": index,
+                        "reasons": [f"output path escapes workdir: {step.output}"]}
             proc = subprocess.Popen(step.argv, cwd=self.workdir, stdin=subprocess.DEVNULL)
             self.registry.add(OwnedProcess.capture(proc.pid, workkey, host.device_id))
             if stop_after == index:
                 return {"state": "DEVICE_LOST", "host": host.device_id, "step": index, "pid": proc.pid}
             code = proc.wait(timeout=60)
-            lease = self.leases.renew(lease, ttl_s=self.ttl)          # heartbeat after progress
+            try:
+                lease = self.leases.renew(lease, ttl_s=self.ttl)          # heartbeat after progress
+            except StaleLease:
+                self.registry.stop(workkey)
+                return {"state": "DEVICE_LOST", "host": host.device_id, "step": index,
+                        "reasons": ["lease expired or lost during step execution"]}
             self.registry.stop(workkey)                                  # nothing of ours left behind
-            out = os.path.join(self.workdir, step.output)
             passed = code == 0 and os.path.exists(out)
             ev = Evidence(workkey, "python", host.device_id, _sha256(out) if passed else "", passed)
             self.evidence.append(ev)

@@ -65,8 +65,10 @@
       "id": "agent-thought-curator",
       "display_name": "Thought Curator",
       "class": "core",
-      "status": "partial",
-      "owner_files": [],
+      "status": "implemented",
+      "owner_files": [
+        "scripts/run_thought_curator.py"
+      ],
       "capabilities": [
         "thought_curation"
       ],
@@ -216,8 +218,10 @@
       "id": "agent-asset-validator",
       "display_name": "Asset Validator",
       "class": "specialist",
-      "status": "partial",
-      "owner_files": [],
+      "status": "implemented",
+      "owner_files": [
+        "scripts/run_content_production_pipeline.py"
+      ],
       "capabilities": [
         "asset_validation"
       ],

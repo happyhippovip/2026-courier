@@ -1,5 +1,6 @@
 """Vertical slice: Courier keeps working on its own host, survives a device loss,
 and never widens authority or accepts evidence from the wrong host."""
+import os
 import sys
 
 import pytest
@@ -135,3 +136,70 @@ def test_accepted_log_rejects_unsourced_or_unauthorized_facts(tmp_path):
         log.append(AcceptedFact("wk", 0, "x", (), "controller", 1.0))
     with pytest.raises(ValueError):
         log.append(AcceptedFact("wk", 0, "x", ("ev",), "model", 1.0))
+
+
+def test_workspace_rejects_step_effect_escalation(world):
+    ws, _, _, tmp = world
+    escalated_step = Step("dangerous", [sys.executable, "-c", "import sys; sys.exit(0)"], "d.out", effect_class="non_idempotent")
+    result = ws.run("wk-sec-1", Requirement(frozenset({"python"})), "project:p1", request("r1"), [escalated_step])
+    assert result["state"] == "NEEDS_USER"
+    assert "not covered by request effect" in result["reasons"][0]
+    assert ws.leases.current("project:p1") is None  # lease cleanly released
+
+
+def test_workspace_rejects_path_traversal_escaping_workdir(world):
+    ws, _, _, tmp = world
+    escape_step = Step("escape", [sys.executable, "-c", "import sys; sys.exit(0)"], "../escaped.out")
+    result = ws.run("wk-sec-2", Requirement(frozenset({"python"})), "project:p1", request("r1"), [escape_step])
+    assert result["state"] == "FAILED"
+    assert "output path escapes workdir" in result["reasons"][0]
+    assert ws.leases.current("project:p1") is None  # lease cleanly released
+
+
+def test_workspace_rejects_sibling_prefix_path_escape(world):
+    ws, _, _, tmp = world
+    workdir_name = os.path.basename(os.path.normpath(ws.workdir))
+    sibling_escape = Step("prefix_bypass", [sys.executable, "-c", "import sys; sys.exit(0)"], f"../{workdir_name}_evil/out.txt")
+    result = ws.run("wk-sec-2b", Requirement(frozenset({"python"})), "project:p1", request("r1"), [sibling_escape])
+    assert result["state"] == "FAILED"
+    assert "output path escapes workdir" in result["reasons"][0]
+    assert ws.leases.current("project:p1") is None
+
+
+def test_workspace_halts_when_grant_expires_mid_execution(world):
+    ws, clock, _, tmp = world
+    # Step 0 passes, but grant is revoked before step 1
+    steps = [write_step("s0", str(tmp / "cnt.txt")), write_step("s1", str(tmp / "cnt.txt"))]
+    # Revoke grant after step 0 starts by wrapping broker authorize
+    original_authorize = ws.broker.authorize
+    call_count = [0]
+    def exp_authorize(req):
+        call_count[0] += 1
+        if call_count[0] > 2:  # After initial run check and step 0
+            return (None, "EXPIRED", "grant expired")
+        return original_authorize(req)
+    ws.broker.authorize = exp_authorize
+
+    result = ws.run("wk-sec-3", Requirement(frozenset({"python"})), "project:p1", request("r1"), steps)
+    assert result["state"] == "NEEDS_USER"
+    assert "authority expired during execution" in result["reasons"][0]
+    assert ws.leases.current("project:p1") is None
+
+
+def test_workspace_halts_safely_when_lease_lost_during_step(world):
+    ws, clock, _, tmp = world
+    steps = [write_step("s0", str(tmp / "cnt.txt"))]
+    # Advance clock beyond lease TTL during execution
+    original_wait = ws.run
+    # Simulate expired lease by wrapping leases.renew to raise StaleLease
+    from courier_runtime.lease import StaleLease
+    def raise_stale(lease, ttl_s=30):
+        raise StaleLease("lease expired")
+    ws.leases.renew = raise_stale
+
+    result = ws.run("wk-sec-4", Requirement(frozenset({"python"})), "project:p1", request("r1"), steps)
+    assert result["state"] == "DEVICE_LOST"
+    assert "lease expired or lost during step execution" in result["reasons"][0]
+    assert ws.registry.owned("wk-sec-4") == []  # processes reaped cleanly
+
+

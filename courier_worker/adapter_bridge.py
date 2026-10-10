@@ -52,8 +52,20 @@ def _validate_synthetic(params: dict) -> dict:
 
 
 # adapter name -> params validator. Closed: adding an adapter is a code change.
+def _validate_provider_exec(params: dict) -> dict:
+    try:
+        from courier_worker.adapters import provider_exec
+    except ImportError as exc:
+        raise SpecError(f"adapter implementation unavailable on this worker: {exc}") from None
+    try:
+        return provider_exec.validate(params)
+    except Exception as exc:
+        raise SpecError(f"provider_exec params rejected: {exc}") from None
+
+
 ADAPTERS: Dict[str, Callable[[dict], dict]] = {
     "synthetic": _validate_synthetic,
+    "provider_exec": _validate_provider_exec,
 }
 
 RUNNER_SCRIPT = str(Path(__file__).resolve().with_name("adapter_runner.py"))

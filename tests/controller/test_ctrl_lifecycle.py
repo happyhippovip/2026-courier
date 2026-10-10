@@ -372,3 +372,54 @@ def test_projection_always_equals_replay(ctl, clock):
     assert ctl.journal.verify_projection() and ctl.journal.verify_chain().ok
     assert projection_hash(ctl.journal.conn)
 
+
+# -------------------------------------------------- Domain B & F regressions
+def test_start_rejects_wrong_worker_id(ctl):
+    _, body = ctl.create_task(task_body())
+    lease = ctl.claim({"worker_id": "worker-alpha"})
+    assert lease["worker_id"] == "worker-alpha"
+
+    # Mismatched worker_id must be rejected with 409 wrong_worker
+    err = api_error(ctl.start, {"dispatch_id": lease["dispatch_id"], "worker_id": "worker-beta"})
+    assert (err.status, err.code) == (409, "wrong_worker")
+    assert ctl.journal.task(body["task_id"]).status.value == "CLAIMED"
+
+    # Matching worker_id succeeds
+    res = ctl.start({"dispatch_id": lease["dispatch_id"], "worker_id": "worker-alpha"})
+    assert res["status"] == "STARTED"
+    assert ctl.journal.task(body["task_id"]).status.value == "RUNNING"
+
+
+def test_cancel_during_verifying_with_rejected_verifier_cancels_cleanly(ctl, tmp_path):
+    from courier_core.verification import Verdict
+    # Verifier rejects the result
+    def reject_verifier(task, result, home):
+        return Verdict(False, "checksum failed", retryable=True)
+
+    ctl._verifier = Verifiers(probe=reject_verifier)
+
+    _, body = ctl.create_task(task_body())
+    lease = ctl.claim({"worker_id": "w1"})
+    ctl.start({"dispatch_id": lease["dispatch_id"]})
+    ctl.result(result_body(lease["dispatch_id"], result_id="r1"))
+
+    # Task is now in VERIFYING queue
+    assert ctl.journal.task(body["task_id"]).status.value == "VERIFYING"
+
+    # Request cancel while verifying
+    cancel_res = ctl.cancel(body["task_id"], {"reason": "user aborted mid-verify"})
+    assert cancel_res["cancel_requested"] is True
+    assert ctl.journal.task(body["task_id"]).status.value == "VERIFYING"
+
+    # Process verification queue
+    assert ctl.verify_next() is True
+
+    # Because verifier rejected and cancel was requested, state machine must CANCEL, not retry
+    task = ctl.journal.task(body["task_id"])
+    assert task.status.value == "CANCELLED"
+    events = [e.type.value for e in ctl.journal.events(task_id=body["task_id"])]
+    assert "RESULT_REJECTED" in events
+    assert "TASK_CANCELLED" in events
+    assert "TASK_RETRY_SCHEDULED" not in events
+
+

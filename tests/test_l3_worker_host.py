@@ -599,6 +599,30 @@ def test_controller_down_keeps_outbox_then_flushes_identical(tmp_path, stub):
     assert STUB.results[-1] == kept
 
 
+def test_outbox_cap_blocks_claim_until_drained(tmp_path, stub):
+    write_token(tmp_path)
+    outbox = tmp_path / "outbox"
+    outbox.mkdir(parents=True, exist_ok=True)
+    # Populate outbox up to OUTBOX_CAP
+    for i in range(H.OUTBOX_CAP):
+        payload = {"dispatch_id": f"cap-{i}", "result": "ok"}
+        (outbox / f"cap-{i}.json").write_text(json.dumps(payload), encoding="utf-8")
+    STUB.claims.append(claim_body(task="t-new", dispatch="d-new"))
+    STUB.result_mode = "down"  # flush cannot deliver
+    loop = S.WorkerLoop(str(tmp_path), stub, "w1", 0.2)
+    # Since outbox is at capacity and undrained, iterate must back off to idle and NOT claim
+    assert loop.iterate(threading.Event()) == "idle"
+    assert len(STUB.claims) == 1  # claim remains unconsumed
+    assert len(H.outbox_read_all(str(tmp_path))) == H.OUTBOX_CAP
+
+    # Once controller recovers and drains outbox, claiming proceeds
+    STUB.result_mode = "accepted"
+    assert loop.iterate(threading.Event()) == "delivered"
+    assert len(STUB.claims) == 0  # claim consumed now
+    assert H.outbox_read_all(str(tmp_path)) == []
+
+
+
 def test_no_resend_after_accept(tmp_path, stub):
     write_token(tmp_path)
     STUB.claims.append(claim_body())
@@ -777,4 +801,40 @@ def test_job_object_kills_tree_on_terminate(tmp_path):
     assert result.outcome == Outcome.CANCELLED
     leftovers = [p.pid for p in me.children(recursive=True) if p.pid not in before]
     assert leftovers == []
+
+
+def test_owner_alive_detects_dead_owner_and_pid_reuse(tmp_path):
+    import psutil
+    from courier_worker.host import _owner_alive, run_orphan_gate, _claims_dir
+
+    # Negative / dead owner tests
+    assert _owner_alive(0) is False
+    assert _owner_alive(-100) is False
+    assert _owner_alive(999999) is False
+
+    # Alive owner with matching create_time
+    proc = psutil.Process(os.getpid())
+    real_create_time = proc.create_time()
+    assert _owner_alive(os.getpid(), real_create_time) is True
+
+    # PID reuse: PID matches live process, but create_time does NOT match
+    fake_create_time = real_create_time - 1000.0
+    assert _owner_alive(os.getpid(), fake_create_time) is False
+
+    # Claim record with reused PID is treated as dead owner by run_orphan_gate
+    claims = _claims_dir(str(tmp_path))
+    claims.mkdir(parents=True, exist_ok=True)
+    claim_file = claims / "dispatch-test-reuse.json"
+    claim_file.write_text(json.dumps({
+        "dispatch_id": "test-reuse",
+        "task_id": "task-reuse",
+        "owner_pid": os.getpid(),
+        "owner_create_time": fake_create_time,
+        "child_pid": 0,
+    }), encoding="utf-8")
+
+    handled = run_orphan_gate(str(tmp_path))
+    assert handled == 1
+    assert not claim_file.exists()
+
 
