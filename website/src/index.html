@@ -1,483 +1,584 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Courier Symphony — Repo Reality Check</title>
-    <meta name="description" content="Lösen Sie Entwicklungsblockaden in 48 Stunden. Buchen Sie unseren KI-gestützten Repo Reality Check für sofortige strategische Klarheit.">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #030712;
-            --text-main: #e5e7eb;
-            --text-muted: #9ca3af;
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
-            --success: #10b981;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-        }
-        
-        * { box-sizing: border-box; }
-        
-        body { 
-            margin: 0; 
-            padding: 0;
-            background: radial-gradient(circle at top right, #111827, var(--bg-color) 40%),
-                        radial-gradient(circle at bottom left, #1e1b4b, var(--bg-color) 40%);
-            background-color: var(--bg-color);
-            background-attachment: fixed;
-            color: var(--text-main);
-            font-family: 'Inter', sans-serif;
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        header {
-            padding: 30px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #fff;
-            text-decoration: none;
-            letter-spacing: -0.5px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .logo-icon {
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, var(--accent), #8b5cf6);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-        }
-
-        .badge {
-            background-color: rgba(16, 185, 129, 0.15);
-            color: var(--success);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            border: 1px solid rgba(16, 185, 129, 0.4);
-            backdrop-filter: blur(10px);
-        }
-
-        .hero {
-            padding: 100px 0 80px;
-            text-align: center;
-            position: relative;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(0,0,0,0) 70%);
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        h1 {
-            font-size: 4rem;
-            line-height: 1.1;
-            color: #fff;
-            margin-bottom: 24px;
-            letter-spacing: -1.5px;
-            background: linear-gradient(to right, #fff, #9ca3af);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .hero p {
-            font-size: 1.25rem;
-            color: var(--text-muted);
-            max-width: 650px;
-            margin: 0 auto 40px;
-        }
-
-        .cta-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            background: linear-gradient(135deg, var(--success), #059669);
-            color: #fff;
-            text-decoration: none;
-            padding: 18px 40px;
-            border-radius: 12px;
-            font-size: 1.15rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
-        }
-
-        .guarantee {
-            margin-top: 20px;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .demo-section {
-            margin: 60px auto;
-            max-width: 800px;
-        }
-        
-        .demo-terminal {
-            background-color: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px 16px 0 0;
-            padding: 24px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.95rem;
-            color: var(--text-muted);
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-            min-height: 250px;
-            text-align: left;
-        }
-
-        .terminal-header {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
-            align-items: center;
-        }
-        
-        .terminal-title {
-            color: #6b7280;
-            font-size: 0.8rem;
-            margin-left: auto;
-        }
-
-        .demo-controls {
-            background-color: rgba(255,255,255,0.02);
-            border: 1px solid var(--glass-border);
-            border-top: none;
-            border-radius: 0 0 16px 16px;
-            padding: 16px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-        .dot.red { background-color: #ef4444; }
-        .dot.yellow { background-color: #f59e0b; }
-        .dot.green { background-color: #10b981; }
-
-        .line {
-            margin: 10px 0;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .steps-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 24px;
-            margin-bottom: 80px;
-        }
-        
-        .step-card {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 30px;
-            position: relative;
-        }
-        
-        .step-number {
-            position: absolute;
-            top: -15px;
-            left: 20px;
-            background: var(--accent);
-            color: #fff;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-        }
-        
-        .step-card h3 {
-            color: #fff;
-            margin-top: 10px;
-        }
-
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin: 80px 0;
-        }
-
-        .feature-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 40px 30px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 3px;
-            background: linear-gradient(90deg, var(--accent), transparent);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(255,255,255,0.2);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-        }
-        .feature-card:hover::before { opacity: 1; }
-
-        .feature-card h3 {
-            color: #fff;
-            margin: 0 0 16px 0;
-            font-size: 1.35rem;
-            letter-spacing: -0.5px;
-        }
-
-        .feature-card p {
-            margin: 0;
-            font-size: 1rem;
-            color: var(--text-muted);
-            line-height: 1.6;
-        }
-
-        footer {
-            border-top: 1px solid var(--glass-border);
-            padding: 50px 0;
-            margin-top: 100px;
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-        
-        .footer-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-
-        .footer-links {
-            display: flex;
-            gap: 24px;
-        }
-
-        footer a {
-            color: var(--text-muted);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        footer a:hover {
-            color: #fff;
-        }
-
-        @media (max-width: 768px) {
-            h1 { font-size: 2.8rem; }
-            .hero { padding: 60px 0; }
-            .footer-content { flex-direction: column; text-align: center; }
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Courier Symphony — Die offene Stadt</title>
+  <meta name="description" content="Nicht-kommerzielle Vorschau der schwebenden Stadt von Courier Symphony. Portal, Gruppe, Taverne und ein Geheimnis. Kein Konto, keine Kasse.">
+  <link rel="stylesheet" href="site.css">
 </head>
-<body>
-    <div class="container">
-        <header>
-            <a href="#" class="logo">
-                <div class="logo-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-                </div>
-                Courier Symphony
-            </a>
-            <span class="badge">Repo Reality Check Beta</span>
-        </header>
-
-        <main>
-            <section class="hero">
-                <h1>Lösen Sie Entwicklungsblockaden in 48 Stunden.</h1>
-                <p>Courier Symphony orchestriert spezialisierte KI-Agenten, die echten Code prüfen, Architektur-Engpässe identifizieren und verifizierte Lösungen liefern – fehlerfrei dokumentiert in unserem Ledger.</p>
-                
-                <a href="https://buy.stripe.com/test_beta" class="cta-button">
-                    Repo Audit buchen (5,00 €)
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                </a>
-                
-                <div class="guarantee">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                    <span>Sofortige strategische Klarheit. Günstiger als eine Entwicklerstunde.</span>
-                </div>
-            </section>
-
-            <section class="demo-section">
-                <div class="demo-terminal" id="demo-terminal">
-                    <div class="terminal-header">
-                        <div class="dot red"></div>
-                        <div class="dot yellow"></div>
-                        <div class="dot green"></div>
-                        <span class="terminal-title">courier-symphony-audit ~ bash</span>
-                    </div>
-                    <div class="terminal-content" id="terminal-content">
-                        <div class="line" style="opacity: 1;">Bereit für Repo-Analyse. Klicken Sie auf "Audit starten".</div>
-                    </div>
-                </div>
-                <div class="demo-controls">
-                    <button class="cta-button" id="start-audit-btn" onclick="runAuditDemo()">
-                        Audit Simulation starten
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                    </button>
-                </div>
-            </section>
-
-            <section class="how-it-works">
-                <h2 style="text-align: center; color: #fff; margin-bottom: 40px;">So funktioniert's</h2>
-                <div class="steps-grid">
-                    <div class="step-card">
-                        <div class="step-number">1</div>
-                        <h3>Repo-Zugriff & Checkpoint</h3>
-                        <p>Sie geben uns (Lese-)Zugang zu Ihrem Repository. Unser System erstellt einen sicheren, initialen Ledger-Checkpoint und identifiziert sofort veraltete Branches und offene PRs.</p>
-                    </div>
-                    <div class="step-card">
-                        <div class="step-number">2</div>
-                        <h3>Deep-Scan & Synthese</h3>
-                        <p>KI-Agenten wie Muse und Codex scannen parallel nach Architektur-Fehlern, fehlenden Tests und Sicherheitslücken (z.B. Secret-Leaks oder ungeschützte Endpunkte).</p>
-                    </div>
-                    <div class="step-card">
-                        <div class="step-number">3</div>
-                        <h3>Der 48h-Bericht</h3>
-                        <p>Innerhalb von 48 Stunden erhalten Sie einen lösungsorientierten Bericht (Foundry Synthesis) mit konkreten Handlungsempfehlungen, um Blockaden aufzulösen und Kosten zu senken.</p>
-                    </div>
-                </div>
-            </section>
-
-            <section class="features">
-                <div class="feature-card">
-                    <h3>Ungeschönte Wahrheit</h3>
-                    <p>Wir scannen Ihr privates oder öffentliches Repository tiefgründig und decken Architekturfehler sowie tote Enden schonungslos auf. Kein Bullshit, nur Fakten.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>Durable Ledger</h3>
-                    <p>Jeder Analyseschritt wird in einem Append-Only Journal gesichert. Bei Unterbrechungen macht Courier genau da weiter, wo es aufhörte. 100% nachvollziehbar.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>Foundry Synthesis</h3>
-                    <p>Unsere eigens entwickelte Foundry Engine aggregiert Code-Beweise zu klaren, strategischen Handlungsempfehlungen für Ihr gesamtes Entwicklungsteam.</p>
-                </div>
-            </section>
-        </main>
-
-        <script>
-            function runAuditDemo() {
-                const btn = document.getElementById('start-audit-btn');
-                const content = document.getElementById('terminal-content');
-                btn.disabled = true;
-                btn.style.opacity = '0.5';
-                content.innerHTML = '';
-                
-                const lines = [
-                    "[Ledger] Initialisiere Repo Reality Check für Kundencode...",
-                    "[Analyzer] Analysiere 'integration/v1' Branch...",
-                    "[Foundry] WARNUNG: PR #128 gemergt, aber Tests schlagen fehl.",
-                    "[Codex] Analysiere Code-Pfade: Circular Dependency in 'local_swarm_claim.py' gefunden.",
-                    "[Ledger] CLAIM-Schritt Fehler erkannt (Write-Abort nicht behandelt).",
-                    "[System] ➔ Check abgeschlossen. Bericht bereit zur Überprüfung."
-                ];
-
-                let delay = 0;
-                lines.forEach((text, index) => {
-                    setTimeout(() => {
-                        const div = document.createElement('div');
-                        div.className = 'line sys';
-                        if (text.startsWith('[System]')) {
-                            div.style.color = 'var(--success)';
-                            div.style.fontWeight = 'bold';
-                        } else if (text.includes('WARNUNG')) {
-                            div.style.color = '#f59e0b';
-                        }
-                        div.innerHTML = text.startsWith('[System]') ? text : `> ${text}`;
-                        div.style.opacity = '0';
-                        content.appendChild(div);
-                        
-                        // Trigger reflow for animation
-                        void div.offsetWidth;
-                        div.style.transition = 'opacity 0.3s ease';
-                        div.style.opacity = '1';
-                        
-                        if (index === lines.length - 1) {
-                            setTimeout(() => {
-                                btn.disabled = false;
-                                btn.style.opacity = '1';
-                                btn.innerHTML = 'Erneut testen <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>';
-                            }, 1000);
-                        }
-                    }, delay);
-                    delay += 800 + Math.random() * 800; // Random delay between 800-1600ms
-                });
-            }
-        </script>
-
-        <footer>
-            <div class="footer-content">
-                <div class="copyright">
-                    &copy; 2026 Courier Symphony · Universal Chief Intelligence
-                </div>
-                <div class="footer-links">
-                    <a href="https://github.com/happyhippovip/2026-courier/issues" target="_blank" rel="noopener">Kontakt / GitHub Issues</a>
-                    <a href="agb.html">AGB</a>
-                    <a href="widerruf.html">Widerrufsbelehrung</a>
-                    <a href="datenschutz.html">Datenschutz</a>
-                    <a href="impressum.html">Impressum</a>
-                </div>
-            </div>
-            <p style="margin-top: 20px; font-size: 0.85rem; color: #6b7280;">
-                Hinweis: Ihr Quellcode wird niemals dauerhaft gespeichert. Alle Prüfungen erfolgen isoliert und werden nach Abschluss vollständig gelöscht.
-            </p>
-        </footer>
+<body data-sky="night">
+  <a class="skip" href="#tueren">Zu den vier Eingängen</a>
+  <section class="start-city" id="start">
+    <img src="media/13-verified-results.jpg" alt="Stadtbild von Courier Symphony. Gemalte Ziffern im Bild sind Schmuck, keine Ergebnisse.">
+    <div class="start-shade" aria-hidden="true"></div>
+    <div class="start-bars">
+      <span class="fire-accent" aria-hidden="true"></span>
+      <a class="thick-bar" href="#lounge">Die letzte Laterne</a>
+      <a class="thick-bar" href="#tueren">Vier Eingänge</a>
     </div>
+  </section>
+  <header class="bar">
+    <div class="wrap">
+      <input class="nav-check" type="checkbox" id="nav-check">
+      <div class="bar-row">
+        <a class="brand" href="index.html">
+          <svg class="mark" viewBox="0 0 120 64" aria-hidden="true">
+            <path pathLength="100" d="M30 32c0-12 10-18 22-18 16 0 20 18 28 18s12-18 28-18c12 0 22 6 22 18s-10 18-22 18c-16 0-20-18-28-18s-12 18-28 18c-12 0-22-6-22-18z"/>
+          </svg>
+          Courier Symphony
+        </a>
+        <button type="button" id="sky-toggle" aria-pressed="false">Tag</button>
+        <label class="nav-toggle" for="nav-check">Menü</label>
+      </div>
+      <nav class="quick" aria-label="Vier Eingänge">
+        <a href="#portal">Portal betreten</a>
+        <a href="#gruppe">Gruppe entdecken</a>
+        <a href="#taverne">Taverne besuchen</a>
+        <a href="#geheimnis">Geheimnis entdecken</a>
+      </nav>
+      <nav id="site-nav" aria-label="Weitere Höfe">
+        <a href="#aufgabe">Kleine Aufgabe</a>
+        <a href="#geruechte">Hörensagen</a>
+        <a href="#insel">Insel</a>
+        <a href="#postkarte">Postkarte</a>
+        <a href="#kapsel">Kapsel</a>
+        <a href="#lounge">Die letzte Laterne</a>
+        <a href="#hoefe">Bilder</a>
+        <a href="https://github.com/happyhippovip/2026-courier/issues">Kontakt</a>
+        <span class="soon">Anmelden · Bald verfügbar</span>
+        <span class="soon">Chat · Bald verfügbar</span>
+        <span class="soon">Voice · Bald verfügbar</span>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="top">
+      <div class="hero-banner">
+        <img class="city" src="media/12-hero-platform.jpg" alt="Schwebende Stadt von Courier Symphony bei Nacht, mit Brücken und cyanem Licht. Gemalte Ziffern im Bild sind Schmuck, keine Zählung.">
+        <div class="veil"></div>
+        <svg class="wake" viewBox="0 0 120 64" aria-hidden="true">
+          <path pathLength="100" d="M30 32c0-12 10-18 22-18 16 0 20 18 28 18s12-18 28-18c12 0 22 6 22 18s-10 18-22 18c-16 0-20-18-28-18s-12 18-28 18c-12 0-22-6-22-18z" fill="none" stroke="#7ef0ff" stroke-width="3"/>
+        </svg>
+        <button type="button" class="dim-star" id="dim-star" aria-label="Dimmter Stern"></button>
+        <span class="mote" style="left:12%;top:40%"></span>
+        <span class="mote"></span>
+        <span class="mote"></span>
+        <span class="mote"></span>
+        <span class="mote"></span>
+      </div>
+      <div class="wrap hero-copy">
+        <p class="flag">Nicht-kommerzielle Vorschau</p>
+        <h1>Die Stadt bleibt offen.</h1>
+        <p class="lede">Höfe aus Glas, Brücken aus Cyan und Gold. Vier Eingänge, sofort benutzbar. Kein Konto, keine Kasse, keine erfundene Menge.</p>
+        <div class="doors" id="tueren">
+          <a class="door" href="#portal">
+            <img src="media/11-hero-infinity.jpg" alt="Unendlichkeitszeichen über der schwebenden Stadt.">
+            <strong>Portal betreten</strong>
+            <span>Eine kurze, magische Tür. Die Seite bleibt bedienbar.</span>
+          </a>
+          <a class="door" href="#gruppe">
+            <img src="media/14-live-constellation.jpg" alt="Leuchtende Karte mit Höfen und Brücken. Gemalte Ziffern sind Schmuck, keine Zählung.">
+            <strong>Gruppe entdecken</strong>
+            <span>Looking for Group mit echten Klicks. Alles illustrativ.</span>
+          </a>
+          <a class="door" href="#taverne">
+            <img src="media/09-voice-lounge.jpg" alt="Stimmungsbild einer Lounge. Kein laufendes Gespräch.">
+            <strong>Taverne besuchen</strong>
+            <span>Zeichen, Fragen und leere Tische. Demo, kein Chat.</span>
+          </a>
+          <a class="door" href="#geheimnis">
+            <div class="bird-face">
+              <svg viewBox="0 0 64 48" aria-hidden="true">
+                <path d="M6 28c10-2 16-12 20-18 2 8 8 14 16 16-8 2-14 8-16 16C24 34 16 30 6 28z" fill="#e4c27a"/>
+                <path d="M30 22c8-10 18-12 28-8-8 4-10 10-8 16 6 2 10 1 14-1-8 8-18 10-28 4 2-4 2-8-6-11z" fill="#7ef0ff"/>
+                <circle cx="50" cy="16" r="1.4" fill="#fff"/>
+              </svg>
+            </div>
+            <strong>Geheimnis entdecken</strong>
+            <span>Courier Bird und eine versteckte Überraschung.</span>
+          </a>
+        </div>
+        <p class="city-enter"><a href="#lounge">Die letzte Laterne</a></p>
+        <div id="sternkammer" class="glass secret-room" hidden>
+          <p class="flag">DEMO</p>
+          <h2>Sternkammer</h2>
+          <p>Unter dem stillen Stern lag ein Satz: Das Licht merkt sich den Weg, nicht den Namen.</p>
+        </div>
+      </div>
+      <svg class="bridges" viewBox="0 0 1080 36" aria-hidden="true">
+        <defs>
+          <linearGradient id="bridgeglow" x1="0" x2="1">
+            <stop offset="0" stop-color="#7ef0ff"/>
+            <stop offset="1" stop-color="#e4c27a"/>
+          </linearGradient>
+        </defs>
+        <path d="M40 24 C 220 4, 400 4, 540 20 S 860 40, 1040 12"/>
+      </svg>
+    </section>
+
+    <section id="lounge">
+      <div class="wrap glass">
+        <p class="flag">DEMO</p>
+        <h2>Die letzte Laterne</h2>
+        <p>Ein warmer Steinraum. Du gehst zu dem Platz, den du anklickst. Eine Zeile steht als Blase über der Figur. Das ist keine Gemeinschaft und kein öffentlicher Chat.</p>
+        <p>Konten, Sperren, Meldungen und Moderation sind nicht gebaut. <span class="soon">Anmelden · Bald verfügbar</span> <span class="soon">Chat · Bald verfügbar</span></p>
+        <form id="lounge-join">
+          <p><label for="lounge-name">Name</label><br><input id="lounge-name" name="lounge-name" maxlength="24" autocomplete="off" required></p>
+          <p id="figure-label">Wähle eine Figur.</p>
+          <div class="figures" role="radiogroup" aria-labelledby="figure-label">
+            <button type="button" class="figure-pick" data-figure="gold" aria-pressed="true"><span class="fig fig-gold" aria-hidden="true"></span>Gold</button>
+            <button type="button" class="figure-pick" data-figure="cyan" aria-pressed="false"><span class="fig fig-cyan" aria-hidden="true"></span>Cyan</button>
+            <button type="button" class="figure-pick" data-figure="clay" aria-pressed="false"><span class="fig fig-clay" aria-hidden="true"></span>Ton</button>
+          </div>
+          <button type="submit">Raum betreten</button>
+        </form>
+        <div id="lounge-room" hidden>
+          <p id="lounge-relay" aria-live="polite">Nur dieses Fenster. Niemand sonst ist hier.</p>
+          <div class="hall" id="lounge-floor" tabindex="0">
+            <div class="hall-floor" aria-hidden="true"></div>
+            <div class="hall-shell" aria-hidden="true">
+              <svg class="arches" viewBox="0 0 900 200" preserveAspectRatio="xMidYMin meet">
+                <path d="M30 190 V80 Q30 24 120 24 H250 Q340 24 340 80 V190" fill="none" stroke="#d9c7ae" stroke-width="14"/>
+                <path d="M300 190 V80 Q300 24 390 24 H530 Q620 24 620 80 V190" fill="none" stroke="#d9c7ae" stroke-width="14"/>
+                <path d="M580 190 V80 Q580 24 670 24 H800 Q890 24 870 80 V190" fill="none" stroke="#d9c7ae" stroke-width="14"/>
+              </svg>
+              <span class="lantern"></span>
+            </div>
+            <button type="button" class="spot" data-spot="tuer" data-x="16" data-y="58" style="left:16%;top:42%"><span class="prop prop-door" aria-hidden="true"></span><span class="spot-name">Tür</span></button>
+            <button type="button" class="spot" data-spot="theke" data-x="40" data-y="60" style="left:40%;top:46%"><span class="prop prop-bar" aria-hidden="true"></span><span class="spot-name">Theke</span></button>
+            <button type="button" class="spot" data-spot="feuer" data-x="70" data-y="58" style="left:70%;top:44%"><span class="prop prop-fire" aria-hidden="true"></span><span class="spot-name">Feuer</span></button>
+            <button type="button" class="spot" data-spot="tisch" data-x="50" data-y="78" style="left:48%;top:70%"><span class="prop prop-table" aria-hidden="true"></span><span class="spot-name">Tisch</span></button>
+            <button type="button" class="spot" data-spot="sofa" data-x="80" data-y="80" style="left:78%;top:72%"><span class="prop prop-sofa" aria-hidden="true"></span><span class="spot-name">Sofa</span></button>
+            <div class="hall-people" id="lounge-people"></div>
+          </div>
+          <p class="meta">Das goldene Sofa ist ein Möbelstück. Pfeiltasten wechseln den Platz.</p>
+          <p id="lounge-live" class="sr" aria-live="polite"></p>
+          <form id="lounge-say">
+            <p><label for="lounge-line">Zeile</label><br><input id="lounge-line" maxlength="80" autocomplete="off"></p>
+            <button type="submit">Zeigen</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section id="portal" class="portal">
+      <div class="wrap glass">
+        <div class="portal-ring" aria-hidden="true"></div>
+        <h2>Portal</h2>
+        <p>Du bist durch. Die Stadt bleibt bedienbar: scrollen, zurück, die anderen drei Türen. Das Leuchten ist nur die Tür, kein Vorhang.</p>
+        <div class="doors-mini">
+          <button type="button" data-door="concept">Hof-Konzept</button>
+          <button type="button" data-door="challenge">Kleine Aufgabe</button>
+          <button type="button" data-door="hidden">Verstecktes Licht</button>
+          <a href="#aufgabe">Zur Aufgabe</a>
+        </div>
+        <p id="portal-result" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section id="gruppe">
+      <div class="wrap">
+        <h2>Gruppe entdecken</h2>
+        <p class="lede">Illustrative Höfe. Keine echten Plätze, weil keine echten Daten vorliegen. Gemalte Zahlen auf der Karte sind Schmuck.</p>
+        <div class="filters" id="cat-filters" role="toolbar" aria-label="Kategorien">
+          <button type="button" data-cat="" aria-pressed="true">Alle</button>
+          <button type="button" data-cat="PEOPLE" aria-pressed="false">PEOPLE</button>
+          <button type="button" data-cat="PARTIES" aria-pressed="false">PARTIES</button>
+          <button type="button" data-cat="GUILDS" aria-pressed="false">GUILDS</button>
+          <button type="button" data-cat="QUESTS" aria-pressed="false">QUESTS</button>
+          <button type="button" data-cat="PROJECTS" aria-pressed="false">PROJECTS</button>
+          <button type="button" data-cat="VOICE ROOMS" aria-pressed="false">VOICE ROOMS</button>
+          <button type="button" data-cat="WORLDS" aria-pressed="false">WORLDS</button>
+        </div>
+        <div class="filters">
+          <select id="f-skill" aria-label="Fertigkeit">
+            <option value="">Fertigkeit</option>
+            <option value="lesen">Lesen</option>
+            <option value="skizze">Skizze</option>
+            <option value="belege">Belege</option>
+            <option value="licht">Licht</option>
+            <option value="plan">Plan</option>
+            <option value="stimme">Stimme</option>
+            <option value="stadt">Stadt</option>
+          </select>
+          <select id="f-interest" aria-label="Interesse">
+            <option value="">Interesse</option>
+            <option value="nacht">Nacht</option>
+            <option value="paar">Paar</option>
+            <option value="notiz">Notiz</option>
+            <option value="farbe">Farbe</option>
+            <option value="fokus">Fokus</option>
+            <option value="zuhoeren">Zuhören</option>
+            <option value="gold">Gold</option>
+          </select>
+          <select id="f-topic" aria-label="Thema">
+            <option value="">Thema</option>
+            <option value="text">Text</option>
+            <option value="entwurf">Entwurf</option>
+            <option value="beleg">Beleg</option>
+            <option value="bruecke">Brücke</option>
+            <option value="ruhe">Ruhe</option>
+            <option value="stimme">Stimme</option>
+            <option value="stadt">Stadt</option>
+          </select>
+          <select id="f-lang" aria-label="Sprache">
+            <option value="">Sprache</option>
+            <option value="Deutsch">Deutsch</option>
+            <option value="English">English</option>
+          </select>
+          <select id="f-when" aria-label="Zeit">
+            <option value="">Zeit</option>
+            <option value="abends">abends</option>
+            <option value="tags">tagsüber</option>
+            <option value="flexibel">flexibel</option>
+            <option value="jetzt">jetzt</option>
+          </select>
+          <select id="f-size" aria-label="Form, keine Kopfzahl">
+            <option value="">Form</option>
+            <option value="Paar">Paar</option>
+            <option value="kleiner Kreis">kleiner Kreis</option>
+            <option value="offene Runde">offene Runde</option>
+          </select>
+        </div>
+        <p id="filter-empty" class="glass" hidden>Kein illustrativer Hof passt. Nimm einen Filter weg, die Karte ist wieder voll.</p>
+
+        <form id="instant" class="glass">
+          <fieldset>
+            <legend>Instant Party · Interessen wählen</legend>
+            <label class="chip"><input type="checkbox" value="lesen"> Lesen</label>
+            <label class="chip"><input type="checkbox" value="skizze"> Skizze</label>
+            <label class="chip"><input type="checkbox" value="stadt"> Stadt</label>
+            <label class="chip"><input type="checkbox" value="stimme"> Stimme</label>
+            <label class="chip"><input type="checkbox" value="fokus"> Fokus</label>
+            <label class="chip"><input type="checkbox" value="farbe"> Farbe</label>
+            <label class="chip"><input type="checkbox" value="gold"> Gold</label>
+          </fieldset>
+          <button type="submit">Passende Höfe zeigen</button>
+        </form>
+        <p id="instant-empty" class="glass" hidden>Kein illustrativer Hof trägt diese Interessen. Hake eines ab oder zeige alle.</p>
+
+        <h3>Karte</h3>
+        <div class="constellation" id="constellation">
+          <a class="star" href="#place-nacht">Nachtbrücke</a>
+          <a class="star" href="#place-gold">Golddock</a>
+          <a class="star" href="#place-archiv">Cyanarchiv</a>
+          <a class="star" href="#place-licht">Brückenlicht</a>
+          <a class="star" href="#place-still">Stillhafen</a>
+          <a class="star" href="#place-laterne">Laternensaal</a>
+          <a class="star" href="#place-hof">Schwebender Hof</a>
+        </div>
+
+        <h3>Liste</h3>
+        <article class="place glass" id="place-nacht" data-cat="PEOPLE" data-skills="lesen" data-interests="lesen nacht" data-topic="text" data-lang="Deutsch" data-when="abends" data-size="kleiner Kreis">
+          <p class="flag">DEMO · Illustrativ</p>
+          <h3>Nachtbrücke</h3>
+          <p>Identität: ein später Lesetisch. Worüber: einen Satz noch einmal laut lesen.</p>
+          <p class="meta">Fertigkeit Lesen · Interesse Nacht · Thema Text · Deutsch · abends · Form: kleiner Kreis</p>
+          <p>Tätigkeit: vorlesen. Live: nein, Demo.</p>
+          <button type="button" class="join">Beitreten · Demo</button>
+          <p class="join-result" hidden></p>
+        </article>
+        <article class="place glass" id="place-gold" data-cat="PARTIES" data-skills="skizze" data-interests="skizze paar" data-topic="entwurf" data-lang="Deutsch" data-when="flexibel" data-size="Paar">
+          <p class="flag">DEMO · Illustrativ</p>
+          <h3>Golddock</h3>
+          <p>Identität: ein Anleger für zwei. Worüber: eine gemeinsame Skizze.</p>
+          <p class="meta">Fertigkeit Skizze · Interesse Paar · Thema Entwurf · Deutsch · flexibel · Form: Paar</p>
+          <p>Tätigkeit: zeichnen. Live: nein, Demo.</p>
+          <button type="button" class="join">Beitreten · Demo</button>
+          <p class="join-result" hidden></p>
+        </article>
+        <article class="place glass" id="place-archiv" data-cat="GUILDS" data-skills="belege" data-interests="belege notiz" data-topic="beleg" data-lang="Deutsch" data-when="tags" data-size="kleiner Kreis">
+          <p class="flag">DEMO · Illustrativ</p>
+          <h3>Cyanarchiv</h3>
+          <p>Identität: ein Lesesaal. Worüber: Notizen zu Belegen, nicht zu Personen.</p>
+          <p class="meta">Fertigkeit Belege · Interesse Notiz · Thema Beleg · Deutsch · tagsüber · Form: kleiner Kreis</p>
+          <p>Tätigkeit: ordnen. Live: nein, Demo.</p>
+          <button type="button" class="join">Beitreten · Demo</button>
+          <p class="join-result" hidden></p>
+        </article>
+        <article class="place glass" id="place-licht" data-cat="QUESTS" data-skills="licht" data-interests="farbe stadt" data-topic="bruecke" data-lang="Deutsch" data-when="jetzt" data-size="offene Runde">
+          <p class="flag">DEMO · Illustrativ</p>
+          <h3>Brückenlicht</h3>
+          <p>Identität: eine kurze Aufgabe in der Stadt. Worüber: eine Brücke benennen.</p>
+          <p class="meta">Fertigkeit Licht · Interesse Farbe · Thema Brücke · Deutsch · jetzt · Form: offene Runde</p>
+          <p>Tätigkeit: die kleine Aufgabe unten. Live: nein, Demo.</p>
+          <a href="#aufgabe">Aufgabe öffnen</a>
+          <button type="button" class="join">Beitreten · Demo</button>
+          <p class="join-result" hidden></p>
+        </article>
+        <article class="place glass" id="place-still" data-cat="PROJECTS" data-skills="plan" data-interests="fokus plan" data-topic="ruhe" data-lang="English" data-when="flexibel" data-size="kleiner Kreis">
+          <p class="flag">DEMO · Illustrativ</p>
+          <h3>Stillhafen</h3>
+          <p>Identität: ein ruhiger Plan-Tisch. Worüber: ein nächster Schritt, nicht ein Versprechen.</p>
+          <p class="meta">Fertigkeit Plan · Interesse Fokus · Thema Ruhe · English · flexibel · Form: kleiner Kreis</p>
+          <p>Tätigkeit: einen Schritt notieren. Live: nein, Demo.</p>
+          <button type="button" class="join">Beitreten · Demo</button>
+          <p class="join-result" hidden></p>
+        </article>
+        <article class="place glass" id="place-laterne" data-cat="VOICE ROOMS" data-skills="stimme" data-interests="stimme zuhoeren" data-topic="stimme" data-lang="Deutsch" data-when="abends" data-size="offene Runde">
+          <p class="flag">DEMO · Illustrativ</p>
+          <h3>Laternensaal</h3>
+          <p>Identität: ein Raum zum Zuhören. Voice ist nicht verbunden.</p>
+          <p class="meta">Fertigkeit Stimme · Interesse Zuhören · Thema Stimme · Deutsch · abends · Form: offene Runde</p>
+          <p>Tätigkeit: Preview. Live: nein.</p>
+          <button type="button" class="join" data-voice="soon">Voice · Bald verfügbar</button>
+          <p class="join-result" hidden></p>
+        </article>
+        <article class="place glass" id="place-hof" data-cat="WORLDS" data-skills="stadt" data-interests="stadt gold" data-topic="stadt" data-lang="Deutsch" data-when="flexibel" data-size="offene Runde">
+          <p class="flag">DEMO · Illustrativ</p>
+          <h3>Schwebender Hof</h3>
+          <p>Identität: die Stadt selbst. Worüber: Licht und Brücken, nicht eine Menge.</p>
+          <p class="meta">Fertigkeit Stadt · Interesse Gold · Thema Stadt · Deutsch · flexibel · Form: offene Runde</p>
+          <p>Tätigkeit: umsehen. Live: nein, Demo.</p>
+          <button type="button" class="join">Beitreten · Demo</button>
+          <p class="join-result" hidden></p>
+        </article>
+      </div>
+    </section>
+
+    <section id="taverne">
+      <div class="wrap glass">
+        <p class="flag">DEMO</p>
+        <h2>Taverne</h2>
+        <img src="media/09-voice-lounge.jpg" alt="Stimmungsbild einer dunklen Lounge mit Licht. Kein Gespräch und keine Anwesenden.">
+        <p>Leere Tische, eigene Zeichen, Fragen zum Weitergeben. Es gibt keine öffentlichen Nachrichten und keine Anwesenden. Ein späterer Chat braucht Sperren, Meldungen und Moderation. Das ist eine Betriebsvoraussetzung und in dieser Vorschau nicht gebaut. <span class="soon">Chat · Bald verfügbar</span></p>
+        <h3>Zeichen</h3>
+        <div class="emotes">
+          <button type="button" data-emote="Funke" aria-pressed="false">Funke</button>
+          <button type="button" data-emote="Glut" aria-pressed="false">Glut</button>
+          <button type="button" data-emote="Mond" aria-pressed="false">Mond</button>
+          <button type="button" data-emote="Vogel" aria-pressed="false">Vogel</button>
+        </div>
+        <p id="emote-out" aria-live="polite"></p>
+        <h3>Fragen</h3>
+        <div class="emotes">
+          <button type="button" data-prompt="Welche Brücke würdest du zuerst anzünden?">Brückenfrage</button>
+          <button type="button" data-prompt="Was liegt bei dir auf dem Fenstertisch?">Fensterfrage</button>
+          <button type="button" data-prompt="Welches Licht bleibt, wenn die Stadt leiser wird?">Lichtfrage</button>
+        </div>
+        <p id="prompt-out" aria-live="polite"></p>
+        <h3>Treffpunkte</h3>
+        <div class="tables">
+          <button type="button" data-table="fenster" aria-pressed="false">Fenstertisch</button>
+          <button type="button" data-table="bruecke" aria-pressed="false">Brückentisch</button>
+          <button type="button" data-table="kamin" aria-pressed="false">Kamin</button>
+        </div>
+        <div class="layout" aria-hidden="true">
+          <div class="seat" data-seat="fenster">Fenster</div>
+          <div class="seat" data-seat="bruecke">Brücke</div>
+          <div class="seat" data-seat="kamin">Kamin</div>
+        </div>
+        <p id="table-out" aria-live="polite"></p>
+        <form id="fire-form">
+          <label for="fire-text">Zettel an den Kaminrand</label>
+          <input id="fire-text" name="note" maxlength="80" autocomplete="off">
+          <button type="submit">An den Rand legen</button>
+        </form>
+        <p id="fire-note" hidden></p>
+        <p><a href="#place-laterne">Verwandter Raum: Laternensaal</a> · <a href="#place-hof">Schwebender Hof</a></p>
+      </div>
+    </section>
+
+    <section id="geheimnis">
+      <div class="wrap glass">
+        <h2>Geheimnis</h2>
+        <p>Der Courier Bird sitzt in der Stadt. Antippen zeigt ein Versteck. Nichts davon blockiert die Seite, nichts davon hört zu.</p>
+        <button type="button" class="bird-btn" id="bird">
+          <svg viewBox="0 0 64 48" aria-hidden="true">
+            <path d="M6 28c10-2 16-12 20-18 2 8 8 14 16 16-8 2-14 8-16 16C24 34 16 30 6 28z" fill="#e4c27a"/>
+            <path d="M30 22c8-10 18-12 28-8-8 4-10 10-8 16 6 2 10 1 14-1-8 8-18 10-28 4 2-4 2-8-6-11z" fill="#7ef0ff"/>
+            <circle cx="50" cy="16" r="1.4" fill="#fff"/>
+          </svg>
+          Courier Bird
+        </button>
+        <p id="bird-status" aria-live="polite">Der Vogel landet.</p>
+        <div id="secret" hidden>
+          <h3>Versteckter Hof</h3>
+          <p>Hinter dem Wasserfall liegt ein stiller Hof ohne Schild. Illustrativ. Keine Einladung, kein Konto, keine Menge.</p>
+        </div>
+        <button type="button" id="bird-tip">Tipp · optional</button>
+        <p id="tip" hidden>Folge dem cyanen Licht, nicht der lautesten Tafel.</p>
+        <p><a href="#umschlag">Einen kleinen Wunsch für den Morgen dalassen</a></p>
+      </div>
+    </section>
+
+    <section id="umschlag">
+      <div class="wrap envelope-grid">
+        <div class="glass">
+          <h2>Der Morgenumschlag</h2>
+          <p>Der Courier Bird nimmt einen kleinen Wunsch für den Morgen. Nur hier, ohne Adresse und ohne Konto. Das ist kein Agentenlauf.</p>
+          <form id="wish-form">
+            <p><label for="wish">Wunsch</label><br><input id="wish" name="wish" maxlength="80" autocomplete="off" required></p>
+            <button type="submit">Umschlag schließen</button>
+          </form>
+          <div id="sealed" hidden>
+            <button type="button" id="open-envelope" class="seal">Öffnen</button>
+            <p>Geschlossen. Tippe das Siegel.</p>
+          </div>
+          <article id="opened" hidden>
+            <p class="flag">DEMO</p>
+            <h3>Geöffnet</h3>
+            <p id="wish-line"></p>
+            <p id="reply-line"></p>
+            <dl class="receipt">
+              <dt>Aufgabe</dt><dd>Morgenwunsch annehmen</dd>
+              <dt>Ergebnis</dt><dd id="receipt-result"></dd>
+              <dt>Geprüft</dt><dd>Nur dieses Fenster. Kein Agentenlauf.</dd>
+            </dl>
+            <button type="button" id="keep-card">Als Postkarte behalten</button>
+            <a id="envelope-card" href="#umschlag" hidden download="courier-morgen.png">Postkarte speichern</a>
+          </article>
+        </div>
+        <aside class="glass">
+          <h3>Jeden Morgen ein Umschlag</h3>
+          <p>Später kann hier ein Umschlag warten. Heute wird nichts abgebucht.</p>
+          <button type="button" id="pay-later">Zahlung noch nicht freigegeben</button>
+          <p id="pay-note" hidden>Es wird nichts abgebucht. Es gibt keine Warteschlange und keine Kundenliste.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="aufgabe">
+      <div class="wrap glass">
+        <h2>Kleine Aufgabe</h2>
+        <p>Drei Schritte, dann ein Stern. Alles bleibt in diesem Fenster.</p>
+        <div class="row">
+          <button type="button" data-light="Gold" aria-pressed="false">Licht: Gold</button>
+          <button type="button" data-light="Cyan" aria-pressed="false">Licht: Cyan</button>
+        </div>
+        <p><label for="bridge-name">Name der Brücke</label></p>
+        <input id="bridge-name" maxlength="40" autocomplete="off">
+        <div class="row">
+          <button type="button" data-starpos="links" aria-pressed="false">Stern links</button>
+          <button type="button" data-starpos="mitte" aria-pressed="false">Stern Mitte</button>
+          <button type="button" data-starpos="rechts" aria-pressed="false">Stern rechts</button>
+        </div>
+        <button type="button" id="quest-finish" disabled>Abschließen</button>
+        <p id="quest-done" hidden></p>
+        <p id="stars" aria-hidden="true"></p>
+      </div>
+    </section>
+
+    <section id="geruechte">
+      <div class="wrap">
+        <h2>Hörensagen</h2>
+        <article class="glass rumor">
+          <p class="flag">DEMO · Illustrativ</p>
+          <p>Jemand soll ein goldenes Geländer gezeichnet haben. Das ist Hörensagen dieser Vorschau, keine Meldung einer Person.</p>
+        </article>
+        <article class="glass rumor">
+          <p class="flag">DEMO · Illustrativ</p>
+          <p>Die Nachtbrücke soll heute leiser sein. Niemand hat das bestätigt.</p>
+        </article>
+        <article class="glass rumor">
+          <p class="flag">DEMO · Illustrativ</p>
+          <p>Ein Vogel soll das Portal zweimal umkreist haben. Nur eine Zeile für die Stimmung.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="insel">
+      <div class="wrap glass">
+        <h2>Insel, als Konzept</h2>
+        <img src="media/05-community-collab.jpg" alt="Konzeptbild einer gemeinsamen Fläche in der Stadt. Keine echte Insel und keine Zählung.">
+        <p>Eine Gildeninsel wäre ein eigener Hof mit Tor, Tisch und Archiv. Hier ist nur die Skizze.</p>
+        <button type="button" id="guild-open" aria-expanded="false" aria-controls="guild-panel">Konzept ansehen</button>
+        <div id="guild-panel" hidden>
+          <p>Tor, ein Tisch für Entscheidungen, ein Archiv für Belege. Illustrativ. Betreten gibt es noch nicht.</p>
+        </div>
+        <p><span class="soon">Insel betreten · Bald verfügbar</span></p>
+      </div>
+    </section>
+
+    <section id="postkarte">
+      <div class="wrap glass">
+        <h2>Postkarte</h2>
+        <p>Entsteht in deinem Browser. Sie wird nicht hochgeladen.</p>
+        <form id="postcard-form">
+          <p><label for="card-place">Ort</label><br><input id="card-place" name="place" maxlength="42" autocomplete="off" value="Nachtbrücke"></p>
+          <p><label for="card-line">Eine Zeile</label><br><input id="card-line" name="line" maxlength="90" autocomplete="off"></p>
+          <button type="submit">Postkarte zeichnen</button>
+        </form>
+        <canvas id="postcard" width="880" height="520" hidden></canvas>
+        <p><a id="postcard-link" href="#postkarte" hidden download="courier-postkarte.png">Postkarte speichern</a></p>
+      </div>
+    </section>
+
+    <section id="kapsel">
+      <div class="wrap glass">
+        <p class="flag">DEMO</p>
+        <h2>Missionskapsel</h2>
+        <img src="media/13-verified-results.jpg" alt="Konzeptbild einer Prüfungstafel. Gemalte Ziffern sind Illustration, keine Messung.">
+        <p>Gedanke aus der Arbeit von Courier: Aufgabe, Ausführung, Prüfung, Abgleich. Hier nur eine Skizze, keine Ausführung und keine gespeicherte Unterhaltung.</p>
+        <ul>
+          <li>Gemeinsames Ziel: eine Brücke in der Vorschau benennen.</li>
+          <li>Beteiligte: du in diesem Fenster, plus die skizzierte Rolle Brückenwart. Keine Konten.</li>
+          <li>Vereinbart: das Licht bleibt Gold oder Cyan, nichts davon ist ein Vertrag.</li>
+          <li>Offen: die kleine Aufgabe, wenn du sie noch nicht beendet hast.</li>
+          <li>Erledigt: die Tür durch das Portal, sobald du sie benutzt hast. Sonst noch nichts.</li>
+          <li>Ergebnis: Demo, nicht geprüft. Keine echte Verifikation.</li>
+          <li>Weiter: zurück zu den vier Eingängen.</li>
+        </ul>
+        <p><a href="#tueren">Zurück zu den Eingängen</a></p>
+      </div>
+    </section>
+
+    <section id="hoefe">
+      <div class="wrap">
+        <h2>Höfe</h2>
+        <p class="lede">Bilder der Stadt. Ziffern, die darauf gemalt sind, sind Schmuck und keine Angaben.</p>
+        <div class="gallery">
+          <figure class="glass">
+            <img src="media/01-talk-dashboard.jpg" alt="Konzept einer Gesprächsansicht. Keine laufende Sitzung." loading="lazy">
+            <figcaption>Gespräch, als Bild.</figcaption>
+          </figure>
+          <figure class="glass">
+            <img src="media/02-talk-variant.jpg" alt="Zweite Konzeptansicht eines Gesprächs." loading="lazy">
+            <figcaption>Dieselbe Idee, anderes Licht.</figcaption>
+          </figure>
+          <figure class="glass">
+            <img src="media/03-autonomous-workflows.jpg" alt="Konzeptbild zu Abläufen, die weiterlaufen sollen." loading="lazy">
+            <figcaption>Abläufe, noch nicht dieser Besuch.</figcaption>
+          </figure>
+          <figure class="glass">
+            <img src="media/04-choose-model.jpg" alt="Konzeptbild zur Auswahl eines Modells." loading="lazy">
+            <figcaption>Modellwahl, als Tafel.</figcaption>
+          </figure>
+          <figure class="glass">
+            <img src="media/06-multi-device.jpg" alt="Konzeptbild auf mehreren Geräten." loading="lazy">
+            <figcaption>Dieselbe Stadt, mehrere Scheiben.</figcaption>
+          </figure>
+          <figure class="glass">
+            <img src="media/07-project-base.jpg" alt="Konzeptbild einer Projektbasis." loading="lazy">
+            <figcaption>Projektbasis, als Hof.</figcaption>
+          </figure>
+          <figure class="glass">
+            <img src="media/08-reality-check.jpg" alt="Konzeptbild einer Prüfungstafel. Zahlen im Bild sind nicht belegt." loading="lazy">
+            <figcaption>Prüfung, als Bild, nicht als Ergebnis.</figcaption>
+          </figure>
+          <figure class="glass">
+            <img src="media/10-landing-play-smarter.jpg" alt="Stadtansicht. Werbezahlen aus dem Bild sind nicht übernommen." loading="lazy">
+            <figcaption>Ein Tor der Stadt.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <p>Courier Symphony. Nicht-kommerzielle Vorschau. Kein Angebot. Rechtstext folgt, wenn der Gründer ihn gibt.</p>
+      <div class="foot">
+        <a href="impressum.html">Impressum</a>
+        <a href="datenschutz.html">Datenschutz</a>
+        <a href="agb.html">AGB</a>
+        <a href="widerruf.html">Widerruf</a>
+        <a href="https://github.com/happyhippovip/2026-courier/issues">Kontakt</a>
+      </div>
+    </div>
+  </footer>
+  <script src="site.js"></script>
 </body>
 </html>
