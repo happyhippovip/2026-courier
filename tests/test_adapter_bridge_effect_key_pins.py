@@ -14,6 +14,17 @@ from courier_worker import adapter_bridge as A
 from courier_worker.host import SpecError
 
 
+@pytest.fixture(autouse=True)
+def _stub_adapter_validator(monkeypatch):
+    """Isolate bridge-owned guards from the adapter implementation.
+
+    The repo's controller suite temporarily points the ``adapters`` package
+    at per-test probe dirs; stubbing the validator keeps these pins
+    order-independent and offline.
+    """
+    monkeypatch.setitem(A.ADAPTERS, "synthetic", lambda params: params)
+
+
 def _spec(**over):
     base = {"adapter": "synthetic", "params": {}, "effect_key": "k1"}
     base.update(over)
