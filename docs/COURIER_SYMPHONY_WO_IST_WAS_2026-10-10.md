@@ -79,7 +79,21 @@ In den bisherigen Bildschirmfotos/Gesprächen wurden ChatGPT-Projektbezeichnunge
 
 **Künftig:** In einem bestehenden Courier-Chat beginnen, auf diesen Wegweiser und die aktuellen offiziellen Dateien verweisen, dann **nur fehlende Informationen** prüfen. Keine neuen „Projektzentralen“ auf Verdacht anlegen und keine alten Chats unkontrolliert verschieben.
 
-## 6. Mac und Windows — gleiche Firma, verschiedene Aufgaben
+## 6. Grok — die eigenständige APP (nicht Word)
+
+**Korrektur ausdrücklich festgehalten:** Gemeint ist **Grok als eigene App**, **kein Grok-Word-Dokument** und nicht automatisch der Grok-Modellwähler in Cursor.
+
+In einem Grok-iPhone-Screenshot vom 10.10.2026 wurden links die Punkte **Automatisierung**, **Projekte** und **Grok Bot** sowie **angeheftete Chats** sichtbar. Ihre Themen waren **Windows-Recovery**, **MacBook-Recovery**, **gemeinsame Windows+Mac-Recovery** und ein **Courier-Symphony-Masterplan**.
+
+**Das heißt:** Grok hat eigene, sichtbare Chats und eine eigene Projekt-Navigation. Ein angehefteter Grok-Chat ist **kein GitHub-Commit**, kein Cursor-Task und kein Beweis, dass ChatGPT oder Codex ihn automatisch kennen. Auch eine ältere Integration oder ein Draft-PR belegt noch **keinen laufenden gegenseitigen Gedächtnis-Sync**. Ob Grok private GitHub-Dateien lesen/schreiben darf, muss pro tatsächlicher Verbindung geprüft werden.
+
+**Schutz:** Für Grok und andere Tools denselben **öffentlichen Wegweiser** als erste Lesequelle nutzen. Ausführliche Chat-Titel, private lokale Bestandsaufnahmen und Kontodaten gehören nur ins **private** Memory, sofern der konkrete Dienst berechtigt darauf zugreifen kann. Neue Assistenten sollen den gelesenen Pfad explizit bestätigen, bevor sie behaupten, mit dem Gesamtstand vertraut zu sein.
+
+### Private detaillierte Ergänzung
+
+Im privaten Repo liegt der datierte Bericht `memory/COURIER_CROSS_APP_STATUS_AND_HANDOFF_2026-10-10.md`. Er trennt für **Cursor, Grok-App, ChatGPT, Codex, GitHub sowie Mac/Windows**: gesehenen UI-Stand, historische Git-/Datei-Nachweise, noch ungesicherte Chat-/Worktree-Inhalte, Sicherheitsregeln und nächste Lesepfade. **Nur für berechtigte Zugriffe**; nicht in dieses öffentliche Dokument kopieren.
+
+## 7. Mac und Windows — gleiche Firma, verschiedene Aufgaben
 
 | Ort | Rolle | Besonderheit |
 | --- | --- | --- |
@@ -88,7 +102,7 @@ In den bisherigen Bildschirmfotos/Gesprächen wurden ChatGPT-Projektbezeichnunge
 | **GitHub** | Versionierte Projektdateien, geprüfte Commits, PRs und dokumentierte Nachweise | Ein Remote-Commit ist **kein** Backup uncommitteter lokaler Dateien, anderer Worktrees oder Chatverläufe. |
 | **ChatGPT/Codex** | Planung, Besprechungen, Codex-Tasks und Übergaben | Verlauf und Aufgaben pro Oberfläche unterscheiden; die App-Limits sind kein Beweis für den Projekt-/Backupstatus. |
 
-## 7. Was ist wirklich gelöst, was noch offen?
+## 8. Was ist wirklich gelöst, was noch offen?
 
 | Thema | Nachweisstatus am 10.10.2026 |
 | --- | --- |
@@ -98,6 +112,8 @@ In den bisherigen Bildschirmfotos/Gesprächen wurden ChatGPT-Projektbezeichnunge
 | Codex-`2026-Projektzentrale`, `2026-courier` und `Downloads` grundsätzlich zugeordnet | 🟡 **HISTORISCHER QUELLENABGLEICH**; keine Vollinventur aller Chats |
 | Sämtliche **Codex-Agenten-Chats** geprüft/zusammengeführt | ⚠️ **OFFEN** |
 | Alle **ChatGPT-Projektchats** geprüft/vereinigt | ⚠️ **OFFEN** |
+| **Grok-App:** angeheftete Recovery-/Masterplan-Chats sichtbar | 🟡 **SCREENSHOT**; nicht automatisch synchronisiert oder exportiert |
+| **Grok↔Cursor↔ChatGPT** dauerhafter Live-Sync | ⚠️ **NICHT NACHGEWIESEN** |
 | Alle lokalen Änderungen, Worktrees, Stashes und Archive gesichert | ⚠️ **OFFEN** |
 | **V37**-Einzelsicherung (Patch/Bundle) | 🟡 **FRÜHERER NACHWEIS** einer Teil-Sicherung; **kein Gesamtbackup** |
 | Doppelte Arbeit vollständig erkannt und beseitigt | ⚠️ **OFFEN**, nicht einfach aus ähnlichen Namen ableiten |
@@ -105,7 +121,7 @@ In den bisherigen Bildschirmfotos/Gesprächen wurden ChatGPT-Projektbezeichnunge
 
 **Wichtig:** Weder „100 % gesichert“ noch „alles doppelt“ noch „alle Agenten liefen“ ist aktuell belegt. Statusmeldungen sind keine Git- und Backup-Beweise.
 
-## 8. Unsere vereinbarte Art zusammenzuarbeiten
+## 9. Unsere vereinbarte Art zusammenzuarbeiten
 
 - **Deutsch, verständlich, präzise.** Keine unnötigen Fachwörter; Fachwörter kurz erklären.
 - **Genau EIN nächster Schritt** pro Bildschirmfoto/Fehler; danach Rückmeldung abwarten.
@@ -117,7 +133,7 @@ In den bisherigen Bildschirmfotos/Gesprächen wurden ChatGPT-Projektbezeichnunge
 - **Nur dokumentieren, was wirklich geschehen ist.** `VERIFIED`, `REPORTED`, `PLANNED`, `UNKNOWN` unterscheiden.
 - Nur echte Fortschritte an Courier priorisieren. **Nicht erneut von null anfangen.**
 
-## 9. Sicherer Ablauf für die spätere Konsolidierung
+## 10. Sicherer Ablauf für die spätere Konsolidierung
 
 1. **Bestehende Bereiche erhalten.** Namen in Cursor/Codex/ChatGPT und die lokalen Ordner nicht vorschnell ändern.
 2. **Vorhandene Inventare lesen** und ihren Datumsstand berücksichtigen. Der private Mac-Workspace-Bericht vom 10.10.2026 ist eine wichtige historische Quelle, nicht automatisch Live-Wahrheit.
@@ -129,7 +145,7 @@ In den bisherigen Bildschirmfotos/Gesprächen wurden ChatGPT-Projektbezeichnunge
 
 Dieser Ablauf ist ein **Plan**, keine Autorisierung zum Ausführen oder Verschieben.
 
-## 10. Datenschutz und Veröffentlichungsgrenze
+## 11. Datenschutz und Veröffentlichungsgrenze
 
 **Hier öffentlich erlaubt:** Namen und Zweck öffentlich erkennbarer Repositories, grobe Tool-Rollen, Statusunterschiede, freigegebene Arbeitsweise und bekannte UI-Lösung.
 
@@ -141,6 +157,6 @@ Die Veröffentlichung dieses Wegweisers **verschiebt, synchronisiert oder export
 
 ### Kurzreferenz zum Kopieren in *neue* Gespräche (keine Ausführungsanweisung)
 
-**„Mein Projekt heißt Courier Symphony. Bitte lies zuerst `docs/COURIER_SYMPHONY_WO_IST_WAS_2026-10-10.md` im öffentlichen Repo `happyhippovip/2026-courier`, beachte `AGENTS.md` und überprüfe den aktuellen Zustand. Meine drei GitHub-Repositories sind Hauptprogramm, privates Gedächtnis und Website. Codex-`2026-Projektzentrale` ist historische Arbeitsablage, Codex-`Downloads` ist keine eigene App-Architektur. Cursor-Agenten-Chats und ChatGPT-Chats sind nicht automatisch synchronisiert. Bitte antworte verständlich auf Deutsch, mit einem sicheren Schritt und ohne selbstständig Kosten oder Dateiänderungen auszulösen.“**
+**„Mein Projekt heißt Courier Symphony. Grok ist die GROK-APP (nicht Grok Word). Bitte lies zuerst `docs/COURIER_SYMPHONY_WO_IST_WAS_2026-10-10.md` im öffentlichen Repo `happyhippovip/2026-courier`, beachte `AGENTS.md` und überprüfe den aktuellen Zustand. Meine drei GitHub-Repositories sind Hauptprogramm, privates Gedächtnis und Website. Codex-`2026-Projektzentrale` ist historische Arbeitsablage, Codex-`Downloads` ist keine eigene App-Architektur. Cursor-Agenten-Chats und ChatGPT-Chats sind nicht automatisch synchronisiert. Bitte antworte verständlich auf Deutsch, mit einem sicheren Schritt und ohne selbstständig Kosten oder Dateiänderungen auszulösen.“**
 
 **Fortschreiben:** Dieses Dokument darf durch einen neuen, datierten und belegten Bericht ergänzt werden, nicht durch das Überschreiben ungeprüfter Altdaten. Produkt-/Integrationsregeln bleiben in den oben verlinkten kanonischen Dateien maßgeblich.
