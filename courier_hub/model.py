@@ -157,12 +157,19 @@ def outcome_copy(task: Any) -> dict:
                                        "neutral"),
     }
     label, explanation, mark = table[outcome]
-    if (outcome == OUTCOME_STOPPED and _get(task, "started")
-            and _get(task, "effect_class") != "idempotent"):
-        # The runtime recorded a plain stop, but the attempt had already started an
-        # action that is not safe to repeat: never imply that nothing happened.
-        explanation = "Stopped after the action had started. Part of it may already have happened."
-        mark = "gate-question"
+    if _get(task, "started") and _get(task, "effect_class") != "idempotent":
+        # The attempt had already started an action that is not safe to repeat:
+        # never imply that nothing happened.
+        if outcome == OUTCOME_STOPPED:
+            # The runtime recorded a plain stop.
+            explanation = "Stopped after the action had started. Part of it may already have happened."
+            mark = "gate-question"
+        elif outcome == OUTCOME_COULD_NOT_COMPLETE:
+            # The action ran but its result could not be checked (e.g. rejected):
+            # the effect may still have happened.
+            explanation = ("The action ran, but Courier could not check the result. "
+                           "It may still have happened.")
+            mark = "gate-question"
     return {"outcome": outcome, "label": label, "explanation": explanation, "mark": mark}
 
 

@@ -587,6 +587,19 @@ def test_failed_receipt_never_claims_courier_checked_it():
     assert model.receipt(task, [])["how_known"] == "Courier could not get a result it could check."
 
 
+def test_failed_after_a_non_idempotent_action_ran_never_reads_as_nothing_happened():
+    ran = state("FAILED", started=True)
+    events = [{"type": kind, "task_id": "t1", "payload": {}} for kind in
+              ("TASK_CREATED", "TASK_CLAIMED", "TASK_STARTED", "RESULT_READY", "RESULT_REJECTED")]
+    card = model.card(ran, events)
+    assert card["outcome"] == "could_not_complete" and card["mark"] == "gate-question"
+    assert "may still have happened" in card["explanation"]
+    assert "could not finish this safely" not in card["explanation"]
+    # Untouched cases keep the plain copy: never started, or safe to repeat.
+    assert model.card(state("FAILED"), [])["mark"] == "open-ring"
+    assert model.card(state("FAILED", started=True, effect_class="idempotent"), [])["mark"] == "open-ring"
+
+
 @pytest.mark.parametrize("actor", ["", "ana smith", "a" * 201, "<script>", "ana\nforged"])
 def test_an_unsafe_actor_name_is_refused_at_start(tmp_path, actor):
     from courier_hub.server import main
