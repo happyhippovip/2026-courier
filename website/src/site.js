@@ -38,20 +38,6 @@
     watch.observe(hero);
   }
 
-  if (hero && fine && !reduced) {
-    var city = hero.querySelector(".city");
-    var ticking = false;
-    window.addEventListener("scroll", function () {
-      if (ticking || hero.classList.contains("is-offscreen")) return;
-      ticking = true;
-      window.requestAnimationFrame(function () {
-        var y = Math.max(-16, Math.min(16, window.scrollY * 0.04));
-        if (city) city.style.transform = "translateY(" + y + "px)";
-        ticking = false;
-      });
-    }, { passive: true });
-  }
-
   document.addEventListener("courier:pulse", function (event) {
     var kind = event.detail && event.detail.kind;
     if (kind === "bridge") {
