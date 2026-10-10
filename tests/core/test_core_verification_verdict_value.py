@@ -3,10 +3,11 @@
 Tests only; no behavior change. The open run_verifier / verifier-identity
 pins cover the fail-closed rules around adapters; none of them pins the
 Verdict value semantics themselves, so this file pins exactly that: the
-verdict is an immutable, hashable value object with equality by value, and
-dataclasses.replace() (the exact operation run_verifier uses to stamp the
-verifier identity) preserves the type while leaving the original untouched.
-No network, no credentials, no filesystem writes.
+verdict is immutable with equality by value (hashable when its fields are;
+a dict verifier makes it unhashable, pinned here as a documented boundary),
+and dataclasses.replace() (the exact operation run_verifier uses to stamp
+the verifier identity) preserves the type while leaving the original
+untouched. No network, no credentials, no filesystem writes.
 """
 
 import dataclasses
