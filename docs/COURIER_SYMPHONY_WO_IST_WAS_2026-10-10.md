@@ -38,15 +38,34 @@ Das private Gedächtnis ist kein automatisch vollständiges Backup aller lokalen
 
 **Nur L1 integriert nach `integration/v1`.** Es gibt genau sechs V1-Writer-Lanes L1–L6, keinen neuen parallelen Scheduler, keine selbstständigen Zahlungen (`AUTONOMOUS_SPEND_LIMIT_EUR=0`). Für den Mac galt zuletzt Ressourcenpause; **aktueller Host-Zustand muss vor jeder Ausführung neu überprüft werden**.
 
+## Gemeinsame Courier-Hauptarbeit in drei Codex-Bereichen
+
+**Korrektur vom 10.10.2026:** In Codex sind **`2026-courier`**, **`2026-Projektzentrale`** und **`Downloads`** drei **gleich wichtige mögliche Quellen der bisherigen Courier-Symphony-Hauptarbeit**: Programm, Agenten/Planung sowie Masterpläne/weitere Arbeit. Ältere Codex-Aufgaben dürfen **nicht** als unwichtig, nur „Archiv“ oder „erledigt“ gelten. Für Courier-relevante Inhalte gilt: **ein gemeinsames Projekt, drei Ablage-/Chat-Einstiege**. Inhaltlich nicht zu Courier gehörende Arbeiten werden nicht automatisch einbezogen.
+
+```text
+                     🐦 COURIER SYMPHONY
+                         EINE Hauptarbeit
+                             │
+         ┌───────────────────┼───────────────────┐
+         │                   │                   │
+    2026-courier     2026-Projektzentrale     Downloads
+  Programm/Tasks      Agenten/Planung       Pläne/Altarbeit
+         └───────────────────┼───────────────────┘
+                             │
+       ALLE Courier-relevanten Ergebnisse bleiben wichtig
+```
+
+**Keine falsche Sicherheit:** Diese Darstellung ist eine **gemeinsame Organisationsregel**, **noch keine technische Verknüpfung** sämtlicher Chats, Hosts, Worktrees oder Dateien. GitHub-`2026-courier` bleibt das kanonische Code-Repository, ist aber **nicht** die einzige Quelle wertvoller früherer Arbeit.
+
 ## 3. Drei Codex-Bereiche in der Oberfläche — NICHT drei neue GitHub-Produkte
 
 Die Namen wurden in Codex-Bildschirmfotos und einer am 10.10.2026 bereits vorhandenen privaten Bestandsaufnahme erfasst.
 
 | Codex-Eintrag / lokaler Bezug | Was er bedeutet | Jetzt tun |
 | --- | --- | --- |
-| **`2026-Projektzentrale`** | Älteres **Projektregister/Archiv mit historischer Agentenarchitektur und verschiedenen Projekten**; nach damaliger lokaler Inventur **kein eigenes Git-Root**. Enthält auch eigenständige Arbeiten außerhalb Courier. | **Behalten.** Nicht als „erledigt“ markieren und nicht vollständig nach Courier kopieren. |
+| **`2026-Projektzentrale`** | **Gleichwertige Quelle wichtiger Courier-Hauptarbeit** mit historischer Agentenarchitektur und weiteren Projekten; nach damaliger lokaler Inventur **kein eigenes Git-Root**. Enthält auch eigenständige Arbeiten außerhalb Courier. | **Behalten, Courier-Arbeit gleich wichtig behandeln.** Nicht als „erledigt“ markieren; Nicht-Courier-Arbeit nicht kopieren. |
 | **`2026-courier`** | Der Bereich des Courier-Hauptprogramms; der damalige Mac-Einstieg führte in einen Checkout des Haupt-Repositories. | **Technische Hauptreferenz**, aber Branch, lokale Änderungen und Owner vor Schreibarbeit prüfen. |
-| **`Downloads`** | Auf dem Mac ein **übergeordneter Sammelordner** mit unterschiedlichen lokalen Arbeitsständen, Archiven und Projekten; **kein einheitliches Git-Repository**. | **Nur inventarisieren.** Nicht den gesamten Ordner als Duplikat löschen oder zu Courier migrieren. |
+| **`Downloads`** | **Codex-UI-Gruppe** mit möglicher Courier-Hauptarbeit (z.B. Masterpläne); daneben existiert ein gleichnamiger Mac-Sammelordner mit unterschiedlichen Projekten, kein einheitliches Git-Repository. **UI↔Pfad nicht vollständig bestätigt.** | **Courier-Arbeit daraus gleichwertig erfassen und sichern.** Nicht pauschal löschen/migrieren. |
 
 **Achtung:** Ein gleichnamiger Eintrag in Codex, Finder, Cursor oder ChatGPT ist nicht automatisch dasselbe Objekt. Ein Codex-Chat unter „Downloads“ kann trotzdem Courier-relevante Arbeit enthalten. Der Titel allein beweist weder einen aktiven Prozess noch einen gesicherten Commit.
 
@@ -157,6 +176,6 @@ Die Veröffentlichung dieses Wegweisers **verschiebt, synchronisiert oder export
 
 ### Kurzreferenz zum Kopieren in *neue* Gespräche (keine Ausführungsanweisung)
 
-**„Mein Projekt heißt Courier Symphony. Grok ist die GROK-APP (nicht Grok Word). Bitte lies zuerst `docs/COURIER_SYMPHONY_WO_IST_WAS_2026-10-10.md` im öffentlichen Repo `happyhippovip/2026-courier`, beachte `AGENTS.md` und überprüfe den aktuellen Zustand. Meine drei GitHub-Repositories sind Hauptprogramm, privates Gedächtnis und Website. Codex-`2026-Projektzentrale` ist historische Arbeitsablage, Codex-`Downloads` ist keine eigene App-Architektur. Cursor-Agenten-Chats und ChatGPT-Chats sind nicht automatisch synchronisiert. Bitte antworte verständlich auf Deutsch, mit einem sicheren Schritt und ohne selbstständig Kosten oder Dateiänderungen auszulösen.“**
+**„Mein Projekt heißt Courier Symphony. Grok ist die GROK-APP (nicht Grok Word). Bitte lies zuerst `docs/COURIER_SYMPHONY_WO_IST_WAS_2026-10-10.md` im öffentlichen Repo `happyhippovip/2026-courier`, beachte `AGENTS.md` und überprüfe den aktuellen Zustand. Meine drei GitHub-Repositories sind Hauptprogramm, privates Gedächtnis und Website. Die Codex-Bereiche `2026-courier`, `2026-Projektzentrale`, `Downloads` sind drei wichtige Quellen für EIN Courier-Projekt; gemeinsame Übersicht ≠ automatischer Chat-/Datei-Sync. Cursor-Agenten-Chats und ChatGPT-Chats sind nicht automatisch synchronisiert. Bitte antworte verständlich auf Deutsch, mit einem sicheren Schritt und ohne selbstständig Kosten oder Dateiänderungen auszulösen.“**
 
 **Fortschreiben:** Dieses Dokument darf durch einen neuen, datierten und belegten Bericht ergänzt werden, nicht durch das Überschreiben ungeprüfter Altdaten. Produkt-/Integrationsregeln bleiben in den oben verlinkten kanonischen Dateien maßgeblich.
