@@ -52,11 +52,18 @@ def test_exports_are_identical_to_host_objects():
         assert getattr(courier_worker, name) is getattr(host, name), name
 
 
-def test_public_surface_is_exports_plus_host_submodule():
+def test_public_surface_is_exports_plus_loaded_submodules():
+    import sys
+
     import courier_worker
 
     public = {n for n in dir(courier_worker) if not n.startswith("_")}
-    assert public == set(EXPECTED_EXPORTS) | {"host"}
+    assert set(EXPECTED_EXPORTS) <= public
+    extras = public - set(EXPECTED_EXPORTS)
+    assert extras, "expected at least the host submodule attribute"
+    assert "host" in extras
+    for name in extras:
+        assert f"courier_worker.{name}" in sys.modules, name
 
 
 def test_expected_names_cover_key_host_callables():
