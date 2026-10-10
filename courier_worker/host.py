@@ -421,6 +421,13 @@ class ContainedRun:
         if self.job is not None:
             _close_job(self.job)
             self.job = None
+        if os.name == "nt":
+            handle = getattr(self.proc, "_handle", None)
+            if handle is not None and hasattr(handle, "Close"):
+                try:
+                    handle.Close()
+                except Exception:
+                    pass
 
 
 def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
