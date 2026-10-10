@@ -27,7 +27,7 @@ def test_main_delegates_sys_argv(monkeypatch):
         return 0
 
     monkeypatch.setattr(cli_mod, "_main", fake_main)
-    sentinel = ["prog", "--controller", "http://127.0.0.1:9"]
+    sentinel = ["prog", "--controller", "https://controller.example.invalid"]
     monkeypatch.setattr(sys, "argv", sentinel)
     assert cli_mod.main() == 0
     assert calls["argv"] is sentinel
