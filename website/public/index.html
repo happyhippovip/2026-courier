@@ -34,6 +34,7 @@
         <a href="#insel">Insel</a>
         <a href="#postkarte">Postkarte</a>
         <a href="#kapsel">Kapsel</a>
+        <a href="#lounge">Die letzte Laterne</a>
         <a href="#hoefe">Bilder</a>
         <a href="https://github.com/happyhippovip/2026-courier/issues">Kontakt</a>
         <span class="soon">Anmelden · Bald verfügbar</span>
@@ -90,6 +91,7 @@
             <span>Courier Bird und eine versteckte Überraschung.</span>
           </a>
         </div>
+        <p class="city-enter"><a href="#lounge">Die letzte Laterne</a></p>
         <div id="sternkammer" class="glass secret-room" hidden>
           <p class="flag">DEMO</p>
           <h2>Sternkammer</h2>
@@ -105,6 +107,51 @@
         </defs>
         <path d="M40 24 C 220 4, 400 4, 540 20 S 860 40, 1040 12"/>
       </svg>
+    </section>
+
+    <section id="lounge">
+      <div class="wrap glass">
+        <p class="flag">DEMO</p>
+        <h2>Die letzte Laterne</h2>
+        <p>Ein warmer Steinraum. Du gehst zu dem Platz, den du anklickst. Eine Zeile steht als Blase über der Figur. Das ist keine Gemeinschaft und kein öffentlicher Chat.</p>
+        <p>Konten, Sperren, Meldungen und Moderation sind nicht gebaut. <span class="soon">Anmelden · Bald verfügbar</span> <span class="soon">Chat · Bald verfügbar</span></p>
+        <form id="lounge-join">
+          <p><label for="lounge-name">Name</label><br><input id="lounge-name" name="lounge-name" maxlength="24" autocomplete="off" required></p>
+          <p id="figure-label">Wähle eine Figur.</p>
+          <div class="figures" role="radiogroup" aria-labelledby="figure-label">
+            <button type="button" class="figure-pick" data-figure="gold" aria-pressed="true"><span class="fig fig-gold" aria-hidden="true"></span>Gold</button>
+            <button type="button" class="figure-pick" data-figure="cyan" aria-pressed="false"><span class="fig fig-cyan" aria-hidden="true"></span>Cyan</button>
+            <button type="button" class="figure-pick" data-figure="clay" aria-pressed="false"><span class="fig fig-clay" aria-hidden="true"></span>Ton</button>
+          </div>
+          <button type="submit">Raum betreten</button>
+        </form>
+        <div id="lounge-room" hidden>
+          <p id="lounge-relay" aria-live="polite">Nur dieses Fenster. Niemand sonst ist hier.</p>
+          <div class="hall" id="lounge-floor" tabindex="0">
+            <div class="hall-floor" aria-hidden="true"></div>
+            <div class="hall-shell" aria-hidden="true">
+              <svg class="arches" viewBox="0 0 900 200" preserveAspectRatio="xMidYMin meet">
+                <path d="M30 190 V80 Q30 24 120 24 H250 Q340 24 340 80 V190" fill="none" stroke="#d9c7ae" stroke-width="14"/>
+                <path d="M300 190 V80 Q300 24 390 24 H530 Q620 24 620 80 V190" fill="none" stroke="#d9c7ae" stroke-width="14"/>
+                <path d="M580 190 V80 Q580 24 670 24 H800 Q890 24 870 80 V190" fill="none" stroke="#d9c7ae" stroke-width="14"/>
+              </svg>
+              <span class="lantern"></span>
+            </div>
+            <button type="button" class="spot" data-spot="tuer" data-x="16" data-y="58" style="left:16%;top:42%"><span class="prop prop-door" aria-hidden="true"></span><span class="spot-name">Tür</span></button>
+            <button type="button" class="spot" data-spot="theke" data-x="40" data-y="60" style="left:40%;top:46%"><span class="prop prop-bar" aria-hidden="true"></span><span class="spot-name">Theke</span></button>
+            <button type="button" class="spot" data-spot="feuer" data-x="70" data-y="58" style="left:70%;top:44%"><span class="prop prop-fire" aria-hidden="true"></span><span class="spot-name">Feuer</span></button>
+            <button type="button" class="spot" data-spot="tisch" data-x="50" data-y="78" style="left:48%;top:70%"><span class="prop prop-table" aria-hidden="true"></span><span class="spot-name">Tisch</span></button>
+            <button type="button" class="spot" data-spot="sofa" data-x="80" data-y="80" style="left:78%;top:72%"><span class="prop prop-sofa" aria-hidden="true"></span><span class="spot-name">Sofa</span></button>
+            <div class="hall-people" id="lounge-people"></div>
+          </div>
+          <p class="meta">Das goldene Sofa ist ein Möbelstück. Pfeiltasten wechseln den Platz.</p>
+          <p id="lounge-live" class="sr" aria-live="polite"></p>
+          <form id="lounge-say">
+            <p><label for="lounge-line">Zeile</label><br><input id="lounge-line" maxlength="80" autocomplete="off"></p>
+            <button type="submit">Zeigen</button>
+          </form>
+        </div>
+      </div>
     </section>
 
     <section id="portal" class="portal">

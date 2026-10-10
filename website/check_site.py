@@ -47,6 +47,8 @@ BANNED = (
     "hobbiejanssen",
     "SchülerVZ",
     "SchuelerVZ",
+    "Habbo",
+    "Knuddels",
     "fehlerfrei",
     "Get Started Free",
     "vierzehn Tagen",

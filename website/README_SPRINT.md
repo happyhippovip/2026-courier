@@ -21,7 +21,9 @@ Diese Datei ändert kein DNS und keine Mail-Records (MX, SPF, DKIM, DMARC).
 ## Lokal ansehen
 
 ```sh
-cd website && ./build_site.sh && python3 -m http.server -d public 8765
+cd website && ./build_site.sh && python3 lounge_relay.py
 ```
 
-Dann `http://127.0.0.1:8765/`.
+Dann `http://127.0.0.1:8765/` . Die letzte Laterne lässt sich auch ohne Relay öffnen:
+Name, eine von drei Figuren, dann der eine Raum. Ohne Relay ist niemand sonst da.
+Das Relay hört nur auf `127.0.0.1` und ist kein öffentlicher Chat.

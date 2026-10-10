@@ -469,4 +469,232 @@
       if (note) note.hidden = false;
     });
   }
+
+  var roomId = null;
+  var roomCursor = 0;
+  var roomYou = null;
+  var roomPeople = [];
+  var roomStop = false;
+  var roomFigure = "gold";
+  var spotIndex = 0;
+  var bubbles = {};
+
+  function loungeApi(path, body) {
+    return fetch(path, {
+      method: body ? "POST" : "GET",
+      headers: body ? { "Content-Type": "application/json" } : {},
+      body: body ? JSON.stringify(body) : undefined
+    }).then(function (response) {
+      if (!response.ok) throw new Error(String(response.status));
+      return response.json();
+    });
+  }
+
+  function findAvatar(box, id) {
+    var nodes = box.children;
+    for (var i = 0; i < nodes.length; i++) {
+      if (nodes[i].getAttribute("data-pid") === id) return nodes[i];
+    }
+    return null;
+  }
+
+  function paintPeople(people) {
+    var box = $("lounge-people");
+    if (!box) return;
+    var seen = {};
+    (people || []).forEach(function (person) {
+      seen[person.id] = true;
+      var el = findAvatar(box, person.id);
+      if (!el) {
+        el = document.createElement("div");
+        el.className = "avatar";
+        el.setAttribute("data-pid", person.id);
+        var bubble = document.createElement("p");
+        bubble.className = "bubble";
+        bubble.hidden = true;
+        var fig = document.createElement("span");
+        fig.className = "fig";
+        fig.setAttribute("aria-hidden", "true");
+        var who = document.createElement("span");
+        who.className = "who";
+        el.appendChild(bubble);
+        el.appendChild(fig);
+        el.appendChild(who);
+        box.appendChild(el);
+      }
+      el.style.left = person.x + "%";
+      el.style.top = person.y + "%";
+      el.style.zIndex = String(10 + Math.round(Number(person.y) || 0));
+      el.querySelector(".fig").className = "fig fig-" + (person.figure || "gold");
+      el.querySelector(".who").textContent = roomYou && person.id === roomYou.id ? "Du" : person.name;
+      var bubbleEl = el.querySelector(".bubble");
+      if (person.bubble) {
+        bubbleEl.hidden = false;
+        bubbleEl.textContent = person.bubble;
+      } else {
+        bubbleEl.hidden = true;
+        bubbleEl.textContent = "";
+      }
+    });
+    Array.prototype.slice.call(box.children).forEach(function (el) {
+      if (!seen[el.getAttribute("data-pid")]) el.remove();
+    });
+  }
+
+  function setRelay(text) {
+    var relay = $("lounge-relay");
+    if (relay) relay.textContent = text;
+  }
+
+  function applyRoom(data) {
+    if (!data) return;
+    roomCursor = data.cursor || roomCursor;
+    (data.events || []).forEach(function (event) {
+      if (event.kind === "line" && event.id) bubbles[event.id] = event.text || "";
+      if (event.kind === "leave" && event.id) delete bubbles[event.id];
+    });
+    if (data.you) {
+      roomYou = data.you;
+      roomYou.figure = roomYou.figure || roomFigure;
+      roomYou.bubble = roomYou.bubble || bubbles[roomYou.id] || "";
+    }
+    roomPeople = (data.people || []).map(function (person) {
+      person.figure = person.figure || "gold";
+      person.bubble = person.bubble || bubbles[person.id] || "";
+      return person;
+    });
+    paintPeople(roomPeople);
+    var count = roomPeople.length;
+    setRelay(count > 1
+      ? "Relay an. " + count + " Fenster teilen diesen Raum."
+      : "Relay an. Sonst ist niemand in diesem Raum.");
+  }
+
+  function alone() {
+    roomStop = true;
+    roomId = null;
+    if (roomYou) {
+      roomPeople = [roomYou];
+      paintPeople(roomPeople);
+    }
+    setRelay("Nur dieses Fenster. Niemand sonst ist hier.");
+  }
+
+  function pollRoom() {
+    if (!roomId || roomStop) return;
+    loungeApi("/api/lounge/events?id=" + encodeURIComponent(roomId) + "&since=" + roomCursor)
+      .then(function (data) {
+        applyRoom(data);
+        pollRoom();
+      })
+      .catch(alone);
+  }
+
+  function walkTo(x, y) {
+    if (!roomYou) return;
+    roomYou.x = x;
+    roomYou.y = y;
+    roomPeople.forEach(function (person) {
+      if (person.id === roomYou.id) {
+        person.x = x;
+        person.y = y;
+      }
+    });
+    paintPeople(roomPeople);
+    if (roomId) loungeApi("/api/lounge/move", { id: roomId, x: x, y: y }).catch(function () {});
+  }
+
+  function hallSpots() {
+    return Array.prototype.slice.call(document.querySelectorAll("#lounge-floor .spot"));
+  }
+
+  function goSpot(index) {
+    var list = hallSpots();
+    if (!list.length || !roomYou) return;
+    spotIndex = (index + list.length) % list.length;
+    var spot = list[spotIndex];
+    list.forEach(function (el, i) {
+      el.setAttribute("aria-pressed", i === spotIndex ? "true" : "false");
+    });
+    walkTo(Number(spot.getAttribute("data-x")), Number(spot.getAttribute("data-y")));
+  }
+
+  document.querySelectorAll(".figure-pick").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      roomFigure = btn.getAttribute("data-figure") || "gold";
+      document.querySelectorAll(".figure-pick").forEach(function (other) {
+        other.setAttribute("aria-pressed", other === btn ? "true" : "false");
+      });
+    });
+  });
+
+  var joinForm = $("lounge-join");
+  if (joinForm) {
+    joinForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+      var name = ($("lounge-name") && $("lounge-name").value || "").trim();
+      if (!name) return;
+      roomYou = { id: "self", name: name, x: 16, y: 58, figure: roomFigure, bubble: "" };
+      roomPeople = [roomYou];
+      roomStop = false;
+      joinForm.hidden = true;
+      var room = $("lounge-room");
+      if (room) room.hidden = false;
+      paintPeople(roomPeople);
+      setRelay("Nur dieses Fenster. Niemand sonst ist hier.");
+      var floor = $("lounge-floor");
+      if (floor) floor.focus();
+      loungeApi("/api/lounge/join", { name: name, figure: roomFigure }).then(function (data) {
+        var x = roomYou.x;
+        var y = roomYou.y;
+        var bubble = roomYou.bubble;
+        roomId = data.id;
+        roomCursor = data.cursor || 0;
+        roomStop = false;
+        applyRoom(data);
+        if (roomYou && (roomYou.x !== x || roomYou.y !== y)) {
+          loungeApi("/api/lounge/move", { id: roomId, x: x, y: y }).catch(function () {});
+        }
+        if (bubble) loungeApi("/api/lounge/line", { id: roomId, text: bubble }).catch(function () {});
+        pollRoom();
+      }).catch(alone);
+    });
+  }
+
+  hallSpots().forEach(function (spot, index) {
+    spot.addEventListener("click", function () { goSpot(index); });
+  });
+
+  var sayForm = $("lounge-say");
+  if (sayForm) {
+    sayForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+      var input = $("lounge-line");
+      var text = input ? input.value.trim() : "";
+      if (!text || !roomYou) return;
+      input.value = "";
+      roomYou.bubble = text;
+      bubbles[roomYou.id] = text;
+      roomPeople.forEach(function (person) {
+        if (person.id === roomYou.id) person.bubble = text;
+      });
+      paintPeople(roomPeople);
+      var live = $("lounge-live");
+      if (live) live.textContent = "Du: " + text;
+      if (roomId) loungeApi("/api/lounge/line", { id: roomId, text: text }).catch(function () {});
+    });
+  }
+
+  var floorKeys = $("lounge-floor");
+  if (floorKeys) {
+    floorKeys.addEventListener("keydown", function (event) {
+      if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+        event.preventDefault();
+        goSpot(spotIndex + 1);
+      } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+        event.preventDefault();
+        goSpot(spotIndex - 1);
+      }
+    });
+  }
 })();
