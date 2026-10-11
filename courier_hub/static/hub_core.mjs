@@ -241,10 +241,18 @@ export function interpretResponse(status, payload) {
   return { kind: 'error', message: payload.message };
 }
 
+// Journal identity: sequence alone is not enough. A restored ledger can have the
+// same length and the same pile counts while a task has moved, for example from
+// COMPLETE to BLOCKED. The head hash is what replay and restore change.
+export function headIdentity(view) {
+  if (!view) return '';
+  return `${view.head_seq ?? ''}:${view.head_hash ?? ''}`;
+}
+
 // A stable fingerprint of what Home would show; the page re-renders only when it
 // changes (or once a minute for relative times), so an idle hub stays quiet.
 export function viewSignature(view, connection, pending) {
-  return JSON.stringify([view?.head_seq, view?.truth, view?.status?.controller, connection.state, pending,
+  return JSON.stringify([headIdentity(view), view?.truth, view?.status?.controller, connection.state, pending,
     view?.counts]);
 }
 

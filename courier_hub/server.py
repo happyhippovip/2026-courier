@@ -151,11 +151,12 @@ class Hub:
                 tasks, events_by_task, _ = self._read()
                 view = model.home(tasks, events_by_task)
                 view["head_seq"] = head[0]
+                view["head_hash"] = head[1]
                 with self._cache_lock:
                     self._cached = (head, view)
                 view = dict(view)
         except TruthUnavailable as exc:
-            return {"status": status, "truth": exc.args[0], "head_seq": None,
+            return {"status": status, "truth": exc.args[0], "head_seq": None, "head_hash": None,
                     "needs_you": [], "working": [], "done": [], "counts": {"needs_you": 0, "working": 0, "done": 0},
                     "read_at": utc_now()}
         view.update({"status": status, "truth": "ok", "read_at": utc_now()})

@@ -563,9 +563,15 @@ def test_a_replaced_journal_with_the_same_length_is_never_served_from_cache(tmp_
     make(home / "courier.db", "Before restore")
     make(tmp_path / "other" / "courier.db", "After restore")
     hub = Hub(home, "http://127.0.0.1:9", actor=ACTOR)
-    assert hub.home_view()["working"][0]["title"] == "Before restore"
+    before = hub.home_view()
+    assert before["working"][0]["title"] == "Before restore"
+    assert isinstance(before["head_hash"], str) and before["head_hash"]
     (tmp_path / "other" / "courier.db").replace(home / "courier.db")  # same head seq, different history
-    assert hub.home_view()["working"][0]["title"] == "After restore"
+    after = hub.home_view()
+    assert after["working"][0]["title"] == "After restore"
+    assert after["head_seq"] == before["head_seq"]
+    assert after["head_hash"] != before["head_hash"]
+    assert after["counts"] == before["counts"]
 
 
 def test_failed_receipt_never_claims_courier_checked_it():
