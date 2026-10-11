@@ -75,8 +75,9 @@ worker, effect key, event names) appear only in the receipt's "For support" sect
 
 The hub re-reads the journal only when its head (sequence and hash) changes, so a
 restored or replaced journal of the same length is never served from cache. The page
-re-renders only when what it shows changes (or once a minute for relative
-times), and stops polling while its tab is hidden.
+uses that same head: a restore with the same sequence and the same pile counts still
+re-renders, because the hash changed. Relative times refresh at most once a minute,
+and the page stops polling while its tab is hidden.
 
 ## Support record
 

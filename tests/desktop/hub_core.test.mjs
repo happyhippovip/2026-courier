@@ -6,7 +6,7 @@ import { test } from 'node:test';
 
 import {
   MARKS, createDecisionClient, decisionsAllowed, escapeHtml, findChoice, initialConnection,
-  interpretResponse, nextConnection, renderCard, renderHome, renderReceipt, retryDelayMs, statusLine, viewSignature,
+  headIdentity, interpretResponse, nextConnection, renderCard, renderHome, renderReceipt, retryDelayMs, statusLine, viewSignature,
 } from '../../courier_hub/static/hub_core.mjs';
 
 const view = JSON.parse(readFileSync(new URL('./fixtures/home_view.json', import.meta.url), 'utf8'));
@@ -153,6 +153,38 @@ test('an unchanged view has the same signature, so the page does not re-render w
   assert.notEqual(a, viewSignature({ ...view, head_seq: view.head_seq + 1 }, live, null));
   assert.notEqual(a, viewSignature(view, { ...live, state: 'offline' }, null));
   assert.notEqual(a, viewSignature(view, live, 't-blocked'));
+});
+
+test('a same-length ledger restore still refreshes, so an old success is not kept', () => {
+  const checked = view.done.find((card) => card.outcome === 'verified');
+  const restoredCard = {
+    ...checked,
+    outcome: 'could_not_complete',
+    label: "Couldn't complete this safely",
+    explanation: 'Courier stopped because it could not finish this safely.',
+    mark: 'open-ring',
+  };
+  const restored = {
+    ...view,
+    head_hash: 'restored-ledger-head',
+    done: view.done.map((card) => (card.id === checked.id ? restoredCard : card)),
+  };
+  assert.equal(restored.head_seq, view.head_seq);
+  assert.deepEqual(restored.counts, view.counts);
+  assert.notEqual(headIdentity(view), headIdentity(restored));
+  assert.notEqual(viewSignature(view, live, null), viewSignature(restored, live, null));
+  const before = renderCard(checked, { now: NOW });
+  const after = renderCard(restoredCard, { now: NOW });
+  assert.ok(before.includes('Checked by Courier'));
+  assert.ok(after.includes('outcome-could_not_complete'));
+  assert.ok(!after.includes('Checked by Courier'));
+});
+
+test('BLOCKED is drawn as Needs you, not as a completed success', () => {
+  const html = renderCard(view.needs_you[0], { now: NOW });
+  assert.ok(html.includes('card-needs'));
+  assert.ok(!html.includes('card-done'));
+  assert.ok(!html.includes('Checked by Courier'));
 });
 
 test('a disabled stop says so to assistive technology; an unrecognised item offers no actions', () => {

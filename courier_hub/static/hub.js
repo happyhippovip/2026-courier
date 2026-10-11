@@ -1,13 +1,13 @@
 // Courier Desktop Hub — page wiring (lane L5). All decisions about what to show
 // live in hub_core.mjs; this file only fetches, renders and handles input.
 import {
-  createDecisionClient, decisionsAllowed, findChoice, initialConnection, nextConnection,
+  createDecisionClient, decisionsAllowed, findChoice, headIdentity, initialConnection, nextConnection,
   renderHome, renderReceipt, retryDelayMs, statusLine, viewSignature,
 } from './hub_core.mjs';
 
 const $ = (sel) => document.querySelector(sel);
-const state = { view: null, connection: initialConnection(), pending: null, openItem: null, timer: null,
-  rendered: null, renderedAt: 0 };
+const state = { view: null, connection: initialConnection(), pending: null, openItem: null, openItemHead: '',
+  timer: null, rendered: null, renderedAt: 0 };
 const client = createDecisionClient((url, init) => fetch(url, init));
 
 function announce(text, tone = 'ok') {
@@ -51,8 +51,9 @@ async function refresh() {
     state.connection = nextConnection(state.connection, { type: 'fail' });
   }
   render();
-  if (state.openItem && state.view && state.view.head_seq !== state.openItemSeq) {
-    state.openItemSeq = state.view.head_seq;  // reload the receipt only when the record changed
+  const head = headIdentity(state.view);
+  if (state.openItem && state.view && head !== state.openItemHead) {
+    state.openItemHead = head;  // reload the receipt when the ledger head changes, including a same-length restore
     await loadItem(state.openItem, { quiet: true });
   }
   state.timer = document.hidden ? null : setTimeout(refresh, retryDelayMs(state.connection));
@@ -70,7 +71,7 @@ async function loadItem(id, { quiet = false } = {}) {
 
 function openDetail(id) {
   state.openItem = id;
-  state.openItemSeq = state.view?.head_seq;
+  state.openItemHead = headIdentity(state.view);
   const panel = $('#detail');
   panel.hidden = false;
   $('#detail-body').textContent = 'Loading…';
