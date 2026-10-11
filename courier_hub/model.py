@@ -27,6 +27,8 @@ from __future__ import annotations
 
 from typing import Any, Iterable, List, Optional
 
+from courier_hub.diagnostics import diagnostic_evidence_name, redact_diagnostics_text
+
 PILE_NEEDS_YOU = "needs_you"
 PILE_WORKING = "working"
 PILE_DONE = "done"
@@ -288,9 +290,11 @@ def receipt(task: Any, events: Iterable[Any]) -> dict:
             if kind == "TASK_CANCEL_REQUESTED" and any(
                     _type(e) == "TASK_CANCELLED" and _payload(e).get("actor") == payload.get("actor") for e in events):
                 continue  # one human "stop" decision, not two lines
+            reason = payload.get("reason")
             decisions.append({"who": display_actor(payload.get("actor")),
                               "decided": _PLAIN_STEPS[kind] if kind != "TASK_CANCELLED" else "Chose to stop",
-                              "reason": payload.get("reason"), "at": _get(event, "ts_utc")})
+                              "reason": redact_diagnostics_text(reason) if isinstance(reason, str) else reason,
+                              "at": _get(event, "ts_utc")})
     accepted = [e for e in events if _type(e) == "RESULT_ACCEPTED"]
     rejected = [e for e in events if _type(e) == "RESULT_REJECTED"]
     if pile == PILE_DONE and done_outcome(task) == OUTCOME_COULD_NOT_COMPLETE:
@@ -321,16 +325,17 @@ def receipt(task: Any, events: Iterable[Any]) -> dict:
         if _type(event) == "RESULT_READY":
             for artifact in _payload(event).get("artifacts") or []:
                 if isinstance(artifact, dict) and artifact.get("path"):
-                    evidence.append({"name": str(artifact["path"]).rsplit("/", 1)[-1],
+                    evidence.append({"name": diagnostic_evidence_name(artifact["path"]),
                                      "accepted": any(_get(a, "result_id") == _get(event, "result_id")
                                                      for a in accepted)})
     return {
-        "understood": f"Courier was asked to {copy['action']} ({title_of(task)}).",
+        "understood": redact_diagnostics_text(
+            f"Courier was asked to {copy['action']} ({title_of(task)})."),
         "authorized": authority,
         "tried": steps,
         "resumed": resumed,
-        "happened": happened,
-        "how_known": how,
+        "happened": redact_diagnostics_text(happened) if isinstance(happened, str) else happened,
+        "how_known": redact_diagnostics_text(how) if isinstance(how, str) else how,
         "decisions": decisions,
         "changed_later": later,
         "evidence": evidence,
@@ -338,12 +343,22 @@ def receipt(task: Any, events: Iterable[Any]) -> dict:
 
 
 def support(task: Any, events: Iterable[Any]) -> dict:
-    """Diagnostics for support: internal ids and raw event names live only here."""
+    """Diagnostics for support: internal ids and raw event names live only here.
+
+    ``last_reason`` is free text from the worker or controller. Credentials in
+    it are masked and user-profile paths are rewritten. The ids themselves are
+    not rewritten, so a controller event still matches the worker that ran it.
+    """
     record = task.to_record() if hasattr(task, "to_record") else dict(task)
+    reason = record.get("last_reason")
+    if isinstance(reason, str):
+        reason = redact_diagnostics_text(reason)
+    task_fields = {k: record.get(k) for k in ("task_id", "status", "resolution", "decided_by", "attempt",
+                                              "dispatch_id", "worker_id", "effect_class", "adapter",
+                                              "late_results")}
+    task_fields["last_reason"] = reason
     return {
-        "task": {k: record.get(k) for k in ("task_id", "status", "resolution", "decided_by", "attempt",
-                                            "dispatch_id", "worker_id", "effect_class", "adapter",
-                                            "last_reason", "late_results")},
+        "task": task_fields,
         "events": [{"seq": _get(e, "seq"), "type": _type(e), "attempt": _get(e, "attempt"),
                     "dispatch_id": _get(e, "dispatch_id"), "result_id": _get(e, "result_id"),
                     "at": _get(e, "ts_utc"), "hash": _get(e, "hash")} for e in events],
@@ -369,7 +384,8 @@ def unrecognised_receipt(task: Any, events: Iterable[Any]) -> dict:
         if step and (not steps or steps[-1]["what"] != step):
             steps.append({"what": step, "at": _get(event, "ts_utc")})
     return {
-        "understood": f"Courier was asked to {copy_for(task)['action']} ({title_of(task)}).",
+        "understood": redact_diagnostics_text(
+            f"Courier was asked to {copy_for(task)['action']} ({title_of(task)})."),
         "authorized": unrecognised_card(task)["authority"],
         "tried": steps,
         "resumed": any(_type(e) == "TASK_RETRY_SCHEDULED" for e in events),
