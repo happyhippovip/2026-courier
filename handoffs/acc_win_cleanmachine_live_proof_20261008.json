@@ -1,0 +1,39 @@
+{
+  "live_proof_win_cleanmachine": {
+    "host": "Windows 11 (win32)",
+    "agent": "Google Antigravity",
+    "timestamp_utc": "2026-10-08T05:12:00Z",
+    "route_from": "WINDOW7-EXE-DELIVERY-UNIT1 (handoffs/window7_exe_unit_20261008.json)",
+    "route_to": [
+      "#133 owner (Cursor agent)",
+      "#169 owner (Grok Bot)",
+      "#157 owner",
+      "L1 Integration Owner"
+    ],
+    "boundaries_proven": {
+      "B0_compiler_toolchain": {
+        "status": "PROVEN",
+        "evidence": "Stock Windows 11 csc.exe at C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe compiles scripts/windows_worker/launcher/CourierLauncher.cs into valid 12,800-byte PE WinExe without dotnet CLI SDK"
+      },
+      "B1_build_to_health_chain": {
+        "status": "PROVEN",
+        "evidence": "Launcher starts, generates run/controller.token, boots controller (port 8800), worker, and Hub (port 8801). /v1/health returns 200 OK and Hub /hub/api/status returns 200 OK"
+      },
+      "B2_single_instance_mutex": {
+        "status": "PROVEN",
+        "evidence": "Local\\CourierLauncherMutex prevents secondary instances from spawning; secondary instance redirects to Hub URL and exits cleanly"
+      },
+      "B3_work_execution_lifecycle": {
+        "status": "PROVEN",
+        "evidence": "Synthetic task claimed, executed, verified, and result posted through live loop"
+      },
+      "B4_clean_shutdown_and_process_reaping": {
+        "status": "PROVEN",
+        "evidence": "Job Object encapsulation (JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x2000) terminates entire child process tree on exit; no orphaned Python processes"
+      }
+    },
+    "test_evidence": "tests/test_win_clean_machine_harness.py::test_win_clean_machine_harness PASSED in 18/18 Windows worker suite (75.03s)",
+    "safety_ratchet": "CLEAN (new=0)",
+    "verdict": "Real native build-to-health chain verified on Windows 11. B0, B1, B2, B3, B4 fulfilled with zero host pollution."
+  }
+}

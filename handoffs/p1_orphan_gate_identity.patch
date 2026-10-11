@@ -1,0 +1,181 @@
+# P1 L3-orphan-gate-pid-identity — staged implementation patch (UNPROVEN)
+# Status: STATIC-REVIEWED ONLY. Shell was down; RED/GREEN never ran.
+# Base: origin/integration/v1 @ f425d328 (regions verified == b9fc486a; #179 touched
+#   scripts/intake_dispatcher.py only, disjoint). Checkout regions matched base exactly.
+# Apply (shell session): git checkout -b lane/L3-orphan-gate-pid-identity
+#   origin/integration/v1 && git apply handoffs/p1_orphan_gate_identity.patch
+# Then: RED check (new tests must FAIL before product hunk? No — patch is atomic;
+#   to prove RED, temporarily `git stash` only courier_worker/host.py, run the 3
+#   new tests, expect test 1 to fail, unstash, expect all green) + FULL
+#   tests/test_l3_worker_host.py on ubuntu-latest + windows-latest via v1-ci.
+# Design notes:
+# - _owner_alive(owner_pid) UNCHANGED (sibling L3-RUNONCE-CLAIM-HARDEN branch calls it
+#   in tests; see docs/v1/L3-RUNONCE-CLAIM-HARDEN_CHECKPOINT_2026-10-07.md:46).
+# - New _owner_matches(pid, create_time) mirrors courier_runtime/ownership.py
+#   (tolerance 0.05s, psutil, zombie check, NoSuchProcess/AccessDenied -> False).
+# - psutil==7.2.2 is a pinned RUNTIME dep (pyproject.toml:16); no new dependency.
+# - Gate runs UNDER home lock (service.py:491-493), so no live same-home owner can
+#   exist during the gate; legacy records (no create_time) are reaped, never skipped.
+# - scripts/windows_worker/dist/** is stale regenerated build output: NOT patched.
+--- a/courier_worker/host.py
++++ b/courier_worker/host.py
+@@ -31,5 +31,7 @@
+ from dataclasses import dataclass, field
+ from pathlib import Path
+ from typing import Callable, Optional
++
++import psutil
+
+ # -- bounds (all of them are load-bearing contracts) --------------------------
+@@ -47,9 +49,13 @@
+ ORPHAN_TERM_GRACE_S = 2.0
+ LOAD_PRESSURE_FACTOR = 4.0
+
+ CLAIM_RECORD_GLOB = "dispatch-*.json"
+ CRASH_REPORT_NAME = "crash.json"
++
++# Owner identity tolerance: mirrors courier_runtime.ownership.CREATE_TIME_TOLERANCE_S.
++# A recorded (pid, create_time) pair matches a live process only within this bound.
++OWNER_CREATE_TIME_TOLERANCE_S = 0.05
++
+ 
+
+ class SpecError(ValueError):
+     """The execution spec is malformed; the host refuses it fail-closed."""
+@@ -505,7 +511,45 @@
+         os.kill(owner_pid, 0)
+         return True
+     except (OSError, ProcessLookupError):
+         return False
+
+
++def _process_create_time(pid: int) -> Optional[float]:
++    """Creation time of ``pid``, or None when it cannot be proven.
++
++    None covers: no such process, access denied, zombie (dead but unreaped),
++    and any psutil failure. Callers treat None as "not the recorded owner".
++    """
++    try:
++        proc = psutil.Process(pid)
++        if proc.status() == psutil.STATUS_ZOMBIE:
++            return None
++        return float(proc.create_time())
++    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess,
++            OSError, ValueError):
++        return None
++
++
++def _owner_matches(owner_pid: int, owner_create_time) -> bool:
++    """True only if ``owner_pid`` is alive AND is the recorded instance.
++
++    Identity is (pid, create_time) within OWNER_CREATE_TIME_TOLERANCE_S,
++    mirroring courier_runtime.ownership. Legacy records without create_time,
++    unreadable times, and recycled PIDs are never proof of liveness, so the
++    orphan gate reaps them instead of skipping them.
++    """
++    if owner_pid <= 0:
++        return False
++    if owner_create_time is None:
++        return False
++    try:
++        recorded = float(owner_create_time)
++    except (TypeError, ValueError):
++        return False
++    live = _process_create_time(owner_pid)
++    if live is None:
++        return False
++    return abs(live - recorded) <= OWNER_CREATE_TIME_TOLERANCE_S
++
++
+ def _write_claim_record(home: str, spec: ExecutionSpec, run: ContainedRun) -> Path:
+@@ -511,7 +555,9 @@
+ def _write_claim_record(home: str, spec: ExecutionSpec, run: ContainedRun) -> Path:
+     _claims_dir(home).mkdir(parents=True, exist_ok=True)
++    owner_pid = os.getpid()
+     record = {"task_id": spec.task_id, "attempt": spec.attempt, "dispatch_id": spec.dispatch_id,
+-              "worker_id": spec.worker_id, "owner_pid": os.getpid(), "child_pid": run.pid,
+-              "pgid": run.group_id()}
++              "worker_id": spec.worker_id, "owner_pid": owner_pid,
++              "owner_create_time": _process_create_time(owner_pid),
++              "child_pid": run.pid, "pgid": run.group_id()}
+     path = _claim_path(home, spec.dispatch_id)
+     fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".claim-", suffix=".tmp")
+@@ -535,19 +581,19 @@
+     claims = _claims_dir(home)
+     if not claims.is_dir():
+         return 0
+     handled = 0
+     for path in sorted(claims.glob(CLAIM_RECORD_GLOB)):
+         try:
+             record = json.loads(path.read_text(encoding="utf-8"))
+             owner_pid = int(record.get("owner_pid", 0) or 0)
+         except (OSError, ValueError, TypeError):
+             try:
+                 path.rename(path.with_suffix('.json.corrupt'))
+             except OSError:
+                 pass
+             continue
+-        if _owner_alive(owner_pid):
+-            continue  # another live host owns this tree; hands off
++        if _owner_matches(owner_pid, record.get("owner_create_time")):
++            continue  # the recorded owner instance is alive; hands off
+         _reap_orphan(record)
+         try:
+             path.unlink()
+--- a/tests/test_l3_worker_host.py
++++ b/tests/test_l3_worker_host.py
+@@ -748,4 +748,54 @@
+     result = host.run_once(spec, is_cancelled=stop.is_set)
+     assert result.outcome == Outcome.CANCELLED
+     leftovers = [p.pid for p in me.children(recursive=True) if p.pid not in before]
+     assert leftovers == []
++
++
++# -- L3-orphan-gate-pid-identity (P1): owner identity, not bare PID -------------
++
++
++def test_orphan_gate_reaps_pid_reused_owner_record(tmp_path):
++    """A live PID with the wrong create_time is NOT the owner: reap it.
++
++    Simulates PID reuse deterministically: owner_pid is this very test
++    process (guaranteed live on every platform) but the recorded create_time
++    belongs to a dead older instance. Portable: no signals, no sleeps.
++    """
++    import psutil
++
++    me = psutil.Process()
++    record = {"task_id": "t", "attempt": 1, "dispatch_id": "reuse-1", "worker_id": "w",
++              "owner_pid": me.pid, "owner_create_time": me.create_time() + 3600.0,
++              "child_pid": 0, "pgid": None}
++    claims = tmp_path / "run" / "claims"
++    claims.mkdir(parents=True)
++    (claims / "dispatch-reuse-1.json").write_text(json.dumps(record), encoding="utf-8")
++    assert H.run_orphan_gate(str(tmp_path)) == 1
++    assert list(claims.glob("*.json")) == []
++
++
++def test_orphan_gate_keeps_live_owner_record(tmp_path):
++    """A live PID with the matching create_time IS the owner: hands off."""
++    import psutil
++
++    me = psutil.Process()
++    record = {"task_id": "t", "attempt": 1, "dispatch_id": "live-1", "worker_id": "w",
++              "owner_pid": me.pid, "owner_create_time": me.create_time(),
++              "child_pid": 0, "pgid": None}
++    claims = tmp_path / "run" / "claims"
++    claims.mkdir(parents=True)
++    target = claims / "dispatch-live-1.json"
++    target.write_text(json.dumps(record), encoding="utf-8")
++    assert H.run_orphan_gate(str(tmp_path)) == 0
++    assert target.exists()
++
++
++def test_orphan_gate_reaps_legacy_record_without_create_time(tmp_path):
++    """Legacy records (no owner_create_time) are never proof of liveness."""
++    record = {"task_id": "t", "attempt": 1, "dispatch_id": "legacy-1", "worker_id": "w",
++              "owner_pid": 2 ** 30, "child_pid": 0, "pgid": None}
++    claims = tmp_path / "run" / "claims"
++    claims.mkdir(parents=True)
++    (claims / "dispatch-legacy-1.json").write_text(json.dumps(record), encoding="utf-8")
++    assert H.run_orphan_gate(str(tmp_path)) == 1
++    assert list(claims.glob("*.json")) == []

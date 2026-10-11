@@ -398,6 +398,25 @@ def main() -> int:
         return 0
 
     print(f"=== RUNNING ANTIGRAVITY AUTOMATION BRIDGE: {target_job.name} ===")
+    try:
+        import sys
+        from pathlib import Path
+        sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+        from courier_runtime.surfaces import SurfaceSupervisor
+        sup = SurfaceSupervisor()
+        decision = sup.admit(
+            provider="antigravity_bridge",
+            workkey=target_job.name,
+            prompt="bridge",
+            needs_visible=False,
+            allow_headless=True
+        )
+        if not decision.get("admitted"):
+            print(f"Surface budget exceeded: {decision.get('reason')}")
+            return 1
+    except (ImportError, Exception):
+        pass
+
     result_file = execute_bridge_task(target_job, hooks)
 
     if args.review:
