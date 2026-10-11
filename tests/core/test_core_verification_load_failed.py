@@ -58,13 +58,13 @@ def test_load_failed_value_error_rejects_non_retryably(tmp_path):
 
 def test_load_failed_reason_names_adapter_and_exception_type(tmp_path):
     def resolve(_adapter):
-        raise ValueError("secret-detail-must-not-leak")
+        raise ValueError("registry-detail-must-not-leak")
 
     verdict = run_verifier(resolve, _task(), _success_result(), Path(tmp_path))
 
     assert "synthetic" in verdict.reason
     assert "ValueError" in verdict.reason
-    assert "secret-detail-must-not-leak" not in verdict.reason
+    assert "registry-detail-must-not-leak" not in verdict.reason
 
 
 def test_load_failed_import_error_rejects(tmp_path):
