@@ -24,7 +24,7 @@ FAKE_TOKEN = "test-token-value"
 class TestClientInit:
     def test_rejects_non_http_scheme(self):
         with pytest.raises(S.ControllerError):
-            S.ControllerClient("ftp://controller.local/x", FAKE_TOKEN)
+            S.ControllerClient("ftp://127.0.0.1:9/x", FAKE_TOKEN)
 
     def test_rejects_missing_hostname(self):
         with pytest.raises(S.ControllerError):
@@ -56,19 +56,19 @@ class TestClientInit:
 
 class TestConnSelection:
     def test_http_uses_http_connection_port_80(self):
-        conn = S.ControllerClient("http://controller.local", FAKE_TOKEN)._conn()
+        conn = S.ControllerClient("http://127.0.0.1", FAKE_TOKEN)._conn()
         assert isinstance(conn, http.client.HTTPConnection)
         assert conn.port == 80
         conn.close()
 
     def test_https_uses_https_connection_port_443(self):
-        conn = S.ControllerClient("https://controller.local", FAKE_TOKEN)._conn()
+        conn = S.ControllerClient("https://127.0.0.1", FAKE_TOKEN)._conn()
         assert isinstance(conn, http.client.HTTPSConnection)
         assert conn.port == 443
         conn.close()
 
     def test_explicit_port_honored(self):
-        conn = S.ControllerClient("http://controller.local:8123", FAKE_TOKEN)._conn()
+        conn = S.ControllerClient("http://127.0.0.1:8123", FAKE_TOKEN)._conn()
         assert conn.port == 8123
         conn.close()
 
