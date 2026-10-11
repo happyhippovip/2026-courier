@@ -1,4 +1,5 @@
 import json
+import sys
 import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
@@ -203,6 +204,46 @@ def test_build_local_shell_task_packet_format(tmp_path):
     assert validated["write"] == "result.json"
     assert validated["timeout_s"] == 45
     assert isinstance(validated["command"], list)
-    assert len(validated["command"]) >= 2
+    cmd = validated["command"]
+    assert len(cmd) >= 7
+    assert cmd[0] == sys.executable
+    assert "--job-file" in cmd
+    assert str(job_file.resolve()) in cmd
+    assert "--write-evidence" in cmd
+    assert "result.json" in cmd
+
+
+def test_local_shell_execution_writes_evidence_file(tmp_path, monkeypatch):
+    from scripts.run_antigravity_bridge import build_local_shell_task_packet
+    from adapters import local_shell
+
+    fixture_file = tmp_path / "fixture.md"
+    fixture_file.write_text("Local shell test fixture")
+
+    job_file = tmp_path / "job.json"
+    job_data = {
+        "task_id": "task-ls-exec",
+        "instruction": "Test local shell adapter execution",
+        "allowed_scope": [str(fixture_file)],
+        "require_verified_product_pass": False,
+    }
+    job_file.write_text(json.dumps(job_data))
+
+    packet = build_local_shell_task_packet(job_file, write_filename="out-result.json", timeout_s=30)
+    workdir = tmp_path / "sandbox"
+    workdir.mkdir()
+
+    res = local_shell.run(packet["params"], workdir=workdir)
+    assert res.outcome == "success"
+    assert len(res.artifacts) == 1
+    assert res.artifacts[0]["path"] == "out-result.json"
+
+    evidence_file = workdir / "out-result.json"
+    assert evidence_file.exists()
+    evidence_data = json.loads(evidence_file.read_text(encoding="utf-8"))
+    assert evidence_data["type"] == "RESULT"
+    assert evidence_data["status"] == "COMPLETED"
+    assert evidence_data["payload"]["verdict"] == "PASS"
+
 
 

@@ -393,10 +393,20 @@ def run_chief_review_router(task_id: str, result_file: Path) -> dict:
 def build_local_shell_task_packet(job_path: Path | str, write_filename: str = "result.json",
                                   lease_ttl_s: int = 60, timeout_s: int = 30) -> dict:
     """Constructs a canonical Courier V1 task packet routing an Antigravity job via local_shell."""
+    script_path = Path(__file__).resolve()
+    resolved_job = str(Path(job_path).resolve())
     return {
         "adapter": "local_shell",
         "params": {
-            "command": [sys.executable, str(Path(job_path).resolve()), "--review"],
+            "command": [
+                sys.executable,
+                str(script_path),
+                "--job-file",
+                resolved_job,
+                "--write-evidence",
+                write_filename,
+                "--review",
+            ],
             "write": write_filename,
             "timeout_s": timeout_s,
         },
@@ -411,6 +421,7 @@ def main() -> int:
     parser.add_argument("--job-file", type=Path, help="Path to AntigravityWorkerJob JSON file")
     parser.add_argument("--auto-discover", action="store_true", help="Auto-discover pending worker jobs")
     parser.add_argument("--review", action="store_true", help="Trigger Chief Review Router after execution")
+    parser.add_argument("--write-evidence", type=Path, help="Optional relative or absolute path to write evidence file for local_shell adapter")
     args = parser.parse_args()
 
     state_tracker = AntigravityVisualStateTracker()
@@ -429,8 +440,6 @@ def main() -> int:
 
     print(f"=== RUNNING ANTIGRAVITY AUTOMATION BRIDGE: {target_job.name} ===")
     try:
-        import sys
-        from pathlib import Path
         sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
         from courier_runtime.surfaces import SurfaceSupervisor
         sup = SurfaceSupervisor()
@@ -448,6 +457,17 @@ def main() -> int:
         pass
 
     result_file = execute_bridge_task(target_job, hooks)
+
+    if args.write_evidence:
+        try:
+            target_evidence = args.write_evidence
+            if not target_evidence.is_absolute():
+                target_evidence = Path.cwd() / target_evidence
+            target_evidence.parent.mkdir(parents=True, exist_ok=True)
+            target_evidence.write_text(result_file.read_text(encoding="utf-8"), encoding="utf-8")
+            print(f"[BRIDGE EVIDENCE] Written to {target_evidence}")
+        except Exception as e:
+            print(f"[BRIDGE EVIDENCE ERROR] Failed writing {args.write_evidence}: {e}")
 
     if args.review:
         task_id = load_json(target_job).get("task_id", target_job.stem.replace("-worker-job", ""))
