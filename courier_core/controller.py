@@ -51,7 +51,8 @@ from courier_core.events import (
 from courier_core.journal import DedupeConflict, Journal, JournalError
 from courier_core.projection import ProjectionError
 from courier_core.state_machine import (
-    ACTIVE_LEASE, TERMINAL, Decision, TaskState, TaskStatus, TransitionError, decide_after_failure,
+    ACTIVE_LEASE, RESOLVED_VERIFIED, TERMINAL, Decision, TaskState, TaskStatus, TransitionError,
+    decide_after_failure,
 )
 from courier_core.verification import ADAPTER_NAME, VerifyFn, adapter_verifier, run_verifier
 
@@ -303,6 +304,36 @@ class Controller:
         if task is None:
             raise ApiError(404, "unknown_task")
         return {**task.to_record(), "effect_key": effect_key(task.task_id)}
+
+    def task_result(self, task_id: str) -> dict:
+        """The verified result of a COMPLETE task: result_id and its journaled artifacts.
+
+        Only a verifier-accepted result is returned. A human effect confirmation
+        or any other status is refused with 409, so a dependent task never reads
+        an unverified output.
+        """
+        if self._stopping.is_set():
+            raise ApiError(503, "stopping", "controller is shutting down")
+        if not self._projection_readable:
+            raise ApiError(503, DEGRADED, "task state is unavailable: the projection predates this build",
+                           first_bad_seq=self.first_bad_seq)
+        with self._locked():
+            task = self.journal.task(task_id) if self.journal else None
+            if task is None:
+                raise ApiError(404, "unknown_task")
+            if (task.status is not TaskStatus.COMPLETE or task.resolution != RESOLVED_VERIFIED
+                    or not task.accepted_result_id):
+                raise ApiError(409, "not_verified", "task has no verified result")
+            ready = None
+            for event in self.journal.events(task_id=task_id):
+                if (event.type is EventType.RESULT_READY and event.result_id == task.accepted_result_id
+                        and event.attempt == task.attempt):
+                    ready = event
+        if ready is None:
+            raise ApiError(409, "not_verified", "the verified result is not in the journal")
+        artifacts = [{"path": item["path"], "sha256": item["sha256"]} for item in ready.payload.get("artifacts", [])]
+        return {"task_id": task.task_id, "attempt": task.attempt, "result_id": task.accepted_result_id,
+                "artifacts": artifacts}
 
     def create_task(self, body: Any) -> tuple[int, dict]:
         self._require_writable()
