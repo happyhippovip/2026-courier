@@ -1,4 +1,4 @@
-import pytest
+import pytest; pytest.importorskip("tkinter")  # Tk-less interpreters skip, no collection error
 import os
 import tempfile
 from unittest.mock import patch, MagicMock
