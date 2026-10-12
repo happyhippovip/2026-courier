@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; img-src data:; base-uri 'none'; form-action 'none'">
+  <meta name="description" content="Kostenloses, privates Emoji-Chat-Organisationspaket für Einsteiger. Titel, Starter-Nachrichten und Übergaben kopieren.">
+  <title>🧩 Emoji-Chat-Organizer – Einsteigerpaket</title>
+  <style>
+    :root{color-scheme:light;--ink:#20252d;--muted:#566272;--bg:#f4f6f9;--surface:#fff;--line:#dfe5ed;--lime:#c7ed3e;--purple:#e8e3ff;--shadow:0 12px 34px #202d4820}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    button,input{font:inherit}
+    button{cursor:pointer}
+    a{color:#324fa0}
+    .wrap{max-width:1180px;padding:24px;margin:auto}
+    .eyebrow{letter-spacing:.08em;font-size:.78rem;font-weight:850;color:#485c65}
+    h1{font-size:clamp(1.8rem,4.5vw,3.1rem);line-height:1.14;margin:.35rem 0 .75rem;letter-spacing:-.035em}
+    h2{font-size:1.18rem;margin:0 0 10px}
+    p{margin:.5rem 0 1rem}
+    .lead{max-width:780px;color:var(--muted)}
+    .notice{padding:12px 16px;background:#f7f7eb;border:1px solid #e0e2ba;border-radius:12px;margin:20px 0}
+    .settings{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin:20px 0}
+    .field{display:grid;gap:7px;flex:1;min-width:230px;font-weight:650}
+    .field input{width:100%;border:1px solid #c7d0dc;border-radius:12px;padding:13px;background:#fff;color:var(--ink)}
+    .reset{border:1px solid #b8c1c8;background:#fff;padding:13px 16px;border-radius:12px;color:#283443}
+    .stage{display:grid;grid-template-columns:minmax(250px,370px) minmax(0,1fr);gap:17px}
+    .pane{background:var(--surface);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);overflow:hidden}
+    .sidebar-top{padding:24px 20px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .sidebar-top strong{font-size:1.45rem}
+    .circle{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#f3f6f8}
+    .section-label{margin:15px 20px 7px;font-size:.84rem;font-weight:750;color:var(--muted)}
+    .chat-list{padding:2px 10px 22px}
+    .chat{display:flex;width:100%;gap:12px;align-items:center;text-align:left;border:0;background:transparent;border-radius:15px;padding:13px 12px;color:var(--ink)}
+    .chat:hover{background:#f1f4f5}
+    .chat[aria-pressed=true]{background:#eff2f5}
+    .chat .emoji{font-size:1.35rem;min-width:29px}
+    .chat .title{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .chat .purpose{font-size:.78rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .chat .copy{min-width:0;flex:1}
+    .chat .dot{width:9px;height:9px;background:#b8e625;border-radius:50%;flex:none}
+    .details{padding:clamp(19px,3vw,32px)}
+    .detail-top{display:flex;align-items:center;gap:12px;margin-bottom:17px}
+    .avatar{width:50px;height:50px;border-radius:16px;background:var(--purple);display:grid;place-items:center;font-size:1.8rem}
+    .tag{display:inline-flex;background:#f0f4f7;border:1px solid #dce3e9;padding:3px 9px;border-radius:50px;font-size:.76rem;font-weight:700;color:#38495b}
+    .detail-headline{font-weight:850;font-size:clamp(1.25rem,3vw,1.8rem);line-height:1.25;margin:8px 0}
+    .helper{font-size:.91rem;color:var(--muted)}
+    .output-label{display:block;font-size:.83rem;font-weight:800;margin:16px 0 7px}
+    .preview{background:#f7f8fb;border:1px solid #d9e0e9;border-radius:14px;padding:14px;white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;line-height:1.53;min-height:75px}
+    .buttons{display:flex;gap:9px;flex-wrap:wrap;margin:10px 0 16px}
+    .buttons button{border:1px solid #cad4df;padding:11px 13px;border-radius:11px;background:#fff;color:var(--ink);font-weight:750}
+    .buttons button.primary{background:var(--lime);border-color:#aac72e}
+    .buttons button:hover,.reset:hover{filter:brightness(.96)}
+    .feedback{min-height:1.4em;font-size:.85rem;font-weight:650;color:#315d42}
+    .foot-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+    .foot{padding:21px;background:#fff;border:1px solid var(--line);border-radius:18px}
+    .foot p{color:var(--muted)}
+    .foot code{background:#f1f3f7;padding:2px 5px;border-radius:5px}
+    .foot ol{padding-left:22px;margin-bottom:0}
+    footer{font-size:.8rem;color:var(--muted);padding:25px 0}
+    :focus-visible{outline:3px solid #5579df;outline-offset:3px}
+    @media(max-width:780px){.wrap{padding:16px}.stage{grid-template-columns:1fr}.pane{border-radius:19px}.sidebar-top{padding-top:15px}.chat-list{display:grid;grid-template-columns:1fr 1fr;gap:1px 3px}.chat{padding:9px 7px}.chat .purpose{display:none}.chat .title{font-size:.91rem}.chat .emoji{min-width:22px}.foot-grid{grid-template-columns:1fr}}
+    @media(max-width:380px){.chat-list{grid-template-columns:1fr}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+  </style>
+</head>
+<body>
+ <main class="wrap">
+  <div class="eyebrow">🧩 ✨ 📚 🛠️ 🧪 💾 · KOSTENLOSE OFFLINE-VORLAGE</div>
+  <h1>Deine Chat-Organisation mit Emojis</h1>
+  <p class="lead">Ein einfaches Ansichtspaket für Menschen, die verschiedene KI-Chats übersichtlich benennen möchten. Wähle eine Rolle aus, passe deinen Projektnamen an und kopiere Titel oder Startnachricht in deinen eigenen Chat.</p>
+  <div class="notice">🔒 <strong>Nur eine lokale Vorschau.</strong> Keine Anmeldung, keine API, keine Cloud-Anbindung und kein automatisches Speichern. Die Emojis benennen Chats – sie verbinden keine Apps, Geräte oder Projekte miteinander.</div>
+  <div class="settings">
+   <label class="field" for="project">✏️ Dein Projektname <input id="project" type="text" maxlength="60" value="Mein Projekt" autocomplete="off" placeholder="z. B. Meine Prüfung"></label>
+   <button class="reset" id="reset" type="button">↺ Beispiel zurücksetzen</button>
+  </div>
+  <div class="stage">
+    <section class="pane" aria-label="Chat-Auswahl">
+      <div class="sidebar-top"><strong>💬 Meine Chats</strong><span class="circle" aria-hidden="true">🔎</span></div>
+      <p class="section-label">Einsteiger-Set · 8 Chat-Rollen</p>
+      <div id="chatList" class="chat-list"></div>
+    </section>
+    <section class="pane details" aria-label="Ausgewählte Chat-Vorlage">
+      <div class="detail-top">
+        <span id="avatar" class="avatar" aria-hidden="true">🧭</span>
+        <div><span class="tag">📋 KOPIERVORLAGE – KEIN AUTOSTART</span><div id="roleLabel" class="detail-headline"></div></div>
+      </div>
+      <p id="description" class="helper"></p>
+      <span class="output-label">🏷️ Chat-Titel</span>
+      <div id="chatTitle" class="preview"></div>
+      <div class="buttons"><button id="copyTitle" type="button" class="primary">📋 Titel kopieren</button></div>
+      <span class="output-label">💬 Erste Nachricht für diesen Chat</span>
+      <div id="starter" class="preview"></div>
+      <div class="buttons"><button id="copyStarter" type="button" class="primary">📋 Startnachricht kopieren</button></div>
+      <span class="output-label">🔁 Übergabe an einen neuen Chat</span>
+      <div id="handoff" class="preview"></div>
+      <div class="buttons"><button id="copyHandoff" type="button">📋 Übergabe kopieren</button></div>
+      <p class="feedback" id="feedback" role="status" aria-live="polite"></p>
+    </section>
+  </div>
+  <div class="foot-grid">
+   <section class="foot"><h2>🚀 So startest du</h2><ol><li>Eigenen Projektnamen oben eintragen.</li><li>Auf eine Chat-Rolle mit Emoji tippen.</li><li>Titel kopieren und deinen Chat entsprechend benennen.</li><li>Startnachricht kopieren und im passenden Chat senden.</li><li>Beim Chatwechsel die Übergabe kopieren, prüfen und im neuen Chat verwenden.</li></ol></section>
+   <section class="foot"><h2>🛡️ Gut zu wissen</h2><p>Alle Rollen sind Vorschläge. Für ein kleines Vorhaben reicht auch <strong>ein einziger Chat</strong>. „Prüfen“ ist keine automatische Kontrolle und „Sicherung“ erstellt keine echte Datensicherung. Bitte keine Passwörter, vertraulichen Dokumente oder privaten Daten öffentlich auf GitHub hochladen.</p><p>Diese Ansicht ist keine offizielle ChatGPT-Oberfläche. Sie kann auch ohne Internet als <code>index.html</code> im Browser geöffnet werden.</p></section>
+  </div>
+  <footer>🧩 Emoji-Chat-Organizer · Nur neutrale Beispieldaten · Kein Tracking · Keine externen Ressourcen · Nutzung freiwillig</footer>
+ </main>
+ <script>
+  'use strict';
+  const roles = [
+    {id:'zentrale',emoji:'🧭',label:'Hauptchat',description:'Ein Ort für Ziel, aktuellen Überblick und Entscheidungen.',start:'Du bist meine freundliche Projektübersicht. Hilf mir, mein Ziel in einfachen Worten festzuhalten. Frage höchstens eine wichtige Rückfrage auf einmal. Fasse am Ende zusammen: Ziel, bereits geklärt, nächster kleiner Schritt. Erfinde keine erledigten Arbeiten.',tip:'📍 Hier entscheidest du, was als Nächstes wichtig ist.'},
+    {id:'ideen',emoji:'💡',label:'Ideen',description:'Neue Einfälle sammeln und sortieren, ohne sie schon als Aufgaben auszuführen.',start:'Hilf mir, Ideen zu meinem Projekt zu sammeln. Trenne kreative Vorschläge von Entscheidungen. Zeige zuerst höchstens drei einfache Ideen mit einem Vorteil und einem möglichen Nachteil. Starte keine Aktionen außerhalb dieses Chats.',tip:'💡 Sammeln bedeutet nicht automatisch umsetzen.'},
+    {id:'lernen',emoji:'📚',label:'Lernen',description:'Fremde Begriffe, Anleitungen und Fragen verständlich erklären.',start:'Erkläre mir dieses Thema wie einem Anfänger: mit einfachen Worten, einem Beispiel und einer kleinen Übungsfrage. Verwende nur wenige Fachbegriffe und erkläre sie direkt.',tip:'📚 Gut geeignet für Schule, Beruf und Hobbys.'},
+    {id:'planung',emoji:'🗓️',label:'Planung',description:'Überschaubare Schritte und Termine für das eigene Vorhaben strukturieren.',start:'Hilf mir, einen realistischen Plan für mein Projekt zu machen. Unterscheide Muss von Kann. Beginne mit dem kleinsten sinnvollen Schritt und frage vor konkreten Terminen, wenn sie fehlen. Nichts als erledigt markieren, ohne Beleg.',tip:'🗓️ Ein Plan ersetzt keine automatische Erinnerung.'},
+    {id:'umsetzung',emoji:'🛠️',label:'Umsetzung',description:'An einer konkreten, freigegebenen Aufgabe arbeiten.',start:'Unterstütze mich bei genau einer klar beschriebenen Aufgabe. Nenne zuerst kurz das gewünschte Ergebnis. Wenn du keine Datei oder App direkt verändern kannst, sage das offen. Keine Käufe, Veröffentlichungen oder Änderungen an Konten ohne meine ausdrückliche Zustimmung.',tip:'🛠️ Erst Ziel bestätigen, dann einen Schritt bearbeiten.'},
+    {id:'pruefung',emoji:'🧪',label:'Prüfen',description:'Ergebnisse sachlich kontrollieren und Unsicherheiten erkennen.',start:'Prüfe das Ergebnis, das ich dir sende. Trenne sichtbar: bestätigt, unklar und fehlerhaft. Nenne einen einfachen Weg zur Nachprüfung. Behaupte keine Tests, Messungen oder Dateiänderungen, die tatsächlich nicht erfolgt sind.',tip:'🧪 Ein eigener Chat allein ist kein unabhängiger Test.'},
+    {id:'ablage',emoji:'💾',label:'Übergabe',description:'Wichtige Zwischenergebnisse für den nächsten Chat festhalten.',start:'Erstelle aus unserem sichtbaren Chat eine kurze, kopierbare Übergabe: Ziel, Entscheidungen, nachgewiesene Ergebnisse, offene Fragen und nächster Schritt. Markiere Unbekanntes ausdrücklich. Keine Passwörter oder sensiblen Daten in die Übergabe aufnehmen.',tip:'💾 Kopieren ist keine automatische Sicherung auf einem anderen Gerät.'},
+    {id:'unterwegs',emoji:'📱',label:'Unterwegs',description:'Kurze Notizen per Smartphone sammeln.',start:'Hilf mir, unterwegs schnelle Notizen zu meinem Projekt zu erfassen. Verwandle Stichwörter in kurze, klare Notizen. Keine anderen Chats als synchronisiert ausgeben. Frage nach, bevor du aus einer Notiz eine feste Entscheidung machst.',tip:'📱 Notizen gegebenenfalls selbst in die Zentrale übertragen.'}
+  ];
+  let selected = 'zentrale';
+  const el = id => document.getElementById(id);
+  const safeProject = () => el('project').value.trim() || 'Mein Projekt';
+  const chosen = () => roles.find(item => item.id === selected);
+  const titleFor = role => role.emoji + ' ' + safeProject() + ' – ' + role.label;
+  const starterFor = role => role.emoji + ' ' + safeProject() + ' – ' + role.label + '\n\n' + role.start;
+  const handoffFor = role => '🔁 ÜBERGABE – ' + safeProject() + ' – ' + role.label + '\n\nBitte fasse ausschließlich die Informationen zusammen, die in diesem Chat wirklich vorliegen:\n• Mein Ziel\n• Was entschieden wurde\n• Was nachweislich erledigt ist\n• Was offen oder unklar ist\n• Mein nächster sinnvoller Schritt\n\nKeine erfundenen Erfolge, keine Passwörter und keine privaten Daten für eine öffentliche Veröffentlichung. Diese Übergabe muss ich selbst prüfen und bei Bedarf in einen anderen Chat kopieren.';
+  function render(){
+    const role = chosen();
+    const list = el('chatList');
+    list.replaceChildren();
+    roles.forEach(item => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'chat';
+      button.setAttribute('aria-pressed', String(item.id === selected));
+      const em = document.createElement('span');em.className='emoji';em.textContent=item.emoji;
+      const body=document.createElement('span');body.className='copy';
+      const title=document.createElement('span');title.className='title';title.textContent=safeProject()+' – '+item.label;
+      const purpose=document.createElement('div');purpose.className='purpose';purpose.textContent=item.description;
+      const dot=document.createElement('span');dot.className='dot';dot.setAttribute('aria-hidden','true');
+      body.append(title,purpose);button.append(em,body,dot);
+      button.addEventListener('click',()=>{selected=item.id;render();});
+      list.append(button);
+    });
+    el('avatar').textContent=role.emoji;
+    el('roleLabel').textContent=role.label;
+    el('description').textContent=role.description+' '+role.tip;
+    el('chatTitle').textContent=titleFor(role);
+    el('starter').textContent=starterFor(role);
+    el('handoff').textContent=handoffFor(role);
+    el('feedback').textContent='';
+  }
+  async function copyText(value){
+    try{
+      if(navigator.clipboard && window.isSecureContext){
+        await navigator.clipboard.writeText(value);
+      }else{
+        const box=document.createElement('textarea');
+        box.value=value;box.setAttribute('readonly','');
+        box.style.position='fixed';box.style.opacity='0';
+        document.body.appendChild(box);box.select();
+        const ok=document.execCommand('copy');box.remove();
+        if(!ok)throw Error('Nicht kopiert');
+      }
+      el('feedback').textContent='✅ Kopiert! Jetzt im gewünschten Chat einfügen.';
+    }catch(err){
+      el('feedback').textContent='⚠️ Automatisches Kopieren nicht verfügbar. Bitte den angezeigten Text markieren und selbst kopieren.';
+    }
+  }
+  el('project').addEventListener('input',render);
+  el('reset').addEventListener('click',()=>{el('project').value='Mein Projekt';selected='zentrale';render();});
+  el('copyTitle').addEventListener('click',()=>copyText(titleFor(chosen())));
+  el('copyStarter').addEventListener('click',()=>copyText(starterFor(chosen())));
+  el('copyHandoff').addEventListener('click',()=>copyText(handoffFor(chosen())));
+  render();
+ </script>
+</body>
+</html>
