@@ -101,19 +101,20 @@ class RoutingExplanation:
 class CapabilitySelector:
     def __init__(self, catalog: AgentCatalog):
         self.catalog = catalog
-
     def select_agent_for_task(
         self,
         required_capability: str,
         required_host: Optional[str] = None,
         current_owners: Optional[List[str]] = None,
-        require_implemented: bool = False,
+        require_implemented: bool = True,
     ) -> RoutingExplanation:
         if current_owners is None:
             current_owners = []
 
         candidates = []
         for agent in self.catalog.agents:
+            if require_implemented and agent.status != "implemented":
+                continue
             if required_capability in agent.capabilities:
                 if require_implemented and agent.status not in ("implemented", "active"):
                     continue

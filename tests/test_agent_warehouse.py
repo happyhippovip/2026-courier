@@ -78,3 +78,19 @@ def test_unranked_cost_class_is_not_called_cheapest():
     assert explanation.selected_agent_id == "agent-high"
     assert explanation.planned_cost_class == "high"
     assert "not a cheapest-cost selection" in explanation.cost_reason
+
+
+def test_unimplemented_agents_not_selected_by_default():
+    repo_root = Path(__file__).parent.parent
+    catalog = AgentCatalog.load(repo_root / "docs" / "agent-warehouse" / "AGENT_CATALOG.json")
+    selector = CapabilitySelector(catalog)
+
+    with pytest.raises(ValueError, match="No agent found for capability routing_candidate"):
+        selector.select_agent_for_task("routing_candidate")
+
+    found = selector.select_agent_for_task("routing_candidate", require_implemented=False)
+    assert found.selected_agent_id == "smart-resource-router"
+
+    reloaded = CapabilitySelector(AgentCatalog.load(repo_root / "docs" / "agent-warehouse" / "AGENT_CATALOG.json"))
+    with pytest.raises(ValueError, match="No agent found for capability routing_candidate"):
+        reloaded.select_agent_for_task("routing_candidate")
