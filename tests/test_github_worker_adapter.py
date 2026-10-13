@@ -423,3 +423,105 @@ def test_run_polling_loop(tmp_path, monkeypatch):
     assert state["run_id"] == "99"
     assert state["status"] == "WAITING_FOR_WORKER"
 
+
+def _workflow_python_blocks() -> list[str]:
+    """Return the success and failure scripts embedded in courier_worker.yml."""
+    lines = Path(".github/workflows/courier_worker.yml").read_text(encoding="utf-8").splitlines()
+    blocks = []
+    index = 0
+    while index < len(lines):
+        if "<<'PY'" not in lines[index]:
+            index += 1
+            continue
+        index += 1
+        body = []
+        while index < len(lines) and lines[index].strip() != "PY":
+            body.append(lines[index])
+            index += 1
+        if index >= len(lines) or not body:
+            raise AssertionError("workflow heredoc is not closed")
+        indent = len(body[0]) - len(body[0].lstrip(" "))
+        blocks.append("\n".join(line[indent:] for line in body) + "\n")
+        index += 1
+    if len(blocks) != 2:
+        raise AssertionError(f"courier_worker.yml must embed success and failure scripts, found {len(blocks)}")
+    return blocks
+
+
+def _claimed_github_task(tmp_path, monkeypatch):
+    from server import app as server_app
+
+    monkeypatch.setattr(server_app, "STATE_FILE", str(tmp_path / "state.json"))
+    monkeypatch.setattr(server_app, "API_KEY", "test-secret")
+    http = server_app.app.test_client()
+    headers = {"Authorization": "Bearer test-secret"}
+    registered = http.post(
+        "/workers/register",
+        headers=headers,
+        json={"worker_id": "GITHUB-HOSTED", "platform": "github", "capabilities": ["github"]},
+    )
+    assert registered.status_code == 200
+    created = http.post(
+        "/goals",
+        headers=headers,
+        json={
+            "goal_text": "one bounded github task",
+            "workflow_plan": [
+                {
+                    "task_id": "task-gh",
+                    "target_agent": "github",
+                    "task_type": "metadata",
+                    "instruction": "record source metadata",
+                }
+            ],
+        },
+    )
+    assert created.status_code == 200
+    claimed = http.post("/tasks/claim", headers=headers, json={"worker_id": "GITHUB-HOSTED"})
+    assert claimed.status_code == 200
+    task = claimed.get_json()["task"]
+    assert task["worker_id"] == "GITHUB-HOSTED"
+    return http, headers, task
+
+
+def _run_workflow_block(block: str, task: dict, workdir: Path) -> dict:
+    import os
+    import subprocess
+
+    workdir.mkdir(parents=True, exist_ok=True)
+    script = workdir / "courier_task.py"
+    script.write_text(block, encoding="utf-8")
+    env = os.environ.copy()
+    env.update({
+        "TASK_PAYLOAD_BASE64": base64.b64encode(json.dumps(task).encode()).decode(),
+        "DISPATCH_ID": task["dispatch_id"],
+        "GITHUB_SHA": "a" * 40,
+        "GITHUB_RUN_ID": "99",
+        "GITHUB_RUN_ATTEMPT": "1",
+        "GITHUB_JOB": "execute",
+        "GITHUB_WORKSPACE": str(Path(".").resolve()),
+    })
+    completed = subprocess.run(
+        [sys.executable, str(script)], cwd=workdir, env=env, capture_output=True, text=True, timeout=30,
+    )
+    assert completed.returncode == 0, completed.stderr
+    return json.loads((workdir / f"result_{task['dispatch_id']}.json").read_text(encoding="utf-8"))
+
+
+def test_github_worker_result_post_is_accepted(tmp_path, monkeypatch):
+    """A result the GitHub worker workflow actually writes must be accepted."""
+    http, headers, task = _claimed_github_task(tmp_path, monkeypatch)
+    success_block, failure_block = _workflow_python_blocks()
+    success = _run_workflow_block(success_block, task, tmp_path / "success")
+    posted = http.post("/tasks/result", headers=headers, json=success)
+    assert posted.status_code == 200, posted.get_data(as_text=True)
+    assert success["result_id"] == canonical_result_id(success)
+    assert success["result_id"] != f"result-{task['dispatch_id']}"
+
+    failed_http, failed_headers, failed_task = _claimed_github_task(tmp_path / "failed-state", monkeypatch)
+    failed = _run_workflow_block(failure_block, failed_task, tmp_path / "failed")
+    failed_post = failed_http.post("/tasks/result", headers=failed_headers, json=failed)
+    assert failed_post.status_code == 200, failed_post.get_data(as_text=True)
+    assert failed["status"] == "FAILED"
+    assert failed["result_id"] == canonical_result_id(failed)
+
