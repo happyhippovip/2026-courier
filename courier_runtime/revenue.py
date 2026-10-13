@@ -22,6 +22,7 @@ LEAD_TRANSITIONS = {
     WON: set(), LOST: set(),
 }
 HUMAN_GATED = {CONTACTED, PROPOSAL, WON}   # outward or binding steps
+PRIVACY_FIELDS = ("data", "storage", "providers", "permissions", "retention", "deletion")
 
 
 class LeadError(Exception):
@@ -36,10 +37,15 @@ class Lead:
     source: str                   # where the need was observed (public URL / referral)
     state: str = PROSPECT
     history: list = field(default_factory=list)
+    privacy: dict | None = None
 
     def move(self, new_state, at, human_approval=None, note=""):
         if new_state not in LEAD_TRANSITIONS[self.state]:
             raise LeadError(f"{self.state} -> {new_state} is not allowed")
+        if new_state == QUALIFIED:
+            gaps = privacy_gaps(self.privacy)
+            if gaps:
+                raise LeadError(gaps[0])
         if new_state in HUMAN_GATED and not human_approval:
             raise LeadError(f"{new_state} needs a human approval id")
         if new_state == CONTACTED and self.state != WAITING_FOR_HUMAN:
@@ -69,10 +75,17 @@ class Job:
     evidence: list = field(default_factory=list)
     paid_on: str = ""             # ISO date the money arrived; groups revenue by month
     delivered_on: str = ""        # ISO date the report reached the customer
+    price_kind: str = "confirmed"  # "hypothesis" is a guess and is never revenue
+
+    def __post_init__(self):
+        if self.price_kind not in ("confirmed", "hypothesis"):
+            raise LeadError("price_kind must be confirmed or hypothesis")
 
     @property
     def revenue_eur(self):
-        return self.price_eur if self.paid else 0.0
+        if self.price_kind != "confirmed" or not self.paid:
+            return 0.0
+        return self.price_eur
 
     @property
     def direct_cost_eur(self):
@@ -131,3 +144,59 @@ def check_spend(grant, account, purpose, service, amount_eur, already_spent_eur,
     if already_spent_eur + amount_eur > grant.max_spend_eur:
         v.append(f"would exceed max spend {grant.max_spend_eur} EUR")
     return v
+
+
+@dataclass(frozen=True)
+class PriceHypothesis:
+    """A recorded price range. It is not a charge and not revenue."""
+
+    label: str
+    low_eur: float
+    high_eur: float
+
+
+def pilot_price_hypothesis() -> PriceHypothesis:
+    """The existing pilot orientation: 49–99 EUR, still only a hypothesis."""
+    return PriceHypothesis("pilot-setup", 49.0, 99.0)
+
+
+def privacy_gaps(answers) -> tuple:
+    """Reasons the privacy precheck is not answered. Empty means it is complete."""
+    if not isinstance(answers, dict):
+        return ("privacy answers are missing",)
+    gaps = []
+    for key in PRIVACY_FIELDS:
+        value = answers.get(key)
+        if not isinstance(value, str) or not value.strip():
+            gaps.append(f"privacy question {key} is unanswered")
+        elif _contact_shaped(value):
+            gaps.append(f"privacy question {key} must not contain a contact address")
+    extra = sorted(set(answers) - set(PRIVACY_FIELDS))
+    if extra:
+        gaps.append(f"privacy answers have unknown field: {extra[0]}")
+    return tuple(gaps)
+
+
+def assess_prospect(lead: Lead, hypothesis: PriceHypothesis | None = None) -> dict:
+    """Read a prospect locally. This never changes the lead and never contacts them."""
+    reasons = []
+    if lead.state != PROSPECT:
+        reasons.append("only a prospect can be assessed")
+    reasons.extend(privacy_gaps(lead.privacy))
+    if "@" in lead.organisation or "@" in lead.source:
+        reasons.append("assessment must not use a contact address")
+    if not isinstance(hypothesis, PriceHypothesis) or (hypothesis.label, hypothesis.low_eur, hypothesis.high_eur) != ("pilot-setup", 49.0, 99.0):
+        reasons.append("pilot price hypothesis is not the recorded range")
+    return {
+        "lead_id": lead.lead_id,
+        "contacted": False,
+        "state": lead.state,
+        "fit": "ready" if not reasons else "refused",
+        "reasons": tuple(reasons),
+        "price": "hypothesis, not a charge" if not reasons else "",
+    }
+
+
+def _contact_shaped(value: str) -> bool:
+    lowered = value.lower()
+    return "@" in value or "http://" in lowered or "https://" in lowered

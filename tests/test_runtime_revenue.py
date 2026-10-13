@@ -6,7 +6,16 @@ from courier_runtime.revenue import (CONTACTED, DRAFT_READY, LOST, PROPOSAL, QUA
 
 
 def lead():
-    return Lead("L1", "Example Studio", "CI red on main for 3 weeks; tests pass locally", "public repo issue #12")
+    item = Lead("L1", "Example Studio", "CI red on main for 3 weeks; tests pass locally", "public repo issue #12")
+    item.privacy = {
+        "data": "task text the user selected",
+        "storage": "local ledger on the user machine",
+        "providers": "none",
+        "permissions": "read the selected task only",
+        "retention": "until the user deletes the ledger",
+        "deletion": "delete the ledger file",
+    }
+    return item
 
 
 def test_lead_reaches_won_only_through_human_gates():
