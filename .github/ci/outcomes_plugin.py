@@ -29,6 +29,11 @@ def pytest_runtest_logreport(report):
 def pytest_collectreport(report):
     if report.failed:
         _OUTCOMES[f"{report.nodeid}::<collection>"] = "failed"
+    elif report.skipped and report.nodeid:
+        # Whole-module skip (e.g. pytest.importorskip at import time): no test
+        # node is ever collected, so record the module skip explicitly instead
+        # of letting the module silently vanish from the outcomes.
+        _OUTCOMES.setdefault(f"{report.nodeid}::<collection>", "skipped")
 
 
 def pytest_sessionfinish(session, exitstatus):

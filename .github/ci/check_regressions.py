@@ -35,6 +35,20 @@ tests whose component cannot run on that platform by design (for example the
 POSIX-only legacy Mac worker on Windows). Those tests still run; their
 failures are reported separately and do not fail the gate on that platform.
 They stay fully gated on the platforms where the component runs.
+
+A platform entry may declare "skipped_platform": {"modules": [...], "reason"}.
+These are test modules that skip themselves as a whole on that platform
+(e.g. pytest.importorskip("fcntl") on Windows). The outcomes plugin records
+such a module skip as "<module>::<collection>" = "skipped"; the gate reports
+it as SKIPPED_PLATFORM (module skip), not as MISSING and not as a failure.
+This category tolerates only that module-level skip: if any node of such a
+module actually runs and fails, the gate fails (out_of_scope patterns do not
+apply inside skipped_platform modules). A module that runs instead of
+skipping is reported so the entry can be removed.
+
+Every node may belong to exactly one category. A failing/flaky entry that
+lies inside a skipped_platform module or matches an out_of_scope pattern is a
+baseline inconsistency and fails the gate.
 """
 
 import argparse
@@ -160,7 +174,7 @@ def main(argv=None):
 
     rc = 0
     new_failures, now_passing, scoped_out = [], [], []
-    skipped_known = []
+    skipped_known, platform_skipped, overlap = [], [], []
     if exitstatus in BROKEN_SESSION:
         lines.append(f"GATE FAIL: pytest session broken (exit {exitstatus}).")
         rc = 1
@@ -178,9 +192,23 @@ def main(argv=None):
         known_failing = set(baseline.get("failing", []))
         known_flaky = set(baseline.get("flaky", []))
         scope_patterns = baseline.get("out_of_scope", {}).get("patterns", [])
+        platform_modules = sorted(set(baseline.get("skipped_platform", {}).get("modules", [])))
+
+        def module_of(node):
+            return node.split("::")[0].replace("\\", "/")
+
+        def in_platform_module(node):
+            return module_of(node) in platform_modules
 
         def out_of_scope(node):
+            if in_platform_module(node):
+                return False  # skipped_platform tolerates only the module skip, never a failure
             return any(fnmatch.fnmatchcase(node, pattern) for pattern in scope_patterns)
+
+        overlap = sorted(
+            node for node in known_failing | known_flaky
+            if in_platform_module(node) or any(fnmatch.fnmatchcase(node, p) for p in scope_patterns)
+        )
 
         def samples(node):
             return outcome_samples(outcomes.get(node))
@@ -203,7 +231,30 @@ def main(argv=None):
             if samples(node) and set(samples(node)) == {"skipped"}
         )
 
+        platform_failed = [node for node in new_failures if in_platform_module(node)]
+        platform_skipped, platform_ran, platform_absent = [], [], []
+        for module in platform_modules:
+            nodes = [node for node in outcomes if module_of(node) == module]
+            collection = outcome_samples(outcomes.get(f"{module}::<collection>"))
+            ran = [node for node in nodes if not node.endswith("::<collection>")
+                   and set(samples(node)) - {"skipped"}]
+            if ran:
+                platform_ran.append(module)
+            elif collection and set(collection) == {"skipped"}:
+                platform_skipped.append(module)
+            elif not nodes:
+                platform_absent.append(module)
+            else:
+                platform_skipped.append(module)  # all collected nodes skipped
+
         lines.append("")
+        if overlap:
+            rc = 1
+            lines.append("GATE FAIL: baseline inconsistent (node in more than one category):")
+            lines.extend(f"  OVERLAP {node}" for node in overlap)
+        if platform_failed:
+            lines.append(f"GATE FAIL: SKIPPED_PLATFORM module ran and failed on {args.platform}:")
+            lines.extend(f"  PLATFORM MODULE FAILED {node}" for node in platform_failed)
         plain_new = [node for node in new_failures if node not in known_flaky]
         lone_flaky_fail = [node for node in new_failures if node in known_flaky]
         if plain_new:
@@ -218,8 +269,18 @@ def main(argv=None):
             rc = 1
             lines.append("GATE FAIL: known failure skipped (skip is not a pass):")
             lines.extend(f"  KNOWN FAILURE SKIPPED {node}" for node in skipped_known)
-        if not new_failures and not skipped_known:
+        if not new_failures and not skipped_known and not overlap:
             lines.append("GATE PASS: no new failures.")
+        if platform_skipped:
+            reason = baseline.get("skipped_platform", {}).get("reason", "module skips itself on this platform")
+            lines.append(f"Modules skipped by platform on {args.platform} ({reason}):")
+            lines.extend(f"  SKIPPED_PLATFORM {module} (module skip)" for module in platform_skipped)
+        if platform_ran:
+            lines.append("SKIPPED_PLATFORM modules that actually ran (remove from skipped_platform if they pass):")
+            lines.extend(f"  PLATFORM MODULE RAN {module}" for module in platform_ran)
+        if platform_absent:
+            lines.append("SKIPPED_PLATFORM modules not present in this run (renamed or removed?):")
+            lines.extend(f"  MISSING MODULE {module}" for module in platform_absent)
         if now_passing:
             lines.append("Known failures now PASSING (remove them from known_failures.json):")
             lines.extend(f"  NOW PASSING {node}" for node in now_passing)
@@ -242,7 +303,8 @@ def main(argv=None):
                   f"pytest_exit={exitstatus} result={'FAIL' if rc else 'PASS'}")
         if baseline is not None:
             counts += (f" new={len(new_failures)} now_passing={len(now_passing)} "
-                       f"out_of_scope={len(scoped_out)} known_skipped={len(skipped_known)}")
+                       f"out_of_scope={len(scoped_out)} known_skipped={len(skipped_known)} "
+                       f"skipped_platform={len(platform_skipped)} overlap={len(overlap)}")
         print(f"::notice title=v1 gate {args.platform}::{counts}")
         # Name each new failure too (capped), so agents can triage from the API
         # without downloading the outcomes artifact.
