@@ -88,7 +88,8 @@ def test_result_walks_every_step_and_dispatches_the_successor(tmp_path):
             tasks, journal, leases, providers, clock,
         )
         assert out["steps"] == list(PATH)
-        assert journal == [{"result_id": "r1", "task_id": "A", "status": "PASS"}]
+        assert journal[0] == {"result_id": "r1", "task_id": "A", "status": "PASS"}
+        assert {"kind": "dispatch", "task_id": "B", "attempt": 1} in journal
         assert tasks["A"]["status"] == "DONE"
         assert tasks["B"]["status"] == "RUNNING"
         assert out["dispatched"] == ["B"]
@@ -99,7 +100,8 @@ def test_result_walks_every_step_and_dispatches_the_successor(tmp_path):
         )
         assert refused["steps"] == ["persist", "validate"]
         assert refused["dispatched"] == []
-        assert len(journal) == 2
+        assert journal[-1] == {"task_id": "A", "status": "PASS"}
+        assert len([row for row in journal if row.get("kind") == "dispatch"]) == 1
     finally:
         leases.close()
 

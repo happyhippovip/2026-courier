@@ -31,8 +31,8 @@ def idle(wait):
     return {"state": "IDLE", "created": []}
 
 
-def advance(result, tasks, journal, leases, providers, clock, ttl_s=30):
-    """Apply one result. ``clock`` is accepted so the caller shares the lease clock."""
+def advance(result, tasks, journal, leases, providers, clock, ttl_s=30, max_dispatch=50, max_retries=3):
+    """Apply one result. ``clock`` belongs to ``leases``; expiry is read from there."""
     del clock
     steps = ["persist"]
     journal.append(dict(result))
@@ -53,11 +53,12 @@ def advance(result, tasks, journal, leases, providers, clock, ttl_s=30):
         if deps and all(tasks.get(dep, {}).get("status") == "DONE" for dep in deps):
             other["status"] = "READY"
     steps.append("ready")
+    _reconcile_expired(tasks, leases)
     ready = [item for item in tasks.values() if item["status"] == "READY"]
     steps.append("eligibility")
     steps.append("select")
     steps.append("dispatch")
-    dispatched, waiting = _dispatch(ready, leases, providers, ttl_s)
+    dispatched, waiting = _dispatch(ready, journal, leases, providers, ttl_s, max_dispatch, max_retries)
     return _report(steps, dispatched, waiting)
 
 
@@ -83,20 +84,56 @@ def _provider_up(providers, name):
     return value == "up"
 
 
-def _dispatch(ready, leases, providers, ttl_s):
+def _reconcile_expired(tasks, leases):
+    """A RUNNING task whose lease is gone is UNKNOWN, not a second execution."""
+    for task in tasks.values():
+        if task.get("status") != "RUNNING" or "token" not in task:
+            continue
+        current = leases.current(task["scope"])
+        if current is None or current.token != task["token"] or current.holder != task.get("holder"):
+            task["status"] = "RECONCILED"
+            task["execution"] = "UNKNOWN"
+
+
+def _open_attempt(journal, task_id):
+    opened = False
+    for row in journal:
+        if row.get("kind") == "dispatch" and row.get("task_id") == task_id:
+            opened = True
+        if row.get("result_id") and row.get("task_id") == task_id and row.get("status") == "PASS":
+            opened = False
+    return opened
+
+
+def _dispatch(ready, journal, leases, providers, ttl_s, max_dispatch, max_retries):
     dispatched, waiting = [], []
     for task in sorted(ready, key=lambda item: item["id"]):
+        if _open_attempt(journal, task["id"]):
+            task["status"] = "RECONCILED"
+            task["execution"] = "UNKNOWN"
+            waiting.append({"id": task["id"], "reason": "ATTEMPT_OPEN"})
+            continue
+        if task.get("retries", 0) >= max_retries:
+            waiting.append({"id": task["id"], "reason": "RETRIES_EXHAUSTED"})
+            continue
+        if len(dispatched) >= max_dispatch:
+            waiting.append({"id": task["id"], "reason": "BACKPRESSURE"})
+            continue
         try:
             if not _provider_up(providers, task["provider"]):
+                task["retries"] = task.get("retries", 0) + 1
                 waiting.append({"id": task["id"], "reason": "PROVIDER_DOWN"})
                 continue
-            leases.acquire(task["scope"], task["holder"], task["id"], ttl_s)
+            lease = leases.acquire(task["scope"], task["holder"], task["id"], ttl_s)
         except LeaseConflict:
             waiting.append({"id": task["id"], "reason": "SCOPE_HELD"})
             continue
         except Exception:
+            task["retries"] = task.get("retries", 0) + 1
             waiting.append({"id": task["id"], "reason": "PROVIDER_DOWN"})
             continue
+        task["token"] = lease.token
         task["status"] = "RUNNING"
+        journal.append({"kind": "dispatch", "task_id": task["id"], "attempt": task.get("retries", 0) + 1})
         dispatched.append(task["id"])
     return dispatched, waiting
