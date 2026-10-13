@@ -195,6 +195,24 @@ def test_blocked_dependency_keeps_the_dependent_task_waiting_and_a_human_confirm
     assert "without a verified result" in ctl.journal.task(b).last_reason
 
 
+def test_a_dependent_non_idempotent_task_with_unknown_outcome_is_blocked_not_retried(ctl, clock):
+    a = create(ctl)
+    b = create(ctl, depends_on=a, effect_class="non_idempotent")
+    lease_a = claim(ctl)
+    finish(ctl, lease_a)
+    first = claim(ctl)
+    ctl.start({"dispatch_id": first["dispatch_id"]})
+    pass_time(ctl, clock, 7)  # the worker went silent after it started: the effect may have happened
+    assert status(ctl, b) is TaskStatus.BLOCKED
+    assert claim(ctl) is None  # no blind second run of B, and A is not handed out again
+
+    ctl.resolve(b, {"decision": "retry_authorized", "actor": "ops", "attempt": 1, "reason": "checked: nothing happened"})
+    second = claim(ctl)
+    assert second["task_id"] == b and second["attempt"] == 2
+    assert second["spec"]["input"] == first["spec"]["input"] == expected_input(a, lease_a)
+    assert types(ctl, a).count("TASK_CLAIMED") == 1
+
+
 # ------------------------------------------------------------------------ restart
 def test_restart_after_the_dependency_completed_dispatches_the_dependent_task_exactly_once(tmp_path, clock):
     home = tmp_path / "home"

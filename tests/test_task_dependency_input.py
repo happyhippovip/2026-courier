@@ -116,6 +116,37 @@ def test_a_changed_dependency_artifact_never_reaches_the_adapter(live, tmp_path)
     assert not (home / "artifacts" / state_b.dispatch_id / "reversed.txt").exists()
 
 
+def test_controller_restart_between_a_and_b_runs_b_once_and_a_never_again(tmp_path):
+    home = tmp_path / "home"
+    first = LiveService(home, verifier=adapter_verifier)
+    try:
+        ctl = first.controller
+        a = ctl.create_task(synthetic_task(write="token.txt", content="RESTART"))[1]["task_id"]
+        b = ctl.create_task({**synthetic_task(write="reversed.txt", from_input="reverse"), "depends_on": a})[1]["task_id"]
+        assert deliver_one(worker_service.WorkerLoop(str(home), first.base, "w1", 0.2))
+        assert wait_for(lambda: ctl.journal.task(a).status is TaskStatus.COMPLETE)
+        dispatch_a = ctl.journal.task(a).dispatch_id
+    finally:
+        first.stop()  # the controller process ends before B was ever dispatched
+
+    second = LiveService(home, verifier=adapter_verifier)  # new controller, new port, same journal
+    try:
+        ctl = second.controller
+        assert ctl.journal.task(a).status is TaskStatus.COMPLETE and ctl.journal.task(b).status is TaskStatus.QUEUED
+        loop = worker_service.WorkerLoop(str(home), second.base, "w2", 0.2)  # a fresh worker as well
+        assert deliver_one(loop)
+        assert wait_for(lambda: ctl.journal.task(b).status is TaskStatus.COMPLETE), ctl.journal.task(b).last_reason
+        assert loop.iterate(threading.Event()) == "idle"
+        assert ctl.journal.task(b).input["dispatch_id"] == dispatch_a
+        assert (home / "artifacts" / ctl.journal.task(b).dispatch_id / "reversed.txt").read_bytes() == b"TRATSER"
+        for task_id in (a, b):
+            kinds = [e.type for e in ctl.journal.events(task_id=task_id)]
+            assert kinds.count(EventType.TASK_CLAIMED) == 1 and kinds.count(EventType.TASK_COMPLETE) == 1
+        assert ctl.journal.verify_chain().ok and ctl.journal.verify_projection()
+    finally:
+        second.stop()
+
+
 # ----------------------------------------------------------------- L3: bridge
 GOOD_INPUT = {"task_id": "task-a", "dispatch_id": "dsp-a", "result_id": "r-dsp-a",
               "artifacts": [{"path": "artifacts/dsp-a/token.txt", "sha256": sha(b"ABCD")}]}
