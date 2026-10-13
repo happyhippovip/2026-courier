@@ -43,3 +43,27 @@ def test_changed_page_contradicts_and_same_input_same_hash(tmp_path):
 def test_unapproved_origin_or_redirect_is_blocked_and_not_recorded(tmp_path, url, final):
     out, log = run_claim(tmp_path, url, "x", lambda u: (final or u, PAGE))
     assert out["conclusion"] == "BLOCKED" and log.facts() == []
+
+
+def test_multibyte_prefix_anchor_is_byte_offset_into_original_body(tmp_path):
+    body = "€ 10 genau".encode("utf-8")
+    quote = "10 genau"
+    encoded = quote.encode("utf-8")
+    out, log = run_claim(tmp_path, "https://example.org/p", quote, lambda u: (u, body))
+    offset = out["anchor"]["offset"]
+    length = out["anchor"]["length"]
+    assert out["conclusion"] == "SUPPORTED"
+    assert offset == body.find(encoded)
+    assert length == len(encoded)
+    assert body[offset:offset + length] == encoded
+    assert log.facts()[0].statement.startswith("SUPPORTED:")
+
+
+def test_replacement_character_quote_is_not_supported(tmp_path):
+    body = b"hello \xff world"
+    quote = "hello \ufffd world"
+    out, log = run_claim(tmp_path, "https://example.org/p", quote, lambda u: (u, body))
+    assert out["conclusion"] == "CONTRADICTED"
+    assert out["anchor"]["offset"] is None
+    assert log.facts()[0].statement.startswith("CONTRADICTED:")
+    assert quote.encode("utf-8") not in body
