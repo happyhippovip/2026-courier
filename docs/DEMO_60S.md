@@ -68,5 +68,18 @@ der SHA-256 des Belegs.
 - Öffnen per Doppelklick im Browser. Für die Aufnahme: nach dem DONE im Terminal zur
   Browser-Seite wechseln (macOS `Cmd+Tab`, Windows `Alt+Tab`) und 3–5 s auf der NEEDS-YOU-Kachel bleiben.
 
-Quelle ist der Demo-Beleg; `courier_worker/queue_feed.py` (needs_you.jsonl) ist in diesem Branch
-nicht vorhanden. Die Ausgabe ist deterministisch (Test: `tests/orchestrator/test_demo_view.py`).
+### NEEDS-YOU-Quelle
+
+Echte Quelle ist `<home>/run/needs_you.jsonl` (Format wie `courier_worker/queue_feed.py` auf
+`feat/blocked-wake-resume`: je Zeile `{"kind":"NEEDS_YOU","mission_id","blocked_event_id","blocker","at","next_action"}`).
+Pfad per `--home <home>` oder direkt per `--needs-you <datei>` (bei `demo_60s.py --html` und `demo_view.py`).
+
+- Gültige `NEEDS_YOU`-Zeilen erscheinen in der Kachel mit Grund (`blocker`) und nächster Aktion,
+  nach `at` sortiert, Duplikate (`mission_id`+`blocked_event_id`) einmal.
+- Kaputte oder fremde Zeilen werden still übersprungen.
+- Fehlt die Datei oder hat sie keine gültigen Einträge → Fallback auf den Demo-Beleg.
+- Über den Kacheln steht immer „NEEDS-YOU-Quelle: …“ (jsonl oder „Demo-Beleg (Fallback …)“).
+
+Beispiel: `./scripts/demo_60s.sh --html --home ~/courier_home`
+
+Tests: `tests/orchestrator/test_demo_view.py`, `tests/orchestrator/test_demo_view_needs_you_source.py`.
