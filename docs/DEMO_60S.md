@@ -54,3 +54,19 @@ kommentieren: „Kein Ergebnis zählt ohne unabhängige Prüfung“) · 20–27 
 
 `python3.12 -m pytest tests/orchestrator/test_demo_60s.py` – prüft Determinismus, alle vier
 Phasen, Mock-Banner, Beleg + Hash, Laufzeit < 60 s.
+
+## Statusanzeige (statische HTML, optional)
+
+Eine einzelne HTML-Datei ohne JavaScript, ohne externe Ressourcen, ohne Server und ohne Pakete
+(kein Node). Sie zeigt GOAL / WORKING / NEEDS YOU / DONE als große Kacheln; NEEDS YOU ist orange
+hervorgehoben mit Grund (z. B. `T3: publication`), oben und unten ein gelbes MOCK-Banner, darunter
+der SHA-256 des Belegs.
+
+- Zusammen mit der Demo: `./scripts/demo_60s.sh --html` (Windows: `scripts\demo_60s.ps1 --html`)
+  → `demo_out/needs_you_view.html`
+- Aus einem vorhandenen Beleg: `python3 scripts/demo_view.py demo_out/demo_60s_evidence.json -o demo_out/needs_you_view.html`
+- Öffnen per Doppelklick im Browser. Für die Aufnahme: nach dem DONE im Terminal zur
+  Browser-Seite wechseln (macOS `Cmd+Tab`, Windows `Alt+Tab`) und 3–5 s auf der NEEDS-YOU-Kachel bleiben.
+
+Quelle ist der Demo-Beleg; `courier_worker/queue_feed.py` (needs_you.jsonl) ist in diesem Branch
+nicht vorhanden. Die Ausgabe ist deterministisch (Test: `tests/orchestrator/test_demo_view.py`).
