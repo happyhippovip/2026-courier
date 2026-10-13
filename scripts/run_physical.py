@@ -23,6 +23,15 @@ import urllib.error
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
+def human_relay_counter(events):
+    """Count classified human relays. An empty or unclassified sample is not 0."""
+    root = str(REPO_ROOT)
+    if root not in sys.path:
+        sys.path.insert(0, root)
+    from courier_core.continuity_metrics import count_human_relays
+    verdict = count_human_relays([] if events is None else events)
+    return verdict.count
+
 def check_resources(force: bool = False):
     """Verify system capacity before starting."""
     if force:
@@ -284,7 +293,7 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
         "execution_counters": {
             "process_a": a_attempts,
             "process_b": b_attempts,
-            "human_relay_count": 0
+            "human_relay_count": human_relay_counter(g.get("human_events", []))
         },
         "state_transitions": g.get("state_transitions", []),
         "payload": payload,
