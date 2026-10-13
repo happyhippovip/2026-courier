@@ -254,6 +254,7 @@ def test_failing_check_run_does_not_wake(tmp_path):
     assert json.loads(log)["outcome"] == "unverified"
 
 
+<<<<<<< HEAD
 def test_ci_for_an_old_sha_does_not_wake_when_the_pr_head_moved(tmp_path):
     http = FakeHTTP()
     http.pulls[(REPO, 7)] = {
@@ -319,6 +320,48 @@ def test_merge_into_another_branch_does_not_wake(tmp_path):
         tmp_path, http,
         {"wk-a": {"depends_on": [{"repo": REPO, "pr": 7, "sha": SHA}], "task": _task()}},
         [_comment(1, "octo", "OWNER", _wake())],
+    )
+    assert code == 0 and http.tasks == []
+    assert json.loads(log)["outcome"] == "unverified"
+
+
+def _ci_passed(tmp_path, runs):
+    http = FakeHTTP()
+    http.checks[(REPO, SHA)] = runs
+    return _run(
+        tmp_path, http,
+        {"wk-a": {"depends_on": [{"repo": REPO, "sha": SHA}], "task": _task()}},
+        [_comment(1, "octo", "OWNER", _wake(event="ci_passed", pr=None))],
+    )
+
+
+def test_success_check_on_the_same_sha_queues(tmp_path):
+    code, http, home, out, err, log, cursor = _ci_passed(
+        tmp_path, [{"status": "completed", "conclusion": "success", "head_sha": SHA}],
+    )
+    assert code == 0 and len(http.tasks) == 1
+    assert json.loads(log)["outcome"] == "queued"
+
+
+def test_skipped_required_check_does_not_wake(tmp_path):
+    code, http, home, out, err, log, cursor = _ci_passed(
+        tmp_path, [{"status": "completed", "conclusion": "skipped", "head_sha": SHA}],
+    )
+    assert code == 0 and http.tasks == []
+    assert json.loads(log)["outcome"] == "unverified"
+
+
+def test_stale_check_is_not_current(tmp_path):
+    code, http, home, out, err, log, cursor = _ci_passed(
+        tmp_path, [{"status": "completed", "conclusion": "stale", "head_sha": SHA}],
+    )
+    assert code == 0 and http.tasks == []
+    assert json.loads(log)["outcome"] == "unverified"
+
+
+def test_success_for_a_different_head_sha_is_not_current(tmp_path):
+    code, http, home, out, err, log, cursor = _ci_passed(
+        tmp_path, [{"status": "completed", "conclusion": "success", "head_sha": SHA2}],
     )
     assert code == 0 and http.tasks == []
     assert json.loads(log)["outcome"] == "unverified"
