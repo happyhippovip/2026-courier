@@ -105,6 +105,12 @@ def test_no_grant_means_needs_user_not_execution(world):
     assert result["state"] == "NEEDS_USER" and not (tmp / "x.out").exists()
 
 
+def test_paused_host_names_its_limitation():
+    host = Host("win-1", frozenset({"windows_native"}), health="RESOURCE_PAUSE")
+    with pytest.raises(NoEligibleHost, match="RESOURCE_PAUSE"):
+        select(Requirement(frozenset({"windows_native"})), [host])
+
+
 def test_windows_requirement_never_runs_or_evidences_on_linux(world):
     ws, _, _, _ = world
     assert select(Requirement(frozenset({"windows_native"})), ws.hosts).device_id == "win-1"
