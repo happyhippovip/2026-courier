@@ -26,7 +26,9 @@ def _run1(tmp_path, snapshot):
     evidence = tmp_path / "run1" / "evidence"
     evidence.mkdir(parents=True)
     (evidence / "run1_exit_code.txt").write_text("0\nSUCCESS\n", encoding="utf-8")
-    (evidence / "run1_state_snapshot.json").write_text(json.dumps(snapshot), encoding="utf-8")
+    data = dict(snapshot)
+    data.setdefault("initial_state", {"process_a_status": "COMPLETE"})
+    (evidence / "run1_state_snapshot.json").write_text(json.dumps(data), encoding="utf-8")
     return tmp_path / "run1"
 
 

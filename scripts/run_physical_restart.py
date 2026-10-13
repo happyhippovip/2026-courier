@@ -17,6 +17,11 @@ import hashlib
 import argparse
 from pathlib import Path
 
+try:
+    from scripts.pilot_signal import delimit_human_relay
+except ImportError:  # python scripts/run_physical_restart.py
+    from pilot_signal import delimit_human_relay
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 def human_relay_counter(events):
