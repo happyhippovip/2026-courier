@@ -30,6 +30,9 @@ REASON_HEAVY = "heavy_excluded"
 REASON_METERED = "metered_requires_escalation"
 REASON_HIGHER_COST = "higher_cost"
 REASON_TIE = "tie_broken"
+REASON_REGISTRY_STALE = "registry_stale"
+REASON_REGISTRY_QUARANTINED = "registry_quarantined"
+REASON_REGISTRY_UNKNOWN = "registry_unknown"
 
 WEIGHT_LIGHT = "LIGHT"
 WEIGHT_MEDIUM = "MEDIUM"
@@ -134,10 +137,12 @@ def select(
     governor: object,
     *,
     escalation_reason: str | None = None,
+    registry: object | None = None,
 ) -> SelectionDecision:
     """Choose the lowest total cost among candidates that may receive work.
 
     Ties break by provider id, then identity fingerprint, then input order.
+    A registry, when given, keeps STALE and QUARANTINED providers out of rotation.
     """
     if not isinstance(store, QualificationStore):
         raise SelectorError("store must be a qualification store")
@@ -148,7 +153,7 @@ def select(
     rejections: list[Rejection] = []
     eligible: list[tuple[int, ProviderCandidate]] = []
     for index, candidate in enumerate(rows):
-        reason = _reject_reason(candidate, records, readable, pressure, escalation)
+        reason = _reject_reason(candidate, records, readable, pressure, escalation, registry)
         if reason is None:
             eligible.append((index, candidate))
             continue
@@ -198,15 +203,38 @@ def _reject_reason(
     readable: bool,
     pressure: str,
     escalation: str | None,
+    registry: object | None,
 ) -> str | None:
     qualification = _qualification_reason(candidate, records, readable)
     if qualification is not None:
         return qualification
+    presence = _registry_reason(registry, candidate.identity.provider_id)
+    if presence is not None:
+        return presence
     if candidate.weight == WEIGHT_HEAVY and pressure in _HEAVY_BLOCKED:
         return REASON_HEAVY
     if candidate.metered and escalation is None:
         return REASON_METERED
     return None
+
+
+def _registry_reason(registry: object | None, provider_id: str) -> str | None:
+    if registry is None:
+        return None
+    status_of = getattr(registry, "status_of", None)
+    if not callable(status_of):
+        return REASON_REGISTRY_UNKNOWN
+    try:
+        status = status_of(provider_id)
+    except Exception:
+        return REASON_REGISTRY_UNKNOWN
+    if status == "ACTIVE" or status == "STANDBY":
+        return None
+    if status == "STALE":
+        return REASON_REGISTRY_STALE
+    if status == "QUARANTINED":
+        return REASON_REGISTRY_QUARANTINED
+    return REASON_REGISTRY_UNKNOWN
 
 
 def _qualification_reason(
