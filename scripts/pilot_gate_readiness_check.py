@@ -4,6 +4,14 @@ import sys
 import os
 from pathlib import Path
 
+# File evidence the pre-Codex handoff can actually point at. Order is stable.
+_FILE_PREREQUISITES = (
+    "PRE_CODEX_HANDOFF",
+    "PROOF_CARD",
+    "PILOT_DUMMY_TASK",
+)
+
+
 def check_pilot_gate_readiness():
     repo_root = Path(__file__).resolve().parent.parent
     report = {
@@ -32,7 +40,11 @@ def check_pilot_gate_readiness():
         report["prerequisites"]["PROOF_CARD"] = True
     if (repo_root / "ops/ai/PILOT_DUMMY_TASK.json").exists():
         report["prerequisites"]["PILOT_DUMMY_TASK"] = True
-        
+
+    gaps = [name for name in _FILE_PREREQUISITES if not report["prerequisites"][name]]
+    report["pre_codex_evidence_gaps"] = gaps
+    report["pre_codex_evidence_gap_count"] = len(gaps)
+
     all_prereqs = all(report["prerequisites"].values())
     if not all_prereqs:
         report["status"] = "BLOCKED"
