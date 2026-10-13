@@ -76,7 +76,11 @@ def test_blocked_writes_one_needs_you_then_resumes_once_after_confirmation(tmp_p
     assert counts["WKA", EventType.BLOCKED] == 1, counts
     assert sorted(p["params"]["unit"] for p in http.posts) == ["a", "b"]
     assert _queue_seq(ledger) == [("CLAIM", "WKA"), ("RELEASE", "WKA"), ("CLAIM", "WKB"), ("RELEASE", "WKB")]
-    assert len(_inbox(home)) == 1
+    # NEEDS_YOU stays (append-only) and is closed by exactly one RESOLVED line.
+    inbox = _inbox(home)
+    assert [r["kind"] for r in inbox] == ["NEEDS_YOU", "RESOLVED"], inbox
+    assert (inbox[1]["mission_id"], inbox[1]["blocked_event_id"]) == (inbox[0]["mission_id"], inbox[0]["blocked_event_id"])
+    assert inbox[1]["resume_event_id"] == resumes[0].event_id
 
     frozen = ((home / "coordination_ledger.jsonl").read_text(), list(http.posts), _queue_seq(ledger), _inbox(home))
     for _ in range(3):
