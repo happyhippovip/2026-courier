@@ -96,15 +96,24 @@ class FileCoordinationStore:
     def read_events(self) -> List[CoordinationEvent]:
         if not self.path.exists():
             return []
+        raw = self.path.read_text(encoding="utf-8")
+        if raw == "":
+            return []
+        # A crash can leave a partial last line with no newline. Any other
+        # unreadable line is corruption: do not present the rest as truth.
+        torn_tail = not raw.endswith("\n")
+        lines = raw.splitlines()
+        last_index = len(lines) - 1
         events: List[CoordinationEvent] = []
-        for line in self.path.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if not line:
+        for index, line in enumerate(lines):
+            if not line.strip():
                 continue
             try:
                 events.append(CoordinationEvent.from_dict(json.loads(line)))
             except (ValueError, TypeError):
-                continue  # A torn/foreign line never becomes state.
+                if torn_tail and index == last_index:
+                    continue
+                raise RuntimeError(f"offline ledger corrupt at line {index + 1}")
         return events
 
     def write_event(self, event: CoordinationEvent) -> bool:

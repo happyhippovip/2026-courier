@@ -7,6 +7,8 @@ from shared truth only and safely claims/resumes it with zero duplicate writers.
 import json
 import subprocess
 import sys
+
+import pytest
 from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -182,6 +184,26 @@ def test_dependency_unlock_and_blocked_unrelated(tmp_path):
                              agent=AgentID.CODEX_MAC, host=HostID.MAC_LOCAL))
     ids = {c.mission_id for c in discover_resumable(reduce_store(store), AgentID.GOOGLE_WINDOWS)}
     assert ids == {"B", "U"}
+
+
+def test_corrupt_offline_line_fails_closed_and_stays_corrupt(tmp_path):
+    path = tmp_path / "l.jsonl"
+    good = json.dumps(_event("1", "m", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z").to_dict(), sort_keys=True)
+    path.write_text(good + "\n{not-json\n" + good + "\n", encoding="utf-8")
+    store = FileCoordinationStore(path)
+    with pytest.raises(RuntimeError, match="corrupt"):
+        store.read_events()
+    with pytest.raises(RuntimeError, match="corrupt"):
+        FileCoordinationStore(path).read_events()
+
+
+def test_torn_offline_tail_is_ignored_and_reload_matches(tmp_path):
+    path = tmp_path / "l.jsonl"
+    good = json.dumps(_event("1", "m", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z").to_dict(), sort_keys=True)
+    path.write_bytes((good + "\n{torn").encode("utf-8"))
+    first = FileCoordinationStore(path).read_events()
+    second = FileCoordinationStore(path).read_events()
+    assert [event.event_id for event in first] == [event.event_id for event in second] == ["1"]
 
 
 def test_unknown_authority_fails_closed(tmp_path):

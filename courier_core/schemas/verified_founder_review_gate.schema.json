@@ -10,6 +10,8 @@
     "review_target": {"type": "string"},
     "founder_approval": {"type": "string", "enum": ["APPROVED", "REJECTED", "NEEDS_REVISION", "PENDING"]},
     "feedback_notes": {"type": "string"},
-    "timestamp_utc": {"type": "string", "format": "date-time"}
+    "timestamp_utc": {"type": "string", "format": "date-time"},
+    "author_id": {"type": "string"},
+    "reviewer_id": {"type": "string"}
   }
 }

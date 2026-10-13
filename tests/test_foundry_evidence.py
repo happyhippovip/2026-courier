@@ -1,3 +1,5 @@
+import pytest
+
 from scripts.foundry_evidence import (
     DossierGoalMissionLink, VerifiedFounderReviewGate, PilotEvidenceRecord,
     FounderApprovalState, EvidenceType, FoundrySchemaValidator
@@ -15,6 +17,41 @@ def test_dossier_link_validation():
     )
     validator.validate_link(link)
 
+def test_self_approval_is_not_an_independent_review():
+    validator = FoundrySchemaValidator()
+    gate = VerifiedFounderReviewGate(
+        gate_id="gate-self",
+        review_target="m1",
+        founder_approval=FounderApprovalState.APPROVED,
+        feedback_notes="Looks good",
+        timestamp_utc=datetime.now(timezone.utc).isoformat(),
+        author_id="worker-a",
+        reviewer_id="worker-a",
+    )
+    with pytest.raises(ValueError, match="independent reviewer"):
+        validator.validate_review_gate(gate)
+    again = VerifiedFounderReviewGate(
+        gate_id="gate-self",
+        review_target="m1",
+        founder_approval=FounderApprovalState.APPROVED,
+        feedback_notes="Looks good",
+        timestamp_utc=gate.timestamp_utc,
+        author_id="worker-a",
+        reviewer_id="worker-a",
+    )
+    with pytest.raises(ValueError, match="independent reviewer"):
+        validator.validate_review_gate(again)
+    missing = VerifiedFounderReviewGate(
+        gate_id="gate-missing",
+        review_target="m1",
+        founder_approval=FounderApprovalState.APPROVED,
+        feedback_notes="Looks good",
+        timestamp_utc=gate.timestamp_utc,
+    )
+    with pytest.raises(ValueError, match="independent reviewer"):
+        validator.validate_review_gate(missing)
+
+
 def test_founder_review_validation():
     validator = FoundrySchemaValidator()
     gate = VerifiedFounderReviewGate(
@@ -22,7 +59,9 @@ def test_founder_review_validation():
         review_target="m1",
         founder_approval=FounderApprovalState.APPROVED,
         feedback_notes="Looks good",
-        timestamp_utc=datetime.now(timezone.utc).isoformat()
+        timestamp_utc=datetime.now(timezone.utc).isoformat(),
+        author_id="worker-a",
+        reviewer_id="reviewer-b",
     )
     validator.validate_review_gate(gate)
 
