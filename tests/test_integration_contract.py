@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from scripts.integration_contract import ContractError, prepare_task, verify_result
+from scripts.integration_contract import ContractError, _canonical_hash, prepare_task, validate_durable_result, verify_result
 
 
 def task_packet(**overrides):
@@ -115,3 +115,58 @@ def test_result_id_is_idempotent_for_same_observation(tmp_path: Path):
     second = verify_result(packet, json.loads(json.dumps(raw)), tmp_path)
 
     assert first["result_id"] == second["result_id"]
+
+
+def _task_for(result):
+    return {field: result[field] for field in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")}
+
+
+def _with_canonical_result_id(result):
+    """Same identity bytes verify_result hashes. The check under test must agree."""
+    identity = {
+        "goal_id": result["goal_id"],
+        "task_id": result["task_id"],
+        "attempt_id": result["attempt_id"],
+        "dispatch_id": result["dispatch_id"],
+        "worker_id": result["worker_id"],
+        "run_id": result["run_id"],
+        "status": result["status"],
+        "artifacts": [{"path": item["path"], "sha256": item["sha256"]} for item in result["artifacts"]],
+    }
+    sealed = dict(result)
+    sealed["result_id"] = f"result-{_canonical_hash(identity)}"
+    return sealed
+
+
+def test_forged_result_id_is_rejected():
+    result = _with_canonical_result_id({
+        "goal_id": "goal-1",
+        "task_id": "task-1",
+        "attempt_id": "task-1:attempt:1",
+        "dispatch_id": "dispatch-1",
+        "worker_id": "GITHUB-HOSTED",
+        "run_id": "run-1",
+        "status": "FAILED",
+        "artifacts": [],
+    })
+    result["result_id"] = "result-" + ("ab" * 32)
+
+    with pytest.raises(ContractError, match="canonical"):
+        validate_durable_result(_task_for(result), result)
+
+
+def test_mutated_artifact_does_not_keep_the_old_result_id():
+    result = _with_canonical_result_id({
+        "goal_id": "goal-1",
+        "task_id": "task-1",
+        "attempt_id": "task-1:attempt:1",
+        "dispatch_id": "dispatch-1",
+        "worker_id": "GITHUB-HOSTED",
+        "run_id": "run-1",
+        "status": "SUCCESS",
+        "artifacts": [{"path": "bounded.txt", "sha256": "a" * 64}],
+    })
+    result["artifacts"] = [{"path": "bounded.txt", "sha256": "b" * 64}]
+
+    with pytest.raises(ContractError, match="canonical"):
+        validate_durable_result(_task_for(result), result)
