@@ -11,6 +11,24 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from resource_governor import governor
 from contextlib import nullcontext
 
+# Execution tests may replace subprocess.Popen. Keep the original for git.
+_GIT_POPEN = subprocess.Popen
+
+def _checkout_source_sha():
+    """Full git HEAD of the checkout that contains this daemon, or None."""
+    try:
+        proc = _GIT_POPEN(
+            ["git", "-C", str(Path(__file__).resolve().parent), "rev-parse", "HEAD"],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True,
+        )
+        out, _ = proc.communicate(timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    sha = (out or "").strip()
+    if proc.returncode == 0 and len(sha) == 40 and all(c in "0123456789abcdef" for c in sha):
+        return sha
+    return None
+
 # Paths
 BASE_DIR = Path(__file__).parent
 sys.path.insert(0, str(BASE_DIR.resolve()))
@@ -781,6 +799,9 @@ def loop():
                     "provider": "mac_" + result.get("execution_mode", "unknown").lower(),
                     "raw_result": result
                 }
+                source_sha = _checkout_source_sha()
+                if source_sha:
+                    payload["source_sha"] = source_sha
                 task["result_payload"] = payload
                 task["worker_phase"] = "RESULT_PENDING"
 

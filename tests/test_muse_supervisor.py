@@ -173,6 +173,7 @@ def test_result_ready_is_only_redelivered(env):
     task = claim_as(http, auth, "MUSE-01")
     payload = {k: task[k] for k in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")}
     payload.update(run_id="run-before-crash", result_id="result-before-crash", status="SUCCESS",
+                   source_sha="a" * 40,
                    artifacts=[{"path": "out.txt", "sha256": "a" * 64}])
     seed(sup, "01", dict(task, worker_phase="RESULT_READY", result_payload=payload))
     s = supervisor(sup, target=1)

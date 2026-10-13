@@ -34,6 +34,30 @@ def _git(repo: Path, *args: str) -> str | None:
     return out.stdout.strip()
 
 
+def _hidden_bytes_differ(repo: Path) -> bool | None:
+    """True when assume-unchanged or skip-worktree bytes are not the HEAD blob.
+
+    `git status --porcelain` does not list those paths. None means git could
+    not answer, which the caller treats as not bindable.
+    """
+    listing = _git(repo, "ls-files", "-v", "-z")
+    if listing is None:
+        return None
+    for record in listing.split("\0"):
+        if len(record) < 3 or record[1] != " ":
+            continue
+        flag, path = record[0], record[2:]
+        if flag not in ("h", "S", "s"):
+            continue
+        head = _git(repo, "rev-parse", f"HEAD:{path}")
+        work = _git(repo, "hash-object", f"--path={path}", "--", path)
+        if head is None or work is None:
+            return None
+        if head != work:
+            return True
+    return False
+
+
 def build_binding(db_path: str | Path, repo: str | Path = ROOT) -> dict:
     repo = Path(repo)
     unknowns: list[str] = []
@@ -45,6 +69,11 @@ def build_binding(db_path: str | Path, repo: str | Path = ROOT) -> dict:
     dirty = None if porcelain is None else bool(porcelain)
     if dirty is None:
         unknowns.append("worktree_state_unknown")
+    hidden = _hidden_bytes_differ(repo)
+    if hidden is None:
+        unknowns.append("worktree_bytes_unknown")
+    elif hidden:
+        unknowns.append("worktree_bytes_differ")
 
     with Journal(db_path, readonly=True) as journal:
         chain = journal.verify_chain()

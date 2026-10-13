@@ -55,6 +55,7 @@ def test_marathon_units_4_to_8(tmp_path, monkeypatch):
     ident1 = {
         "goal_id": t1["goal_id"], "task_id": t1["task_id"], "attempt_id": t1["attempt_id"],
         "dispatch_id": t1["dispatch_id"], "worker_id": t1["worker_id"], "run_id": "r1",
+        "source_sha": "a" * 40,
         "status": "SUCCESS", "artifacts": [{"path": "dummy1.txt", "sha256": "0"*64}]
     }
     ident1["result_id"] = f"result-{_canonical_hash(ident1)}"
@@ -82,6 +83,7 @@ def test_marathon_units_4_to_8(tmp_path, monkeypatch):
     ident2 = {
         "goal_id": t2["goal_id"], "task_id": t2["task_id"], "attempt_id": t2["attempt_id"],
         "dispatch_id": t2["dispatch_id"], "worker_id": t2["worker_id"], "run_id": "r2",
+        "source_sha": "b" * 40,
         "status": "SUCCESS", "artifacts": [{"path": "dummy2.txt", "sha256": "1"*64}]
     }
     ident2["result_id"] = f"result-{_canonical_hash(ident2)}"

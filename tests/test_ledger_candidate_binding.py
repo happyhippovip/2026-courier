@@ -89,6 +89,27 @@ def test_dirty_worktree_is_not_bindable(tmp_path, clean_repo):
     assert binding["status"] == "NOT_BINDABLE"
 
 
+def test_hidden_index_flags_with_different_bytes_are_not_bindable(tmp_path, clean_repo):
+    """assume-unchanged and skip-worktree hide byte drift from porcelain."""
+    db = tmp_path / "courier.db"
+    _fill(db, golden_path())
+    _git(clean_repo, "update-index", "--assume-unchanged", "f.txt")
+    (clean_repo / "f.txt").write_text("hidden\n")
+    hidden = lcb.build_binding(db, clean_repo)
+    assert hidden["status"] == "NOT_BINDABLE"
+    assert hidden["source_sha"]
+
+    _git(clean_repo, "update-index", "--no-assume-unchanged", "f.txt")
+    _git(clean_repo, "checkout", "-q", "--", "f.txt")
+    restored = lcb.build_binding(db, clean_repo)
+    assert restored["status"] == "CANDIDATE"
+
+    _git(clean_repo, "update-index", "--skip-worktree", "f.txt")
+    (clean_repo / "f.txt").write_text("skipped\n")
+    skipped = lcb.build_binding(db, clean_repo)
+    assert skipped["status"] == "NOT_BINDABLE"
+
+
 def test_status_is_never_pass(tmp_path, clean_repo):
     db = tmp_path / "courier.db"
     _fill(db, mixed_history())

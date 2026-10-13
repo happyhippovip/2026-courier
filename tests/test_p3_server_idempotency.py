@@ -28,7 +28,7 @@ def setup_claimed_task(srv):
 
 def durable_result(task):
     return {field: task[field] for field in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")} | {
-        "run_id": "run-1", "result_id": "result-1", "status": "SUCCESS",
+        "run_id": "run-1", "result_id": "result-1", "source_sha": "a" * 40, "status": "SUCCESS",
         "artifacts": [{"path": "bounded.txt", "sha256": "a" * 64}]}
 
 

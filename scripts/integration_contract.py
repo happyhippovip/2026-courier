@@ -127,6 +127,7 @@ def validate_durable_result(task: dict, result: dict) -> dict:
         "result_id",
         "status",
         "artifacts",
+        "source_sha",
     }
     # GitHub Actions supplies a retry-generation identity in addition to run_id.
     # Preserve it when provided so a DurableResult remains bound to the exact run.
@@ -135,6 +136,8 @@ def validate_durable_result(task: dict, result: dict) -> dict:
     missing = sorted(required - set(result))
     if missing:
         raise ContractError(f"result is missing: {', '.join(missing)}")
+    if not isinstance(result.get("source_sha"), str) or not re.fullmatch(r"[0-9a-f]{40}", result["source_sha"]):
+        raise ContractError("source_sha is required")
     for field in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id"):
         if result[field] != task.get(field):
             raise ContractError(f"{field} mismatch")
