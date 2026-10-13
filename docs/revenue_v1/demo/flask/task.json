@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "task_id": "task-local-demo",
+  "attempt_id": "attempt-001",
+  "idempotency_key": "rev-v1-idem-local-demo",
+  "capability": "github-actions-safety-baseline-v1",
+  "target_owner": "pallets",
+  "target_repo": "flask",
+  "target_sha": "d086db856be187255b8ec61ef409357393020f32",
+  "customer_reference": "DEMO-NO-CUSTOMER",
+  "price_currency": "EUR 0.00 (demo)",
+  "delivery_destination": "none",
+  "proposal_mode": "PR_ONLY"
+}
