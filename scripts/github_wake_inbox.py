@@ -28,7 +28,9 @@ EXIT_MALFORMED = 2
 EXIT_RETRY = 75
 SCHEMA = "courier.wake.v1"
 BASE_REF = "integration/v1"
-BAD_CONCLUSIONS = frozenset({"failure", "cancelled", "timed_out"})
+# skipped is not a pass. stale is GitHub's marker that the run is no longer
+# current. Neither may verify a ci_passed wake.
+BAD_CONCLUSIONS = frozenset({"failure", "cancelled", "timed_out", "skipped", "stale"})
 TASK_FIELDS = ("adapter", "params", "effect_class", "max_attempts", "lease_ttl_s", "timeout_s")
 # serve.py --port defaults to 0 (ephemeral). Local clients use this host:port.
 DEFAULT_CONTROLLER = "http://127.0.0.1:8080"
@@ -228,6 +230,9 @@ def _checks_ok(transport, args, repo, sha, github_token):
         if not isinstance(run, dict) or run.get("status") != "completed":
             return False
         if run.get("conclusion") in BAD_CONCLUSIONS:
+            return False
+        head = run.get("head_sha")
+        if isinstance(head, str) and head.lower() != sha.lower():
             return False
     return True
 
