@@ -57,6 +57,71 @@ def analyze_workflows(repo_dir: Path) -> dict:
         "findings": findings
     }
 
+RULES_DE = {
+    "runner_type": {
+        "title": "Self-hosted Runner",
+        "severity": "HOCH",
+        "explain": "Der Workflow läuft auf einem selbst betriebenen Runner. Bei öffentlichen Repos kann fremder Code (z. B. aus Pull Requests) auf Ihrer eigenen Maschine ausgeführt werden.",
+        "fix": "Für öffentliche Repos GitHub-gehostete Runner verwenden oder Self-hosted Runner nur für vertrauenswürdige Ereignisse freigeben.",
+        "yaml": "jobs:\n  build:\n    runs-on: ubuntu-latest",
+    },
+    "timeout": {
+        "title": "Fehlendes timeout-minutes",
+        "severity": "NIEDRIG",
+        "explain": "Ohne Zeitlimit kann ein hängender Job bis zum GitHub-Standardlimit (6 Stunden) laufen und Runner-Minuten verbrauchen.",
+        "fix": "Pro Job ein passendes Zeitlimit setzen.",
+        "yaml": "jobs:\n  test:\n    runs-on: ubuntu-latest\n    timeout-minutes: 15",
+    },
+    "permissions": {
+        "title": "Fehlende oder zu weite Berechtigungen",
+        "severity": "MITTEL",
+        "explain": "Ohne expliziten permissions-Block (oder mit write-all) erhält der GITHUB_TOKEN je nach Repo-Einstellung mehr Rechte als nötig.",
+        "fix": "Auf Workflow-Ebene minimale Rechte setzen und nur dort erweitern, wo ein Job sie braucht.",
+        "yaml": "permissions:\n  contents: read",
+    },
+    "concurrency": {
+        "title": "Fehlender concurrency-Block",
+        "severity": "NIEDRIG",
+        "explain": "Mehrere Läufe desselben Workflows können parallel laufen, sich gegenseitig stören und unnötig Minuten verbrauchen.",
+        "fix": "Läufe pro Branch gruppieren und veraltete Läufe abbrechen (bei Deploy/Release ggf. cancel-in-progress: false).",
+        "yaml": "concurrency:\n  group: ${{ github.workflow }}-${{ github.ref }}\n  cancel-in-progress: true",
+    },
+    "mutation_risk": {
+        "title": "git push im Workflow",
+        "severity": "MITTEL",
+        "explain": "Der Workflow schreibt per git push in ein Repository. Das ist ein schreibender Effekt und braucht entsprechende Token-Rechte.",
+        "fix": "Prüfen, ob der Push nötig ist; Rechte auf den betroffenen Job begrenzen und Änderungen möglichst per Pull Request statt direktem Push einbringen.",
+        "yaml": "jobs:\n  update:\n    permissions:\n      contents: write",
+    },
+}
+
+def render_report_de(owner: str, repo: str, sha: str, analysis: dict) -> str:
+    md = f"# GitHub Actions Safety Baseline - Bericht\n\n**Repository:** {owner}/{repo}\n**Commit:** {sha}\n"
+    md += f"**Geprüfte Workflow-Dateien:** {len(analysis['inspected_files'])}\n"
+    md += f"**Befunde:** {len(analysis['findings'])}\n\n"
+    if not analysis["inspected_files"]:
+        md += "## WARNUNG: NO_FILES_INSPECTED\n\nUnter `.github/workflows/` wurden keine Dateien (*.yml/*.yaml) gefunden. **Dies ist KEIN unbedenkliches Ergebnis**, sondern bedeutet, dass nichts geprüft wurde.\n\n"
+    elif not analysis["findings"]:
+        md += "## Befunde\n\nZu den geprüften Regeln wurden keine Befunde festgestellt.\n\n"
+    else:
+        md += "## Befunde\n\n"
+        for i, f in enumerate(analysis["findings"], 1):
+            r = RULES_DE.get(f["rule"], {"title": f["rule"], "severity": "UNBEKANNT", "explain": f["issue"], "fix": "-", "yaml": ""})
+            md += f"### {i}. {r['title']} - `{f['file']}`\n\n"
+            md += f"- **Regel:** `{f['rule']}`\n- **Schweregrad:** {r['severity']}\n"
+            md += f"- **Erklärung:** {r['explain']}\n- **Fix-Hinweis:** {r['fix']}\n\n"
+            if r["yaml"]:
+                md += f"```yaml\n{r['yaml']}\n```\n\n"
+    md += "## Geprüfte Dateien (SHA-256)\n\n"
+    for name, h in analysis["inspected_files"].items():
+        md += f"- `{name}`: `{h}`\n"
+    md += "\n## Wichtige Hinweise\n\n"
+    md += "- Geprüft wurden ausschließlich diese Regeln: Self-hosted Runner, timeout-minutes, permissions/write-all, concurrency, git push. Die Prüfung erfolgt per Textsuche je Datei.\n"
+    md += "- Nicht geprüft werden u. a. Anwendungscode, Abhängigkeiten, Secrets, Pinning von Actions, pull_request_target und Script-Injection.\n"
+    md += "- Es wird keine Garantie für Sicherheit oder Vollständigkeit gegeben. Fehlende Befunde bedeuten nicht, dass die Workflows sicher sind. Kein Penetrationstest, keine Zertifizierung.\n"
+    md += "- Dieser Bericht wurde automatisch erzeugt und erfordert vor Auslieferung eine menschliche Durchsicht.\n"
+    return md
+
 def worker(task: dict, work_dir: Path) -> dict:
     owner = task["target_owner"]
     repo = task["target_repo"]
@@ -83,6 +148,7 @@ def worker(task: dict, work_dir: Path) -> dict:
     
     (work_dir / "report.json").write_text(report_json, encoding="utf-8")
     (work_dir / "report.md").write_text(report_md, encoding="utf-8")
+    (work_dir / "report_de.md").write_text(render_report_de(owner, repo, sha, analysis), encoding="utf-8")
     
     return {
         "schema_version": "1.0",
@@ -95,6 +161,7 @@ def worker(task: dict, work_dir: Path) -> dict:
         "customer_reference": task["customer_reference"],
         "report_json_sha256": hash_file(work_dir / "report.json"),
         "report_md_sha256": hash_file(work_dir / "report.md"),
+        "report_de_md_sha256": hash_file(work_dir / "report_de.md"),
         "effect_classification": "SAFE_READ_ONLY",
         "worker_status": worker_status,
         **({"warning": "NO_FILES_INSPECTED"} if worker_status != "PASS" else {}),

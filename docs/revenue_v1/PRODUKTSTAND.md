@@ -23,9 +23,9 @@ Grundlage: `.github/workflows/revenue_v1_baseline.yml`, `scripts/revenue_v1_safe
 - D4: Wichtige Actions-Risiken fehlen ganz: `pull_request_target`, ungepinnte Actions (Tag statt SHA), Script-Injection `${{ github.event.* }}`, `secrets: inherit`, `persist-credentials`.
 - D5: Verifier ist nicht unabhängig: er führt denselben `worker()`-Code erneut aus und vergleicht nur den Hash von report.json (Z. 101-107) – bestätigt Determinismus, nicht Richtigkeit.
 - D6: Dateischlüssel nur `wf.name` (Unterordner-Kollision möglich).
-- D7: Workflow-Beispieltext `USD 500.00` (Z. 23) widerspricht EUR 99.
-- D8: Bericht ist englisch, ohne Erklärung, Schweregrad, Fix-Vorschlag oder Haftungshinweis.
-- Tests: `tests/test_revenue_v1_safety_baseline.py` in venv ausgeführt: 20 passed.
+- D7 (PATCH VORBEREITET, nicht angewendet – fehlender workflow-Scope): Workflow-Beispieltext `USD 500.00` → `EUR 99.00`, siehe WORKFLOW_PATCH.md.
+- D8 (BEHOBEN): zusätzlich `report_de.md` mit Erklärung, Schweregrad, Fix-Hinweis + YAML-Beispiel und Haftungs-/Review-Hinweis; report.md/report.json unverändert.
+- Tests: `tests/test_revenue_v1_safety_baseline.py` in venv ausgeführt: 24 passed.
 
 ## Fazit
 Pipeline (Intake → Worker → Verifier → HUMAN_REVIEW_REQUIRED) läuft lokal. Der Prüfinhalt ist für 99 € noch zu dünn und hat einen falsch-negativen Fehler (D1). Vor Verkauf mindestens D1, D2, D8 beheben und Bericht manuell reviewen.

@@ -9,6 +9,7 @@
   "customer_reference": "DEMO-NO-CUSTOMER",
   "report_json_sha256": "216aaaf1636fa76f4125ca179ae9c51441fc63f7bf56867a9e4821138b34db93",
   "report_md_sha256": "083c8553f1f8205525c2ba1a66196b89e729819034d0d9d382324f42529aa6ae",
+  "report_de_md_sha256": "436bc242eee47015a662ce45b9637a453c33e559020b05577827eca258cabc9f",
   "effect_classification": "SAFE_READ_ONLY",
   "worker_status": "PASS",
   "proposal_mode": "PR_ONLY"

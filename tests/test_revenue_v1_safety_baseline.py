@@ -167,6 +167,49 @@ class TestRevenueSafetyBaseline(unittest.TestCase):
         report_md = (self.td_path / "report.md").read_text(encoding="utf-8")
         self.assertIn("Self-hosted runner detected", report_md)
 
+    def test_render_report_de_findings(self):
+        analysis = {"inspected_files": {"ci.yaml": "abc"},
+                    "findings": [{"rule": "timeout", "file": "ci.yaml", "issue": "Missing timeout-minutes configuration."}]}
+        md = rvsb.render_report_de("o", "r", "s" * 40, analysis)
+        self.assertIn("`ci.yaml`", md)
+        self.assertIn("**Regel:** `timeout`", md)
+        self.assertIn("**Schweregrad:** NIEDRIG", md)
+        self.assertIn("**Erklärung:**", md)
+        self.assertIn("**Fix-Hinweis:**", md)
+        self.assertIn("```yaml\n", md)
+        self.assertIn("timeout-minutes: 15", md)
+        self.assertIn("keine Garantie", md)
+        self.assertIn("menschliche Durchsicht", md)
+        self.assertNotIn("NO_FILES_INSPECTED", md)
+
+    def test_render_report_de_all_rules_have_texts(self):
+        for rule in ["runner_type", "timeout", "permissions", "concurrency", "mutation_risk"]:
+            for key in ["title", "severity", "explain", "fix", "yaml"]:
+                self.assertTrue(rvsb.RULES_DE[rule][key])
+
+    def test_render_report_de_no_files_warn(self):
+        md = rvsb.render_report_de("o", "r", "s", {"inspected_files": {}, "findings": []})
+        self.assertIn("WARNUNG: NO_FILES_INSPECTED", md)
+        self.assertIn("KEIN unbedenkliches Ergebnis", md)
+
+    @patch("revenue_v1_safety_baseline.clone_and_extract")
+    def test_worker_writes_report_de_and_keeps_existing_outputs(self, mock_clone):
+        task = {"target_owner": "a", "target_repo": "b", "target_sha": "c", "task_id": "t1",
+                "attempt_id": "a1", "idempotency_key": "k1", "customer_reference": "cr1"}
+
+        def mock_clone_side_effect(owner, repo, sha, dest):
+            wf_dir = dest / ".github" / "workflows"
+            wf_dir.mkdir(parents=True)
+            (wf_dir / "bad.yml").write_text("runs-on: self-hosted", encoding="utf-8")
+
+        mock_clone.side_effect = mock_clone_side_effect
+        res = rvsb.worker(task, self.td_path)
+        for name in ["report.json", "report.md", "report_de.md"]:
+            self.assertTrue((self.td_path / name).exists())
+        self.assertIn("Self-hosted runner detected", (self.td_path / "report.md").read_text(encoding="utf-8"))
+        self.assertIn("Schweregrad:** HOCH", (self.td_path / "report_de.md").read_text(encoding="utf-8"))
+        self.assertEqual(res["report_de_md_sha256"], rvsb.hash_file(self.td_path / "report_de.md"))
+
     @patch("revenue_v1_safety_baseline.worker")
     def test_verify_success(self, mock_worker):
         task = {"test": 1}
