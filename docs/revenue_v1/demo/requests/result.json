@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "task_id": "task-local-demo-2",
+  "attempt_id": "attempt-001",
+  "idempotency_key": "rev-v1-idem-local-demo",
+  "github_run_id": "local-worker",
+  "github_run_attempt": "1",
+  "worker_result_id": "worker-attempt-001",
+  "customer_reference": "DEMO-NO-CUSTOMER",
+  "report_json_sha256": "216aaaf1636fa76f4125ca179ae9c51441fc63f7bf56867a9e4821138b34db93",
+  "report_md_sha256": "083c8553f1f8205525c2ba1a66196b89e729819034d0d9d382324f42529aa6ae",
+  "effect_classification": "SAFE_READ_ONLY",
+  "worker_status": "PASS",
+  "proposal_mode": "PR_ONLY"
+}

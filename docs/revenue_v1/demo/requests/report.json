@@ -1,0 +1,79 @@
+{
+  "inspected_files": {
+    "close-issues.yml": "3f9ea1ad83af25e895e749a3864b850c70cfc37ece203ee898cb548596a937dc",
+    "codeql-analysis.yml": "621837a2cb5c3aedc2a047a712235196f3d5f28508dcdb2b2f9160f67d078b9a",
+    "lint.yml": "2adbd62821e06ee622aff3e1e6e283a9cf3e2dcf694a04040b43fd4291d96f99",
+    "lock-issues.yml": "c97a0fb5242dfc6ea4b37ddd18dfe90f9b0c7b7aa8cb3a7575deeed9729bfe5b",
+    "publish.yml": "b55c9f39e16d0b99a73a9730e38bc5327538f52d5d5cc65cec425117b107c98b",
+    "run-tests.yml": "881865cff186f47787598b2a3d7e6e7eb4d56a3fe4c015414c3cd4d90d9cbb90",
+    "typecheck.yml": "8540a9bdf2f7b1797426d781d70a104ac98f2e161abe731d84fb6b29b901de32",
+    "zizmor.yml": "43f564565a5b53ab769ceb2b0d7070af0913137f47be349eec9a01b9c2ef52f2"
+  },
+  "findings": [
+    {
+      "rule": "timeout",
+      "file": "close-issues.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "close-issues.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "codeql-analysis.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "codeql-analysis.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "concurrency",
+      "file": "lint.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "lock-issues.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "lock-issues.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "publish.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "publish.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "concurrency",
+      "file": "run-tests.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "concurrency",
+      "file": "typecheck.yml",
+      "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "zizmor.yml",
+      "issue": "Missing timeout-minutes configuration."
+    },
+    {
+      "rule": "concurrency",
+      "file": "zizmor.yml",
+      "issue": "Missing concurrency block."
+    }
+  ]
+}
