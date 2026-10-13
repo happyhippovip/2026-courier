@@ -93,13 +93,18 @@ def test_verifier_detects_tampered_server_copy(tmp_path):
     assert not ok and "attempt_id" in reason
 
 
-from scripts.integration_contract import ContractError, validate_durable_result
+from scripts.integration_contract import ContractError, canonical_result_id, validate_durable_result
 
 TASK = dict(BINDING)
 
 
 def durable(artifacts):
-    return {**BINDING, "run_id": "r", "result_id": "result-1", "status": "SUCCESS", "artifacts": artifacts}
+    result = {**BINDING, "run_id": "r", "status": "SUCCESS", "artifacts": artifacts}
+    if isinstance(artifacts, list) and all(isinstance(item, dict) and "path" in item and "sha256" in item for item in artifacts):
+        result["result_id"] = canonical_result_id(result)
+    else:
+        result["result_id"] = "result-1"
+    return result
 
 
 def test_contract_accepts_path_only_and_uploaded_references():

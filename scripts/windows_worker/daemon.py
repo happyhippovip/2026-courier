@@ -1,8 +1,13 @@
-import json, time, os, sys, shutil, subprocess, uuid, hashlib
+import json, time, os, sys, shutil, subprocess, hashlib
 from pathlib import Path, PurePosixPath, PureWindowsPath
 import urllib.request
 import urllib.error
 import tempfile
+
+_SCRIPTS_DIR = Path(__file__).resolve().parent.parent
+if str(_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_DIR))
+from integration_contract import canonical_result_id
 
 # No fallback key exists. The key comes from COURIER_API_KEY or, failing that,
 # from config.json where bootstrap.ps1 stores it; the server URL from
@@ -218,20 +223,21 @@ def build_result_payload(task, result, config):
         if status == "SUCCESS" and not artifacts:
             status = "FAILED"
             result["stderr"] = result.get("stderr", "") + "\nNo artifact evidence for success"
-    return {
+    payload = {
         "goal_id": task.get("goal_id"),
         "task_id": task["task_id"],
         "attempt_id": task.get("attempt_id"),
         "dispatch_id": task.get("dispatch_id"),
         "worker_id": config["WORKER_ID"],
         "run_id": result["run_id"],
-        "result_id": f"result-{uuid.uuid4().hex}",
         "status": status,
         "artifacts": artifacts,
         "provider": "windows_native",
         "stdout": result.get("stdout", ""),
         "stderr": result.get("stderr", ""),
     }
+    payload["result_id"] = canonical_result_id(payload)
+    return payload
 
 def kill_process_tree(pid):
     """Best-effort: stop the child and anything PowerShell spawned under it.

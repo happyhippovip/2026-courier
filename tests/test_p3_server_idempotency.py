@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from p3_preview import PATCHES, VERIFIER, WORKER, load_patched_server
+from scripts.integration_contract import canonical_result_id
 
 
 @pytest.fixture
@@ -26,10 +27,12 @@ def setup_claimed_task(srv):
     return http, goal["goal_id"], task
 
 
-def durable_result(task):
-    return {field: task[field] for field in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")} | {
-        "run_id": "run-1", "result_id": "result-1", "status": "SUCCESS",
-        "artifacts": [{"path": "bounded.txt", "sha256": "a" * 64}]}
+def durable_result(task, *, status="SUCCESS", artifacts=None):
+    result = {field: task[field] for field in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")} | {
+        "run_id": "run-1", "status": status,
+        "artifacts": [{"path": "bounded.txt", "sha256": "a" * 64}] if artifacts is None else artifacts}
+    result["result_id"] = canonical_result_id(result)
+    return result
 
 
 def verify(http, task, result, verdict):
@@ -94,12 +97,12 @@ def test_conflicting_result_for_processed_task_is_rejected(srv):
     result = durable_result(task)
     assert http.post("/tasks/result", headers=WORKER, json=result).status_code == 200
     assert http.post("/tasks/result", headers=WORKER, json=dict(result, result_id="result-other")).status_code == 409
-    assert srv.load_state()["tasks"][task["task_id"]]["result"]["result_id"] == "result-1"
+    assert srv.load_state()["tasks"][task["task_id"]]["result"]["result_id"] == result["result_id"]
 
 
 def test_resent_failed_result_is_acknowledged_after_requeue(srv):
     http, _, task = setup_claimed_task(srv)
-    failed = dict(durable_result(task), status="FAILED", artifacts=[])
+    failed = durable_result(task, status="FAILED", artifacts=[])
     assert http.post("/tasks/result", headers=WORKER, json=failed).status_code == 200
     resent = http.post("/tasks/result", headers=WORKER, json=failed)
     assert resent.status_code == 200 and resent.get_json()["status"] == "ACK_DUPLICATE"

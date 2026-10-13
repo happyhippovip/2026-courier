@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
+from scripts.integration_contract import canonical_result_id
 from server import app as server_app
 
 
@@ -55,20 +56,23 @@ def setup_claimed_task(tmp_path, monkeypatch):
     return http, goal["goal_id"], claimed.get_json()["task"]
 
 
-def durable_result(task):
-    return {
+def durable_result(task, *, status="SUCCESS", artifacts=None):
+    if artifacts is None:
+        artifacts = [
+            {"path": "bounded.txt", "sha256": hashlib.sha256(b"bounded\n").hexdigest()}
+        ]
+    result = {
         "goal_id": task["goal_id"],
         "task_id": task["task_id"],
         "attempt_id": task["attempt_id"],
         "dispatch_id": task["dispatch_id"],
         "worker_id": task["worker_id"],
         "run_id": "pid-123",
-        "result_id": "result-1",
-        "status": "SUCCESS",
-        "artifacts": [
-            {"path": "bounded.txt", "sha256": hashlib.sha256(b"bounded\n").hexdigest()}
-        ],
+        "status": status,
+        "artifacts": artifacts,
     }
+    result["result_id"] = canonical_result_id(result)
+    return result
 
 
 def test_insecure_default_key_fails_closed(tmp_path, monkeypatch):
@@ -248,9 +252,7 @@ def test_corrupt_state_is_not_treated_as_empty(tmp_path, monkeypatch):
 
 def test_retry_gets_new_attempt_and_dispatch_identity(tmp_path, monkeypatch):
     http, _, task = setup_claimed_task(tmp_path, monkeypatch)
-    failed = durable_result(task)
-    failed["status"] = "FAILED"
-    failed["artifacts"] = []
+    failed = durable_result(task, status="FAILED", artifacts=[])
     assert http.post("/tasks/result", headers=auth(), json=failed).status_code == 200
 
     retried = http.post("/tasks/claim", headers=auth(), json={"worker_id": "MAC-01"}).get_json()["task"]

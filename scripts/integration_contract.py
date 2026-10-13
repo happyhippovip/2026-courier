@@ -40,6 +40,31 @@ def _canonical_hash(value: object) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
+def canonical_result_id(result: dict) -> str:
+    """result_id for one observation.
+
+    The hashed payload is the same identity verify_result records. Upload
+    extras (artifact_id, size) and GitHub run_attempt are not part of it, so
+    a worker cannot swap those without a new id, and cannot keep an old id
+    after changing path, sha256, status, or run identity.
+    """
+    artifacts = [
+        {"path": artifact["path"], "sha256": artifact["sha256"]}
+        for artifact in result["artifacts"]
+    ]
+    identity = {
+        "goal_id": result["goal_id"],
+        "task_id": result["task_id"],
+        "attempt_id": result["attempt_id"],
+        "dispatch_id": result["dispatch_id"],
+        "worker_id": result["worker_id"],
+        "run_id": result["run_id"],
+        "status": result["status"],
+        "artifacts": artifacts,
+    }
+    return f"result-{_canonical_hash(identity)}"
+
+
 def prepare_task(task: dict) -> dict:
     """Add stable workflow identity before the task is durably dispatched."""
     packet = dict(task)
@@ -107,15 +132,16 @@ def verify_result(task: dict, raw_result: dict, workspace: Path) -> dict:
         "status": raw_result["status"],
         "artifacts": artifacts,
     }
-    identity["result_id"] = f"result-{_canonical_hash(identity)}"
+    identity["result_id"] = canonical_result_id(identity)
     return identity
 
 
 def validate_durable_result(task: dict, result: dict) -> dict:
     """Validate a remote DurableResult without trusting worker-only success.
 
-    This validates identity and evidence shape. A separate verifier must still
-    observe the effect and approve the evidence before workflow advancement.
+    This validates identity, evidence shape, and that result_id is the
+    canonical hash of that identity. A separate verifier must still observe
+    the effect and approve the evidence before workflow advancement.
     """
     required = {
         "goal_id",
@@ -169,4 +195,6 @@ def validate_durable_result(task: dict, result: dict) -> dict:
             raise ContractError("unsafe artifact path")
         if not isinstance(digest, str) or not re.fullmatch(r"[a-f0-9]{64}", digest):
             raise ContractError("invalid artifact fingerprint")
+    if result["result_id"] != canonical_result_id(result):
+        raise ContractError("result_id is not the canonical hash")
     return {field: result[field] for field in required}
