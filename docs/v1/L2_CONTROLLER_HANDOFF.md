@@ -79,7 +79,7 @@ POST /v1/tasks/<id>/resolve
 
 ## 5. Projection version
 
-- `PROJECTION_VERSION` is now 3 (2: `resolution`, `decided_by`; 3: `depends_on`, `input_dispatch_id`, `input_result_id`).
+- `PROJECTION_VERSION` is now 3 (2: `resolution`, `decided_by`; 3: `depends_on`, `input`).
 - **Opening a journal with an older projection:** the projection is rebuilt from the verified event chain in one transaction. Events are never touched.
 - **A damaged journal:** it stays read-only. Task reads then answer `503` if its projection predates this build.
 
@@ -93,10 +93,10 @@ POST /v1/tasks/<id>/resolve
    "artifacts": [{"path": "artifacts/<dispatch>/<name>", "sha256": "<64 hex>"}]}
   ```
 
-  The same object is journaled in `TASK_CLAIMED.payload.input`, and the state machine refuses a claim of a dependent task without it. A retry of the dependent task gets the same input again.
+  The same object is journaled in `TASK_CLAIMED.payload.input` and kept in the task state (`input` in `GET /v1/tasks/<id>`, handed to verifiers as `task.input`), and the state machine refuses a claim of a dependent task without it. A retry of the dependent task gets the same input again.
 - A dependency that ended `FAILED` or `CANCELLED`, or was completed by a human `effect_confirmed`, has no verified result: the dependent task is journaled `TASK_FAILED` (reason names the dependency) at the next claim. A `BLOCKED` dependency keeps it waiting for the human decision.
 - Tasks without `depends_on` produce the same events and claim answers as before.
 
-**L3:** `courier_worker.adapter_bridge.validate_request` ignores `spec.input` today, so a dependent task would run without it. Carry it through `ExecutionSpec` and the request file; resolve each artifact path inside the home and check its sha256 before the adapter sees it.
+**L3 (done with this change):** `courier_worker.adapter_bridge.request_input` validates `spec.input` (a malformed one refuses the claim before `/start`), `ExecutionSpec.input` carries it, and `write_request` adds `input` and `home` to the request file of a dependent task only. `adapter_runner` resolves every artifact path inside the home and checks its sha256; on any mismatch it writes a non-retryable failure report (`input refused: ...`) and the adapter never runs.
 
-**L4:** an adapter that consumes the input must have a verifier that recomputes the expected output from the dependency's artifact bytes, not from what the worker reports.
+**L4 (done for the synthetic adapter):** `params.from_input` (`"copy"` or `"reverse"`) makes the synthetic adapter write that transform of the dependency's first artifact instead of `content`. Its verifier recomputes the expected bytes from `task.input`, reading and hash-checking the dependency's artifact itself. Any other adapter that consumes an input needs the same kind of verifier: expected output recomputed from the dependency's bytes, never taken from what the worker reports.

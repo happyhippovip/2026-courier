@@ -70,9 +70,10 @@ from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Mapping
 
-VERIFIER_VERSION = "1"
+VERIFIER_VERSION = "2"  # 2: from_input tasks are checked against their dependency's artifact
 
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+INPUT_TRANSFORMS = frozenset({"copy", "reverse"})
 
 
 def _verdict_type():
@@ -138,7 +139,13 @@ def _params(params: Mapping[str, Any]) -> dict:
         "hang": params.get("hang", False),
         "fail_transient_n": params.get("fail_transient_n", 0),
         "fault_attempts": params.get("fault_attempts", [1]),
+        "from_input": params.get("from_input", None),
     }
+    if out["from_input"] is not None:
+        if out["from_input"] not in INPUT_TRANSFORMS:
+            raise SyntheticError(f"from_input must be one of {sorted(INPUT_TRANSFORMS)}")
+        if out["content"] != "":
+            raise SyntheticError("content and from_input are exclusive")
     if not isinstance(out["sleep_s"], (int, float)) or not (out["sleep_s"] >= 0):
         raise SyntheticError("sleep_s must be a non-negative number")
     if not isinstance(out["write"], str) or not is_safe_name(out["write"]):
@@ -184,12 +191,26 @@ def _atomic_write(path: Path, data: bytes) -> None:
         raise
 
 
-def run(params: Mapping[str, Any], workdir: str | os.PathLike, attempt: int = 1) -> RunResult:
+def transform_input(kind: str, data: bytes) -> bytes:
+    """What a ``from_input`` task must produce from its dependency's artifact bytes."""
+    if kind == "copy":
+        return data
+    if kind == "reverse":
+        return data.decode("utf-8")[::-1].encode("utf-8")
+    raise SyntheticError(f"unknown from_input transform {kind!r}")
+
+
+def run(params: Mapping[str, Any], workdir: str | os.PathLike, attempt: int = 1,
+        input_files: list | None = None) -> RunResult:
     """Execute one synthetic attempt deterministically inside ``workdir``.
 
     Only ``workdir`` is ever written. Faults fire only when ``attempt`` is in
     ``fault_attempts``. Raises :class:`SyntheticError` for bad params,
     :class:`SyntheticCrash` / :class:`SyntheticHang` for crash/hang faults.
+
+    ``input_files`` are the dependency's verified artifacts (absolute paths the
+    host already checked against their sha256). With ``from_input`` set, the
+    output is that transform of the first one instead of ``content``.
     """
     cfg = _params(params)
     root = Path(workdir)
@@ -205,7 +226,15 @@ def run(params: Mapping[str, Any], workdir: str | os.PathLike, attempt: int = 1)
         return RunResult("failure", [], "synthetic transient fault", True)
     if cfg["sleep_s"]:
         time.sleep(cfg["sleep_s"])
-    data = cfg["content"].encode("utf-8")
+    if cfg["from_input"] is not None:
+        if not input_files:
+            raise SyntheticError("from_input needs the verified input of a dependency")
+        try:
+            data = transform_input(cfg["from_input"], Path(input_files[0]).read_bytes())
+        except (OSError, UnicodeDecodeError) as exc:
+            raise SyntheticError(f"input cannot be read: {type(exc).__name__}") from None
+    else:
+        data = cfg["content"].encode("utf-8")
     _atomic_write(root / cfg["write"], data)
     digest = hashlib.sha256(data).hexdigest()
     return RunResult("success", [{"path": cfg["write"], "sha256": digest, "size": len(data)}])
@@ -216,6 +245,39 @@ def _payload_artifacts(payload: Mapping[str, Any]) -> list | None:
     if not isinstance(artifacts, list) or not artifacts:
         return None
     return artifacts
+
+
+def _expected_from_input(bound: Any, scope: Path, transform: Any) -> tuple:
+    """(sha256 of the bytes a from_input task must have produced, None) or (None, reason).
+
+    ``bound`` is ``task.input``: the dependency's artifact references as the
+    controller journaled them at claim. The first artifact is read inside
+    ``scope`` and must hash to its journaled sha256 before it is transformed.
+    """
+    if transform not in INPUT_TRANSFORMS:
+        return None, "task declares an unknown input transform"
+    artifacts = bound.get("artifacts") if isinstance(bound, Mapping) else None
+    if not isinstance(artifacts, list) or not artifacts or not isinstance(artifacts[0], Mapping):
+        return None, "task has no verified input to compare against"
+    name, digest = artifacts[0].get("path"), artifacts[0].get("sha256")
+    if not is_safe_name(name) or not isinstance(digest, str) or not SHA256_RE.match(digest):
+        return None, "task input reference is malformed"
+    try:
+        candidate = (scope / name).resolve()
+    except OSError:
+        return None, "unreadable input file"
+    if scope not in candidate.parents:
+        return None, "task input path escapes the work scope"
+    try:
+        data = candidate.read_bytes()
+    except OSError:
+        return None, "task input file is missing"
+    if hashlib.sha256(data).hexdigest() != digest:
+        return None, "task input no longer matches its verified hash"
+    try:
+        return hashlib.sha256(transform_input(transform, data)).hexdigest(), None
+    except (UnicodeDecodeError, SyntheticError):
+        return None, "task input cannot be transformed"
 
 
 def verify(task: Any, result: Any, home: str | os.PathLike):
@@ -260,6 +322,16 @@ def _verify(task: Any, result: Any, home: str | os.PathLike):
     want_content = params.get("content") if isinstance(params, Mapping) else None
     pinned = isinstance(want_name, str) and isinstance(want_content, str)
     want_digest = hashlib.sha256(want_content.encode("utf-8")).hexdigest() if pinned else None
+    mismatch = "evidence does not match the declared synthetic content"
+    transform = params.get("from_input") if isinstance(params, Mapping) else None
+    if transform is not None:
+        # The expected bytes are recomputed here from the dependency's artifact,
+        # read and hash-checked by this verifier, never taken from the worker.
+        want_digest, why = _expected_from_input(getattr(task, "input", None), scope, transform)
+        if want_digest is None:
+            return _reject(why)
+        want_name = want_name if isinstance(want_name, str) else "out.txt"
+        pinned, mismatch = True, "evidence does not match the transformed input"
     if pinned and not is_safe_name(want_name):
         return _reject("task declares an unsafe artifact name")
     # The worker host (L3) gives each dispatch its own directory and reports
@@ -296,7 +368,7 @@ def _verify(task: Any, result: Any, home: str | os.PathLike):
         if pinned and name in want_names:
             seen_pinned = True
             if digest != want_digest:
-                return _reject("evidence does not match the declared synthetic content")
+                return _reject(mismatch)
     if pinned and not seen_pinned:
         return _reject("declared synthetic artifact is absent from the evidence")
     return _accept("synthetic evidence verified")
