@@ -80,6 +80,8 @@ def why_not_covered(grant, request, now):
         return f"resources {sorted(request.resources - grant.resources) or '[]'} not granted"
     if ACCESS_ORDER[request.access] > ACCESS_ORDER[grant.access]:
         return f"access {request.access} exceeds {grant.access}"
+    if request.data_class not in DATA_ORDER or grant.data_class not in DATA_ORDER:
+        return f"data class {request.data_class!r} is not a known privacy class"
     if DATA_ORDER[request.data_class] > DATA_ORDER[grant.data_class]:
         return f"data class {request.data_class} exceeds {grant.data_class}"
     return None

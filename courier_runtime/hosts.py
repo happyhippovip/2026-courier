@@ -55,39 +55,37 @@ class Requirement:
 class NoEligibleHost(Exception):
     pass
 
+def admission_limit(requirement: Requirement, host: Host) -> str | None:
+    """None when the host can take the work, else the limitation that blocks it."""
+    missing = sorted(requirement.capabilities - host.capabilities)
+    if missing:
+        return f"missing capabilities {missing}"
+    if requirement.privacy is not None and host.privacy != requirement.privacy:
+        return f"privacy {host.privacy} is not {requirement.privacy}"
+    if host.health in {RESOURCE_PAUSE, EMERGENCY}:
+        return f"health {host.health}"
+    if host.active_leases >= host.profile.max_total_slots:
+        return "total slots full"
+    if host.health == HEALTHY:
+        if requirement.is_heavy and host.active_heavy_leases >= host.profile.max_heavy_slots:
+            return "heavy slots full"
+        return None
+    if host.health == PRESSURED:
+        if requirement.is_heavy:
+            return "health PRESSURED blocks heavy work"
+        return None
+    if host.health == DEGRADED:
+        if host.privacy == "own":
+            return "health DEGRADED pauses own devices"
+        if host.active_leases >= max(1, host.profile.max_total_slots // 2):
+            return "health DEGRADED slot limit"
+        return None
+    return f"health {host.health}"
+
+
 def can_admit(requirement: Requirement, host: Host) -> bool:
     """Evaluate host capacity policy."""
-    if not requirement.capabilities.issubset(host.capabilities):
-        return False
-    if requirement.privacy is not None and host.privacy != requirement.privacy:
-        return False
-    if host.health in {RESOURCE_PAUSE, EMERGENCY}:
-        return False
-    
-    # Check absolute capacity
-    if host.active_leases >= host.profile.max_total_slots:
-        return False
-        
-    if host.health == HEALTHY:
-        # Full admission
-        if requirement.is_heavy and host.active_heavy_leases >= host.profile.max_heavy_slots:
-            return False
-        return True
-    elif host.health == PRESSURED:
-        # no new heavy work
-        if requirement.is_heavy:
-            return False
-        return True
-    elif host.health == DEGRADED:
-        # reduce concurrency, prefer remote, pause local
-        if host.privacy == "own":
-            return False
-        # Treat max slots as halved
-        if host.active_leases >= max(1, host.profile.max_total_slots // 2):
-            return False
-        return True
-        
-    return False
+    return admission_limit(requirement, host) is None
 
 def eligible(requirement, hosts):
     return [h for h in hosts if can_admit(requirement, h)]
@@ -96,7 +94,11 @@ def select(requirement, hosts):
     """Cheapest eligible host, stable by device id. Never an incapable host."""
     candidates = eligible(requirement, hosts)
     if not candidates:
-        raise NoEligibleHost(f"no healthy host offers {sorted(requirement.capabilities)} for heavy={requirement.is_heavy}")
+        limits = [f"{host.device_id}: {admission_limit(requirement, host)}" for host in hosts]
+        detail = "; ".join(limits) if limits else "no hosts"
+        raise NoEligibleHost(
+            f"no host can take {sorted(requirement.capabilities)} for heavy={requirement.is_heavy}: {detail}"
+        )
     return sorted(candidates, key=lambda h: (h.cost_per_hour_eur, h.device_id))[0]
 
 @dataclass(frozen=True)
