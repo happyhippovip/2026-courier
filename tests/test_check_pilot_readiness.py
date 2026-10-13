@@ -18,8 +18,8 @@ def test_check_readiness_success(monkeypatch, capsys):
 
 def test_check_readiness_failure(monkeypatch, capsys):
     def mock_exists(path):
-        # Simulate missing file for the first one
-        if path == "ops/ai/PILOT_DUMMY_TASK.json":
+        normalized = str(path).replace("\\", "/")
+        if normalized.endswith("ops/ai/PILOT_DUMMY_TASK.json"):
             return False
         return True
     

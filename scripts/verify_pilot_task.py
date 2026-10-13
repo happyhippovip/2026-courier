@@ -10,15 +10,25 @@ def verify_task():
         if "workflow_plan" not in goal or not goal["workflow_plan"]:
             print("FAILED: Missing or empty workflow_plan")
             sys.exit(1)
-            
-        task = goal["workflow_plan"][0]
+
+        plan = goal["workflow_plan"]
+        if len(plan) != 1:
+            print("FAILED: pilot plan must contain exactly one task")
+            sys.exit(1)
+
+        task = plan[0]
         required_fields = ["task_id", "goal_id", "target_capability", "instruction", "status"]
         missing = [f for f in required_fields if f not in task]
-        
+
         if missing:
             print(f"FAILED: Missing fields {missing}")
             sys.exit(1)
-            
+
+        instruction = task["instruction"]
+        if not isinstance(instruction, str) or not instruction.strip():
+            print("FAILED: instruction must be a non-blank string")
+            sys.exit(1)
+
         if task["status"] != "QUEUED":
             print(f"FAILED: status should be QUEUED, got {task['status']}")
             sys.exit(1)
