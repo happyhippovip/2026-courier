@@ -9,7 +9,8 @@ workkey needed a human relay. ``feed_once`` is that missing link:
 1. a held workkey whose mission reached FINAL_DONE is released (checkpoint);
 2. a held workkey without a ledger mission gets its spec and ASSIGNED event
    (restart after claim, before assign);
-3. a held, unfinished workkey has its lease renewed;
+3. a held, unfinished workkey has its lease renewed; a workkey whose
+   mission is BLOCKED is left alone (not renewed, released or reclaimed);
 4. when the holder holds nothing, the lowest-id READY workkey that has a
    task spec is claimed and assigned.
 
@@ -67,7 +68,13 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
     store = FileCoordinationStore(home / "coordination_ledger.jsonl")
     bridge_state = _read_json(home / "ledger_bridge_state.json", {"missions": {}})
     missions = bridge_state.get("missions") or {}
-    report = {"outcome": "idle", "released": [], "claimed": [], "assigned": [], "renewed": []}
+    report = {"outcome": "idle", "released": [], "claimed": [], "assigned": [], "renewed": [],
+              "blocked": []}
+    # A parked mission (BLOCKED in the ledger) needs a human. Its workkey is
+    # neither renewed, released nor reclaimed, so dependents keep waiting, but
+    # it no longer occupies the holder: independent READY work continues.
+    blocked = {mid for mid, m in reduce_store(store).missions.items()
+               if m.get("status") == MissionStatus.BLOCKED}
 
     def assign(item_id: str) -> None:
         reducer = reduce_store(store)
@@ -97,6 +104,9 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
             queue.release(item_id, holder, f"FINAL_DONE {mapping.get('task_id', '')}".strip(), now=now)
             report["released"].append(item_id)
             continue
+        if item_id in blocked:
+            report["blocked"].append(item_id)
+            continue
         still_held.append(item_id)
         if item_id in specs:
             assign(item_id)
@@ -105,7 +115,7 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
 
     if not still_held:
         for item in queue.list_ready(now=now):
-            if item["id"] in specs:
+            if item["id"] in specs and item["id"] not in blocked:
                 queue.claim(item["id"], holder, ttl, host=host_id, now=now)
                 report["claimed"].append(item["id"])
                 assign(item["id"])
