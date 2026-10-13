@@ -123,10 +123,10 @@ def test_timeout_kills_the_task_tree_and_retries(courier):
     # Diagnostic so passing Windows CI runs also record the measured delta.
     warnings.warn(f"golden handles: baseline={baseline_handles} after={after_handles} "
                   f"delta={after_handles - baseline_handles} os={os.name}")
-    # Windows: +35 was measured (147 -> 182) in 8 failing CI runs of #410 before
-    # psutil was imported eagerly in courier_worker/host.py; 40 = measured + 5.
-    # Lower back to 4 once Windows CI shows the delta with the eager import.
-    tolerance = 40 if os.name == "nt" else 4
+    # Windows CI (#537, run 38415397962) measured 180 -> 182 (+2) once
+    # courier_worker/host.py imports psutil eagerly; before that, a lazy first
+    # import after the baseline cost +35 (147 -> 182). Same +4 bound everywhere.
+    tolerance = 4
     assert after_handles <= baseline_handles + tolerance, (
         f"worker host leaked handles/descriptors: {baseline_handles} -> {after_handles}")
 
