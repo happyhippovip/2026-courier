@@ -62,7 +62,21 @@ python3 scripts/verifier_receipt.py verify docs/work/verifier_receipt.json --rep
 
 Exit 0. `pr_head_sha` und `source_sha` sind beide `77dcb5496d7ebcb815b1a265eec41ae86b1e4ccf`.
 
-Ein Commit kann seinen eigenen SHA nicht enthalten. Dieses Dokument liegt deshalb einen Commit später. `verify` ohne `--revision` muss am Dokument-Commit mit `sha_mismatch` ablehnen. `verify --revision 77dcb5496d7ebcb815b1a265eec41ae86b1e4ccf` prüft die Blobs dieses Commits. Die Ausgabe dieses zweiten Laufs steht nach dem Ablegen unten, sobald der Dokument-Commit existiert. Sie wird nicht im Voraus als grün eingetragen.
+Ein Commit kann seinen eigenen SHA nicht enthalten. Gemessen an `80b02dd87a76731ad4d08a1657cc71d47194422a`, dem Commit, der das JSON erstmals ablegt:
+
+```
+python3 scripts/verifier_receipt.py verify docs/work/verifier_receipt.json --repo .
+{"result": "RESULT_REJECTED", "reason": "sha_mismatch"}
+```
+
+Exit 1.
+
+```
+python3 scripts/verifier_receipt.py verify docs/work/verifier_receipt.json --repo . --revision 77dcb5496d7ebcb815b1a265eec41ae86b1e4ccf
+{"result": "RESULT_ACCEPTED", "reason": ""}
+```
+
+Exit 0. Der Default lehnt den neueren Checkout ab. `--revision` prüft die Blobs von `77dcb5496`. Das ist kein Beleg für einen späteren PR-Head. Der PR-Text enthält das Receipt, das nach dem letzten Commit gegen genau diesen Head erzeugt und geprüft wurde.
 
 ## Ablehnung am echten Receipt
 
