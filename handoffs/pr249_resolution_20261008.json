@@ -1,0 +1,46 @@
+{
+  "resolution_pr249": {
+    "commit_sha": "0ffca8bcb843b484a3546b37b74def8279f9c70a",
+    "pr": 249,
+    "branch": "muse/MUSE-ledger-verified-continuation",
+    "status": "ALL_FINDINGS_RESOLVED",
+    "resolutions": {
+      "F-249-B": {
+        "status": "RESOLVED",
+        "action": "Mode B fallback returns status UNAVAILABLE, model_invoked=False, model_driven=False (fail closed). When bridge script physically exists, executes real hooks and visual state tracker.",
+        "test": "tests/test_verified_continuation.py::test_mode_b_google_builder_fail_closed and test_mode_b_google_builder_with_bridge"
+      },
+      "F-249-D": {
+        "status": "RESOLVED",
+        "action": "Mode D reads real on-disk checkpoint artifacts from checkpoints_dir, verifies raw bytes and recorded canonical hash, and fails closed on missing or tampered checkpoint.",
+        "test": "tests/test_verified_continuation.py::test_mode_d_recovery_resume"
+      },
+      "F-249-V": {
+        "status": "RESOLVED",
+        "action": "verify_result() recomputes canonical_json_hash over payload excluding result_hash and asserts exact equality with result_hash; rejects tampered payloads or non-PASS status.",
+        "test": "tests/test_verified_continuation.py::test_verify_result_strict_integrity"
+      },
+      "F-249-CLAIM": {
+        "status": "RESOLVED",
+        "action": "claim() uses os.O_CREAT | os.O_EXCL | os.O_WRONLY to prevent check-then-act race; validates strict workkey regex ^[A-Za-z0-9_-]+$ at all entry points; release() verifies owner.",
+        "test": "tests/test_verified_continuation.py::test_workkey_validation and test_claim_and_release"
+      },
+      "F-249-CMD": {
+        "status": "RESOLVED",
+        "action": "shlex.split(command, posix=(sys.platform != 'win32')) used for command parsing in Mode A.",
+        "test": "tests/test_verified_continuation.py::test_mode_a_local_deterministic"
+      },
+      "F-249-T": {
+        "status": "RESOLVED",
+        "action": "Added --ledger-dir parameter to CLI; test_cli_verify_autonomy_isolated runs in isolated tmp_path preventing root-repo collisions.",
+        "test": "tests/test_verified_continuation.py::test_cli_verify_autonomy_isolated"
+      },
+      "F-249-SCOPE": {
+        "status": "RESOLVED",
+        "action": "PR #249 body updated via gh pr edit with comprehensive disclosure of all 4 scopes and all files changed (L2 engine, L5 hub strip, L3 flush budget, and review fixes)."
+      }
+    },
+    "local_tests": "10/10 passed in 3.46s (tests/test_verified_continuation.py); 67/67 passed (tests/hub/); 48/48 passed (tests/test_l3_worker_host.py)",
+    "safety_ratchet": "CLEAN (new=0)"
+  }
+}

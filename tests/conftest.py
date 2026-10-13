@@ -32,6 +32,7 @@ def pytest_collection_modifyitems(config, items):
             if any(x in name for x in ["mac_worker", "mac_native", "mac_agy", "mac_deliver", "muse", "run_physical", "ci_acceptance"]):
                 item.add_marker(skip_mac)
 
+
 @pytest.fixture(autouse=True)
 def _clear_shared_breaker():
     from scripts.provider_circuit import ProviderCircuitBreaker

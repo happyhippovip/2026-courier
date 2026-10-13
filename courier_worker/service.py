@@ -121,6 +121,8 @@ class ControllerClient:
 
     def claim(self, worker_id: str) -> Optional[dict]:
         try:
+            # The v1 controller rejects unknown fields. Resource pressure is a
+            # local decision (skip the claim); it is not a claim-body field.
             status, payload = self._call("POST", "/claim", {"worker_id": worker_id})
         except ControllerError:
             return None
@@ -386,6 +388,8 @@ class WorkerLoop:
         # Optional, off by default: called once per idle tick (see
         # courier_worker.ledger_tick). It must never break the loop.
         self._idle_hook = idle_hook
+        self._last_resource_state = "NORMAL"
+        self._cooldown_until = 0.0
 
     def _default_client(self) -> ControllerClient:
         token_path = os.path.join(self.home, "run", "controller.token")
@@ -424,8 +428,35 @@ class WorkerLoop:
             return "idle"
         client = self._client or self._client_factory()
         self._client = client
+
+        # Thermal relief (issue #28): the host lives on self.engine. While the
+        # probe reports pressure, or for one minute after it clears, do not
+        # claim. Heartbeats stay on the documented v1 shape; the controller
+        # rejects unknown fields such as resource_state.
+        reason = self.engine._pressure_probe()
+        now = time.time()
+        if reason is not None:
+            self._last_resource_state = "PRESSURED"
+            self._cooldown_until = now + 60.0  # 1 minute hysteresis
+        elif now < self._cooldown_until:
+            self._last_resource_state = "COOLDOWN"
+        else:
+            self._last_resource_state = "NORMAL"
+
+        if self._last_resource_state != "NORMAL":
+            try:
+                client.heartbeat(self.worker_id, [])
+            except ControllerError:
+                pass
+            return "idle"
+
         claim = client.claim(self.worker_id)
         if claim is None:
+            # Send idle heartbeat
+            try:
+                client.heartbeat(self.worker_id, [])
+            except ControllerError:
+                pass
             return "idle"
         try:
             spec = resolve_spec(claim, self.worker_id, self.artifacts_root(), self.heartbeat_s,
