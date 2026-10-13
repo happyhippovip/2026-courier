@@ -7,6 +7,14 @@ from courier_runtime.revenue_store import RevenueStore, main
 def test_last_snapshot_wins_and_history_survives(tmp_path):
     store = RevenueStore(tmp_path)
     lead = Lead("L1", "Example Studio", "CI red for 3 weeks", "public issue")
+    lead.privacy = {
+        "data": "task text the user selected",
+        "storage": "local ledger on the user machine",
+        "providers": "none",
+        "permissions": "read the selected task only",
+        "retention": "until the user deletes the ledger",
+        "deletion": "delete the ledger file",
+    }
     store.save_lead(lead)
     lead.move(QUALIFIED, 1)
     lead.move(DRAFT_READY, 2)
