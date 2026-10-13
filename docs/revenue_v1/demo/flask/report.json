@@ -6,31 +6,38 @@
     "tests.yaml": "b9e91de90c44bd4d2926296389d96e20c7105c979afbc228022c198c7b6bc51b",
     "zizmor.yaml": "bb524d24d8f07bb47ccc5530e3dab8d98b92ab08fdd1acf8afa26bd5d42e9131"
   },
+  "parse_modes": {
+    "lock.yaml": "yaml",
+    "pre-commit.yaml": "yaml",
+    "publish.yaml": "yaml",
+    "tests.yaml": "yaml",
+    "zizmor.yaml": "yaml"
+  },
   "findings": [
     {
       "rule": "timeout",
       "file": "lock.yaml",
-      "issue": "Missing timeout-minutes configuration."
+      "issue": "Missing timeout-minutes configuration (jobs: lock)."
     },
     {
       "rule": "timeout",
       "file": "pre-commit.yaml",
-      "issue": "Missing timeout-minutes configuration."
+      "issue": "Missing timeout-minutes configuration (jobs: main)."
     },
     {
       "rule": "timeout",
       "file": "publish.yaml",
-      "issue": "Missing timeout-minutes configuration."
+      "issue": "Missing timeout-minutes configuration (jobs: build, create-release, publish-pypi)."
     },
     {
       "rule": "timeout",
       "file": "tests.yaml",
-      "issue": "Missing timeout-minutes configuration."
+      "issue": "Missing timeout-minutes configuration (jobs: tests, typing)."
     },
     {
       "rule": "timeout",
       "file": "zizmor.yaml",
-      "issue": "Missing timeout-minutes configuration."
+      "issue": "Missing timeout-minutes configuration (jobs: zizmor)."
     }
   ]
 }

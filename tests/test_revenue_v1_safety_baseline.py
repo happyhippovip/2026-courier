@@ -259,6 +259,61 @@ class TestRevenueSafetyBaseline(unittest.TestCase):
         self.assertIn("runner_type", self._rules(res, "ci.yml"))
         self.assertEqual(self._rules(res, "sub/ci.yml"), [])
 
+    def test_yaml_mode_structure_rules(self):
+        self._write_wf("s.yml", (
+            "on:\n  pull_request_target:\n    types: [opened]\n"
+            "jobs:\n"
+            "  a:\n    runs-on: [self-hosted, linux]\n    timeout-minutes: 5\n"
+            "    steps:\n      - run: git push origin HEAD\n"
+            "  b:\n    runs-on: ubuntu-latest\n    # timeout-minutes: 5 (only a comment)\n"
+            "    permissions: write-all\n    steps:\n      - run: echo hi\n"
+            "  call:\n    uses: org/repo/.github/workflows/x.yml@v1\n"))
+        res = rvsb.analyze_workflows(self.td_path)
+        self.assertEqual(res["parse_modes"]["s.yml"], "yaml")
+        by_rule = {f["rule"]: f["issue"] for f in res["findings"] if f["file"] == "s.yml"}
+        self.assertIn("runner_type", by_rule)               # list form runs-on
+        self.assertIn("pull_request_target", by_rule)       # key `on` parsed as True by PyYAML
+        self.assertIn("jobs: b", by_rule["timeout"])        # comment does not count, reusable call skipped
+        self.assertNotIn("call", by_rule["timeout"])
+        self.assertEqual(by_rule["permissions"], "Missing explicit permissions block.")
+        self.assertIn("concurrency", by_rule)
+        self.assertIn("mutation_risk", by_rule)
+        self.assertIn("org/repo/.github/workflows/x.yml@v1", by_rule["unpinned_action"])
+
+    def test_yaml_mode_clean_workflow(self):
+        sha = "b" * 40
+        self._write_wf("ok.yaml", (
+            "on: [push]\npermissions:\n  contents: read\nconcurrency:\n  group: x\n"
+            "jobs:\n  t:\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n"
+            f"    steps:\n      - uses: actions/checkout@{sha}\n"
+            "      - env:\n          T: ${{ github.event.issue.title }}\n        run: echo \"$T\"\n"))
+        res = rvsb.analyze_workflows(self.td_path)
+        self.assertEqual(res["parse_modes"]["ok.yaml"], "yaml")
+        self.assertEqual(res["findings"], [])
+
+    def test_yaml_permissions_write_all_top_level(self):
+        self._write_wf("w.yml", "on: push\npermissions: write-all\nconcurrency: g\njobs:\n  t:\n    runs-on: ubuntu-latest\n    timeout-minutes: 1\n    steps: []\n")
+        res = rvsb.analyze_workflows(self.td_path)
+        self.assertEqual([f["issue"] for f in res["findings"]], ["Permissive write-all detected."])
+
+    def test_broken_yaml_falls_back_to_text(self):
+        self._write_wf("broken.yml", "jobs:\n  t:\n    runs-on: self-hosted\n   bad: [unclosed\n")
+        res = rvsb.analyze_workflows(self.td_path)
+        self.assertEqual(res["parse_modes"]["broken.yml"], "text")
+        self.assertIn("runner_type", self._rules(res, "broken.yml"))
+        self.assertIn("timeout", self._rules(res, "broken.yml"))
+
+    def test_without_pyyaml_falls_back_to_text(self):
+        self._write_wf("ci.yml", "on: push\njobs:\n  t:\n    runs-on: ubuntu-latest\n    timeout-minutes: 5\n")
+        with patch.object(rvsb, "yaml", None):
+            res = rvsb.analyze_workflows(self.td_path)
+        self.assertEqual(res["parse_modes"]["ci.yml"], "text")
+        self.assertNotIn("timeout", self._rules(res, "ci.yml"))
+
+    def test_report_de_shows_parse_mode(self):
+        md = rvsb.render_report_de("o", "r", "s", {"inspected_files": {"a.yml": "h"}, "parse_modes": {"a.yml": "yaml"}, "findings": []})
+        self.assertIn("(Prüfmodus: yaml)", md)
+
     @patch("revenue_v1_safety_baseline.worker")
     def test_verify_success(self, mock_worker):
         task = {"test": 1}

@@ -9,11 +9,21 @@
     "typecheck.yml": "8540a9bdf2f7b1797426d781d70a104ac98f2e161abe731d84fb6b29b901de32",
     "zizmor.yml": "43f564565a5b53ab769ceb2b0d7070af0913137f47be349eec9a01b9c2ef52f2"
   },
+  "parse_modes": {
+    "close-issues.yml": "yaml",
+    "codeql-analysis.yml": "yaml",
+    "lint.yml": "yaml",
+    "lock-issues.yml": "yaml",
+    "publish.yml": "yaml",
+    "run-tests.yml": "yaml",
+    "typecheck.yml": "yaml",
+    "zizmor.yml": "yaml"
+  },
   "findings": [
     {
       "rule": "timeout",
       "file": "close-issues.yml",
-      "issue": "Missing timeout-minutes configuration."
+      "issue": "Missing timeout-minutes configuration (jobs: close_feature_request, close_qa)."
     },
     {
       "rule": "concurrency",
@@ -23,7 +33,7 @@
     {
       "rule": "timeout",
       "file": "codeql-analysis.yml",
-      "issue": "Missing timeout-minutes configuration."
+      "issue": "Missing timeout-minutes configuration (jobs: analyze)."
     },
     {
       "rule": "concurrency",
@@ -38,7 +48,7 @@
     {
       "rule": "timeout",
       "file": "lock-issues.yml",
-      "issue": "Missing timeout-minutes configuration."
+      "issue": "Missing timeout-minutes configuration (jobs: action)."
     },
     {
       "rule": "concurrency",
@@ -48,12 +58,17 @@
     {
       "rule": "timeout",
       "file": "publish.yml",
-      "issue": "Missing timeout-minutes configuration."
+      "issue": "Missing timeout-minutes configuration (jobs: build, publish, publish-test-pypi)."
     },
     {
       "rule": "concurrency",
       "file": "publish.yml",
       "issue": "Missing concurrency block."
+    },
+    {
+      "rule": "timeout",
+      "file": "run-tests.yml",
+      "issue": "Missing timeout-minutes configuration (jobs: no_chardet, urllib3)."
     },
     {
       "rule": "concurrency",
@@ -68,7 +83,7 @@
     {
       "rule": "timeout",
       "file": "zizmor.yml",
-      "issue": "Missing timeout-minutes configuration."
+      "issue": "Missing timeout-minutes configuration (jobs: zizmor)."
     },
     {
       "rule": "concurrency",

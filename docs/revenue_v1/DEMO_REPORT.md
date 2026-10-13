@@ -1,19 +1,17 @@
-# Demo-Läufe (echt, lokal, 13.10.2026 ca. 15:55 CEST)
-Befehl: `python3 scripts/revenue_v1_safety_baseline.py worker task.json work_dir` und `... verify task.json work_dir result.json`, Skript-Stand Branch revenue-v1-deliverable (mit `.yaml`-Support, NO_FILES_INSPECTED-Warnung, deutschem Bericht `report_de.md`, neuen Regeln pull_request_target / unpinned_action / script_injection und Pfad-Schlüsseln für Unterordner). Kein Kunde, `customer_reference: DEMO-NO-CUSTOMER`.
+# Demo-Läufe (echt, lokal, 13.10.2026 ca. 16:00 CEST)
+Befehl: `/workspace/.venv-rv1/bin/python scripts/revenue_v1_safety_baseline.py worker task.json work_dir` und `... verify task.json work_dir result.json` (venv mit PyYAML 6.x), Skript-Stand Branch revenue-v1-deliverable mit YAML-Parsing (D3). Kein Kunde, `customer_reference: DEMO-NO-CUSTOMER`. Alle Dateien beider Repos im Prüfmodus `yaml` (`parse_modes` in report.json).
 
 ## Lauf A – psf/requests @ 611c6162cbc4ac2020a2f91c7cfa4f3abf9bbb60
-Worker PASS, Verifier PASS → HUMAN_REVIEW_REQUIRED. 8 Workflow-Dateien geprüft, 13 Befunde (8× fehlender concurrency-Block, 5× fehlendes timeout-minutes).
-report.json sha256 216aaaf1636fa76f4125ca179ae9c51441fc63f7bf56867a9e4821138b34db93 (unverändert zum Erstlauf), report_de.md sha256 e6bad5e30c468fedac979f679d885b5cb0c56d78079d9f29630049b693cb944e. Dateien: `demo/requests/` (task.json, result.json, verified.json, report.json, report.md, report_de.md).
+Worker PASS, Verifier PASS → HUMAN_REVIEW_REQUIRED. 8 Dateien, **14 Befunde** (8× concurrency, 6× timeout). report.json sha256 e9a1bfa5e553c689f556f68e77872aa506336627e3376a3c72a0e50790ab5a08, report_de.md sha256 7ae559a5b8ae094c41899c21a6b65cc12082980e4c3d62c3f32ae45c588adabe. Dateien: `demo/requests/`.
 
 ## Lauf B – pallets/flask @ d086db856be187255b8ec61ef409357393020f32
-Erstlauf (Skript 4b39599f2): `inspected_files: {}`, Bericht „No safety violations detected.“ – falsch-negativ, weil nur `*.yml` gelesen wurde.
-Aktueller Lauf: Worker PASS, Verifier PASS → HUMAN_REVIEW_REQUIRED. 5 Dateien geprüft (lock.yaml, pre-commit.yaml, publish.yaml, tests.yaml, zizmor.yaml), 5 Befunde: je 1× fehlendes `timeout-minutes`.
-report.json sha256 50c874f593603bef05ce9eb33eb707ca3de0bacbbc2bfa357762635deec4ef2f, report_de.md sha256 11cb962a2a19f67e5f58a072acfb1dacbb8de768d9c3cc94930c0dfbaee4f73e. Dateien: `demo/flask/`.
+Worker PASS, Verifier PASS → HUMAN_REVIEW_REQUIRED. 5 Dateien, **5 Befunde** (5× timeout). report.json sha256 d7d7043a9c1a98a497de6ba34766e58b9b47b0fe38722103504feeca01c22cfd, report_de.md sha256 88b167cd24210fdcff52e00386677f5d129ec0c4d77ff2538ffef49e71412b91. Dateien: `demo/flask/`.
+Historie: Erstlauf (Skript 4b39599f2) `inspected_files: {}` / „No safety violations detected.“ – falsch-negativ, weil nur `*.yml` gelesen wurde.
 
-## Neue Regeln (D4) in beiden Läufen: 0 Befunde – manuell gegengeprüft
-- unpinned_action: alle `uses:` in beiden Repos sind auf 40-stellige SHAs festgelegt (flask 21, requests 25 Zeilen geprüft).
-- pull_request_target: kommt in keinem Workflow vor.
-- script_injection: `github.event.*` kommt nur in `concurrency.group` (flask), `if:` und `env:` (requests close-issues.yml) vor, nicht direkt in `run:` – daher korrekt kein Befund.
-report.json beider Läufe ist byte-gleich zum vorherigen Lauf (Hashes unverändert).
+## Vergleich Textsuche (a811ad55) → YAML-Parsing
+- requests: 13 → 14. Neu: `run-tests.yml` timeout (Jobs `no_chardet`, `urllib3`). Die Textsuche sah ein `timeout-minutes:` im Job `build` (Z. 11) und hielt die ganze Datei für ok; die YAML-Prüfung prüft pro Job (manuell bestätigt: nur `build` hat ein Zeitlimit).
+- Alle timeout-Befunde nennen jetzt die betroffenen Jobs, z. B. `publish.yml` (build, publish, publish-test-pypi).
+- concurrency (requests 8×), permissions, pull_request_target, unpinned_action, script_injection: unverändert (kein Wegfall, kein Zuwachs).
+- flask: gleiche 5 Befunde, nur Text mit Jobnamen ergänzt.
 
-Hinweis: Beide Berichte erfordern vor Auslieferung eine menschliche Durchsicht; die Regeln sind Textsuchen (siehe PRODUKTSTAND.md, D3).
+Hinweis: Beide Berichte erfordern vor Auslieferung eine menschliche Durchsicht.

@@ -8,6 +8,11 @@ import shutil
 import re
 from pathlib import Path
 
+try:  # PyYAML is optional at runtime; without it every file falls back to text mode
+    import yaml
+except ImportError:  # pragma: no cover - depends on environment
+    yaml = None
+
 VERIFIER_ID = "revenue-v1-independent-verifier"
 
 def fail(message: str) -> None:
@@ -66,10 +71,102 @@ def extra_findings(name: str, content: str) -> list:
                 findings.append({"rule": "script_injection", "file": name, "issue": "github.event expression used directly in run: script."})
     return findings
 
+def text_findings(name: str, content: str) -> list:
+    """Fallback: plain text search (pre-YAML behaviour), used when PyYAML is missing or parsing fails."""
+    findings = []
+    if "runs-on: self-hosted" in content:
+        findings.append({"rule": "runner_type", "file": name, "issue": "Self-hosted runner detected."})
+    if "timeout-minutes:" not in content:
+        findings.append({"rule": "timeout", "file": name, "issue": "Missing timeout-minutes configuration."})
+    if "permissions:" not in content:
+        findings.append({"rule": "permissions", "file": name, "issue": "Missing explicit permissions block."})
+    elif "write-all" in content:
+        findings.append({"rule": "permissions", "file": name, "issue": "Permissive write-all detected."})
+    if "concurrency:" not in content:
+        findings.append({"rule": "concurrency", "file": name, "issue": "Missing concurrency block."})
+    if "git push" in content:
+        findings.append({"rule": "mutation_risk", "file": name, "issue": "git push detected in workflow."})
+    findings.extend(extra_findings(name, content))
+    return findings
+
+def parse_workflow(content: str):
+    """Return the workflow mapping, or None if PyYAML is missing, parsing fails or it is not a workflow (no jobs mapping)."""
+    if yaml is None:
+        return None
+    try:
+        doc = yaml.safe_load(content)
+    except yaml.YAMLError:
+        return None
+    if not isinstance(doc, dict) or not isinstance(doc.get("jobs"), dict):
+        return None
+    return doc
+
+def _triggers(doc: dict) -> list:
+    # PyYAML (YAML 1.1) reads the bare key `on` as boolean True
+    on = doc.get("on", doc.get(True))
+    if isinstance(on, str):
+        return [on]
+    if isinstance(on, list):
+        return [str(t) for t in on]
+    if isinstance(on, dict):
+        return [str(t) for t in on]
+    return []
+
+def _labels(runs_on) -> list:
+    if isinstance(runs_on, str):
+        return [runs_on]
+    if isinstance(runs_on, list):
+        return [str(x) for x in runs_on]
+    if isinstance(runs_on, dict):
+        labels = runs_on.get("labels", [])
+        return [labels] if isinstance(labels, str) else [str(x) for x in labels]
+    return []
+
+def _unpinned(ref: str) -> bool:
+    if ref.startswith("./") or ref.startswith("docker://"):
+        return False
+    return "@" not in ref or not SHA_RE.match(ref.rsplit("@", 1)[1])
+
+INJECTION_RE = re.compile(r"\$\{\{\s*github\.event\.")
+
+def yaml_findings(name: str, doc: dict) -> list:
+    """Structure-based checks on a parsed workflow."""
+    findings = []
+    jobs = {k: v for k, v in doc["jobs"].items() if isinstance(v, dict)}
+    # reusable-workflow calls (job-level uses:) cannot set timeout-minutes/runs-on
+    step_jobs = {k: v for k, v in jobs.items() if "uses" not in v}
+    if any("self-hosted" in _labels(j.get("runs-on")) for j in jobs.values()):
+        findings.append({"rule": "runner_type", "file": name, "issue": "Self-hosted runner detected."})
+    missing = sorted(k for k, j in step_jobs.items() if "timeout-minutes" not in j)
+    if missing:
+        findings.append({"rule": "timeout", "file": name, "issue": f"Missing timeout-minutes configuration (jobs: {', '.join(missing)})."})
+    perms = [doc.get("permissions")] + [j.get("permissions") for j in jobs.values()]
+    if "permissions" not in doc and any("permissions" not in j for j in jobs.values()):
+        findings.append({"rule": "permissions", "file": name, "issue": "Missing explicit permissions block."})
+    elif any(p == "write-all" for p in perms):
+        findings.append({"rule": "permissions", "file": name, "issue": "Permissive write-all detected."})
+    if "concurrency" not in doc and any("concurrency" not in j for j in jobs.values()):
+        findings.append({"rule": "concurrency", "file": name, "issue": "Missing concurrency block."})
+    steps = [st for j in jobs.values() for st in (j.get("steps") or []) if isinstance(st, dict)]
+    runs = [str(st["run"]) for st in steps if "run" in st]
+    if any("git push" in r for r in runs):
+        findings.append({"rule": "mutation_risk", "file": name, "issue": "git push detected in workflow."})
+    if "pull_request_target" in _triggers(doc):
+        findings.append({"rule": "pull_request_target", "file": name, "issue": "pull_request_target trigger detected."})
+    refs = [str(st["uses"]) for st in steps if "uses" in st] + [str(j["uses"]) for j in jobs.values() if "uses" in j]
+    for ref in refs:
+        if _unpinned(ref):
+            findings.append({"rule": "unpinned_action", "file": name, "issue": f"Action not pinned to a full 40-char commit SHA: {ref}"})
+    for r in runs:
+        if INJECTION_RE.search(r):
+            findings.append({"rule": "script_injection", "file": name, "issue": "github.event expression used directly in run: script."})
+    return findings
+
 def analyze_workflows(repo_dir: Path) -> dict:
     workflows_dir = repo_dir / ".github" / "workflows"
     findings = []
     inspected_files = {}
+    parse_modes = {}
     
     if workflows_dir.exists() and workflows_dir.is_dir():
         for wf_path in sorted([*workflows_dir.rglob("*.yml"), *workflows_dir.rglob("*.yaml")]):
@@ -78,22 +175,17 @@ def analyze_workflows(repo_dir: Path) -> dict:
             inspected_files[wf.as_posix()] = hash_file(wf_path)
             content = wf_path.read_text(encoding="utf-8")
             
-            if "runs-on: self-hosted" in content:
-                findings.append({"rule": "runner_type", "file": wf.as_posix(), "issue": "Self-hosted runner detected."})
-            if "timeout-minutes:" not in content:
-                findings.append({"rule": "timeout", "file": wf.as_posix(), "issue": "Missing timeout-minutes configuration."})
-            if "permissions:" not in content:
-                findings.append({"rule": "permissions", "file": wf.as_posix(), "issue": "Missing explicit permissions block."})
-            elif "write-all" in content:
-                findings.append({"rule": "permissions", "file": wf.as_posix(), "issue": "Permissive write-all detected."})
-            if "concurrency:" not in content:
-                findings.append({"rule": "concurrency", "file": wf.as_posix(), "issue": "Missing concurrency block."})
-            if "git push" in content:
-                findings.append({"rule": "mutation_risk", "file": wf.as_posix(), "issue": "git push detected in workflow."})
-            findings.extend(extra_findings(wf.as_posix(), content))
+            doc = parse_workflow(content)
+            if doc is not None:
+                parse_modes[wf.as_posix()] = "yaml"
+                findings.extend(yaml_findings(wf.as_posix(), doc))
+            else:
+                parse_modes[wf.as_posix()] = "text"
+                findings.extend(text_findings(wf.as_posix(), content))
     
     return {
         "inspected_files": inspected_files,
+        "parse_modes": parse_modes,
         "findings": findings
     }
 
@@ -175,9 +267,10 @@ def render_report_de(owner: str, repo: str, sha: str, analysis: dict) -> str:
                 md += f"```yaml\n{r['yaml']}\n```\n\n"
     md += "## Geprüfte Dateien (SHA-256)\n\n"
     for name, h in analysis["inspected_files"].items():
-        md += f"- `{name}`: `{h}`\n"
+        mode = analysis.get("parse_modes", {}).get(name, "text")
+        md += f"- `{name}`: `{h}` (Prüfmodus: {mode})\n"
     md += "\n## Wichtige Hinweise\n\n"
-    md += "- Geprüft wurden ausschließlich diese Regeln: Self-hosted Runner, timeout-minutes, permissions/write-all, concurrency, git push, pull_request_target, Actions ohne festen Commit-SHA, github.event-Ausdrücke direkt in run:. Die Prüfung erfolgt per Text-/Zeilensuche je Datei, ohne vollständiges YAML-Parsing.\n"
+    md += "- Geprüft wurden ausschließlich diese Regeln: Self-hosted Runner, timeout-minutes, permissions/write-all, concurrency, git push, pull_request_target, Actions ohne festen Commit-SHA, github.event-Ausdrücke direkt in run:. Die Prüfung erfolgt strukturbasiert per YAML-Parser (Prüfmodus yaml); ist eine Datei nicht parsebar oder PyYAML nicht verfügbar, wird auf eine Textsuche zurückgefallen (Prüfmodus text, ungenauer).\n"
     md += "- Nicht geprüft werden u. a. Anwendungscode, Abhängigkeiten, Secrets, wiederverwendbare Workflows/Composite Actions von außerhalb und weitere Injection-Quellen außer github.event.\n"
     md += "- Es wird keine Garantie für Sicherheit oder Vollständigkeit gegeben. Fehlende Befunde bedeuten nicht, dass die Workflows sicher sind. Kein Penetrationstest, keine Zertifizierung.\n"
     md += "- Dieser Bericht wurde automatisch erzeugt und erfordert vor Auslieferung eine menschliche Durchsicht.\n"
