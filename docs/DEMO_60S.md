@@ -76,10 +76,13 @@ Pfad per `--home <home>` oder direkt per `--needs-you <datei>` (bei `demo_60s.py
 
 - Gültige `NEEDS_YOU`-Zeilen erscheinen in der Kachel mit Grund (`blocker`) und nächster Aktion,
   nach `at` sortiert, Duplikate (`mission_id`+`blocked_event_id`) einmal.
+- Erledigte Einträge werden ausgeblendet: eine Zeile `{"kind":"RESOLVED","mission_id","blocked_event_id",…}`
+  (von `queue_feed` bei der Wiederaufnahme angehängt) schließt den NEEDS_YOU mit gleicher
+  `mission_id` + `blocked_event_id`, unabhängig von der Reihenfolge. Ein neuer Block derselben Mission bleibt offen.
 - Kaputte oder fremde Zeilen werden still übersprungen.
-- Fehlt die Datei oder hat sie keine gültigen Einträge → Fallback auf den Demo-Beleg.
+- Fehlt die Datei oder hat sie keine offenen Einträge → Fallback auf den Demo-Beleg.
 - Über den Kacheln steht immer „NEEDS-YOU-Quelle: …“ (jsonl oder „Demo-Beleg (Fallback …)“).
 
 Beispiel: `./scripts/demo_60s.sh --html --home ~/courier_home`
 
-Tests: `tests/orchestrator/test_demo_view.py`, `tests/orchestrator/test_demo_view_needs_you_source.py`.
+Tests: `tests/orchestrator/test_demo_view.py`, `tests/orchestrator/test_demo_view_needs_you_source.py`, `tests/orchestrator/test_demo_view_open_only.py`.
