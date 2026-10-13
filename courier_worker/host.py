@@ -32,6 +32,16 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
 
+try:  # Loaded once at import, before any task runs: a lazy first import during
+    # a task cost the Windows worker ~35 extra OS handles after the golden
+    # baseline (182 vs 147 in Windows CI). The own create_time is fixed for the
+    # process lifetime, so it is read once as well.
+    import psutil as _psutil
+    _OWNER_CREATE_TIME = float(_psutil.Process(os.getpid()).create_time())
+except Exception:  # pragma: no cover - psutil is a pinned dependency
+    _psutil = None
+    _OWNER_CREATE_TIME = 0.0
+
 # -- bounds (all of them are load-bearing contracts) --------------------------
 MAX_TIMEOUT_S = 3600.0
 DEFAULT_TIMEOUT_S = 300.0
@@ -519,9 +529,8 @@ def _owner_alive(owner_pid: int, owner_create_time: float | None = None) -> bool
         return False
     if owner_create_time and owner_create_time > 0.0:
         try:
-            import psutil
-            proc = psutil.Process(owner_pid)
-            if proc.status() == psutil.STATUS_ZOMBIE:
+            proc = _psutil.Process(owner_pid)
+            if proc.status() == _psutil.STATUS_ZOMBIE:
                 return False
             if abs(proc.create_time() - owner_create_time) > 0.1:
                 return False
@@ -544,12 +553,7 @@ def _owner_alive(owner_pid: int, owner_create_time: float | None = None) -> bool
 
 def _write_claim_record(home: str, spec: ExecutionSpec, run: ContainedRun) -> Path:
     _claims_dir(home).mkdir(parents=True, exist_ok=True)
-    owner_create_time = 0.0
-    try:
-        import psutil
-        owner_create_time = psutil.Process(os.getpid()).create_time()
-    except Exception:
-        pass
+    owner_create_time = _OWNER_CREATE_TIME
     record = {"task_id": spec.task_id, "attempt": spec.attempt, "dispatch_id": spec.dispatch_id,
               "worker_id": spec.worker_id, "owner_pid": os.getpid(), "owner_create_time": owner_create_time,
               "child_pid": run.pid, "pgid": run.group_id()}

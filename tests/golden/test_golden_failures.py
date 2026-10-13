@@ -7,6 +7,7 @@ import json
 import os
 import sqlite3
 import time
+import warnings
 
 from golden_harness import GOLDEN_SHA256, open_handles, pids_alive, wait_until
 
@@ -118,8 +119,16 @@ def test_timeout_kills_the_task_tree_and_retries(courier):
     assert complete["attempt"] == 2
     assert len(accepted_events(courier, task_id)) == 1
     time.sleep(2)
+    after_handles = open_handles(worker.pid)
+    # Diagnostic so passing Windows CI runs also record the measured delta.
+    warnings.warn(f"golden handles: baseline={baseline_handles} after={after_handles} "
+                  f"delta={after_handles - baseline_handles} os={os.name}")
+    # Windows: +35 was measured (147 -> 182) in 8 failing CI runs of #410 before
+    # psutil was imported eagerly in courier_worker/host.py; 40 = measured + 5.
+    # Lower back to 4 once Windows CI shows the delta with the eager import.
     tolerance = 40 if os.name == "nt" else 4
-    assert open_handles(worker.pid) <= baseline_handles + tolerance, "worker host leaked handles/descriptors"
+    assert after_handles <= baseline_handles + tolerance, (
+        f"worker host leaked handles/descriptors: {baseline_handles} -> {after_handles}")
 
 
 def test_cancel_while_running(courier):
