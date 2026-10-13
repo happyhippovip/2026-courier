@@ -182,6 +182,49 @@ def test_ledger_a_b_c_chain_hands_each_verified_result_on(tmp_path):
         courier.close()
 
 
+def test_ledger_chain_survives_a_controller_kill_between_b_and_c(tmp_path):
+    token = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(24))
+    Courier = _courier_cls()
+    home = tmp_path / "home"
+    logs = tmp_path / "logs"
+    home.mkdir()
+    logs.mkdir()
+    courier = Courier(home, logs)
+    try:
+        courier.start_controller(timeout=20)
+        store = FileCoordinationStore(home / "coordination_ledger.jsonl")
+        store.write_event(_event("a-assign", "A", "2026-10-08T04:00:00Z"))
+        store.write_event(_event("b-assign", "B", "2026-10-08T04:00:01Z", deps=["A"]))
+        store.write_event(_event("c-assign", "C", "2026-10-08T04:00:02Z", deps=["B"]))
+        specs = {"A": _spec(content=token), "B": _spec(from_input="reverse"), "C": _spec(from_input="reverse")}
+        (home / "ledger_tasks.json").write_text(json.dumps(specs), encoding="utf-8")
+
+        task_a, _ = _run_next(courier, home, "A")
+        task_b, _ = _run_next(courier, home, "B")
+        finals_before = {mid: event.event_id for mid, event in _finals(home).items()}
+
+        courier.kill_controller()  # no clean shutdown between B and C
+        courier.start_controller(timeout=20)
+
+        task_c, _ = _run_next(courier, home, "C")
+        done = _bridge(home, courier.base_url)
+        assert done.returncode == 0, done.stderr + done.stdout
+
+        assert _artifact_bytes(courier, home, task_c) == token.encode()
+        claims = [_payload(e) | {"task_id": e["task_id"]} for e in courier.all_events() if e["type"] == "TASK_CLAIMED"]
+        assert sorted(c["task_id"] for c in claims) == sorted([task_a, task_b, task_c])  # nothing ran twice
+        assert next(c for c in claims if c["task_id"] == task_c)["input"]["task_id"] == task_b
+        assert len(_created(courier)) == 3
+        finals = _finals(home)
+        assert set(finals) == {"A", "B", "C"}
+        assert all(finals[mid].event_id == event_id for mid, event_id in finals_before.items())
+        reducer = reduce_store(FileCoordinationStore(home / "coordination_ledger.jsonl"))
+        kinds = [event.mission_id for event in reducer.events if event.event_type == EventType.FINAL]
+        assert sorted(kinds) == ["A", "B", "C"]  # one FINAL per mission across the kill
+    finally:
+        courier.close()
+
+
 def test_bind_input_needs_exactly_one_ledger_dependency(tmp_path):
     Courier = _courier_cls()
     home = tmp_path / "home"
