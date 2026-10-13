@@ -123,7 +123,11 @@ def supervisor(sup, target=4, clock=None):
 
 
 def task_state(server, task_id):
-    return server.load_state()["tasks"].get(task_id, {})
+    # The in-process server writes the state file and its .sig in two steps
+    # under STATE_LOCK; reading without it can see a new state with the old
+    # signature and raise "signature mismatch" (flaky, ~1 in 12 runs).
+    with server.STATE_LOCK:
+        return server.load_state()["tasks"].get(task_id, {})
 
 
 def test_slot_claims_canonical_task_runs_muse_exits_and_restarts_with_checkpoint(env):
