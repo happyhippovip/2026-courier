@@ -529,6 +529,16 @@ class WorkerLoop:
             print(f"courier_worker.service: idle hook failed: {exc.__class__.__name__}",
                   file=sys.stderr)
 
+    def _maybe_request_continuation(self) -> None:
+        request = getattr(self._idle_hook, "request_continuation", None)
+        if request is None:
+            return
+        try:
+            request()
+        except Exception as exc:  # noqa: BLE001 - never stops the worker
+            print(f"courier_worker.service: continuation request failed: {exc.__class__.__name__}",
+                  file=sys.stderr)
+
     # -- owned run ---------------------------------------------------------------
     def run(self, stop: Optional[threading.Event] = None) -> int:
         stop = stop or threading.Event()
@@ -558,6 +568,8 @@ class WorkerLoop:
                 except ResourcePaused as exc:
                     print(f"courier_worker.service: paused due to resource pressure: {exc}", file=sys.stderr)
                     action = "idle"
+                if action == "delivered":
+                    self._maybe_request_continuation()  # turn boundary
                 if action == "idle":
                     if not stop.is_set():
                         self._maybe_idle_hook()

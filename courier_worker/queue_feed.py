@@ -47,6 +47,23 @@ def _utc(now=None) -> str:
     return moment.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def has_open_work(home, now=None) -> bool:
+    """True when the opt-in queue has a held or a READY workkey with a task spec."""
+    home = Path(home)
+    config = _read_json(home / CONFIG_NAME, None)
+    if config is None:
+        return False
+    from courier_core.work_queue import WorkQueue
+
+    holder = config["holder"]
+    specs = config.get("specs") or {}
+    queue = WorkQueue(items_dir=config["items_dir"], ledger_path=config["ledger"])
+    if any(i.get("status") == "CLAIMED" and (i.get("lease") or {}).get("holder") == holder
+           for i in queue.items(now=now)):
+        return True
+    return any(i["id"] in specs for i in queue.list_ready(now=now))
+
+
 def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
     home = Path(home)
     config = _read_json(home / CONFIG_NAME, None)
