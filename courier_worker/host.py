@@ -313,8 +313,8 @@ if os.name == "nt":
     def _close_job(job: object) -> None:
         _kernel32.CloseHandle(job)
 
-    def _terminate_job(job: object) -> None:
-        _kernel32.TerminateJobObject(job, 1)
+    def _terminate_job(job: object) -> bool:
+        return bool(_kernel32.TerminateJobObject(job, 1))
 
     # NtResumeProcess resumes all threads in a process given its handle.
     # This replaces the psutil dependency for the CREATE_SUSPENDED pattern.
@@ -341,8 +341,30 @@ else:
     def _close_job(job: object) -> None:
         pass
 
-    def _terminate_job(job: object) -> None:
-        pass
+    def _terminate_job(job: object) -> bool:
+        return False
+
+
+def terminate_job_tree(job, proc, *, grace: float, terminate, close) -> None:
+    """Kill an owned Windows tree by its job object.
+
+    ``terminate`` is TerminateJobObject, or a test double. False, a missing
+    job, or a root that is still alive after the bounded wait raises
+    ContainmentError. The handle is closed only after the root has been reaped,
+    so a failed kill is not reported as a clean stop.
+    """
+    if job is None:
+        raise ContainmentError("no job object; child processes would survive termination")
+    if not terminate(job):
+        raise ContainmentError("TerminateJobObject failed; owned tree was not killed")
+    if proc.poll() is None:
+        try:
+            proc.wait(timeout=grace)
+        except subprocess.TimeoutExpired:
+            raise ContainmentError("owned process still alive after job termination") from None
+    if proc.poll() is None:
+        raise ContainmentError("owned process still alive after job termination")
+    close(job)
 
 
 class ContainedRun:
@@ -388,11 +410,9 @@ class ContainedRun:
     def terminate_tree(self, grace: float = KILL_GRACE_S) -> None:
         """SIGTERM, then SIGKILL, then reap. Addresses the owned tree only."""
         if os.name == "nt":
-            if self.job is not None:
-                _terminate_job(self.job)
-            if self.proc.poll() is None:
-                self.proc.wait()
-            self._close()
+            terminate_job_tree(self.job, self.proc, grace=grace,
+                               terminate=_terminate_job, close=_close_job)
+            self.job = None
             return
 
         pgid = self.proc.pid
