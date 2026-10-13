@@ -3,8 +3,11 @@
 REQUEST -> FETCH (through an injected, grant-checked fetcher) -> content-
 addressed store -> quote anchor check -> conclusion with provenance ->
 accepted fact. A conclusion is SUPPORTED only if the exact quote is present
-in bytes that were actually fetched from the approved origin; otherwise
-CONTRADICTED (fetched, quote absent) or BLOCKED (origin not approved).
+in bytes that were actually fetched from the approved origin. offset and
+length then index those raw bytes. Otherwise CONTRADICTED (fetched, quote
+absent, or the quote contains U+FFFD) or BLOCKED (origin not approved).
+U+FFFD is never treated as byte evidence: decoding with replacement would
+invent it.
 """
 import hashlib
 from dataclasses import dataclass
@@ -48,10 +51,14 @@ def check_claim(request, fetch, store, log, clock):
     if f"{final.scheme}://{final.netloc}" != request.approved_origin:
         return {"conclusion": "BLOCKED", "reason": "redirect left the approved origin"}
     digest = store.put(body)
-    text = store.get(digest).decode("utf-8", errors="replace")
-    at = text.find(request.quote)
+    stored = store.get(digest)
+    encoded = request.quote.encode("utf-8")
+    if "\ufffd" in request.quote:
+        at = -1
+    else:
+        at = stored.find(encoded)
     conclusion = "SUPPORTED" if at >= 0 else "CONTRADICTED"
-    anchor = {"sha256": digest, "url": final_url, "offset": at if at >= 0 else None, "length": len(request.quote)}
+    anchor = {"sha256": digest, "url": final_url, "offset": at if at >= 0 else None, "length": len(encoded)}
     log.append(AcceptedFact(request.workkey, 0, f"{conclusion}: {request.quote!r} at {final_url}",
                             (f"content:{digest}",), "controller", clock()))
     return {"conclusion": conclusion, "anchor": anchor}
