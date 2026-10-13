@@ -105,11 +105,13 @@ export function renderCard(card, opts = {}) {
         data-action="decide" data-id="${id}" data-decision="${escapeHtml(choice.decision)}" data-attempt="${escapeHtml(n.blocked_attempt)}"
         ${allowed && !pending ? '' : 'disabled aria-disabled="true"'}>${escapeHtml(choice.label)}</button>`).join('');
     const explains = n.choices.map((c) => `<li><strong>${escapeHtml(c.label)}:</strong> ${escapeHtml(c.explains)}</li>`).join('');
+    const next = n.next ? `<p class="next">${escapeHtml(n.next)}</p>` : '';
     const noRetry = n.retry_unavailable_reason ? `<p class="note">${escapeHtml(n.retry_unavailable_reason)}</p>` : '';
     const evidence = n.evidence.length ? `<p class="note">${escapeHtml(n.evidence.length)} late report(s) arrived — see details.</p>` : '';
     return `<article class="card card-needs" data-id="${id}" aria-labelledby="t-${id}">
   <h3 id="t-${id}" class="card-title">${escapeHtml(n.question)}</h3>
   <p class="why">${escapeHtml(n.why)}</p>
+  ${next}
   <p class="consequence">${escapeHtml(n.consequence)}</p>
   <ul class="explains">${explains}</ul>${noRetry}${evidence}
   <div class="choices" role="group" aria-label="Your decision">${buttons}</div>
