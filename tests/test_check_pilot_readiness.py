@@ -31,3 +31,12 @@ def test_check_readiness_failure(monkeypatch, capsys):
     assert exc_info.value.code == 1
     captured = capsys.readouterr()
     assert "FAILED: Missing ops/ai/PILOT_DUMMY_TASK.json" in captured.out
+
+def test_check_readiness_from_other_cwd(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(SystemExit) as exc_info:
+        check_readiness()
+
+    assert exc_info.value.code == 0
+    captured = capsys.readouterr()
+    assert "ALL PILOT PREREQUISITES PRESENT" in captured.out
