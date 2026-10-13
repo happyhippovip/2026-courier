@@ -4,7 +4,11 @@ REQUEST -> FETCH (through an injected, grant-checked fetcher) -> content-
 addressed store -> quote anchor check -> conclusion with provenance ->
 accepted fact. A conclusion is SUPPORTED only if the exact quote is present
 in bytes that were actually fetched from the approved origin; otherwise
-CONTRADICTED (fetched, quote absent) or BLOCKED (origin not approved).
+CONTRADICTED (fetched, quote absent) or BLOCKED (origin not approved, or the
+quote itself is missing, empty, or not encodable as UTF-8).
+
+The quote is matched as its raw UTF-8 bytes. Invalid body bytes are not
+replaced, so a Unicode replacement character cannot invent a match.
 """
 import hashlib
 from dataclasses import dataclass
@@ -37,8 +41,23 @@ class ResearchRequest:
     approved_origin: str          # scheme://host[:port] the grant covers
 
 
+def _quote_needle(quote):
+    """UTF-8 bytes of a real quote, or a fail-closed BLOCKED conclusion."""
+    if not isinstance(quote, str):
+        return None, {"conclusion": "BLOCKED", "reason": "quote is missing"}
+    if quote == "":
+        return None, {"conclusion": "BLOCKED", "reason": "empty quote is not a claim"}
+    try:
+        return quote.encode("utf-8"), None
+    except UnicodeEncodeError:
+        return None, {"conclusion": "BLOCKED", "reason": "quote cannot be encoded as utf-8"}
+
+
 def check_claim(request, fetch, store, log, clock):
     """fetch(url) -> (final_url, bytes). Returns the conclusion dict and records it if decided."""
+    needle, rejected = _quote_needle(request.quote)
+    if rejected:
+        return rejected
     parts = urlsplit(request.url)
     origin = f"{parts.scheme}://{parts.netloc}"
     if parts.scheme != "https" or origin != request.approved_origin:
@@ -48,10 +67,10 @@ def check_claim(request, fetch, store, log, clock):
     if f"{final.scheme}://{final.netloc}" != request.approved_origin:
         return {"conclusion": "BLOCKED", "reason": "redirect left the approved origin"}
     digest = store.put(body)
-    text = store.get(digest).decode("utf-8", errors="replace")
-    at = text.find(request.quote)
+    stored = store.get(digest)
+    at = stored.find(needle)
     conclusion = "SUPPORTED" if at >= 0 else "CONTRADICTED"
-    anchor = {"sha256": digest, "url": final_url, "offset": at if at >= 0 else None, "length": len(request.quote)}
+    anchor = {"sha256": digest, "url": final_url, "offset": at if at >= 0 else None, "length": len(needle)}
     log.append(AcceptedFact(request.workkey, 0, f"{conclusion}: {request.quote!r} at {final_url}",
                             (f"content:{digest}",), "controller", clock()))
     return {"conclusion": conclusion, "anchor": anchor}
