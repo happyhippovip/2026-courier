@@ -1,21 +1,29 @@
-# Website-Quelle (Sprint 08.10., shell-less gebaut)
+# Website-Vorschau
 
-## Warum
-`deploy-pages.yml` baut `website/` → `website/public/`, aber `website/` fehlt
-auf main (404). Jeder Deploy-Versuch scheitert. Diese 4 Dateien schließen die
-Lücke. Lokal gebaut, NICHT gepusht (Shell down): zum Übernehmen Ordner
-`website/` auf main legen, Workflow manuell starten.
+`website/src/` ist die Quelle. `./build_site.sh` schreibt `website/public/`.
+Diese Datei gehört nicht ins Deploy-Artefakt.
 
-## Dateien
-- `src/index.html` — Startseite (Deutsch, kein JS, kein Tracking, keine Cookies)
-- `src/404.html` — Fehlerseite
-- `build_site.sh` — Build (sh-only, kein Netzwerk; E-Mail nur wenn gesetzt)
-- `README_SPRINT.md` — diese Datei (nicht Teil des Deploy-Artefakts)
+Öffentlich ausliefern tut nur der manuelle Workflow
+`Deploy Courier Website to GitHub Pages` (`workflow_dispatch`).
+Ein Push auf den Vorschau-Zweig prüft den Build und lädt ihn als Artefakt hoch.
+Er schaltet die Domain nicht.
 
-## Danach (Dennis, ca. 5 Min, nur du kannst das)
-1. STRATO DNS: Apex-A auf 185.199.108.109/110/111 + enforcing HTTPS in Pages.
-2. Mail: SPF-Eintrag aus STRATO-Panel setzen (sonst DMARC-Rejects weiter).
-3. GitHub → Actions → Deploy Courier Website → Run workflow.
+## Was die alte Notiz falsch sagte
 
-## Absichtlich NICHT drin
-Keine persönlichen Daten, keine Zahlung, kein Shop, kein Tracking.
+`website/` fehlt nicht mehr auf `integration/v1`.
+Die Apex-Adressen `185.199.108.109/110/111` sind nicht die GitHub-Pages-Ziele.
+Zum Vergleich, nicht zum blinden Setzen, nennt GitHub Pages diese IPv4-Adressen:
+`185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`.
+
+Diese Datei ändert kein DNS und keine Mail-Records (MX, SPF, DKIM, DMARC).
+`couriersymphony.de` zeigt weiter die reservierte STRATO-Seite. Das ist nicht live.
+
+## Lokal ansehen
+
+```sh
+cd website && ./build_site.sh && python3 lounge_relay.py
+```
+
+Dann `http://127.0.0.1:8765/` . Die letzte Laterne lässt sich auch ohne Relay öffnen:
+Name, eine von drei Figuren, dann der eine Raum. Ohne Relay ist niemand sonst da.
+Das Relay hört nur auf `127.0.0.1` und ist kein öffentlicher Chat.
