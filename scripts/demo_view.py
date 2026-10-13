@@ -6,7 +6,8 @@ grossen Phasen-Kacheln GOAL / WORKING / NEEDS YOU / DONE.
 Echte Quelle fuer NEEDS YOU: <home>/run/needs_you.jsonl (eine JSON-Zeile pro BLOCKED-Ereignis,
 Felder kind="NEEDS_YOU", mission_id, blocked_event_id, blocker, at, next_action; Format wie in
 courier_worker/queue_feed.py auf feat/blocked-wake-resume, nur gelesen, kein Code uebernommen).
-Fehlt die Datei oder enthaelt sie keine gueltigen Eintraege, dient der Demo-Beleg als Fallback.
+Eintraege mit passendem kind="RESOLVED" gelten als erledigt und werden nicht angezeigt.
+Fehlt die Datei oder enthaelt sie keine offenen Eintraege, dient der Demo-Beleg als Fallback.
 Die Anzeige nennt die benutzte Quelle.
 
   python3 scripts/demo_view.py demo_out/demo_60s_evidence.json -o demo_out/needs_you_view.html
@@ -48,26 +49,30 @@ NEEDS_YOU_FILE = "needs_you.jsonl"
 
 
 def load_needs_you(path: Path | None) -> list[dict]:
-    """Offene NEEDS_YOU-Eintraege; kaputte/fremde Zeilen werden uebersprungen, Duplikate entfernt."""
+    """Offene NEEDS_YOU-Eintraege (ohne passenden RESOLVED: gleiche mission_id + blocked_event_id); kaputte/fremde Zeilen werden uebersprungen, Duplikate entfernt."""
     if path is None:
         return []
     try:
         text = path.read_text(encoding="utf-8", errors="replace")
     except OSError:
         return []
-    seen, rows = set(), []
+    seen, rows, resolved = set(), [], set()
     for line in text.splitlines():
         try:
             row = json.loads(line)
         except ValueError:
             continue
-        if not isinstance(row, dict) or row.get("kind") != "NEEDS_YOU" or not row.get("mission_id"):
+        if not isinstance(row, dict) or not row.get("mission_id"):
             continue
         key = (str(row.get("mission_id")), str(row.get("blocked_event_id")))
-        if key in seen:
+        if row.get("kind") == "RESOLVED":
+            resolved.add(key)        # schliesst den passenden NEEDS_YOU, egal in welcher Reihenfolge
+            continue
+        if row.get("kind") != "NEEDS_YOU" or key in seen:
             continue
         seen.add(key)
         rows.append(row)
+    rows = [r for r in rows if (str(r["mission_id"]), str(r.get("blocked_event_id"))) not in resolved]
     return sorted(rows, key=lambda r: (str(r.get("at") or ""), str(r["mission_id"]), str(r.get("blocked_event_id"))))
 
 
