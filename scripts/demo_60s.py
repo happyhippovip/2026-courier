@@ -19,6 +19,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "scripts"))
 
 from courier_orchestrator.demo import build  # noqa: E402  (Mock-Modus aus #542)
 from courier_orchestrator.models import GoalStatus, TaskStatus, to_dict  # noqa: E402
@@ -131,10 +132,15 @@ def main(argv=None) -> int:
     ap.add_argument("--interactive", action="store_true", help="Freigabe per Tastatur bei NEEDS YOU")
     ap.add_argument("--out", default=str(ROOT / "demo_out"), help="Ordner fuer den Beleg")
     ap.add_argument("--no-color", action="store_true")
+    ap.add_argument("--html", action="store_true", help="zusaetzlich statische Statusanzeige needs_you_view.html erzeugen")
     a = ap.parse_args(argv)
     pace = 0.0 if a.fast else 1.0
     color = not a.no_color and sys.stdout.isatty()
     r = run(a.goal, Path(a.out), pace=pace, color=color, interactive=a.interactive)
+    if a.html and r.get("artifact"):
+        from demo_view import write
+        html = write(Path(r["artifact"]), Path(a.out) / "needs_you_view.html")
+        print(f"Statusanzeige: {html}")
     return 0 if r["status"] == "DONE" else 1
 
 
