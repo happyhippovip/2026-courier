@@ -64,6 +64,7 @@ TOKEN_HEADER = "X-Courier-Token"
 _TASK_PATH = re.compile(r"^/v1/tasks/([A-Za-z0-9_.:-]{1,200})$")
 _CANCEL_PATH = re.compile(r"^/v1/tasks/([A-Za-z0-9_.:-]{1,200})/cancel$")
 _RESOLVE_PATH = re.compile(r"^/v1/tasks/([A-Za-z0-9_.:-]{1,200})/resolve$")
+_RESULT_PATH = re.compile(r"^/v1/tasks/([A-Za-z0-9_.:-]{1,200})/result$")
 
 
 # --------------------------------------------------------------------- files
@@ -223,6 +224,9 @@ class Handler(BaseHTTPRequestHandler):
                 match = _TASK_PATH.match(path)
                 if match:
                     return self._send(200, controller.task_view(match.group(1)))
+                match = _RESULT_PATH.match(path)
+                if match:
+                    return self._send(200, controller.task_result(match.group(1)))
                 raise ApiError(404, "not_found")
             body = self._read_json()
             if path == "/v1/tasks":
