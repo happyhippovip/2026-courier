@@ -1,0 +1,27 @@
+{
+  "artifacts": [
+    {
+      "path": "courier_core/verifier_receipt.py",
+      "sha256": "1f1fbf96ed4167cc6f76f0d209b9bd3225f415bfd7554f5a3f7910a89ee02020"
+    },
+    {
+      "path": "scripts/verifier_receipt.py",
+      "sha256": "b0cd8505e94eabd8848039d3c5e594d5f9fdc6c52503b5f353113083ea6715bf"
+    },
+    {
+      "path": "tests/test_verifier_receipt.py",
+      "sha256": "3171a870524ca62a2e0451f8e2b039cd69c36931f9916673f54e30817dd19475"
+    }
+  ],
+  "exit_code": 0,
+  "host": "cursor",
+  "owner": "Courier Grok",
+  "platform": "linux",
+  "pr_head_sha": "77dcb5496d7ebcb815b1a265eec41ae86b1e4ccf",
+  "result": "RESULT_ACCEPTED",
+  "schema": "courier.verifier_receipt/v1",
+  "skipped": 0,
+  "source_sha": "77dcb5496d7ebcb815b1a265eec41ae86b1e4ccf",
+  "test_command": "python3 -m pytest -q tests/test_verifier_receipt.py",
+  "timestamp": "2026-10-13T15:22:15.872989+00:00"
+}
