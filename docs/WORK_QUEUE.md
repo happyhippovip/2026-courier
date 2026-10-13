@@ -16,7 +16,7 @@ python -m courier_core.work_queue release --item REPORT-QA --holder window-a --r
 python -m courier_core.work_queue spawn --template P9 --module worker_tokens --ledger /path/to/queue.jsonl
 ```
 
-`next` prints the lowest-id ready item and a prompt for an interactive window. It does not claim. Claim before writing. Pass `--open-pr-file` once per path changed by an open pull request, and `--done-pr` once per merged pull request a dependency names. `spawn` turns the P9 template into one `P9-<module>` item.
+`next` prints the lowest-id ready item and a prompt for an interactive window. It does not claim. Claim before writing. Pass `--open-pr-file` once per path changed by an open pull request, and `--done-pr` once per merged pull request a dependency names. Pass `--draft-pr` for a pull request that is still a draft; that number does not satisfy `depends_on`, even when it is also passed as `--done-pr`. A directory scope such as `tests/` overlaps a file under that directory. `spawn` turns the P9 template into one `P9-<module>` item.
 
 Exit 0 means the command ran. `NO_READY_ITEM` means the queue has nothing to offer. Exit 2 prints a short code and no traceback.
 
@@ -25,9 +25,9 @@ Exit 0 means the command ran. `NO_READY_ITEM` means the queue has nothing to off
 An item is ready when:
 
 - its effective status is `READY`, or an ordinary claim lease is already expired
-- every `depends_on` entry is a `DONE` item or a pull-request number passed in `done_prs`
+- every `depends_on` entry is a `DONE` item or a pull-request number passed in `done_prs`, and that number is not in `draft_prs`
 - its `files_scope` does not overlap an unexpired `CLAIMED` item
-- its `files_scope` does not overlap an open pull request path given by the caller
+- its `files_scope` does not overlap an open pull request path given by the caller, including a file under a directory scope
 
 `claim` is atomic under a lock on the ledger. The same holder claiming an unexpired lease again is a no-op and does not append. A different holder is rejected. An expired lease can be claimed again. `renew` extends a lease the holder still owns. `release` records a short result and sets `DONE`. A second release with the same result is a no-op.
 
