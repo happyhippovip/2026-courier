@@ -105,6 +105,46 @@ def fetch_artifact(artifact_id):
     return meta.json(), blob.content
 
 
+def _expected_paths(task):
+    """Names the task requires, or None when the expectation itself is malformed.
+
+    String paths and {"path", "expected_sha256"} entries are both task-owned.
+    expected_artifacts keys are required too. Any other entry is malformed.
+    """
+    raw = task.get("artifacts") or []
+    if not isinstance(raw, list):
+        return None
+    paths = set()
+    for item in raw:
+        if isinstance(item, str):
+            paths.add(item)
+        elif isinstance(item, dict) and isinstance(item.get("path"), str):
+            paths.add(item["path"])
+        else:
+            return None
+    extra = task.get("expected_artifacts") or {}
+    if not isinstance(extra, dict):
+        return None
+    for path in extra:
+        if not isinstance(path, str):
+            return None
+        paths.add(path)
+    return paths
+
+
+def _task_expected_hash(task, path):
+    """Task-owned hash only. A hash on the worker result is not read."""
+    extra = task.get("expected_artifacts") or {}
+    if isinstance(extra, dict):
+        mapped = extra.get(path)
+        if mapped:
+            return mapped
+    for item in task.get("artifacts") or []:
+        if isinstance(item, dict) and item.get("path") == path and item.get("expected_sha256"):
+            return item["expected_sha256"]
+    return task.get("expected_sha256")
+
+
 def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
     """PASS only if every artifact is independently confirmed.
 
@@ -116,7 +156,10 @@ def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
     if not isinstance(artifacts, list) or any(not isinstance(art, dict) for art in artifacts):
         log("Malformed artifact evidence; failing closed.")
         return "FAIL"
-    expected_paths = set(task.get("artifacts") or [])
+    expected_paths = _expected_paths(task)
+    if expected_paths is None:
+        log("Malformed task artifact expectation; failing closed.")
+        return "FAIL"
     if expected_paths and not expected_paths.issubset({art.get("path") for art in artifacts}):
         log("Result is missing expected artifacts.")
         return "FAIL"
@@ -132,7 +175,7 @@ def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
             except Exception as e:
                 log(f"Cannot fetch uploaded artifact: {e}")
                 return "FAIL"
-            task_expected = task.get("expected_artifacts", {}).get(art.get("path")) or task.get("expected_sha256")
+            task_expected = _task_expected_hash(task, art.get("path"))
             if task_expected:
                 if hashlib.sha256(data).hexdigest() != task_expected:
                     log(f"Hash mismatch against expected_sha256 for {art.get('path')}")
