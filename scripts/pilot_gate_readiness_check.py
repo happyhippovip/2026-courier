@@ -9,14 +9,16 @@ def check_pilot_gate_readiness():
     report = {
         "gate": "PILOT_READINESS_GATE",
         "status": "PASS",
+        # File presence is not a core freeze. These counters are not measured here.
+        "core_freeze": "NOT_FROZEN",
         "metrics": {
-            "SETUP_TIME_MAX_MINUTES": {"target": 15, "actual": 2, "status": "PASS"},
-            "HIPG_HUMAN_INTERVENTIONS_PER_GOAL": {"target": 0, "actual": 0, "status": "PASS"},
-            "RSR_RESTART_SURVIVAL_RATE": {"target": "100%", "actual": "100%", "status": "PASS"},
-            "NDR_NO_DUPLICATE_REPLAY": {"target": "100%", "actual": "100%", "status": "PASS"},
-            "SUPPORT_EFFORT_MINUTES": {"target": 5, "actual": 0, "status": "PASS"},
-            "PROVIDER_COST_CLASS": {"target": "SUBSCRIPTION_OR_FREE", "actual": "SUBSCRIPTION_FIRST", "status": "PASS"},
-            "TIME_TO_USEFUL_RESULT_MINUTES": {"target": 10, "actual": 1, "status": "PASS"}
+            "SETUP_TIME_MAX_MINUTES": {"target": 15, "actual": None, "status": "UNMEASURED"},
+            "HIPG_HUMAN_INTERVENTIONS_PER_GOAL": {"target": 0, "actual": None, "status": "UNMEASURED"},
+            "RSR_RESTART_SURVIVAL_RATE": {"target": "100%", "actual": None, "status": "UNMEASURED"},
+            "NDR_NO_DUPLICATE_REPLAY": {"target": "100%", "actual": None, "status": "UNMEASURED"},
+            "SUPPORT_EFFORT_MINUTES": {"target": 5, "actual": None, "status": "UNMEASURED"},
+            "PROVIDER_COST_CLASS": {"target": "SUBSCRIPTION_OR_FREE", "actual": None, "status": "UNMEASURED"},
+            "TIME_TO_USEFUL_RESULT_MINUTES": {"target": 10, "actual": None, "status": "UNMEASURED"}
         },
         "prerequisites": {
             "PRE_CODEX_HANDOFF": False,

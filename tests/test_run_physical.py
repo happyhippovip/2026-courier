@@ -103,6 +103,23 @@ def test_run2_gate_rejects_empty_exit_file(tmp_path):
         restart.execute_run2("1234abcd", str(run1_dir), str(tmp_path / "evidence2"))
 
 
+def test_run2_refuses_restart_when_a_is_not_recorded_complete(tmp_path):
+    """A SUCCESS bundle that never names A as COMPLETE must not claim no replay."""
+    import scripts.run_physical_restart as restart
+
+    run1_dir = tmp_path / "run1"
+    _write_run1_bundle(run1_dir, "0\n", {
+        "final_status": "SUCCESS",
+        "candidate_sha": "1234abcd",
+    })
+    evidence = tmp_path / "evidence2"
+    with pytest.raises(RuntimeError, match="replay of A"):
+        restart.execute_run2("1234abcd", str(run1_dir), str(evidence))
+    with pytest.raises(RuntimeError, match="replay of A"):
+        restart.execute_run2("1234abcd", str(run1_dir), str(evidence))
+    assert not evidence.exists() or not (evidence / "run2_state_snapshot.json").exists()
+
+
 def test_run2_gate_accepts_matching_bundle(tmp_path):
     """P3: exit 0 + SUCCESS + matching SHA passes the gate (incl. legacy 1-line exit file)."""
     import scripts.run_physical_restart as restart
@@ -112,6 +129,7 @@ def test_run2_gate_accepts_matching_bundle(tmp_path):
         _write_run1_bundle(run1_dir, exit_text, {
             "final_status": "SUCCESS",
             "candidate_sha": "1234abcd",
+            "initial_state": {"process_a_status": "COMPLETE"},
         })
         evidence_dir = tmp_path / f"evidence2_{len(exit_text)}"
 

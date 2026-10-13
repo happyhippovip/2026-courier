@@ -19,6 +19,7 @@ from courier_core.build import (
     MAX_BUILD_ID_LENGTH,
     build_for_seq,
     build_identity,
+    rollback_source_for_seq,
     source_sha256,
 )
 from courier_core.events import Event, EventType
@@ -75,6 +76,18 @@ def test_source_sha256_shape_and_stable():
 
 
 # -- build_for_seq ------------------------------------------------------------
+
+def test_rollback_source_requires_a_sha256():
+    unnamed = {"version": "1", "source_sha256": None, "build_id": "rel"}
+    events = [_started(4, unnamed)]
+    assert rollback_source_for_seq(events, 4) is None
+    assert rollback_source_for_seq(events, 4) is None
+    named = {"version": "1", "source_sha256": "ab" * 32, "build_id": "rel"}
+    source = rollback_source_for_seq([_started(4, named)], 9)
+    assert source == {"seq": 9, "source_sha256": "ab" * 32, "build_id": "rel"}
+    assert rollback_source_for_seq([_started(4, named)], 3) is None
+    assert rollback_source_for_seq([_started(4, {"source_sha256": "AB" * 32})], 4) is None
+
 
 def test_for_seq_empty_or_no_started_is_none():
     assert build_for_seq([], 10) is None
