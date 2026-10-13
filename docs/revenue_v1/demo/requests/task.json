@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "task_id": "task-local-demo-2",
+  "attempt_id": "attempt-001",
+  "idempotency_key": "rev-v1-idem-local-demo",
+  "capability": "github-actions-safety-baseline-v1",
+  "target_owner": "psf",
+  "target_repo": "requests",
+  "target_sha": "611c6162cbc4ac2020a2f91c7cfa4f3abf9bbb60",
+  "customer_reference": "DEMO-NO-CUSTOMER",
+  "price_currency": "EUR 0.00 (demo)",
+  "delivery_destination": "none",
+  "proposal_mode": "PR_ONLY"
+}

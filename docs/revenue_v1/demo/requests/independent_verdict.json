@@ -1,0 +1,12 @@
+{
+  "accepted": true,
+  "expected_file_count": 8,
+  "reasons": [],
+  "verdict": "PASS",
+  "verifier": {
+    "kind": "independent_verifier",
+    "name": "revenue_v1_independent_verifier.verify",
+    "source_sha256": "890fbd7e57ce8d9b64e63f9f778cd817ef50226ef55d3289f1743a4c60cc10f9",
+    "version": "1.0.0"
+  }
+}

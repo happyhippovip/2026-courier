@@ -99,14 +99,49 @@ class TestRevenueSafetyBaseline(unittest.TestCase):
         os.environ["GITHUB_RUN_ID"] = "r1"
         os.environ["GITHUB_RUN_ATTEMPT"] = "1"
         
-        # mock analyze to do nothing (clean)
+        # mock clone creates no workflows: 0 files inspected must not be PASS
         res = rvsb.worker(task, self.td_path)
         
         self.assertEqual(res["task_id"], "t1")
-        self.assertEqual(res["worker_status"], "PASS")
+        self.assertEqual(res["worker_status"], "WARN")
+        self.assertEqual(res["warning"], "NO_FILES_INSPECTED")
         self.assertTrue((self.td_path / "report.json").exists())
         self.assertTrue((self.td_path / "report.md").exists())
+        report_md = (self.td_path / "report.md").read_text(encoding="utf-8")
+        self.assertIn("NO_FILES_INSPECTED", report_md)
+        self.assertNotIn("No safety violations detected", report_md)
+
+    def test_analyze_workflows_reads_yaml_extension(self):
+        wf_dir = self.td_path / ".github" / "workflows"
+        wf_dir.mkdir(parents=True)
+        (wf_dir / "ci.yaml").write_text("runs-on: self-hosted", encoding="utf-8")
+        (wf_dir / "other.yml").write_text("timeout-minutes: 5\npermissions:\nconcurrency:", encoding="utf-8")
+        res = rvsb.analyze_workflows(self.td_path)
+        self.assertIn("ci.yaml", res["inspected_files"])
+        self.assertIn("other.yml", res["inspected_files"])
+        self.assertIn("Self-hosted runner detected.", {f["issue"] for f in res["findings"] if f["file"] == "ci.yaml"})
+
+    @patch("revenue_v1_safety_baseline.clone_and_extract")
+    def test_worker_clean_with_files_is_pass(self, mock_clone):
+        task = {"target_owner": "a", "target_repo": "b", "target_sha": "c", "task_id": "t1",
+                "attempt_id": "a1", "idempotency_key": "k1", "customer_reference": "cr1"}
+
+        def mock_clone_side_effect(owner, repo, sha, dest):
+            wf_dir = dest / ".github" / "workflows"
+            wf_dir.mkdir(parents=True)
+            (wf_dir / "ok.yaml").write_text("timeout-minutes: 5\npermissions:\nconcurrency:", encoding="utf-8")
+
+        mock_clone.side_effect = mock_clone_side_effect
+        res = rvsb.worker(task, self.td_path)
+        self.assertEqual(res["worker_status"], "PASS")
+        self.assertNotIn("warning", res)
         self.assertIn("No safety violations detected", (self.td_path / "report.md").read_text(encoding="utf-8"))
+
+    def test_verify_no_files_is_not_pass(self):
+        with patch("revenue_v1_safety_baseline.run_independent_verifier") as m:
+            m.return_value = {"verdict": "PASS", "accepted": True, "reasons": [], "verifier": {"name": "x"}}
+            verified = rvsb.verify({}, {"report_json_sha256": "h1", "worker_status": "WARN"}, self.td_path)
+        self.assertEqual(verified["verifier_status"], "WARN")
 
     @patch("revenue_v1_safety_baseline.clone_and_extract")
     def test_worker_with_findings(self, mock_clone):
@@ -132,38 +167,193 @@ class TestRevenueSafetyBaseline(unittest.TestCase):
         report_md = (self.td_path / "report.md").read_text(encoding="utf-8")
         self.assertIn("Self-hosted runner detected", report_md)
 
-    @patch("revenue_v1_safety_baseline.worker")
-    def test_verify_success(self, mock_worker):
-        task = {"test": 1}
-        candidate = {
-            "report_json_sha256": "h1",
-            "report_md_sha256": "h2",
-            "other": "val"
-        }
-        mock_worker.return_value = {
-            "report_json_sha256": "h1",
-            "report_md_sha256": "h2"
-        }
-        
-        verified = rvsb.verify(task, candidate, self.td_path)
+    def test_render_report_de_findings(self):
+        analysis = {"inspected_files": {"ci.yaml": "abc"},
+                    "findings": [{"rule": "timeout", "file": "ci.yaml", "issue": "Missing timeout-minutes configuration."}]}
+        md = rvsb.render_report_de("o", "r", "s" * 40, analysis)
+        self.assertIn("`ci.yaml`", md)
+        self.assertIn("**Regel:** `timeout`", md)
+        self.assertIn("**Schweregrad:** NIEDRIG", md)
+        self.assertIn("**Erklärung:**", md)
+        self.assertIn("**Fix-Hinweis:**", md)
+        self.assertIn("```yaml\n", md)
+        self.assertIn("timeout-minutes: 15", md)
+        self.assertIn("keine Garantie", md)
+        self.assertIn("menschliche Durchsicht", md)
+        self.assertNotIn("NO_FILES_INSPECTED", md)
+
+    def test_render_report_de_all_rules_have_texts(self):
+        for rule in ["runner_type", "timeout", "permissions", "concurrency", "mutation_risk",
+                     "pull_request_target", "unpinned_action", "script_injection"]:
+            for key in ["title", "severity", "explain", "fix", "yaml"]:
+                self.assertTrue(rvsb.RULES_DE[rule][key])
+
+    def test_render_report_de_no_files_warn(self):
+        md = rvsb.render_report_de("o", "r", "s", {"inspected_files": {}, "findings": []})
+        self.assertIn("WARNUNG: NO_FILES_INSPECTED", md)
+        self.assertIn("KEIN unbedenkliches Ergebnis", md)
+
+    @patch("revenue_v1_safety_baseline.clone_and_extract")
+    def test_worker_writes_report_de_and_keeps_existing_outputs(self, mock_clone):
+        task = {"target_owner": "a", "target_repo": "b", "target_sha": "c", "task_id": "t1",
+                "attempt_id": "a1", "idempotency_key": "k1", "customer_reference": "cr1"}
+
+        def mock_clone_side_effect(owner, repo, sha, dest):
+            wf_dir = dest / ".github" / "workflows"
+            wf_dir.mkdir(parents=True)
+            (wf_dir / "bad.yml").write_text("runs-on: self-hosted", encoding="utf-8")
+
+        mock_clone.side_effect = mock_clone_side_effect
+        res = rvsb.worker(task, self.td_path)
+        for name in ["report.json", "report.md", "report_de.md"]:
+            self.assertTrue((self.td_path / name).exists())
+        self.assertIn("Self-hosted runner detected", (self.td_path / "report.md").read_text(encoding="utf-8"))
+        self.assertIn("Schweregrad:** HOCH", (self.td_path / "report_de.md").read_text(encoding="utf-8"))
+        self.assertEqual(res["report_de_md_sha256"], rvsb.hash_file(self.td_path / "report_de.md"))
+
+    def _write_wf(self, rel, text):
+        p = self.td_path / ".github" / "workflows" / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(text, encoding="utf-8")
+
+    def _rules(self, res, file):
+        return [f["rule"] for f in res["findings"] if f["file"] == file]
+
+    def test_rule_pull_request_target(self):
+        self._write_wf("a.yml", "on:\n  pull_request_target:\n    types: [opened]\n")
+        self._write_wf("b.yml", "on:\n  pull_request:\n# pull_request_target only in comment\n")
+        res = rvsb.analyze_workflows(self.td_path)
+        self.assertIn("pull_request_target", self._rules(res, "a.yml"))
+        self.assertNotIn("pull_request_target", self._rules(res, "b.yml"))
+
+    def test_rule_unpinned_action(self):
+        sha = "a" * 40
+        self._write_wf("ci.yml", (
+            "jobs:\n  t:\n    steps:\n"
+            "      - uses: actions/checkout@v4\n"
+            f"      - uses: actions/setup-python@{sha} # v5\n"
+            "      - uses: ./local-action\n"
+            "      - uses: docker://alpine:3\n"
+            "      - uses: 'org/x@main'\n"))
+        res = rvsb.analyze_workflows(self.td_path)
+        issues = [f["issue"] for f in res["findings"] if f["rule"] == "unpinned_action"]
+        self.assertEqual(len(issues), 2)
+        self.assertTrue(any("actions/checkout@v4" in i for i in issues))
+        self.assertTrue(any("org/x@main" in i for i in issues))
+
+    def test_rule_script_injection(self):
+        self._write_wf("inj.yml", (
+            "jobs:\n  t:\n    steps:\n"
+            "      - run: echo ${{ github.event.issue.title }}\n"
+            "      - run: |\n          echo start\n          echo \"${{github.event.pull_request.head.ref}}\"\n"
+            "      - name: safe\n        env:\n          T: ${{ github.event.issue.title }}\n        run: echo \"$T\"\n"))
+        res = rvsb.analyze_workflows(self.td_path)
+        self.assertEqual(self._rules(res, "inj.yml").count("script_injection"), 2)
+
+    def test_same_name_in_subfolders_not_overwritten(self):
+        self._write_wf("ci.yml", "runs-on: self-hosted\n")
+        self._write_wf("sub/ci.yml", "timeout-minutes: 5\npermissions:\nconcurrency:\n")
+        res = rvsb.analyze_workflows(self.td_path)
+        self.assertEqual(set(res["inspected_files"]), {"ci.yml", "sub/ci.yml"})
+        self.assertNotEqual(res["inspected_files"]["ci.yml"], res["inspected_files"]["sub/ci.yml"])
+        self.assertIn("runner_type", self._rules(res, "ci.yml"))
+        self.assertEqual(self._rules(res, "sub/ci.yml"), [])
+
+    def test_yaml_mode_structure_rules(self):
+        self._write_wf("s.yml", (
+            "on:\n  pull_request_target:\n    types: [opened]\n"
+            "jobs:\n"
+            "  a:\n    runs-on: [self-hosted, linux]\n    timeout-minutes: 5\n"
+            "    steps:\n      - run: git push origin HEAD\n"
+            "  b:\n    runs-on: ubuntu-latest\n    # timeout-minutes: 5 (only a comment)\n"
+            "    permissions: write-all\n    steps:\n      - run: echo hi\n"
+            "  call:\n    uses: org/repo/.github/workflows/x.yml@v1\n"))
+        res = rvsb.analyze_workflows(self.td_path)
+        self.assertEqual(res["parse_modes"]["s.yml"], "yaml")
+        by_rule = {f["rule"]: f["issue"] for f in res["findings"] if f["file"] == "s.yml"}
+        self.assertIn("runner_type", by_rule)               # list form runs-on
+        self.assertIn("pull_request_target", by_rule)       # key `on` parsed as True by PyYAML
+        self.assertIn("jobs: b", by_rule["timeout"])        # comment does not count, reusable call skipped
+        self.assertNotIn("call", by_rule["timeout"])
+        self.assertEqual(by_rule["permissions"], "Missing explicit permissions block.")
+        self.assertIn("concurrency", by_rule)
+        self.assertIn("mutation_risk", by_rule)
+        self.assertIn("org/repo/.github/workflows/x.yml@v1", by_rule["unpinned_action"])
+
+    def test_yaml_mode_clean_workflow(self):
+        sha = "b" * 40
+        self._write_wf("ok.yaml", (
+            "on: [push]\npermissions:\n  contents: read\nconcurrency:\n  group: x\n"
+            "jobs:\n  t:\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n"
+            f"    steps:\n      - uses: actions/checkout@{sha}\n"
+            "      - env:\n          T: ${{ github.event.issue.title }}\n        run: echo \"$T\"\n"))
+        res = rvsb.analyze_workflows(self.td_path)
+        self.assertEqual(res["parse_modes"]["ok.yaml"], "yaml")
+        self.assertEqual(res["findings"], [])
+
+    def test_yaml_permissions_write_all_top_level(self):
+        self._write_wf("w.yml", "on: push\npermissions: write-all\nconcurrency: g\njobs:\n  t:\n    runs-on: ubuntu-latest\n    timeout-minutes: 1\n    steps: []\n")
+        res = rvsb.analyze_workflows(self.td_path)
+        self.assertEqual([f["issue"] for f in res["findings"]], ["Permissive write-all detected."])
+
+    def test_broken_yaml_falls_back_to_text(self):
+        self._write_wf("broken.yml", "jobs:\n  t:\n    runs-on: self-hosted\n   bad: [unclosed\n")
+        res = rvsb.analyze_workflows(self.td_path)
+        self.assertEqual(res["parse_modes"]["broken.yml"], "text")
+        self.assertIn("runner_type", self._rules(res, "broken.yml"))
+        self.assertIn("timeout", self._rules(res, "broken.yml"))
+
+    def test_without_pyyaml_falls_back_to_text(self):
+        self._write_wf("ci.yml", "on: push\njobs:\n  t:\n    runs-on: ubuntu-latest\n    timeout-minutes: 5\n")
+        with patch.object(rvsb, "yaml", None):
+            res = rvsb.analyze_workflows(self.td_path)
+        self.assertEqual(res["parse_modes"]["ci.yml"], "text")
+        self.assertNotIn("timeout", self._rules(res, "ci.yml"))
+
+    def test_report_de_shows_parse_mode(self):
+        md = rvsb.render_report_de("o", "r", "s", {"inspected_files": {"a.yml": "h"}, "parse_modes": {"a.yml": "yaml"}, "findings": []})
+        self.assertIn("(Prüfmodus: yaml)", md)
+
+    @patch("revenue_v1_safety_baseline.run_independent_verifier")
+    def test_verify_success(self, mock_ind):
+        ident = {"kind": "independent_verifier", "name": "n", "version": "1.0.0", "source_sha256": "s"}
+        mock_ind.return_value = {"verdict": "PASS", "accepted": True, "reasons": [], "verifier": ident}
+        verified = rvsb.verify({"t": 1}, {"report_json_sha256": "h1", "other": "val"}, self.td_path)
         self.assertEqual(verified["verifier_id"], rvsb.VERIFIER_ID)
         self.assertEqual(verified["verifier_status"], "PASS")
+        self.assertEqual(verified["independent_verdict"], "PASS")
+        self.assertEqual(verified["independent_verifier"], ident)
 
-    @patch("revenue_v1_safety_baseline.worker")
-    def test_verify_fail_hash_mismatch(self, mock_worker):
-        task = {"test": 1}
-        candidate = {
-            "report_json_sha256": "h1",
-            "report_md_sha256": "h2",
-        }
-        mock_worker.return_value = {
-            "report_json_sha256": "h3",
-            "report_md_sha256": "h2"
-        }
-        
+    @patch("revenue_v1_safety_baseline.run_independent_verifier")
+    def test_verify_rejects_mismatch(self, mock_ind):
+        mock_ind.return_value = {"verdict": "MISMATCH", "accepted": False, "reasons": ["findings differ"], "verifier": {}}
         with self.assertRaises(SystemExit) as cm:
-            rvsb.verify(task, candidate, self.td_path)
-        self.assertIn("hashes do not match", str(cm.exception))
+            rvsb.verify({}, {"report_json_sha256": "h1"}, self.td_path)
+        self.assertIn("MISMATCH", str(cm.exception))
+
+    def test_independent_verifier_path_override(self):
+        with patch.dict(os.environ, {"REVENUE_V1_INDEPENDENT_VERIFIER": "/tmp/pinned.py"}):
+            self.assertEqual(rvsb.independent_verifier_path(), Path("/tmp/pinned.py"))
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("REVENUE_V1_INDEPENDENT_VERIFIER", None)
+            self.assertEqual(rvsb.independent_verifier_path(), rvsb.INDEPENDENT_VERIFIER)
+
+    @patch("revenue_v1_safety_baseline.subprocess.run")
+    def test_pinned_verifier_missing_is_fail(self, mock_run):
+        mock_run.return_value = MagicMock(stdout="", returncode=2)  # e.g. pinned file not found
+        with patch.dict(os.environ, {"REVENUE_V1_INDEPENDENT_VERIFIER": "/nonexistent.py"}):
+            v = rvsb.run_independent_verifier({}, {}, self.td_path)
+        self.assertFalse(v["accepted"])
+        self.assertEqual(mock_run.call_args[0][0][1], "/nonexistent.py")
+
+    @patch("revenue_v1_safety_baseline.subprocess.run")
+    def test_run_independent_verifier_fail_closed(self, mock_run):
+        # unreadable output
+        mock_run.return_value = MagicMock(stdout="not json", returncode=0)
+        self.assertFalse(rvsb.run_independent_verifier({}, {}, self.td_path)["accepted"])
+        # PASS text but non-zero exit code
+        mock_run.return_value = MagicMock(stdout='{"verdict": "PASS", "accepted": true}', returncode=1)
+        self.assertFalse(rvsb.run_independent_verifier({}, {}, self.td_path)["accepted"])
 
     @patch("revenue_v1_safety_baseline.verify")
     def test_validate_verified_result(self, mock_verify):
