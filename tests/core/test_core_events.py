@@ -6,7 +6,7 @@ import pytest
 
 from core_builders import SHA, Attempt, created
 from courier_core.events import (
-    GENESIS_HASH, Event, EventType, EventValidationError, canonical_json, chain_hash,
+    GENESIS_HASH, Event, EventType, EventValidationError, canonical_json, chain_hash, effect_key
 )
 
 
@@ -58,6 +58,19 @@ def test_payload_is_a_canonical_copy():
           payload={"artifacts": [], "outcome": "maybe"}), "outcome"),
     (dict(type=EventType.RESULT_REJECTED, task_id="t", attempt=1, dispatch_id="d", result_id="r",
           payload={"reason": "x", "retryable": "yes"}), "retryable"),
+    (dict(type=EventType.TASK_CREATED, task_id="t", payload={
+        "adapter": "s", "params": {}, "effect_class": "idempotent", "max_attempts": 1, "lease_ttl_s": 5, "timeout_s": "wrong"}), "timeout_s"),
+    (dict(type=EventType.TASK_CREATED, task_id="t", payload={
+        "adapter": "s", "params": {}, "effect_class": "idempotent", "max_attempts": 1, "lease_ttl_s": 5, "timeout_s": -5}), "timeout_s"),
+    (dict(type=EventType.RESULT_READY, task_id="t", attempt=1, dispatch_id="d", worker_id="w", result_id="r",
+          payload={"artifacts": [{"path": 1, "sha256": "0" * 64}], "outcome": "success"}), "each artifact needs"),
+    (dict(type=EventType.RESULT_READY, task_id="t", attempt=1, dispatch_id="d", worker_id="w", result_id="r",
+          payload={"artifacts": [{"path": "a", "sha256": "not_hex"}], "outcome": "success"}), "each artifact needs"),
+    (dict(type=EventType.EFFECT_CONFIRMED, task_id="t", attempt=1, payload={"actor": "a" * 201, "reason": "yes"}), "actor must be a non-empty string"),
+    (dict(type=EventType.EFFECT_CONFIRMED, task_id="t", attempt=1, payload={"actor": "a", "reason": "   "}), "needs a non-empty reason"),
+    (dict(type=EventType.CONTROLLER_STARTED, task_id="t", attempt=1), "CONTROLLER_STARTED is a system event and takes no task_id"),
+    (dict(type=EventType.TASK_CLAIMED, task_id="t", attempt=1, dispatch_id="d", worker_id="w", dedupe_key="a" * 201, payload={"ttl_s": 5}), "dedupe_key must be a non-empty string"),
+    (dict(type=EventType.TASK_CLAIMED, task_id="t", attempt=1, dispatch_id="d", worker_id="w", schema_v=2, payload={"ttl_s": 5}), "unsupported schema_v"),
 ])
 def test_malformed_events_never_construct(kwargs, message):
     with pytest.raises(EventValidationError, match=message):
@@ -82,3 +95,12 @@ def test_content_ignores_identity_and_time_only():
     assert a.content() == b.content()
     assert a.content() != Attempt("t1", 1).result_ready(sha="1" * 64).content()
     assert SHA in a.payload_json
+
+
+def test_effect_key_is_stable_and_deterministic():
+    key1 = effect_key("task-123")
+    key2 = effect_key("task-123")
+    assert key1 == key2
+    assert key1.startswith("cfx-")
+    assert len(key1) == 44  # "cfx-" + 40 chars of hex
+    assert effect_key("task-124") != key1
