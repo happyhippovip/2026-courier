@@ -10,7 +10,8 @@
       },
       "needs_you": {
         "question": "Did Courier manage to write the test file?",
-        "why": "Courier lost contact with the work before it could confirm whether the action happened.",
+        "why": "Courier lost contact while trying to write the test file, before it could confirm whether that happened.",
+        "next": "The next step is your decision. Courier will not continue this on its own.",
         "consequence": "The test file may be written a second time.",
         "choices": [
           {
@@ -34,7 +35,8 @@
         "evidence": [],
         "blocked_attempt": 1
       },
-      "label": "Courier needs you to decide something"
+      "label": "Courier needs you to decide something",
+      "next": "The next step is your decision. Courier will not continue this on its own."
     }
   ],
   "working": [

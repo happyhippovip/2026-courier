@@ -70,7 +70,7 @@ _PLAIN_STEPS = {
     "RESULT_REJECTED": "Courier did not accept the result",
     "TASK_COMPLETE": "Finished",
     "LEASE_EXPIRED": "The work was interrupted",
-    "TASK_RETRY_SCHEDULED": "Courier resumed after an interruption",
+    "TASK_RETRY_SCHEDULED": "Courier planned another try",
     "TASK_BLOCKED": "Courier stopped and asked you to decide",
     "TASK_FAILED": "Courier couldn't complete this safely",
     "TASK_CANCEL_REQUESTED": "Stop was requested",
@@ -232,13 +232,32 @@ def needs_you_card(task: Any, events: Iterable[Any]) -> dict:
                  "at": _get(e, "ts_utc")} for e in late]
     return {
         "question": f"Did Courier manage to {copy['action']}?",
-        "why": "Courier lost contact with the work before it could confirm whether the action happened.",
+        "why": (f"Courier lost contact while trying to {copy['action']}, "
+                "before it could confirm whether that happened."),
+        "next": "The next step is your decision. Courier will not continue this on its own.",
         "consequence": copy["repeat_consequence"],
         "choices": choices,
         "retry_unavailable_reason": retry_blocked,
         "evidence": evidence,
         "blocked_attempt": _get(task, "attempt"),
     }
+
+
+def _continued_after_retry(events: Iterable[Any]) -> bool:
+    """A scheduled retry counts only after a later start, and not if the latest
+    interruption ended by asking a person."""
+    seen_retry = False
+    started_after = False
+    for event in events:
+        kind = _type(event)
+        if kind == "TASK_RETRY_SCHEDULED":
+            seen_retry = True
+            started_after = False
+        elif kind == "TASK_STARTED" and seen_retry:
+            started_after = True
+        elif kind == "TASK_BLOCKED":
+            started_after = False
+    return seen_retry and started_after
 
 
 def _last_change(events: List[Any]) -> Optional[dict]:
@@ -258,6 +277,7 @@ def card(task: Any, events: Iterable[Any]) -> dict:
     if pile == PILE_NEEDS_YOU:
         base["needs_you"] = needs_you_card(task, events)
         base["label"] = "Courier needs you to decide something"
+        base["next"] = base["needs_you"]["next"]
     elif pile == PILE_WORKING:
         phase = working_phase(task)
         base.update({"label": phase["label"], "phase": phase["phase"], "next": phase["next"],
@@ -304,9 +324,10 @@ def receipt(task: Any, events: Iterable[Any]) -> dict:
         how = "Courier has no verified evidence that this happened."
     else:
         how = "Not known yet."
-    # "Resumed" only when Courier actually continued after an interruption; an
-    # interruption that ended in a question for a person is not a resumption.
-    resumed = any(_type(e) == "TASK_RETRY_SCHEDULED" for e in events)
+    # "Resumed" only when work actually started again after a scheduled retry.
+    # A later question for a person cancels that claim: planning a try is not
+    # the same as continuing it.
+    resumed = _continued_after_retry(events)
     if pile == PILE_DONE:
         happened = outcome_copy(task)["label"]
     elif pile == PILE_NEEDS_YOU:
@@ -372,7 +393,7 @@ def unrecognised_receipt(task: Any, events: Iterable[Any]) -> dict:
         "understood": f"Courier was asked to {copy_for(task)['action']} ({title_of(task)}).",
         "authorized": unrecognised_card(task)["authority"],
         "tried": steps,
-        "resumed": any(_type(e) == "TASK_RETRY_SCHEDULED" for e in events),
+        "resumed": _continued_after_retry(events),
         "happened": "Not known to this hub: Courier recorded a state this version can't show.",
         "how_known": "Not known to this hub.",
         "decisions": [],
