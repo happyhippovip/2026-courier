@@ -39,7 +39,7 @@ def build_binding(db_path: str | Path, repo: str | Path = ROOT) -> dict:
     unknowns: list[str] = []
     source_sha = _git(repo, "rev-parse", "HEAD")
     tree = _git(repo, "rev-parse", "HEAD^{tree}")
-    porcelain = _git(repo, "status", "--porcelain")
+    porcelain = _git(repo, "status", "--porcelain", "--untracked-files=all")
     if source_sha is None or tree is None:
         unknowns.append("source_identity_unavailable")
     dirty = None if porcelain is None else bool(porcelain)
