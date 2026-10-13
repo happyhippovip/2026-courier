@@ -82,11 +82,44 @@ MAX_RESULT_POST_ATTEMPTS = 5
 # WORKER_CAPABILITIES is not authoritative: e.g. "antigravity" would route agy tasks here.
 CAPABILITIES = ["windows"]
 
+def host_platform():
+    """The machine this process is actually running on, never a hardcoded claim."""
+    if sys.platform == "win32":
+        return "windows"
+    if sys.platform == "darwin":
+        return "macos"
+    if sys.platform == "linux":
+        return "linux"
+    return sys.platform
+
+# PowerShell tests replace subprocess.Popen. Keep the original for git.
+_GIT_POPEN = subprocess.Popen
+
+def checkout_source_sha():
+    """Full git HEAD of the checkout that contains this daemon, or None."""
+    try:
+        proc = _GIT_POPEN(
+            ["git", "-C", str(Path(__file__).resolve().parent), "rev-parse", "HEAD"],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True,
+        )
+        out, _ = proc.communicate(timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    sha = (out or "").strip()
+    if proc.returncode == 0 and len(sha) == 40 and all(c in "0123456789abcdef" for c in sha):
+        return sha
+    return None
+
 def register_worker(worker_id, release_task=False):
     require_api_key()
+    source_sha = checkout_source_sha()
+    if not source_sha:
+        print(f"[{worker_id}] Refusing to register without a checkout source_sha.")
+        return False
     req = urllib.request.Request(f"{API_URL}/workers/register", method="POST")
     for k, v in HEADERS.items(): req.add_header(k, v)
-    payload = {"worker_id": worker_id, "platform": "windows", "capabilities": list(CAPABILITIES)}
+    payload = {"worker_id": worker_id, "platform": host_platform(), "capabilities": list(CAPABILITIES),
+               "source_sha": source_sha}
     if release_task:
         # Tells the server this worker no longer holds its task; the server's
         # restart recovery then quarantines it (HUMAN_REQUIRED) instead of replaying.
@@ -218,7 +251,7 @@ def build_result_payload(task, result, config):
         if status == "SUCCESS" and not artifacts:
             status = "FAILED"
             result["stderr"] = result.get("stderr", "") + "\nNo artifact evidence for success"
-    return {
+    payload = {
         "goal_id": task.get("goal_id"),
         "task_id": task["task_id"],
         "attempt_id": task.get("attempt_id"),
@@ -232,6 +265,10 @@ def build_result_payload(task, result, config):
         "stdout": result.get("stdout", ""),
         "stderr": result.get("stderr", ""),
     }
+    source_sha = checkout_source_sha()
+    if source_sha:
+        payload["source_sha"] = source_sha
+    return payload
 
 def kill_process_tree(pid):
     """Best-effort: stop the child and anything PowerShell spawned under it.

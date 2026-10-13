@@ -64,6 +64,7 @@ def durable_result(task):
         "worker_id": task["worker_id"],
         "run_id": "pid-123",
         "result_id": "result-1",
+        "source_sha": "a" * 40,
         "status": "SUCCESS",
         "artifacts": [
             {"path": "bounded.txt", "sha256": hashlib.sha256(b"bounded\n").hexdigest()}
@@ -130,6 +131,23 @@ def test_worker_success_cannot_advance_goal_without_independent_verifier(tmp_pat
     assert state["tasks"][task["task_id"]]["status"] == "RESULT_RECEIVED"
     assert state["goals"][goal_id]["current_step_index"] == 0
     assert state["goals"][goal_id]["status"] == "ACTIVE"
+
+
+def test_result_without_source_sha_is_not_acknowledged(tmp_path, monkeypatch):
+    http, _, task = setup_claimed_task(tmp_path, monkeypatch)
+    result = durable_result(task)
+    result.pop("source_sha", None)
+    rejected = http.post("/tasks/result", headers=auth(), json=result)
+    assert rejected.status_code == 400
+    assert rejected.get_json().get("status") != "ACK_RESULT_RECEIVED"
+    assert "source_sha" in rejected.get_json()["error"]
+    assert server_app.load_state()["tasks"][task["task_id"]]["status"] == "DISPATCHED"
+
+    forged = dict(durable_result(task), source_sha="not-a-sha")
+    rejected_shape = http.post("/tasks/result", headers=auth(), json=forged)
+    assert rejected_shape.status_code == 400
+    assert rejected_shape.get_json().get("status") != "ACK_RESULT_RECEIVED"
+    assert server_app.load_state()["tasks"][task["task_id"]]["status"] == "DISPATCHED"
 
 
 def test_wrong_attempt_result_fails_closed(tmp_path, monkeypatch):

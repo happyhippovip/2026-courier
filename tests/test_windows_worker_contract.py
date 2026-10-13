@@ -3,6 +3,8 @@ import hashlib
 import importlib
 import importlib.util
 import json
+import subprocess
+import sys
 import urllib.error
 import urllib.request
 from io import BytesIO
@@ -247,6 +249,37 @@ def test_success_without_any_artifact_evidence_is_reported_failed(tmp_path, monk
     assert posted["status"] == "FAILED" and posted["artifacts"] == []
     assert srv.load_state()["tasks"]["task-1"]["status"] == "QUEUED"
     assert srv.load_state()["workers"]["WIN-01"]["current_task"] is None
+
+
+def test_register_and_result_carry_real_platform_and_source_sha(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_API_KEY", "dummy-test-key-not-real")
+    daemon = load_daemon(tmp_path, monkeypatch)
+    captured = {}
+
+    def fake(req, data=None, timeout=None):
+        captured["body"] = json.loads(data.decode())
+        return object()
+
+    monkeypatch.setattr(daemon.urllib.request, "urlopen", fake)
+    assert daemon.register_worker("WIN-01") is True
+    body = captured["body"]
+    assert body["platform"] == daemon.host_platform()
+    if sys.platform != "win32":
+        assert body["platform"] != "windows"
+    head = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+    assert body["source_sha"] == head
+
+    work = tmp_path / "work"
+    work.mkdir()
+    monkeypatch.chdir(work)
+    (work / "effect.txt").write_bytes(b"done\n")
+    payload = daemon.build_result_payload(
+        {"goal_id": "g", "task_id": "task-1", "attempt_id": "a", "dispatch_id": "d", "artifacts": ["effect.txt"]},
+        {"status": "SUCCESS", "stdout": "", "stderr": "", "run_id": "99"},
+        {"WORKER_ID": "WIN-01"},
+    )
+    assert payload["source_sha"] == head
+    assert payload["provider"] == "windows_native"
 
 
 def test_missing_api_key_fails_closed_before_network(tmp_path, monkeypatch):
