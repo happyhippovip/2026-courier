@@ -1,0 +1,28 @@
+{
+  "id": "P2",
+  "title": "short video mission template + validator",
+  "lane": "L2",
+  "branch": "lane/L2-short-video-P2",
+  "files_scope": [
+    "missions/templates/short_video.json",
+    "courier_core/short_video.py",
+    "tests/test_short_video.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "nine steps in order: idea, script, scene_bind, render, mux_audio, verify, publish_gate, publish, receipt",
+    "ordered advance; steps cannot be skipped, reordered, or repeated",
+    "publish only with recorded human approval at publish_gate",
+    "ZERO_COST_ONLY",
+    "draft PR"
+  ],
+  "provider_hints": [],
+  "publish_gate": "explicit_human_approval",
+  "pull_request": "287",
+  "status": "CLAIMED",
+  "lease": {
+    "holder": "pr:287",
+    "host": "local",
+    "expires_at": null
+  }
+}

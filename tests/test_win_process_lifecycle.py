@@ -5,51 +5,47 @@ import pytest
 import psutil
 from courier_worker.host import _spawn_contained, ContainedRun, _terminate_job, _job_for_child, _assign_to_job
 
+def _wait_for_descendant(pid, name, timeout=30.0):
+    """Poll for a descendant called `name`. Windows PowerShell can need several
+    seconds to start on a cold CI runner, so a fixed sleep races the spawn."""
+    parent = psutil.Process(pid)
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            if any(c.name().lower() == name for c in parent.children(recursive=True)):
+                return True
+        except psutil.NoSuchProcess:
+            return False
+        time.sleep(0.2)
+    return False
+
+
 @pytest.mark.skipif(os.name != 'nt', reason='Windows specific')
 def test_grandchild_process_reaping(tmp_path):
     run_dir = str(tmp_path)
-    
-    # Run a powershell that spawns a cmd and keeps both alive
+
+    # Run a powershell that spawns a hidden cmd and keeps both alive
     argv = [
-        "powershell", "-Command",
-        "Start-Process cmd; Start-Sleep -Seconds 30"
+        "powershell", "-NoProfile", "-Command",
+        "Start-Process cmd -WindowStyle Hidden; Start-Sleep -Seconds 60"
     ]
-    
+
     run = _spawn_contained(argv, run_dir, "test-leak")
-    
-    # Verify the parent and grandchild are running
     try:
-        parent_proc = psutil.Process(run.proc.pid)
-    except psutil.NoSuchProcess:
-        pytest.fail(f"Parent process exited immediately. Return code: {run.proc.poll()}")
-        
-    start_time = time.monotonic()
-    children = []
-    while time.monotonic() - start_time < 30:
+        assert _wait_for_descendant(run.proc.pid, "cmd.exe"), "Grandchild was not spawned within 30 s"
+        tree = [(c.pid, c.create_time()) for c in psutil.Process(run.proc.pid).children(recursive=True)
+                if c.name().lower() in ("cmd.exe", "powershell.exe")]
+    finally:
+        run.terminate_tree()
+        run.proc.wait()
+
+    time.sleep(0.5)  # Wait for OS to reap
+
+    # A live process with the same pid and creation time is a survivor; a reused pid is not
+    for pid, created in tree:
         try:
-            children = parent_proc.children(recursive=True)
-            if len(children) > 0:
-                break
-        except psutil.NoSuchProcess:
-            pytest.fail(f"Parent process died before spawning grandchild. Return code: {run.proc.poll()}")
-        time.sleep(0.5)
-        
-    if not children:
-        pytest.fail(f"Grandchild was not spawned within 30s. Parent return code: {run.proc.poll()}")
-    
-    child_pids = [c.pid for c in children]
-    
-    run.terminate_tree()
-    run.proc.wait()
-    
-    # Assert descendants after is 0 (PID reuse safety check using psutil)
-    time.sleep(2.0) # Wait for OS to reap
-    
-    for pid in child_pids:
-        try:
-            p = psutil.Process(pid)
-            assert not p.is_running() or p.name() not in ["cmd.exe", "powershell.exe"], "Grandchild survived!"
-        except psutil.NoSuchProcess:
+            assert psutil.Process(pid).create_time() != created, f"Grandchild {pid} survived!"
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
             pass
 
 @pytest.mark.skipif(os.name != 'nt', reason='Windows specific')

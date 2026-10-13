@@ -1,10 +1,11 @@
 """Regression for #139 (thermal relief): the worker must still talk to the real V1 controller.
 
-#139 made WorkerLoop.iterate call ``self.host`` (does not exist), read an uninitialised
-``_cooldown_until`` and send ``resource_state`` on /claim and /heartbeat, which the V1
-controller rejects as unknown fields. Every tick then crashed or idled, and no task ever
-completed. ``tests/golden`` would catch it but skips on CI, so this test runs everywhere:
-it routes ControllerClient calls into a booted, in-process ``courier_core`` Controller.
+#139 made WorkerLoop.iterate call ``self.host`` (does not exist) and read an uninitialised
+``_cooldown_until``. The V1 controller rejects ``resource_state`` on /claim and /heartbeat,
+so pressure stays local and those bodies stay ``worker_id`` and ``worker_id`` plus
+``dispatch_ids``. ``tests/golden`` would catch a crash but skips on CI, so this test runs
+everywhere: it routes ControllerClient calls into a booted, in-process ``courier_core``
+Controller.
 """
 from __future__ import annotations
 
@@ -51,8 +52,6 @@ def _loop(tmp_path, client, probe):
 def test_client_bodies_are_accepted_by_the_v1_controller(tmp_path):
     client = RoutedClient(_controller(tmp_path))
     assert client.claim("w-139") is None                      # empty queue -> 204
-    assert client.claim("w-139", resource_state="NORMAL") is None
-    assert isinstance(client.heartbeat("w-139", [], resource_state="PRESSURED"), dict)
     assert isinstance(client.heartbeat("w-139", []), dict)
     assert client.errors == []
 
