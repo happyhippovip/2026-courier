@@ -116,3 +116,17 @@ Für X: Screenshot der HTML in 1600×900, z. B.
 
 Test: `tests/orchestrator/test_demo_one.py` (Determinismus, Phasenreihenfolge, NEEDS_YOU → RESOLVED,
 Hash, < 60 s mit Pausen).
+
+## Animierte Vorschau (GIF / MP4)
+
+![Courier Ein-Befehl-Demo (MOCK)](demo/demo_one.gif)
+
+- GIF: [`docs/demo/demo_one.gif`](demo/demo_one.gif) – 1200×676, 5 Stufen, 14 s, Endlosschleife
+- MP4: [`docs/demo/demo_one.mp4`](demo/demo_one.mp4) – gleiche Stufen, 14 s, H.264 (für X/Präsentation)
+
+Stufen: GOAL → WORKING (WKA BLOCKED) → NEEDS YOU (offen, Grund + nächste Aktion) → RESOLVED
+(✓ erledigt, Wiederaufnahme) → DONE mit SHA-256. MOCK-Banner in jedem Bild.
+
+Neu erzeugen (reproduzierbar, gleiche GIF-Bytes):
+`python3 scripts/make_demo_gif.py` (braucht Pillow und Chrome/Chromium headless; ffmpeg optional für die MP4,
+`--no-mp4` überspringt sie). Grundlage ist ein `demo_one.py --fast`-Lauf im Temp-Ordner.
