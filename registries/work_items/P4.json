@@ -1,0 +1,22 @@
+{
+  "id": "P4",
+  "title": "tiktok dryrun",
+  "lane": "L3",
+  "branch": "lane/L3-tiktok-dryrun-P4",
+  "files_scope": ["courier_worker/publish/tiktok_dryrun.py"],
+  "depends_on": [],
+  "acceptance": [
+    "build the TikTok Content Posting API inbox-draft request",
+    "no network and no credentials",
+    "tests",
+    "draft PR"
+  ],
+  "provider_hints": ["no network", "no credentials", "inbox-draft only"],
+  "pull_request": "301",
+  "status": "CLAIMED",
+  "lease": {
+    "holder": "pr:301",
+    "host": "local",
+    "expires_at": null
+  }
+}

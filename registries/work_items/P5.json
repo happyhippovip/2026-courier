@@ -1,0 +1,16 @@
+{
+  "id": "P5",
+  "title": "Mark provider qualification stale when identity changes",
+  "lane": "L2",
+  "branch": "lane/L2-provider-invalidation-P5",
+  "files_scope": [
+    "courier_core/provider_invalidation.py",
+    "courier_core/schemas/provider_invalidation.schema.json",
+    "tests/core/test_provider_invalidation.py"
+  ],
+  "depends_on": [],
+  "acceptance": ["tests", "draft PR"],
+  "provider_hints": ["headless", "interactive"],
+  "status": "DONE",
+  "lease": null
+}
