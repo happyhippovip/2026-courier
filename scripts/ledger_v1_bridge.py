@@ -50,6 +50,9 @@ DEFAULT_CONTROLLER = "http://127.0.0.1:8080"
 TASK_FIELDS = ("adapter", "params", "effect_class", "max_attempts", "lease_ttl_s", "timeout_s")
 TERMINAL_FAILURE = frozenset({"FAILED", "CANCELLED"})
 GOAL_FIELDS = ("goal_id", "goal_fingerprint")
+# Optional task view checked against <home>/goal_contracts.jsonl (courier_core.goal_contract).
+GOAL_TASK_FIELD = "goal_task"
+GOAL_CONTRACTS_FILE = "goal_contracts.jsonl"
 MAX_GOAL_LEN = 128
 GOAL_TOKEN = re.compile(r"[A-Za-z0-9._:-]+\Z")
 MISSION_STATUSES = frozenset({"POSTED", "FINAL_DONE", "BLOCKED", "ERROR"})
@@ -190,6 +193,14 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
             emit({"mission_id": mission_id, "outcome": "blocked", "reason": goal_value})
             continue
         goal = goal_value if goal_kind == "ok" else None
+        if goal is not None and state["missions"].get(mission_id) is None:
+            refused = _goal_contract_refusal(home, spec, goal)
+            if refused is not None:
+                mission = reducer.get_mission(mission_id)
+                if mission is not None:
+                    _park_goal(store, reducer, mission, agent, host, refused)
+                emit({"mission_id": mission_id, "outcome": "blocked", "reason": refused})
+                continue
         source = _recorded_source(state["missions"].get(mission_id) or {}, spec)
         if source is None:
             emit({"mission_id": mission_id, "outcome": "skipped", "reason": "source_sha_missing"})
@@ -459,7 +470,7 @@ def _load_specs(path: Path):
 def _spec_ok(spec) -> bool:
     if not isinstance(spec, dict):
         return False
-    allowed = set(TASK_FIELDS) | {"source_sha", *GOAL_FIELDS}
+    allowed = set(TASK_FIELDS) | {"source_sha", GOAL_TASK_FIELD, *GOAL_FIELDS}
     if set(spec) - allowed or any(name not in spec for name in ("adapter", "params", "effect_class", "max_attempts", "lease_ttl_s")):
         return False
     adapter = spec.get("adapter")
@@ -497,6 +508,33 @@ def _goal_binding(spec):
         if not _goal_token(spec.get(name)):
             return "blocked", f"{name} must be at most {MAX_GOAL_LEN} characters matching [A-Za-z0-9._:-]+"
     return "ok", (spec["goal_id"], spec["goal_fingerprint"])
+
+
+def _goal_contract_refusal(home, spec, goal):
+    """None if the mission may be claimed, else a short blocker reason.
+
+    Opt-in: without <home>/goal_contracts.jsonl nothing changes. With it, the
+    latest contract for the goal must accept the task view (GoalContract.
+    validate_task): a stale fingerprint, a missing human confirmation, a widened
+    scope or a missing acceptance anchor parks the mission before any claim or
+    post, so a refusal has no side effect beyond one BLOCKED event.
+    """
+    path = Path(home) / GOAL_CONTRACTS_FILE
+    if not path.exists():
+        return None
+    from courier_core.goal_contract import GoalContractError, GoalContractStore, Verdict
+    try:
+        contracts = [c for c in GoalContractStore(path).read() if c.goal_id == goal[0]]
+    except GoalContractError:
+        return "goal_contract unreadable"
+    if not contracts:
+        return "goal_contract missing"
+    view = dict(spec.get(GOAL_TASK_FIELD) or {}) if isinstance(spec.get(GOAL_TASK_FIELD), dict) else {}
+    view["goal_id"], view["goal_fingerprint"] = goal
+    verdict = contracts[-1].validate_task(view)
+    if verdict.verdict == Verdict.ACCEPTED:
+        return None
+    return f"goal_contract {verdict.verdict.value} {','.join(verdict.reasons)}"[:200]
 
 
 def _goal_token(value) -> bool:
@@ -602,6 +640,8 @@ def _status_for_outcome(event, view):
 
 
 def _goal_reason_code(reason) -> str:
+    if isinstance(reason, str) and reason.startswith("goal_contract"):
+        return "GOAL_CONTRACT"
     if reason == "goal_id and goal_fingerprint must both be present":
         return "GOAL_PAIR"
     return "GOAL_TOKEN"
