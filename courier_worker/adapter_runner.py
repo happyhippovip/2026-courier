@@ -28,7 +28,8 @@ from pathlib import Path
 # derived from this file instead of trusting the inherited environment.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-ALLOWED = frozenset({"synthetic"})
+ALLOWED = frozenset({"synthetic", "provider_exec"})
+EVIDENCE_NAME = "provider_output.txt"  # read by adapters.provider_exec.verify
 
 
 def _write_report(path: str, report: dict) -> None:
@@ -70,6 +71,9 @@ def main(argv: list) -> int:
         return 2
     os.makedirs(workdir, exist_ok=True)
 
+    if adapter == "provider_exec":
+        return _run_provider_exec(params, workdir, attempt, report)
+
     from adapters import synthetic
 
     try:
@@ -85,6 +89,25 @@ def main(argv: list) -> int:
         print(f"adapter_runner: params rejected: {exc}", file=sys.stderr)
         return 2
     _write_report(report, {"outcome": result.outcome, "reason": str(result.reason)[:500],
+                           "retryable": bool(result.retryable)})
+    return 0
+
+
+def _run_provider_exec(params: dict, workdir: str, attempt: int, report: str) -> int:
+    """One bounded provider attempt. The output becomes provider_output.txt,
+    the evidence the controller's provider_exec verifier hashes. Success is
+    reported only when the adapter says the output hash is verified."""
+    from courier_worker.adapters import provider_exec
+
+    result = provider_exec.run(params, workdir, attempt)
+    if result.launched:
+        evidence = os.path.join(workdir, EVIDENCE_NAME)
+        with open(evidence, "wb") as fh:
+            fh.write(result.output)
+            fh.flush()
+            os.fsync(fh.fileno())
+    _write_report(report, {"outcome": "success" if result.verified else "failure",
+                           "reason": result.reason or str(result.outcome),
                            "retryable": bool(result.retryable)})
     return 0
 
