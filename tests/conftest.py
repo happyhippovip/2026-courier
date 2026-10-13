@@ -24,12 +24,32 @@ if sys.platform == "win32":
     except Exception:
         pass
 
+WINDOWS_SKIP_MARKERS = (
+    "mac_worker",
+    "mac_native",
+    "mac_agy",
+    "mac_deliver",
+    "muse",
+    "run_physical",
+    "ci_acceptance",
+)
+
+
+def windows_collect_skips(nodeid, known=None):
+    """Whether Windows collection hides this node from the outcomes artifact.
+
+    ``known`` is accepted so the CI-scope contract can be tested. The current
+    rule still hides every marker match, including baseline entries.
+    """
+    del known
+    return any(marker in nodeid for marker in WINDOWS_SKIP_MARKERS)
+
+
 def pytest_collection_modifyitems(config, items):
     if sys.platform == "win32":
         skip_mac = pytest.mark.skip(reason="mac OS / UNIX specific tests not supported on Windows")
         for item in items:
-            name = str(item.nodeid)
-            if any(x in name for x in ["mac_worker", "mac_native", "mac_agy", "mac_deliver", "muse", "run_physical", "ci_acceptance"]):
+            if windows_collect_skips(str(item.nodeid)):
                 item.add_marker(skip_mac)
 
 
