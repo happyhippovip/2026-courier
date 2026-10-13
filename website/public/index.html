@@ -3,8 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Courier Symphony — Repo Reality Check</title>
-    <meta name="description" content="Lösen Sie Entwicklungsblockaden in 48 Stunden. Buchen Sie unseren KI-gestützten Repo Reality Check für sofortige strategische Klarheit.">
+    <title>Courier Symphony — Continuity Audit 149 €</title>
+    <meta name="description" content="Bericht in der Regel innerhalb von 48 Stunden (Werktage). Buchen Sie unseren KI-gestützten Continuity Audit (149 €) für sofortige strategische Klarheit.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -147,19 +147,22 @@
             gap: 8px;
         }
 
+        .demo-section {
+            margin: 60px auto;
+            max-width: 800px;
+        }
+        
         .demo-terminal {
-            background-color: rgba(0, 0, 0, 0.6);
+            background-color: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
-            border-radius: 16px;
+            border-radius: 16px 16px 0 0;
             padding: 24px;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.95rem;
             color: var(--text-muted);
-            margin: 60px auto;
-            max-width: 800px;
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-            overflow: hidden;
+            min-height: 250px;
             text-align: left;
         }
 
@@ -167,6 +170,23 @@
             display: flex;
             gap: 8px;
             margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        .terminal-title {
+            color: #6b7280;
+            font-size: 0.8rem;
+            margin-left: auto;
+        }
+
+        .demo-controls {
+            background-color: rgba(255,255,255,0.02);
+            border: 1px solid var(--glass-border);
+            border-top: none;
+            border-radius: 0 0 16px 16px;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
         }
 
         .dot {
@@ -180,26 +200,44 @@
 
         .line {
             margin: 10px 0;
-            opacity: 0;
-            animation: fadeIn 0.1s forwards;
             display: flex;
             align-items: center;
             gap: 12px;
         }
-
-        .line::before {
-            content: '❯';
-            color: var(--accent);
-        }
-        .line.sys::before { content: ''; }
-
-        .line:nth-child(2) { animation-delay: 0.5s; }
-        .line:nth-child(3) { animation-delay: 1.5s; }
-        .line:nth-child(4) { animation-delay: 2.2s; }
-        .line:nth-child(5) { animation-delay: 3.5s; color: var(--success); }
         
-        @keyframes fadeIn {
-            to { opacity: 1; }
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 80px;
+        }
+        
+        .step-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 30px;
+            position: relative;
+        }
+        
+        .step-number {
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: var(--accent);
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+        }
+        
+        .step-card h3 {
+            color: #fff;
+            margin-top: 10px;
         }
 
         .features {
@@ -297,36 +335,83 @@
                 </div>
                 Courier Symphony
             </a>
-            <span class="badge">Repo Reality Check Beta</span>
+            <span class="badge">Continuity Audit 149 €</span>
         </header>
 
         <main>
             <section class="hero">
-                <h1>Lösen Sie Entwicklungsblockaden in 48 Stunden.</h1>
-                <p>Courier Symphony orchestriert spezialisierte KI-Agenten, die echten Code prüfen, Architektur-Engpässe identifizieren und verifizierte Lösungen liefern – fehlerfrei dokumentiert in unserem Ledger.</p>
+                <h1>Continuity Audit: Ihr Bericht in der Regel innerhalb von 48 Stunden (Werktage).</h1>
+                <p>Courier Symphony orchestriert spezialisierte KI-Agenten, die echten Code prüfen, Architektur-Engpässe identifizieren und konkrete Empfehlungen ableiten – nachvollziehbar dokumentiert in unserem Ledger. Eine Garantie auf Fehlerfreiheit oder auf die Lösung aller Probleme geben wir nicht.</p>
                 
                 <a href="https://buy.stripe.com/test_beta" class="cta-button">
-                    Repo Audit buchen (5,00 €)
+                    Continuity Audit buchen (149 €)
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                 </a>
                 
                 <div class="guarantee">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                    <span>Sofortige strategische Klarheit. Günstiger als eine Entwicklerstunde.</span>
+                    <span>Continuity Audit 149 € – Festpreis, sofortige strategische Klarheit.</span>
                 </div>
             </section>
 
-            <section class="demo-terminal">
-                <div class="terminal-header">
-                    <div class="dot red"></div>
-                    <div class="dot yellow"></div>
-                    <div class="dot green"></div>
+            <section class="step-card" id="safety-baseline" style="max-width:800px;margin:0 auto 60px;">
+                <h2>Zweites Angebot: GitHub Actions Safety Baseline</h2>
+                <p><strong>99 € Einführungspreis (erste 3 Kunden)</strong></p>
+                <ul>
+                    <li>Prüfung eines von Ihnen gewählten öffentlichen Repositorys zu einem unveränderlichen Commit-Stand (SHA)</li>
+                    <li>Read-only: Es werden keine Änderungen direkt an Ihrem Repository vorgenommen</li>
+                    <li>Ergebnisse werden von einem unabhängigen Verifier geprüft</li>
+                    <li>Deterministischer Report</li>
+                    <li>Übergabe ausschließlich als Pull Request (PR-only)</li>
+                    <li>Menschliche Prüfung vor der Lieferung</li>
+                </ul>
+                <p>Ablauf: Anfrage → Repository + SHA → Prüfung → unabhängiger Verifier → menschliche Prüfung → Lieferung.</p>
+                <p>Prüfumfang im Detail: [PLATZHALTER: konkrete Prüfpunkte der Baseline]<br>
+                Lieferzeit: [PLATZHALTER: Lieferzeit]<br>
+                Format des Reports: [PLATZHALTER: Format]<br>
+                Zahlungszeitpunkt: Zahlung vor der Lieferung über den Zahlungslink.</p>
+                <a href="[PLATZHALTER: Zahlungslink Safety Baseline]" class="cta-button">GitHub Actions Safety Baseline anfragen (99 €)</a>
+            </section>
+
+            <section class="demo-section">
+                <div class="demo-terminal" id="demo-terminal">
+                    <div class="terminal-header">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                        <span class="terminal-title">courier-symphony-audit ~ bash</span>
+                    </div>
+                    <div class="terminal-content" id="terminal-content">
+                        <div class="line" style="opacity: 1;">Bereit für Repo-Analyse. Klicken Sie auf "Audit starten".</div>
+                    </div>
                 </div>
-                <div class="line">[Ledger] Initialisiere Repo Reality Check für Kundencode...</div>
-                <div class="line">[Analyzer] Scanne Commit-Historie und identifiziere fehlende Testabdeckung.</div>
-                <div class="line">[Foundry Engine] Synthetisiere Architekturfehler: Circular Dependency in Modul B.</div>
-                <div class="line">[Overlay] Erstelle lösungsorientierten 48-Stunden-Bericht...</div>
-                <div class="line sys">➔ Check erfolgreich. PDF-Bericht generiert und zur Überprüfung bereit.</div>
+                <div class="demo-controls">
+                    <button class="cta-button" id="start-audit-btn" onclick="runAuditDemo()">
+                        Audit Simulation starten
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    </button>
+                </div>
+            </section>
+
+            <section class="how-it-works">
+                <h2 style="text-align: center; color: #fff; margin-bottom: 40px;">So funktioniert's</h2>
+                <div class="steps-grid">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <h3>Repo-Zugriff & Checkpoint</h3>
+                        <p>Sie geben uns (Lese-)Zugang zu Ihrem Repository. Unser System erstellt einen sicheren, initialen Ledger-Checkpoint und identifiziert sofort veraltete Branches und offene PRs.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <h3>Deep-Scan & Synthese</h3>
+                        <p>KI-Agenten wie Muse und Codex scannen parallel nach Architektur-Fehlern, fehlenden Tests und Sicherheitslücken (z.B. Secret-Leaks oder ungeschützte Endpunkte).</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <h3>Der 48h-Bericht</h3>
+                        <p>In der Regel innerhalb von 48 Stunden (Werktage) erhalten Sie einen lösungsorientierten Bericht (Foundry Synthesis) mit konkreten Handlungsempfehlungen, um Blockaden aufzulösen und Kosten zu senken.</p>
+                    </div>
+                </div>
             </section>
 
             <section class="features">
@@ -345,6 +430,56 @@
             </section>
         </main>
 
+        <script>
+            function runAuditDemo() {
+                const btn = document.getElementById('start-audit-btn');
+                const content = document.getElementById('terminal-content');
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                content.innerHTML = '';
+                
+                const lines = [
+                    "[Ledger] Initialisiere Continuity Audit für Kundencode...",
+                    "[Analyzer] Analysiere 'integration/v1' Branch...",
+                    "[Foundry] WARNUNG: PR #128 gemergt, aber Tests schlagen fehl.",
+                    "[Codex] Analysiere Code-Pfade: Circular Dependency in 'local_swarm_claim.py' gefunden.",
+                    "[Ledger] CLAIM-Schritt Fehler erkannt (Write-Abort nicht behandelt).",
+                    "[System] ➔ Check abgeschlossen. Bericht bereit zur Überprüfung."
+                ];
+
+                let delay = 0;
+                lines.forEach((text, index) => {
+                    setTimeout(() => {
+                        const div = document.createElement('div');
+                        div.className = 'line sys';
+                        if (text.startsWith('[System]')) {
+                            div.style.color = 'var(--success)';
+                            div.style.fontWeight = 'bold';
+                        } else if (text.includes('WARNUNG')) {
+                            div.style.color = '#f59e0b';
+                        }
+                        div.innerHTML = text.startsWith('[System]') ? text : `> ${text}`;
+                        div.style.opacity = '0';
+                        content.appendChild(div);
+                        
+                        // Trigger reflow for animation
+                        void div.offsetWidth;
+                        div.style.transition = 'opacity 0.3s ease';
+                        div.style.opacity = '1';
+                        
+                        if (index === lines.length - 1) {
+                            setTimeout(() => {
+                                btn.disabled = false;
+                                btn.style.opacity = '1';
+                                btn.innerHTML = 'Erneut testen <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>';
+                            }, 1000);
+                        }
+                    }, delay);
+                    delay += 800 + Math.random() * 800; // Random delay between 800-1600ms
+                });
+            }
+        </script>
+
         <footer>
             <div class="footer-content">
                 <div class="copyright">
@@ -359,7 +494,7 @@
                 </div>
             </div>
             <p style="margin-top: 20px; font-size: 0.85rem; color: #6b7280;">
-                Hinweis: Ihr Quellcode wird niemals dauerhaft gespeichert. Alle Prüfungen erfolgen isoliert und werden nach Abschluss vollständig gelöscht.
+                Hinweis: Ihr Quellcode wird ausschließlich zur Durchführung des Audits verarbeitet und nach Abschluss innerhalb von [LÖSCHFRIST NACH ABSCHLUSS] gelöscht. Details in der <a href="datenschutz.html">Datenschutzerklärung</a>.
             </p>
         </footer>
     </div>
