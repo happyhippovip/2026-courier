@@ -1,0 +1,12 @@
+{
+  "id": "P4",
+  "title": "Index evidence files in one home",
+  "lane": "L4",
+  "branch": "lane/L4-evidence-index-P4",
+  "files_scope": ["courier_core/evidence_index.py", "tests/test_evidence_index.py"],
+  "depends_on": [],
+  "acceptance": ["tests", "draft PR"],
+  "provider_hints": ["headless", "interactive"],
+  "status": "READY",
+  "lease": null
+}

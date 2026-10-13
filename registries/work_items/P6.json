@@ -1,0 +1,12 @@
+{
+  "id": "P6",
+  "title": "Dry-run host setup and list the planned steps",
+  "lane": "L6",
+  "branch": "lane/L6-setup-dry-run-P6",
+  "files_scope": ["scripts/setup/dry_run.py", "tests/test_setup_dry_run.py"],
+  "depends_on": [],
+  "acceptance": ["tests", "draft PR"],
+  "provider_hints": ["headless", "interactive"],
+  "status": "READY",
+  "lease": null
+}
