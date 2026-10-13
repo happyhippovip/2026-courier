@@ -8,6 +8,18 @@ from scripts.provider_survival import (
     CourierScheduler, TaskContext, WorkState, Provider
 )
 
+def test_customer_sees_success_evidence_only_with_a_digest():
+    scheduler = CourierScheduler()
+    done = TaskContext("task-ok", evidence_digest="abc123")
+    bare = TaskContext("task-bare")
+    waiting = TaskContext("task-wait", evidence_digest="abc123")
+    scheduler.completed_tasks = ["task-ok", "task-bare"]
+    shown = scheduler.customer_success_evidence([done, bare, waiting])
+    assert shown == [{"task_id": "task-ok", "evidence_digest": "abc123"}]
+    assert scheduler.customer_success_evidence([done, bare, waiting]) == shown
+    assert scheduler.customer_state([done]) == "DONE"
+
+
 def test_1_provider_quota_exhausted():
     scheduler = CourierScheduler()
     scheduler.simulate_error = True

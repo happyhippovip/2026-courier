@@ -30,6 +30,7 @@ class TaskContext:
     dispatch_id: Optional[str] = None
     fingerprint: str = ""
     authority_scope: str = ""
+    evidence_digest: str = ""
 
 @dataclass
 class Provider:
@@ -268,6 +269,19 @@ class CourierScheduler:
         if needs_connection:
             return "NEEDS YOU"
         return "WORKING"
+
+    def customer_success_evidence(self, tasks: List[TaskContext]) -> List[Dict[str, str]]:
+        """Receipts a customer can re-check. DONE without a digest is not shown."""
+        shown: List[Dict[str, str]] = []
+        completed = set(self.completed_tasks)
+        for task in tasks:
+            if task.task_id not in completed:
+                continue
+            digest = str(task.evidence_digest or "").strip()
+            if not digest:
+                continue
+            shown.append({"task_id": task.task_id, "evidence_digest": digest})
+        return shown
 
     def hibernate_if_quota_blocked_idle(
         self,

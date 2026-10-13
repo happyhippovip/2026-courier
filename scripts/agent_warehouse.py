@@ -70,6 +70,23 @@ class AgentCatalog:
             agents=agents,
         )
 
+# Lower rank is the cheaper planned class. Classes used in AGENT_CATALOG.json
+# that mean "no metered provider call" stay ahead of "high". A class that is
+# not in this table is unranked and must not be described as cheapest.
+PLANNED_COST_RANKS = {
+    "standby_zero_calls": 0,
+    "local": 1,
+    "local_first": 1,
+    "free": 2,
+    "local_or_routed": 3,
+    "low": 4,
+    "subscription_or_provider": 5,
+    "medium": 6,
+    "routing": 7,
+    "high": 8,
+    "provider_dependent": 9,
+}
+
 
 @dataclass
 class RoutingExplanation:
@@ -78,6 +95,7 @@ class RoutingExplanation:
     non_duplicate_reason: str
     cost_reason: str
     fallback_agent_id: Optional[str]
+    planned_cost_class: str = ""
 
 
 class CapabilitySelector:
@@ -126,32 +144,36 @@ class CapabilitySelector:
                 f"(or all capable agents are blocked by duplicate writer / status constraints)"
             )
 
-        cost_ranks = {
-            "local_first": 0,
-            "free": 1,
-            "low": 2,
-            "medium": 3,
-            "high": 4,
-            "local_or_routed": 5,
-        }
+        # Sort by class (core > specialist > provider > reserve), then by the
+        # planned cost table. Unranked classes sort after every ranked class.
         class_ranks = {"core": 0, "specialist": 1, "provider": 2, "reserve": 3}
 
-        candidates.sort(
-            key=lambda a: (
-                class_ranks.get(a.agent_class, 99),
-                cost_ranks.get(a.cost_class, 99),
-            )
-        )
+        def _cost_sort_rank(agent: AgentCatalogEntry) -> int:
+            return PLANNED_COST_RANKS.get(agent.cost_class, 99)
+
+        candidates.sort(key=lambda a: (
+            class_ranks.get(a.agent_class, 99),
+            _cost_sort_rank(a),
+        ))
 
         selected = candidates[0]
         fallback = candidates[1].id if len(candidates) > 1 else None
+        planned = selected.cost_class or "missing"
+        if any(agent.cost_class not in PLANNED_COST_RANKS for agent in candidates):
+            cost_reason = (
+                f"Planned cost class for this task: {planned}; "
+                "at least one candidate is outside the cost table, so this is not a cheapest-cost selection"
+            )
+        else:
+            cost_reason = f"Planned cost class for this task: {planned}"
 
         return RoutingExplanation(
             selected_agent_id=selected.id,
             capable_reason=f"Agent declares capability '{required_capability}' in catalog",
             non_duplicate_reason=f"Respects one-writer constraint; active owners: {current_owners}",
-            cost_reason=f"Selected cheapest available option (cost class: {selected.cost_class})",
+            cost_reason=cost_reason,
             fallback_agent_id=fallback,
+            planned_cost_class=planned,
         )
 
 
