@@ -63,6 +63,7 @@ These are called only on a **copy** of the database, never on the live file, so 
 | `hang` | false | The task never finishes on its own |
 | `fail_transient_n` | 0 | Attempts `1..n` report a retryable failure |
 | `fault_attempts` | `[1]` | Attempts on which `crash_after_s` and `hang` apply |
+| `from_input` | null | `"copy"` or `"reverse"`: write that transform of the dependency's artifact instead of `content` (task created with `depends_on`; exclusive with `content`) |
 
 ## Event sequence of the golden path
 
