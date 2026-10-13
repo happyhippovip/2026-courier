@@ -20,12 +20,12 @@ Grundlage: `.github/workflows/revenue_v1_baseline.yml`, `scripts/revenue_v1_safe
 - **D1 (BEHOBEN im Branch revenue-v1-deliverable): Nur `*.yml` wird gelesen** (`rglob("*.yml")`, Z. 37). `.yaml`-Workflows werden ignoriert. Beleg: pallets/flask @ d086db85… hat 5 `.yaml`-Workflows → `inspected_files: {}` und Bericht „No safety violations detected.“ = falsch-negativ (`demo/flask/`).
 - D2 (BEHOBEN: 0 Dateien → worker/verifier_status WARN, `warning: NO_FILES_INSPECTED`, Hinweis im report.md): Bericht unterschied nicht „0 Dateien geprüft“ von „0 Befunde“.
 - D3: Textsuche statt YAML-Parsing: Kommentare/Job-Ebene nicht unterschieden, ein `timeout-minutes` irgendwo genügt für die ganze Datei; `runs-on: [self-hosted, …]` wird nicht erkannt.
-- D4: Wichtige Actions-Risiken fehlen ganz: `pull_request_target`, ungepinnte Actions (Tag statt SHA), Script-Injection `${{ github.event.* }}`, `secrets: inherit`, `persist-credentials`.
+- D4 (BEHOBEN für pull_request_target, ungepinnte Actions, Script-Injection über `${{ github.event.* }}` in run:; weiterhin offen: `secrets: inherit`, `persist-credentials`): Wichtige Actions-Risiken fehlen ganz: `pull_request_target`, ungepinnte Actions (Tag statt SHA), Script-Injection `${{ github.event.* }}`, `secrets: inherit`, `persist-credentials`.
 - D5: Verifier ist nicht unabhängig: er führt denselben `worker()`-Code erneut aus und vergleicht nur den Hash von report.json (Z. 101-107) – bestätigt Determinismus, nicht Richtigkeit.
-- D6: Dateischlüssel nur `wf.name` (Unterordner-Kollision möglich).
+- D6 (BEHOBEN: Schlüssel ist jetzt der Pfad relativ zu `.github/workflows/`, z. B. `sub/ci.yml`): Dateischlüssel war nur `wf.name` (Unterordner-Kollision möglich).
 - D7 (PATCH VORBEREITET, nicht angewendet – fehlender workflow-Scope): Workflow-Beispieltext `USD 500.00` → `EUR 99.00`, siehe WORKFLOW_PATCH.md.
 - D8 (BEHOBEN): zusätzlich `report_de.md` mit Erklärung, Schweregrad, Fix-Hinweis + YAML-Beispiel und Haftungs-/Review-Hinweis; report.md/report.json unverändert.
-- Tests: `tests/test_revenue_v1_safety_baseline.py` in venv ausgeführt: 24 passed.
+- Tests: `tests/test_revenue_v1_safety_baseline.py` in venv ausgeführt: 28 passed.
 
 ## Fazit
 Pipeline (Intake → Worker → Verifier → HUMAN_REVIEW_REQUIRED) läuft lokal. Der Prüfinhalt ist für 99 € noch zu dünn und hat einen falsch-negativen Fehler (D1). Vor Verkauf mindestens D1, D2, D8 beheben und Bericht manuell reviewen.

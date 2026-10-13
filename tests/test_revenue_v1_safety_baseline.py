@@ -183,7 +183,8 @@ class TestRevenueSafetyBaseline(unittest.TestCase):
         self.assertNotIn("NO_FILES_INSPECTED", md)
 
     def test_render_report_de_all_rules_have_texts(self):
-        for rule in ["runner_type", "timeout", "permissions", "concurrency", "mutation_risk"]:
+        for rule in ["runner_type", "timeout", "permissions", "concurrency", "mutation_risk",
+                     "pull_request_target", "unpinned_action", "script_injection"]:
             for key in ["title", "severity", "explain", "fix", "yaml"]:
                 self.assertTrue(rvsb.RULES_DE[rule][key])
 
@@ -209,6 +210,54 @@ class TestRevenueSafetyBaseline(unittest.TestCase):
         self.assertIn("Self-hosted runner detected", (self.td_path / "report.md").read_text(encoding="utf-8"))
         self.assertIn("Schweregrad:** HOCH", (self.td_path / "report_de.md").read_text(encoding="utf-8"))
         self.assertEqual(res["report_de_md_sha256"], rvsb.hash_file(self.td_path / "report_de.md"))
+
+    def _write_wf(self, rel, text):
+        p = self.td_path / ".github" / "workflows" / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(text, encoding="utf-8")
+
+    def _rules(self, res, file):
+        return [f["rule"] for f in res["findings"] if f["file"] == file]
+
+    def test_rule_pull_request_target(self):
+        self._write_wf("a.yml", "on:\n  pull_request_target:\n    types: [opened]\n")
+        self._write_wf("b.yml", "on:\n  pull_request:\n# pull_request_target only in comment\n")
+        res = rvsb.analyze_workflows(self.td_path)
+        self.assertIn("pull_request_target", self._rules(res, "a.yml"))
+        self.assertNotIn("pull_request_target", self._rules(res, "b.yml"))
+
+    def test_rule_unpinned_action(self):
+        sha = "a" * 40
+        self._write_wf("ci.yml", (
+            "jobs:\n  t:\n    steps:\n"
+            "      - uses: actions/checkout@v4\n"
+            f"      - uses: actions/setup-python@{sha} # v5\n"
+            "      - uses: ./local-action\n"
+            "      - uses: docker://alpine:3\n"
+            "      - uses: 'org/x@main'\n"))
+        res = rvsb.analyze_workflows(self.td_path)
+        issues = [f["issue"] for f in res["findings"] if f["rule"] == "unpinned_action"]
+        self.assertEqual(len(issues), 2)
+        self.assertTrue(any("actions/checkout@v4" in i for i in issues))
+        self.assertTrue(any("org/x@main" in i for i in issues))
+
+    def test_rule_script_injection(self):
+        self._write_wf("inj.yml", (
+            "jobs:\n  t:\n    steps:\n"
+            "      - run: echo ${{ github.event.issue.title }}\n"
+            "      - run: |\n          echo start\n          echo \"${{github.event.pull_request.head.ref}}\"\n"
+            "      - name: safe\n        env:\n          T: ${{ github.event.issue.title }}\n        run: echo \"$T\"\n"))
+        res = rvsb.analyze_workflows(self.td_path)
+        self.assertEqual(self._rules(res, "inj.yml").count("script_injection"), 2)
+
+    def test_same_name_in_subfolders_not_overwritten(self):
+        self._write_wf("ci.yml", "runs-on: self-hosted\n")
+        self._write_wf("sub/ci.yml", "timeout-minutes: 5\npermissions:\nconcurrency:\n")
+        res = rvsb.analyze_workflows(self.td_path)
+        self.assertEqual(set(res["inspected_files"]), {"ci.yml", "sub/ci.yml"})
+        self.assertNotEqual(res["inspected_files"]["ci.yml"], res["inspected_files"]["sub/ci.yml"])
+        self.assertIn("runner_type", self._rules(res, "ci.yml"))
+        self.assertEqual(self._rules(res, "sub/ci.yml"), [])
 
     @patch("revenue_v1_safety_baseline.worker")
     def test_verify_success(self, mock_worker):

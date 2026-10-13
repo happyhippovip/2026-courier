@@ -29,28 +29,68 @@ def clone_and_extract(owner: str, repo: str, sha: str, dest: Path):
     subprocess.run(["git", "-C", str(dest), "fetch", "--depth=1", "--filter=blob:none", "origin", sha], check=True, capture_output=True)
     subprocess.run(["git", "-C", str(dest), "checkout", "FETCH_HEAD"], check=True, capture_output=True)
 
+USES_RE = re.compile(r"^\s*-?\s*uses:\s*['\"]?([^'\"\s#]+)")
+SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+RUN_RE = re.compile(r"^(\s*)-?\s*run:\s*(.*)$")
+
+def _code_lines(content: str) -> list:
+    return [l for l in content.splitlines() if not l.lstrip().startswith("#")]
+
+def extra_findings(name: str, content: str) -> list:
+    """Line-based checks: pull_request_target, unpinned actions, script injection in run:."""
+    findings = []
+    lines = _code_lines(content)
+    if any(re.search(r"\bpull_request_target\b", l.split("#")[0]) for l in lines):
+        findings.append({"rule": "pull_request_target", "file": name, "issue": "pull_request_target trigger detected."})
+    for l in lines:
+        m = USES_RE.match(l)
+        if not m:
+            continue
+        ref = m.group(1)
+        if ref.startswith("./") or ref.startswith("docker://"):
+            continue
+        if "@" not in ref or not SHA_RE.match(ref.rsplit("@", 1)[1]):
+            findings.append({"rule": "unpinned_action", "file": name, "issue": f"Action not pinned to a full 40-char commit SHA: {ref}"})
+    run_indent = None
+    for l in lines:
+        m = RUN_RE.match(l)
+        if m:
+            run_indent = len(m.group(1))
+            if "${{ github.event." in m.group(2).replace("${{github.event.", "${{ github.event."):
+                findings.append({"rule": "script_injection", "file": name, "issue": "github.event expression used directly in run: script."})
+            continue
+        if run_indent is not None:
+            if l.strip() and (len(l) - len(l.lstrip())) <= run_indent:
+                run_indent = None
+            elif "${{ github.event." in l.replace("${{github.event.", "${{ github.event."):
+                findings.append({"rule": "script_injection", "file": name, "issue": "github.event expression used directly in run: script."})
+    return findings
+
 def analyze_workflows(repo_dir: Path) -> dict:
     workflows_dir = repo_dir / ".github" / "workflows"
     findings = []
     inspected_files = {}
     
     if workflows_dir.exists() and workflows_dir.is_dir():
-        for wf in sorted([*workflows_dir.rglob("*.yml"), *workflows_dir.rglob("*.yaml")]):
-            inspected_files[wf.name] = hash_file(wf)
-            content = wf.read_text(encoding="utf-8")
+        for wf_path in sorted([*workflows_dir.rglob("*.yml"), *workflows_dir.rglob("*.yaml")]):
+            # relative path as key so same-named files in subfolders do not overwrite each other
+            wf = wf_path.relative_to(workflows_dir)
+            inspected_files[wf.as_posix()] = hash_file(wf_path)
+            content = wf_path.read_text(encoding="utf-8")
             
             if "runs-on: self-hosted" in content:
-                findings.append({"rule": "runner_type", "file": wf.name, "issue": "Self-hosted runner detected."})
+                findings.append({"rule": "runner_type", "file": wf.as_posix(), "issue": "Self-hosted runner detected."})
             if "timeout-minutes:" not in content:
-                findings.append({"rule": "timeout", "file": wf.name, "issue": "Missing timeout-minutes configuration."})
+                findings.append({"rule": "timeout", "file": wf.as_posix(), "issue": "Missing timeout-minutes configuration."})
             if "permissions:" not in content:
-                findings.append({"rule": "permissions", "file": wf.name, "issue": "Missing explicit permissions block."})
+                findings.append({"rule": "permissions", "file": wf.as_posix(), "issue": "Missing explicit permissions block."})
             elif "write-all" in content:
-                findings.append({"rule": "permissions", "file": wf.name, "issue": "Permissive write-all detected."})
+                findings.append({"rule": "permissions", "file": wf.as_posix(), "issue": "Permissive write-all detected."})
             if "concurrency:" not in content:
-                findings.append({"rule": "concurrency", "file": wf.name, "issue": "Missing concurrency block."})
+                findings.append({"rule": "concurrency", "file": wf.as_posix(), "issue": "Missing concurrency block."})
             if "git push" in content:
-                findings.append({"rule": "mutation_risk", "file": wf.name, "issue": "git push detected in workflow."})
+                findings.append({"rule": "mutation_risk", "file": wf.as_posix(), "issue": "git push detected in workflow."})
+            findings.extend(extra_findings(wf.as_posix(), content))
     
     return {
         "inspected_files": inspected_files,
@@ -93,6 +133,27 @@ RULES_DE = {
         "fix": "Prüfen, ob der Push nötig ist; Rechte auf den betroffenen Job begrenzen und Änderungen möglichst per Pull Request statt direktem Push einbringen.",
         "yaml": "jobs:\n  update:\n    permissions:\n      contents: write",
     },
+    "pull_request_target": {
+        "title": "Trigger pull_request_target",
+        "severity": "HOCH",
+        "explain": "pull_request_target läuft im Kontext des Ziel-Repos mit Schreib-Token und Zugriff auf Secrets, auch für Pull Requests aus Forks. Wird dabei Code aus dem PR ausgecheckt oder ausgeführt, kann Fremdcode diese Rechte nutzen.",
+        "fix": "Wenn möglich pull_request verwenden. Falls pull_request_target nötig ist: keinen PR-Code auschecken oder ausführen und Rechte minimal halten.",
+        "yaml": "on:\n  pull_request:\n    branches: [main]\npermissions:\n  contents: read",
+    },
+    "unpinned_action": {
+        "title": "Action nicht auf Commit-SHA festgelegt",
+        "severity": "MITTEL",
+        "explain": "Die Action wird über einen Tag oder Branch eingebunden. Der Inhalt hinter einem Tag kann sich ändern; eine kompromittierte Action würde dann automatisch in Ihrem Workflow laufen.",
+        "fix": "Die Action auf den vollständigen 40-stelligen Commit-SHA festlegen und die Version als Kommentar notieren.",
+        "yaml": "steps:\n  - uses: actions/checkout@<40-stelliger-commit-sha> # v4",
+    },
+    "script_injection": {
+        "title": "Mögliche Script-Injection über github.event",
+        "severity": "HOCH",
+        "explain": "Ein Ausdruck ${{ github.event.* }} steht direkt in einem run:-Skript. Inhalte wie Issue-Titel oder Branch-Namen können von Außenstehenden gesetzt werden und werden vor der Ausführung ungefiltert in das Shell-Skript eingesetzt.",
+        "fix": "Den Wert zuerst in eine Umgebungsvariable übergeben und im Skript nur die Variable in Anführungszeichen verwenden.",
+        "yaml": "- name: Titel ausgeben\n  env:\n    TITLE: ${{ github.event.issue.title }}\n  run: echo \"$TITLE\"",
+    },
 }
 
 def render_report_de(owner: str, repo: str, sha: str, analysis: dict) -> str:
@@ -116,8 +177,8 @@ def render_report_de(owner: str, repo: str, sha: str, analysis: dict) -> str:
     for name, h in analysis["inspected_files"].items():
         md += f"- `{name}`: `{h}`\n"
     md += "\n## Wichtige Hinweise\n\n"
-    md += "- Geprüft wurden ausschließlich diese Regeln: Self-hosted Runner, timeout-minutes, permissions/write-all, concurrency, git push. Die Prüfung erfolgt per Textsuche je Datei.\n"
-    md += "- Nicht geprüft werden u. a. Anwendungscode, Abhängigkeiten, Secrets, Pinning von Actions, pull_request_target und Script-Injection.\n"
+    md += "- Geprüft wurden ausschließlich diese Regeln: Self-hosted Runner, timeout-minutes, permissions/write-all, concurrency, git push, pull_request_target, Actions ohne festen Commit-SHA, github.event-Ausdrücke direkt in run:. Die Prüfung erfolgt per Text-/Zeilensuche je Datei, ohne vollständiges YAML-Parsing.\n"
+    md += "- Nicht geprüft werden u. a. Anwendungscode, Abhängigkeiten, Secrets, wiederverwendbare Workflows/Composite Actions von außerhalb und weitere Injection-Quellen außer github.event.\n"
     md += "- Es wird keine Garantie für Sicherheit oder Vollständigkeit gegeben. Fehlende Befunde bedeuten nicht, dass die Workflows sicher sind. Kein Penetrationstest, keine Zertifizierung.\n"
     md += "- Dieser Bericht wurde automatisch erzeugt und erfordert vor Auslieferung eine menschliche Durchsicht.\n"
     return md
