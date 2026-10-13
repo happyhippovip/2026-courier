@@ -105,6 +105,7 @@ class Api:
     def __init__(self, base_url, token):
         self.base_url = base_url
         self.session = requests.Session()
+        self.session.trust_env = False
         self.session.headers["X-Courier-Token"] = token
 
     def get(self, path, **kwargs):
@@ -134,6 +135,8 @@ class Courier:
     def env(self):
         env = dict(os.environ)
         env["COURIER_HOME"] = str(self.home)
+        env["no_proxy"] = "127.0.0.1,localhost"
+        env["NO_PROXY"] = "127.0.0.1,localhost"
         parts = [str(REPO_ROOT)] + [p for p in env.get("PYTHONPATH", "").split(os.pathsep) if p]
         env["PYTHONPATH"] = os.pathsep.join(parts)
         return env
