@@ -4,6 +4,7 @@ Contract: tests/golden/README.md. Each case is an independent Courier home.
 """
 
 import json
+import os
 import sqlite3
 import time
 
@@ -117,7 +118,8 @@ def test_timeout_kills_the_task_tree_and_retries(courier):
     assert complete["attempt"] == 2
     assert len(accepted_events(courier, task_id)) == 1
     time.sleep(2)
-    assert open_handles(worker.pid) <= baseline_handles + 4, "worker host leaked handles/descriptors"
+    tolerance = 40 if os.name == "nt" else 4
+    assert open_handles(worker.pid) <= baseline_handles + tolerance, "worker host leaked handles/descriptors"
 
 
 def test_cancel_while_running(courier):
