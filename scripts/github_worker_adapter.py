@@ -17,6 +17,11 @@ from typing import Any
 
 import requests
 
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_DIR))
+from integration_contract import canonical_result_id
+
 REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "happyhippovip/2026-courier")
 WORKFLOW = "courier_worker.yml"
 LOCAL_WAIT_SECONDS = int(os.environ.get("GITHUB_WORKER_LOCAL_WAIT_SECONDS", "60"))
@@ -201,13 +206,15 @@ def verify_result(task: dict[str, Any], result: dict[str, Any], evidence: dict[s
         raise ValueError("evidence must be a JSON object or null")
     if any(result.get(field) != task[field] for field in IDENTITY_FIELDS):
         raise ValueError("DurableResult identity does not match TaskPacket")
-    if str(result.get("run_id")) != run_id or result.get("result_id") != f"result-{task['dispatch_id']}":
+    if str(result.get("run_id")) != run_id:
         raise ValueError("DurableResult is not bound to the observed GitHub run")
     if not isinstance(result.get("run_attempt"), str) or not result["run_attempt"].isdigit():
         raise ValueError("DurableResult is missing GitHub run_attempt")
     if result.get("status") == "FAILED":
         if result.get("artifacts") != [] or evidence is not None:
             raise ValueError("failed GitHub operation must not claim evidence")
+        if result.get("result_id") != canonical_result_id(result):
+            raise ValueError("DurableResult is not bound to the observed GitHub run")
         return
     if result.get("status") != "SUCCESS" or result.get("operation") != task.get("task_type", task.get("type")):
         raise ValueError("GitHub operation did not succeed")
@@ -234,6 +241,8 @@ def verify_result(task: dict[str, Any], result: dict[str, Any], evidence: dict[s
         raise ValueError("file verification acceptance failed")
     if operation in {"static_analysis", "run_tests"} and evidence.get("exit_code") != 0:
         raise ValueError("bounded verification acceptance failed")
+    if result.get("result_id") != canonical_result_id(result):
+        raise ValueError("DurableResult is not bound to the observed GitHub run")
 
 
 def post_result(result: dict[str, Any]) -> None:
