@@ -114,6 +114,32 @@ def _resume_event_id(home: Path, mission, spec):
     return f"queue-resume-{digest[:24]}"
 
 
+RESUME_PREFIX = "queue-resume-"
+
+
+def _backfill_resolved(inbox_path: Path, events, seen: set, resolved: set) -> list:
+    """Append a RESOLVED for every ledger resume (ASSIGNED queue-resume-* after a
+    BLOCKED) whose NEEDS_YOU line exists but was never closed, e.g. after a crash
+    between the resume event and the RESOLVED line. Append-only, idempotent."""
+    from scripts.coordination_ledger import EventType
+    last_blocked, added = {}, []
+    for event in events:
+        if event.event_type == EventType.BLOCKED:
+            last_blocked[event.mission_id] = event.event_id
+        elif event.event_type == EventType.ASSIGNED and event.event_id.startswith(RESUME_PREFIX):
+            blocked_id = last_blocked.pop(event.mission_id, None)
+            key = f"{event.mission_id}|{blocked_id}"
+            if blocked_id is None or key not in seen or key in resolved:
+                continue
+            _append_line(inbox_path, {
+                "kind": "RESOLVED", "mission_id": event.mission_id, "blocked_event_id": blocked_id,
+                "resume_event_id": event.event_id, "at": event.created_at, "backfilled": True,
+            })
+            resolved.add(key)
+            added.append(event.mission_id)
+    return added
+
+
 def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
     home = Path(home)
     config = _read_json(home / CONFIG_NAME, None)
@@ -147,6 +173,7 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
     inbox_path = home / "run" / NEEDS_YOU_INBOX
     seen = _inbox_keys(inbox_path)
     resolved = _resolved_keys(inbox_path)
+    report["resolved_backfill"] = _backfill_resolved(inbox_path, reducer_now.events, seen, resolved)
     for mission_id in sorted(blocked):
         mission = reducer_now.get_mission(mission_id)
         spec = specs.get(mission_id)
