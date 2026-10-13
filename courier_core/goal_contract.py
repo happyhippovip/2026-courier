@@ -67,6 +67,19 @@ class Validation:
 
 
 @dataclass(frozen=True)
+class TaskReading:
+    """Plain reading of one task against the contract.
+
+    ``done`` is empty unless the verdict is ACCEPTED. A blocked task is not
+    described as finished.
+    """
+
+    verdict: Verdict
+    done: tuple[str, ...]
+    blocked: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class AcceptanceCriterion:
     id: str
     check: str
@@ -286,6 +299,89 @@ class GoalContract:
             return Validation(Verdict.HUMAN_CONFIRMATION_REQUIRED, tuple(extension))
         return Validation(Verdict.ACCEPTED, ())
 
+    def explain(self) -> str:
+        """Plain-language terms. Confirmation does not change the fingerprint."""
+        criteria = "; ".join(
+            f"{item.id} ({item.check}; evidence {item.evidence_class})"
+            for item in self.acceptance_criteria
+        )
+        gates = ", ".join(
+            f"{name} {'on' if getattr(self.gates, name) else 'off'}"
+            for name in ("human", "money", "safety")
+        )
+        if self.confirmations:
+            confirmed = " ".join(
+                f"Confirmed by {item.actor_ref} at {item.at}." for item in self.confirmations
+            )
+        else:
+            confirmed = "No person has confirmed these terms."
+        return "\n".join((
+            f"Goal {self.goal_id}. End result: {self.end_result}.",
+            "Allowed: " + ", ".join(self.allowed_scope) + ".",
+            "Forbidden: " + _phrase(self.forbidden_scope),
+            "Constraints: " + _phrase(self.constraints),
+            "Side effects: " + _phrase(self.side_effect_limits),
+            f"Acceptance: {criteria}.",
+            f"Gates: {gates}.",
+            confirmed,
+        ))
+
+    def read_task(self, task_spec: object) -> TaskReading:
+        """What this task has finished, and what still blocks it."""
+        validation = self.validate_task(task_spec)
+        if validation.verdict is not Verdict.ACCEPTED:
+            return TaskReading(validation.verdict, (), self._blocked_lines(task_spec, validation))
+        anchored = set(task_spec["acceptance_ids"])
+        done = tuple(
+            f"Done: {item.id} — {item.check}."
+            for item in self.acceptance_criteria
+            if item.id in anchored
+        )
+        return TaskReading(validation.verdict, done, ())
+
+    def _blocked_lines(self, task_spec: object, validation: Validation) -> tuple[str, ...]:
+        return tuple(self._blocked_line(reason, task_spec) for reason in validation.reasons)
+
+    def _blocked_line(self, reason: str, task_spec: object) -> str:
+        spec = task_spec if isinstance(task_spec, dict) else {}
+        scope = _task_scope(spec.get("scope")) or set()
+        if reason == "unconfirmed":
+            return "Blocked: a person has not confirmed these terms."
+        if reason == "stale_fingerprint":
+            return "Blocked: the task fingerprint does not match the current terms."
+        if reason == "forbidden_scope":
+            items = ", ".join(sorted(scope & set(self.forbidden_scope)))
+            return f"Blocked: scope includes forbidden {items}."
+        if reason == "scope_widened":
+            items = ", ".join(sorted(scope - set(self.allowed_scope)))
+            return f"Blocked: scope adds {items}, which is outside the allowed scope."
+        if reason == "criteria_changed":
+            known = {item.id for item in self.acceptance_criteria}
+            anchors = _task_ids(spec.get("acceptance_ids")) or ()
+            extra = ", ".join(sorted(item for item in anchors if item not in known))
+            return f"Blocked: acceptance id {extra} is not in the contract."
+        if reason == "missing_acceptance_anchor":
+            return "Blocked: the task has no acceptance criterion to check."
+        if reason == "missing_evidence_class":
+            return "Blocked: the task names no evidence class."
+        if reason == "evidence_class_mismatch":
+            evidence = spec.get("evidence_class")
+            shown = evidence.strip() if isinstance(evidence, str) else ""
+            return f"Blocked: evidence class {shown} does not match the criterion."
+        if reason == "goal_id_mismatch":
+            return "Blocked: the task names a different goal."
+        if reason == "missing_goal_id":
+            return "Blocked: the task names no goal."
+        if reason == "missing_fingerprint":
+            return "Blocked: the task names no fingerprint."
+        if reason == "unknown_field":
+            return "Blocked: the task has a field the contract does not accept."
+        if reason == "task_spec_invalid":
+            return "Blocked: the task is not a record."
+        if reason == "scope_invalid":
+            return "Blocked: the task scope is not a list of phrases."
+        return f"Blocked: {reason}."
+
 
 class GoalContractStore:
     """Append-only JSONL. A file over 1 MiB, or a record that does not match, is refused."""
@@ -364,6 +460,10 @@ def _digest(record: dict) -> str:
 
 def _canonical(record: dict) -> str:
     return json.dumps(record, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+
+
+def _phrase(items: tuple[str, ...]) -> str:
+    return (", ".join(items) + ".") if items else "none."
 
 
 def _text(value: object, label: str) -> str:
