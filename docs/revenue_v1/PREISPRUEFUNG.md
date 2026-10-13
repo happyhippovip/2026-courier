@@ -3,7 +3,7 @@
 ## Konsistenz im Repo / Memory
 - Project-Memory `COURIER_AGENT_OPERATING_CONTEXT.md`: „EUR 99 for the first 3 customers“ – Referenz.
 - Konsistent 99: `events/approvals/human_fast_gates/human_gate_REV-OPP-B2B-AUTONOMY-AUDIT.json:13` (€99, allerdings Name „AI Agent Reliability Check“), `scripts/invoice_generator.py:64`, `events/revenue-opportunities/market_intelligence/FINAL_P01_FOLLOWUP_SPEC.json:5`, `fixtures/test_intake.json:6` (`EUR_99`).
-- Abweichend: `.github/workflows/revenue_v1_baseline.yml:23` Beispiel „USD 500.00“; `pilot/pricing_config.json` kennt nur audit 149 / pilot 390; `website/src/index.html:213` 5,00 €. Kein öffentlicher Ort nennt 99 € für dieses Produkt.
+- Abweichend: `.github/workflows/revenue_v1_baseline.yml:23` Beispiel war „USD 500.00“, Patch setzt „EUR 99 (Einführungspreis, nicht validiert)“ (WORKFLOW_PATCH.md); `pilot/pricing_config.json` kennt nur audit 149 / pilot 390; `website/src/index.html:213` 5,00 €. Kein öffentlicher Ort nennt 99 € für dieses Produkt.
 
 ## Marktvergleich (Websuche 13.10.2026)
 - zizmor: Open Source, 0 $, 38 Audits – https://rywalker.com/research/zizmor , https://github.com/marketplace/actions/zizmor-action

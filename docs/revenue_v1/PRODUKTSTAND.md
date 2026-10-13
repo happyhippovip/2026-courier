@@ -23,9 +23,9 @@ Grundlage: `.github/workflows/revenue_v1_baseline.yml`, `scripts/revenue_v1_safe
 - D4 (BEHOBEN für pull_request_target, ungepinnte Actions, Script-Injection über `${{ github.event.* }}` in run:; weiterhin offen: `secrets: inherit`, `persist-credentials`): Wichtige Actions-Risiken fehlen ganz: `pull_request_target`, ungepinnte Actions (Tag statt SHA), Script-Injection `${{ github.event.* }}`, `secrets: inherit`, `persist-credentials`.
 - D5 (BEHOBEN: eigenes Modul `scripts/revenue_v1_independent_verifier.py`, eigener Fetch + `git show SHA:pfad`, eigene Regelimplementierung, Hash-Abgleich, fail-closed, Identität mit Name/Version/sha256; siehe INDEPENDENT_VERIFIER.md): vorher war der Verifier nicht unabhängig: er führt denselben `worker()`-Code erneut aus und vergleicht nur den Hash von report.json (Z. 101-107) – bestätigt Determinismus, nicht Richtigkeit.
 - D6 (BEHOBEN: Schlüssel ist jetzt der Pfad relativ zu `.github/workflows/`, z. B. `sub/ci.yml`): Dateischlüssel war nur `wf.name` (Unterordner-Kollision möglich).
-- D7 (PATCH VORBEREITET, nicht angewendet – fehlender workflow-Scope): Workflow-Beispieltext `USD 500.00` → `EUR 99.00`, siehe WORKFLOW_PATCH.md.
+- D7 (PATCH VORBEREITET, nicht angewendet – fehlender workflow-Scope): Workflow-Beispieltext (bisher USD-Betrag) → `EUR 99 (Einführungspreis, nicht validiert)`, siehe WORKFLOW_PATCH.md.
 - D8 (BEHOBEN): zusätzlich `report_de.md` mit Erklärung, Schweregrad, Fix-Hinweis + YAML-Beispiel und Haftungs-/Review-Hinweis; report.md/report.json unverändert.
-- Tests: `tests/test_revenue_v1_safety_baseline.py` in venv ausgeführt: 46 passed (35 baseline + 11 independent verifier).
+- Tests: `tests/test_revenue_v1_safety_baseline.py` in venv ausgeführt: 49 passed (37 baseline + 12 independent verifier).
 
 ## Fazit
 Pipeline (Intake → Worker → Verifier → HUMAN_REVIEW_REQUIRED) läuft lokal. Der Prüfinhalt ist für 99 € noch zu dünn und hat einen falsch-negativen Fehler (D1). Vor Verkauf mindestens D1, D2, D8 beheben und Bericht manuell reviewen.
@@ -36,3 +36,6 @@ Pipeline (Intake → Worker → Verifier → HUMAN_REVIEW_REQUIRED) läuft lokal
 - Der Workflow `revenue_v1_baseline.yml` installiert nichts und ruft `python3` direkt auf. Ob PyYAML auf dem Runner-Image vorhanden ist, wurde nicht geprüft; fehlt es, laufen alle Dateien im Prüfmodus `text` (sichtbar im Bericht). Worker und Verifier laufen im selben Image, die Hash-Prüfung bleibt also konsistent.
 - Empfehlung (Workflow-Änderung, braucht workflow-Scope): `pip install PyYAML==6.0.3` vor Worker und Verifier, analog zu WORKFLOW_PATCH.md.
 - Box-System-Python hat kein PyYAML; Demos und Tests liefen in `/workspace/.venv-rv1`.
+
+## CI-Befund courier_motor.yml (13.10.2026, nur gelesen)
+Alle Push-Runs von `.github/workflows/courier_motor.yml` auf `revenue-v1-deliverable` (be5c2fbf … 110c981b) und auf `main` (seit 4b39599f / bc385fea) enden mit `failure` ohne Jobs und ohne Log („log not found“). Ursache: Datei ist ungültiges YAML, weil Commit a3a77c7e6 (#57) die Zeile `on:` gelöscht hat. Nicht durch Revenue-V1-Änderungen verursacht. Fix nur als Workflow-Änderung möglich → WORKFLOW_PATCH.md, Punkt 5.

@@ -145,15 +145,57 @@ class TestIndependentVerifier(unittest.TestCase):
         self.assertEqual(ident["version"], ind.VERIFIER_VERSION)
         self.assertEqual(ident["source_sha256"], hashlib.sha256((SCRIPTS / "revenue_v1_independent_verifier.py").read_bytes()).hexdigest())
 
+    def _imported_modules(self, source: str) -> list:
+        """All module names referenced by Import/ImportFrom (incl. relative), __import__() and importlib calls."""
+        import ast
+        mods = []
+        for node in ast.walk(ast.parse(source)):
+            if isinstance(node, ast.Import):
+                mods += [a.name for a in node.names]
+            elif isinstance(node, ast.ImportFrom):
+                if node.level:  # relative import: never allowed in this standalone module
+                    mods.append("." * node.level + (node.module or ""))
+                else:
+                    mods.append(node.module or "")
+                mods += [f"{node.module or ''}.{a.name}" for a in node.names]
+            elif isinstance(node, ast.Call):
+                f = node.func
+                name = f.id if isinstance(f, ast.Name) else (f.attr if isinstance(f, ast.Attribute) else "")
+                if name in ("__import__", "import_module") or (isinstance(f, ast.Attribute) and isinstance(f.value, ast.Name) and f.value.id == "importlib"):
+                    arg = node.args[0] if node.args else None
+                    mods.append(arg.value if isinstance(arg, ast.Constant) and isinstance(arg.value, str) else "<dynamic>")
+        return mods
+
+    FORBIDDEN = ("revenue_v1_safety_baseline", "revenue_worker", "courier", "intake_dispatcher", "repo_reality_check", "scripts")
+
+    def _assert_clean(self, mods):
+        for m in mods:
+            self.assertFalse(m.startswith("."), f"relative import {m}")
+            self.assertNotEqual(m, "<dynamic>", "dynamic import not allowed")
+            for bad in self.FORBIDDEN:
+                self.assertNotIn(bad, m.lower(), f"forbidden import {m}")
+
     def test_module_imports_no_worker_code(self):
         src = (SCRIPTS / "revenue_v1_independent_verifier.py").read_text(encoding="utf-8")
-        import_lines = [l for l in src.splitlines() if l.lstrip().startswith(("import ", "from "))]
-        self.assertTrue(import_lines)
-        for l in import_lines:
-            self.assertNotIn("revenue_v1_safety_baseline", l)
-            self.assertNotIn("revenue_worker", l)
-            self.assertNotIn("courier", l)
+        mods = self._imported_modules(src)
+        self.assertIn("yaml", mods)
+        self.assertIn("hashlib", mods)
+        self._assert_clean(mods)
 
+    def test_import_checker_catches_forbidden_forms(self):
+        cases = [
+            "import revenue_v1_safety_baseline",
+            "from revenue_v1_safety_baseline import worker",
+            "from . import revenue_v1_safety_baseline",
+            "from .x import y",
+            "import courier_core.verification as v",
+            "m = __import__('revenue_v1_safety_baseline')",
+            "import importlib\nm = importlib.import_module('courier_runtime')",
+            "import importlib\nm = importlib.import_module(name)",
+        ]
+        for code in cases:
+            with self.assertRaises(AssertionError, msg=code):
+                self._assert_clean(self._imported_modules(code))
 
 if __name__ == "__main__":
     unittest.main()

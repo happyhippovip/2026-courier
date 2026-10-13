@@ -325,6 +325,11 @@ def worker(task: dict, work_dir: Path) -> dict:
 
 INDEPENDENT_VERIFIER = Path(__file__).resolve().parent / "revenue_v1_independent_verifier.py"
 
+def independent_verifier_path() -> Path:
+    """Path of the verifier to run. CI may pin it (e.g. a copy taken from integration/v1) via env var."""
+    override = os.environ.get("REVENUE_V1_INDEPENDENT_VERIFIER")
+    return Path(override) if override else INDEPENDENT_VERIFIER
+
 def run_independent_verifier(task: dict, candidate: dict, work_dir: Path) -> dict:
     """Run the independent verifier as a separate process (no shared code); fail closed on any error."""
     try:
@@ -332,7 +337,7 @@ def run_independent_verifier(task: dict, candidate: dict, work_dir: Path) -> dic
             task_p, cand_p = Path(tmp) / "task.json", Path(tmp) / "candidate.json"
             task_p.write_text(json.dumps(task), encoding="utf-8")
             cand_p.write_text(json.dumps(candidate), encoding="utf-8")
-            proc = subprocess.run([sys.executable, str(INDEPENDENT_VERIFIER), str(task_p), str(work_dir), str(cand_p)],
+            proc = subprocess.run([sys.executable, str(independent_verifier_path()), str(task_p), str(work_dir), str(cand_p)],
                                   capture_output=True, text=True)
         verdict = json.loads(proc.stdout)
         if not isinstance(verdict, dict):

@@ -331,6 +331,21 @@ class TestRevenueSafetyBaseline(unittest.TestCase):
             rvsb.verify({}, {"report_json_sha256": "h1"}, self.td_path)
         self.assertIn("MISMATCH", str(cm.exception))
 
+    def test_independent_verifier_path_override(self):
+        with patch.dict(os.environ, {"REVENUE_V1_INDEPENDENT_VERIFIER": "/tmp/pinned.py"}):
+            self.assertEqual(rvsb.independent_verifier_path(), Path("/tmp/pinned.py"))
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("REVENUE_V1_INDEPENDENT_VERIFIER", None)
+            self.assertEqual(rvsb.independent_verifier_path(), rvsb.INDEPENDENT_VERIFIER)
+
+    @patch("revenue_v1_safety_baseline.subprocess.run")
+    def test_pinned_verifier_missing_is_fail(self, mock_run):
+        mock_run.return_value = MagicMock(stdout="", returncode=2)  # e.g. pinned file not found
+        with patch.dict(os.environ, {"REVENUE_V1_INDEPENDENT_VERIFIER": "/nonexistent.py"}):
+            v = rvsb.run_independent_verifier({}, {}, self.td_path)
+        self.assertFalse(v["accepted"])
+        self.assertEqual(mock_run.call_args[0][0][1], "/nonexistent.py")
+
     @patch("revenue_v1_safety_baseline.subprocess.run")
     def test_run_independent_verifier_fail_closed(self, mock_run):
         # unreadable output
