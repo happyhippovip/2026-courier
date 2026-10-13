@@ -48,6 +48,56 @@ def _utc(now=None) -> str:
     return moment.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+NEEDS_YOU_INBOX = "needs_you.jsonl"
+
+
+def _inbox_keys(path: Path) -> set:
+    keys = set()
+    try:
+        for line in path.read_text(encoding="utf-8").splitlines():
+            row = json.loads(line)
+            keys.add(f"{row.get('mission_id')}|{row.get('blocked_event_id')}")
+    except FileNotFoundError:
+        pass
+    return keys
+
+
+def _append_line(path: Path, record: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "a", encoding="utf-8") as fh:
+        fh.write(json.dumps(record, sort_keys=True) + "\n")
+        fh.flush()
+        os.fsync(fh.fileno())
+
+
+def _not_before(floor, now=None) -> str:
+    from scripts.coordination_ledger import parse_timestamp
+    current = _utc(now)
+    low = parse_timestamp(floor)
+    return floor if low is not None and low >= parse_timestamp(current) else current
+
+
+def _resume_event_id(home: Path, mission, spec):
+    """Deterministic resume id if a goal-contract block is now cleared, else None.
+
+    Only missions parked by the Goal Contract are resumed. The id names the
+    accepting contract fingerprint, so one confirmation resumes once.
+    """
+    blocker = (mission or {}).get("blocker") or ""
+    if not blocker.startswith("goal_contract") or not isinstance(spec, dict):
+        return None
+    from scripts.ledger_v1_bridge import _goal_binding, _goal_contract_refusal
+    from courier_core.goal_contract import GoalContractStore
+    kind, goal = _goal_binding(spec)
+    if kind != "ok" or _goal_contract_refusal(home, spec, goal) is not None:
+        return None
+    latest = [c for c in GoalContractStore(home / "goal_contracts.jsonl").read() if c.goal_id == goal[0]][-1]
+    confirmed_at = max(c.at for c in latest.confirmations)
+    import hashlib
+    digest = hashlib.sha256(f"{mission['mission_id']}|{latest.fingerprint()}|{confirmed_at}".encode()).hexdigest()
+    return f"queue-resume-{digest[:24]}"
+
+
 def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
     home = Path(home)
     config = _read_json(home / CONFIG_NAME, None)
@@ -73,8 +123,44 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
     # A parked mission (BLOCKED in the ledger) needs a human. Its workkey is
     # neither renewed, released nor reclaimed, so dependents keep waiting, but
     # it no longer occupies the holder: independent READY work continues.
-    blocked = {mid for mid, m in reduce_store(store).missions.items()
+    reducer_now = reduce_store(store)
+    blocked = {mid for mid, m in reducer_now.missions.items()
                if m.get("status") == MissionStatus.BLOCKED}
+    report["needs_you"] = []
+    report["resumed"] = []
+    inbox_path = home / "run" / NEEDS_YOU_INBOX
+    seen = _inbox_keys(inbox_path)
+    for mission_id in sorted(blocked):
+        mission = reducer_now.get_mission(mission_id)
+        spec = specs.get(mission_id)
+        # Resume exactly once per newly confirmed contract: the same refusal
+        # check the bridge runs before a claim, then one deterministic ASSIGNED.
+        resume_id = _resume_event_id(home, mission, spec)
+        if resume_id is not None:
+            if resume_id not in reducer_now.processed_event_ids:
+                store.write_event(CoordinationEvent(
+                    event_id=resume_id, mission_id=mission_id,
+                    agent_id=AgentID(agent_id), host_id=HostID(host_id),
+                    event_type=EventType.ASSIGNED, status=MissionStatus.WORKING,
+                    depends_on=list(mission.get("depends_on") or []),
+                    head="work_queue", evidence_ref=f"work_queue:resume:{mission_id}:{holder}",
+                    created_at=_not_before(mission.get("updated_at"), now),
+                    payload_hash="work_queue", ownership=agent_id,
+                ))
+                report["resumed"].append(mission_id)
+            blocked.discard(mission_id)
+            continue
+        # Wake signal: one NEEDS_YOU inbox line per BLOCKED event (deduped).
+        key = f"{mission_id}|{mission.get('latest_event_id')}"
+        if key not in seen:
+            _append_line(inbox_path, {
+                "kind": "NEEDS_YOU", "mission_id": mission_id,
+                "blocked_event_id": mission.get("latest_event_id"),
+                "blocker": mission.get("blocker"), "at": _utc(now),
+                "next_action": "confirm or amend the goal contract; Courier resumes once on its own",
+            })
+            seen.add(key)
+            report["needs_you"].append(mission_id)
 
     def assign(item_id: str) -> None:
         reducer = reduce_store(store)
@@ -121,6 +207,6 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
                 assign(item["id"])
                 break
 
-    if report["released"] or report["claimed"] or report["assigned"]:
+    if report["released"] or report["claimed"] or report["assigned"] or report["resumed"]:
         report["outcome"] = "fed"
     return report
