@@ -11,10 +11,14 @@
 *{box-sizing:border-box}html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,-apple-system,"Helvetica Neue",Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
 a{color:var(--fg)}
-nav{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:18px 5vw;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+nav{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:18px 5vw;background:#000;border-bottom:1px solid var(--line)}
 nav .brand{font-weight:800;letter-spacing:.18em;text-transform:uppercase;font-size:.85rem;text-decoration:none}
 nav .links a{margin-left:28px;text-decoration:none;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
 nav .links a:hover{color:var(--fg)}
+.skip{position:absolute;left:-999px;top:8px;z-index:20;background:#000;color:#f5f5f7;padding:10px 14px;text-decoration:none}
+.skip:focus,.skip:focus-visible{left:16px}
+a:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+#inhalt,:target{scroll-margin-top:88px}
 .hero{position:relative;min-height:100vh;display:flex;align-items:flex-end;padding:0 5vw 12vh;overflow:hidden}
 .hero iframe{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none}
 .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,#000 100%);pointer-events:none}
@@ -48,9 +52,10 @@ footer .fl a{margin-right:22px;color:var(--mut);text-decoration:none}footer .fl 
 
 </head>
 <body>
+<a class="skip" href="#inhalt">Zum Inhalt</a>
 <nav><a class="brand" href="index.html">Courier Symphony</a><div class="links"><a href="index.html#angebote">Angebote</a><a class="opt" href="index.html#vision">Vision</a><a href="community.html">Community</a></div></nav>
 
-<section class="blk" style="padding-top:18vh;border-top:0"><div class="wrap">
+<section class="blk" id="inhalt" style="padding-top:18vh;border-top:0"><div class="wrap">
 <p class="kicker">Community / Mitbauen</p>
 <h1 style="font-size:clamp(2.2rem,5vw,4rem)">Beitragen – mit prüfbarem Beleg für jeden Schritt.</h1>
 <p class="lead">Repository: <a href="https://github.com/happyhippovip/2026-courier">github.com/happyhippovip/2026-courier</a> · Trunk: <code>integration/v1</code> · Regeln: <a href="https://github.com/happyhippovip/2026-courier/blob/integration/v1/CONTRIBUTING.md"><code>CONTRIBUTING.md</code></a>, <code>AGENTS.md</code>, <code>docs/V1_RULE_0.md</code></p>

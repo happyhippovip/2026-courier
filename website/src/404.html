@@ -7,12 +7,16 @@
 <style>
 body { margin: 0 auto; max-width: 42rem; padding: 2rem 1.25rem;
 font-family: system-ui, "Segoe UI", Roboto, sans-serif; line-height: 1.6; }
+.skip { position: absolute; left: -999px; top: 8px; background: #fff; color: #111; padding: 8px 12px; }
+.skip:focus, .skip:focus-visible { left: 12px; }
+a:focus-visible { outline: 2px solid #1d4ed8; outline-offset: 3px; }
 </style>
 </head>
 <body>
-<h1>Diese Seite gibt es nicht.</h1>
+<a class="skip" href="#inhalt">Zum Inhalt</a>
+<h1 id="inhalt">Diese Seite gibt es nicht.</h1>
 <p><a href="/">Zurück zur Startseite von Courier Symphony</a>.</p>
-    <footer style="max-width:800px;margin:24px auto 0;font-size:0.9rem;color:#9ca3af;text-align:center;">
+    <footer style="max-width:800px;margin:24px auto 0;font-size:0.9rem;color:#1f2937;text-align:center;">
         <a href="index.html">Startseite</a> · <a href="agb.html">AGB</a> · <a href="widerruf.html">Widerrufsbelehrung</a> · <a href="datenschutz.html">Datenschutz</a> · <a href="community.html">Community</a> · <a href="impressum.html">Impressum</a>
     </footer>
 </body>

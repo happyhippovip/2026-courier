@@ -2,7 +2,7 @@
 <!-- Kopie von /workspace/courier/bird/bird_v2.html; angepasst: kein HUD/Feuerwerk/Beispiel-Tasks im Embed (#embed), prefers-reduced-motion = Standbild -->
 <style>html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-family:-apple-system,"Helvetica Neue",Arial,sans-serif}
 body.bg{background:radial-gradient(ellipse at 50% 30%,#1b2a4a 0%,#0a1020 60%,#05070f 100%)}canvas{position:fixed;inset:0}</style></head>
-<body class="bg"><canvas id="c"></canvas><canvas id="g" style="mix-blend-mode:screen;filter:blur(14px);opacity:.9"></canvas>
+<body class="bg"><canvas id="c" role="img" aria-label="Ein Vogel trägt einen Auftrag vom Dispatcher zu einem Empfänger und kehrt zum Ausgangspunkt zurück."></canvas><canvas id="g" aria-hidden="true" style="mix-blend-mode:screen;filter:blur(14px);opacity:.9"></canvas>
 <script>
 const TR=location.hash.includes('transparent'),EMB=location.hash.includes('embed'); if(TR)document.body.classList.remove('bg');
 const c=document.getElementById('c'),x=c.getContext('2d'),g=document.getElementById('g'),gx=g.getContext('2d');
