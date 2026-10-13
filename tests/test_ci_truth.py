@@ -55,3 +55,40 @@ def test_run_ci_truth_product_failure(mock_popen, mock_run, tmp_path):
     res = run_ci_truth(str(tmp_path), "HEAD")
     assert res["status"] == "fail"
     assert res["classification"] == "product"
+
+
+@patch("subprocess.run")
+@patch("subprocess.Popen")
+def test_run_ci_truth_timeout_is_not_a_product_failure(mock_popen, mock_run, tmp_path):
+    def side_effect(*args, **kwargs):
+        cmd = args[0]
+        if cmd[0] == "docker" and cmd[1] == "run":
+            return MagicMock(
+                returncode=1,
+                stdout="E       Failed: Timeout >5.0s\nTimeoutExpired\n======= 1 failed in 5.1s =======\n",
+                stderr="",
+            )
+        return MagicMock(returncode=0, stdout="", stderr="")
+    mock_run.side_effect = side_effect
+
+    res = run_ci_truth(str(tmp_path), "HEAD")
+    assert res["status"] == "fail"
+    assert res["classification"] == "timeout"
+    assert res["classification"] != "product"
+    assert "ghp_" not in json.dumps(res.get("verdict", {}))
+
+
+@patch("subprocess.run")
+@patch("subprocess.Popen")
+def test_run_ci_truth_skips_are_not_a_clean_pass(mock_popen, mock_run, tmp_path):
+    def side_effect(*args, **kwargs):
+        cmd = args[0]
+        if cmd[0] == "docker" and cmd[1] == "run":
+            return MagicMock(returncode=0, stdout="======= 3 passed, 1 skipped in 0.2s =======\n", stderr="")
+        return MagicMock(returncode=0, stdout="", stderr="")
+    mock_run.side_effect = side_effect
+
+    res = run_ci_truth(str(tmp_path), "HEAD")
+    assert res["status"] == "fail"
+    assert res["classification"] == "env"
+    assert res["verdict"]["verified"] is False
