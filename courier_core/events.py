@@ -33,6 +33,7 @@ EFFECT_CLASSES = frozenset({"idempotent", "non_idempotent"})
 RETRY_SAFE_EFFECT_CLASS = "idempotent"
 LEASE_EXPIRY_REASONS = frozenset({"ttl", "restart_grace"})
 RESULT_OUTCOMES = frozenset({"success", "failure"})
+INPUT_KEYS = frozenset({"task_id", "dispatch_id", "result_id", "artifacts"})
 
 _SHA256_HEX = re.compile(r"^[0-9a-f]{64}$")
 
@@ -264,6 +265,31 @@ def validate(event: Event) -> None:
     _validate_payload(event)
 
 
+def _check_artifacts(artifacts: Any) -> None:
+    if not isinstance(artifacts, list):
+        raise EventValidationError("artifacts must be a list")
+    for artifact in artifacts:
+        if (not isinstance(artifact, dict) or not isinstance(artifact.get("path"), str)
+                or not artifact["path"] or not _SHA256_HEX.match(str(artifact.get("sha256", "")))):
+            raise EventValidationError("each artifact needs a non-empty path and a lowercase sha256")
+
+
+def _validate_input(value: Any) -> None:
+    """TASK_CLAIMED payload["input"]: the verified result a dependent task is given.
+
+    It names the task, dispatch and result it came from and repeats that
+    result's artifact references (path + sha256), so the journal records
+    exactly which bytes the attempt was allowed to build on.
+    """
+    if not isinstance(value, dict) or set(value) != INPUT_KEYS:
+        raise EventValidationError(f"input must be an object with exactly {sorted(INPUT_KEYS)}")
+    for name in ("task_id", "dispatch_id", "result_id"):
+        _check_id(f"input.{name}", value[name])
+    _check_artifacts(value["artifacts"])
+    if not value["artifacts"]:
+        raise EventValidationError("input must reference at least one artifact")
+
+
 def _validate_payload(event: Event) -> None:
     payload = event.payload
     if event.type is EventType.TASK_CREATED:
@@ -276,18 +302,18 @@ def _validate_payload(event: Event) -> None:
         _check_positive_int("lease_ttl_s", payload["lease_ttl_s"])
         if payload.get("timeout_s") is not None:
             _check_positive_int("timeout_s", payload["timeout_s"])
+        if payload.get("depends_on") is not None:
+            _check_id("depends_on", payload["depends_on"])
+            if payload["depends_on"] == event.task_id:
+                raise EventValidationError("a task cannot depend on itself")
     elif event.type is EventType.TASK_CLAIMED:
         _check_positive_int("ttl_s", payload["ttl_s"])
+        if payload.get("input") is not None:
+            _validate_input(payload["input"])
     elif event.type is EventType.RESULT_READY:
         if payload["outcome"] not in RESULT_OUTCOMES:
             raise EventValidationError(f"outcome must be one of {sorted(RESULT_OUTCOMES)}")
-        artifacts = payload["artifacts"]
-        if not isinstance(artifacts, list):
-            raise EventValidationError("artifacts must be a list")
-        for artifact in artifacts:
-            if (not isinstance(artifact, dict) or not isinstance(artifact.get("path"), str)
-                    or not artifact["path"] or not _SHA256_HEX.match(str(artifact.get("sha256", "")))):
-                raise EventValidationError("each artifact needs a non-empty path and a lowercase sha256")
+        _check_artifacts(payload["artifacts"])
         if "retryable" in payload and not isinstance(payload["retryable"], bool):
             raise EventValidationError("retryable must be a boolean")
     elif event.type is EventType.RESULT_REJECTED:
