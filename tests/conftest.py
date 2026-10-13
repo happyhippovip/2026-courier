@@ -26,10 +26,10 @@ if sys.platform == "win32":
 
 def pytest_collection_modifyitems(config, items):
     if sys.platform == "win32":
+        from scripts.windows_test_scope import windows_skips_as_unix_only
         skip_mac = pytest.mark.skip(reason="mac OS / UNIX specific tests not supported on Windows")
         for item in items:
-            name = str(item.nodeid)
-            if any(x in name for x in ["mac_worker", "mac_native", "mac_agy", "mac_deliver", "muse", "run_physical", "ci_acceptance"]):
+            if windows_skips_as_unix_only(str(item.nodeid)):
                 item.add_marker(skip_mac)
 
 
