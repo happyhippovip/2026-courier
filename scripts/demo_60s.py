@@ -133,13 +133,15 @@ def main(argv=None) -> int:
     ap.add_argument("--out", default=str(ROOT / "demo_out"), help="Ordner fuer den Beleg")
     ap.add_argument("--no-color", action="store_true")
     ap.add_argument("--html", action="store_true", help="zusaetzlich statische Statusanzeige needs_you_view.html erzeugen")
+    ap.add_argument("--home", help="Courier-Home fuer --html: liest <home>/run/needs_you.jsonl")
+    ap.add_argument("--needs-you", help="Pfad zu needs_you.jsonl fuer --html")
     a = ap.parse_args(argv)
     pace = 0.0 if a.fast else 1.0
     color = not a.no_color and sys.stdout.isatty()
     r = run(a.goal, Path(a.out), pace=pace, color=color, interactive=a.interactive)
     if a.html and r.get("artifact"):
-        from demo_view import write
-        html = write(Path(r["artifact"]), Path(a.out) / "needs_you_view.html")
+        from demo_view import needs_path, write
+        html = write(Path(r["artifact"]), Path(a.out) / "needs_you_view.html", needs_path(a.home, a.needs_you))
         print(f"Statusanzeige: {html}")
     return 0 if r["status"] == "DONE" else 1
 
