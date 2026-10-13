@@ -254,6 +254,76 @@ def test_failing_check_run_does_not_wake(tmp_path):
     assert json.loads(log)["outcome"] == "unverified"
 
 
+def test_ci_for_an_old_sha_does_not_wake_when_the_pr_head_moved(tmp_path):
+    http = FakeHTTP()
+    http.pulls[(REPO, 7)] = {
+        "merged": False,
+        "head": {"sha": SHA2, "ref": "feature"},
+        "base": {"ref": "integration/v1"},
+    }
+    http.checks[(REPO, SHA)] = [{"status": "completed", "conclusion": "success", "head_sha": SHA}]
+    code, http, home, out, err, log, cursor = _run(
+        tmp_path, http,
+        {"wk-a": {"depends_on": [{"repo": REPO, "sha": SHA}], "task": _task()}},
+        [_comment(1, "octo", "OWNER", _wake(event="ci_passed", pr=7, sha=SHA))],
+    )
+    assert code == 0 and http.tasks == []
+    assert json.loads(log)["outcome"] == "unverified"
+
+
+def test_skipped_check_on_the_current_head_does_not_wake(tmp_path):
+    http = FakeHTTP()
+    http.pulls[(REPO, 7)] = {
+        "merged": False,
+        "head": {"sha": SHA, "ref": "feature"},
+        "base": {"ref": "integration/v1"},
+    }
+    http.checks[(REPO, SHA)] = [{"status": "completed", "conclusion": "skipped", "head_sha": SHA}]
+    code, http, home, out, err, log, cursor = _run(
+        tmp_path, http,
+        {"wk-a": {"depends_on": [{"repo": REPO, "sha": SHA}], "task": _task()}},
+        [_comment(1, "octo", "OWNER", _wake(event="ci_passed", pr=7, sha=SHA))],
+    )
+    assert code == 0 and http.tasks == []
+    assert json.loads(log)["outcome"] == "unverified"
+
+
+def test_ci_on_the_pr_head_wakes_once(tmp_path):
+    http = FakeHTTP()
+    http.pulls[(REPO, 7)] = {
+        "merged": False,
+        "head": {"sha": SHA, "ref": "feature"},
+        "base": {"ref": "main"},
+    }
+    http.checks[(REPO, SHA)] = [{"status": "completed", "conclusion": "success", "head_sha": SHA}]
+    http.checks[(REPO, SHA2)] = [{"status": "completed", "conclusion": "success", "head_sha": SHA2}]
+    code, http, home, out, err, log, cursor = _run(
+        tmp_path, http,
+        {"wk-a": {"depends_on": [{"repo": REPO, "sha": SHA}], "task": _task()}},
+        [_comment(1, "octo", "OWNER", _wake(event="ci_passed", pr=7, sha=SHA))],
+    )
+    assert code == 0 and len(http.tasks) == 1
+    assert json.loads(log)["outcome"] == "queued"
+    again = _run(
+        tmp_path / "again", http,
+        {"wk-a": {"depends_on": [{"repo": REPO, "sha": SHA}], "task": _task()}},
+        [_comment(1, "octo", "OWNER", _wake(event="ci_passed", pr=7, sha=SHA))],
+    )
+    assert again[0] == 0 and len(http.tasks) == 1
+
+
+def test_merge_into_another_branch_does_not_wake(tmp_path):
+    http = FakeHTTP()
+    http.pulls[(REPO, 7)] = _pull(base="main")
+    code, http, home, out, err, log, cursor = _run(
+        tmp_path, http,
+        {"wk-a": {"depends_on": [{"repo": REPO, "pr": 7, "sha": SHA}], "task": _task()}},
+        [_comment(1, "octo", "OWNER", _wake())],
+    )
+    assert code == 0 and http.tasks == []
+    assert json.loads(log)["outcome"] == "unverified"
+
+
 def test_token_never_appears_in_stdout_stderr_or_log(tmp_path, monkeypatch):
     monkeypatch.setenv("GITHUB_TOKEN", TOKEN)
     http = FakeHTTP()

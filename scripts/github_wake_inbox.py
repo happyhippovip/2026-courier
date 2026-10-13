@@ -28,7 +28,6 @@ EXIT_MALFORMED = 2
 EXIT_RETRY = 75
 SCHEMA = "courier.wake.v1"
 BASE_REF = "integration/v1"
-BAD_CONCLUSIONS = frozenset({"failure", "cancelled", "timed_out"})
 TASK_FIELDS = ("adapter", "params", "effect_class", "max_attempts", "lease_ttl_s", "timeout_s")
 # serve.py --port defaults to 0 (ephemeral). Local clients use this host:port.
 DEFAULT_CONTROLLER = "http://127.0.0.1:8080"
@@ -171,6 +170,10 @@ def _classify(comment, allow, repo):
 def _event_verified(transport, args, wake, github_token):
     if wake["event"] == "pr_merged":
         return _pull_ok(transport, args, wake["repo"], wake["pr"], wake["sha"], github_token)
+    if wake.get("pr") is not None and not _pr_head_ok(
+        transport, args, wake["repo"], wake["pr"], wake["sha"], github_token,
+    ):
+        return False
     return _checks_ok(transport, args, wake["repo"], wake["sha"], github_token)
 
 
@@ -208,6 +211,20 @@ def _pull_ok(transport, args, repo, number, sha, github_token):
     return True
 
 
+def _pr_head_ok(transport, args, repo, number, sha, github_token):
+    """CI for a pull request counts only when the named sha is that PR's head."""
+    status, raw = _github(transport, args, f"/repos/{repo}/pulls/{number}", github_token)
+    if not _github_readable(status):
+        return False
+    try:
+        body = json.loads(raw)
+    except json.JSONDecodeError:
+        return False
+    head = body.get("head") if isinstance(body, dict) else None
+    head_sha = head.get("sha") if isinstance(head, dict) else None
+    return isinstance(head_sha, str) and _sha_ok(head_sha) and head_sha.lower() == sha.lower()
+
+
 def _checks_ok(transport, args, repo, sha, github_token):
     status, raw = _github(
         transport, args, f"/repos/{repo}/commits/{sha}/check-runs?per_page={MAX_PAGE}&page=1", github_token,
@@ -227,7 +244,10 @@ def _checks_ok(transport, args, repo, sha, github_token):
     for run in runs:
         if not isinstance(run, dict) or run.get("status") != "completed":
             return False
-        if run.get("conclusion") in BAD_CONCLUSIONS:
+        head_sha = run.get("head_sha")
+        if not isinstance(head_sha, str) or head_sha.lower() != sha.lower():
+            return False
+        if run.get("conclusion") != "success":
             return False
     return True
 

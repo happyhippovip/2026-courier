@@ -13,6 +13,7 @@ from courier_core.work_queue import (
     WorkQueue,
     WorkQueueError,
     main,
+    scopes_overlap,
 )
 
 NOW = datetime(2026, 10, 8, 12, 0, 0, tzinfo=timezone.utc)
@@ -50,6 +51,16 @@ def _write_items(directory, rows):
     directory.mkdir(parents=True, exist_ok=True)
     for row in rows:
         (directory / f"{row['id']}.json").write_text(json.dumps(row), encoding="utf-8")
+
+
+def _release_test_file_claims(queue):
+    """P2, P8 and WK7 are claimed and each owns a file under tests/."""
+    for item_id, holder in (
+        ("P2", "pr:287"),
+        ("P8", "pr:309"),
+        ("WK7", "cloud:lane/L3-local-veto"),
+    ):
+        queue.release(item_id, holder, "draft PR", now=NOW)
 
 
 def test_seed_files_match_schema_and_claims(tmp_path):
@@ -103,6 +114,11 @@ def test_list_ready_skips_taken_items(tmp_path):
     queue = _queue(tmp_path)
     assert queue.list_ready(now=NOW) == []
     assert queue.list_ready(now=NOW.replace(year=2099)) == []
+    assert queue.list_ready(done_prs=["281"], now=NOW) == []
+    with pytest.raises(WorkQueueError) as caught:
+        queue.claim("REPORT-QA", "holder-a", 60, now=NOW, done_prs=["281"])
+    assert caught.value.code == "SCOPE_OVERLAP"
+    _release_test_file_claims(queue)
     ready = queue.list_ready(done_prs=["281"], now=NOW)
     assert [item["id"] for item in ready] == ["REPORT-QA"]
     assert "P8" not in [item["id"] for item in ready]
@@ -111,15 +127,6 @@ def test_list_ready_skips_taken_items(tmp_path):
 
 def test_duplicate_claim_is_rejected_and_same_holder_is_idempotent(tmp_path):
     queue = _queue(tmp_path)
-    first = queue.claim("REPORT-QA", "holder-a", 60, host="local", now=NOW, done_prs=["281"])
-    before = (tmp_path / "ledger.jsonl").read_bytes()
-    again = queue.claim("REPORT-QA", "holder-a", 60, host="local", now=NOW + timedelta(seconds=5), done_prs=["281"])
-    assert again["idempotent"] is True
-    assert again["expires_at"] == first["expires_at"]
-    assert (tmp_path / "ledger.jsonl").read_bytes() == before
-    with pytest.raises(WorkQueueError) as caught:
-        queue.claim("REPORT-QA", "holder-b", 60, now=NOW, done_prs=["281"])
-    assert caught.value.code == "DUPLICATE_CLAIM"
     taken = queue.claim("P2", "pr:287", 60, now=NOW)
     assert taken["idempotent"] is True
     assert taken["holder"] == "pr:287"
@@ -129,6 +136,16 @@ def test_duplicate_claim_is_rejected_and_same_holder_is_idempotent(tmp_path):
     with pytest.raises(WorkQueueError) as caught:
         queue.renew("WK7", "cloud:lane/L3-local-veto", 60, now=NOW)
     assert caught.value.code == "NOT_RENEWABLE"
+    _release_test_file_claims(queue)
+    first = queue.claim("REPORT-QA", "holder-a", 60, host="local", now=NOW, done_prs=["281"])
+    before = (tmp_path / "ledger.jsonl").read_bytes()
+    again = queue.claim("REPORT-QA", "holder-a", 60, host="local", now=NOW + timedelta(seconds=5), done_prs=["281"])
+    assert again["idempotent"] is True
+    assert again["expires_at"] == first["expires_at"]
+    assert (tmp_path / "ledger.jsonl").read_bytes() == before
+    with pytest.raises(WorkQueueError) as caught:
+        queue.claim("REPORT-QA", "holder-b", 60, now=NOW, done_prs=["281"])
+    assert caught.value.code == "DUPLICATE_CLAIM"
 
 
 def test_overlapping_scope_is_not_ready_until_the_lease_expires(tmp_path):
@@ -183,6 +200,7 @@ def test_dependencies_on_items_and_prs(tmp_path):
 
 def test_renew_release_and_replay(tmp_path):
     queue = _queue(tmp_path)
+    _release_test_file_claims(queue)
     queue.claim("REPORT-QA", "holder-a", 60, now=NOW, done_prs=["281"])
     renewed = queue.renew("REPORT-QA", "holder-a", 120, now=NOW + timedelta(seconds=10))
     assert renewed["expires_at"] == "2026-10-08T12:02:10Z"
@@ -209,6 +227,7 @@ def test_renew_release_and_replay(tmp_path):
 
 def test_expired_renew_is_rejected(tmp_path):
     queue = _queue(tmp_path)
+    _release_test_file_claims(queue)
     queue.claim("REPORT-QA", "holder-a", 10, now=NOW, done_prs=["281"])
     with pytest.raises(WorkQueueError) as caught:
         queue.renew("REPORT-QA", "holder-a", 10, now=NOW + timedelta(seconds=11))
@@ -247,6 +266,7 @@ def test_blocked_seed_is_not_ready(tmp_path):
 
 def test_concurrent_claims_one_winner(tmp_path):
     queue_path = tmp_path / "ledger.jsonl"
+    _release_test_file_claims(WorkQueue(DEFAULT_ITEMS, queue_path))
     barrier = threading.Barrier(2)
     outcomes = []
 
@@ -272,13 +292,24 @@ def test_cli_next_prints_prompt_without_claiming(tmp_path, capsys):
     assert capsys.readouterr().out.strip() == "NO_READY_ITEM"
     assert not ledger.exists()
     assert main(["--ledger", str(ledger), "next", "--holder", "window-a", "--done-pr", "281"]) == 0
+    assert capsys.readouterr().out.strip() == "NO_READY_ITEM"
+    assert not ledger.exists()
+    for item_id, holder in (
+        ("P2", "pr:287"),
+        ("P8", "pr:309"),
+        ("WK7", "cloud:lane/L3-local-veto"),
+    ):
+        assert main(["--ledger", str(ledger), "release", "--item", item_id, "--holder", holder, "--result", "draft PR"]) == 0
+        capsys.readouterr()
+    before = ledger.read_bytes()
+    assert main(["--ledger", str(ledger), "next", "--holder", "window-a", "--done-pr", "281"]) == 0
     text = capsys.readouterr().out
     assert "id: REPORT-QA" in text
     assert "lane/L4-report-qa" in text
     assert "tests only" in text
     assert "draft PR" in text
     assert "Claim the item before writing" in text
-    assert not ledger.exists()
+    assert ledger.read_bytes() == before
     assert main(["--ledger", str(ledger), "claim", "--item", "REPORT-QA", "--holder", "window-a", "--ttl", "60", "--done-pr", "281"]) == 0
     assert "CLAIMED" in capsys.readouterr().out
     assert main(["--ledger", str(ledger), "next", "--holder", "window-b", "--done-pr", "281"]) == 0
@@ -300,6 +331,7 @@ def test_p9_template_spawns_claim_once_items(tmp_path):
     assert (tmp_path / "ledger.jsonl").read_bytes() == before
     other = queue.spawn("P9", "media_verify", now=NOW)
     assert other["item_id"] == "P9-media_verify"
+    _release_test_file_claims(queue)
     assert [item["id"] for item in queue.list_ready(now=NOW)] == ["P9-media_verify", "P9-worker_tokens"]
     queue.claim("P9-worker_tokens", "holder-a", 30, now=NOW)
     assert [item["id"] for item in queue.list_ready(now=NOW)] == []
@@ -328,6 +360,25 @@ def test_external_claim_ignores_the_clock(tmp_path):
     with pytest.raises(WorkQueueError) as caught:
         queue.claim("A", "other", 60, now=NOW)
     assert caught.value.code == "DUPLICATE_CLAIM"
+
+
+def test_directory_scope_conflicts_with_a_file_inside_it(tmp_path):
+    assert scopes_overlap(["tests/"], ["tests/test_short_video.py"]) is True
+    assert scopes_overlap(["tests/"], ["docs/readme.md"]) is False
+    home = tmp_path / "items"
+    _write_items(home, [
+        _item("DIR", ["tests/"]),
+        _item("FILE", ["tests/test_short_video.py"]),
+        _item("OTHER", ["docs/readme.md"]),
+    ])
+    queue = WorkQueue(home, tmp_path / "ledger.jsonl")
+    queue.claim("DIR", "holder-a", 30, now=NOW)
+    assert [item["id"] for item in queue.list_ready(now=NOW)] == ["OTHER"]
+    with pytest.raises(WorkQueueError) as caught:
+        queue.claim("FILE", "holder-b", 30, now=NOW)
+    assert caught.value.code == "SCOPE_OVERLAP"
+    again = queue.list_ready(now=NOW)
+    assert [item["id"] for item in again] == ["OTHER"]
 
 
 def test_cli_next_empty(tmp_path, capsys):

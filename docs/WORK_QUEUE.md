@@ -29,6 +29,8 @@ An item is ready when:
 - its `files_scope` does not overlap an unexpired `CLAIMED` item
 - its `files_scope` does not overlap an open pull request path given by the caller
 
+A scope that ends with `/` covers that directory and every path under it. `tests/` overlaps `tests/test_short_video.py`.
+
 `claim` is atomic under a lock on the ledger. The same holder claiming an unexpired lease again is a no-op and does not append. A different holder is rejected. An expired lease can be claimed again. `renew` extends a lease the holder still owns. `release` records a short result and sets `DONE`. A second release with the same result is a no-op.
 
 `DONE` and `BLOCKED` seeds stay that way. Ledger events do not reopen them.
