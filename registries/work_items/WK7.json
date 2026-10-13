@@ -1,0 +1,25 @@
+{
+  "id": "WK7",
+  "title": "local host veto with tests (owner patch on #141 only, do not edit #141 files)",
+  "lane": "L3",
+  "branch": "lane/L3-local-veto",
+  "files_scope": [
+    "courier_worker/local_veto.py",
+    "tests/test_local_veto.py",
+    "docs/LOCAL_VETO.md"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "local host veto tests",
+    "owner patch on #141 only; do not edit adapters/local_shell.py, courier_worker/adapter_bridge.py, courier_worker/adapter_runner.py, tests/test_l3_worker_host.py, or tests/test_local_shell_adapter.py",
+    "draft PR"
+  ],
+  "provider_hints": [],
+  "pull_request": "305",
+  "status": "CLAIMED",
+  "lease": {
+    "holder": "cloud:lane/L3-local-veto",
+    "host": "local",
+    "expires_at": null
+  }
+}

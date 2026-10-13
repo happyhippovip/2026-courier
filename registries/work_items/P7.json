@@ -1,0 +1,18 @@
+{
+  "id": "P7",
+  "title": "Write a local repo reality report",
+  "lane": "L4",
+  "branch": "lane/L4-repo-reality-P7",
+  "files_scope": [
+    "courier_core/repo_reality_fetch.py",
+    "courier_core/repo_reality_report.py",
+    "docs/REPO_REALITY_CHECK.md",
+    "tests/test_repo_reality_fetch.py",
+    "tests/test_repo_reality_report.py"
+  ],
+  "depends_on": [],
+  "acceptance": ["tests", "draft PR"],
+  "provider_hints": ["headless", "interactive"],
+  "status": "DONE",
+  "lease": null
+}
