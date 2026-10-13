@@ -12,6 +12,7 @@ Das ist kein `VERIFIED` und kein `LEDGER_FROZEN`. `CANDIDATE` bleibt, was es war
 | HOST | Linux `cursor` 6.12.94+ x86_64, Cursor-Cloud-VM, live gelesen. Kein Windows-Runner, kein Mac-`RESOURCE_PAUSE`. |
 | RESOURCE_GATE | OPEN. 4 CPUs, load `0.00 0.00 0.00` (2026-10-13 15:19:34 UTC). RAM MemTotal 16387416 kB, MemAvailable 5126792 kB. Disk `/` 3%, 247G frei. |
 | BEFORE_SHA | `7cbbffcbb18fe2e071795a8624f2463c0f715333` |
+| AFTER_SHA | `50e8002de7162aed4c056f34b7ebd4b36230ca5a` |
 | TESTS | `python3 -m pytest tests/test_gate_g1_ledger.py tests/test_gate_g1_job_object.py tests/test_ledger_candidate_binding.py -q` |
 | LEDGER_TEST_SHA256 | `584c3f91dc4d4fb8ec0f8ef5494587b7062e6644b33bb9ef5f10ea00b5084a12` |
 | JOB_TEST_SHA256 | `5791faf61b8701f8d1f8cec71fa1434d5a685e305c47eac68d7f70dd65e679b9` |
