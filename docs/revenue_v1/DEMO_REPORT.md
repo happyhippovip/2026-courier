@@ -5,5 +5,7 @@ Befehl: `python3 scripts/revenue_v1_safety_baseline.py worker task.json work_dir
 Worker PASS, Verifier PASS → HUMAN_REVIEW_REQUIRED. 8 Workflow-Dateien geprüft, 13 Befunde (8× fehlender concurrency-Block, 5× fehlendes timeout-minutes). Dateien: `demo/requests/` (report.md, report.json, result.json, verified.json, task.json).
 report.json sha256 laut result: siehe `demo/requests/result.json`.
 
-## Lauf B – pallets/flask @ d086db856be187255b8ec61ef409357393020f32 (Fehlerbeleg)
-Worker PASS, Verifier PASS, aber `inspected_files: {}` – die 5 Workflows heißen `*.yaml` und werden nicht gelesen. Bericht „No safety violations detected.“ ist falsch-negativ. Dateien: `demo/flask/`.
+## Lauf B – pallets/flask @ d086db856be187255b8ec61ef409357393020f32
+Erstlauf (Skript 4b39599f2): `inspected_files: {}`, Bericht „No safety violations detected.“ – falsch-negativ, weil nur `*.yml` gelesen wurde.
+Neulauf (13.10.2026 ca. 15:45 CEST, Skript mit `.yaml`-Support + NO_FILES_INSPECTED-Warnung): Worker PASS, Verifier PASS → HUMAN_REVIEW_REQUIRED. 5 Dateien geprüft (lock.yaml, pre-commit.yaml, publish.yaml, tests.yaml, zizmor.yaml), 5 Befunde: je 1× fehlendes `timeout-minutes`. report.json sha256 50c874f593603bef05ce9eb33eb707ca3de0bacbbc2bfa357762635deec4ef2f. Dateien: `demo/flask/`.
+Hinweis: Lauf A (requests) wurde nicht neu ausgeführt.

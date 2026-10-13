@@ -35,7 +35,7 @@ def analyze_workflows(repo_dir: Path) -> dict:
     inspected_files = {}
     
     if workflows_dir.exists() and workflows_dir.is_dir():
-        for wf in workflows_dir.rglob("*.yml"):
+        for wf in sorted([*workflows_dir.rglob("*.yml"), *workflows_dir.rglob("*.yaml")]):
             inspected_files[wf.name] = hash_file(wf)
             content = wf.read_text(encoding="utf-8")
             
@@ -69,8 +69,11 @@ def worker(task: dict, work_dir: Path) -> dict:
     
     analysis = analyze_workflows(repo_dir)
     
+    worker_status = "PASS" if analysis["inspected_files"] else "WARN"
     report_md = f"# GitHub Actions Safety Baseline Report\n\n**Target:** {owner}/{repo} @ {sha}\n\n## Findings\n"
-    if not analysis["findings"]:
+    if not analysis["inspected_files"]:
+        report_md += "**WARN: NO_FILES_INSPECTED** - no workflow files (*.yml/*.yaml) found under .github/workflows/. This is not a clean result.\n"
+    elif not analysis["findings"]:
         report_md += "No safety violations detected.\n"
     else:
         for f in analysis["findings"]:
@@ -93,7 +96,8 @@ def worker(task: dict, work_dir: Path) -> dict:
         "report_json_sha256": hash_file(work_dir / "report.json"),
         "report_md_sha256": hash_file(work_dir / "report.md"),
         "effect_classification": "SAFE_READ_ONLY",
-        "worker_status": "PASS",
+        "worker_status": worker_status,
+        **({"warning": "NO_FILES_INSPECTED"} if worker_status != "PASS" else {}),
         "proposal_mode": "PR_ONLY"
     }
 
@@ -108,7 +112,7 @@ def verify(task: dict, candidate: dict, work_dir: Path) -> dict:
     return {
         **candidate,
         "verifier_id": VERIFIER_ID,
-        "verifier_status": "PASS",
+        "verifier_status": "PASS" if candidate.get("worker_status", "PASS") == "PASS" else "WARN",
         "next_safe_state": "HUMAN_REVIEW_REQUIRED"
     }
 

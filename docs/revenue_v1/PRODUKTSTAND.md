@@ -17,15 +17,15 @@ Grundlage: `.github/workflows/revenue_v1_baseline.yml`, `scripts/revenue_v1_safe
 5. `git push` → Mutationsrisiko
 
 ## Gefundene Mängel (aus Code + lokalem Lauf belegt)
-- **D1 (kritisch): Nur `*.yml` wird gelesen** (`rglob("*.yml")`, Z. 37). `.yaml`-Workflows werden ignoriert. Beleg: pallets/flask @ d086db85… hat 5 `.yaml`-Workflows → `inspected_files: {}` und Bericht „No safety violations detected.“ = falsch-negativ (`demo/flask/`).
-- D2: Bericht unterscheidet nicht „0 Dateien geprüft“ von „0 Befunde“.
+- **D1 (BEHOBEN im Branch revenue-v1-deliverable): Nur `*.yml` wird gelesen** (`rglob("*.yml")`, Z. 37). `.yaml`-Workflows werden ignoriert. Beleg: pallets/flask @ d086db85… hat 5 `.yaml`-Workflows → `inspected_files: {}` und Bericht „No safety violations detected.“ = falsch-negativ (`demo/flask/`).
+- D2 (BEHOBEN: 0 Dateien → worker/verifier_status WARN, `warning: NO_FILES_INSPECTED`, Hinweis im report.md): Bericht unterschied nicht „0 Dateien geprüft“ von „0 Befunde“.
 - D3: Textsuche statt YAML-Parsing: Kommentare/Job-Ebene nicht unterschieden, ein `timeout-minutes` irgendwo genügt für die ganze Datei; `runs-on: [self-hosted, …]` wird nicht erkannt.
 - D4: Wichtige Actions-Risiken fehlen ganz: `pull_request_target`, ungepinnte Actions (Tag statt SHA), Script-Injection `${{ github.event.* }}`, `secrets: inherit`, `persist-credentials`.
 - D5: Verifier ist nicht unabhängig: er führt denselben `worker()`-Code erneut aus und vergleicht nur den Hash von report.json (Z. 101-107) – bestätigt Determinismus, nicht Richtigkeit.
 - D6: Dateischlüssel nur `wf.name` (Unterordner-Kollision möglich).
 - D7: Workflow-Beispieltext `USD 500.00` (Z. 23) widerspricht EUR 99.
 - D8: Bericht ist englisch, ohne Erklärung, Schweregrad, Fix-Vorschlag oder Haftungshinweis.
-- Kein pytest im Box-Python; `tests/test_revenue_v1_safety_baseline.py` nicht ausgeführt.
+- Tests: `tests/test_revenue_v1_safety_baseline.py` in venv ausgeführt: 20 passed.
 
 ## Fazit
 Pipeline (Intake → Worker → Verifier → HUMAN_REVIEW_REQUIRED) läuft lokal. Der Prüfinhalt ist für 99 € noch zu dünn und hat einen falsch-negativen Fehler (D1). Vor Verkauf mindestens D1, D2, D8 beheben und Bericht manuell reviewen.

@@ -99,14 +99,49 @@ class TestRevenueSafetyBaseline(unittest.TestCase):
         os.environ["GITHUB_RUN_ID"] = "r1"
         os.environ["GITHUB_RUN_ATTEMPT"] = "1"
         
-        # mock analyze to do nothing (clean)
+        # mock clone creates no workflows: 0 files inspected must not be PASS
         res = rvsb.worker(task, self.td_path)
         
         self.assertEqual(res["task_id"], "t1")
-        self.assertEqual(res["worker_status"], "PASS")
+        self.assertEqual(res["worker_status"], "WARN")
+        self.assertEqual(res["warning"], "NO_FILES_INSPECTED")
         self.assertTrue((self.td_path / "report.json").exists())
         self.assertTrue((self.td_path / "report.md").exists())
+        report_md = (self.td_path / "report.md").read_text(encoding="utf-8")
+        self.assertIn("NO_FILES_INSPECTED", report_md)
+        self.assertNotIn("No safety violations detected", report_md)
+
+    def test_analyze_workflows_reads_yaml_extension(self):
+        wf_dir = self.td_path / ".github" / "workflows"
+        wf_dir.mkdir(parents=True)
+        (wf_dir / "ci.yaml").write_text("runs-on: self-hosted", encoding="utf-8")
+        (wf_dir / "other.yml").write_text("timeout-minutes: 5\npermissions:\nconcurrency:", encoding="utf-8")
+        res = rvsb.analyze_workflows(self.td_path)
+        self.assertIn("ci.yaml", res["inspected_files"])
+        self.assertIn("other.yml", res["inspected_files"])
+        self.assertIn("Self-hosted runner detected.", {f["issue"] for f in res["findings"] if f["file"] == "ci.yaml"})
+
+    @patch("revenue_v1_safety_baseline.clone_and_extract")
+    def test_worker_clean_with_files_is_pass(self, mock_clone):
+        task = {"target_owner": "a", "target_repo": "b", "target_sha": "c", "task_id": "t1",
+                "attempt_id": "a1", "idempotency_key": "k1", "customer_reference": "cr1"}
+
+        def mock_clone_side_effect(owner, repo, sha, dest):
+            wf_dir = dest / ".github" / "workflows"
+            wf_dir.mkdir(parents=True)
+            (wf_dir / "ok.yaml").write_text("timeout-minutes: 5\npermissions:\nconcurrency:", encoding="utf-8")
+
+        mock_clone.side_effect = mock_clone_side_effect
+        res = rvsb.worker(task, self.td_path)
+        self.assertEqual(res["worker_status"], "PASS")
+        self.assertNotIn("warning", res)
         self.assertIn("No safety violations detected", (self.td_path / "report.md").read_text(encoding="utf-8"))
+
+    def test_verify_no_files_is_not_pass(self):
+        with patch("revenue_v1_safety_baseline.worker") as mock_worker:
+            mock_worker.return_value = {"report_json_sha256": "h1"}
+            verified = rvsb.verify({}, {"report_json_sha256": "h1", "worker_status": "WARN"}, self.td_path)
+        self.assertEqual(verified["verifier_status"], "WARN")
 
     @patch("revenue_v1_safety_baseline.clone_and_extract")
     def test_worker_with_findings(self, mock_clone):
