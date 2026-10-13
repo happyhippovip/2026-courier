@@ -97,10 +97,11 @@ class TaskState:
     resolution: str | None = None
     decided_by: str | None = None
     # A task that depends on another one runs only on that task's verified result.
-    # The ids name the result the current attempt was given (TASK_CLAIMED payload["input"]).
+    # input is what the current attempt was given (TASK_CLAIMED payload["input"]): the
+    # dependency's task, dispatch and result id and its artifact references with sha256,
+    # so a verifier can recompute from the same bytes without reading the journal.
     depends_on: str | None = None
-    input_dispatch_id: str | None = None
-    input_result_id: str | None = None
+    input: dict | None = None
     created_seq: int | None = None
     updated_seq: int | None = None
 
@@ -208,9 +209,7 @@ def _transition(state: TaskState, event: Event) -> TaskState:
             raise _fail(event, state, "a dependent task is claimed only with the verified result of its dependency")
         return replace(state, status=TaskStatus.CLAIMED, attempt=event.attempt, dispatch_id=event.dispatch_id,
                        worker_id=event.worker_id, started=False, pending_result_id=None,
-                       failure_kind=None, retryable=None, last_reason=None,
-                       input_dispatch_id=bound["dispatch_id"] if bound else None,
-                       input_result_id=bound["result_id"] if bound else None)
+                       failure_kind=None, retryable=None, last_reason=None, input=bound)
 
     if t is EventType.TASK_STARTED:
         if s is not TaskStatus.CLAIMED:
