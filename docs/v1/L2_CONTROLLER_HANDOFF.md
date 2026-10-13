@@ -79,6 +79,24 @@ POST /v1/tasks/<id>/resolve
 
 ## 5. Projection version
 
-- `PROJECTION_VERSION` is now 2 (`resolution`, `decided_by`).
+- `PROJECTION_VERSION` is now 3 (2: `resolution`, `decided_by`; 3: `depends_on`, `input_dispatch_id`, `input_result_id`).
 - **Opening a journal with an older projection:** the projection is rebuilt from the verified event chain in one transaction. Events are never touched.
 - **A damaged journal:** it stays read-only. Task reads then answer `503` if its projection predates this build.
+
+## 6. Task dependency with a verified input (done in L2; L3/L4 must carry it through)
+
+- `POST /v1/tasks` takes an optional `depends_on` (the id of an existing task; unknown id: `400 unknown_dependency`). One dependency per task.
+- `POST /v1/claim` does not return a dependent task until its dependency is `COMPLETE` with `resolution: "verified"`. Then the answer carries `spec.input`:
+
+  ```json
+  {"task_id": "<dependency>", "dispatch_id": "<its accepted dispatch>", "result_id": "<its accepted result>",
+   "artifacts": [{"path": "artifacts/<dispatch>/<name>", "sha256": "<64 hex>"}]}
+  ```
+
+  The same object is journaled in `TASK_CLAIMED.payload.input`, and the state machine refuses a claim of a dependent task without it. A retry of the dependent task gets the same input again.
+- A dependency that ended `FAILED` or `CANCELLED`, or was completed by a human `effect_confirmed`, has no verified result: the dependent task is journaled `TASK_FAILED` (reason names the dependency) at the next claim. A `BLOCKED` dependency keeps it waiting for the human decision.
+- Tasks without `depends_on` produce the same events and claim answers as before.
+
+**L3:** `courier_worker.adapter_bridge.validate_request` ignores `spec.input` today, so a dependent task would run without it. Carry it through `ExecutionSpec` and the request file; resolve each artifact path inside the home and check its sha256 before the adapter sees it.
+
+**L4:** an adapter that consumes the input must have a verifier that recomputes the expected output from the dependency's artifact bytes, not from what the worker reports.
