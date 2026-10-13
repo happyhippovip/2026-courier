@@ -1,502 +1,126 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Courier Symphony — Continuity Audit 149 €</title>
-    <meta name="description" content="Bericht in der Regel innerhalb von 48 Stunden (Werktage). Buchen Sie unseren KI-gestützten Continuity Audit (149 €) für sofortige strategische Klarheit.">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #030712;
-            --text-main: #e5e7eb;
-            --text-muted: #9ca3af;
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
-            --success: #10b981;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-        }
-        
-        * { box-sizing: border-box; }
-        
-        body { 
-            margin: 0; 
-            padding: 0;
-            background: radial-gradient(circle at top right, #111827, var(--bg-color) 40%),
-                        radial-gradient(circle at bottom left, #1e1b4b, var(--bg-color) 40%);
-            background-color: var(--bg-color);
-            background-attachment: fixed;
-            color: var(--text-main);
-            font-family: 'Inter', sans-serif;
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-        }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Courier Symphony — Nachweisbare Kontinuität für KI-Agenten</title>
+<meta name="description" content="Nachweisbare Kontinuität für KI-Agenten – jedes Ergebnis mit prüfbarem Beleg. Continuity Audit 149 €, GitHub Actions Safety Baseline 99 € Einführungspreis (erste 3 Kunden).">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#000;--fg:#f5f5f7;--mut:#a1a1aa;--line:rgba(255,255,255,.12);--acc:#8fc4ef}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,-apple-system,"Helvetica Neue",Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--fg)}
+nav{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:18px 5vw;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+nav .brand{font-weight:800;letter-spacing:.18em;text-transform:uppercase;font-size:.85rem;text-decoration:none}
+nav .links a{margin-left:28px;text-decoration:none;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+nav .links a:hover{color:var(--fg)}
+.hero{position:relative;min-height:100vh;display:flex;align-items:flex-end;padding:0 5vw 12vh;overflow:hidden}
+.hero iframe{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,#000 100%);pointer-events:none}
+.hero .txt{position:relative;z-index:2;max-width:1100px}
+.kicker{font-size:.8rem;letter-spacing:.24em;text-transform:uppercase;color:var(--acc);margin:0 0 18px}
+h1{font-size:clamp(2.4rem,6.5vw,5.6rem);line-height:1.02;letter-spacing:-.03em;margin:0 0 24px;font-weight:800}
+h2{font-size:clamp(1.9rem,4vw,3.2rem);letter-spacing:-.02em;line-height:1.1;margin:0 0 20px}
+.lead{font-size:clamp(1.05rem,1.6vw,1.3rem);color:var(--mut);max-width:760px}
+section.blk{padding:14vh 5vw;border-top:1px solid var(--line)}
+.wrap{max-width:1200px;margin:0 auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:2px;background:var(--line);border:1px solid var(--line)}
+.card{background:#000;padding:44px}
+.price{font-size:clamp(2.4rem,5vw,4rem);font-weight:800;letter-spacing:-.03em;margin:8px 0}
+.card ul{padding-left:18px;color:var(--mut)}.card li{margin:6px 0}
+.ph{font-family:"JetBrains Mono",monospace;font-size:.85rem;color:#fbbf24}
+.btn{display:inline-block;margin-top:20px;padding:14px 30px;border:1px solid var(--fg);text-decoration:none;font-size:.8rem;letter-spacing:.18em;text-transform:uppercase;transition:background .2s,color .2s}
+.btn:hover{background:var(--fg);color:#000}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:40px;counter-reset:s}
+.steps div{border-top:1px solid var(--fg);padding-top:20px}
+.steps div::before{counter-increment:s;content:"0" counter(s);font-family:"JetBrains Mono",monospace;color:var(--acc);font-size:.85rem}
+.steps h3{margin:10px 0 8px}.steps p{color:var(--mut);margin:0}
+.tag{display:inline-block;border:1px solid var(--acc);color:var(--acc);padding:4px 12px;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;margin-bottom:20px}
+.vision{background:radial-gradient(ellipse at 70% 0%,#0b1630 0%,#000 65%)}
+code,pre{font-family:"JetBrains Mono",monospace;font-size:.88rem}
+pre{background:#0a0a0a;border:1px solid var(--line);padding:18px;overflow-x:auto;color:#d4d4d8}
+footer{padding:50px 5vw;border-top:1px solid var(--line);color:var(--mut);font-size:.85rem}
+footer .fl a{margin-right:22px;color:var(--mut);text-decoration:none}footer .fl a:hover{color:var(--fg)}
+@media (max-width:720px){nav .links a{margin-left:14px;font-size:.7rem}nav .links a.opt{display:none}.card{padding:28px}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+</style>
 
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        header {
-            padding: 30px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #fff;
-            text-decoration: none;
-            letter-spacing: -0.5px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .logo-icon {
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, var(--accent), #8b5cf6);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-        }
-
-        .badge {
-            background-color: rgba(16, 185, 129, 0.15);
-            color: var(--success);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            border: 1px solid rgba(16, 185, 129, 0.4);
-            backdrop-filter: blur(10px);
-        }
-
-        .hero {
-            padding: 100px 0 80px;
-            text-align: center;
-            position: relative;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(0,0,0,0) 70%);
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        h1 {
-            font-size: 4rem;
-            line-height: 1.1;
-            color: #fff;
-            margin-bottom: 24px;
-            letter-spacing: -1.5px;
-            background: linear-gradient(to right, #fff, #9ca3af);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .hero p {
-            font-size: 1.25rem;
-            color: var(--text-muted);
-            max-width: 650px;
-            margin: 0 auto 40px;
-        }
-
-        .cta-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            background: linear-gradient(135deg, var(--success), #059669);
-            color: #fff;
-            text-decoration: none;
-            padding: 18px 40px;
-            border-radius: 12px;
-            font-size: 1.15rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
-        }
-
-        .guarantee {
-            margin-top: 20px;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .demo-section {
-            margin: 60px auto;
-            max-width: 800px;
-        }
-        
-        .demo-terminal {
-            background-color: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px 16px 0 0;
-            padding: 24px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.95rem;
-            color: var(--text-muted);
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-            min-height: 250px;
-            text-align: left;
-        }
-
-        .terminal-header {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
-            align-items: center;
-        }
-        
-        .terminal-title {
-            color: #6b7280;
-            font-size: 0.8rem;
-            margin-left: auto;
-        }
-
-        .demo-controls {
-            background-color: rgba(255,255,255,0.02);
-            border: 1px solid var(--glass-border);
-            border-top: none;
-            border-radius: 0 0 16px 16px;
-            padding: 16px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-        .dot.red { background-color: #ef4444; }
-        .dot.yellow { background-color: #f59e0b; }
-        .dot.green { background-color: #10b981; }
-
-        .line {
-            margin: 10px 0;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .steps-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 24px;
-            margin-bottom: 80px;
-        }
-        
-        .step-card {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 30px;
-            position: relative;
-        }
-        
-        .step-number {
-            position: absolute;
-            top: -15px;
-            left: 20px;
-            background: var(--accent);
-            color: #fff;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-        }
-        
-        .step-card h3 {
-            color: #fff;
-            margin-top: 10px;
-        }
-
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin: 80px 0;
-        }
-
-        .feature-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 40px 30px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 3px;
-            background: linear-gradient(90deg, var(--accent), transparent);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(255,255,255,0.2);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-        }
-        .feature-card:hover::before { opacity: 1; }
-
-        .feature-card h3 {
-            color: #fff;
-            margin: 0 0 16px 0;
-            font-size: 1.35rem;
-            letter-spacing: -0.5px;
-        }
-
-        .feature-card p {
-            margin: 0;
-            font-size: 1rem;
-            color: var(--text-muted);
-            line-height: 1.6;
-        }
-
-        footer {
-            border-top: 1px solid var(--glass-border);
-            padding: 50px 0;
-            margin-top: 100px;
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-        
-        .footer-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-
-        .footer-links {
-            display: flex;
-            gap: 24px;
-        }
-
-        footer a {
-            color: var(--text-muted);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        footer a:hover {
-            color: #fff;
-        }
-
-        @media (max-width: 768px) {
-            h1 { font-size: 2.8rem; }
-            .hero { padding: 60px 0; }
-            .footer-content { flex-direction: column; text-align: center; }
-        }
-    </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <a href="#" class="logo">
-                <div class="logo-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-                </div>
-                Courier Symphony
-            </a>
-            <span class="badge">Continuity Audit 149 €</span>
-        </header>
+<nav><a class="brand" href="index.html">Courier Symphony</a><div class="links"><a href="index.html#angebote">Angebote</a><a class="opt" href="index.html#vision">Vision</a><a href="community.html">Community</a></div></nav>
 
-        <main>
-            <section class="hero">
-                <h1>Continuity Audit: Ihr Bericht in der Regel innerhalb von 48 Stunden (Werktage).</h1>
-                <p>Courier Symphony orchestriert spezialisierte KI-Agenten, die echten Code prüfen, Architektur-Engpässe identifizieren und konkrete Empfehlungen ableiten – nachvollziehbar dokumentiert in unserem Ledger. Eine Garantie auf Fehlerfreiheit oder auf die Lösung aller Probleme geben wir nicht.</p>
-                
-                <a href="https://buy.stripe.com/test_beta" class="cta-button">
-                    Continuity Audit buchen (149 €)
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                </a>
-                
-                <div class="guarantee">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                    <span>Continuity Audit 149 € – Festpreis, sofortige strategische Klarheit.</span>
-                </div>
-            </section>
+<header class="hero">
+<iframe src="assets/bird/bird.html#embed" title="Animation: Dispatcher-Vogel" aria-hidden="true" tabindex="-1"></iframe>
+<div class="txt">
+<p class="kicker">Courier Symphony</p>
+<h1>Nachweisbare Kontinuität für KI-Agenten – jedes Ergebnis mit prüfbarem Beleg.</h1>
+<p class="lead">Agenten-Arbeit wird in einem Append-only-Journal festgehalten. Unterbrochene Läufe setzen am letzten Checkpoint fort; Ergebnisse werden von einem unabhängigen Verifier geprüft und als Pull Request übergeben – mit menschlicher Prüfung vor der Lieferung.</p>
+<a class="btn" href="#angebote">Angebote ansehen</a>
+</div>
+</header>
 
-            <section class="step-card" id="safety-baseline" style="max-width:800px;margin:0 auto 60px;">
-                <h2>Zweites Angebot: GitHub Actions Safety Baseline</h2>
-                <p><strong>99 € Einführungspreis (erste 3 Kunden)</strong></p>
-                <ul>
-                    <li>Prüfung eines von Ihnen gewählten öffentlichen Repositorys zu einem unveränderlichen Commit-Stand (SHA)</li>
-                    <li>Read-only: Es werden keine Änderungen direkt an Ihrem Repository vorgenommen</li>
-                    <li>Ergebnisse werden von einem unabhängigen Verifier geprüft</li>
-                    <li>Deterministischer Report</li>
-                    <li>Übergabe ausschließlich als Pull Request (PR-only)</li>
-                    <li>Menschliche Prüfung vor der Lieferung</li>
-                </ul>
-                <p>Ablauf: Anfrage → Repository + SHA → Prüfung → unabhängiger Verifier → menschliche Prüfung → Lieferung.</p>
-                <p>Prüfumfang im Detail: [PLATZHALTER: konkrete Prüfpunkte der Baseline]<br>
-                Lieferzeit: [PLATZHALTER: Lieferzeit]<br>
-                Format des Reports: [PLATZHALTER: Format]<br>
-                Zahlungszeitpunkt: Zahlung vor der Lieferung über den Zahlungslink.</p>
-                <a href="[PLATZHALTER: Zahlungslink Safety Baseline]" class="cta-button">GitHub Actions Safety Baseline anfragen (99 €)</a>
-            </section>
+<section class="blk" id="angebote"><div class="wrap">
+<p class="kicker">Angebote</p>
+<h2>Zwei klar abgegrenzte Leistungen.</h2>
+<div class="grid">
+<div class="card">
+<h3>Continuity Audit</h3>
+<div class="price">149 €</div>
+<p>Festpreis. Bericht in der Regel innerhalb von 48 Stunden (Werktage).</p>
+<p style="color:var(--mut)">Spezialisierte KI-Agenten prüfen echten Code, identifizieren Architektur-Engpässe und leiten konkrete Empfehlungen ab – nachvollziehbar dokumentiert im Ledger. Eine Garantie auf Fehlerfreiheit oder auf die Lösung aller Probleme geben wir nicht.</p>
+<a class="btn" href="https://buy.stripe.com/test_beta">Continuity Audit buchen (149 €)</a>
+</div>
+<div class="card" id="safety-baseline">
+<h3>GitHub Actions Safety Baseline</h3>
+<div class="price">99 €</div>
+<p>Einführungspreis (erste 3 Kunden).</p>
+<ul>
+<li>Prüfung eines von Ihnen gewählten öffentlichen Repositorys zu einem unveränderlichen Commit-Stand (SHA)</li>
+<li>Read-only: Es werden keine Änderungen direkt an Ihrem Repository vorgenommen</li>
+<li>Ergebnisse werden von einem unabhängigen Verifier geprüft</li>
+<li>Deterministischer Report</li>
+<li>Übergabe ausschließlich als Pull Request (PR-only)</li>
+<li>Menschliche Prüfung vor der Lieferung</li>
+</ul>
+<p style="color:var(--mut)">Ablauf: Anfrage → Repository + SHA → Prüfung → unabhängiger Verifier → menschliche Prüfung → Lieferung.</p>
+<p>Prüfumfang im Detail: <span class="ph">[PLATZHALTER: konkrete Prüfpunkte der Baseline]</span><br>
+Lieferzeit: <span class="ph">[PLATZHALTER: Lieferzeit]</span><br>
+Format des Reports: <span class="ph">[PLATZHALTER: Format]</span><br>
+Zahlungszeitpunkt: Zahlung vor der Lieferung über den Zahlungslink.</p>
+<a class="btn" href="[PLATZHALTER: Zahlungslink Safety Baseline]">GitHub Actions Safety Baseline anfragen (99 €)</a>
+</div>
+</div>
+</div></section>
 
-            <section class="demo-section">
-                <div class="demo-terminal" id="demo-terminal">
-                    <div class="terminal-header">
-                        <div class="dot red"></div>
-                        <div class="dot yellow"></div>
-                        <div class="dot green"></div>
-                        <span class="terminal-title">courier-symphony-audit ~ bash</span>
-                    </div>
-                    <div class="terminal-content" id="terminal-content">
-                        <div class="line" style="opacity: 1;">Bereit für Repo-Analyse. Klicken Sie auf "Audit starten".</div>
-                    </div>
-                </div>
-                <div class="demo-controls">
-                    <button class="cta-button" id="start-audit-btn" onclick="runAuditDemo()">
-                        Audit Simulation starten
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                    </button>
-                </div>
-            </section>
+<section class="blk"><div class="wrap">
+<p class="kicker">Ablauf Continuity Audit</p>
+<h2>Drei Schritte.</h2>
+<div class="steps">
+<div><h3>Zugriff &amp; Checkpoint</h3><p>Sie geben Lesezugriff auf Ihr Repository. Ein initialer Ledger-Checkpoint wird erstellt; veraltete Branches und offene PRs werden erfasst.</p></div>
+<div><h3>Analyse</h3><p>KI-Agenten prüfen parallel auf Architektur-Fehler, fehlende Tests und Sicherheitsprobleme (z. B. Secret-Leaks oder ungeschützte Endpunkte).</p></div>
+<div><h3>Bericht</h3><p>In der Regel innerhalb von 48 Stunden (Werktage) erhalten Sie einen Bericht mit konkreten Handlungsempfehlungen.</p></div>
+</div>
+</div></section>
 
-            <section class="how-it-works">
-                <h2 style="text-align: center; color: #fff; margin-bottom: 40px;">So funktioniert's</h2>
-                <div class="steps-grid">
-                    <div class="step-card">
-                        <div class="step-number">1</div>
-                        <h3>Repo-Zugriff & Checkpoint</h3>
-                        <p>Sie geben uns (Lese-)Zugang zu Ihrem Repository. Unser System erstellt einen sicheren, initialen Ledger-Checkpoint und identifiziert sofort veraltete Branches und offene PRs.</p>
-                    </div>
-                    <div class="step-card">
-                        <div class="step-number">2</div>
-                        <h3>Deep-Scan & Synthese</h3>
-                        <p>KI-Agenten wie Muse und Codex scannen parallel nach Architektur-Fehlern, fehlenden Tests und Sicherheitslücken (z.B. Secret-Leaks oder ungeschützte Endpunkte).</p>
-                    </div>
-                    <div class="step-card">
-                        <div class="step-number">3</div>
-                        <h3>Der 48h-Bericht</h3>
-                        <p>In der Regel innerhalb von 48 Stunden (Werktage) erhalten Sie einen lösungsorientierten Bericht (Foundry Synthesis) mit konkreten Handlungsempfehlungen, um Blockaden aufzulösen und Kosten zu senken.</p>
-                    </div>
-                </div>
-            </section>
+<section class="blk"><div class="wrap">
+<p class="kicker">Prinzipien</p>
+<div class="steps">
+<div><h3>Append-only-Journal</h3><p>Jeder Analyseschritt wird festgehalten. Nach einer Unterbrechung wird am letzten Checkpoint fortgesetzt.</p></div>
+<div><h3>Unabhängige Prüfung</h3><p>Ergebnisse werden von einem getrennten Verifier geprüft, nicht vom erzeugenden Agenten selbst.</p></div>
+<div><h3>Mensch im Loop</h3><p>Übergabe als Pull Request; vor der Lieferung prüft ein Mensch.</p></div>
+</div>
+</div></section>
 
-            <section class="features">
-                <div class="feature-card">
-                    <h3>Ungeschönte Wahrheit</h3>
-                    <p>Wir scannen Ihr privates oder öffentliches Repository tiefgründig und decken Architekturfehler sowie tote Enden schonungslos auf. Kein Bullshit, nur Fakten.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>Durable Ledger</h3>
-                    <p>Jeder Analyseschritt wird in einem Append-Only Journal gesichert. Bei Unterbrechungen macht Courier genau da weiter, wo es aufhörte. 100% nachvollziehbar.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>Foundry Synthesis</h3>
-                    <p>Unsere eigens entwickelte Foundry Engine aggregiert Code-Beweise zu klaren, strategischen Handlungsempfehlungen für Ihr gesamtes Entwicklungsteam.</p>
-                </div>
-            </section>
-        </main>
-
-        <script>
-            function runAuditDemo() {
-                const btn = document.getElementById('start-audit-btn');
-                const content = document.getElementById('terminal-content');
-                btn.disabled = true;
-                btn.style.opacity = '0.5';
-                content.innerHTML = '';
-                
-                const lines = [
-                    "[Ledger] Initialisiere Continuity Audit für Kundencode...",
-                    "[Analyzer] Analysiere 'integration/v1' Branch...",
-                    "[Foundry] WARNUNG: PR #128 gemergt, aber Tests schlagen fehl.",
-                    "[Codex] Analysiere Code-Pfade: Circular Dependency in 'local_swarm_claim.py' gefunden.",
-                    "[Ledger] CLAIM-Schritt Fehler erkannt (Write-Abort nicht behandelt).",
-                    "[System] ➔ Check abgeschlossen. Bericht bereit zur Überprüfung."
-                ];
-
-                let delay = 0;
-                lines.forEach((text, index) => {
-                    setTimeout(() => {
-                        const div = document.createElement('div');
-                        div.className = 'line sys';
-                        if (text.startsWith('[System]')) {
-                            div.style.color = 'var(--success)';
-                            div.style.fontWeight = 'bold';
-                        } else if (text.includes('WARNUNG')) {
-                            div.style.color = '#f59e0b';
-                        }
-                        div.innerHTML = text.startsWith('[System]') ? text : `> ${text}`;
-                        div.style.opacity = '0';
-                        content.appendChild(div);
-                        
-                        // Trigger reflow for animation
-                        void div.offsetWidth;
-                        div.style.transition = 'opacity 0.3s ease';
-                        div.style.opacity = '1';
-                        
-                        if (index === lines.length - 1) {
-                            setTimeout(() => {
-                                btn.disabled = false;
-                                btn.style.opacity = '1';
-                                btn.innerHTML = 'Erneut testen <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>';
-                            }, 1000);
-                        }
-                    }, delay);
-                    delay += 800 + Math.random() * 800; // Random delay between 800-1600ms
-                });
-            }
-        </script>
-
-        <footer>
-            <div class="footer-content">
-                <div class="copyright">
-                    &copy; 2026 Courier Symphony · Universal Chief Intelligence
-                </div>
-                <div class="footer-links">
-                    <a href="https://github.com/happyhippovip/2026-courier/issues" target="_blank" rel="noopener">Kontakt / GitHub Issues</a>
-                    <a href="agb.html">AGB</a>
-                    <a href="widerruf.html">Widerrufsbelehrung</a>
-                    <a href="datenschutz.html">Datenschutz</a>
-                    <a href="impressum.html">Impressum</a>
-                </div>
-            </div>
-            <p style="margin-top: 20px; font-size: 0.85rem; color: #6b7280;">
-                Hinweis: Ihr Quellcode wird ausschließlich zur Durchführung des Audits verarbeitet und nach Abschluss innerhalb von [LÖSCHFRIST NACH ABSCHLUSS] gelöscht. Details in der <a href="datenschutz.html">Datenschutzerklärung</a>.
-            </p>
-        </footer>
-    </div>
+<section class="blk vision" id="vision"><div class="wrap">
+<span class="tag">Vision</span>
+<h2>Langfristig: Kontinuität dort, wo Neustarts teuer sind.</h2>
+<p class="lead">Unsere langfristige Vorstellung: Agenten-Systeme, deren Arbeit über lange Zeiträume und unterbrochene Verbindungen hinweg nachvollziehbar bleibt – bis hin zu Anwendungen in der Raumfahrt, wo Kommunikationslücken und lange Missionsdauern normal sind. Das ist eine Vision, kein Angebot und kein Leistungsversprechen. Heute bieten wir ausschließlich die oben genannten Leistungen an.</p>
+</div></section>
+<footer><div class="wrap">
+<div class="fl"><a href="https://github.com/happyhippovip/2026-courier/issues" target="_blank" rel="noopener">Kontakt / GitHub Issues</a><a href="community.html">Community / Mitbauen</a><a href="agb.html">AGB</a><a href="widerruf.html">Widerrufsbelehrung</a><a href="datenschutz.html">Datenschutz</a><a href="impressum.html">Impressum</a></div>
+<p>Hinweis: Ihr Quellcode wird ausschließlich zur Durchführung des Audits verarbeitet und nach Abschluss innerhalb von [LÖSCHFRIST NACH ABSCHLUSS] gelöscht. Details in der <a href="datenschutz.html">Datenschutzerklärung</a>.</p>
+<p>&copy; 2026 Courier Symphony</p>
+</div></footer>
 </body>
 </html>

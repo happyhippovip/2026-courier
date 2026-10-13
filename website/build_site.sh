@@ -8,6 +8,7 @@ cd "$(dirname "$0")"
 rm -rf public
 mkdir -p public
 cp src/*.html public/
+if [ -d src/assets ]; then cp -R src/assets public/; fi
 if [ -n "${COURIER_CONTACT_EMAIL:-}" ]; then
   # Kontakt-E-Mail zusätzlich einhängen (einfacher, sichtbarer Einzeiler).
   sed -i "s#GitHub Issues</a>.#GitHub Issues</a> oder ${COURIER_CONTACT_EMAIL}.#" public/index.html
