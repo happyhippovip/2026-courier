@@ -76,6 +76,23 @@ test('empty piles say so plainly', () => {
   assert.ok(!html.includes('class="count"'));
 });
 
+test('a missing ledger is UNKNOWN, not an empty measured home', () => {
+  const missing = {
+    truth: 'not_set_up',
+    ledger: { status: 'UNKNOWN' },
+    data: 'keine Daten/UNKNOWN',
+    needs_you: [],
+    working: [],
+    done: [],
+    counts: null,
+  };
+  const html = renderHome(missing, { now: NOW });
+  assert.ok(html.includes('keine Daten/UNKNOWN'));
+  assert.ok(!html.includes('Nothing needs you right now.'));
+  assert.ok(!html.includes('Courier is not working on anything right now.'));
+  assert.match(statusLine(missing, live, NOW).text, /keine Daten\/UNKNOWN/);
+});
+
 test('status line: running, unreachable, safe mode, offline, not set up', () => {
   assert.match(statusLine(view, live, NOW).text, /^1 needs you · 1 working · 4 done$/);
   assert.match(statusLine({ ...view, status: { controller: 'unreachable' } }, live, NOW).text, /isn't running/);
