@@ -21,3 +21,18 @@ def test_update_that_loses_a_capability_is_rejected_with_recovery():
 def test_update_that_changes_history_projection_is_rejected():
     after = CapabilityState("1.1.0", dict(BEFORE.capabilities), "d2")
     assert compare(BEFORE, after)["decision"] == "REJECT"
+
+
+def test_reject_names_the_before_replay_digest_as_rollback_source():
+    after = CapabilityState("1.1.0", {"LEDGER-01": True, "GOLDEN-01": False}, "d1")
+    result = compare(BEFORE, after)
+    assert result["decision"] == "REJECT"
+    assert result["recovery"]["resume_from"]["replay_digest"] == "d1"
+
+
+def test_blank_replay_digest_is_not_a_rollback_source():
+    before = CapabilityState("1.0.0", {"LEDGER-01": True}, "  ")
+    after = CapabilityState("1.1.0", {"LEDGER-01": True}, "  ")
+    result = compare(before, after)
+    assert result["decision"] == "REJECT"
+    assert result["recovery"]["resume_from"]["replay_digest"] is None

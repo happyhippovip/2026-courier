@@ -80,6 +80,16 @@ def test_additional_event_changes_fingerprint(tmp_path, clean_repo):
     assert a["ledger_fingerprint"] != b["ledger_fingerprint"]
 
 
+def test_untracked_file_hidden_by_git_config_is_not_bindable(tmp_path, clean_repo):
+    db = tmp_path / "courier.db"
+    _fill(db, golden_path())
+    _git(clean_repo, "config", "status.showUntrackedFiles", "no")
+    (clean_repo / "notes.txt").write_text("local work")
+    binding = lcb.build_binding(db, clean_repo)
+    assert binding["dirty"] is True
+    assert binding["status"] == "NOT_BINDABLE"
+
+
 def test_dirty_worktree_is_not_bindable(tmp_path, clean_repo):
     db = tmp_path / "courier.db"
     _fill(db, golden_path())

@@ -51,6 +51,18 @@ def test_fallback_router_no_fallback():
     fallback = router.find_fallback("gpt-4", {"project": "core"})
     assert fallback is None
 
+def test_recovery_probe_is_signaled_once():
+    cb = CircuitBreaker()
+    cb.record_error("openai-prod", "gpt-4", 429, {"retry_after": -1})
+    state = cb.get_state("openai-prod", "gpt-4")
+
+    assert state.check_recovery() is True
+    assert state.availability == ProviderAvailability.RECOVERY_PROBE_DUE
+    assert state.check_recovery() is False
+    assert state.availability == ProviderAvailability.RECOVERY_PROBE_DUE
+    assert state.open_circuit is True
+
+
 def test_recovery_probe_due():
     cb = CircuitBreaker()
     cb.record_error("openai-prod", "gpt-4", 429, {"retry_after": 0.1})
