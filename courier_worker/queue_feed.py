@@ -27,6 +27,7 @@ from pathlib import Path
 
 CONFIG_NAME = "work_queue_feed.json"
 DEFAULT_TTL_S = 3600
+MAX_KNOWN_ISSUES = 8
 
 
 def _read_json(path: Path, default):
@@ -47,6 +48,31 @@ def _utc(now=None) -> str:
     return moment.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def next_owner_handoff(report: dict, holder: str) -> str:
+    """Check a feed report. A claim names this holder, or the handoff is refused.
+
+    A release without a new claim does not invent a next owner. Blank holders
+    are refused before the report is read.
+    """
+    if not isinstance(holder, str) or not holder.strip():
+        return "missing_holder"
+    claimed = report.get("claimed") or []
+    nxt = report.get("next_owner")
+    if claimed:
+        if nxt != holder:
+            return "owner_mismatch"
+        return "accepted"
+    if nxt not in (None, ""):
+        return "owner_without_claim"
+    return "no_handoff"
+
+
+def _ids_with_status(queue, status: str, now) -> tuple:
+    return tuple(sorted(
+        item["id"] for item in queue.items(now=now) if item.get("status") == status
+    ))
+
+
 def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
     home = Path(home)
     config = _read_json(home / CONFIG_NAME, None)
@@ -64,6 +90,8 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
     ttl = int(config.get("ttl_s", DEFAULT_TTL_S))
     specs = config.get("specs") or {}
     queue = WorkQueue(items_dir=config["items_dir"], ledger_path=config["ledger"])
+    blocked = _ids_with_status(queue, "BLOCKED", now)
+    over_cap = len(blocked) > MAX_KNOWN_ISSUES
     store = FileCoordinationStore(home / "coordination_ledger.jsonl")
     bridge_state = _read_json(home / "ledger_bridge_state.json", {"missions": {}})
     missions = bridge_state.get("missions") or {}
@@ -103,7 +131,7 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
         queue.renew(item_id, holder, ttl, now=now)
         report["renewed"].append(item_id)
 
-    if not still_held:
+    if not still_held and not over_cap:
         for item in queue.list_ready(now=now):
             if item["id"] in specs:
                 queue.claim(item["id"], holder, ttl, host=host_id, now=now)
@@ -111,6 +139,14 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
                 assign(item["id"])
                 break
 
-    if report["released"] or report["claimed"] or report["assigned"]:
+    report["known_issues"] = [] if over_cap else list(blocked)
+    report["next_owner"] = holder if report["claimed"] else None
+    if over_cap:
+        report["outcome"] = "known_issues"
+    elif report["released"] or report["claimed"] or report["assigned"]:
         report["outcome"] = "fed"
+    elif report["renewed"] or _ids_with_status(queue, "CLAIMED", now):
+        report["outcome"] = "held"
+    elif queue.list_ready(now=now):
+        report["outcome"] = "ready"
     return report
