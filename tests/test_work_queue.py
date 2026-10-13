@@ -13,6 +13,7 @@ from courier_core.work_queue import (
     WorkQueue,
     WorkQueueError,
     main,
+    scopes_overlap,
 )
 
 NOW = datetime(2026, 10, 8, 12, 0, 0, tzinfo=timezone.utc)
@@ -239,3 +240,23 @@ def test_cli_next_empty(tmp_path, capsys):
     code = main(["--items", str(home), "--ledger", str(tmp_path / "ledger.jsonl"), "next", "--holder", "window-a"])
     assert code == 0
     assert capsys.readouterr().out.strip() == "NO_READY_ITEM"
+
+
+def test_directory_scope_conflicts_with_a_file_inside_it(tmp_path):
+    assert scopes_overlap(["tests/"], ["tests/test_short_video.py"]) is True
+    assert scopes_overlap(["tests/"], ["docs/readme.md"]) is False
+    home = tmp_path / "items"
+    _write_items(home, [
+        _item("DIR", ["tests/"]),
+        _item("FILE", ["tests/test_short_video.py"]),
+        _item("OTHER", ["docs/readme.md"]),
+    ])
+    queue = WorkQueue(home, tmp_path / "ledger.jsonl")
+    queue.claim("DIR", "holder-a", 30, now=NOW)
+    assert [item["id"] for item in queue.list_ready(now=NOW)] == ["OTHER"]
+    with pytest.raises(WorkQueueError) as caught:
+        queue.claim("FILE", "holder-b", 30, now=NOW)
+    assert caught.value.code == "SCOPE_OVERLAP"
+    again = queue.list_ready(now=NOW)
+    assert [item["id"] for item in again] == ["OTHER"]
+
