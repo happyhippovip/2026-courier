@@ -41,14 +41,25 @@ section.blk{padding:14vh 5vw;border-top:1px solid var(--line)}
 code,pre{font-family:"JetBrains Mono",monospace;font-size:.88rem}
 pre{background:#0a0a0a;border:1px solid var(--line);padding:18px;overflow-x:auto;color:#d4d4d8}
 footer{padding:50px 5vw;border-top:1px solid var(--line);color:var(--mut);font-size:.85rem}
-footer .fl a{margin-right:22px;color:var(--mut);text-decoration:none}footer .fl a:hover{color:var(--fg)}
-@media (max-width:720px){nav .links a{margin-left:14px;font-size:.7rem}nav .links a.opt{display:none}.card{padding:28px}}
+footer .fl{display:flex;flex-wrap:wrap;gap:10px 16px;max-width:100%}
+footer .fl a{color:var(--mut);text-decoration:none}footer .fl a:hover{color:var(--fg)}
+.nav-toggle{position:absolute;opacity:0;width:1px;height:1px}
+.nav-toggle-label{display:none}
+@media (max-width:720px){
+  nav .brand{font-size:.75rem;letter-spacing:.08em;max-width:62%}
+  .nav-toggle-label{display:inline-block;border:1px solid var(--line);padding:8px 12px;letter-spacing:.14em;text-transform:uppercase;font-size:.75rem;cursor:pointer}
+  nav .links{display:none;position:absolute;top:100%;right:5vw;background:#000;border:1px solid var(--line);padding:8px 16px;z-index:11}
+  .nav-toggle:checked ~ .links{display:flex;flex-direction:column}
+  nav .links a{margin:10px 0;margin-left:0}
+  .hero{align-items:flex-start;overflow:visible;min-height:auto;padding:7.5rem 5vw 3rem}
+  .card{padding:28px}
+}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
 </style>
 
 </head>
 <body>
-<nav><a class="brand" href="index.html">Courier Symphony</a><div class="links"><a href="index.html#angebote">Angebote</a><a class="opt" href="index.html#vision">Vision</a><a href="community.html">Community</a></div></nav>
+<nav><a class="brand" href="index.html">Courier Symphony</a><input id="nav-toggle" class="nav-toggle" type="checkbox"><label class="nav-toggle-label" for="nav-toggle">Menü</label><div class="links"><a href="index.html#angebote">Angebote</a><a href="index.html#vision">Vision</a><a href="community.html">Community</a></div></nav>
 
 <section class="blk" style="padding-top:18vh;border-top:0"><div class="wrap">
 <p class="kicker">Community / Mitbauen</p>
@@ -83,7 +94,7 @@ python -m pytest -q tests</pre>
 </div></section>
 <footer><div class="wrap">
 <div class="fl"><a href="https://github.com/happyhippovip/2026-courier/issues" target="_blank" rel="noopener">Kontakt / GitHub Issues</a><a href="community.html">Community / Mitbauen</a><a href="agb.html">AGB</a><a href="widerruf.html">Widerrufsbelehrung</a><a href="datenschutz.html">Datenschutz</a><a href="impressum.html">Impressum</a></div>
-<p>Hinweis: Ihr Quellcode wird ausschließlich zur Durchführung des Audits verarbeitet und nach Abschluss innerhalb von [LÖSCHFRIST NACH ABSCHLUSS] gelöscht. Details in der <a href="datenschutz.html">Datenschutzerklärung</a>.</p>
+<p>Hinweis: Ihr Quellcode wird nur für das Audit verarbeitet. Eine verbindliche Löschfrist steht hier nicht, weil sie noch nicht festgelegt ist. Den Entwurf nennt die <a href="datenschutz.html">Datenschutzerklärung</a>.</p>
 <p>&copy; 2026 Courier Symphony</p>
 </div></footer>
 </body>
