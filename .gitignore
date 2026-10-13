@@ -204,3 +204,4 @@ report*.xml
 # Courier Continuation runtime state
 .courier_continuation/
 
+demo_out/
