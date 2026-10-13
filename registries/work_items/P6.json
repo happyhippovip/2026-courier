@@ -1,0 +1,24 @@
+{
+  "id": "P6",
+  "title": "worker tokens",
+  "lane": "L2",
+  "branch": "lane/L2-worker-tokens-P6",
+  "files_scope": ["courier_core/worker_tokens.py"],
+  "depends_on": [],
+  "acceptance": [
+    "per-worker scoped tokens",
+    "store only salted hashes",
+    "expiry and revoke",
+    "never log token values",
+    "tests",
+    "draft PR"
+  ],
+  "provider_hints": [],
+  "pull_request": "304",
+  "status": "CLAIMED",
+  "lease": {
+    "holder": "pr:304",
+    "host": "local",
+    "expires_at": null
+  }
+}

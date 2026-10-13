@@ -220,6 +220,9 @@ def test_bind_input_spec_shape():
     assert bridge._spec_ok({**base, "bind_input": False})
     for bad in ("yes", 1, None, ["A"]):
         assert not bridge._spec_ok({**base, "bind_input": bad}), bad
+    # One input mechanism per task: the controller's binding or the bridge's inputs_from.
+    assert not bridge._spec_ok({**base, "bind_input": True, "inputs_from": ["A"]})
+    assert bridge._spec_ok({**base, "bind_input": False, "inputs_from": ["A"]})
 
 
 def test_post_task_sends_depends_on_only_when_bound():
@@ -235,6 +238,6 @@ def test_post_task_sends_depends_on_only_when_bound():
 
     spec = _spec(content="x")
     bridge._post_task(transport, Args, "tok", spec, "ledger:k1")
-    bridge._post_task(transport, Args, "tok", spec, "ledger:k2", "task-a")
+    bridge._post_task(transport, Args, "tok", spec, "ledger:k2", depends_on_task="task-a")
     assert "depends_on" not in sent[0]
     assert sent[1]["depends_on"] == "task-a"

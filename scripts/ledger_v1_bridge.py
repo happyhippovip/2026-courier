@@ -54,9 +54,14 @@ MAX_GOAL_LEN = 128
 GOAL_TOKEN = re.compile(r"[A-Za-z0-9._:-]+\Z")
 MISSION_STATUSES = frozenset({"POSTED", "FINAL_DONE", "BLOCKED", "ERROR"})
 REASON_CODE = re.compile(r"[A-Z][A-Z0-9_]{0,31}\Z")
+INPUTS_FIELD = "inputs_from"
 # A spec with bind_input: true runs on the verified result of its one ledger
 # dependency; the controller binds that result as the task's input at claim.
 BIND_INPUT = "bind_input"
+MAX_INPUTS = 16
+MAX_INPUT_ARTIFACTS = 64  # keeps B's params far below the worker's 64 KiB envelope
+MAX_ARTIFACT_PATH = 1024
+SHA256_HEX = re.compile(r"[0-9a-f]{64}\Z")
 
 
 class ConfigError(Exception):
@@ -157,8 +162,11 @@ def _feedback(store, state, specs, agent, host, args, transport, token, emit, ho
             spec_fingerprint=mapping.get("spec_fingerprint") or _fingerprint(spec or {}),
             source_sha=_recorded_source(mapping, spec),
         )
-        if wrote:
-            emit({"mission_id": mission_id, "outcome": event.event_type.value.lower(), "task_id": mapping.get("task_id")})
+        outcome = event.event_type.value.lower()
+        # The ledger line is durable before the log line. A crash in between
+        # must still produce that receipt exactly once on the next invocation.
+        if wrote or not _receipt_present(home, mission_id, outcome):
+            emit({"mission_id": mission_id, "outcome": outcome, "task_id": mapping.get("task_id")})
     return ok
 
 
@@ -192,6 +200,19 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
             ok = False
             continue
         mapping = state["missions"].get(mission_id)
+        inputs = None
+        if INPUTS_FIELD in spec and mapping is None:
+            inputs, why, fatal = _resolve_inputs(
+                state, spec, reducer.get_mission(mission_id), transport, args, token, home,
+            )
+            if inputs is None:
+                emit({"mission_id": mission_id, "outcome": "blocked", "reason": why})
+                ok = ok and not fatal
+                continue
+        if INPUTS_FIELD in spec and mapping is not None and not isinstance(mapping.get("inputs"), list):
+            emit({"mission_id": mission_id, "outcome": "skipped", "reason": "inputs_missing"})
+            ok = False
+            continue
         upstream_task = None
         if spec.get(BIND_INPUT) is True and mapping is None:
             upstream_task, why = _upstream_task(state, reducer.get_mission(mission_id))
@@ -214,6 +235,7 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
                 ok = False
                 continue
             task_id = "task-" + hashlib.sha256(key.encode("utf-8")).hexdigest()[:32]
+            inputs_digest = _inputs_digest(inputs) if inputs is not None else None
             mapping = {
                 "task_id": task_id,
                 "claim_event_id": claimed.event_id,
@@ -223,11 +245,18 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
                 "attempt": None,
                 "spec_fingerprint": _fingerprint(spec),
                 "source_sha": source,
-                "evidence_ref": _identity(task_id, None, 0, _fingerprint(spec), source, goal, upstream_task),
+                "evidence_ref": _identity(
+                    task_id, None, 0, _fingerprint(spec), source, goal, inputs_digest, upstream_task,
+                ),
             }
             if goal is not None:
                 mapping["goal_id"] = goal[0]
                 mapping["goal_fingerprint"] = goal[1]
+            if inputs is not None:
+                # Stored at claim time and posted unchanged on every retry, so
+                # the idempotency key always names the same inputs.
+                mapping["inputs"] = inputs
+                mapping["inputs_digest"] = inputs_digest
             if upstream_task is not None:
                 # Bound at claim time and reposted unchanged, so a retry names the same dependency.
                 mapping["depends_on_task"] = upstream_task
@@ -235,7 +264,9 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
             _save_state(home / "ledger_bridge_state.json", state)
         if mapping.get("posted"):
             continue
-        posted = _post_task(transport, args, token, spec, mapping["idempotency_key"], _bound_task(mapping))
+        posted = _post_task(
+            transport, args, token, spec, mapping["idempotency_key"], mapping.get("inputs"), _bound_task(mapping),
+        )
         if posted.get("rejected"):
             emit({"mission_id": mission_id, "outcome": "skipped", "reason": "rejected"})
             ok = False
@@ -253,7 +284,7 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
             "accepted_result_id": result_id,
             "evidence_ref": _identity(
                 mapping["task_id"], result_id, attempt, mapping["spec_fingerprint"], mapping["source_sha"], goal,
-                _bound_task(mapping),
+                _mapping_inputs_digest(mapping), _bound_task(mapping),
             ),
         }
         if goal is not None:
@@ -280,7 +311,9 @@ def _feedback_event(mission, mapping, spec, agent, host, view):
     result_id = _result_id(view)
     goal_kind, goal_value = _goal_binding(spec)
     goal = goal_value if goal_kind == "ok" else None
-    evidence = _identity(task_id, result_id, attempt, fingerprint, source, goal, _bound_task(mapping))
+    evidence = _identity(
+        task_id, result_id, attempt, fingerprint, source, goal, _mapping_inputs_digest(mapping), _bound_task(mapping),
+    )
     if status == "COMPLETE":
         if result_id is None:
             return None
@@ -316,7 +349,8 @@ def _feedback_event(mission, mapping, spec, agent, host, view):
     )
 
 
-def _identity(task_id, result_id, attempt, fingerprint, source_sha, goal=None, depends_on_task=None) -> str:
+def _identity(task_id, result_id, attempt, fingerprint, source_sha, goal=None, inputs_digest=None,
+              depends_on_task=None) -> str:
     result = result_id if isinstance(result_id, str) and result_id else "none"
     text = (
         f"task_id={task_id};accepted_result_id={result};attempt={attempt};"
@@ -324,6 +358,8 @@ def _identity(task_id, result_id, attempt, fingerprint, source_sha, goal=None, d
     )
     if goal:
         text += f";goal_id={goal[0]};goal_fingerprint={goal[1]}"
+    if inputs_digest:
+        text += f";inputs_digest={inputs_digest}"
     if depends_on_task:
         text += f";depends_on_task={depends_on_task}"
     return text
@@ -353,6 +389,78 @@ def _bound_task(mapping):
 
 def _task_id_ok(value) -> bool:
     return isinstance(value, str) and 0 < len(value) <= MAX_ID_LENGTH
+
+
+def _resolve_inputs(state, spec, mission, transport, args, token, home):
+    """Verified upstream outputs named by spec["inputs_from"].
+
+    Returns (inputs, None, False), or (None, reason, fatal). An upstream that is
+    not final yet is a wait, not a fault. An undeclared upstream, a result that
+    is not the verified one, or bytes on disk that no longer match the journaled
+    sha256 are faults: the dependent task is not posted.
+    """
+    declared = set(mission.get("depends_on") or []) if isinstance(mission, dict) else set()
+    inputs = []
+    for upstream in spec[INPUTS_FIELD]:
+        if upstream not in declared:
+            return None, "input_not_declared", True
+        mapping = state["missions"].get(upstream)
+        if not isinstance(mapping, dict) or mapping.get("status") != "FINAL_DONE":
+            return None, "input_not_final", False
+        task_id = mapping.get("task_id")
+        accepted = mapping.get("accepted_result_id")
+        result = _task_result(transport, args, token, task_id)
+        if (result is None or result.get("task_id") != task_id or not isinstance(accepted, str)
+                or result.get("result_id") != accepted):
+            return None, "input_unverified", True
+        artifacts = result.get("artifacts")
+        if not isinstance(artifacts, list) or not artifacts:
+            return None, "input_unverified", True
+        if len(inputs) + len(artifacts) > MAX_INPUT_ARTIFACTS:
+            return None, "input_too_large", True
+        for artifact in artifacts:
+            path = artifact.get("path") if isinstance(artifact, dict) else None
+            digest = artifact.get("sha256") if isinstance(artifact, dict) else None
+            if not _artifact_path_ok(path) or not isinstance(digest, str) or not SHA256_HEX.fullmatch(digest):
+                return None, "input_unverified", True
+            if _file_sha256(home, path) != digest:
+                return None, "input_digest_mismatch", True
+            inputs.append({"mission_id": upstream, "task_id": task_id, "result_id": accepted,
+                           "path": path, "sha256": digest})
+    inputs.sort(key=lambda item: (item["mission_id"], item["path"]))
+    return inputs, None, False
+
+
+def _inputs_digest(inputs) -> str:
+    return hashlib.sha256(json.dumps(inputs, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+
+
+def _mapping_inputs_digest(mapping):
+    value = mapping.get("inputs_digest") if isinstance(mapping, dict) else None
+    return value if isinstance(value, str) and SHA256_HEX.fullmatch(value) else None
+
+
+def _artifact_path_ok(path) -> bool:
+    if not isinstance(path, str) or not path or len(path) > MAX_ARTIFACT_PATH or "\\" in path or "\x00" in path:
+        return False
+    parts = path.split("/")
+    return len(parts) >= 3 and parts[0] == "artifacts" and all(part not in ("", ".", "..") for part in parts)
+
+
+def _file_sha256(home, path):
+    """sha256 of <home>/<path>, or None when it is missing, not a file, or escapes artifacts/."""
+    root = (Path(home) / "artifacts").resolve()
+    target = (Path(home) / path).resolve()
+    if root not in target.parents or not target.is_file():
+        return None
+    digest = hashlib.sha256()
+    try:
+        with target.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+    except OSError:
+        return None
+    return digest.hexdigest()
 
 
 def _result_id(view):
@@ -433,18 +541,39 @@ def _task_view(transport, args, token, task_id):
     return body
 
 
-def _post_task(transport, args, token, spec, key, depends_on_task=None):
+def _task_result(transport, args, token, task_id):
+    """The controller's verified result for task_id, or None when it has none."""
+    if not isinstance(task_id, str) or not task_id:
+        return None
+    url = args.controller.rstrip("/") + "/v1/tasks/" + urllib.parse.quote(task_id, safe="") + "/result"
+    status, raw = _request(transport, "GET", url, {"X-Courier-Token": token, "Accept": "application/json"}, None, args.timeout)
+    if status in (404, 409):
+        return None
+    if status != 200:
+        raise ControllerDown()
+    try:
+        body = json.loads(raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError) as exc:
+        raise ControllerDown() from exc
+    return body if isinstance(body, dict) else None
+
+
+def _post_task(transport, args, token, spec, key, inputs=None, depends_on_task=None):
     task = {name: spec[name] for name in TASK_FIELDS if name in spec}
     task["idempotency_key"] = key
     if depends_on_task is not None:
         task["depends_on"] = depends_on_task
     # The controller persists adapter, params, and the attempt fields. Goal
-    # identity is copied into that payload and is not part of the idempotency key.
+    # identity and verified inputs are copied into that payload and are not part
+    # of the idempotency key.
     kind, goal = _goal_binding(spec)
-    if kind == "ok":
+    if kind == "ok" or inputs is not None:
         params = dict(task["params"])
-        params["goal_id"] = goal[0]
-        params["goal_fingerprint"] = goal[1]
+        if kind == "ok":
+            params["goal_id"] = goal[0]
+            params["goal_fingerprint"] = goal[1]
+        if inputs is not None:
+            params["inputs"] = inputs
         task["params"] = params
     url = args.controller.rstrip("/") + "/v1/tasks"
     status, raw = _request(
@@ -489,9 +618,11 @@ def _load_specs(path: Path):
 def _spec_ok(spec) -> bool:
     if not isinstance(spec, dict):
         return False
-    allowed = set(TASK_FIELDS) | {"source_sha", BIND_INPUT, *GOAL_FIELDS}
+    allowed = set(TASK_FIELDS) | {"source_sha", INPUTS_FIELD, BIND_INPUT, *GOAL_FIELDS}
     if BIND_INPUT in spec and not isinstance(spec[BIND_INPUT], bool):
         return False
+    if spec.get(BIND_INPUT) is True and INPUTS_FIELD in spec:
+        return False  # one input mechanism per task: the controller's binding or the bridge's references
     if set(spec) - allowed or any(name not in spec for name in ("adapter", "params", "effect_class", "max_attempts", "lease_ttl_s")):
         return False
     adapter = spec.get("adapter")
@@ -509,6 +640,12 @@ def _spec_ok(spec) -> bool:
         return False
     if "source_sha" in spec and not _sha_ok(spec.get("source_sha")):
         return False
+    if INPUTS_FIELD in spec:
+        upstream = spec.get(INPUTS_FIELD)
+        if (not isinstance(upstream, list) or not 1 <= len(upstream) <= MAX_INPUTS
+                or len(set(map(str, upstream))) != len(upstream)
+                or not all(isinstance(item, str) and 0 < len(item) <= MAX_ID_LENGTH for item in upstream)):
+            return False
     return True
 
 
@@ -692,6 +829,28 @@ def _atomic_write(path: Path, text: str) -> None:
         if tmp.exists():
             tmp.unlink()
         raise
+
+
+def _receipt_present(home, mission_id, outcome) -> bool:
+    path = home / "run" / "ledger_bridge.log"
+    try:
+        size = path.stat().st_size
+    except OSError:
+        return False
+    if size > MAX_STATE_BYTES:
+        return True
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return True
+    for line in text.splitlines():
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if record.get("mission_id") == mission_id and record.get("outcome") == outcome:
+            return True
+    return False
 
 
 def _append(path: Path, text: str) -> None:
