@@ -62,6 +62,22 @@ def _inbox_keys(path: Path) -> set:
     return keys
 
 
+def _resolved_keys(path: Path) -> set:
+    """Keys of inbox entries already marked RESOLVED (append-only closing line)."""
+    keys = set()
+    try:
+        for line in path.read_text(encoding="utf-8").splitlines():
+            try:
+                row = json.loads(line)
+            except ValueError:
+                continue
+            if isinstance(row, dict) and row.get("kind") == "RESOLVED":
+                keys.add(f"{row.get('mission_id')}|{row.get('blocked_event_id')}")
+    except FileNotFoundError:
+        pass
+    return keys
+
+
 def _append_line(path: Path, record: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "a", encoding="utf-8") as fh:
@@ -130,6 +146,7 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
     report["resumed"] = []
     inbox_path = home / "run" / NEEDS_YOU_INBOX
     seen = _inbox_keys(inbox_path)
+    resolved = _resolved_keys(inbox_path)
     for mission_id in sorted(blocked):
         mission = reducer_now.get_mission(mission_id)
         spec = specs.get(mission_id)
@@ -148,6 +165,16 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
                     payload_hash="work_queue", ownership=agent_id,
                 ))
                 report["resumed"].append(mission_id)
+            # Close the wake signal: one RESOLVED line per NEEDS_YOU (append-only,
+            # deduped). Old readers keep working: same keys, extra "kind" only.
+            key = f"{mission_id}|{mission.get('latest_event_id')}"
+            if key in seen and key not in resolved:
+                _append_line(inbox_path, {
+                    "kind": "RESOLVED", "mission_id": mission_id,
+                    "blocked_event_id": mission.get("latest_event_id"),
+                    "resume_event_id": resume_id, "at": _utc(now),
+                })
+                resolved.add(key)
             blocked.discard(mission_id)
             continue
         # Wake signal: one NEEDS_YOU inbox line per BLOCKED event (deduped).
