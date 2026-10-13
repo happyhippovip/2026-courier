@@ -21,6 +21,11 @@ from pathlib import Path
 import urllib.request
 import urllib.error
 
+try:
+    from scripts.pilot_signal import delimit_human_relay
+except ImportError:  # python scripts/run_physical.py
+    from pilot_signal import delimit_human_relay
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 def check_resources(force: bool = False):
@@ -284,7 +289,7 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
         "execution_counters": {
             "process_a": a_attempts,
             "process_b": b_attempts,
-            "human_relay_count": 0
+            "human_relay_count": delimit_human_relay(None)
         },
         "state_transitions": g.get("state_transitions", []),
         "payload": payload,

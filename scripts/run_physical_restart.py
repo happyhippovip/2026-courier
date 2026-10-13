@@ -17,6 +17,11 @@ import hashlib
 import argparse
 from pathlib import Path
 
+try:
+    from scripts.pilot_signal import delimit_human_relay
+except ImportError:  # python scripts/run_physical_restart.py
+    from pilot_signal import delimit_human_relay
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 def check_resources(force: bool = False):
@@ -129,7 +134,7 @@ def execute_run2(sha: str, run1_dir: str, evidence_dir: str, port: int = 8081):
         "execution_counters": {
             "process_a": 0,
             "process_b": 0,
-            "human_relay_count": 0
+            "human_relay_count": delimit_human_relay(None)
         },
         "state_transitions": transitions,
         "payload": payload,
