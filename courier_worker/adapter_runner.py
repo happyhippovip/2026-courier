@@ -28,7 +28,7 @@ from pathlib import Path
 # derived from this file instead of trusting the inherited environment.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-ALLOWED = frozenset({"synthetic", "local_shell"})
+ALLOWED = frozenset({"synthetic", "local_shell", "provider_exec"})
 
 
 def _write_report(path: str, report: dict) -> None:
@@ -40,6 +40,33 @@ def _write_report(path: str, report: dict) -> None:
             fh.flush()
             os.fsync(fh.fileno())
         os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
+def _write_provider_evidence(workdir: str, output: bytes) -> None:
+    """Save captured Muse output as provider_output.txt inside the task workdir.
+
+    The controller verifier (adapters/provider_exec.py) accepts provider_exec
+    only when this regular file is inside the Courier home and at most 1 MiB.
+    Writing it is not a success signal. A symlink at the destination is
+    removed rather than followed.
+    """
+    data = bytes(output[: 1024 * 1024]) if isinstance(output, (bytes, bytearray)) else b""
+    fd, tmp = tempfile.mkstemp(dir=workdir, prefix=".tmp-provider-", suffix=".txt")
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(data)
+            fh.flush()
+            os.fsync(fh.fileno())
+        dest = os.path.join(workdir, "provider_output.txt")
+        if os.path.islink(dest):
+            os.unlink(dest)
+        os.replace(tmp, dest)
     except BaseException:
         try:
             os.unlink(tmp)
@@ -107,6 +134,16 @@ def main(argv: list) -> int:
             })
             print(f"adapter_runner: local_shell crashed: {exc}", file=sys.stderr)
             return 1
+    elif adapter == "provider_exec":
+        from courier_worker.adapters import provider_exec
+        result = provider_exec.run(params, workdir, attempt)
+        _write_provider_evidence(workdir, result.output)
+        _write_report(report, {
+            "outcome": "success" if result.outcome == "success" else "failure",
+            "reason": result.reason[:500],
+            "retryable": bool(result.retryable),
+        })
+        return 0
     else:
         print(f"adapter_runner: adapter {adapter!r} is not allowlisted", file=sys.stderr)
         return 2
