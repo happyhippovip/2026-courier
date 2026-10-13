@@ -29,6 +29,8 @@ def clone_and_extract(owner: str, repo: str, sha: str, dest: Path):
         shutil.rmtree(dest)
     dest.mkdir(parents=True)
     subprocess.run(["git", "-C", str(dest), "init"], check=True, capture_output=True)
+    # Hash the exact committed blob bytes: no CRLF conversion on Windows checkouts.
+    subprocess.run(["git", "-C", str(dest), "config", "core.autocrlf", "false"], check=True, capture_output=True)
     subprocess.run(["git", "-C", str(dest), "remote", "add", "origin", f"https://github.com/{owner}/{repo}.git"], check=True, capture_output=True)
     subprocess.run(["git", "-C", str(dest), "config", "core.sparseCheckout", "true"], check=True, capture_output=True)
     (dest / ".git" / "info" / "sparse-checkout").write_text(".github/workflows/\n", encoding="utf-8")

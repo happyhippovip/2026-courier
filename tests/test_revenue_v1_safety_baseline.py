@@ -43,7 +43,9 @@ class TestRevenueSafetyBaseline(unittest.TestCase):
         rvsb.clone_and_extract("owner", "repo", "123456", dest)
         self.assertTrue(dest.exists())
         self.assertTrue((dest / ".git" / "info" / "sparse-checkout").exists())
-        self.assertEqual(mock_run.call_count, 5)
+        self.assertEqual(mock_run.call_count, 6)
+        self.assertIn(["git", "-C", str(dest), "config", "core.autocrlf", "false"],
+                      [c.args[0] for c in mock_run.call_args_list])
         
     @patch("revenue_v1_safety_baseline.subprocess.run")
     def test_clone_and_extract_exists(self, mock_run):
@@ -344,7 +346,7 @@ class TestRevenueSafetyBaseline(unittest.TestCase):
         with patch.dict(os.environ, {"REVENUE_V1_INDEPENDENT_VERIFIER": "/nonexistent.py"}):
             v = rvsb.run_independent_verifier({}, {}, self.td_path)
         self.assertFalse(v["accepted"])
-        self.assertEqual(mock_run.call_args[0][0][1], "/nonexistent.py")
+        self.assertEqual(mock_run.call_args[0][0][1], str(Path("/nonexistent.py")))
 
     @patch("revenue_v1_safety_baseline.subprocess.run")
     def test_run_independent_verifier_fail_closed(self, mock_run):

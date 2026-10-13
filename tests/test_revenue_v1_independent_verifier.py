@@ -33,12 +33,13 @@ class TestIndependentVerifier(unittest.TestCase):
         self.remote = root / "remote"
         self.remote.mkdir()
         git(self.remote, "init", "-q")
+        git(self.remote, "config", "core.autocrlf", "false")
         git(self.remote, "config", "uploadpack.allowFilter", "true")
         git(self.remote, "config", "uploadpack.allowAnySHA1InWant", "true")
         for rel, text in WORKFLOWS.items():
             p = self.remote / ".github" / "workflows" / rel
             p.parent.mkdir(parents=True, exist_ok=True)
-            p.write_text(text, encoding="utf-8")
+            p.write_bytes(text.encode("utf-8"))  # exact LF bytes on every OS
         (self.remote / "README.md").write_text("x", encoding="utf-8")
         git(self.remote, "add", "-A")
         git(self.remote, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "init")
