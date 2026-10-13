@@ -97,3 +97,53 @@ def test_verify_pilot_task_exception(capsys):
     captured = capsys.readouterr()
     assert "FAILED: Disk broken" in captured.out
     m_exit.assert_called_once_with(1)
+
+def test_verify_pilot_task_rejects_second_step(capsys):
+    dummy_task = {
+        "workflow_plan": [
+            {
+                "task_id": "t1",
+                "goal_id": "g1",
+                "target_capability": "windows",
+                "instruction": "Do something",
+                "status": "QUEUED"
+            },
+            {
+                "task_id": "t2",
+                "goal_id": "g1",
+                "target_capability": "windows",
+                "instruction": "Do something else",
+                "status": "QUEUED"
+            }
+        ]
+    }
+    mock_json = json.dumps(dummy_task)
+    with patch("builtins.open", mock_open(read_data=mock_json)):
+        m_exit = run_script()
+
+    captured = capsys.readouterr()
+    assert "FAILED: pilot plan must contain exactly one task" in captured.out
+    assert "PILOT TASK VERIFIED - SCHEMA MATCHES" not in captured.out
+    m_exit.assert_called_once_with(1)
+
+@pytest.mark.parametrize("instruction", ["", "   ", 0, None])
+def test_verify_pilot_task_rejects_blank_instruction(capsys, instruction):
+    dummy_task = {
+        "workflow_plan": [
+            {
+                "task_id": "t1",
+                "goal_id": "g1",
+                "target_capability": "windows",
+                "instruction": instruction,
+                "status": "QUEUED"
+            }
+        ]
+    }
+    mock_json = json.dumps(dummy_task)
+    with patch("builtins.open", mock_open(read_data=mock_json)):
+        m_exit = run_script()
+
+    captured = capsys.readouterr()
+    assert "FAILED: instruction must be a non-blank string" in captured.out
+    assert "PILOT TASK VERIFIED - SCHEMA MATCHES" not in captured.out
+    m_exit.assert_called_once_with(1)
