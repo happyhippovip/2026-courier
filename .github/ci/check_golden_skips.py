@@ -1,6 +1,6 @@
 """Golden skip ratchet for the Courier v1 integration trunk.
 
-The 11 Golden acceptance tests skip by design until the v1 modules they
+The 15 Golden acceptance tests skip by design until the v1 modules they
 drive exist (see tests/golden/conftest.py). The regression gate tolerates
 skips silently, so a broken harness, a miscounted suite, or modules landing
 without acknowledgment would all pass unnoticed. This ratchet pins the
@@ -26,11 +26,12 @@ import re
 import subprocess
 import sys
 
-EXPECTED_TOTAL = 11
+EXPECTED_TOTAL = 15
 EXPECTED_SKIPPED_DEFAULT = 0
 EXPECTED_REASON_PREFIX = "golden harness waiting for v1 components"
 
 SUMMARY_RE = re.compile(r"^(\d+) skipped", re.MULTILINE)
+PASSED_RE = re.compile(r"(\d+) passed\b")
 
 
 def run_golden(repo_root):
@@ -66,6 +67,9 @@ def main(argv=None):
         collected += int(grouped.group(1)) if grouped else 1
     summary_match = SUMMARY_RE.search(output)
     summary_skipped = int(summary_match.group(1)) if summary_match else (0 if not skipped_lines else -1)
+    passed_matches = PASSED_RE.findall(output)
+    passed = int(passed_matches[-1]) if passed_matches else 0
+    observed_total = passed + (summary_skipped if summary_skipped > 0 else 0)
     bad_reasons = [line for line in skipped_lines
                    if EXPECTED_REASON_PREFIX not in line]
     failed = "failed" in output.splitlines()[-1] if output.strip() else True
@@ -74,9 +78,9 @@ def main(argv=None):
 
     lines = ["## Courier v1 golden skip ratchet", ""]
     lines.append("collected-skips=%d summary-skips=%d expected-skipped=%d "
-                 "expected-total=%d pytest_exit=%d"
-                 % (collected, summary_skipped,
-                    expected_skipped, expected_total, returncode))
+                 "observed-total=%d expected-total=%d pytest_exit=%d"
+                 % (collected, summary_skipped, expected_skipped,
+                    observed_total, expected_total, returncode))
 
     problems = []
     if returncode not in (0,):
@@ -95,6 +99,11 @@ def main(argv=None):
                         "update EXPECTED_TOTAL/EXPECTED_SKIPS in this file "
                         "in the same merge; otherwise investigate"
                         % (summary_skipped, collected, expected_skipped))
+    if observed_total != expected_total:
+        problems.append("golden test count changed: observed %d "
+                        "(passed %d + skipped %d), pinned %d. Update "
+                        "EXPECTED_TOTAL in this file in the same change"
+                        % (observed_total, passed, summary_skipped, expected_total))
     if bad_reasons:
         problems.append("%d skip reason(s) lack the documented prefix %r: "
                         "skips for any other reason are unacknowledged drift"
