@@ -46,6 +46,9 @@ jobs:
           import sys
           from pathlib import Path, PurePosixPath
 
+          sys.path.insert(0, os.environ.get("GITHUB_WORKSPACE", "."))
+          from scripts.integration_contract import canonical_result_id
+
           task = json.loads(base64.b64decode(os.environ["TASK_PAYLOAD_BASE64"], validate=True))
           required = ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")
           if not all(isinstance(task.get(field), str) and task[field] for field in required):
@@ -106,12 +109,12 @@ jobs:
               "run_id": os.environ["GITHUB_RUN_ID"],
               "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
               "job_id": os.environ["GITHUB_JOB"],
-              "result_id": f"result-{dispatch_id}",
               "source_sha": os.environ["GITHUB_SHA"],
               "status": "SUCCESS",
               "operation": operation,
               "artifacts": [artifact],
           }
+          result["result_id"] = canonical_result_id(result)
           Path(f"result_{dispatch_id}.json").write_text(json.dumps(result, sort_keys=True) + "\n")
           PY
           set +e
@@ -119,16 +122,20 @@ jobs:
           status=$?
           if [ "$status" -ne 0 ]; then
             python3 - <<'PY'
-          import base64, json, os
+          import base64, json, os, sys
           from pathlib import Path
+          sys.path.insert(0, os.environ.get("GITHUB_WORKSPACE", "."))
+          from scripts.integration_contract import canonical_result_id
           task = json.loads(base64.b64decode(os.environ["TASK_PAYLOAD_BASE64"], validate=True))
           fields = ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")
           if all(isinstance(task.get(field), str) and task[field] for field in fields):
-              Path(f"result_{task['dispatch_id']}.json").write_text(json.dumps({
+              result = {
                   **{field: task[field] for field in fields}, "provider": "github",
                   "run_id": os.environ["GITHUB_RUN_ID"], "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
-                  "result_id": f"result-{task['dispatch_id']}", "status": "FAILED", "artifacts": [],
-                  "reason": "BOUNDED_OPERATION_FAILED"}, sort_keys=True) + "\n")
+                  "status": "FAILED", "artifacts": [],
+                  "reason": "BOUNDED_OPERATION_FAILED"}
+              result["result_id"] = canonical_result_id(result)
+              Path(f"result_{task['dispatch_id']}.json").write_text(json.dumps(result, sort_keys=True) + "\n")
           PY
           fi
           exit "$status"

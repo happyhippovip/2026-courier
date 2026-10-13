@@ -48,15 +48,16 @@ def test_verify_result_rejects_nondict_evidence(monkeypatch, tmp_path: Path, bad
 
 def _success_result(path, digest):
     task = packet()
-    return task, {
+    result = {
         **task,
         "run_id": "99",
         "run_attempt": "1",
-        "result_id": "result-dispatch-1",
         "status": "SUCCESS",
         "operation": "deterministic_transform",
         "artifacts": [{"path": path, "sha256": digest}],
     }
+    result["result_id"] = canonical_result_id(result)
+    return task, result
 
 
 def _success_evidence():
@@ -89,20 +90,24 @@ def test_verify_result_accepts_evidence_inside_download_directory(tmp_path: Path
     blob.write_bytes(b"worker-output\n")
     task, result = _success_result(
         "courier_output_dispatch-1.json", hashlib.sha256(b"worker-output\n").hexdigest())
+    forged = dict(result, result_id=f"result-{task['dispatch_id']}")
+    with pytest.raises(ValueError, match="not bound"):
+        adapter.verify_result(task, forged, _success_evidence(), "99", directory)
     assert adapter.verify_result(task, result, _success_evidence(), "99", directory) is None
 
 
 def _completed_run_result(blob_digest):
     task = packet()
-    return task, {
+    result = {
         **task,
         "run_id": "99",
         "run_attempt": "1",
-        "result_id": "result-dispatch-1",
         "status": "SUCCESS",
         "operation": "deterministic_transform",
         "artifacts": [{"path": "out.bin", "sha256": blob_digest}],
     }
+    result["result_id"] = canonical_result_id(result)
+    return task, result
 
 
 def test_run_posts_verified_result_and_records_posted_state(tmp_path: Path, monkeypatch):
@@ -124,7 +129,8 @@ def test_run_posts_verified_result_and_records_posted_state(tmp_path: Path, monk
     monkeypatch.setattr(adapter, "download_result", fake_download)
     monkeypatch.setattr(adapter, "post_result", posted.append)
     assert adapter.run(str(task_file)) == 0
-    assert [p["result_id"] for p in posted] == ["result-dispatch-1"]
+    assert [p["result_id"] for p in posted] == [canonical_result_id(result)]
+    assert posted[0]["result_id"] != "result-dispatch-1"
     state = json.loads(adapter.state_path(task_file).read_text(encoding="utf-8"))
     assert state["status"] == "POSTED" and state["run_id"] == "99"
     assert not (tmp_path / ".courier-result-dispatch-1").exists()
@@ -258,7 +264,11 @@ def test_verify_result_mismatches(tmp_path: Path):
     with pytest.raises(ValueError, match="failed GitHub operation must not claim evidence"):
         adapter.verify_result(task, res, None, "99", tmp_path)
     
-    res = {**task, "run_id": "99", "run_attempt": "1", "result_id": "result-dispatch-1", "status": "FAILED", "artifacts": []}
+    res = {**task, "run_id": "99", "run_attempt": "1", "status": "FAILED", "artifacts": []}
+    res["result_id"] = f"result-{task['dispatch_id']}"
+    with pytest.raises(ValueError, match="not bound"):
+        adapter.verify_result(task, res, None, "99", tmp_path)
+    res["result_id"] = canonical_result_id(res)
     adapter.verify_result(task, res, None, "99", tmp_path) # Should pass
 
     # Not success
