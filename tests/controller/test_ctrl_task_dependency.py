@@ -90,7 +90,8 @@ def test_dependent_task_is_claimed_with_the_verified_result_as_input(ctl):
     claimed = [e for e in ctl.journal.events(task_id=b) if e.type is EventType.TASK_CLAIMED]
     assert len(claimed) == 1 and claimed[0].payload == {"ttl_s": 6, "input": want}
     view = ctl.task_view(b)
-    assert (view["depends_on"], view["input_dispatch_id"], view["input_result_id"]) == (a, lease_a["dispatch_id"], "r1")
+    assert (view["depends_on"], view["input"]) == (a, want)
+    assert ctl.journal.task(b).input == want  # what a verifier is handed as task.input
 
     finish(ctl, lease_b)
     assert status(ctl, b) is TaskStatus.COMPLETE
@@ -129,7 +130,7 @@ def test_independent_tasks_are_unchanged(ctl):
     claimed = [e for e in ctl.journal.events(task_id=a) if e.type is EventType.TASK_CLAIMED][0]
     assert claimed.payload == {"ttl_s": 6}
     view = ctl.task_view(a)
-    assert (view["depends_on"], view["input_dispatch_id"], view["input_result_id"]) == (None, None, None)
+    assert (view["depends_on"], view["input"]) == (None, None)
 
 
 def test_a_retried_dependent_task_gets_the_same_input_again(tmp_path, clock):
@@ -220,7 +221,7 @@ def test_restart_after_the_dependency_completed_dispatches_the_dependent_task_ex
         assert [t for t in types(ctl, a)].count("TASK_CLAIMED") == 1
         assert [t for t in types(ctl, b)].count("TASK_CLAIMED") == 1
         assert ctl.journal.verify_chain().ok and ctl.journal.verify_projection()
-        assert ctl.task_view(b)["input_dispatch_id"] == lease_a["dispatch_id"]
+        assert ctl.task_view(b)["input"] == expected_input(a, lease_a)
     finally:
         ctl.stop()
 
