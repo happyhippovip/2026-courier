@@ -23,7 +23,7 @@ from pathlib import Path
 
 PHASES = ("GOAL", "WORKING", "NEEDS YOU", "DONE")
 CSS = """
-*{box-sizing:border-box}body{margin:0;font:18px/1.4 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;background:#0f1117;color:#e8e8e8}
+*{box-sizing:border-box}body{margin:0;font:18px/1.4 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;background:#0f1117;color:#e8e8e8;min-height:100vh;display:flex;flex-direction:column}main{flex:1;width:100%}
 .mock{background:#f5c400;color:#111;font-weight:800;text-align:center;padding:10px;letter-spacing:.5px}
 main{max-width:1200px;margin:0 auto;padding:24px}h1{font-size:28px;margin:0 0 4px}.sub{color:#9aa;margin-bottom:20px}
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
@@ -31,6 +31,7 @@ main{max-width:1200px;margin:0 auto;padding:24px}h1{font-size:28px;margin:0 0 4p
 .tile h2{font-size:30px;margin:0 0 10px}.tile .st{font-size:14px;text-transform:uppercase;color:#9aa}
 .goal{border-color:#2bb3c0}.working{border-color:#3b7ddd}.done{border-color:#2fbf5b}
 .needs{border-color:#ff7a00;background:#3a2300;box-shadow:0 0 0 4px #ff7a0066}
+.needs.cleared{border-color:#2fbf5b;background:#13261a;box-shadow:none}.needs.cleared h2{color:#7fe39b}
 .needs h2{color:#ffb15c}.reason{font-size:22px;font-weight:700;color:#fff;margin-top:8px}
 .done.final{background:#0f2e1a}.final .st{color:#7fe39b}
 ul{margin:6px 0 0;padding-left:20px;font-size:15px}
@@ -76,6 +77,30 @@ def load_needs_you(path: Path | None) -> list[dict]:
     return sorted(rows, key=lambda r: (str(r.get("at") or ""), str(r["mission_id"]), str(r.get("blocked_event_id"))))
 
 
+def load_resolved(path: Path | None) -> list[dict]:
+    """NEEDS_YOU-Eintraege, die ein passender RESOLVED geschlossen hat (fuer die Erledigt-Liste)."""
+    if path is None:
+        return []
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return []
+    needs, closed = {}, {}
+    for line in text.splitlines():
+        try:
+            row = json.loads(line)
+        except ValueError:
+            continue
+        if not isinstance(row, dict) or not row.get("mission_id"):
+            continue
+        key = (str(row.get("mission_id")), str(row.get("blocked_event_id")))
+        if row.get("kind") == "NEEDS_YOU":
+            needs.setdefault(key, row)
+        elif row.get("kind") == "RESOLVED":
+            closed.setdefault(key, row)
+    return [dict(needs[k], resume_event_id=closed[k].get("resume_event_id")) for k in sorted(needs) if k in closed]
+
+
 def _needs_html(rows: list[dict]) -> str:
     out = []
     for r in rows:
@@ -86,7 +111,8 @@ def _needs_html(rows: list[dict]) -> str:
     return "".join(out)
 
 
-def render(ev: dict, sha: str, needs: list[dict] | None = None, needs_source: str | None = None) -> str:
+def render(ev: dict, sha: str, needs: list[dict] | None = None, needs_source: str | None = None,
+           resolved: list[dict] | None = None, evidence_name: str = "demo_60s_evidence.json") -> str:
     events = [tuple(e) for e in ev.get("events", [])]
     board = ev.get("board", {})
     gates = [(e[1], e[2]) for e in events if e[0] == "HUMAN_GATE"]
@@ -100,6 +126,14 @@ def render(ev: dict, sha: str, needs: list[dict] | None = None, needs_source: st
         source = f"needs_you.jsonl ({needs_source})"
         needs_sub = f"{len(needs)} offen &ndash; Freigabe durch Mensch"
         needs_body = _needs_html(needs)
+    elif resolved:
+        source = f"needs_you.jsonl ({needs_source}): 0 offen, {len(resolved)} erledigt"
+        needs_sub = f"0 offen &ndash; {len(resolved)} erledigt"
+        needs_body = "".join(
+            f'<div class="item"><div class="reason">&#10003; {escape(str(r["mission_id"]))} erledigt</div>'
+            f'<div class="next">war: {escape(str(r.get("blocker") or "-"))}</div>'
+            f'<div class="at">Wiederaufnahme: {escape(str(r.get("resume_event_id") or "-"))}</div></div>'
+            for r in resolved)
     else:
         source = "Demo-Beleg (Fallback: needs_you.jsonl fehlt oder ist leer)"
         needs_sub = "Freigabe durch Mensch" if gates else "keine Freigabe noetig"
@@ -110,7 +144,7 @@ def render(ev: dict, sha: str, needs: list[dict] | None = None, needs_source: st
         ("goal", "GOAL", "Ziel", li([ev.get("goal", ""), f"Budget {board.get('budget', {}).get('eur', 0):.2f} EUR (MOCK)"])),
         ("working", "WORKING", f"{len(work)} Ereignisse",
          li([f"{e[1]}: " + label.get(e[0], e[0] + " {}").format(e[2]) for e in work])),
-        ("needs", "NEEDS YOU", needs_sub, needs_body),
+        ("needs" + (" cleared" if resolved and not needs else ""), "NEEDS YOU", needs_sub, needs_body),
         ("done" + (" final" if status == "DONE" else ""), "DONE", f"Status: {escape(str(status))}",
          li([f"{board.get('verified_results', 0)} gepruefte Ergebnisse",
              f"Kosten {board.get('budget', {}).get('spent', 0):.2f} EUR MOCK (real 0,00 EUR)"])),
@@ -125,7 +159,7 @@ def render(ev: dict, sha: str, needs: list[dict] | None = None, needs_source: st
             " &middot; Ziel &rarr; Agenten &rarr; Freigabe &rarr; gepruefter Beleg</div>"
             f"<div class=\"src\">NEEDS-YOU-Quelle: {escape(source)}</div>"
             f"<div class=\"tiles\">{body}</div>"
-            f"<div class=\"ev\">Beleg: demo_60s_evidence.json<br>SHA-256: <span class=\"sha\">{sha}</span></div>"
+            f"<div class=\"ev\">Beleg: {escape(evidence_name)}<br>SHA-256: <span class=\"sha\">{sha}</span></div>"
             f"</main><div class=\"mock\">{banner}</div></body></html>\n")
 
 
@@ -133,7 +167,8 @@ def write(evidence: Path, out: Path, needs_you: Path | None = None) -> Path:
     ev, sha = load(evidence)
     rows = load_needs_you(needs_you)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(render(ev, sha, rows, needs_you.name if needs_you else None), encoding="utf-8")
+    out.write_text(render(ev, sha, rows, needs_you.name if needs_you else None,
+                          resolved=load_resolved(needs_you), evidence_name=evidence.name), encoding="utf-8")
     return out
 
 

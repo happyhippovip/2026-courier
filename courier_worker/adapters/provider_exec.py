@@ -143,10 +143,34 @@ class ProviderResult:
         return " ".join(parts)[:500]
 
 
+GOAL_PARAM_KEYS = ("goal_id", "goal_fingerprint")
+_GOAL_TOKEN = re.compile(r"[A-Za-z0-9._:-]{1,128}\Z")
+
+
+def _strip_goal(params: Mapping) -> Mapping:
+    """Check the goal binding the ledger bridge copies into params, then drop it.
+
+    Both fields or neither; each a short token (the bridge's own rule). They
+    never reach the provider argv or prompt. Any other unknown key is still
+    rejected by the provider-specific checks.
+    """
+    present = [key for key in GOAL_PARAM_KEYS if key in params]
+    if not present:
+        return params
+    if len(present) != len(GOAL_PARAM_KEYS):
+        raise ProviderExecError("BAD_GOAL")
+    for key in GOAL_PARAM_KEYS:
+        value = params.get(key)
+        if not isinstance(value, str) or _GOAL_TOKEN.match(value) is None:
+            raise ProviderExecError("BAD_GOAL")
+    return {key: value for key, value in params.items() if key not in GOAL_PARAM_KEYS}
+
+
 def validate(params: Mapping) -> dict:
     """Normalize a task spec or raise ``ProviderExecError``."""
     if not isinstance(params, Mapping):
         raise ProviderExecError("BAD_PARAMS")
+    params = _strip_goal(params)
     if params.get("provider") == "agy":
         return _validate_agy(params)
     _reject_unknown_or_forbidden(params)

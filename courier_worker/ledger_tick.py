@@ -166,6 +166,16 @@ class LedgerTick:
                 pass
         return outcome
 
+    def _feed_queue(self) -> None:
+        """Opt-in: move queue workkeys into the ledger before the bridge pass."""
+        try:
+            from courier_worker.queue_feed import feed_once
+            report = feed_once(self.home, self.agent_id, self.host_id)
+            if report.get("outcome") == "fed":
+                self._log(f"courier_worker.ledger_tick: queue feed {json.dumps(report, sort_keys=True)}")
+        except Exception as exc:  # never break the worker loop
+            self._log(f"courier_worker.ledger_tick: queue feed failed ({exc.__class__.__name__})")
+
     def __call__(self) -> str:
         if self.parked:
             return SKIPPED_PARKED
@@ -180,6 +190,7 @@ class LedgerTick:
             return self._park("bridge-missing")
         self._last_start = now
         self.passes += 1
+        self._feed_queue()
         try:
             done = self._runner(self.argv(), str(self._repo), self._env(), self.timeout_s)
         except subprocess.TimeoutExpired:
