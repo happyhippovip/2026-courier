@@ -121,6 +121,9 @@ class ExecutionSpec:
     adapter: Optional[str] = None
     params: Optional[dict] = field(default=None, compare=False)
     effect_key: Optional[str] = None
+    # The verified result of the task this one depends on (claim spec "input"),
+    # already shape-checked by the adapter bridge. None for an independent task.
+    input: Optional[dict] = field(default=None, compare=False)
 
     def __post_init__(self):
         for name in ("task_id", "dispatch_id", "worker_id", "result_id"):

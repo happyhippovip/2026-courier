@@ -120,6 +120,49 @@ def validate_request(spec: Any) -> tuple:
     return adapter, params, effect_key
 
 
+INPUT_KEYS = frozenset({"task_id", "dispatch_id", "result_id", "artifacts"})
+MAX_INPUT_ARTIFACTS = 1000
+_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+
+
+def is_safe_relative_path(name: Any) -> bool:
+    """A home-relative artifact path: forward slashes, no drive, root, '..' or NUL."""
+    if not isinstance(name, str) or not name or len(name) > 1024 or "\x00" in name or "\\" in name:
+        return False
+    if name.startswith("/") or ":" in name:
+        return False
+    return all(part not in ("", ".", "..") for part in name.split("/"))
+
+
+def request_input(spec: Any) -> Optional[dict]:
+    """The validated ``spec.input`` of a dependent task, or None for an independent one.
+
+    The controller issues it only for a task with ``depends_on``: the verified
+    result of the dependency, as artifact paths relative to home with their
+    sha256. Anything malformed is a :class:`SpecError`, so the task is refused
+    before ``/start`` instead of running without (or on the wrong) input.
+    """
+    value = spec.get("input") if isinstance(spec, dict) else None
+    if value is None:
+        return None
+    if not isinstance(value, dict) or set(value) != INPUT_KEYS:
+        raise SpecError("claim spec input is malformed")
+    for name in ("task_id", "dispatch_id", "result_id"):
+        if not isinstance(value[name], str) or not value[name] or len(value[name]) > 200:
+            raise SpecError(f"claim spec input {name} is missing or malformed")
+    artifacts = value["artifacts"]
+    if not isinstance(artifacts, list) or not artifacts or len(artifacts) > MAX_INPUT_ARTIFACTS:
+        raise SpecError("claim spec input names no artifact")
+    clean = []
+    for ref in artifacts:
+        if (not isinstance(ref, dict) or not is_safe_relative_path(ref.get("path"))
+                or not isinstance(ref.get("sha256"), str) or not _SHA256_RE.match(ref["sha256"])):
+            raise SpecError("claim spec input artifact is malformed")
+        clean.append({"path": ref["path"], "sha256": ref["sha256"]})
+    return {"task_id": value["task_id"], "dispatch_id": value["dispatch_id"],
+            "result_id": value["result_id"], "artifacts": clean}
+
+
 def runner_argv(home: str, dispatch_id: str) -> tuple:
     return (sys.executable, RUNNER_SCRIPT, request_path(home, dispatch_id))
 
@@ -148,11 +191,18 @@ def write_request(home: str, spec: Any) -> str:
         os.unlink(report_path(home, spec.dispatch_id))  # never read a stale report
     except OSError:
         pass
-    _atomic_json(path, {
+    request = {
         "adapter": spec.adapter, "params": spec.params, "attempt": spec.attempt,
         "task_id": spec.task_id, "dispatch_id": spec.dispatch_id, "effect_key": spec.effect_key,
         "workdir": spec.artifact_dir, "report": report_path(home, spec.dispatch_id),
-    })
+    }
+    bound = getattr(spec, "input", None)
+    if bound is not None:
+        # Only a dependent task carries these two keys; the runner resolves the
+        # artifact paths inside home and checks every sha256 before the adapter runs.
+        request["input"] = bound
+        request["home"] = os.path.abspath(home)
+    _atomic_json(path, request)
     return path
 
 
