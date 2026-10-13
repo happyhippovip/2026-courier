@@ -1,8 +1,9 @@
 <!doctype html><html><head><meta charset="utf-8"><title>Dispatcher Bird v2 (Hero-Animation)</title>
 <!-- Kopie von /workspace/courier/bird/bird_v2.html; angepasst: kein HUD/Feuerwerk/Beispiel-Tasks im Embed (#embed), prefers-reduced-motion = Standbild -->
 <style>html,body{margin:0;height:100%;overflow:hidden;background:transparent;font-family:-apple-system,"Helvetica Neue",Arial,sans-serif}
-body.bg{background:radial-gradient(ellipse at 50% 30%,#1b2a4a 0%,#0a1020 60%,#05070f 100%)}canvas{position:fixed;inset:0}</style></head>
-<body class="bg"><canvas id="c"></canvas><canvas id="g" style="mix-blend-mode:screen;filter:blur(14px);opacity:.9"></canvas>
+body.bg{background:radial-gradient(ellipse at 50% 30%,#1b2a4a 0%,#0a1020 60%,#05070f 100%)}canvas{position:fixed;inset:0}
+.bird-desc{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}</style></head>
+<body class="bg"><p id="bird-desc" class="bird-desc">Dekorative Animation: ein Vogel trägt Umschläge zwischen Agenten. Keine Auftragsdaten und kein Status.</p><canvas id="c" aria-hidden="true"></canvas><canvas id="g" aria-hidden="true" style="mix-blend-mode:screen;filter:blur(14px);opacity:.9"></canvas>
 <script>
 const TR=location.hash.includes('transparent'),EMB=location.hash.includes('embed'); if(TR)document.body.classList.remove('bg');
 const c=document.getElementById('c'),x=c.getContext('2d'),g=document.getElementById('g'),gx=g.getContext('2d');
