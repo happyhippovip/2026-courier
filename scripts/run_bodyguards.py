@@ -175,6 +175,9 @@ class BodyguardPoolManager:
         required_capabilities: list[str] | None = None,
     ) -> dict[str, Any]:
         """Assign a bodyguard to a task with a temporary role after capability verification."""
+        if temporary_role not in ALLOWED_TEMP_ROLES:
+            raise ValueError(f"temporary role {temporary_role!r} is not a support role")
+
         all_bgs = self.get_all_bodyguards()
         bg_to_assign = None
 
