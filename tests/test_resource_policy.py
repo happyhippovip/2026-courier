@@ -31,6 +31,7 @@ def test_resource_policy_manager_defaults(repo_dir):
 
 def test_resource_policy_manager_loaded(repo_dir):
     policy = {
+        "schema_version": "2026.08.30-policy-v1",
         "active_paid_resources": {
             "my_resource": {"status": "ACTIVE_PAID"}
         },
@@ -44,6 +45,55 @@ def test_resource_policy_manager_loaded(repo_dir):
         
     assert ResourcePolicyManager.get_default_iterations(repo_dir) == 5
     assert ResourcePolicyManager.is_resource_allowed("my_resource", repo_dir) is True
+
+def _write_policy(repo_dir, policy):
+    policy_file = repo_dir / "events" / "policies" / "resource_policy.json"
+    policy_file.write_text(json.dumps(policy), encoding="utf-8")
+
+
+def test_get_policy_rejects_unknown_or_changed_schema_version(repo_dir):
+    """A policy file whose schema_version is not the accepted epoch is refused.
+
+    The accepted epoch is the one in events/policies/resource_policy.json.
+    Missing, foreign, and non-string versions must not authorize the file's
+    resources. The same bytes stay refused on a second read.
+    """
+    from scripts.resource_policy import ACCEPTED_POLICY_SCHEMA, PolicyEpochError
+
+    accepted = {
+        "schema_version": ACCEPTED_POLICY_SCHEMA,
+        "active_paid_resources": {"kept": {"status": "ACTIVE_PAID"}},
+        "operating_invariants": {"max_autonomous_iterations_per_task": 2},
+    }
+    _write_policy(repo_dir, accepted)
+    loaded = ResourcePolicyManager.get_policy(repo_dir)
+    assert loaded["schema_version"] == ACCEPTED_POLICY_SCHEMA
+    assert ResourcePolicyManager.is_resource_allowed("kept", repo_dir) is True
+    assert ResourcePolicyManager.get_policy(repo_dir)["active_paid_resources"]["kept"]["status"] == "ACTIVE_PAID"
+
+    foreign = {
+        "schema_version": "2099.01.01-policy-v99",
+        "active_paid_resources": {"synthetic_only": {"status": "ACTIVE_PAID"}},
+        "operating_invariants": {"max_autonomous_iterations_per_task": 9},
+    }
+    for version in ("2099.01.01-policy-v99", None, "", 1, ["2026.08.30-policy-v1"]):
+        body = dict(foreign)
+        if version is None:
+            body.pop("schema_version", None)
+        else:
+            body["schema_version"] = version
+        _write_policy(repo_dir, body)
+        with pytest.raises(PolicyEpochError, match="schema_version"):
+            ResourcePolicyManager.get_policy(repo_dir)
+        with pytest.raises(PolicyEpochError):
+            ResourcePolicyManager.get_policy(repo_dir)
+        assert ResourcePolicyManager.is_resource_allowed("synthetic_only", repo_dir) is False
+        assert ResourcePolicyManager.get_default_iterations(repo_dir) == 1
+        denied = CostGate.evaluate_spend_request("synthetic_only", repo_dir=repo_dir)
+        assert denied["allowed"] is False
+        assert denied["reason"] == "POLICY_EPOCH_REJECTED"
+        assert denied["requires_human_gate"] is True
+
 
 def test_cost_gate_evaluate_spend(repo_dir):
     res = CostGate.evaluate_spend_request("future_google_upgrade", repo_dir=repo_dir)

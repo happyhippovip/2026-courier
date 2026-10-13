@@ -24,7 +24,10 @@ def test_load_json_exception(tmp_path):
 def test_get_default_iterations_fallback(monkeypatch, tmp_path):
     policy_file = tmp_path / "events" / "policies" / "resource_policy.json"
     policy_file.parent.mkdir(parents=True, exist_ok=True)
-    policy_file.write_text('{"operating_invariants": {"max_autonomous_iterations_per_task": "invalid"}}')
+    policy_file.write_text(
+        '{"schema_version": "2026.08.30-policy-v1", '
+        '"operating_invariants": {"max_autonomous_iterations_per_task": "invalid"}}'
+    )
     assert ResourcePolicyManager.get_default_iterations(tmp_path) == 1
 
 
