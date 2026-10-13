@@ -170,3 +170,33 @@ def test_mutated_artifact_does_not_keep_the_old_result_id():
 
     with pytest.raises(ContractError, match="canonical"):
         validate_durable_result(_task_for(result), result)
+
+
+def test_verified_observation_and_upload_extras_keep_one_result_id(tmp_path: Path):
+    packet = task_packet()
+    (tmp_path / packet["artifacts"][0]).write_text("SUCCESS\n", encoding="utf-8")
+    observed = verify_result(
+        packet,
+        {
+            "goal_id": packet["goal_id"],
+            "task_id": packet["task_id"],
+            "worker_id": packet["worker_id"],
+            "attempt_id": packet["attempt_id"],
+            "dispatch_id": packet["dispatch_id"],
+            "run_id": "run-1",
+            "status": "SUCCESS",
+        },
+        tmp_path,
+    )
+    assert validate_durable_result(packet, observed)["result_id"] == observed["result_id"]
+
+    uploaded = dict(observed)
+    uploaded["run_attempt"] = "2"
+    uploaded["artifacts"] = [{
+        **observed["artifacts"][0],
+        "artifact_id": "art-" + ("c" * 64),
+        "size": 8,
+    }]
+    checked = validate_durable_result(packet, uploaded)
+    assert checked["result_id"] == observed["result_id"]
+    assert checked["run_attempt"] == "2"

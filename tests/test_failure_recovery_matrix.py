@@ -24,7 +24,7 @@ def test_conflicting_second_result_cannot_replace_first(tmp_path, monkeypatch):
     conflicting = dict(first, result_id="result-2", status="FAILED", artifacts=[])
     http.post("/tasks/result", headers=auth(), json=conflicting)
     stored = server_app.load_state()["tasks"][task["task_id"]]
-    assert stored["result"]["result_id"] == "result-1"
+    assert stored["result"]["result_id"] == first["result_id"]
     assert stored["status"] == "RESULT_RECEIVED"
 
 
@@ -68,7 +68,7 @@ def test_worker_key_cannot_verify(tmp_path, monkeypatch):
     result = durable_result(task)
     http.post("/tasks/result", headers=auth(), json=result)
     r = http.post("/tasks/verify", headers=auth(), json={
-        "task_id": task["task_id"], "result_id": "result-1", "verifier_id": "VERIFIER-01",
+        "task_id": task["task_id"], "result_id": result["result_id"], "verifier_id": "VERIFIER-01",
         "verdict": "PASS", "artifacts": result["artifacts"]})
     assert r.status_code in (401, 403)
     assert server_app.load_state()["tasks"][task["task_id"]]["status"] == "RESULT_RECEIVED"

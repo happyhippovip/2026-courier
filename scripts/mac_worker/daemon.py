@@ -12,6 +12,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from resource_governor import governor
+from integration_contract import canonical_result_id
 from contextlib import nullcontext
 
 # Paths
@@ -814,12 +815,12 @@ def loop():
                     "dispatch_id": task.get("dispatch_id"),
                     "attempt_id": task.get("attempt_id"),
                     "run_id": str(uuid.uuid4()),
-                    "result_id": str(uuid.uuid4()),
                     "status": result.get("status", "FAILED"),
                     "artifacts": artifact_evidence,
                     "provider": "mac_" + result.get("execution_mode", "unknown").lower(),
                     "raw_result": result
                 }
+                payload["result_id"] = canonical_result_id(payload)
                 task["result_payload"] = payload
                 task["worker_phase"] = "RESULT_PENDING"
 

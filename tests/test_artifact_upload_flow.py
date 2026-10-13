@@ -11,6 +11,7 @@ import pytest
 
 
 from p3_preview import PATCH, ROOT, VERIFIER, WORKER, load_patched_server
+from scripts.integration_contract import canonical_result_id
 
 IDS = ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")
 
@@ -36,8 +37,9 @@ def claim(http, worker="WINDOWS-01"):
 
 
 def result_for(task, refs):
-    return {**{f: task[f] for f in IDS}, "run_id": "r1", "result_id": "result-1", "status": "SUCCESS",
-            "artifacts": refs}
+    result = {**{f: task[f] for f in IDS}, "run_id": "r1", "status": "SUCCESS", "artifacts": refs}
+    result["result_id"] = canonical_result_id(result)
+    return result
 
 
 # ---------------------------------------------------------------- P3 patch
