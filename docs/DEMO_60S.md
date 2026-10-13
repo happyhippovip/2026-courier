@@ -80,9 +80,39 @@ Pfad per `--home <home>` oder direkt per `--needs-you <datei>` (bei `demo_60s.py
   (von `queue_feed` bei der Wiederaufnahme angehängt) schließt den NEEDS_YOU mit gleicher
   `mission_id` + `blocked_event_id`, unabhängig von der Reihenfolge. Ein neuer Block derselben Mission bleibt offen.
 - Kaputte oder fremde Zeilen werden still übersprungen.
-- Fehlt die Datei oder hat sie keine offenen Einträge → Fallback auf den Demo-Beleg.
+- Fehlt die Datei oder hat sie gar keine Einträge → Fallback auf den Demo-Beleg. Sind alle erledigt, zeigt die Kachel grün „0 offen, N erledigt“.
 - Über den Kacheln steht immer „NEEDS-YOU-Quelle: …“ (jsonl oder „Demo-Beleg (Fallback …)“).
 
 Beispiel: `./scripts/demo_60s.sh --html --home ~/courier_home`
 
 Tests: `tests/orchestrator/test_demo_view.py`, `tests/orchestrator/test_demo_view_needs_you_source.py`, `tests/orchestrator/test_demo_view_open_only.py`.
+
+## Ein-Befehl-Demo (Tag 2): Auftrag → BLOCKED → NEEDS_YOU → Freigabe → RESOLVED → Beleg
+
+Ein Befehl, unter 60 s (gemessen ca. 35 s mit Pausen), MOCK-Banner am Anfang und Ende:
+
+| System | Befehl |
+|---|---|
+| macOS / Linux | `./scripts/demo_one.sh` |
+| Windows | `powershell -ExecutionPolicy Bypass -File scripts\demo_one.ps1` |
+
+Optionen: `--fast` (ohne Pausen), `--no-color`, `--goal "…"`, `--out <ordner>` (Standard `demo_out/`).
+
+Ablauf über den echten Pfad `courier_worker.queue_feed.feed_once` + `scripts/ledger_v1_bridge.py`
+(inkl. RESOLVED + Backfill aus `feat/needs-you-resolved-backfill`, in diesen Branch gemergt), aber nur mit
+synthetischen Doubles aus `scripts/demo_one_doubles.py`: Controller im Prozess (kein Netzwerk), Adapter
+`synthetic`, Bestätigung durch `person:demo` simuliert, alles in einem frischen Temp-Ordner.
+
+1. **GOAL** – Auftrag, zwei Arbeitspakete WKA → WKB, Goal Contract mit Human Gate.
+2. **WORKING** – WKA wird geclaimt und im Ledger BLOCKED (Contract unbestätigt), 0 Controller-Posts.
+3. **NEEDS YOU** – `needs_you.jsonl` bekommt `NEEDS_YOU` mit Grund und nächster Aktion; Freigabe simuliert.
+4. **WORKING** – genau eine Wiederaufnahme (`queue-resume-…`), `RESOLVED` wird angehängt, WKA und WKB laufen durch.
+5. **DONE** – je ein FINAL und ein Controller-Post für WKA/WKB, 0 offene NEEDS_YOU.
+
+Ergebnis in `demo_out/`: `demo_one_view.html` (NEEDS-YOU-Kachel grün: „0 offen, 1 erledigt“),
+`demo_one_evidence.json` + `.sha256` (Prüfprotokoll, deterministisch), `needs_you.jsonl`.
+Für X: Screenshot der HTML in 1600×900, z. B.
+`google-chrome --headless=new --window-size=1600,900 --screenshot=x.png file://$PWD/demo_out/demo_one_view.html`.
+
+Test: `tests/orchestrator/test_demo_one.py` (Determinismus, Phasenreihenfolge, NEEDS_YOU → RESOLVED,
+Hash, < 60 s mit Pausen).

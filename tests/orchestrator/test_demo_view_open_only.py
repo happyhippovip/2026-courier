@@ -39,7 +39,8 @@ def test_order_independent_and_broken_lines(tmp_path):
     assert [r["mission_id"] for r in rows] == ["C"]
 
 
-def test_all_resolved_falls_back_to_demo_evidence(tmp_path):
+def test_all_resolved_shows_cleared_not_open(tmp_path):
+    # Seit feat/demo-one-command: alles erledigt -> "0 offen, N erledigt" statt Fallback.
     import subprocess
     out = tmp_path / "o"
     home = tmp_path / "h" / "run"
@@ -48,4 +49,5 @@ def test_all_resolved_falls_back_to_demo_evidence(tmp_path):
     subprocess.run([sys.executable, str(ROOT / "scripts" / "demo_60s.py"), "--fast", "--no-color", "--html",
                     "--out", str(out), "--home", str(tmp_path / "h")], check=True, capture_output=True, timeout=60)
     html = (out / "needs_you_view.html").read_text(encoding="utf-8")
-    assert "Demo-Beleg (Fallback" in html and "A: x" not in html
+    assert "0 offen, 1 erledigt" in html and "A erledigt" in html and "A: x" not in html
+    assert "Fallback" not in html and 'class="tile needs cleared"' in html
