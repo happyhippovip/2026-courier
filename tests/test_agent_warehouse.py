@@ -38,3 +38,19 @@ def test_capability_selector():
         assert exp_comp.selected_agent_id is not None
     except ValueError:
         pass
+
+
+def test_unimplemented_agents_not_selected_by_default():
+    repo_root = Path(__file__).parent.parent
+    catalog = AgentCatalog.load(repo_root / "docs" / "agent-warehouse" / "AGENT_CATALOG.json")
+    selector = CapabilitySelector(catalog)
+
+    with pytest.raises(ValueError, match="No agent found for capability routing_candidate"):
+        selector.select_agent_for_task("routing_candidate")
+
+    found = selector.select_agent_for_task("routing_candidate", require_implemented=False)
+    assert found.selected_agent_id == "smart-resource-router"
+
+    reloaded = CapabilitySelector(AgentCatalog.load(repo_root / "docs" / "agent-warehouse" / "AGENT_CATALOG.json"))
+    with pytest.raises(ValueError, match="No agent found for capability routing_candidate"):
+        reloaded.select_agent_for_task("routing_candidate")

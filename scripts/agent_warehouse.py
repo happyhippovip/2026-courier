@@ -68,12 +68,14 @@ class CapabilitySelector:
     def __init__(self, catalog: AgentCatalog):
         self.catalog = catalog
         
-    def select_agent_for_task(self, required_capability: str, required_host: Optional[str] = None, current_owners: List[str] = None) -> RoutingExplanation:
+    def select_agent_for_task(self, required_capability: str, required_host: Optional[str] = None, current_owners: List[str] = None, require_implemented: bool = True) -> RoutingExplanation:
         if current_owners is None:
             current_owners = []
             
         candidates = []
         for agent in self.catalog.agents:
+            if require_implemented and agent.status != "implemented":
+                continue
             if required_capability in agent.capabilities:
                 if required_host is None or not agent.supported_hosts or required_host in agent.supported_hosts:
                     # Exclude active owners to prevent duplicate writers
