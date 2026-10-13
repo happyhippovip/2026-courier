@@ -128,6 +128,8 @@ def check_pilot_gate_readiness(evidence=None):
         "status": "BLOCKED",
         "go_decision": "NO_GO",
         "go_reason": "metrics are not measured",
+        # File presence is not a core freeze. These counters are not measured here.
+        "core_freeze": "NOT_FROZEN",
         "metrics": {
             name: {"target": target, "actual": None, "status": "NOT_MEASURED"}
             for name, target in METRIC_TARGETS

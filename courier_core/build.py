@@ -17,6 +17,7 @@ from __future__ import annotations
 import hashlib
 import os
 import platform
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Iterable
@@ -26,6 +27,7 @@ from courier_core.events import Event, EventType
 
 BUILD_ID_ENV = "COURIER_BUILD_ID"
 MAX_BUILD_ID_LENGTH = 200
+_SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 
 @lru_cache(maxsize=1)
@@ -61,3 +63,18 @@ def build_for_seq(events: Iterable[Event], seq: int) -> dict | None:
         if event.type is EventType.CONTROLLER_STARTED:
             build = event.payload.get("build")
     return build
+
+
+def rollback_source_for_seq(events: Iterable[Event], seq: int) -> dict | None:
+    """Name the source a rollback to seq would return to.
+
+    A build without a lowercase sha256 of the courier_core sources is not a
+    source. The function does not write and does not change the events.
+    """
+    build = build_for_seq(events, seq)
+    if not isinstance(build, dict):
+        return None
+    sha = build.get("source_sha256")
+    if not isinstance(sha, str) or _SHA256.fullmatch(sha) is None:
+        return None
+    return {"seq": seq, "source_sha256": sha, "build_id": build.get("build_id")}
