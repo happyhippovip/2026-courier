@@ -12,16 +12,31 @@ def verify_run1_evidence(evidence_dir="artifacts/run1"):
     ledger_db = os.path.join(evidence_dir, "ledger_run1.db")
     
     errors = []
-    
+
+    for name, path in (
+        ("server_run1.log", server_log),
+        ("worker_run1.log", worker_log),
+        ("verifier_run1.log", verifier_log),
+    ):
+        if not os.path.exists(path):
+            errors.append(f"{name} is missing")
+
     if not os.path.exists(ledger_db):
         errors.append("ledger_run1.db is missing")
     else:
-        conn = sqlite3.connect(ledger_db)
-        cursor = conn.cursor()
-        cursor.execute("SELECT status FROM tasks WHERE task_id='A'")
-        res = cursor.fetchone()
-        if not res or res[0] != 'RECONCILED':
-            errors.append(f"Task A is not RECONCILED. Current: {res[0] if res else 'MISSING'}")
+        try:
+            conn = sqlite3.connect(ledger_db)
+            try:
+                cursor = conn.cursor()
+                cursor.execute("SELECT status FROM tasks WHERE task_id='A'")
+                res = cursor.fetchone()
+            finally:
+                conn.close()
+        except sqlite3.Error:
+            errors.append("ledger_run1.db is unreadable")
+        else:
+            if not res or res[0] != 'RECONCILED':
+                errors.append(f"Task A is not RECONCILED. Current: {res[0] if res else 'MISSING'}")
     
     # Check exactly once
     if os.path.exists(server_log):
