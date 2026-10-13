@@ -48,16 +48,15 @@ class ProviderState:
     def check_recovery(self) -> bool:
         if not self.open_circuit:
             return True
-            
+        if self.availability == ProviderAvailability.RECOVERY_PROBE_DUE:
+            return False
+
         now = time.time()
-        if self.retry_after and now >= self.retry_after:
+        due = ((self.retry_after and now >= self.retry_after)
+               or (self.reset_time and now >= self.reset_time))
+        if due:
             self.availability = ProviderAvailability.RECOVERY_PROBE_DUE
             return True
-            
-        if self.reset_time and now >= self.reset_time:
-            self.availability = ProviderAvailability.RECOVERY_PROBE_DUE
-            return True
-            
         return False
 
 class CircuitBreaker:
