@@ -5,6 +5,7 @@ import sys
 import os
 import subprocess
 import shutil
+import tempfile
 import re
 from pathlib import Path
 
@@ -322,18 +323,37 @@ def worker(task: dict, work_dir: Path) -> dict:
         "proposal_mode": "PR_ONLY"
     }
 
+INDEPENDENT_VERIFIER = Path(__file__).resolve().parent / "revenue_v1_independent_verifier.py"
+
+def run_independent_verifier(task: dict, candidate: dict, work_dir: Path) -> dict:
+    """Run the independent verifier as a separate process (no shared code); fail closed on any error."""
+    try:
+        with tempfile.TemporaryDirectory(prefix="rv1-verify-") as tmp:
+            task_p, cand_p = Path(tmp) / "task.json", Path(tmp) / "candidate.json"
+            task_p.write_text(json.dumps(task), encoding="utf-8")
+            cand_p.write_text(json.dumps(candidate), encoding="utf-8")
+            proc = subprocess.run([sys.executable, str(INDEPENDENT_VERIFIER), str(task_p), str(work_dir), str(cand_p)],
+                                  capture_output=True, text=True)
+        verdict = json.loads(proc.stdout)
+        if not isinstance(verdict, dict):
+            raise ValueError("verdict is not an object")
+    except Exception as exc:  # noqa: BLE001 - fail closed, never PASS
+        return {"verdict": "FAIL", "accepted": False, "reasons": [f"independent verifier not usable: {type(exc).__name__}"], "verifier": None}
+    if proc.returncode != 0 or verdict.get("verdict") != "PASS" or verdict.get("accepted") is not True:
+        verdict["accepted"] = False
+    return verdict
+
 def verify(task: dict, candidate: dict, work_dir: Path) -> dict:
-    verify_dir = work_dir / "verifier_sandbox"
-    verify_dir.mkdir(parents=True, exist_ok=True)
-    
-    expected = worker(task, verify_dir)
-    if expected["report_json_sha256"] != candidate["report_json_sha256"]:
-        fail("Verification failed: report hashes do not match deterministic output.")
+    verdict = run_independent_verifier(task, candidate, work_dir)
+    if not verdict.get("accepted"):
+        fail(f"independent verifier {verdict.get('verdict', 'FAIL')}: {'; '.join(verdict.get('reasons', []))[:500]}")
     
     return {
         **candidate,
         "verifier_id": VERIFIER_ID,
         "verifier_status": "PASS" if candidate.get("worker_status", "PASS") == "PASS" else "WARN",
+        "independent_verdict": verdict["verdict"],
+        "independent_verifier": verdict["verifier"],
         "next_safe_state": "HUMAN_REVIEW_REQUIRED"
     }
 

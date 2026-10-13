@@ -138,8 +138,8 @@ class TestRevenueSafetyBaseline(unittest.TestCase):
         self.assertIn("No safety violations detected", (self.td_path / "report.md").read_text(encoding="utf-8"))
 
     def test_verify_no_files_is_not_pass(self):
-        with patch("revenue_v1_safety_baseline.worker") as mock_worker:
-            mock_worker.return_value = {"report_json_sha256": "h1"}
+        with patch("revenue_v1_safety_baseline.run_independent_verifier") as m:
+            m.return_value = {"verdict": "PASS", "accepted": True, "reasons": [], "verifier": {"name": "x"}}
             verified = rvsb.verify({}, {"report_json_sha256": "h1", "worker_status": "WARN"}, self.td_path)
         self.assertEqual(verified["verifier_status"], "WARN")
 
@@ -314,38 +314,31 @@ class TestRevenueSafetyBaseline(unittest.TestCase):
         md = rvsb.render_report_de("o", "r", "s", {"inspected_files": {"a.yml": "h"}, "parse_modes": {"a.yml": "yaml"}, "findings": []})
         self.assertIn("(Prüfmodus: yaml)", md)
 
-    @patch("revenue_v1_safety_baseline.worker")
-    def test_verify_success(self, mock_worker):
-        task = {"test": 1}
-        candidate = {
-            "report_json_sha256": "h1",
-            "report_md_sha256": "h2",
-            "other": "val"
-        }
-        mock_worker.return_value = {
-            "report_json_sha256": "h1",
-            "report_md_sha256": "h2"
-        }
-        
-        verified = rvsb.verify(task, candidate, self.td_path)
+    @patch("revenue_v1_safety_baseline.run_independent_verifier")
+    def test_verify_success(self, mock_ind):
+        ident = {"kind": "independent_verifier", "name": "n", "version": "1.0.0", "source_sha256": "s"}
+        mock_ind.return_value = {"verdict": "PASS", "accepted": True, "reasons": [], "verifier": ident}
+        verified = rvsb.verify({"t": 1}, {"report_json_sha256": "h1", "other": "val"}, self.td_path)
         self.assertEqual(verified["verifier_id"], rvsb.VERIFIER_ID)
         self.assertEqual(verified["verifier_status"], "PASS")
+        self.assertEqual(verified["independent_verdict"], "PASS")
+        self.assertEqual(verified["independent_verifier"], ident)
 
-    @patch("revenue_v1_safety_baseline.worker")
-    def test_verify_fail_hash_mismatch(self, mock_worker):
-        task = {"test": 1}
-        candidate = {
-            "report_json_sha256": "h1",
-            "report_md_sha256": "h2",
-        }
-        mock_worker.return_value = {
-            "report_json_sha256": "h3",
-            "report_md_sha256": "h2"
-        }
-        
+    @patch("revenue_v1_safety_baseline.run_independent_verifier")
+    def test_verify_rejects_mismatch(self, mock_ind):
+        mock_ind.return_value = {"verdict": "MISMATCH", "accepted": False, "reasons": ["findings differ"], "verifier": {}}
         with self.assertRaises(SystemExit) as cm:
-            rvsb.verify(task, candidate, self.td_path)
-        self.assertIn("hashes do not match", str(cm.exception))
+            rvsb.verify({}, {"report_json_sha256": "h1"}, self.td_path)
+        self.assertIn("MISMATCH", str(cm.exception))
+
+    @patch("revenue_v1_safety_baseline.subprocess.run")
+    def test_run_independent_verifier_fail_closed(self, mock_run):
+        # unreadable output
+        mock_run.return_value = MagicMock(stdout="not json", returncode=0)
+        self.assertFalse(rvsb.run_independent_verifier({}, {}, self.td_path)["accepted"])
+        # PASS text but non-zero exit code
+        mock_run.return_value = MagicMock(stdout='{"verdict": "PASS", "accepted": true}', returncode=1)
+        self.assertFalse(rvsb.run_independent_verifier({}, {}, self.td_path)["accepted"])
 
     @patch("revenue_v1_safety_baseline.verify")
     def test_validate_verified_result(self, mock_verify):
