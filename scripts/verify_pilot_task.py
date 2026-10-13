@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import json
 import sys
+from pathlib import Path
 
 def verify_task():
     try:
-        with open("ops/ai/PILOT_DUMMY_TASK.json", "r") as f:
+        task_path = Path(__file__).resolve().parent.parent / "ops/ai/PILOT_DUMMY_TASK.json"
+        with open(task_path, "r") as f:
             goal = json.load(f)
             
         if "workflow_plan" not in goal or not goal["workflow_plan"]:

@@ -58,9 +58,9 @@ def test_file_pass_is_not_a_measured_go(tmp_path, monkeypatch):
     with patch("builtins.print") as mock_print:
         exit_code = pgrc.check_pilot_gate_readiness()
 
-    assert exit_code == 0
+    assert exit_code == 1
     printed_json = json.loads(mock_print.call_args[0][0])
-    assert printed_json["status"] == "PASS"
+    assert printed_json["status"] == "BLOCKED"
     assert printed_json["go_decision"] == "NO_GO"
     assert printed_json["go_reason"] == "metrics are not measured"
     for name, metric in printed_json["metrics"].items():
