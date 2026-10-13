@@ -9,14 +9,16 @@ def check_pilot_gate_readiness():
     report = {
         "gate": "PILOT_READINESS_GATE",
         "status": "PASS",
+        "go_decision": "NO_GO",
+        "go_reason": "metrics are not measured",
         "metrics": {
-            "SETUP_TIME_MAX_MINUTES": {"target": 15, "actual": 2, "status": "PASS"},
-            "HIPG_HUMAN_INTERVENTIONS_PER_GOAL": {"target": 0, "actual": 0, "status": "PASS"},
-            "RSR_RESTART_SURVIVAL_RATE": {"target": "100%", "actual": "100%", "status": "PASS"},
-            "NDR_NO_DUPLICATE_REPLAY": {"target": "100%", "actual": "100%", "status": "PASS"},
-            "SUPPORT_EFFORT_MINUTES": {"target": 5, "actual": 0, "status": "PASS"},
-            "PROVIDER_COST_CLASS": {"target": "SUBSCRIPTION_OR_FREE", "actual": "SUBSCRIPTION_FIRST", "status": "PASS"},
-            "TIME_TO_USEFUL_RESULT_MINUTES": {"target": 10, "actual": 1, "status": "PASS"}
+            "SETUP_TIME_MAX_MINUTES": {"target": 15, "actual": None, "status": "NOT_MEASURED"},
+            "HIPG_HUMAN_INTERVENTIONS_PER_GOAL": {"target": 0, "actual": None, "status": "NOT_MEASURED"},
+            "RSR_RESTART_SURVIVAL_RATE": {"target": "100%", "actual": None, "status": "NOT_MEASURED"},
+            "NDR_NO_DUPLICATE_REPLAY": {"target": "100%", "actual": None, "status": "NOT_MEASURED"},
+            "SUPPORT_EFFORT_MINUTES": {"target": 5, "actual": None, "status": "NOT_MEASURED"},
+            "PROVIDER_COST_CLASS": {"target": "SUBSCRIPTION_OR_FREE", "actual": None, "status": "NOT_MEASURED"},
+            "TIME_TO_USEFUL_RESULT_MINUTES": {"target": 10, "actual": None, "status": "NOT_MEASURED"}
         },
         "prerequisites": {
             "PRE_CODEX_HANDOFF": False,
