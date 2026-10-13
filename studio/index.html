@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="theme-dark">
+  <div id="demo-banner" role="alert" style="position:sticky;top:0;z-index:9999;background:#b45309;color:#fff;font-weight:700;text-align:center;padding:6px 12px;">DEMO – Anzeige nicht verifiziert. Alle Werte ohne Evidenz sind NOT_VERIFIED.</div>
 
   <!-- Top Cockpit Header Bar -->
   <header class="studio-header">
@@ -23,8 +24,8 @@
         <span class="bus-text" id="server-status">LIVE BUS CONNECTED</span>
       </div>
       <div class="head-context-pill">
-        <span class="head-tag" id="courier-commit">HEAD: e7edad01</span>
-        <span class="context-tag" id="context-pill-ver">CONTEXT: v64</span>
+        <span class="head-tag" id="courier-commit">HEAD: NOT_VERIFIED</span>
+        <span class="context-tag" id="context-pill-ver">CONTEXT: NOT_VERIFIED</span>
       </div>
       <div class="live-status-badge">
         <span class="live-status-dot"></span>
@@ -118,44 +119,44 @@
         <!-- Live Active Count & Capacity -->
         <div class="tv-live-gauge">
           <div class="tv-gauge-nums">
-            <span class="live-active-num" id="tv-active-count">17</span>
+            <span class="live-active-num" id="tv-active-count">NOT_VERIFIED</span>
             <span class="live-slash">/</span>
-            <span class="live-max">40</span>
+            <span class="live-max">NOT_VERIFIED</span>
           </div>
-          <div class="tv-gauge-percent" id="tv-capacity-pct">42.5% Capacity</div>
+          <div class="tv-gauge-percent" id="tv-capacity-pct">Capacity: NOT_VERIFIED</div>
         </div>
 
         <!-- Live Flight Deck Operational Status -->
         <div class="tv-live-flight-info">
-          <div class="flight-line">Workflow: <b id="tv-live-wf" class="text-cyan">IDLE_MONITORING</b></div>
-          <div class="flight-line">Correlation: <b id="tv-live-corr" class="text-muted">corr-demo-c94b85b8</b></div>
-          <div class="flight-line">Context: <b id="tv-live-ctx" class="text-green">v64</b> • School: <b id="tv-live-school" class="text-orange">06:00 UTC</b></div>
+          <div class="flight-line">Workflow: <b id="tv-live-wf" class="text-cyan">NOT_VERIFIED</b></div>
+          <div class="flight-line">Correlation: <b id="tv-live-corr" class="text-muted">NOT_VERIFIED</b></div>
+          <div class="flight-line">Context: <b id="tv-live-ctx" class="text-muted">NOT_VERIFIED</b> • School: <b id="tv-live-school" class="text-orange">NOT_VERIFIED</b></div>
         </div>
 
         <!-- Live 24H PNL & Financial Evidence -->
         <div class="tv-live-kpis">
           <div class="live-kpi-item">
             <span class="kpi-label">24H PNL</span>
-            <span class="kpi-value text-green" id="tv-kpi-pnl">+$28,540.32</span>
+            <span class="kpi-value text-muted" id="tv-kpi-pnl">NOT_VERIFIED</span>
           </div>
           <div class="live-kpi-item">
             <span class="kpi-label">WIN RATE</span>
-            <span class="kpi-value text-cyan">78.6%</span>
+            <span class="kpi-value text-muted">NOT_VERIFIED</span>
           </div>
           <div class="live-kpi-item">
             <span class="kpi-label">TREASURY</span>
-            <span class="kpi-value text-white" id="tv-live-treasury">$8 GOAL</span>
+            <span class="kpi-value text-white" id="tv-live-treasury">NOT_VERIFIED</span>
           </div>
         </div>
 
         <!-- Live Market & Agent Ticker Tape -->
         <div class="tv-live-ticker">
-          <span class="ticker-elem"><i class="dot green"></i> BTC <b class="text-green">+1.35%</b></span>
-          <span class="ticker-elem"><i class="dot green"></i> ETH <b class="text-green">+2.21%</b></span>
-          <span class="ticker-elem"><i class="dot green"></i> SOL <b class="text-green">+3.87%</b></span>
-          <span class="ticker-elem"><i class="dot green"></i> XLM <b class="text-green">+1.12%</b></span>
-          <span class="ticker-elem"><i class="dot green"></i> $ORDI <b class="text-green">+8.91%</b></span>
-          <span class="ticker-elem"><i class="dot cyan"></i> AGENTS <b class="text-cyan">100% HEALTHY</b></span>
+          <span class="ticker-elem"><i class="dot green"></i> BTC <b class="text-muted">NOT_VERIFIED</b></span>
+          <span class="ticker-elem"><i class="dot green"></i> ETH <b class="text-muted">NOT_VERIFIED</b></span>
+          <span class="ticker-elem"><i class="dot green"></i> SOL <b class="text-muted">NOT_VERIFIED</b></span>
+          <span class="ticker-elem"><i class="dot green"></i> XLM <b class="text-muted">NOT_VERIFIED</b></span>
+          <span class="ticker-elem"><i class="dot green"></i> $ORDI <b class="text-muted">NOT_VERIFIED</b></span>
+          <span class="ticker-elem"><i class="dot cyan"></i> AGENTS <b class="text-muted">NOT_VERIFIED</b></span>
         </div>
       </div>
 
@@ -317,9 +318,9 @@
         <!-- Panel 2: Live Workflow -->
         <div class="telemetry-card">
           <h4>⚡ LIVE WORKFLOW</h4>
-          <div>ID: <b id="live-wf-id" class="text-white">WF-2026-08-30-1742</b></div>
-          <div>Status: <b id="live-wf-status" class="text-cyan">IN_PROGRESS (35%)</b></div>
-          <div class="wf-bar-track"><div class="wf-bar-fill" id="live-wf-bar" style="width: 35%;"></div></div>
+          <div>ID: <b id="live-wf-id" class="text-white">NOT_VERIFIED</b></div>
+          <div>Status: <b id="live-wf-status" class="text-cyan">NOT_VERIFIED</b></div>
+          <div class="wf-bar-track"><div class="wf-bar-fill" id="live-wf-bar" style="width: 0%;"></div></div>
         </div>
 
         <!-- Panel 3: Treasury Truth -->
@@ -328,15 +329,15 @@
           <div>EUR: <b id="treasury-eur">UNKNOWN</b></div>
           <div>USD: <b id="treasury-usd">UNKNOWN</b></div>
           <div>Evidence: <b id="treasury-verified">NOT_VERIFIED</b></div>
-          <div>Goal: <b id="treasury-goal">$8 / $1,000,000,000</b></div>
+          <div>Goal: <b id="treasury-goal">NOT_VERIFIED</b></div>
         </div>
 
         <!-- Panel 4: Context & Repositories -->
         <div class="telemetry-card">
           <h4>📦 CONTEXT & REPOSITORIES</h4>
-          <div>Version: <b id="panel-ctx-ver" class="text-cyan">v64</b> (Prev: <b id="panel-ctx-prev">v63</b>)</div>
-          <div>Hash: <b id="panel-ctx-hash" class="font-mono text-truncate">8f0874f495cf...</b></div>
-          <div>Courier: <b id="panel-repo-courier" class="text-green">e7edad01</b> • Memory: <b id="panel-repo-memory" class="text-green">62c658b0</b></div>
+          <div>Version: <b id="panel-ctx-ver" class="text-cyan">NOT_VERIFIED</b> (Prev: <b id="panel-ctx-prev">NOT_VERIFIED</b>)</div>
+          <div>Hash: <b id="panel-ctx-hash" class="font-mono text-truncate">NOT_VERIFIED</b></div>
+          <div>Courier: <b id="panel-repo-courier" class="text-muted">NOT_VERIFIED</b> • Memory: <b id="panel-repo-memory" class="text-muted">NOT_VERIFIED</b></div>
         </div>
       </div>
 
