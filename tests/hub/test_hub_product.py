@@ -202,7 +202,10 @@ def test_empty_and_not_set_up_states(tmp_path):
     try:
         view = hub.home()
         assert view["truth"] == "not_set_up" and view["status"]["controller"] == "not_set_up"
-        assert view["counts"] == {"needs_you": 0, "working": 0, "done": 0}
+        assert view["ledger"]["status"] == "UNKNOWN"
+        assert view["data"] == "keine Daten/UNKNOWN"
+        assert view["counts"] is None
+        assert view["needs_you"] == [] and view["working"] == [] and view["done"] == []
     finally:
         hub.stop()
 

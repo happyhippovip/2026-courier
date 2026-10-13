@@ -91,6 +91,18 @@ test('a missing ledger is UNKNOWN, not an empty measured home', () => {
   assert.ok(!html.includes('Nothing needs you right now.'));
   assert.ok(!html.includes('Courier is not working on anything right now.'));
   assert.match(statusLine(missing, live, NOW).text, /keine Daten\/UNKNOWN/);
+  const liveLedger = statusLine({
+    ...view,
+    ledger: { status: 'OK', chain_ok: true, projection: 'current' },
+  }, live, NOW);
+  assert.match(liveLedger.text, /Ledger OK/);
+  const offlineLedger = statusLine({
+    ...view,
+    status: { controller: 'unreachable' },
+    ledger: { status: 'OK' },
+  }, live, NOW);
+  assert.match(offlineLedger.text, /isn't running/);
+  assert.match(offlineLedger.text, /Ledger OK/);
 });
 
 test('status line: running, unreachable, safe mode, offline, not set up', () => {
