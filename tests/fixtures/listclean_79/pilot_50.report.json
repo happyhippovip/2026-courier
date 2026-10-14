@@ -1,6 +1,5 @@
 {
   "tool": "courier-listclean",
-  "offer": "79 EUR",
   "source": "pilot_50.csv",
   "source_sha256": "8774413a7b61b4c911f7af9d30b72ac777edc5456dd3bc8b146feac0f6666ed8",
   "rows_in": 50,
