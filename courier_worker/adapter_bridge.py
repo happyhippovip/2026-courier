@@ -51,10 +51,31 @@ def _validate_synthetic(params: dict) -> dict:
         raise SpecError(f"synthetic params rejected: {exc}") from None
 
 
+def _validate_local_shell(params: dict) -> dict:
+    try:
+        from adapters import local_shell  # trusted Courier adapter (lane L4)
+    except ImportError as exc:
+        raise SpecError(f"adapter implementation unavailable on this worker: {exc}") from None
+    try:
+        return local_shell._params(params)
+    except local_shell.LocalShellError as exc:
+        raise SpecError(f"local_shell params rejected: {exc}") from None
+
+
+def _validate_provider_exec(params: dict) -> dict:
+    from courier_worker.adapters.provider_exec import ProviderExecError, validate
+    try:
+        return validate(params)
+    except ProviderExecError as exc:
+        raise SpecError(f"provider_exec params rejected: {exc}") from None
+
+
 # adapter name -> params validator. Closed: adding an adapter is a code change.
 ADAPTERS: Dict[str, Callable[[dict], dict]] = {
     "synthetic": _validate_synthetic,
+    "local_shell": _validate_local_shell,
 }
+ADAPTERS["provider_exec"] = _validate_provider_exec
 
 RUNNER_SCRIPT = str(Path(__file__).resolve().with_name("adapter_runner.py"))
 
