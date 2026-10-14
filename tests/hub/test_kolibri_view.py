@@ -53,9 +53,9 @@ def _journal(home: Path, title: str, task_id: str = "kolibri-ledger") -> None:
         }))
 
 
-def _git_repo(path: Path, subject: str) -> None:
+def _git_repo(path: Path, subject: str, branch: str = "integration/v1") -> None:
     path.mkdir(parents=True, exist_ok=True)
-    subprocess.run(["git", "init", "-b", "integration/v1"], cwd=path, check=True, capture_output=True)
+    subprocess.run(["git", "init", "-b", branch], cwd=path, check=True, capture_output=True)
     (path / "README").write_text("note\n", encoding="utf-8")
     subprocess.run(["git", "add", "README"], cwd=path, check=True, capture_output=True)
     subprocess.run(
@@ -80,8 +80,11 @@ def test_station_order_is_numeric_and_stable():
 def test_view_renders_real_sources_with_traceable_values(tmp_path):
     home = tmp_path / "home"
     _journal(home, "Kolibri ledger row")
+    # The checkout under test may have no local integration/v1 (CI checks out the PR head).
+    repo = tmp_path / "repo"
+    _git_repo(repo, "Fixture landing (#7)")
     snapshot = build_snapshot(
-        _hub(home), root=REPO, wall=WALL, wall_label=MUSE_LABEL,
+        _hub(home), root=repo, wall=WALL, wall_label=MUSE_LABEL,
         observed_at="2026-10-14T22:00:00Z", github_fetch=OFFLINE,
     )
     raw = json.dumps(snapshot)
@@ -112,6 +115,8 @@ def test_view_renders_real_sources_with_traceable_values(tmp_path):
     assert snapshot["github_ci"]["value"] == UNAVAILABLE
     assert snapshot["draft_prs"]["value"] == UNAVAILABLE
     assert snapshot["merged_prs"]["available"] is True
+    assert snapshot["merged_prs"]["source"] == "git log integration/v1"
+    assert [row["pr"] for row in snapshot["merged_prs"]["rows"]] == [7]
     assert all(row["source"] == "git log integration/v1" and row["at"] != UNAVAILABLE
                for row in snapshot["merged_prs"]["rows"])
     times = [row["at"] for row in snapshot["merged_prs"]["rows"]]
@@ -265,6 +270,38 @@ def test_new_journal_entry_is_visible_on_the_next_poll(tmp_path):
     finally:
         server.shutdown()
         server.server_close()
+
+
+def test_merged_ref_uses_origin_then_unknown(tmp_path):
+    remote_only = tmp_path / "remote-only"
+    _git_repo(remote_only, "Remote landing (#9)", branch="other")
+    subprocess.run(
+        ["git", "update-ref", "refs/remotes/origin/integration/v1", "HEAD"],
+        cwd=remote_only, check=True, capture_output=True,
+    )
+    missing_local = subprocess.run(
+        ["git", "show-ref", "--verify", "--quiet", "refs/heads/integration/v1"],
+        cwd=remote_only, check=False,
+    )
+    assert missing_local.returncode != 0
+    seen = build_snapshot(
+        _hub(tmp_path / "home-remote"), root=remote_only, wall=tmp_path / "no-wall",
+        wall_label="wall", observed_at="2026-10-14T22:00:00Z", github_fetch=OFFLINE,
+    )
+    assert seen["merged_prs"]["available"] is True
+    assert seen["merged_prs"]["source"] == "git log origin/integration/v1"
+    assert [row["pr"] for row in seen["merged_prs"]["rows"]] == [9]
+    assert seen["merged_prs"]["rows"][0]["source"] == "git log origin/integration/v1"
+
+    neither = tmp_path / "neither"
+    _git_repo(neither, "Unrelated", branch="other")
+    absent = build_snapshot(
+        _hub(tmp_path / "home-absent"), root=neither, wall=tmp_path / "no-wall-2",
+        wall_label="wall", observed_at="2026-10-14T22:00:00Z", github_fetch=OFFLINE,
+    )
+    assert absent["merged_prs"]["available"] is False
+    assert absent["merged_prs"]["value"] == UNAVAILABLE
+    assert absent["merged_prs"]["source"] == "git log integration/v1"
 
 
 def test_local_merge_subject_is_a_row_without_a_fixed_number(tmp_path):

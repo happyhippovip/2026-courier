@@ -113,10 +113,12 @@ def _file_stamp(path: Path) -> str:
 
 
 def _display_path(path: Path, root: Path) -> str:
-    try:
-        return path.resolve().relative_to(root.resolve()).as_posix()
-    except (OSError, ValueError):
-        return path.name
+    for base in (root, repo_root()):
+        try:
+            return path.resolve().relative_to(base.resolve()).as_posix()
+        except (OSError, ValueError):
+            continue
+    return f"{path.parent.name}/{path.name}"
 
 
 def _unavailable(source: str, observed_at: str) -> dict:
@@ -151,15 +153,39 @@ def _slot_token(slot_id: str) -> Optional[re.Pattern[str]]:
     return re.compile(rf"(?<![A-Za-z0-9]){re.escape(slot_id)}(?!\d)")
 
 
+def _resolve_merged_ref(root: Path) -> Optional[str]:
+    """Local integration/v1, then the origin tracking ref, otherwise nothing to read."""
+    for full, short in (
+        ("refs/heads/integration/v1", MERGED_REF),
+        ("refs/remotes/origin/integration/v1", f"origin/{MERGED_REF}"),
+    ):
+        try:
+            proc = subprocess.run(
+                ["git", "-C", str(root), "show-ref", "--verify", "--quiet", full],
+                check=False, capture_output=True, text=True, timeout=10,
+            )
+        except (OSError, subprocess.SubprocessError):
+            return None
+        if proc.returncode == 0:
+            return short
+    return None
+
+
 def read_merged_prs(root: Path, observed_at: str) -> dict:
     source = f"git log {MERGED_REF}"
     if not (root / ".git").exists():
         block = _unavailable(source, observed_at)
         block["rows"] = []
         return block
+    ref = _resolve_merged_ref(root)
+    if ref is None:
+        block = _unavailable(source, observed_at)
+        block["rows"] = []
+        return block
+    source = f"git log {ref}"
     try:
         head = subprocess.run(
-            ["git", "-C", str(root), "log", "-1", "--pretty=format:%H%x1f%cI", MERGED_REF],
+            ["git", "-C", str(root), "log", "-1", "--pretty=format:%H%x1f%cI", ref],
             check=True, capture_output=True, text=True, timeout=20,
         )
         head_sha, _, head_at = head.stdout.partition("\x1f")
@@ -168,14 +194,14 @@ def read_merged_prs(root: Path, observed_at: str) -> dict:
             block = _unavailable(source, observed_at)
             block["rows"] = []
             return block
-        cache_key = str(root.resolve())
+        cache_key = f"{root.resolve()}|{ref}"
         with _merge_cache_lock:
             cached = _merge_cache.get(cache_key)
         if cached and cached[0] == head_sha:
             rows = cached[2]
         else:
             log = subprocess.run(
-                ["git", "-C", str(root), "log", MERGED_REF, "--pretty=format:%H%x1f%cI%x1f%s"],
+                ["git", "-C", str(root), "log", ref, "--pretty=format:%H%x1f%cI%x1f%s"],
                 check=True, capture_output=True, text=True, timeout=30,
             )
             rows = _parse_merges(log.stdout, source)
