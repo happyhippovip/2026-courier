@@ -99,7 +99,8 @@ def clean_file(
     )
     report_csv.parent.mkdir(parents=True, exist_ok=True)
     _write_report_csv(report_csv, result, delimiter=delimiter)
-    report_json.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    # write_bytes keeps LF on Windows. write_text would rewrite newlines and change the hash.
+    report_json.write_bytes((json.dumps(payload, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
     return {
         "output": str(output_path),
         "report_csv": str(report_csv),
