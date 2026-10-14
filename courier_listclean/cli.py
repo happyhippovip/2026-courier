@@ -141,9 +141,11 @@ def _report_payload(
 def _write_report_csv(path: Path, result: CleanResult, *, delimiter: str) -> None:
     buffer = io.StringIO(newline="")
     writer = csv.writer(buffer, delimiter=delimiter, lineterminator="\n", quoting=csv.QUOTE_MINIMAL)
-    writer.writerow(["row", "column", "reason", "before", "after", "message"])
+    writer.writerow(["original_row_id", "row", "column", "reason", "before", "after", "message"])
     for item in result.findings:
-        writer.writerow([item.row, item.column, item.reason, item.before, item.after, item.message])
+        writer.writerow(
+            [item.row, item.row, item.column, item.reason, item.before, item.after, item.message]
+        )
     path.write_bytes(buffer.getvalue().encode("utf-8-sig"))
 
 

@@ -66,7 +66,7 @@ def test_example_1_normalizes_and_flags_exact_duplicate(tmp_path: Path):
     assert rows[0][3] == "Zeile 3 = mögliche Dublette von Zeile 2"
     assert rows[1][:3] == ["Hans Müller", "+49 171 1234567", "hans.mueller@beispiel.de"]
     assert rows[1][3] == "⚠ Dublette, du entscheidest"
-    assert rows[2] == ["Erika Musterfrau", "+49 30 1234567", "erika@example.com", ""]
+    assert rows[2] == ["Erika Musterfrau", "+49 30 1234567", "erika@example.com", "", "4"]
     assert len(rows) == 3
     assert _has(report, 2, "Name", "name_comma_order", " mÜLLER, hans ", "Hans Müller")
     assert _has(report, 2, "Name", "inconsistent_case", " mÜLLER, hans ", "Hans Müller")
@@ -82,7 +82,7 @@ def test_example_2_flags_plz_and_street_without_guessing(tmp_path: Path):
     rows, report = _clean_csv(tmp_path, EXAMPLE_2, "mitglieder.csv")
     assert rows[0][:4] == ["Peter Beispiel", "Musterstraße 12", "1234", "Musterstadt"]
     assert rows[0][4] == "⚠ PLZ hat nur 4 Stellen (fehlt eine führende 0?). Bitte prüfen, wird nicht geraten"
-    assert rows[1] == ["Anna Probe", "Hauptstraße 5a", "12345", "Musterstadt", ""]
+    assert rows[1] == ["Anna Probe", "Hauptstraße 5a", "12345", "Musterstadt", "", "3"]
     assert rows[2][:4] == ["Lena Test", "Bahnhofstraße 7", "12345", "Musterstadt"]
     assert rows[2][4] == "⚠ Schreibweise „Bahnhofsstrasse“ angepasst, bitte bestätigen"
     assert _has(report, 2, "PLZ", "plz_not_5_digits", "1234", "1234")
@@ -102,7 +102,7 @@ def test_example_3_flags_invalid_emails_and_does_not_rewrite_them(tmp_path: Path
     assert "Komma statt Punkt" in rows[0][2]
     assert rows[1][1] == "sara.muster@@example.com"
     assert "doppeltes @" in rows[1][2]
-    assert rows[2] == ["Jan Probe", "jan.probe@example.com", ""]
+    assert rows[2] == ["Jan Probe", "jan.probe@example.com", "", "4"]
     assert rows[3][1] == "mia.test(at)beispiel.de"
     assert "(at)" in rows[3][2]
     assert _has(report, 2, "E-Mail", "email_comma", "tom.demo@beispiel,de", "tom.demo@beispiel,de")
@@ -207,11 +207,12 @@ def test_semicolon_csv_and_report_roundtrip(tmp_path: Path):
     )
     written = clean_file(source)
     text = Path(written["output"]).read_text(encoding="utf-8-sig")
-    assert text.splitlines()[0] == "Name;Straße;PLZ;Ort;Hinweis"
+    assert text.splitlines()[0] == "Name;Straße;PLZ;Ort;Hinweis;original_row_id"
     report_csv = Path(written["report_csv"]).read_text(encoding="utf-8-sig")
     parsed = list(csv.reader(io.StringIO(report_csv), delimiter=";"))
-    assert parsed[0] == ["row", "column", "reason", "before", "after", "message"]
-    assert any(row[2] == "plz_not_5_digits" for row in parsed[1:])
+    assert parsed[0] == ["original_row_id", "row", "column", "reason", "before", "after", "message"]
+    assert any(row[3] == "plz_not_5_digits" for row in parsed[1:])
+    assert all(row[0] == row[1] and row[0] != "" for row in parsed[1:])
 
 
 def test_xlsx_roundtrip_and_numeric_plz(tmp_path: Path):

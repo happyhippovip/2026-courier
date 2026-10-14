@@ -11,6 +11,7 @@ import re
 from dataclasses import dataclass, field
 
 MAX_ROWS = 2000
+ORIGINAL_ROW_ID = "original_row_id"
 
 DECISION_REASONS = frozenset(
     {
@@ -76,6 +77,7 @@ class Finding:
 
     def as_dict(self) -> dict[str, str | int]:
         return {
+            "original_row_id": self.row,
             "row": self.row,
             "column": self.column,
             "reason": self.reason,
@@ -121,6 +123,7 @@ def clean_table(
     width = len(clean_headers)
     fields = [_field_for_header(header) for header in clean_headers]
     hint_header = _hint_header(clean_headers)
+    id_header = _id_header(clean_headers)
     required = _required_fields(set(fields))
 
     findings: list[Finding] = []
@@ -171,13 +174,13 @@ def clean_table(
     _mark_duplicates(normalized, numbers, fields, clean_headers, findings, per_row_notes)
 
     cleaned_rows: list[list[str]] = []
-    for output, notes in zip(normalized, per_row_notes):
+    for output, notes, number in zip(normalized, per_row_notes, numbers):
         hint = " · ".join(_unique(notes))
-        cleaned_rows.append([*output, hint])
+        cleaned_rows.append([*output, hint, str(number)])
 
     findings.sort(key=lambda item: (item.row, item.column, item.reason, item.message))
     return CleanResult(
-        headers=[*clean_headers, hint_header],
+        headers=[*clean_headers, hint_header, id_header],
         rows=cleaned_rows,
         findings=findings,
         row_numbers=numbers,
@@ -201,6 +204,13 @@ def _hint_header(headers: list[str]) -> str:
     if "hinweis" not in taken:
         return "Hinweis"
     return "Courier_Hinweis"
+
+
+def _id_header(headers: list[str]) -> str:
+    taken = {header.casefold() for header in headers}
+    if ORIGINAL_ROW_ID.casefold() not in taken:
+        return ORIGINAL_ROW_ID
+    return "courier_original_row_id"
 
 
 def _required_fields(present: set[str]) -> set[str]:
