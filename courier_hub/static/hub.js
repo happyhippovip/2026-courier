@@ -2,11 +2,11 @@
 // live in hub_core.mjs; this file only fetches, renders and handles input.
 import {
   createDecisionClient, decisionsAllowed, findChoice, initialConnection, nextConnection,
-  renderHome, renderReceipt, retryDelayMs, statusLine, viewSignature,
+  renderHome, renderProjectBase, renderReceipt, retryDelayMs, statusLine, viewSignature,
 } from './hub_core.mjs';
 
 const $ = (sel) => document.querySelector(sel);
-const state = { view: null, connection: initialConnection(), pending: null, openItem: null, timer: null,
+const state = { view: null, projectBase: null, connection: initialConnection(), pending: null, openItem: null, timer: null,
   rendered: null, renderedAt: 0 };
 const client = createDecisionClient((url, init) => fetch(url, init));
 
@@ -27,6 +27,9 @@ function render({ force = false } = {}) {
   status.textContent = line.text;
   status.dataset.tone = line.tone;
   if (state.view) {
+    if ($('#project-base')) {
+      $('#project-base').innerHTML = renderProjectBase(state.projectBase);
+    }
     const focusedId = document.activeElement?.dataset?.id;
     const focusedAction = document.activeElement?.dataset?.action;
     $('#piles').innerHTML = renderHome(state.view, {
@@ -47,6 +50,10 @@ async function refresh() {
     if (!response.ok) throw new Error(String(response.status));
     state.view = await response.json();
     state.connection = nextConnection(state.connection, { type: 'ok', at: new Date().toISOString() });
+    try {
+      const pbRes = await fetch('/hub/api/project_base', { cache: 'no-store' });
+      if (pbRes.ok) state.projectBase = await pbRes.json();
+    } catch { /* project base is optional */ }
   } catch {
     state.connection = nextConnection(state.connection, { type: 'fail' });
   }

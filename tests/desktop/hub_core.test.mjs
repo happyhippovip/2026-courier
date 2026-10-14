@@ -6,7 +6,7 @@ import { test } from 'node:test';
 
 import {
   MARKS, createDecisionClient, decisionsAllowed, escapeHtml, findChoice, initialConnection,
-  interpretResponse, nextConnection, renderCard, renderHome, renderReceipt, retryDelayMs, statusLine, viewSignature,
+  interpretResponse, nextConnection, renderCard, renderHome, renderProjectBase, renderReceipt, retryDelayMs, statusLine, viewSignature,
 } from '../../courier_hub/static/hub_core.mjs';
 
 const view = JSON.parse(readFileSync(new URL('./fixtures/home_view.json', import.meta.url), 'utf8'));
@@ -201,3 +201,52 @@ test('keyboard: every action is a focusable button with a visible label', () => 
   assert.equal(buttons.length, actions.length);
   assert.ok(!html.includes('tabindex="-1"'));
 });
+
+test('renderProjectBase renders unified founder base sections with escaping', () => {
+  assert.equal(renderProjectBase(null), '');
+  const pb = {
+    counts: { active_workkeys: 1 },
+    next_safe_action: {
+      type: 'DECISION_REQUIRED',
+      urgency: 'HIGH',
+      title: 'Review payment decision',
+      description: 'Courier needs your confirmation.',
+    },
+    current_workkeys: [
+      { workkey: 'L5-BASE', status: 'RUNNING', worker_id: 'mac-worker', adapter: 'mac' },
+    ],
+    last_verified_result: {
+      title: 'Checked invoice',
+      verified_at: '2026-10-02T08:00:00Z',
+      evidence: [{ name: 'invoice.pdf' }],
+      seq: 42,
+      hash: 'abcdef1234567890',
+    },
+    away_summary: {
+      since_seq: 10,
+      events_count: 5,
+      completed_count: 2,
+      blocked_count: 1,
+      failed_count: 0,
+      milestones: [{ summary: 'Task t1 verified', at: '2026-10-02T08:02:00Z' }],
+    },
+    durable_context: {
+      repository: 'happyhippovip/2026-courier',
+      trunk_branch: 'integration/v1',
+      head_seq: 45,
+      total_tasks: 8,
+      total_events: 45,
+    },
+  };
+
+  const html = renderProjectBase(pb, { now: NOW });
+  assert.ok(html.includes('Review payment decision'));
+  assert.ok(html.includes('base-action-high'));
+  assert.ok(html.includes('L5-BASE'));
+  assert.ok(html.includes('Checked invoice'));
+  assert.ok(html.includes('Seq #42'));
+  assert.ok(html.includes('5 event(s) recorded'));
+  assert.ok(html.includes('integration/v1'));
+  assert.ok(html.includes('#45'));
+});
+

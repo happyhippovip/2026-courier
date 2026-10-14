@@ -210,6 +210,62 @@ class Hub:
         return {"kind": "courier.support_export", "version": 1, "exported_at": utc_now(),
                 "hub_build": build_identity(), "item": item["support"], "receipt": item["receipt"]}
 
+    def project_base_view(self, since_seq: int = 0) -> dict:
+        """Personal Courier Project Base projection: piles, active workkeys,
+        last verified result, what changed while away, next safe action, and durable context."""
+        from courier_hub import project_base
+        status = self.status()
+        controller_st = status.get("controller", "unknown")
+        try:
+            journal = self._open()
+            try:
+                tasks = journal.tasks()
+                head = tuple(journal.head())
+                events_by_task: dict = {}
+                all_events = []
+                try:
+                    for ev in journal.events():
+                        all_events.append(ev)
+                        if ev.task_id:
+                            events_by_task.setdefault(ev.task_id, []).append(ev)
+                except Exception:
+                    pass
+                return project_base.build_project_base(
+                    tasks, events_by_task, all_events=all_events, head=head,
+                    controller_status=controller_st, since_seq=since_seq,
+                )
+            finally:
+                journal.close()
+        except TruthUnavailable as exc:
+            return {
+                "truth": exc.args[0],
+                "controller_status": controller_st,
+                "counts": {"needs_you": 0, "working": 0, "done": 0, "active_workkeys": 0},
+                "piles": {"needs_you": [], "working": [], "done": []},
+                "current_workkeys": [],
+                "last_verified_result": None,
+                "away_summary": {"since_seq": since_seq, "events_count": 0, "milestones": []},
+                "next_safe_action": {
+                    "type": "TRUTH_UNAVAILABLE",
+                    "urgency": "HIGH",
+                    "title": "Truth unavailable",
+                    "description": f"Journal truth is currently '{exc.args[0]}'.",
+                    "task_id": None,
+                    "actions_offered": [],
+                },
+                "durable_context": {
+                    "repository": "happyhippovip/2026-courier",
+                    "trunk_branch": "integration/v1",
+                    "head_seq": 0,
+                    "head_hash": "",
+                    "total_tasks": 0,
+                    "total_events": 0,
+                    "project_memory": None,
+                    "generated_at": utc_now(),
+                },
+                "read_at": utc_now(),
+            }
+
     # -- controller (the only authority) ----------------------------------------
     def _token(self) -> Optional[str]:
         try:
@@ -378,6 +434,14 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(200, hub.home_view())
             if path == "/hub/api/status":
                 return self._send(200, hub.status())
+            if path == "/hub/api/project_base":
+                from urllib.parse import parse_qs
+                qs = parse_qs(urlsplit(self.path).query)
+                try:
+                    since_seq = int(qs.get("since_seq", ["0"])[0])
+                except (ValueError, IndexError):
+                    since_seq = 0
+                return self._send(200, hub.project_base_view(since_seq=since_seq))
             match = _ITEM.match(path)
             if match:
                 try:
