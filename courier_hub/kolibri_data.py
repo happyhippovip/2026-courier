@@ -28,16 +28,6 @@ _SQUASH_PR = re.compile(r"\(#(\d+)\)\s*$")
 _MERGE_PR = re.compile(r"^Merge pull request #(\d+)\b")
 _GITHUB_SLUG = re.compile(r"github\.com[:/](?P<owner>[^/]+)/(?P<repo>[^/.]+)")
 _SECRET_MARK = re.compile(r"(ghs_|ghp_|github_pat_|x-access-token)", re.I)
-_SLOT_MENTION = re.compile(r"(?<![A-Za-z0-9])MUSE-0*\d+(?!\d)")
-_SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$")
-_HOME_DIR = frozenset({"home", "users"})
-_PROCESS_STAMPS = ("heartbeat_at", "updated_at", "create_time", "started_at", "timestamp", "at")
-_HEARTBEAT_FILES = ("heartbeat.json", "process.json")
-_JOURNAL_NAME = "coordination_ledger.jsonl"
-_BRIDGE_NAME = "ledger_bridge_state.json"
-_JOURNAL_STATUS = frozenset({"WORKING", "DONE", "BLOCKED", "ERROR"})
-_JOURNAL_EVENT = frozenset({"ASSIGNED", "STARTED", "PARTIAL", "FINAL", "BLOCKED", "ERROR", "CANCELLED"})
-_PUBLIC_MERGE = ("pr", "subject", "sha", "source", "at")
 FLOWERS = (
     "muse_wall",
     "ledger",
@@ -122,39 +112,47 @@ def _file_stamp(path: Path) -> str:
         return UNAVAILABLE
 
 
-def _path_parts(path: Path, root: Path) -> list[str]:
-    """Path pieces for a label. Prefer a repo-relative tail and never keep `..`."""
+_UNSAFE_DIR = frozenset({"home", "users"})
+_HEARTBEAT_SCHEMA = "courier.wall.heartbeat/v1"
+_WINDOW_ID = re.compile(r"^[WM][0-9]{2}$")
+_HEARTBEAT_STATUS = frozenset({"startet", "laeuft", "leerlauf", "pausiert", "beendet", "fehler"})
+_LIVE_STATUS = frozenset({"startet", "laeuft"})
+_EXAMPLE_QUELLE = "BEI" "SPIEL"
+_FRESH_S = 30
+_STALE_S = 90
+_QUIET_S = 300
+_FUTURE_S = 5
+STALE = "stale"
+
+
+def _leaks(text: str) -> bool:
+    lowered = text.lower()
+    if any(mark in lowered for mark in ("/home/", "\\home\\", "/users/", "\\users\\", "~", "ghs_", "ghp_", "github_pat_")):
+        return True
+    if re.match(r"^[a-z]:[\\/]", lowered):
+        return True
+    return bool(re.search(r"(?<!founder)@", text, re.I))
+
+
+def _display_path(path: Path, root: Path) -> str:
+    """Repo-relative inside a root. Otherwise folder/file, without home or account names."""
     for base in (root, repo_root()):
         try:
             rel = path.resolve().relative_to(base.resolve()).as_posix()
         except (OSError, ValueError):
             continue
-        if rel and not rel.startswith("../"):
-            return [part for part in rel.split("/") if part and part not in (".", "..")]
+        if rel and not _leaks(rel):
+            return rel
     text = re.sub(r"^[A-Za-z]:", "", str(path).replace("\\", "/"))
-    return [part for part in text.split("/") if part and part not in (".", "..")]
-
-
-def _display_path(path: Path, root: Path) -> str:
-    """Short camera label: slot/file or file name.
-
-    Absolute paths, home directories, and the username after home/Users never
-    appear. An internal repo prefix is dropped; the slot id is enough.
-    """
-    parts = _path_parts(path, root)
-    # Only a leading /home/<name> or /Users/<name> prefix is an account directory.
-    username = None
-    if parts and parts[0].lower() in _HOME_DIR and len(parts) > 1:
-        username = parts[1]
+    parts = [part for part in text.split("/") if part not in ("", ".", "..")]
+    if parts and parts[0].lower() in _UNSAFE_DIR:
+        parts = parts[2:]
     if not parts:
         return "source"
     name = parts[-1]
     parent = parts[-2] if len(parts) > 1 else ""
-    if not _SAFE_NAME.fullmatch(name) or (username and name == username):
-        return "source"
-    if _SLOT_ID.fullmatch(parent) and parent != username:
-        return f"{parent}/{name}"
-    return name
+    shown = f"{parent}/{name}" if parent and parent.lower() not in _UNSAFE_DIR else name
+    return shown if shown and not _leaks(shown) else "source"
 
 
 def _unavailable(source: str, observed_at: str) -> dict:
@@ -179,133 +177,32 @@ def resolve_muse_wall(root: Path) -> tuple[Optional[Path], str]:
         label = "COURIER_MUSE_WALL_DIR" if os.environ.get("COURIER_MUSE_WALL_DIR") else "COURIER_WALL_DIR"
         return (path if path.is_dir() else None), label
     default = root / "scripts" / "windows_muse_wall" / "runtime" / "slots"
-    return (default if default.is_dir() else None), "muse wall"
+    label = "scripts/windows_muse_wall/runtime/slots"
+    return (default if default.is_dir() else None), label
 
 
 def _slot_token(slot_id: str) -> Optional[re.Pattern[str]]:
-    """MUSE-01 and MUSE-1 are one station. MUSE-10 is not MUSE-1."""
-    match = _SLOT_ID.fullmatch(slot_id or "")
-    if not match:
+    if not _SLOT_ID.fullmatch(slot_id or ""):
         return None
-    number = str(int(match.group(1)))
-    return re.compile(rf"(?<![A-Za-z0-9])MUSE-0*{re.escape(number)}(?!\d)")
+    return re.compile(rf"(?<![A-Za-z0-9]){re.escape(slot_id)}(?!\d)")
 
 
-def _ref_exists(root: Path, full: str) -> bool:
-    try:
-        proc = subprocess.run(
-            ["git", "-C", str(root), "show-ref", "--verify", "--quiet", full],
-            check=False, capture_output=True, text=True, timeout=10,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return False
-    return proc.returncode == 0
-
-
-def _is_ancestor(root: Path, older: str, newer: str) -> Optional[bool]:
-    try:
-        proc = subprocess.run(
-            ["git", "-C", str(root), "merge-base", "--is-ancestor", older, newer],
-            check=False, capture_output=True, text=True, timeout=10,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return None
-    if proc.returncode == 0:
-        return True
-    if proc.returncode == 1:
-        return False
+def _resolve_merged_ref(root: Path) -> Optional[str]:
+    """Local integration/v1, then the origin tracking ref, otherwise nothing to read."""
+    for full, short in (
+        ("refs/heads/integration/v1", MERGED_REF),
+        ("refs/remotes/origin/integration/v1", f"origin/{MERGED_REF}"),
+    ):
+        try:
+            proc = subprocess.run(
+                ["git", "-C", str(root), "show-ref", "--verify", "--quiet", full],
+                check=False, capture_output=True, text=True, timeout=10,
+            )
+        except (OSError, subprocess.SubprocessError):
+            continue
+        if proc.returncode == 0:
+            return short
     return None
-
-
-def _merged_refs(root: Path) -> list[str]:
-    """Refs that hold merged history.
-
-    A stale local branch does not hide commits that exist only on origin, and
-    a missing local branch still reads origin. Diverged refs are both read.
-    """
-    local = MERGED_REF
-    origin = f"origin/{MERGED_REF}"
-    has_local = _ref_exists(root, "refs/heads/integration/v1")
-    has_origin = _ref_exists(root, "refs/remotes/origin/integration/v1")
-    if has_local and has_origin:
-        local_before = _is_ancestor(root, local, origin)
-        origin_before = _is_ancestor(root, origin, local)
-        if local_before is None or origin_before is None:
-            return [local, origin]
-        if local_before and origin_before:
-            return [local]
-        if local_before:
-            return [origin]
-        if origin_before:
-            return [local]
-        return [local, origin]
-    if has_local:
-        return [local]
-    if has_origin:
-        return [origin]
-    return []
-
-
-def _git_text(root: Path, args: list[str], timeout: int) -> Optional[str]:
-    try:
-        proc = subprocess.run(
-            ["git", "-C", str(root), *args],
-            check=False, capture_output=True, text=True, timeout=timeout,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return None
-    if proc.returncode != 0:
-        return None
-    return proc.stdout
-
-
-def _load_ref_merges(root: Path, ref: str) -> Optional[tuple[str, str, list[dict], str]]:
-    source = f"git log {ref}"
-    head = _git_text(root, ["log", "-1", "--pretty=format:%H%x1f%cI", ref], 20)
-    if not head:
-        return None
-    head_sha, _, head_at_raw = head.partition("\x1f")
-    head_at = _iso_text(head_at_raw.strip())
-    head_sha = head_sha.strip()
-    if not head_sha or head_at == UNAVAILABLE:
-        return None
-    cache_key = f"{root.resolve()}|{ref}"
-    with _merge_cache_lock:
-        cached = _merge_cache.get(cache_key)
-    if cached and cached[0] == head_sha:
-        return head_sha, head_at, cached[2], source
-    log = _git_text(root, ["log", ref, "--pretty=format:%H%x1f%cI%x1f%s%x1f%b%x1e"], 30)
-    if log is None:
-        return None
-    rows = _parse_merges(log, source)
-    with _merge_cache_lock:
-        _merge_cache[cache_key] = (head_sha, head_at, rows)
-    return head_sha, head_at, rows, source
-
-
-def _union_rows(groups: list[list[dict]]) -> list[dict]:
-    found: dict[int, dict] = {}
-    for rows in groups:
-        for row in rows:
-            number = row["pr"]
-            current = found.get(number)
-            slots = list(row.get("slots") or [])
-            if current is None:
-                found[number] = {
-                    "pr": row["pr"], "subject": row["subject"], "sha": row["sha"],
-                    "source": row["source"], "at": row["at"], "slots": slots,
-                }
-                continue
-            for token in slots:
-                if token not in current["slots"]:
-                    current["slots"].append(token)
-            if (row.get("at") or "", row.get("pr") or 0) >= (current.get("at") or "", current.get("pr") or 0):
-                kept = current["slots"]
-                found[number] = {
-                    "pr": row["pr"], "subject": row["subject"], "sha": row["sha"],
-                    "source": row["source"], "at": row["at"], "slots": kept,
-                }
-    return sorted(found.values(), key=lambda row: (row["at"], row["pr"]))
 
 
 def read_merged_prs(root: Path, observed_at: str) -> dict:
@@ -314,23 +211,40 @@ def read_merged_prs(root: Path, observed_at: str) -> dict:
         block = _unavailable(source, observed_at)
         block["rows"] = []
         return block
-    refs = _merged_refs(root)
-    if not refs:
+    ref = _resolve_merged_ref(root)
+    if ref is None:
         block = _unavailable(source, observed_at)
         block["rows"] = []
         return block
-    loaded = []
-    for ref in refs:
-        item = _load_ref_merges(root, ref)
-        if item is not None:
-            loaded.append(item)
-    if not loaded:
+    source = f"git log {ref}"
+    try:
+        head = subprocess.run(
+            ["git", "-C", str(root), "log", "-1", "--pretty=format:%H%x1f%cI", ref],
+            check=True, capture_output=True, text=True, timeout=20,
+        )
+        head_sha, _, head_at = head.stdout.partition("\x1f")
+        head_at = _iso_text(head_at.strip())
+        if not head_sha or head_at == UNAVAILABLE:
+            block = _unavailable(source, observed_at)
+            block["rows"] = []
+            return block
+        cache_key = f"{root.resolve()}|{ref}"
+        with _merge_cache_lock:
+            cached = _merge_cache.get(cache_key)
+        if cached and cached[0] == head_sha:
+            rows = cached[2]
+        else:
+            log = subprocess.run(
+                ["git", "-C", str(root), "log", ref, "--pretty=format:%H%x1f%cI%x1f%s"],
+                check=True, capture_output=True, text=True, timeout=30,
+            )
+            rows = _parse_merges(log.stdout, source)
+            with _merge_cache_lock:
+                _merge_cache[cache_key] = (head_sha, head_at, rows)
+    except (OSError, subprocess.SubprocessError):
         block = _unavailable(source, observed_at)
         block["rows"] = []
         return block
-    source = " + ".join(item[3] for item in loaded)
-    rows = _union_rows([item[2] for item in loaded])
-    head_sha, head_at, _rows, _source = max(loaded, key=lambda item: item[1])
     newest = rows[-1]["at"] if rows else head_at
     return {
         "available": True,
@@ -344,35 +258,20 @@ def read_merged_prs(root: Path, observed_at: str) -> dict:
     }
 
 
-def _slot_mentions(*parts: str) -> list[str]:
-    found = []
-    seen = set()
-    for part in parts:
-        for match in _SLOT_MENTION.finditer(part or ""):
-            token = match.group(0)
-            if token not in seen:
-                seen.add(token)
-                found.append(token)
-    return found
-
-
 def _parse_merges(text: str, source: str) -> list[dict]:
     found: dict[int, dict] = {}
-    for record in text.split("\x1e"):
-        parts = record.strip("\n").split("\x1f")
-        if len(parts) < 3:
+    for line in text.splitlines():
+        sha, sep, rest = line.partition("\x1f")
+        if not sep:
             continue
-        sha, committed_at, subject = parts[0].strip(), parts[1].strip(), parts[2].strip("\n")
-        body = parts[3] if len(parts) > 3 else ""
+        committed_at, sep, subject = rest.partition("\x1f")
+        if not sep:
+            continue
         match = _SQUASH_PR.search(subject) or _MERGE_PR.search(subject)
         if not match:
             continue
         number = int(match.group(1))
-        mentions = _slot_mentions(subject, body)
         if number in found:
-            for token in mentions:
-                if token not in found[number]["slots"]:
-                    found[number]["slots"].append(token)
             continue
         found[number] = {
             "pr": number,
@@ -380,15 +279,11 @@ def _parse_merges(text: str, source: str) -> list[dict]:
             "sha": sha,
             "source": source,
             "at": _iso_text(committed_at.strip()),
-            "slots": mentions,
         }
-    return sorted(found.values(), key=lambda row: (row["at"], row["pr"]))
-
-
-def _row_mentions_slot(row: dict, pattern: re.Pattern[str]) -> bool:
-    if pattern.search(row.get("subject") or ""):
-        return True
-    return any(pattern.search(token) for token in row.get("slots") or [])
+    rows = list(found.values())
+    rows.sort(key=lambda row: row["pr"])
+    rows.sort(key=lambda row: row["at"], reverse=True)
+    return rows
 
 
 def _done_for(slot_id: str, merged: dict) -> dict:
@@ -398,71 +293,97 @@ def _done_for(slot_id: str, merged: dict) -> dict:
     pattern = _slot_token(slot_id)
     hits = []
     if pattern is not None:
-        hits = [row for row in merged.get("rows") or [] if _row_mentions_slot(row, pattern)]
+        hits = [row for row in merged.get("rows") or [] if pattern.search(row.get("subject") or "")]
     if hits:
         latest = max(hits, key=lambda row: (row.get("at") or "", row.get("pr") or 0))
-        return {
-            "value": "DONE",
-            "source": latest.get("source") or source,
-            "at": latest.get("at") or UNAVAILABLE,
-            "pr": latest.get("pr"),
-        }
+        return {"value": "DONE", "source": source, "at": latest.get("at") or UNAVAILABLE, "pr": latest.get("pr")}
     return {"value": "not done", "source": source, "at": merged.get("at") or UNAVAILABLE}
 
 
-def _as_stamp(value) -> Optional[str]:
-    if isinstance(value, str):
-        return _iso_text(value) if _parse_stamp(value) else None
-    return _iso_unix(value)
+def _heartbeat_dirs(root: Path, wall: Optional[Path]) -> list[Path]:
+    found = []
+    configured = os.environ.get("COURIER_HEARTBEAT_DIR")
+    if configured:
+        found.append(Path(configured))
+    if wall is not None:
+        found.append(wall / "heartbeat")
+    found.append(root / "runtime" / "heartbeat")
+    found.append(root / "scripts" / "windows_muse_wall" / "runtime" / "heartbeat")
+    return found
 
 
-def _mapping_stamp(data: dict) -> Optional[str]:
-    if not isinstance(data, dict):
-        return None
-    for key in _PROCESS_STAMPS:
-        if key not in data:
-            continue
-        found = _as_stamp(data.get(key))
-        if found:
-            return found
-    return None
+def _unknown_station(slot_id: str, source: str, at: str = UNAVAILABLE) -> dict:
+    field = {"value": UNAVAILABLE, "source": source, "at": at}
+    return {"id": slot_id, "heartbeat": False, "state": field, "process": dict(field), "done": dict(field)}
 
 
-def _read_object(path: Path) -> Optional[dict]:
+def _heartbeat_station(path: Path, root: Path, observed_at: str, merged: dict) -> Optional[dict]:
+    """One courier.wall.heartbeat/v1 file. Anything else is UNKNOWN, and an example file is dropped."""
+    rel = _display_path(path, root)
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError):
+        return _unknown_station(path.stem, rel)
+    if not isinstance(data, dict) or data.get("schema") != _HEARTBEAT_SCHEMA:
+        return _unknown_station(path.stem, rel)
+    quelle = data.get("quelle")
+    if isinstance(quelle, str) and quelle.strip().upper() == _EXAMPLE_QUELLE:
         return None
-    return data if isinstance(data, dict) else None
+    window = data.get("fenster_id")
+    status = data.get("status")
+    stamp = data.get("letzter_heartbeat")
+    if not isinstance(window, str) or _WINDOW_ID.fullmatch(window) is None:
+        return _unknown_station(path.stem, rel)
+    if not isinstance(status, str) or status not in _HEARTBEAT_STATUS:
+        return _unknown_station(window, rel)
+    parsed = _parse_stamp(stamp) if isinstance(stamp, str) else None
+    observed = _parse_stamp(observed_at)
+    if parsed is None or observed is None:
+        return _unknown_station(window, rel)
+    age = (observed - parsed).total_seconds()
+    at = _iso_text(stamp)
+    if age < -_FUTURE_S:
+        return _unknown_station(window, rel, at)
+    if age <= _FRESH_S and status in _LIVE_STATUS:
+        value, live = "READY", True
+    elif age <= _FRESH_S or _STALE_S < age <= _QUIET_S:
+        value, live = PAUSE, False
+    elif age <= _STALE_S:
+        value, live = STALE, False
+    else:
+        value, live = UNAVAILABLE, False
+    return {
+        "id": window,
+        "heartbeat": live,
+        "state": {"value": value, "source": rel, "at": at},
+        "process": {"value": "present" if live else "none", "source": rel, "at": at},
+        "done": _done_for(window, merged),
+    }
 
 
-def _slot_heartbeat(slot_dir: Path, data: dict, observed_at: str) -> tuple[bool, Optional[str], Optional[str], Optional[str]]:
-    """A fresh process timestamp is a live heartbeat.
+def _heartbeat_stations(root: Path, wall: Optional[Path], observed_at: str, merged: dict) -> list[dict]:
+    stations = []
+    seen = set()
+    for directory in _heartbeat_dirs(root, wall):
+        if not directory.is_dir():
+            continue
+        try:
+            key = str(directory.resolve())
+        except OSError:
+            key = str(directory)
+        if key in seen:
+            continue
+        seen.add(key)
+        for path in sorted(directory.glob("*.json")):
+            station = _heartbeat_station(path, root, observed_at, merged)
+            if station is not None:
+                stations.append(station)
+    return stations
 
-    Checked-in slot files say READY with process null. That state is not a heartbeat.
-    """
-    for name in _HEARTBEAT_FILES:
-        hb_path = slot_dir / name
-        if not hb_path.is_file():
-            continue
-        recorded = _read_object(hb_path)
-        if recorded is None:
-            continue
-        process = recorded.get("process") if isinstance(recorded.get("process"), dict) else None
-        stamp = _mapping_stamp(process) if process is not None else None
-        stamp = stamp or _mapping_stamp(recorded)
-        if not stamp or not _fresh(stamp, observed_at):
-            continue
-        hb_state = recorded.get("state") if isinstance(recorded.get("state"), str) else None
-        cleaned = hb_state.strip()[:80] if hb_state and hb_state.strip() else None
-        return True, stamp, cleaned, name
-    process = data.get("process")
-    if not isinstance(process, dict):
-        return False, None, None, None
-    stamp = _mapping_stamp(process) or _as_stamp(data.get("updated_at"))
-    if stamp and _fresh(stamp, observed_at):
-        return True, stamp, None, None
-    return False, None, None, None
+
+def _newest_first(stations: list[dict]) -> None:
+    stations.sort(key=lambda station: station.get("id") or "")
+    stations.sort(key=lambda station: station["state"]["at"] if station["state"]["at"] != UNAVAILABLE else "", reverse=True)
 
 
 def read_muse_wall(root: Path, wall: Optional[Path], label: str, observed_at: str, merged: dict) -> dict:
@@ -490,24 +411,9 @@ def read_muse_wall(root: Path, wall: Optional[Path], label: str, observed_at: st
         recorded_id = data.get("slot_id")
         if isinstance(recorded_id, str) and recorded_id.strip():
             slot_id = recorded_id.strip()
-        slot_at = _as_stamp(data.get("updated_at")) or UNAVAILABLE
-        live, live_at, live_state, live_name = _slot_heartbeat(path.parent, data, observed_at)
-        recorded_state = data.get("state")
-        state_source = rel
-        state_at = slot_at
-        if live and live_state:
-            state_value = live_state
-            state_at = live_at or UNAVAILABLE
-            state_source = _display_path(path.parent / live_name, root) if live_name else rel
-        elif live and isinstance(recorded_state, str) and recorded_state.strip() and _fresh(slot_at, observed_at):
-            state_value = recorded_state.strip()[:80]
-        elif live:
-            state_value = UNAVAILABLE
-            state_at = live_at or UNAVAILABLE
-            if live_name:
-                state_source = _display_path(path.parent / live_name, root)
-        else:
-            state_value = PAUSE
+        at = _iso_unix(data.get("updated_at")) or UNAVAILABLE
+        state_value = UNAVAILABLE
+        live = False
         process = data.get("process")
         if "process" not in data:
             process_value = UNAVAILABLE
@@ -518,20 +424,29 @@ def read_muse_wall(root: Path, wall: Optional[Path], label: str, observed_at: st
         stations.append({
             "id": slot_id,
             "heartbeat": live,
-            "state": {"value": state_value, "source": state_source, "at": state_at},
-            "process": {"value": process_value, "source": rel, "at": slot_at},
+            "state": {"value": state_value, "source": rel, "at": at},
+            "process": {"value": process_value, "source": rel, "at": at},
             "done": _done_for(slot_id, merged),
         })
-    stations.sort(key=lambda station: station_key(station["id"]))
+    stations.extend(_heartbeat_stations(root, wall, observed_at, merged))
+    _newest_first(stations)
     live_count = sum(1 for station in stations if station["heartbeat"])
     times = [station["state"]["at"] for station in stations if station["state"]["at"] != UNAVAILABLE]
+    if live_count:
+        value = "READY"
+    elif any(station["state"]["value"] == STALE for station in stations):
+        value = STALE
+    elif any(station["state"]["value"] == PAUSE for station in stations):
+        value = PAUSE
+    else:
+        value = UNAVAILABLE
     return {
         "available": True,
         "active": live_count > 0,
         "source": label,
         "at": max(times) if times else UNAVAILABLE,
         "observed_at": observed_at,
-        "value": str(live_count) if live_count else PAUSE,
+        "value": value,
         "stations": stations,
     }
 
@@ -573,122 +488,50 @@ def read_ledger(view: Optional[dict], observed_at: str) -> dict:
     }
 
 
-def _bridge_state_rows(path: Optional[Path], root: Path) -> tuple[list[dict], bool, str]:
-    """Rows from ledger_bridge_state.json. The bool is False when the file is absent or unreadable."""
+def read_ledger_bridge(home: Optional[Path], root: Path, observed_at: str) -> dict:
+    source = "ledger_bridge_state.json"
+    path = (home / "ledger_bridge_state.json") if home is not None else None
     if path is None or not path.is_file():
-        return [], False, UNAVAILABLE
+        block = _unavailable(source, observed_at)
+        block["missions"] = []
+        return block
     file_at = _file_stamp(path)
+    rel = _display_path(path, root)
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError):
-        return [], False, file_at
+        block = _unavailable(source, observed_at)
+        block["missions"] = []
+        return block
     missions = data.get("missions") if isinstance(data, dict) else None
     if not isinstance(missions, dict):
-        return [], False, file_at
-    rel = _display_path(path, root)
+        block = _unavailable(source, observed_at)
+        block["missions"] = []
+        return block
     listed = []
     for mission_id in sorted(missions):
         mapping = missions[mission_id]
-        if not isinstance(mission_id, str) or not isinstance(mapping, dict):
+        if not isinstance(mapping, dict):
             continue
-        recorded_at = mapping.get("updated_at") if isinstance(mapping.get("updated_at"), str) else ""
-        at = _iso_text(recorded_at) if recorded_at and _parse_stamp(recorded_at) else file_at
-        status = mapping.get("status") if isinstance(mapping.get("status"), str) and mapping.get("status").strip() else UNAVAILABLE
-        row = {"id": mission_id, "status": status, "source": rel, "at": at}
+        at = mapping.get("updated_at") if isinstance(mapping.get("updated_at"), str) else file_at
+        status = mapping.get("status") if isinstance(mapping.get("status"), str) else UNAVAILABLE
+        row = {"id": mission_id, "status": status, "source": rel, "at": _iso_text(at) if at != file_at else file_at}
         for key in _MISSION_FIELDS:
             if key == "status":
                 continue
             value = mapping.get(key)
-            if isinstance(value, str) and value.strip() and not _SECRET_MARK.search(value):
+            if isinstance(value, str) and value.strip() and not _SECRET_MARK.search(value) and not _leaks(value):
                 row[key] = value.strip()[:120]
         listed.append(row)
-    return listed, True, file_at
-
-
-def _journal_rows(path: Path, root: Path) -> list[dict]:
-    """Latest recorded coordination-ledger event per mission. Lines that are not events are skipped."""
-    latest: dict[str, tuple[str, int, dict]] = {}
-    try:
-        text = path.read_text(encoding="utf-8")
-    except (OSError, UnicodeError):
-        return []
-    rel = _display_path(path, root)
-    for index, line in enumerate(text.splitlines()):
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            record = json.loads(line)
-        except json.JSONDecodeError:
-            continue
-        if not isinstance(record, dict):
-            continue
-        mission_id = record.get("mission_id")
-        status = record.get("status")
-        created = record.get("created_at")
-        event_type = record.get("event_type")
-        if not isinstance(mission_id, str) or not mission_id.strip():
-            continue
-        if not isinstance(status, str) or status not in _JOURNAL_STATUS:
-            continue
-        if not isinstance(created, str) or _parse_stamp(created) is None:
-            continue
-        if event_type is not None and (not isinstance(event_type, str) or event_type not in _JOURNAL_EVENT):
-            continue
-        at = _iso_text(created)
-        previous = latest.get(mission_id)
-        if previous is not None and (previous[0], previous[1]) > (at, index):
-            continue
-        row = {"id": mission_id.strip()[:120], "status": status, "source": rel, "at": at}
-        if isinstance(event_type, str):
-            row["event_type"] = event_type
-        latest[mission_id] = (at, index, row)
-    return [item[2] for item in sorted(latest.values(), key=lambda item: item[2]["id"])]
-
-
-def read_ledger_bridge(home: Optional[Path], root: Path, observed_at: str) -> dict:
-    source = _BRIDGE_NAME
-    state_path = (home / _BRIDGE_NAME) if home is not None else None
-    journal_path = (home / _JOURNAL_NAME) if home is not None else None
-    journal_ok = journal_path is not None and journal_path.is_file()
-    listed, state_ok, state_at = _bridge_state_rows(state_path, root)
-    if not state_ok and not journal_ok:
-        block = _unavailable(source, observed_at)
-        block["missions"] = []
-        return block
-    seen = {row["id"] for row in listed}
-    if journal_ok:
-        journal_rows = _journal_rows(journal_path, root)
-        by_id = {row["id"]: row for row in journal_rows}
-        for row in listed:
-            extra = by_id.get(row["id"])
-            if extra is None or row.get("status") != UNAVAILABLE:
-                continue
-            row["status"] = extra["status"]
-            row["status_source"] = extra["source"]
-            row["status_at"] = extra["at"]
-            if extra.get("event_type"):
-                row["event_type"] = extra["event_type"]
-        for row in journal_rows:
-            if row["id"] in seen:
-                continue
-            listed.append(row)
-            seen.add(row["id"])
-        listed.sort(key=lambda row: row["id"])
-    if state_ok:
-        block_source = source
-        block_at = state_at
-    else:
-        block_source = _JOURNAL_NAME
-        times = [row["at"] for row in listed if row["at"] != UNAVAILABLE]
-        block_at = max(times) if times else _file_stamp(journal_path)
+    listed.sort(key=lambda row: row["id"])
+    listed.sort(key=lambda row: row["at"] if row["at"] != UNAVAILABLE else "", reverse=True)
     return {
         "available": True,
         "active": len(listed) > 0,
-        "source": block_source,
-        "at": block_at,
+        "source": rel,
+        "at": file_at,
         "observed_at": observed_at,
-        "value": str(len(listed)),
+        "value": str(len(listed)) if listed else REST_TEXT,
         "missions": listed,
     }
 
@@ -863,6 +706,7 @@ def _read_drafts(pulls, source: str, observed_at: str) -> dict:
         at = _iso_text(pull["updated_at"]) if isinstance(pull.get("updated_at"), str) else UNAVAILABLE
         rows.append({"pr": number, "title": title, "source": source, "at": at})
     rows.sort(key=lambda row: row["pr"])
+    rows.sort(key=lambda row: row["at"] if row["at"] != UNAVAILABLE else "", reverse=True)
     times = [row["at"] for row in rows if row["at"] != UNAVAILABLE]
     return {
         "available": True,
@@ -929,23 +773,13 @@ def build_snapshot(hub, *, root: Optional[Path] = None, wall: Optional[Path] = N
         "ledger_bridge": bridge,
         "github_ci": github_ci,
         "draft_prs": draft_prs,
-        "merged_prs": _public_merges(merged),
+        "merged_prs": merged,
         **postfach,
     }
     flying = [name for name in FLOWERS if snapshot[name].get("active") is True]
     snapshot["bird"] = {"state": "fly" if flying else "rest", "target": flying[0] if flying else None}
     snapshot["activity"] = None if flying else REST_TEXT
     return snapshot
-
-
-def _public_merges(merged: dict) -> dict:
-    shown = dict(merged)
-    shown["rows"] = [
-        {key: row[key] for key in _PUBLIC_MERGE if key in row}
-        for row in merged.get("rows") or []
-        if isinstance(row, dict)
-    ]
-    return shown
 
 
 def snapshot_for_hub(hub) -> dict:

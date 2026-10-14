@@ -24,13 +24,16 @@ export function stationKey(slotId) {
 }
 
 export function compareStations(a, b) {
-  const left = stationKey(a.id);
-  const right = stationKey(b.id);
-  if (left.group !== right.group) return left.group - right.group;
-  if (left.n !== right.n) return left.n - right.n;
-  if (left.id < right.id) return -1;
-  if (left.id > right.id) return 1;
-  return 0;
+  const at = (station) => {
+    const value = station && station.state && station.state.at;
+    return value && value !== UNAVAILABLE ? value : "";
+  };
+  const left = at(a);
+  const right = at(b);
+  if (left !== right) return !left ? 1 : !right ? -1 : left < right ? 1 : -1;
+  const lid = (a && a.id) || "";
+  const rid = (b && b.id) || "";
+  return lid < rid ? -1 : lid > rid ? 1 : 0;
 }
 
 export function escapeHtml(value) {
@@ -103,7 +106,7 @@ export function unavailableSnapshot(observedAt) {
     observed_at: observedAt,
     bird: { state: "rest", target: null },
     activity: REST_TEXT,
-    muse_wall: { ...block("muse wall"), stations: [] },
+    muse_wall: { ...block("scripts/windows_muse_wall/runtime/slots"), stations: [] },
     ledger: { ...block("courier journal (courier.db)"), items: [], counts: {} },
     ledger_bridge: { ...block("ledger_bridge_state.json"), missions: [] },
     postfach_alt_an_neu: { ...block("POSTFACH_ALT_AN_NEU"), entries: null },
@@ -143,7 +146,7 @@ function detailHtml(snapshot) {
   return `
     <section id="muse-wall" data-available="${muse.available ? "yes" : "no"}">
       <h2>Muse wall</h2>
-      ${muse.available ? `<p class="note">A checked-in slot file that says READY is not a live heartbeat. Without a fresh process timestamp the state is ${PAUSE}.</p>` : ""}
+      ${muse.available ? `<p class="note">A slot file in the repo is not a heartbeat. Without a fresh heartbeat the reading stays unknown.</p>` : ""}
       ${field("Reading", muse)}
       <div class="stations">${stationHtml(stations)}</div>
     </section>
@@ -162,18 +165,7 @@ function detailHtml(snapshot) {
       ${field("Reading", bridge)}
       <div class="stations">${missions.map((mission) => `<article class="card" data-mission="${escapeHtml(mission.id)}">
         <h3>${escapeHtml(text(mission.id))}</h3>
-        ${field("Status", {
-          value: mission.status,
-          source: mission.status_source || mission.source,
-          at: mission.status_at || mission.at,
-        })}
-        ${mission.task_id ? field("Task", { value: mission.task_id, source: mission.source, at: mission.at }) : ""}
-        ${mission.reason ? field("Reason", { value: mission.reason, source: mission.source, at: mission.at }) : ""}
-        ${mission.event_type ? field("Event", {
-          value: mission.event_type,
-          source: mission.status_source || mission.source,
-          at: mission.status_at || mission.at,
-        }) : ""}
+        ${field("Status", { value: mission.status, source: mission.source, at: mission.at })}
       </article>`).join("")}</div>
     </section>
     <section id="github-ci" data-available="${ci.available ? "yes" : "no"}">
@@ -193,7 +185,7 @@ function detailHtml(snapshot) {
     </section>
     <section id="merged" data-available="${merged.available ? "yes" : "no"}">
       <h2>Merged into integration/v1</h2>
-      <p class="note">Merged pull requests are ordered by commit time, oldest first, then by number.</p>
+      <p class="note">Merged pull requests are ordered newest first. Equal timestamps keep number order.</p>
       ${field("Reading", merged)}
       <div class="stations">${mergeRows.map((row) => `<article class="card" data-pr="${escapeHtml(row.pr)}">
         <h3>#${escapeHtml(text(row.pr))}</h3>
@@ -223,7 +215,7 @@ export function renderKolibri(snapshot) {
     ? `<div class="perch"><div class="bird" data-state="rest">${birdSvg()}</div><p id="kolibri-activity">${REST_TEXT}</p></div>`
     : `<div class="perch"><p id="kolibri-activity" data-target="${escapeHtml(target)}"></p></div>`;
   return `<div class="kolibri" data-bird="${resting ? "rest" : "fly"}">
-    <p class="note">Stations are ordered by slot number, lowest first, so MUSE-2 stays before MUSE-10.</p>
+    <p class="note">Stations are ordered newest first. Equal timestamps keep id order.</p>
     <div class="garden">
       ${perch}
       <div class="flowers">${flowers}</div>

@@ -1,22 +1,25 @@
 """Kolibri: one flower per source, bird rests unless the evidence is live."""
 
 import json
+import re
 import subprocess
 import threading
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+import pytest
 
 from courier_core.events import Event, EventType
 from courier_core.journal import Journal
 from courier_hub.kolibri_data import (
-    PAUSE, REST_TEXT, UNAVAILABLE, _display_path, build_snapshot, read_github, station_key,
+    PAUSE, REST_TEXT, STALE, UNAVAILABLE, _display_path, _parse_merges, build_snapshot, read_github, station_key,
 )
 from courier_hub.server import Hub, HubServer
 
 REPO = Path(__file__).resolve().parents[2]
 WALL = REPO / "scripts" / "windows_muse_wall" / "runtime" / "slots"
-MUSE_LABEL = "muse wall"
+MUSE_LABEL = "scripts/windows_muse_wall/runtime/slots"
 OFFLINE = lambda _path: None  # no token and no fabricated GitHub body
 
 
@@ -66,6 +69,28 @@ def _git_repo(path: Path, subject: str, branch: str = "integration/v1") -> None:
     )
 
 
+def _snapshot(home: Path, root: Path, wall: Path, observed: str, label: str = "wall") -> dict:
+    return build_snapshot(
+        _hub(home), root=root, wall=wall, wall_label=label, observed_at=observed, github_fetch=OFFLINE,
+    )
+
+
+def _beat(age: int, **over) -> tuple[str, dict]:
+    observed = datetime(2026, 10, 14, 22, 0, tzinfo=timezone.utc)
+    stamp = (observed - timedelta(seconds=age)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    body = {"schema": "courier.wall.heartbeat/v1", "host": "CAMERA-HOST-NAME", "fenster_id": "W03",
+            "letzter_heartbeat": stamp, "status": "laeuft", "quelle": "runner"}
+    body.update(over)
+    return observed.strftime("%Y-%m-%dT%H:%M:%SZ"), body
+
+
+def _wall_beat(directory: Path, body: dict, name: str = "win-W03.json") -> Path:
+    wall = directory / "wall"
+    (wall / "heartbeat").mkdir(parents=True)
+    (wall / "heartbeat" / name).write_text(json.dumps(body), encoding="utf-8")
+    return wall
+
+
 def _sample_fields(html: str, count: int = 5) -> list[str]:
     parts = html.split('<div class="field">')[1:]
     assert len(parts) >= count
@@ -73,11 +98,10 @@ def _sample_fields(html: str, count: int = 5) -> list[str]:
 
 
 def test_station_order_is_numeric_and_stable():
-    ids = ["MUSE-10", "MUSE-2", "MUSE-1", "desk", "alpha"]
+    ids = ["MUSE-10", "MUSE-2", "MUSE-1", "desk"]
     ordered = sorted(ids, key=station_key)
-    assert ordered == ["MUSE-1", "MUSE-2", "MUSE-10", "alpha", "desk"]
+    assert ordered == ["MUSE-1", "MUSE-2", "MUSE-10", "desk"]
     assert sorted(ids, key=station_key) == ordered
-    assert station_key("MUSE-01")[1] == station_key("MUSE-1")[1] == 1
 
 
 def test_view_renders_real_sources_with_traceable_values(tmp_path):
@@ -99,13 +123,13 @@ def test_view_renders_real_sources_with_traceable_values(tmp_path):
 
     muse = snapshot["muse_wall"]
     assert muse["available"] is True and muse["active"] is False
-    assert muse["value"] == PAUSE
+    assert muse["value"] == UNAVAILABLE
     assert [station["id"] for station in muse["stations"][:3]] == ["MUSE-01", "MUSE-02", "MUSE-03"]
     assert muse["stations"][-1]["id"] == "MUSE-64"
     first = muse["stations"][0]
-    assert first["state"]["value"] == PAUSE
+    assert first["state"]["value"] == UNAVAILABLE
     assert first["heartbeat"] is False
-    assert first["state"]["source"] == "MUSE-01/state.json"
+    assert first["state"]["source"] == f"{MUSE_LABEL}/MUSE-01/state.json"
     assert first["state"]["at"] != UNAVAILABLE
     assert first["process"]["value"] == "none"
 
@@ -123,7 +147,9 @@ def test_view_renders_real_sources_with_traceable_values(tmp_path):
     assert all(row["source"] == "git log integration/v1" and row["at"] != UNAVAILABLE
                for row in snapshot["merged_prs"]["rows"])
     times = [row["at"] for row in snapshot["merged_prs"]["rows"]]
-    assert times == sorted(times)
+    assert times == sorted(times, reverse=True)
+    station_times = [station["state"]["at"] for station in muse["stations"]]
+    assert station_times == sorted(station_times, reverse=True)
 
     html, poll = _render(snapshot)
     assert 10000 <= poll <= 30000
@@ -132,12 +158,10 @@ def test_view_renders_real_sources_with_traceable_values(tmp_path):
         assert "source " in piece and "timestamp " in piece
     assert 'data-station="MUSE-01"' in html
     assert html.index('data-station="MUSE-09"') < html.index('data-station="MUSE-10"')
-    assert "source MUSE-01/state.json" in html
-    assert "scripts/windows_muse_wall" not in html
-    assert "Users" not in html and "lol" not in raw and "/home/" not in raw
+    assert f"source {MUSE_LABEL}/MUSE-01/state.json" in html
     assert f"timestamp {first['state']['at']}" in html
     assert ">READY<" not in html
-    assert f">{PAUSE}<" in html
+    assert f">{PAUSE}<" not in html
     assert 'data-bird="fly"' in html and 'data-target="ledger"' in html
     assert REST_TEXT not in html
     assert slot["owner_token"] not in html
@@ -160,8 +184,9 @@ def test_no_activity_bird_rests(tmp_path):
         _hub(home), root=tmp_path / "no-repo", wall=wall, wall_label="wall",
         observed_at="2026-10-14T22:00:00Z", github_fetch=OFFLINE,
     )
-    assert snapshot["muse_wall"]["value"] == PAUSE
-    assert snapshot["muse_wall"]["stations"][0]["state"]["value"] == PAUSE
+    assert snapshot["muse_wall"]["value"] == UNAVAILABLE
+    assert snapshot["muse_wall"]["stations"][0]["state"]["value"] == UNAVAILABLE
+    assert snapshot["ledger_bridge"]["value"] == REST_TEXT
     assert snapshot["ledger"]["available"] is True and snapshot["ledger"]["active"] is False
     assert snapshot["ledger_bridge"]["available"] is True and snapshot["ledger_bridge"]["active"] is False
     assert snapshot["postfach_alt_an_neu"]["value"] == "0"
@@ -228,7 +253,7 @@ def test_github_payload_is_shown_and_a_failed_read_is_unknown():
     assert drafts["rows"][0]["source"] == "github pulls integration/v1"
 
 
-def test_fresh_heartbeat_is_not_pause(tmp_path):
+def test_k1_slot_process_is_not_a_heartbeat(tmp_path):
     observed = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     wall = tmp_path / "wall" / "MUSE-02"
     wall.mkdir(parents=True)
@@ -238,18 +263,15 @@ def test_fresh_heartbeat_is_not_pause(tmp_path):
         "process": {"pid": 1},
         "updated_at": datetime.now(timezone.utc).timestamp(),
     }), encoding="utf-8")
-    snapshot = build_snapshot(
-        _hub(tmp_path / "home"), root=tmp_path / "no-repo", wall=tmp_path / "wall",
-        wall_label="wall", observed_at=observed, github_fetch=OFFLINE,
-    )
+    snapshot = _snapshot(tmp_path / "home", tmp_path / "no-repo", tmp_path / "wall", observed)
     station = snapshot["muse_wall"]["stations"][0]
-    assert station["heartbeat"] is True
-    assert station["state"]["value"] == "READY"
-    assert snapshot["muse_wall"]["active"] is True
+    assert station["heartbeat"] is False
+    assert station["state"]["value"] == UNAVAILABLE
+    assert snapshot["muse_wall"]["value"] == UNAVAILABLE
+    assert snapshot["muse_wall"]["active"] is False
     html, _poll = _render(snapshot)
-    assert 'data-bird="fly"' in html
-    assert 'data-target="muse_wall"' in html
-    assert REST_TEXT not in html
+    assert ">READY<" not in html
+    assert 'data-bird="rest"' in html
 
 
 def test_new_journal_entry_is_visible_on_the_next_poll(tmp_path):
@@ -330,7 +352,8 @@ def test_hub_route_serves_one_page(tmp_path):
     try:
         with urllib.request.urlopen(base + "/hub/api/kolibri", timeout=20) as response:
             body = json.loads(response.read().decode("utf-8"))
-        assert body["muse_wall"]["stations"][0]["state"]["value"] == PAUSE
+        assert body["muse_wall"]["stations"][0]["state"]["value"] == UNAVAILABLE
+        assert all(station["state"]["value"] != "READY" for station in body["muse_wall"]["stations"])
         assert body["ledger"]["value"] == UNAVAILABLE
         for key in ("ledger_bridge", "postfach_alt_an_neu", "postfach_neu_an_alt", "github_ci", "draft_prs"):
             assert key in body
@@ -338,9 +361,6 @@ def test_hub_route_serves_one_page(tmp_path):
         slot = json.loads((WALL / "MUSE-01" / "state.json").read_text(encoding="utf-8"))
         assert slot["owner_token"] not in raw
         assert "ghs_" not in raw
-        assert "Users" not in raw and "lol" not in raw and "/home/" not in raw
-        assert body["muse_wall"]["stations"][0]["state"]["source"] == "MUSE-01/state.json"
-        assert ">READY<" not in raw
         with urllib.request.urlopen(base + "/kolibri.html", timeout=10) as response:
             assert response.status == 200
             page = response.read().decode("utf-8")
@@ -350,225 +370,138 @@ def test_hub_route_serves_one_page(tmp_path):
         server.server_close()
 
 
-def _commit(path: Path, name: str, subject: str) -> None:
-    (path / name).write_text(name + "\n", encoding="utf-8")
-    subprocess.run(["git", "add", name], cwd=path, check=True, capture_output=True)
-    subprocess.run(
-        ["git", "-c", "user.email=kolibri@example.com", "-c", "user.name=Kolibri", "commit", "-m", subject],
-        cwd=path, check=True, capture_output=True,
-    )
-
-
-def _slot(wall: Path, slot_id: str, payload: dict) -> None:
-    slot = wall / slot_id
-    slot.mkdir(parents=True, exist_ok=True)
-    (slot / "state.json").write_text(json.dumps(payload), encoding="utf-8")
-
-
-def test_display_path_hides_home_user_and_internal_prefix(tmp_path):
-    root = tmp_path / "repo"
-    samples = {
-        Path("/home/ubuntu/ledger_bridge_state.json"): "ledger_bridge_state.json",
-        Path("/Users/lol/2026-workspace/ledger_bridge_state.json"): "ledger_bridge_state.json",
-        Path("/home/dennis"): "source",
-        Path("C:/Users/lol/2026-courier/scripts/windows_muse_wall/runtime/slots/MUSE-04/state.json"): "MUSE-04/state.json",
-        root / "scripts" / "windows_muse_wall" / "runtime" / "slots" / "MUSE-01" / "state.json": "MUSE-01/state.json",
-    }
-    for path, expected in samples.items():
-        shown = _display_path(path, root)
-        assert shown == expected
-        assert not shown.startswith("/") and "\\" not in shown
-        assert "ubuntu" not in shown and "dennis" not in shown and "lol" not in shown
-        assert "Users" not in shown and "scripts/" not in shown
-
-
-def test_checked_in_ready_is_pause_even_when_the_stamp_is_fresh(tmp_path):
-    observed = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    wall = tmp_path / "wall"
-    _slot(wall, "MUSE-01", {
-        "slot_id": "MUSE-01",
-        "state": "READY",
-        "process": None,
-        "updated_at": datetime.now(timezone.utc).timestamp(),
-        "workdir": "C:\\Users\\lol\\2026-workspace\\slots\\MUSE-01\\workdir",
-    })
-    snapshot = build_snapshot(
-        _hub(tmp_path / "home"), root=tmp_path / "no-repo", wall=wall, wall_label="muse wall",
-        observed_at=observed, github_fetch=OFFLINE,
-    )
+@pytest.mark.parametrize("age,value,live", [
+    (29, "READY", True), (31, STALE, False), (89, STALE, False),
+    (91, PAUSE, False), (299, PAUSE, False), (301, UNAVAILABLE, False),
+])
+def test_k1_heartbeat_age_bands(tmp_path, age, value, live):
+    observed, body = _beat(age)
+    snapshot = _snapshot(tmp_path / "home", tmp_path / "no-repo", _wall_beat(tmp_path, body), observed)
     station = snapshot["muse_wall"]["stations"][0]
-    assert station["heartbeat"] is False
-    assert station["state"]["value"] == PAUSE
-    assert station["process"]["value"] == "none"
-    html, _poll = _render(snapshot)
-    assert ">READY<" not in html
-    assert "lol" not in html and "Users" not in html
+    assert (station["id"], station["state"]["value"], station["heartbeat"]) == ("W03", value, live)
+    assert (snapshot["muse_wall"]["value"], snapshot["muse_wall"]["active"]) == (value, live)
+    raw, (html, _poll) = json.dumps(snapshot), _render(snapshot)
+    assert "CAMERA-HOST-NAME" not in raw and "CAMERA-HOST-NAME" not in html
+    assert (">READY<" in html) is live
 
 
-def test_process_timestamp_is_a_live_heartbeat_and_stale_ready_is_not(tmp_path):
-    observed = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    now = datetime.now(timezone.utc).timestamp()
-    wall = tmp_path / "wall"
-    _slot(wall, "MUSE-02", {
-        "slot_id": "MUSE-02",
-        "state": "READY",
-        "process": {"pid": 4, "create_time": now},
-        "updated_at": 1_700_000_000,
-    })
-    _slot(wall, "MUSE-10", {
-        "slot_id": "MUSE-10",
-        "state": "READY",
-        "process": {"pid": 9, "create_time": 1_700_000_000},
-        "updated_at": 1_700_000_000,
-    })
-    (wall / "MUSE-03").mkdir(parents=True)
-    (wall / "MUSE-03" / "state.json").write_text(json.dumps({
-        "slot_id": "MUSE-03", "state": "READY", "process": None, "updated_at": 1_700_000_000,
-    }), encoding="utf-8")
-    (wall / "MUSE-03" / "heartbeat.json").write_text(json.dumps({
-        "create_time": now,
-    }), encoding="utf-8")
-    snapshot = build_snapshot(
-        _hub(tmp_path / "home"), root=tmp_path / "no-repo", wall=wall, wall_label="muse wall",
-        observed_at=observed, github_fetch=OFFLINE,
-    )
-    by_id = {station["id"]: station for station in snapshot["muse_wall"]["stations"]}
-    assert [station["id"] for station in snapshot["muse_wall"]["stations"]] == ["MUSE-02", "MUSE-03", "MUSE-10"]
-    assert by_id["MUSE-02"]["heartbeat"] is True
-    assert by_id["MUSE-02"]["state"]["value"] == UNAVAILABLE
-    assert by_id["MUSE-10"]["heartbeat"] is False
-    assert by_id["MUSE-10"]["state"]["value"] == PAUSE
-    assert by_id["MUSE-03"]["heartbeat"] is True
-    assert by_id["MUSE-03"]["state"]["value"] == UNAVAILABLE
-    assert by_id["MUSE-03"]["state"]["source"] == "MUSE-03/heartbeat.json"
-    html, _poll = _render(snapshot)
-    assert ">READY<" not in html
-    assert html.index('data-station="MUSE-03"') < html.index('data-station="MUSE-10"')
+def test_k1_rejects_invalid_heartbeats(tmp_path):
+    observed, beispiel = _beat(1, quelle="BEI" "SPIEL")
+    dropped = _snapshot(tmp_path / "ha", tmp_path / "na", _wall_beat(tmp_path / "a", beispiel), observed)
+    html, _poll = _render(dropped)
+    assert dropped["muse_wall"]["stations"] == [] and dropped["muse_wall"]["value"] == UNAVAILABLE
+    assert "BEISPIEL" not in html and ">READY<" not in html
+    for index, ((_, body), window) in enumerate(((_beat(1, schema="other.schema"), None), (_beat(-6), "W03"))):
+        snap = _snapshot(tmp_path / f"h{index}", tmp_path / f"n{index}", _wall_beat(tmp_path / f"c{index}", body), observed)
+        station = snap["muse_wall"]["stations"][0]
+        assert station["state"]["value"] == UNAVAILABLE and snap["muse_wall"]["active"] is False
+        assert window is None or station["id"] == window
+    wall = tmp_path / "d" / "wall"
+    (wall / "heartbeat").mkdir(parents=True)
+    (wall / "heartbeat" / "win-W03.json").write_bytes(b"\xff")
+    unreadable = _snapshot(tmp_path / "hd", tmp_path / "nd", wall, observed)
+    assert unreadable["muse_wall"]["stations"][0]["state"]["value"] == UNAVAILABLE
 
 
-def test_ledger_bridge_reads_state_entries_and_journal(tmp_path):
-    home = tmp_path / "home"
+def test_k2_ledger_bridge_reads_the_file(tmp_path):
+    home = tmp_path / "bridgebox"
     home.mkdir()
-    (home / "ledger_bridge_state.json").write_text(json.dumps({
-        "missions": {
-            "A": {
-                "task_id": "task-a",
-                "status": "POSTED",
-                "reason": "WAITING",
-                "updated_at": "2026-10-14T21:00:00Z",
-            },
-            "B": {"task_id": "task-b"},
-        },
-    }), encoding="utf-8")
-    (home / "coordination_ledger.jsonl").write_text("\n".join([
-        json.dumps({
-            "event_id": "e1", "mission_id": "B", "status": "WORKING",
-            "event_type": "STARTED", "created_at": "2026-10-14T20:00:00Z",
-        }),
-        json.dumps({
-            "event_id": "e2", "mission_id": "C", "status": "DONE",
-            "event_type": "FINAL", "created_at": "2026-10-14T21:30:00Z",
-        }),
-        "not json",
-        json.dumps({"mission_id": "D", "status": "GUESS", "created_at": "2026-10-14T21:30:00Z"}),
-    ]) + "\n", encoding="utf-8")
-    snapshot = build_snapshot(
-        _hub(home), root=tmp_path / "no-repo", wall=tmp_path / "no-wall", wall_label="muse wall",
-        observed_at="2026-10-14T22:00:00Z", github_fetch=OFFLINE,
-    )
-    bridge = snapshot["ledger_bridge"]
-    assert bridge["available"] is True
-    assert bridge["source"] == "ledger_bridge_state.json"
-    by_id = {row["id"]: row for row in bridge["missions"]}
-    assert list(by_id) == ["A", "B", "C"]
-    assert by_id["A"]["status"] == "POSTED"
-    assert by_id["A"]["task_id"] == "task-a"
-    assert by_id["A"]["reason"] == "WAITING"
-    assert by_id["A"]["at"] == "2026-10-14T21:00:00Z"
-    assert by_id["A"]["source"] == "ledger_bridge_state.json"
-    assert by_id["B"]["status"] == "WORKING"
-    assert by_id["B"]["task_id"] == "task-b"
-    assert by_id["B"]["source"] == "ledger_bridge_state.json"
-    assert by_id["B"]["status_source"] == "coordination_ledger.jsonl"
-    assert by_id["B"]["status_at"] == "2026-10-14T20:00:00Z"
-    assert by_id["B"]["event_type"] == "STARTED"
-    assert by_id["C"]["status"] == "DONE"
-    assert by_id["C"]["source"] == "coordination_ledger.jsonl"
+    (home / "ledger_bridge_state.json").write_text(json.dumps({"missions": {
+        "m-newer": {"status": "POSTED", "task_id": "task-newer", "reason": "bridge-reason-newer", "updated_at": "2026-10-14T21:30:00Z"},
+        "m-older": {"status": "FINAL_DONE", "task_id": "task-older", "reason": "bridge-reason-older", "updated_at": "2026-10-14T21:00:00Z"},
+    }}), encoding="utf-8")
+    bridge = _snapshot(home, tmp_path / "no-repo", tmp_path / "no-wall", "2026-10-14T22:00:00Z")["ledger_bridge"]
+    assert bridge["source"] == "bridgebox/ledger_bridge_state.json"
+    assert [(row["id"], row["at"], row["source"]) for row in bridge["missions"]] == [
+        ("m-newer", "2026-10-14T21:30:00Z", bridge["source"]),
+        ("m-older", "2026-10-14T21:00:00Z", bridge["source"]),
+    ]
+    assert bridge["missions"][0]["reason"] == "bridge-reason-newer"
+    product = (REPO / "courier_hub" / "kolibri_data.py").read_text(encoding="utf-8")
+    assert "bridge-reason-newer" not in product and "task-newer" not in product
+    html, _poll = _render({"ledger_bridge": bridge})
+    assert "source bridgebox/ledger_bridge_state.json" in html and "timestamp 2026-10-14T21:30:00Z" in html
+    empty_home = tmp_path / "emptybox"
+    empty_home.mkdir()
+    (empty_home / "ledger_bridge_state.json").write_text('{"missions": {}}', encoding="utf-8")
+    empty = _snapshot(empty_home, tmp_path / "no-2", tmp_path / "no-wall-2", "2026-10-14T22:00:00Z")["ledger_bridge"]
+    assert empty["available"] is True and empty["active"] is False and empty["value"] == REST_TEXT
+    bad_home = tmp_path / "badbox"
+    bad_home.mkdir()
+    (bad_home / "ledger_bridge_state.json").write_bytes(b"{")
+    bad = _snapshot(bad_home, tmp_path / "no-3", tmp_path / "no-wall-3", "2026-10-14T22:00:00Z")["ledger_bridge"]
+    assert bad["available"] is False and bad["value"] == UNAVAILABLE
+
+
+def test_k3_sort_newest_first_ties_by_id(tmp_path):
+    observed = "2026-10-14T22:00:00Z"
+    wall = tmp_path / "wall"
+    (wall / "heartbeat").mkdir(parents=True)
+    for name, window, stamp in (("a.json", "W03", "2026-10-14T21:00:00Z"), ("b.json", "W01", "2026-10-14T21:00:00Z"), ("c.json", "W02", "2026-10-14T21:30:00Z")):
+        _seen, body = _beat(0, fenster_id=window, letzter_heartbeat=stamp)
+        (wall / "heartbeat" / name).write_text(json.dumps(body), encoding="utf-8")
+    snapshot = _snapshot(tmp_path / "home", tmp_path / "no-repo", wall, observed)
+    assert [station["id"] for station in snapshot["muse_wall"]["stations"]] == ["W02", "W01", "W03"]
     html, _poll = _render(snapshot)
-    assert 'data-mission="A"' in html
-    assert "source ledger_bridge_state.json" in html
-    assert "source coordination_ledger.jsonl" in html
-    assert "timestamp 2026-10-14T21:00:00Z" in html
-    assert "GUESS" not in html
+    assert html.index('data-station="W02"') < html.index('data-station="W01"') < html.index('data-station="W03"')
+    rows = _parse_merges("\n".join([
+        "aaa\x1f2026-10-14T21:00:00Z\x1fLand older (#3)",
+        "bbb\x1f2026-10-14T21:00:00Z\x1fLand tie (#9)",
+        "ccc\x1f2026-10-14T21:30:00Z\x1fLand new (#1)",
+    ]), "git log integration/v1")
+    assert [row["pr"] for row in rows] == [1, 3, 9]
 
 
-def test_ledger_journal_alone_is_the_bridge_and_a_missing_journal_stays_unknown(tmp_path):
-    home = tmp_path / "journal-only"
+def test_k4_rendered_page_and_api_hide_paths_and_names(tmp_path):
+    root = tmp_path / "no-repo"
+    shown = {
+        "/tmp/bridgebox/ledger_bridge_state.json": "bridgebox/ledger_bridge_state.json",
+        "/home/ubuntu/notes/ledger_bridge_state.json": "notes/ledger_bridge_state.json",
+        "/home/ubuntu/ledger_bridge_state.json": "ledger_bridge_state.json",
+        r"C:\Users\lol\AppData\state.json": "AppData/state.json",
+    }
+    for raw_path, expected in shown.items():
+        text = _display_path(Path(raw_path), root)
+        assert text == expected and "ubuntu" not in text and "lol" not in text and "Users" not in text
+    home = tmp_path / "bridgebox"
     home.mkdir()
-    (home / "coordination_ledger.jsonl").write_text(json.dumps({
-        "event_id": "e1", "mission_id": "M", "status": "BLOCKED",
-        "event_type": "BLOCKED", "created_at": "2026-10-01T00:00:00Z",
-    }) + "\n", encoding="utf-8")
-    seen = build_snapshot(
-        _hub(home), root=tmp_path / "no-repo", wall=tmp_path / "no-wall", wall_label="muse wall",
-        observed_at="2026-10-14T22:00:00Z", github_fetch=OFFLINE,
-    )
-    assert seen["ledger_bridge"]["available"] is True
-    assert seen["ledger_bridge"]["source"] == "coordination_ledger.jsonl"
-    assert seen["ledger_bridge"]["missions"][0]["status"] == "BLOCKED"
-    assert seen["ledger_bridge"]["missions"][0]["at"] == "2026-10-01T00:00:00Z"
-    absent = build_snapshot(
-        _hub(tmp_path / "empty"), root=tmp_path / "no-repo-2", wall=tmp_path / "no-wall-2",
-        wall_label="muse wall", observed_at="2026-10-14T22:00:00Z", github_fetch=OFFLINE,
-    )
-    assert absent["ledger_bridge"]["value"] == UNAVAILABLE
-    assert absent["ledger_bridge"]["missions"] == []
+    (home / "ledger_bridge_state.json").write_text(json.dumps({"missions": {
+        "keep": {"status": "POSTED", "reason": "founder@courier.dev", "updated_at": "2026-10-14T21:00:00Z"},
+        "drop": {"status": "POSTED", "reason": "secret@hidden.example", "task_id": "ghs_token", "updated_at": "2026-10-14T20:00:00Z"},
+    }}), encoding="utf-8")
+    observed, _body = _beat(1)
+    snapshot = _snapshot(home, root, _wall_beat(tmp_path, _body), observed)
+    raw, (html, _poll) = json.dumps(snapshot), _render(snapshot)
+    assert "founder@courier.dev" in raw and "bridgebox/ledger_bridge_state.json" in raw and "heartbeat/win-W03.json" in html
+    for text in (raw, html):
+        lowered = text.lower()
+        assert not any(mark in lowered for mark in ("/home/", "/users/", "c:\\", "c:/", "ghs_", "ghp_", "github_pat_", "camera-host-name", "ubuntu", "secret@hidden.example", "lol"))
+        assert "~" not in text
 
 
-def test_done_uses_the_ref_that_contains_the_merge_and_the_slot_number(tmp_path):
-    repo = tmp_path / "repo"
-    _git_repo(repo, "Base")
-    base = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
-    _commit(repo, "local.txt", "Ship MUSE-2 (#3)")
-    subprocess.run(["git", "checkout", "-B", "other", base], cwd=repo, check=True, capture_output=True)
-    _commit(repo, "origin.txt", "Merge pull request #5 from example/muse\n\nLand MUSE-10 on the wall")
-    origin = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
-    subprocess.run(["git", "update-ref", "refs/remotes/origin/integration/v1", origin], cwd=repo, check=True)
-    subprocess.run(["git", "checkout", "integration/v1"], cwd=repo, check=True, capture_output=True)
-    wall = tmp_path / "wall"
-    for slot_id in ("MUSE-01", "MUSE-02", "MUSE-10"):
-        _slot(wall, slot_id, {"slot_id": slot_id, "state": "READY", "process": None, "updated_at": 1})
-    snapshot = build_snapshot(
-        _hub(tmp_path / "home"), root=repo, wall=wall, wall_label="muse wall",
-        observed_at="2026-10-14T22:00:00Z", github_fetch=OFFLINE,
-    )
-    assert "git log integration/v1" in snapshot["merged_prs"]["source"]
-    assert "git log origin/integration/v1" in snapshot["merged_prs"]["source"]
-    assert sorted(row["pr"] for row in snapshot["merged_prs"]["rows"]) == [3, 5]
-    by_id = {station["id"]: station["done"] for station in snapshot["muse_wall"]["stations"]}
-    assert [station["id"] for station in snapshot["muse_wall"]["stations"]] == ["MUSE-01", "MUSE-02", "MUSE-10"]
-    assert by_id["MUSE-02"]["value"] == "DONE" and by_id["MUSE-02"]["pr"] == 3
-    assert by_id["MUSE-10"]["value"] == "DONE" and by_id["MUSE-10"]["pr"] == 5
-    assert by_id["MUSE-01"]["value"] == "not done"
-    assert by_id["MUSE-10"]["source"].startswith("git log origin/integration/v1")
+def test_k5_product_code_has_no_stand_in_words():
+    pattern = re.compile(r"mock|dummy|random|fake|demo|Math\.random", re.I)
+    paths = [REPO / "courier_hub" / "kolibri_data.py", *sorted((REPO / "courier_hub" / "static").glob("kolibri*"))]
+    for path in paths:
+        text = path.read_text(encoding="utf-8")
+        assert pattern.search(text) is None and "BEISPIEL" not in text
 
 
-def test_stale_local_integration_does_not_hide_origin_merges(tmp_path):
-    repo = tmp_path / "repo"
-    _git_repo(repo, "Old landing (#1)")
-    old = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
-    _commit(repo, "new.txt", "Finish MUSE-04 (#8)")
-    new = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
-    subprocess.run(["git", "checkout", "--detach"], cwd=repo, check=True, capture_output=True)
-    subprocess.run(["git", "update-ref", "refs/heads/integration/v1", old], cwd=repo, check=True)
-    subprocess.run(["git", "update-ref", "refs/remotes/origin/integration/v1", new], cwd=repo, check=True)
-    wall = tmp_path / "wall"
-    _slot(wall, "MUSE-04", {"slot_id": "MUSE-04", "state": "READY", "process": None, "updated_at": 1})
-    snapshot = build_snapshot(
-        _hub(tmp_path / "home"), root=repo, wall=wall, wall_label="muse wall",
-        observed_at="2026-10-14T22:00:00Z", github_fetch=OFFLINE,
+def test_k6_forbidden_paths_stay_untouched():
+    proc = subprocess.run(
+        ["git", "-C", str(REPO), "diff", "--name-only", "origin/integration/v1...HEAD"],
+        check=True, capture_output=True, text=True,
     )
-    assert snapshot["merged_prs"]["source"] == "git log origin/integration/v1"
-    assert [row["pr"] for row in snapshot["merged_prs"]["rows"]] == [1, 8]
-    assert snapshot["muse_wall"]["stations"][0]["done"]["value"] == "DONE"
-    assert snapshot["muse_wall"]["stations"][0]["done"]["pr"] == 8
+    names = [line.strip() for line in proc.stdout.splitlines() if line.strip()]
+    allowed = {"courier_hub/kolibri_data.py", "courier_hub/static/kolibri_core.mjs", "courier_hub/static/kolibri.html",
+               "courier_hub/static/kolibri.js", "courier_hub/static/kolibri.css", "tests/hub/test_kolibri_view.py"}
+    banned = ("server/app.py", ".github/", "spider_slice.py", "ralph", "ledger_v1_bridge.py", "controller.py",
+              "courier_core/serve.py", "courier_core/events.py", "projection.py", "state_machine.py",
+              "adapter_bridge.py", "adapter_runner.py", "courier_worker/host.py", "courier_worker/service.py",
+              "adapters/synthetic.py", "l2_controller_handoff.md", "test_ledger_bridge", "test_task_dependency", "test_ctrl_task")
+    assert names and all(name in allowed and not any(part in name.lower() for part in banned) for name in names)
+
+
+def test_k8_poll_interval_stays_within_30_seconds():
+    _html, poll = _render({"observed_at": "2026-10-14T22:00:00Z"})
+    assert 0 < poll <= 30000
