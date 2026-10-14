@@ -488,10 +488,12 @@ def test_k5_product_code_has_no_stand_in_words():
 
 
 def test_k6_forbidden_paths_stay_untouched():
-    proc = subprocess.run(
-        ["git", "-C", str(REPO), "diff", "--name-only", "origin/integration/v1...HEAD"],
-        check=True, capture_output=True, text=True,
-    )
+    git = ["git", "-C", str(REPO)]
+    base = "origin/integration/v1"
+    if subprocess.run([*git, "rev-parse", "--verify", "--quiet", base], check=False, capture_output=True).returncode != 0:
+        subprocess.run([*git, "fetch", "--depth=200", "origin", "integration/v1"], check=True, capture_output=True, text=True, timeout=60)
+        subprocess.run([*git, "fetch", "--deepen=200"], check=False, capture_output=True, text=True, timeout=60)
+    proc = subprocess.run([*git, "diff", "--name-only", f"{base}...HEAD"], check=True, capture_output=True, text=True)
     names = [line.strip() for line in proc.stdout.splitlines() if line.strip()]
     allowed = {"courier_hub/kolibri_data.py", "courier_hub/static/kolibri_core.mjs", "courier_hub/static/kolibri.html",
                "courier_hub/static/kolibri.js", "courier_hub/static/kolibri.css", "tests/hub/test_kolibri_view.py"}
