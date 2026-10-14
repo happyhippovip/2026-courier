@@ -35,11 +35,13 @@ class TestIndependentVerifier(unittest.TestCase):
         git(self.remote, "init", "-q")
         git(self.remote, "config", "uploadpack.allowFilter", "true")
         git(self.remote, "config", "uploadpack.allowAnySHA1InWant", "true")
+        # Keep LF blobs on Windows so worktree copy hashes match `git show` (verifier).
+        git(self.remote, "config", "core.autocrlf", "false")
         for rel, text in WORKFLOWS.items():
             p = self.remote / ".github" / "workflows" / rel
             p.parent.mkdir(parents=True, exist_ok=True)
-            p.write_text(text, encoding="utf-8")
-        (self.remote / "README.md").write_text("x", encoding="utf-8")
+            p.write_bytes(text.encode("utf-8"))
+        (self.remote / "README.md").write_bytes(b"x")
         git(self.remote, "add", "-A")
         git(self.remote, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "init")
         self.sha = git(self.remote, "rev-parse", "HEAD")
