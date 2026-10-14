@@ -11,6 +11,7 @@ deterministic success + failure, fault injection, single source of truth
 import hashlib
 import json
 import os
+import threading
 from pathlib import Path
 
 import pytest
@@ -19,6 +20,105 @@ from adapters import synthetic
 from adapters.synthetic import SyntheticCrash, SyntheticHang
 from courier_core.events import Event, EventType
 from courier_core.state_machine import TaskStatus, TaskState
+
+
+@pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="POSIX FIFO evidence")
+@pytest.mark.parametrize("replace_after_resolve", [False, True])
+def test_fifo_evidence_cannot_pin_the_verifier(tmp_path, monkeypatch, replace_after_resolve):
+    path = tmp_path / "out.txt"
+    if replace_after_resolve:
+        path.write_bytes(b"")
+        resolve = Path.resolve
+
+        def replace_file(self, *args, **kwargs):
+            resolved = resolve(self, *args, **kwargs)
+            if self == path and path.is_file():
+                path.unlink()
+                os.mkfifo(path)
+            return resolved
+
+        monkeypatch.setattr(Path, "resolve", replace_file)
+    else:
+        os.mkfifo(path)
+    verdicts = []
+    thread = threading.Thread(target=lambda: verdicts.append(synthetic.verify(
+        task(params={"write": "out.txt", "content": ""}),
+        ready(success_payload(tmp_path, content="")), tmp_path)))
+    thread.start()
+    thread.join(timeout=0.5)
+    finished_without_writer = not thread.is_alive()
+    # Always release the old blocking implementation before asserting, so a
+    # regression cannot leave a test thread/FIFO behind.
+    if thread.is_alive():
+        fd = os.open(path, os.O_WRONLY | os.O_NONBLOCK)
+        os.close(fd)
+    thread.join(timeout=2)
+    assert not thread.is_alive(), "test-owned verifier must terminate"
+    assert finished_without_writer, "FIFO evidence blocked the sole verifier"
+    assert len(verdicts) == 1 and not verdicts[0].accepted
+
+
+def test_evidence_larger_than_host_budget_is_rejected(tmp_path):
+    size = 16 * 1024 * 1024 + 1  # existing L3 MAX_ARTIFACT_BYTES
+    path = tmp_path / "large.bin"
+    with path.open("wb") as handle:
+        handle.truncate(size)
+    digest = hashlib.sha256(b"\0" * size).hexdigest()
+    payload = {"outcome": "success", "artifacts": [{"path": "large.bin", "sha256": digest}]}
+    assert not synthetic.verify(task(params={}), ready(payload), tmp_path).accepted
+
+
+def test_artifact_budget_applies_to_the_whole_result(tmp_path, monkeypatch):
+    monkeypatch.setattr(synthetic, "MAX_EVIDENCE_BYTES", 8)
+    refs = []
+    for name in ("one", "two"):
+        (tmp_path / name).write_bytes(b"12345")
+        refs.append({"path": name, "sha256": hashlib.sha256(b"12345").hexdigest()})
+    assert not synthetic.verify(task(params={}), ready({"outcome": "success", "artifacts": refs}), tmp_path).accepted
+
+
+def test_file_growth_during_hashing_cannot_escape_the_budget(tmp_path, monkeypatch):
+    monkeypatch.setattr(synthetic, "MAX_EVIDENCE_BYTES", 8)
+    path = tmp_path / "out.txt"
+    path.write_bytes(b"1234")
+    read = os.read
+    grew = False
+
+    def grow_after_first_read(fd, count):
+        nonlocal grew
+        chunk = read(fd, count)
+        if not grew:
+            grew = True
+            with path.open("ab") as handle:
+                handle.write(b"56789")
+        return chunk
+
+    monkeypatch.setattr(os, "read", grow_after_first_read)
+    assert not synthetic.verify(task(params={}), ready(success_payload(tmp_path, content="123456789")), tmp_path).accepted
+
+
+@pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="POSIX FIFO evidence")
+def test_poison_evidence_does_not_block_the_next_controller_verdict(tmp_path):
+    from courier_core.controller import Controller
+
+    os.mkfifo(tmp_path / "poison")
+    (tmp_path / "good").write_bytes(b"ok")
+    ctl = Controller(tmp_path).boot()
+    ids = []
+    try:
+        for name, content in (("poison", b""), ("good", b"ok")):
+            _, created = ctl.create_task({"adapter": "synthetic", "params": {}, "idempotency_key": name,
+                                          "effect_class": "idempotent", "max_attempts": 1, "lease_ttl_s": 6})
+            lease = ctl.claim({"worker_id": "worker"})
+            ctl.start({"dispatch_id": lease["dispatch_id"]})
+            ctl.result({"dispatch_id": lease["dispatch_id"], "result_id": name, "outcome": "success",
+                        "artifacts": [{"path": name, "sha256": hashlib.sha256(content).hexdigest()}]})
+            ids.append(created["task_id"])
+        assert ctl.verify_next() and ctl.verify_next()
+        assert [ctl.journal.task(tid).status for tid in ids] == [TaskStatus.FAILED, TaskStatus.COMPLETE]
+        assert ctl.journal.verify_chain().ok and ctl.journal.verify_projection()
+    finally:
+        ctl.stop()
 
 
 def task(**changes):

@@ -1,0 +1,33 @@
+{
+  "WORKKEY": "SYNTHETIC-EVIDENCE-BOUNDS",
+  "OWNER": "codex-cloud / existing L4 verifier contract",
+  "BRANCH": "codex/synthetic-evidence-bounds",
+  "HEAD/COMMIT": "e931d31b04e0bcf4c7bf7abf8bce36336fb028dc",
+  "CURRENT_STATE": "FINAL_IMPLEMENTATION_REVIEW_PENDING",
+  "FILES": [
+    "adapters/synthetic.py",
+    "tests/test_synthetic_adapter.py"
+  ],
+  "ROOT_CAUSE": "Unbounded read_bytes on worker-owned evidence can wait forever on a FIFO or allocate the whole artifact in the controller. The controller has one verifier thread, so unrelated results remain VERIFYING.",
+  "TEST_EVIDENCE": {
+    "before": "3 causal regressions failed on f425d328; both FIFO test threads released and joined before failure",
+    "after": "50 passed, 0 failed, 0 skipped in 27.33s",
+    "command": ".venv/bin/python -m pytest -q tests/test_synthetic_adapter.py tests/controller/test_ctrl_golden_contract.py --timeout=30",
+    "cases": [
+      "FIFO without writer",
+      "regular file replaced by FIFO after path resolution",
+      "oversize regular evidence",
+      "aggregate byte budget",
+      "growth while hashing",
+      "real controller rejects poison evidence and completes next distinct result"
+    ],
+    "platform": "Linux"
+  },
+  "UNPROVEN": [
+    "Integration and exact PR-head CI",
+    "Generic verifier isolation/latency under blocked OS storage remains a L2/L4 responsibility; O_NONBLOCK is not a disk-I/O deadline.",
+    "Windows special-file behavior not proven on this Linux host",
+    "local_shell read_bytes and PIPE capture remain in the occupied PR #141 scope; WorkerHost collector belongs occupied L3 scopes."
+  ],
+  "NEXT_EXACT_ACTION": "L1 reviews this L4 change. #141 owner applies equivalent evidence/output bounds in local_shell without a duplicate writer; L2/L4 own generic verification containment."
+}
