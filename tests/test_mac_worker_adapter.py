@@ -10,28 +10,29 @@ from scripts import mac_worker_adapter
 
 def test_run_success(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    
+
     task_file = tmp_path / "task.json"
     with open(task_file, "w") as f:
         json.dump({"task_id": "mac1", "goal_id": "g1"}, f)
-        
-    def mock_sleep(seconds):
-        outbox_file = Path("scripts/mac_worker/outbox/mac1_result.json")
-        outbox_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(outbox_file, "w") as f:
-            json.dump({"status": "SUCCESS"}, f)
-            
-    with mock.patch("scripts.mac_worker_adapter.time.sleep", side_effect=mock_sleep):
-        mac_worker_adapter.run(str(task_file))
-        
+
+    # Place the Mac result before run(). The adapter binds the time module, so
+    # patching scripts.mac_worker_adapter.time.sleep replaces global time.sleep.
+    # A thread still running from an earlier test then rewrites the outbox
+    # after the adapter has removed it.
+    outbox_file = Path("scripts/mac_worker/outbox/mac1_result.json")
+    outbox_file.parent.mkdir(parents=True, exist_ok=True)
+    with open(outbox_file, "w") as f:
+        json.dump({"status": "SUCCESS"}, f)
+
+    mac_worker_adapter.run(str(task_file))
+
     incoming = Path("results/incoming/mac1_result.json")
     assert incoming.exists()
-    
+
     with open(incoming, "r") as f:
         res = json.load(f)
         assert res["status"] == "SUCCESS"
-        
-    outbox_file = Path("scripts/mac_worker/outbox/mac1_result.json")
+
     assert not outbox_file.exists()
 
 
