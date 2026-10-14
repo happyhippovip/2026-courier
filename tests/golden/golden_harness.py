@@ -158,6 +158,8 @@ class Courier:
         return proc
 
     def start_controller(self, timeout=30):
+        from tests.dispatch_contract import install_dispatch_contract
+        install_dispatch_contract(self.home)
         self.controller = self._spawn(
             ["courier_core.serve", "--home", str(self.home), "--port", str(self.port), "--print-port"],
             "controller.log")
@@ -329,12 +331,14 @@ class Courier:
         return sorted(str(p) for p in root.rglob("*") if p.is_file()) if root.exists() else []
 
     def make_task(self, effect_class="idempotent", max_attempts=3, lease_ttl_s=6, timeout_s=None, **params):
+        from tests.dispatch_contract import task_view
         body = {
             "adapter": "synthetic",
             "params": synthetic_params(**params),
             "effect_class": effect_class,
             "max_attempts": max_attempts,
             "lease_ttl_s": lease_ttl_s,
+            **task_view(scope=["out.txt"]),
         }
         if timeout_s is not None:
             body["timeout_s"] = timeout_s

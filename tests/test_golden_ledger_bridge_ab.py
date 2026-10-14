@@ -22,12 +22,14 @@ from scripts.coordination_ledger import (
 )
 from scripts.coordination_resume import reduce_store
 from scripts.github_coordination import FileCoordinationStore
+from tests.dispatch_contract import task_view
 
 REPO = Path(__file__).resolve().parents[1]
 AGENT = "GOOGLE_WINDOWS"
 HOST = "WINDOWS_REMOTE"
-GOAL_ID = "goal.bridge.ab"
-GOAL_FP = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+_VIEW = task_view(scope=["out.txt"])
+GOAL_ID = _VIEW["goal_id"]
+GOAL_FP = _VIEW["goal_fingerprint"]
 
 
 def _courier_cls():
@@ -60,8 +62,7 @@ def _spec(unit):
         "effect_class": "idempotent",
         "max_attempts": 1,
         "lease_ttl_s": 30,
-        "goal_id": GOAL_ID,
-        "goal_fingerprint": GOAL_FP,
+        **_VIEW,
     }
 
 

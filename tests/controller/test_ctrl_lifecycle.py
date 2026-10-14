@@ -87,7 +87,7 @@ def test_idempotency_key_makes_creation_repeatable(ctl):
 def test_task_creation_writes_only_the_journal(ctl):
     ctl.create_task(task_body(timeout_s=30))
     files = sorted(p.name for p in ctl.home.iterdir())
-    assert all(name.startswith("courier.db") for name in files), files
+    assert all(name.startswith("courier.db") or name == "goal_contracts.jsonl" for name in files), files
 
 
 # ---------------------------------------------------------------- D. claim

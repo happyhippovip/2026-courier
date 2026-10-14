@@ -221,7 +221,9 @@ def _http_request(url: str, method: str = "GET", headers: dict | None = None, bo
 
 
 def test_service_lifecycle_and_http_endpoints(tmp_path: Path):
+    from tests.dispatch_contract import install_dispatch_contract, task_view
     home = tmp_path / "courier_home"
+    install_dispatch_contract(home)
     service = Service(home, port=0)
     assert service.port > 0
 
@@ -268,6 +270,7 @@ def test_service_lifecycle_and_http_endpoints(tmp_path: Path):
             "effect_class": "idempotent",
             "max_attempts": 3,
             "lease_ttl_s": 60,
+            **task_view(),
         }
         status, body = _http_request(f"{base_url}/v1/tasks", method="POST", headers=auth_headers, body=task_payload)
         assert status == 201
@@ -334,7 +337,9 @@ def test_service_http_payload_edge_cases(tmp_path: Path):
 
 
 def test_service_claim_and_execution_lifecycle(tmp_path: Path):
+    from tests.dispatch_contract import install_dispatch_contract, task_view
     home = tmp_path / "courier_home_exec"
+    install_dispatch_contract(home)
     service = Service(home, port=0)
     t = threading.Thread(target=service.run, daemon=True)
     t.start()
@@ -359,6 +364,7 @@ def test_service_claim_and_execution_lifecycle(tmp_path: Path):
             "effect_class": "idempotent",
             "max_attempts": 2,
             "lease_ttl_s": 60,
+            **task_view(),
         }
         status, body = _http_request(f"{base_url}/v1/tasks", method="POST", headers=auth_headers, body=task_payload)
         assert status == 201
