@@ -314,6 +314,8 @@ class GoalContractStore:
     def append(self, contract: GoalContract) -> None:
         if not isinstance(contract, GoalContract):
             raise GoalContractError("not a goal contract")
+        if not contract.human_confirmed:
+            raise GoalContractError("only a confirmed contract can be stored")
         line = _envelope(contract).encode("utf-8")
         if len(line) > MAX_FILE_BYTES:
             raise GoalContractError("record exceeds 1 MiB")
@@ -457,59 +459,77 @@ def _task_scope(value: object) -> set[str] | None:
     return items
 
 
-# A checkable end result names one outcome. These markers leave the result
-# with more than one reading, so the draft cannot be dispatched.
+# Vague or unfinished wording. A single "or" or "either" is a legitimate
+# goal ("ship the report or the summary") and is not one of these markers.
 _AMBIGUOUS_TEXT = re.compile(
     r"(\?|\btbd\b|\btodo\b|\betc\b|\bmaybe\b|\bsomehow\b|\bwhatever\b|"
-    r"\band/or\b|\bas needed\b|\bas appropriate\b|\bsomething\b|"
-    r"\bunclear\b|\beither\b|\bor\b)",
+    r"\band/or\b|\bas needed\b|\bas appropriate\b|\bsomething\b|\bunclear\b)",
     re.IGNORECASE,
 )
 _DRAFT_FIELDS = set(_FINGERPRINT_FIELDS) | {"confirmations"}
+_ANONYMOUS_ACTORS = frozenset({"anonymous", "anon", "unknown", "none", "null", "guest", "agent"})
+GOAL_CONTRACTS_FILE = "goal_contracts.jsonl"
 
 
 def draft_goal_contract(goal: object) -> GoalDraft:
-    """Draft a goal contract from a caller-supplied goal, or ask for clarification.
+    """Draft a goal contract, or ask for clarification.
 
-    A missing goal and an ambiguous goal both return NEEDS_CLARIFICATION and no
-    contract. A single checkable end result returns DRAFTED. Confirmation is
-    recorded only when the caller already supplied one. ``Controller.create_task``
-    calls this before a declared goal can be journaled. ``server/app.py`` and
-    ``ChiefCommander`` do not call the controller, so they bypass that gate.
+    Free text becomes an unconfirmed DRAFT awaiting a human. NEEDS_CLARIFICATION
+    is only for a missing goal or a contradictory one. A single "or" or "either"
+    does not. This never writes a confirmation and never stores the draft.
     """
-    if goal is None or goal == "" or goal == {}:
+    if goal is None or goal == {} or (isinstance(goal, str) and not goal.strip()):
         return _clarify("missing_goal")
     if isinstance(goal, str):
-        return _clarify("missing_goal" if not goal.strip() else "ambiguous_goal")
+        return _draft_from_text(goal)
     if not isinstance(goal, dict):
         return _clarify("missing_goal")
 
     reasons: list[str] = []
-    incomplete = not set(_FINGERPRINT_FIELDS) <= set(goal)
-    unknown = set(goal) - _DRAFT_FIELDS
-    if incomplete:
+    if not set(_FINGERPRINT_FIELDS) <= set(goal):
         reasons.append("missing_goal")
-    if unknown or _goal_text_is_ambiguous(goal):
+    if set(goal) - _DRAFT_FIELDS:
+        reasons.append("contradictory")
+    if _goal_text_is_ambiguous(goal):
         reasons.append("ambiguous_goal")
-    # Unknown or incomplete terms cannot be built. Ambiguous wording on a
-    # complete record is still built below so a structural defect is reported too.
-    if incomplete or unknown:
+    if reasons:
         return GoalDraft(DraftOutcome.NEEDS_CLARIFICATION, _draft_reasons(reasons))
 
-    record = dict(goal)
-    record.setdefault("confirmations", [])
+    record = {key: value for key, value in goal.items() if key != "confirmations"}
+    record["confirmations"] = []
     try:
         contract = GoalContract.from_record(record)
     except GoalContractError as exc:
         message = str(exc)
         if "cannot be both allowed and forbidden" in message or "ids must be unique" in message:
-            reasons.append("ambiguous_goal")
-        else:
-            reasons.append("missing_goal")
-        return GoalDraft(DraftOutcome.NEEDS_CLARIFICATION, _draft_reasons(reasons))
-    if reasons:
-        return GoalDraft(DraftOutcome.NEEDS_CLARIFICATION, _draft_reasons(reasons))
+            return _clarify("contradictory")
+        return _clarify("missing_goal")
     return GoalDraft(DraftOutcome.DRAFTED, (), contract)
+
+
+def confirm_draft(contract: GoalContract, actor_ref: str, at: str, *, authenticated: bool) -> GoalContract:
+    """Record a confirmation the caller already authenticated. Never invents one."""
+    if not isinstance(contract, GoalContract):
+        raise GoalContractError("not a goal contract")
+    if authenticated is not True or not _authenticated_human(actor_ref):
+        raise GoalContractError("confirmation requires an authenticated human identity")
+    return contract.confirm(actor_ref.strip(), at, actor_kind="human")
+
+
+def store_confirmed(store: GoalContractStore, contract: GoalContract) -> None:
+    """Persist a contract only after an authenticated human confirmation."""
+    if not isinstance(contract, GoalContract) or not contract.human_confirmed:
+        raise GoalContractError("only a confirmed contract can be stored")
+    if not _authenticated_human(contract.confirmations[-1].actor_ref):
+        raise GoalContractError("confirmation requires an authenticated human identity")
+    store.append(contract)
+
+
+def validate_task(contract: GoalContract | None, task_spec: object) -> Validation:
+    """Always decide. A missing contract is not verifiable and must not dispatch."""
+    if not isinstance(contract, GoalContract):
+        return Validation(Verdict.NOT_VERIFIABLE, ("missing_contract",))
+    return contract.validate_task(task_spec)
 
 
 def _clarify(reason: str) -> GoalDraft:
@@ -517,7 +537,38 @@ def _clarify(reason: str) -> GoalDraft:
 
 
 def _draft_reasons(reasons: list[str]) -> tuple[str, ...]:
-    return tuple(name for name in ("missing_goal", "ambiguous_goal") if name in reasons)
+    return tuple(name for name in ("missing_goal", "contradictory", "ambiguous_goal") if name in reasons)
+
+
+def _draft_from_text(text: str) -> GoalDraft:
+    """A free-text goal is a draft. It is not confirmed and not stored."""
+    statement = text.strip()
+    if _ambiguous_text(statement) or "\n" in statement or "\r" in statement or len(statement) > _MAX_TEXT:
+        return _clarify("ambiguous_goal" if _ambiguous_text(statement) else "missing_goal")
+    goal_id = "goal-" + hashlib.sha256(statement.encode("utf-8")).hexdigest()[:16]
+    contract = GoalContract(
+        goal_id=goal_id,
+        end_result=statement,
+        allowed_scope=["stated-result"],
+        forbidden_scope=[],
+        constraints=[],
+        acceptance_criteria=[AcceptanceCriterion("stated-result", statement, "deterministic")],
+        side_effect_limits=[],
+        gates=Gates(human=True, money=False, safety=False),
+    )
+    return GoalDraft(DraftOutcome.DRAFTED, (), contract)
+
+
+def _authenticated_human(actor_ref: object) -> bool:
+    if not isinstance(actor_ref, str):
+        return False
+    ref = actor_ref.strip()
+    folded = ref.casefold()
+    if not ref or folded in _ANONYMOUS_ACTORS:
+        return False
+    if folded.startswith("agent:") or folded.startswith("agent ") or folded.startswith("anonymous"):
+        return False
+    return True
 
 
 def _goal_text_is_ambiguous(goal: dict) -> bool:

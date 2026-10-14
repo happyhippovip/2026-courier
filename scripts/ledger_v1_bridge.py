@@ -48,6 +48,7 @@ EXIT_CONFIG = 2
 EXIT_RETRY = 75
 DEFAULT_CONTROLLER = "http://127.0.0.1:8080"
 TASK_FIELDS = ("adapter", "params", "effect_class", "max_attempts", "lease_ttl_s", "timeout_s")
+TASK_VIEW = ("goal_id", "goal_fingerprint", "scope", "acceptance_ids", "evidence_class")
 TERMINAL_FAILURE = frozenset({"FAILED", "CANCELLED"})
 GOAL_FIELDS = ("goal_id", "goal_fingerprint")
 MAX_GOAL_LEN = 128
@@ -191,6 +192,13 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
             emit({"mission_id": mission_id, "outcome": "blocked", "reason": goal_value})
             continue
         goal = goal_value if goal_kind == "ok" else None
+        refused = _goal_contract_refusal(home, spec)
+        if refused is not None:
+            mission = reducer.get_mission(mission_id)
+            if mission is not None:
+                _park_goal(store, reducer, mission, agent, host, refused)
+            emit({"mission_id": mission_id, "outcome": "blocked", "reason": refused})
+            continue
         source = _recorded_source(state["missions"].get(mission_id) or {}, spec)
         if source is None:
             emit({"mission_id": mission_id, "outcome": "skipped", "reason": "source_sha_missing"})
@@ -508,6 +516,9 @@ def _task_result(transport, args, token, task_id):
 
 def _post_task(transport, args, token, spec, key, inputs=None):
     task = {name: spec[name] for name in TASK_FIELDS if name in spec}
+    for name in TASK_VIEW:
+        if name in spec:
+            task[name] = spec[name]
     task["idempotency_key"] = key
     # The controller persists adapter, params, and the attempt fields. Goal
     # identity and verified inputs are copied into that payload and are not part
@@ -564,7 +575,7 @@ def _load_specs(path: Path):
 def _spec_ok(spec) -> bool:
     if not isinstance(spec, dict):
         return False
-    allowed = set(TASK_FIELDS) | {"source_sha", INPUTS_FIELD, *GOAL_FIELDS}
+    allowed = set(TASK_FIELDS) | {"source_sha", INPUTS_FIELD, *GOAL_FIELDS, *TASK_VIEW}
     if set(spec) - allowed or any(name not in spec for name in ("adapter", "params", "effect_class", "max_attempts", "lease_ttl_s")):
         return False
     adapter = spec.get("adapter")
@@ -589,6 +600,32 @@ def _spec_ok(spec) -> bool:
                 or not all(isinstance(item, str) and 0 < len(item) <= MAX_ID_LENGTH for item in upstream)):
             return False
     return True
+
+
+def _goal_contract_refusal(home, spec):
+    """None when the controller would accept this spec, else a blocker reason.
+
+    The bridge does not post a task the controller would reject. A missing
+    store, an unconfirmed contract, a widened scope or a stale fingerprint
+    parks the mission before claim or post.
+    """
+    from courier_core.goal_contract import (
+        GOAL_CONTRACTS_FILE, GoalContractError, GoalContractStore, Verdict, validate_task,
+    )
+    view = {name: spec.get(name) for name in TASK_VIEW if name in spec} if isinstance(spec, dict) else {}
+    goal_id = view.get("goal_id")
+    contract = None
+    path = Path(home) / GOAL_CONTRACTS_FILE
+    if isinstance(goal_id, str) and goal_id and path.exists():
+        try:
+            matches = [item for item in GoalContractStore(path).read() if item.goal_id == goal_id]
+        except GoalContractError:
+            return "goal_contract unreadable"
+        contract = matches[-1] if matches else None
+    verdict = validate_task(contract, view)
+    if verdict.verdict is Verdict.ACCEPTED:
+        return None
+    return f"goal_contract {verdict.verdict.value} {','.join(verdict.reasons)}"[:200]
 
 
 def _goal_binding(spec):

@@ -44,6 +44,7 @@ def _event(eid, mid, ts, deps=None):
 
 
 def _spec(unit, inputs_from=None):
+    from tests.dispatch_contract import task_view
     spec = {
         "adapter": "synthetic",
         "params": {"sleep_s": 0, "write": "out.txt", "content": unit, "hang": False,
@@ -51,6 +52,7 @@ def _spec(unit, inputs_from=None):
         "effect_class": "idempotent",
         "max_attempts": 1,
         "lease_ttl_s": 30,
+        **task_view(scope=["out.txt"]),
     }
     if inputs_from is not None:
         spec["inputs_from"] = inputs_from

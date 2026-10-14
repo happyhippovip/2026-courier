@@ -27,13 +27,21 @@ def _event(eid, mid, etype, status, ts, deps=None):
     )
 
 
+def _bound_params(unit):
+    from tests.dispatch_contract import task_view
+    view = task_view(scope=["synthetic"])
+    return {"unit": unit, "goal_id": view["goal_id"], "goal_fingerprint": view["goal_fingerprint"]}
+
+
 def _spec(**overrides):
+    from tests.dispatch_contract import task_view
     body = {
         "adapter": "synthetic",
         "params": {"unit": "a"},
         "effect_class": "idempotent",
         "max_attempts": 1,
         "lease_ttl_s": 30,
+        **task_view(scope=["synthetic"]),
     }
     body.update(overrides)
     return body
@@ -77,9 +85,11 @@ class FakeHTTP:
 
 
 def _home(tmp_path, specs):
+    from tests.dispatch_contract import install_dispatch_contract
     home = tmp_path / "home"
     (home / "run").mkdir(parents=True)
     (home / "run" / "controller.token").write_text(TOKEN + "\n", encoding="utf-8")
+    install_dispatch_contract(home)
     if specs is not None:
         (home / "ledger_tasks.json").write_text(json.dumps(specs), encoding="utf-8")
     return home
@@ -145,7 +155,7 @@ def test_ready_mission_is_claimed_and_posted_once(tmp_path):
     posted = http.posts[0]
     assert posted["idempotency_key"].startswith("ledger:claim-")
     assert posted["adapter"] == "synthetic"
-    assert posted["params"] == {"unit": "a"}
+    assert posted["params"] == _bound_params("a")
     assert posted["effect_class"] == "idempotent"
     assert posted["max_attempts"] == 1
     assert posted["lease_ttl_s"] == 30
@@ -209,7 +219,7 @@ def test_complete_a_finalizes_and_posts_b_in_the_same_pass(tmp_path):
     ])
     assert _run(home, http)[0] == 0
     assert len(http.posts) == 1
-    assert http.posts[0]["params"] == {"unit": "a"}
+    assert http.posts[0]["params"] == _bound_params("a")
     task_id = "task-" + hashlib.sha256(http.posts[0]["idempotency_key"].encode()).hexdigest()[:32]
     http.views[task_id]["status"] = "COMPLETE"
     http.views[task_id]["accepted_result_id"] = "result-a"
@@ -219,7 +229,7 @@ def test_complete_a_finalizes_and_posts_b_in_the_same_pass(tmp_path):
     code, out, err, log, lines = _run(home, http)
     assert code == 0
     assert len(http.posts) == 2
-    assert http.posts[1]["params"] == {"unit": "b"}
+    assert http.posts[1]["params"] == _bound_params("b")
     assert http.posts[1]["idempotency_key"].startswith("ledger:claim-")
     reducer = reduce_store(FileCoordinationStore(home / "coordination_ledger.jsonl"))
     assert reducer.get_mission("A")["status"] == MissionStatus.DONE
@@ -256,7 +266,7 @@ def test_blocked_a_parks_and_unrelated_c_dispatches(tmp_path):
     code, out, err, log, lines = _run(home, http)
     assert code == 0
     assert len(http.posts) == 1
-    assert http.posts[0]["params"] == {"unit": "c"}
+    assert http.posts[0]["params"] == _bound_params("c")
     reducer = reduce_store(FileCoordinationStore(home / "coordination_ledger.jsonl"))
     assert reducer.get_mission("A")["status"] == MissionStatus.BLOCKED
     assert reducer.get_mission("A")["blocker"] == "needs a person"
@@ -367,10 +377,12 @@ def test_bad_config_exits_2_without_posting(tmp_path):
 
 
 def test_goal_fields_round_trip_into_evidence_and_replay_is_noop(tmp_path):
-    goal_id = "g" * 128
-    goal_fp = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    from tests.dispatch_contract import task_view
+    view = task_view(scope=["synthetic"])
+    goal_id = view["goal_id"]
+    goal_fp = view["goal_fingerprint"]
     http = FakeHTTP()
-    home = _home(tmp_path, {"A": _spec(goal_id=goal_id, goal_fingerprint=goal_fp)})
+    home = _home(tmp_path, {"A": _spec()})
     _seed(home, [_ready("A", "a-assign")])
     code, out, err, log, lines = _run(home, http)
     assert code == 0, err
@@ -378,10 +390,9 @@ def test_goal_fields_round_trip_into_evidence_and_replay_is_noop(tmp_path):
     posted = http.posts[0]
     assert posted["idempotency_key"].startswith("ledger:claim-")
     assert "goal_id" not in posted["idempotency_key"]
-    assert "goal_id" not in posted
-    assert posted["params"]["unit"] == "a"
-    assert posted["params"]["goal_id"] == goal_id
-    assert posted["params"]["goal_fingerprint"] == goal_fp
+    assert posted["goal_id"] == goal_id
+    assert posted["goal_fingerprint"] == goal_fp
+    assert posted["params"] == _bound_params("a")
     task_id = "task-" + hashlib.sha256(posted["idempotency_key"].encode()).hexdigest()[:32]
     http.views[task_id]["status"] = "COMPLETE"
     http.views[task_id]["accepted_result_id"] = "result-goal"
@@ -403,8 +414,8 @@ def test_goal_fields_round_trip_into_evidence_and_replay_is_noop(tmp_path):
 
 def test_half_or_invalid_goal_is_blocked_and_not_posted(tmp_path):
     cases = [
-        {"goal_id": "only-id"},
-        {"goal_fingerprint": "b" * 64},
+        {"goal_id": "only-id", "goal_fingerprint": None},
+        {"goal_fingerprint": "b" * 64, "goal_id": None},
         {"goal_id": "ok-id", "goal_fingerprint": "bad fp"},
         {"goal_id": "a" * 129, "goal_fingerprint": "fp"},
         {"goal_id": "", "goal_fingerprint": "fp"},
@@ -502,8 +513,11 @@ def test_mission_status_blocked_and_error_never_final_done(tmp_path):
         assert _run(home, http)[0] == 0
         assert (home / "ledger_bridge_state.json").read_text(encoding="utf-8") == frozen
 
+    half = _spec()
+    half.pop("goal_fingerprint")
+    half["goal_id"] = "only-id"
     http = FakeHTTP()
-    home = _home(tmp_path / "goal", {"A": _spec(goal_id="only-id")})
+    home = _home(tmp_path / "goal", {"A": half})
     _seed(home, [_ready("A", "a-assign")])
     (home / "ledger_bridge_state.json").write_text(json.dumps({"missions": {"A": _mapped()}}), encoding="utf-8")
     http.views["task-a"] = {

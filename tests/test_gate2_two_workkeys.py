@@ -22,13 +22,15 @@ from courier_worker.queue_feed import feed_once
 from scripts.coordination_ledger import EventType
 from scripts.coordination_resume import reduce_store
 from scripts.github_coordination import FileCoordinationStore
+from tests.dispatch_contract import task_view
 
 REPO = Path(__file__).resolve().parents[1]
 AGENT = "GOOGLE_WINDOWS"
 HOST = "WINDOWS_REMOTE"
 HOLDER = "worker-gate2"
-GOAL_ID = "goal.gate2.two"
-GOAL_FP = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+_VIEW = task_view(scope=["out.txt"])
+GOAL_ID = _VIEW["goal_id"]
+GOAL_FP = _VIEW["goal_fingerprint"]
 TICK_INTERVAL_S = 1.0
 TIMEOUT_S = 120.0
 
@@ -53,7 +55,7 @@ def _spec(unit):
             "params": {"sleep_s": 0, "write": "out.txt", "content": unit, "hang": False,
                        "fail_transient_n": 0, "fault_attempts": [1]},
             "effect_class": "idempotent", "max_attempts": 2, "lease_ttl_s": 10,
-            "goal_id": GOAL_ID, "goal_fingerprint": GOAL_FP}
+            **_VIEW}
 
 
 def _setup_queue(tmp_path, home):

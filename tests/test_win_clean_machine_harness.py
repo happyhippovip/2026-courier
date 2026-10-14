@@ -128,22 +128,25 @@ def test_win_clean_machine_harness(tmp_path):
             pytest.fail("Timeout waiting for Hub")
 
         # 3. Synthetic work execution
+        from tests.dispatch_contract import install_dispatch_contract, task_view
+        install_dispatch_contract(courier_dir)
+        view = task_view(scope=["out.txt"])
         # Normal task
         done_id = api("POST", "/v1/tasks", {
             "adapter": "synthetic", "params": {"sleep_s": 1, "write": "out.txt", "content": "normal"},
-            "effect_class": "idempotent", "max_attempts": 3, "lease_ttl_s": 6
+            "effect_class": "idempotent", "max_attempts": 3, "lease_ttl_s": 6, **view,
         })["task_id"]
 
         # Non-idempotent task (killed mid-action)
         blocked_id = api("POST", "/v1/tasks", {
             "adapter": "synthetic", "params": {"write": "sent.txt", "content": "message", "hang": True},
-            "effect_class": "non_idempotent", "max_attempts": 3, "lease_ttl_s": 6
+            "effect_class": "non_idempotent", "max_attempts": 3, "lease_ttl_s": 6, **view,
         })["task_id"]
 
         # Long-running task
         working_id = api("POST", "/v1/tasks", {
             "adapter": "synthetic", "params": {"sleep_s": 60, "write": "report.txt", "content": "long"},
-            "effect_class": "idempotent", "max_attempts": 3, "lease_ttl_s": 6, "timeout_s": 90
+            "effect_class": "idempotent", "max_attempts": 3, "lease_ttl_s": 6, "timeout_s": 90, **view,
         })["task_id"]
 
         def wait_for(task_id, status_val, timeout=30):

@@ -601,6 +601,8 @@ class ChiefCommander:
         import json
         import uuid
         workflow_id = f"WF-CHIEF-{uuid.uuid4().hex[:6]}"
+        if not self._confirmed_goal_allows_dispatch(idea_text):
+            return workflow_id, []
         idea_lower = idea_text.lower()
 
         # Update Steward compiles snapshot
@@ -685,6 +687,39 @@ class ChiefCommander:
 
         return workflow_id, plan
 
+    def _confirmed_goal_allows_dispatch(self, idea_text: str) -> bool:
+        """Dispatch only when a stored human confirmation accepts this idea.
+
+        An unconfirmed draft, a missing contract, or a task view the contract
+        rejects produces no steps. server/app.py calls this method and therefore
+        cannot queue those steps. A workflow_plan posted straight to server/app.py
+        never reaches here.
+        """
+        from courier_core.goal_contract import (
+            GOAL_CONTRACTS_FILE, DraftOutcome, GoalContractError, GoalContractStore, Verdict,
+            draft_goal_contract, validate_task,
+        )
+        draft = draft_goal_contract(idea_text)
+        if draft.outcome is not DraftOutcome.DRAFTED or draft.contract is None:
+            return False
+        path = self.repo_dir / GOAL_CONTRACTS_FILE
+        if not path.exists():
+            return False
+        try:
+            matches = [item for item in GoalContractStore(path).read() if item.goal_id == draft.contract.goal_id]
+        except GoalContractError:
+            return False
+        contract = matches[-1] if matches else None
+        criterion = draft.contract.acceptance_criteria[0]
+        spec = {
+            "goal_id": draft.contract.goal_id,
+            "goal_fingerprint": draft.contract.fingerprint(),
+            "scope": list(draft.contract.allowed_scope)[:1],
+            "acceptance_ids": [criterion.id],
+            "evidence_class": criterion.evidence_class,
+        }
+        return validate_task(contract, spec).verdict is Verdict.ACCEPTED
+
     def execute_human_idea(self, idea_text: str, idea_type: str = "IDEA", dry_run: bool = False) -> dict:
         """Curates human input, verifies against memory, and executes through the autonomous Chief loop."""
         # 1. Step: Idea Sync & Memory Comparison -> Generates Context Delta
@@ -730,6 +765,27 @@ class ChiefCommander:
             context_delta=curation,
             correlation_id=correlation_id,
         )
+        if not plan:
+            self.chief_state_tracker.update_state(
+                state="BLOCKED_GOAL_CONTRACT",
+                task=f"Goal contract: {curation['idea_id']}",
+                progress=0.0,
+                workflow=workflow_id,
+                last_action="Refused dispatch: no confirmed goal contract accepts this idea",
+                next_action="Awaiting an authenticated human confirmation",
+                result=None,
+                blocked=True,
+                human_gate="REQUIRE_EXPLICIT_HUMAN_APPROVAL",
+                correlation_id=correlation_id,
+            )
+            return {
+                "status": "BLOCKED_GOAL_CONTRACT",
+                "workflow_id": workflow_id,
+                "correlation_id": correlation_id,
+                "curation": curation,
+                "workflow_plan": [],
+                "history": [],
+            }
 
         print(f"\n=======================================================")
         print(f"👑 CHIEF COMMANDER: Ingested Human {idea_type}")

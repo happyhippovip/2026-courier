@@ -49,8 +49,31 @@ if str(REPO_ROOT) not in sys.path:
 SCHEMA = "courier.continuity_receipt.v1"
 AGENT = "GOOGLE_WINDOWS"
 HOST = "WINDOWS_REMOTE"
-GOAL_ID = "goal.demo.continuity"
-GOAL_FP = hashlib.sha256(b"courier continuity demo: A then B").hexdigest()
+DEMO_GOAL = {
+    "goal_id": "goal.demo.continuity",
+    "end_result": "A then B leaves the artifact",
+    "allowed_scope": ["out.txt"],
+    "forbidden_scope": ["secrets"],
+    "constraints": ["no network"],
+    "acceptance_criteria": [
+        {"id": "artifact", "check": "out.txt sha256 matches the unit", "evidence_class": "deterministic"},
+    ],
+    "side_effect_limits": ["no commits"],
+    "gates": {"human": True, "money": False, "safety": True},
+}
+
+
+def _confirmed_demo_goal():
+    from courier_core.goal_contract import confirm_draft, draft_goal_contract
+    draft = draft_goal_contract(DEMO_GOAL)
+    if draft.contract is None:
+        raise RuntimeError("continuity demo goal did not draft")
+    return confirm_draft(draft.contract, "person:ada", "2026-10-15T12:00:00Z", authenticated=True)
+
+
+_DEMO_GOAL = _confirmed_demo_goal()
+GOAL_ID = _DEMO_GOAL.goal_id
+GOAL_FP = _DEMO_GOAL.fingerprint()
 UNITS = {"A": "unit-a", "B": "unit-b"}
 # A pass runs at most once per interval. A finishes well inside one interval,
 # so the hard kill lands after A and before the pass that posts B.
@@ -256,8 +279,10 @@ def _wait(predicate, timeout, what, procs=None):
 
 
 def _seed(home):
+    from courier_core.goal_contract import GOAL_CONTRACTS_FILE, GoalContractStore
     from scripts.coordination_ledger import AgentID, CoordinationEvent, EventType, HostID, MissionStatus
     from scripts.github_coordination import FileCoordinationStore
+    GoalContractStore(home / GOAL_CONTRACTS_FILE).append(_DEMO_GOAL)
 
     def event(eid, mid, ts, deps=None):
         return CoordinationEvent(
@@ -275,6 +300,7 @@ def _seed(home):
                    "fail_transient_n": 0, "fault_attempts": [1]},
         "effect_class": "idempotent", "max_attempts": 2, "lease_ttl_s": 10,
         "goal_id": GOAL_ID, "goal_fingerprint": GOAL_FP,
+        "scope": ["out.txt"], "acceptance_ids": ["artifact"], "evidence_class": "deterministic",
     }
     (home / "ledger_tasks.json").write_text(
         json.dumps({m: spec(u) for m, u in UNITS.items()}, indent=2), encoding="utf-8")

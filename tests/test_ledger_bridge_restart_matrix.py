@@ -55,6 +55,7 @@ def _event(eid, mid, etype, status, ts, deps=None):
 
 
 def _spec(unit):
+    from tests.dispatch_contract import task_view
     return {
         "adapter": "synthetic",
         "params": {"unit": unit},
@@ -62,6 +63,7 @@ def _spec(unit):
         "max_attempts": 1,
         "lease_ttl_s": 30,
         "source_sha": SHA,
+        **task_view(scope=["synthetic"]),
     }
 
 
@@ -120,7 +122,9 @@ class _KillOnReceipt:
 
 
 def _home(tmp_path):
+    from tests.dispatch_contract import install_dispatch_contract
     home = tmp_path / "home"
+    install_dispatch_contract(home)
     (home / "run").mkdir(parents=True)
     (home / "run" / "controller.token").write_text(TOKEN + "\n", encoding="utf-8")
     specs = {"A": _spec("a"), "B": _spec("b")}

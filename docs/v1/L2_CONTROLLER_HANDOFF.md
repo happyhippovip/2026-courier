@@ -85,6 +85,10 @@ POST /v1/tasks/<id>/resolve
 
 ## 6. Goal-contract gate
 
-When `POST /v1/tasks` includes `goal`, `Controller.create_task` calls `draft_goal_contract` before it journals `TASK_CREATED`. A missing or ambiguous goal answers `409` with `outcome: NEEDS_CLARIFICATION` and is not claimable. A clear goal is journaled with `goal_id` and `goal_fingerprint`. A request that does not include `goal` stays the existing adapter intake.
+`Controller.create_task` and `Controller.claim` always run `validate_task`. A task is journaled and claimable only when a stored contract accepts `goal_id`, `goal_fingerprint`, `scope`, `acceptance_ids` and `evidence_class`. There is no adapter-intake exemption.
 
-`server/app.py` (`submit_goal`, `claim_task`) and `ChiefCommander` do not call `Controller.create_task`. They bypass this gate.
+A free-text `goal` with no task view returns `DRAFTED` and is not stored and not claimable. `NEEDS_CLARIFICATION` is only a missing or contradictory goal. A single "or" or "either" is not one. `POST /v1/goals/confirm` stores the draft only when `authenticated` is true and `actor_ref` is a human identity, not anonymous and not an agent. The controller never invents that confirmation.
+
+`ChiefCommander.formulate_workflow_plan` returns no steps unless that same store accepts the idea, so `server/app.py` `submit_goal` cannot queue a plan from the chief. The ledger bridge parks a mission and does not post it when `validate_task` would reject the spec.
+
+Open gap: `server/app.py` is not edited. A `workflow_plan` posted directly to `POST /goals`, and `POST /tasks/claim` on that process, never reach this controller. Those tasks are not covered by this gate.

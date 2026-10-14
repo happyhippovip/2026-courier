@@ -9,6 +9,7 @@ import requests
 from courier_core.controller import Controller
 from courier_core.serve import Service
 from courier_core.verification import Verdict
+from tests.dispatch_contract import install_dispatch_contract, task_view
 
 SHA = hashlib.sha256(b"courier-golden").hexdigest()
 
@@ -53,7 +54,7 @@ def sha_matches(task, result, home):
 
 def task_body(**overrides):
     body = {"adapter": "probe", "params": {"x": 1}, "effect_class": "idempotent", "max_attempts": 3,
-            "lease_ttl_s": 6}
+            "lease_ttl_s": 6, **task_view()}
     body.update(overrides)
     return body
 
@@ -66,7 +67,9 @@ def result_body(dispatch_id, result_id="r1", outcome="success", sha=SHA, **extra
 
 
 def make_controller(home, clock=None, verifier=None, **kw):
-    return Controller(Path(home), clock=clock or FakeClock(), verifier=verifier or Verifiers(probe=accept_all),
+    home = Path(home)
+    install_dispatch_contract(home)
+    return Controller(home, clock=clock or FakeClock(), verifier=verifier or Verifiers(probe=accept_all),
                       **kw).boot()
 
 
@@ -86,6 +89,7 @@ class LiveService:
     """The real HTTP service in-process (port 0), stoppable like the process."""
 
     def __init__(self, home, verifier=None, clock=None):
+        install_dispatch_contract(home)
         controller = Controller(Path(home), verifier=verifier or Verifiers(probe=accept_all),
                                 **({"clock": clock} if clock else {}))
         self.service = Service(Path(home), 0, controller=controller)

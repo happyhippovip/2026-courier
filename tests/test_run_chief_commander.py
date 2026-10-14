@@ -60,6 +60,24 @@ def test_save_json_atomic(tmp_path):
     assert target_file.exists()
     assert json.loads(target_file.read_text(encoding="utf-8")) == data
 
+def test_unconfirmed_idea_is_not_a_dispatchable_plan(tmp_path):
+    from courier_core.goal_contract import (
+        GOAL_CONTRACTS_FILE, GoalContractStore, confirm_draft, draft_goal_contract,
+    )
+    chief = ChiefCommander(repo_dir=tmp_path)
+    idea = "ship the report or the summary"
+    workflow_id, plan = chief.formulate_workflow_plan(idea)
+    assert workflow_id.startswith("WF-CHIEF-")
+    assert plan == []
+
+    draft = draft_goal_contract(idea)
+    confirmed = confirm_draft(draft.contract, "person:ada", "2026-10-15T12:00:00Z", authenticated=True)
+    GoalContractStore(tmp_path / GOAL_CONTRACTS_FILE).append(confirmed)
+    _, dispatched = chief.formulate_workflow_plan(idea)
+    assert dispatched
+    assert all(step.get("task_id") for step in dispatched)
+
+
 def test_chief_commander_presence(tmp_path):
     chief = ChiefCommander(repo_dir=tmp_path)
     # Check default

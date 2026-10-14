@@ -229,6 +229,8 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send(200, controller.task_result(match.group(1)))
                 raise ApiError(404, "not_found")
             body = self._read_json()
+            if path == "/v1/goals/confirm":
+                return self._send(200, controller.confirm_goal(body))
             if path == "/v1/tasks":
                 status, payload = controller.create_task(body)
                 return self._send(status, payload)

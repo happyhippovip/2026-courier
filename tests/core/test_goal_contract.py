@@ -14,7 +14,10 @@ from courier_core.goal_contract import (
     GoalContractError,
     GoalContractStore,
     Verdict,
+    confirm_draft,
     draft_goal_contract,
+    store_confirmed,
+    validate_task,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -237,18 +240,56 @@ def test_draft_missing_goal_needs_clarification():
         assert draft.outcome is not DraftOutcome.DRAFTED
 
 
-def test_draft_ambiguous_goal_needs_clarification():
-    cases = [
+def test_draft_ambiguous_or_contradictory_goal_needs_clarification():
+    for goal in (
         "fix the bug or maybe rewrite the module",
         _draft_goal(end_result="fix the bug or maybe rewrite the module"),
-        _draft_goal(allowed_scope=["out.txt", "secrets"], forbidden_scope=["secrets"]),
-        _draft_goal(end_result=["ship the report", "rewrite the module"]),
-    ]
-    for goal in cases:
+    ):
         draft = draft_goal_contract(goal)
         assert draft.outcome is DraftOutcome.NEEDS_CLARIFICATION
         assert "ambiguous_goal" in draft.reasons
         assert draft.contract is None
+    overlap = draft_goal_contract(_draft_goal(allowed_scope=["out.txt", "secrets"], forbidden_scope=["secrets"]))
+    assert overlap.outcome is DraftOutcome.NEEDS_CLARIFICATION
+    assert overlap.contract is None
+    assert "contradictory" in overlap.reasons
+    many = draft_goal_contract(_draft_goal(end_result=["ship the report", "rewrite the module"]))
+    assert many.outcome is DraftOutcome.NEEDS_CLARIFICATION
+    assert many.contract is None
+
+
+def test_or_and_either_draft_without_clarification():
+    for goal in (
+        "ship the report or the summary",
+        "deliver either artifact to the inbox",
+        _draft_goal(end_result="ship the report or the summary"),
+        _draft_goal(end_result="keep either the receipt or the invoice"),
+    ):
+        draft = draft_goal_contract(goal)
+        assert draft.outcome is DraftOutcome.DRAFTED, goal
+        assert draft.contract is not None
+        assert draft.contract.human_confirmed is False
+
+
+def test_free_text_is_not_stored_until_a_human_confirms(tmp_path):
+    draft = draft_goal_contract("ship the report or the summary")
+    assert draft.contract is not None
+    store = GoalContractStore(tmp_path / "goal_contracts.jsonl")
+    with pytest.raises(GoalContractError, match="confirmed"):
+        store.append(draft.contract)
+    for actor, authenticated in (("anonymous", True), ("agent:bot", True), ("person:ada", False)):
+        with pytest.raises(GoalContractError, match="authenticated human"):
+            confirm_draft(draft.contract, actor, "2026-10-15T12:00:00Z", authenticated=authenticated)
+    confirmed = confirm_draft(draft.contract, "person:ada", "2026-10-15T12:00:00Z", authenticated=True)
+    store_confirmed(store, confirmed)
+    assert store.read() == (confirmed,)
+    assert confirmed.fingerprint() == draft.contract.fingerprint()
+
+
+def test_validate_task_runs_when_there_is_no_contract():
+    verdict = validate_task(None, {"adapter": "probe"})
+    assert verdict.verdict is Verdict.NOT_VERIFIABLE
+    assert verdict.reasons == ("missing_contract",)
 
 
 def test_draft_clear_goal_is_unconfirmed_until_the_caller_confirms():
@@ -260,15 +301,14 @@ def test_draft_clear_goal_is_unconfirmed_until_the_caller_confirms():
     assert draft.contract.confirmations == ()
     assert len(draft.contract.fingerprint()) == 64
 
-    confirmed = _draft_goal(confirmations=[{
+    confirmed = confirm_draft(draft.contract, "person:ada", "2026-10-15T00:00:00Z", authenticated=True)
+    assert confirmed.human_confirmed is True
+    assert confirmed.fingerprint() == draft.contract.fingerprint()
+    assert [item.actor_ref for item in confirmed.confirmations] == ["person:ada"]
+    stuffed = draft_goal_contract(_draft_goal(confirmations=[{
         "actor_kind": "human", "actor_ref": "person:ada", "at": "2026-10-15T00:00:00Z",
-    }])
-    drafted_again = draft_goal_contract(confirmed)
-    assert drafted_again.outcome is DraftOutcome.DRAFTED
-    assert drafted_again.contract is not None
-    assert drafted_again.contract.human_confirmed is True
-    assert drafted_again.contract.fingerprint() == draft.contract.fingerprint()
-    assert [item.actor_ref for item in drafted_again.contract.confirmations] == ["person:ada"]
+    }]))
+    assert stuffed.contract is not None and stuffed.contract.human_confirmed is False
 
 
 def test_schema_rejects_unknown_fields():

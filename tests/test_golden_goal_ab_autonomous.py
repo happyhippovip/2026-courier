@@ -28,12 +28,14 @@ from scripts.coordination_ledger import (
 )
 from scripts.coordination_resume import reduce_store
 from scripts.github_coordination import FileCoordinationStore
+from tests.dispatch_contract import task_view
 
 REPO = Path(__file__).resolve().parents[1]
 AGENT = "GOOGLE_WINDOWS"
 HOST = "WINDOWS_REMOTE"
-GOAL_ID = "goal.tick.ab"
-GOAL_FP = "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+_VIEW = task_view(scope=["out.txt"])
+GOAL_ID = _VIEW["goal_id"]
+GOAL_FP = _VIEW["goal_fingerprint"]
 # A pass may run at most once per interval. A completes well inside one
 # interval, so the hard kill lands after A and before the pass that posts B.
 TICK_INTERVAL_S = 12.0
@@ -65,8 +67,7 @@ def _spec(unit):
         "effect_class": "idempotent",
         "max_attempts": 2,
         "lease_ttl_s": 10,
-        "goal_id": GOAL_ID,
-        "goal_fingerprint": GOAL_FP,
+        **_VIEW,
     }
 
 

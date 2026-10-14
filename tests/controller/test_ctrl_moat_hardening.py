@@ -405,6 +405,8 @@ def test_real_adapter_verifier_identity_carries_source_hash(tmp_path, monkeypatc
     for name in [n for n in sys.modules if n == "adapters" or n.startswith("adapters.")]:
         monkeypatch.delitem(sys.modules, name)
     from courier_core.controller import Controller
+    from tests.dispatch_contract import install_dispatch_contract
+    install_dispatch_contract(tmp_path / "home")
     ctl = Controller(tmp_path / "home", clock=FakeClock()).boot()
     try:
         _, body = ctl.create_task(task_body(adapter="idprobe"))

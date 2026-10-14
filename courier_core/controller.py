@@ -28,11 +28,12 @@ and the file is left exactly as found.
 All mutations run under one lock with a finite acquisition timeout, so a
 request either completes or fails fast with "busy"; nothing waits forever.
 
-Goal contract: when a request declares a goal, create_task runs
-draft_goal_contract before TASK_CREATED. A missing or ambiguous goal is
-NEEDS_CLARIFICATION and is not journaled, so claim cannot dispatch it.
-server/app.py and ChiefCommander do not call this controller; they bypass
-the gate.
+Goal contract: create_task and claim always run validate_task before a task
+can be dispatched. A task without a stored, human-confirmed contract that
+accepts its goal_id, goal_fingerprint, scope, acceptance_ids and
+evidence_class is not journaled and is not claimable. confirm_goal stores a
+contract only after an authenticated human confirmation. server/app.py does
+not call this controller.
 """
 
 from __future__ import annotations
@@ -54,7 +55,10 @@ from courier_core.events import (
     EFFECT_CLASSES, MAX_ATTEMPTS_LIMIT, MAX_ID_LENGTH, RESULT_OUTCOMES, Event, EventType, EventValidationError,
     effect_key,
 )
-from courier_core.goal_contract import DraftOutcome, draft_goal_contract
+from courier_core.goal_contract import (
+    GOAL_CONTRACTS_FILE, DraftOutcome, GoalContractError, GoalContractStore, Verdict,
+    confirm_draft, draft_goal_contract, store_confirmed, validate_task,
+)
 from courier_core.journal import DedupeConflict, Journal, JournalError
 from courier_core.projection import ProjectionError
 from courier_core.state_machine import (
@@ -75,7 +79,10 @@ MAX_ARTIFACTS = 1000
 SUSPEND_GAP_S = 5.0  # a tick gap this long means the machine slept; leases are not punished for it
 
 TASK_FIELDS = {"adapter", "params", "effect_class", "max_attempts", "lease_ttl_s", "timeout_s",
-               "idempotency_key", "goal"}
+               "idempotency_key", "goal", "goal_id", "goal_fingerprint", "scope", "acceptance_ids",
+               "evidence_class"}
+TASK_VIEW = ("goal_id", "goal_fingerprint", "scope", "acceptance_ids", "evidence_class")
+CONFIRM_FIELDS = {"goal", "actor_ref", "at", "authenticated"}
 RESULT_FIELDS = {"dispatch_id", "result_id", "artifacts", "outcome", "retryable", "reason"}
 MAX_REASON_CHARS = 2000
 
@@ -344,15 +351,15 @@ class Controller:
                 "artifacts": artifacts}
 
     def create_task(self, body: Any) -> tuple[int, dict]:
-        """Journal a task, after the goal-contract gate when the body declares ``goal``.
+        """Journal a task only when validate_task accepts a stored contract.
 
-        A declared goal must draft (``draft_goal_contract``). Missing or
-        ambiguous goals return NEEDS_CLARIFICATION and are not journaled, so
-        they cannot be claimed. A body with no ``goal`` member is the existing
-        adapter intake and is unchanged.
+        Every task needs goal_id, goal_fingerprint, scope, acceptance_ids and
+        evidence_class. There is no adapter-intake exemption. A free-text goal
+        with no task view returns an unconfirmed DRAFT and is not journaled.
+        Missing or contradictory goals are NEEDS_CLARIFICATION.
 
-        ``server/app.py`` and ``ChiefCommander`` do not call this method. They
-        bypass the controller and this gate.
+        server/app.py does not call this method. Its own /tasks/claim never
+        reaches this controller.
         """
         self._require_writable()
         body = _only_fields(body, TASK_FIELDS)
@@ -375,18 +382,26 @@ class Controller:
         payload = {name: body[name] for name in ("adapter", "params", "effect_class", "max_attempts", "lease_ttl_s")}
         if timeout_s is not None:
             payload["timeout_s"] = timeout_s
-        if "goal" in body:
+        view = {name: body[name] for name in TASK_VIEW if name in body}
+        if "goal" in body and len(view) < len(TASK_VIEW):
             draft = draft_goal_contract(body.get("goal"))
             if draft.outcome is not DraftOutcome.DRAFTED or draft.contract is None:
                 raise ApiError(409, "needs_clarification", "goal needs clarification before dispatch",
                                outcome=draft.outcome.value, reasons=list(draft.reasons))
-            payload["goal_id"] = draft.contract.goal_id
-            payload["goal_fingerprint"] = draft.contract.fingerprint()
+            return 200, {"outcome": DraftOutcome.DRAFTED.value, "goal_id": draft.contract.goal_id,
+                         "goal_fingerprint": draft.contract.fingerprint(),
+                         "confirmed": draft.contract.human_confirmed, "dispatched": False}
+        payload.update(view)
         try:
             event = Event(type=EventType.TASK_CREATED, task_id=task_id, payload=payload)
         except EventValidationError as exc:
             raise ApiError(400, "invalid_request", str(exc)) from None
         with self._locked():
+            verdict = self._goal_verdict(view)
+            if verdict.verdict is not Verdict.ACCEPTED:
+                raise ApiError(409, "goal_contract_rejected",
+                               "task has no confirmed goal contract that accepts it",
+                               outcome=verdict.verdict.value, reasons=list(verdict.reasons))
             try:
                 result = self._append(event)
             except DedupeConflict:
@@ -394,13 +409,66 @@ class Controller:
                                "idempotency_key was already used for a different task") from None
         return (200 if result.duplicate else 201), {"task_id": task_id, "duplicate": result.duplicate}
 
+    def confirm_goal(self, body: Any) -> dict:
+        """Store a drafted contract after an authenticated human confirms it.
+
+        Anonymous and agent identities are refused. Nothing is appended unless
+        the confirmation is already in hand. This does not dispatch a task.
+        """
+        self._require_writable()
+        body = _only_fields(body, CONFIRM_FIELDS)
+        if body.get("authenticated") is not True:
+            raise ApiError(403, "unauthenticated", "confirmation requires an authenticated human identity")
+        actor_ref = body.get("actor_ref")
+        at = body.get("at")
+        if not isinstance(at, str) or not at.strip():
+            raise ApiError(400, "invalid_request", "at must be a non-empty confirmation time")
+        draft = draft_goal_contract(body.get("goal"))
+        if draft.outcome is not DraftOutcome.DRAFTED or draft.contract is None:
+            raise ApiError(409, "needs_clarification", "goal needs clarification before confirmation",
+                           outcome=draft.outcome.value, reasons=list(draft.reasons))
+        try:
+            confirmed = confirm_draft(draft.contract, actor_ref, at.strip(), authenticated=True)
+        except GoalContractError as exc:
+            raise ApiError(403, "unauthenticated", str(exc)) from None
+        with self._locked():
+            store_confirmed(self._goal_store(), confirmed)
+        return {"goal_id": confirmed.goal_id, "goal_fingerprint": confirmed.fingerprint(), "confirmed": True}
+
+    def _goal_store(self) -> GoalContractStore:
+        return GoalContractStore(self.home / GOAL_CONTRACTS_FILE)
+
+    def _latest_goal(self, goal_id: str):
+        path = self._goal_store().path
+        if not path.exists():
+            return None
+        try:
+            matches = [item for item in self._goal_store().read() if item.goal_id == goal_id]
+        except GoalContractError:
+            return None
+        return matches[-1] if matches else None
+
+    def _goal_verdict(self, view: dict) -> Any:
+        goal_id = view.get("goal_id")
+        contract = self._latest_goal(goal_id.strip()) if isinstance(goal_id, str) and goal_id.strip() else None
+        return validate_task(contract, view)
+
+    def _task_dispatchable(self, task: TaskState) -> bool:
+        payload: dict = {}
+        for event in self.journal.events(task_id=task.task_id):
+            if event.type is EventType.TASK_CREATED:
+                payload = dict(event.payload)
+                break
+        view = {name: payload[name] for name in TASK_VIEW if name in payload}
+        return self._goal_verdict(view).verdict is Verdict.ACCEPTED
+
     def claim(self, body: Any) -> dict | None:
         self._require_writable()
         body = _only_fields(body, {"worker_id"})
         worker_id = _require_id(body, "worker_id")
         with self._locked():
             for task in self.journal.tasks(TaskStatus.QUEUED.value):
-                if task.cancel_requested:
+                if task.cancel_requested or not self._task_dispatchable(task):
                     continue
                 dispatch_id = "dsp-" + uuid.uuid4().hex
                 attempt = task.attempt + 1

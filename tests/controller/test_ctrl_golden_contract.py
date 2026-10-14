@@ -62,8 +62,10 @@ class ControllerOnly(Courier):
         return proc
 
     def make_probe_task(self, **kw):
+        from tests.dispatch_contract import task_view
         body = {"adapter": "l2probe", "params": synthetic_params(), "effect_class": kw.pop("effect_class", "idempotent"),
-                "max_attempts": kw.pop("max_attempts", 3), "lease_ttl_s": kw.pop("lease_ttl_s", 6)}
+                "max_attempts": kw.pop("max_attempts", 3), "lease_ttl_s": kw.pop("lease_ttl_s", 6),
+                **task_view(scope=["out.txt"])}
         response = self.api.post("/v1/tasks", body)
         assert response.status_code in (200, 201), response.text
         return response.json()["task_id"]
