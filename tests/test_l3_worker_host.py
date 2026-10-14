@@ -18,6 +18,7 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+import psutil
 import pytest
 
 @pytest.fixture(autouse=True)
@@ -279,6 +280,55 @@ def test_orphan_gate_reaps_dead_owner_tree(tmp_path):
         # bound: if the gate did not kill the group, this wait times out and fails.
         proc.wait(timeout=10)
         assert pgid_dead(pgid)
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+            proc.wait()
+
+
+def _orphan_record(proc, owner_pid, owner_create_time):
+    return {"task_id": "t", "attempt": 1, "dispatch_id": "orphan-id", "worker_id": "w",
+            "owner_pid": owner_pid, "owner_create_time": owner_create_time,
+            "child_pid": proc.pid, "pgid": os.getpgid(proc.pid)}
+
+
+def _write_orphan_claim(tmp_path, record):
+    claims = tmp_path / "run" / "claims"
+    claims.mkdir(parents=True)
+    (claims / "dispatch-orphan-id.json").write_text(json.dumps(record), encoding="utf-8")
+    return claims
+
+
+def test_orphan_gate_reaps_when_owner_pid_was_reused(tmp_path):
+    if os.name == "nt":
+        pytest.skip("POSIX killpg gate; Windows relies on job close semantics")
+    proc = subprocess.Popen([PY, "-c", "import time; time.sleep(60)"], start_new_session=True)
+    try:
+        me = psutil.Process()
+        # Same PID as a live process, but the recorded start time is not this one.
+        record = _orphan_record(proc, me.pid, me.create_time() - 1000.0)
+        claims = _write_orphan_claim(tmp_path, record)
+        assert H.run_orphan_gate(str(tmp_path)) == 1
+        assert list(claims.glob("*.json")) == []
+        proc.wait(timeout=10)
+        assert pgid_dead(record["pgid"])
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+            proc.wait()
+
+
+def test_orphan_gate_keeps_tree_of_the_same_live_owner(tmp_path):
+    if os.name == "nt":
+        pytest.skip("POSIX killpg gate; Windows relies on job close semantics")
+    proc = subprocess.Popen([PY, "-c", "import time; time.sleep(60)"], start_new_session=True)
+    try:
+        me = psutil.Process()
+        record = _orphan_record(proc, me.pid, me.create_time())
+        claims = _write_orphan_claim(tmp_path, record)
+        assert H.run_orphan_gate(str(tmp_path)) == 0
+        assert proc.poll() is None
+        assert list(claims.glob("*.json")) == [claims / "dispatch-orphan-id.json"]
     finally:
         if proc.poll() is None:
             proc.kill()

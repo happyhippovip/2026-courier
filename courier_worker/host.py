@@ -32,6 +32,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
 
+import psutil
+
 # -- bounds (all of them are load-bearing contracts) --------------------------
 MAX_TIMEOUT_S = 3600.0
 DEFAULT_TIMEOUT_S = 300.0
@@ -45,6 +47,8 @@ MAX_ARTIFACT_BYTES = 16 * 1024 * 1024
 MAX_STDIO_TAIL = 64 * 1024
 OUTBOX_CAP = 32
 ORPHAN_TERM_GRACE_S = 2.0
+# Same bound as courier_runtime.ownership. A reused PID is a different process.
+OWNER_CREATE_TIME_TOLERANCE_S = 0.05
 LOAD_PRESSURE_FACTOR = 4.0
 
 CLAIM_RECORD_GLOB = "dispatch-*.json"
@@ -491,27 +495,38 @@ def _claim_path(home: str, dispatch_id: str) -> Path:
     return _claims_dir(home) / f"dispatch-{safe or 'unnamed'}.json"
 
 
-def _owner_alive(owner_pid: int) -> bool:
-    if owner_pid <= 0:
+def _owner_alive(owner_pid: int, owner_create_time: Optional[float] = None) -> bool:
+    """True only when this PID is still the host that wrote the claim.
+
+    A PID by itself is not identity: after a hard kill the kernel can reuse it
+    before the next host runs the orphan gate. A reused PID must not hide the
+    dead owner's tree. Claims written before create times existed stay on the
+    PID check.
+    """
+    if isinstance(owner_pid, bool) or not isinstance(owner_pid, int) or owner_pid <= 0:
         return False
     try:
-        if os.name == "nt":
-            import ctypes
-            handle = ctypes.windll.kernel32.OpenProcess(0x100000, False, owner_pid)
-            if not handle:
-                return False
-            ctypes.windll.kernel32.CloseHandle(handle)
+        proc = psutil.Process(owner_pid)
+        if proc.status() == psutil.STATUS_ZOMBIE:
+            return False
+        if owner_create_time is None:
             return True
-        os.kill(owner_pid, 0)
-        return True
-    except (OSError, ProcessLookupError):
+        created = proc.create_time()
+        recorded = float(owner_create_time)
+    except (psutil.Error, TypeError, ValueError, OverflowError):
         return False
+    return abs(created - recorded) <= OWNER_CREATE_TIME_TOLERANCE_S
 
 
 def _write_claim_record(home: str, spec: ExecutionSpec, run: ContainedRun) -> Path:
     _claims_dir(home).mkdir(parents=True, exist_ok=True)
+    try:
+        owner_create_time = psutil.Process().create_time()
+    except psutil.Error:
+        owner_create_time = None
     record = {"task_id": spec.task_id, "attempt": spec.attempt, "dispatch_id": spec.dispatch_id,
-              "worker_id": spec.worker_id, "owner_pid": os.getpid(), "child_pid": run.pid,
+              "worker_id": spec.worker_id, "owner_pid": os.getpid(),
+              "owner_create_time": owner_create_time, "child_pid": run.pid,
               "pgid": run.group_id()}
     path = _claim_path(home, spec.dispatch_id)
     fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".claim-", suffix=".tmp")
@@ -540,13 +555,14 @@ def run_orphan_gate(home: str) -> int:
         try:
             record = json.loads(path.read_text(encoding="utf-8"))
             owner_pid = int(record.get("owner_pid", 0) or 0)
+            owner_create_time = record.get("owner_create_time")
         except (OSError, ValueError, TypeError):
             try:
                 path.rename(path.with_suffix('.json.corrupt'))
             except OSError:
                 pass
             continue
-        if _owner_alive(owner_pid):
+        if _owner_alive(owner_pid, owner_create_time):
             continue  # another live host owns this tree; hands off
         _reap_orphan(record)
         try:

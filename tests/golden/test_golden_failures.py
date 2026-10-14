@@ -7,7 +7,14 @@ import json
 import sqlite3
 import time
 
-from golden_harness import GOLDEN_SHA256, open_handles, pids_alive, wait_until
+from golden_harness import (
+    GOLDEN_SHA256,
+    identities_alive,
+    open_handles,
+    pids_alive,
+    process_identities,
+    wait_until,
+)
 
 LEASE_TTL_S = 6
 
@@ -36,6 +43,7 @@ def test_kill_worker_mid_task_is_retried_once(courier):
         return list(current - baseline_descendants)
         
     orphan_candidates = wait_until(new_descendants, 10, "attempt 1 child process")
+    orphan_identities = process_identities(orphan_candidates)
 
     courier.kill_worker(first)
     courier.start_worker()
@@ -46,7 +54,11 @@ def test_kill_worker_mid_task_is_retried_once(courier):
     complete = courier.wait_event(task_id, "TASK_COMPLETE", timeout=60)
     assert complete["attempt"] == 2
     assert len(accepted_events(courier, task_id)) == 1
-    wait_until(lambda: not pids_alive(orphan_candidates), 15, "children of the killed worker host to be gone")
+    wait_until(
+        lambda: not identities_alive(orphan_identities),
+        15,
+        "children of the killed worker host to be gone",
+    )
 
 
 def test_duplicate_result_is_acknowledged_without_new_events(courier):
