@@ -77,6 +77,9 @@ def test_pilot_50_rows_partition_and_hashes_are_stable(tmp_path: Path):
     assert _sha256(SOURCE) == json.loads(EXPECTED_REPORT_JSON.read_text(encoding="utf-8"))["source_sha256"]
 
     report = json.loads(Path(first["report_json"]).read_text(encoding="utf-8"))
+    assert "offer" not in report
+    report_blob = json.dumps(report, ensure_ascii=False)
+    assert "EUR" not in report_blob and "€" not in report_blob
     reasons_by_id: dict[int, set[str]] = {}
     for item in report["findings"]:
         assert item["original_row_id"] == item["row"]

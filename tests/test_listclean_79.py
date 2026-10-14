@@ -60,6 +60,18 @@ def _has(report: dict, row: int, column: str, reason: str, before: str | None = 
     return False
 
 
+def test_report_does_not_include_a_price(tmp_path: Path):
+    source = tmp_path / "liste.csv"
+    source.write_bytes(EXAMPLE_1.encode("utf-8"))
+    written = clean_file(source)
+    report = json.loads(Path(written["report_json"]).read_text(encoding="utf-8"))
+    report_csv = Path(written["report_csv"]).read_text(encoding="utf-8-sig")
+    assert "offer" not in report
+    blob = json.dumps(report, ensure_ascii=False)
+    assert "EUR" not in blob and "€" not in blob
+    assert "offer" not in report_csv and "EUR" not in report_csv and "€" not in report_csv
+
+
 def test_cells_past_the_header_are_kept_and_reported(tmp_path: Path):
     rows, report = _clean_csv(
         tmp_path,

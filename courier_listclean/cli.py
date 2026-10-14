@@ -127,8 +127,6 @@ def _report_payload(
         counts[item.reason] = counts.get(item.reason, 0) + 1
     return {
         "tool": "courier-listclean",
-        # Frozen with the verified pilot report. Changing it would move that file's hash.
-        "offer": "79 EUR",
         "source": source_name,
         "source_sha256": source_sha256,
         "rows_in": len(result.rows),
