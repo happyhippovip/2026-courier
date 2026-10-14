@@ -81,6 +81,8 @@ def test_run_rejects_bad_params(tmp_path):
         local_shell.run({"command": [], "write": "out.txt"}, tmp_path)
     with pytest.raises(LocalShellError):
         local_shell.run({"command": "not-a-list", "write": "out.txt"}, tmp_path)
+    with pytest.raises(LocalShellError, match="null"):
+        local_shell.run({"command": [sys.executable, "-c", "pass", "a\x00b"], "write": "out.txt"}, tmp_path)
     with pytest.raises(LocalShellError):
         local_shell.run({"command": write_argv(), "write": "../evil.txt"}, tmp_path)
     with pytest.raises(LocalShellError):
