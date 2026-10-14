@@ -82,3 +82,9 @@ POST /v1/tasks/<id>/resolve
 - `PROJECTION_VERSION` is now 2 (`resolution`, `decided_by`).
 - **Opening a journal with an older projection:** the projection is rebuilt from the verified event chain in one transaction. Events are never touched.
 - **A damaged journal:** it stays read-only. Task reads then answer `503` if its projection predates this build.
+
+## 6. Goal-contract gate
+
+When `POST /v1/tasks` includes `goal`, `Controller.create_task` calls `draft_goal_contract` before it journals `TASK_CREATED`. A missing or ambiguous goal answers `409` with `outcome: NEEDS_CLARIFICATION` and is not claimable. A clear goal is journaled with `goal_id` and `goal_fingerprint`. A request that does not include `goal` stays the existing adapter intake.
+
+`server/app.py` (`submit_goal`, `claim_task`) and `ChiefCommander` do not call `Controller.create_task`. They bypass this gate.

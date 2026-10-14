@@ -27,6 +27,12 @@ and the file is left exactly as found.
 
 All mutations run under one lock with a finite acquisition timeout, so a
 request either completes or fails fast with "busy"; nothing waits forever.
+
+Goal contract: when a request declares a goal, create_task runs
+draft_goal_contract before TASK_CREATED. A missing or ambiguous goal is
+NEEDS_CLARIFICATION and is not journaled, so claim cannot dispatch it.
+server/app.py and ChiefCommander do not call this controller; they bypass
+the gate.
 """
 
 from __future__ import annotations
@@ -48,6 +54,7 @@ from courier_core.events import (
     EFFECT_CLASSES, MAX_ATTEMPTS_LIMIT, MAX_ID_LENGTH, RESULT_OUTCOMES, Event, EventType, EventValidationError,
     effect_key,
 )
+from courier_core.goal_contract import DraftOutcome, draft_goal_contract
 from courier_core.journal import DedupeConflict, Journal, JournalError
 from courier_core.projection import ProjectionError
 from courier_core.state_machine import (
@@ -67,7 +74,8 @@ MAX_HEARTBEAT_DISPATCHES = 256
 MAX_ARTIFACTS = 1000
 SUSPEND_GAP_S = 5.0  # a tick gap this long means the machine slept; leases are not punished for it
 
-TASK_FIELDS = {"adapter", "params", "effect_class", "max_attempts", "lease_ttl_s", "timeout_s", "idempotency_key"}
+TASK_FIELDS = {"adapter", "params", "effect_class", "max_attempts", "lease_ttl_s", "timeout_s",
+               "idempotency_key", "goal"}
 RESULT_FIELDS = {"dispatch_id", "result_id", "artifacts", "outcome", "retryable", "reason"}
 MAX_REASON_CHARS = 2000
 
@@ -336,6 +344,16 @@ class Controller:
                 "artifacts": artifacts}
 
     def create_task(self, body: Any) -> tuple[int, dict]:
+        """Journal a task, after the goal-contract gate when the body declares ``goal``.
+
+        A declared goal must draft (``draft_goal_contract``). Missing or
+        ambiguous goals return NEEDS_CLARIFICATION and are not journaled, so
+        they cannot be claimed. A body with no ``goal`` member is the existing
+        adapter intake and is unchanged.
+
+        ``server/app.py`` and ``ChiefCommander`` do not call this method. They
+        bypass the controller and this gate.
+        """
         self._require_writable()
         body = _only_fields(body, TASK_FIELDS)
         adapter = _require_id(body, "adapter")
@@ -357,6 +375,13 @@ class Controller:
         payload = {name: body[name] for name in ("adapter", "params", "effect_class", "max_attempts", "lease_ttl_s")}
         if timeout_s is not None:
             payload["timeout_s"] = timeout_s
+        if "goal" in body:
+            draft = draft_goal_contract(body.get("goal"))
+            if draft.outcome is not DraftOutcome.DRAFTED or draft.contract is None:
+                raise ApiError(409, "needs_clarification", "goal needs clarification before dispatch",
+                               outcome=draft.outcome.value, reasons=list(draft.reasons))
+            payload["goal_id"] = draft.contract.goal_id
+            payload["goal_fingerprint"] = draft.contract.fingerprint()
         try:
             event = Event(type=EventType.TASK_CREATED, task_id=task_id, payload=payload)
         except EventValidationError as exc:

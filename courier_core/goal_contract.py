@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -58,6 +59,23 @@ class Verdict(str, Enum):
     HUMAN_CONFIRMATION_REQUIRED = "HUMAN_CONFIRMATION_REQUIRED"
     NOT_VERIFIABLE = "NOT_VERIFIABLE"
     REVALIDATION_REQUIRED = "REVALIDATION_REQUIRED"
+
+
+class DraftOutcome(str, Enum):
+    DRAFTED = "DRAFTED"
+    NEEDS_CLARIFICATION = "NEEDS_CLARIFICATION"
+
+
+@dataclass(frozen=True)
+class GoalDraft:
+    """A draft the caller can dispatch, or a clarification the caller must answer.
+
+    ``contract`` is set only for DRAFTED. This module never invents a confirmation.
+    """
+
+    outcome: DraftOutcome
+    reasons: tuple[str, ...]
+    contract: GoalContract | None = None
 
 
 @dataclass(frozen=True)
@@ -437,6 +455,97 @@ def _task_scope(value: object) -> set[str] | None:
             return None
         items.add(item.strip())
     return items
+
+
+# A checkable end result names one outcome. These markers leave the result
+# with more than one reading, so the draft cannot be dispatched.
+_AMBIGUOUS_TEXT = re.compile(
+    r"(\?|\btbd\b|\btodo\b|\betc\b|\bmaybe\b|\bsomehow\b|\bwhatever\b|"
+    r"\band/or\b|\bas needed\b|\bas appropriate\b|\bsomething\b|"
+    r"\bunclear\b|\beither\b|\bor\b)",
+    re.IGNORECASE,
+)
+_DRAFT_FIELDS = set(_FINGERPRINT_FIELDS) | {"confirmations"}
+
+
+def draft_goal_contract(goal: object) -> GoalDraft:
+    """Draft a goal contract from a caller-supplied goal, or ask for clarification.
+
+    A missing goal and an ambiguous goal both return NEEDS_CLARIFICATION and no
+    contract. A single checkable end result returns DRAFTED. Confirmation is
+    recorded only when the caller already supplied one. ``Controller.create_task``
+    calls this before a declared goal can be journaled. ``server/app.py`` and
+    ``ChiefCommander`` do not call the controller, so they bypass that gate.
+    """
+    if goal is None or goal == "" or goal == {}:
+        return _clarify("missing_goal")
+    if isinstance(goal, str):
+        return _clarify("missing_goal" if not goal.strip() else "ambiguous_goal")
+    if not isinstance(goal, dict):
+        return _clarify("missing_goal")
+
+    reasons: list[str] = []
+    incomplete = not set(_FINGERPRINT_FIELDS) <= set(goal)
+    unknown = set(goal) - _DRAFT_FIELDS
+    if incomplete:
+        reasons.append("missing_goal")
+    if unknown or _goal_text_is_ambiguous(goal):
+        reasons.append("ambiguous_goal")
+    # Unknown or incomplete terms cannot be built. Ambiguous wording on a
+    # complete record is still built below so a structural defect is reported too.
+    if incomplete or unknown:
+        return GoalDraft(DraftOutcome.NEEDS_CLARIFICATION, _draft_reasons(reasons))
+
+    record = dict(goal)
+    record.setdefault("confirmations", [])
+    try:
+        contract = GoalContract.from_record(record)
+    except GoalContractError as exc:
+        message = str(exc)
+        if "cannot be both allowed and forbidden" in message or "ids must be unique" in message:
+            reasons.append("ambiguous_goal")
+        else:
+            reasons.append("missing_goal")
+        return GoalDraft(DraftOutcome.NEEDS_CLARIFICATION, _draft_reasons(reasons))
+    if reasons:
+        return GoalDraft(DraftOutcome.NEEDS_CLARIFICATION, _draft_reasons(reasons))
+    return GoalDraft(DraftOutcome.DRAFTED, (), contract)
+
+
+def _clarify(reason: str) -> GoalDraft:
+    return GoalDraft(DraftOutcome.NEEDS_CLARIFICATION, (reason,))
+
+
+def _draft_reasons(reasons: list[str]) -> tuple[str, ...]:
+    return tuple(name for name in ("missing_goal", "ambiguous_goal") if name in reasons)
+
+
+def _goal_text_is_ambiguous(goal: dict) -> bool:
+    end = goal.get("end_result")
+    if isinstance(end, (list, tuple)):
+        return True
+    if _ambiguous_text(end):
+        return True
+    for key in ("allowed_scope", "forbidden_scope", "constraints", "side_effect_limits"):
+        value = goal.get(key)
+        if isinstance(value, (list, tuple)) and any(_ambiguous_text(item) for item in value):
+            return True
+    criteria = goal.get("acceptance_criteria")
+    if isinstance(criteria, (list, tuple)):
+        for item in criteria:
+            if isinstance(item, dict) and (
+                _ambiguous_text(item.get("check")) or _ambiguous_text(item.get("id"))
+            ):
+                return True
+            if isinstance(item, AcceptanceCriterion) and (
+                _ambiguous_text(item.check) or _ambiguous_text(item.id)
+            ):
+                return True
+    return False
+
+
+def _ambiguous_text(value: object) -> bool:
+    return isinstance(value, str) and _AMBIGUOUS_TEXT.search(value) is not None
 
 
 def _task_ids(value: object) -> tuple[str, ...] | None:

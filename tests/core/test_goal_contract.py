@@ -8,11 +8,13 @@ import pytest
 from courier_core.goal_contract import (
     MAX_FILE_BYTES,
     AcceptanceCriterion,
+    DraftOutcome,
     Gates,
     GoalContract,
     GoalContractError,
     GoalContractStore,
     Verdict,
+    draft_goal_contract,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -206,6 +208,67 @@ def test_store_round_trip_and_fail_closed(tmp_path):
     with pytest.raises(GoalContractError, match="1 MiB"):
         GoalContractStore(fresh).append(first)
     assert fresh.read_bytes() == b"y" * MAX_FILE_BYTES
+
+
+def _draft_goal(**overrides):
+    goal = {
+        "goal_id": "goal-1",
+        "end_result": "out.txt exists and its sha256 matches the fixture",
+        "allowed_scope": ["out.txt"],
+        "forbidden_scope": ["secrets"],
+        "constraints": ["no network"],
+        "acceptance_criteria": [
+            {"id": "artifact", "check": "sha256 matches the fixture", "evidence_class": "deterministic"},
+        ],
+        "side_effect_limits": ["no commits"],
+        "gates": {"human": True, "money": False, "safety": True},
+    }
+    goal.update(overrides)
+    return goal
+
+
+def test_draft_missing_goal_needs_clarification():
+    for goal in (None, "", "   ", {}, {"goal_id": "goal-1"}, {"end_result": "out.txt exists"}):
+        draft = draft_goal_contract(goal)
+        assert draft.outcome is DraftOutcome.NEEDS_CLARIFICATION
+        assert draft.outcome.value == "NEEDS_CLARIFICATION"
+        assert "missing_goal" in draft.reasons
+        assert draft.contract is None
+        assert draft.outcome is not DraftOutcome.DRAFTED
+
+
+def test_draft_ambiguous_goal_needs_clarification():
+    cases = [
+        "fix the bug or maybe rewrite the module",
+        _draft_goal(end_result="fix the bug or maybe rewrite the module"),
+        _draft_goal(allowed_scope=["out.txt", "secrets"], forbidden_scope=["secrets"]),
+        _draft_goal(end_result=["ship the report", "rewrite the module"]),
+    ]
+    for goal in cases:
+        draft = draft_goal_contract(goal)
+        assert draft.outcome is DraftOutcome.NEEDS_CLARIFICATION
+        assert "ambiguous_goal" in draft.reasons
+        assert draft.contract is None
+
+
+def test_draft_clear_goal_is_unconfirmed_until_the_caller_confirms():
+    draft = draft_goal_contract(_draft_goal())
+    assert draft.outcome is DraftOutcome.DRAFTED
+    assert draft.reasons == ()
+    assert draft.contract is not None
+    assert draft.contract.human_confirmed is False
+    assert draft.contract.confirmations == ()
+    assert len(draft.contract.fingerprint()) == 64
+
+    confirmed = _draft_goal(confirmations=[{
+        "actor_kind": "human", "actor_ref": "person:ada", "at": "2026-10-15T00:00:00Z",
+    }])
+    drafted_again = draft_goal_contract(confirmed)
+    assert drafted_again.outcome is DraftOutcome.DRAFTED
+    assert drafted_again.contract is not None
+    assert drafted_again.contract.human_confirmed is True
+    assert drafted_again.contract.fingerprint() == draft.contract.fingerprint()
+    assert [item.actor_ref for item in drafted_again.contract.confirmations] == ["person:ada"]
 
 
 def test_schema_rejects_unknown_fields():
