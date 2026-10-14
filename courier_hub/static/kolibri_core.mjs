@@ -103,7 +103,7 @@ export function unavailableSnapshot(observedAt) {
     observed_at: observedAt,
     bird: { state: "rest", target: null },
     activity: REST_TEXT,
-    muse_wall: { ...block("scripts/windows_muse_wall/runtime/slots"), stations: [] },
+    muse_wall: { ...block("muse wall"), stations: [] },
     ledger: { ...block("courier journal (courier.db)"), items: [], counts: {} },
     ledger_bridge: { ...block("ledger_bridge_state.json"), missions: [] },
     postfach_alt_an_neu: { ...block("POSTFACH_ALT_AN_NEU"), entries: null },
@@ -143,7 +143,7 @@ function detailHtml(snapshot) {
   return `
     <section id="muse-wall" data-available="${muse.available ? "yes" : "no"}">
       <h2>Muse wall</h2>
-      ${muse.available ? `<p class="note">A slot file in the repo is not a live heartbeat. Without a fresh process heartbeat the state is ${PAUSE}.</p>` : ""}
+      ${muse.available ? `<p class="note">A checked-in slot file that says READY is not a live heartbeat. Without a fresh process timestamp the state is ${PAUSE}.</p>` : ""}
       ${field("Reading", muse)}
       <div class="stations">${stationHtml(stations)}</div>
     </section>
@@ -162,7 +162,18 @@ function detailHtml(snapshot) {
       ${field("Reading", bridge)}
       <div class="stations">${missions.map((mission) => `<article class="card" data-mission="${escapeHtml(mission.id)}">
         <h3>${escapeHtml(text(mission.id))}</h3>
-        ${field("Status", { value: mission.status, source: mission.source, at: mission.at })}
+        ${field("Status", {
+          value: mission.status,
+          source: mission.status_source || mission.source,
+          at: mission.status_at || mission.at,
+        })}
+        ${mission.task_id ? field("Task", { value: mission.task_id, source: mission.source, at: mission.at }) : ""}
+        ${mission.reason ? field("Reason", { value: mission.reason, source: mission.source, at: mission.at }) : ""}
+        ${mission.event_type ? field("Event", {
+          value: mission.event_type,
+          source: mission.status_source || mission.source,
+          at: mission.status_at || mission.at,
+        }) : ""}
       </article>`).join("")}</div>
     </section>
     <section id="github-ci" data-available="${ci.available ? "yes" : "no"}">
