@@ -42,6 +42,7 @@ from urllib.parse import urlsplit
 from courier_core.build import build_identity
 from courier_core.journal import Journal, JournalError
 from courier_hub import model
+from courier_hub.kolibri_data import snapshot_for_hub
 
 log = logging.getLogger("courier.hub")
 
@@ -378,6 +379,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(200, hub.home_view())
             if path == "/hub/api/status":
                 return self._send(200, hub.status())
+            if path == "/hub/api/kolibri":
+                return self._send(200, snapshot_for_hub(hub))
             match = _ITEM.match(path)
             if match:
                 try:
