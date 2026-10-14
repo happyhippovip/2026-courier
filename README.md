@@ -70,3 +70,11 @@ COURIER_API_KEY=... COURIER_VERIFIER_API_KEY=... python3 scripts/acceptance/run_
 ## Canonical Courier Symphony Product Plan
 
 Product priority, proof levels, Autonomy Grades, Goal Contracts, pilot metrics, Scope Freeze and gate transitions are governed by [docs/COURIER_SYMPHONY_CANONICAL_PRODUCT_PLAN.md](docs/COURIER_SYMPHONY_CANONICAL_PRODUCT_PLAN.md).
+
+---
+
+## 🧪 Courier Spar-Kalender — Public Beta (Entwurf)
+
+Der [Spar-Kalender](docs/spar-kalender/index.html) ist eine **statische, lokale Demo** für KI-Abokosten, geplante und verifizierte Aufträge zweier Mannschaften, Erfolgsquoten und simulierte Monatsverteilung. Beispielwerte: Cursor 60 €/Monat, GrokBot 17,50 €/Monat; 110-€-Ersatztarif deaktiviert. Es werden keine realen Courier-Daten geladen oder versendet.
+
+**Status:** [PR #628](https://github.com/happyhippovip/2026-courier/pull/628) ist ein Draft. Noch keine Browser-Abnahme oder gehostete Live-Demo. Die HTML-Datei kann lokal im Browser geöffnet werden; die Kalendertage sind simuliert und nicht als echte Auftragsereignisse zu interpretieren.
