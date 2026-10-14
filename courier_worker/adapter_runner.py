@@ -82,8 +82,19 @@ def main(argv: list) -> int:
         print(f"adapter_runner: {exc}", file=sys.stderr)
         return 3
     except synthetic.SyntheticError as exc:
+        _write_report(report, {"outcome": "failure", "reason": str(exc)[:500], "retryable": False})
         print(f"adapter_runner: params rejected: {exc}", file=sys.stderr)
         return 2
+    except BaseException as exc:
+        if isinstance(exc, (KeyboardInterrupt, SystemExit)):
+            raise
+        _write_report(report, {
+            "outcome": "failure",
+            "reason": f"synthetic unexpected error: {type(exc).__name__}: {exc}"[:500],
+            "retryable": False,
+        })
+        print(f"adapter_runner: synthetic crashed: {exc}", file=sys.stderr)
+        return 1
     _write_report(report, {"outcome": result.outcome, "reason": str(result.reason)[:500],
                            "retryable": bool(result.retryable)})
     return 0
