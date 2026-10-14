@@ -12,7 +12,13 @@ from courier_core.work_queue import (
     DEFAULT_SCHEMA,
     WorkQueue,
     WorkQueueError,
+    claim as claim_item,
+    list_ready as list_ready_items,
     main,
+    release as release_item,
+    renew as renew_item,
+    render_prompt,
+    scopes_overlap,
 )
 
 NOW = datetime(2026, 10, 8, 12, 0, 0, tzinfo=timezone.utc)
@@ -335,4 +341,159 @@ def test_cli_next_empty(tmp_path, capsys):
     _write_items(home, [_item("A", ["courier_core/a.py"], status="DONE")])
     code = main(["--items", str(home), "--ledger", str(tmp_path / "ledger.jsonl"), "next", "--holder", "window-a"])
     assert code == 0
+    assert capsys.readouterr().out.strip() == "NO_READY_ITEM"
+
+
+def test_items_reflects_effective_state_and_replay(tmp_path):
+    home = tmp_path / "items"
+    _write_items(home, [_item("A", ["courier_core/a.py"]), _item("B", ["courier_core/b.py"])])
+    ledger = tmp_path / "ledger.jsonl"
+    first = WorkQueue(home, ledger)
+    assert [row["id"] for row in first.items(now=NOW) if row["status"] == "READY"] == ["A", "B"]
+    first.claim("A", "holder-a", 30, now=NOW)
+    # A second instance replays the same ledger without sharing memory.
+    second = WorkQueue(home, ledger)
+    states = {row["id"]: row for row in second.items(now=NOW)}
+    assert states["A"]["status"] == "CLAIMED"
+    assert states["A"]["lease"]["holder"] == "holder-a"
+    assert states["B"]["status"] == "READY"
+    expired = {row["id"]: row for row in second.items(now=NOW + timedelta(seconds=31))}
+    assert expired["A"]["status"] == "READY"
+    assert expired["A"]["lease"] is None
+
+
+def test_module_level_wrappers_delegate(tmp_path):
+    home = tmp_path / "items"
+    _write_items(home, [_item("A", ["courier_core/a.py"])])
+    queue = WorkQueue(home, tmp_path / "ledger.jsonl")
+    assert [item["id"] for item in list_ready_items(queue, now=NOW)] == ["A"]
+    claimed = claim_item(queue, "A", "holder-a", 60, now=NOW)
+    assert claimed["item_id"] == "A" and claimed["idempotent"] is False
+    renewed = renew_item(queue, "A", "holder-a", 120, now=NOW)
+    assert renewed["expires_at"] == "2026-10-08T12:02:00Z"
+    done = release_item(queue, "A", "holder-a", "draft PR", now=NOW)
+    assert done == {"item_id": "A", "status": "DONE", "result": "draft PR", "idempotent": False}
+    assert list_ready_items(queue, now=NOW) == []
+
+
+def test_invalid_tokens_ttl_result_and_clock_are_rejected(tmp_path):
+    # P8 is permanently claimed upstream (pr:309, expires_at null) -> use a test-local free item
+    home = tmp_path / "items"
+    _write_items(home, [_item("T1", ["tests/only_t1.py"])])
+    queue = WorkQueue(home, tmp_path / "ledger.jsonl")
+    with pytest.raises(WorkQueueError) as caught:
+        queue.claim("T1!", "holder-a", 60, now=NOW)
+    assert caught.value.code == "ITEM"
+    with pytest.raises(WorkQueueError) as caught:
+        queue.claim("T1", "not a holder", 60, now=NOW)
+    assert caught.value.code == "HOLDER"
+    with pytest.raises(WorkQueueError) as caught:
+        queue.claim("T1", "holder-a", 60, host="bad host", now=NOW)
+    assert caught.value.code == "HOST"
+    for bad_ttl in (0, -5, 7 * 24 * 3600 + 1, True, "60", None):
+        with pytest.raises(WorkQueueError) as caught:
+            queue.claim("T1", "holder-a", bad_ttl, now=NOW)
+        assert caught.value.code == "TTL"
+    queue.claim("T1", "holder-a", 60, now=NOW)
+    for bad_result in ("", "   ", "x" * 201, "line\nbreak"):
+        with pytest.raises(WorkQueueError) as caught:
+            queue.release("T1", "holder-a", bad_result, now=NOW)
+        assert caught.value.code == "RESULT"
+    with pytest.raises(WorkQueueError) as caught:
+        queue.list_ready(now=datetime(2026, 10, 8, 12, 0, 0))
+    assert caught.value.code == "CLOCK"
+    with pytest.raises(WorkQueueError) as caught:
+        queue.claim("MISSING", "holder-a", 60, now=NOW)
+    assert caught.value.code == "UNKNOWN_ITEM"
+    with pytest.raises(WorkQueueError) as caught:
+        queue.renew("MISSING", "holder-a", 60, now=NOW)
+    assert caught.value.code == "UNKNOWN_ITEM"
+    with pytest.raises(WorkQueueError) as caught:
+        queue.release("MISSING", "holder-a", "draft PR", now=NOW)
+    assert caught.value.code == "UNKNOWN_ITEM"
+
+
+def test_release_and_renew_without_lease_are_rejected(tmp_path):
+    home = tmp_path / "items"
+    _write_items(home, [_item("A", ["courier_core/a.py"])])
+    queue = WorkQueue(home, tmp_path / "ledger.jsonl")
+    with pytest.raises(WorkQueueError) as caught:
+        queue.renew("A", "holder-a", 60, now=NOW)
+    assert caught.value.code == "NOT_HOLDER"
+    with pytest.raises(WorkQueueError) as caught:
+        queue.release("A", "holder-a", "draft PR", now=NOW)
+    assert caught.value.code == "NOT_HOLDER"
+
+
+def test_release_done_by_other_holder_is_rejected(tmp_path):
+    home = tmp_path / "items"
+    _write_items(home, [_item("A", ["courier_core/a.py"])])
+    queue = WorkQueue(home, tmp_path / "ledger.jsonl")
+    queue.claim("A", "holder-a", 60, now=NOW)
+    queue.release("A", "holder-a", "draft PR", now=NOW)
+    with pytest.raises(WorkQueueError) as caught:
+        queue.release("A", "holder-b", "draft PR", now=NOW)
+    assert caught.value.code == "ALREADY_DONE"
+
+
+def test_seed_id_and_lease_invariants_fail_closed(tmp_path):
+    home = tmp_path / "items"
+    _write_items(home, [_item("B", ["courier_core/a.py"])])
+    (home / "B.json").write_text(json.dumps(_item("A", ["courier_core/a.py"])), encoding="utf-8")
+    with pytest.raises(WorkQueueError) as caught:
+        WorkQueue(home, tmp_path / "ledger.jsonl").list_ready(now=NOW)
+    assert caught.value.code == "ID_MISMATCH"
+    claimed = _item("A", ["courier_core/a.py"], status="CLAIMED")
+    assert claimed["lease"] is None
+    _write_items(home, [claimed])
+    with pytest.raises(WorkQueueError) as caught:
+        WorkQueue(home, tmp_path / "ledger.jsonl").list_ready(now=NOW)
+    assert caught.value.code == "LEASE_REQUIRED"
+    ready_with_lease = _item("A", ["courier_core/a.py"])
+    ready_with_lease["lease"] = {"holder": "h", "host": "local", "expires_at": "2026-10-08T12:01:00Z"}
+    _write_items(home, [ready_with_lease])
+    with pytest.raises(WorkQueueError) as caught:
+        WorkQueue(home, tmp_path / "ledger.jsonl").list_ready(now=NOW)
+    assert caught.value.code == "LEASE_UNEXPECTED"
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    with pytest.raises(WorkQueueError) as caught:
+        WorkQueue(empty, tmp_path / "ledger.jsonl").list_ready(now=NOW)
+    assert caught.value.code == "UNREADABLE"
+
+
+def test_scopes_overlap_direct():
+    assert scopes_overlap(["courier_core/a.py"], ["courier_core/a.py"])
+    assert scopes_overlap(["courier_core/*.py"], ["courier_core/a.py"])
+    assert scopes_overlap(["*"], ["courier_core/a.py"])
+    assert scopes_overlap(["courier_core/*.py"], ["courier_core/sub/*.py"])
+    assert not scopes_overlap(["courier_core/a.py"], ["docs/a.py"])
+    assert not scopes_overlap(["courier_core/a.py"], ["courier_core/b.py"])
+    assert not scopes_overlap(["a/*.py"], ["b/*.py"])
+
+
+def test_render_prompt_falls_back_to_none():
+    row = _item("A", ["courier_core/a.py"])
+    row["depends_on"] = []
+    row["provider_hints"] = []
+    text = render_prompt(row, "holder-a")
+    assert "holder: holder-a" in text
+    assert "depends_on: none" in text
+    assert "provider_hints: none" in text
+    assert "- courier_core/a.py" in text
+
+
+def test_cli_renew_and_release_roundtrip(tmp_path, capsys):
+    home = tmp_path / "items"
+    _write_items(home, [_item("A", ["courier_core/a.py"])])
+    base = ["--items", str(home), "--ledger", str(tmp_path / "ledger.jsonl")]
+    assert main(base + ["claim", "--item", "A", "--holder", "holder-a", "--ttl", "60"]) == 0
+    capsys.readouterr()
+    assert main(base + ["renew", "--item", "A", "--holder", "holder-a", "--ttl", "120"]) == 0
+    renewed = json.loads(capsys.readouterr().out)
+    assert renewed["status"] == "CLAIMED" and renewed["idempotent"] is False
+    assert main(base + ["release", "--item", "A", "--holder", "holder-a", "--result", "draft PR"]) == 0
+    done = json.loads(capsys.readouterr().out)
+    assert done == {"idempotent": False, "item_id": "A", "result": "draft PR", "status": "DONE"}
+    assert main(base + ["next", "--holder", "holder-b"]) == 0
     assert capsys.readouterr().out.strip() == "NO_READY_ITEM"
