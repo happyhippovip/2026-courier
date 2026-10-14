@@ -26,7 +26,15 @@ Nothing raised here may stop the worker loop.
 
 After each started pass the tick rewrites ``<home>/run/ledger_tick.json``
 (pid, pass count, last outcome and exit code, park reason, UTC time). It holds
-no token, path or bridge output. It is a status file, not a queue.
+no token, path or bridge output. It is a status file, not a queue. A failed
+status write is logged and counted in ``status_write_failures``.
+
+Turn-boundary auto-continuation: when a provider/agent round ends, the worker
+calls :meth:`LedgerTick.request_continuation`. With open work it marks at most
+one pending continuation (PENDING_AUTO_CONTINUATION, max 1); further requests
+before it is consumed coalesce into it. The next tick then starts a pass
+without waiting for ``min_interval_s`` (park and host pressure still apply).
+Without open work nothing is marked, so no wake-up happens.
 """
 
 from __future__ import annotations
@@ -59,6 +67,10 @@ SKIPPED_PRESSURE = "skipped-pressure"
 SKIPPED_PARKED = "skipped-parked"
 TIMED_OUT = "timeout"
 STATUS_FILE = ("run", "ledger_tick.json")
+# request_continuation() results
+CONT_REQUESTED = "requested"
+CONT_COALESCED = "coalesced"
+CONT_NO_OPEN_WORK = "no-open-work"
 
 
 class Completed:
@@ -96,7 +108,8 @@ class LedgerTick:
                  runner: Optional[Runner] = None,
                  clock: Callable[[], float] = time.monotonic,
                  log: Optional[Callable[[str], None]] = None,
-                 repo_root: Optional[Path] = None):
+                 repo_root: Optional[Path] = None,
+                 open_work_probe: Optional[Callable[[], bool]] = None):
         if not agent_id or not host_id:
             raise ValueError("agent_id and host_id are required")
         lo, hi = MIN_INTERVAL_BOUNDS
@@ -119,6 +132,29 @@ class LedgerTick:
         self._last_start: Optional[float] = None
         self.parked_reason: Optional[str] = None
         self.passes = 0
+        self._open_work = open_work_probe or self._default_open_work
+        self.pending_continuation = False   # PENDING_AUTO_CONTINUATION, at most one
+        self.continuation_wakeups = 0
+        self.continuations_coalesced = 0
+        self.status_write_failures = 0
+
+    def _default_open_work(self) -> bool:
+        try:
+            from courier_worker.queue_feed import has_open_work
+            return bool(has_open_work(self.home))
+        except Exception as exc:  # fail closed: unknown work state means no wake-up
+            self._log(f"courier_worker.ledger_tick: open-work probe failed ({exc.__class__.__name__})")
+            return False
+
+    def request_continuation(self) -> str:
+        """Turn ended: mark one pending continuation if work is open (coalescing)."""
+        if self.pending_continuation:
+            self.continuations_coalesced += 1
+            return CONT_COALESCED
+        if not self._open_work():
+            return CONT_NO_OPEN_WORK
+        self.pending_continuation = True
+        return CONT_REQUESTED
 
     @property
     def parked(self) -> bool:
@@ -159,7 +195,10 @@ class LedgerTick:
             with open(tmp, "w", encoding="utf-8") as fh:
                 json.dump(record, fh, sort_keys=True)
             os.replace(tmp, path)
-        except OSError:
+        except OSError as exc:
+            self.status_write_failures += 1
+            self._log(f"courier_worker.ledger_tick: status write failed ({exc.__class__.__name__}); "
+                      f"status_write_failures={self.status_write_failures}")
             try:
                 os.unlink(tmp)
             except OSError:
@@ -180,7 +219,8 @@ class LedgerTick:
         if self.parked:
             return SKIPPED_PARKED
         now = self._clock()
-        if self._last_start is not None and now - self._last_start < self.min_interval_s:
+        if (not self.pending_continuation and self._last_start is not None
+                and now - self._last_start < self.min_interval_s):
             return SKIPPED_INTERVAL
         if self._probe is not None:
             reason = self._probe()
@@ -190,6 +230,9 @@ class LedgerTick:
             return self._park("bridge-missing")
         self._last_start = now
         self.passes += 1
+        if self.pending_continuation:
+            self.pending_continuation = False
+            self.continuation_wakeups += 1
         self._feed_queue()
         try:
             done = self._runner(self.argv(), str(self._repo), self._env(), self.timeout_s)
