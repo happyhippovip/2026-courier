@@ -15,8 +15,16 @@ PRESSURED = "PRESSURED"
 DEGRADED = "DEGRADED"
 RESOURCE_PAUSE = "RESOURCE_PAUSE"
 EMERGENCY = "EMERGENCY"
+# Registry states kept from the pre-Issue-76 API (still used by origin/main and tests).
+BUSY = "BUSY"
+IDLE = "IDLE"
+OFFLINE = "OFFLINE"
+RECOVERING = "RECOVERING"
 
-SELECTABLE = {HEALTHY, PRESSURED, DEGRADED} # RESOURCE_PAUSE/EMERGENCY exclude new general work
+# Fully runnable states. PRESSURED/DEGRADED admit only conditionally (see can_admit);
+# RESOURCE_PAUSE/EMERGENCY/OFFLINE/RECOVERING never admit new work.
+SELECTABLE = {HEALTHY, IDLE, BUSY}
+CONDITIONAL = {PRESSURED, DEGRADED}
 
 @dataclass(frozen=True)
 class HostProfile:
@@ -43,6 +51,7 @@ class Host:
     privacy: str = "own"          # "own" (user's device) or "hosted"
     active_leases: int = 0
     active_heavy_leases: int = 0
+    max_leases: int = 1           # per-host lease cap (pre-Issue-76 API); profile slots still apply
 
 @dataclass(frozen=True)
 class Requirement:
@@ -65,8 +74,10 @@ def can_admit(requirement: Requirement, host: Host) -> bool:
     # Check absolute capacity
     if host.active_leases >= host.profile.max_total_slots:
         return False
+    if host.active_leases >= host.max_leases:
+        return False
         
-    if host.health == HEALTHY:
+    if host.health in SELECTABLE:
         # Full admission
         if requirement.is_heavy and host.active_heavy_leases >= host.profile.max_heavy_slots:
             return False
@@ -91,11 +102,11 @@ def eligible(requirement, hosts):
     return [h for h in hosts if can_admit(requirement, h)]
 
 def select(requirement, hosts):
-    """Cheapest eligible host, stable by device id. Never an incapable host."""
+    """Cheapest eligible host, idle before busy, then stable by device id. Never an incapable host."""
     candidates = eligible(requirement, hosts)
     if not candidates:
         raise NoEligibleHost(f"no healthy host offers {sorted(requirement.capabilities)} for heavy={requirement.is_heavy}")
-    return sorted(candidates, key=lambda h: (h.cost_per_hour_eur, h.device_id))[0]
+    return sorted(candidates, key=lambda h: (h.cost_per_hour_eur, h.health == BUSY, h.device_id))[0]
 
 @dataclass(frozen=True)
 class Evidence:
