@@ -41,6 +41,7 @@ include = [
     "desktop*",
     "courier_hub*",
     "courier_runtime*",
+    "courier_listclean*",
 ]
 
 [tool.setuptools.package-data]
@@ -54,3 +55,4 @@ courier_core = ["schemas/*", "config/*"]
 courier-core = "courier_core.cli:main"
 courier-worker = "courier_worker.cli:main"
 courier-hub = "courier_hub.cli:main"
+courier-listclean = "courier_listclean.cli:main"
