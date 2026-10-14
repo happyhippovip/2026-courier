@@ -49,7 +49,8 @@ class Workspace:
             return {"state": "NEEDS_USER", "reasons": [f"authority required: {reason}"], "host": host.device_id}
         checkpoint.grant_ids = [grant.grant_id]
         owned_alive = [r.pid for r in self.registry.owned(workkey) if _alive(r)]
-        lease_free = self.leases.current(scope) is None or self.leases.current(scope).holder == host.device_id
+        held = self.leases.current(scope)
+        lease_free = held is None or (held.holder == host.device_id and held.workkey == workkey)
         decision = decide(checkpoint, grants_valid={grant.grant_id: True}, owned_alive=owned_alive,
                           lease_available=lease_free)
         if not decision["safe"]:
