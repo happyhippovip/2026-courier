@@ -55,6 +55,9 @@ GOAL_TOKEN = re.compile(r"[A-Za-z0-9._:-]+\Z")
 MISSION_STATUSES = frozenset({"POSTED", "FINAL_DONE", "BLOCKED", "ERROR"})
 REASON_CODE = re.compile(r"[A-Z][A-Z0-9_]{0,31}\Z")
 INPUTS_FIELD = "inputs_from"
+# A spec with bind_input: true runs on the verified result of its one ledger
+# dependency; the controller binds that result as the task's input at claim.
+BIND_INPUT = "bind_input"
 MAX_INPUTS = 16
 MAX_INPUT_ARTIFACTS = 64  # keeps B's params far below the worker's 64 KiB envelope
 MAX_ARTIFACT_PATH = 1024
@@ -210,6 +213,17 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
             emit({"mission_id": mission_id, "outcome": "skipped", "reason": "inputs_missing"})
             ok = False
             continue
+        upstream_task = None
+        if spec.get(BIND_INPUT) is True and mapping is None:
+            upstream_task, why = _upstream_task(state, reducer.get_mission(mission_id))
+            if upstream_task is None:
+                emit({"mission_id": mission_id, "outcome": "skipped", "reason": why})
+                ok = False
+                continue
+        if spec.get(BIND_INPUT) is True and mapping is not None and not _task_id_ok(mapping.get("depends_on_task")):
+            emit({"mission_id": mission_id, "outcome": "skipped", "reason": "dependency_unbound"})
+            ok = False
+            continue
         if mapping is None:
             claimed = claim_mission(store, agent, host, mission_id)
             if claimed.outcome != CLAIMED or not claimed.event_id:
@@ -231,7 +245,9 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
                 "attempt": None,
                 "spec_fingerprint": _fingerprint(spec),
                 "source_sha": source,
-                "evidence_ref": _identity(task_id, None, 0, _fingerprint(spec), source, goal, inputs_digest),
+                "evidence_ref": _identity(
+                    task_id, None, 0, _fingerprint(spec), source, goal, inputs_digest, upstream_task,
+                ),
             }
             if goal is not None:
                 mapping["goal_id"] = goal[0]
@@ -241,11 +257,16 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
                 # the idempotency key always names the same inputs.
                 mapping["inputs"] = inputs
                 mapping["inputs_digest"] = inputs_digest
+            if upstream_task is not None:
+                # Bound at claim time and reposted unchanged, so a retry names the same dependency.
+                mapping["depends_on_task"] = upstream_task
             state["missions"][mission_id] = mapping
             _save_state(home / "ledger_bridge_state.json", state)
         if mapping.get("posted"):
             continue
-        posted = _post_task(transport, args, token, spec, mapping["idempotency_key"], mapping.get("inputs"))
+        posted = _post_task(
+            transport, args, token, spec, mapping["idempotency_key"], mapping.get("inputs"), _bound_task(mapping),
+        )
         if posted.get("rejected"):
             emit({"mission_id": mission_id, "outcome": "skipped", "reason": "rejected"})
             ok = False
@@ -263,7 +284,7 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
             "accepted_result_id": result_id,
             "evidence_ref": _identity(
                 mapping["task_id"], result_id, attempt, mapping["spec_fingerprint"], mapping["source_sha"], goal,
-                _mapping_inputs_digest(mapping),
+                _mapping_inputs_digest(mapping), _bound_task(mapping),
             ),
         }
         if goal is not None:
@@ -290,7 +311,9 @@ def _feedback_event(mission, mapping, spec, agent, host, view):
     result_id = _result_id(view)
     goal_kind, goal_value = _goal_binding(spec)
     goal = goal_value if goal_kind == "ok" else None
-    evidence = _identity(task_id, result_id, attempt, fingerprint, source, goal, _mapping_inputs_digest(mapping))
+    evidence = _identity(
+        task_id, result_id, attempt, fingerprint, source, goal, _mapping_inputs_digest(mapping), _bound_task(mapping),
+    )
     if status == "COMPLETE":
         if result_id is None:
             return None
@@ -326,7 +349,8 @@ def _feedback_event(mission, mapping, spec, agent, host, view):
     )
 
 
-def _identity(task_id, result_id, attempt, fingerprint, source_sha, goal=None, inputs_digest=None) -> str:
+def _identity(task_id, result_id, attempt, fingerprint, source_sha, goal=None, inputs_digest=None,
+              depends_on_task=None) -> str:
     result = result_id if isinstance(result_id, str) and result_id else "none"
     text = (
         f"task_id={task_id};accepted_result_id={result};attempt={attempt};"
@@ -336,7 +360,35 @@ def _identity(task_id, result_id, attempt, fingerprint, source_sha, goal=None, i
         text += f";goal_id={goal[0]};goal_fingerprint={goal[1]}"
     if inputs_digest:
         text += f";inputs_digest={inputs_digest}"
+    if depends_on_task:
+        text += f";depends_on_task={depends_on_task}"
     return text
+
+
+def _upstream_task(state, mission):
+    """(controller task id of the one ledger dependency, None) or (None, reason).
+
+    The controller binds the dependency's verified result as the task's input
+    at claim; the bridge only names which task that is. It needs exactly one
+    ledger dependency that this bridge already posted.
+    """
+    deps = list(mission.get("depends_on") or []) if isinstance(mission, dict) else []
+    if len(deps) != 1:
+        return None, "bind_input_needs_one_dependency"
+    upstream = state["missions"].get(deps[0])
+    task_id = upstream.get("task_id") if isinstance(upstream, dict) else None
+    if not isinstance(upstream, dict) or upstream.get("posted") is not True or not _task_id_ok(task_id):
+        return None, "dependency_unmapped"
+    return task_id, None
+
+
+def _bound_task(mapping):
+    value = mapping.get("depends_on_task") if isinstance(mapping, dict) else None
+    return value if _task_id_ok(value) else None
+
+
+def _task_id_ok(value) -> bool:
+    return isinstance(value, str) and 0 < len(value) <= MAX_ID_LENGTH
 
 
 def _resolve_inputs(state, spec, mission, transport, args, token, home):
@@ -506,9 +558,11 @@ def _task_result(transport, args, token, task_id):
     return body if isinstance(body, dict) else None
 
 
-def _post_task(transport, args, token, spec, key, inputs=None):
+def _post_task(transport, args, token, spec, key, inputs=None, depends_on_task=None):
     task = {name: spec[name] for name in TASK_FIELDS if name in spec}
     task["idempotency_key"] = key
+    if depends_on_task is not None:
+        task["depends_on"] = depends_on_task
     # The controller persists adapter, params, and the attempt fields. Goal
     # identity and verified inputs are copied into that payload and are not part
     # of the idempotency key.
@@ -564,7 +618,11 @@ def _load_specs(path: Path):
 def _spec_ok(spec) -> bool:
     if not isinstance(spec, dict):
         return False
-    allowed = set(TASK_FIELDS) | {"source_sha", INPUTS_FIELD, *GOAL_FIELDS}
+    allowed = set(TASK_FIELDS) | {"source_sha", INPUTS_FIELD, BIND_INPUT, *GOAL_FIELDS}
+    if BIND_INPUT in spec and not isinstance(spec[BIND_INPUT], bool):
+        return False
+    if spec.get(BIND_INPUT) is True and INPUTS_FIELD in spec:
+        return False  # one input mechanism per task: the controller's binding or the bridge's references
     if set(spec) - allowed or any(name not in spec for name in ("adapter", "params", "effect_class", "max_attempts", "lease_ttl_s")):
         return False
     adapter = spec.get("adapter")
