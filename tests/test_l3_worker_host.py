@@ -130,6 +130,34 @@ def test_success_collects_artifact_with_exact_ids(tmp_path):
     assert host.busy is False
 
 
+def test_claim_write_failure_terminates_owned_tree(tmp_path, monkeypatch):
+    """A failed claim-record write kills the owned tree and clears the flight."""
+    real_spawn = H._spawn_contained
+    spawned = {}
+
+    def spy_spawn(argv, run_dir, tag):
+        run = real_spawn(argv, run_dir, tag)
+        spawned["run"] = run
+        return run
+
+    monkeypatch.setattr(H, "_spawn_contained", spy_spawn)
+    (tmp_path / "run").mkdir()
+    (tmp_path / "run" / "claims").write_text("not-a-directory", encoding="utf-8")
+    host = make_host(tmp_path)
+    spec = make_spec(tmp_path, argv=[PY, "-c", "import time; time.sleep(30)"])
+    try:
+        with pytest.raises(OSError):
+            host.run_once(spec)
+        run = spawned["run"]
+        assert run.tree_alive() is False
+        assert host._active is None
+        assert host.busy is False
+    finally:
+        run = spawned.get("run")
+        if run is not None and run.tree_alive():
+            run.terminate_tree()
+
+
 def test_second_claim_while_busy_is_refused(tmp_path):
     host = make_host(tmp_path)
     slow = make_spec(tmp_path, dispatch="slow", argv=[PY, "-c", "import time; time.sleep(5)"])
@@ -461,6 +489,70 @@ def claim_body(dispatch="d1", task="t1", spec_over=None, params=None, attempt=1)
     return {"task_id": task, "attempt": attempt, "dispatch_id": dispatch, "ttl_s": 30, "spec": spec}
 
 
+def _local_shell_write_argv(text="courier-l3"):
+    return [PY, "-c", "import sys; open('out.txt', 'w').write(sys.argv[1])", text]
+
+
+def test_local_shell_claim_executes_and_delivers(tmp_path, stub):
+    write_token(tmp_path)
+    STUB.claims.append(claim_body(
+        spec_over={"adapter": "local_shell"},
+        params={"command": _local_shell_write_argv(), "write": "out.txt", "timeout_s": 30},
+    ))
+    loop = S.WorkerLoop(str(tmp_path), stub, "w1", 0.2)
+    assert loop.iterate(threading.Event()) == "delivered"
+    payload = STUB.results[0]
+    assert payload["outcome"] == "success" and "retryable" not in payload
+    digest = hashlib.sha256(b"courier-l3").hexdigest()
+    assert payload["artifacts"] == [{"path": "artifacts/d1/out.txt", "sha256": digest}]
+
+
+def test_runner_executes_local_shell_request(tmp_path):
+    workdir = tmp_path / "w"
+    report = tmp_path / "r.json"
+    request = tmp_path / "req.json"
+    request.write_text(json.dumps({
+        "adapter": "local_shell",
+        "params": {"command": _local_shell_write_argv("runner-ok"), "write": "out.txt"},
+        "attempt": 1,
+        "workdir": str(workdir),
+        "report": str(report),
+    }), encoding="utf-8")
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    proc = subprocess.run(
+        [PY, A.RUNNER_SCRIPT, str(request)],
+        cwd=repo_root, env={**os.environ, "PYTHONPATH": repo_root},
+        capture_output=True, text=True, timeout=30)
+    assert proc.returncode == 0 and report.exists()
+    body = json.loads(report.read_text(encoding="utf-8"))
+    assert body["outcome"] == "success"
+    assert hashlib.sha256((workdir / "out.txt").read_bytes()).hexdigest()
+
+
+def test_runner_rejects_null_byte_local_shell_argv(tmp_path):
+    workdir = tmp_path / "w"
+    report = tmp_path / "r.json"
+    request = tmp_path / "req.json"
+    bad_argv = [PY, "-c", "print('x')", "safe\x00evil"]
+    request.write_text(json.dumps({
+        "adapter": "local_shell",
+        "params": {"command": bad_argv, "write": "out.txt"},
+        "attempt": 1,
+        "workdir": str(workdir),
+        "report": str(report),
+    }), encoding="utf-8")
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    proc = subprocess.run(
+        [PY, A.RUNNER_SCRIPT, str(request)],
+        cwd=repo_root, env={**os.environ, "PYTHONPATH": repo_root},
+        capture_output=True, text=True, timeout=30)
+    assert proc.returncode != 0
+    assert report.exists()
+    body = json.loads(report.read_text(encoding="utf-8"))
+    assert body["outcome"] == "failure" and body["retryable"] is False
+    assert "null" in body["reason"].lower()
+
+
 def test_claim_start_result_wire_exact_ids(tmp_path, stub):
     write_token(tmp_path)
     STUB.claims.append(claim_body())
@@ -626,6 +718,7 @@ def test_sse_rejected_subscription_degrades(tmp_path, stub, monkeypatch):
     ({"adapter": "courier_worker.adapter_runner"}, None, "not allowlisted"),
     ({"adapter": None}, None, "not allowlisted"),
     ({"params": "sleep 1"}, None, "params must be an object"),
+    ({"adapter": "local_shell"}, {"write": "../escape.txt"}, "local_shell params rejected"),
     ({}, {"write": "../escape.txt"}, "synthetic params rejected"),
     ({}, {"write": "/etc/passwd"}, "synthetic params rejected"),
     ({}, {"sleep_s": -1}, "synthetic params rejected"),
@@ -749,4 +842,36 @@ def test_job_object_kills_tree_on_terminate(tmp_path):
     assert result.outcome == Outcome.CANCELLED
     leftovers = [p.pid for p in me.children(recursive=True) if p.pid not in before]
     assert leftovers == []
+
+
+def _thermal_loop(tmp_path, stub, probe):
+    write_token(tmp_path)
+    engine = H.WorkerHost(str(tmp_path), pressure_probe=probe)
+    return S.WorkerLoop(str(tmp_path), stub, "w1", 0.2, engine=engine)
+
+
+def test_thermal_healthy_probe_claims_and_reports_normal(tmp_path, stub):
+    loop = _thermal_loop(tmp_path, stub, lambda: None)
+    STUB.claims.append(claim_body())
+    assert loop.iterate(threading.Event()) == "delivered"
+    assert loop._last_resource_state == "NORMAL"
+
+
+def test_thermal_pressured_probe_skips_claim_and_reports(tmp_path, stub):
+    loop = _thermal_loop(tmp_path, stub, lambda: "thermal-pressure: speed limit 50%")
+    STUB.claims.append(claim_body())
+    assert loop.iterate(threading.Event()) == "idle"
+    assert loop._last_resource_state == "PRESSURED"
+    assert len(STUB.claims) == 1  # claim never fetched while pressured
+    assert STUB.beats and STUB.beats[-1] == {"worker_id": "w1", "dispatch_ids": []}  # liveness only
+
+
+def test_thermal_cooldown_holds_after_pressure_clears(tmp_path, stub):
+    loop = _thermal_loop(tmp_path, stub, lambda: "thermal-pressure: speed limit 50%")
+    STUB.claims.append(claim_body())
+    assert loop.iterate(threading.Event()) == "idle"
+    loop.engine._pressure_probe = lambda: None
+    assert loop.iterate(threading.Event()) == "idle"
+    assert loop._last_resource_state == "COOLDOWN"
+    assert len(STUB.claims) == 1  # still no claim during cooldown
 

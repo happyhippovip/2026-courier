@@ -130,7 +130,8 @@ class ProviderCircuitBreaker:
         return {key: circuit.to_dict() for key, circuit in self.circuits.items()}
 
     def restore(self, value):
-        self.circuits = {key: CircuitState.from_dict(circuit) for key, circuit in value.items()}
+        for key, circuit in value.items():
+            self.circuits[key] = CircuitState.from_dict(circuit)
         
         
     def get_circuit(self, provider_id: str, capability: str) -> CircuitState:

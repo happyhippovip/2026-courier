@@ -89,6 +89,18 @@ class Outcome:
     SPAWN_FAILED = "spawn-failed"
 
 
+class LivenessState:
+    DELIVERED = "delivered"
+    ACCEPTED = "accepted"
+    WORKING = "working"
+    QUIET = "quiet"
+    SLOW = "slow"
+    PROBING = "probing"
+    FAILED = "failed"
+    RESULT_DURABLE = "result_durable"
+    RETIRED = "retired"
+
+
 @dataclass(frozen=True)
 class ExecutionSpec:
     """Everything the host needs to run one dispatch, nothing more."""
@@ -287,6 +299,22 @@ if os.name == "nt":
 
     def _terminate_job(job: object) -> None:
         _kernel32.TerminateJobObject(job, 1)
+
+    # NtResumeProcess resumes all threads in a process given its handle.
+    # This replaces the psutil dependency for the CREATE_SUSPENDED pattern.
+    _ntdll = ctypes.WinDLL("ntdll", use_last_error=True)
+    _ntdll.NtResumeProcess.restype = wintypes.LONG  # NTSTATUS
+    _ntdll.NtResumeProcess.argtypes = [wintypes.HANDLE]
+
+    def _resume_process(proc: subprocess.Popen) -> None:
+        """Resume a process created with CREATE_SUSPENDED."""
+        # subprocess.Popen on Windows stores the process handle as _handle
+        handle = getattr(proc, "_handle", None)
+        if handle is None:
+            raise ContainmentError("cannot resume: no process handle")
+        status = _ntdll.NtResumeProcess(handle)
+        if status < 0:
+            raise ContainmentError(f"NtResumeProcess failed: NTSTATUS 0x{status & 0xFFFFFFFF:08X}")
 else:
     def _job_for_child() -> object:
         return None
@@ -413,6 +441,29 @@ def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
         popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP | 0x00000004
     else:
         popen_kwargs["start_new_session"] = True
+
+    try:
+        # Import dynamically so we don't break if courier_runtime isn't in path
+        import sys
+        import os
+        from pathlib import Path
+        sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent.parent))
+        from courier_runtime.surfaces import SurfaceSupervisor
+        sup = SurfaceSupervisor()
+        decision = sup.admit(
+            provider="courier_host",
+            workkey=tag,
+            prompt=argv[0] if argv else "spawn",
+            needs_visible=False,
+            allow_headless=True
+        )
+        if not decision.get("admitted"):
+            _close_job(job)
+            stdout_f.close()
+            stderr_f.close()
+            raise ResourcePaused(f"Surface budget exceeded: {decision.get('reason')}")
+    except (ImportError, Exception):
+        pass
     try:
         proc = subprocess.Popen(argv, **popen_kwargs)
     except OSError as exc:
@@ -428,8 +479,7 @@ def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
     if os.name == "nt":
         try:
             _assign_to_job(job, proc.pid)
-            import psutil
-            psutil.Process(proc.pid).resume()
+            _resume_process(proc)
         except BaseException:
             try:
                 proc.kill()
@@ -512,9 +562,14 @@ def run_orphan_gate(home: str) -> int:
     for path in sorted(claims.glob(CLAIM_RECORD_GLOB)):
         try:
             record = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
+            owner_pid = int(record.get("owner_pid", 0) or 0)
+        except (OSError, ValueError, TypeError):
+            try:
+                path.rename(path.with_suffix('.json.corrupt'))
+            except OSError:
+                pass
             continue
-        if _owner_alive(int(record.get("owner_pid", 0))):
+        if _owner_alive(owner_pid):
             continue  # another live host owns this tree; hands off
         _reap_orphan(record)
         try:
@@ -797,6 +852,10 @@ class WorkerHost:
             now = time.monotonic()
             remaining = min(timeout_at, lease_at) - now
             if remaining <= 0:
+                # spec.timeout_s is the task's declared hard bound, not a silence
+                # heuristic: when it passes, the owned tree is stopped and the
+                # attempt is a retryable TIMEOUT. (Session liveness - QUIET/SLOW/
+                # PROBING - applies to surfaces and sessions, not to this bound.)
                 outcome = Outcome.TIMEOUT if timeout_at <= lease_at else Outcome.LEASE_LOST
                 run.terminate_tree()
                 returncode = run.poll()

@@ -1,4 +1,5 @@
 import json
+import sys
 import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
@@ -152,3 +153,97 @@ def test_run_chief_review_router(tmp_path, monkeypatch):
     dec3 = run_chief_review_router("t3", result_file_human)
     assert dec3["verdict"] == "HUMAN_APPROVAL_REQUIRED"
     assert dec3["action"] == "STOP_AT_HUMAN_GATE"
+
+
+def test_execute_bridge_rejects_synthetic_fixture_summary_as_verified_product_pass(tmp_path, monkeypatch):
+    import scripts.run_antigravity_bridge as rab
+    monkeypatch.setattr(rab, "PROCESSED_DIR", tmp_path / "processed")
+    monkeypatch.setattr(rab, "COURIER_DIR", tmp_path)
+    monkeypatch.setattr(rab, "DECISIONS_DIR", tmp_path / "decisions")
+
+    fixture_file = tmp_path / "fixture.md"
+    fixture_file.write_text("Hello fixture!")
+
+    job_file = tmp_path / "job.json"
+    job_data = {
+        "task_id": "task-test-gate",
+        "instruction": "Verify product behavior",
+        "allowed_scope": ["fixture.md"],
+        "require_verified_product_pass": True,
+    }
+    job_file.write_text(json.dumps(job_data))
+
+    tracker = AntigravityVisualStateTracker(repo_dir=tmp_path)
+    hooks = AntigravityHookRunner(tracker)
+
+    result_file = execute_bridge_task(job_file, hooks)
+    result_data = json.loads(result_file.read_text())
+    assert result_data["payload"]["verdict"] == "UNVERIFIED_MOCK"
+    assert result_data["payload"]["verdict"] != "PASS"
+
+    decision = run_chief_review_router("task-test-gate", result_file)
+    assert decision["verdict"] == "REJECTED_UNVERIFIED"
+    assert decision["action"] == "ROUTE_TO_REAL_VERIFIER"
+
+
+def test_build_local_shell_task_packet_format(tmp_path):
+    from scripts.run_antigravity_bridge import build_local_shell_task_packet
+    from adapters.local_shell import _params
+
+    job_file = tmp_path / "sample_job.json"
+    job_file.write_text(json.dumps({"task_id": "test-1"}))
+
+    packet = build_local_shell_task_packet(job_file, write_filename="result.json", timeout_s=45)
+    assert packet["adapter"] == "local_shell"
+    assert packet["effect_class"] == "idempotent"
+    assert packet["lease_ttl_s"] == 60
+    assert packet["max_attempts"] == 1
+
+    # Validate against local_shell adapter's strict validator
+    validated = _params(packet["params"])
+    assert validated["write"] == "result.json"
+    assert validated["timeout_s"] == 45
+    assert isinstance(validated["command"], list)
+    cmd = validated["command"]
+    assert len(cmd) >= 7
+    assert cmd[0] == sys.executable
+    assert "--job-file" in cmd
+    assert str(job_file.resolve()) in cmd
+    assert "--write-evidence" in cmd
+    assert "result.json" in cmd
+
+
+def test_local_shell_execution_writes_evidence_file(tmp_path, monkeypatch):
+    from scripts.run_antigravity_bridge import build_local_shell_task_packet
+    from adapters import local_shell
+
+    fixture_file = tmp_path / "fixture.md"
+    fixture_file.write_text("Local shell test fixture")
+
+    job_file = tmp_path / "job.json"
+    job_data = {
+        "task_id": "task-ls-exec",
+        "instruction": "Test local shell adapter execution",
+        "allowed_scope": [str(fixture_file)],
+        "require_verified_product_pass": False,
+    }
+    job_file.write_text(json.dumps(job_data))
+
+    packet = build_local_shell_task_packet(job_file, write_filename="out-result.json", timeout_s=30)
+    workdir = tmp_path / "sandbox"
+    workdir.mkdir()
+
+    res = local_shell.run(packet["params"], workdir=workdir)
+    assert res.outcome == "success"
+    assert len(res.artifacts) == 1
+    assert res.artifacts[0]["path"] == "out-result.json"
+
+    evidence_file = workdir / "out-result.json"
+    assert evidence_file.exists()
+    evidence_data = json.loads(evidence_file.read_text(encoding="utf-8"))
+    assert evidence_data["type"] == "RESULT"
+    assert evidence_data["status"] == "COMPLETED"
+    assert evidence_data["payload"]["verdict"] == "PASS"
+
+
+

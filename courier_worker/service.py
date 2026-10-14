@@ -121,6 +121,8 @@ class ControllerClient:
 
     def claim(self, worker_id: str) -> Optional[dict]:
         try:
+            # The v1 controller rejects unknown fields. Resource pressure is a
+            # local decision (skip the claim); it is not a claim-body field.
             status, payload = self._call("POST", "/claim", {"worker_id": worker_id})
         except ControllerError:
             return None
@@ -373,7 +375,8 @@ class WorkerLoop:
 
     def __init__(self, home: str, base_url: str, worker_id: str, heartbeat_s: float,
                  engine: Optional[WorkerHost] = None,
-                 client_factory: Optional[Callable[[], ControllerClient]] = None):
+                 client_factory: Optional[Callable[[], ControllerClient]] = None,
+                 idle_hook: Optional[Callable[[], object]] = None):
         self.home = home
         self.base_url = base_url
         self.worker_id = worker_id
@@ -382,6 +385,11 @@ class WorkerLoop:
         self._client_factory = client_factory or self._default_client
         self._client: Optional[ControllerClient] = None
         self._watchers: dict = {}
+        # Optional, off by default: called once per idle tick (see
+        # courier_worker.ledger_tick). It must never break the loop.
+        self._idle_hook = idle_hook
+        self._last_resource_state = "NORMAL"
+        self._cooldown_until = 0.0
 
     def _default_client(self) -> ControllerClient:
         token_path = os.path.join(self.home, "run", "controller.token")
@@ -420,8 +428,35 @@ class WorkerLoop:
             return "idle"
         client = self._client or self._client_factory()
         self._client = client
+
+        # Thermal relief (issue #28): the host lives on self.engine. While the
+        # probe reports pressure, or for one minute after it clears, do not
+        # claim. Heartbeats stay on the documented v1 shape; the controller
+        # rejects unknown fields such as resource_state.
+        reason = self.engine._pressure_probe()
+        now = time.time()
+        if reason is not None:
+            self._last_resource_state = "PRESSURED"
+            self._cooldown_until = now + 60.0  # 1 minute hysteresis
+        elif now < self._cooldown_until:
+            self._last_resource_state = "COOLDOWN"
+        else:
+            self._last_resource_state = "NORMAL"
+
+        if self._last_resource_state != "NORMAL":
+            try:
+                client.heartbeat(self.worker_id, [])
+            except ControllerError:
+                pass
+            return "idle"
+
         claim = client.claim(self.worker_id)
         if claim is None:
+            # Send idle heartbeat
+            try:
+                client.heartbeat(self.worker_id, [])
+            except ControllerError:
+                pass
             return "idle"
         try:
             spec = resolve_spec(claim, self.worker_id, self.artifacts_root(), self.heartbeat_s,
@@ -485,6 +520,25 @@ class WorkerLoop:
             return  # stays in the outbox for the next flush; no retry here
         outbox_remove(self.home, payload["dispatch_id"])  # accepted AND stale
 
+    def _maybe_idle_hook(self) -> None:
+        if self._idle_hook is None:
+            return
+        try:
+            self._idle_hook()
+        except Exception as exc:  # noqa: BLE001 - the hook never stops the worker
+            print(f"courier_worker.service: idle hook failed: {exc.__class__.__name__}",
+                  file=sys.stderr)
+
+    def _maybe_request_continuation(self) -> None:
+        request = getattr(self._idle_hook, "request_continuation", None)
+        if request is None:
+            return
+        try:
+            request()
+        except Exception as exc:  # noqa: BLE001 - never stops the worker
+            print(f"courier_worker.service: continuation request failed: {exc.__class__.__name__}",
+                  file=sys.stderr)
+
     # -- owned run ---------------------------------------------------------------
     def run(self, stop: Optional[threading.Event] = None) -> int:
         stop = stop or threading.Event()
@@ -514,7 +568,11 @@ class WorkerLoop:
                 except ResourcePaused as exc:
                     print(f"courier_worker.service: paused due to resource pressure: {exc}", file=sys.stderr)
                     action = "idle"
+                if action == "delivered":
+                    self._maybe_request_continuation()  # turn boundary
                 if action == "idle":
+                    if not stop.is_set():
+                        self._maybe_idle_hook()
                     stop.wait(self.heartbeat_s)
             try:
                 remaining = self.flush_outbox()
@@ -533,6 +591,11 @@ def main(argv: Optional[list] = None) -> int:
     parser.add_argument("--max-tasks", type=int, default=1)
     parser.add_argument("--heartbeat", type=float, default=2.0)
     parser.add_argument("--worker-id", default=f"worker-{os.getpid()}")
+    # Ledger idle tick: off unless both ids are given (courier_worker.ledger_tick).
+    parser.add_argument("--ledger-agent-id", default=None)
+    parser.add_argument("--ledger-host-id", default=None)
+    parser.add_argument("--ledger-tick-interval", type=float, default=None)
+    parser.add_argument("--ledger-tick-timeout", type=float, default=None)
     args = parser.parse_args(argv)
     if args.max_tasks != 1:
         parser.error("--max-tasks supports exactly 1 (single-flight ownership)")
@@ -552,7 +615,30 @@ def main(argv: Optional[list] = None) -> int:
                 signal.signal(signum, _handle_signum)
             except (OSError, ValueError):
                 pass
-    loop = WorkerLoop(args.home, args.controller, args.worker_id, args.heartbeat)
+    idle_hook = None
+    if (args.ledger_agent_id is None) != (args.ledger_host_id is None):
+        parser.error("--ledger-agent-id and --ledger-host-id go together")
+        return 2
+    if args.ledger_agent_id is not None:
+        from courier_worker.host import default_pressure_probe
+        from courier_worker.ledger_tick import (
+            DEFAULT_MIN_INTERVAL_S, DEFAULT_TIMEOUT_S, LedgerTick)
+        try:
+            idle_hook = LedgerTick(
+                args.home, args.controller, args.ledger_agent_id, args.ledger_host_id,
+                min_interval_s=(DEFAULT_MIN_INTERVAL_S if args.ledger_tick_interval is None
+                                else args.ledger_tick_interval),
+                timeout_s=(DEFAULT_TIMEOUT_S if args.ledger_tick_timeout is None
+                           else args.ledger_tick_timeout),
+                pressure_probe=default_pressure_probe)
+        except ValueError as exc:
+            parser.error(str(exc))
+            return 2
+    elif args.ledger_tick_interval is not None or args.ledger_tick_timeout is not None:
+        parser.error("--ledger-tick-* needs --ledger-agent-id and --ledger-host-id")
+        return 2
+    loop = WorkerLoop(args.home, args.controller, args.worker_id, args.heartbeat,
+                      idle_hook=idle_hook)
     try:
         return loop.run(stop)
     except HostBusy as exc:

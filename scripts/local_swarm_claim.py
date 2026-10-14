@@ -25,8 +25,13 @@ def claim(pool):
             except FileExistsError: shutil.rmtree(c,ignore_errors=True); continue
         token=uuid.uuid4().hex
         meta={"task_id":tid,"token":token,"pool":pool,"host":socket.gethostname(),"pid":os.getpid(),"claimed_at":time.time(),"exclusive_group":group}
-        (c/"claim.json").write_text(json.dumps(meta,indent=2),encoding="utf-8")
-        if gd: (gd/"owner.json").write_text(json.dumps(meta,indent=2),encoding="utf-8")
+        try:
+            (c/"claim.json").write_text(json.dumps(meta,indent=2),encoding="utf-8")
+            if gd: (gd/"owner.json").write_text(json.dumps(meta,indent=2),encoding="utf-8")
+        except Exception:
+            shutil.rmtree(c,ignore_errors=True)
+            if gd: shutil.rmtree(gd,ignore_errors=True)
+            raise
         emit({"status":"CLAIMED","claim_token":token,"task":t}); return 0
     emit({"status":"NO_TASK","pool":pool}); return 2
 def readclaim(tid):

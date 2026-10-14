@@ -1,0 +1,20 @@
+main { padding: 8px 24px 32px; }
+.note { color: var(--quiet); font-size: 13px; max-width: 70ch; }
+section { margin: 28px 0; }
+section h2, .flower h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--quiet); margin: 0 0 12px; }
+.stations, .flowers { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.stations .card h3, .flower h2 { margin: 0 0 8px; }
+.flower h2 { font-size: 13px; }
+.field { margin: 8px 0; }
+.field p { margin: 0; }
+.counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+.garden { display: grid; grid-template-columns: 180px 1fr; gap: 16px; align-items: start; margin-top: 12px; }
+.perch, .flower { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.flower[data-active="yes"] { border-color: var(--gold); }
+.bird { color: var(--gold); }
+.flower-mark { color: var(--quiet); }
+.flower[data-active="yes"] .flower-mark { color: var(--gold); }
+#kolibri-activity { margin: 8px 0 0; font-size: 16px; }
+@media (max-width: 700px) {
+  .counts, .garden { grid-template-columns: 1fr; }
+}

@@ -195,6 +195,22 @@ def default_pressure_probe() -> Optional[str]:
     except OSError as exc:
         return f"fd-exhaustion: {exc.strerror or exc}"
         
+    # Prefer OS-native thermal pressure signal on macOS
+    if sys.platform == "darwin":
+        import subprocess
+        try:
+            res = subprocess.run(["pmset", "-g", "therm"], capture_output=True, text=True, timeout=1.0)
+            if res.returncode == 0:
+                for line in res.stdout.splitlines():
+                    if "CPU_Speed_Limit" in line:
+                        parts = line.split("=")
+                        if len(parts) == 2:
+                            val = parts[1].strip()
+                            if val.isdigit() and int(val) < 100:
+                                return f"thermal-pressure: speed limit {val}%"
+        except Exception:
+            pass
+            
     try:
         load = _one_minute_load()
     except OSError as exc:
@@ -804,7 +820,12 @@ class WorkerHost:
         os.makedirs(spec.artifact_dir, exist_ok=True)
         run = _spawn_contained(list(spec.argv), run_dir, f"task-{spec.dispatch_id}")
         self._active = spec.dispatch_id
-        claim_record = _write_claim_record(self.home, spec, run)
+        try:
+            claim_record = _write_claim_record(self.home, spec, run)
+        except BaseException:
+            run.terminate_tree()
+            self._active = None
+            raise
         try:
             return self._wait(spec, run, on_heartbeat, is_cancelled)
         finally:

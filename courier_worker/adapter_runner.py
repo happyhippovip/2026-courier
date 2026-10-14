@@ -28,7 +28,7 @@ from pathlib import Path
 # derived from this file instead of trusting the inherited environment.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-ALLOWED = frozenset({"synthetic"})
+ALLOWED = frozenset({"synthetic", "local_shell", "provider_exec"})
 
 
 def _write_report(path: str, report: dict) -> None:
@@ -40,6 +40,33 @@ def _write_report(path: str, report: dict) -> None:
             fh.flush()
             os.fsync(fh.fileno())
         os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
+def _write_provider_evidence(workdir: str, output: bytes) -> None:
+    """Save captured Muse output as provider_output.txt inside the task workdir.
+
+    The controller verifier (adapters/provider_exec.py) accepts provider_exec
+    only when this regular file is inside the Courier home and at most 1 MiB.
+    Writing it is not a success signal. A symlink at the destination is
+    removed rather than followed.
+    """
+    data = bytes(output[: 1024 * 1024]) if isinstance(output, (bytes, bytearray)) else b""
+    fd, tmp = tempfile.mkstemp(dir=workdir, prefix=".tmp-provider-", suffix=".txt")
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(data)
+            fh.flush()
+            os.fsync(fh.fileno())
+        dest = os.path.join(workdir, "provider_output.txt")
+        if os.path.islink(dest):
+            os.unlink(dest)
+        os.replace(tmp, dest)
     except BaseException:
         try:
             os.unlink(tmp)
@@ -70,19 +97,55 @@ def main(argv: list) -> int:
         return 2
     os.makedirs(workdir, exist_ok=True)
 
-    from adapters import synthetic
+    if adapter == "synthetic":
+        from adapters import synthetic
 
-    try:
-        result = synthetic.run(params, workdir, attempt)
-    except synthetic.SyntheticHang:
-        print("adapter_runner: synthetic hang (waiting to be terminated)", file=sys.stderr, flush=True)
-        while True:
-            time.sleep(3600)
-    except synthetic.SyntheticCrash as exc:
-        print(f"adapter_runner: {exc}", file=sys.stderr)
-        return 3
-    except synthetic.SyntheticError as exc:
-        print(f"adapter_runner: params rejected: {exc}", file=sys.stderr)
+        try:
+            result = synthetic.run(params, workdir, attempt)
+        except synthetic.SyntheticHang:
+            print("adapter_runner: synthetic hang (waiting to be terminated)", file=sys.stderr, flush=True)
+            while True:
+                time.sleep(3600)
+        except synthetic.SyntheticCrash as exc:
+            print(f"adapter_runner: {exc}", file=sys.stderr)
+            return 3
+        except synthetic.SyntheticError as exc:
+            print(f"adapter_runner: params rejected: {exc}", file=sys.stderr)
+            return 2
+    elif adapter == "local_shell":
+        from adapters import local_shell
+
+        try:
+            result = local_shell.run(params, workdir, attempt)
+        except local_shell.LocalShellTimeout as exc:
+            _write_report(report, {"outcome": "failure", "reason": str(exc)[:500], "retryable": True})
+            return 0
+        except local_shell.LocalShellError as exc:
+            _write_report(report, {"outcome": "failure", "reason": str(exc)[:500], "retryable": False})
+            print(f"adapter_runner: params rejected: {exc}", file=sys.stderr)
+            return 2
+        except BaseException as exc:
+            if isinstance(exc, (KeyboardInterrupt, SystemExit)):
+                raise
+            _write_report(report, {
+                "outcome": "failure",
+                "reason": f"local_shell unexpected error: {type(exc).__name__}: {exc}"[:500],
+                "retryable": False,
+            })
+            print(f"adapter_runner: local_shell crashed: {exc}", file=sys.stderr)
+            return 1
+    elif adapter == "provider_exec":
+        from courier_worker.adapters import provider_exec
+        result = provider_exec.run(params, workdir, attempt)
+        _write_provider_evidence(workdir, result.output)
+        _write_report(report, {
+            "outcome": "success" if result.outcome == "success" else "failure",
+            "reason": result.reason[:500],
+            "retryable": bool(result.retryable),
+        })
+        return 0
+    else:
+        print(f"adapter_runner: adapter {adapter!r} is not allowlisted", file=sys.stderr)
         return 2
     _write_report(report, {"outcome": result.outcome, "reason": str(result.reason)[:500],
                            "retryable": bool(result.retryable)})

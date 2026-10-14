@@ -1,0 +1,837 @@
+{
+  "tool": "courier-listclean",
+  "source": "pilot_50.csv",
+  "source_sha256": "8774413a7b61b4c911f7af9d30b72ac777edc5456dd3bc8b146feac0f6666ed8",
+  "rows_in": 50,
+  "rows_out": 50,
+  "delimiter": ",",
+  "decision_flags": 30,
+  "counts": {
+    "email_normalized": 3,
+    "inconsistent_case": 10,
+    "phone_normalized": 50,
+    "name_comma_order": 2,
+    "whitespace": 3,
+    "plz_country_prefix": 1,
+    "street_abbreviation": 1,
+    "exact_duplicate": 4,
+    "fuzzy_duplicate": 6,
+    "empty_required": 4,
+    "plz_not_5_digits": 3,
+    "email_comma": 1,
+    "email_double_at": 1,
+    "email_at_word": 1
+  },
+  "findings": [
+    {
+      "original_row_id": 2,
+      "row": 2,
+      "column": "E-Mail",
+      "reason": "email_normalized",
+      "before": "HANS.BEISPIEL@EXAMPLE.COM",
+      "after": "hans.beispiel@example.com",
+      "message": "F2: \"HANS.BEISPIEL@EXAMPLE.COM\" → \"hans.beispiel@example.com\" — ✅ klein geschrieben, Leerzeichen entfernt"
+    },
+    {
+      "original_row_id": 2,
+      "row": 2,
+      "column": "E-Mail",
+      "reason": "inconsistent_case",
+      "before": "HANS.BEISPIEL@EXAMPLE.COM",
+      "after": "hans.beispiel@example.com",
+      "message": "F2: \"HANS.BEISPIEL@EXAMPLE.COM\" → \"hans.beispiel@example.com\" — Groß-/Kleinschreibung vereinheitlicht"
+    },
+    {
+      "original_row_id": 2,
+      "row": 2,
+      "column": "Name",
+      "reason": "inconsistent_case",
+      "before": "hans beispiel",
+      "after": "Hans Beispiel",
+      "message": "A2: \"hans beispiel\" → \"Hans Beispiel\" — Groß-/Kleinschreibung vereinheitlicht"
+    },
+    {
+      "original_row_id": 2,
+      "row": 2,
+      "column": "Ort",
+      "reason": "inconsistent_case",
+      "before": "musterstadt",
+      "after": "Musterstadt",
+      "message": "D2: \"musterstadt\" → \"Musterstadt\" — Groß-/Kleinschreibung vereinheitlicht"
+    },
+    {
+      "original_row_id": 2,
+      "row": 2,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000001",
+      "after": "+49 171 2000001",
+      "message": "E2: \"0171/2000001\" → \"+49 171 2000001\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 3,
+      "row": 3,
+      "column": "Name",
+      "reason": "inconsistent_case",
+      "before": "ERIKA MUSTER",
+      "after": "Erika Muster",
+      "message": "A3: \"ERIKA MUSTER\" → \"Erika Muster\" — Groß-/Kleinschreibung vereinheitlicht"
+    },
+    {
+      "original_row_id": 3,
+      "row": 3,
+      "column": "Ort",
+      "reason": "inconsistent_case",
+      "before": "MUSTERSTADT",
+      "after": "Musterstadt",
+      "message": "D3: \"MUSTERSTADT\" → \"Musterstadt\" — Groß-/Kleinschreibung vereinheitlicht"
+    },
+    {
+      "original_row_id": 3,
+      "row": 3,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000002",
+      "after": "+49 171 2000002",
+      "message": "E3: \"0171/2000002\" → \"+49 171 2000002\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 4,
+      "row": 4,
+      "column": "Name",
+      "reason": "inconsistent_case",
+      "before": " mÜLLER, max ",
+      "after": "Max Müller",
+      "message": "A4: \" mÜLLER, max \" → \"Max Müller\" — Groß-/Kleinschreibung vereinheitlicht"
+    },
+    {
+      "original_row_id": 4,
+      "row": 4,
+      "column": "Name",
+      "reason": "name_comma_order",
+      "before": " mÜLLER, max ",
+      "after": "Max Müller",
+      "message": "A4: \" mÜLLER, max \" → \"Max Müller\" — Name von „Nachname, Vorname“ nach „Vorname Nachname“ gesetzt"
+    },
+    {
+      "original_row_id": 4,
+      "row": 4,
+      "column": "Name",
+      "reason": "whitespace",
+      "before": " mÜLLER, max ",
+      "after": "Max Müller",
+      "message": "A4: \" mÜLLER, max \" → \"Max Müller\" — Leerzeichen bereinigt"
+    },
+    {
+      "original_row_id": 4,
+      "row": 4,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000003",
+      "after": "+49 171 2000003",
+      "message": "E4: \"0171/2000003\" → \"+49 171 2000003\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 5,
+      "row": 5,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000004",
+      "after": "+49 171 2000004",
+      "message": "E5: \"0171/2000004\" → \"+49 171 2000004\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 6,
+      "row": 6,
+      "column": "PLZ",
+      "reason": "plz_country_prefix",
+      "before": "D-20005",
+      "after": "20005",
+      "message": "C6: \"D-20005\" → \"20005\" — Länderkennzeichen vor der PLZ entfernt"
+    },
+    {
+      "original_row_id": 6,
+      "row": 6,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000005",
+      "after": "+49 171 2000005",
+      "message": "E6: \"0171/2000005\" → \"+49 171 2000005\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 7,
+      "row": 7,
+      "column": "Straße",
+      "reason": "street_abbreviation",
+      "before": "Musterstr.12",
+      "after": "Musterstraße 12",
+      "message": "B7: \"Musterstr.12\" → \"Musterstraße 12\" — Straßenabkürzung erweitert"
+    },
+    {
+      "original_row_id": 7,
+      "row": 7,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000006",
+      "after": "+49 171 2000006",
+      "message": "E7: \"0171/2000006\" → \"+49 171 2000006\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 8,
+      "row": 8,
+      "column": "Straße",
+      "reason": "whitespace",
+      "before": "Hauptstraße  5a",
+      "after": "Hauptstraße 5a",
+      "message": "B8: \"Hauptstraße  5a\" → \"Hauptstraße 5a\" — Leerzeichen bereinigt"
+    },
+    {
+      "original_row_id": 8,
+      "row": 8,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "(030) 1234-567",
+      "after": "+49 30 1234567",
+      "message": "E8: \"(030) 1234-567\" → \"+49 30 1234567\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 9,
+      "row": 9,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "+49171 2000008",
+      "after": "+49 171 2000008",
+      "message": "E9: \"+49171 2000008\" → \"+49 171 2000008\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 10,
+      "row": 10,
+      "column": "E-Mail",
+      "reason": "email_normalized",
+      "before": "FRIEDA.KLEIN@EXAMPLE.COM",
+      "after": "frieda.klein@example.com",
+      "message": "F10: \"FRIEDA.KLEIN@EXAMPLE.COM\" → \"frieda.klein@example.com\" — ✅ klein geschrieben, Leerzeichen entfernt"
+    },
+    {
+      "original_row_id": 10,
+      "row": 10,
+      "column": "E-Mail",
+      "reason": "inconsistent_case",
+      "before": "FRIEDA.KLEIN@EXAMPLE.COM",
+      "after": "frieda.klein@example.com",
+      "message": "F10: \"FRIEDA.KLEIN@EXAMPLE.COM\" → \"frieda.klein@example.com\" — Groß-/Kleinschreibung vereinheitlicht"
+    },
+    {
+      "original_row_id": 10,
+      "row": 10,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000009",
+      "after": "+49 171 2000009",
+      "message": "E10: \"0171/2000009\" → \"+49 171 2000009\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 11,
+      "row": 11,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000010",
+      "after": "+49 171 2000010",
+      "message": "E11: \"0171/2000010\" → \"+49 171 2000010\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 12,
+      "row": 12,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000011",
+      "after": "+49 171 2000011",
+      "message": "E12: \"0171/2000011\" → \"+49 171 2000011\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 13,
+      "row": 13,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000012",
+      "after": "+49 171 2000012",
+      "message": "E13: \"0171/2000012\" → \"+49 171 2000012\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 14,
+      "row": 14,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000013",
+      "after": "+49 171 2000013",
+      "message": "E14: \"0171/2000013\" → \"+49 171 2000013\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 15,
+      "row": 15,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000014",
+      "after": "+49 171 2000014",
+      "message": "E15: \"0171/2000014\" → \"+49 171 2000014\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 16,
+      "row": 16,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000015",
+      "after": "+49 171 2000015",
+      "message": "E16: \"0171/2000015\" → \"+49 171 2000015\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 17,
+      "row": 17,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000016",
+      "after": "+49 171 2000016",
+      "message": "E17: \"0171/2000016\" → \"+49 171 2000016\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 18,
+      "row": 18,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000017",
+      "after": "+49 171 2000017",
+      "message": "E18: \"0171/2000017\" → \"+49 171 2000017\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 19,
+      "row": 19,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000018",
+      "after": "+49 171 2000018",
+      "message": "E19: \"0171/2000018\" → \"+49 171 2000018\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 20,
+      "row": 20,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000019",
+      "after": "+49 171 2000019",
+      "message": "E20: \"0171/2000019\" → \"+49 171 2000019\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 21,
+      "row": 21,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000020",
+      "after": "+49 171 2000020",
+      "message": "E21: \"0171/2000020\" → \"+49 171 2000020\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 22,
+      "row": 22,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000021",
+      "after": "+49 171 2000021",
+      "message": "E22: \"0171/2000021\" → \"+49 171 2000021\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 23,
+      "row": 23,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000022",
+      "after": "+49 171 2000022",
+      "message": "E23: \"0171/2000022\" → \"+49 171 2000022\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 24,
+      "row": 24,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000023",
+      "after": "+49 171 2000023",
+      "message": "E24: \"0171/2000023\" → \"+49 171 2000023\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 25,
+      "row": 25,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000024",
+      "after": "+49 171 2000024",
+      "message": "E25: \"0171/2000024\" → \"+49 171 2000024\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 26,
+      "row": 26,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000025",
+      "after": "+49 171 2000025",
+      "message": "E26: \"0171/2000025\" → \"+49 171 2000025\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 27,
+      "row": 27,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000026",
+      "after": "+49 171 2000026",
+      "message": "E27: \"0171/2000026\" → \"+49 171 2000026\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 28,
+      "row": 28,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000027",
+      "after": "+49 171 2000027",
+      "message": "E28: \"0171/2000027\" → \"+49 171 2000027\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 29,
+      "row": 29,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000028",
+      "after": "+49 171 2000028",
+      "message": "E29: \"0171/2000028\" → \"+49 171 2000028\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 30,
+      "row": 30,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000029",
+      "after": "+49 171 2000029",
+      "message": "E30: \"0171/2000029\" → \"+49 171 2000029\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 31,
+      "row": 31,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/2000030",
+      "after": "+49 171 2000030",
+      "message": "E31: \"0171/2000030\" → \"+49 171 2000030\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 32,
+      "row": 32,
+      "column": "Name",
+      "reason": "exact_duplicate",
+      "before": "Clara Duplikat",
+      "after": "Clara Duplikat",
+      "message": "Zeile 33 = mögliche Dublette von Zeile 32"
+    },
+    {
+      "original_row_id": 32,
+      "row": 32,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/3000001",
+      "after": "+49 171 3000001",
+      "message": "E32: \"0171/3000001\" → \"+49 171 3000001\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 33,
+      "row": 33,
+      "column": "E-Mail",
+      "reason": "email_normalized",
+      "before": "Clara.Duplikat@EXAMPLE.COM",
+      "after": "clara.duplikat@example.com",
+      "message": "F33: \"Clara.Duplikat@EXAMPLE.COM\" → \"clara.duplikat@example.com\" — ✅ klein geschrieben, Leerzeichen entfernt"
+    },
+    {
+      "original_row_id": 33,
+      "row": 33,
+      "column": "E-Mail",
+      "reason": "inconsistent_case",
+      "before": "Clara.Duplikat@EXAMPLE.COM",
+      "after": "clara.duplikat@example.com",
+      "message": "F33: \"Clara.Duplikat@EXAMPLE.COM\" → \"clara.duplikat@example.com\" — Groß-/Kleinschreibung vereinheitlicht"
+    },
+    {
+      "original_row_id": 33,
+      "row": 33,
+      "column": "Name",
+      "reason": "exact_duplicate",
+      "before": "Clara Duplikat",
+      "after": "Clara Duplikat",
+      "message": "⚠ Dublette, du entscheidest"
+    },
+    {
+      "original_row_id": 33,
+      "row": 33,
+      "column": "Name",
+      "reason": "inconsistent_case",
+      "before": " clara duplikat ",
+      "after": "Clara Duplikat",
+      "message": "A33: \" clara duplikat \" → \"Clara Duplikat\" — Groß-/Kleinschreibung vereinheitlicht"
+    },
+    {
+      "original_row_id": 33,
+      "row": 33,
+      "column": "Name",
+      "reason": "whitespace",
+      "before": " clara duplikat ",
+      "after": "Clara Duplikat",
+      "message": "A33: \" clara duplikat \" → \"Clara Duplikat\" — Leerzeichen bereinigt"
+    },
+    {
+      "original_row_id": 33,
+      "row": 33,
+      "column": "Ort",
+      "reason": "inconsistent_case",
+      "before": "musterstadt",
+      "after": "Musterstadt",
+      "message": "D33: \"musterstadt\" → \"Musterstadt\" — Groß-/Kleinschreibung vereinheitlicht"
+    },
+    {
+      "original_row_id": 33,
+      "row": 33,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171 3000001",
+      "after": "+49 171 3000001",
+      "message": "E33: \"0171 3000001\" → \"+49 171 3000001\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 34,
+      "row": 34,
+      "column": "Name",
+      "reason": "exact_duplicate",
+      "before": "Otto Kopie",
+      "after": "Otto Kopie",
+      "message": "Zeile 35 = mögliche Dublette von Zeile 34"
+    },
+    {
+      "original_row_id": 34,
+      "row": 34,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/3000002",
+      "after": "+49 171 3000002",
+      "message": "E34: \"0171/3000002\" → \"+49 171 3000002\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 35,
+      "row": 35,
+      "column": "Name",
+      "reason": "exact_duplicate",
+      "before": "Otto Kopie",
+      "after": "Otto Kopie",
+      "message": "⚠ Dublette, du entscheidest"
+    },
+    {
+      "original_row_id": 35,
+      "row": 35,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/3000002",
+      "after": "+49 171 3000002",
+      "message": "E35: \"0171/3000002\" → \"+49 171 3000002\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 36,
+      "row": 36,
+      "column": "Name",
+      "reason": "fuzzy_duplicate",
+      "before": "Lena Test",
+      "after": "Lena Test",
+      "message": "Zeile 37 = mögliche Dublette (Name + PLZ) von Zeile 36"
+    },
+    {
+      "original_row_id": 36,
+      "row": 36,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/3000003",
+      "after": "+49 171 3000003",
+      "message": "E36: \"0171/3000003\" → \"+49 171 3000003\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 37,
+      "row": 37,
+      "column": "Name",
+      "reason": "fuzzy_duplicate",
+      "before": "Lena Test",
+      "after": "Lena Test",
+      "message": "⚠ mögliche Dublette (Name + PLZ), du entscheidest"
+    },
+    {
+      "original_row_id": 37,
+      "row": 37,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/3000004",
+      "after": "+49 171 3000004",
+      "message": "E37: \"0171/3000004\" → \"+49 171 3000004\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 38,
+      "row": 38,
+      "column": "Name",
+      "reason": "fuzzy_duplicate",
+      "before": "Paul Müller",
+      "after": "Paul Müller",
+      "message": "Zeile 39 = mögliche Dublette (Name + PLZ) von Zeile 38"
+    },
+    {
+      "original_row_id": 38,
+      "row": 38,
+      "column": "Name",
+      "reason": "name_comma_order",
+      "before": "Müller, Paul",
+      "after": "Paul Müller",
+      "message": "A38: \"Müller, Paul\" → \"Paul Müller\" — Name von „Nachname, Vorname“ nach „Vorname Nachname“ gesetzt"
+    },
+    {
+      "original_row_id": 38,
+      "row": 38,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/3000005",
+      "after": "+49 171 3000005",
+      "message": "E38: \"0171/3000005\" → \"+49 171 3000005\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 39,
+      "row": 39,
+      "column": "Name",
+      "reason": "fuzzy_duplicate",
+      "before": "Paul Müller",
+      "after": "Paul Müller",
+      "message": "⚠ mögliche Dublette (Name + PLZ), du entscheidest"
+    },
+    {
+      "original_row_id": 39,
+      "row": 39,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/3000006",
+      "after": "+49 171 3000006",
+      "message": "E39: \"0171/3000006\" → \"+49 171 3000006\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 40,
+      "row": 40,
+      "column": "Name",
+      "reason": "fuzzy_duplicate",
+      "before": "Sara Gleich",
+      "after": "Sara Gleich",
+      "message": "Zeile 41 = mögliche Dublette (Name + PLZ) von Zeile 40"
+    },
+    {
+      "original_row_id": 40,
+      "row": 40,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/3000007",
+      "after": "+49 171 3000007",
+      "message": "E40: \"0171/3000007\" → \"+49 171 3000007\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 41,
+      "row": 41,
+      "column": "Name",
+      "reason": "fuzzy_duplicate",
+      "before": "Sara Gleich",
+      "after": "Sara Gleich",
+      "message": "⚠ mögliche Dublette (Name + PLZ), du entscheidest"
+    },
+    {
+      "original_row_id": 41,
+      "row": 41,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/3000008",
+      "after": "+49 171 3000008",
+      "message": "E41: \"0171/3000008\" → \"+49 171 3000008\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 42,
+      "row": 42,
+      "column": "Name",
+      "reason": "empty_required",
+      "before": "",
+      "after": "",
+      "message": "A42: \"\" — ⚠ Pflichtfeld Name ist leer"
+    },
+    {
+      "original_row_id": 42,
+      "row": 42,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/4000001",
+      "after": "+49 171 4000001",
+      "message": "E42: \"0171/4000001\" → \"+49 171 4000001\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 43,
+      "row": 43,
+      "column": "Straße",
+      "reason": "empty_required",
+      "before": "",
+      "after": "",
+      "message": "B43: \"\" — ⚠ Pflichtfeld Straße ist leer"
+    },
+    {
+      "original_row_id": 43,
+      "row": 43,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/4000002",
+      "after": "+49 171 4000002",
+      "message": "E43: \"0171/4000002\" → \"+49 171 4000002\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 44,
+      "row": 44,
+      "column": "PLZ",
+      "reason": "empty_required",
+      "before": "",
+      "after": "",
+      "message": "C44: \"\" — ⚠ Pflichtfeld PLZ ist leer"
+    },
+    {
+      "original_row_id": 44,
+      "row": 44,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/4000003",
+      "after": "+49 171 4000003",
+      "message": "E44: \"0171/4000003\" → \"+49 171 4000003\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 45,
+      "row": 45,
+      "column": "Ort",
+      "reason": "empty_required",
+      "before": "",
+      "after": "",
+      "message": "D45: \"\" — ⚠ Pflichtfeld Ort ist leer"
+    },
+    {
+      "original_row_id": 45,
+      "row": 45,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/4000004",
+      "after": "+49 171 4000004",
+      "message": "E45: \"0171/4000004\" → \"+49 171 4000004\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 46,
+      "row": 46,
+      "column": "PLZ",
+      "reason": "plz_not_5_digits",
+      "before": "1234",
+      "after": "1234",
+      "message": "C46: \"1234\" — ⚠ PLZ hat nur 4 Stellen (fehlt eine führende 0?). Bitte prüfen, wird nicht geraten"
+    },
+    {
+      "original_row_id": 46,
+      "row": 46,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/4000005",
+      "after": "+49 171 4000005",
+      "message": "E46: \"0171/4000005\" → \"+49 171 4000005\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 47,
+      "row": 47,
+      "column": "PLZ",
+      "reason": "plz_not_5_digits",
+      "before": "123456",
+      "after": "123456",
+      "message": "C47: \"123456\" — ⚠ PLZ hat nicht genau 5 Stellen. Bitte prüfen, wird nicht geraten"
+    },
+    {
+      "original_row_id": 47,
+      "row": 47,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/4000006",
+      "after": "+49 171 4000006",
+      "message": "E47: \"0171/4000006\" → \"+49 171 4000006\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 48,
+      "row": 48,
+      "column": "PLZ",
+      "reason": "plz_not_5_digits",
+      "before": "12A45",
+      "after": "12A45",
+      "message": "C48: \"12A45\" — ⚠ PLZ hat nicht genau 5 Stellen. Bitte prüfen, wird nicht geraten"
+    },
+    {
+      "original_row_id": 48,
+      "row": 48,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/4000007",
+      "after": "+49 171 4000007",
+      "message": "E48: \"0171/4000007\" → \"+49 171 4000007\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 49,
+      "row": 49,
+      "column": "E-Mail",
+      "reason": "email_comma",
+      "before": "tom.komma@example,com",
+      "after": "tom.komma@example,com",
+      "message": "F49: \"tom.komma@example,com\" — ⚠ ungültig (Komma statt Punkt), Korrektur nur nach deinem OK"
+    },
+    {
+      "original_row_id": 49,
+      "row": 49,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/4000008",
+      "after": "+49 171 4000008",
+      "message": "E49: \"0171/4000008\" → \"+49 171 4000008\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 50,
+      "row": 50,
+      "column": "E-Mail",
+      "reason": "email_double_at",
+      "before": "sara.atat@@example.com",
+      "after": "sara.atat@@example.com",
+      "message": "F50: \"sara.atat@@example.com\" — ⚠ ungültig (doppeltes @)"
+    },
+    {
+      "original_row_id": 50,
+      "row": 50,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/4000009",
+      "after": "+49 171 4000009",
+      "message": "E50: \"0171/4000009\" → \"+49 171 4000009\" — Telefon auf +49 gesetzt"
+    },
+    {
+      "original_row_id": 51,
+      "row": 51,
+      "column": "E-Mail",
+      "reason": "email_at_word",
+      "before": "mia.atwort(at)example.com",
+      "after": "mia.atwort(at)example.com",
+      "message": "F51: \"mia.atwort(at)example.com\" — ⚠ „(at)“-Schreibweise, bitte bestätigen"
+    },
+    {
+      "original_row_id": 51,
+      "row": 51,
+      "column": "Telefon",
+      "reason": "phone_normalized",
+      "before": "0171/4000010",
+      "after": "+49 171 4000010",
+      "message": "E51: \"0171/4000010\" → \"+49 171 4000010\" — Telefon auf +49 gesetzt"
+    }
+  ]
+}
