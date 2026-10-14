@@ -65,6 +65,37 @@ def test_process_queue_empty():
                 
     mock_dispatch.assert_not_called()
 
+def test_process_queue_move_failure_keeps_pending_and_continues_batch(tmp_path):
+    # A failed queue move (e.g. full disk) must not abort the rest of the
+    # batch: the failed intake stays pending, the next one still processes.
+    pending_dir = tmp_path / "intakes" / "pending"
+    processed_dir = tmp_path / "intakes" / "processed"
+    pending_dir.mkdir(parents=True, exist_ok=True)
+    processed_dir.mkdir(parents=True, exist_ok=True)
+
+    first = pending_dir / "first.json"
+    second = pending_dir / "second.json"
+    first.write_text('{"foo": "bar"}')
+    second.write_text('{"foo": "bar"}')
+
+    def mock_glob(pattern):
+        if pattern == "intakes/pending/*.json":
+            return [str(first), str(second)]
+        return []
+
+    with mock.patch("scripts.queue_processor.os.makedirs"):
+        with mock.patch("scripts.queue_processor.glob.glob", side_effect=mock_glob):
+            with mock.patch("scripts.queue_processor.dispatch_intake") as mock_dispatch:
+                with mock.patch(
+                    "scripts.queue_processor.shutil.move",
+                    side_effect=[OSError("disk full"), None],
+                ) as mock_move:
+                    queue_processor.process_queue()  # must not raise
+
+    assert mock_dispatch.call_count == 2
+    assert mock_move.call_count == 2
+
+
 def test_process_queue_error(tmp_path):
     pending_dir = tmp_path / "intakes" / "pending"
     processed_dir = tmp_path / "intakes" / "processed"

@@ -75,6 +75,36 @@ def test_unrecorded_intake_dispatches_once(tmp_path, monkeypatch):
     assert (tmp_path / "intakes" / "processed" / "job.json").exists()
 
 
+def test_dispatching_marker_falls_through_to_dispatch(tmp_path, monkeypatch):
+    """A DISPATCHING marker is NOT recorded: recovery must re-enter
+    dispatch_intake (adopt the in-flight run) instead of skipping it."""
+    import time
+
+    intake_file = _layout(tmp_path, _intake_dict())
+    monkeypatch.chdir(tmp_path)
+    task_id = intake_dispatcher.fingerprint_task_id(_intake_dict())
+    (tmp_path / "central_state.json").write_text(
+        json.dumps(
+            {
+                "tasks": {
+                    task_id: {
+                        "task_id": task_id,
+                        "admission": intake_dispatcher.ADMISSION_DISPATCHING,
+                        "dispatched_at": time.time(),
+                    }
+                }
+            }
+        )
+    )
+    with mock.patch.object(
+        queue_processor, "dispatch_intake"
+    ) as mock_dispatch:
+        queue_processor.process_queue()
+    mock_dispatch.assert_called_once()
+    assert not intake_file.exists()
+    assert (tmp_path / "intakes" / "processed" / "job.json").exists()
+
+
 def test_repeat_dispatch_overwrites_same_record(tmp_path, monkeypatch):
     intake_file = _layout(tmp_path, _intake_dict())
     monkeypatch.chdir(tmp_path)
