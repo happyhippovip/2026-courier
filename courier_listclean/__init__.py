@@ -1,4 +1,4 @@
-"""Deterministic local cleaner for the 79 EUR list offer.
+"""Deterministic local cleaner for the 39 EUR list offer.
 
 No network. No model calls. The source file is never modified.
 """

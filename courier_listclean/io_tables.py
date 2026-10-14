@@ -92,7 +92,7 @@ def _read_csv(path: Path, *, max_rows: int) -> Table:
         if len(rows) > max_rows:
             raise ListCleanError(
                 f"Die Liste hat mehr als {max_rows} Datenzeilen. "
-                f"Das 79-€-Angebot gilt bis {max_rows} Zeilen."
+                f"Das 39-€-Angebot gilt bis {max_rows} Zeilen."
             )
     width = len(headers)
     rows = [_fit_width(row, width) for row in rows]
@@ -100,10 +100,10 @@ def _read_csv(path: Path, *, max_rows: int) -> Table:
 
 
 def _fit_width(row: list[str], width: int) -> list[str]:
-    cells = list(row[:width])
-    if len(cells) < width:
-        cells.extend([""] * (width - len(cells)))
-    return cells
+    """Pad a short row. Cells past the header stay on the row and are not dropped."""
+    if len(row) >= width:
+        return list(row)
+    return [*row, *[""] * (width - len(row))]
 
 
 def _read_xlsx(path: Path, *, max_rows: int) -> Table:
@@ -114,7 +114,7 @@ def _read_xlsx(path: Path, *, max_rows: int) -> Table:
     with zf:
         total = sum(info.file_size for info in zf.infolist())
         if total > MAX_UNCOMPRESSED_BYTES:
-            raise ListCleanError("Die Datei ist zu groß für das 79-€-Angebot.")
+            raise ListCleanError("Die Datei ist zu groß für das 39-€-Angebot.")
         sheet_name = _first_sheet_name(zf)
         strings = _shared_strings(zf)
         try:
@@ -160,7 +160,7 @@ def _read_xlsx(path: Path, *, max_rows: int) -> Table:
         if len(rows) > max_rows:
             raise ListCleanError(
                 f"Die Liste hat mehr als {max_rows} Datenzeilen. "
-                f"Das 79-€-Angebot gilt bis {max_rows} Zeilen."
+                f"Das 39-€-Angebot gilt bis {max_rows} Zeilen."
             )
     return Table(headers=headers, rows=rows, row_numbers=row_numbers, delimiter=";", kind="xlsx")
 

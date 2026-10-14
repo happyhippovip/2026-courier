@@ -1,4 +1,4 @@
-"""Command line for the 79 EUR list cleaner."""
+"""Command line for the 39 EUR list cleaner."""
 
 from __future__ import annotations
 
@@ -127,7 +127,7 @@ def _report_payload(
         counts[item.reason] = counts.get(item.reason, 0) + 1
     return {
         "tool": "courier-listclean",
-        "offer": "79 EUR",
+        "offer": "39 EUR",
         "source": source_name,
         "source_sha256": source_sha256,
         "rows_in": len(result.rows),

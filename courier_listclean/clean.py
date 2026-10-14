@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 
 MAX_ROWS = 2000
 ORIGINAL_ROW_ID = "original_row_id"
+OVERFLOW_COLUMN = "Zusatzspalten"
 
 DECISION_REASONS = frozenset(
     {
@@ -26,6 +27,7 @@ DECISION_REASONS = frozenset(
         "empty_required",
         "phone_unrecognized",
         "inconsistent_case",
+        "extra_columns",
     }
 )
 
@@ -63,7 +65,7 @@ _PHONE_SEPARATORS = re.compile(r"[\s./()\-–—]+")
 
 
 class ListCleanError(ValueError):
-    """The list cannot be cleaned under the 79 EUR rules."""
+    """The list cannot be cleaned under the 39 EUR rules."""
 
 
 @dataclass(frozen=True)
@@ -113,7 +115,7 @@ def clean_table(
     if len(rows) > max_rows:
         raise ListCleanError(
             f"Die Liste hat {len(rows)} Datenzeilen. "
-            f"Das 79-€-Angebot gilt bis {max_rows} Zeilen."
+            f"Das 39-€-Angebot gilt bis {max_rows} Zeilen."
         )
     numbers = list(row_numbers) if row_numbers is not None else list(range(2, len(rows) + 2))
     if len(numbers) != len(rows):
@@ -124,6 +126,7 @@ def clean_table(
     fields = [_field_for_header(header) for header in clean_headers]
     hint_header = _hint_header(clean_headers)
     id_header = _id_header(clean_headers)
+    overflow_header = _overflow_header(clean_headers)
     required = _required_fields(set(fields))
 
     findings: list[Finding] = []
@@ -142,7 +145,24 @@ def clean_table(
 
     normalized: list[list[str]] = []
     per_row_notes: list[list[str]] = []
+    overflow_cells: list[str] = []
     for row, number in zip(rows, numbers):
+        extra = row[width:] if len(row) > width else []
+        overflow = _overflow_text(extra)
+        overflow_cells.append(overflow)
+        if overflow:
+            message = f"⚠ Zusätzliche Spaltenwerte bleiben erhalten: {overflow}"
+            findings.append(
+                _finding(
+                    number,
+                    overflow_header,
+                    "extra_columns",
+                    overflow,
+                    overflow,
+                    overflow_header,
+                    message,
+                )
+            )
         cells = _fit(row, width)
         output: list[str] = []
         notes: list[str] = []
@@ -168,19 +188,27 @@ def clean_table(
                 if reason in DECISION_REASONS and reason != "inconsistent_case":
                     notes.append(messages.get(reason) or _default_message(reason, original, value))
             output.append(value)
+        if overflow:
+            notes.append(f"⚠ Zusätzliche Spaltenwerte bleiben erhalten: {overflow}")
         normalized.append(output)
         per_row_notes.append(notes)
 
     _mark_duplicates(normalized, numbers, fields, clean_headers, findings, per_row_notes)
 
+    keep_overflow = any(overflow_cells)
     cleaned_rows: list[list[str]] = []
-    for output, notes, number in zip(normalized, per_row_notes, numbers):
+    for output, notes, number, overflow in zip(normalized, per_row_notes, numbers, overflow_cells):
         hint = " · ".join(_unique(notes))
-        cleaned_rows.append([*output, hint, str(number)])
+        tail = [overflow, hint, str(number)] if keep_overflow else [hint, str(number)]
+        cleaned_rows.append([*output, *tail])
 
     findings.sort(key=lambda item: (item.row, item.column, item.reason, item.message))
+    headers = [*clean_headers]
+    if keep_overflow:
+        headers.append(overflow_header)
+    headers.extend([hint_header, id_header])
     return CleanResult(
-        headers=[*clean_headers, hint_header, id_header],
+        headers=headers,
         rows=cleaned_rows,
         findings=findings,
         row_numbers=numbers,
@@ -211,6 +239,23 @@ def _id_header(headers: list[str]) -> str:
     if ORIGINAL_ROW_ID.casefold() not in taken:
         return ORIGINAL_ROW_ID
     return "courier_original_row_id"
+
+
+def _overflow_header(headers: list[str]) -> str:
+    taken = {header.casefold() for header in headers}
+    if OVERFLOW_COLUMN.casefold() not in taken:
+        return OVERFLOW_COLUMN
+    return "Zusatzspalten_overflow"
+
+
+def _overflow_text(extra: list[str]) -> str:
+    """Join cells past the header. Trailing empties are padding, not values."""
+    cells = list(extra)
+    while cells and cells[-1].strip() == "":
+        cells.pop()
+    if not any(cell.strip() for cell in cells):
+        return ""
+    return " | ".join(cells)
 
 
 def _required_fields(present: set[str]) -> set[str]:
@@ -621,6 +666,7 @@ def _default_message(reason: str, before: str, after: str) -> str:
         "plz_country_prefix": "Länderkennzeichen vor der PLZ entfernt",
         "street_abbreviation": "Straßenabkürzung erweitert",
         "formula_preserved": "Formel unverändert gelassen",
+        "extra_columns": "Zusätzliche Spaltenwerte bleiben erhalten",
         "exact_duplicate": "⚠ Dublette, du entscheidest",
         "fuzzy_duplicate": "⚠ mögliche Dublette (Name + PLZ), du entscheidest",
     }

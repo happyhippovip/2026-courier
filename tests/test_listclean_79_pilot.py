@@ -1,4 +1,4 @@
-"""Pilot of 50 fictional rows for the 79 EUR cleaner.
+"""Pilot of 50 fictional rows for the 39 EUR cleaner.
 
 Every data row is counted once:
 

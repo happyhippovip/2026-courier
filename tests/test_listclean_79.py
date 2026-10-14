@@ -1,4 +1,4 @@
-"""Synthetic checks for the 79 EUR list cleaner. No customer data."""
+"""Synthetic checks for the 39 EUR list cleaner. No customer data."""
 
 from __future__ import annotations
 
@@ -58,6 +58,21 @@ def _has(report: dict, row: int, column: str, reason: str, before: str | None = 
                 continue
             return True
     return False
+
+
+def test_cells_past_the_header_are_kept_and_reported(tmp_path: Path):
+    rows, report = _clean_csv(
+        tmp_path,
+        "Name,Straße,PLZ,Ort,Telefon,E-Mail\n"
+        "Zu Viele,Weg 10,12345,Ort,0170 10,v@b.de,EXTRA,EXTRA2\n",
+        "zu-viele.csv",
+    )
+    assert rows[0][0] == "Zu Viele"
+    assert "EXTRA | EXTRA2" in rows[0]
+    assert _has(report, 2, "Zusatzspalten", "extra_columns", "EXTRA | EXTRA2", "EXTRA | EXTRA2")
+    finding = next(item for item in report["findings"] if item["reason"] == "extra_columns")
+    assert "EXTRA" in finding["message"] and "EXTRA2" in finding["message"]
+    assert finding["original_row_id"] == 2
 
 
 def test_example_1_normalizes_and_flags_exact_duplicate(tmp_path: Path):
