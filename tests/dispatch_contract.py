@@ -20,6 +20,8 @@ DISPATCH_GOAL = {
 }
 ACTOR = "person:ada"
 CONFIRMED_AT = "2026-10-15T12:00:00Z"
+# Fixture only. Production reads COURIER_HUMAN_CONFIRM_TOKEN from the environment.
+FIXTURE_HUMAN_TOKEN = "fixture-human-confirm"
 
 
 def confirmed_contract():

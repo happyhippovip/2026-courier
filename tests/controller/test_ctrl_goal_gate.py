@@ -2,10 +2,10 @@
 
 import pytest
 
-from ctrl_helpers import make_controller, task_body
+from ctrl_helpers import LiveService, make_controller, task_body
 from courier_core.controller import ApiError
 from courier_core.goal_contract import GOAL_CONTRACTS_FILE, draft_goal_contract
-from tests.dispatch_contract import task_view
+from tests.dispatch_contract import FIXTURE_HUMAN_TOKEN, task_view
 
 
 def _legacy(**overrides):
@@ -22,9 +22,9 @@ def ctl(tmp_path):
     controller.stop()
 
 
-def api_error(fn, *args):
+def api_error(fn, *args, **kwargs):
     with pytest.raises(ApiError) as info:
-        fn(*args)
+        fn(*args, **kwargs)
     return info.value
 
 
@@ -73,27 +73,39 @@ def test_unconfirmed_contract_is_not_dispatched(ctl):
     assert ctl.claim({"worker_id": "w1"}) is None
 
 
-def test_anonymous_and_agent_confirmation_is_refused_and_not_stored(ctl):
+def test_anonymous_and_agent_confirmation_is_refused_and_not_stored(ctl, monkeypatch):
+    monkeypatch.setenv("COURIER_HUMAN_CONFIRM_TOKEN", FIXTURE_HUMAN_TOKEN)
     goal = "ship the report or the summary"
     before = (ctl.home / GOAL_CONTRACTS_FILE).read_bytes()
-    for actor, authenticated, status in (
-        ("anonymous", True, 403),
-        ("agent:bot", True, 403),
-        ("person:ada", False, 403),
-    ):
-        err = api_error(ctl.confirm_goal, {
-            "goal": goal, "actor_ref": actor, "at": "2026-10-15T12:00:00Z", "authenticated": authenticated,
-        })
-        assert err.status == status
+    err = api_error(ctl.confirm_goal, {
+        "goal": goal, "actor_ref": "person:ada", "at": "2026-10-15T12:00:00Z", "authenticated": True,
+    })
+    assert err.status == 403
+    for actor in ("anonymous", "agent:bot"):
+        err = api_error(
+            ctl.confirm_goal,
+            {"goal": goal, "actor_ref": actor, "at": "2026-10-15T12:00:00Z", "authenticated": True},
+            human_token=FIXTURE_HUMAN_TOKEN,
+        )
+        assert err.status == 403
+    monkeypatch.setenv("COURIER_HUMAN_CONFIRM_TOKEN", "worker-token")
+    err = api_error(
+        ctl.confirm_goal,
+        {"goal": goal, "actor_ref": "person:ada", "at": "2026-10-15T12:00:00Z", "authenticated": True},
+        human_token="worker-token",
+        service_token="worker-token",
+    )
+    assert err.status == 403
     assert (ctl.home / GOAL_CONTRACTS_FILE).read_bytes() == before
     assert _created(ctl) == []
 
 
-def test_human_confirmation_then_validate_task_dispatches(ctl):
+def test_human_confirmation_then_validate_task_dispatches(ctl, monkeypatch):
+    monkeypatch.setenv("COURIER_HUMAN_CONFIRM_TOKEN", FIXTURE_HUMAN_TOKEN)
     goal = "ship the report or the summary"
     confirmed = ctl.confirm_goal({
-        "goal": goal, "actor_ref": "person:ada", "at": "2026-10-15T12:00:00Z", "authenticated": True,
-    })
+        "goal": goal, "actor_ref": "person:ada", "at": "2026-10-15T12:00:00Z", "authenticated": False,
+    }, human_token=FIXTURE_HUMAN_TOKEN)
     assert confirmed["confirmed"] is True
     draft = draft_goal_contract(goal)
     assert confirmed["goal_fingerprint"] == draft.contract.fingerprint()
@@ -147,6 +159,39 @@ def test_legacy_task_without_a_contract_is_not_dispatched(ctl):
         assert "missing_contract" in err.extra["reasons"]
     assert _created(ctl) == []
     assert ctl.claim({"worker_id": "w1"}) is None
+
+
+def test_agent_service_token_cannot_confirm_as_person(tmp_path, monkeypatch):
+    """An agent that holds the worker token and names person:x stores nothing."""
+    monkeypatch.setenv("COURIER_HUMAN_CONFIRM_TOKEN", FIXTURE_HUMAN_TOKEN)
+    live = LiveService(tmp_path / "home")
+    try:
+        path = live.controller.home / GOAL_CONTRACTS_FILE
+        before = path.read_bytes()
+        body = {
+            "goal": "ship the report or the summary",
+            "actor_ref": "person:x",
+            "at": "2026-10-15T12:00:00Z",
+            "authenticated": True,
+        }
+        refused = live.post("/v1/goals/confirm", body)
+        assert refused.status_code == 403
+        presented = live.post(
+            "/v1/goals/confirm", body,
+            headers={"X-Courier-Human-Token": live.service.token},
+        )
+        assert presented.status_code == 403
+        assert path.read_bytes() == before
+        accepted = live.post(
+            "/v1/goals/confirm",
+            {**body, "actor_ref": "person:ada", "authenticated": False},
+            headers={"X-Courier-Human-Token": FIXTURE_HUMAN_TOKEN},
+        )
+        assert accepted.status_code == 200
+        assert accepted.json()["confirmed"] is True
+        assert path.read_bytes() != before
+    finally:
+        live.stop()
 
 
 def test_confirmed_task_view_is_dispatched(ctl):

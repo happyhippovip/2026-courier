@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from courier_core.goal_contract import (
+    HUMAN_CONFIRM_ENV,
     MAX_FILE_BYTES,
     AcceptanceCriterion,
     DraftOutcome,
@@ -16,9 +17,13 @@ from courier_core.goal_contract import (
     Verdict,
     confirm_draft,
     draft_goal_contract,
+    human_confirm_granted,
     store_confirmed,
     validate_task,
 )
+
+# Fixture only. Production reads COURIER_HUMAN_CONFIRM_TOKEN from the environment.
+_FIXTURE_HUMAN_TOKEN = "fixture-human-confirm"
 
 ROOT = Path(__file__).resolve().parents[2]
 SCHEMA = ROOT / "courier_core" / "schemas" / "goal_contract.schema.json"
@@ -309,6 +314,22 @@ def test_draft_clear_goal_is_unconfirmed_until_the_caller_confirms():
         "actor_kind": "human", "actor_ref": "person:ada", "at": "2026-10-15T00:00:00Z",
     }]))
     assert stuffed.contract is not None and stuffed.contract.human_confirmed is False
+
+
+def test_human_confirm_token_is_not_the_service_token(monkeypatch):
+    monkeypatch.delenv(HUMAN_CONFIRM_ENV, raising=False)
+    assert human_confirm_granted(_FIXTURE_HUMAN_TOKEN) is False
+    monkeypatch.setenv(HUMAN_CONFIRM_ENV, "")
+    assert human_confirm_granted(_FIXTURE_HUMAN_TOKEN) is False
+    monkeypatch.setenv(HUMAN_CONFIRM_ENV, _FIXTURE_HUMAN_TOKEN)
+    assert human_confirm_granted("") is False
+    assert human_confirm_granted(None) is False
+    assert human_confirm_granted(True) is False
+    assert human_confirm_granted("not-the-fixture") is False
+    assert human_confirm_granted(_FIXTURE_HUMAN_TOKEN) is True
+    assert human_confirm_granted(_FIXTURE_HUMAN_TOKEN, service_token="worker-token") is True
+    monkeypatch.setenv(HUMAN_CONFIRM_ENV, "worker-token")
+    assert human_confirm_granted("worker-token", service_token="worker-token") is False
 
 
 def test_schema_rejects_unknown_fields():

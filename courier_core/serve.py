@@ -230,7 +230,11 @@ class Handler(BaseHTTPRequestHandler):
                 raise ApiError(404, "not_found")
             body = self._read_json()
             if path == "/v1/goals/confirm":
-                return self._send(200, controller.confirm_goal(body))
+                return self._send(200, controller.confirm_goal(
+                    body,
+                    human_token=self.headers.get("X-Courier-Human-Token"),
+                    service_token=self.server.token,
+                ))
             if path == "/v1/tasks":
                 status, payload = controller.create_task(body)
                 return self._send(status, payload)

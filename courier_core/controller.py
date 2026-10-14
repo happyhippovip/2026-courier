@@ -32,8 +32,8 @@ Goal contract: create_task and claim always run validate_task before a task
 can be dispatched. A task without a stored, human-confirmed contract that
 accepts its goal_id, goal_fingerprint, scope, acceptance_ids and
 evidence_class is not journaled and is not claimable. confirm_goal stores a
-contract only after an authenticated human confirmation. server/app.py does
-not call this controller.
+contract only after the dedicated human-confirm token matches. The client
+field authenticated is ignored. server/app.py does not call this controller.
 """
 
 from __future__ import annotations
@@ -57,7 +57,7 @@ from courier_core.events import (
 )
 from courier_core.goal_contract import (
     GOAL_CONTRACTS_FILE, DraftOutcome, GoalContractError, GoalContractStore, Verdict,
-    confirm_draft, draft_goal_contract, store_confirmed, validate_task,
+    confirm_draft, draft_goal_contract, human_confirm_granted, store_confirmed, validate_task,
 )
 from courier_core.journal import DedupeConflict, Journal, JournalError
 from courier_core.projection import ProjectionError
@@ -409,16 +409,18 @@ class Controller:
                                "idempotency_key was already used for a different task") from None
         return (200 if result.duplicate else 201), {"task_id": task_id, "duplicate": result.duplicate}
 
-    def confirm_goal(self, body: Any) -> dict:
-        """Store a drafted contract after an authenticated human confirms it.
+    def confirm_goal(self, body: Any, *, human_token: str | None = None, service_token: str | None = None) -> dict:
+        """Store a drafted contract after a dedicated human-confirm secret matches.
 
-        Anonymous and agent identities are refused. Nothing is appended unless
-        the confirmation is already in hand. This does not dispatch a task.
+        ``authenticated`` in the body is ignored. The worker token
+        (``service_token``) is not a human proof. Anonymous and agent identities
+        are refused. Nothing is appended unless the confirmation is already in
+        hand. This does not dispatch a task.
         """
         self._require_writable()
         body = _only_fields(body, CONFIRM_FIELDS)
-        if body.get("authenticated") is not True:
-            raise ApiError(403, "unauthenticated", "confirmation requires an authenticated human identity")
+        if not human_confirm_granted(human_token, service_token):
+            raise ApiError(403, "unauthenticated", "confirmation requires a human confirm token")
         actor_ref = body.get("actor_ref")
         at = body.get("at")
         if not isinstance(at, str) or not at.strip():

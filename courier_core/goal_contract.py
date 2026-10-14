@@ -13,7 +13,9 @@ invents one. Standard library only.
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
+import os
 import re
 from dataclasses import dataclass
 from enum import Enum
@@ -469,6 +471,8 @@ _AMBIGUOUS_TEXT = re.compile(
 _DRAFT_FIELDS = set(_FINGERPRINT_FIELDS) | {"confirmations"}
 _ANONYMOUS_ACTORS = frozenset({"anonymous", "anon", "unknown", "none", "null", "guest", "agent"})
 GOAL_CONTRACTS_FILE = "goal_contracts.jsonl"
+HUMAN_CONFIRM_ENV = "COURIER_HUMAN_CONFIRM_TOKEN"
+HUMAN_CONFIRM_HEADER = "X-Courier-Human-Token"
 
 
 def draft_goal_contract(goal: object) -> GoalDraft:
@@ -507,8 +511,27 @@ def draft_goal_contract(goal: object) -> GoalDraft:
     return GoalDraft(DraftOutcome.DRAFTED, (), contract)
 
 
+def human_confirm_granted(presented: object, service_token: object = None) -> bool:
+    """True only when ``presented`` is the dedicated human-confirm secret.
+
+    The worker and bridge token is not this secret. A client JSON flag is not
+    this secret. An unset secret fails closed. This never invents a confirmation.
+    """
+    expected = os.environ.get(HUMAN_CONFIRM_ENV, "")
+    if not isinstance(expected, str) or not expected or not isinstance(presented, str) or not presented:
+        return False
+    if isinstance(service_token, str) and service_token and hmac.compare_digest(expected, service_token):
+        return False
+    return hmac.compare_digest(presented, expected)
+
+
 def confirm_draft(contract: GoalContract, actor_ref: str, at: str, *, authenticated: bool) -> GoalContract:
-    """Record a confirmation the caller already authenticated. Never invents one."""
+    """Record a confirmation the caller already proved. Never invents one.
+
+    ``authenticated`` is the caller's own proof result. HTTP confirmation does
+    not take that bit from the client; ``Controller.confirm_goal`` sets it only
+    after ``human_confirm_granted``.
+    """
     if not isinstance(contract, GoalContract):
         raise GoalContractError("not a goal contract")
     if authenticated is not True or not _authenticated_human(actor_ref):
