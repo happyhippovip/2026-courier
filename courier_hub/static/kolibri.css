@@ -1,0 +1,10 @@
+main { padding: 8px 24px 32px; }
+.note { color: var(--quiet); font-size: 13px; max-width: 70ch; }
+section { margin: 28px 0; }
+section h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--quiet); margin: 0 0 12px; }
+.stations { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.stations .card h3 { margin: 0 0 8px; font-size: 16px; }
+.field { margin: 8px 0; }
+.field p { margin: 0; }
+.counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+@media (max-width: 700px) { .counts { grid-template-columns: 1fr; } }
