@@ -16,13 +16,13 @@ Every dispatch carries these five fields:
 
 `validate_task` returns `ACCEPTED` only when the latest stored contract for that `goal_id` is human-confirmed, the fingerprint matches, the scope stays inside the allowed set, the acceptance ids exist on the contract, and the evidence class matches. Otherwise the controller answers `409` and does not journal the task:
 
-- `NOT_VERIFIABLE` / `missing_contract` — no stored contract, or the task view is incomplete
+- `NOT_VERIFIABLE` / `missing_contract` — no stored contract. An incomplete task view is `NOT_VERIFIABLE` with reason `missing_fingerprint` or `missing_acceptance_anchor`
 - `HUMAN_CONFIRMATION_REQUIRED` — the contract is unconfirmed, or the task widens scope (`scope_widened`)
 - `REVALIDATION_REQUIRED` / `stale_fingerprint` — the task is bound to an older fingerprint
 
 ## Draft and confirmation
 
-Free text drafts an unconfirmed contract (`outcome: DRAFTED`, `confirmed: false`, `dispatched: false`) and is not stored. `NEEDS_CLARIFICATION` is only a missing or contradictory goal. A single "or" or "either" is not one of those.
+Free text drafts an unconfirmed contract (`outcome: DRAFTED`, `confirmed: false`, `dispatched: false`) and is not stored. `NEEDS_CLARIFICATION` is a missing, contradictory, or ambiguous goal (for example `maybe`, `tbd`, or `?`). A single `or` or `either` is not.
 
 `POST /v1/goals/confirm` stores a draft only after a dedicated human proof:
 
@@ -37,7 +37,7 @@ An agent that holds `X-Courier-Token`, sets `actor_ref` to `person:x`, and sets 
 
 ## Callers that must present the task view
 
-`ChiefCommander.formulate_workflow_plan` returns no steps unless `$COURIER_HOME/goal_contracts.jsonl` already holds a confirmed contract that accepts the idea. That is the file `Controller.confirm_goal` appends. If `COURIER_HOME` is unset or empty, the chief stays blocked (fail closed), even when `goal_contracts.jsonl` is sitting in the repo root. The name is gitignored, so that root file is not the store by itself. If `COURIER_HOME` points at the repo, the file is read. `Path.resolve` follows symlinks, so a `COURIER_HOME` that is a symlink to the repo is the same: the file at the repo is read. An empty plan makes `execute_human_idea` return `BLOCKED_GOAL_CONTRACT`.
+`ChiefCommander.formulate_workflow_plan` returns no steps unless `$COURIER_HOME/goal_contracts.jsonl` already holds a confirmed contract that accepts the idea. `Controller.confirm_goal` appends under the controller's `--home`, and `$COURIER_HOME` is only the default for that flag. If `COURIER_HOME` is unset or empty, the chief stays blocked (fail closed), even when `goal_contracts.jsonl` is sitting in the repo root. A `goal_contracts.jsonl` in the repo root is not the store, because the chief reads `COURIER_HOME`. The name is gitignored. If `COURIER_HOME` points at the repo, the file is read. `Path.resolve` follows symlinks, so a `COURIER_HOME` that is a symlink to the repo is the same: the file at the repo is read. An empty plan makes `execute_human_idea` return `BLOCKED_GOAL_CONTRACT`.
 
 `server/app.py` is not edited. When the chief returns no steps, that process answers 503 `planner returned no actionable tasks`. That text does not say a goal contract blocked the plan, so the 503 is misleading in this case.
 
@@ -46,7 +46,7 @@ The ledger bridge copies the five task-view fields onto the posted task. Its `--
 When those directories differ, the two checks stay separate:
 
 - The bridge file does not accept the spec: the bridge parks the mission and does not post. A contract that exists only in the controller's home does not let it through.
-- The bridge file accepts the spec: the bridge posts. The controller then checks its own file. Any answer other than 200 or 201, including 409 when the controller's file does not accept the task, is recorded as `skipped` / `rejected`. The mission stays unposted and the next run tries the post again. It is not parked by the bridge's pre-check.
+- The bridge file accepts the spec: the bridge posts. The controller then checks its own file. Any 4xx answer, including 409 when the controller's file does not accept the task, is recorded as `skipped` / `rejected`. The mission stays unposted and the next run tries the post again. It is not parked by the bridge's pre-check. On a 5xx response, or when the controller cannot be reached, the bridge raises `ControllerDown` and exits 75 with `controller unreachable`. That attempt is not recorded.
 - The bridge also sends the token from `<its --home>/run/controller.token`. If that token is not the controller's token, the post is 401 and is recorded the same way, before the controller's goal check.
 
 Specs that post through that bridge, including the verified A-to-B input handoff, need the same five fields or whichever of those two checks runs will refuse the post.
@@ -63,7 +63,7 @@ Specs that post through that bridge, including the verified A-to-B input handoff
 
 ## OPEN: R1, unkeyed store
 
-Anyone with shell or file access to `$COURIER_HOME` can hand-write a confirmation that the chief and the controller accept. Each stored line carries `sha256` of its own contract JSON, and the read accepts the line when that digest matches. The digest is an unkeyed sha256, so it detects a body that does not match its hash. It does not show who wrote the line. The same file is read when `COURIER_HOME` points at the repo or is a symlink that resolves to the repo.
+Anyone with shell or file access to the controller's home can hand-write a confirmation the controller accepts. The controller reads its `--home`. `$COURIER_HOME` is only the default when `--home` is omitted. The chief reads `$COURIER_HOME`, and accepts the same kind of file there. Each stored line carries `sha256` of its own contract JSON, and the read accepts the line when that digest matches. The digest is an unkeyed sha256, so it detects a body that does not match its hash. It does not show who wrote the line. The same file is read when that home points at the repo or is a symlink that resolves to the repo.
 
 The confirm route does not offer this write. `POST /v1/goals/confirm` still requires the human-confirm token, and the controller does not invent a confirmation.
 
