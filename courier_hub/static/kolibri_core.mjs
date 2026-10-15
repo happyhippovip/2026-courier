@@ -3,7 +3,9 @@
 
 export const UNAVAILABLE = "UNKNOWN / nicht erreichbar";
 export const REST_TEXT = "Keine Aktivität";
-export const PAUSE = "Pause";
+export const PAUSE = "PAUSE";
+export const STALE = "STALE";
+export const READY = "READY";
 export const POLL_MS = 15000;
 
 export const FLOWERS = [
@@ -117,13 +119,32 @@ export function unavailableSnapshot(observedAt) {
   };
 }
 
+const STATE_TOKEN = {
+  READY: "ready", STALE: "stale", PAUSE: "pause", FEHLER: "fehler",
+  LEERLAUF: "leerlauf", BEENDET: "beendet", PAUSIERT: "pausiert",
+};
+
+function stateToken(value) {
+  const head = String(value || "").split(" · ")[0];
+  return STATE_TOKEN[head] || "unknown";
+}
+
+function legendHtml() {
+  const items = Object.entries(STATE_TOKEN).concat([["UNKNOWN", "unknown"]]);
+  return `<ul class="state-legend">${items.map(([label, token]) =>
+    `<li class="state-${token}" data-state="${token}">${label}</li>`).join("")}</ul>`;
+}
+
 function stationHtml(stations) {
-  return stations.map((station) => `<article class="card" data-station="${escapeHtml(station.id)}">
+  return stations.map((station) => {
+    const token = stateToken(station.state && station.state.value);
+    return `<article class="card state-${token}" data-state="${token}" data-station="${escapeHtml(station.id)}">
       <h3>${escapeHtml(text(station.id))}</h3>
       ${field("State", station.state)}
       ${field("Process", station.process)}
       ${field("DONE", station.done)}
-    </article>`).join("");
+    </article>`;
+  }).join("");
 }
 
 function detailHtml(snapshot) {
@@ -146,7 +167,8 @@ function detailHtml(snapshot) {
   return `
     <section id="muse-wall" data-available="${muse.available ? "yes" : "no"}">
       <h2>Muse wall</h2>
-      ${muse.available ? `<p class="note">A slot file in the repo is not a heartbeat. Without a fresh heartbeat the reading stays unknown.</p>` : ""}
+      ${muse.available ? `<p class="note">A slot file in the repo is not a heartbeat. Up to 30 seconds the own reading is shown. Then STALE until 90 seconds, PAUSE until 300 seconds, and unknown after that. An own reading from the last 30 seconds stays attached.</p>` : ""}
+      ${muse.available ? legendHtml() : ""}
       ${field("Reading", muse)}
       <div class="stations">${stationHtml(stations)}</div>
     </section>
