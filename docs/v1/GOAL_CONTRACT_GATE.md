@@ -16,13 +16,13 @@ Every dispatch carries these five fields:
 
 `validate_task` returns `ACCEPTED` only when the latest stored contract for that `goal_id` is human-confirmed, the fingerprint matches, the scope stays inside the allowed set, the acceptance ids exist on the contract, and the evidence class matches. Otherwise the controller answers `409` and does not journal the task:
 
-- `NOT_VERIFIABLE` / `missing_contract` — no stored contract. An incomplete task view is `NOT_VERIFIABLE` with reason `missing_fingerprint` or `missing_acceptance_anchor`
+- `NOT_VERIFIABLE` / `missing_contract` — no stored contract. An incomplete task view is `NOT_VERIFIABLE` with a reason naming the missing field (`missing_contract` for a missing `goal_id`, `missing_fingerprint`, `scope_invalid`, `missing_acceptance_anchor`, `missing_evidence_class`)
 - `HUMAN_CONFIRMATION_REQUIRED` — the contract is unconfirmed, or the task widens scope (`scope_widened`)
 - `REVALIDATION_REQUIRED` / `stale_fingerprint` — the task is bound to an older fingerprint
 
 ## Draft and confirmation
 
-Free text drafts an unconfirmed contract (`outcome: DRAFTED`, `confirmed: false`, `dispatched: false`) and is not stored. `NEEDS_CLARIFICATION` is a missing, contradictory, or ambiguous goal (for example `maybe`, `tbd`, or `?`). A single `or` or `either` is not.
+Free text drafts an unconfirmed contract (`outcome: DRAFTED`, `confirmed: false`, `dispatched: false`) and is not stored. `NEEDS_CLARIFICATION` is a missing, contradictory, or ambiguous goal (for example `maybe`, `tbd`, or `?`). `or` and `either` are not markers; `and/or` is.
 
 `POST /v1/goals/confirm` stores a draft only after a dedicated human proof:
 
