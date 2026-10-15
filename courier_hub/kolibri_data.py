@@ -117,19 +117,19 @@ _HEARTBEAT_SCHEMA = "courier.wall.heartbeat/v1"
 _WINDOW_ID = re.compile(r"^[WM][0-9]{2}$")
 _HEARTBEAT_STATUS = frozenset({"startet", "laeuft", "leerlauf", "pausiert", "beendet", "fehler"})
 _LIVE_STATUS = frozenset({"startet", "laeuft"})
-_EXAMPLE_QUELLE = "BEI" "SPIEL"
+_EXAMPLE_QUELLE = "BEISPIEL"
 _FRESH_S = 30
 _STALE_S = 90
 _QUIET_S = 300
 _FUTURE_S = 5
 STALE = "stale"
+_OWNER_REF = re.compile(r"\s+from\s+\S+/\S+\s*$", re.I)
 
 
 def _leaks(text: str) -> bool:
     lowered = text.lower()
-    if any(mark in lowered for mark in ("/home/", "\\home\\", "/users/", "\\users\\", "~", "ghs_", "ghp_", "github_pat_")):
-        return True
-    if re.match(r"^[a-z]:[\\/]", lowered):
+    marks = ("/home/", "\\home\\", "/users/", "\\users\\", "/root/", "\\root\\", "~", "ghs_", "ghp_", "github_pat_")
+    if any(mark in lowered for mark in marks) or re.search(r"[a-z]:[\\/]", lowered):
         return True
     return bool(re.search(r"(?<!founder)@", text, re.I))
 
@@ -143,10 +143,14 @@ def _display_path(path: Path, root: Path) -> str:
             continue
         if rel and not _leaks(rel):
             return rel
-    text = re.sub(r"^[A-Za-z]:", "", str(path).replace("\\", "/"))
+    text = str(path).replace("\\", "/")
+    drive = bool(re.match(r"^[A-Za-z]:", text))
+    text = re.sub(r"^[A-Za-z]:", "", text)
     parts = [part for part in text.split("/") if part not in ("", ".", "..")]
     if parts and parts[0].lower() in _UNSAFE_DIR:
         parts = parts[2:]
+    elif parts and (drive or parts[0].lower() == "root"):
+        parts = parts[1:]
     if not parts:
         return "source"
     name = parts[-1]
@@ -188,21 +192,16 @@ def _slot_token(slot_id: str) -> Optional[re.Pattern[str]]:
 
 
 def _resolve_merged_ref(root: Path) -> Optional[str]:
-    """Local integration/v1, then the origin tracking ref, otherwise nothing to read."""
-    for full, short in (
-        ("refs/heads/integration/v1", MERGED_REF),
-        ("refs/remotes/origin/integration/v1", f"origin/{MERGED_REF}"),
-    ):
-        try:
-            proc = subprocess.run(
-                ["git", "-C", str(root), "show-ref", "--verify", "--quiet", full],
-                check=False, capture_output=True, text=True, timeout=10,
-            )
-        except (OSError, subprocess.SubprocessError):
-            continue
-        if proc.returncode == 0:
-            return short
-    return None
+    """Only origin/integration/v1. A local branch is not the merged trunk."""
+    full, short = "refs/remotes/origin/integration/v1", f"origin/{MERGED_REF}"
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(root), "show-ref", "--verify", "--quiet", full],
+            check=False, capture_output=True, text=True, timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return short if proc.returncode == 0 else None
 
 
 def read_merged_prs(root: Path, observed_at: str) -> dict:
@@ -245,7 +244,7 @@ def read_merged_prs(root: Path, observed_at: str) -> dict:
         block = _unavailable(source, observed_at)
         block["rows"] = []
         return block
-    newest = rows[-1]["at"] if rows else head_at
+    newest = rows[0]["at"] if rows else head_at
     return {
         "available": True,
         "active": bool(rows) and _fresh(newest, observed_at),
@@ -273,9 +272,10 @@ def _parse_merges(text: str, source: str) -> list[dict]:
         number = int(match.group(1))
         if number in found:
             continue
+        shown = _OWNER_REF.sub("", subject).strip()
         found[number] = {
             "pr": number,
-            "subject": subject,
+            "subject": shown if shown and not _leaks(shown) else f"#{number}",
             "sha": sha,
             "source": source,
             "at": _iso_text(committed_at.strip()),
@@ -342,16 +342,21 @@ def _heartbeat_station(path: Path, root: Path, observed_at: str, merged: dict) -
         return _unknown_station(window, rel)
     age = (observed - parsed).total_seconds()
     at = _iso_text(stamp)
-    if age < -_FUTURE_S:
+    if age < -_FUTURE_S or age > _QUIET_S:
         return _unknown_station(window, rel, at)
-    if age <= _FRESH_S and status in _LIVE_STATUS:
-        value, live = "READY", True
-    elif age <= _FRESH_S or _STALE_S < age <= _QUIET_S:
+    # Pause is only pausiert, or a live runner that has gone quiet (90–300 s).
+    if status == "fehler":
+        value, live = "FEHLER", False
+    elif status == "beendet":
+        value, live = "beendet", False
+    elif status == "leerlauf":
+        value, live = "leerlauf", False
+    elif status == "pausiert" or age > _STALE_S:
         value, live = PAUSE, False
-    elif age <= _STALE_S:
-        value, live = STALE, False
+    elif age <= _FRESH_S and status in _LIVE_STATUS:
+        value, live = "READY", True
     else:
-        value, live = UNAVAILABLE, False
+        value, live = STALE, False
     return {
         "id": window,
         "heartbeat": live,
@@ -432,14 +437,11 @@ def read_muse_wall(root: Path, wall: Optional[Path], label: str, observed_at: st
     _newest_first(stations)
     live_count = sum(1 for station in stations if station["heartbeat"])
     times = [station["state"]["at"] for station in stations if station["state"]["at"] != UNAVAILABLE]
+    rank = ("FEHLER", STALE, PAUSE, "leerlauf", "beendet")
     if live_count:
         value = "READY"
-    elif any(station["state"]["value"] == STALE for station in stations):
-        value = STALE
-    elif any(station["state"]["value"] == PAUSE for station in stations):
-        value = PAUSE
     else:
-        value = UNAVAILABLE
+        value = next((item for item in rank if any(station["state"]["value"] == item for station in stations)), UNAVAILABLE)
     return {
         "available": True,
         "active": live_count > 0,
@@ -509,12 +511,13 @@ def read_ledger_bridge(home: Optional[Path], root: Path, observed_at: str) -> di
         block["missions"] = []
         return block
     listed = []
-    for mission_id in sorted(missions):
-        mapping = missions[mission_id]
-        if not isinstance(mapping, dict):
+    for mission_id, mapping in missions.items():
+        if not isinstance(mission_id, str) or _leaks(mission_id) or not isinstance(mapping, dict):
             continue
         at = mapping.get("updated_at") if isinstance(mapping.get("updated_at"), str) else file_at
         status = mapping.get("status") if isinstance(mapping.get("status"), str) else UNAVAILABLE
+        if _leaks(status):
+            status = UNAVAILABLE
         row = {"id": mission_id, "status": status, "source": rel, "at": _iso_text(at) if at != file_at else file_at}
         for key in _MISSION_FIELDS:
             if key == "status":
