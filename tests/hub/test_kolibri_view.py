@@ -1,6 +1,7 @@
 """Kolibri: one flower per source, bird rests unless the evidence is live."""
 
 import json
+import os
 import re
 import subprocess
 import threading
@@ -13,7 +14,8 @@ import pytest
 from courier_core.events import Event, EventType
 from courier_core.journal import Journal
 from courier_hub.kolibri_data import (
-    PAUSE, REST_TEXT, STALE, UNAVAILABLE, _parse_merges, build_snapshot, read_github, station_key,
+    PAUSE, READY, REST_TEXT, STALE, UNAVAILABLE, _display_path, _leaks, _parse_merges, _read_drafts,
+    build_snapshot, read_github, station_key,
 )
 from courier_hub.server import Hub, HubServer
 
@@ -69,6 +71,13 @@ def _git_repo(path: Path, subject: str, branch: str = "integration/v1") -> None:
     )
 
 
+def _publish_origin(path: Path) -> None:
+    subprocess.run(
+        ["git", "update-ref", "refs/remotes/origin/integration/v1", "HEAD"],
+        cwd=path, check=True, capture_output=True,
+    )
+
+
 def _snapshot(home: Path, root: Path, wall: Path, observed: str, label: str = "wall") -> dict:
     return build_snapshot(
         _hub(home), root=root, wall=wall, wall_label=label, observed_at=observed, github_fetch=OFFLINE,
@@ -91,6 +100,12 @@ def _wall_beat(directory: Path, body: dict, name: str = "win-W03.json") -> Path:
     return wall
 
 
+def _station_card(html: str, station_id: str) -> str:
+    marker = f'data-station="{station_id}"'
+    start = html.rfind("<article", 0, html.index(marker))
+    return html[start:].split("</article>", 1)[0]
+
+
 def _sample_fields(html: str, count: int = 5) -> list[str]:
     parts = html.split('<div class="field">')[1:]
     assert len(parts) >= count
@@ -110,7 +125,7 @@ def test_view_renders_real_sources_with_traceable_values(tmp_path):
     # The checkout under test may have no local integration/v1 (CI checks out the PR head).
     repo = tmp_path / "repo"
     _git_repo(repo, "Fixture landing (#7)")
-    subprocess.run(["git", "update-ref", "refs/remotes/origin/integration/v1", "HEAD"], cwd=repo, check=True, capture_output=True)
+    _publish_origin(repo)
     snapshot = build_snapshot(
         _hub(home), root=repo, wall=WALL, wall_label=MUSE_LABEL,
         observed_at="2026-10-14T22:00:00Z", github_fetch=OFFLINE,
@@ -161,8 +176,8 @@ def test_view_renders_real_sources_with_traceable_values(tmp_path):
     assert html.index('data-station="MUSE-09"') < html.index('data-station="MUSE-10"')
     assert f"source {MUSE_LABEL}/MUSE-01/state.json" in html
     assert f"timestamp {first['state']['at']}" in html
-    assert ">READY<" not in html
-    assert f">{PAUSE}<" not in html
+    assert 'class="card state-ready"' not in html and 'class="card state-pause"' not in html
+    assert "state-legend" in html and "Without a fresh heartbeat" not in html
     assert 'data-bird="fly"' in html and 'data-target="ledger"' in html
     assert REST_TEXT not in html
     assert slot["owner_token"] not in html
@@ -199,7 +214,7 @@ def test_no_activity_bird_rests(tmp_path):
     assert 'data-state="rest"' in html
     assert f">{REST_TEXT}<" in html
     assert 'data-state="fly"' not in html
-    assert ">READY<" not in html
+    assert 'class="card state-ready"' not in html
     for flower in ("muse_wall", "ledger", "ledger_bridge", "postfach_alt_an_neu", "postfach_neu_an_alt"):
         assert f'data-flower="{flower}"' in html
 
@@ -271,7 +286,8 @@ def test_k1_slot_process_is_not_a_heartbeat(tmp_path):
     assert snapshot["muse_wall"]["value"] == UNAVAILABLE
     assert snapshot["muse_wall"]["active"] is False
     html, _poll = _render(snapshot)
-    assert ">READY<" not in html
+    assert ">READY<" not in _station_card(html, "MUSE-02")
+    assert 'data-state="unknown"' in _station_card(html, "MUSE-02")
     assert 'data-bird="rest"' in html
 
 
@@ -335,9 +351,14 @@ def test_merged_ref_uses_origin_then_unknown(tmp_path):
 def test_local_merge_subject_is_a_row_without_a_fixed_number(tmp_path):
     repo = tmp_path / "repo"
     _git_repo(repo, "Land the note (#4242)")
-    subprocess.run(["git", "update-ref", "refs/remotes/origin/integration/v1", "HEAD"], cwd=repo, check=True, capture_output=True)
-    snapshot = build_snapshot(
+    local_only = build_snapshot(
         _hub(tmp_path / "home"), root=repo, wall=tmp_path / "missing-wall", wall_label="wall",
+        observed_at="2026-10-14T22:00:00Z", github_fetch=OFFLINE,
+    )
+    assert local_only["merged_prs"]["available"] is False
+    _publish_origin(repo)
+    snapshot = build_snapshot(
+        _hub(tmp_path / "home-2"), root=repo, wall=tmp_path / "missing-wall-2", wall_label="wall",
         observed_at="2026-10-14T22:00:00Z", github_fetch=OFFLINE,
     )
     rows = snapshot["merged_prs"]["rows"]
@@ -383,16 +404,18 @@ def test_k1_heartbeat_age_bands(tmp_path, age, value, live):
     assert (station["id"], station["state"]["value"], station["heartbeat"]) == ("W03", value, live)
     assert (snapshot["muse_wall"]["value"], snapshot["muse_wall"]["active"]) == (value, live)
     raw, (html, _poll) = json.dumps(snapshot), _render(snapshot)
+    card = _station_card(html, "W03")
     assert "CAMERA-HOST-NAME" not in raw and "CAMERA-HOST-NAME" not in html
-    assert (">READY<" in html) is live
+    assert (">READY<" in card) is live
+    assert f">{value}<" in card
 
 
 def test_k1_rejects_invalid_heartbeats(tmp_path):
-    observed, beispiel = _beat(1, quelle="BEI" "SPIEL")
+    observed, beispiel = _beat(1, quelle="BEISPIEL")
     dropped = _snapshot(tmp_path / "ha", tmp_path / "na", _wall_beat(tmp_path / "a", beispiel), observed)
     html, _poll = _render(dropped)
     assert dropped["muse_wall"]["stations"] == [] and dropped["muse_wall"]["value"] == UNAVAILABLE
-    assert "BEISPIEL" not in html and ">READY<" not in html
+    assert "BEISPIEL" not in html and 'data-station=' not in html
     for index, ((_, body), window) in enumerate(((_beat(1, schema="other.schema"), None), (_beat(-6), "W03"))):
         snap = _snapshot(tmp_path / f"h{index}", tmp_path / f"n{index}", _wall_beat(tmp_path / f"c{index}", body), observed)
         station = snap["muse_wall"]["stations"][0]
@@ -405,6 +428,36 @@ def test_k1_rejects_invalid_heartbeats(tmp_path):
     assert unreadable["muse_wall"]["stations"][0]["state"]["value"] == UNAVAILABLE
 
 
+def test_k2_ledger_bridge_reads_the_file(tmp_path):
+    home = tmp_path / "bridgebox"
+    home.mkdir()
+    (home / "ledger_bridge_state.json").write_text(json.dumps({"missions": {
+        "m-newer": {"status": "POSTED", "task_id": "task-newer", "reason": "bridge-reason-newer", "updated_at": "2026-10-14T21:30:00Z"},
+        "m-older": {"status": "FINAL_DONE", "task_id": "task-older", "reason": "bridge-reason-older", "updated_at": "2026-10-14T21:00:00Z"},
+    }}), encoding="utf-8")
+    bridge = _snapshot(home, tmp_path / "no-repo", tmp_path / "no-wall", "2026-10-14T22:00:00Z")["ledger_bridge"]
+    assert bridge["source"] == "bridgebox/ledger_bridge_state.json"
+    assert [(row["id"], row["at"], row["source"]) for row in bridge["missions"]] == [
+        ("m-newer", "2026-10-14T21:30:00Z", bridge["source"]),
+        ("m-older", "2026-10-14T21:00:00Z", bridge["source"]),
+    ]
+    assert bridge["missions"][0]["reason"] == "bridge-reason-newer"
+    product = (REPO / "courier_hub" / "kolibri_data.py").read_text(encoding="utf-8")
+    assert "bridge-reason-newer" not in product and "task-newer" not in product
+    html, _poll = _render({"ledger_bridge": bridge})
+    assert "source bridgebox/ledger_bridge_state.json" in html and "timestamp 2026-10-14T21:30:00Z" in html
+    empty_home = tmp_path / "emptybox"
+    empty_home.mkdir()
+    (empty_home / "ledger_bridge_state.json").write_text('{"missions": {}}', encoding="utf-8")
+    empty = _snapshot(empty_home, tmp_path / "no-2", tmp_path / "no-wall-2", "2026-10-14T22:00:00Z")["ledger_bridge"]
+    assert empty["available"] is True and empty["active"] is False and empty["value"] == REST_TEXT
+    bad_home = tmp_path / "badbox"
+    bad_home.mkdir()
+    (bad_home / "ledger_bridge_state.json").write_bytes(b"{")
+    bad = _snapshot(bad_home, tmp_path / "no-3", tmp_path / "no-wall-3", "2026-10-14T22:00:00Z")["ledger_bridge"]
+    assert bad["available"] is False and bad["value"] == UNAVAILABLE
+
+
 def test_k3_sort_newest_first_ties_by_id(tmp_path):
     observed = "2026-10-14T22:00:00Z"
     wall = tmp_path / "wall"
@@ -412,16 +465,79 @@ def test_k3_sort_newest_first_ties_by_id(tmp_path):
     for name, window, stamp in (("a.json", "W03", "2026-10-14T21:00:00Z"), ("b.json", "W01", "2026-10-14T21:00:00Z"), ("c.json", "W02", "2026-10-14T21:30:00Z")):
         _seen, body = _beat(0, fenster_id=window, letzter_heartbeat=stamp)
         (wall / "heartbeat" / name).write_text(json.dumps(body), encoding="utf-8")
-    snapshot = _snapshot(tmp_path / "home", tmp_path / "no-repo", wall, observed)
+    home = tmp_path / "bridgebox"
+    home.mkdir()
+    (home / "ledger_bridge_state.json").write_text(json.dumps({"missions": {
+        "m-30": {"status": "POSTED", "updated_at": "2026-10-14T21:00:00Z"},
+        "m-40": {"status": "POSTED", "updated_at": "2026-10-14T21:30:00Z"},
+        "m-10": {"status": "POSTED", "updated_at": "2026-10-14T21:00:00Z"},
+    }}), encoding="utf-8")
+    snapshot = _snapshot(home, tmp_path / "no-repo", wall, observed)
     assert [station["id"] for station in snapshot["muse_wall"]["stations"]] == ["W02", "W01", "W03"]
+    assert [row["id"] for row in snapshot["ledger_bridge"]["missions"]] == ["m-40", "m-10", "m-30"]
     html, _poll = _render(snapshot)
     assert html.index('data-station="W02"') < html.index('data-station="W01"') < html.index('data-station="W03"')
+    assert html.index('data-mission="m-40"') < html.index('data-mission="m-10"') < html.index('data-mission="m-30"')
     rows = _parse_merges("\n".join([
-        "aaa\x1f2026-10-14T21:00:00Z\x1fLand older (#3)",
-        "bbb\x1f2026-10-14T21:00:00Z\x1fLand tie (#9)",
-        "ccc\x1f2026-10-14T21:30:00Z\x1fLand new (#1)",
-    ]), "git log integration/v1")
-    assert [row["pr"] for row in rows] == [1, 3, 9]
+        "aaa\x1f2026-10-14T21:00:00Z\x1fLand tie (#30)",
+        "bbb\x1f2026-10-14T21:30:00Z\x1fLand new (#40)",
+        "ccc\x1f2026-10-14T21:00:00Z\x1fLand tie (#10)",
+    ]), "git log origin/integration/v1")
+    assert [row["pr"] for row in rows] == [40, 10, 30]
+    drafts = _read_drafts([
+        {"number": 30, "draft": True, "title": "tie", "updated_at": "2026-10-14T21:00:00Z"},
+        {"number": 40, "draft": True, "title": "newer", "updated_at": "2026-10-14T21:30:00Z"},
+        {"number": 10, "draft": True, "title": "tie", "updated_at": "2026-10-14T21:00:00Z"},
+    ], "github pulls integration/v1", observed)
+    assert [row["pr"] for row in drafts["rows"]] == [40, 10, 30]
+
+
+def test_k4_rendered_page_and_api_hide_paths_and_names(tmp_path):
+    root = tmp_path / "no-repo"
+    shown = {
+        "/tmp/bridgebox/ledger_bridge_state.json": "bridgebox/ledger_bridge_state.json",
+        "/home/ubuntu/notes/ledger_bridge_state.json": "notes/ledger_bridge_state.json",
+        "/home/ubuntu/ledger_bridge_state.json": "ledger_bridge_state.json",
+        r"C:\Users\lol\AppData\state.json": "AppData/state.json",
+        r"D:\dennis\l.json": "l.json",
+        r"\\fileserver\dennis\l.json": "l.json",
+        "/mnt/c/Users/dennis/l.json": "l.json",
+    }
+    for raw_path, expected in shown.items():
+        text = _display_path(Path(raw_path), root)
+        assert text == expected and "ubuntu" not in text and "lol" not in text and "Users" not in text
+    assert _leaks(r"see /root/notes and D:\dennis\x")
+    assert _leaks("xfounder@evil.example") and not _leaks("founder@couriersymphony.de")
+    home = tmp_path / "bridgebox"
+    home.mkdir()
+    (home / "ledger_bridge_state.json").write_text(json.dumps({"missions": {
+        "/home/dennis/secret-mission": {"status": "POSTED", "updated_at": "2026-10-14T21:00:00Z"},
+        r"\\fileserver\share": {"status": "POSTED", "updated_at": "2026-10-14T21:10:00Z"},
+        "keep": {"status": "FAILED at /var/lib/dennis/x", "reason": r"note \\fileserver\share and /root/notes", "updated_at": "2026-10-14T21:30:00Z"},
+        "evil": {"status": "xfounder@evil.example", "updated_at": "2026-10-14T21:20:00Z"},
+        "mail": {"status": "POSTED", "reason": "founder@couriersymphony.de", "updated_at": "2026-10-14T20:00:00Z"},
+    }}), encoding="utf-8")
+    root = tmp_path / "repo"
+    _git_repo(root, "Merge pull request #5 from happyhippovip/secret-branch")
+    _publish_origin(root)
+    observed, _body = _beat(1)
+    snapshot = _snapshot(home, root, _wall_beat(tmp_path, _body), observed)
+    raw, (html, _poll) = json.dumps(snapshot), _render(snapshot)
+    assert snapshot["ledger_bridge"]["missions"][-1]["reason"] == "founder@couriersymphony.de"
+    assert "founder@couriersymphony.de" in raw
+    assert all(row["status"] == UNAVAILABLE for row in snapshot["ledger_bridge"]["missions"] if row["id"] != "mail")
+    assert all("reason" not in row or row["id"] == "mail" for row in snapshot["ledger_bridge"]["missions"])
+    assert "bridgebox/ledger_bridge_state.json" in raw and "heartbeat/win-W03.json" in html
+    assert snapshot["merged_prs"]["rows"][0]["subject"] == "Merge pull request #5"
+    assert "Merge pull request #5" in html
+    for text in (raw, html):
+        lowered = text.lower()
+        assert not any(mark in lowered for mark in (
+            "/home/", "/users/", "/root/", "c:\\", "c:/", "d:\\", "d:/", "ghs_", "ghp_", "github_pat_",
+            "camera-host-name", "ubuntu", "dennis", "happyhippovip", "lol",
+            "fileserver", "xfounder", "/var/",
+        ))
+        assert "~" not in text
 
 
 def test_k5_product_code_has_no_stand_in_words():
@@ -431,14 +547,31 @@ def test_k5_product_code_has_no_stand_in_words():
         text = path.read_text(encoding="utf-8")
         assert pattern.search(text) is None
         if path.name == "kolibri_data.py":
-            assert text.count("BEISPIEL") == 1
+            assert text.count("BEISPIEL") == 1  # allowed name of the rejected quelle marker
         else:
             assert "BEISPIEL" not in text
 
 
+def test_k6_forbidden_paths_stay_untouched():
+    git = ["git", "-C", str(REPO)]
+    base = "origin/integration/v1"
+    if subprocess.run([*git, "rev-parse", "--verify", "--quiet", base], check=False, capture_output=True).returncode != 0:
+        subprocess.run([*git, "fetch", "--depth=200", "origin", "integration/v1"], check=True, capture_output=True, text=True, timeout=60)
+        subprocess.run([*git, "fetch", "--deepen=200"], check=False, capture_output=True, text=True, timeout=60)
+    proc = subprocess.run([*git, "diff", "--name-only", f"{base}...HEAD"], check=True, capture_output=True, text=True)
+    names = [line.strip() for line in proc.stdout.splitlines() if line.strip()]
+    allowed = {"courier_hub/kolibri_data.py", "courier_hub/static/kolibri_core.mjs", "courier_hub/static/kolibri.html",
+               "courier_hub/static/kolibri.js", "courier_hub/static/kolibri.css", "tests/hub/test_kolibri_view.py"}
+    banned = ("server/app.py", ".github/", "spider_slice.py", "ralph", "ledger_v1_bridge.py", "controller.py",
+              "courier_core/serve.py", "courier_core/events.py", "projection.py", "state_machine.py",
+              "adapter_bridge.py", "adapter_runner.py", "courier_worker/host.py", "courier_worker/service.py",
+              "adapters/synthetic.py", "l2_controller_handoff.md", "test_ledger_bridge", "test_task_dependency", "test_ctrl_task")
+    assert names and all(name in allowed and not any(part in name.lower() for part in banned) for name in names)
+
+
 @pytest.mark.parametrize("status,value,live", [
-    ("startet", "READY", True), ("pausiert", PAUSE, False), ("leerlauf", "leerlauf", False),
-    ("beendet", "beendet", False), ("fehler", "FEHLER", False),
+    ("startet", "READY", True), ("pausiert", "PAUSIERT", False), ("leerlauf", "LEERLAUF", False),
+    ("beendet", "BEENDET", False), ("fehler", "FEHLER", False),
 ])
 def test_k1_fresh_status_is_visible(tmp_path, status, value, live):
     observed, body = _beat(1, status=status)
@@ -446,6 +579,136 @@ def test_k1_fresh_status_is_visible(tmp_path, status, value, live):
     station = snapshot["muse_wall"]["stations"][0]
     assert (station["state"]["value"], station["heartbeat"], snapshot["muse_wall"]["value"]) == (value, live, value)
     assert snapshot["muse_wall"]["active"] is live
+    card = _station_card(_render(snapshot)[0], "W03")
+    assert f">{value}<" in card
+    assert (">READY<" in card) is live
+    assert f'class="card state-{"ready" if live else value.lower()}"' in card
+
+
+def test_fresh_merge_is_active(tmp_path):
+    repo = tmp_path / "repo"
+    _git_repo(repo, "Stale landing (#1)")
+    env = os.environ.copy()
+    env["GIT_COMMITTER_DATE"] = "2020-01-01T00:00:00Z"
+    subprocess.run(
+        ["git", "-c", "user.email=kolibri@example.com", "-c", "user.name=Kolibri",
+         "-C", str(repo), "commit", "--amend", "--no-edit", "--date=2020-01-01T00:00:00Z"],
+        check=True, capture_output=True, env=env,
+    )
+    subprocess.run(
+        ["git", "-c", "user.email=kolibri@example.com", "-c", "user.name=Kolibri",
+         "-C", str(repo), "commit", "--allow-empty", "-m", "Fresh landing (#2)"],
+        check=True, capture_output=True,
+    )
+    _publish_origin(repo)
+    observed = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    snapshot = build_snapshot(
+        _hub(tmp_path / "home"), root=repo, wall=tmp_path / "no-wall", wall_label="wall",
+        observed_at=observed, github_fetch=OFFLINE,
+    )
+    assert [row["pr"] for row in snapshot["merged_prs"]["rows"]][0] == 2
+    assert snapshot["merged_prs"]["active"] is True
+
+
+def test_both_refs_use_only_origin(tmp_path):
+    repo = tmp_path / "both"
+    _git_repo(repo, "Local only (#1)")
+    subprocess.run(["git", "-C", str(repo), "checkout", "--orphan", "tip"], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "-c", "user.email=kolibri@example.com", "-c", "user.name=Kolibri",
+         "-C", str(repo), "commit", "-m", "Origin only (#2)"],
+        check=True, capture_output=True,
+    )
+    _publish_origin(repo)
+    subprocess.run(["git", "-C", str(repo), "checkout", "integration/v1"], check=True, capture_output=True)
+    snapshot = build_snapshot(
+        _hub(tmp_path / "home"), root=repo, wall=tmp_path / "no-wall", wall_label="wall",
+        observed_at="2026-10-14T22:00:00Z", github_fetch=OFFLINE,
+    )
+    assert snapshot["merged_prs"]["source"] == "git log origin/integration/v1"
+    assert [row["pr"] for row in snapshot["merged_prs"]["rows"]] == [2]
+    assert "Local only" not in json.dumps(snapshot["merged_prs"])
+
+
+def test_k4_root_path_is_a_leak(tmp_path):
+    assert _leaks("/root/notes") is True
+    assert _leaks("see /root/notes") is True
+    home = tmp_path / "box"
+    home.mkdir()
+    (home / "ledger_bridge_state.json").write_text(json.dumps({"missions": {
+        "keep": {"status": "see /root/notes", "updated_at": "2026-10-14T21:00:00Z"},
+    }}), encoding="utf-8")
+    snapshot = _snapshot(home, tmp_path / "no-repo", tmp_path / "no-wall", "2026-10-14T22:00:00Z")
+    raw, (html, _poll) = json.dumps(snapshot), _render(snapshot)
+    assert snapshot["ledger_bridge"]["missions"][0]["status"] == UNAVAILABLE
+    assert "/root/" not in raw and "/root/" not in html
+
+
+def test_k4_urls_stay_and_posix_paths_do_not(tmp_path):
+    assert _leaks("https://example.com/var/lib/dennis") is False
+    assert _leaks("see https://couriersymphony.de/status") is False
+    assert _leaks("FAILED at /var/lib/dennis/x") is True
+    home = tmp_path / "box"
+    home.mkdir()
+    (home / "ledger_bridge_state.json").write_text(json.dumps({"missions": {
+        "link": {"status": "https://example.com/status", "reason": "see https://couriersymphony.de/a", "updated_at": "2026-10-14T21:30:00Z"},
+        "path": {"status": "FAILED at /var/lib/dennis/x", "updated_at": "2026-10-14T21:00:00Z"},
+    }}), encoding="utf-8")
+    snapshot = _snapshot(home, tmp_path / "no-repo", tmp_path / "no-wall", "2026-10-14T22:00:00Z")
+    raw, (html, _poll) = json.dumps(snapshot), _render(snapshot)
+    assert snapshot["ledger_bridge"]["missions"][0]["status"] == "https://example.com/status"
+    assert "https://example.com/status" in raw and "https://example.com/status" in html
+    assert snapshot["ledger_bridge"]["missions"][1]["status"] == UNAVAILABLE
+    assert "/var/lib/dennis/x" not in raw and "/var/lib/dennis/x" not in html
+
+
+_OWN_READING = {"fehler": "FEHLER", "leerlauf": "LEERLAUF", "beendet": "BEENDET", "pausiert": "PAUSIERT"}
+
+
+def _reading_at(status: str, age: int) -> tuple[str, bool]:
+    if age <= 30:
+        return ("READY", True) if status in {"startet", "laeuft"} else (_OWN_READING[status], False)
+    band = STALE if age <= 90 else PAUSE
+    if status in _OWN_READING:
+        return f"{band} · zuletzt {_OWN_READING[status]}", False
+    return band, False
+
+
+@pytest.mark.parametrize("status", ["startet", "laeuft", "fehler", "leerlauf", "beendet", "pausiert"])
+@pytest.mark.parametrize("age", [30, 31, 90, 91])
+def test_k1_each_status_at_30_31_and_90_91(tmp_path, status, age):
+    value, live = _reading_at(status, age)
+    observed, body = _beat(age, status=status)
+    snapshot = _snapshot(tmp_path / "home", tmp_path / "no-repo", _wall_beat(tmp_path, body), observed)
+    station = snapshot["muse_wall"]["stations"][0]
+    assert (station["state"]["value"], station["heartbeat"], snapshot["muse_wall"]["value"]) == (value, live, value)
+    card = _station_card(_render(snapshot)[0], "W03")
+    token = value.split(" · ", 1)[0].lower()
+    assert f'data-state="{token}"' in card and f'class="card state-{token}"' in card
+    assert f">{value}<" in card
+
+
+@pytest.mark.parametrize("age,value,live", [(-5, READY, True), (-6, UNAVAILABLE, False)])
+def test_k1_future_tolerance_is_five_seconds(tmp_path, age, value, live):
+    observed, body = _beat(age)
+    snapshot = _snapshot(tmp_path / "home", tmp_path / "no-repo", _wall_beat(tmp_path, body), observed)
+    station = snapshot["muse_wall"]["stations"][0]
+    assert (station["state"]["value"], station["heartbeat"], snapshot["muse_wall"]["active"]) == (value, live, live)
+
+
+def test_k1_page_uses_one_spelling_and_marks_states(tmp_path):
+    data = (REPO / "courier_hub" / "kolibri_data.py").read_text(encoding="utf-8")
+    view = (REPO / "courier_hub" / "static" / "kolibri_core.mjs").read_text(encoding="utf-8")
+    assert (PAUSE, STALE, READY) == ("PAUSE", "STALE", "READY")
+    assert 'PAUSE = "Pause"' not in data and 'STALE = "stale"' not in data
+    assert "Without a fresh heartbeat" not in view
+    observed, body = _beat(31, status="fehler")
+    html, _poll = _render(_snapshot(tmp_path / "home", tmp_path / "no-repo", _wall_beat(tmp_path, body), observed))
+    assert "state-legend" in html
+    for token in ("ready", "stale", "pause", "fehler", "leerlauf", "beendet", "pausiert", "unknown"):
+        assert f'data-state="{token}"' in html and f'class="state-{token}"' in html
+    card = _station_card(html, "W03")
+    assert 'data-state="stale"' in card and ">STALE · zuletzt FEHLER<" in card
 
 
 def test_k8_poll_interval_stays_within_30_seconds():
