@@ -20,7 +20,9 @@ from typing import Optional
 
 UNAVAILABLE = "UNKNOWN / nicht erreichbar"
 REST_TEXT = "Keine Aktivität"
-PAUSE = "Pause"
+PAUSE = "PAUSE"
+STALE = "STALE"
+READY = "READY"
 MERGED_REF = "integration/v1"
 HEARTBEAT_S = 60
 _SLOT_ID = re.compile(r"^MUSE-(\d+)$")
@@ -122,16 +124,50 @@ _FRESH_S = 30
 _STALE_S = 90
 _QUIET_S = 300
 _FUTURE_S = 5
-STALE = "stale"
+_ALLOWED_EMAIL = "founder@couriersymphony.de"
 _OWNER_REF = re.compile(r"\s+from\s+\S+/\S+\s*$", re.I)
+_EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+_DRIVE = re.compile(r"(?<![A-Za-z])[A-Za-z]:[\\/]")
+_UNC = re.compile(r"\\\\[^\s\\/]+")
+_URL = re.compile(r"https?://\S+", re.I)
+_ABS_PATH = re.compile(r"(?:^|[\s\"'(=])/(?!/)\S")
+_OWN_STATUS = {"fehler": "FEHLER", "leerlauf": "LEERLAUF", "beendet": "BEENDET", "pausiert": "PAUSIERT"}
+_STATE_RANK = (READY, "FEHLER", STALE, PAUSE, "LEERLAUF", "BEENDET", "PAUSIERT")
 
 
 def _leaks(text: str) -> bool:
-    lowered = text.lower()
-    marks = ("/home/", "\\home\\", "/users/", "\\users\\", "/root/", "\\root\\", "~", "ghs_", "ghp_", "github_pat_")
-    if any(mark in lowered for mark in marks) or re.search(r"[a-z]:[\\/]", lowered):
+    """Paths, UNC, drives, tokens, and every e-mail except the one founder address."""
+    if "~" in text or _UNC.search(text) or _DRIVE.search(text):
         return True
-    return bool(re.search(r"(?<!founder)@", text, re.I))
+    lowered = text.lower()
+    if any(mark in lowered for mark in ("ghs_", "ghp_", "github_pat_")):
+        return True
+    if any(email != _ALLOWED_EMAIL for email in _EMAIL.findall(text)):
+        return True
+    return _ABS_PATH.search(_URL.sub(" ", text)) is not None
+
+
+def _visible_parts(parts: list[str], drive: bool, unc: bool) -> list[str]:
+    if unc:
+        parts = parts[2:]
+    while parts:
+        head = parts[0].lower()
+        if head == "mnt" and len(parts) > 1 and len(parts[1]) == 1 and parts[1].isalpha():
+            parts = parts[2:]
+            continue
+        if head in _UNSAFE_DIR:
+            parts = parts[2:]
+            drive = False
+            continue
+        if head == "root":
+            parts = parts[1:]
+            continue
+        if drive:
+            parts = parts[1:]
+            drive = False
+            continue
+        break
+    return parts
 
 
 def _display_path(path: Path, root: Path) -> str:
@@ -143,14 +179,12 @@ def _display_path(path: Path, root: Path) -> str:
             continue
         if rel and not _leaks(rel):
             return rel
-    text = str(path).replace("\\", "/")
+    raw = str(path)
+    unc = raw.startswith("\\\\") or raw.startswith("//")
+    text = raw.replace("\\", "/")
     drive = bool(re.match(r"^[A-Za-z]:", text))
     text = re.sub(r"^[A-Za-z]:", "", text)
-    parts = [part for part in text.split("/") if part not in ("", ".", "..")]
-    if parts and parts[0].lower() in _UNSAFE_DIR:
-        parts = parts[2:]
-    elif parts and (drive or parts[0].lower() == "root"):
-        parts = parts[1:]
+    parts = _visible_parts([part for part in text.split("/") if part not in ("", ".", "..")], drive, unc)
     if not parts:
         return "source"
     name = parts[-1]
@@ -344,19 +378,16 @@ def _heartbeat_station(path: Path, root: Path, observed_at: str, merged: dict) -
     at = _iso_text(stamp)
     if age < -_FUTURE_S or age > _QUIET_S:
         return _unknown_station(window, rel, at)
-    # Pause is only pausiert, or a live runner that has gone quiet (90–300 s).
-    if status == "fehler":
-        value, live = "FEHLER", False
-    elif status == "beendet":
-        value, live = "beendet", False
-    elif status == "leerlauf":
-        value, live = "leerlauf", False
-    elif status == "pausiert" or age > _STALE_S:
-        value, live = PAUSE, False
-    elif age <= _FRESH_S and status in _LIVE_STATUS:
-        value, live = "READY", True
-    else:
+    # Own status only while age <= 30 s. Later bands apply to every status.
+    own = _OWN_STATUS.get(status)
+    if age <= _FRESH_S:
+        value, live = (READY, True) if status in _LIVE_STATUS else (own or UNAVAILABLE, False)
+    elif age <= _STALE_S:
         value, live = STALE, False
+    else:
+        value, live = PAUSE, False
+    if own and age > _FRESH_S:
+        value = f"{value} · zuletzt {own}"
     return {
         "id": window,
         "heartbeat": live,
@@ -437,11 +468,12 @@ def read_muse_wall(root: Path, wall: Optional[Path], label: str, observed_at: st
     _newest_first(stations)
     live_count = sum(1 for station in stations if station["heartbeat"])
     times = [station["state"]["at"] for station in stations if station["state"]["at"] != UNAVAILABLE]
-    rank = ("FEHLER", STALE, PAUSE, "leerlauf", "beendet")
     if live_count:
-        value = "READY"
+        value = READY
     else:
-        value = next((item for item in rank if any(station["state"]["value"] == item for station in stations)), UNAVAILABLE)
+        readings = [station["state"]["value"] for station in stations]
+        readings.sort(key=lambda item: _STATE_RANK.index(item.split(" · ", 1)[0]) if item.split(" · ", 1)[0] in _STATE_RANK else len(_STATE_RANK))
+        value = readings[0] if readings and readings[0].split(" · ", 1)[0] in _STATE_RANK else UNAVAILABLE
     return {
         "available": True,
         "active": live_count > 0,
