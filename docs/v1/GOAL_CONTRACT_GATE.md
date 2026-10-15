@@ -37,12 +37,18 @@ An agent that holds `X-Courier-Token`, sets `actor_ref` to `person:x`, and sets 
 
 ## Callers that must present the task view
 
-`ChiefCommander.formulate_workflow_plan` returns no steps unless the store already holds a confirmed contract that accepts the idea. An empty plan makes `execute_human_idea` return `BLOCKED_GOAL_CONTRACT`.
+`ChiefCommander.formulate_workflow_plan` returns no steps unless `$COURIER_HOME/goal_contracts.jsonl` already holds a confirmed contract that accepts the idea. That is the file `Controller.confirm_goal` appends. A `goal_contracts.jsonl` in the repo root is not this store and unlocks nothing; the name is gitignored. An empty plan makes `execute_human_idea` return `BLOCKED_GOAL_CONTRACT`.
 
-The ledger bridge copies the five task-view fields onto the posted task and parks the mission before claim when `validate_task` would reject the spec. Specs that post through that bridge, including the verified A-to-B input handoff, need the same five fields or the controller refuses the post.
+`server/app.py` is not edited. When the chief returns no steps, that process answers 503 `planner returned no actionable tasks`. That text does not say a goal contract blocked the plan, so the 503 is misleading in this case.
+
+The ledger bridge copies the five task-view fields onto the posted task and parks the mission before claim when `validate_task` would reject the spec. Specs that post through that bridge, including the verified A-to-B input handoff, need the same five fields or the controller refuses the post. The bridge reads the same home the controller was started with.
+
+## Tasks left QUEUED
+
+`Controller.claim` skips a queued task that `validate_task` does not accept. It writes no status and no reason. The task stays `QUEUED` forever. That includes a legacy task journaled with no goal contract. A new create without an accepted contract is refused before the journal; the skip applies only to tasks already queued.
 
 ## OPEN: direct `server/app.py` path
 
-`server/app.py` is not edited. A `workflow_plan` posted directly to `POST /goals`, and `POST /tasks/claim` on that process, never reach this controller. Those tasks are not covered by this gate.
+`server/app.py` is not edited. A `workflow_plan` posted directly to `POST /goals`, and `POST /tasks/claim` on that process, never reach this controller. Those tasks are not covered by this gate. The 503 `planner returned no actionable tasks` on the planner path is the same misleading answer described above.
 
 **OPEN — awaiting Dennis decision.** Whether that process should call the controller, refuse those routes, or stay as it is.
