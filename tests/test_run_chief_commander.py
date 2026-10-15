@@ -60,10 +60,13 @@ def test_save_json_atomic(tmp_path):
     assert target_file.exists()
     assert json.loads(target_file.read_text(encoding="utf-8")) == data
 
-def test_unconfirmed_idea_is_not_a_dispatchable_plan(tmp_path):
+def test_unconfirmed_idea_is_not_a_dispatchable_plan(tmp_path, monkeypatch):
     from courier_core.goal_contract import (
         GOAL_CONTRACTS_FILE, GoalContractStore, confirm_draft, draft_goal_contract,
     )
+    home = tmp_path / "home"
+    home.mkdir()
+    monkeypatch.setenv("COURIER_HOME", str(home))
     chief = ChiefCommander(repo_dir=tmp_path)
     idea = "ship the report or the summary"
     workflow_id, plan = chief.formulate_workflow_plan(idea)
@@ -72,10 +75,29 @@ def test_unconfirmed_idea_is_not_a_dispatchable_plan(tmp_path):
 
     draft = draft_goal_contract(idea)
     confirmed = confirm_draft(draft.contract, "person:ada", "2026-10-15T12:00:00Z", authenticated=True)
-    GoalContractStore(tmp_path / GOAL_CONTRACTS_FILE).append(confirmed)
+    GoalContractStore(home / GOAL_CONTRACTS_FILE).append(confirmed)
     _, dispatched = chief.formulate_workflow_plan(idea)
     assert dispatched
     assert all(step.get("task_id") for step in dispatched)
+
+
+def test_repo_root_goal_contracts_file_unlocks_nothing(tmp_path, monkeypatch):
+    from courier_core.goal_contract import (
+        GOAL_CONTRACTS_FILE, GoalContractStore, confirm_draft, draft_goal_contract,
+    )
+    idea = "ship the report or the summary"
+    draft = draft_goal_contract(idea)
+    confirmed = confirm_draft(draft.contract, "person:ada", "2026-10-15T12:00:00Z", authenticated=True)
+    GoalContractStore(tmp_path / GOAL_CONTRACTS_FILE).append(confirmed)
+    home = tmp_path / "home"
+    home.mkdir()
+    monkeypatch.setenv("COURIER_HOME", str(home))
+    chief = ChiefCommander(repo_dir=tmp_path)
+    _, plan = chief.formulate_workflow_plan(idea)
+    assert plan == []
+    monkeypatch.delenv("COURIER_HOME", raising=False)
+    _, still_blocked = chief.formulate_workflow_plan(idea)
+    assert still_blocked == []
 
 
 def test_chief_commander_presence(tmp_path):

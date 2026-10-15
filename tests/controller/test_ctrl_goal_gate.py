@@ -194,6 +194,24 @@ def test_agent_service_token_cannot_confirm_as_person(tmp_path, monkeypatch):
         live.stop()
 
 
+def test_non_ascii_human_token_is_403(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_HUMAN_CONFIRM_TOKEN", FIXTURE_HUMAN_TOKEN)
+    live = LiveService(tmp_path / "home")
+    try:
+        path = live.controller.home / GOAL_CONTRACTS_FILE
+        before = path.read_bytes()
+        response = live.post("/v1/goals/confirm", {
+            "goal": "ship the report or the summary",
+            "actor_ref": "person:ada",
+            "at": "2026-10-15T12:00:00Z",
+            "authenticated": True,
+        }, headers={"X-Courier-Human-Token": "caf\u00e9"})
+        assert response.status_code == 403
+        assert path.read_bytes() == before
+    finally:
+        live.stop()
+
+
 def test_confirmed_task_view_is_dispatched(ctl):
     status, body = ctl.create_task(task_body())
     assert status == 201

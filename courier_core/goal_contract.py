@@ -511,18 +511,34 @@ def draft_goal_contract(goal: object) -> GoalDraft:
     return GoalDraft(DraftOutcome.DRAFTED, (), contract)
 
 
+def _utf8(value: str) -> bytes | None:
+    try:
+        return value.encode("utf-8")
+    except UnicodeError:
+        return None
+
+
 def human_confirm_granted(presented: object, service_token: object = None) -> bool:
     """True only when ``presented`` is the dedicated human-confirm secret.
 
     The worker and bridge token is not this secret. A client JSON flag is not
-    this secret. An unset secret fails closed. This never invents a confirmation.
+    this secret. An unset or whitespace-only secret fails closed. Comparison
+    is on UTF-8 bytes, so a non-ASCII header is a refusal and not an error.
+    This never invents a confirmation.
     """
-    expected = os.environ.get(HUMAN_CONFIRM_ENV, "")
-    if not isinstance(expected, str) or not expected or not isinstance(presented, str) or not presented:
+    raw = os.environ.get(HUMAN_CONFIRM_ENV, "")
+    expected = raw.strip() if isinstance(raw, str) else ""
+    if not expected or not isinstance(presented, str) or not presented:
         return False
-    if isinstance(service_token, str) and service_token and hmac.compare_digest(expected, service_token):
+    expected_b = _utf8(expected)
+    presented_b = _utf8(presented)
+    if expected_b is None or presented_b is None:
         return False
-    return hmac.compare_digest(presented, expected)
+    if isinstance(service_token, str) and service_token:
+        service_b = _utf8(service_token)
+        if service_b is not None and hmac.compare_digest(expected_b, service_b):
+            return False
+    return hmac.compare_digest(presented_b, expected_b)
 
 
 def confirm_draft(contract: GoalContract, actor_ref: str, at: str, *, authenticated: bool) -> GoalContract:

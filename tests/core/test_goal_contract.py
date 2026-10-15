@@ -330,6 +330,15 @@ def test_human_confirm_token_is_not_the_service_token(monkeypatch):
     assert human_confirm_granted(_FIXTURE_HUMAN_TOKEN, service_token="worker-token") is True
     monkeypatch.setenv(HUMAN_CONFIRM_ENV, "worker-token")
     assert human_confirm_granted("worker-token", service_token="worker-token") is False
+    monkeypatch.setenv(HUMAN_CONFIRM_ENV, "   ")
+    assert human_confirm_granted(_FIXTURE_HUMAN_TOKEN) is False
+    assert human_confirm_granted("   ") is False
+    monkeypatch.setenv(HUMAN_CONFIRM_ENV, f"  {_FIXTURE_HUMAN_TOKEN}  ")
+    assert human_confirm_granted(_FIXTURE_HUMAN_TOKEN) is True
+    assert human_confirm_granted("caf\u00e9") is False
+    monkeypatch.setenv(HUMAN_CONFIRM_ENV, "caf\u00e9")
+    assert human_confirm_granted("caf\u00e9") is True
+    assert human_confirm_granted("caf\u00e9", service_token="caf\u00e9") is False
 
 
 def test_schema_rejects_unknown_fields():

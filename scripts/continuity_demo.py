@@ -21,6 +21,10 @@ The synthetic adapter is the contract proof, not a provider. The demo shows
 that interrupted work resumes without duplicate work and leaves checkable
 evidence. It does not show a production provider run.
 
+The seeded goal contract is synthetic demo data. Its actor is
+``person:demo-synthetic``. That confirmation is not a human and was not
+produced by the human-confirm token.
+
 Exit codes: 0 PASS, 1 FAIL (evidence does not hold), 2 usage or setup error.
 """
 
@@ -63,12 +67,21 @@ DEMO_GOAL = {
 }
 
 
+# Synthetic demo actor. Not a person, and not a confirmation from
+# POST /v1/goals/confirm or COURIER_HUMAN_CONFIRM_TOKEN.
+DEMO_ACTOR = "person:demo-synthetic"
+DEMO_ACTOR_NOTE = (
+    "synthetic demo confirmation by person:demo-synthetic; "
+    "not a human and not a human-confirm token"
+)
+
+
 def _confirmed_demo_goal():
     from courier_core.goal_contract import confirm_draft, draft_goal_contract
     draft = draft_goal_contract(DEMO_GOAL)
     if draft.contract is None:
         raise RuntimeError("continuity demo goal did not draft")
-    return confirm_draft(draft.contract, "person:ada", "2026-10-15T12:00:00Z", authenticated=True)
+    return confirm_draft(draft.contract, DEMO_ACTOR, "2026-10-15T12:00:00Z", authenticated=True)
 
 
 _DEMO_GOAL = _confirmed_demo_goal()
@@ -358,7 +371,8 @@ def run(out, timeout_s=180.0):
         _wait(ready, 30, "controller health", procs)
         mark("controller up (loopback, token file, never printed)")
         _seed(home)
-        mark("goal seeded in ledger: mission A, mission B depends on A")
+        mark("goal seeded in ledger: mission A, mission B depends on A; "
+             f"goal contract is synthetic demo data ({DEMO_ACTOR}, not a human confirmation)")
 
         procs.start_worker()
         mark("worker #1 started with ledger idle tick")
@@ -430,6 +444,7 @@ def run(out, timeout_s=180.0):
         "schema": SCHEMA,
         "scenario": "Goal -> A -> B -> DONE; worker hard-killed after A COMPLETE, restarted once",
         "adapter": ADAPTER_NOTE,
+        "goal_contract": DEMO_ACTOR_NOTE,
         "started_utc": started,
         "finished_utc": _utc(),
         "duration_s": round(time.monotonic() - t0, 1),
@@ -455,6 +470,7 @@ def render_md(r):
         "",
         f"- Scenario: {r['scenario']}",
         f"- Adapter: {r['adapter']}",
+        f"- Goal contract: {r.get('goal_contract', DEMO_ACTOR_NOTE)}",
         f"- Run: {r['started_utc']} -> {r['finished_utc']} ({r['duration_s']} s, {r['platform']}, Python {r['python']})",
         f"- Worker runs: {r['observed']['worker_runs']}, hard kills: {r['observed']['hard_kills']}",
         f"- Tasks created: {ev['tasks_created_total']} for {len(ev['missions'])} missions (duplicates: {max(0, ev['tasks_created_total'] - len(ev['missions']))})",

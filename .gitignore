@@ -1,3 +1,6 @@
+# Goal contracts live under COURIER_HOME. A copy in the repo is not a store.
+goal_contracts.jsonl
+
 # Runtime envelopes remain local and are never committed automatically.
 events/incoming/*.json
 events/processed/*.json

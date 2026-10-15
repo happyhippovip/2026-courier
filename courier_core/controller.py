@@ -465,6 +465,13 @@ class Controller:
         return self._goal_verdict(view).verdict is Verdict.ACCEPTED
 
     def claim(self, body: Any) -> dict | None:
+        """Lease the next queued task a stored contract still accepts.
+
+        A queued task ``validate_task`` does not accept stays QUEUED forever.
+        Claim skips it and writes no status and no reason. That includes a
+        legacy task journaled with no goal contract. New creates are refused
+        before the journal; this skip is only for tasks already queued.
+        """
         self._require_writable()
         body = _only_fields(body, {"worker_id"})
         worker_id = _require_id(body, "worker_id")

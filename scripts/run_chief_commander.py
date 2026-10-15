@@ -687,23 +687,38 @@ class ChiefCommander:
 
         return workflow_id, plan
 
+    def _goal_store_path(self) -> Path | None:
+        """The file ``Controller.confirm_goal`` writes: ``$COURIER_HOME/goal_contracts.jsonl``.
+
+        The repo root is not that store. A ``goal_contracts.jsonl`` dropped or
+        committed there unlocks nothing, and an unset home fails closed.
+        """
+        from courier_core.goal_contract import GOAL_CONTRACTS_FILE
+        raw = os.environ.get("COURIER_HOME", "")
+        if not isinstance(raw, str) or not raw.strip():
+            return None
+        return Path(raw).expanduser().resolve() / GOAL_CONTRACTS_FILE
+
     def _confirmed_goal_allows_dispatch(self, idea_text: str) -> bool:
         """Dispatch only when a stored human confirmation accepts this idea.
 
         An unconfirmed draft, a missing contract, or a task view the contract
-        rejects produces no steps. server/app.py calls this method and therefore
-        cannot queue those steps. A workflow_plan posted straight to server/app.py
-        never reaches here.
+        rejects produces no steps. The store is the controller home, the same
+        file ``confirm_goal`` appends. server/app.py calls this method and
+        therefore cannot queue those steps. A workflow_plan posted straight to
+        server/app.py never reaches here. When this returns false, that process
+        answers 503 "planner returned no actionable tasks", which does not say
+        the goal contract blocked the plan.
         """
         from courier_core.goal_contract import (
-            GOAL_CONTRACTS_FILE, DraftOutcome, GoalContractError, GoalContractStore, Verdict,
+            DraftOutcome, GoalContractError, GoalContractStore, Verdict,
             draft_goal_contract, validate_task,
         )
         draft = draft_goal_contract(idea_text)
         if draft.outcome is not DraftOutcome.DRAFTED or draft.contract is None:
             return False
-        path = self.repo_dir / GOAL_CONTRACTS_FILE
-        if not path.exists():
+        path = self._goal_store_path()
+        if path is None or not path.exists():
             return False
         try:
             matches = [item for item in GoalContractStore(path).read() if item.goal_id == draft.contract.goal_id]
