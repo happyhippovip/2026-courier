@@ -6,14 +6,24 @@ from pathlib import Path
 import pytest
 
 from courier_core.goal_contract import (
+    HUMAN_CONFIRM_ENV,
     MAX_FILE_BYTES,
     AcceptanceCriterion,
+    DraftOutcome,
     Gates,
     GoalContract,
     GoalContractError,
     GoalContractStore,
     Verdict,
+    confirm_draft,
+    draft_goal_contract,
+    human_confirm_granted,
+    store_confirmed,
+    validate_task,
 )
+
+# Fixture only. Production reads COURIER_HUMAN_CONFIRM_TOKEN from the environment.
+_FIXTURE_HUMAN_TOKEN = "fixture-human-confirm"
 
 ROOT = Path(__file__).resolve().parents[2]
 SCHEMA = ROOT / "courier_core" / "schemas" / "goal_contract.schema.json"
@@ -206,6 +216,120 @@ def test_store_round_trip_and_fail_closed(tmp_path):
     with pytest.raises(GoalContractError, match="1 MiB"):
         GoalContractStore(fresh).append(first)
     assert fresh.read_bytes() == b"y" * MAX_FILE_BYTES
+
+
+def _draft_goal(**overrides):
+    goal = {
+        "goal_id": "goal-1",
+        "end_result": "out.txt exists and its sha256 matches the fixture",
+        "allowed_scope": ["out.txt"],
+        "forbidden_scope": ["secrets"],
+        "constraints": ["no network"],
+        "acceptance_criteria": [
+            {"id": "artifact", "check": "sha256 matches the fixture", "evidence_class": "deterministic"},
+        ],
+        "side_effect_limits": ["no commits"],
+        "gates": {"human": True, "money": False, "safety": True},
+    }
+    goal.update(overrides)
+    return goal
+
+
+def test_draft_missing_goal_needs_clarification():
+    for goal in (None, "", "   ", {}, {"goal_id": "goal-1"}, {"end_result": "out.txt exists"}):
+        draft = draft_goal_contract(goal)
+        assert draft.outcome is DraftOutcome.NEEDS_CLARIFICATION
+        assert draft.outcome.value == "NEEDS_CLARIFICATION"
+        assert "missing_goal" in draft.reasons
+        assert draft.contract is None
+        assert draft.outcome is not DraftOutcome.DRAFTED
+
+
+def test_draft_ambiguous_or_contradictory_goal_needs_clarification():
+    for goal in (
+        "fix the bug or maybe rewrite the module",
+        _draft_goal(end_result="fix the bug or maybe rewrite the module"),
+    ):
+        draft = draft_goal_contract(goal)
+        assert draft.outcome is DraftOutcome.NEEDS_CLARIFICATION
+        assert "ambiguous_goal" in draft.reasons
+        assert draft.contract is None
+    overlap = draft_goal_contract(_draft_goal(allowed_scope=["out.txt", "secrets"], forbidden_scope=["secrets"]))
+    assert overlap.outcome is DraftOutcome.NEEDS_CLARIFICATION
+    assert overlap.contract is None
+    assert "contradictory" in overlap.reasons
+    many = draft_goal_contract(_draft_goal(end_result=["ship the report", "rewrite the module"]))
+    assert many.outcome is DraftOutcome.NEEDS_CLARIFICATION
+    assert many.contract is None
+
+
+def test_or_and_either_draft_without_clarification():
+    for goal in (
+        "ship the report or the summary",
+        "deliver either artifact to the inbox",
+        _draft_goal(end_result="ship the report or the summary"),
+        _draft_goal(end_result="keep either the receipt or the invoice"),
+    ):
+        draft = draft_goal_contract(goal)
+        assert draft.outcome is DraftOutcome.DRAFTED, goal
+        assert draft.contract is not None
+        assert draft.contract.human_confirmed is False
+
+
+def test_free_text_is_not_stored_until_a_human_confirms(tmp_path):
+    draft = draft_goal_contract("ship the report or the summary")
+    assert draft.contract is not None
+    store = GoalContractStore(tmp_path / "goal_contracts.jsonl")
+    with pytest.raises(GoalContractError, match="confirmed"):
+        store.append(draft.contract)
+    for actor, authenticated in (("anonymous", True), ("agent:bot", True), ("person:ada", False)):
+        with pytest.raises(GoalContractError, match="authenticated human"):
+            confirm_draft(draft.contract, actor, "2026-10-15T12:00:00Z", authenticated=authenticated)
+    confirmed = confirm_draft(draft.contract, "person:ada", "2026-10-15T12:00:00Z", authenticated=True)
+    store_confirmed(store, confirmed)
+    assert store.read() == (confirmed,)
+    assert confirmed.fingerprint() == draft.contract.fingerprint()
+
+
+def test_validate_task_runs_when_there_is_no_contract():
+    verdict = validate_task(None, {"adapter": "probe"})
+    assert verdict.verdict is Verdict.NOT_VERIFIABLE
+    assert verdict.reasons == ("missing_contract",)
+
+
+def test_draft_clear_goal_is_unconfirmed_until_the_caller_confirms():
+    draft = draft_goal_contract(_draft_goal())
+    assert draft.outcome is DraftOutcome.DRAFTED
+    assert draft.reasons == ()
+    assert draft.contract is not None
+    assert draft.contract.human_confirmed is False
+    assert draft.contract.confirmations == ()
+    assert len(draft.contract.fingerprint()) == 64
+
+    confirmed = confirm_draft(draft.contract, "person:ada", "2026-10-15T00:00:00Z", authenticated=True)
+    assert confirmed.human_confirmed is True
+    assert confirmed.fingerprint() == draft.contract.fingerprint()
+    assert [item.actor_ref for item in confirmed.confirmations] == ["person:ada"]
+    stuffed = draft_goal_contract(_draft_goal(confirmations=[{
+        "actor_kind": "human", "actor_ref": "person:ada", "at": "2026-10-15T00:00:00Z",
+    }]))
+    assert stuffed.contract is not None and stuffed.contract.human_confirmed is False
+
+
+def test_human_confirm_token_is_not_the_service_token(monkeypatch):
+    monkeypatch.delenv(HUMAN_CONFIRM_ENV, raising=False)
+    assert human_confirm_granted(_FIXTURE_HUMAN_TOKEN) is False
+    monkeypatch.setenv(HUMAN_CONFIRM_ENV, "")
+    assert human_confirm_granted(_FIXTURE_HUMAN_TOKEN) is False
+    monkeypatch.setenv(HUMAN_CONFIRM_ENV, _FIXTURE_HUMAN_TOKEN)
+    assert human_confirm_granted("") is False
+    assert human_confirm_granted(None) is False
+    assert human_confirm_granted(True) is False
+    assert human_confirm_granted("not-the-fixture") is False
+    assert human_confirm_granted(_FIXTURE_HUMAN_TOKEN) is True
+    assert human_confirm_granted(_FIXTURE_HUMAN_TOKEN, service_token="worker-token") is True
+    monkeypatch.setenv(HUMAN_CONFIRM_ENV, "worker-token")
+    assert human_confirm_granted("worker-token", service_token="worker-token") is False
 
 
 def test_schema_rejects_unknown_fields():
