@@ -102,6 +102,60 @@ def test_file_gate_does_not_freeze_the_core(tmp_path, monkeypatch):
     assert again["core_freeze"] == printed_json["core_freeze"]
 
 
+def test_pre_codex_evidence_gaps_are_counted_when_files_are_missing(tmp_path, monkeypatch):
+    monkeypatch.setattr(pgrc, "__file__", str(tmp_path / "scripts" / "pilot_gate_readiness_check.py"))
+
+    with patch("builtins.print") as mock_print:
+        exit_code = pgrc.check_pilot_gate_readiness()
+        again = pgrc.check_pilot_gate_readiness()
+
+    assert exit_code == 1 and again == 1
+    first = json.loads(mock_print.call_args_list[0][0][0])
+    second = json.loads(mock_print.call_args_list[1][0][0])
+    assert first["pre_codex_evidence_gap_count"] == 3
+    assert first["pre_codex_evidence_gaps"] == [
+        "PRE_CODEX_HANDOFF",
+        "PROOF_CARD",
+        "PILOT_DUMMY_TASK",
+    ]
+    assert second == first
+
+
+def test_pre_codex_evidence_gap_count_is_zero_when_files_exist(tmp_path, monkeypatch):
+    monkeypatch.setattr(pgrc, "__file__", str(tmp_path / "scripts" / "pilot_gate_readiness_check.py"))
+    ops_dir = tmp_path / "ops" / "ai"
+    ops_dir.mkdir(parents=True)
+    (ops_dir / "PRE_CODEX_HANDOFF.md").touch()
+    (ops_dir / "PROOF_CARD.md").touch()
+    (ops_dir / "PILOT_DUMMY_TASK.json").touch()
+
+    with patch("builtins.print") as mock_print:
+        exit_code = pgrc.check_pilot_gate_readiness()
+
+    assert exit_code == 1
+    printed = json.loads(mock_print.call_args[0][0])
+    assert printed["pre_codex_evidence_gap_count"] == 0
+    assert printed["pre_codex_evidence_gaps"] == []
+
+
+def test_pre_codex_evidence_gap_names_only_the_missing_file(tmp_path, monkeypatch):
+    monkeypatch.setattr(pgrc, "__file__", str(tmp_path / "scripts" / "pilot_gate_readiness_check.py"))
+    ops_dir = tmp_path / "ops" / "ai"
+    ops_dir.mkdir(parents=True)
+    (ops_dir / "PROOF_CARD.md").touch()
+    (ops_dir / "PILOT_DUMMY_TASK.json").touch()
+    (ops_dir / "notes.txt").touch()
+
+    with patch("builtins.print") as mock_print:
+        exit_code = pgrc.check_pilot_gate_readiness()
+
+    assert exit_code == 1
+    printed = json.loads(mock_print.call_args[0][0])
+    assert printed["status"] == "BLOCKED"
+    assert printed["pre_codex_evidence_gap_count"] == 1
+    assert printed["pre_codex_evidence_gaps"] == ["PRE_CODEX_HANDOFF"]
+
+
 @patch("sys.exit")
 def test_main(mock_exit, monkeypatch):
     import runpy
