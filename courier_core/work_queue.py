@@ -39,12 +39,17 @@ class WorkQueueError(Exception):
         super().__init__(code)
 
 
-def list_ready(queue: "WorkQueue", open_pr_files=None, done_prs=None, now=None) -> list[dict]:
-    return queue.list_ready(open_pr_files=open_pr_files, done_prs=done_prs, now=now)
+def list_ready(queue: "WorkQueue", open_pr_files=None, done_prs=None, draft_prs=None, now=None) -> list[dict]:
+    return queue.list_ready(
+        open_pr_files=open_pr_files, done_prs=done_prs, draft_prs=draft_prs, now=now,
+    )
 
 
-def claim(queue: "WorkQueue", item, holder, ttl, host="local", now=None, done_prs=None, open_pr_files=None) -> dict:
-    return queue.claim(item, holder, ttl, host=host, now=now, done_prs=done_prs, open_pr_files=open_pr_files)
+def claim(queue: "WorkQueue", item, holder, ttl, host="local", now=None, done_prs=None, open_pr_files=None, draft_prs=None) -> dict:
+    return queue.claim(
+        item, holder, ttl, host=host, now=now, done_prs=done_prs,
+        open_pr_files=open_pr_files, draft_prs=draft_prs,
+    )
 
 
 def renew(queue: "WorkQueue", item, holder, ttl, now=None) -> dict:
@@ -61,18 +66,19 @@ class WorkQueue:
         self.ledger_path = Path(ledger_path) if ledger_path is not None else DEFAULT_LEDGER
         self.schema_path = Path(schema_path) if schema_path is not None else DEFAULT_SCHEMA
 
-    def list_ready(self, open_pr_files=None, done_prs=None, now=None) -> list[dict]:
+    def list_ready(self, open_pr_files=None, done_prs=None, draft_prs=None, now=None) -> list[dict]:
         moment = _now(now)
         with self._lock():
             items = self._effective(moment)
         occupied = [item for item in items.values() if _held(item, moment)]
         pr_files = [_norm(path) for path in (open_pr_files or [])]
         done = {_norm_token(value) for value in (done_prs or [])}
+        drafts = {_norm_token(value) for value in (draft_prs or [])}
         ready = []
         for item in items.values():
             if not _claimable_status(item, moment):
                 continue
-            if not _deps_met(item, items, done):
+            if not _deps_met(item, items, done, drafts):
                 continue
             if _blocked_by_scope(item, occupied, pr_files):
                 continue
@@ -80,13 +86,14 @@ class WorkQueue:
         ready.sort(key=lambda item: item["id"])
         return ready
 
-    def claim(self, item, holder, ttl, host="local", now=None, done_prs=None, open_pr_files=None) -> dict:
+    def claim(self, item, holder, ttl, host="local", now=None, done_prs=None, open_pr_files=None, draft_prs=None) -> dict:
         item_id = _require_token(item, "ITEM")
         holder = _require_token(holder, "HOLDER")
         host = _require_token(host, "HOST")
         ttl = _require_ttl(ttl)
         moment = _now(now)
         done = {_norm_token(value) for value in (done_prs or [])}
+        drafts = {_norm_token(value) for value in (draft_prs or [])}
         pr_files = [_norm(path) for path in (open_pr_files or [])]
         with self._lock():
             items = self._effective(moment)
@@ -97,7 +104,7 @@ class WorkQueue:
                 if current["lease"]["holder"] == holder:
                     return _claim_view(current, idempotent=True)
                 raise WorkQueueError("DUPLICATE_CLAIM")
-            if not _claimable_status(current, moment) or not _deps_met(current, items, done):
+            if not _claimable_status(current, moment) or not _deps_met(current, items, done, drafts):
                 raise WorkQueueError("NOT_CLAIMABLE")
             occupied = [row for row in items.values() if _held(row, moment)]
             if _blocked_by_scope(current, occupied, pr_files):
@@ -259,6 +266,7 @@ def main(argv=None) -> int:
     nxt.add_argument("--holder", required=True)
     nxt.add_argument("--open-pr-file", action="append", default=[])
     nxt.add_argument("--done-pr", action="append", default=[])
+    nxt.add_argument("--draft-pr", action="append", default=[])
 
     clm = sub.add_parser("claim")
     clm.add_argument("--item", required=True)
@@ -267,6 +275,7 @@ def main(argv=None) -> int:
     clm.add_argument("--host", default="local")
     clm.add_argument("--open-pr-file", action="append", default=[])
     clm.add_argument("--done-pr", action="append", default=[])
+    clm.add_argument("--draft-pr", action="append", default=[])
 
     ren = sub.add_parser("renew")
     ren.add_argument("--item", required=True)
@@ -282,7 +291,11 @@ def main(argv=None) -> int:
     queue = WorkQueue(args.items, args.ledger, args.schema)
     try:
         if args.command == "next":
-            ready = queue.list_ready(open_pr_files=args.open_pr_file, done_prs=args.done_pr)
+            ready = queue.list_ready(
+                open_pr_files=args.open_pr_file,
+                done_prs=args.done_pr,
+                draft_prs=args.draft_pr,
+            )
             if not ready:
                 print("NO_READY_ITEM")
                 return 0
@@ -291,7 +304,7 @@ def main(argv=None) -> int:
         if args.command == "claim":
             claimed = queue.claim(
                 args.item, args.holder, args.ttl, host=args.host,
-                done_prs=args.done_pr, open_pr_files=args.open_pr_file,
+                done_prs=args.done_pr, open_pr_files=args.open_pr_file, draft_prs=args.draft_pr,
             )
         elif args.command == "renew":
             claimed = queue.renew(args.item, args.holder, args.ttl)
@@ -486,8 +499,10 @@ def _claimable_status(item: dict, moment: datetime) -> bool:
     return item["status"] == "CLAIMED" and not _held(item, moment)
 
 
-def _deps_met(item: dict, items: dict[str, dict], done_prs: set[str]) -> bool:
+def _deps_met(item: dict, items: dict[str, dict], done_prs: set[str], draft_prs: set[str]) -> bool:
     for dep in item["depends_on"]:
+        if dep in draft_prs:
+            return False
         if dep in items:
             if items[dep]["status"] != "DONE":
                 return False
@@ -498,6 +513,93 @@ def _deps_met(item: dict, items: dict[str, dict], done_prs: set[str]) -> bool:
     return True
 
 
+def read_pr_dependency(record: dict) -> dict:
+    """Classify one PR snapshot. A merged PR is not a second merge."""
+    if not isinstance(record, dict) or "is_draft" not in record or not isinstance(record["is_draft"], bool):
+        raise WorkQueueError("DRAFT_FLAG_REQUIRED")
+    number = _norm_token(record.get("number"))
+    if _TOKEN.fullmatch(number) is None or len(number) > 64:
+        raise WorkQueueError("PR_NUMBER")
+    state = record.get("state")
+    if state not in {"MERGED", "OPEN", "CLOSED"}:
+        raise WorkQueueError("PR_STATE")
+    files = record.get("files", [])
+    if not isinstance(files, list) or not all(isinstance(path, str) and path for path in files):
+        raise WorkQueueError("PR_FILES")
+    if state == "MERGED" and record["is_draft"]:
+        raise WorkQueueError("DRAFT_MERGED")
+    if state == "MERGED":
+        role = "MERGED_DEPENDENCY"
+    elif record["is_draft"]:
+        role = "DRAFT_BLOCKED"
+    elif state == "OPEN":
+        role = "OPEN"
+    else:
+        role = "CLOSED"
+    return {
+        "number": number,
+        "role": role,
+        "merge_again": False,
+        "ready": False,
+        "files": list(files),
+    }
+
+
+def draft_gate(record: dict) -> dict:
+    """A draft is blocked. Clearing the draft flag does not authorize a merge."""
+    view = read_pr_dependency(record)
+    if view["role"] == "DRAFT_BLOCKED":
+        gate = "BLOCKED"
+    elif view["role"] == "OPEN":
+        gate = "CLEAR"
+    else:
+        gate = "NOT_APPLICABLE"
+    view["draft_gate"] = gate
+    return view
+
+
+def shared_file_conflicts(records) -> list[dict]:
+    """Name path overlaps between PR snapshots. A PR does not conflict with itself."""
+    if not isinstance(records, list):
+        raise WorkQueueError("PR_RECORD")
+    rows = []
+    seen = set()
+    for record in records:
+        if not isinstance(record, dict):
+            raise WorkQueueError("PR_RECORD")
+        number = _norm_token(record.get("number"))
+        if _TOKEN.fullmatch(number) is None or len(number) > 64:
+            raise WorkQueueError("PR_NUMBER")
+        if number in seen:
+            raise WorkQueueError("DUPLICATE_PR")
+        seen.add(number)
+        files = record.get("files", [])
+        if not isinstance(files, list) or not all(isinstance(path, str) and path for path in files):
+            raise WorkQueueError("PR_FILES")
+        rows.append((number, list(files)))
+    pairs = []
+    for index, (left_number, left_files) in enumerate(rows):
+        for right_number, right_files in rows[index + 1:]:
+            hits = []
+            for left_path in left_files:
+                for right_path in right_files:
+                    if not _directory_covers(left_path, right_path) and not _directory_covers(right_path, left_path):
+                        continue
+                    if _norm(left_path).rstrip("/") == _norm(right_path).rstrip("/"):
+                        hits.append(_norm(left_path).rstrip("/"))
+                    else:
+                        ordered = sorted(
+                            (left_path, right_path),
+                            key=lambda path: (len(_norm(path).rstrip("/")), _norm(path)),
+                        )
+                        hits.append(f"{ordered[0]} ~ {ordered[1]}")
+            if hits:
+                first, second = sorted((left_number, right_number))
+                pairs.append({"left": first, "right": second, "paths": sorted(set(hits))})
+    pairs.sort(key=lambda row: (row["left"], row["right"]))
+    return pairs
+
+
 def _blocked_by_scope(item: dict, occupied: list[dict], pr_files: list[str]) -> bool:
     for other in occupied:
         if other["id"] == item["id"]:
@@ -505,7 +607,7 @@ def _blocked_by_scope(item: dict, occupied: list[dict], pr_files: list[str]) -> 
         if scopes_overlap(item["files_scope"], other["files_scope"]):
             return True
     for path in pr_files:
-        if any(_paths_overlap(scope, path) for scope in item["files_scope"]):
+        if any(_directory_covers(scope, path) for scope in item["files_scope"]):
             return True
     return False
 
@@ -529,6 +631,17 @@ def _paths_overlap(left: str, right: str) -> bool:
             return True
         return pa == pb or pa.startswith(pb + "/") or pb.startswith(pa + "/")
     return False
+
+
+def _directory_covers(scope: str, path: str) -> bool:
+    """A trailing-slash scope covers a file underneath it. Item globs stay in ``_paths_overlap``."""
+    if _paths_overlap(scope, path):
+        return True
+    directory = _norm(scope).rstrip("/")
+    concrete = _norm(path).rstrip("/")
+    if not directory or not concrete or _wild(directory):
+        return False
+    return concrete == directory or concrete.startswith(directory + "/")
 
 
 def _prefix(pattern: str) -> str:
