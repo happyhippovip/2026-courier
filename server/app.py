@@ -223,12 +223,27 @@ def submit_goal():
 @app.route("/goals/<goal_id>", methods=["GET"])
 @require_auth
 def get_goal(goal_id):
+    from courier_core.grandma_state import derive_user_state
+
     state = load_state()
     goal = state["goals"].get(goal_id)
     if not goal:
         return jsonify({"error": "Unknown goal"}), 404
     tasks = [task for task in state["tasks"].values() if task.get("goal_id") == goal_id]
-    return jsonify({"goal": goal, "tasks": tasks})
+    user_summary = derive_user_state(goal, state)
+    return jsonify({"goal": goal, "tasks": tasks, "user_summary": user_summary})
+
+
+@app.route("/goals/<goal_id>/grandma", methods=["GET"])
+@require_auth
+def get_goal_grandma_state(goal_id):
+    from courier_core.grandma_state import derive_user_state
+
+    state = load_state()
+    goal = state["goals"].get(goal_id)
+    if not goal:
+        return jsonify({"error": "Unknown goal"}), 404
+    return jsonify(derive_user_state(goal, state))
 
 @app.route("/workers", methods=["GET"])
 @require_auth
