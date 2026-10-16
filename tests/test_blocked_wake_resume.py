@@ -32,8 +32,9 @@ def _goal_spec(unit, contract):
 
 def _prepare(tmp_path):
     home, queue, ledger = _setup(tmp_path)
+    from courier_core.goal_contract import _envelope
     contract = _contract()                      # terms written, not yet confirmed
-    GoalContractStore(home / "goal_contracts.jsonl").append(contract)
+    (home / "goal_contracts.jsonl").write_text(_envelope(contract), encoding="utf-8")
     config = json.loads((home / queue_feed.CONFIG_NAME).read_text(encoding="utf-8"))
     config["specs"] = {"WKA": _goal_spec("a", contract), "WKB": _goal_spec("b", contract)}
     (home / queue_feed.CONFIG_NAME).write_text(json.dumps(config), encoding="utf-8")
