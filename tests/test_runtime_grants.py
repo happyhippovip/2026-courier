@@ -60,6 +60,17 @@ def test_any_wider_dimension_is_not_covered(broker, wider):
     assert grant is None and state == REQUESTED and reason
 
 
+def test_unknown_privacy_class_is_a_structured_refusal(broker):
+    b, _ = broker
+    b.authorize(req("r1"))
+    b.grant(req("r1"), "g1", expires_at=2000)
+    grant, state, reason = b.authorize(req("r2", data_class="secret"))
+    assert grant is None and state == REQUESTED
+    assert reason is not None
+    assert "secret" in reason
+    assert "privacy class" in reason
+
+
 def test_expiry_and_revocation_stop_reuse(broker):
     b, clock = broker
     b.authorize(req("r1"))

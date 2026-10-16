@@ -202,6 +202,20 @@ class EightBodyguardsTests(unittest.TestCase):
         bgs = self.manager.get_all_bodyguards()
         self.assertEqual(len(bgs), 8)
 
+    def test_unknown_temporary_role_is_not_assigned(self):
+        for role in ("ROOT", "  "):
+            with self.assertRaisesRegex(ValueError, "not a support role"):
+                self.manager.assign_bodyguard(
+                    callsign="ALPHA",
+                    task_id="t",
+                    workflow_id="w",
+                    correlation_id="c",
+                    temporary_role=role,
+                )
+        alpha = {b["callsign"]: b for b in self.manager.get_all_bodyguards()}["ALPHA"]
+        self.assertEqual(alpha["state"], "STANDBY")
+        self.assertIsNone(alpha["temporary_role"])
+
     def test_assign_unknown_callsign(self):
         with self.assertRaisesRegex(ValueError, "Bodyguard UNKNOWN not found"):
             self.manager.assign_bodyguard("UNKNOWN", "t", "w", "c")
