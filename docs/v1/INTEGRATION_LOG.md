@@ -687,3 +687,14 @@ adapter / verifier → live golden path.
 - Added comprehensive unit and integration test suite in `tests/core/test_artifact_receipt.py` (7/7 passed).
 - 100% green CI across Ubuntu and Windows (12/12 checks passing).
 
+## Step 34 — PR #702, L2 Cost & Provider Transparency Card
+### `integration/v1` merged `lane/L2-cost-transparency` (commit `0d388bec6`)
+- Implemented User Requirement 03 (`ops/ai/USER_REQUIREMENT_03_COST_AND_PROVIDER_TRANSPARENCY.md`) in `courier_core/cost_transparency.py`.
+- Formulated verifiable Cost & Provider Transparency Card guaranteeing zero incremental PAYG billing (`payg_spend_triggered: False`, `estimated_marginal_cost: '0.00 EUR'`).
+- Validated budget financial firewall integrity (`budget_firewall_status: 'INTACT'`).
+- Categorized execution per step into `Local Deterministic (FREE)`, `Subscription (INCLUDED)`, or `Metered (PAYG)`.
+- Wired `cost_summary` into `GET /goals/<goal_id>` without breaking backward compatibility, plus added dedicated `GET /goals/<goal_id>/cost` endpoint.
+- Added comprehensive unit and contract test suite in `tests/core/test_cost_transparency.py` (5/5 passed).
+- 100% green CI across Ubuntu and Windows (12/12 checks passing).
+
+
