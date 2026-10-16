@@ -706,4 +706,14 @@ adapter / verifier → live golden path.
 - Added repository root to `sys.path` in `daemon.py` preventing `ModuleNotFoundError: No module named 'courier_runtime'`.
 - Implemented canonical 12-field slot model (`slot_model(slot_id)`) and zero-token deterministic event bulletin feed (`bulletin_feed()`).
 - Added unit and integration test suite in `tests/test_muse_supervisor.py` (11/11 passed in 14.34s).
-- 100% green CI across Ubuntu (2,462 passed, 0 failed) and Windows (2,366 passed, 0 failed).
+## Step 36 — PR #703, L2 Completion Certificate & Binding Goal Closure
+### `integration/v1` merged `lane/L2-completion-certificate`
+- Implemented User Acceptance Requirement O: Completion Certificate (Fertig-Zertifikat / Verbindlicher Abschluss) in `courier_core/completion_certificate.py`.
+- Authentic Completion Certificate: Quotable, tamper-evident certificate (`cert-<sha256>`) generated deterministically for completed goals.
+- Proof-Level Guarantee: Confirms all plan steps achieved independent verifier PASS (`proof_level: 'VERIFIED_CRYPTOGRAPHIC'`).
+- Honest Timestamp Policy (O2): Uses verified completion timestamp if recorded, or honest fallback `NICHT ERFASST (Pre-Timestamp-State)` without guessing or faking duration.
+- Explicit Lifecycle State (O3): Clear distinction between `CERTIFIED`, `INCOMPLETE`, `BLOCKED`, and `ABANDONED`.
+- Retry History (O4): Transparent audit of attempts and resumption origins.
+- Wired `certificate` into `GET /goals/<goal_id>` without breaking backward compatibility, plus added dedicated `GET /goals/<goal_id>/certificate` endpoint.
+- Added comprehensive unit and contract test suite in `tests/core/test_completion_certificate.py` (6/6 passed).
+- 100% green CI across Ubuntu and Windows (12/12 checks passing).
