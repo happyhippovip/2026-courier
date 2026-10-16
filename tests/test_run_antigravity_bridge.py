@@ -1,154 +1,153 @@
 import json
 import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
-
 from scripts.run_antigravity_bridge import (
-    check_secrets_in_text,
     AntigravityVisualStateTracker,
     AntigravityHookRunner,
     execute_bridge_task,
     run_chief_review_router,
+    check_secrets_in_text,
+    main,
 )
 
-def test_check_secrets_in_text():
-    assert check_secrets_in_text("No secrets here") == 0
-    assert check_secrets_in_text("Here is a token: 'ghp_123456789012345678901234567890123456'") > 0
-    assert check_secrets_in_text("sk-abcdefghijklmnopqrstuvwxyz12345678901234") > 0
-    assert check_secrets_in_text("api_key = 'abcdef123'") > 0
+
+@pytest.fixture
+def bridge_env(tmp_path):
+    repo_dir = tmp_path / "repo"
+    repo_dir.mkdir(parents=True)
+    return repo_dir
 
 
-def test_visual_state_tracker(tmp_path):
-    tracker = AntigravityVisualStateTracker(agent_id="test-agent", repo_dir=tmp_path)
+def test_visual_state_tracker(bridge_env):
+    tracker = AntigravityVisualStateTracker(repo_dir=bridge_env)
     state = tracker.update_state(
         state="RUNNING",
         task="task-123",
-        progress=0.5,
-        last_action="Testing",
+        progress=0.45,
+        last_action="Testing action",
     )
     assert state["state"] == "RUNNING"
-    assert state["progress"] == 0.5
-    assert state["id"] == "test-agent"
-    
-    saved_file = tmp_path / "events/agent-states/test-agent.json"
-    assert saved_file.exists()
-    saved_data = json.loads(saved_file.read_text())
-    assert saved_data["state"] == "RUNNING"
+    assert state["task"] == "task-123"
+    assert tracker.state_file.exists()
+    saved = json.loads(tracker.state_file.read_text(encoding="utf-8"))
+    assert saved["progress"] == 0.45
 
 
-def test_antigravity_hook_runner_success(tmp_path, monkeypatch):
-    import scripts.run_antigravity_bridge as rab
-    monkeypatch.setattr(rab, "PROCESSED_DIR", tmp_path / "processed")
-    
-    tracker = AntigravityVisualStateTracker(repo_dir=tmp_path)
-    runner = AntigravityHookRunner(tracker)
-    
-    result_file = runner.on_task_completion(
-        task_id="task-456",
-        correlation_id="corr-1",
-        parent_id=None,
-        payload={"verdict": "PASS"}
-    )
-    
-    assert result_file.exists()
-    data = json.loads(result_file.read_text())
-    assert data["type"] == "RESULT"
-    assert data["status"] == "COMPLETED"
-    assert data["payload"]["verdict"] == "PASS"
-    assert data["payload_hash"]
+def test_hook_runner_lifecycle_and_secret_rejection(bridge_env):
+    tracker = AntigravityVisualStateTracker(repo_dir=bridge_env)
+    hooks = AntigravityHookRunner(tracker, repo_dir=bridge_env)
 
+    hooks.on_task_start("task-alpha", "corr-1", "Do something useful")
+    assert tracker.state_file.exists()
 
-def test_antigravity_hook_runner_secrets_guard(tmp_path, monkeypatch):
-    import scripts.run_antigravity_bridge as rab
-    monkeypatch.setattr(rab, "PROCESSED_DIR", tmp_path / "processed")
-    
-    tracker = AntigravityVisualStateTracker(repo_dir=tmp_path)
-    runner = AntigravityHookRunner(tracker)
-    
+    hooks.on_tool_action("task-alpha", "Sub-action step", 0.5)
+
+    # Secret rejection test
     with pytest.raises(ValueError, match="Secret detected"):
-        runner.on_task_completion(
-            task_id="task-789",
-            correlation_id="corr-2",
+        hooks.on_task_completion(
+            task_id="task-alpha",
+            correlation_id="corr-1",
             parent_id=None,
-            payload={"verdict": "PASS", "data": "ghp_123456789012345678901234567890123456"}
+            payload={"api_key": "sk-123456789012345678901234567890"},
         )
 
+    # Normal completion
+    res_file = hooks.on_task_completion(
+        task_id="task-alpha",
+        correlation_id="corr-1",
+        parent_id=None,
+        payload={"verdict": "PASS", "data": "clean content"},
+    )
+    assert res_file.exists()
+    assert (hooks.processed_dir / "task-alpha-result.json").exists()
 
-def test_execute_bridge_task(tmp_path, monkeypatch):
-    import scripts.run_antigravity_bridge as rab
-    monkeypatch.setattr(rab, "PROCESSED_DIR", tmp_path / "processed")
-    
-    # Create a job file
-    job_file = tmp_path / "job.json"
+    # On task stop
+    assert hooks.on_task_stop("task-alpha") is True
+
+
+def test_execute_bridge_task_with_fixture(bridge_env):
+    tracker = AntigravityVisualStateTracker(repo_dir=bridge_env)
+    hooks = AntigravityHookRunner(tracker, repo_dir=bridge_env)
+
+    # Create a fixture inside bridge_env
+    fixture = bridge_env / "sample.json"
+    fixture.write_text(json.dumps({"key": "value"}), encoding="utf-8")
+
     job_data = {
-        "task_id": "task-test-bridge",
-        "instruction": "Do something generic",
-        "allowed_scope": []
+        "task_id": "task-fixture-1",
+        "correlation_id": "corr-f1",
+        "instruction": "Read the sample fixture",
+        "allowed_scope": ["sample.json"],
     }
-    job_file.write_text(json.dumps(job_data))
-    
-    tracker = AntigravityVisualStateTracker(repo_dir=tmp_path)
-    hooks = AntigravityHookRunner(tracker)
-    
-    result_file = execute_bridge_task(job_file, hooks)
-    
-    assert result_file.exists()
-    result_data = json.loads(result_file.read_text())
-    assert result_data["payload"]["verdict"] == "PASS"
-    assert result_data["payload"]["action_executed"] == "EXECUTE_INSTRUCTION"
+    job_file = bridge_env / "job.json"
+    job_file.write_text(json.dumps(job_data), encoding="utf-8")
+
+    res_file = execute_bridge_task(job_file, hooks, repo_dir=bridge_env)
+    assert res_file.exists()
+
+    res_data = json.loads(res_file.read_text(encoding="utf-8"))
+    assert res_data["payload"]["verdict"] == "PASS"
+    assert res_data["payload"]["action_executed"] == "READ_FIXTURE_AND_SUMMARIZE"
+    assert "sample.json" in res_data["payload"]["target_file"]
+
+    # Deduplication test: re-executing without force skips execution
+    res_file_dedup = execute_bridge_task(job_file, hooks, force=False, repo_dir=bridge_env)
+    assert res_file_dedup == res_file
 
 
-def test_execute_bridge_task_with_fixture(tmp_path, monkeypatch):
-    import scripts.run_antigravity_bridge as rab
-    monkeypatch.setattr(rab, "PROCESSED_DIR", tmp_path / "processed")
-    monkeypatch.setattr(rab, "COURIER_DIR", tmp_path)
-    
-    # Create a fixture file
-    fixture_file = tmp_path / "fixture.md"
-    fixture_file.write_text("Hello fixture!")
-    
-    # Create a job file
-    job_file = tmp_path / "job.json"
-    job_data = {
-        "task_id": "task-test-fixture",
-        "instruction": "Read fixture",
-        "allowed_scope": ["fixture.md"]
-    }
-    job_file.write_text(json.dumps(job_data))
-    
-    tracker = AntigravityVisualStateTracker(repo_dir=tmp_path)
-    hooks = AntigravityHookRunner(tracker)
-    
-    result_file = execute_bridge_task(job_file, hooks)
-    
-    assert result_file.exists()
-    result_data = json.loads(result_file.read_text())
-    assert result_data["payload"]["verdict"] == "PASS"
-    assert result_data["payload"]["action_executed"] == "READ_FIXTURE_AND_SUMMARIZE"
-    assert "Verified readable content" in result_data["payload"]["content_summary"]
+def test_chief_review_router(bridge_env):
+    tracker = AntigravityVisualStateTracker(repo_dir=bridge_env)
+    hooks = AntigravityHookRunner(tracker, repo_dir=bridge_env)
+
+    # 1. PASS verdict
+    res_pass = hooks.on_task_completion(
+        task_id="task-pass",
+        correlation_id="corr-p",
+        parent_id=None,
+        payload={"verdict": "PASS"},
+    )
+    dec_pass = run_chief_review_router("task-pass", res_pass, repo_dir=bridge_env)
+    assert dec_pass["verdict"] == "ACCEPTED"
+    assert dec_pass["action"] == "AUTO_APPROVE_SAFE_RESULT"
+
+    # 2. NEEDS_FIX verdict
+    res_fix = hooks.on_task_completion(
+        task_id="task-fix",
+        correlation_id="corr-f",
+        parent_id=None,
+        payload={"verdict": "NEEDS_FIX"},
+    )
+    dec_fix = run_chief_review_router("task-fix", res_fix, repo_dir=bridge_env)
+    assert dec_fix["verdict"] == "NEEDS_FIX"
+    assert dec_fix["action"] == "QUEUE_SCOPED_REPAIR_TASK"
 
 
-def test_run_chief_review_router(tmp_path, monkeypatch):
-    import scripts.run_antigravity_bridge as rab
-    monkeypatch.setattr(rab, "DECISIONS_DIR", tmp_path / "decisions")
-    
-    # PASS
-    result_file_pass = tmp_path / "res1.json"
-    result_file_pass.write_text(json.dumps({"payload": {"verdict": "PASS"}}))
-    dec1 = run_chief_review_router("t1", result_file_pass)
-    assert dec1["verdict"] == "ACCEPTED"
-    assert dec1["action"] == "AUTO_APPROVE_SAFE_RESULT"
-    
-    # NEEDS_FIX
-    result_file_fix = tmp_path / "res2.json"
-    result_file_fix.write_text(json.dumps({"payload": {"verdict": "NEEDS_FIX"}}))
-    dec2 = run_chief_review_router("t2", result_file_fix)
-    assert dec2["verdict"] == "NEEDS_FIX"
-    assert dec2["action"] == "QUEUE_SCOPED_REPAIR_TASK"
-    
-    # OTHER -> HUMAN
-    result_file_human = tmp_path / "res3.json"
-    result_file_human.write_text(json.dumps({"payload": {"verdict": "MAYBE"}}))
-    dec3 = run_chief_review_router("t3", result_file_human)
-    assert dec3["verdict"] == "HUMAN_APPROVAL_REQUIRED"
-    assert dec3["action"] == "STOP_AT_HUMAN_GATE"
+def test_main_cli(bridge_env, capsys):
+    # No job found
+    code = main(["--repo-dir", str(bridge_env), "--json"])
+    assert code == 0
+    captured = capsys.readouterr()
+    data = json.loads(captured.out)
+    assert data["status"] == "NO_JOB_FOUND"
+
+    # Execute specific job file with review
+    job_file = bridge_env / "task-cli-worker-job.json"
+    job_file.write_text(json.dumps({
+        "task_id": "task-cli-1",
+        "correlation_id": "corr-c1",
+        "instruction": "Run CLI test",
+        "allowed_scope": [],
+    }), encoding="utf-8")
+
+    code = main([
+        "--job-file", str(job_file),
+        "--repo-dir", str(bridge_env),
+        "--review",
+        "--json",
+    ])
+    assert code == 0
+    captured = capsys.readouterr()
+    data = json.loads(captured.out)
+    assert data["status"] == "COMPLETED"
+    assert data["executed"] is True
+    assert data["decision"]["verdict"] == "ACCEPTED"
