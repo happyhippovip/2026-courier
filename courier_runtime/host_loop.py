@@ -8,12 +8,15 @@ notice per pending continuation.
 
 It never prequeues prompts, never opens windows or processes, and never
 kills anything: session start/termination stay Kirby's injected callables.
+When the queue is idle, ``main`` blocks on ``wait_for_wakeup`` instead of
+sleeping in a loop. A health tick still runs only from ``run_once``.
 ``drain_pending`` is the provider lane's take-one-wake contract;
 ``emit_signal`` is how lanes append protocol lines to the signal file.
 """
 import argparse
 import json
 import os
+import sys
 import time
 
 from courier_runtime.continuity import HEALTH_TICK_S
@@ -103,6 +106,81 @@ def _notice(kirby, slot, state):
     return [record]
 
 
+def _queue_idle(kirby):
+    """No open or claimed work and no session waiting to be woken."""
+    if any(item.state in ("OPEN", "CLAIMED") for item in kirby.workkeys.values()):
+        return False
+    return not any(session.state not in ("IDLE", "RETIRED") for session in kirby.sessions.values())
+
+
+def wakeup_backend(platform=None):
+    """Linux blocks on inotify. Windows blocks on ReadDirectoryChangesW."""
+    name = sys.platform if platform is None else platform
+    if name == "win32":
+        return "read_directory_changes"
+    return "inotify"
+
+
+def wait_for_wakeup(path):
+    """Block until the signal directory changes. One wait, no sleep loop."""
+    if wakeup_backend() == "read_directory_changes":
+        return _wait_windows(path)
+    return _wait_inotify(path)
+
+
+def _wait_windows(path, kernel32=None):
+    """One blocking ReadDirectoryChangesW. ``kernel32`` is injectable in tests."""
+    import ctypes
+
+    kernel = kernel32 if kernel32 is not None else ctypes.windll.kernel32
+    directory = os.path.dirname(os.path.abspath(path)) or "."
+    handle = kernel.CreateFileW(directory, 0x0001, 0x0001 | 0x0002 | 0x0004, None, 3, 0x02000000, None)
+    if handle in (-1, 0xFFFFFFFF, 0xFFFFFFFFFFFFFFFF):
+        raise OSError("CreateFileW")
+    try:
+        buf = ctypes.create_string_buffer(4096)
+        returned = ctypes.c_uint32()
+        ok = kernel.ReadDirectoryChangesW(
+            handle, buf, 4096, True, 0x17, ctypes.byref(returned), None, None,
+        )
+        if not ok:
+            raise OSError("ReadDirectoryChangesW")
+    finally:
+        kernel.CloseHandle(handle)
+
+
+def _wait_inotify(path):
+    """Block until the signal directory changes. One select, no sleep loop."""
+    import ctypes
+    import ctypes.util
+    import select
+
+    libc = ctypes.CDLL(ctypes.util.find_library("c"), use_errno=True)
+    libc.inotify_init1.argtypes = [ctypes.c_int]
+    libc.inotify_init1.restype = ctypes.c_int
+    libc.inotify_add_watch.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_uint32]
+    libc.inotify_add_watch.restype = ctypes.c_int
+    libc.inotify_rm_watch.argtypes = [ctypes.c_int, ctypes.c_int]
+    libc.inotify_rm_watch.restype = ctypes.c_int
+    handle = libc.inotify_init1(0)
+    if handle < 0:
+        raise OSError(ctypes.get_errno(), "inotify_init1")
+    parent = os.path.dirname(os.path.abspath(path)) or "."
+    os.makedirs(parent, exist_ok=True)
+    mask = 0x00000002 | 0x00000008 | 0x00000080 | 0x00000100
+    watch = libc.inotify_add_watch(handle, os.fsencode(parent), mask)
+    if watch < 0:
+        err = ctypes.get_errno()
+        os.close(handle)
+        raise OSError(err, "inotify_add_watch")
+    try:
+        select.select([handle], [], [])
+        os.read(handle, 4096)
+    finally:
+        libc.inotify_rm_watch(handle, watch)
+        os.close(handle)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Tail provider signals into Kirby.")
     ap.add_argument("--state", required=True, help="Kirby state file (kirby.json)")
@@ -120,4 +198,7 @@ def main(argv=None):
         run_once(kirby, args.slot, args.signals, state)
         if args.once:
             return 0
-        time.sleep(args.interval)
+        if _queue_idle(kirby):
+            wait_for_wakeup(args.signals)
+        else:
+            time.sleep(args.interval)
