@@ -349,3 +349,53 @@ def test_schema_rejects_unknown_fields():
     assert schema["properties"]["confirmations"]["items"]["properties"]["actor_kind"]["const"] == "human"
     assert schema["properties"]["gates"]["additionalProperties"] is False
     assert schema["properties"]["acceptance_criteria"]["items"]["additionalProperties"] is False
+
+
+def test_terms_are_readable_and_unconfirmed_is_not_called_confirmed():
+    text = _contract().explain()
+    assert "goal-1" in text
+    assert "the stated result is present" in text
+    assert "docs" in text and "tests" in text
+    assert "payments" in text and "secrets" in text
+    assert "No person has confirmed these terms." in text
+    assert "Confirmed by " not in text
+
+
+def test_accepted_task_names_done_criteria_and_leaves_the_rest_undone():
+    contract = _contract().confirm("person:ada", "2026-10-08T00:00:00Z")
+    reading = contract.read_task(_task(contract))
+    assert reading.verdict == Verdict.ACCEPTED
+    assert reading.done == ("Done: docs-present — the document exists.",)
+    assert reading.blocked == ()
+    assert "tests-pass" not in " ".join(reading.done)
+
+
+def test_unconfirmed_task_is_blocked_and_not_done():
+    contract = _contract()
+    reading = contract.read_task(_task(contract, scope=["docs", "production"]))
+    assert reading.verdict == Verdict.HUMAN_CONFIRMATION_REQUIRED
+    assert reading.done == ()
+    assert reading.blocked == ("Blocked: a person has not confirmed these terms.",)
+
+
+def test_forbidden_and_widened_scope_are_named():
+    contract = _contract().confirm("person:ada", "2026-10-08T00:00:00Z")
+    forbidden = contract.read_task(_task(contract, scope=["payments"]))
+    assert forbidden.done == ()
+    assert forbidden.blocked == (
+        "Blocked: scope includes forbidden payments.",
+        "Blocked: scope adds payments, which is outside the allowed scope.",
+    )
+    widened = contract.read_task(_task(contract, scope=["docs", "production"]))
+    assert widened.blocked == ("Blocked: scope adds production, which is outside the allowed scope.",)
+
+
+def test_reading_survives_reload(tmp_path):
+    contract = _contract().confirm("person:ada", "2026-10-08T00:00:00Z")
+    store = GoalContractStore(tmp_path / "goals.jsonl")
+    store.append(contract)
+    loaded = store.read()[0]
+    task = _task(loaded)
+    assert loaded.explain() == contract.explain()
+    assert loaded.read_task(task) == contract.read_task(task)
+    assert loaded.read_task(task) == loaded.read_task(task)
