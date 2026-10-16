@@ -7,8 +7,10 @@ in bytes that were actually fetched from the approved origin; otherwise
 CONTRADICTED (fetched, quote absent) or BLOCKED (origin not approved).
 """
 import hashlib
+import re
 from dataclasses import dataclass
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from typing import Dict, List, Optional, Set, Tuple
+from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
 
 from courier_runtime.continuation import AcceptedFact
 
@@ -55,6 +57,7 @@ def compute_fetch_effect_key(url: str, approved_origin: str, policy_epoch: int =
 class ContentStore:
     def __init__(self):
         self._blobs = {}
+        self._effect_map = {}
 
     def put(self, data):
         digest = hashlib.sha256(data).hexdigest()
@@ -67,12 +70,44 @@ class ContentStore:
             raise ValueError("store tamper detected")
         return data
 
+    def has(self, digest: str) -> bool:
+        return digest in self._blobs
 
-import re
-from typing import Dict, List, Optional, Set
-from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
+    def put_effect(self, effect_key: str, data: bytes, final_url: str, hops: list) -> str:
+        digest = self.put(data)
+        self._effect_map[effect_key] = {"sha256": digest, "final_url": final_url, "hops": list(hops)}
+        return digest
 
-from courier_runtime.continuation import AcceptedFact
+    def get_effect(self, effect_key: str) -> Optional[dict]:
+        return self._effect_map.get(effect_key)
+
+
+def validate_spider_gate(request: "ResearchRequest") -> tuple[bool, Optional[str]]:
+    """Validate spider security gate: https scheme, approved origin match, zero spend."""
+    parts = urlsplit(request.url)
+    if parts.scheme.lower() != "https":
+        return False, f"scheme {parts.scheme!r} is not https"
+    norm_origin = normalize_origin(request.url)
+    approved_origin = normalize_origin(request.approved_origin)
+    if norm_origin != approved_origin:
+        return False, f"{norm_origin} is not the approved origin"
+    return True, None
+
+
+def verify_spider_receipt_provenance(receipt: dict) -> bool:
+    """Verify receipt provenance: must have workkey, sha256, effect_key, url, and valid conclusion."""
+    if not isinstance(receipt, dict):
+        return False
+    conclusion = receipt.get("conclusion")
+    if conclusion not in ("SUPPORTED", "CONTRADICTED", "BLOCKED", "REJECTED"):
+        return False
+    if conclusion in ("SUPPORTED", "CONTRADICTED"):
+        anchor = receipt.get("anchor")
+        if not isinstance(anchor, dict):
+            return False
+        if not anchor.get("sha256") or not anchor.get("url") or not anchor.get("effect_key"):
+            return False
+    return True
 
 
 @dataclass(frozen=True)
@@ -163,56 +198,67 @@ def check_claim(request, fetch, store, log, clock):
     if not request.quote or not request.quote.strip():
         return {"conclusion": "REJECTED", "reason": "empty quote is not a valid claim"}
 
-    parts = urlsplit(request.url)
-    if parts.scheme.lower() != "https":
-        return {"conclusion": "BLOCKED", "reason": f"scheme {parts.scheme!r} is not https"}
+    valid, reason = validate_spider_gate(request)
+    if not valid:
+        return {"conclusion": "BLOCKED", "reason": reason}
 
-    norm_origin = normalize_origin(request.url)
     approved_origin = normalize_origin(request.approved_origin)
-    if norm_origin != approved_origin:
-        return {"conclusion": "BLOCKED", "reason": f"{norm_origin} is not the approved origin"}
+    effect_key = compute_fetch_effect_key(request.url, request.approved_origin, request.policy_epoch)
 
-    fetch_res = fetch(request.url)
-    if len(fetch_res) >= 3:
-        final_url, body, raw_hops = fetch_res[0], fetch_res[1], list(fetch_res[2])
+    # Check store cache for retry without double-fetch
+    cached = store.get_effect(effect_key) if hasattr(store, "get_effect") else None
+    if cached is not None:
+        digest = cached["sha256"]
+        body = store.get(digest)
+        final_url = cached["final_url"]
+        raw_hops = list(cached["hops"])
+        was_cached = True
     else:
-        final_url, body = fetch_res[0], fetch_res[1]
-        raw_hops = [request.url, final_url] if final_url != request.url else [request.url]
+        was_cached = False
+        fetch_res = fetch(request.url)
+        if len(fetch_res) >= 3:
+            final_url, body, raw_hops = fetch_res[0], fetch_res[1], list(fetch_res[2])
+        else:
+            final_url, body = fetch_res[0], fetch_res[1]
+            raw_hops = [request.url, final_url] if final_url != request.url else [request.url]
 
-    # Payload size check
-    if len(body) > request.max_bytes:
-        return {
-            "conclusion": "BLOCKED",
-            "reason": f"payload exceeded size limit: {len(body)} > {request.max_bytes}",
-            "hops": raw_hops,
-        }
+        # Payload size check
+        if len(body) > request.max_bytes:
+            return {
+                "conclusion": "BLOCKED",
+                "reason": f"payload exceeded size limit: {len(body)} > {request.max_bytes}",
+                "hops": raw_hops,
+            }
 
-    # Hop chain validation & loop detection
-    seen_hops = set()
-    for hop in raw_hops:
-        canon_hop = canonicalize_url(hop)
-        if canon_hop in seen_hops:
-            return {"conclusion": "BLOCKED", "reason": f"redirect loop detected at {hop}", "hops": raw_hops}
-        seen_hops.add(canon_hop)
+        # Hop chain validation & loop detection
+        seen_hops = set()
+        for hop in raw_hops:
+            canon_hop = canonicalize_url(hop)
+            if canon_hop in seen_hops:
+                return {"conclusion": "BLOCKED", "reason": f"redirect loop detected at {hop}", "hops": raw_hops}
+            seen_hops.add(canon_hop)
 
-        hop_parts = urlsplit(hop)
-        if hop_parts.scheme.lower() != "https":
-            return {"conclusion": "BLOCKED", "reason": f"redirect hop {hop} used insecure scheme", "hops": raw_hops}
-        if normalize_origin(hop) != approved_origin:
-            return {"conclusion": "BLOCKED", "reason": f"redirect hop {hop} left the approved origin", "hops": raw_hops}
+            hop_parts = urlsplit(hop)
+            if hop_parts.scheme.lower() != "https":
+                return {"conclusion": "BLOCKED", "reason": f"redirect hop {hop} used insecure scheme", "hops": raw_hops}
+            if normalize_origin(hop) != approved_origin:
+                return {"conclusion": "BLOCKED", "reason": f"redirect hop {hop} left the approved origin", "hops": raw_hops}
 
-    if len(raw_hops) > request.max_hops:
-        return {
-            "conclusion": "BLOCKED",
-            "reason": f"redirect hop limit exceeded: {len(raw_hops)} > {request.max_hops}",
-            "hops": raw_hops,
-        }
+        if len(raw_hops) > request.max_hops:
+            return {
+                "conclusion": "BLOCKED",
+                "reason": f"redirect hop limit exceeded: {len(raw_hops)} > {request.max_hops}",
+                "hops": raw_hops,
+            }
 
-    final_norm = normalize_origin(final_url)
-    if final_norm != approved_origin:
-        return {"conclusion": "BLOCKED", "reason": "redirect left the approved origin", "hops": raw_hops}
+        final_norm = normalize_origin(final_url)
+        if final_norm != approved_origin:
+            return {"conclusion": "BLOCKED", "reason": "redirect left the approved origin", "hops": raw_hops}
 
-    digest = store.put(body)
+        if hasattr(store, "put_effect"):
+            digest = store.put_effect(effect_key, body, final_url, raw_hops)
+        else:
+            digest = store.put(body)
     enc = request.encoding or "utf-8"
     try:
         text = store.get(digest).decode(enc, errors="replace")
