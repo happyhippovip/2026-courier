@@ -18,8 +18,8 @@ def test_check_readiness_success(monkeypatch, capsys):
 
 def test_check_readiness_failure(monkeypatch, capsys):
     def mock_exists(path):
-        # Simulate missing file for the first one
-        if path == "ops/ai/PILOT_DUMMY_TASK.json":
+        normalized = str(path).replace("\\", "/")
+        if normalized.endswith("ops/ai/PILOT_DUMMY_TASK.json"):
             return False
         return True
     
@@ -52,3 +52,13 @@ def test_missing_or_boolean_counts_abort_the_pilot():
     assert pilot_failure_aborts({"hipg": False, "ndr_pct": 100}) is True
     assert pilot_failure_aborts({"hipg": 0, "ndr_pct": 100, "verifier_accepted_out_of_scope": True}) is True
     assert pilot_failure_aborts({"hipg": 0, "ndr_pct": 100, "daemon_failed_to_recover": False}) is False
+
+
+def test_check_readiness_from_other_cwd(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(SystemExit) as exc_info:
+        check_readiness()
+
+    assert exc_info.value.code == 0
+    captured = capsys.readouterr()
+    assert "ALL PILOT PREREQUISITES PRESENT" in captured.out
