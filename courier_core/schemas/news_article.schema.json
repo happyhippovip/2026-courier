@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NewsArticle",
+  "type": "object",
+  "properties": {
+    "article_id": {
+      "type": "string",
+      "description": "Unique deterministic identifier for deduplication (e.g., URL hash or provider ID)"
+    },
+    "source_id": {
+      "type": "string",
+      "description": "The provider/source name (e.g., 'decrypt')"
+    },
+    "title": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "author": {
+      "type": "string"
+    },
+    "content_text": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "required": ["article_id", "source_id", "title", "url", "published_at"]
+}

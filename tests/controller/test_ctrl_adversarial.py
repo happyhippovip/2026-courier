@@ -186,7 +186,7 @@ def test_empty_stream_sends_keepalives_and_stays_bounded(tmp_path, monkeypatch):
         with service.session.get(service.base + "/v1/events", headers={"Last-Event-ID": str(head)},
                                  stream=True, timeout=(5, 5)) as response:
             lines = []
-            for line in response.iter_lines(decode_unicode=True):
+            for line in response.iter_lines(chunk_size=1, decode_unicode=True):
                 lines.append(line)
                 if line.startswith(": keepalive"):
                     break

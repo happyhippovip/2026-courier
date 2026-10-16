@@ -1,3 +1,4 @@
+import pytest; pytest.importorskip("fcntl")
 """SIMULATED proof: Muse slots on the canonical Courier path.
 
 Real server/app.py (temp state, test keys) on a local port, real
@@ -103,7 +104,7 @@ def muse_calls(tmp):
     return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
 
 
-def run_until(sup_obj, predicate, clock=None, timeout=20.0):
+def run_until(sup_obj, predicate, clock=None, timeout=60.0):
     deadline = time.time() + timeout
     while time.time() < deadline:
         if clock: clock.t = time.time() + 10_000

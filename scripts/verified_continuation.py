@@ -27,6 +27,11 @@ import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+# Allow `python scripts/verified_continuation.py` to import sibling `scripts.*` modules.
+_REPO_ROOT = str(Path(__file__).resolve().parent.parent)
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
+
 WORKKEY_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
 
 
@@ -465,10 +470,65 @@ class VerifiedContinuation:
             "manual_prompts_required": 0,
         }
 
+    def run_sequential_chain(self, units: List[dict]) -> dict:
+        """Execute N units (e.g. A -> B -> C) with automatic verified handoff.
+
+        Each unit: CLAIM -> EXECUTE -> VERIFY -> CHECKPOINT(next_workkey) -> RELEASE -> NEXT.
+        A unit that fails verification stops the chain; successors are never claimed.
+        """
+        if not units:
+            raise ValueError("Chain requires at least one unit")
+        keys = [u["workkey"] for u in units]
+        for key in keys:
+            validate_workkey(key)
+        if len(set(keys)) != len(keys):
+            raise ValueError(f"Duplicate workkeys in chain: {keys}")
+
+        completed: List[str] = []
+        checkpoints: List[str] = []
+        result_hashes: List[str] = []
+        for index, unit in enumerate(units):
+            key = keys[index]
+            next_key = keys[index + 1] if index + 1 < len(keys) else None
+            if not self.claim(key):
+                return self._chain_report("BLOCKED", completed, checkpoints, result_hashes, key, "claim_failed", keys)
+            mode = ExecutionMode(unit.get("mode", ExecutionMode.MODE_A_LOCAL_DETERMINISTIC))
+            try:
+                res = self.execute_unit(unit, mode=mode)
+            except Exception as exc:  # fail closed, keep claim released
+                self.release(key)
+                return self._chain_report("FAIL", completed, checkpoints, result_hashes, key, f"execute_error: {exc}", keys)
+            if not self.verify_result(res):
+                self.release(key)
+                return self._chain_report("FAIL", completed, checkpoints, result_hashes, key, f"verify_failed: {res.get('status')}", keys)
+            cp = self.checkpoint(key, res, next_workkey=next_key)
+            if not self.release(key):
+                return self._chain_report("BLOCKED", completed, checkpoints, result_hashes, key, "release_failed", keys)
+            completed.append(key)
+            checkpoints.append(cp.name)
+            result_hashes.append(res["result_hash"])
+
+        return self._chain_report("PASS", completed, checkpoints, result_hashes, None, None, keys)
+
+    @staticmethod
+    def _chain_report(status, completed, checkpoints, result_hashes, failed_at, reason, keys) -> dict:
+        return {
+            "status": status,
+            "chain": keys,
+            "units_completed": list(completed),
+            "checkpoints": list(checkpoints),
+            "result_hashes": list(result_hashes),
+            "failed_at": failed_at,
+            "reason": reason,
+            "not_started": keys[len(completed) + (1 if failed_at else 0):],
+            "manual_prompts_required": 0,
+        }
+
 
 def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Verified Continuation Runner for Courier Symphony")
     parser.add_argument("--verify-autonomy", action="store_true", help="Run full two-unit sequential acceptance test")
+    parser.add_argument("--verify-chain", action="store_true", help="Run A(Mode A) -> B(Mode B) -> C(Mode C) chain acceptance")
     parser.add_argument("--workkey", type=str, help="Single workkey to execute")
     parser.add_argument("--mode", type=str, default="MODE_A_LOCAL_DETERMINISTIC", choices=[m.value for m in ExecutionMode])
     parser.add_argument("--ledger-dir", type=str, default=None, help="Custom ledger directory for isolated testing")
@@ -476,6 +536,23 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     ledger_path = Path(args.ledger_dir) if args.ledger_dir else None
     engine = VerifiedContinuation(ledger_dir=ledger_path)
+
+    if args.verify_chain:
+        print("[CONTINUATION] Running A -> B -> C chain acceptance test...")
+        chain = [
+            {"task_id": "task-unit-a", "workkey": "WORKKEY_CHAIN_A_LOCAL", "mode": ExecutionMode.MODE_A_LOCAL_DETERMINISTIC},
+            {
+                "task_id": "task-unit-b",
+                "workkey": "WORKKEY_CHAIN_B_BUILDER",
+                "mode": ExecutionMode.MODE_B_GOOGLE_BUILDER,
+                "instruction": "Chain unit B within allowed scope",
+                "allowed_scope": ["happyhippovip/2026-courier"],
+            },
+            {"task_id": "task-unit-c", "workkey": "WORKKEY_CHAIN_C_SCHEDULE", "mode": ExecutionMode.MODE_C_AUTONOMOUS_SCHEDULE},
+        ]
+        report = engine.run_sequential_chain(chain)
+        print(json.dumps(report, indent=2))
+        return 0 if report["status"] == "PASS" else 1
 
     if args.verify_autonomy:
         print("[CONTINUATION] Running two-unit sequential continuation acceptance test...")

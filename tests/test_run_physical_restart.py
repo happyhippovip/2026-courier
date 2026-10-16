@@ -2,6 +2,7 @@ import pytest
 from pathlib import Path
 import json
 
+import pytest; pytest.importorskip("fcntl")
 def test_run_physical_restart_success(tmp_path, monkeypatch):
     import scripts.run_physical_restart as script
     

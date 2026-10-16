@@ -1,0 +1,63 @@
+{
+  "schema_version": "2.0",
+  "proposal_id": "PREPARER-PR491-BRIDGE-RECEIPT-PROPOSAL-20261011",
+  "created_at": "2026-10-11T13:20:00Z",
+  "host": "DESKTOP-JDPRUGR",
+  "source_sha": "fac447f5c9c22936177069566b82c7319bc35f5c",
+  "current_branch": "lane/L1-restart-exec-pin",
+  "preparer_role": "ANTIGRAVITY_READ_ONLY_PREPARER",
+  "status": "PROPOSED",
+  "authorization": "UNCLAIMED_AWAITING_AUTHORIZATION",
+  "summary": "Specific read-only task candidates for PR #491 (Antigravity Bridge stricter mock/receipt treatment and continuity)",
+  "pr_family": "#491 Antigravity Bridge",
+  "candidates": [
+    {
+      "candidate_id": "PR491-CAND-01",
+      "workkey": "VERIFY-PR491-MOCK-RECEIPT-DISQUALIFICATION",
+      "mode": "READ_ONLY_TEST",
+      "target_file": "scripts/run_antigravity_bridge.py",
+      "title": "Disqualify unverified EXECUTE_INSTRUCTION mock receipts from emitting PASS",
+      "defect_addressed": "scripts/run_antigravity_bridge.py:298-308 emits verdict=PASS for generic instruction without executing commands or asserting tests",
+      "acceptance_criteria": [
+        "Generic instructions without test commands or mutations must emit verdict='UNVERIFIED' or 'SIMULATION'",
+        "Chief review router must refuse AUTO_APPROVE_SAFE_RESULT for UNVERIFIED/SIMULATION and stop at HUMAN_APPROVAL_REQUIRED",
+        "Deterministic test suite confirms rejection of fake green"
+      ],
+      "status": "PROPOSED"
+    },
+    {
+      "candidate_id": "PR491-CAND-02",
+      "workkey": "VERIFY-PR491-BRIDGE-DURABLE-RECEIPT-NINE-FIELDS",
+      "mode": "READ_ONLY_TEST",
+      "target_file": "scripts/run_antigravity_bridge.py",
+      "title": "Validate all 9 lifecycle fields in Antigravity Bridge RESULT envelopes",
+      "defect_addressed": "Ensure bridge envelopes comply with integration_contract.validate_durable_result and preserve workkey, owner, status, input_fingerprint, source_sha, action, test_result, result_id, next_action",
+      "acceptance_criteria": [
+        "AntigravityHookRunner.on_task_completion projects and binds all 9 canonical lifecycle fields",
+        "Result files validate against courier_core/schemas/antigravity_result.schema.json and integration contract",
+        "Zero field loss across subprocess / restart boundary"
+      ],
+      "status": "PROPOSED"
+    },
+    {
+      "candidate_id": "PR491-CAND-03",
+      "workkey": "VERIFY-PR491-CLAIM-RELEASE-CONTINUITY",
+      "mode": "READ_ONLY_TEST",
+      "target_file": "scripts/run_antigravity_bridge.py",
+      "title": "Verify task claim and release continuity under bridge crash and stop hooks",
+      "defect_addressed": "Prevent orphaned claims or lingering locks when bridge stops or fails unexpectedly",
+      "acceptance_criteria": [
+        "on_task_stop releases active worker lease",
+        "on_task_failure marks task quarantined/BLOCKED with cause without dropping exclusion lock prematurely",
+        "No double-claim concurrency possible on bridge task resumption"
+      ],
+      "status": "PROPOSED"
+    }
+  ],
+  "verification_evidence": {
+    "existing_bridge_tests_status": "7 passed in 0.67s (tests/test_run_antigravity_bridge.py)",
+    "confirmed_mock_pass_lines": "scripts/run_antigravity_bridge.py:298-308",
+    "zero_cost_verified": true,
+    "human_gate_unbypassed": true
+  }
+}

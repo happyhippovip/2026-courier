@@ -175,7 +175,10 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
         ready = False
         for _ in range(40):
             try:
-                urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=1).read()
+                # /health is authenticated since H2_AUTHENTICATED_HEALTH.
+                req = urllib.request.Request(f"http://127.0.0.1:{port}/health",
+                                             headers={"Authorization": f"Bearer {env['COURIER_API_KEY']}"})
+                urllib.request.urlopen(req, timeout=1).read()
                 ready = True
                 break
             except Exception:

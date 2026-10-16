@@ -39,14 +39,34 @@ def test_workflow_lock(repo_dir):
     # Choose a PID that is likely running but not us (e.g. 1 on linux, or our own pid but mock os.kill)
     # Since we can't easily guess a running PID on windows, we'll mock os.kill and os.getpid
     with mock.patch("os.getpid", return_value=999999):
-        with mock.patch("os.kill") as mock_kill:
-            # os.kill doesn't throw -> process is "alive"
-            mock_kill.return_value = None
+        with mock.patch("psutil.Process") as mock_process:
+            import psutil
+            def process_mock_alive(pid):
+                if pid == lock_data.get("pid"):
+                    m = mock.MagicMock()
+                    m.create_time.return_value = lock_data.get("process_create_time")
+                    return m
+                elif pid == 999999:
+                    m = mock.MagicMock()
+                    m.create_time.return_value = 12345.0
+                    return m
+                raise psutil.NoSuchProcess(pid)
+
+            mock_process.side_effect = process_mock_alive
             with pytest.raises(WorkflowLockedError):
                 loop.acquire_workflow_lock(wf_id, "corr-1", "task-1")
                 
-            # Now simulate process is dead (os.kill throws OSError)
-            mock_kill.side_effect = OSError("No such process")
+            # Now simulate process is dead
+            def process_mock_dead(pid):
+                if pid == lock_data.get("pid"):
+                    raise psutil.NoSuchProcess(pid)
+                elif pid == 999999:
+                    m = mock.MagicMock()
+                    m.create_time.return_value = 12345.0
+                    return m
+                raise psutil.NoSuchProcess(pid)
+
+            mock_process.side_effect = process_mock_dead
             # Should succeed by reclaiming stale lock
             loop.acquire_workflow_lock(wf_id, "corr-1", "task-1")
     

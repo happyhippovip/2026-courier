@@ -67,6 +67,8 @@ class Job:
     failed: bool = False
     max_liability_eur: float = 0.0
     evidence: list = field(default_factory=list)
+    paid_on: str = ""             # ISO date the money arrived; groups revenue by month
+    delivered_on: str = ""        # ISO date the report reached the customer
 
     @property
     def revenue_eur(self):

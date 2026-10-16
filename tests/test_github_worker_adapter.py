@@ -364,7 +364,12 @@ def test_run_failures_and_state(tmp_path, monkeypatch):
     with pytest.raises(RuntimeError, match="workflow dispatch failed"):
         adapter.run(str(task_file))
 
-    # Ref fetch failed
+    # Ref fetch failed. Drop the DISPATCHING marker the previous section's
+    # failed dispatch left behind: with a fresh marker present, resume would
+    # honor the dispatch grace period and wait for a run that the mocked
+    # find_run can never return (300 s of real sleeps -> timeout). The
+    # marker belongs to the failed attempt, not to this section.
+    task_file.with_name(f"{task_file.stem}.github-worker-state.json").unlink()
     monkeypatch.setenv("GITHUB_WORKER_REF", "")
     monkeypatch.setattr(adapter, "run_cmd", lambda cmd: (1, "", "") if cmd[0] == "git" else (0, "", ""))
     with pytest.raises(RuntimeError, match="cannot determine dispatch ref"):

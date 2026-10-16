@@ -1,3 +1,4 @@
+import pytest; pytest.importorskip("fcntl")
 """Daemon must boot when launched standalone (launchd / run_physical spawn).
 
 Regression: the Resource Governor commit added a top-level

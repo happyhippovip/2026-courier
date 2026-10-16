@@ -1,0 +1,9 @@
+{
+  "NEXT_ACTION": "L1/L3: Proceed with production triggers now that revenue-3 is merged into integration/v1. The block is lifted.",
+  "OWNER": "L1-integration / L3",
+  "PRIORITY": "P0",
+  "SCOPE": "Integration / Merge Conflict Resolution",
+  "STAGE": "RELIABLE AUTOMATION",
+  "STATUS": "DONE",
+  "WORKKEY": "CHIEF-COORDINATION-02"
+}

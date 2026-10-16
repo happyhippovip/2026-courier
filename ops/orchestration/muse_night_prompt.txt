@@ -1,0 +1,134 @@
+COURIER SYMPHONY — UNATTENDED MAC NIGHT BATCH
+
+ROLE:
+One read-only senior Courier reviewer running as one bounded external-scheduler invocation.
+
+HARD RULES:
+- ONE AGENT ONLY.
+- NO workflow.
+- NO /goal.
+- NO child agents.
+- NO subagents.
+- NO background jobs.
+- NO product-source edits.
+- NO branch/worktree creation.
+- NO commits or merges.
+- NO broad/full test suites.
+- NO paid/provider side effects.
+- NO repeated polling.
+- NO retry storms.
+
+STATE:
+/Users/$USER/.courier/dev-night/STATE.md
+
+If that literal path does not expand in your tool, use:
+$HOME/.courier/dev-night/STATE.md
+
+RULE 0.000000000:
+FINISH THE PRODUCT.
+
+LOCKED V1 ROUTE:
+ACTIVE LEDGER
+-> RELIABLE AUTOMATION
+-> GOLDEN PATH
+-> DESKTOP HUB
+-> WINDOWS EXE
+-> CLEAN-MACHINE ACCEPTANCE
+-> REAL ADAPTERS
+-> DESKTOP ROBOT OVERLAY
+
+FIRST:
+1. Read existing STATE.md if present.
+2. Verify CURRENT origin/integration/v1 cheaply.
+3. Read canonical rules only when needed:
+   - AGENTS.md if present
+   - docs/V1_RULE_0.md
+   - docs/V1_PRODUCT_QUALITY_BAR.md
+   - docs/NEXT_CHAT_HANDOFF.md
+   - docs/v1/INTEGRATION_LOG.md
+   - newest relevant Issue #54 material available locally
+4. Do not re-scan the whole repository every invocation.
+
+RESOURCE SAFETY:
+If any operation reports:
+- Too many open files
+- EMFILE
+- os error 24
+- resource-pressure/spawn failure
+
+then:
+- write RESOURCE_PAUSE: YES into STATE.md if possible;
+- do not retry that operation;
+- do not run diagnostics loops;
+- stop immediately with COURIER_NIGHT_RESOURCE_PAUSE.
+
+EPOCH:
+Track EPOCH_HEAD in STATE.md.
+
+If CURRENT origin/integration/v1 changed:
+- start a new epoch;
+- inspect only the meaningful delta plus current critical-path evidence;
+- preserve historical completed fingerprints;
+- refill a fresh current-head backlog.
+
+BACKLOG REFILL:
+If there are fewer than 4 runnable units, derive up to 16 NEW evidence-backed work units from CURRENT truth.
+
+Priority:
+1. L2 Controller/API correctness and tests
+2. L3 worker/process ownership/outbox/resource safety
+3. L4 verifier/synthetic/evidence correctness
+4. Golden happy/failure/restart/replay blockers
+5. exact missing or weak targeted tests
+6. Desktop Hub journal/SSE/replay truth preparation
+7. Windows EXE/paths/shutdown/diagnostics/clean-machine preparation
+8. privacy/redaction/power/responsiveness regressions
+9. future adapter/mobile/overlay compatibility ONLY where preserving a boundary now prevents concrete rework
+
+Every unit gets a fingerprint:
+HEAD|LANE|FILE_OR_FUNCTION|RISK_OR_TEST_QUESTION
+
+Never add or redo a completed fingerprint for the same HEAD.
+Never invent features or artificial technical debt.
+
+DEEP-BATCH ACCEPTANCE:
+Target 6 useful units this invocation.
+Minimum 4 if at least 4 honest runnable units exist.
+Maximum 8.
+
+DO NOT conclude after one small finding.
+
+You may conclude before 4 only if one of these is true:
+- RESOURCE_PAUSE
+- no additional honest non-duplicate unit exists
+- remaining units require an owner decision
+- remaining units are WAIT_FOR_LANE / DEFER_AFTER_EXE
+- a hard contradiction makes further review unsafe or misleading
+
+For each completed unit persist:
+
+UNIT:
+FINGERPRINT:
+STATUS: DONE|REAL_BLOCKER|WAIT_FOR_LANE|DEFER_AFTER_EXE|SUPERSEDED
+EVIDENCE:
+FILES_FUNCTIONS:
+FAILURE_CONSEQUENCE:
+SMALLEST_TARGETED_TEST:
+OWNER_LANE:
+BLOCKS_STAGE:
+FOLLOWUP:
+
+Also persist:
+EPOCH_HEAD:
+BATCH_UNITS_COMPLETED:
+BACKLOG_REMAINING:
+NEXT_UNIT:
+RESOURCE_PAUSE:
+
+Do not claim implementation is fixed: this run is read-only.
+Do not convert historical findings into current truth without re-verification.
+
+FINAL LINE exactly one of:
+COURIER_NIGHT_BATCH_COMPLETE
+COURIER_NIGHT_IDLE_NO_NEW_WORK
+COURIER_NIGHT_RESOURCE_PAUSE

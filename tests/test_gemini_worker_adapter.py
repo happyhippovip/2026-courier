@@ -9,7 +9,7 @@ import pytest
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from scripts import gemini_worker_adapter
 
-def test_gemini_worker_adapter_success(tmp_path):
+def test_gemini_worker_adapter_success(tmp_path, monkeypatch):
     task_file = tmp_path / "dummy_task.json"
     with open(task_file, "w") as f:
         json.dump({"task_id": "gemini-1", "instruction": "do it"}, f)
@@ -18,23 +18,23 @@ def test_gemini_worker_adapter_success(tmp_path):
     mock_process.pid = 1234
     mock_process.communicate.return_value = ("```json\n{\"status\": \"SUCCESS\"}\n```", "")
     
+    monkeypatch.chdir(tmp_path)
     with mock.patch("subprocess.Popen", return_value=mock_process):
         with mock.patch("scripts.gemini_worker_adapter.consume") as mock_consume:
-            with mock.patch("os.chdir"): # prevent actual directory changes if any
-                pid, dispatch_ref, result_ref = gemini_worker_adapter.run_worker(str(task_file))
+            pid, dispatch_ref, result_ref = gemini_worker_adapter.run_worker(str(task_file))
                 
     assert pid == 1234
     assert result_ref == "gemini_result_gemini-1.json"
     
     # Check that it wrote the file
-    assert os.path.exists(result_ref)
-    with open(result_ref, "r") as f:
+    assert os.path.exists(tmp_path / result_ref)
+    with open(tmp_path / result_ref, "r") as f:
         res = json.load(f)
         assert res["status"] == "SUCCESS"
         assert res["pid"] == 1234
         
     # cleanup
-    os.remove(result_ref)
+    os.remove(tmp_path / result_ref)
 
 def test_gemini_worker_rejects_path_unsafe_task_id(tmp_path):
     task_file = tmp_path / "evil.json"
@@ -48,7 +48,7 @@ def test_gemini_worker_rejects_path_unsafe_task_id(tmp_path):
     popen.assert_not_called()
 
 
-def test_gemini_worker_negative_mode(tmp_path):
+def test_gemini_worker_negative_mode(tmp_path, monkeypatch):
     task_file = tmp_path / "dummy_task.json"
     with open(task_file, "w") as f:
         json.dump({"task_id": "gemini-neg", "instruction": "do it"}, f)
@@ -58,21 +58,21 @@ def test_gemini_worker_negative_mode(tmp_path):
     # Malformed output
     mock_process.communicate.return_value = ("this is garbage", "")
     
+    monkeypatch.chdir(tmp_path)
     with mock.patch("subprocess.Popen", return_value=mock_process):
         with mock.patch("scripts.gemini_worker_adapter.consume") as mock_consume:
-            with mock.patch("os.chdir"):
-                pid, dispatch_ref, result_ref = gemini_worker_adapter.run_worker(str(task_file), negative_test=True)
+            pid, dispatch_ref, result_ref = gemini_worker_adapter.run_worker(str(task_file), negative_test=True)
                 
     assert pid == 9999
-    assert os.path.exists(result_ref)
-    with open(result_ref, "r") as f:
+    assert os.path.exists(tmp_path / result_ref)
+    with open(tmp_path / result_ref, "r") as f:
         res = json.load(f)
         assert res["status"] == "FAILED"
         assert res["reason"] == "INVALID_RESULT"
         
-    os.remove(result_ref)
+    os.remove(tmp_path / result_ref)
 
-def test_gemini_worker_out_clean_ticks(tmp_path):
+def test_gemini_worker_out_clean_ticks(tmp_path, monkeypatch):
     task_file = tmp_path / "dummy_task.json"
     with open(task_file, "w") as f:
         json.dump({"task_id": "gemini-ticks", "instruction": "do it"}, f)
@@ -81,17 +81,17 @@ def test_gemini_worker_out_clean_ticks(tmp_path):
     mock_process.pid = 1111
     mock_process.communicate.return_value = ("```\n{\"status\": \"SUCCESS\"}\n```", "")
     
+    monkeypatch.chdir(tmp_path)
     with mock.patch("subprocess.Popen", return_value=mock_process):
         with mock.patch("scripts.gemini_worker_adapter.consume") as mock_consume:
-            with mock.patch("os.chdir"):
-                pid, dispatch_ref, result_ref = gemini_worker_adapter.run_worker(str(task_file))
+            pid, dispatch_ref, result_ref = gemini_worker_adapter.run_worker(str(task_file))
                 
-    with open(result_ref, "r") as f:
+    with open(tmp_path / result_ref, "r") as f:
         res = json.load(f)
         assert res["status"] == "SUCCESS"
-    os.remove(result_ref)
+    os.remove(tmp_path / result_ref)
 
-def test_gemini_worker_out_clean_no_ticks(tmp_path):
+def test_gemini_worker_out_clean_no_ticks(tmp_path, monkeypatch):
     task_file = tmp_path / "dummy_task.json"
     with open(task_file, "w") as f:
         json.dump({"task_id": "gemini-noticks", "instruction": "do it"}, f)
@@ -100,15 +100,15 @@ def test_gemini_worker_out_clean_no_ticks(tmp_path):
     mock_process.pid = 2222
     mock_process.communicate.return_value = ("{\"status\": \"SUCCESS\"}", "")
     
+    monkeypatch.chdir(tmp_path)
     with mock.patch("subprocess.Popen", return_value=mock_process):
         with mock.patch("scripts.gemini_worker_adapter.consume") as mock_consume:
-            with mock.patch("os.chdir"):
-                pid, dispatch_ref, result_ref = gemini_worker_adapter.run_worker(str(task_file))
+            pid, dispatch_ref, result_ref = gemini_worker_adapter.run_worker(str(task_file))
                 
-    with open(result_ref, "r") as f:
+    with open(tmp_path / result_ref, "r") as f:
         res = json.load(f)
         assert res["status"] == "SUCCESS"
-    os.remove(result_ref)
+    os.remove(tmp_path / result_ref)
 
 def test_consume_creates_new(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)

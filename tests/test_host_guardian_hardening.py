@@ -56,7 +56,7 @@ def test_idle_bit_alone_cannot_kill():
     assert res1.terminated is False
     assert res2.terminated is True
 
-def test_hysteresis_calm_streak():
+def test_hysteresis_calm_streak(monkeypatch):
     hg = HostGuardian()
     
     # Mock evaluate pressure to always be clean
@@ -72,9 +72,9 @@ def test_hysteresis_calm_streak():
     class MockDisk: free = 100 * (1024**3)
     
     import psutil
-    psutil.virtual_memory = lambda: MockMem()
-    psutil.swap_memory = lambda: MockSwap()
-    psutil.disk_usage = lambda path: MockDisk()
+    monkeypatch.setattr(psutil, "virtual_memory", lambda: MockMem())
+    monkeypatch.setattr(psutil, "swap_memory", lambda: MockSwap())
+    monkeypatch.setattr(psutil, "disk_usage", lambda path: MockDisk())
     
     # Clears once -> RECOVERING
     hg.evaluate_admission()

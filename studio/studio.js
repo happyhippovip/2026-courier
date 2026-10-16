@@ -956,8 +956,24 @@ export class LivingHQController {
     this.taskBoardCards.innerHTML = filtered.map(t => {
       const st = t.status || 'UNKNOWN';
       const provider = t.provider || 'LOCAL_DETERMINISTIC';
+      const execClass = t.execution_class || 'UNKNOWN';
       const owner = t.owner_agent || 'UNASSIGNED';
       const title = t.title || t.task_id;
+      
+      let badgeHtml = `<span class="task-card-badge">${provider}</span>`;
+      
+      if (execClass === 'REAL_CODEX_CLI') {
+        badgeHtml = `<span class="task-card-badge" style="background:#0a84ff; color:#fff; border: 1px solid #60a5fa;">✓ LOCAL CODEX NATIVE</span>`;
+      } else if (execClass === 'DETERMINISTIC_CODEX' || execClass === 'CHAT_STAGE') {
+        badgeHtml = `<span class="task-card-badge" style="background:#4b5563; color:#ccc;">⚠ UNVERIFIED CHAT / STATIC</span>`;
+      } else if (execClass === 'GITHUB_ACTIONS') {
+        badgeHtml = `<span class="task-card-badge" style="background:#1f2328; color:#e6edf3; border: 1px solid #30363d;">☁ GITHUB ACTIONS</span>`;
+      } else if (execClass === 'REAL_ANTIGRAVITY') {
+        badgeHtml = `<span class="task-card-badge" style="background:#10b981; color:#fff;">✓ LOCAL ANTIGRAVITY</span>`;
+      } else if (execClass !== 'UNKNOWN') {
+        badgeHtml = `<span class="task-card-badge">${execClass}</span>`;
+      }
+
       return `
         <div class="task-card">
           <div class="task-card-top">
@@ -966,7 +982,7 @@ export class LivingHQController {
           </div>
           <div class="task-card-title">${title}</div>
           <div class="task-card-meta">
-            <span class="task-card-badge">${provider}</span>
+            ${badgeHtml}
             <span>👤 ${owner}</span>
           </div>
         </div>
@@ -1067,6 +1083,10 @@ export class LivingHQController {
       <div class="inspector-field">
         <span class="inspector-field-label">OWNER & PROVIDER</span>
         <span class="inspector-field-val">${task.owner_agent || 'UNASSIGNED'} • <b class="text-cyan">${task.provider || 'LOCAL_DETERMINISTIC'}</b></span>
+      </div>
+      <div class="inspector-field">
+        <span class="inspector-field-label">EXECUTION CLASS</span>
+        <span class="inspector-field-val font-mono">${task.execution_class || 'UNKNOWN'}</span>
       </div>
       <div class="inspector-field">
         <span class="inspector-field-label">STATUS</span>

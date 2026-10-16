@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "status": "PREPARED_LOCAL_IMPORT",
+  "source": "C:\\Users\\lol\\Downloads\\COURIER_01_SHARED_TRUTH.md",
+  "source_sha256": "fc9edf29f6bb37ce92731dd45841fa6d7ef7f1b583e16e7f3b707df5b7b8fb34",
+  "destination": "docs/historical-sources/COURIER_01_SHARED_TRUTH.md",
+  "transformation": "UTF-8 text; normalized LF line endings; no semantic edits",
+  "confidentiality": "Public technical contract; historical, not operational authority",
+  "integration_ref_checked": "68de315616b70adcc24cdcd77577dc457e0d0da6",
+  "product_code_imported": false
+}

@@ -3,12 +3,13 @@ import os
 import json
 from scripts.queue_processor import process_queue
 
-def test_process_queue_does_not_abort_entire_session_on_single_failure(tmp_path):
+def test_process_queue_does_not_abort_entire_session_on_single_failure(tmp_path, monkeypatch):
     """
     Ensures that a partial queue batch failure does NOT cause the session to retire
     or abort early. If 3 items exist and item 1 fails, items 2 and 3 must still process,
     proving the queue tail is consumed and the physical session doesn't prematurely die.
     """
+    monkeypatch.chdir(tmp_path)
     os.makedirs("intakes/pending", exist_ok=True)
     os.makedirs("intakes/processed", exist_ok=True)
     
@@ -20,9 +21,6 @@ def test_process_queue_does_not_abort_entire_session_on_single_failure(tmp_path)
             else:
                 json.dump({"intent": "test", "id": i}, f)
                 
-    # process_queue should handle all 3, moving 0 and 2, but failing on 1
-    # without sys.exit
-    
     # We must patch dispatch_intake so it doesn't actually dispatch
     import scripts.queue_processor as qp
     original_dispatch = qp.dispatch_intake
@@ -36,7 +34,6 @@ def test_process_queue_does_not_abort_entire_session_on_single_failure(tmp_path)
         
     qp.dispatch_intake = mock_dispatch
 
-    
     try:
         qp.process_queue()
         
@@ -51,27 +48,19 @@ def test_process_queue_does_not_abort_entire_session_on_single_failure(tmp_path)
         assert "item_1.json" in pending
     finally:
         qp.dispatch_intake = original_dispatch
-        # Cleanup
-        for i in range(3):
-            if os.path.exists(f"intakes/pending/item_{i}.json"):
-                os.remove(f"intakes/pending/item_{i}.json")
-            if os.path.exists(f"intakes/processed/item_{i}.json"):
-                os.remove(f"intakes/processed/item_{i}.json")
 
 
-def test_queue_tail_durability_preserves_all_attributes():
+def test_queue_tail_durability_preserves_all_attributes(tmp_path, monkeypatch):
     """
     Explicitly verify the architecture preserves:
     QUEUED_ITEM_ID, ORDER, LANE, SOURCE, PRECONDITION, STATUS
     and that session destruction would not be the only durable representation.
     """
-    import os
+    monkeypatch.chdir(tmp_path)
     import json
     from scripts.intake_dispatcher import save_central_state, load_central_state
 
     state_file = "test_tail_durability_state.json"
-    if os.path.exists(state_file):
-        os.remove(state_file)
 
     # Simulate preserving the queue tail before session retirement
     mock_state = {
@@ -101,18 +90,14 @@ def test_queue_tail_durability_preserves_all_attributes():
     assert restored_task["source"] == "github_webhook"
     assert restored_task["precondition"] == "PR_OPEN"
     assert restored_task["status"] == "PENDING_EXECUTION"
-    
-    # Clean up
-    if os.path.exists(state_file):
-        os.remove(state_file)
 
 
-def test_anti_thrash_duplicate_wake_dedupe():
+def test_anti_thrash_duplicate_wake_dedupe(tmp_path, monkeypatch):
     """
     Ensure that identical, repeated wakes/prompts do not spin up new physical
     sessions or re-dispatch if the state has not materially changed (no duplicate).
     """
-    import os
+    monkeypatch.chdir(tmp_path)
     import json
     from scripts.intake_dispatcher import save_central_state, load_central_state, dispatch_intake, fingerprint_task_id
 
@@ -128,9 +113,6 @@ def test_anti_thrash_duplicate_wake_dedupe():
         json.dump(intake_data, f)
         
     state_file = "central_state.json"
-    if os.path.exists(state_file):
-        # Read or initialize
-        pass
         
     task_id = fingerprint_task_id(intake_data)
     
@@ -161,6 +143,3 @@ def test_anti_thrash_duplicate_wake_dedupe():
         assert len(called) == 0, "Duplicate wake triggered a physical execution!"
     finally:
         idisp.subprocess.run = original_subprocess
-        if os.path.exists("intakes/pending/dup_item.json"):
-            os.remove("intakes/pending/dup_item.json")
-            

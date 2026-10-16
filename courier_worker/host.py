@@ -43,6 +43,7 @@ MAX_ARGV_BYTES = 64 * 1024
 MAX_ARTIFACTS = 64
 MAX_ARTIFACT_BYTES = 16 * 1024 * 1024
 MAX_STDIO_TAIL = 64 * 1024
+MAX_RESULT_PAYLOAD_BYTES = 1024 * 1024  # 1 MiB wire limit for outbox payloads
 OUTBOX_CAP = 32
 ORPHAN_TERM_GRACE_S = 2.0
 LOAD_PRESSURE_FACTOR = 4.0
@@ -195,6 +196,22 @@ def default_pressure_probe() -> Optional[str]:
     except OSError as exc:
         return f"fd-exhaustion: {exc.strerror or exc}"
         
+    # Prefer OS-native thermal pressure signal on macOS
+    if sys.platform == "darwin":
+        import subprocess
+        try:
+            res = subprocess.run(["pmset", "-g", "therm"], capture_output=True, text=True, timeout=1.0)
+            if res.returncode == 0:
+                for line in res.stdout.splitlines():
+                    if "CPU_Speed_Limit" in line:
+                        parts = line.split("=")
+                        if len(parts) == 2:
+                            val = parts[1].strip()
+                            if val.isdigit() and int(val) < 100:
+                                return f"thermal-pressure: speed limit {val}%"
+        except Exception:
+            pass
+            
     try:
         load = _one_minute_load()
     except OSError as exc:
@@ -542,7 +559,7 @@ def run_orphan_gate(home: str) -> int:
             owner_pid = int(record.get("owner_pid", 0) or 0)
         except (OSError, ValueError, TypeError):
             try:
-                path.rename(path.with_suffix('.json.corrupt'))
+                path.replace(path.with_suffix('.json.corrupt'))
             except OSError:
                 pass
             continue
@@ -655,15 +672,39 @@ def _sha256_file(path: str) -> str:
 
 
 def collect_artifacts(artifact_dir: str) -> tuple:
-    """Hash every file under artifact_dir, bounded in count and bytes."""
+    """Hash every file under artifact_dir, bounded in count and bytes.
+    
+    Files or directories escaping artifact_dir via symlinks or reparse points
+    are strictly refused / pruned for directory containment.
+    """
     root = Path(artifact_dir)
     if not root.is_dir():
         return ()
+    try:
+        resolved_root = root.resolve()
+    except OSError:
+        return ()
     found = []
     total = 0
-    for dirpath, _dirnames, filenames in os.walk(artifact_dir):
+    for dirpath, dirnames, filenames in os.walk(artifact_dir):
+        # Prune subdirectories escaping artifact_dir (e.g. junctions, symlinks)
+        for d in list(dirnames):
+            d_path = Path(dirpath) / d
+            try:
+                d_res = d_path.resolve()
+                if d_res != resolved_root and resolved_root not in d_res.parents:
+                    dirnames.remove(d)
+            except OSError:
+                dirnames.remove(d)
         for name in sorted(filenames):
             full = os.path.join(dirpath, name)
+            full_path = Path(full)
+            try:
+                f_res = full_path.resolve()
+                if f_res != resolved_root and resolved_root not in f_res.parents:
+                    continue
+            except OSError:
+                continue
             try:
                 size = os.path.getsize(full)
             except OSError:
@@ -727,6 +768,9 @@ def _outbox_dir(home: str) -> Path:
 
 
 def outbox_write(home: str, payload: dict) -> Path:
+    serialized = json.dumps(payload, sort_keys=True)
+    if len(serialized.encode("utf-8")) > MAX_RESULT_PAYLOAD_BYTES:
+        raise SpecError(f"result payload exceeds size limit of {MAX_RESULT_PAYLOAD_BYTES} bytes")
     outbox = _outbox_dir(home)
     outbox.mkdir(parents=True, exist_ok=True)
     existing = list(outbox.glob("*.json"))
@@ -737,7 +781,7 @@ def outbox_write(home: str, payload: dict) -> Path:
     fd, tmp = tempfile.mkstemp(dir=str(outbox), prefix=".outbox-", suffix=".tmp")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as fh:
-            json.dump(payload, fh, sort_keys=True)
+            fh.write(serialized)
             fh.flush()
             os.fsync(fh.fileno())
         os.replace(tmp, path)
@@ -755,7 +799,13 @@ def outbox_read_all(home: str) -> list:
     if not outbox.is_dir():
         return []
     payloads = []
-    for path in sorted(outbox.glob("*.json")):
+    # Deterministic chronological FIFO order: older results are read and acknowledged first,
+    # tie-broken by lexical path name.
+    candidates = sorted(
+        outbox.glob("*.json"),
+        key=lambda p: (p.stat().st_mtime if p.exists() else 0.0, p.name)
+    )
+    for path in candidates:
         try:
             payloads.append((path, json.loads(path.read_text(encoding="utf-8"))))
         except (OSError, ValueError):
@@ -860,7 +910,8 @@ class WorkerHost:
                 break
             if on_heartbeat is not None:
                 try:
-                    on_heartbeat(time.monotonic() - start)
+                    if on_heartbeat(time.monotonic() - start) is not False:
+                        lease_at = time.monotonic() + spec.lease_ttl_s
                 except Exception:
                     pass  # a failed heartbeat never kills a healthy run
         duration_s = time.monotonic() - start

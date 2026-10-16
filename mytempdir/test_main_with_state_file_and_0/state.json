@@ -1,1 +1,0 @@
-{"goals": {"g1": {"status": "ACTIVE", "current_step_index": 0, "workflow_plan": [{"task_id": "t1", "status": "QUEUED", "target_agent": "github"}]}}, "tasks": {}, "workers": {}}

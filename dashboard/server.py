@@ -85,6 +85,15 @@ def get_status_payload() -> dict:
     # Check for Emergency Latch
     is_emergency = (EVENTS_DIR / "EMERGENCY_LATCH").exists()
 
+    # Read advisor state
+    advisor_state = {}
+    advisor_file = EVENTS_DIR / "acceleration_advisor" / "advisor_state.json"
+    if advisor_file.exists():
+        try:
+            advisor_state = json.loads(advisor_file.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+
     return {
         "status": "EMERGENCY" if is_emergency else "ONLINE",
         "version": "3.0-live-autonomy",
@@ -94,6 +103,7 @@ def get_status_payload() -> dict:
         "active_workers_count": len(active_workers),
         "active_workers": active_workers,
         "hq_snapshot": hq_snapshot,
+        "advisor_state": advisor_state,
         "host_capacity": {
             "health": "EMERGENCY" if is_emergency else "HEALTHY",
             "active_leases": 2, # Simulated values for dashboard

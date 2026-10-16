@@ -99,6 +99,7 @@ def test_late_result_from_superseded_attempt_is_discarded(courier):
 def test_timeout_kills_the_task_tree_and_retries(courier):
     courier.start_controller()
     worker = courier.start_worker()
+    time.sleep(3)  # Allow worker to initialize Windows networking thread pools
     baseline_descendants = courier.settled_descendants(worker)
     baseline_handles = open_handles(worker.pid)
     task_id = courier.make_task(hang=True, timeout_s=3)

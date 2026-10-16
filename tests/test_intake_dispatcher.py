@@ -27,13 +27,14 @@ def test_dispatch_intake_success(tmp_path):
     # the M05 dispatcher tests; here the dispatch binds to run 9999.
     with mock.patch("scripts.intake_dispatcher.subprocess.run") as mock_run, \
          mock.patch("scripts.intake_dispatcher.resolve_execution_ref", return_value="9999"), \
-         mock.patch("time.sleep"):
+         mock.patch("scripts.intake_dispatcher.time.sleep"):
 
         def fake_run(cmd, *args, **kwargs):
             if cmd[1] == "workflow":
                 return mock.Mock(stdout="dispatched")
             elif cmd[1] == "run":
-                return mock.Mock(stdout="9999\n")
+                # Ensure the created time is strictly > 0 so it matches since_epoch
+                return mock.Mock(stdout='[{"databaseId": 9999, "createdAt": "2030-01-01T00:00:00Z"}]')
             return mock.Mock()
         mock_run.side_effect = fake_run
         
@@ -90,7 +91,7 @@ def test_dispatch_intake_corrupt_state_fails_closed(tmp_path):
         f.write("not a valid json")
 
     with mock.patch("scripts.intake_dispatcher.subprocess.run") as mock_run, \
-         mock.patch("time.sleep"):
+         mock.patch("scripts.intake_dispatcher.time.sleep"):
         mock_run.return_value = mock.Mock(stdout="9999")
         with pytest.raises(SystemExit) as exc:
             intake_dispatcher.dispatch_intake(str(intake_file))

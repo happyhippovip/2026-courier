@@ -792,3 +792,38 @@ body {
   text-decoration: none;
 }
 .footer-link:hover { text-decoration: underline; }
+
+/* ACCELERATION ADVISOR */
+.advisor-card {
+  transition: all 0.3s ease;
+}
+
+.advisor-card.warning-red {
+  background: rgba(244, 63, 94, 0.1);
+  border-color: var(--accent-rose);
+  box-shadow: 0 0 20px rgba(244, 63, 94, 0.4);
+  animation: pulse-red-border 2s infinite ease-in-out;
+}
+
+@keyframes pulse-red-border {
+  0%, 100% { box-shadow: 0 0 15px rgba(244, 63, 94, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(244, 63, 94, 0.7); }
+}
+
+.advisor-card.warning-yellow {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: var(--accent-amber);
+}
+
+.badge.red-badge { background: rgba(244, 63, 94, 0.2); color: var(--accent-rose); border: 1px solid rgba(244, 63, 94, 0.4); }
+.badge.yellow-badge { background: rgba(245, 158, 11, 0.2); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.4); }
+.badge.green-badge { background: rgba(16, 185, 129, 0.2); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.4); }
+
+.advisor-message {
+  font-size: 0.95rem;
+  color: #fff;
+}
+
+.advisor-message strong {
+  font-weight: 700;
+}

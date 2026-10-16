@@ -7,6 +7,7 @@ Linux evidence can never satisfy a Windows-native requirement.
 """
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from typing import Optional
 
 # Host health states as per Issue 76
 HEALTHY = "HEALTHY"

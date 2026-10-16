@@ -130,6 +130,34 @@ def test_success_collects_artifact_with_exact_ids(tmp_path):
     assert host.busy is False
 
 
+def test_claim_write_failure_terminates_owned_tree(tmp_path, monkeypatch):
+    """A failed claim-record write kills the owned tree and clears the flight."""
+    real_spawn = H._spawn_contained
+    spawned = {}
+
+    def spy_spawn(argv, run_dir, tag):
+        run = real_spawn(argv, run_dir, tag)
+        spawned["run"] = run
+        return run
+
+    monkeypatch.setattr(H, "_spawn_contained", spy_spawn)
+    (tmp_path / "run").mkdir()
+    (tmp_path / "run" / "claims").write_text("not-a-directory", encoding="utf-8")
+    host = make_host(tmp_path)
+    spec = make_spec(tmp_path, argv=[PY, "-c", "import time; time.sleep(30)"])
+    try:
+        with pytest.raises(OSError):
+            host.run_once(spec)
+        run = spawned["run"]
+        assert run.tree_alive() is False
+        assert host._active is None
+        assert host.busy is False
+    finally:
+        run = spawned.get("run")
+        if run is not None and run.tree_alive():
+            run.terminate_tree()
+
+
 def test_second_claim_while_busy_is_refused(tmp_path):
     host = make_host(tmp_path)
     slow = make_spec(tmp_path, dispatch="slow", argv=[PY, "-c", "import time; time.sleep(5)"])
@@ -591,7 +619,33 @@ def test_sse_cancel_aborts_run_promptly(tmp_path, stub):
     assert len(STUB.results) == 1
     assert STUB.results[0]["outcome"] == "failure"
     assert STUB.results[0]["retryable"] is False
-    assert {"dispatch_ids": [], "worker_id": "w1"} in STUB.beats  # stop confirmation
+    assert {"dispatch_ids": [], "worker_id": "w1", "resource_state": "NORMAL"} in STUB.beats  # stop confirmation
+
+
+def test_stop_releases_blocked_stream(tmp_path, stub):
+    # A silent SSE stream must not pin the socket and the watcher thread for
+    # timeout_s after the run ends (that was the Windows golden handle leak).
+    watcher = S.CancelWatcher(stub, TOKEN, "t-quiet", timeout_s=30.0)
+    watcher.start()
+    time.sleep(1.0)  # subscribed and waiting on the silent stream
+    thread = watcher._thread
+    assert thread.is_alive()
+    started = time.monotonic()
+    watcher.stop()
+    assert time.monotonic() - started < 1.5
+    assert not thread.is_alive()
+    assert not watcher.degraded
+
+
+def test_sse_rejected_subscription_degrades(tmp_path, stub, monkeypatch):
+    monkeypatch.setattr(S, "SSE_RECONNECTS", 0)
+    watcher = S.CancelWatcher(stub, "wrong-token", "t-x", timeout_s=5.0)
+    watcher.start()
+    deadline = time.monotonic() + 5
+    while not watcher.degraded and time.monotonic() < deadline:
+        time.sleep(0.05)
+    watcher.stop()
+    assert watcher.degraded and not watcher.cancelled()
 
 
 @pytest.mark.parametrize("spec_over, params, needle", [

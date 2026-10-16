@@ -345,6 +345,8 @@ class Service:
             self.token = load_or_create_token(home / "run" / "controller.token")
             self.server = ControllerServer(port, self.controller, self.token)
         except BaseException:
+            if hasattr(self, "controller"):
+                self.controller.stop()
             self.lock.release()
             raise
         self.server.stopping = threading.Event()

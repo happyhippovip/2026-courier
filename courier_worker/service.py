@@ -25,6 +25,7 @@ import signal
 import socket
 import sys
 import threading
+import time
 import urllib.parse
 from typing import Callable, Optional
 
@@ -52,6 +53,7 @@ STARTUP_HEALTH_ATTEMPTS = 5
 STARTUP_HEALTH_SLEEP_S = 1.0
 FLUSH_TIMEOUT_S = 3.0
 SSE_RECONNECTS = 3
+SSE_POLL_S = 0.25  # bounds how long stop() waits for the watcher thread
 
 CANCEL_TYPES = frozenset({"TASK_CANCEL_REQUESTED", "TASK_CANCELLED"})
 
@@ -112,14 +114,23 @@ class ControllerClient:
 
     def health(self) -> bool:
         try:
-            status, _ = self._call("GET", "/health")
+            status, payload = self._call("GET", "/health")
         except ControllerError:
             return False
-        return status == 200
+        if status != 200 or not isinstance(payload, dict):
+            return False
+        if payload.get("mode") not in ("normal", None):
+            return False
+        build = payload.get("build")
+        if isinstance(build, dict) and "version" in build:
+            ctrl_ver = str(build["version"]).split(".")[0]
+            if ctrl_ver and ctrl_ver != "1":
+                return False
+        return True
 
-    def claim(self, worker_id: str) -> Optional[dict]:
+    def claim(self, worker_id: str, resource_state: str = "NORMAL") -> Optional[dict]:
         try:
-            status, payload = self._call("POST", "/claim", {"worker_id": worker_id})
+            status, payload = self._call("POST", "/claim", {"worker_id": worker_id, "resource_state": resource_state})
         except ControllerError:
             return None
         if status == 204:
@@ -138,9 +149,9 @@ class ControllerClient:
         if status != 200:
             raise StaleDispatch(f"start for {dispatch_id}: status {status}")
 
-    def heartbeat(self, worker_id: str, dispatch_ids: list) -> dict:
+    def heartbeat(self, worker_id: str, dispatch_ids: list, resource_state: str = "NORMAL") -> dict:
         status, payload = self._call("POST", "/heartbeat",
-                               {"worker_id": worker_id, "dispatch_ids": dispatch_ids})
+                               {"worker_id": worker_id, "dispatch_ids": dispatch_ids, "resource_state": resource_state})
         if status != 200:
             raise ControllerError(f"heartbeat: status {status}")
         return payload or {}
@@ -294,39 +305,61 @@ class CancelWatcher:
                 self._stop.wait(1.0)
 
     def _subscribe(self) -> None:
+        # Raw socket with a short poll instead of a blocking http.client read:
+        # a blocked read held the socket and this thread for timeout_s after
+        # the run ended (Windows golden handle leak), and neither shutdown()
+        # nor a timed-out SocketIO can end it portably. The controller streams
+        # with Connection: close and no chunking (courier_core/serve.py).
         parts = urllib.parse.urlparse(self.base_url)
-        cls = http.client.HTTPSConnection if parts.scheme == "https" else http.client.HTTPConnection
-        conn = cls(parts.hostname, parts.port or (443 if parts.scheme == "https" else 80),
-                   timeout=self.timeout_s)
+        host = parts.hostname or "127.0.0.1"
+        port = parts.port or (443 if parts.scheme == "https" else 80)
+        sock = socket.create_connection((host, port), timeout=self.timeout_s)
         try:
-            conn.request("GET", "/v1/events",
-                         headers={"X-Courier-Token": self.token, "Accept": "text/event-stream"})
-            resp = conn.getresponse()
-            if resp.status != 200:
-                raise ControllerError(f"sse: status {resp.status}")
-            sock = conn.sock
-            if sock is not None:
-                sock.settimeout(self.timeout_s)
+            if parts.scheme == "https":
+                import ssl
+                sock = ssl.create_default_context().wrap_socket(sock, server_hostname=host)
+            sock.sendall((f"GET /v1/events HTTP/1.1\r\nHost: {host}:{port}\r\n"
+                          f"X-Courier-Token: {self.token}\r\nAccept: text/event-stream\r\n"
+                          "Connection: close\r\n\r\n").encode())
+            sock.settimeout(SSE_POLL_S)
+            header_deadline = time.monotonic() + self.timeout_s
+            buf = b""
+            in_body = False
             data_lines: list = []
             while not self._stop.is_set() and not self._cancelled.is_set():
                 try:
-                    line = resp.readline()
-                except (OSError, socket.timeout, http.client.HTTPException):
-                    if self._stop.is_set() or self._cancelled.is_set():
-                        return
-                    continue  # keep-alive gap; the socket timeout bounds it
-                if not line:
+                    chunk = sock.recv(65536)
+                except socket.timeout:
+                    if not in_body and time.monotonic() > header_deadline:
+                        raise ControllerError("sse: no response headers")
+                    continue  # quiet stream; re-check stop/cancel
+                if not chunk:
                     return
-                text = line.decode("utf-8", errors="replace").strip()
-                if text == "":
-                    self._dispatch_event(data_lines)
-                    data_lines = []
-                elif text.startswith("data:"):
-                    data_lines.append(text[5:].strip())
-                elif text.startswith(":"):
-                    pass  # comment keep-alive
+                buf += chunk
+                if not in_body:
+                    if b"\r\n\r\n" not in buf:
+                        if len(buf) > 65536:
+                            raise ControllerError("sse: oversized headers")
+                        continue
+                    head, buf = buf.split(b"\r\n\r\n", 1)
+                    status = head.split(b"\r\n", 1)[0].split()
+                    code = status[1].decode("ascii", "replace") if len(status) > 1 else "?"
+                    if code != "200":
+                        raise ControllerError(f"sse: status {code}")
+                    if b"transfer-encoding: chunked" in head.lower():
+                        raise ControllerError("sse: chunked stream not supported")
+                    in_body = True
+                while b"\n" in buf:
+                    line, buf = buf.split(b"\n", 1)
+                    text = line.decode("utf-8", errors="replace").strip()
+                    if text == "":
+                        self._dispatch_event(data_lines)
+                        data_lines = []
+                    elif text.startswith("data:"):
+                        data_lines.append(text[5:].strip())
+                    # ":" comments (keep-alive), "id:" and "event:" need no action
         finally:
-            conn.close()
+            sock.close()
 
     def _dispatch_event(self, data_lines: list) -> None:
         if not data_lines:
@@ -358,6 +391,8 @@ class WorkerLoop:
         self._client_factory = client_factory or self._default_client
         self._client: Optional[ControllerClient] = None
         self._watchers: dict = {}
+        self._cooldown_until: float = 0.0
+        self._last_resource_state: str = "NORMAL"
 
     def _default_client(self) -> ControllerClient:
         token_path = os.path.join(self.home, "run", "controller.token")
@@ -390,14 +425,40 @@ class WorkerLoop:
 
     def iterate(self, stop: threading.Event) -> str:
         """Run one claim-execute-deliver cycle. Never loops by itself."""
+        import time
         try:
             self.flush_outbox()
         except ControllerError:
             return "idle"
         client = self._client or self._client_factory()
         self._client = client
-        claim = client.claim(self.worker_id)
+        
+        reason = self.engine._pressure_probe()
+        now = time.time()
+        
+        if reason is not None:
+            self._last_resource_state = "PRESSURED"
+            self._cooldown_until = now + 60.0  # 1 minute hysteresis
+        elif now < self._cooldown_until:
+            self._last_resource_state = "COOLDOWN"
+        else:
+            self._last_resource_state = "NORMAL"
+            
+        if self._last_resource_state != "NORMAL":
+            # Just send heartbeat to report state and remain idle
+            try:
+                client.heartbeat(self.worker_id, [], resource_state=self._last_resource_state)
+            except ControllerError:
+                pass
+            return "idle"
+            
+        claim = client.claim(self.worker_id, resource_state=self._last_resource_state)
         if claim is None:
+            # Send idle heartbeat
+            try:
+                client.heartbeat(self.worker_id, [], resource_state=self._last_resource_state)
+            except ControllerError:
+                pass
             return "idle"
         try:
             spec = resolve_spec(claim, self.worker_id, self.artifacts_root(), self.heartbeat_s,
@@ -445,12 +506,13 @@ class WorkerLoop:
                 pass
         return "delivered"
 
-    def _send_heartbeat(self, client: ControllerClient, spec: ExecutionSpec) -> None:
-        payload = client.heartbeat(self.worker_id, [spec.dispatch_id])
+    def _send_heartbeat(self, client: ControllerClient, spec: ExecutionSpec) -> bool:
+        payload = client.heartbeat(self.worker_id, [spec.dispatch_id], resource_state=self._last_resource_state)
         if spec.dispatch_id in payload.get("cancel", []) or spec.dispatch_id in payload.get("stop", []):
             watcher = self._watchers.get(spec.dispatch_id)
             if watcher:
                 watcher._cancelled.set()
+        return True
 
     def _deliver_payload(self, payload: dict) -> None:
         outbox_write(self.home, payload)

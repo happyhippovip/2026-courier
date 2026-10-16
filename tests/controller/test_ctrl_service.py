@@ -386,6 +386,37 @@ def test_process_listens_on_loopback_only(tmp_path):
         proc.wait(timeout=10)
 
 
+# ------------------------------------------------- M. cancel/resolve routes
+def test_cancel_route_over_http(live):
+    """Cancel was only pinned in-process: the wire path (regex + body shape)
+    needs its own pin, since automation cancels stuck claims over HTTP."""
+    task_id = live.post("/v1/tasks", task_body()).json()["task_id"]
+    answer = live.post(f"/v1/tasks/{task_id}/cancel")
+    assert answer.status_code == 200 and answer.json()["status"] == "CANCELLED"
+    assert live.get(f"/v1/tasks/{task_id}").json()["status"] == "CANCELLED"
+    repeat = live.post("/v1/tasks/task-unknown/cancel")
+    assert repeat.status_code == 404
+    terminal = live.post(f"/v1/tasks/{task_id}/cancel")
+    assert terminal.status_code == 409  # terminal tasks stay decided
+
+
+def test_resolve_route_validates_over_http(live):
+    """Resolve validation (decision/actor/attempt/reason, then task lookup)
+    must hold over HTTP before any human-desk flow can rely on it."""
+    task_id = live.post("/v1/tasks", task_body()).json()["task_id"]
+    bad = live.post(f"/v1/tasks/{task_id}/resolve",
+                    {"decision": "bogus", "actor": "desk:ana", "attempt": 1, "reason": "x"})
+    assert bad.status_code == 400
+    queued = live.post(f"/v1/tasks/{task_id}/resolve",
+                       {"decision": "retry_authorized", "actor": "desk:ana", "attempt": 1,
+                        "reason": "operator retry"})
+    assert queued.status_code == 409  # only a blocked task takes a decision
+    missing = live.post("/v1/tasks/task-unknown/resolve",
+                        {"decision": "retry_authorized", "actor": "desk:ana", "attempt": 1,
+                         "reason": "operator retry"})
+    assert missing.status_code == 404
+
+
 def test_newest_event_reaches_a_block_buffered_client_before_the_stream_idles(live):
     # requests.iter_lines reads 512-byte blocks; without the idle padding a short
     # final event sat in the client's buffer until the 15 s keepalive.

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import threading
 import time
 import requests
 import json
@@ -30,14 +31,28 @@ def persist_packet(task):
         return None
     DISPATCH_DIR.mkdir(parents=True, exist_ok=True)
     path = DISPATCH_DIR / f"{task['dispatch_id']}.json"
-    if path.exists():
-        return None  # already persisted; resume_pending() owns it
-    tmp = path.with_suffix(".json.tmp")
+    # Claim the packet exclusively: a racing admission for the same
+    # dispatch_id must lose (return None) instead of double-spawning an
+    # adapter. The tmp file is unique per thread so racers never share it;
+    # os.link() publishes atomically and fails when the packet already
+    # exists, so the final file is never torn and never duplicated.
+    tmp = DISPATCH_DIR / f"{task['dispatch_id']}.{os.getpid()}.{threading.get_ident()}.tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(task, f)
         f.flush()
         os.fsync(f.fileno())
-    os.replace(tmp, path)
+    try:
+        os.link(tmp, path)
+    except FileExistsError:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        return None  # already persisted; resume_pending() owns it
+    try:
+        os.unlink(tmp)
+    except OSError:
+        pass
     return path
 
 def spawn_adapter(path):

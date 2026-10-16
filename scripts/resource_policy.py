@@ -102,10 +102,65 @@ class CostGate:
     @staticmethod
     def evaluate_spend_request(
         resource_id: str,
-        estimated_cost_eur: float = 0.0,
+        estimated_cost_eur: float | None = 0.0,
         requested_action: str = "EXECUTE_TASK",
         repo_dir: Path | None = None,
+        grant: Any | None = None,
+        at: float | None = None,
     ) -> dict:
+        # Unknown cost or missing estimation cannot be authorized
+        if estimated_cost_eur is None or not isinstance(estimated_cost_eur, (int, float)):
+            return {
+                "allowed": False,
+                "reason": "UNKNOWN_COST_UNAUTHORIZED",
+                "message": "Task cost is unknown or not determinable; dispatch without bounded cost authorization is refused.",
+                "requires_human_gate": True,
+            }
+
+        if estimated_cost_eur < 0.0:
+            return {
+                "allowed": False,
+                "reason": "INVALID_NEGATIVE_COST",
+                "message": "Estimated cost cannot be negative.",
+                "requires_human_gate": True,
+            }
+
+        # If positive cost is declared, it strictly requires an active unexpired SpendGrant
+        if estimated_cost_eur > 0.0:
+            if grant is None:
+                return {
+                    "allowed": False,
+                    "reason": "SPEND_NOT_ALLOWED_BY_POLICY",
+                    "message": "Positive spend requested without a valid SpendGrant. Courier never spends without explicit bounded authority.",
+                    "requires_human_gate": True,
+                }
+            # Check grant revocation or expiration if grant object provided
+            now = at if at is not None else datetime.datetime.now(datetime.timezone.utc).timestamp()
+            if getattr(grant, "revoked", False):
+                return {
+                    "allowed": False,
+                    "reason": "GRANT_REVOKED",
+                    "message": "The provided spend grant has been revoked.",
+                    "requires_human_gate": True,
+                }
+            start = getattr(grant, "start", 0.0)
+            end = getattr(grant, "end", 0.0)
+            if not (start <= now < end):
+                return {
+                    "allowed": False,
+                    "reason": "GRANT_EXPIRED",
+                    "message": "The provided spend grant is outside its valid time window or expired.",
+                    "requires_human_gate": True,
+                }
+            max_spend = getattr(grant, "max_spend_eur", 0.0)
+            if estimated_cost_eur > max_spend:
+                return {
+                    "allowed": False,
+                    "reason": "GRANT_LIMIT_EXCEEDED",
+                    "message": f"Requested cost {estimated_cost_eur} EUR exceeds grant maximum {max_spend} EUR.",
+                    "requires_human_gate": True,
+                }
+
         policy = ResourcePolicyManager.get_policy(repo_dir)
         active = policy.get("active_paid_resources", {})
         planned = policy.get("planned_resources", {})
@@ -129,8 +184,8 @@ class CostGate:
                 "requires_human_gate": True,
             }
 
-        # Check unapproved extra spending / capacity upgrades
-        if estimated_cost_eur > 0.0 or "upgrade" in requested_action.lower() or "purchase" in requested_action.lower():
+        # Check unapproved capacity upgrades / purchases
+        if "upgrade" in requested_action.lower() or "purchase" in requested_action.lower():
             return {
                 "allowed": False,
                 "reason": "SPEND_NOT_ALLOWED_BY_POLICY",

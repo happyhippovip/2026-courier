@@ -18,6 +18,10 @@ Rules enforced here:
 """
 
 import enum
+import json
+import os
+from pathlib import Path
+import tempfile
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
@@ -63,6 +67,10 @@ class ContinuationCheckpoint:
     authority_boundary: str = "PRESERVED"
     next_units: List[str] = field(default_factory=list)
     source_refs: List[str] = field(default_factory=list)
+    workkey: str = ""
+    mutable_scope: str = ""
+    next_action: str = ""
+    provider_connection_id: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -85,6 +93,10 @@ class ContinuationCheckpoint:
             "authority_boundary": self.authority_boundary,
             "next_units": list(self.next_units),
             "source_refs": list(self.source_refs),
+            "workkey": self.workkey,
+            "mutable_scope": self.mutable_scope,
+            "next_action": self.next_action,
+            "provider_connection_id": self.provider_connection_id,
         }
 
     @classmethod
@@ -124,6 +136,7 @@ class LaneHibernator:
         self.state: LaneState = LaneState.ACTIVE
         self.resources: Dict[str, Resource] = {}
         self.release_hooks: Dict[str, Callable[[str], None]] = {}
+        self.reacquire_hooks: Dict[str, Callable[[str], None]] = {}
         self.checkpoint: Optional[ContinuationCheckpoint] = None
         self.release_report: Dict[str, Any] = {}
 
@@ -133,37 +146,55 @@ class LaneHibernator:
         kind: str,
         essential: bool = False,
         release_hook: Optional[Callable[[str], None]] = None,
+        reacquire_hook: Optional[Callable[[str], None]] = None,
     ) -> None:
         self.resources[name] = Resource(name=name, kind=kind, essential=essential)
         if release_hook is not None:
             self.release_hooks[name] = release_hook
+        if reacquire_hook is not None:
+            self.reacquire_hooks[name] = reacquire_hook
 
     def _releasable(self, res: Resource) -> bool:
         if res.essential:
             return False
         return res.kind in RELEASABLE_KINDS
 
-    def hibernate(self, checkpoint: ContinuationCheckpoint) -> Dict[str, Any]:
+    def hibernate(self, checkpoint: ContinuationCheckpoint,
+                  persist: Optional[Callable[[], None]] = None) -> Dict[str, Any]:
         if self.state == LaneState.HIBERNATED:
-            raise RuntimeError("lane already HIBERNATED")
+            raise RuntimeError("Lane is already hibernated")
+        
+        self.checkpoint = checkpoint
+        # Persist the continuation BEFORE releasing even the first resource.
+        if persist is not None:
+            persist()
+        if self.state == LaneState.HIBERNATED:
+            return dict(self.release_report)
         released: List[str] = []
         retained: List[str] = []
+        failed: List[str] = []
         for res in self.resources.values():
             if self._releasable(res):
                 hook = self.release_hooks.get(res.name)
-                if hook is not None:
-                    hook(res.name)
+                if hook is not None and not res.released:
+                    try:
+                        hook(res.name)
+                    except Exception:
+                        failed.append(res.name)
+                        continue
                 res.released = True
                 released.append(res.name)
             else:
                 retained.append(res.name)
-        self.checkpoint = checkpoint
-        self.state = LaneState.HIBERNATED
+        self.state = LaneState.ACTIVE if failed else LaneState.HIBERNATED
         self.release_report = {
             "released": sorted(released),
             "retained": sorted(retained),
             "checkpoint_tasks": [checkpoint.task_id],
+            "failed": sorted(failed),
         }
+        if persist is not None:
+            persist()
         return dict(self.release_report)
 
     def resume(self) -> ContinuationCheckpoint:
@@ -171,6 +202,14 @@ class LaneHibernator:
             raise RuntimeError("lane is not HIBERNATED")
         if self.checkpoint is None:
             raise RuntimeError("no checkpoint to resume from")
+        
+        for name, res in self.resources.items():
+            if res.released:
+                hook = self.reacquire_hooks.get(name)
+                if hook is not None:
+                    hook(name)  # Failure must not pretend the resource is acquired.
+                res.released = False
+                
         self.state = LaneState.ACTIVE
         return self.checkpoint
 
@@ -178,6 +217,7 @@ class LaneHibernator:
         return {
             "state": self.state.value,
             "checkpoint": self.checkpoint.to_dict() if self.checkpoint else None,
+            "release_report": self.release_report,
             "resources": {
                 name: {
                     "kind": res.kind,
@@ -192,6 +232,7 @@ class LaneHibernator:
     def from_dict(cls, data: Dict[str, Any]) -> "LaneHibernator":
         lane = cls()
         lane.state = LaneState(data.get("state", "ACTIVE"))
+        lane.release_report = dict(data.get("release_report", {}))
         if data.get("checkpoint"):
             lane.checkpoint = ContinuationCheckpoint.from_dict(data["checkpoint"])
         for name, spec in (data.get("resources") or {}).items():
@@ -202,3 +243,29 @@ class LaneHibernator:
                 released=bool(spec.get("released", False)),
             )
         return lane
+
+
+def save_continuation(path, value):
+    """Atomic, fsynced snapshot. Caller holds the existing runtime home lock.
+
+    This is state persistence, not a new scheduler/claim mechanism. Never put
+    secrets in continuation packets. An invalid snapshot must fail closed.
+    """
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(dir=path.parent, prefix=".continuation-")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            json.dump(value, stream, sort_keys=True)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+        if os.name != "nt":
+            directory = os.open(path.parent, os.O_RDONLY)
+            try:
+                os.fsync(directory)
+            finally:
+                os.close(directory)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)

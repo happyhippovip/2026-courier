@@ -1,5 +1,6 @@
 import pytest
 import sys
+import os
 import runpy
 from pathlib import Path
 from unittest.mock import patch
@@ -52,6 +53,7 @@ def test_q14_proof():
         # time.sleep(2)
         # http_post...
         
-        runpy.run_path(str(Path(repo_root) / "scripts" / "q14_proof.py"), run_name="__main__")
+        with patch.dict(os.environ, {}, clear=False):
+            runpy.run_path(str(Path(repo_root) / "scripts" / "q14_proof.py"), run_name="__main__")
         
         assert mock_urlopen.call_count == 5
