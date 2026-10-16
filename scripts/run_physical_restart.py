@@ -19,6 +19,15 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
+def human_relay_counter(events):
+    """Count classified human relays. An empty or unclassified sample is not 0."""
+    root = str(REPO_ROOT)
+    if root not in sys.path:
+        sys.path.insert(0, root)
+    from courier_core.continuity_metrics import count_human_relays
+    verdict = count_human_relays([] if events is None else events)
+    return verdict.count
+
 def check_resources(force: bool = False):
     """Verify system capacity before starting."""
     if force:
@@ -129,7 +138,7 @@ def execute_run2(sha: str, run1_dir: str, evidence_dir: str, port: int = 8081):
         "execution_counters": {
             "process_a": 0,
             "process_b": 0,
-            "human_relay_count": 0
+            "human_relay_count": human_relay_counter(run1_snap.get("human_events", []))
         },
         "state_transitions": transitions,
         "payload": payload,
