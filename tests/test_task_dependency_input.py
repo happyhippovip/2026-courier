@@ -42,10 +42,23 @@ def synthetic_task(**params):
 def wait_for(predicate, timeout_s=30.0):
     deadline = time.monotonic() + timeout_s
     while time.monotonic() < deadline:
-        if predicate():
-            return True
+        try:
+            if predicate():
+                return True
+        except (sqlite3.OperationalError, sqlite3.InterfaceError):
+            pass
         time.sleep(0.1)
     return False
+
+
+def task_state(ctl, task_id):
+    with ctl._locked():
+        return ctl.journal.task(task_id) if ctl.journal else None
+
+
+def task_events(ctl, task_id):
+    with ctl._locked():
+        return list(ctl.journal.events(task_id=task_id)) if ctl.journal else []
 
 
 def deliver_one(loop, timeout_s=60.0):
@@ -76,27 +89,28 @@ def test_real_controller_and_worker_run_a_then_b_on_the_verified_result(live, tm
     loop = worker_service.WorkerLoop(str(home), live.base, "w1", 0.2)
 
     assert deliver_one(loop)
-    assert wait_for(lambda: ctl.journal.task(a).status is TaskStatus.COMPLETE)
-    assert ctl.journal.task(b).status is TaskStatus.QUEUED
+    assert wait_for(lambda: getattr(task_state(ctl, a), "status", None) is TaskStatus.COMPLETE)
+    assert getattr(task_state(ctl, b), "status", None) is TaskStatus.QUEUED
 
     assert deliver_one(loop)
-    assert wait_for(lambda: ctl.journal.task(b).status is TaskStatus.COMPLETE), ctl.journal.task(b).last_reason
+    assert wait_for(lambda: getattr(task_state(ctl, b), "status", None) is TaskStatus.COMPLETE), getattr(task_state(ctl, b), "last_reason", None)
 
-    state_a, state_b = ctl.journal.task(a), ctl.journal.task(b)
+    state_a, state_b = task_state(ctl, a), task_state(ctl, b)
     bound = state_b.input
     assert bound["task_id"] == a and bound["dispatch_id"] == state_a.dispatch_id
     assert bound["artifacts"] == [{"path": f"artifacts/{state_a.dispatch_id}/token.txt", "sha256": sha(token.encode())}]
     produced = (home / "artifacts" / state_b.dispatch_id / "reversed.txt").read_bytes()
     assert produced == token[::-1].encode()
 
-    events_b = list(ctl.journal.events(task_id=b))
+    events_b = task_events(ctl, b)
     claimed = [e for e in events_b if e.type is EventType.TASK_CLAIMED]
     accepted = [e for e in events_b if e.type is EventType.RESULT_ACCEPTED]
     assert len(claimed) == 1 and claimed[0].payload["input"] == bound
     assert len(accepted) == 1 and accepted[0].payload["verifier"]["name"].startswith("adapters.synthetic")
-    assert sum(e.type is EventType.TASK_CLAIMED for e in ctl.journal.events(task_id=a)) == 1
+    assert sum(e.type is EventType.TASK_CLAIMED for e in task_events(ctl, a)) == 1
     assert loop.iterate(threading.Event()) == "idle"  # nothing is dispatched a second time
-    assert ctl.journal.verify_chain().ok and ctl.journal.verify_projection()
+    with ctl._locked():
+        assert ctl.journal.verify_chain().ok and ctl.journal.verify_projection()
 
 
 def test_a_changed_dependency_artifact_never_reaches_the_adapter(live, tmp_path):
@@ -106,12 +120,13 @@ def test_a_changed_dependency_artifact_never_reaches_the_adapter(live, tmp_path)
     b = ctl.create_task({**synthetic_task(write="reversed.txt", from_input="reverse"), "depends_on": a})[1]["task_id"]
     loop = worker_service.WorkerLoop(str(home), live.base, "w1", 0.2)
     assert deliver_one(loop)
-    assert wait_for(lambda: ctl.journal.task(a).status is TaskStatus.COMPLETE)
-    (home / "artifacts" / ctl.journal.task(a).dispatch_id / "token.txt").write_bytes(b"EVIL")  # after verification
+    assert wait_for(lambda: getattr(task_state(ctl, a), "status", None) is TaskStatus.COMPLETE)
+    dispatch_a = task_state(ctl, a).dispatch_id
+    (home / "artifacts" / dispatch_a / "token.txt").write_bytes(b"EVIL")  # after verification
 
     assert deliver_one(loop)
-    assert wait_for(lambda: ctl.journal.task(b).status is TaskStatus.FAILED)
-    state_b = ctl.journal.task(b)
+    assert wait_for(lambda: getattr(task_state(ctl, b), "status", None) is TaskStatus.FAILED)
+    state_b = task_state(ctl, b)
     assert "input refused" in state_b.last_reason
     assert not (home / "artifacts" / state_b.dispatch_id / "reversed.txt").exists()
 
@@ -124,25 +139,27 @@ def test_controller_restart_between_a_and_b_runs_b_once_and_a_never_again(tmp_pa
         a = ctl.create_task(synthetic_task(write="token.txt", content="RESTART"))[1]["task_id"]
         b = ctl.create_task({**synthetic_task(write="reversed.txt", from_input="reverse"), "depends_on": a})[1]["task_id"]
         assert deliver_one(worker_service.WorkerLoop(str(home), first.base, "w1", 0.2))
-        assert wait_for(lambda: ctl.journal.task(a).status is TaskStatus.COMPLETE)
-        dispatch_a = ctl.journal.task(a).dispatch_id
+        assert wait_for(lambda: getattr(task_state(ctl, a), "status", None) is TaskStatus.COMPLETE)
+        dispatch_a = task_state(ctl, a).dispatch_id
     finally:
         first.stop()  # the controller process ends before B was ever dispatched
 
     second = LiveService(home, verifier=adapter_verifier)  # new controller, new port, same journal
     try:
         ctl = second.controller
-        assert ctl.journal.task(a).status is TaskStatus.COMPLETE and ctl.journal.task(b).status is TaskStatus.QUEUED
+        assert getattr(task_state(ctl, a), "status", None) is TaskStatus.COMPLETE and getattr(task_state(ctl, b), "status", None) is TaskStatus.QUEUED
         loop = worker_service.WorkerLoop(str(home), second.base, "w2", 0.2)  # a fresh worker as well
         assert deliver_one(loop)
-        assert wait_for(lambda: ctl.journal.task(b).status is TaskStatus.COMPLETE), ctl.journal.task(b).last_reason
+        assert wait_for(lambda: getattr(task_state(ctl, b), "status", None) is TaskStatus.COMPLETE), getattr(task_state(ctl, b), "last_reason", None)
         assert loop.iterate(threading.Event()) == "idle"
-        assert ctl.journal.task(b).input["dispatch_id"] == dispatch_a
-        assert (home / "artifacts" / ctl.journal.task(b).dispatch_id / "reversed.txt").read_bytes() == b"TRATSER"
+        state_b = task_state(ctl, b)
+        assert state_b.input["dispatch_id"] == dispatch_a
+        assert (home / "artifacts" / state_b.dispatch_id / "reversed.txt").read_bytes() == b"TRATSER"
         for task_id in (a, b):
-            kinds = [e.type for e in ctl.journal.events(task_id=task_id)]
+            kinds = [e.type for e in task_events(ctl, task_id)]
             assert kinds.count(EventType.TASK_CLAIMED) == 1 and kinds.count(EventType.TASK_COMPLETE) == 1
-        assert ctl.journal.verify_chain().ok and ctl.journal.verify_projection()
+        with ctl._locked():
+            assert ctl.journal.verify_chain().ok and ctl.journal.verify_projection()
     finally:
         second.stop()
 
