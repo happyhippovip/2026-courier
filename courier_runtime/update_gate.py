@@ -18,19 +18,31 @@ class CapabilityState:
     replay_digest: str        # hash of the canonical projection of a fixed journal
 
 
+def _rollback_source(digest):
+    if isinstance(digest, str) and digest.strip():
+        return digest
+    return None
+
+
 def compare(before, after):
     accepted_before = {c for c, ok in before.capabilities.items() if ok}
     accepted_after = {c for c, ok in after.capabilities.items() if ok}
     lost = sorted(accepted_before - accepted_after)
     new = sorted(accepted_after - accepted_before)
-    replay_ok = before.replay_digest == after.replay_digest
+    before_source = _rollback_source(before.replay_digest)
+    after_source = _rollback_source(after.replay_digest)
+    replay_ok = before_source is not None and before_source == after_source
     if lost or not replay_ok:
         reasons = [f"lost: {lost}"] if lost else []
         if not replay_ok:
-            reasons.append("journal replay projects to a different history")
+            if before_source is None or after_source is None:
+                reasons.append("rollback source is not assigned")
+            else:
+                reasons.append("journal replay projects to a different history")
         return {"decision": "REJECT", "lost": lost, "proposed": new, "reasons": reasons,
                 "recovery": {"keep_version": before.version, "discard_version": after.version,
-                             "action": "RESUME_FROM_CHECKPOINT", "resume_from": {"version": before.version}}}
+                             "action": "RESUME_FROM_CHECKPOINT",
+                             "resume_from": {"version": before.version, "replay_digest": before_source}}}
     return {"decision": "ACCEPT", "lost": [], "proposed": new,
             "reasons": [f"kept all {len(accepted_before)} accepted capabilities"] +
                        ([f"{len(new)} new capabilities proposed, not yet accepted"] if new else []),

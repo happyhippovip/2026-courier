@@ -115,7 +115,7 @@ def build_binding(db_path: str | Path, repo: str | Path = ROOT) -> dict:
     unknowns: list[str] = []
     source_sha = _git(repo, "rev-parse", "HEAD")
     tree = _git(repo, "rev-parse", "HEAD^{tree}")
-    porcelain = _git(repo, "status", "--porcelain")
+    porcelain = _git(repo, "status", "--porcelain", "--untracked-files=all")
     if not (isinstance(source_sha, str) and _SHA40.fullmatch(source_sha)
             and isinstance(tree, str) and _SHA40.fullmatch(tree)):
         unknowns.append("source_identity_unavailable")
