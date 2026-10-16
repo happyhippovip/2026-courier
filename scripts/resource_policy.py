@@ -127,7 +127,6 @@ class CostGate:
         grant: Any | None = None,
         at: float | None = None,
     ) -> dict:
-<<<<<<< HEAD
         # Unknown cost or missing estimation cannot be authorized
         if estimated_cost_eur is None or not isinstance(estimated_cost_eur, (int, float)):
             return {
