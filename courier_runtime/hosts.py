@@ -5,6 +5,8 @@ Evidence carries the device that produced it and is accepted for a
 requirement only if that device actually has the required capability, so
 Linux evidence can never satisfy a Windows-native requirement.
 """
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Optional
