@@ -233,11 +233,14 @@ def get_goal(goal_id):
     tasks = [task for task in state["tasks"].values() if task.get("goal_id") == goal_id]
     user_summary = derive_user_state(goal, state)
     cost_summary = derive_goal_cost_summary(goal, state)
+    from courier_core.completion_certificate import derive_completion_certificate
+    certificate = derive_completion_certificate(goal, state)
     return jsonify({
         "goal": goal,
         "tasks": tasks,
         "user_summary": user_summary,
         "cost_summary": cost_summary,
+        "certificate": certificate,
     })
 
 
@@ -263,6 +266,19 @@ def get_goal_cost(goal_id):
     if not goal:
         return jsonify({"error": "Unknown goal"}), 404
     return jsonify(derive_goal_cost_summary(goal, state))
+
+
+@app.route("/goals/<goal_id>/certificate", methods=["GET"])
+@require_auth
+def get_goal_certificate(goal_id):
+    from courier_core.completion_certificate import derive_completion_certificate
+
+    state = load_state()
+    goal = state["goals"].get(goal_id)
+    if not goal:
+        return jsonify({"error": "Unknown goal"}), 404
+    return jsonify(derive_completion_certificate(goal, state))
+
 
 
 @app.route("/workers", methods=["GET"])
