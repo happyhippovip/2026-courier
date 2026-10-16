@@ -88,11 +88,20 @@ def env(tmp_path, monkeypatch):
         "signal.signal(signal.SIGTERM, stop)\n"
         "try: d.loop()\nexcept d.WorkerShutdown: pass\n")
     monkeypatch.setattr(sup, "DAEMON", bootstrap)
+    launchers = []
+    real_launcher_cls = sup.ProcessLauncher
+    class TrackingLauncher(real_launcher_cls):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            launchers.append(self)
+    monkeypatch.setattr(sup, "ProcessLauncher", TrackingLauncher)
     http = server.app.test_client()
     auth = {"Authorization": f"Bearer {WORKER_KEY}"}
     try:
         yield sup, server, http, auth, tmp_path
     finally:
+        for l in launchers:
+            sup.cmd_stop(terminate=True, launcher=l)
         sup.cmd_stop(terminate=True)
         httpd.shutdown()
 
@@ -423,5 +432,35 @@ def test_main_cli_dispatch(env, monkeypatch):
     assert sup.main(["wall-bulletin"]) == 0
     assert sup.main(["wall-notaus"]) == 0
     assert sup.STOP_FILE.exists()
+
+
+def test_owned_popen_stops_when_ps_identity_is_missing(env, monkeypatch):
+    sup, server, http, auth, tmp = env
+    monkeypatch.setattr(sup, "process_identity", lambda pid: None)
+    launcher = sup.ProcessLauncher()
+    s = sup.Supervisor(launcher=launcher)
+    sup.cmd_start(1, loop=False)
+    s.tick(HEALTHY)
+    slots = sup.load_slots()
+    assert slots["01"]["state"] == "RUNNING"
+    pid = slots["01"]["pid"]
+    assert pid is not None
+    assert launcher.identities.get("01") is None
+    # Must terminate cleanly and reap child despite missing ps identity
+    assert sup.cmd_stop(terminate=True, launcher=launcher) == 0
+    proc = launcher.children.get("01")
+    assert proc.poll() is not None
+
+
+def test_teardown_leaves_no_slot_processes(env):
+    sup, server, http, auth, tmp = env
+    add_goal(http, auth, "t-leak-check")
+    clock = Clock()
+    s = supervisor(sup, target=1, clock=clock)
+    assert run_until(s, lambda: task_state(server, "t-leak-check").get("status") == "RESULT_RECEIVED")
+    sup.cmd_stop(terminate=True, launcher=s.launcher)
+    for sid, proc in s.launcher.children.items():
+        assert proc.poll() is not None
+
 
 
