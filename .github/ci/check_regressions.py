@@ -4,9 +4,13 @@ Compares recorded test outcomes (outcomes_plugin.py) with the known-failure
 baseline in known_failures.json for one platform.
 
 Exit status:
-  0  no new failures (known failures and known flaky tests are tolerated)
-  1  at least one test failed that is not recorded as known failing or flaky,
-     or the pytest session itself was broken (collection error, crash, no tests),
+  0  no new failures. Known failures that actually failed are tolerated.
+     A flaky-list entry is tolerated only when that same node has at least
+     one passed sample and one failed sample. One failed sample is a failure.
+  1  at least one test failed that is not a known failure, a proven flake
+     (pass and fail of the same node), or out of scope for this platform;
+     or a known failure was skipped (skip is not a pass);
+     or the pytest session itself was broken (collection error, crash, no tests);
      or the Golden zero-skip rule fired (see below)
 
 Golden zero-skip rule (SKIPPED != PASS):
@@ -48,6 +52,19 @@ BROKEN_SESSION = {2, 3, 4, 5}
 def load_json(path):
     with open(path, encoding="utf-8") as handle:
         return json.load(handle)
+
+
+def outcome_samples(result):
+    """One outcome string, or several samples of the same node.
+
+    The outcomes plugin records a single string per node. A list is accepted
+    so a flake can be shown only when both a pass and a fail were recorded.
+    """
+    if isinstance(result, str):
+        return (result,)
+    if isinstance(result, (list, tuple)):
+        return tuple(item for item in result if isinstance(item, str))
+    return ()
 
 
 # Modules whose absence is the harness's own documented reason for skipping
@@ -123,9 +140,15 @@ def main(argv=None):
     outcomes = data.get("outcomes", {})
     exitstatus = data.get("exitstatus")
 
-    failed = sorted(node for node, result in outcomes.items() if result == "failed")
-    passed = sorted(node for node, result in outcomes.items() if result == "passed")
-    skipped = sorted(node for node, result in outcomes.items() if result == "skipped")
+    failed = sorted(node for node, result in outcomes.items() if "failed" in outcome_samples(result))
+    passed = sorted(
+        node for node, result in outcomes.items()
+        if "passed" in outcome_samples(result) and "failed" not in outcome_samples(result)
+    )
+    skipped = sorted(
+        node for node, result in outcomes.items()
+        if outcome_samples(result) and set(outcome_samples(result)) == {"skipped"}
+    )
 
     golden_rc, golden_lines = golden_zero_skip_gate(outcomes)
 
@@ -137,6 +160,7 @@ def main(argv=None):
 
     rc = 0
     new_failures, now_passing, scoped_out = [], [], []
+    skipped_known = []
     if exitstatus in BROKEN_SESSION:
         lines.append(f"GATE FAIL: pytest session broken (exit {exitstatus}).")
         rc = 1
@@ -158,26 +182,50 @@ def main(argv=None):
         def out_of_scope(node):
             return any(fnmatch.fnmatchcase(node, pattern) for pattern in scope_patterns)
 
-        unexpected = [node for node in failed if node not in known_failing and node not in known_flaky]
+        def samples(node):
+            return outcome_samples(outcomes.get(node))
+
+        proven_flaky = [
+            node for node in failed
+            if node in known_flaky and "passed" in samples(node) and "failed" in samples(node)
+        ]
+        proven = set(proven_flaky)
+        unexpected = [node for node in failed if node not in known_failing and node not in proven]
         scoped_out = [node for node in unexpected if out_of_scope(node)]
         new_failures = [node for node in unexpected if not out_of_scope(node)]
-        now_passing = sorted(node for node in known_failing if outcomes.get(node) == "passed")
+        now_passing = sorted(
+            node for node in known_failing
+            if "passed" in samples(node) and "failed" not in samples(node)
+        )
         missing = sorted(node for node in known_failing | known_flaky if node not in outcomes)
-        flaky_failed = [node for node in failed if node in known_flaky]
+        skipped_known = sorted(
+            node for node in known_failing
+            if samples(node) and set(samples(node)) == {"skipped"}
+        )
 
         lines.append("")
-        if new_failures:
+        plain_new = [node for node in new_failures if node not in known_flaky]
+        lone_flaky_fail = [node for node in new_failures if node in known_flaky]
+        if plain_new:
             rc = 1
             lines.append("GATE FAIL: new failures not in the known baseline:")
-            lines.extend(f"  NEW FAILURE {node}" for node in new_failures)
-        else:
+            lines.extend(f"  NEW FAILURE {node}" for node in plain_new)
+        if lone_flaky_fail:
+            rc = 1
+            lines.append("GATE FAIL: single failure is not a flake (no passing sample of the same node):")
+            lines.extend(f"  FAIL {node}" for node in lone_flaky_fail)
+        if skipped_known:
+            rc = 1
+            lines.append("GATE FAIL: known failure skipped (skip is not a pass):")
+            lines.extend(f"  KNOWN FAILURE SKIPPED {node}" for node in skipped_known)
+        if not new_failures and not skipped_known:
             lines.append("GATE PASS: no new failures.")
         if now_passing:
             lines.append("Known failures now PASSING (remove them from known_failures.json):")
             lines.extend(f"  NOW PASSING {node}" for node in now_passing)
-        if flaky_failed:
-            lines.append("Known flaky tests that failed this run (tolerated, still tracked):")
-            lines.extend(f"  FLAKY {node}" for node in flaky_failed)
+        if proven_flaky:
+            lines.append("Known flaky tests with both a pass and a fail of the same node:")
+            lines.extend(f"  FLAKY {node}" for node in proven_flaky)
         if scoped_out:
             reason = baseline.get("out_of_scope", {}).get("reason", "component does not run on this platform")
             lines.append(f"Failures out of scope on {args.platform} ({reason}):")
@@ -194,11 +242,14 @@ def main(argv=None):
                   f"pytest_exit={exitstatus} result={'FAIL' if rc else 'PASS'}")
         if baseline is not None:
             counts += (f" new={len(new_failures)} now_passing={len(now_passing)} "
-                       f"out_of_scope={len(scoped_out)}")
+                       f"out_of_scope={len(scoped_out)} known_skipped={len(skipped_known)}")
         print(f"::notice title=v1 gate {args.platform}::{counts}")
         # Name each new failure too (capped), so agents can triage from the API
         # without downloading the outcomes artifact.
-        for node in (new_failures or (failed if rc else []))[:10]:
+        announced = list(skipped_known) + list(new_failures)
+        if not announced and rc:
+            announced = list(failed)
+        for node in announced[:10]:
             print(f"::error title=new failure {args.platform}::{node}")
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary:
