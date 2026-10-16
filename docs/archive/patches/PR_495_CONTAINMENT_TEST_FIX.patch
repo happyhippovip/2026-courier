@@ -1,0 +1,82 @@
+diff --git a/tests/test_worker_host_spawn_contained.py b/tests/test_worker_host_spawn_contained.py
+index 3f57a86..1b444b5 100644
+--- a/tests/test_worker_host_spawn_contained.py
++++ b/tests/test_worker_host_spawn_contained.py
+@@ -36,6 +36,7 @@ class _FakeProc:
+         self._poll_result = poll_result
+         self._wait_script = []
+         self.wait_calls = []
++        self.kill_calls = 0
+ 
+     def queue_wait(self, *results):
+         self._wait_script.extend(results)
+@@ -53,6 +54,11 @@ class _FakeProc:
+             return result
+         return self._poll_result
+ 
++    def kill(self):
++        # subprocess.Popen.kill exists on every platform; the fake mirrors it
++        # so the spawn-cleanup path is exercisable without a real process.
++        self.kill_calls += 1
++
+ 
+ class _FakePopen:
+     """Records constructor kwargs; returns a scripted proc or raises."""
+@@ -81,6 +87,13 @@ def _spawn(monkeypatch, tmp_path, argv=("echo-stub", "a"), error=None):
+ # -- _spawn_contained ----------------------------------------------------------
+ 
+ def test_spawn_returns_contained_handle_with_stdio_paths(monkeypatch, tmp_path):
++    # Windows pins the child into a job object via Win32 handles, which needs
++    # a real pid. Stub that platform containment out so this test pins only
++    # the stdio contract on every platform. (raising=False: _resume_process
++    # exists only on the nt branch of the product module.)
++    monkeypatch.setattr(H, "_job_for_child", lambda: object(), raising=False)
++    monkeypatch.setattr(H, "_assign_to_job", lambda job, pid: None, raising=False)
++    monkeypatch.setattr(H, "_resume_process", lambda proc: None, raising=False)
+     fake, run = _spawn(monkeypatch, tmp_path)
+     assert isinstance(run, ContainedRun)
+     assert run.stdout_path == os.path.join(str(tmp_path), "task-x.out")
+@@ -145,11 +158,13 @@ def test_wait_returns_exit_code(tmp_path):
+     assert ContainedRun(proc, None, "o", "e").wait(timeout=1.0) == 0
+ 
+ 
++@POSIX_ONLY
+ def test_tree_alive_true_when_group_signallable(monkeypatch):
+     monkeypatch.setattr(os, "killpg", lambda pgid, sig: None)
+     assert ContainedRun(_FakeProc(pid=4242), None, "o", "e").tree_alive() is True
+ 
+ 
++@POSIX_ONLY
+ def test_tree_alive_false_when_group_is_gone(monkeypatch):
+     def _gone(pgid, sig):
+         raise ProcessLookupError("gone")
+@@ -158,6 +173,7 @@ def test_tree_alive_false_when_group_is_gone(monkeypatch):
+     assert ContainedRun(_FakeProc(pid=4242), None, "o", "e").tree_alive() is False
+ 
+ 
++@POSIX_ONLY
+ def test_tree_alive_true_on_permission_error(monkeypatch):
+     def _denied(pgid, sig):
+         raise PermissionError("denied")
+@@ -166,6 +182,21 @@ def test_tree_alive_true_on_permission_error(monkeypatch):
+     assert ContainedRun(_FakeProc(pid=4242), None, "o", "e").tree_alive() is True
+ 
+ 
++def test_tree_alive_windows_running_means_poll_is_none(monkeypatch):
++    """Windows has no process groups: poll() is the liveness probe.
++
++    os.name is patched so this pins the nt branch on every platform
++    instead of skipping the Windows safety requirement elsewhere.
++    """
++    monkeypatch.setattr(os, "name", "nt")
++    assert ContainedRun(_FakeProc(pid=4242, poll_result=None), None, "o", "e").tree_alive() is True
++
++
++def test_tree_alive_windows_exited_means_poll_is_set(monkeypatch):
++    monkeypatch.setattr(os, "name", "nt")
++    assert ContainedRun(_FakeProc(pid=4242, poll_result=3), None, "o", "e").tree_alive() is False
++
++
+ @POSIX_ONLY
+ def test_terminate_tree_terms_then_reaps_without_kill(monkeypatch):
+     signals = []

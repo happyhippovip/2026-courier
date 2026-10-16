@@ -1,0 +1,16 @@
+{
+  "workflow_id": "wf-test-2",
+  "correlation_id": "corr-wf-5cecdb80",
+  "workflow_plan": [
+    {
+      "task_id": "test",
+      "target_agent": "codex",
+      "instruction": "do something"
+    }
+  ],
+  "current_step_index": 0,
+  "status": "RESOURCE_PAUSE",
+  "stop_reason": "MAX_HEAVY_LOCAL_JOBS exceeded. Lane hibernating.",
+  "history": [],
+  "updated_at": "2026-10-08T03:23:07.703209+00:00"
+}

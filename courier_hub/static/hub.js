@@ -132,8 +132,33 @@ document.addEventListener('keydown', (event) => {
   if (event.key === 'r' && !event.ctrlKey && !event.metaKey && document.activeElement?.tagName !== 'TEXTAREA') refresh();
 });
 
+async function startCheck() {
+  const btn = $('#start-check');
+  if (btn) btn.disabled = true;
+  announce('Starting self-check…', 'ok');
+  try {
+    const res = await fetch('/hub/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Courier-Hub': '1' },
+      body: JSON.stringify({
+        adapter: 'synthetic',
+        params: { title: 'Self-Check', action: 'echo' },
+        effect_class: 'idempotent',
+      }),
+    });
+    if (!res.ok) throw new Error(String(res.status));
+    announce('Self-check started.', 'ok');
+    await refresh();
+  } catch {
+    announce("Couldn't start check right now.", 'warn');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
 $('#detail-close').addEventListener('click', closeDetail);
 $('#refresh').addEventListener('click', () => refresh());
+$('#start-check')?.addEventListener('click', () => startCheck());
 window.addEventListener('focus', () => refresh());
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
 window.addEventListener('online', () => refresh());

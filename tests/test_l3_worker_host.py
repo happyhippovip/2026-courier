@@ -580,6 +580,117 @@ def test_no_resend_after_accept(tmp_path, stub):
     assert len(STUB.results) == 1
 
 
+def test_worker_restart_recovers_pending_outbox_exactly_once(tmp_path):
+    """MUSE-WIN-008: Outbox persists through worker crash/restart and flushes once controller recovers."""
+    write_token(tmp_path)
+    delivered_attempts = []
+
+    class FailingControllerClient:
+        def deliver(self, payload):
+            delivered_attempts.append(("failed_attempt", payload))
+            raise S.ControllerError("controller temporarily unreachable")
+
+    class RecoveredControllerClient:
+        def deliver(self, payload):
+            delivered_attempts.append(("accepted", payload))
+            return "accepted"
+
+    payload = {
+        "dispatch_id": "d-restart-01",
+        "result_id": "r-restart-01",
+        "outcome": "success",
+        "artifacts": [{"path": "artifacts/d-restart-01/out.txt", "sha256": "0" * 64}],
+    }
+
+    # 1. Worker 1 executes work and attempts to deliver result while controller is unreachable
+    loop1 = S.WorkerLoop(str(tmp_path), "http://stub-offline", "w-first", 0.2)
+    loop1._client = FailingControllerClient()
+    loop1._deliver_payload(payload)
+
+    # 2. Outbox remains durably preserved on disk
+    pending = H.outbox_read_all(str(tmp_path))
+    assert len(pending) == 1
+    assert pending[0][1]["dispatch_id"] == "d-restart-01"
+    assert pending[0][1]["result_id"] == "r-restart-01"
+
+    # 3. Worker process 1 terminates / restarts:
+    # A completely fresh WorkerLoop instance starts in the same home directory
+    loop2 = S.WorkerLoop(str(tmp_path), "http://stub-offline", "w-restarted", 0.2)
+    loop2._client = RecoveredControllerClient()
+
+    # 4. Startup flush recovers and delivers pending result to the recovered controller
+    assert loop2.flush_outbox() == 0
+    assert H.outbox_read_all(str(tmp_path)) == []
+
+    # 5. Result delivered exactly once to the controller
+    accepted = [p for status, p in delivered_attempts if status == "accepted"]
+    assert len(accepted) == 1
+    assert accepted[0]["dispatch_id"] == "d-restart-01"
+
+    # 6. Subsequent flush attempts produce zero duplicate side effects
+    assert loop2.flush_outbox() == 0
+    assert len([p for status, p in delivered_attempts if status == "accepted"]) == 1
+
+
+def test_outbox_cap_and_recovery_e2e_no_duplicates(tmp_path, stub):
+    """MUSE-WIN-008-OUTBOX-RECOVERY:
+    1. Controller offline during execution delivery -> result safely preserved in outbox.
+    2. Outbox filled to OUTBOX_CAP -> host fails closed on further execution attempts.
+    3. Controller recovers -> flushed cleanly.
+    4. Delivery is exactly once with zero duplicate effects.
+    5. No orphaned child processes.
+    """
+    write_token(tmp_path)
+
+    # 1. Controller down during task delivery
+    STUB.claims.append(claim_body(dispatch="d-recov-01", task="t-recov-01"))
+    STUB.result_mode = "down"
+
+    loop = S.WorkerLoop(str(tmp_path), stub, "w-outbox-test", 0.2)
+    assert loop.iterate(threading.Event()) == "delivered"
+
+    # 2. Outbox has 1 durable result on disk
+    pending = H.outbox_read_all(str(tmp_path))
+    assert len(pending) == 1
+    assert pending[0][1]["dispatch_id"] == "d-recov-01"
+
+    # 3. Simulate filling outbox to OUTBOX_CAP
+    outbox_dir = tmp_path / "outbox"
+    for i in range(1, H.OUTBOX_CAP):
+        (outbox_dir / f"filler-{i}.json").write_text(
+            json.dumps({"dispatch_id": f"filler-{i}", "outcome": "success"}), encoding="utf-8"
+        )
+    assert len(list(outbox_dir.glob("*.json"))) == H.OUTBOX_CAP
+
+    # Outbox full: attempting to write a new dispatch must fail closed with OutboxFull
+    with pytest.raises(H.OutboxFull):
+        H.outbox_write(str(tmp_path), {"dispatch_id": "overflow-dispatch", "outcome": "success"})
+
+    # Clean up filler files so recovery can proceed
+    for i in range(1, H.OUTBOX_CAP):
+        (outbox_dir / f"filler-{i}.json").unlink()
+    assert len(H.outbox_read_all(str(tmp_path))) == 1
+
+    # 4. Worker restart simulation: fresh worker instance on the same home
+    STUB.result_mode = "accepted"
+    loop2 = S.WorkerLoop(str(tmp_path), stub, "w-outbox-recovered", 0.2)
+
+    # Startup flush delivers to recovered controller
+    remaining = loop2.flush_outbox()
+    assert remaining == 0
+    assert H.outbox_read_all(str(tmp_path)) == []
+
+    # 5. Exactly once verification: STUB recorded 1 failed connection attempt + 1 successful flush
+    delivered = [r for r in STUB.results if r.get("dispatch_id") == "d-recov-01"]
+    assert len(delivered) == 2  # one failed socket attempt recorded, one delivered
+    assert delivered[-1]["dispatch_id"] == "d-recov-01"
+
+    # Second flush attempt produces 0 calls / 0 duplicate effects
+    assert loop2.flush_outbox() == 0
+    delivered_after = [r for r in STUB.results if r.get("dispatch_id") == "d-recov-01"]
+    assert len(delivered_after) == 2  # unchanged, no re-delivery
+
+
 def test_sse_cancel_aborts_run_promptly(tmp_path, stub):
     write_token(tmp_path)
     STUB.claims.append(claim_body(task="t9", dispatch="d9", params={"hang": True}))

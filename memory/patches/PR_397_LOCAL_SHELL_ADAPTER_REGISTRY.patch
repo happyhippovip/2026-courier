@@ -1,0 +1,15 @@
+--- a/tests/test_adapter_bridge_effect.py
++++ b/tests/test_adapter_bridge_effect.py
+@@ -38,9 +38,10 @@ def _spec(**overrides):
+ # -- module constants --------------------------------------------------------
+ 
+ 
+-def test_adapters_registry_is_closed_to_synthetic():
+-    assert set(ADAPTERS.keys()) == {"synthetic"}
++def test_adapters_registry_contains_v1_adapters():
++    assert set(ADAPTERS.keys()) == {"synthetic", "local_shell"}
+     assert callable(ADAPTERS["synthetic"])
++    assert callable(ADAPTERS["local_shell"])
+ 
+ 
+ def test_max_params_bytes_is_64kib():

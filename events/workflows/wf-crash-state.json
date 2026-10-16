@@ -1,0 +1,16 @@
+{
+  "workflow_id": "wf-crash",
+  "correlation_id": "corr-wf-80a6d554",
+  "workflow_plan": [
+    {
+      "task_id": "test_crash",
+      "target_agent": "codex",
+      "instruction": "do something"
+    }
+  ],
+  "current_step_index": 0,
+  "status": "RUNNING",
+  "stop_reason": "UNKNOWN",
+  "history": [],
+  "updated_at": "2026-10-08T03:23:07.689961+00:00"
+}

@@ -197,6 +197,9 @@ test_tmp_path_mem/
 results*.xml
 pytest.log
 .coverage
-temp_queue*.md
-temp_test.py
 report*.xml
+
+# Local test clones and temporary dumps
+test_git/
+test_git2/
+courier_diagnostics.zip

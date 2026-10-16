@@ -94,6 +94,7 @@ class LiveService:
         self.thread.start()
         self.base = f"http://127.0.0.1:{self.service.port}"
         self.session = requests.Session()
+        self.session.trust_env = False
         self.session.headers["X-Courier-Token"] = self.service.token
 
     def get(self, path, **kw):

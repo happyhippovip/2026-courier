@@ -1,0 +1,1 @@
+sed -i '' 's/## Step 19 — L6 Launcher Robustification (2026-10-07)/## Step 19 — PR #130, L6 Launcher Robustification (2026-10-07)\n### `integration\/v1` merged `lane\/L6-launcher-robustification`/' docs/v1/INTEGRATION_LOG.md

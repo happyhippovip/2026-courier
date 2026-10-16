@@ -111,19 +111,32 @@ class SyntheticHang(RuntimeError):
 
 
 def is_safe_name(name: Any) -> bool:
-    """Workspace-relative names only: no absolute, drive, UNC, '..' or NUL.
-
-    Mirrors ``scripts.artifact_store.is_safe_artifact_name`` without importing
-    the legacy server path; both flavors are checked so a Windows escape that
-    looks innocent to POSIX (``C:foo``, ``\\\\unc\\\\share``, rooted-driveless)
-    is still refused.
-    """
-    if not isinstance(name, str) or not name or len(name) > 255 or "\x00" in name:
-        return False
-    for pure in (PureWindowsPath(name), PurePosixPath(name)):
-        if pure.is_absolute() or pure.drive or pure.root or ".." in pure.parts:
+    """Workspace-relative names only: no absolute, drive, UNC, '..', ADS,
+    device names, or ambiguous trailing normalization."""
+    try:
+        from scripts.artifact_store import is_safe_artifact_name
+        return is_safe_artifact_name(name)
+    except ImportError:
+        if not isinstance(name, str) or not name or len(name) > 255 or "\x00" in name:
             return False
-    return True
+        if ":" in name:
+            return False
+        for pure in (PureWindowsPath(name), PurePosixPath(name)):
+            if pure.is_absolute() or pure.drive or pure.root or ".." in pure.parts:
+                return False
+            for part in pure.parts:
+                if not part or part == ".":
+                    continue
+                if part.endswith(".") or part.endswith(" ") or part.startswith(" "):
+                    return False
+                stem = part.split(".")[0].upper()
+                if stem in {
+                    "CON", "PRN", "AUX", "NUL",
+                    "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+                    "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+                }:
+                    return False
+        return True
 
 
 def _params(params: Mapping[str, Any]) -> dict:
@@ -192,7 +205,25 @@ def run(params: Mapping[str, Any], workdir: str | os.PathLike, attempt: int = 1)
     :class:`SyntheticCrash` / :class:`SyntheticHang` for crash/hang faults.
     """
     cfg = _params(params)
-    root = Path(workdir)
+    root = Path(workdir).resolve()
+    target = (root / cfg["write"]).resolve()
+    try:
+        if not target.is_relative_to(root):
+            raise SyntheticError("write path escapes workdir sandbox")
+    except (ValueError, AttributeError):
+        if os.path.commonpath([str(root), str(target)]) != str(root):
+            raise SyntheticError("write path escapes workdir sandbox")
+
+    curr = root / cfg["write"]
+    while curr != root and curr.parent != curr:
+        if curr.is_symlink():
+            if not curr.resolve().is_relative_to(root):
+                raise SyntheticError("write path escapes workdir sandbox via symlink")
+        curr = curr.parent
+
+    if target.exists() and params.get("protected"):
+        raise SyntheticError("cannot overwrite protected file")
+
     if not isinstance(attempt, int) or attempt < 1:
         raise SyntheticError("attempt must be an int >= 1")
     faulted = attempt in cfg["fault_attempts"]
@@ -206,9 +237,10 @@ def run(params: Mapping[str, Any], workdir: str | os.PathLike, attempt: int = 1)
     if cfg["sleep_s"]:
         time.sleep(cfg["sleep_s"])
     data = cfg["content"].encode("utf-8")
-    _atomic_write(root / cfg["write"], data)
+    _atomic_write(target, data)
     digest = hashlib.sha256(data).hexdigest()
     return RunResult("success", [{"path": cfg["write"], "sha256": digest, "size": len(data)}])
+
 
 
 def _payload_artifacts(payload: Mapping[str, Any]) -> list | None:

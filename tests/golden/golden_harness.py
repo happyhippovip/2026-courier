@@ -105,6 +105,7 @@ class Api:
     def __init__(self, base_url, token):
         self.base_url = base_url
         self.session = requests.Session()
+        self.session.trust_env = False
         self.session.headers["X-Courier-Token"] = token
 
     def get(self, path, **kwargs):

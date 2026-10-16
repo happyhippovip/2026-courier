@@ -59,7 +59,7 @@ def test_win_clean_machine_harness(tmp_path):
     try:
         launcher = subprocess.Popen([str(launcher_exe)], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | 0x01000000)
     except PermissionError as e:
-        if e.winerror == 5:
+        if getattr(e, "winerror", None) == 5:
             # Cannot break away from Job object (e.g. GitHub Actions runner)
             launcher = subprocess.Popen([str(launcher_exe)], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
         else:
@@ -240,3 +240,34 @@ def test_win_clean_machine_harness(tmp_path):
         # wait a bit for file handles to close
         time.sleep(2)
         shutil.rmtree(courier_dir, ignore_errors=True)
+
+
+def test_clean_machine_harness_artifacts_present():
+    """Verify all files required by the clean-machine acceptance scenario exist."""
+    repo = Path(__file__).resolve().parent.parent
+    required = [
+        "scripts/windows_worker/launcher/CourierLauncher.cs",
+        "scripts/windows_worker/launcher/build_launcher.ps1",
+        "scripts/windows_worker/courier_installer.iss",
+        "scripts/windows_worker/build_package.ps1",
+        "scripts/windows_worker/install.ps1",
+        "scripts/windows_worker/install_service.ps1",
+        "scripts/windows_worker/uninstall.ps1",
+        "scripts/windows_worker/dist/install.ps1",
+        "scripts/windows_worker/dist/uninstall.ps1",
+        "scripts/windows_worker/status.bat",
+        "scripts/windows_worker/stop.bat",
+        "scripts/windows_worker/daemon.py",
+        "scripts/courier_status.py",
+        "scripts/right_host_guard.py",
+        "scripts/device_health_sampler.py",
+        "scripts/courier_recovery.py",
+        "scripts/work_preservation.py",
+        "scripts/layered_health.py",
+        "scripts/safe_resume_point.py",
+        "tests/test_win_clean_machine_simulation.py",
+    ]
+    for rel in required:
+        p = repo / rel
+        assert p.is_file(), f"Clean-machine artifact missing: {rel}"
+

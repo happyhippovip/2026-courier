@@ -187,7 +187,9 @@ def receipt_event_fields(mission: Mapping[str, Any], *, event_id: str, created_a
 
 def next_eligible(all_missions: Mapping[str, Mapping[str, Any]], owner: str) -> list[str]:
     """Distinct ready missions for one owner: WORKING, deps DONE, owned by the
-    caller or released. Sorted for a deterministic pick order."""
+    caller. Sorted for a deterministic pick order. Unowned missions are never
+    offered: ``eligible_for_mint``/``mint_packet`` refuse them with NOT_OWNER,
+    so offering them here would hand out work the caller may not mint."""
     ready = []
     for mission_id in sorted(all_missions):
         mission = all_missions[mission_id]
@@ -195,7 +197,7 @@ def next_eligible(all_missions: Mapping[str, Mapping[str, Any]], owner: str) -> 
             continue
         if _mission_status(mission) != "WORKING":
             continue
-        if _mission_owner(mission) not in (None, owner):
+        if _mission_owner(mission) != owner:
             continue
         depends = mission.get("depends_on") or []
         if any(_mission_status(all_missions.get(d, {})) != DONE for d in depends):

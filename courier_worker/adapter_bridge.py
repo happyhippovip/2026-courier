@@ -51,9 +51,21 @@ def _validate_synthetic(params: dict) -> dict:
         raise SpecError(f"synthetic params rejected: {exc}") from None
 
 
+def _validate_local_shell(params: dict) -> dict:
+    try:
+        from adapters import local_shell  # trusted Courier adapter (lane L4)
+    except ImportError as exc:
+        raise SpecError(f"adapter implementation unavailable on this worker: {exc}") from None
+    try:
+        return local_shell._params(params)
+    except local_shell.LocalShellError as exc:
+        raise SpecError(f"local_shell params rejected: {exc}") from None
+
+
 # adapter name -> params validator. Closed: adding an adapter is a code change.
 ADAPTERS: Dict[str, Callable[[dict], dict]] = {
     "synthetic": _validate_synthetic,
+    "local_shell": _validate_local_shell,
 }
 
 RUNNER_SCRIPT = str(Path(__file__).resolve().with_name("adapter_runner.py"))
@@ -137,8 +149,11 @@ def write_request(home: str, spec: Any) -> str:
 
 def read_report(home: str, dispatch_id: str) -> Optional[dict]:
     """The runner's structured outcome, or None if absent or malformed."""
+    path = report_path(home, dispatch_id)
     try:
-        with open(report_path(home, dispatch_id), encoding="utf-8") as fh:
+        if os.path.getsize(path) > MAX_PARAMS_BYTES:
+            return None
+        with open(path, encoding="utf-8") as fh:
             report = json.load(fh)
     except (OSError, ValueError):
         return None

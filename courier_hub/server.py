@@ -278,6 +278,36 @@ class Hub:
         reason = (note.strip() if isinstance(note, str) and note.strip() else "Stopped in the desktop hub")[:1000]
         return self._relay(task_id, "POST", f"/v1/tasks/{task_id}/cancel", {"actor": self.actor, "reason": reason})
 
+    def create_task(self, body: dict) -> tuple:
+        if not isinstance(body, dict):
+            return 400, {"result": "invalid", "message": "Task body must be a JSON object."}
+        adapter = body.get("adapter")
+        if not isinstance(adapter, str) or not adapter:
+            return 400, {"result": "invalid", "message": "The task must specify an adapter."}
+        params = body.get("params")
+        if not isinstance(params, dict):
+            return 400, {"result": "invalid", "message": "Params must be a dictionary."}
+        payload = {
+            "adapter": adapter,
+            "params": params,
+            "effect_class": body.get("effect_class", "idempotent"),
+            "max_attempts": body.get("max_attempts", 3),
+            "lease_ttl_s": body.get("lease_ttl_s", 60),
+        }
+        if "idempotency_key" in body and isinstance(body["idempotency_key"], str):
+            payload["idempotency_key"] = body["idempotency_key"]
+        if "timeout_s" in body and isinstance(body["timeout_s"], (int, float)):
+            payload["timeout_s"] = int(body["timeout_s"])
+        try:
+            code, answer = self._call("POST", "/v1/tasks", payload)
+        except NotSent:
+            return 503, {"result": "offline", "message": "Courier isn't reachable right now. Nothing was created."}
+        except ResponseLost:
+            return 504, {"result": "unknown", "message": "Courier may have created this task, but its answer was lost."}
+        if code in (200, 201):
+            return code, {"result": "created", "task_id": answer.get("task_id"), "duplicate": answer.get("duplicate", False)}
+        return code, {"result": "refused", "message": answer.get("message", "Courier refused this task.")}
+
     def _relay(self, task_id: str, method: str, path: str, payload: dict) -> tuple:
         try:
             code, answer = self._call(method, path, payload)
@@ -418,10 +448,18 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(400, {"error": "invalid_json"})
         if not isinstance(body, dict):
             return self._send(400, {"error": "invalid_json"})
-        match = _ITEM_ACTION.match(urlsplit(self.path).path)
+        path = urlsplit(self.path).path
+        hub: Hub = self.server.hub
+        if path == "/hub/api/tasks":
+            try:
+                status, payload = hub.create_task(body)
+                return self._send(status, payload)
+            except Exception:
+                log.exception("hub error on POST %s", path)
+                return self._send(500, {"result": "unknown", "message": "The hub hit an internal error."})
+        match = _ITEM_ACTION.match(path)
         if not match:
             return self._send(404, {"error": "not_found"})
-        hub: Hub = self.server.hub
         try:
             task_id, action = match.group(1), match.group(2)
             status, payload = hub.decide(task_id, body) if action == "decision" else hub.stop(task_id, body)

@@ -1,0 +1,16 @@
+{
+  "workflow_id": "wf-test-4",
+  "correlation_id": "corr-wf-d570db63",
+  "workflow_plan": [
+    {
+      "task_id": "test",
+      "target_agent": "codex",
+      "instruction": "do something heavy"
+    }
+  ],
+  "current_step_index": 0,
+  "status": "RESOURCE_PAUSE",
+  "stop_reason": "Host admission blocked (LIGHT_ONLY) due to UNCLEAN previous shutdown (cleanup UNKNOWN).",
+  "history": [],
+  "updated_at": "2026-10-08T03:23:07.715817+00:00"
+}

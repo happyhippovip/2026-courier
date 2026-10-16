@@ -133,3 +133,56 @@ def test_next_eligible_returns_distinct_ready_missions_in_order():
         "e": _mission("e", status="BLOCKED"),
     }
     assert next_eligible(missions, OWNER) == ["b", "c"]
+
+
+def test_next_eligible_never_offers_unowned_mission_mint_would_refuse():
+    unowned = {"mission_id": "u", "status": "WORKING", "depends_on": []}
+    missions = {"u": unowned, "c": _mission("c")}
+    assert next_eligible(missions, OWNER) == ["c"]
+    ok, reason = eligible_for_mint(unowned, missions, OWNER)
+    assert (ok, reason) == (False, "NOT_OWNER")
+
+
+def test_automatic_task_routing_after_verified_completion():
+    # Initial state: task-a and task-b (dependent on task-a)
+    missions = {
+        "task-a": _mission("task-a"),
+        "task-b": _mission("task-b", depends_on=["task-a"]),
+    }
+
+    # Step 1: Automatic selection yields task-a (task-b is blocked)
+    first_choice = next_eligible(missions, OWNER)
+    assert first_choice == ["task-a"]
+
+    # Mint packet for task-a
+    packet_a = mint_packet(missions["task-a"], missions, owner=OWNER, mint_event_id="mint-a1",
+                           adapter="synthetic", params={"cmd": "run"},
+                           effect_class="none", lease_ttl_s=60)
+    assert packet_a["idempotency_key"] == "ledger:task-a:mint-a1"
+
+    # Controller verified completion
+    receipt_a = receipt_event_fields(
+        missions["task-a"], event_id="evt-comp-a", created_at="2026-10-09T16:00:00Z",
+        controller_record={"task_id": "c-task-a", "duplicate": False,
+                           "controller_status": 200, "verified": True,
+                           "outcome": "COMPLETE", "result_id": "res-a",
+                           "source_sha": "abc1234"})
+    assert (receipt_a["event_type"], receipt_a["status"]) == ("FINAL", "DONE")
+
+    # Ledger state update: task-a transitions to DONE
+    missions["task-a"]["status"] = receipt_a["status"]
+
+    # Step 2: Automatic selection now automatically advances to task-b without manual prompt
+    second_choice = next_eligible(missions, OWNER)
+    assert second_choice == ["task-b"]
+
+    # Mint packet for task-b
+    packet_b = mint_packet(missions["task-b"], missions, owner=OWNER, mint_event_id="mint-b1",
+                           adapter="synthetic", params={"cmd": "run"},
+                           effect_class="none", lease_ttl_s=60)
+    assert packet_b["idempotency_key"] == "ledger:task-b:mint-b1"
+
+    # Zero duplicate effects: completed task-a is refused for re-minting
+    ok_a, reason_a = eligible_for_mint(missions["task-a"], missions, OWNER)
+    assert (ok_a, reason_a) == (False, "MISSION_NOT_WORKING")
+

@@ -1,0 +1,645 @@
+pytest (windows-latest)	Set up job	﻿2026-10-07T17:16:31.2218186Z Current runner version: '2.337.0'
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2277713Z ##[group]Runner Image Provisioner
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2278575Z Hosted Compute Agent
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2279175Z Version: 20260901.588
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2279846Z Commit: f88ec8081b781fac6c440065ac7ff9e710ce3d0b
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2280994Z Build Date: 2026-09-01T19:56:44Z
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2281670Z Worker ID: {1b9aecec-e416-42ed-a42c-395747c99150}
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2282384Z Azure Region: northcentralus
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2282995Z ##[endgroup]
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2284530Z ##[group]Operating System
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2285189Z Microsoft Windows Server 2025
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2285814Z 10.0.26100
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2286394Z Datacenter
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2287010Z ##[endgroup]
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2287568Z ##[group]Runner Image
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2288286Z Image: windows-2025-vs2026
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2289144Z Version: 20260925.250.1
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2291055Z Included Software: https://github.com/actions/runner-images/blob/win25-vs2026/20260925.250/images/windows/Windows2025-VS2026-Readme.md
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2294702Z Image Release: https://github.com/actions/runner-images/releases/tag/win25-vs2026%2F20260925.250
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2296286Z ##[endgroup]
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2297988Z ##[group]GITHUB_TOKEN Permissions
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2300419Z Contents: read
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2302251Z Metadata: read
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2303214Z ##[endgroup]
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2305447Z Secret source: Actions
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2306371Z Cache mode: write
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2307017Z Prepare workflow directory
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2658684Z Prepare all required actions
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.2717563Z Getting action download info
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.5044945Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.6345923Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+pytest (windows-latest)	Set up job	2026-10-07T17:16:31.7873320Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+pytest (windows-latest)	Set up job	2026-10-07T17:16:32.1405552Z Complete job name: pytest (windows-latest)
+pytest (windows-latest)	Run actions/checkout@v4	﻿2026-10-07T17:16:32.3191682Z ##[group]Run actions/checkout@v4
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.3193436Z with:
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.3193942Z   repository: happyhippovip/2026-courier
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.3200232Z   token: ***
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.3200671Z   ssh-strict: true
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.3201135Z   ssh-user: git
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.3201588Z   persist-credentials: true
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.3202113Z   clean: true
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.3202563Z   sparse-checkout-cone-mode: true
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.3203153Z   fetch-depth: 1
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.3203589Z   fetch-tags: false
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.3204047Z   show-progress: true
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.3204501Z   lfs: false
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.3204909Z   submodules: false
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.3205408Z   set-safe-directory: true
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.3205970Z   allow-unsafe-pr-checkout: false
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.3206785Z ##[endgroup]
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.4865315Z Syncing repository: happyhippovip/2026-courier
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.4867677Z ##[group]Getting Git version info
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.4868481Z Working directory is 'D:\a\2026-courier\2026-courier'
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.5631969Z [command]"C:\Program Files\Git\bin\git.exe" version
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.9460644Z git version 2.55.0.windows.5
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.9509440Z ##[endgroup]
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.9529885Z Temporarily overriding HOME='D:\a\_temp\ce1748a3-994f-4961-80e2-086a311eae61' before making global git config changes
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.9531770Z Adding repository directory to the temporary git global config as a safe directory
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:32.9541476Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\2026-courier\2026-courier
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:33.0253809Z Deleting the contents of 'D:\a\2026-courier\2026-courier'
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:33.0260081Z ##[group]Initializing the repository
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:33.0269788Z [command]"C:\Program Files\Git\bin\git.exe" init D:\a\2026-courier\2026-courier
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:33.1429687Z Initialized empty Git repository in D:/a/2026-courier/2026-courier/.git/
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:33.1482654Z [command]"C:\Program Files\Git\bin\git.exe" remote add origin https://github.com/happyhippovip/2026-courier
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:33.2181284Z ##[endgroup]
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:33.2183796Z ##[group]Disabling automatic garbage collection
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:33.2192351Z [command]"C:\Program Files\Git\bin\git.exe" config --local gc.auto 0
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:33.2593488Z ##[endgroup]
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:33.2595785Z ##[group]Setting up auth
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:33.2598082Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:33.2957303Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:34.7674109Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:34.7981523Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:35.3547613Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:35.3885797Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:35.8997815Z [command]"C:\Program Files\Git\bin\git.exe" config --local http.https://github.com/.extraheader "AUTHORIZATION: basic ***"
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:35.9309870Z ##[endgroup]
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:35.9311586Z ##[group]Fetching the repository
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:35.9324529Z [command]"C:\Program Files\Git\bin\git.exe" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +d6a57dd30aecbf75204fe013c93ee77e3d1f374d:refs/remotes/pull/121/merge
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.1706768Z From https://github.com/happyhippovip/2026-courier
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.1708088Z  * [new ref]         d6a57dd30aecbf75204fe013c93ee77e3d1f374d -> pull/121/merge
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.1761752Z ##[endgroup]
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.1762383Z ##[group]Determining the checkout info
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.1764887Z ##[endgroup]
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.1775688Z [command]"C:\Program Files\Git\bin\git.exe" sparse-checkout disable
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.2215559Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset-all extensions.worktreeConfig
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.2520663Z ##[group]Checking out the ref
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.2530342Z [command]"C:\Program Files\Git\bin\git.exe" checkout --progress --force refs/remotes/pull/121/merge
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.8538680Z Note: switching to 'refs/remotes/pull/121/merge'.
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.8539631Z 
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.8539943Z You are in 'detached HEAD' state. You can look around, make experimental
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.8540608Z changes and commit them, and you can discard any commits you make in this
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.8541336Z state without impacting any branches by switching back to a branch.
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.8541814Z 
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.8542073Z If you want to create a new branch to retain commits you create, you may
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.8542762Z do so (now or later) by using -c with the switch command. Example:
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.8620558Z 
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.8620752Z   git switch -c <new-branch-name>
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.8621072Z 
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.8621232Z Or undo this operation with:
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.8621532Z 
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.8621672Z   git switch -
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.8621834Z 
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.8623555Z Turn off this advice by setting config variable advice.detachedHead to false
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.8624164Z 
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.8625926Z HEAD is now at d6a57dd Merge 10441a355961b49cf619461f2b4ff879fb13c31e into eca5b954d9d03e0f588f490650d47bc3393423d2
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.8690460Z ##[endgroup]
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.9135816Z [command]"C:\Program Files\Git\bin\git.exe" log -1 --format=%H
+pytest (windows-latest)	Run actions/checkout@v4	2026-10-07T17:16:38.9426303Z d6a57dd30aecbf75204fe013c93ee77e3d1f374d
+pytest (windows-latest)	Run actions/setup-python@v5	﻿2026-10-07T17:16:38.9969667Z ##[group]Run actions/setup-python@v5
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:38.9970083Z with:
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:38.9970286Z   python-version: 3.12
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:38.9970498Z   cache: pip
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:38.9970713Z   cache-dependency-path: pyproject.toml
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:38.9970988Z   check-latest: false
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:38.9973455Z   token: ***
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:38.9973655Z   update-environment: true
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:38.9973887Z   allow-prereleases: false
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:38.9974115Z   freethreaded: false
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:38.9974315Z ##[endgroup]
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:39.1714848Z ##[group]Installed versions
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:39.1921197Z (node:9956) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:39.1922045Z (Use `node --trace-deprecation ...` to show where the warning was created)
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:39.1922765Z Successfully set up CPython (3.12.10)
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:39.1923945Z ##[endgroup]
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:41.9945306Z Cache hit for: setup-python-Windows-x64-python-3.12.10-pip-453edcbaefb2fbeae6cecfa35331449bf2d36c41e8e608a50493f8df139d0e51
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:42.0056480Z (node:9956) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:42.4495123Z Received 8768539 of 8768539 (100.0%), 23.0 MBs/sec
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:42.4496636Z Cache Size: ~8 MB (8768539 B)
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:42.5915740Z [command]"C:\Program Files\Git\usr\bin\tar.exe" -xf D:/a/_temp/0808f860-821d-45d8-b3aa-e059f7ed7bc9/cache.tzst -P -C D:/a/2026-courier/2026-courier --force-local --use-compress-program "zstd -d"
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:44.2587023Z Cache restored successfully
+pytest (windows-latest)	Run actions/setup-python@v5	2026-10-07T17:16:44.2609098Z Cache restored from key: setup-python-Windows-x64-python-3.12.10-pip-453edcbaefb2fbeae6cecfa35331449bf2d36c41e8e608a50493f8df139d0e51
+pytest (windows-latest)	Install pinned dependencies	﻿2026-10-07T17:16:44.3147100Z ##[group]Run python -m pip install -e ".[test]"
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:44.3148033Z ^[[36;1mpython -m pip install -e ".[test]"^[[0m
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:44.3740625Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:44.3741043Z env:
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:44.3741355Z   pythonLocation: C:\hostedtoolcache\windows\Python\3.12.10\x64
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:44.3741850Z   PKG_CONFIG_PATH: C:\hostedtoolcache\windows\Python\3.12.10\x64/lib/pkgconfig
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:44.3742302Z   Python_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:44.3742709Z   Python2_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:44.3743096Z   Python3_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:44.3743421Z ##[endgroup]
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:46.9213764Z Obtaining file:///D:/a/2026-courier/2026-courier
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:46.9249744Z   Installing build dependencies: started
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:49.5207708Z   Installing build dependencies: finished with status 'done'
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:49.5224443Z   Checking if build backend supports build_editable: started
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:50.1480614Z   Checking if build backend supports build_editable: finished with status 'done'
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:50.1505696Z   Getting requirements to build editable: started
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:50.6658559Z   Getting requirements to build editable: finished with status 'done'
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:50.6687616Z   Preparing editable metadata (pyproject.toml): started
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:50.9803675Z   Preparing editable metadata (pyproject.toml): finished with status 'done'
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.2450854Z Collecting flask==3.1.3 (from courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.2477154Z   Using cached flask-3.1.3-py3-none-any.whl.metadata (3.2 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.2802604Z Collecting requests==2.34.2 (from courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.2835657Z   Using cached requests-2.34.2-py3-none-any.whl.metadata (4.8 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.3549024Z Collecting psutil==7.2.2 (from courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.3575197Z   Using cached psutil-7.2.2-cp37-abi3-win_amd64.whl.metadata (22 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.3869761Z Collecting pywebview==6.2.1 (from courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.3893017Z   Using cached pywebview-6.2.1-py3-none-any.whl.metadata (4.9 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.4308653Z Collecting pytest==9.1.1 (from courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.4330719Z   Using cached pytest-9.1.1-py3-none-any.whl.metadata (7.6 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.5297514Z Collecting pytest-timeout==2.4.0 (from courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.5319725Z   Using cached pytest_timeout-2.4.0-py3-none-any.whl.metadata (20 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.5944838Z Collecting PyYAML==6.0.3 (from courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.6002458Z   Using cached pyyaml-6.0.3-cp312-cp312-win_amd64.whl.metadata (2.4 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.6288807Z Collecting jsonschema==4.26.0 (from courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.6309338Z   Using cached jsonschema-4.26.0-py3-none-any.whl.metadata (7.6 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.6590809Z Collecting blinker>=1.9.0 (from flask==3.1.3->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.6612277Z   Using cached blinker-1.9.0-py3-none-any.whl.metadata (1.6 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.6648868Z Requirement already satisfied: click>=8.1.3 in C:\hostedtoolcache\windows\Python\3.12.10\x64\Lib\site-packages (from flask==3.1.3->courier==1.0.0.dev0) (8.5.0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.6887926Z Collecting itsdangerous>=2.2.0 (from flask==3.1.3->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.6911200Z   Using cached itsdangerous-2.2.0-py3-none-any.whl.metadata (1.9 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.7166157Z Collecting jinja2>=3.1.2 (from flask==3.1.3->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.7189299Z   Using cached jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.7898807Z Collecting markupsafe>=2.1.1 (from flask==3.1.3->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.7925162Z   Using cached markupsafe-3.0.4-cp312-cp312-win_amd64.whl.metadata (2.8 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.8269153Z Collecting werkzeug>=3.1.0 (from flask==3.1.3->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.8291253Z   Using cached werkzeug-3.1.9-py3-none-any.whl.metadata (4.1 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.8536261Z Collecting attrs>=22.2.0 (from jsonschema==4.26.0->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.8557765Z   Using cached attrs-26.1.0-py3-none-any.whl.metadata (8.8 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.8828756Z Collecting jsonschema-specifications>=2023.03.6 (from jsonschema==4.26.0->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.8849562Z   Using cached jsonschema_specifications-2025.9.1-py3-none-any.whl.metadata (2.9 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.9155984Z Collecting referencing>=0.28.4 (from jsonschema==4.26.0->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:51.9203603Z   Using cached referencing-0.37.0-py3-none-any.whl.metadata (2.8 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.1811274Z Collecting rpds-py>=0.25.0 (from jsonschema==4.26.0->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.1836829Z   Using cached rpds_py-2026.9.1-cp312-cp312-win_amd64.whl.metadata (4.2 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.1891153Z Requirement already satisfied: colorama>=0.4 in C:\hostedtoolcache\windows\Python\3.12.10\x64\Lib\site-packages (from pytest==9.1.1->courier==1.0.0.dev0) (0.4.6)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.2177079Z Collecting iniconfig>=1.0.1 (from pytest==9.1.1->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.4207547Z   Downloading iniconfig-2.3.1-py3-none-any.whl.metadata (2.8 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.4483608Z Requirement already satisfied: packaging>=22 in C:\hostedtoolcache\windows\Python\3.12.10\x64\Lib\site-packages (from pytest==9.1.1->courier==1.0.0.dev0) (26.3)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.4689934Z Collecting pluggy<2,>=1.5 (from pytest==9.1.1->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.4717573Z   Using cached pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.5058567Z Collecting pygments>=2.7.2 (from pytest==9.1.1->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.5336218Z   Using cached pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.5683079Z Collecting pythonnet (from pywebview==6.2.1->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.5706740Z   Using cached pythonnet-3.2.0-cp311.cp312.cp313.cp314.cp315-none-any.whl.metadata (6.5 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.5948453Z Collecting proxy_tools (from pywebview==6.2.1->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.5949827Z   Using cached proxy_tools-0.1.0-py3-none-any.whl
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.6435119Z Collecting bottle (from pywebview==6.2.1->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.6459919Z   Using cached bottle-0.13.4-py2.py3-none-any.whl.metadata (1.6 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.6762101Z Collecting typing_extensions (from pywebview==6.2.1->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.6787298Z   Using cached typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.8092860Z Collecting charset_normalizer<4,>=2 (from requests==2.34.2->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.8121814Z   Using cached charset_normalizer-3.5.2-cp312-cp312-win_amd64.whl.metadata (47 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.8402297Z Collecting idna<4,>=2.5 (from requests==2.34.2->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.8425688Z   Using cached idna-3.20-py3-none-any.whl.metadata (7.2 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.8781514Z Collecting urllib3<3,>=1.26 (from requests==2.34.2->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.8846879Z   Using cached urllib3-2.8.0-py3-none-any.whl.metadata (7.4 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.9152155Z Collecting certifi>=2023.5.7 (from requests==2.34.2->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.9177687Z   Using cached certifi-2026.7.22-py3-none-any.whl.metadata (2.5 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.9533705Z Collecting clr_loader<0.4.0,>=0.3.1 (from pythonnet->pywebview==6.2.1->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:52.9556988Z   Using cached clr_loader-0.3.1-py3-none-any.whl.metadata (1.4 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.0802497Z Collecting cffi>=1.17 (from clr_loader<0.4.0,>=0.3.1->pythonnet->pywebview==6.2.1->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.0829938Z   Using cached cffi-2.1.1-cp312-cp312-win_amd64.whl.metadata (2.6 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1147624Z Collecting pycparser (from cffi>=1.17->clr_loader<0.4.0,>=0.3.1->pythonnet->pywebview==6.2.1->courier==1.0.0.dev0)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1171266Z   Using cached pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1251933Z Using cached flask-3.1.3-py3-none-any.whl (103 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1260632Z Using cached jsonschema-4.26.0-py3-none-any.whl (90 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1305170Z Using cached psutil-7.2.2-cp37-abi3-win_amd64.whl (137 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1325251Z Using cached pytest-9.1.1-py3-none-any.whl (386 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1347562Z Using cached pytest_timeout-2.4.0-py3-none-any.whl (14 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1365678Z Using cached pywebview-6.2.1-py3-none-any.whl (525 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1386379Z Using cached pyyaml-6.0.3-cp312-cp312-win_amd64.whl (154 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1405869Z Using cached requests-2.34.2-py3-none-any.whl (73 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1427345Z Using cached charset_normalizer-3.5.2-cp312-cp312-win_amd64.whl (207 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1446007Z Using cached idna-3.20-py3-none-any.whl (69 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1465594Z Using cached pluggy-1.6.0-py3-none-any.whl (20 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1487754Z Using cached urllib3-2.8.0-py3-none-any.whl (135 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1512628Z Using cached attrs-26.1.0-py3-none-any.whl (67 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1531822Z Using cached blinker-1.9.0-py3-none-any.whl (8.5 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1550351Z Using cached certifi-2026.7.22-py3-none-any.whl (136 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1628926Z Downloading iniconfig-2.3.1-py3-none-any.whl (7.6 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1874736Z Using cached itsdangerous-2.2.0-py3-none-any.whl (16 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1892510Z Using cached jinja2-3.1.6-py3-none-any.whl (134 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1911458Z Using cached jsonschema_specifications-2025.9.1-py3-none-any.whl (18 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1932432Z Using cached markupsafe-3.0.4-cp312-cp312-win_amd64.whl (14 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1955695Z Using cached pygments-2.21.0-py3-none-any.whl (1.3 MB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.1981684Z Using cached referencing-0.37.0-py3-none-any.whl (26 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.2000219Z Using cached rpds_py-2026.9.1-cp312-cp312-win_amd64.whl (222 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.2021226Z Using cached typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.2039877Z Using cached werkzeug-3.1.9-py3-none-any.whl (228 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.2058710Z Using cached bottle-0.13.4-py2.py3-none-any.whl (103 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.2076814Z Using cached pythonnet-3.2.0-cp311.cp312.cp313.cp314.cp315-none-any.whl (222 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.2097085Z Using cached clr_loader-0.3.1-py3-none-any.whl (55 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.2139294Z Using cached cffi-2.1.1-cp312-cp312-win_amd64.whl (185 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.2157900Z Using cached pycparser-3.0-py3-none-any.whl (48 kB)
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.3070254Z Building wheels for collected packages: courier
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.3104252Z   Building editable for courier (pyproject.toml): started
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.6827102Z   Building editable for courier (pyproject.toml): finished with status 'done'
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.6874576Z   Created wheel for courier: filename=courier-1.0.0.dev0-0.editable-py3-none-any.whl size=5499 sha256=92fe324c0f5cc04cf246d47a108d13385ff5cbc643b14555e642f7381d6981fa
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.6877089Z   Stored in directory: C:\Users\runneradmin\AppData\Local\Temp\pip-ephem-wheel-cache-qvhov6gq\wheels\6c\8b\ae\aa5a61bdb61d5b0321dde359fc80e873a5bf35a1cc99b1fec2
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.6904480Z Successfully built courier
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:16:53.7577196Z Installing collected packages: proxy_tools, bottle, urllib3, typing_extensions, rpds-py, PyYAML, pygments, pycparser, psutil, pluggy, markupsafe, itsdangerous, iniconfig, idna, charset_normalizer, certifi, blinker, attrs, werkzeug, requests, referencing, pytest, jinja2, cffi, pytest-timeout, jsonschema-specifications, flask, clr_loader, pythonnet, jsonschema, pywebview, courier
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:17:08.2511218Z 
+pytest (windows-latest)	Install pinned dependencies	2026-10-07T17:17:08.2548085Z Successfully installed PyYAML-6.0.3 attrs-26.1.0 blinker-1.9.0 bottle-0.13.4 certifi-2026.7.22 cffi-2.1.1 charset_normalizer-3.5.2 clr_loader-0.3.1 courier-1.0.0.dev0 flask-3.1.3 idna-3.20 iniconfig-2.3.1 itsdangerous-2.2.0 jinja2-3.1.6 jsonschema-4.26.0 jsonschema-specifications-2025.9.1 markupsafe-3.0.4 pluggy-1.6.0 proxy_tools-0.1.0 psutil-7.2.2 pycparser-3.0 pygments-2.21.0 pytest-9.1.1 pytest-timeout-2.4.0 pythonnet-3.2.0 pywebview-6.2.1 referencing-0.37.0 requests-2.34.2 rpds-py-2026.9.1 typing_extensions-4.16.0 urllib3-2.8.0 werkzeug-3.1.9
+pytest (windows-latest)	Run test suite through the regression gate	﻿2026-10-07T17:17:08.6305618Z ##[group]Run # Ephemeral, distinct authorities for the legacy server tests; never persisted.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6306404Z ^[[36;1m# Ephemeral, distinct authorities for the legacy server tests; never persisted.^[[0m
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6307017Z ^[[36;1mexport COURIER_API_KEY="$(python -c 'import secrets; print(secrets.token_hex(32))')"^[[0m
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6308007Z ^[[36;1mexport COURIER_VERIFIER_API_KEY="$(python -c 'import secrets; print(secrets.token_hex(32))')"^[[0m
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6308452Z ^[[36;1mset +e^[[0m
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6308784Z ^[[36;1m# A module that cannot be imported on this platform is recorded as a failure of^[[0m
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6309263Z ^[[36;1m# <module>::<collection> instead of aborting the whole session.^[[0m
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6309796Z ^[[36;1mpython -m pytest -q -p outcomes_plugin --timeout=180 --continue-on-collection-errors tests^[[0m
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6310256Z ^[[36;1mecho "pytest exit status: $?"^[[0m
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6310498Z ^[[36;1mset -e^[[0m
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6310775Z ^[[36;1mpython .github/ci/check_regressions.py \^[[0m
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6311082Z ^[[36;1m  --outcomes "$COURIER_CI_OUTCOMES" \^[[0m
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6311382Z ^[[36;1m  --known .github/ci/known_failures.json \^[[0m
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6311672Z ^[[36;1m  --platform "Windows"^[[0m
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6329949Z shell: C:\Program Files\Git\bin\bash.EXE --noprofile --norc -e -o pipefail {0}
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6330344Z env:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6330636Z   pythonLocation: C:\hostedtoolcache\windows\Python\3.12.10\x64
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6331084Z   PKG_CONFIG_PATH: C:\hostedtoolcache\windows\Python\3.12.10\x64/lib/pkgconfig
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6331532Z   Python_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6331929Z   Python2_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6332313Z   Python3_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6332633Z   PYTHONPATH: .github/ci
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6332892Z   COURIER_CI_OUTCOMES: D:\a\_temp/outcomes.json
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:17:08.6333183Z ##[endgroup]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:18:02.5097140Z ........................................................................ [  4%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:18:14.9926027Z ........................................................................ [  8%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:18:59.9743329Z ................................s....................................... [ 13%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:20:32.9844748Z ........................................................................ [ 17%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:21:06.6498955Z ..........................................sssssss....................... [ 22%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:21:14.4035675Z ......................................................s................. [ 26%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:21:14.9446700Z ........................................................................ [ 31%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:21:15.1795506Z ........................................................................ [ 35%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:21:15.7522736Z ........................................................s.s............. [ 40%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:21:18.0829275Z ........................................................................ [ 44%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:21:20.9395842Z ........................................................................ [ 49%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:21:24.0044879Z ........................................................................ [ 53%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:21:56.3349790Z .....................s.................................................. [ 58%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:21:58.6417900Z ...................sssssssssssssssssss..s............................... [ 62%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:22:01.7738367Z ........................................................................ [ 67%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:22:04.4926486Z .......s................................................................ [ 71%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:22:05.0807694Z ..........ssssssssss.................................................... [ 76%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:22:07.0779891Z ........................................................................ [ 80%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:22:10.7676383Z ........................................................................ [ 85%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:22:12.2400321Z ........................................................................ [ 89%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:22:15.5566378Z ........................................................................ [ 94%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:22:32.4176542Z ........................................................................ [ 98%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4379640Z ..F................                                                      [100%]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4381044Z ================================== FAILURES ===================================
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4381805Z _______________________ test_win_clean_machine_harness ________________________
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4382329Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4383079Z tmp_path = WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/pytest-of-runneradmin/pytest-0/test_win_clean_machine_harness0')
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4384086Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4384527Z     @pytest.mark.skipif(os.name != 'nt', reason="Windows specific clean-machine harness")
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4385334Z     def test_win_clean_machine_harness(tmp_path):
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4385692Z         """
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4385945Z         Proves:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4386609Z         - fresh install
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4387174Z         - first launch
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4387459Z         - single instance
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4387812Z         - Hub/controller startup
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4388140Z         - synthetic work execution
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4388468Z         - shutdown & restart
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4388793Z         - clean uninstall
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4389062Z         """
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4389332Z         state_dir = tmp_path / "Courier"
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4389649Z     
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4389910Z         # 1. Fresh install & first launch
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4390442Z         build_script = Path("scripts/windows_worker/launcher/build_launcher.ps1").resolve()
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4390938Z         if build_script.exists():
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4391840Z             subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", str(build_script)], check=True)
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4392407Z     
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4392761Z         launcher_exe = Path("scripts/windows_worker/Courier.exe").resolve()
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4393304Z         assert launcher_exe.exists(), "Courier.exe must be built before tests"
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4393713Z     
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4393967Z         # Start the launcher
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4394302Z         env = os.environ.copy()
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4394625Z         env["LOCALAPPDATA"] = str(tmp_path)
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4394969Z         env["COURIER_TEST_NO_JOB"] = "1"
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4395303Z         env["PYTHONPATH"] = str(Path.cwd())
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4395747Z         # We will use Courier's default ports or force them via config.json
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4396171Z         courier_dir = tmp_path / "Courier"
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4396507Z         courier_dir.mkdir(parents=True)
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4396818Z     
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4397162Z         # Force specific ports via config.json to avoid conflicts
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4397584Z         config_file = courier_dir / "config.json"
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4397943Z         config_file.write_text(json.dumps({
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4398286Z             "COURIER_CONTROLLER_PORT": 8800,
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4398688Z             "COURIER_HUB_PORT": 8801
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4398988Z         }))
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4399220Z     
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4399475Z         # 0x01000000 is CREATE_BREAKAWAY_FROM_JOB
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4399830Z         try:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4400567Z             launcher = subprocess.Popen([str(launcher_exe)], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | 0x01000000)
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4401356Z         except PermissionError as e:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4401668Z             if e.winerror == 5:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4402983Z                 # Cannot break away from Job object (e.g. GitHub Actions runner)
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4403819Z                 launcher = subprocess.Popen([str(launcher_exe)], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4404557Z             else:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4404817Z                 raise
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4405102Z     
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4405332Z         try:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4405573Z             # Wait for token
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4405906Z             token_file = courier_dir / "run" / "controller.token"
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4406324Z             start_time = time.monotonic()
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4406684Z             while time.monotonic() - start_time < 30:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4407065Z                 if launcher.poll() is not None:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4407425Z                     out = launcher.stdout.read()
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4407929Z                     pytest.fail(f"Launcher exited early with code {launcher.returncode}:\n{out}")
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4408412Z                 if token_file.exists():
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4408763Z                     token = token_file.read_text().strip()
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4409113Z                     if token:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4409533Z                         break
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4409817Z                 time.sleep(0.5)
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4410231Z             else:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4410778Z                 pytest.fail(f"Timeout waiting for controller.token. Launcher output:\n{launcher.stdout.read()}")
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4411291Z     
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4411944Z             controller_url = "http://127.0.0.1:8800"
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4412332Z             hub_url = "http://127.0.0.1:8801"
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4412700Z     
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4412975Z             def api(method, path, body=None):
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4413376Z                 data = json.dumps(body).encode() if body is not None else None
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4413924Z                 req = urllib.request.Request(controller_url + path, data=data, method=method,
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4414588Z                                              headers={"X-Courier-Token": token, "Content-Type": "application/json"})
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4415135Z                 with urllib.request.urlopen(req, timeout=10) as resp:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4415558Z                     return json.loads(resp.read() or b"{}")
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4415892Z     
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4416161Z             # Wait for Hub to be up
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4416504Z             start_time = time.monotonic()
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4416861Z             while time.monotonic() - start_time < 30:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4417201Z                 try:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4417571Z                     req = urllib.request.Request(hub_url + "/hub/api/status")
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4418030Z                     with urllib.request.urlopen(req, timeout=2) as resp:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4418434Z                         if resp.status == 200:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4418768Z                             break
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4419096Z                 except Exception:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4419392Z                     pass
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4419679Z                 time.sleep(0.5)
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4419971Z             else:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4420294Z                 pytest.fail("Timeout waiting for Hub")
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4420630Z     
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4420881Z             # 3. Synthetic work execution
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4421214Z             # Normal task
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4421548Z             done_id = api("POST", "/v1/tasks", {
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4422038Z                 "adapter": "synthetic", "params": {"sleep_s": 1, "write": "out.txt", "content": "normal"},
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4422600Z                 "effect_class": "idempotent", "max_attempts": 3, "lease_ttl_s": 6
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4423003Z             })["task_id"]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4423292Z     
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4423568Z             # Non-idempotent task (killed mid-action)
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4424068Z             blocked_id = api("POST", "/v1/tasks", {
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4424562Z                 "adapter": "synthetic", "params": {"write": "sent.txt", "content": "message", "hang": True},
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4425173Z                 "effect_class": "non_idempotent", "max_attempts": 3, "lease_ttl_s": 6
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4425607Z             })["task_id"]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4425873Z     
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4426112Z             # Long-running task
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4426458Z             working_id = api("POST", "/v1/tasks", {
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4426932Z                 "adapter": "synthetic", "params": {"sleep_s": 60, "write": "report.txt", "content": "long"},
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4427529Z                 "effect_class": "idempotent", "max_attempts": 3, "lease_ttl_s": 6, "timeout_s": 90
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4427981Z             })["task_id"]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4428279Z     
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4428556Z             def wait_for(task_id, status_val, timeout=30):
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4428938Z                 deadline = time.monotonic() + timeout
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4429291Z                 while time.monotonic() < deadline:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4429737Z                     if api("GET", f"/v1/tasks/{task_id}")["status"] == status_val:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4430860Z                         return
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4431154Z                     time.sleep(0.5)
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4431577Z                 pytest.fail(f"Timeout waiting for task {task_id} to reach {status_val}")
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4432380Z     
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4432633Z             wait_for(done_id, "COMPLETE")
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4432966Z             wait_for(blocked_id, "RUNNING")
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4433278Z     
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4433567Z             # Kill the worker for blocked_id
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4434048Z             # worker.lock is locked with msvcrt.locking on Windows, so we cannot read it directly.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4434576Z             # Instead, find the claim record for the blocked task.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4434979Z             claims_dir = courier_dir / "run" / "claims"
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4435354Z             worker_pid = None
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4435689Z             for p in claims_dir.glob("dispatch-*.json"):
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4436034Z                 try:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4436327Z                     record = json.loads(p.read_text())
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4436743Z                     if record.get("task_id") == blocked_id:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4437118Z                         worker_pid = record["owner_pid"]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4437455Z                         break
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4437749Z                 except Exception:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4438081Z                     pass
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4438336Z     
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4438561Z     
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4438801Z             if worker_pid is None:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4439209Z                 print(f"Claims dir {claims_dir} contents: {list(claims_dir.glob('*'))}")
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4439712Z                 print(f"Looking for task_id: {blocked_id}")
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4440095Z                 for p in claims_dir.glob("dispatch-*.json"):
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4440481Z                     print(f"File {p.name}: {p.read_text()}")
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4440841Z     
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4441196Z >           assert worker_pid is not None, "Could not find worker_pid from claims"
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4441682Z E           AssertionError: Could not find worker_pid from claims
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4442069Z E           assert None is not None
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4442283Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4442484Z tests\test_win_clean_machine_harness.py:159: AssertionError
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4442953Z ---------------------------- Captured stdout call -----------------------------
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4443381Z Compiling Courier Launcher...
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4443725Z Microsoft (R) Visual C# Compiler version 4.8.9221.0
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4443996Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4444111Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4444240Z for C# 5
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4444360Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4444559Z Copyright (C) Microsoft Corporation. All rights reserved.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4444837Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4444841Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4444845Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4444853Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4444856Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4445703Z This compiler is provided as part of the Microsoft (R) .NET Framework, but only supports language versions up to C# 5, which is no longer the latest version. For compilers that support newer versions of the C# programming language, see http://go.microsoft.com/fwlink/?LinkID=533240
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4446684Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4446689Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4446693Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4446837Z Success: Courier.exe built.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4447486Z Claims dir C:\Users\runneradmin\AppData\Local\Temp\pytest-of-runneradmin\pytest-0\test_win_clean_machine_harness0\Courier\run\claims contents: []
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4448246Z Looking for task_id: task-b639e6fc8c3941a8833b540c2a7cb6ec
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4448746Z SUCCESS: The process with PID 1500 (child process of PID 1244) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4449099Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4449300Z SUCCESS: The process with PID 4944 (child process of PID 4672) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4449835Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4450091Z SUCCESS: The process with PID 4976 (child process of PID 9416) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4450398Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4450644Z SUCCESS: The process with PID 5496 (child process of PID 8556) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4450972Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4451180Z SUCCESS: The process with PID 3060 (child process of PID 8556) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4451512Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4451750Z SUCCESS: The process with PID 5036 (child process of PID 8556) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4452351Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4452593Z SUCCESS: The process with PID 4024 (child process of PID 8556) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4452932Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4453140Z SUCCESS: The process with PID 9924 (child process of PID 8556) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4453468Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4453704Z SUCCESS: The process with PID 7624 (child process of PID 8556) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4454004Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4454245Z SUCCESS: The process with PID 8596 (child process of PID 8556) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4454571Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4454786Z SUCCESS: The process with PID 4504 (child process of PID 8556) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4455114Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4455352Z SUCCESS: The process with PID 1272 (child process of PID 8556) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4455662Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4455905Z SUCCESS: The process with PID 8436 (child process of PID 8556) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4456243Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4456450Z SUCCESS: The process with PID 3064 (child process of PID 8556) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4456778Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4456984Z SUCCESS: The process with PID 8808 (child process of PID 8556) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4457306Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4457541Z SUCCESS: The process with PID 3404 (child process of PID 8556) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4457839Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4458076Z SUCCESS: The process with PID 6820 (child process of PID 8556) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4458401Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4458608Z SUCCESS: The process with PID 6704 (child process of PID 4672) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4458937Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4459173Z SUCCESS: The process with PID 1244 (child process of PID 4524) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4459473Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4459712Z SUCCESS: The process with PID 4672 (child process of PID 4524) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4460042Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4460252Z SUCCESS: The process with PID 9416 (child process of PID 4524) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4460584Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4461334Z SUCCESS: The process with PID 8556 (child process of PID 4524) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.4461631Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.6113182Z SUCCESS: The process with PID 4524 (child process of PID 2608) has been terminated.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.6113895Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.6114145Z ============================== warnings summary ===============================
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.6115258Z tests/test_provider_hibernation_mac03.py::test_naive_reset_timestamp_does_not_crash_scheduler_path
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.6117385Z   D:\a\2026-courier\2026-courier\tests\test_provider_hibernation_mac03.py:98: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.6119357Z     naive = datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.6119860Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.6120223Z -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.6120968Z =========================== short test summary info ===========================
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.6122026Z FAILED tests/test_win_clean_machine_harness.py::test_win_clean_machine_harness - AssertionError: Could not find worker_pid from claims
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.6123395Z assert None is not None
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.6123902Z 1 failed, 1559 passed, 54 skipped, 1 warning in 434.00s (0:07:13)
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.8156645Z pytest exit status: 1
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9162401Z ## Courier v1 regression gate (Windows)
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9162865Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9163076Z passed=1559 failed=1 skipped=43 pytest_exit=1
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9163458Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9163688Z Golden zero-skip holds: 11 Golden tests passed, 0 skipped.
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9163962Z 
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9164144Z GATE FAIL: new failures not in the known baseline:
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9164678Z   NEW FAILURE tests/test_win_clean_machine_harness.py::test_win_clean_machine_harness
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9165316Z Known entries not present in this run (renamed or removed?):
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9165937Z   MISSING tests/test_mac_worker_contract.py::test_crash_after_post_before_ack_resends_same_result_once_executed
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9166670Z   MISSING tests/test_mac_worker_contract.py::test_crash_after_rejection_still_releases_on_restart
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9167360Z   MISSING tests/test_mac_worker_contract.py::test_missing_api_key_fails_closed_before_network
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9168053Z   MISSING tests/test_mac_worker_contract.py::test_rejected_result_releases_worker_instead_of_permanent_busy
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9168807Z   MISSING tests/test_mac_worker_contract.py::test_restart_with_result_ready_redelivers_to_server_without_executing
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9169516Z   MISSING tests/test_mac_worker_contract.py::test_success_is_bound_and_accepted
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9170163Z   MISSING tests/test_mac_worker_contract.py::test_success_without_any_artifact_evidence_is_reported_failed
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9170915Z   MISSING tests/test_mac_worker_contract.py::test_unsafe_artifact_is_never_read_and_never_success[../outside.txt]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9171667Z   MISSING tests/test_mac_worker_contract.py::test_unsafe_artifact_is_never_read_and_never_success[/etc/passwd]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9172442Z   MISSING tests/test_mac_worker_contract.py::test_unsafe_artifact_is_never_read_and_never_success[a/../../x.txt]
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9173185Z   MISSING tests/test_mac_worker_recovery.py::test_claimed_but_not_started_task_runs_once_after_restart
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9173870Z   MISSING tests/test_mac_worker_recovery.py::test_exception_during_execution_is_not_retried_in_process
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9174574Z   MISSING tests/test_mac_worker_recovery.py::test_normal_claim_executes_once_and_posts_bound_result
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9175277Z   MISSING tests/test_mac_worker_recovery.py::test_permanent_4xx_is_not_retried_and_result_is_kept_as_evidence
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9176015Z   MISSING tests/test_mac_worker_recovery.py::test_released_task_is_quarantined_by_courier_server_not_replayed
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9178084Z   MISSING tests/test_mac_worker_recovery.py::test_restart_after_started_execution_does_not_execute_again
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9178852Z   MISSING tests/test_mac_worker_recovery.py::test_restart_with_stored_result_resends_it_without_recomputing
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9179624Z   MISSING tests/test_mac_worker_recovery.py::test_transport_errors_and_5xx_are_retried_with_identical_payload
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9180363Z   MISSING tests/test_mac_worker_recovery.py::test_undeliverable_result_is_kept_and_never_recomputed
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9181043Z   MISSING tests/test_mac_worker_standalone_boot.py::test_daemon_boots_standalone_without_import_error
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9181596Z   MISSING tests/test_muse_convergence.py::<collection>
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9182157Z   MISSING tests/test_muse_supervisor.py::test_duplicate_slot_and_supervisor_are_prevented
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9182736Z   MISSING tests/test_muse_supervisor.py::test_four_slots_are_isolated
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9183269Z   MISSING tests/test_muse_supervisor.py::test_missing_metrics_block_scale_up
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9183810Z   MISSING tests/test_muse_supervisor.py::test_ramp_and_crash_backoff_to_paused
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9184547Z   MISSING tests/test_muse_supervisor.py::test_result_ready_is_only_redelivered
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9185654Z   MISSING tests/test_muse_supervisor.py::test_slot_claims_canonical_task_runs_muse_exits_and_restarts_with_checkpoint
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9186601Z   MISSING tests/test_muse_supervisor.py::test_started_task_is_not_replayed
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9187366Z   MISSING tests/test_muse_supervisor.py::test_stop_prevents_restart
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9188170Z   MISSING tests/test_muse_supervisor.py::test_unconfirmed_prompt_method_fails_closed
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9210529Z ##[notice]passed=1559 failed=1 skipped=43 pytest_exit=1 result=FAIL new=1 now_passing=0 out_of_scope=0
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9221800Z ##[error]tests/test_win_clean_machine_harness.py::test_win_clean_machine_harness
+pytest (windows-latest)	Run test suite through the regression gate	2026-10-07T17:24:24.9335372Z ##[error]Process completed with exit code 1.
+pytest (windows-latest)	Tests leave tracked files unchanged	﻿2026-10-07T17:24:24.9545099Z ##[group]Run git diff --stat --exit-code
+pytest (windows-latest)	Tests leave tracked files unchanged	2026-10-07T17:24:24.9545653Z ^[[36;1mgit diff --stat --exit-code^[[0m
+pytest (windows-latest)	Tests leave tracked files unchanged	2026-10-07T17:24:24.9561436Z shell: C:\Program Files\Git\bin\bash.EXE --noprofile --norc -e -o pipefail {0}
+pytest (windows-latest)	Tests leave tracked files unchanged	2026-10-07T17:24:24.9561987Z env:
+pytest (windows-latest)	Tests leave tracked files unchanged	2026-10-07T17:24:24.9562345Z   pythonLocation: C:\hostedtoolcache\windows\Python\3.12.10\x64
+pytest (windows-latest)	Tests leave tracked files unchanged	2026-10-07T17:24:24.9562868Z   PKG_CONFIG_PATH: C:\hostedtoolcache\windows\Python\3.12.10\x64/lib/pkgconfig
+pytest (windows-latest)	Tests leave tracked files unchanged	2026-10-07T17:24:24.9563417Z   Python_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+pytest (windows-latest)	Tests leave tracked files unchanged	2026-10-07T17:24:24.9563893Z   Python2_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+pytest (windows-latest)	Tests leave tracked files unchanged	2026-10-07T17:24:24.9564359Z   Python3_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+pytest (windows-latest)	Tests leave tracked files unchanged	2026-10-07T17:24:24.9564750Z ##[endgroup]
+pytest (windows-latest)	Local safety ratchet (no new kill-by-name or wildcard binds)	﻿2026-10-07T17:24:25.0658479Z ##[group]Run python scripts/check_local_safety.py . --baseline acceptance/local_safety_baseline.json
+pytest (windows-latest)	Local safety ratchet (no new kill-by-name or wildcard binds)	2026-10-07T17:24:25.0659921Z ^[[36;1mpython scripts/check_local_safety.py . --baseline acceptance/local_safety_baseline.json^[[0m
+pytest (windows-latest)	Local safety ratchet (no new kill-by-name or wildcard binds)	2026-10-07T17:24:25.0684020Z shell: C:\Program Files\Git\bin\bash.EXE --noprofile --norc -e -o pipefail {0}
+pytest (windows-latest)	Local safety ratchet (no new kill-by-name or wildcard binds)	2026-10-07T17:24:25.0684756Z env:
+pytest (windows-latest)	Local safety ratchet (no new kill-by-name or wildcard binds)	2026-10-07T17:24:25.0685264Z   pythonLocation: C:\hostedtoolcache\windows\Python\3.12.10\x64
+pytest (windows-latest)	Local safety ratchet (no new kill-by-name or wildcard binds)	2026-10-07T17:24:25.0686395Z   PKG_CONFIG_PATH: C:\hostedtoolcache\windows\Python\3.12.10\x64/lib/pkgconfig
+pytest (windows-latest)	Local safety ratchet (no new kill-by-name or wildcard binds)	2026-10-07T17:24:25.0687170Z   Python_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+pytest (windows-latest)	Local safety ratchet (no new kill-by-name or wildcard binds)	2026-10-07T17:24:25.0687865Z   Python2_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+pytest (windows-latest)	Local safety ratchet (no new kill-by-name or wildcard binds)	2026-10-07T17:24:25.0688556Z   Python3_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+pytest (windows-latest)	Local safety ratchet (no new kill-by-name or wildcard binds)	2026-10-07T17:24:25.0689162Z ##[endgroup]
+pytest (windows-latest)	Local safety ratchet (no new kill-by-name or wildcard binds)	2026-10-07T17:24:25.4488869Z WILDCARD_BIND deploy/run-supervisor.sh:23: gunicorn -w 1 --threads 4 -b 0.0.0.0:8080 server.app:app &
+pytest (windows-latest)	Local safety ratchet (no new kill-by-name or wildcard binds)	2026-10-07T17:24:25.4490186Z KILL_BY_NAME scripts/windows_worker/stop.bat:3: taskkill /F /IM Courier.exe 2>NUL
+pytest (windows-latest)	Local safety ratchet (no new kill-by-name or wildcard binds)	2026-10-07T17:24:25.4490907Z total=2 kill_by_name=1 wildcard_bind=1
+pytest (windows-latest)	Local safety ratchet (no new kill-by-name or wildcard binds)	2026-10-07T17:24:25.4491356Z new=0
+pytest (windows-latest)	Upload per-test outcomes	﻿2026-10-07T17:24:25.4972216Z ##[group]Run actions/upload-artifact@v4
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.4972618Z with:
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.4972845Z   name: outcomes-windows-latest
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.4973116Z   path: D:\a\_temp/outcomes.json
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.4973780Z   if-no-files-found: warn
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.4974016Z   retention-days: 30
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.4974231Z   compression-level: 6
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.4974453Z   overwrite: false
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.4974668Z   include-hidden-files: false
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.4974899Z env:
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.4975166Z   pythonLocation: C:\hostedtoolcache\windows\Python\3.12.10\x64
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.4975639Z   PKG_CONFIG_PATH: C:\hostedtoolcache\windows\Python\3.12.10\x64/lib/pkgconfig
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.4976091Z   Python_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.4976496Z   Python2_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.4976890Z   Python3_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.12.10\x64
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.4977255Z ##[endgroup]
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.7154010Z (node:8440) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.7155167Z (Use `node --trace-deprecation ...` to show where the warning was created)
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.7223312Z With the provided path, there will be 1 file uploaded
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.7229181Z Artifact name is valid!
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.7231337Z Root directory input is valid!
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:25.9768094Z Beginning upload of artifact content to blob storage
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:26.0006092Z (node:8440) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:26.1328330Z Uploaded bytes 23672
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:26.1695402Z Finished uploading artifact content to blob storage!
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:26.1696291Z SHA256 digest of uploaded artifact zip is 49948d14363930c3e3ac40bf24f9f39566fec7e51eaeea08dd48cc863b9c7e27
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:26.1698944Z Finalizing artifact upload
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:26.4028710Z Artifact outcomes-windows-latest.zip successfully finalized. Artifact ID 11499307945
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:26.4030165Z Artifact outcomes-windows-latest has been successfully uploaded! Final size is 23672 bytes. Artifact ID is 11499307945
+pytest (windows-latest)	Upload per-test outcomes	2026-10-07T17:24:26.4041833Z Artifact download URL: https://github.com/happyhippovip/2026-courier/actions/runs/37657785638/artifacts/11499307945
+pytest (windows-latest)	Post Run actions/checkout@v4	﻿2026-10-07T17:24:26.4484746Z Post job cleanup.
+pytest (windows-latest)	Post Run actions/checkout@v4	2026-10-07T17:24:26.6288546Z [command]"C:\Program Files\Git\bin\git.exe" version
+pytest (windows-latest)	Post Run actions/checkout@v4	2026-10-07T17:24:26.6575358Z git version 2.55.0.windows.5
+pytest (windows-latest)	Post Run actions/checkout@v4	2026-10-07T17:24:26.6649796Z Temporarily overriding HOME='D:\a\_temp\0f2e8799-64a7-464b-ab54-ca715af76c91' before making global git config changes
+pytest (windows-latest)	Post Run actions/checkout@v4	2026-10-07T17:24:26.6650969Z Adding repository directory to the temporary git global config as a safe directory
+pytest (windows-latest)	Post Run actions/checkout@v4	2026-10-07T17:24:26.6661688Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\2026-courier\2026-courier
+pytest (windows-latest)	Post Run actions/checkout@v4	2026-10-07T17:24:26.7004902Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+pytest (windows-latest)	Post Run actions/checkout@v4	2026-10-07T17:24:26.7348369Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+pytest (windows-latest)	Post Run actions/checkout@v4	2026-10-07T17:24:27.3350748Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+pytest (windows-latest)	Post Run actions/checkout@v4	2026-10-07T17:24:27.3623436Z http.https://github.com/.extraheader
+pytest (windows-latest)	Post Run actions/checkout@v4	2026-10-07T17:24:27.3673837Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset-all http.https://github.com/.extraheader
+pytest (windows-latest)	Post Run actions/checkout@v4	2026-10-07T17:24:27.3997617Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+pytest (windows-latest)	Post Run actions/checkout@v4	2026-10-07T17:24:27.9686865Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+pytest (windows-latest)	Post Run actions/checkout@v4	2026-10-07T17:24:28.0007004Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+pytest (windows-latest)	Complete job	﻿2026-10-07T17:24:28.5913574Z Cleaning up orphan processes
+pytest (windows-latest)	Complete job	2026-10-07T17:24:28.6747204Z Terminate orphan process: pid (3676) (msedge)
+pytest (windows-latest)	Complete job	2026-10-07T17:24:28.6829630Z Terminate orphan process: pid (2468) (msedge)
+pytest (windows-latest)	Complete job	2026-10-07T17:24:28.6976333Z Terminate orphan process: pid (7576) (msedge)
+pytest (windows-latest)	Complete job	2026-10-07T17:24:28.7099612Z Terminate orphan process: pid (8740) (msedge)
+pytest (windows-latest)	Complete job	2026-10-07T17:24:28.7292799Z Terminate orphan process: pid (2552) (msedge)
+pytest (windows-latest)	Complete job	2026-10-07T17:24:28.7502320Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

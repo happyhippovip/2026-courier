@@ -31,3 +31,27 @@ def test_critical_snapshot(tmp_path):
         assert data["provider"] == "muse"
         assert data["workkey"] == "WK1"
 
+
+def test_kirby_on_turn_end(tmp_path):
+    k = KirbySupervisor(provider="muse", host="mac-1", session_id="sess-1", state_dir=str(tmp_path))
+    assert k.on_turn_end("WK1", "COMPLETE") == {"action": "NEXT", "workkey": "WK1", "status": "COMPLETE"}
+    assert k.on_turn_end("WK1", "BLOCKED") == {"action": "PAUSE", "workkey": "WK1", "reason": "blocked"}
+    assert k.on_turn_end("WK1", "STILL_OPEN") == {"action": "CONTINUE", "workkey": "WK1", "status": "STILL_OPEN"}
+    assert k.on_turn_end("WK1", "RUNNING") == {"action": "CONTINUE", "workkey": "WK1", "status": "STILL_OPEN"}
+    assert k.on_turn_end("", "COMPLETE") == {"action": "PAUSE", "reason": "invalid_workkey"}
+
+
+def test_session_rotator_prepare_rotation(tmp_path):
+    from courier_runtime.kirby import SessionRotator
+    rotator = SessionRotator(state_dir=str(tmp_path))
+    manifest = rotator.prepare_rotation(session_id="sess-xyz", checkpoint="chk-999", workkey="WK-ROT")
+    assert manifest["session_id"] == "sess-xyz"
+    assert manifest["status"] == "READY_FOR_ROTATION"
+    rot_path = tmp_path / "rotation_sess-xyz.json"
+    assert rot_path.exists()
+    with open(rot_path) as f:
+        saved = json.load(f)
+        assert saved["checkpoint"] == "chk-999"
+        assert saved["workkey"] == "WK-ROT"
+
+

@@ -41,7 +41,15 @@ LIVE = {WORKING, IDLE, WAKE_PENDING, WAITING_FOR_USER, RECOVERING}
 # Explicit provider failure signals that mean "this session's context/backlog is
 # saturated". No fixed prompt-count limit is assumed.
 SATURATION_SIGNALS = ("hard_threshold_failed", "compaction cannot replace external history",
-                      "turn-submit backlog full", "context window exceeded", "context_length_exceeded")
+                      "turn-submit backlog full", "context window exceeded", "context_length_exceeded",
+                      "compaction_blocked_pending_deliveries", "compaction blocked")
+# Canonical reason for a session whose context can no longer compact while tool
+# deliveries are still pending: the exhausted session must be drained, its
+# pending deliveries inspected, and work resumed via exactly one fresh session
+# with a compact handoff (workkey + checkpoint only, never a blind replay of
+# in-flight tool state). All variants below collapse to COMPACTION_BLOCKED.
+COMPACTION_BLOCKED = "compaction_blocked_pending_deliveries"
+_COMPACTION_BLOCKED_VARIANTS = ("compaction_blocked_pending_deliveries", "compaction blocked")
 
 # activity class -> (heartbeat grace s, useful-progress window s). Quiet != hung.
 ACTIVITY = {
@@ -62,6 +70,7 @@ class Workkey:
     checkpoint: str = ""
     blocked_reason: str = ""
     priority: int = 100
+    needs_delivery_audit: bool = False   # compaction drained with deliveries pending: inspect, never blind-replay
 
 
 @dataclass
@@ -89,7 +98,10 @@ def saturation_signal(provider_text="", context_used_pct=None, threshold_pct=90.
     if context_used_pct is not None and context_used_pct >= threshold_pct:
         return f"context pressure {context_used_pct:.0f}%"
     low = (provider_text or "").lower()
-    return next((s for s in SATURATION_SIGNALS if s in low), None)
+    hit = next((s for s in SATURATION_SIGNALS if s in low), None)
+    if hit in _COMPACTION_BLOCKED_VARIANTS:
+        return COMPACTION_BLOCKED
+    return hit
 
 
 class Kirby:
@@ -199,6 +211,7 @@ class Kirby:
         w.checkpoint = checkpoint or w.checkpoint
         if outcome == "DONE":
             w.state, w.owner = DONE, ""
+            w.needs_delivery_audit = False           # a real reconciled result accounts for the side effects
             s.workkey = ""
             self.counters["completions"] += 1
             self._log("receipts.jsonl", {"workkey": w.key, "outcome": DONE, "session": s.session_id,
@@ -307,9 +320,60 @@ class Kirby:
     def recover(self, slot, reason):
         return self._replace(slot, "RECOVER", reason)
 
+    def compaction_blocked(self, slot, detail="", checkpoint=None):
+        """Drain a session whose context can no longer compact with deliveries pending.
+
+        Enforces the provider-handover contract for COMPACTION_BLOCKED_PENDING_DELIVERIES:
+        detect from the execution boundary, persist workkey/checkpoint before yielding,
+        submit nothing more to the exhausted session, verify this supervisor owns the
+        writer (fencing token) before touching anything, drain exactly the owned tree
+        (never a blind kill), resume through exactly ONE fresh session that carries a
+        compact handoff (same workkey + checkpoint only, no replay of in-flight tool
+        state), and retire the old session only after the work is protected. The swap
+        is pool-neutral: one session retires as its successor starts, so no new host
+        capacity is claimed. Returns None when the slot holds no live owned session
+        or no successor can start; then nothing is drained and the next signal retries.
+        """
+        old = self.sessions.get(slot)
+        w = self.workkeys.get(old.workkey) if old else None
+        if old is None or old.state == RETIRED or old.successor:
+            return None                                            # already drained: never twice
+        if w is None or w.owner != old.session_id or w.token != old.token:
+            return None                                            # not our writer: hands off
+        if checkpoint is not None:
+            w.checkpoint = checkpoint                              # durable state before yielding
+        w.needs_delivery_audit = True                              # pending deliveries owed inspection
+        self._save()
+        gen = old.generation + 1
+        sid, pid, ct = self.start_session(slot, gen)               # the ONE fresh session
+        if sid is None:
+            return None                                            # pool exhausted: old untouched, retry later
+        now = self.clock()
+        new = Session(slot, sid, old.provider, self.host, IDLE, pid, ct, generation=gen, activity=old.activity,
+                      last_heartbeat=now, last_progress=now, recovering_since=0.0)
+        cleanup = "NOT_OWNED_OR_GONE"
+        if old.pid and self.identity(old):
+            cleanup = self.terminate(old).get("result", "?")       # proven-owned tree only
+        self._claim(new, w)                                        # same workkey, new fencing token
+        new.state = WAKE_PENDING                                   # resumes from w.checkpoint
+        old.state, old.accepting, old.successor = RETIRED, False, sid
+        self.sessions[slot] = new
+        self._log("retired.jsonl", dataclasses.asdict(old))
+        self.counters["rotations"] += 1
+        receipt = {"incident": f"ROTATE-{slot}-g{gen}", "slot": slot, "kind": "ROTATE",
+                   "reason": COMPACTION_BLOCKED, "detail": detail,
+                   "old_session": old.session_id, "new_session": sid, "workkey": new.workkey,
+                   "checkpoint": w.checkpoint if w else "", "cleanup": cleanup,
+                   "foreign_process_touched": False, "duplicate_execution": False, "at": now}
+        self._log("recovery_receipts.jsonl", receipt)
+        self._save()
+        return receipt
+
     def on_provider_output(self, slot, text="", context_used_pct=None, checkpoint=None):
         """Feed provider status lines/telemetry; rotates exactly once on saturation."""
         sig = saturation_signal(text, context_used_pct)
+        if sig == COMPACTION_BLOCKED:
+            return self.compaction_blocked(slot, text, checkpoint)
         return self.rotate(slot, sig, checkpoint) if sig else None
 
     # ---- restart + user view ------------------------------------------------

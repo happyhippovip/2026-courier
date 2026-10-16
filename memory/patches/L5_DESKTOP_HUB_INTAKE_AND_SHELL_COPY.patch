@@ -1,0 +1,171 @@
+diff --git a/courier_hub/model.py b/courier_hub/model.py
+index f90346ee9..a288c2577 100644
+--- a/courier_hub/model.py
++++ b/courier_hub/model.py
+@@ -52,6 +52,12 @@ ADAPTER_COPY = {
+         "repeat_consequence": "The test file may be written a second time.",
+         "retry_offered": True,
+     },
++    "local_shell": {
++        "title": "Local system command",
++        "action": "run the local command",
++        "repeat_consequence": "The command may be executed a second time.",
++        "retry_offered": True,
++    },
+ }
+ DEFAULT_COPY = {
+     "title": "Courier task",
+diff --git a/courier_hub/server.py b/courier_hub/server.py
+index b46d596f2..416d874d2 100644
+--- a/courier_hub/server.py
++++ b/courier_hub/server.py
+@@ -278,6 +278,36 @@ class Hub:
+         reason = (note.strip() if isinstance(note, str) and note.strip() else "Stopped in the desktop hub")[:1000]
+         return self._relay(task_id, "POST", f"/v1/tasks/{task_id}/cancel", {"actor": self.actor, "reason": reason})
+ 
++    def create_task(self, body: dict) -> tuple:
++        if not isinstance(body, dict):
++            return 400, {"result": "invalid", "message": "Task body must be a JSON object."}
++        adapter = body.get("adapter")
++        if not isinstance(adapter, str) or not adapter:
++            return 400, {"result": "invalid", "message": "The task must specify an adapter."}
++        params = body.get("params")
++        if not isinstance(params, dict):
++            return 400, {"result": "invalid", "message": "Params must be a dictionary."}
++        payload = {
++            "adapter": adapter,
++            "params": params,
++            "effect_class": body.get("effect_class", "idempotent"),
++            "max_attempts": body.get("max_attempts", 3),
++            "lease_ttl_s": body.get("lease_ttl_s", 60),
++        }
++        if "idempotency_key" in body and isinstance(body["idempotency_key"], str):
++            payload["idempotency_key"] = body["idempotency_key"]
++        if "timeout_s" in body and isinstance(body["timeout_s"], (int, float)):
++            payload["timeout_s"] = int(body["timeout_s"])
++        try:
++            code, answer = self._call("POST", "/v1/tasks", payload)
++        except NotSent:
++            return 503, {"result": "offline", "message": "Courier isn't reachable right now. Nothing was created."}
++        except ResponseLost:
++            return 504, {"result": "unknown", "message": "Courier may have created this task, but its answer was lost."}
++        if code in (200, 201):
++            return code, {"result": "created", "task_id": answer.get("task_id"), "duplicate": answer.get("duplicate", False)}
++        return code, {"result": "refused", "message": answer.get("message", "Courier refused this task.")}
++
+     def _relay(self, task_id: str, method: str, path: str, payload: dict) -> tuple:
+         try:
+             code, answer = self._call(method, path, payload)
+@@ -418,10 +448,18 @@ class Handler(BaseHTTPRequestHandler):
+             return self._send(400, {"error": "invalid_json"})
+         if not isinstance(body, dict):
+             return self._send(400, {"error": "invalid_json"})
+-        match = _ITEM_ACTION.match(urlsplit(self.path).path)
++        path = urlsplit(self.path).path
++        hub: Hub = self.server.hub
++        if path == "/hub/api/tasks":
++            try:
++                status, payload = hub.create_task(body)
++                return self._send(status, payload)
++            except Exception:
++                log.exception("hub error on POST %s", path)
++                return self._send(500, {"result": "unknown", "message": "The hub hit an internal error."})
++        match = _ITEM_ACTION.match(path)
+         if not match:
+             return self._send(404, {"error": "not_found"})
+-        hub: Hub = self.server.hub
+         try:
+             task_id, action = match.group(1), match.group(2)
+             status, payload = hub.decide(task_id, body) if action == "decision" else hub.stop(task_id, body)
+diff --git a/courier_hub/static/hub.js b/courier_hub/static/hub.js
+index 69b9cabe3..6248fbb8f 100644
+--- a/courier_hub/static/hub.js
++++ b/courier_hub/static/hub.js
+@@ -132,8 +132,33 @@ document.addEventListener('keydown', (event) => {
+   if (event.key === 'r' && !event.ctrlKey && !event.metaKey && document.activeElement?.tagName !== 'TEXTAREA') refresh();
+ });
+ 
++async function startCheck() {
++  const btn = $('#start-check');
++  if (btn) btn.disabled = true;
++  announce('Starting self-check…', 'ok');
++  try {
++    const res = await fetch('/hub/api/tasks', {
++      method: 'POST',
++      headers: { 'Content-Type': 'application/json', 'X-Courier-Hub': '1' },
++      body: JSON.stringify({
++        adapter: 'synthetic',
++        params: { title: 'Self-Check', action: 'echo' },
++        effect_class: 'idempotent',
++      }),
++    });
++    if (!res.ok) throw new Error(String(res.status));
++    announce('Self-check started.', 'ok');
++    await refresh();
++  } catch {
++    announce("Couldn't start check right now.", 'warn');
++  } finally {
++    if (btn) btn.disabled = false;
++  }
++}
++
+ $('#detail-close').addEventListener('click', closeDetail);
+ $('#refresh').addEventListener('click', () => refresh());
++$('#start-check')?.addEventListener('click', () => startCheck());
+ window.addEventListener('focus', () => refresh());
+ document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+ window.addEventListener('online', () => refresh());
+diff --git a/courier_hub/static/index.html b/courier_hub/static/index.html
+index 3f7ef43cc..7ff77daed 100644
+--- a/courier_hub/static/index.html
++++ b/courier_hub/static/index.html
+@@ -13,6 +13,7 @@
+ <header class="top">
+   <h1>Courier</h1>
+   <p id="status" role="status" aria-live="polite">Loading…</p>
++  <button type="button" id="start-check" title="Run self-check">Run Check</button>
+   <button type="button" id="refresh" title="Refresh (R)">Refresh</button>
+ </header>
+ <p id="toast" role="alert" hidden></p>
+diff --git a/tests/hub/test_hub_product.py b/tests/hub/test_hub_product.py
+index 2ec176c5d..332e041fe 100644
+--- a/tests/hub/test_hub_product.py
++++ b/tests/hub/test_hub_product.py
+@@ -718,3 +718,37 @@ def test_support_export_is_one_item_read_only_and_holds_no_secrets(world):
+     foreign = requests.get(f"{hub.base}/hub/api/items/{task_id}/support",
+                            headers={"Host": "evil.example"}, timeout=10)
+     assert foreign.status_code == 421
++
++
++def test_create_task_through_hub_relays_to_controller_and_shows_in_working(world):
++    live, hub, clock = world
++    res = hub.post("/hub/api/tasks", {
++        "adapter": "synthetic",
++        "params": {"title": "Doctor Check", "action": "echo"},
++        "effect_class": "idempotent",
++    })
++    assert res.status_code == 201
++    task_id = res.json()["task_id"]
++    assert task_id.startswith("task-")
++
++    # The created task appears in the hub's working pile immediately
++    home = hub.home()
++    assert any(card["id"] == task_id for card in home["working"])
++
++
++def test_local_shell_adapter_copy_in_hub(world):
++    live, hub, clock = world
++    res = live.post("/v1/tasks", {
++        "adapter": "local_shell",
++        "params": {"command": ["echo", "hi"], "write": "out.txt"},
++        "effect_class": "idempotent",
++        "max_attempts": 2,
++        "lease_ttl_s": 60,
++    })
++    assert res.status_code == 201
++    task_id = res.json()["task_id"]
++    home = hub.home()
++    card = next(c for c in home["working"] if c["id"] == task_id)
++    assert card["title"] == "Local system command"
++
++

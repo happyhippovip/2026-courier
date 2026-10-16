@@ -261,6 +261,38 @@ def register_worker():
     server_task = existing.get("current_task")
     worker_task = data.get("current_task")
     
+    # Identity & session protection if worker is already registered
+    if existing and not existing.get("unregistered"):
+        incoming_platform = data.get("platform")
+        existing_platform = existing.get("platform")
+        if incoming_platform and existing_platform and existing_platform != "unknown" and incoming_platform != existing_platform:
+            return jsonify({
+                "error": "Worker identity mismatch: platform conflict",
+                "code": "WRONG_WORKER_IDENTITY",
+            }), 409
+
+        incoming_client = data.get("client_id")
+        existing_client = existing.get("client_id")
+        if incoming_client and existing_client and incoming_client != existing_client:
+            return jsonify({
+                "error": "Worker identity mismatch: client_id conflict",
+                "code": "WRONG_WORKER_IDENTITY",
+            }), 409
+
+        existing_seq = existing.get("session_seq", 0)
+        incoming_seq = data.get("session_seq")
+        if incoming_seq is not None and isinstance(incoming_seq, (int, float)):
+            if incoming_seq < existing_seq:
+                return jsonify({
+                    "error": "Stale session registration rejected",
+                    "code": "STALE_SESSION",
+                }), 409
+        elif data.get("stale_session"):
+            return jsonify({
+                "error": "Stale session registration rejected",
+                "code": "STALE_SESSION",
+            }), 409
+
     if "current_task" in data:
         current_task = worker_task
         if server_task and worker_task != server_task:
@@ -278,18 +310,26 @@ def register_worker():
     else:
         current_task = server_task
 
+    session_id = data.get("session_id") or existing.get("session_id")
+    session_seq = data.get("session_seq") if data.get("session_seq") is not None else existing.get("session_seq", 1)
+    client_id = data.get("client_id") or existing.get("client_id")
+
     state["workers"][worker_id] = {
         "worker_id": worker_id,
-        "platform": data.get("platform", "unknown"),
-        "capabilities": data.get("capabilities", []),
+        "platform": data.get("platform", existing.get("platform", "unknown")),
+        "capabilities": data.get("capabilities", existing.get("capabilities", [])),
         "last_seen": time.time(),
         "available": current_task is None,
         "current_task": current_task,
-        "cost_class": data.get("cost_class", "unknown")
+        "cost_class": data.get("cost_class", existing.get("cost_class", "unknown")),
+        "session_id": session_id,
+        "session_seq": session_seq,
+        "client_id": client_id,
     }
     
+    is_reconnect = bool(existing and not existing.get("unregistered"))
     save_state(state)
-    return jsonify({"status": "REGISTERED"})
+    return jsonify({"status": "REGISTERED", "reconnected": is_reconnect})
 
 @app.route("/workers/unregister", methods=["POST"])
 @require_auth
@@ -326,6 +366,69 @@ def heartbeat():
     else:
         return jsonify({"error": "Unknown worker"}), 404
 
+def is_worker_eligible_for_task(worker: dict, task: dict) -> bool:
+    """Evaluate whether a worker satisfies the task's capability, platform, and runtime requirements.
+    
+    Invariants (ANTIGRAVITY 032):
+    - Valid, active capability metadata required; stale or malformed records fail closed.
+    - Worker platform must match target agent OS (e.g. windows task requires windows platform).
+    - All explicit required_capabilities must be present in worker capabilities.
+    - Required runtime (if specified) must be supported by the worker.
+    """
+    if not isinstance(worker, dict):
+        return False
+    if worker.get("capabilities_stale") or worker.get("stale"):
+        return False
+    
+    worker_caps = worker.get("capabilities")
+    if not isinstance(worker_caps, list):
+        return False
+    
+    caps_set = set(str(c).lower() for c in worker_caps)
+    worker_platform = str(worker.get("platform", "unknown")).lower()
+    target = str(task.get("target_agent", "linux")).lower()
+
+    # 1. Target agent & platform compatibility
+    matched = False
+    if "github" in target and "github" in caps_set:
+        matched = True
+    elif "mac" in target and "macos" in caps_set:
+        if worker_platform in ("mac", "macos", "unknown"):
+            matched = True
+    elif "windows" in target and "windows" in caps_set:
+        if worker_platform in ("windows", "unknown"):
+            matched = True
+    elif "linux" in target and "linux" in caps_set:
+        if worker_platform in ("linux", "unknown"):
+            matched = True
+    elif "antigravity" in target and "antigravity" in caps_set:
+        matched = True
+
+    if not matched:
+        return False
+
+    # 2. Explicit required capabilities check (Missing Capability / Task X)
+    required_caps = task.get("required_capabilities") or []
+    if isinstance(required_caps, str):
+        required_caps = [required_caps]
+    if task.get("required_capability"):
+        required_caps = list(required_caps) + [task["required_capability"]]
+
+    for req in required_caps:
+        if str(req).lower() not in caps_set:
+            return False
+
+    # 3. Explicit runtime requirement check (Unknown Runtime)
+    req_runtime = task.get("required_runtime") or task.get("runtime")
+    if req_runtime:
+        req_rt = str(req_runtime).lower()
+        supported_rts = set(str(r).lower() for r in (worker.get("supported_runtimes") or []))
+        if req_rt not in supported_rts and req_rt not in caps_set:
+            return False
+
+    return True
+
+
 @app.route("/tasks/claim", methods=["POST"])
 @require_auth
 @serialize_state_mutation
@@ -354,14 +457,7 @@ def claim_task():
             if idx < len(goal["workflow_plan"]):
                 next_task = goal["workflow_plan"][idx]
                 if next_task["status"] == "QUEUED":
-                    target = next_task.get("target_agent", "linux").lower()
-                    
-                    matched = False
-                    if "github" in target and "github" in worker["capabilities"]: matched = True
-                    elif "mac" in target and "macos" in worker["capabilities"]: matched = True
-                    elif "windows" in target and "windows" in worker["capabilities"]: matched = True
-                    elif "linux" in target and "linux" in worker["capabilities"]: matched = True
-                    elif "antigravity" in target and "antigravity" in worker["capabilities"]: matched = True
+                    matched = is_worker_eligible_for_task(worker, next_task)
                     
                     if matched:
                         # Cost-based routing check:
@@ -377,7 +473,6 @@ def claim_task():
                                 if now - other_w.get("last_seen", 0) > 300: continue
                                 
                                 other_cost = other_w.get("cost_class", "high")
-                                # is other cheaper?
                                 if worker_cost == "high" and other_cost in ("free", "low", "medium"):
                                     is_cheaper = True
                                 elif worker_cost == "medium" and other_cost in ("free", "low"):
@@ -386,19 +481,15 @@ def claim_task():
                                     is_cheaper = False
                                     
                                 if is_cheaper:
-                                    # Is other qualified?
-                                    if "github" in target and "github" in other_w["capabilities"]: cheaper_available = True
-                                    elif "mac" in target and "macos" in other_w["capabilities"]: cheaper_available = True
-                                    elif "windows" in target and "windows" in other_w["capabilities"]: cheaper_available = True
-                                    elif "linux" in target and "linux" in other_w["capabilities"]: cheaper_available = True
-                                    elif "antigravity" in target and "antigravity" in other_w["capabilities"]: cheaper_available = True
+                                    if is_worker_eligible_for_task(other_w, next_task):
+                                        cheaper_available = True
                                 
                             if cheaper_available:
                                 # We decline this claim to let the cheaper worker grab it.
-                                # But we can't return error, we just skip this task and let it return empty.
                                 matched = False
 
                     if matched:
+                        target = str(next_task.get("target_agent", "linux")).lower()
                         next_task["worker_id"] = worker_id
                         next_task["attempts"] = next_task.get("attempts", 0) + 1
                         next_task["attempt_id"] = f"{next_task['task_id']}:attempt:{next_task['attempts']}"

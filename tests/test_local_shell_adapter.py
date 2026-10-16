@@ -224,3 +224,57 @@ def test_rejection_preserves_evidence(tmp_path):
     after = snapshot(tmp_path)
     assert after == {str(Path("out.txt")): hashlib.sha256(b"tampered").hexdigest()}
     assert set(after) == set(before)
+
+
+def test_bridge_validates_local_shell_claim():
+    from courier_worker import adapter_bridge as bridge
+    from courier_worker.host import SpecError
+
+    spec = {
+        "adapter": "local_shell",
+        "params": {"command": write_argv("bridge-ok"), "write": "out.txt"},
+        "effect_key": "eff-123",
+    }
+    adapter, params, effect_key = bridge.validate_request(spec)
+    assert adapter == "local_shell"
+    assert params["write"] == "out.txt"
+    assert effect_key == "eff-123"
+
+    bad_spec = {
+        "adapter": "local_shell",
+        "params": {"command": []},
+        "effect_key": "eff-123",
+    }
+    with pytest.raises(SpecError, match="local_shell params rejected"):
+        bridge.validate_request(bad_spec)
+
+
+def test_runner_executes_local_shell(tmp_path):
+    import subprocess
+    from courier_worker import adapter_bridge as bridge
+
+    req_path = tmp_path / "req.json"
+    rep_path = tmp_path / "rep.json"
+    workdir = tmp_path / "workdir"
+    workdir.mkdir()
+
+    import json
+    req_path.write_text(json.dumps({
+        "adapter": "local_shell",
+        "params": {"command": write_argv("runner-worked"), "write": "out.txt"},
+        "attempt": 1,
+        "task_id": "t-shell",
+        "dispatch_id": "d-shell",
+        "effect_key": "eff-shell",
+        "workdir": str(workdir),
+        "report": str(rep_path),
+    }), encoding="utf-8")
+
+    proc = subprocess.run([sys.executable, bridge.RUNNER_SCRIPT, str(req_path)],
+                          capture_output=True, text=True)
+    assert proc.returncode == 0, f"stdout: {proc.stdout}, stderr: {proc.stderr}"
+    assert rep_path.exists()
+    report = json.loads(rep_path.read_text(encoding="utf-8"))
+    assert report["outcome"] == "success"
+    assert (workdir / "out.txt").read_text(encoding="utf-8") == "runner-worked"
+

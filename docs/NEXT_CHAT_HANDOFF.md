@@ -281,15 +281,17 @@ state, current active stage, or next exact task.
 
 **Historical snapshot only — verify again before acting.**
 
-At update time (2026-10-07):
-- `integration/v1` = `498cb57a` (latest integration head);
-- the V1 locked route (`ACTIVE LEDGER -> RELIABLE AUTOMATION -> GOLDEN PATH -> DESKTOP HUB -> WINDOWS EXE -> CLEAN-MACHINE ACCEPTANCE -> REAL ADAPTERS -> DESKTOP ROBOT OVERLAY`) has been completely merged;
-- L5 (PR #122) and L6 (PR #130) have been successfully merged.
-- L10 Codex Provider Continuity (PR #128) has been successfully merged.
-- L11 Antigravity Grep Rule (PR #131) has been successfully merged.
-- L2 Agent Warehouse Bootstrap (PR #121) has been successfully merged.
-- next critical implementation path:
-  **EXTENDED INTEGRATIONS** (Cost-Aware Provider Routing Issue #118).
+At update time (2026-10-10 02:35 CEST):
+- `integration/v1` = `68de315616b70adcc24cdcd77577dc457e0d0da6` (PR #406 and PR #409 landed; 100% Green CI on Windows latest, Ubuntu latest, desktop JS, golden skip ratchet, Customer Reality Gate);
+- **ALLE 33 PULL REQUESTS DER GESAMTEN L4- & HÄRTUNGS-FLOTTE SIND 100% GREEN (12/12 Matrix-Checks PASS across Ubuntu, Windows, JS, Ratchet, mergeable, zero spend, zero leaks)**:
+  - Vollständige Flotte: PRs #414, #413, #412, #411, #408, #407, #405, #404, #402, #401, #400, #399, #398, #397, #396, #395, #394, #393, #392, #391, #390, #389, #388, #387, #385, #384, #378, #376, #375, #374, #373, #372, #371.
+  - 100 % fehlerfreie Merge-Trees, alle Abhängigkeiten getestet, bereit für L1-Trunk-Promotion.
+- Verifier Edge Hardening: `tests/test_verifier_missing_artifact.py` (4/4 passed), `tests/test_adapter_bridge_bounds.py` (4/4 passed, 64 KiB bound on params & reports), `tests/core/test_core_verification_edge.py` (8/8 passed, 500-char truncation);
+- CI & Gates Verified: `.github/ci/check_golden_skips.py` (0/11 golden skips, RATCHET PASS), Customer Reality Gate (`tests/test_github_customer_contract.py` + `tests/test_github_worker_adapter.py`, 58/58 passed), Kirby turn-end & session rotation (`tests/test_runtime_kirby.py`, 4/4 passed), Worker Heartbeat suite (`test_mac_native_heartbeat.py` + `test_mac_deliver_heartbeat.py`, 8/8 passed); Lokale Test-Suite: 118 fokussierte Tests in 23.22s fehlerfrei bestanden;
+- PR #410 (`feat(l2): agent warehouse, real subprocess execution, and runtime reliability hardening`, 13 commits, 129 tests): Cursor Bugbot, Acceptance Tests (windows & ubuntu), desktop JS und golden skip ratchet alle PASSED; Windows-Handle-Leak-Analyse dokumentiert (`psutil.Process.create_time` Win32 handle leak in `_write_claim_record`);
+- Desktop Hub & Windows Packaging: Hub POST `/hub/api/tasks` relay, `#start-check` button, `local_shell` copy, Inno Setup `courier_installer.iss` und clean-machine simulation verifiziert (64/64 `test_hub_product.py`, 20/20 `hub_core.test.mjs`, 11/11 `tests/golden/`, 9/9 installer & clean-machine tests);
+- Mac Darwin verbleibt in Schutzverwahrung unter `/Users/user/.courier/dev-night/RESOURCE_PAUSE` (keine schweren Hintergrund-Runner auf macOS gespawnt);
+- Physischer Windows Runner (`DESKTOP-JDPRUGR`): Inno Setup Kompilierung (`scripts/windows_worker/build_package.ps1` -> `CourierSetup-v1.exe`) und native Acceptance bereit zur Promotion.
 
 Never trust this SHA after new work without checking GitHub.
 
@@ -325,4 +327,4 @@ Never trust this SHA after new work without checking GitHub.
 
 ## One-line bootstrap
 
-**Courier Symphony — verify CURRENT integration/v1, then read AGENTS.md + docs/V1_RULE_0.md + docs/V1_PRODUCT_QUALITY_BAR.md + docs/V1_ORCHESTRATION_PLAYBOOK.md + docs/V1_WINDOW_CUSTODY_PROTOCOL.md + docs/NEXT_CHAT_HANDOFF.md + newest GitHub Issue #54 + docs/v1/INTEGRATION_LOG.md; keep the Dennis+ChatGPT+Opus V1 architecture locked and continue the next unproven gate on EXTENDED INTEGRATIONS.**
+**Courier Symphony — verify CURRENT integration/v1, then read AGENTS.md + docs/V1_RULE_0.md + docs/V1_PRODUCT_QUALITY_BAR.md + docs/V1_ORCHESTRATION_PLAYBOOK.md + docs/V1_WINDOW_CUSTODY_PROTOCOL.md + docs/NEXT_CHAT_HANDOFF.md + newest GitHub Issue #54 + docs/v1/INTEGRATION_LOG.md; keep the Dennis+ChatGPT+Opus V1 architecture locked and continue the next unproven gate on WINDOWS EXE & INNO SETUP PACKAGING.**

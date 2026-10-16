@@ -324,3 +324,33 @@ def test_real_hung_child_is_recovered_with_ownership_identity(tmp_path):
             if p.poll() is None:
                 p.kill()
                 p.wait()
+
+
+def test_compaction_blocked_pending_deliveries_drains_once_with_compact_handoff(tmp_path):
+    """COMPACTION_BLOCKED_PENDING_DELIVERIES: detect, stop submits to the exhausted
+    session, preserve checkpoint/workkey, resume via exactly ONE fresh session, and
+    refuse the old session's late writes. Never blind-replays in-flight tool state."""
+    from courier_runtime.continuity import COMPACTION_BLOCKED, saturation_signal
+    assert saturation_signal("COMPACTION_BLOCKED_PENDING_DELIVERIES: 2 tool results undelivered",
+                             None) == COMPACTION_BLOCKED
+    k, _, world = kirby(tmp_path)
+    k.add_workkeys(["W1"])
+    k.open_slot("s1", "muse")
+    k.wake("s1")
+    k.deliver("s1")
+    old, stale_token = k.sessions["s1"], k.sessions["s1"].token
+    receipt = k.on_provider_output("s1", "COMPACTION_BLOCKED_PENDING_DELIVERIES: 2 tool results undelivered",
+                                   checkpoint="W1:step-8")
+    assert receipt is not None and receipt["kind"] == "ROTATE" and receipt["reason"] == COMPACTION_BLOCKED
+    assert len(world.started) == 2                               # exactly ONE fresh session
+    assert old.session_id != k.sessions["s1"].session_id and old.state == "RETIRED"
+    assert old.pid in world.terminated                            # only the owned tree drained
+    assert k.workkeys["W1"].checkpoint == "W1:step-8"             # resume, not restart
+    assert k.workkeys["W1"].needs_delivery_audit is True          # pending deliveries owed inspection
+    assert k.workkeys["W1"].owner == k.sessions["s1"].session_id
+    assert k.workkeys["W1"].state == "CLAIMED" and k.sessions["s1"].state == WAKE_PENDING
+    retired = [json.loads(l) for l in (tmp_path / "retired.jsonl").read_text().splitlines()]
+    assert retired[0]["session_id"] == old.session_id and retired[0]["successor"] == k.sessions["s1"].session_id
+    # the exhausted session's late turn-end is refused: no blind completion, no duplicate writer
+    assert k.on_turn_end("s1", "DONE", stale_token) == "REJECTED_STALE_WRITER"
+    assert k.workkeys["W1"].state == "CLAIMED"

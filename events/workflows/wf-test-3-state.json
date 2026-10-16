@@ -1,0 +1,16 @@
+{
+  "workflow_id": "wf-test-3",
+  "correlation_id": "corr-wf-25c66cae",
+  "workflow_plan": [
+    {
+      "task_id": "test",
+      "target_agent": "codex",
+      "instruction": "do something"
+    }
+  ],
+  "current_step_index": 0,
+  "status": "RESOURCE_PAUSE",
+  "stop_reason": "Host admission is CLOSED (RESTART_RECOMMENDED). Lane hibernating.",
+  "history": [],
+  "updated_at": "2026-10-08T03:23:07.710726+00:00"
+}

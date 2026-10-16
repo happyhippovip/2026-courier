@@ -172,6 +172,61 @@ def test_task_dedupe_engine_missing_expected_hash(repo_dir):
     
     # Register with empty hash
     engine.register_task_result(task_hash, "task1", result_file, "")
-    
+
     cached = engine.get_cached_result(task_hash)
     assert cached is None
+
+
+def test_cost_gate_unknown_cost_fail_closed(repo_dir):
+    for bad in (None, "unknown", float("nan"), float("inf"), -1.0, True):
+        res = CostGate.evaluate_spend_request(
+            "google_antigravity_plus", estimated_cost_eur=bad, repo_dir=repo_dir)
+        assert res["allowed"] is False
+        assert res["reason"] == "UNKNOWN_COST"
+        assert res["requires_human_gate"] is True
+
+
+def test_cost_gate_matrix_no_unauthorized_dispatch(repo_dir):
+    dispatches = []
+    spend = {"unauthorized_eur": 0.0}
+
+    def gated_dispatch(resource_id, estimated_cost_eur, action="EXECUTE_TASK"):
+        verdict = CostGate.evaluate_spend_request(
+            resource_id, estimated_cost_eur=estimated_cost_eur,
+            requested_action=action, repo_dir=repo_dir)
+        if not verdict["allowed"]:
+            return verdict
+        dispatches.append(resource_id)
+        return verdict
+
+    zero = gated_dispatch("google_antigravity_plus", 0.0)
+    assert zero["allowed"] is True
+    known = gated_dispatch("google_antigravity_plus", 0.0, "EXECUTE_TASK")
+    assert known["allowed"] is True
+    unknown = gated_dispatch("google_antigravity_plus", None)
+    assert unknown["allowed"] is False and unknown["reason"] == "UNKNOWN_COST"
+    paid = gated_dispatch("on_demand_api_tiers", 0.0)
+    assert paid["allowed"] is False
+    assert dispatches == ["google_antigravity_plus", "google_antigravity_plus"]
+    assert spend["unauthorized_eur"] == 0.0
+
+
+def test_cost_gate_rejected_paid_does_not_block_free_queue(repo_dir):
+    order = []
+
+    def gated(task):
+        verdict = CostGate.evaluate_spend_request(
+            task["resource"], estimated_cost_eur=task["cost"], repo_dir=repo_dir)
+        if verdict["allowed"]:
+            order.append(task["id"])
+        return verdict
+
+    queue = [
+        {"id": "free-a", "resource": "google_antigravity_plus", "cost": 0.0},
+        {"id": "paid-x", "resource": "on_demand_api_tiers", "cost": 0.0},
+        {"id": "unknown-y", "resource": "google_antigravity_plus", "cost": None},
+        {"id": "free-b", "resource": "google_antigravity_plus", "cost": 0.0},
+    ]
+    verdicts = [gated(t) for t in queue]
+    assert [v["allowed"] for v in verdicts] == [True, False, False, True]
+    assert order == ["free-a", "free-b"]

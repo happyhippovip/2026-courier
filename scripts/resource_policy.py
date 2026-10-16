@@ -9,7 +9,9 @@ from __future__ import annotations
 import datetime
 import hashlib
 import json
+import math
 import os
+import time
 from pathlib import Path
 from typing import Any
 
@@ -105,11 +107,34 @@ class CostGate:
         estimated_cost_eur: float = 0.0,
         requested_action: str = "EXECUTE_TASK",
         repo_dir: Path | None = None,
+        grant: Any = None,
+        already_spent_eur: float = 0.0,
+        current_time: float | None = None,
     ) -> dict:
         policy = ResourcePolicyManager.get_policy(repo_dir)
         active = policy.get("active_paid_resources", {})
         planned = policy.get("planned_resources", {})
         unauth = policy.get("unauthorized_resources", {})
+
+        # Fail closed on unknown/unverifiable cost: no external paid dispatch
+        # on None, non-numeric, NaN/inf, or negative estimates.
+        if (isinstance(estimated_cost_eur, bool)
+                or not isinstance(estimated_cost_eur, (int, float))
+                or not math.isfinite(estimated_cost_eur)
+                or estimated_cost_eur < 0):
+            return {
+                "allowed": False,
+                "reason": "UNKNOWN_COST",
+                "message": "Cost is unknown or unverifiable; no external paid dispatch without a known authorized cost.",
+                "requires_human_gate": True,
+            }
+        if not isinstance(requested_action, str):
+            return {
+                "allowed": False,
+                "reason": "UNKNOWN_COST",
+                "message": "Requested action is unknown; no external paid dispatch.",
+                "requires_human_gate": True,
+            }
 
         # Check planned non-active
         if resource_id in planned:
@@ -131,11 +156,48 @@ class CostGate:
 
         # Check unapproved extra spending / capacity upgrades
         if estimated_cost_eur > 0.0 or "upgrade" in requested_action.lower() or "purchase" in requested_action.lower():
+            if grant is None:
+                return {
+                    "allowed": False,
+                    "reason": "SPEND_NOT_ALLOWED_BY_POLICY",
+                    "message": "Automatic budget increases or paid plan upgrades are blocked. Human Gate required.",
+                    "requires_human_gate": True,
+                }
+
+            now = current_time if current_time is not None else time.time()
+            if getattr(grant, "revoked", False):
+                return {
+                    "allowed": False,
+                    "reason": "REVOKED_GRANT",
+                    "message": f"Spend grant '{getattr(grant, 'grant_id', 'unknown')}' is revoked.",
+                    "requires_human_gate": True,
+                }
+
+            grant_start = getattr(grant, "start", 0.0)
+            grant_end = getattr(grant, "end", 0.0)
+            if not (grant_start <= now < grant_end):
+                return {
+                    "allowed": False,
+                    "reason": "EXPIRED_GRANT",
+                    "message": f"Spend grant '{getattr(grant, 'grant_id', 'unknown')}' is expired or outside valid time window.",
+                    "requires_human_gate": True,
+                }
+
+            max_spend = getattr(grant, "max_spend_eur", 0.0)
+            if already_spent_eur + estimated_cost_eur > max_spend:
+                return {
+                    "allowed": False,
+                    "reason": "GRANT_LIMIT_EXCEEDED",
+                    "message": f"Requested spend would exceed max spend {max_spend} EUR.",
+                    "requires_human_gate": True,
+                }
+
             return {
-                "allowed": False,
-                "reason": "SPEND_NOT_ALLOWED_BY_POLICY",
-                "message": "Automatic budget increases or paid plan upgrades are blocked. Human Gate required.",
-                "requires_human_gate": True,
+                "allowed": True,
+                "reason": "AUTHORIZED_BY_SPEND_GRANT",
+                "message": f"Spend of {estimated_cost_eur} EUR authorized under grant '{getattr(grant, 'grant_id', '')}'.",
+                "grant_id": getattr(grant, "grant_id", None),
+                "requires_human_gate": False,
             }
 
         return {

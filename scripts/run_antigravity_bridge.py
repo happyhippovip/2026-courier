@@ -282,8 +282,9 @@ def execute_bridge_task(worker_job_path: Path, hooks: AntigravityHookRunner, for
     if target_fixture and target_fixture.exists():
         hooks.on_tool_action(task_id, f"Reading fixture: {target_fixture.name}", 0.6)
         content_snippet = target_fixture.read_text(encoding="utf-8")[:500]
+        verdict = "UNVERIFIED_MOCK" if job.get("require_verified_product_pass") else "PASS"
         payload = {
-            "verdict": "PASS",
+            "verdict": verdict,
             "action_executed": "READ_FIXTURE_AND_SUMMARIZE",
             "target_file": str(target_fixture.relative_to(COURIER_DIR)),
             "file_size_bytes": target_fixture.stat().st_size,
@@ -296,8 +297,9 @@ def execute_bridge_task(worker_job_path: Path, hooks: AntigravityHookRunner, for
         }
     else:
         hooks.on_tool_action(task_id, "Executing generic structured summary", 0.6)
+        verdict = "UNVERIFIED_MOCK" if job.get("require_verified_product_pass") else "PASS"
         payload = {
-            "verdict": "PASS",
+            "verdict": verdict,
             "action_executed": "EXECUTE_INSTRUCTION",
             "instruction_summary": instruction[:120],
             "execution_mode": "AUTOMATED_ANTIGRAVITY_BRIDGE",
@@ -346,6 +348,18 @@ def run_chief_review_router(task_id: str, result_file: Path) -> dict:
             "reason": "Antigravity bridge execution verified compliant with zero cost and allowed scope.",
             "created_at": now_iso,
         }
+    elif verdict == "UNVERIFIED_MOCK":
+        decision = {
+            "schema_version": "2.0",
+            "decision_id": f"dec-{uuid.uuid4().hex[:10]}",
+            "task_id": task_id,
+            "correlation_id": res_data.get("correlation_id"),
+            "verdict": "REJECTED_UNVERIFIED",
+            "action": "ROUTE_TO_REAL_VERIFIER",
+            "next_task": None,
+            "reason": "Synthetic mock or fixture summary cannot be auto-approved without real verifier pass.",
+            "created_at": now_iso,
+        }
     elif verdict == "NEEDS_FIX":
         decision = {
             "schema_version": "2.0",
@@ -374,6 +388,22 @@ def run_chief_review_router(task_id: str, result_file: Path) -> dict:
     save_json(decision_file, decision)
     print(f"[CHIEF_REVIEW_ROUTER] Decision: {decision['verdict']} -> {decision['action']}")
     return decision
+
+
+def build_local_shell_task_packet(job_path: Path | str, write_filename: str = "result.json",
+                                  lease_ttl_s: int = 60, timeout_s: int = 30) -> dict:
+    """Constructs a canonical Courier V1 task packet routing an Antigravity job via local_shell."""
+    return {
+        "adapter": "local_shell",
+        "params": {
+            "command": [sys.executable, str(Path(job_path).resolve()), "--review"],
+            "write": write_filename,
+            "timeout_s": timeout_s,
+        },
+        "effect_class": "idempotent",
+        "lease_ttl_s": lease_ttl_s,
+        "max_attempts": 1,
+    }
 
 
 def main() -> int:

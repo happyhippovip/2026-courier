@@ -52,11 +52,17 @@ def setup_logging():
     import logging
     from logging.handlers import RotatingFileHandler
     log_file = LOG_DIR / "daemon.log"
-    logging.basicConfig(
-        handlers=[RotatingFileHandler(log_file, maxBytes=5*1024*1024, backupCount=3)],
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s'
-    )
+    try:
+        logging.basicConfig(
+            handlers=[RotatingFileHandler(log_file, maxBytes=5*1024*1024, backupCount=3)],
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s'
+        )
+    except (OSError, PermissionError):
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s'
+        )
     class StreamToLogger:
         def __init__(self, logger, level):
             self.logger = logger
@@ -186,14 +192,30 @@ def persist_task(path, task):
 
 def is_safe_artifact_path(name):
     """Artifacts are workspace-relative (the daemon's cwd, which PowerShell
-    inherits). Reject absolute, drive-qualified, UNC and '..' paths under both
-    Windows and POSIX rules, matching the integration contract."""
-    if not isinstance(name, str) or not name:
-        return False
-    for pure in (PureWindowsPath(name), PurePosixPath(name)):
-        if pure.is_absolute() or pure.drive or pure.root or ".." in pure.parts:
+    inherits). Reject absolute, drive-qualified, UNC, '..', ADS, DOS device,
+    and ambiguous Windows paths, matching the integration contract."""
+    try:
+        from scripts.artifact_store import is_safe_artifact_name
+        return is_safe_artifact_name(name)
+    except ImportError:
+        if not isinstance(name, str) or not name or len(name) > 255 or "\x00" in name or ":" in name:
             return False
-    return True
+        for pure in (PureWindowsPath(name), PurePosixPath(name)):
+            if pure.is_absolute() or pure.drive or pure.root or ".." in pure.parts:
+                return False
+            for part in pure.parts:
+                if not part or part == ".":
+                    continue
+                if part.endswith(".") or part.endswith(" ") or part.startswith(" "):
+                    return False
+                stem = part.split(".")[0].upper()
+                if stem in {
+                    "CON", "PRN", "AUX", "NUL",
+                    "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+                    "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+                }:
+                    return False
+        return True
 
 def build_result_payload(task, result, config):
     """Bind the execution outcome to the server-issued dispatch identity."""

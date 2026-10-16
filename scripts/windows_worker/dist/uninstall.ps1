@@ -1,22 +1,35 @@
-# Requires Run as Administrator
-if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Host "ERROR: Please run as Administrator." -ForegroundColor Red
-    exit 1
-}
+$IsAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
 $taskName = "CourierWindowsWorker"
-$InstallDir = "$env:ProgramFiles\CourierWorker"
-
-if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
-    Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
-    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
-    Write-Host "Unregistered and stopped Courier Windows Worker scheduled task."
+$InstallDir = if ($env:COURIER_INSTALL_DIR) {
+    $env:COURIER_INSTALL_DIR
+} elseif (Test-Path -LiteralPath "$env:ProgramFiles\CourierWorker") {
+    "$env:ProgramFiles\CourierWorker"
 } else {
-    Write-Host "Task $taskName does not exist."
+    "$env:LOCALAPPDATA\CourierWorker"
 }
 
-if (Test-Path $InstallDir) {
-    Remove-Item -Recurse -Force $InstallDir
+if ($IsAdmin) {
+    if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
+        Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+        Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
+        Write-Host "Unregistered and stopped Courier Windows Worker scheduled task."
+    } else {
+        Write-Host "Task $taskName does not exist."
+    }
+}
+
+if (Test-Path -LiteralPath $InstallDir) {
+    try {
+        Remove-Item -LiteralPath $InstallDir -Recurse -Force -ErrorAction Stop
+    } catch {
+        Write-Error "Courier uninstall not proven: install directory was not removed."
+        exit 1
+    }
+    if (Test-Path -LiteralPath $InstallDir) {
+        Write-Error "Courier uninstall not proven: install directory remains."
+        exit 1
+    }
     Write-Host "Removed installation directory: $InstallDir"
 }
 

@@ -52,6 +52,12 @@ ADAPTER_COPY = {
         "repeat_consequence": "The test file may be written a second time.",
         "retry_offered": True,
     },
+    "local_shell": {
+        "title": "Local system command",
+        "action": "run the local command",
+        "repeat_consequence": "The command may be executed a second time.",
+        "retry_offered": True,
+    },
 }
 DEFAULT_COPY = {
     "title": "Courier task",

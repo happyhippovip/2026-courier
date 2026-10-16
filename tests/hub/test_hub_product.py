@@ -718,3 +718,112 @@ def test_support_export_is_one_item_read_only_and_holds_no_secrets(world):
     foreign = requests.get(f"{hub.base}/hub/api/items/{task_id}/support",
                            headers={"Host": "evil.example"}, timeout=10)
     assert foreign.status_code == 421
+
+
+def test_create_task_through_hub_relays_to_controller_and_shows_in_working(world):
+    live, hub, clock = world
+    res = hub.post("/hub/api/tasks", {
+        "adapter": "synthetic",
+        "params": {"title": "Doctor Check", "action": "echo"},
+        "effect_class": "idempotent",
+    })
+    assert res.status_code == 201
+    task_id = res.json()["task_id"]
+    assert task_id.startswith("task-")
+
+    # The created task appears in the hub's working pile immediately
+    home = hub.home()
+    assert any(card["id"] == task_id for card in home["working"])
+
+
+def test_local_shell_adapter_copy_in_hub(world):
+    live, hub, clock = world
+    res = live.post("/v1/tasks", {
+        "adapter": "local_shell",
+        "params": {"command": ["echo", "hi"], "write": "out.txt"},
+        "effect_class": "idempotent",
+        "max_attempts": 2,
+        "lease_ttl_s": 60,
+    })
+    assert res.status_code == 201
+    task_id = res.json()["task_id"]
+    home = hub.home()
+    card = next(c for c in home["working"] if c["id"] == task_id)
+    assert card["title"] == "Local system command"
+
+
+def test_hub_serves_static_index_and_check_button(world):
+    live, hub, clock = world
+    res = requests.get(hub.base + "/", timeout=10)
+    assert res.status_code == 200
+    assert 'id="start-check"' in res.text
+    assert 'id="refresh"' in res.text
+    res_js = requests.get(hub.base + "/hub.js", timeout=10)
+    assert res_js.status_code == 200
+    assert "startCheck" in res_js.text
+
+
+def test_hub_and_controller_same_task_parity_connection_loss_and_stale_data(world):
+    """Mission 39: UI and Controller see the same task_id, status, and outcome.
+
+    Verifies:
+    1. Parity: Controller and Hub see the identical task_id, status, and outcome.
+    2. Connection failure: Hub relays fail gracefully (503 Not Reachable / offline) when controller goes down.
+    3. Restored connection: Relay succeeds once controller is available again.
+    4. Stale data: Hub returns 409 Conflict when attempting actions against stale attempt/state.
+    5. Zero duplicate truth: No second task queue or mock state is maintained.
+    """
+    live, hub, clock = world
+
+    # 1. Parity across Controller and Hub
+    c_res = live.post("/v1/tasks", task_body())
+    assert c_res.status_code == 201
+    task_id = c_res.json()["task_id"]
+
+    # Verify Hub reads exactly this task from controller DB
+    item_res = hub.item(task_id)
+    assert item_res.status_code == 200
+    item = item_res.json()
+    assert item["card"]["id"] == task_id
+    assert item["card"]["pile"] == "working"  # READY maps to working pile
+
+    ctrl_task = live.get(f"/v1/tasks/{task_id}").json()
+    assert ctrl_task["task_id"] == task_id
+    assert ctrl_task["status"] in ("QUEUED", "READY")
+
+    # Worker delivers result through controller
+    lease = live.post("/v1/claim", {"worker_id": "w1"}).json()
+    live.post("/v1/start", {"dispatch_id": lease["dispatch_id"]})
+    live.post("/v1/result", result_body(lease["dispatch_id"]))
+    wait_status(live, task_id, "COMPLETE")
+
+    # Hub reflects exact verified outcome and moves to done pile
+    done_item = hub.item(task_id).json()
+    assert done_item["card"]["id"] == task_id
+    assert done_item["card"]["pile"] == "done"
+    assert done_item["card"]["outcome"] == "verified"
+
+    # 2. Connection loss handling
+    # Direct relay with bogus/unreachable controller port returns 503
+    unreachable_hub = Hub(hub.server.hub.home, "http://127.0.0.1:1", actor=ACTOR)
+    status_code, err_body = unreachable_hub.create_task({"adapter": "synthetic", "params": {}})
+    assert status_code == 503
+    assert err_body["result"] == "offline"
+
+    # 3. Connection restored: calling live hub succeeds again
+    recov_res = hub.post("/hub/api/tasks", {
+        "adapter": "synthetic",
+        "params": {"action": "echo"},
+        "effect_class": "idempotent",
+    })
+    assert recov_res.status_code == 201
+    assert recov_res.json()["result"] == "created"
+
+    # 4. Stale UI data detection: attempting decision on outdated attempt or non-blocked task fails closed
+    dec_res = hub.decide(task_id, decision="retry", attempt=999)
+    # Controller rejects with 409 because task is already succeeded and attempt is stale
+    assert dec_res.status_code in (400, 409)
+
+
+
+

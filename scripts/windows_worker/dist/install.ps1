@@ -9,7 +9,25 @@ if (-Not $IsAdmin) {
     Write-Host "WARNING: Not running as Administrator. Scheduled Task will not be registered." -ForegroundColor Yellow
 }
 
-$InstallDir = "$env:ProgramFiles\CourierWorker"
+$canWriteProgramFiles = $false
+if ($env:ProgramFiles -and (Test-Path $env:ProgramFiles)) {
+    try {
+        $testFile = Join-Path $env:ProgramFiles ".courier_write_test_$([guid]::NewGuid().ToString('N'))"
+        [IO.File]::WriteAllText($testFile, "test")
+        [IO.File]::Delete($testFile)
+        $canWriteProgramFiles = $true
+    } catch {
+        $canWriteProgramFiles = $false
+    }
+}
+
+$InstallDir = if ($env:COURIER_INSTALL_DIR) {
+    $env:COURIER_INSTALL_DIR
+} elseif ($IsAdmin -or $canWriteProgramFiles) {
+    "$env:ProgramFiles\CourierWorker"
+} else {
+    "$env:LOCALAPPDATA\CourierWorker"
+}
 $DataDir = "$env:LOCALAPPDATA\Courier"
 $ConfigPath = Join-Path $DataDir "config.json"
 
@@ -17,25 +35,38 @@ Write-Host "========================================"
 Write-Host " Courier Windows Worker Installer"
 Write-Host "========================================"
 
-New-Item -ItemType Directory -Force -Path $DataDir | Out-Null
-New-Item -ItemType Directory -Force -Path (Join-Path $DataDir "run") | Out-Null
-New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
+try {
+    New-Item -ItemType Directory -Force -Path $DataDir -ErrorAction Stop | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $DataDir "run") -ErrorAction Stop | Out-Null
+    New-Item -ItemType Directory -Force -Path $InstallDir -ErrorAction Stop | Out-Null
+} catch {
+    Write-Error "Courier install not proven: directories could not be created."
+    exit 1
+}
 
 $Server = $ServerArg
 $ApiKey = $ApiKeyArg
 $WorkerId = $WorkerIdArg
 
+$configObj = @{}
 if (Test-Path $ConfigPath) {
     Write-Host "Found existing configuration."
-    $existing = Get-Content $ConfigPath | ConvertFrom-Json
-    if (-not $Server) { $Server = $existing.COURIER_SERVER }
+    try {
+        $raw = Get-Content $ConfigPath -Raw | ConvertFrom-Json
+        if ($raw) {
+            foreach ($prop in $raw.PSObject.Properties) {
+                $configObj[$prop.Name] = $prop.Value
+            }
+        }
+    } catch {}
+    if (-not $Server -and $configObj.ContainsKey("COURIER_SERVER")) { $Server = $configObj["COURIER_SERVER"] }
     if (-not $ApiKey) {
         $tokenPath = Join-Path $DataDir "run\controller.token"
         if (Test-Path $tokenPath) {
             $ApiKey = Get-Content $tokenPath
         }
     }
-    if (-not $WorkerId) { $WorkerId = $existing.COURIER_WORKER_ID }
+    if (-not $WorkerId -and $configObj.ContainsKey("COURIER_WORKER_ID")) { $WorkerId = $configObj["COURIER_WORKER_ID"] }
 }
 
 if (-not $Server) {
@@ -50,10 +81,8 @@ if (-not $WorkerId) {
     if (-not $WorkerId) { $WorkerId = "WIN-$( [guid]::NewGuid().ToString().Substring(0,8) )" }
 }
 
-$configObj = @{
-    COURIER_SERVER = $Server
-    COURIER_WORKER_ID = $WorkerId
-}
+$configObj["COURIER_SERVER"] = $Server
+$configObj["COURIER_WORKER_ID"] = $WorkerId
 $configObj | ConvertTo-Json | Set-Content $ConfigPath
 
 $tokenPath = Join-Path $DataDir "run\controller.token"
@@ -63,7 +92,16 @@ Write-Host "Configuration saved to $ConfigPath."
 Write-Host "Token saved to $tokenPath."
 
 Write-Host "Copying files to $InstallDir..."
-Copy-Item "$PSScriptRoot\*" -Destination $InstallDir -Recurse -Force
+try {
+    Copy-Item "$PSScriptRoot\*" -Destination $InstallDir -Recurse -Force -ErrorAction Stop
+} catch {
+    Write-Error "Courier install not proven: files were not copied."
+    exit 1
+}
+if (-not (Test-Path -LiteralPath $InstallDir)) {
+    Write-Error "Courier install not proven: install directory is missing."
+    exit 1
+}
 
 if ($IsAdmin) {
     Write-Host "Registering Scheduled Task..."
@@ -83,6 +121,12 @@ if ($IsAdmin) {
     Start-ScheduledTask -TaskName $taskName
 } else {
     Write-Host "Skipped Scheduled Task registration (requires Administrator)." -ForegroundColor Yellow
+}
+
+$InstalledExe = Join-Path $InstallDir "Courier.exe"
+if (-not (Test-Path -LiteralPath $InstalledExe)) {
+    Write-Error "Courier install not proven: Courier.exe is missing."
+    exit 1
 }
 
 Write-Host "Courier installed successfully!"

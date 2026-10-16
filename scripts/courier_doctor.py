@@ -73,10 +73,24 @@ def check_stuck_tasks():
         return True, "No local state to check"
     return True, "Use `python -m courier_core.cli status` to check tasks."
 
+import re
+
+GENERIC_SECRET_PATTERNS = [
+    re.compile(r"\b(ghp|gho|ghs|ghu)_[A-Za-z0-9]{30,}\b"),
+    re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
+    re.compile(r"\bsk-[A-Za-z0-9]{32,}\b"),
+    re.compile(r"\bAIza[0-9A-Za-z\-_]{35}\b"),
+    re.compile(r"Bearer\s+[A-Za-z0-9\-._~+/]+=*", re.IGNORECASE),
+    re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----"),
+    re.compile(r"\b0x[0-9a-fA-F]{64}\b"),
+]
+
 def redact_secrets(content, secrets):
     for secret in secrets:
         if secret and len(secret) > 4:
             content = content.replace(secret, "***REDACTED***")
+    for pattern in GENERIC_SECRET_PATTERNS:
+        content = pattern.sub("***REDACTED_SECRET***", content)
     return content
 
 def export_diagnostics(out_path):
@@ -126,6 +140,31 @@ def export_diagnostics(out_path):
             if secrets:
                 text = redact_secrets(text, secrets)
             zf.writestr("config.json", text)
+
+        # Export Critical Snapshot L0 and receipts (redacted)
+        snap_file = app_data / "run" / "critical_snapshot_l0.json"
+        if snap_file.exists():
+            text = snap_file.read_text(encoding="utf-8", errors="replace")
+            if secrets:
+                text = redact_secrets(text, secrets)
+            zf.writestr("run/critical_snapshot_l0.json", text)
+
+        # Export device health logs
+        health_file = app_data / "device_health.jsonl"
+        if health_file.exists():
+            zf.write(health_file, "device_health.jsonl")
+
+        # Export receipts
+        receipts_dir = app_data / "run" / "receipts"
+        if receipts_dir.exists():
+            for rf in receipts_dir.glob("*.json"):
+                try:
+                    text = rf.read_text(encoding="utf-8", errors="replace")
+                    if secrets:
+                        text = redact_secrets(text, secrets)
+                    zf.writestr(f"run/receipts/{rf.name}", text)
+                except Exception:
+                    pass
             
     print(f"Diagnostics bundle exported to {out_path}")
 

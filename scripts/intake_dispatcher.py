@@ -25,6 +25,119 @@ INTAKE_DISPATCH_GRACE_SECONDS = 300
 
 ADMISSION_DISPATCHING = "DISPATCHING"
 ADMISSION_ADMITTED = "ADMITTED"
+ADMISSION_BLOCKED = "BLOCKED"
+
+
+def _evaluate_intake_admission(intake, checker=None):
+    """Evaluates admission capacity and resource readiness for an intake.
+
+    Returns a dict with 'decision' ('ADMIT' or 'BLOCKED'/'REJECT'),
+    optional 'reason', and 'wakeup_condition'.
+    """
+    if checker is not None:
+        if callable(checker):
+            res = checker(intake)
+        else:
+            res = checker
+        if isinstance(res, bool):
+            if not res:
+                return {
+                    "decision": "BLOCKED",
+                    "reason": "RESOURCE_ADMISSION_REJECTED",
+                    "wakeup_condition": "RESOURCE_HEALTHY",
+                }
+            return {"decision": "ADMIT"}
+        if isinstance(res, dict):
+            return res
+        decision = getattr(res, "decision", "ADMIT")
+        reasons = getattr(res, "reasons", [])
+        if decision != "ADMIT":
+            return {
+                "decision": "BLOCKED",
+                "reason": "; ".join(reasons) if reasons else "RESOURCE_ADMISSION_REJECTED",
+                "wakeup_condition": "RESOURCE_HEALTHY",
+            }
+        return {"decision": "ADMIT"}
+
+    # Default checks when no custom checker is provided
+    pause_path = os.environ.get("COURIER_RESOURCE_PAUSE_FILE")
+    if not pause_path:
+        local_pause = os.path.join(os.getcwd(), "RESOURCE_PAUSE")
+        if os.path.exists(local_pause):
+            pause_path = local_pause
+
+    if pause_path and os.path.exists(pause_path):
+        try:
+            with open(pause_path, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+        except Exception:
+            content = "RESOURCE_PAUSE active"
+        return {
+            "decision": "BLOCKED",
+            "reason": f"RESOURCE_PAUSE: {content}",
+            "wakeup_condition": "RESOURCE_HEALTHY",
+        }
+
+    env_state = os.environ.get("COURIER_ADMISSION_STATE")
+    if env_state in ("CLOSED", "BLOCKED", "RESOURCE_PAUSE"):
+        return {
+            "decision": "BLOCKED",
+            "reason": f"COURIER_ADMISSION_STATE={env_state}",
+            "wakeup_condition": "RESOURCE_HEALTHY",
+        }
+
+    # Pre-dispatch Cost & Spend Gate Check (Zero unauthorized spend enforcement)
+    from scripts.resource_policy import CostGate
+    resource_id = intake.get("resource_id", "google_antigravity_plus")
+    cost_val = intake.get("estimated_cost_eur", 0.0)
+    grant = intake.get("grant")
+    already_spent = intake.get("already_spent_eur", 0.0)
+    current_time = intake.get("current_time")
+    cost_decision = CostGate.evaluate_spend_request(
+        resource_id=resource_id,
+        estimated_cost_eur=cost_val,
+        requested_action=intake.get("requested_action", "EXECUTE_TASK"),
+        grant=grant,
+        already_spent_eur=already_spent,
+        current_time=current_time,
+    )
+    if not cost_decision.get("allowed", False):
+        return {
+            "decision": "BLOCKED",
+            "reason": f"COST_GATE_DENIAL: {cost_decision.get('reason')}",
+            "blocked_reason": cost_decision.get("reason"),
+            "cost_message": cost_decision.get("message"),
+            "wakeup_condition": "COST_AUTHORIZED",
+            "model_calls": 0,
+        }
+
+    return {"decision": "ADMIT"}
+
+
+def validate_task_result_submission(task_id, state_file="central_state.json") -> tuple[bool, str]:
+    """Ensures that execution results are rejected for tasks that were cost-blocked or unadmitted."""
+    with _central_state_locked(state_file):
+        state = _load_or_exit(state_file)
+        task = state["tasks"].get(task_id)
+        if task is None:
+            return False, "UNKNOWN_TASK: task does not exist in central state"
+        if task.get("admission") == ADMISSION_BLOCKED or task.get("state") == "BLOCKED":
+            return False, f"TASK_BLOCKED_UNAUTHORIZED: task '{task_id}' is BLOCKED ({task.get('blocked_reason')}); results cannot be accepted for unauthorized work"
+        return True, "SUBMISSION_PERMITTED"
+
+
+def unblock_task(task_id, state_file="central_state.json", reason="OPERATOR_UNBLOCK"):
+    """Explicitly unblocks a BLOCKED task, clearing the resource hold."""
+    with _central_state_locked(state_file):
+        state = _load_or_exit(state_file)
+        task = state["tasks"].get(task_id)
+        if task and task.get("admission") == ADMISSION_BLOCKED:
+            task["admission"] = "UNBLOCKED"
+            task["state"] = "READY"
+            task["last_transition"] = f"UNBLOCKED:{reason}"
+            save_central_state(state_file, state)
+            return True
+        return False
 
 
 @contextlib.contextmanager
@@ -127,12 +240,53 @@ def fingerprint_task_id(intake):
     return f"task-revenue-{hashlib.sha1(canonical.encode()).hexdigest()[:8]}"
 
 
-def dispatch_intake(intake_file):
+def dispatch_intake(intake_file, admission_checker=None, force_wakeup=False, state_file='central_state.json'):
     with open(intake_file, 'r') as f:
         intake = json.load(f)
 
     task_id = fingerprint_task_id(intake)
     print(f"Admitting intake {intake.get('customer_reference')} as {task_id}")
+
+    # 1. State check under lock: already admitted or already blocked
+    with _central_state_locked(state_file):
+        state = _load_or_exit(state_file)
+        existing = state["tasks"].get(task_id)
+        if existing is not None and existing.get(
+                "admission", ADMISSION_ADMITTED) == ADMISSION_ADMITTED:
+            print(f"Task {task_id} already admitted; skipping re-dispatch")
+            return task_id
+        if existing is not None and existing.get("admission") == ADMISSION_BLOCKED:
+            if not force_wakeup:
+                print(f"Task {task_id} is BLOCKED ({existing.get('blocked_reason')}); skipping re-dispatch without model calls")
+                return task_id
+            print(f"Task {task_id} unblock requested; re-evaluating admission")
+
+    # 2. Pre-dispatch admission check (Host pressure / resource gate)
+    adm_decision = _evaluate_intake_admission(intake, admission_checker)
+    if adm_decision.get("decision") in ("REJECT", "BLOCKED"):
+        block_reason = adm_decision.get("reason", "RESOURCE_ADMISSION_REJECTED")
+        wakeup_cond = adm_decision.get("wakeup_condition", "RESOURCE_HEALTHY")
+        max_retries = adm_decision.get("max_retries", 4)
+        with _central_state_locked(state_file):
+            state = _load_or_exit(state_file)
+            existing = state["tasks"].get(task_id)
+            retry_count = (existing.get("retry_count", 0) + 1) if existing else 1
+            state["tasks"][task_id] = {
+                "task_id": task_id,
+                "customer_reference": intake.get('customer_reference'),
+                "admission": ADMISSION_BLOCKED,
+                "state": "BLOCKED",
+                "blocked_reason": block_reason,
+                "retry_count": retry_count,
+                "max_retries": max_retries,
+                "dispatched_at": time.time(),
+                "last_transition": "RESOURCE_BLOCKED",
+                "wakeup_condition": wakeup_cond,
+                "model_calls": 0,
+            }
+            save_central_state(state_file, state)
+        print(f"Task {task_id} BLOCKED: {block_reason}. Dispatcher decision: BLOCKED. MODEL_CALLS=0.")
+        return task_id
 
     # Revenue V1 uses GitHub Actions as the primary qualified lane
     cmd = [
@@ -150,7 +304,6 @@ def dispatch_intake(intake_file):
     # lose each other's records (and share one tmp name). Slow external
     # calls stay outside the lock; the final save re-loads under it and
     # verifies our marker is still current before merging.
-    state_file = 'central_state.json'
     with _central_state_locked(state_file):
         state = _load_or_exit(state_file)
         existing = state["tasks"].get(task_id)

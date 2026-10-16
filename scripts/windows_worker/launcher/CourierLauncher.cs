@@ -28,6 +28,7 @@ namespace CourierLauncher
 
         static int s_controllerPort = 8765;
         static string s_token = "";
+        static string s_dataDir = "";
 
         static bool ConsoleCtrlCheck(uint ctrlType)
         {
@@ -45,6 +46,15 @@ namespace CourierLauncher
                         Thread.Sleep(2000);
                     } catch { }
                 }
+                try {
+                    if (!string.IsNullOrEmpty(s_dataDir)) {
+                        string runDir = Path.Combine(s_dataDir, "run");
+                        if (File.Exists(Path.Combine(runDir, "launcher.pid"))) File.Delete(Path.Combine(runDir, "launcher.pid"));
+                        if (File.Exists(Path.Combine(runDir, "worker.pid"))) File.Delete(Path.Combine(runDir, "worker.pid"));
+                        if (File.Exists(Path.Combine(runDir, "controller.pid"))) File.Delete(Path.Combine(runDir, "controller.pid"));
+                        if (File.Exists(Path.Combine(runDir, "hub.pid"))) File.Delete(Path.Combine(runDir, "hub.pid"));
+                    }
+                } catch { }
             }
             return true;
         }
@@ -204,9 +214,10 @@ namespace CourierLauncher
 
             s_controllerPort = cp;
             s_token = token;
+            s_dataDir = dataDir;
 
             bool createdNew;
-            using (Mutex singleInstanceMutex = new Mutex(true, "Local\\CourierLauncherMutex", out createdNew))
+            using (Mutex singleInstanceMutex = new Mutex(true, "Local\\CourierV1", out createdNew))
             {
                 if (!createdNew)
                 {
@@ -250,15 +261,6 @@ namespace CourierLauncher
                 workerArgs += string.Format(" --worker-id \"{0}\"", workerId);
             }
             string hubArgs = string.Format("-m courier_hub --home \"{0}\" --controller http://127.0.0.1:{1} --port {2}", dataDir, cp, hp);
-            
-            if (pythonExe != "uv") {
-                ctrlArgs = string.Format("-m courier_core.serve --home \"{0}\" --port {1}", dataDir, cp);
-                workerArgs = string.Format("-m courier_worker.host --home \"{0}\" --controller http://127.0.0.1:{1} --max-tasks 1 --heartbeat 2", dataDir, cp);
-                if (!string.IsNullOrEmpty(workerId)) {
-                    workerArgs += string.Format(" --worker-id \"{0}\"", workerId);
-                }
-                hubArgs = string.Format("-m courier_hub --home \"{0}\" --controller http://127.0.0.1:{1} --port {2}", dataDir, cp, hp);
-            }
 
             try
             {
@@ -295,6 +297,15 @@ namespace CourierLauncher
                 var pWorker = StartComponent(hJob, pythonExe, baseDir, logDir, "worker", workerArgs, "worker.log");
                 var pHub = StartComponent(hJob, pythonExe, baseDir, logDir, "hub", hubArgs, "hub.log");
 
+                string runDir = Path.Combine(dataDir, "run");
+                if (!Directory.Exists(runDir)) Directory.CreateDirectory(runDir);
+                try {
+                    File.WriteAllText(Path.Combine(runDir, "launcher.pid"), Process.GetCurrentProcess().Id.ToString());
+                    File.WriteAllText(Path.Combine(runDir, "controller.pid"), pCtrl.Id.ToString());
+                    File.WriteAllText(Path.Combine(runDir, "worker.pid"), pWorker.Id.ToString());
+                    File.WriteAllText(Path.Combine(runDir, "hub.pid"), pHub.Id.ToString());
+                } catch { }
+
                 ProcessStartInfo pBrowser = new ProcessStartInfo(string.Format("http://127.0.0.1:{0}/", hp));
                 pBrowser.UseShellExecute = true;
                 Process.Start(pBrowser);
@@ -302,9 +313,18 @@ namespace CourierLauncher
                 while (true)
                 {
                     Thread.Sleep(5000);
-                    if (pCtrl.HasExited) pCtrl = StartComponent(hJob, pythonExe, baseDir, logDir, "controller", ctrlArgs, "controller.log");
-                    if (pWorker.HasExited) pWorker = StartComponent(hJob, pythonExe, baseDir, logDir, "worker", workerArgs, "worker.log");
-                    if (pHub.HasExited) pHub = StartComponent(hJob, pythonExe, baseDir, logDir, "hub", hubArgs, "hub.log");
+                    if (pCtrl.HasExited) {
+                        pCtrl = StartComponent(hJob, pythonExe, baseDir, logDir, "controller", ctrlArgs, "controller.log");
+                        try { File.WriteAllText(Path.Combine(runDir, "controller.pid"), pCtrl.Id.ToString()); } catch { }
+                    }
+                    if (pWorker.HasExited) {
+                        pWorker = StartComponent(hJob, pythonExe, baseDir, logDir, "worker", workerArgs, "worker.log");
+                        try { File.WriteAllText(Path.Combine(runDir, "worker.pid"), pWorker.Id.ToString()); } catch { }
+                    }
+                    if (pHub.HasExited) {
+                        pHub = StartComponent(hJob, pythonExe, baseDir, logDir, "hub", hubArgs, "hub.log");
+                        try { File.WriteAllText(Path.Combine(runDir, "hub.pid"), pHub.Id.ToString()); } catch { }
+                    }
                 }
             }
             catch (Exception ex)

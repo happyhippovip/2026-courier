@@ -247,3 +247,100 @@ def test_degraded_controller_still_serves_reads(tmp_path):
         ctl.stop()
     with Journal(home / "courier.db", readonly=True) as inspector:
         assert not inspector.verify_chain().ok
+
+
+def test_automatic_restart_resume_a_and_b_and_uncertain_non_idempotent(tmp_path):
+    """Mission 06: Automatic restart resume for A -> B and uncertain non-idempotent task.
+
+    Scenario 1 (Normal recovery):
+    - Submit tasks A and B.
+    - Execute Task A, submit real result, verifier confirms A as COMPLETE.
+    - Controlled shutdown/restart of own test controller (no foreign processes stopped).
+    - On restart: A is recognized as already COMPLETE, never re-executed.
+    - Controller proceeds with B, claims B, executes B, reaches TRUE_IDLE.
+
+    Scenario 2 (Difficult case / Uncertain outcome):
+    - Submit Task C with effect_class="non_idempotent".
+    - Claim C, start C (worker begins execution).
+    - Process/Controller crashes after execution started, before result is harvested.
+    - On restart: Worker vanishes (lease expires via restart_grace).
+    - Non-idempotent task with unknown external execution state is marked TASK_BLOCKED
+      (requiring reconciliation/human intervention) and NEVER blindly re-executed!
+    """
+    home = tmp_path / "home"
+
+    # --- Scenario 1: Tasks A and B ---
+    ctl1 = make_controller(home)
+    _, body_a = ctl1.create_task(task_body(params={"job": "A"}))
+    _, body_b = ctl1.create_task(task_body(params={"job": "B"}))
+    task_a_id = body_a["task_id"]
+    task_b_id = body_b["task_id"]
+
+    # Claim & start A
+    lease_a = ctl1.claim({"worker_id": "worker-1"})
+    assert lease_a["task_id"] == task_a_id
+    ctl1.start({"dispatch_id": lease_a["dispatch_id"]})
+
+    # Harvest result for A & verify
+    ctl1.result(result_body(lease_a["dispatch_id"], result_id="res-a", outcome="success"))
+    ctl1.drain()
+
+    assert ctl1.journal.task(task_a_id).status is TaskStatus.COMPLETE
+    assert ctl1.journal.task(task_b_id).status is TaskStatus.QUEUED
+
+    # Controlled shutdown of test controller 1
+    ctl1.stop()
+
+    # Restart controller 2 on same home
+    ctl2 = make_controller(home)
+    try:
+        # A is recognized as COMPLETE and never re-executed
+        assert ctl2.journal.task(task_a_id).status is TaskStatus.COMPLETE
+
+        # B is next READY: claim B
+        lease_b = ctl2.claim({"worker_id": "worker-1"})
+        assert lease_b is not None
+        assert lease_b["task_id"] == task_b_id
+
+        # Execute B
+        ctl2.start({"dispatch_id": lease_b["dispatch_id"]})
+        ctl2.result(result_body(lease_b["dispatch_id"], result_id="res-b", outcome="success"))
+        ctl2.drain()
+
+        assert ctl2.journal.task(task_b_id).status is TaskStatus.COMPLETE
+
+        # Queue is now empty / TRUE_IDLE
+        assert ctl2.claim({"worker_id": "worker-1"}) is None
+    finally:
+        ctl2.stop()
+
+    # --- Scenario 2: Uncertain non-idempotent task C ---
+    home_c = tmp_path / "home_c"
+    clock_c1 = FakeClock()
+    ctl_c1 = make_controller(home_c, clock=clock_c1)
+    _, body_c = ctl_c1.create_task(task_body(params={"job": "C"}, effect_class="non_idempotent"))
+    task_c_id = body_c["task_id"]
+
+    lease_c = ctl_c1.claim({"worker_id": "worker-1"})
+    ctl_c1.start({"dispatch_id": lease_c["dispatch_id"]})
+
+    # Crash after execution started, before result harvest
+    crash(ctl_c1)
+
+    # Restart on home_c
+    clock_c2 = FakeClock()
+    ctl_c2 = make_controller(home_c, clock=clock_c2)
+    try:
+        # Worker has vanished: let grace window elapse
+        pass_time(ctl_c2, clock_c2, 7)
+
+        task_c_state = ctl_c2.journal.task(task_c_id)
+        # MUST transition to BLOCKED (requires human reconciliation), NOT blind re-execution!
+        assert task_c_state.status is TaskStatus.BLOCKED
+        assert types(ctl_c2, task_c_id)[-2:] == ["LEASE_EXPIRED", "TASK_BLOCKED"]
+
+        # No worker can claim it without explicit reconciliation
+        assert ctl_c2.claim({"worker_id": "worker-2"}) is None
+    finally:
+        ctl_c2.stop()
+

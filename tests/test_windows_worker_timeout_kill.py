@@ -18,15 +18,18 @@ import pytest
 DAEMON_PATH = Path(__file__).resolve().parents[1] / "scripts" / "windows_worker" / "daemon.py"
 
 
-def load_daemon():
+def load_daemon(monkeypatch=None, tmp_path=None):
+    if monkeypatch and tmp_path:
+        monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
+        monkeypatch.setenv("COURIER_HOME", str(tmp_path))
     spec = importlib.util.spec_from_file_location("windows_daemon_timeout_kill_test", DAEMON_PATH)
     daemon = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(daemon)
     return daemon
 
 
-def test_timed_out_process_is_killed_not_left_running(monkeypatch):
-    daemon = load_daemon()
+def test_timed_out_process_is_killed_not_left_running(monkeypatch, tmp_path):
+    daemon = load_daemon(monkeypatch, tmp_path)
     real_popen_class = subprocess.Popen
     real_communicate = subprocess.Popen.communicate  # captured before patching, else infinite recursion
 
@@ -69,8 +72,8 @@ def test_timed_out_process_is_killed_not_left_running(monkeypatch):
     assert not alive, "child process from the timed-out task is still running (orphaned)"
 
 
-def test_kill_process_tree_uses_taskkill_on_windows(monkeypatch):
-    daemon = load_daemon()
+def test_kill_process_tree_uses_taskkill_on_windows(monkeypatch, tmp_path):
+    daemon = load_daemon(monkeypatch, tmp_path)
     calls = []
     # daemon.os is the real os module (shared, singleton); patch only the
     # name it reads inside kill_process_tree, and always restore it, so this

@@ -19,11 +19,17 @@ import os
 import re
 import tempfile
 from pathlib import Path, PurePosixPath, PureWindowsPath
+from typing import Optional, Set
 
 BINDING_FIELDS = ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")
 DEFAULT_MAX_BYTES = 16 * 1024 * 1024
 ARTIFACT_ID_RE = re.compile(r"^art-[0-9a-f]{64}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+WINDOWS_RESERVED_NAMES = frozenset({
+    "CON", "PRN", "AUX", "NUL",
+    "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+    "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+})
 
 
 class ArtifactError(ValueError):
@@ -31,13 +37,83 @@ class ArtifactError(ValueError):
 
 
 def is_safe_artifact_name(name) -> bool:
-    """Workspace-relative names only: no absolute, drive, UNC or '..' paths."""
+    """Workspace-relative names only: no absolute, drive, UNC, '..' paths,
+    alternate data streams, DOS device names, or ambiguous trailing normalization."""
     if not isinstance(name, str) or not name or len(name) > 255 or "\x00" in name:
+        return False
+    if ":" in name:
         return False
     for pure in (PureWindowsPath(name), PurePosixPath(name)):
         if pure.is_absolute() or pure.drive or pure.root or ".." in pure.parts:
             return False
+        for part in pure.parts:
+            if not part or part == ".":
+                continue
+            if part.endswith(".") or part.endswith(" ") or part.startswith(" "):
+                return False
+            stem = part.split(".")[0].upper()
+            if stem in WINDOWS_RESERVED_NAMES:
+                return False
     return True
+
+
+def resolve_contained_artifact_path(
+    storage_root: Path | str,
+    relative_name: str,
+    *,
+    protected_files: Optional[Set[Path | str]] = None,
+    allow_overwrite: bool = True,
+) -> Path:
+    """Resolve and verify that an artifact destination path is strictly contained
+    within storage_root and cannot overwrite protected or existing files.
+
+    Enforces that:
+    1. The name is a valid, safe relative path (no parent traversal, absolute, drive, UNC, ADS, DOS devices).
+    2. The resolved target path strictly resides within the authorized storage_root (no symlink/reparse point escapes).
+    3. Existing protected files cannot be overwritten.
+    4. When allow_overwrite is False, existing files cannot be replaced.
+
+    Raises ArtifactError on any traversal, symlink escape, or protection violation.
+    """
+    if not is_safe_artifact_name(relative_name):
+        raise ArtifactError(f"unsafe artifact name: {relative_name!r}")
+
+    root_path = Path(storage_root).resolve()
+    target_path = (root_path / relative_name).resolve()
+
+    # Symlink / Reparse Point / Traversal containment check
+    try:
+        if not target_path.is_relative_to(root_path):
+            raise ArtifactError(f"artifact path escapes storage root via traversal or symlink: {relative_name!r}")
+    except (ValueError, AttributeError):
+        common = os.path.commonpath([str(root_path), str(target_path)])
+        if common != str(root_path):
+            raise ArtifactError(f"artifact path escapes storage root via traversal or symlink: {relative_name!r}")
+
+    # Check if any existing component along the relative path is a symlink pointing outside
+    curr = root_path / relative_name
+    while curr != root_path and curr.parent != curr:
+        if curr.is_symlink():
+            resolved_link = curr.resolve()
+            try:
+                if not resolved_link.is_relative_to(root_path):
+                    raise ArtifactError(f"artifact path escapes storage root via symlink: {relative_name!r}")
+            except (ValueError, AttributeError):
+                if os.path.commonpath([str(root_path), str(resolved_link)]) != str(root_path):
+                    raise ArtifactError(f"artifact path escapes storage root via symlink: {relative_name!r}")
+        curr = curr.parent
+
+    # Existing file and protected file protection
+    if target_path.exists():
+        if protected_files:
+            resolved_protected = {Path(p).resolve() for p in protected_files}
+            if target_path in resolved_protected:
+                raise ArtifactError(f"attempt to overwrite protected file: {relative_name!r}")
+        if not allow_overwrite:
+            raise ArtifactError(f"attempt to overwrite existing file: {relative_name!r}")
+
+    return target_path
+
 
 
 def artifact_id_for(binding: dict, name: str, sha256: str) -> str:
@@ -82,11 +158,28 @@ class ArtifactStore:
             raise ArtifactError("invalid artifact_id")
         return self.root / "records" / f"{artifact_id}.json"
 
+    def resolve_artifact_path(
+        self,
+        name: str,
+        *,
+        protected_files: Optional[Set[Path | str]] = None,
+        allow_overwrite: bool = True,
+    ) -> Path:
+        """Resolve a contained destination path for an artifact under this store root."""
+        return resolve_contained_artifact_path(
+            self.root,
+            name,
+            protected_files=protected_files,
+            allow_overwrite=allow_overwrite,
+        )
+
     def put(self, data: bytes, *, name: str, binding: dict, claimed_sha256: str | None = None,
-            claimed_size: int | None = None) -> dict:
+            claimed_size: int | None = None, protected_files: Optional[Set[Path | str]] = None) -> dict:
         if not is_safe_artifact_name(name):
             raise ArtifactError("unsafe artifact name")
+        self.resolve_artifact_path(name, protected_files=protected_files)
         for field in BINDING_FIELDS:
+
             if not isinstance(binding.get(field), str) or not binding[field]:
                 raise ArtifactError(f"missing binding field {field}")
         if len(data) > self.max_bytes:

@@ -86,14 +86,18 @@ class KirbySupervisor:
         except Exception:
             return ""
 
-    def on_turn_end(self, workkey: str, state: str):
+    def on_turn_end(self, workkey: str, state: str) -> Dict[str, Any]:
         """Primary detection: provider turn-end / idle event."""
-        # 1. Read latest durable checkpoint
-        # 2. Re-fetch current repo/master state
-        # 3. Classify current workkey: COMPLETE / BLOCKED / STILL_OPEN
-        # 4. Reconcile writer ownership
-        # 5. If useful authorized work remains, emit exactly ONE continuation wake
-        pass
+        if not workkey or not isinstance(workkey, str):
+            return {"action": "PAUSE", "reason": "invalid_workkey"}
+        normalized = (state or "").upper()
+        if normalized == "COMPLETE":
+            return {"action": "NEXT", "workkey": workkey, "status": "COMPLETE"}
+        elif normalized == "BLOCKED":
+            return {"action": "PAUSE", "workkey": workkey, "reason": "blocked"}
+        elif normalized in ("STILL_OPEN", "RUNNING"):
+            return {"action": "CONTINUE", "workkey": workkey, "status": "STILL_OPEN"}
+        return {"action": "PAUSE", "workkey": workkey, "reason": f"unknown_state_{state}"}
 
 
 class WakeCoalescer:
@@ -120,13 +124,24 @@ class WakeCoalescer:
 
 class SessionRotator:
     """Context-aware rotation."""
-    def __init__(self):
-        pass
+    def __init__(self, state_dir: Optional[str] = None):
+        self.state_dir = state_dir or os.getcwd()
         
-    def prepare_rotation(self, session_id: str, checkpoint: str):
+    def prepare_rotation(self, session_id: str, checkpoint: str, workkey: str = "") -> Dict[str, Any]:
         """1. Finish/checkpoint the smallest safe atomic step.
            2. Stop accepting new workkeys.
            3. Persist workkey, SHA, evidence, continuation point.
            4. Release mutable ownership safely.
            5. Start/reuse exactly ONE fresh replacement session."""
-        pass
+        manifest = {
+            "session_id": session_id,
+            "checkpoint": checkpoint,
+            "workkey": workkey,
+            "status": "READY_FOR_ROTATION",
+            "timestamp": time.time(),
+        }
+        os.makedirs(self.state_dir, exist_ok=True)
+        path = os.path.join(self.state_dir, f"rotation_{session_id}.json")
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(manifest, f)
+        return manifest

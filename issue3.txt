@@ -1,0 +1,189 @@
+title:	Build: Autonomous Idea Foundry — Gedankenlager to validated opportunities
+state:	OPEN
+author:	happyhippovip (wellnesskoenig)
+labels:	
+comments:	1
+assignees:	
+projects:	
+milestone:	
+issue-type:	
+parent:	
+sub-issues:	
+sub-issues-completed:	
+blocked-by:	
+blocking:	
+number:	3
+--
+## Goal
+Turn `IDEA_FOUNDRY.md` into a real, autonomous, evidence-first subsystem without creating a second Courier.
+
+The human should be able to dump raw ideas/fragments/chats/problems into a Gedankenlager. The system continuously organizes, links, synthesizes, challenges, scores, prepares experiments, hands approved goals to Courier, learns from outcomes, and keeps searching for the next highest-value safe action.
+
+## Hard architecture rule
+Courier remains the only canonical execution/orchestration engine.
+
+Idea Foundry is a **pre-Courier intelligence + portfolio layer**, not another mission queue/orchestrator.
+
+`THOUGHTS → FOUNDry INTELLIGENCE → CANDIDATE/EXPERIMENT → COURIER GOAL → EXECUTE/VERIFY → RESULT → FOUNDry LEARNING`
+
+## Required capabilities
+
+### P0 — Lossless Thought Store
+- Immutable raw thought + provenance
+- `thought_id`, source, timestamps, classifications, relationships
+- Preserve originals forever; derived interpretations are versioned separately
+- No silent rewriting/deletion
+
+### P0 — Autonomous Sort / Link / Synthesize
+- Semantic dedup without destroying originals
+- Clustering by problem/customer/outcome/product/technology/evidence
+- Relationship graph between thoughts
+- Contradiction detection
+- Synthesis candidates with explicit `source_thought_ids`
+- Pure keyword overlap must not create Frankenstein products
+
+### P0 — Candidate Evidence Contract
+Every candidate must contain:
+- source_thought_ids
+- problem hypothesis
+- target user/buyer hypothesis
+- expected outcome
+- assumptions vs evidence
+- contradictions/open questions
+- cheapest falsification experiment
+- confidence
+- status
+
+UNKNOWN stays UNKNOWN.
+
+### P0 — Red Team / Kill Engine
+Before product work, attempt to kill weak candidates using:
+- weak/unclear problem
+- unclear buyer
+- no believable value path
+- excessive support/human labor
+- regulatory/security burden
+- commodity differentiation
+- high implementation cost vs evidence
+- unverifiable acceptance criteria
+
+The system must be rewarded for **dropping weak work**, not maximizing idea/task counts.
+
+### P1 — Opportunity / Portfolio Scoring
+Evidence-weighted, risk-adjusted prioritization using:
+- problem strength
+- buyer access
+- real-use proximity
+- time-to-value
+- time-to-revenue
+- explicit WTP evidence
+- retention potential
+- differentiation
+- build effort
+- provider/ops/support cost
+- security/compliance risk
+- reversibility
+- evidence confidence
+
+No invented revenue/margin/conversion values.
+
+### P1 — Experiment Designer
+For each promising candidate, choose the cheapest experiment that changes the decision.
+Prefer:
+1. deterministic/local analysis
+2. synthetic/adversarial scenarios
+3. controlled founder validation behind Human Gate
+4. product expansion only after evidence
+
+### P1 — Courier Handoff Contract
+Foundry may create a **high-level Goal proposal**, but Courier alone:
+`DISCOVER → PLAN → ROUTE → EXECUTE → VERIFY → STATE → NEXT SAFE TASK`.
+
+No second queue, no duplicate worker registry, no shadow orchestrator.
+
+Handoff needs stable IDs so outcomes can be traced back:
+`thought_ids → candidate_id → experiment_id → courier_goal_id → result_fingerprint → outcome/evidence`.
+
+### P1 — Learning / Feedback Loop
+Results must flow back into the Foundry:
+- Founder Accept/Revise/Reject
+- verified technical results
+- real use/export
+- repeated use
+- measured time/rework
+- provider cost
+- explicit founder-reported WTP/pilot signals
+
+Real outcomes must update candidate scores and may park/kill/promote old ideas.
+
+### P1 — Watcher / No-Idle Integration
+Universal Value Commanders on every device may use the Foundry as a conflict-free work source.
+Before `STANDBY`, they must inspect:
+- new unsorted thoughts
+- missing links
+- stale assumptions
+- contradictions
+- candidate portfolio
+- untested high-impact assumptions
+- evidence-chain breaks
+- duplicate work
+- newly cheap/testable parked ideas
+
+Only report `NO_HIGH_VALUE_WORK_FOUND` after this check.
+
+### P2 — Healing / Integrity Loop
+Detect and repair metadata/spec problems safely:
+- missing provenance
+- stale relationships
+- contradictory candidate state
+- orphan candidate/experiment/result links
+- founder revision not propagated
+- technical verification incorrectly promoted to customer value
+
+Code/product repairs still go through Courier.
+
+### P2 — Specialist Creation Rule
+Do not proliferate agents.
+A new logical specialist role is justified only when a repeated measurable bottleneck exists and the role has clear inputs, outputs, acceptance criteria and cheaper/better expected value than existing routing.
+
+## Automation improvements to design for
+1. **Event-driven, not polling-heavy** — new thought/result/review triggers incremental work; daily reconciliation handles drift.
+2. **Incremental recomputation** — re-score only affected clusters/candidates where possible.
+3. **Confidence decay / freshness** — assumptions and market/provider facts can become stale and must be marked for recheck rather than silently trusted forever.
+4. **Decision-change threshold** — expensive research/model calls only when expected information gain can change a meaningful decision.
+5. **Budget-aware routing** — LOCAL_CHEAP first; expensive specialist only for high information gain. Autonomous spend remains EUR 0.
+6. **Portfolio diversity guard** — avoid spending all compute on one attractive hypothesis while allowing weak side projects to derail the current leader.
+7. **Anti-busywork metrics** — optimize for decisions improved, bad builds avoided, verified outcomes and evidence gained; not number of thoughts/tasks/agents.
+8. **Failure quarantine** — malformed or low-confidence derived objects are quarantined and do not automatically become Courier goals.
+9. **Idempotency** — repeated processing of the same thought/event must not multiply candidates/tasks/reviews.
+10. **Auditability** — every synthesis, merge, score change and promotion must be explainable back to source thought/evidence.
+
+## Current integration priority
+Do **not** derail the current Founder Concierge fast path. Current validation-critical gaps remain:
+1. DossierGoalMissionLink
+2. VerifiedFounderReviewGate
+3. PilotEvidenceRecord
+
+Idea Foundry implementation may proceed in conflict-free/spec/test work now, and real integration should reuse these IDs/evidence contracts once the primary builder closes them.
+
+## Definition of Done — first real slice
+A test can:
+1. ingest 10+ messy raw thoughts,
+2. preserve all originals/provenance,
+3. cluster/dedup/link them,
+4. synthesize at least one traceable candidate from multiple thoughts,
+5. reject/park at least one weak candidate with evidence,
+6. produce one experiment-ready candidate,
+7. hand exactly one high-level Goal to Courier without creating a second orchestration path,
+8. trace verified result/founder review back to the original thought set,
+9. update candidate status/score from the result,
+10. choose the next highest-value safe action automatically.
+
+## Safety / non-goals
+No autonomous customer outreach, publication, production deployment, purchases/subscriptions/upgrades/overages, real trades/funds/wallet signing, account rotation/quota evasion. Never touch `universuX`.
+
+No Billing, giant Multi-Tenant rewrite, Agent Marketplace or broad SaaS expansion before founder evidence.
+
+## Codex role
+Codex should act as adversarial architecture/test specialist for this issue while another primary writer is active. It should prepare failure tests, invariants, state contracts and minimal integration design; only build isolated non-conflicting artifacts when safe.
+

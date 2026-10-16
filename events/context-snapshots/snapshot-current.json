@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0",
-  "context_version": 62,
-  "generated_at": "2026-10-06T15:13:11.064796+00:00",
+  "context_version": 64,
+  "generated_at": "2026-10-09T13:13:07.129969+00:00",
   "repositories": {
-    "courier_head": "a3caf9433452b6cae97461aec7c1c7a24a50021e",
-    "memory_head": "b7a2d3507ef64b275f614b361b852af87557150b",
+    "courier_head": "18c8eb3364721c88ccbb87dce4cbb3022763ca02",
+    "memory_head": "f0e68900944c249ea6830b3d76afa87824af8b35",
     "godot_head": "NOT_CONNECTED"
   },
   "workflow_state": {
     "workflow_id": "wf-crash",
-    "correlation_id": "corr-wf-c5a1ebcc",
+    "correlation_id": "corr-wf-05e571de",
     "current_task_id": "test_crash",
     "is_locked": false,
     "agent_states": {
@@ -18,14 +18,14 @@
         "task": "test_crash",
         "progress": 0.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-10-02T14:06:26.883752+00:00"
+        "updated_at": "2026-10-08T14:05:39.203874+00:00"
       },
       "agent-update-steward": {
         "state": "CHECKING",
         "task": "Compiling Project Context Snapshot",
         "progress": 0.1,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-10-06T15:13:11.080882+00:00"
+        "updated_at": "2026-10-09T13:13:07.130056+00:00"
       },
       "agent-bodyguard-hotel": {
         "state": "STANDBY",
@@ -53,14 +53,14 @@
         "task": "Curated idea-b3414e6d",
         "progress": 1.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-10-04T15:25:48.879736+00:00"
+        "updated_at": "2026-10-08T14:05:47.406960+00:00"
       },
       "agent-academy-director": {
-        "state": "ADOPTION APPROVED",
+        "state": "EVALUATING",
         "task": null,
         "progress": 0.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-09-26T13:49:22.693951+00:00"
+        "updated_at": "2026-10-09T13:13:06.999863+00:00"
       },
       "agent-bodyguard-delta": {
         "state": "STANDBY",
@@ -71,10 +71,17 @@
       },
       "agent-antigravity-bridge": {
         "state": "COMPLETED",
-        "task": "test",
+        "task": "wf-google-builder-717c1b-step-2",
         "progress": 1.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-10-02T09:13:13.308648+00:00"
+        "updated_at": "2026-10-08T03:23:07.606173+00:00"
+      },
+      "agent-google-mac": {
+        "state": "AWAITING_CHIEF_REVIEW",
+        "task": "task-google-builder-live-002",
+        "progress": 1.0,
+        "execution_class": "UNKNOWN",
+        "updated_at": "2026-10-08T02:43:20.806469+00:00"
       },
       "agent-bodyguard-charlie": {
         "state": "STANDBY",
@@ -109,13 +116,13 @@
         "task": null,
         "progress": 0.0,
         "execution_class": "UNKNOWN",
-        "updated_at": "2026-09-26T13:49:22.645794+00:00"
+        "updated_at": "2026-10-09T13:13:06.902509+00:00"
       }
     },
-    "total_decisions": 10,
-    "total_results": 23,
+    "total_decisions": 25,
+    "total_results": 96,
     "total_approvals": 1,
-    "total_adoptions": 14
+    "total_adoptions": 15
   },
   "memory_truth": {
     "latest_verified_milestone": "**VERIFIED_CURRENT** | Source: direct GitHub fetch/API readback for `happyhippovip/2026-project-memory` | Verified: 2026-09-06. The earlier repository-inaccessible/404 conclusion is **SUPERSEDED**. Remote `main` is readable, and prior same-chat commit `4b6c93ed0675ed0b6218beaf14c3340f438dcbf5` was successfully pushed and remotely read back. This proves the canonical Memory read/write path at that time; it does not authorize access to other repositories or secret values.",
@@ -198,7 +205,7 @@
     },
     "timestamp": "2026-08-30T17:22:41.293196+00:00"
   },
-  "academy_adoptions": 14,
+  "academy_adoptions": 15,
   "truth_classifications": {
     "courier_codebase": "VERIFIED",
     "project_memory": "VERIFIED",
@@ -210,12 +217,9 @@
     "truth_invariants": "IDEA != IMPLEMENTED | USER_REPORTED != VERIFIED | DETERMINISTIC != REAL_EXTERNAL"
   },
   "changed_since_previous_snapshot": [
-    "courier_head",
-    "memory_head",
-    "decisions",
-    "workflow_id"
+    "academy_adoptions"
   ],
-  "previous_snapshot_version": 61,
-  "previous_snapshot_hash": "fe3f21cf3d25b171bb4677456e6e85a1bf2711bd9544c529c3800937126928d5",
-  "snapshot_hash": "1bb4082260448cee807d9d1f07b0c7f506e7664094da56a58d7d89f1a174ea03"
+  "previous_snapshot_version": 63,
+  "previous_snapshot_hash": "2dcfcb9fde7e53e2391ee301ea868db016a7da29c12ebe0c5bc1235a92e80b89",
+  "snapshot_hash": "60f2c7ed8ad03ccf6a5acea6f2ad6147de4d8b58210741bfb8e6de0fdd7a80b3"
 }

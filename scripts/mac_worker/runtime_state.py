@@ -1,5 +1,8 @@
 """Small shared persistence, STOP fencing and process-ownership primitives."""
-import fcntl
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
 import hashlib
 import json
 import os
@@ -24,6 +27,8 @@ def read_object(path, default=None):
 
 
 def sync_directory(path):
+    if os.name == "nt":
+        return
     fd = os.open(str(path), os.O_RDONLY)
     try:
         os.fsync(fd)
@@ -53,8 +58,21 @@ def control_lock(wall):
     wall = Path(wall)
     wall.mkdir(parents=True, exist_ok=True)
     with open(wall / "control.lock", "a") as handle:
-        fcntl.flock(handle, fcntl.LOCK_EX)
-        yield
+        if fcntl is not None:
+            fcntl.flock(handle, fcntl.LOCK_EX)
+            yield
+        elif os.name == "nt":
+            import msvcrt
+            msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
+            try:
+                yield
+            finally:
+                try:
+                    msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+                except OSError:
+                    pass
+        else:
+            yield
 
 
 def process_identity(pid):
