@@ -5,7 +5,9 @@ directory. The smoke starts a hub, reads /hub/api/status, and stops the
 process group, including a child. Building CourierHub.exe is skipped unless
 the host is Windows.
 """
+import importlib.util
 import os
+import shutil
 import subprocess
 import sys
 import textwrap
@@ -70,8 +72,14 @@ def test_linux_build_skips_and_does_not_invent_an_exe(tmp_path):
     assert list(tmp_path.rglob("*.exe")) == []
 
 
+def _has_pyinstaller() -> bool:
+    if shutil.which("pyinstaller") is not None:
+        return True
+    return importlib.util.find_spec("PyInstaller") is not None
+
+
 @pytest.mark.skipif(
-    sys.platform != "win32" or bool(__import__("shutil").which("pyinstaller") is None and __import__("importlib.util").find_spec("PyInstaller") is None),
+    sys.platform != "win32" or not _has_pyinstaller(),
     reason=(
         "Echter Windows-EXE-Build braucht Windows und ein lokales PyInstaller. "
         "Dieser Host ist kein Windows oder hat kein PyInstaller installiert."
