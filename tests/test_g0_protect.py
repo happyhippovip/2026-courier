@@ -19,7 +19,7 @@ from courier_core.g0_protect import (  # noqa: E402
 def _file(root: Path, name: str, text: str) -> Path:
     path = root / name
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text)
+    path.write_text(text, newline="\n")
     return path
 
 
