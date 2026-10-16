@@ -254,7 +254,6 @@ def test_failing_check_run_does_not_wake(tmp_path):
     assert json.loads(log)["outcome"] == "unverified"
 
 
-<<<<<<< HEAD
 def test_ci_for_an_old_sha_does_not_wake_when_the_pr_head_moved(tmp_path):
     http = FakeHTTP()
     http.pulls[(REPO, 7)] = {
