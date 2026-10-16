@@ -141,6 +141,8 @@ def resolve_muse_wall(root: Path) -> tuple[Optional[Path], str]:
     if configured:
         path = Path(configured)
         label = "COURIER_MUSE_WALL_DIR" if os.environ.get("COURIER_MUSE_WALL_DIR") else "COURIER_WALL_DIR"
+        if (path / "slots").is_dir():
+            return path / "slots", label
         return (path if path.is_dir() else None), label
     default = root / "scripts" / "windows_muse_wall" / "runtime" / "slots"
     label = "scripts/windows_muse_wall/runtime/slots"

@@ -333,3 +333,95 @@ def test_deterministic_bulletin_feed(env, monkeypatch):
     assert "SLOT_RUNNING" in codes
     assert "SLOT_BACKOFF" in codes
 
+
+def test_cmd_build_initialises_slots_without_spawning(env):
+    sup, server, http, auth, tmp = env
+    assert sup.cmd_build(4) == 0
+    assert sup.CONFIG_FILE.exists()
+    config = sup.read_json(sup.CONFIG_FILE, {})
+    assert config["target"] == 4
+    slots = sup.load_slots()
+    assert len(slots) == 4
+    for i in range(1, 5):
+        sid = f"{i:02d}"
+        home = sup.slot_home(sid)
+        assert (home / "work").is_dir()
+        assert (home / "logs").is_dir()
+        assert (home / "state").is_dir()
+        assert (home / "state.json").exists()
+        assert slots[sid]["state"] == "IDLE"
+        assert not slots[sid].get("pid")
+
+
+def test_cmd_reconcile_cleans_orphaned_and_unowned_processes(env):
+    sup, server, http, auth, tmp = env
+    sup.save_slots({
+        "01": {"slot_id": "01", "state": "RUNNING", "pid": 999999, "process_identity": "999999:dead"},
+        "02": {"slot_id": "02", "state": "STARTING", "pid": None},
+    })
+    class MockLauncher:
+        def is_alive(self, sid, pid): return False
+        def owned(self, sid, pid, identity): return False
+        def terminate(self, sid, pid, identity): return True
+        def exit_code(self, sid): return 1
+    assert sup.cmd_reconcile(launcher=MockLauncher()) == 0
+    slots = sup.load_slots()
+    assert slots["01"]["pid"] is None
+    assert slots["01"]["state"] == "PAUSED_ERROR"
+    assert "ORPHANED_CLEANUP" in slots["01"].get("blocker", "")
+
+
+def test_cmd_notaus_terminates_all_processes(env):
+    sup, server, http, auth, tmp = env
+    sup.save_slots({
+        "01": {"slot_id": "01", "state": "RUNNING", "pid": 12345},
+    })
+    class MockLauncher:
+        def terminate(self, sid, pid, identity): return True
+    assert sup.cmd_notaus(launcher=MockLauncher()) == 0
+    assert sup.STOP_FILE.exists()
+    slots = sup.load_slots()
+    assert slots["01"]["state"] == "STOPPED"
+    assert slots["01"]["pid"] is None
+
+
+def test_kolibri_integration_with_muse_wall(env, monkeypatch):
+    sup, server, http, auth, tmp = env
+    import courier_hub.kolibri_data as kd
+    monkeypatch.setenv("COURIER_WALL_DIR", str(sup.WALL_DIR))
+
+    # Build wall with 1 slot
+    assert sup.cmd_build(1) == 0
+
+    # Resolve wall path
+    wall_dir, label = kd.resolve_muse_wall(ROOT)
+    assert wall_dir == sup.WALL_DIR / "slots"
+
+    # Save active slot with current alive process PID
+    current_pid = os.getpid()
+    sup.save_slots({
+        "01": {"slot_id": "01", "state": "RUNNING", "pid": current_pid, "last_started_at": time.time()}
+    })
+    assert (sup.slot_home("01") / "state.json").exists()
+
+    observed = kd.utc_now()
+    snapshot = kd.read_muse_wall(ROOT, wall_dir, label, observed, {"available": True, "rows": []})
+    assert snapshot["available"] is True
+    assert snapshot["active"] is True
+    assert snapshot["value"] == "1"
+    station = [s for s in snapshot["stations"] if s["id"] == "MUSE-01"][0]
+    assert station["heartbeat"] is True
+    assert station["state"]["value"] == "RUNNING"
+    assert station["process"]["value"] == "present"
+
+
+def test_main_cli_dispatch(env, monkeypatch):
+    sup, server, http, auth, tmp = env
+    assert sup.main(["wall-aufbauen", "4"]) == 0
+    assert sup.main(["wall-ordnen"]) == 0
+    assert sup.main(["wall-status"]) == 0
+    assert sup.main(["wall-bulletin"]) == 0
+    assert sup.main(["wall-notaus"]) == 0
+    assert sup.STOP_FILE.exists()
+
+

@@ -19,7 +19,8 @@ keeps slots alive:
   healthy. Nothing is killed except, on `stop --terminate`, this wall's own
   daemons.
 
-Usage: muse_supervisor.py start 1|4|8|16|32 [--allow-64] [--no-loop] | status |
+Usage: muse_supervisor.py start 1|4|8|16|32 [--allow-64] [--no-loop] | status [--json] |
+       build [1|4|8|16|32|64] | reconcile | notaus | bulletin |
        stop [--terminate] | resume SLOT|all | canary
 """
 import fcntl
@@ -78,6 +79,20 @@ def load_slots():
 
 def save_slots(slots):
     write_json(SLOTS_FILE, slots)
+    for slot_id, slot in slots.items():
+        try:
+            home = slot_home(slot_id)
+            home.mkdir(parents=True, exist_ok=True)
+            state_data = {
+                "slot_id": f"MUSE-{slot_id}",
+                "state": slot.get("state"),
+                "process": slot.get("pid"),
+                "updated_at": slot.get("last_started_at") or slot.get("updated_at") or time.time(),
+                "workdir": str(home / "work"),
+            }
+            write_json(home / "state.json", state_data)
+        except OSError:
+            pass
 
 
 def worker_view(slot_id):
@@ -343,6 +358,79 @@ def supervise(supervisor=None, interval=5.0, lock=None):
         if STOP_FILE.exists() and active == 0:
             return 0
         time.sleep(interval)
+
+
+def cmd_build(target=4, workspace=None):
+    """WALL-AUFBAUEN: Initialises slot directories, config, and slot records without starting workers."""
+    if target not in ALLOWED_TARGETS and target != 64:
+        print(f"build supports {ALLOWED_TARGETS}")
+        return 2
+    with control_lock(WALL_DIR):
+        WALL_DIR.mkdir(parents=True, exist_ok=True)
+        config = read_json(CONFIG_FILE, {})
+        ws = workspace or config.get("workspace", CANONICAL_WORKSPACE)
+        config.update(target=target, workspace=ws)
+        write_json(CONFIG_FILE, config)
+        slots = load_slots()
+        for i in range(1, target + 1):
+            slot_id = f"{i:02d}"
+            home = slot_home(slot_id)
+            for sub in ("work", "logs", "state"):
+                (home / sub).mkdir(parents=True, exist_ok=True)
+            slot = slots.setdefault(slot_id, {
+                "slot_id": slot_id,
+                "state": STOPPED,
+                "restart_count": 0,
+                "crash_count": 0,
+            })
+            slot["workspace"] = ws
+            if slot.get("state") not in (RUNNING, BACKOFF, PAUSED_ERROR):
+                slot["state"] = IDLE
+        save_slots(slots)
+        print(f"WALL-AUFBAUEN: {target} slots initialised in {WALL_DIR}.")
+        return 0
+
+
+def cmd_reconcile(launcher=None):
+    """WALL-ORDNEN: Cleans up orphaned processes, reconciles slot state with process table."""
+    launcher = launcher or ProcessLauncher()
+    with control_lock(WALL_DIR):
+        slots = load_slots()
+        changed = False
+        for slot_id, slot in slots.items():
+            pid = slot.get("pid")
+            identity = slot.get("process_identity")
+            state = slot.get("state")
+            if pid:
+                is_alive = launcher.is_alive(slot_id, pid)
+                is_owned = launcher.owned(slot_id, pid, identity)
+                if not is_alive or not is_owned:
+                    launcher.terminate(slot_id, pid, identity)
+                    slot["pid"] = None
+                    slot["process_identity"] = None
+                    exit_code = launcher.exit_code(slot_id)
+                    slot["last_exit_code"] = exit_code
+                    if state in (RUNNING, STARTING):
+                        slot["state"] = IDLE if exit_code == 0 else PAUSED_ERROR
+                        if exit_code != 0 and not slot.get("blocker"):
+                            slot["blocker"] = f"ORPHANED_CLEANUP: process {pid} exited with {exit_code}"
+                    changed = True
+            elif state == RUNNING:
+                slot["state"] = IDLE
+                changed = True
+            if not slot.get("pid") and slot.get("blocker", "").startswith("CLEANUP_NOT_PROVEN"):
+                slot["blocker"] = ""
+                changed = True
+        if changed:
+            save_slots(slots)
+        print("WALL-ORDNEN: Process table and slot records reconciled.")
+        return 0
+
+
+def cmd_notaus(launcher=None):
+    """WALL-NOTAUS: Immediate cancellation of all slot processes (SIGKILL fallback via terminate=True)."""
+    print("WALL-NOTAUS triggered: Terminating all slot processes immediately.")
+    return cmd_stop(terminate=True, launcher=launcher)
 
 
 def cmd_start(target, allow_64=False, loop=True):
@@ -633,17 +721,25 @@ def cmd_canary():
 
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
-    if argv[:1] == ["start"] and len(argv) > 1:
+    cmd = argv[0] if argv else ""
+    if cmd in ("build", "wall-aufbauen"):
+        target = int(argv[1]) if len(argv) > 1 else 4
+        return cmd_build(target)
+    if cmd in ("reconcile", "wall-ordnen"):
+        return cmd_reconcile()
+    if cmd in ("start", "wall-starten") and len(argv) > 1:
         return cmd_start(int(argv[1]), "--allow-64" in argv, "--no-loop" not in argv)
-    if argv[:1] == ["status"]:
+    if cmd in ("status", "wall-status"):
         return cmd_status(as_json="--json" in argv)
-    if argv[:1] == ["bulletin"]:
+    if cmd in ("bulletin", "wall-bulletin"):
         return cmd_bulletin()
-    if argv == ["canary"]:
+    if cmd in ("canary", "wall-canary"):
         return cmd_canary()
-    if argv[:1] == ["stop"]:
+    if cmd in ("notaus", "wall-notaus"):
+        return cmd_notaus()
+    if cmd in ("stop", "wall-stoppen"):
         return cmd_stop("--terminate" in argv)
-    if argv[:1] == ["resume"] and len(argv) > 1:
+    if cmd in ("resume", "wall-resume") and len(argv) > 1:
         return cmd_resume(argv[1])
     print(__doc__)
     return 1
