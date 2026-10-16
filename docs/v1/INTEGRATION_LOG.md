@@ -741,4 +741,12 @@ adapter / verifier → live golden path.
 - 100% green CI across Ubuntu and Windows (12/12 checks passing).
 - Closed GitHub Issue #173.
 
+## Step 39 — PR #707, L6 Windows Desktop Hub Spec Root Resolution
+### `integration/v1` merged `lane/L6-hub-spec-root-resolution` (commit `d5e5a95a7`)
+- Fixed repository `ROOT` resolution in `scripts/courier_hub_windows.spec`: PyInstaller passes `SPECPATH` as either a directory (when pointing to the folder containing the `.spec`) or the file path itself. Made resolution robust (`Path(SPECPATH).resolve().parent if Path(SPECPATH).is_dir() else Path(SPECPATH).resolve().parents[1]`).
+- Prevents PyInstaller from resolving `ROOT` to parent directory outside repository during Windows build execution.
+- Verified with `python3 scripts/build_windows_exe.py --check` (`SPEC OK`) and `tests/test_windows_exe_build.py` (5 passed, 1 skipped).
+- 100% green CI across Ubuntu and Windows (12/12 checks passing).
+
+
 
