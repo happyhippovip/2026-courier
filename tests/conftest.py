@@ -1,5 +1,8 @@
+import fnmatch
+import json
 import sys
 import os
+from pathlib import Path
 import pytest
 
 # Fail-closed API keys require dummy values in local testing.
@@ -23,6 +26,45 @@ if sys.platform == "win32":
             _pytest.pathlib._monkeypatched_cleanup = True
     except Exception:
         pass
+
+WINDOWS_SKIP_MARKERS = (
+    "mac_worker",
+    "mac_native",
+    "mac_agy",
+    "mac_deliver",
+    "muse",
+    "run_physical",
+    "ci_acceptance",
+)
+
+
+def _windows_known():
+    path = Path(__file__).resolve().parents[1] / ".github" / "ci" / "known_failures.json"
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    windows = data.get("Windows") if isinstance(data, dict) else None
+    return windows if isinstance(windows, dict) else {}
+
+
+def windows_collect_skips(nodeid, known=None):
+    """Whether Windows collection hides this node from the outcomes artifact.
+
+    Nodes the Windows baseline still lists, and nodes matching the published
+    out_of_scope patterns, stay in the run. The outcomes artifact is the CI
+    record of those results. Other marker matches stay skipped.
+    """
+    windows = _windows_known() if known is None else (known.get("Windows") if isinstance(known, dict) else {})
+    if not isinstance(windows, dict):
+        windows = {}
+    patterns = (windows.get("out_of_scope") or {}).get("patterns") or []
+    if any(isinstance(pattern, str) and fnmatch.fnmatchcase(nodeid, pattern) for pattern in patterns):
+        return False
+    listed = set(windows.get("failing") or []) | set(windows.get("flaky") or [])
+    if nodeid in listed:
+        return False
+    return any(marker in nodeid for marker in WINDOWS_SKIP_MARKERS)
 
 def pytest_collection_modifyitems(config, items):
     if sys.platform == "win32":
