@@ -5,6 +5,12 @@ from pathlib import Path
 import tempfile
 import textwrap
 
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+from courier_core.test_report import classify_log, runner_fields
+
 def generate_dockerfile(repo_path: Path):
     if (repo_path / "requirements.txt").exists():
         install_cmd = "pip install -r requirements.txt"
@@ -51,16 +57,16 @@ def run_ci_truth(repo_path_str: str, sha: str = "HEAD") -> dict:
         # Cleanup image
         subprocess.run(["docker", "rmi", image_tag], capture_output=True)
         
-        if run_res.returncode == 0:
-            return {"status": "pass", "classification": "clean", "stage": "test", "log": run_res.stdout}
-            
-        # Classify failure
-        output = run_res.stdout + "\n" + run_res.stderr
-        classification = "product"
-        if "ModuleNotFoundError" in output or "ImportError" in output or "FileNotFoundError" in output:
-            classification = "env"
-            
-        return {"status": "fail", "classification": classification, "stage": "test", "log": output}
+        output = (run_res.stdout or "") + "\n" + (run_res.stderr or "")
+        verdict = classify_log(output, run_res.returncode)
+        fields = runner_fields(verdict)
+        return {
+            "status": fields["status"],
+            "classification": fields["classification"],
+            "stage": "test",
+            "log": output,
+            "verdict": verdict.to_record(),
+        }
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
