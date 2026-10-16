@@ -51,7 +51,11 @@ def build_muse_command(task, checkpoint, capabilities, *, slot_id=None,
         raise MuseCapabilityUnknown("Unsupported Muse operation")
     if checkpoint and checkpoint.get("binding") != binding:
         raise MuseBindingError("Checkpoint slot/task/attempt/dispatch/workspace mismatch")
-    cmd = [str(capabilities.get("binary") or "muse"), action, "--workspace", binding["workspace"]]
+    binary = capabilities.get("binary")
+    # A bare name resolves through PATH. On Windows that starts Muse Desktop, not a CLI.
+    if not isinstance(binary, str) or not os.path.isabs(binary):
+        raise MuseCapabilityUnknown("MUSE_CLI.binary must be an absolute executable path")
+    cmd = [binary, action, "--workspace", binding["workspace"]]
     if action == "exec":
         if capabilities.get("reasoning_effort"):
             cmd.extend(["--reasoning-effort", str(capabilities["reasoning_effort"])])
