@@ -30,13 +30,28 @@ class ArtifactError(ValueError):
     """Upload or reference rejected; the message never contains credentials."""
 
 
+WIN_RESERVED_NAMES = frozenset(
+    {"CON", "PRN", "AUX", "NUL"}
+    | {f"COM{i}" for i in range(1, 10)}
+    | {f"LPT{i}" for i in range(1, 10)}
+)
+
+
 def is_safe_artifact_name(name) -> bool:
-    """Workspace-relative names only: no absolute, drive, UNC or '..' paths."""
-    if not isinstance(name, str) or not name or len(name) > 255 or "\x00" in name:
+    """Workspace-relative names only: no absolute, drive, UNC, '..' or ambiguous Windows paths."""
+    if not isinstance(name, str) or not name or len(name) > 255 or "\x00" in name or ":" in name:
         return False
     for pure in (PureWindowsPath(name), PurePosixPath(name)):
         if pure.is_absolute() or pure.drive or pure.root or ".." in pure.parts:
             return False
+        for part in pure.parts:
+            if not part or part == "." or part == "..":
+                return False
+            if part.endswith(".") or part.endswith(" "):
+                return False
+            stem = part.split(".")[0].upper()
+            if stem in WIN_RESERVED_NAMES:
+                return False
     return True
 
 

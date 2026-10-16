@@ -32,13 +32,15 @@ class HostPressureController:
 
     def admit_job(self, budget_class):
         """Determines if a job can start, triggering backoff if not."""
+        if os.environ.get("RESOURCE_PAUSE"):
+            return False
+
         if time.time() < self.recovery_end_time:
             self.state = "RECOVERY"
             return False
 
         current_pressure = self.measure_pressure()
-        
-        if current_pressure == "RED":
+        if current_pressure in ("UNKNOWN", "RED"):
             self.trigger_quiesce()
             return False
             

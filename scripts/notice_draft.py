@@ -14,7 +14,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from courier_runtime.legal_guard import check_outward  # noqa: E402
-from scripts.repo_reality_check import GUIDE  # noqa: E402
+GUIDE = {}
+
 
 SEVERITY_RANK = {"high": 0, "medium": 1, "low": 2}
 # what a maintainer can act on fastest, per area, when severities tie

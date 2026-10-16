@@ -135,3 +135,84 @@ def test_accepted_log_rejects_unsourced_or_unauthorized_facts(tmp_path):
         log.append(AcceptedFact("wk", 0, "x", (), "controller", 1.0))
     with pytest.raises(ValueError):
         log.append(AcceptedFact("wk", 0, "x", ("ev",), "model", 1.0))
+
+
+# --- OFFLINE-TESTS A-F: WINDOWS PATH & WORKSPACE IDENTITY (ANTIGRAVITY 023) ---
+
+def test_offline_a_valid_absolute_workspace_path(tmp_path):
+    """Test A: Gültiger absoluter Pfad innerhalb des autorisierten Workspaces."""
+    from courier_runtime.workspace import resolve_workspace_child
+    sub = tmp_path / "subfolder" / "valid.txt"
+    resolved = resolve_workspace_child(tmp_path, sub)
+    assert resolved is not None
+    assert resolved == sub.resolve()
+
+
+def test_offline_b_relative_path_inside_workspace(tmp_path):
+    """Test B: Relativer Pfad innerhalb des Workspaces."""
+    from courier_runtime.workspace import resolve_workspace_child
+    rel = "reports/step_output.json"
+    resolved = resolve_workspace_child(tmp_path, rel)
+    assert resolved is not None
+    assert resolved == (tmp_path / rel).resolve()
+
+
+def test_offline_c_path_with_spaces(tmp_path):
+    """Test C: Workspace und Unterpfade mit Leerzeichen."""
+    from courier_runtime.workspace import resolve_workspace_child
+    ws_spaces = tmp_path / "My Courier Workspace"
+    ws_spaces.mkdir(parents=True, exist_ok=True)
+    child = "sub directory/result file.txt"
+    resolved = resolve_workspace_child(ws_spaces, child)
+    assert resolved is not None
+    assert resolved == (ws_spaces / child).resolve()
+
+
+def test_offline_d_unicode_directory(tmp_path):
+    """Test D: Unicode-Verzeichnisnamen und Umlaute."""
+    from courier_runtime.workspace import resolve_workspace_child
+    ws_unicode = tmp_path / "München_Prüfung_2026"
+    ws_unicode.mkdir(parents=True, exist_ok=True)
+    child = "berichte/ergebnis_äöü.json"
+    resolved = resolve_workspace_child(ws_unicode, child)
+    assert resolved is not None
+    assert resolved == (ws_unicode / child).resolve()
+
+
+def test_offline_e_windows_verbatim_path(tmp_path):
+    """Test E: Windows-Verbatim-Pfad mit \\\\?\\ Prefix."""
+    from courier_runtime.workspace import resolve_workspace_child
+    child = "verbatim_out.txt"
+    verbatim_root = f"\\\\?\\{str(tmp_path)}"
+    resolved = resolve_workspace_child(verbatim_root, child)
+    assert resolved is not None
+    assert resolved == (tmp_path / child).resolve()
+
+    # Auch child als Verbatim-Pfad
+    verbatim_child = f"\\\\?\\{str(tmp_path / child)}"
+    resolved2 = resolve_workspace_child(tmp_path, verbatim_child)
+    assert resolved2 is not None
+    assert resolved2 == (tmp_path / child).resolve()
+
+
+def test_offline_f_path_outside_authorized_workspace_rejected(world):
+    """Test F: Pfade außerhalb des autorisierten Workspaces werden fail-closed abgelehnt."""
+    from courier_runtime.workspace import resolve_workspace_child, Step
+    ws, _, _, tmp = world
+
+    # F1: Relative traversal (..)
+    assert resolve_workspace_child(tmp, "../../escaped.txt") is None
+
+    # F2: Absolute fremde Pfade
+    assert resolve_workspace_child(tmp, "C:\\Windows\\System32\\cmd.exe") is None
+
+    # F3: Sibling directory mit gleichem Präfix
+    sibling = str(tmp) + "_evil"
+    assert resolve_workspace_child(tmp, f"{sibling}/file.txt") is None
+
+    # F4: Ausführung im Workspace bricht mit FAILED ab, wenn Step-Output workdir verlässt
+    escaping_step = Step("malicious", [sys.executable, "-c", "pass"], "../../outside.txt")
+    result = ws.run("wk-escape", Requirement(frozenset({"python"})), "project:p1", request("r_esc"), [escaping_step])
+    assert result["state"] == "FAILED"
+    assert any("escapes workdir" in r for r in result["reasons"])
+

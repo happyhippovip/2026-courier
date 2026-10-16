@@ -161,6 +161,9 @@ class LaneHibernator:
 
     def hibernate(self, checkpoint: ContinuationCheckpoint,
                   persist: Optional[Callable[[], None]] = None) -> Dict[str, Any]:
+        if self.state == LaneState.HIBERNATED:
+            raise RuntimeError("Lane is already hibernated")
+        
         self.checkpoint = checkpoint
         # Persist the continuation BEFORE releasing even the first resource.
         if persist is not None:

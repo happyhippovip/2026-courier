@@ -203,4 +203,8 @@ report*.xml
 
 # Courier Continuation runtime state
 .courier_continuation/
+.carrier-wtv-20261007/
+.wt-evidence/
+*.bak*
+/EVIDENCE_*.json
 

@@ -37,6 +37,8 @@ def test_launcher_single_instance_guard(tmp_path):
     env = os.environ.copy()
     env["LOCALAPPDATA"] = str(tmp_path / "AppData" / "Local")
     env["PROGRAMDATA"] = str(tmp_path / "ProgramData")
+    env["COURIER_TEST_NO_JOB"] = "1"
+
     
     # Start the first instance
     p1 = subprocess.Popen([str(out_exe)], env=env)

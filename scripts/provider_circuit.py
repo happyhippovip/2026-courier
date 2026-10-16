@@ -55,8 +55,10 @@ class CircuitState:
         
         if category == ErrorCategory.QUOTA_EXHAUSTED:
             self.state = ProviderState.QUOTA_EXHAUSTED
+            self.reset_time = self._as_aware(reset_time)
         elif category == ErrorCategory.RATE_LIMITED:
             self.state = ProviderState.RATE_LIMITED
+            self.reset_time = self._as_aware(reset_time)
         elif category == ErrorCategory.UNAVAILABLE:
             self.state = ProviderState.PROVIDER_UNAVAILABLE
         elif category == ErrorCategory.AUTH_ERROR:

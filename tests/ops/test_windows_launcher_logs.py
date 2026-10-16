@@ -31,24 +31,26 @@ def test_launcher_log_rotation(tmp_path):
     env = os.environ.copy()
     env["LOCALAPPDATA"] = str(mock_appdata)
     env["PROGRAMDATA"] = str(tmp_path / "ProgramData")
+    env["COURIER_TEST_NO_JOB"] = "1"
     
-    # Create fake python module courier_core.serve
+    # Create fake python module courier_worker.host
     fake_python_lib = tmp_path / "fake_lib"
     fake_python_lib.mkdir()
-    core_dir = fake_python_lib / "courier_core"
+    core_dir = fake_python_lib / "courier_worker"
     core_dir.mkdir()
     (core_dir / "__init__.py").touch()
     
     # Serve will output slightly more than 5MB
-    serve_py = core_dir / "serve.py"
+    serve_py = core_dir / "host.py"
     serve_py.write_text("""import sys
 import time
 
-chunk = "X" * 1024 * 1024  # 1MB
-for i in range(6):
+chunk = "X" * 10240  # 10KB
+for i in range(600):
     print(chunk)
-    sys.stdout.flush()
-    time.sleep(0.1)
+    if i % 10 == 0:
+        sys.stdout.flush()
+        time.sleep(0.01)
 
 time.sleep(10)
 """)
@@ -90,15 +92,18 @@ time.sleep(10)
             time.sleep(0.5)
             # Check if rotation happened
             log_dir = courier_data / "logs"
-            backup_log = log_dir / "controller.log.1"
+            backup_log = log_dir / "worker.log.1"
             if backup_log.exists():
                 break
         
         log_dir = courier_data / "logs"
-        backup_log = log_dir / "controller.log.1"
-        current_log = log_dir / "controller.log"
+        backup_log = log_dir / "worker.log.1"
+        current_log = log_dir / "worker.log"
         
-        assert backup_log.exists(), "Backup log controller.log.1 was not created"
+        print(f"Current log size: {current_log.stat().st_size if current_log.exists() else 0}")
+        print(f"Backup log size: {backup_log.stat().st_size if backup_log.exists() else 0}")
+        
+        assert backup_log.exists(), "Backup log worker.log.1 was not created"
         assert backup_log.stat().st_size >= 5 * 1024 * 1024, "Backup log is too small"
         
         # Current log might be small, but it should exist
@@ -106,7 +111,7 @@ time.sleep(10)
             if current_log.exists():
                 break
             time.sleep(0.1)
-        assert current_log.exists(), "Current log controller.log was not recreated"
+        assert current_log.exists(), "Current log worker.log was not recreated"
         
     finally:
         # Cleanup

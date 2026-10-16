@@ -619,7 +619,7 @@ def test_sse_cancel_aborts_run_promptly(tmp_path, stub):
     assert len(STUB.results) == 1
     assert STUB.results[0]["outcome"] == "failure"
     assert STUB.results[0]["retryable"] is False
-    assert {"dispatch_ids": [], "worker_id": "w1"} in STUB.beats  # stop confirmation
+    assert {"dispatch_ids": [], "worker_id": "w1", "resource_state": "NORMAL"} in STUB.beats  # stop confirmation
 
 
 def test_stop_releases_blocked_stream(tmp_path, stub):

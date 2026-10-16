@@ -114,10 +114,19 @@ class ControllerClient:
 
     def health(self) -> bool:
         try:
-            status, _ = self._call("GET", "/health")
+            status, payload = self._call("GET", "/health")
         except ControllerError:
             return False
-        return status == 200
+        if status != 200 or not isinstance(payload, dict):
+            return False
+        if payload.get("mode") not in ("normal", None):
+            return False
+        build = payload.get("build")
+        if isinstance(build, dict) and "version" in build:
+            ctrl_ver = str(build["version"]).split(".")[0]
+            if ctrl_ver and ctrl_ver != "1":
+                return False
+        return True
 
     def claim(self, worker_id: str, resource_state: str = "NORMAL") -> Optional[dict]:
         try:
@@ -140,9 +149,9 @@ class ControllerClient:
         if status != 200:
             raise StaleDispatch(f"start for {dispatch_id}: status {status}")
 
-    def heartbeat(self, worker_id: str, dispatch_ids: list) -> dict:
+    def heartbeat(self, worker_id: str, dispatch_ids: list, resource_state: str = "NORMAL") -> dict:
         status, payload = self._call("POST", "/heartbeat",
-                               {"worker_id": worker_id, "dispatch_ids": dispatch_ids})
+                               {"worker_id": worker_id, "dispatch_ids": dispatch_ids, "resource_state": resource_state})
         if status != 200:
             raise ControllerError(f"heartbeat: status {status}")
         return payload or {}
@@ -382,6 +391,8 @@ class WorkerLoop:
         self._client_factory = client_factory or self._default_client
         self._client: Optional[ControllerClient] = None
         self._watchers: dict = {}
+        self._cooldown_until: float = 0.0
+        self._last_resource_state: str = "NORMAL"
 
     def _default_client(self) -> ControllerClient:
         token_path = os.path.join(self.home, "run", "controller.token")
@@ -422,7 +433,7 @@ class WorkerLoop:
         client = self._client or self._client_factory()
         self._client = client
         
-        reason = self.host._pressure_probe()
+        reason = self.engine._pressure_probe()
         now = time.time()
         
         if reason is not None:

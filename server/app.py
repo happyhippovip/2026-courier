@@ -3,9 +3,17 @@ import os, json, uuid, time, threading
 from functools import wraps
 from flask import Flask, request, jsonify
 
-from scripts.integration_contract import ContractError, prepare_task, validate_durable_result
+from scripts.integration_contract import (
+    ContractError,
+    prepare_task,
+    validate_durable_result,
+    MAX_BODY_BYTES,
+    MAX_ARTIFACTS,
+    MAX_ARTIFACT_BYTES,
+)
 from scripts.artifact_store import ArtifactError, ArtifactStore, create_blueprint
 from scripts.run_chief_commander import ChiefCommander
+from scripts.resource_policy import CostGate
 
 app = Flask(__name__)
 
@@ -177,14 +185,26 @@ def submit_goal():
     }
     
     if "workflow_plan" in data:
-        goal["workflow_plan"] = data["workflow_plan"]
+        raw_plan = data["workflow_plan"]
+        if not isinstance(raw_plan, list) or not raw_plan:
+            return jsonify({"error": "workflow_plan must be a non-empty list"}), 400
+        goal["workflow_plan"] = []
         goal["current_step_index"] = 0
-        for step in goal["workflow_plan"]:
-            step["goal_id"] = goal_id
-            step["status"] = "QUEUED"
-            step["attempts"] = 0
-            if "task_id" not in step:
-                step["task_id"] = f"task-{uuid.uuid4().hex[:8]}"
+        for step in raw_plan:
+            if not isinstance(step, dict):
+                return jsonify({"error": "workflow step must be a dict"}), 400
+            task_dict = dict(step)
+            task_dict["goal_id"] = goal_id
+            task_dict.setdefault("status", "QUEUED")
+            task_dict.setdefault("attempts", 0)
+            if "task_id" not in task_dict:
+                task_dict["task_id"] = f"task-{uuid.uuid4().hex[:8]}"
+            try:
+                bound_step = prepare_task(task_dict)
+            except ContractError as exc:
+                return jsonify({"error": str(exc)}), 400
+            goal["workflow_plan"].append(bound_step)
+            state["tasks"][bound_step["task_id"]] = bound_step
     else:
         try:
             _, planned_steps = ChiefCommander().formulate_workflow_plan(
@@ -197,23 +217,20 @@ def submit_goal():
         goal["workflow_plan"] = []
         goal["current_step_index"] = 0
         for step in planned_steps:
-            target_agent = str(step.get("target_agent", "linux")).lower()
-            if "github" in target_agent:
-                target_agent = "github"
-            elif "windows" in target_agent or "codex" in target_agent:
-                target_agent = "windows"
-            elif "mac" in target_agent or "antigravity" in target_agent or "gemini" in target_agent:
-                target_agent = "mac"
-            else:
-                target_agent = "linux"
-            goal["workflow_plan"].append({
+            task_dict = {
                 "task_id": step.get("task_id", f"task-{uuid.uuid4().hex[:8]}"),
                 "goal_id": goal_id,
                 "instruction": step.get("instruction", "Next bounded step"),
-                "target_agent": target_agent,
+                "target_agent": str(step.get("target_agent", "linux")),
                 "status": "QUEUED",
                 "attempts": 0,
-            })
+            }
+            try:
+                bound_step = prepare_task(task_dict)
+            except ContractError as exc:
+                return jsonify({"error": str(exc)}), 400
+            goal["workflow_plan"].append(bound_step)
+            state["tasks"][bound_step["task_id"]] = bound_step
         
     state["goals"][goal_id] = goal
     save_state(state)
@@ -260,7 +277,30 @@ def register_worker():
     existing = state["workers"].get(worker_id, {})
     server_task = existing.get("current_task")
     worker_task = data.get("current_task")
+    incoming_platform = data.get("platform", "unknown")
     
+    # E. Check for identity collision: If another worker (different platform or conflicting identity)
+    # asserts this worker_id while the existing worker is active and not stale.
+    if existing:
+        existing_platform = existing.get("platform", "unknown")
+        if existing_platform != "unknown" and incoming_platform != "unknown" and existing_platform != incoming_platform:
+            now = time.time()
+            if now - existing.get("last_seen", 0) < 300:
+                return jsonify({"error": f"Identity conflict: worker_id already registered by platform {existing_platform}"}), 409
+
+    # C. Stale session detection: If session_epoch or generation is provided,
+    # an older session cannot overwrite state from a newer session.
+    incoming_epoch = data.get("session_epoch")
+    existing_epoch = existing.get("session_epoch")
+    if incoming_epoch is not None and existing_epoch is not None:
+        if incoming_epoch < existing_epoch:
+            return jsonify({
+                "status": "STALE_SESSION_IGNORED",
+                "message": "Older session epoch ignored in favor of active newer session"
+            }), 200
+
+    effective_epoch = incoming_epoch if incoming_epoch is not None else existing_epoch
+
     if "current_task" in data:
         current_task = worker_task
         if server_task and worker_task != server_task:
@@ -280,17 +320,18 @@ def register_worker():
 
     state["workers"][worker_id] = {
         "worker_id": worker_id,
-        "platform": data.get("platform", "unknown"),
-        "capabilities": data.get("capabilities", []),
+        "platform": incoming_platform if incoming_platform != "unknown" else existing.get("platform", "unknown"),
+        "capabilities": data.get("capabilities", existing.get("capabilities", [])),
         "last_seen": time.time(),
         "available": current_task is None,
         "current_task": current_task,
-        "cost_class": data.get("cost_class", "unknown"),
-        "resource_state": data.get("resource_state", "NORMAL")
+        "cost_class": data.get("cost_class", existing.get("cost_class", "unknown")),
+        "resource_state": data.get("resource_state", existing.get("resource_state", "NORMAL")),
+        "session_epoch": effective_epoch
     }
     
     save_state(state)
-    return jsonify({"status": "REGISTERED"})
+    return jsonify({"status": "REGISTERED", "worker_id": worker_id})
 
 @app.route("/workers/unregister", methods=["POST"])
 @require_auth
@@ -409,6 +450,25 @@ def claim_task():
                                 matched = False
 
                     if matched:
+                        # Pre-dispatch cost authorization gate:
+                        # Check estimated task cost and resource tier against CostGate.
+                        # Fail-closed: unknown cost or unapproved positive spend blocks dispatch.
+                        est_cost = next_task.get("estimated_cost_eur", 0.0)
+                        res_id = next_task.get("resource_id", "google_antigravity_plus")
+                        cost_eval = CostGate.evaluate_spend_request(
+                            resource_id=res_id,
+                            estimated_cost_eur=est_cost,
+                            requested_action="EXECUTE_TASK"
+                        )
+                        if not cost_eval.get("allowed", False):
+                            next_task["status"] = "BLOCKED_COST_AUTHORIZATION"
+                            next_task["blocked_reason"] = cost_eval.get("reason", "SPEND_NOT_ALLOWED_BY_POLICY")
+                            next_task["blocked_message"] = cost_eval.get("message", "Cost authorization denied.")
+                            goal["status"] = "PAUSED_FOR_BUDGET"
+                            state["tasks"][next_task["task_id"]] = next_task
+                            save_state(state)
+                            return jsonify({"task": None, "reason": cost_eval.get("reason", "SPEND_NOT_ALLOWED_BY_POLICY")})
+
                         next_task["worker_id"] = worker_id
                         next_task["attempts"] = next_task.get("attempts", 0) + 1
                         next_task["attempt_id"] = f"{next_task['task_id']}:attempt:{next_task['attempts']}"
@@ -437,7 +497,14 @@ def claim_task():
 @require_auth
 @serialize_state_mutation
 def task_result():
-    data = request.get_json(silent=True) or {}
+    if request.content_length and request.content_length > MAX_BODY_BYTES:
+        return jsonify({"error": f"result body exceeds {MAX_BODY_BYTES} bytes (too_large)"}), 413
+    if request.data and len(request.data) > MAX_BODY_BYTES:
+        return jsonify({"error": f"result body exceeds {MAX_BODY_BYTES} bytes (too_large)"}), 413
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or not data:
+        return jsonify({"error": "Empty or invalid result body; JSON object required"}), 400
+
     task_id = data.get("task_id")
     worker_id = data.get("worker_id")
     state = load_state()
@@ -448,53 +515,69 @@ def task_result():
         # Duplicate protection: a resend of the stored result (e.g. after a lost
         # response) is acknowledged; any other result for a processed task conflicts.
         stored = task.get("result") or {}
-        if stored and all(stored.get(field) == data.get(field) for field in ("dispatch_id", "result_id", "status", "worker_id", "attempt_id", "artifacts")):
+        if stored and all(stored.get(field) == data.get(field) for field in ("dispatch_id", "result_id", "status", "worker_id", "attempt_id", "artifacts")) and (data.get("attempt") is None or stored.get("attempt") == data.get("attempt")):
             return jsonify({"status": "ACK_DUPLICATE"})
-        if task["status"] in ["RECONCILED", "FAILED_TERMINAL", "RESULT_RECEIVED", "FAILED_VERIFICATION"]:
-            return jsonify({"error": "Conflicting result for already processed task"}), 409
+        if task.get("status") in ["RECONCILED", "FAILED_TERMINAL", "RESULT_RECEIVED", "FAILED_VERIFICATION"]:
+            return jsonify({"error": "Task is not awaiting a result; Conflicting result for already processed task"}), 409
 
-        if task.get("worker_id") == worker_id:
-            if task.get("status") != "DISPATCHED":
-                return jsonify({"error": "Task is not awaiting a result"}), 409
-            if data.get("attempt_id") != task.get("attempt_id") or (data.get("dispatch_id") and data.get("dispatch_id") != task.get("dispatch_id")):
-                return jsonify({"error": "attempt or dispatch mismatch, possible replay"}), 409
-            try:
-                durable_result = validate_durable_result(task, data)
-                for ref in durable_result["artifacts"]:
-                    if "artifact_id" in ref:
-                        ARTIFACT_STORE.check_reference(ref, task)
-            except (ContractError, ArtifactError) as exc:
-                return jsonify({"error": str(exc)}), 400
-            task["status"] = "RESULT_RECEIVED"
-            task["result"] = durable_result
-            
-            if durable_result.get("status") == "SUCCESS":
-                task["status"] = "RESULT_RECEIVED" # wait for independent /verify
+        if task.get("status") != "DISPATCHED":
+            return jsonify({"error": "Task is not awaiting a result"}), 409
+
+        if task.get("worker_id") != worker_id:
+            return jsonify({"error": f"worker_id mismatch: task assigned to {task.get('worker_id')}, got {worker_id}"}), 409
+
+        if "workkey" in data and "workkey" in task:
+            if data["workkey"] != task["workkey"]:
+                return jsonify({"error": f"workkey mismatch: task workkey is {task['workkey']}, got {data['workkey']}"}), 409
+        elif "workkey" in data and "workkey" not in task:
+            return jsonify({"error": "workkey mismatch: unexpected workkey on task"}), 409
+
+        if data.get("attempt_id") != task.get("attempt_id") or (data.get("dispatch_id") and data.get("dispatch_id") != task.get("dispatch_id")):
+            return jsonify({"error": "attempt or dispatch mismatch, possible replay"}), 409
+
+        if "attempt" in data:
+            if isinstance(data["attempt"], bool) or not isinstance(data["attempt"], int) or data["attempt"] < 1:
+                return jsonify({"error": "invalid attempt format; positive integer required"}), 400
+            task_attempts = task.get("attempts", task.get("attempt"))
+            if task_attempts is not None and data["attempt"] != task_attempts:
+                return jsonify({"error": "attempt mismatch: result attempt does not match current task attempt"}), 409
+
+        try:
+            durable_result = validate_durable_result(task, data)
+            for ref in durable_result["artifacts"]:
+                if "artifact_id" in ref:
+                    ARTIFACT_STORE.check_reference(ref, task)
+        except (ContractError, ArtifactError) as exc:
+            return jsonify({"error": str(exc)}), 400
+        task["status"] = "RESULT_RECEIVED"
+        task["result"] = durable_result
+        if durable_result.get("status") == "SUCCESS":
+            task["status"] = "RESULT_RECEIVED" # wait for independent /verify
+        else:
+            if task.get("attempts", 1) < 3:
+                task["status"] = "QUEUED" # Retry
+                task["worker_id"] = None
             else:
-                if task.get("attempts", 1) < 3:
-                    task["status"] = "QUEUED" # Retry
-                    task["worker_id"] = None
-                else:
-                    task["status"] = "FAILED_TERMINAL"
-                
-            goal_id = task["goal_id"]
-            if goal_id in state["goals"]:
-                goal = state["goals"][goal_id]
-                # Sync status back to workflow plan
-                for step in goal.get("workflow_plan", []):
-                    if step.get("task_id") == task_id:
-                        step["status"] = task["status"]
-                        step["worker_id"] = task.get("worker_id")
-                        step["attempts"] = task.get("attempts")
-                if task["status"] == "FAILED_TERMINAL":
-                    goal["status"] = "BLOCKED"
+                task["status"] = "FAILED_TERMINAL"
+            
+        goal_id = task["goal_id"]
+        if goal_id in state["goals"]:
+            goal = state["goals"][goal_id]
+            # Sync status back to workflow plan
+            for step in goal.get("workflow_plan", []):
+                if step.get("task_id") == task_id:
+                    step["status"] = task["status"]
+                    step["worker_id"] = task.get("worker_id")
+                    step["attempts"] = task.get("attempts")
+            if task["status"] == "FAILED_TERMINAL":
+                goal["status"] = "BLOCKED"
 
-            if worker_id in state["workers"]:
-                state["workers"][worker_id]["current_task"] = None
-                state["workers"][worker_id]["available"] = True
+        if worker_id in state["workers"]:
+            state["workers"][worker_id]["current_task"] = None
+            state["workers"][worker_id]["available"] = True
 
-            save_state(state)
-            return jsonify({"status": "ACK_RESULT_RECEIVED"})
+        save_state(state)
+        return jsonify({"status": "ACK_RESULT_RECEIVED"})
             
     return jsonify({"error": "Invalid task or worker"}), 400
 

@@ -340,7 +340,7 @@ class Controller:
 
     def claim(self, body: Any) -> dict | None:
         self._require_writable()
-        body = _only_fields(body, {"worker_id"})
+        body = _only_fields(body, {"worker_id", "resource_state"})
         worker_id = _require_id(body, "worker_id")
         with self._locked():
             for task in self.journal.tasks(TaskStatus.QUEUED.value):
@@ -388,7 +388,7 @@ class Controller:
 
     def heartbeat(self, body: Any) -> dict:
         self._require_writable()
-        body = _only_fields(body, {"worker_id", "dispatch_ids"})
+        body = _only_fields(body, {"worker_id", "dispatch_ids", "resource_state"})
         worker_id = _require_id(body, "worker_id")
         dispatch_ids = body.get("dispatch_ids")
         if (not isinstance(dispatch_ids, list) or len(dispatch_ids) > MAX_HEARTBEAT_DISPATCHES

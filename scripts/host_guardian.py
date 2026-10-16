@@ -1,7 +1,55 @@
 import enum
-import psutil
 import os
+import platform
+import socket
+import psutil
 from dataclasses import dataclass
+
+AUTHORIZED_WINDOWS_HOSTNAMES = {"DESKTOP-JDPRUGR"}
+
+class HostIdentityError(RuntimeError):
+    """Raised when host identity verification fails closed."""
+    pass
+
+def verify_windows_hostname(
+    expected_hostname: str | set[str] | list[str] | None = None,
+    require_windows: bool = True
+) -> tuple[bool, str]:
+    """
+    Verbindliche Prüfung des Windows-Hostnamens gemäß FRZ-01.
+    Prüft socket.gethostname() und os.environ.get('COMPUTERNAME').
+    Case-insensitiver Vergleich auf Windows.
+    Gibt (True, actual_hostname) zurück wenn autorisiert,
+    sonst (False, reason).
+    """
+    current_os = platform.system()
+    if require_windows and current_os != "Windows":
+        return False, f"OS_MISMATCH: expected Windows, running on {current_os}"
+
+    socket_host = socket.gethostname()
+    env_host = os.environ.get("COMPUTERNAME")
+
+    if not socket_host or not socket_host.strip():
+        return False, "HOSTNAME_EMPTY: socket.gethostname() returned empty or whitespace"
+
+    actual_hostname = socket_host.strip()
+
+    if current_os == "Windows" and env_host:
+        if socket_host.lower() != env_host.strip().lower():
+            return False, f"HOSTNAME_INCONSISTENT: socket '{socket_host}' != COMPUTERNAME '{env_host}'"
+
+    if expected_hostname is None:
+        expected_set = {h.lower() for h in AUTHORIZED_WINDOWS_HOSTNAMES}
+    elif isinstance(expected_hostname, (set, list, tuple)):
+        expected_set = {h.lower() for h in expected_hostname}
+    else:
+        expected_set = {expected_hostname.lower()}
+
+    if actual_hostname.lower() not in expected_set:
+        return False, f"HOSTNAME_MISMATCH: actual '{actual_hostname}' not in authorized {sorted(expected_set)}"
+
+    return True, actual_hostname
+
 
 class HostState(enum.Enum):
     NORMAL = "NORMAL"
@@ -38,19 +86,65 @@ class HostGuardian:
         self.admitted_heavy = 0
         self.admitted_light = 0
         self.cleanup_unknown = False
-        self._last_swap_used = psutil.swap_memory().used
+        try:
+            self._last_swap_used = psutil.swap_memory().used
+        except Exception:
+            self._last_swap_used = 0
         self._calm_streak = 0
         self.required_calm_streak = 3
 
+    def verify_host_identity(
+        self,
+        expected_hostname: str | set[str] | list[str] | None = None,
+        require_windows: bool = True
+    ) -> tuple[bool, str]:
+        """Verify host identity, failing closed to STABILIZING on mismatch."""
+        valid, msg = verify_windows_hostname(
+            expected_hostname=expected_hostname,
+            require_windows=require_windows
+        )
+        if not valid:
+            self.state = HostState.STABILIZING
+        return valid, msg
+
+    def diagnose_capacity(self) -> str:
+        """Classify capacity state into canonical states."""
+        if os.environ.get("RESOURCE_PAUSE"):
+            return "RESOURCE_PAUSED"
+        try:
+            mem = psutil.virtual_memory()
+            disk = psutil.disk_usage('/')
+            memory_pressure = mem.percent / 100.0
+            disk_floor_gb = disk.free / (1024 ** 3)
+        except Exception:
+            return "UNKNOWN_CAPACITY"
+
+        if memory_pressure > 0.80:
+            return "LOW_MEMORY"
+        if disk_floor_gb < 2.0:
+            return "LOW_DISK"
+        if self.admitted_heavy >= self.max_heavy_local_jobs:
+            return "HEAVY_JOB_ALREADY_ACTIVE"
+        return "HEALTHY"
+
     def evaluate_admission(self) -> AdmissionState:
-        mem = psutil.virtual_memory()
-        swap = psutil.swap_memory()
-        disk = psutil.disk_usage('/')
-        
-        memory_pressure = mem.percent / 100.0
-        swap_increasing = swap.used > self._last_swap_used
-        self._last_swap_used = swap.used
-        disk_floor_gb = disk.free / (1024 ** 3)
+        if os.environ.get("RESOURCE_PAUSE"):
+            self.state = HostState.STABILIZING
+            return AdmissionState.CLOSED
+
+        try:
+            mem = psutil.virtual_memory()
+            swap = psutil.swap_memory()
+            disk = psutil.disk_usage('/')
+            
+            memory_pressure = mem.percent / 100.0
+            swap_increasing = swap.used > self._last_swap_used
+            self._last_swap_used = swap.used
+            disk_floor_gb = disk.free / (1024 ** 3)
+        except Exception:
+            self._calm_streak = 0
+            self.state = HostState.STABILIZING
+            return AdmissionState.CLOSED
         
         is_high_pressure = memory_pressure > 0.80 or swap_increasing or disk_floor_gb < 2.0
         is_medium_pressure = memory_pressure > 0.70 or self.cleanup_unknown
@@ -102,6 +196,8 @@ class HostGuardian:
         return self.state
 
     def request_heavy_lease(self) -> bool:
+        if self.diagnose_capacity() != "HEALTHY":
+            return False
         admission = self.evaluate_admission()
         if admission != AdmissionState.OPEN:
             return False

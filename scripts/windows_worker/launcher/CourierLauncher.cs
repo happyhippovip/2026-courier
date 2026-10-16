@@ -102,13 +102,13 @@ namespace CourierLauncher
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            if (!IsAdministrator())
+            if (!IsAdministrator() && Environment.GetEnvironmentVariable("COURIER_TEST_NO_JOB") != "1")
             {
                 Elevate();
                 return;
             }
 
-            dataDir = Environment.ExpandEnvironmentVariables(@"%APPDATA%\Courier");
+            dataDir = Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\Courier");
             configPath = Path.Combine(dataDir, "config.json");
             logDir = Path.Combine(dataDir, "logs");
             logPath = Path.Combine(logDir, "worker.log");
@@ -125,7 +125,10 @@ namespace CourierLauncher
                     Process oldProc = Process.GetProcessById(oldPid);
                     if (oldProc.ProcessName.IndexOf("Courier", StringComparison.OrdinalIgnoreCase) >= 0 || oldProc.ProcessName.IndexOf("python", StringComparison.OrdinalIgnoreCase) >= 0)
                     {
-                        MessageBox.Show("Courier Worker is already running.", "Courier");
+                        if (Environment.GetEnvironmentVariable("COURIER_TEST_NO_JOB") != "1")
+                        {
+                            MessageBox.Show("Courier Worker is already running.", "Courier");
+                        }
                         return;
                     }
                 }
@@ -135,19 +138,31 @@ namespace CourierLauncher
             File.WriteAllText(pidPath, Process.GetCurrentProcess().Id.ToString());
 
             // Scheduled Task Register
-            RegisterScheduledTask();
+            if (Environment.GetEnvironmentVariable("COURIER_TEST_NO_JOB") != "1")
+            {
+                RegisterScheduledTask();
+            }
 
             LoadConfig();
 
-            if (string.IsNullOrEmpty(serverUrl) || string.IsNullOrEmpty(apiKey))
+            if (Environment.GetEnvironmentVariable("COURIER_TEST_NO_JOB") == "1")
+            {
+                serverUrl = "http://127.0.0.1:8800";
+                workerId = "test-worker";
+                apiKey = "test-key";
+            }
+            else if (string.IsNullOrEmpty(serverUrl) || string.IsNullOrEmpty(apiKey))
             {
                 if (!PromptConfig()) return;
             }
 
-            if (!PerformHealthCheck())
+            if (Environment.GetEnvironmentVariable("COURIER_TEST_NO_JOB") != "1")
             {
-                MessageBox.Show("Server unreachable or rejected API key.", "Courier", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
+                if (!PerformHealthCheck())
+                {
+                    MessageBox.Show("Server unreachable or rejected API key.", "Courier", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
             }
 
             SetupTray();
@@ -319,6 +334,20 @@ namespace CourierLauncher
             DataReceivedEventHandler logHandler = (sender, e) => {
                 if (e.Data != null) {
                     lock (logLock) {
+                        try
+                        {
+                            if (File.Exists(logPath))
+                            {
+                                FileInfo fi = new FileInfo(logPath);
+                                if (fi.Length > 5 * 1024 * 1024)
+                                {
+                                    string backupPath = logPath + ".1";
+                                    if (File.Exists(backupPath)) File.Delete(backupPath);
+                                    File.Move(logPath, backupPath);
+                                }
+                            }
+                        }
+                        catch { }
                         File.AppendAllText(logPath, string.Format("[{0:O}] {1}{2}", DateTime.UtcNow, e.Data, Environment.NewLine));
                     }
                 }

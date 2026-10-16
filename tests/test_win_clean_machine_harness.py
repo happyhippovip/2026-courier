@@ -34,7 +34,7 @@ def test_win_clean_machine_harness(tmp_path):
     # 1. Fresh install & first launch
     build_script = Path("scripts/windows_worker/launcher/build_launcher.ps1").resolve()
     if build_script.exists():
-        subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", str(build_script)], check=True)
+        subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", str(build_script), "-TestBuild"], check=True)
 
     launcher_exe = Path("scripts/windows_worker/Courier.exe").resolve()
     assert launcher_exe.exists(), "Courier.exe must be built before tests"
@@ -55,17 +55,25 @@ def test_win_clean_machine_harness(tmp_path):
         "COURIER_HUB_PORT": 8801
     }))
 
-    # 0x01000000 is CREATE_BREAKAWAY_FROM_JOB
+    # Start controller and hub natively in the test harness
+    controller_cmd = ["uv", "run", "python", "-m", "courier_core.serve", "--home", str(courier_dir), "--port", "8800"]
+    hub_cmd = ["uv", "run", "python", "-m", "courier_hub", "--home", str(courier_dir), "--controller", "http://127.0.0.1:8800", "--port", "8801"]
+    
+    ctrl_proc = subprocess.Popen(controller_cmd, env=env)
+    hub_proc = subprocess.Popen(hub_cmd, env=env)
+    
+    launcher = None
     try:
-        launcher = subprocess.Popen([str(launcher_exe)], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | 0x01000000)
-    except PermissionError as e:
-        if e.winerror == 5:
-            # Cannot break away from Job object (e.g. GitHub Actions runner)
-            launcher = subprocess.Popen([str(launcher_exe)], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
-        else:
-            raise
+        # 0x01000000 is CREATE_BREAKAWAY_FROM_JOB
+        try:
+            launcher = subprocess.Popen([str(launcher_exe)], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | 0x01000000)
+        except PermissionError as e:
+            if e.winerror == 5:
+                # Cannot break away from Job object (e.g. GitHub Actions runner)
+                launcher = subprocess.Popen([str(launcher_exe)], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+            else:
+                raise
 
-    try:
         # Wait for token
         token_file = courier_dir / "run" / "controller.token"
         start_time = time.monotonic()
@@ -73,13 +81,16 @@ def test_win_clean_machine_harness(tmp_path):
             if launcher.poll() is not None:
                 out = launcher.stdout.read()
                 pytest.fail(f"Launcher exited early with code {launcher.returncode}:\n{out}")
+            if ctrl_proc.poll() is not None:
+                pytest.fail("Controller exited early")
             if token_file.exists():
                 token = token_file.read_text().strip()
                 if token:
                     break
             time.sleep(0.5)
         else:
-            pytest.fail(f"Timeout waiting for controller.token. Launcher output:\n{launcher.stdout.read()}")
+            log_content = (courier_dir / "logs" / "worker.log").read_text() if (courier_dir / "logs" / "worker.log").exists() else "No worker.log"
+            pytest.fail(f"Timeout waiting for controller.token. Worker log:\n{log_content}")
 
         controller_url = "http://127.0.0.1:8800"
         hub_url = "http://127.0.0.1:8801"
@@ -193,8 +204,9 @@ def test_win_clean_machine_harness(tmp_path):
         wait_for(blocked_id, "COMPLETE")
 
     finally:
-        subprocess.run(["taskkill", "/T", "/F", "/PID", str(launcher.pid)], check=False)
-        launcher.wait(10)
+        if launcher is not None:
+            subprocess.run(["taskkill", "/T", "/F", "/PID", str(launcher.pid)], check=False)
+            launcher.wait(10)
 
     # 4. Restart and Replay
     # 0x01000000 is CREATE_BREAKAWAY_FROM_JOB
@@ -231,9 +243,65 @@ def test_win_clean_machine_harness(tmp_path):
         # Check that no worker lock exists from old process, wait for worker to boot up
         time.sleep(2)
         
+        new_task_id = api("POST", "/v1/tasks", {
+            "adapter": "synthetic", "params": {"sleep_s": 3, "write": "post_restart.txt", "content": "normal"},
+            "effect_class": "idempotent", "max_attempts": 3, "lease_ttl_s": 6
+        })["task_id"]
+
+        wait_for(new_task_id, "RUNNING")
+        
+        new_worker_pid = None
+        start_wait = time.monotonic()
+        while time.monotonic() - start_wait < 10:
+            for p in claims_dir.glob("dispatch-*.json"):
+                try:
+                    record = json.loads(p.read_text())
+                    if record.get("task_id") == new_task_id:
+                        new_worker_pid = record["owner_pid"]
+                        break
+                except Exception:
+                    pass
+            if new_worker_pid is not None:
+                break
+            time.sleep(0.5)
+        
+        assert new_worker_pid is not None, "Could not find worker_pid for the new task"
+        assert new_worker_pid != worker_pid, "Worker PID must be different post-restart (new generation)"
+        
+        wait_for(new_task_id, "COMPLETE")
+        
+        def is_pid_running(pid):
+            try:
+                output = subprocess.check_output(["tasklist", "/FI", f"PID eq {pid}"]).decode()
+                return str(pid) in output
+            except Exception:
+                return False
+
+        assert not is_pid_running(launcher.pid), "Old launcher PID survived"
+        assert not is_pid_running(worker_pid), "Old worker PID survived"
+        
+        try:
+            launcher3 = subprocess.Popen([str(launcher_exe)], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | 0x01000000)
+        except PermissionError as e:
+            if getattr(e, "winerror", None) == 5:
+                launcher3 = subprocess.Popen([str(launcher_exe)], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+            else:
+                raise
+        
+        time.sleep(3)
+        poll_res = launcher3.poll()
+        if poll_res is None:
+            subprocess.run(["taskkill", "/T", "/F", "/PID", str(launcher3.pid)], check=False)
+            pytest.fail("Second worker stayed alive instead of exiting on lock conflict")
+        
     finally:
         subprocess.run(["taskkill", "/T", "/F", "/PID", str(launcher2.pid)], check=False)
         launcher2.wait(10)
+        
+        ctrl_proc.terminate()
+        hub_proc.terminate()
+        ctrl_proc.wait(5)
+        hub_proc.wait(5)
 
     # 6. Clean uninstall
     if courier_dir.exists():

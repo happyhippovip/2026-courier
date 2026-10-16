@@ -146,13 +146,20 @@ def _feedback(store, state, specs, agent, host, args, transport, token, emit, ho
             continue
         wrote = _write_new(store, reducer, event)
         status_name, reason_code = _status_for_outcome(event, view)
+        feedback_fields = {
+            "accepted_result_id": _result_id(view),
+            "attempt": view.get("attempt"),
+            "evidence_ref": event.evidence_ref,
+            "spec_fingerprint": mapping.get("spec_fingerprint") or _fingerprint(spec or {}),
+            "source_sha": _recorded_source(mapping, spec),
+        }
+        goal = _recorded_goal(mapping, spec)
+        if goal is not None:
+            feedback_fields["goal_id"] = goal[0]
+            feedback_fields["goal_fingerprint"] = goal[1]
         _stamp(
             home / "ledger_bridge_state.json", state, mapping, status_name, reason_code,
-            accepted_result_id=_result_id(view),
-            attempt=view.get("attempt"),
-            evidence_ref=event.evidence_ref,
-            spec_fingerprint=mapping.get("spec_fingerprint") or _fingerprint(spec or {}),
-            source_sha=_recorded_source(mapping, spec),
+            **feedback_fields,
         )
         if wrote:
             emit({"mission_id": mission_id, "outcome": event.event_type.value.lower(), "task_id": mapping.get("task_id")})
@@ -260,8 +267,7 @@ def _feedback_event(mission, mapping, spec, agent, host, view):
     if not source or not fingerprint or not isinstance(task_id, str) or not task_id:
         return None
     result_id = _result_id(view)
-    goal_kind, goal_value = _goal_binding(spec)
-    goal = goal_value if goal_kind == "ok" else None
+    goal = _recorded_goal(mapping, spec)
     evidence = _identity(task_id, result_id, attempt, fingerprint, source, goal)
     if status == "COMPLETE":
         if result_id is None:
@@ -335,6 +341,18 @@ def _recorded_source(mapping, spec):
         return declared if _sha_ok(declared) else None
     found = _git_head()
     return found if _sha_ok(found) else None
+
+
+def _recorded_goal(mapping, spec):
+    goal_kind, goal_value = _goal_binding(spec)
+    if goal_kind == "ok":
+        return goal_value
+    if goal_kind == "absent" and isinstance(mapping, dict):
+        gid = mapping.get("goal_id")
+        gfp = mapping.get("goal_fingerprint")
+        if _goal_token(gid) and _goal_token(gfp):
+            return (gid, gfp)
+    return None
 
 
 def _git_head() -> str:
