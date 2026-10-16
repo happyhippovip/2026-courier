@@ -648,4 +648,13 @@ adapter / verifier → live golden path.
 - Fixed artifact SHA-256 calculation in `courier_adapters/local_json_delivery.py` replacing placeholder `"0" * 64` with real file digest.
 - 100% green CI across Ubuntu and Windows.
 
+## Step 30 — PR #132, L2 Cost-Aware Provider Routing
+### `integration/v1` merged `lane/L2-cost-aware-routing` (commit `0a7357274`)
+- Implemented cost-aware provider routing (Issue #118) in `server/app.py`: rejects claims by expensive workers when cheaper qualified workers exist, unless an explicit `escalation_reason` is supplied.
+- Fails closed against unknown cost classes by defaulting unclassified workers to `high`.
+- Appends complete routing decision record (`TASK_ID`, `REQUIRED_CAPABILITY`, `CHOSEN_PROVIDER`, `CHOSEN_MODEL`, `REASONING_LEVEL`, `COST_CLASS`, `CHEAPER_CAPABLE_OPTION_AVAILABLE`, `ESCALATION_REASON`, `USER_WARNING_REQUIRED`) to tasks.
+- Added comprehensive unit tests in `tests/test_cost_aware_routing.py`.
+- 100% green CI across Ubuntu and Windows.
+
+
 
