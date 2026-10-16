@@ -68,6 +68,13 @@ class ContentStore:
         return data
 
 
+import re
+from typing import Dict, List, Optional, Set
+from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
+
+from courier_runtime.continuation import AcceptedFact
+
+
 @dataclass(frozen=True)
 class ResearchRequest:
     workkey: str
@@ -76,6 +83,76 @@ class ResearchRequest:
     approved_origin: str          # scheme://host[:port] the grant covers
     max_hops: int = 5
     policy_epoch: int = 1
+    max_bytes: int = 10 * 1024 * 1024  # 10 MB limit
+    encoding: Optional[str] = None
+
+
+def extract_untrusted_links(html_content: str, base_url: str) -> List[Dict[str, str]]:
+    """Extract links completely offline (network-free).
+
+    Every extracted link is contractually marked 'PROPOSED', never 'VERIFIED'.
+    """
+    pattern = re.compile(r'<a\s+(?:[^>]*?\s+)?href=["\']([^"\']+)["\']', re.IGNORECASE)
+    results = []
+    seen = set()
+    for match in pattern.finditer(html_content):
+        href = match.group(1).strip()
+        if href.startswith(("#", "javascript:", "mailto:", "tel:")):
+            continue
+        try:
+            resolved = urljoin(base_url, href)
+            canon = canonicalize_url(resolved)
+        except Exception:
+            continue
+        if canon not in seen:
+            seen.add(canon)
+            results.append({"url": canon, "status": "PROPOSED"})
+    return results
+
+
+def verify_doi_syntax(doi: str) -> bool:
+    """Validate DOI syntax completely offline according to ISO 26324."""
+    if not isinstance(doi, str):
+        return False
+    clean = doi.strip()
+    if clean.lower().startswith("doi:"):
+        clean = clean[4:].strip()
+    elif clean.lower().startswith("https://doi.org/"):
+        clean = clean[16:].strip()
+    elif clean.lower().startswith("http://doi.org/"):
+        clean = clean[15:].strip()
+    pattern = re.compile(r"^10\.\d{4,9}/\S+$")
+    return bool(pattern.match(clean))
+
+
+def verify_isbn_checksum(isbn: str) -> bool:
+    """Validate ISBN-10 or ISBN-13 checksum completely offline."""
+    if not isinstance(isbn, str):
+        return False
+    clean = re.sub(r"[-\s]", "", isbn).strip().upper()
+    if len(clean) == 10:
+        # ISBN-10: sum(d_i * (10 - i)) % 11 == 0
+        total = 0
+        for i in range(9):
+            if not clean[i].isdigit():
+                return False
+            total += int(clean[i]) * (10 - i)
+        check = clean[9]
+        if check == "X":
+            total += 10
+        elif check.isdigit():
+            total += int(check)
+        else:
+            return False
+        return total % 11 == 0
+    elif len(clean) == 13:
+        # ISBN-13: sum(d_i * (1 if i % 2 == 0 else 3)) % 10 == 0
+        if not clean.isdigit():
+            return False
+        total = sum(int(clean[i]) * (1 if i % 2 == 0 else 3) for i in range(12))
+        check = (10 - (total % 10)) % 10
+        return int(clean[12]) == check
+    return False
 
 
 def check_claim(request, fetch, store, log, clock):
@@ -83,6 +160,9 @@ def check_claim(request, fetch, store, log, clock):
 
     Returns the conclusion dict and records it if decided.
     """
+    if not request.quote or not request.quote.strip():
+        return {"conclusion": "REJECTED", "reason": "empty quote is not a valid claim"}
+
     parts = urlsplit(request.url)
     if parts.scheme.lower() != "https":
         return {"conclusion": "BLOCKED", "reason": f"scheme {parts.scheme!r} is not https"}
@@ -98,6 +178,14 @@ def check_claim(request, fetch, store, log, clock):
     else:
         final_url, body = fetch_res[0], fetch_res[1]
         raw_hops = [request.url, final_url] if final_url != request.url else [request.url]
+
+    # Payload size check
+    if len(body) > request.max_bytes:
+        return {
+            "conclusion": "BLOCKED",
+            "reason": f"payload exceeded size limit: {len(body)} > {request.max_bytes}",
+            "hops": raw_hops,
+        }
 
     # Hop chain validation & loop detection
     seen_hops = set()
@@ -125,7 +213,12 @@ def check_claim(request, fetch, store, log, clock):
         return {"conclusion": "BLOCKED", "reason": "redirect left the approved origin", "hops": raw_hops}
 
     digest = store.put(body)
-    text = store.get(digest).decode("utf-8", errors="replace")
+    enc = request.encoding or "utf-8"
+    try:
+        text = store.get(digest).decode(enc, errors="replace")
+    except (LookupError, UnicodeDecodeError):
+        text = store.get(digest).decode("utf-8", errors="replace")
+
     at = text.find(request.quote)
     conclusion = "SUPPORTED" if at >= 0 else "CONTRADICTED"
     effect_key = compute_fetch_effect_key(request.url, request.approved_origin, request.policy_epoch)
