@@ -697,4 +697,13 @@ adapter / verifier → live golden path.
 - Added comprehensive unit and contract test suite in `tests/core/test_cost_transparency.py` (5/5 passed).
 - 100% green CI across Ubuntu and Windows (12/12 checks passing).
 
-
+## Step 35 — PR #704, L3 Muse Wall V9 Supervisor Stability & Bulletin Feed
+### `integration/v1` merged `lane/L3-muse-supervisor-v9` (commit `1ba378c07`)
+- Implemented Muse Wall V9 process safety, supervisor stability, Kolibri connection, and deterministic bulletin feed per Sections A–G.
+- Resolved Darwin Zombie & PermissionError teardown race: macOS kernel returns `PermissionError (EPERM)` on `os.killpg()` for defunct child processes; fixed via `ps` state inspection in `group_exists()` and fail-closed handling in `cleanup_group()`.
+- Added active child process reaping in `ProcessLauncher.terminate()` via `os.waitpid(self.pid, os.WNOHANG)`.
+- Fixed `vm.loadavg` regex parsing in `read_macos_metrics()` allowing autonomous resource admission to scale.
+- Added repository root to `sys.path` in `daemon.py` preventing `ModuleNotFoundError: No module named 'courier_runtime'`.
+- Implemented canonical 12-field slot model (`slot_model(slot_id)`) and zero-token deterministic event bulletin feed (`bulletin_feed()`).
+- Added unit and integration test suite in `tests/test_muse_supervisor.py` (11/11 passed in 14.34s).
+- 100% green CI across Ubuntu (2,462 passed, 0 failed) and Windows (2,366 passed, 0 failed).
