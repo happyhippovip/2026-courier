@@ -104,8 +104,6 @@ class WorkQueue:
                 if current["lease"]["holder"] == holder:
                     return _claim_view(current, idempotent=True)
                 raise WorkQueueError("DUPLICATE_CLAIM")
-            if current.get("template") or _sticky(current) or (current.get("claim_once") and current["status"] == "CLAIMED"):
-                raise WorkQueueError("NOT_CLAIMABLE")
             if not _claimable_status(current, moment) or not _deps_met(current, items, done, drafts):
                 raise WorkQueueError("NOT_CLAIMABLE")
             occupied = [row for row in items.values() if _held(row, moment)]
