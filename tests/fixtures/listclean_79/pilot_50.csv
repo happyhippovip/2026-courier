@@ -1,0 +1,51 @@
+Name,Straße,PLZ,Ort,Telefon,E-Mail
+hans beispiel,Musterstraße 1,20001,musterstadt,0171/2000001,HANS.BEISPIEL@EXAMPLE.COM
+ERIKA MUSTER,Musterstraße 2,20002,MUSTERSTADT,0171/2000002,erika.muster@example.com
+" mÜLLER, max ",Musterstraße 3,20003,Musterstadt,0171/2000003,max.mueller@example.com
+Anna Probe,Musterstraße 4,20004,Musterstadt,0171/2000004,anna.probe@example.com
+Ben Sauber,Hauptstraße 5,D-20005,Musterstadt,0171/2000005,ben.sauber@example.com
+Chris Kurz,Musterstr.12,20006,Musterstadt,0171/2000006,chris.kurz@example.com
+Dina Raum,Hauptstraße  5a,20007,Musterstadt,(030) 1234-567,dina.raum@example.com
+Emil Telefon,Musterstraße 8,20008,Musterstadt,+49171 2000008,emil.telefon@example.com
+Frieda Klein,Musterstraße 9,20009,Musterstadt,0171/2000009,FRIEDA.KLEIN@EXAMPLE.COM
+Georg Gross,Musterstraße 10,20010,Musterstadt,0171/2000010,georg.gross@example.com
+Hanna List,Musterstraße 11,20011,Musterstadt,0171/2000011,hanna.list@example.com
+Ingo Muster,Musterstraße 12,20012,Musterstadt,0171/2000012,ingo.muster@example.com
+Jutta Probe,Musterstraße 13,20013,Musterstadt,0171/2000013,jutta.probe@example.com
+Karl Test,Musterstraße 14,20014,Musterstadt,0171/2000014,karl.test@example.com
+Lena Beispiel,Musterstraße 15,20015,Musterstadt,0171/2000015,lena.beispiel@example.com
+Mona Clean,Musterstraße 16,20016,Musterstadt,0171/2000016,mona.clean@example.com
+Nils Ordentlich,Musterstraße 17,20017,Musterstadt,0171/2000017,nils.ordentlich@example.com
+Olga Fein,Musterstraße 18,20018,Musterstadt,0171/2000018,olga.fein@example.com
+Paul Sauber,Musterstraße 19,20019,Musterstadt,0171/2000019,paul.sauber@example.com
+Rita Klar,Musterstraße 20,20020,Musterstadt,0171/2000020,rita.klar@example.com
+Sven Normal,Musterstraße 21,20021,Musterstadt,0171/2000021,sven.normal@example.com
+Thea Beispiel,Musterstraße 22,20022,Musterstadt,0171/2000022,thea.beispiel@example.com
+Uwe Muster,Musterstraße 23,20023,Musterstadt,0171/2000023,uwe.muster@example.com
+Vera Probe,Musterstraße 24,20024,Musterstadt,0171/2000024,vera.probe@example.com
+Werner Test,Musterstraße 25,20025,Musterstadt,0171/2000025,werner.test@example.com
+Xenia List,Musterstraße 26,20026,Musterstadt,0171/2000026,xenia.list@example.com
+Yannik Clean,Musterstraße 27,20027,Musterstadt,0171/2000027,yannik.clean@example.com
+Zora Fein,Musterstraße 28,20028,Musterstadt,0171/2000028,zora.fein@example.com
+Arno Beispiel,Musterstraße 29,20029,Musterstadt,0171/2000029,arno.beispiel@example.com
+Berta Muster,Musterstraße 30,20030,Musterstadt,0171/2000030,berta.muster@example.com
+Clara Duplikat,Musterstraße 1,30001,Musterstadt,0171/3000001,clara.duplikat@example.com
+ clara duplikat ,Musterstraße 1,30001,musterstadt,0171 3000001,Clara.Duplikat@EXAMPLE.COM
+Otto Kopie,Musterstraße 2,30002,Musterstadt,0171/3000002,otto.kopie@example.com
+Otto Kopie,Musterstraße 2,30002,Musterstadt,0171/3000002,otto.kopie@example.com
+Lena Test,Musterstraße 3,30003,Musterstadt,0171/3000003,lena.test@example.com
+Lena Test,Nebenweg 9,30003,Musterstadt,0171/3000004,lena.andere@example.com
+"Müller, Paul",Hauptstraße 4,30004,Musterstadt,0171/3000005,paul.mueller@example.com
+Paul Müller,Nebenweg 4,30004,Musterstadt,0171/3000006,paul.zweite@example.com
+Sara Gleich,Musterstraße 5,30005,Musterstadt,0171/3000007,sara.gleich@example.com
+Sara Gleich,Parkweg 5,30005,Musterstadt,0171/3000008,sara.gleich2@example.com
+,Musterstraße 9,40001,Musterstadt,0171/4000001,leer.name@example.com
+Nora Leer,,40002,Musterstadt,0171/4000002,nora.leer@example.com
+Pia Ohneplz,Musterstraße 9,,Musterstadt,0171/4000003,pia.ohneplz@example.com
+Kim Ohneort,Musterstraße 9,40004,,0171/4000004,kim.ohneort@example.com
+Uwe Kurzplz,Musterstraße 9,1234,Musterstadt,0171/4000005,uwe.kurzplz@example.com
+Eva Langplz,Musterstraße 9,123456,Musterstadt,0171/4000006,eva.langplz@example.com
+Tim Buchstabe,Musterstraße 9,12A45,Musterstadt,0171/4000007,tim.buchstabe@example.com
+Tom Komma,Musterstraße 9,40008,Musterstadt,0171/4000008,"tom.komma@example,com"
+Sara Atat,Musterstraße 9,40009,Musterstadt,0171/4000009,sara.atat@@example.com
+Mia Atwort,Musterstraße 9,40010,Musterstadt,0171/4000010,mia.atwort(at)example.com

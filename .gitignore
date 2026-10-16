@@ -207,4 +207,4 @@ report*.xml
 .wt-evidence/
 *.bak*
 /EVIDENCE_*.json
-
+/pytest-temp/
