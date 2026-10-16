@@ -613,4 +613,26 @@ adapter / verifier → live golden path.
 - Bootstrapped durable agent warehouse catalog (`AGENT_CATALOG.json`) and selection policy (`SELECTION_POLICY.md`).
 - Prescribes cost-aware provider routing, reasoning effort thresholds, and deterministic ownership.
 
-**After step 23.** Agent Warehouse and constraints established. Next path: Cost-Aware Provider Routing (Issue #118) and real adapters.
+## Step 24 — PR #635, L2 Goal Contract Core
+### `integration/v1` merged `cursor/goal-contract-core-d951` (commit `277955f42`)
+- Implemented durable goal-contract draft (`courier_core/goal_contract.py`), human-confirmation proofs, and task validation.
+- All unit and contract tests verified passing.
+
+## Step 25 — PR #662, L2/L4 Task Dependency Sync & Claim Input Binding
+### `integration/v1` merged `lane/L2-task-dependency-sync` (commit `ee4011dfd`)
+- Enabled declarative task dependencies (`depends_on`), binding verified output artifacts from prerequisite tasks as inputs at claim time.
+- SHA-256 verification of prerequisite artifacts in `courier_worker/adapter_runner.py` prior to adapter execution.
+- Resolved Python 3.12 concurrent SQLite multi-thread contention in `LiveService`.
+- 100% green CI on Ubuntu (2,368 passed) and Windows (2,275 passed).
+
+## Step 26 — PR #670, L4 Gate G3 Assessment Judge
+### `integration/v1` merged `lane/L4-gate-g3-assessment` (commit `4630f7e44`)
+- Added fail-closed Gate G3 assessment judge for Zero-Human A->B task execution.
+- Established canonical G3 prep documentation (`docs/gates/G3_PREP.md`) and contract tests.
+- 100% green CI on Ubuntu (2,379 passed) and Windows (2,286 passed).
+
+## Step 27 — PR #672, L2 Continuity Metrics
+### `integration/v1` merged `lane/L2-continuity-metrics` (commit `e54e14963`)
+- Added fail-closed continuity metrics engine (`courier_core/continuity_metrics.py`) and recorded catalog results 2626–2650.
+- Golden skip ratchet and regression gates verified 100% passing across Ubuntu and Windows.
+
