@@ -32,9 +32,9 @@ from pathlib import Path
 SCRIPTS_DIR = Path(__file__).resolve().parent
 COURIER_DIR = SCRIPTS_DIR.parent
 
-DEFAULT_CHANNELS_CONFIG = COURIER_DIR / "courier_core/config/social_channels.json"
-DEFAULT_WORKFLOWS_CONFIG = COURIER_DIR / "courier_core/config/content_workflows.json"
-DEFAULT_LOCAL_TOOLS_CONFIG = COURIER_DIR / "courier_core/config/local_tools.json"
+DEFAULT_CHANNELS_CONFIG = COURIER_DIR / "config/social_channels.json"
+DEFAULT_WORKFLOWS_CONFIG = COURIER_DIR / "config/content_workflows.json"
+DEFAULT_LOCAL_TOOLS_CONFIG = COURIER_DIR / "config/local_tools.json"
 DEFAULT_RUNTIME_DIR = COURIER_DIR / "runtime/content"
 
 SECRET_PATTERNS = [
@@ -76,11 +76,45 @@ def check_secrets_in_text(text: str) -> int:
     return found
 
 
+def discover_ffmpeg_binary(custom_path: str | None = None) -> str | None:
+    search_paths = []
+    if custom_path:
+        search_paths.append(custom_path)
+    if os.environ.get("FFMPEG_BIN"):
+        search_paths.append(os.environ.get("FFMPEG_BIN"))
+
+    # Workspace & Windows locations
+    search_paths.extend([
+        r"C:\Users\lol\2026-workspace\ffmpeg\ffmpeg-master-latest-win64-gpl\bin\ffmpeg.exe",
+        str(COURIER_DIR.parent / "ffmpeg/ffmpeg-master-latest-win64-gpl/bin/ffmpeg.exe"),
+        "/usr/local/bin/ffmpeg",
+        "/opt/homebrew/bin/ffmpeg",
+        "/usr/bin/ffmpeg",
+    ])
+
+    for p in search_paths:
+        if p and os.path.exists(p):
+            return p
+
+    return shutil.which("ffmpeg")
+
+
 def discover_godot_binary(custom_path: str | None = None) -> tuple[str | None, str | None]:
     """Discovers Godot binary and verifies version if present."""
     search_paths = []
     if custom_path:
         search_paths.append(custom_path)
+    if os.environ.get("GODOT_BIN"):
+        search_paths.append(os.environ.get("GODOT_BIN"))
+
+    # Windows & Workspace locations
+    search_paths.extend([
+        r"C:\Users\lol\2026-workspace\godot\Godot_v4.3-stable_win64_console.exe",
+        r"C:\Users\lol\2026-workspace\godot\Godot_v4.3-stable_win64.exe",
+        str(COURIER_DIR.parent / "godot/Godot_v4.3-stable_win64_console.exe"),
+        str(COURIER_DIR.parent / "godot/Godot_v4.3-stable_win64.exe"),
+        r"C:\Program Files\Godot\Godot_v4.3-stable_win64.exe",
+    ])
 
     # Standard macOS locations & Desktop app bundle
     search_paths.extend([
@@ -98,12 +132,12 @@ def discover_godot_binary(custom_path: str | None = None) -> tuple[str | None, s
             try:
                 res = subprocess.run([p, "--version", "--headless"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=4.0)
                 if res.returncode == 0:
-                    version = res.stdout.strip() or "4.7.stable"
+                    version = res.stdout.strip() or "4.3.stable"
                     return p, version
             except Exception:
                 pass
-            if "Godot.app" in p or "godot" in p.lower():
-                return p, "4.7.stable.official.5b4e0cb0f"
+            if "Godot" in p or "godot" in p.lower():
+                return p, "4.3.stable"
 
     which_godot = shutil.which("godot")
     if which_godot:
@@ -115,6 +149,28 @@ def discover_godot_binary(custom_path: str | None = None) -> tuple[str | None, s
             pass
 
     return None, None
+
+
+def resolve_godot_project_binding(content_project: str, local_tools: dict) -> tuple[str | None, str]:
+    binding = local_tools.get("project_bindings", {}).get(content_project, {})
+    bound_path = binding.get("project_path")
+    default_scene = binding.get("default_scene", "res://strawberry_school_short.tscn")
+
+    if bound_path and os.path.exists(bound_path):
+        return bound_path, default_scene
+
+    env_path = os.environ.get("GODOT_PROJECT_PATH")
+    candidates = [
+        Path(env_path) if env_path else None,
+        COURIER_DIR.parent / "2026-godot-shorts",
+        Path(r"C:\Users\lol\2026-workspace\2026-godot-shorts"),
+        COURIER_DIR / "godot_shorts",
+    ]
+    for c in candidates:
+        if c and (c / "project.godot").is_file():
+            return str(c), default_scene
+
+    return bound_path, default_scene
 
 
 def execute_idea_stage(stage_dir: Path, topic: str, content_project: str, platform: str) -> Path:
@@ -204,9 +260,8 @@ def execute_assets_stage(stage_dir: Path, topic: str, content_project: str, loca
     assets_file = stage_dir / "assets_manifest.json"
     
     # Check read-only project binding
-    binding = local_tools.get("project_bindings", {}).get(content_project, {})
-    bound_path = binding.get("project_path")
-    project_found = (bound_path and os.path.exists(bound_path))
+    bound_path, default_scene = resolve_godot_project_binding(content_project, local_tools)
+    project_found = bool(bound_path and os.path.exists(bound_path))
 
     assets_data = {
         "schema_version": "2.0",
@@ -215,7 +270,7 @@ def execute_assets_stage(stage_dir: Path, topic: str, content_project: str, loca
         "godot_project_binding": {
             "bound_project_path": bound_path,
             "status": "BOUND_READ_ONLY" if project_found else "UNBOUND",
-            "default_scene": binding.get("default_scene")
+            "default_scene": default_scene
         },
         "viewport": {
             "aspect_ratio": "9:16",
@@ -246,9 +301,7 @@ def execute_video_build_stage(stage_dir: Path, topic: str, content_project: str,
     godot_custom_path = local_tools.get("tools", {}).get("godot_binary_path")
     godot_bin, godot_version = discover_godot_binary(godot_custom_path)
 
-    binding = local_tools.get("project_bindings", {}).get(content_project, {})
-    bound_project_path = binding.get("project_path")
-    default_scene = binding.get("default_scene", "res://strawberry_school_short.tscn")
+    bound_project_path, default_scene = resolve_godot_project_binding(content_project, local_tools)
 
     render_details = {
         "ffmpeg_preview_render": None,
@@ -259,7 +312,8 @@ def execute_video_build_stage(stage_dir: Path, topic: str, content_project: str,
     }
 
     # 1. Produce FFMPEG_PREVIEW_RENDER if ffmpeg available
-    ffmpeg_bin = local_tools.get("tools", {}).get("ffmpeg_binary_path") or shutil.which("ffmpeg")
+    ffmpeg_custom_path = local_tools.get("tools", {}).get("ffmpeg_binary_path")
+    ffmpeg_bin = discover_ffmpeg_binary(ffmpeg_custom_path)
     preview_file = stage_dir / f"{slugify(topic)}_preview.mp4"
 
     if ffmpeg_bin and os.path.exists(ffmpeg_bin):
@@ -272,7 +326,7 @@ def execute_video_build_stage(stage_dir: Path, topic: str, content_project: str,
                 "-c:a", "aac", "-shortest",
                 str(preview_file)
             ]
-            subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+            subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=120)
             if preview_file.exists() and preview_file.stat().st_size > 0:
                 render_details["ffmpeg_preview_render"] = {
                     "type": "FFMPEG_PREVIEW_RENDER",
@@ -433,6 +487,7 @@ def run_pipeline(
     workflows_path: Path = DEFAULT_WORKFLOWS_CONFIG,
     local_tools_path: Path = DEFAULT_LOCAL_TOOLS_CONFIG,
     force_rerun: bool = False,
+    approve_publish: bool = False,
 ) -> dict:
     if not channels_path.exists():
         raise FileNotFoundError(f"Channels config not found: {channels_path}")
@@ -561,8 +616,20 @@ def run_pipeline(
                 metadata_artifact_path,
                 final_arts
             )
+            if approve_publish:
+                publish_package_data["status"] = "APPROVED_BY_HUMAN"
+                publish_status = "COMPLETED"
+                print(f"[HUMAN_GATE] READY_TO_PUBLISH approved by human. Package marked COMPLETED.")
+            else:
+                publish_package_data["status"] = "AWAITING_HUMAN_APPROVAL"
+                publish_status = "AWAITING_HUMAN_APPROVAL"
+                print(f"[HUMAN_GATE] READY_TO_PUBLISH package staged. Paused awaiting explicit human approval.")
+                print(f"[HUMAN_GATE] Re-run pipeline with --approve-publish to finalize publish package.")
+
+            save_json(pkg_file, publish_package_data)
+
             stages_state[step] = {
-                "status": "COMPLETED",
+                "status": publish_status,
                 "executed_at": now_iso,
                 "artifact_path": str(pkg_file.relative_to(mission_dir)),
                 "details": publish_package_data
@@ -584,7 +651,15 @@ def run_pipeline(
 
     failed_any = any(s.get("status") == "FAILED" for s in stages_state.values())
     all_completed = all(s.get("status") == "COMPLETED" for s in stages_state.values())
-    overall_status = "COMPLETED" if all_completed else ("FAILED_FINAL" if failed_any else "PARTIAL_COMPLETED")
+    is_awaiting_approval = any(s.get("status") == "AWAITING_HUMAN_APPROVAL" for s in stages_state.values())
+    if all_completed:
+        overall_status = "COMPLETED"
+    elif is_awaiting_approval:
+        overall_status = "READY_TO_PUBLISH"
+    elif failed_any:
+        overall_status = "FAILED_FINAL"
+    else:
+        overall_status = "PARTIAL_COMPLETED"
 
     manifest = {
         "schema_version": "2.0",
@@ -617,6 +692,7 @@ def main() -> None:
     parser.add_argument("--workflows-config", default=str(DEFAULT_WORKFLOWS_CONFIG), help="Path to content_workflows.json")
     parser.add_argument("--tools-config", default=str(DEFAULT_LOCAL_TOOLS_CONFIG), help="Path to local_tools.json")
     parser.add_argument("--force", action="store_true", help="Force rerun all stages")
+    parser.add_argument("--approve-publish", action="store_true", help="Explicit human consent to finalize READY_TO_PUBLISH stage")
     args = parser.parse_args()
 
     manifest = run_pipeline(
@@ -628,6 +704,7 @@ def main() -> None:
         workflows_path=Path(args.workflows_config).resolve(),
         local_tools_path=Path(args.tools_config).resolve(),
         force_rerun=args.force,
+        approve_publish=args.approve_publish,
     )
     print(json.dumps(manifest, indent=2))
 
