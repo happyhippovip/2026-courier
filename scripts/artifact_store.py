@@ -215,4 +215,19 @@ def create_blueprint(store: ArtifactStore, *, worker_auth, verifier_auth, task_l
             return jsonify({"error": str(exc)}), 404
         return Response(data, mimetype="application/octet-stream")
 
+    @bp.route("/artifacts/<artifact_id>/receipt", methods=["GET"])
+    @worker_auth
+    def artifact_receipt(artifact_id):
+        from courier_core.artifact_receipt import generate_artifact_receipt
+        try:
+            record = store.get_record(artifact_id)
+        except ArtifactError as exc:
+            return jsonify({"error": str(exc)}), 400
+        if not record:
+            return jsonify({"error": "unknown artifact"}), 404
+        task = task_lookup(record.get("task_id")) if callable(task_lookup) else None
+        receipt = generate_artifact_receipt(artifact_id, store=store, record=record, task=task)
+        return jsonify(receipt), 200
+
     return bp
+
