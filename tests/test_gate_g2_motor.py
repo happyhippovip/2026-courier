@@ -198,8 +198,10 @@ def test_signal_growth_wakes_the_idle_wait(tmp_path):
         time.sleep(0.1)
         path.write_text("IDLE\n", encoding="utf-8")
 
-    threading.Thread(target=writer, daemon=True).start()
+    t = threading.Thread(target=writer, daemon=True)
+    t.start()
     wait_for_wakeup(str(path))
+    t.join(timeout=2.0)
     assert path.read_text(encoding="utf-8") == "IDLE\n"
 
 
