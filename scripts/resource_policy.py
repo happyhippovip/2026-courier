@@ -22,6 +22,14 @@ POLICY_FILE = POLICIES_DIR / "resource_policy.json"
 PROCESSED_DIR = EVENTS_DIR / "processed"
 REGISTRY_FILE = PROCESSED_DIR / "task_dedupe_registry.json"
 
+# The epoch named by events/policies/resource_policy.json. A file that names
+# any other schema_version is not this policy and must not authorize spend.
+ACCEPTED_POLICY_SCHEMA = "2026.08.30-policy-v1"
+
+
+class PolicyEpochError(ValueError):
+    """A loaded policy file does not name the accepted schema epoch."""
+
 
 def load_json(path: Path) -> dict | None:
     if not path.exists():
@@ -49,6 +57,11 @@ class ResourcePolicyManager:
         p_path = (repo_dir / "events" / "policies" / "resource_policy.json") if repo_dir else POLICY_FILE
         policy = load_json(p_path)
         if policy and isinstance(policy, dict):
+            version = policy.get("schema_version")
+            if version != ACCEPTED_POLICY_SCHEMA:
+                raise PolicyEpochError(
+                    f"policy schema_version {version!r} is not {ACCEPTED_POLICY_SCHEMA}"
+                )
             return policy
         return {
             "active_paid_resources": {
@@ -83,7 +96,10 @@ class ResourcePolicyManager:
 
     @staticmethod
     def get_default_iterations(repo_dir: Path | None = None) -> int:
-        policy = ResourcePolicyManager.get_policy(repo_dir)
+        try:
+            policy = ResourcePolicyManager.get_policy(repo_dir)
+        except PolicyEpochError:
+            return 1
         val = policy.get("operating_invariants", {}).get("max_autonomous_iterations_per_task")
         if isinstance(val, int) and val >= 1:
             return val
@@ -91,7 +107,10 @@ class ResourcePolicyManager:
 
     @staticmethod
     def is_resource_allowed(resource_id: str, repo_dir: Path | None = None) -> bool:
-        policy = ResourcePolicyManager.get_policy(repo_dir)
+        try:
+            policy = ResourcePolicyManager.get_policy(repo_dir)
+        except PolicyEpochError:
+            return False
         active = policy.get("active_paid_resources", {})
         return resource_id in active and active[resource_id].get("status") == "ACTIVE_PAID"
 
@@ -161,7 +180,15 @@ class CostGate:
                     "requires_human_gate": True,
                 }
 
-        policy = ResourcePolicyManager.get_policy(repo_dir)
+        try:
+            policy = ResourcePolicyManager.get_policy(repo_dir)
+        except PolicyEpochError:
+            return {
+                "allowed": False,
+                "reason": "POLICY_EPOCH_REJECTED",
+                "message": "policy schema_version is not the accepted epoch",
+                "requires_human_gate": True,
+            }
         active = policy.get("active_paid_resources", {})
         planned = policy.get("planned_resources", {})
         unauth = policy.get("unauthorized_resources", {})

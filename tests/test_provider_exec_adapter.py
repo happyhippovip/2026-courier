@@ -59,6 +59,12 @@ _FAKE_SOURCE = textwrap.dedent(r'''
         sys.stdout.buffer.write(b"Y" * 8000)
         sys.stdout.buffer.flush()
         sys.exit(0)
+    if mode == "cwd":
+        Path(os.environ["FAKE_CWD"]).write_text(json.dumps({
+            "cwd": os.getcwd(),
+            "sid": os.getsid(0) if hasattr(os, "getsid") else None,
+            "pid": os.getpid(),
+        }), encoding="utf-8")
     if mode == "timeout":
         child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(120)"])
         Path(os.environ["FAKE_PIDS"]).write_text(f"{os.getpid()}\n{child.pid}\n", encoding="utf-8")
@@ -380,3 +386,16 @@ def test_prompt_text_cannot_inject_flags(tmp_path, monkeypatch):
     assert Path(recorded[2]).read_text(encoding="utf-8") == prompt
     _assert_no_forbidden(recorded)
     assert recorded[recorded.index("--approval-mode") + 1] == "never"
+
+
+def test_child_runs_in_workdir_and_keeps_its_own_process_group(tmp_path, monkeypatch):
+    """The docstring promises cwd = task workdir; isolation must stay intact."""
+    report = tmp_path / "cwd.json"
+    monkeypatch.setenv("FAKE_CWD", str(report))
+    monkeypatch.chdir(tmp_path)  # parent cwd differs from the workdir
+    result, workdir, _ = _run(tmp_path, monkeypatch, mode="cwd")
+    assert result.outcome == "success", result.reason_code
+    seen = json.loads(report.read_text(encoding="utf-8"))
+    assert Path(seen["cwd"]).resolve() == workdir.resolve()
+    if seen["sid"] is not None:  # POSIX: start_new_session -> child leads its own session
+        assert seen["sid"] == seen["pid"]

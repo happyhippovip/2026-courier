@@ -679,7 +679,7 @@ def _execute(spec: dict, workdir, binary: str, cap: int) -> ProviderResult:
     except ProviderExecError as exc:
         return _finish("rejected", exc.reason_code)
     try:
-        proc = _popen(argv)
+        proc = _popen(argv, cwd=str(workdir))
     except OSError:
         return _finish("UNAVAILABLE", "BINARY_MISSING", blocked=True)
     output, truncated, status, code = _wait(proc, spec["timeout_s"], cap)
@@ -708,12 +708,13 @@ def _write_prompt(workdir, prompt: str) -> str:
     return name
 
 
-def _popen(argv: list[str]) -> subprocess.Popen:
+def _popen(argv: list[str], cwd: str) -> subprocess.Popen:
     kwargs = {
         "args": argv,
         "stdout": subprocess.PIPE,
         "stderr": subprocess.STDOUT,
         "stdin": subprocess.DEVNULL,
+        "cwd": cwd,
         "shell": False,
         "close_fds": True,
     }
