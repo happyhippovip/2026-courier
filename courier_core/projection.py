@@ -24,10 +24,10 @@ from typing import Iterable
 from courier_core.events import Event, SYSTEM_EVENTS, canonical_json
 from courier_core.state_machine import TaskState, apply
 
-PROJECTION_VERSION = 2  # 2: resolution, decided_by
+PROJECTION_VERSION = 3  # 2: resolution, decided_by; 3: depends_on, input
 
 _COLUMNS = [f.name for f in fields(TaskState)]
-_JSON_COLUMNS = {"params"}
+_JSON_COLUMNS = {"params", "input"}  # input is JSON null for a task without one
 _BOOL_COLUMNS = {"started", "cancel_requested"}
 
 SCHEMA = f"""
