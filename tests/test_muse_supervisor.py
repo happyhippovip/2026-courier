@@ -75,7 +75,10 @@ def env(tmp_path, monkeypatch):
     # Test-only bootstrap: no Keychain or real resource probes in worker processes.
     bootstrap = tmp_path / "fake_config_daemon.py"
     bootstrap.write_text(
-        f"import sys, os, signal\nsys.path.insert(0, {str(ROOT / 'scripts' / 'mac_worker')!r})\n"
+        f"import sys, os, signal\n"
+        f"sys.path.insert(0, {str(ROOT)!r})\n"
+        f"sys.path.insert(0, {str(ROOT / 'scripts')!r})\n"
+        f"sys.path.insert(0, {str(ROOT / 'scripts' / 'mac_worker')!r})\n"
         "import daemon as d\n"
         "d.load_config = lambda: {'COURIER_SERVER': os.environ['COURIER_SERVER'], "
         "'COURIER_API_KEY': os.environ['COURIER_API_KEY'], 'WORKER_ID': os.environ['COURIER_WORKER_ID'], "
@@ -299,3 +302,34 @@ def test_unconfirmed_prompt_method_fails_closed():
     argv, stdin = muse_adapter.build_muse_command(task, {}, {"protocol": "headless-v1"},
         slot_id="01", workspace="/Users/user/Downloads/2026-courier")
     assert argv[:2] == ["muse", "exec"] and "d-1" in argv[-1] and stdin is None
+
+
+def test_slot_model_12_fields(env):
+    sup, server, http, auth, tmp = env
+    sup.save_slots({
+        "01": {"slot_id": "01", "state": "RUNNING", "pid": 99999, "owner": "happyhippovip", "agent": "MUSE"}
+    })
+    model = sup.slot_model("01")
+    assert len(model) == 12
+    required_keys = {
+        "SLOT_ID", "HOST", "AGENT", "PROCESS_STATUS", "CURRENT_WORKKEY", "OWNER",
+        "LEASE", "LAST_ACTIVITY", "BACKOFF", "RESOURCE_STATUS", "SOURCE_PROVENANCE", "VERIFICATION_STATUS"
+    }
+    assert set(model.keys()) == required_keys
+    assert model["SLOT_ID"] == "01"
+    assert model["PROCESS_STATUS"] == "ALIVE"
+    assert model["OWNER"] == "happyhippovip"
+
+
+def test_deterministic_bulletin_feed(env, monkeypatch):
+    sup, server, http, auth, tmp = env
+    sup.save_slots({
+        "01": {"slot_id": "01", "state": "RUNNING", "pid": 99999, "owner": "happyhippovip"},
+        "02": {"slot_id": "02", "state": "BACKOFF", "backoff_until": time.time() + 10}
+    })
+    events = sup.bulletin_feed()
+    assert isinstance(events, list)
+    codes = [e["code"] for e in events]
+    assert "SLOT_RUNNING" in codes
+    assert "SLOT_BACKOFF" in codes
+
