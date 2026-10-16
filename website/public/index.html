@@ -328,6 +328,9 @@
             .hero { padding: 60px 0; }
             .footer-content { flex-direction: column; text-align: center; }
         }
+        @media (max-width: 720px) {
+            .hero { overflow: visible; align-items: flex-start; }
+        }
         .skip { position: absolute; left: -999px; top: 8px; background: #030712; color: #fff; padding: 8px 12px; z-index: 50; text-decoration: none; }
         .skip:focus, .skip:focus-visible { left: 12px; }
         a:focus-visible, button:focus-visible { outline: 2px solid #3b82f6; outline-offset: 3px; }
@@ -407,7 +410,7 @@
                 </div>
             </section>
 
-            <section class="features">
+            <section class="features" id="vision">
                 <div class="feature-card">
                     <h3>Ungeschönte Wahrheit</h3>
                     <p>Wir scannen Ihr privates oder öffentliches Repository tiefgründig und decken Architekturfehler sowie tote Enden schonungslos auf. Kein Bullshit, nur Fakten.</p>
@@ -420,6 +423,9 @@
                     <h3>Foundry Synthesis</h3>
                     <p>Unsere eigens entwickelte Foundry Engine aggregiert Code-Beweise zu klaren, strategischen Handlungsempfehlungen für Ihr gesamtes Entwicklungsteam.</p>
                 </div>
+                <p style="grid-column: 1 / -1; margin-top: 20px; font-size: 0.9rem; color: var(--text-muted); text-align: center;">
+                    Das ist eine Vision, kein Angebot und kein Leistungsversprechen. Heute bieten wir ausschließlich die oben genannten Leistungen an.
+                </p>
             </section>
         </main>
 
