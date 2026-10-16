@@ -3,7 +3,9 @@ import hashlib
 import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
+import pytest
 
 from website.site_check import broken_internal_links, not_found_home_href, resolve_request
 
@@ -21,6 +23,8 @@ def _stage(tmp_path):
 
 
 def _build(dest, email=None):
+    if sys.platform == "win32":
+        pytest.skip("build_site.sh requires a UNIX shell")
     env = os.environ.copy()
     env.pop("COURIER_CONTACT_EMAIL", None)
     if email is not None:
