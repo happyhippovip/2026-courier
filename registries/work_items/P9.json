@@ -1,0 +1,12 @@
+{
+  "id": "P9",
+  "title": "Audit one work-queue ledger for consistency",
+  "lane": "L2",
+  "branch": "lane/L2-queue-audit-P9",
+  "files_scope": ["courier_core/work_queue_audit.py", "tests/test_work_queue_audit.py"],
+  "depends_on": [],
+  "acceptance": ["tests", "draft PR"],
+  "provider_hints": ["headless", "interactive"],
+  "status": "READY",
+  "lease": null
+}
