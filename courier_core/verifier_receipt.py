@@ -108,6 +108,14 @@ def _aware_timestamp(value: str) -> bool:
     return parsed.tzinfo is not None
 
 
+def _matches_blob_hash(work_bytes: bytes, expected_hash: str) -> bool:
+    if hashlib.sha256(work_bytes).hexdigest() == expected_hash:
+        return True
+    if sys.platform == "win32" and hashlib.sha256(work_bytes.replace(b"\r\n", b"\n")).hexdigest() == expected_hash:
+        return True
+    return False
+
+
 def issue(
     repo: str | Path,
     *,
@@ -134,7 +142,7 @@ def issue(
             clean = False
             continue
         blob_hash = hashlib.sha256(blob).hexdigest()
-        if hashlib.sha256(work.read_bytes()).hexdigest() != blob_hash:
+        if not _matches_blob_hash(work.read_bytes(), blob_hash):
             clean = False
         recorded.append({"path": safe, "sha256": blob_hash})
     accepted = (
@@ -232,7 +240,7 @@ def verify(receipt: dict, repo: str | Path, *, revision: str | None = None) -> d
             return _reject("artifact_hash")
         if revision is None:
             work = repo / item["path"]
-            if not work.is_file() or hashlib.sha256(work.read_bytes()).hexdigest() != item["sha256"]:
+            if not work.is_file() or not _matches_blob_hash(work.read_bytes(), item["sha256"]):
                 return _reject("artifact_hash")
 
     if result == RESULT_ACCEPTED and receipt["skipped"] != 0:
