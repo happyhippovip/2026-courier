@@ -414,6 +414,10 @@ class ContainedRun:
     def terminate_tree(self, grace: float = KILL_GRACE_S) -> None:
         """SIGTERM, then SIGKILL, then reap. Addresses the owned tree only."""
         if os.name == "nt":
+            if self.job is None:
+                if self.proc.poll() is not None:
+                    return
+                raise ContainmentError("no job object; child processes would survive termination")
             terminate_job_tree(self.job, self.proc, grace=grace,
                                terminate=_terminate_job, close=_close_job)
             self.job = None

@@ -8,6 +8,7 @@ product-path pass with a stand-in adapter, not proof of a real provider run.
 import hashlib
 import json
 import secrets
+import sqlite3
 import string
 import sys
 import threading

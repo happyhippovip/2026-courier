@@ -51,7 +51,7 @@ from courier_core.events import (
 from courier_core.journal import DedupeConflict, Journal, JournalError
 from courier_core.projection import ProjectionError
 from courier_core.state_machine import (
-    ACTIVE_LEASE, TERMINAL, Decision, TaskState, TaskStatus, TransitionError, decide_after_failure,
+    ACTIVE_LEASE, RESOLVED_VERIFIED, TERMINAL, Decision, TaskState, TaskStatus, TransitionError, decide_after_failure,
 )
 from courier_core.verification import ADAPTER_NAME, VerifyFn, adapter_verifier, run_verifier
 
