@@ -666,3 +666,13 @@ adapter / verifier → live golden path.
   - Explicit import of `importlib.util` and clean PyInstaller presence check in `tests/test_windows_exe_build.py` preventing clean-machine test collection errors.
 - Added documentation in `docs/work/WIN_EXE.md` covering build and verification steps.
 - 100% green CI across Ubuntu (2,425 passed) and Windows (2,341 passed).
+
+## Step 32 — PR #699, L2 Grandma State Mapping (Dual-Surface Truth)
+### `integration/v1` merged `lane/L2-grandma-dual-surface` (commit `a896ed4fc`)
+- Implemented User Requirement 01 (`ops/ai/USER_REQUIREMENT_01_GRANDMA_STATE_MAPPING.md`) in `courier_core/grandma_state.py`.
+- Deterministic 4-state mapping (`FERTIG`, `BRAUCHT_DICH`, `ARBEITET`, `WARTET_AUF_KAPAZITAET`) from raw engine ledger state.
+- Stale worker heartbeat detection (`now - last_seen > heartbeat_window`) automatically raising `BRAUCHT_DICH` with `action_required: True`.
+- Sanitized user-facing error messages preventing internal trace and path leaks.
+- Integrated `user_summary` into `GET /goals/<goal_id>` without breaking legacy clients, plus added dedicated `GET /goals/<goal_id>/grandma` endpoint.
+- Added comprehensive test suite in `tests/core/test_grandma_state_mapping.py` (9/9 passed).
+- 100% green CI across Ubuntu and Windows (12/12 checks passing).
