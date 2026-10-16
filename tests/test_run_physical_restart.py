@@ -13,7 +13,12 @@ def test_run_physical_restart_success(tmp_path, monkeypatch):
     run1_evidence = run1_dir / "evidence"
     run1_evidence.mkdir(parents=True)
     (run1_evidence / "run1_exit_code.txt").write_text("0")
-    (run1_evidence / "run1_state_snapshot.json").write_text(json.dumps({"final_status": "SUCCESS", "payload": {}, "candidate_sha": "abcd"}))
+    (run1_evidence / "run1_state_snapshot.json").write_text(json.dumps({
+        "final_status": "SUCCESS",
+        "payload": {},
+        "candidate_sha": "abcd",
+        "initial_state": {"process_a_status": "COMPLETE"},
+    }))
     
     run2_evidence = tmp_path / "run2_evidence"
     

@@ -96,6 +96,13 @@ def execute_run2(sha: str, run1_dir: str, evidence_dir: str, port: int = 8081):
             f"RUN 1 snapshot candidate_sha mismatch: expected {sha}, "
             f"found {run1_snap.get('candidate_sha')}. Refusing stale bundle."
         )
+    initial = run1_snap.get("initial_state")
+    a_status = initial.get("process_a_status") if isinstance(initial, dict) else None
+    if a_status != "COMPLETE":
+        raise RuntimeError(
+            "RUN 1 snapshot does not record process A as COMPLETE. "
+            "Refusing RUN 2 because a replay of A cannot be ruled out."
+        )
 
     os.makedirs(evidence_dir, exist_ok=True)
     state_dir = os.path.join(os.path.dirname(evidence_dir), "state")
