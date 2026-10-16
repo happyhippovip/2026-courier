@@ -731,3 +731,14 @@ adapter / verifier → live golden path.
 - Added 5 comprehensive test cases in `tests/test_muse_supervisor.py` (16/16 passed in 17.43s).
 - 100% green CI across Ubuntu and Windows (12/12 checks passing).
 
+## Step 38 — PR #706, L3 Process Leak Prevention & Direct Child Reaping (Closes #173)
+### `integration/v1` merged `lane/L3-orphan-leak-fix-173` (commit `b2db117c3`)
+- Completely resolved host-pressure process leak documented in Issue #173.
+- `runtime_state.py:cleanup_group`: Safely authorizes `SIGTERM` and `SIGKILL` for direct unreaped child processes (`proc.poll() is None`) even if initial `ps` identity was unrecorded or timed out under high load, because OS kernel process table guarantees PID cannot be reused until reaped.
+- Robust duck-typing in `cleanup_group`: Handled mock/factory functions when `subprocess.Popen` is patched in native test suites without throwing `TypeError`.
+- `tests/test_muse_supervisor.py`: Updated `env` test fixture with automated `ProcessLauncher` tracking to unconditionally reap and terminate all spawned slot process groups on fixture teardown.
+- Added regression tests `test_owned_popen_stops_when_ps_identity_is_missing` and `test_teardown_leaves_no_slot_processes` (18/18 passed in 13.09s).
+- 100% green CI across Ubuntu and Windows (12/12 checks passing).
+- Closed GitHub Issue #173.
+
+
