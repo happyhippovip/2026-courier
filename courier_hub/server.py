@@ -71,6 +71,28 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def _unavailable_home(status: dict, truth: str) -> dict:
+    """No readable projection. Empty piles here are not a measured empty ledger."""
+    return {
+        "status": status,
+        "truth": truth,
+        "head_seq": None,
+        "ledger": {
+            "status": "UNKNOWN",
+            "chain_ok": None,
+            "head_seq": None,
+            "projection": "UNKNOWN",
+            "reason": truth,
+        },
+        "data": "keine Daten/UNKNOWN",
+        "needs_you": [],
+        "working": [],
+        "done": [],
+        "counts": None,
+        "read_at": utc_now(),
+    }
+
+
 class TruthUnavailable(Exception):
     """The journal cannot be read (not created yet, or written by another build)."""
 
@@ -153,6 +175,32 @@ class Hub:
         finally:
             journal.close()
 
+    def _ledger(self) -> dict:
+        """Chain and projection status of the journal this hub is reading.
+
+        OK only when the hash chain verifies and the stored projection matches
+        this build. A broken chain is BROKEN even if tasks can still be folded.
+        """
+        journal = self._open()
+        try:
+            chain = journal.verify_chain()
+            current = journal.projection_current()
+        except sqlite3.DatabaseError as exc:
+            raise TruthUnavailable("unreadable") from exc
+        finally:
+            journal.close()
+        if chain.ok and current:
+            status = "OK"
+        else:
+            status = "BROKEN"
+        return {
+            "status": status,
+            "chain_ok": chain.ok,
+            "head_seq": chain.head_seq,
+            "projection": "current" if current else "stale",
+            "reason": chain.reason,
+        }
+
     def _head(self) -> tuple:
         journal = self._open()
         try:
@@ -174,13 +222,12 @@ class Hub:
                 tasks, events_by_task, _ = self._read()
                 view = model.home(tasks, events_by_task)
                 view["head_seq"] = head[0]
+                view["ledger"] = self._ledger()
                 with self._cache_lock:
                     self._cached = (head, view)
                 view = dict(view)
         except TruthUnavailable as exc:
-            return {"status": status, "truth": exc.args[0], "head_seq": None,
-                    "needs_you": [], "working": [], "done": [], "counts": {"needs_you": 0, "working": 0, "done": 0},
-                    "read_at": utc_now()}
+            return _unavailable_home(status, exc.args[0])
         view.update({"status": status, "truth": "ok", "read_at": utc_now()})
         return view
 

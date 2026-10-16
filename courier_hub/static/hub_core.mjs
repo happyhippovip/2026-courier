@@ -40,6 +40,16 @@ export function timeAgo(iso, now = Date.now()) {
   return new Date(t).toISOString().slice(0, 10);
 }
 
+export function sourceUnknown(view) {
+  return view?.ledger?.status === 'UNKNOWN' || view?.data === 'keine Daten/UNKNOWN';
+}
+
+function ledgerPhrase(view) {
+  const status = view?.ledger?.status;
+  if (status === 'OK' || status === 'BROKEN') return `Ledger ${status}.`;
+  return '';
+}
+
 // ---------------------------------------------------------------- status line
 export function statusLine(view, connection, now = Date.now()) {
   if (connection.state === 'offline') {
@@ -47,6 +57,7 @@ export function statusLine(view, connection, now = Date.now()) {
     return { tone: 'warn', text: `Can't reach the hub — showing the last known state.${when}` };
   }
   if (!view) return { tone: 'quiet', text: 'Loading…' };
+  if (sourceUnknown(view)) return { tone: 'warn', text: 'keine Daten/UNKNOWN' };
   if (view.truth === 'not_set_up') return { tone: 'quiet', text: "Courier hasn't been set up on this computer yet." };
   if (view.truth === 'updating') return { tone: 'warn', text: 'Courier is updating its records. This view will return shortly.' };
   if (view.truth === 'unreadable') return { tone: 'warn', text: "Courier's records can't be read right now." };
@@ -55,13 +66,17 @@ export function statusLine(view, connection, now = Date.now()) {
     return { tone: 'warn', text: "Courier is in safe mode: you can look at everything, but it won't change anything until this is fixed." };
   }
   if (c === 'unreachable') {
-    return { tone: 'warn', text: "Courier isn't running. Showing what it last recorded; decisions are paused until it's back." };
+    const ledger = ledgerPhrase(view);
+    const suffix = ledger ? ` ${ledger}` : '';
+    return { tone: 'warn', text: `Courier isn't running. Showing what it last recorded; decisions are paused until it's back.${suffix}` };
   }
   const n = view.counts || {};
   const parts = [];
   parts.push(n.needs_you ? `${n.needs_you} need${n.needs_you === 1 ? 's' : ''} you` : 'nothing needs you');
   parts.push(`${n.working || 0} working`);
   parts.push(`${n.done || 0} done`);
+  const ledger = ledgerPhrase(view);
+  if (ledger) parts.push(ledger.replace(/\.$/, ''));
   const text = parts.join(' · ');
   return { tone: 'ok', text: text.charAt(0).toUpperCase() + text.slice(1) };
 }
@@ -141,7 +156,12 @@ export function renderCard(card, opts = {}) {
 }
 
 export function renderHome(view, opts = {}) {
-  return PILES.map((pile) => {
+  if (sourceUnknown(view)) {
+    return `<p class="empty" role="status">${escapeHtml('keine Daten/UNKNOWN')}</p>`;
+  }
+  const ledger = ledgerPhrase(view);
+  const banner = ledger ? `<p class="ledger" role="status">${escapeHtml(ledger)}</p>\n` : '';
+  return banner + PILES.map((pile) => {
     const cards = (view?.[pile.key] || []);
     const count = cards.length;
     const body = count
@@ -244,8 +264,8 @@ export function interpretResponse(status, payload) {
 // A stable fingerprint of what Home would show; the page re-renders only when it
 // changes (or once a minute for relative times), so an idle hub stays quiet.
 export function viewSignature(view, connection, pending) {
-  return JSON.stringify([view?.head_seq, view?.truth, view?.status?.controller, connection.state, pending,
-    view?.counts]);
+  return JSON.stringify([view?.head_seq, view?.truth, view?.status?.controller, view?.ledger?.status,
+    connection.state, pending, view?.counts]);
 }
 
 export function findChoice(view, id, decision) {
