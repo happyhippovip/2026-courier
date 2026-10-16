@@ -108,6 +108,36 @@ def pgid_dead(pgid):
         return True
 
 
+def _process_create_time(pid):
+    import psutil
+    return psutil.Process(pid).create_time()
+
+
+def _boot_id():
+    """Same boot token the claim gate stores. A PID is not identity across boots."""
+    import psutil
+    return f"{psutil.boot_time():.3f}"
+
+
+def _spawn_session_sleeper():
+    return subprocess.Popen(
+        [PY, "-c", "import time; time.sleep(60)"], start_new_session=True)
+
+
+def _write_dispatch_claim(home, dispatch, record):
+    claims = home / "run" / "claims"
+    claims.mkdir(parents=True, exist_ok=True)
+    (claims / f"dispatch-{dispatch}.json").write_text(
+        json.dumps(record), encoding="utf-8")
+    return claims
+
+
+def _stop_process(proc):
+    if proc.poll() is None:
+        proc.kill()
+        proc.wait(timeout=10)
+
+
 # -- engine: ownership, bounds, cleanup ----------------------------------------
 
 def test_success_collects_artifact_with_exact_ids(tmp_path):
@@ -292,14 +322,14 @@ def test_spec_validation_refusals(tmp_path, bad):
 def test_orphan_gate_reaps_dead_owner_tree(tmp_path):
     if os.name == "nt":
         pytest.skip("POSIX killpg gate; Windows relies on job close semantics")
-    proc = subprocess.Popen([PY, "-c", "import time; time.sleep(60)"], start_new_session=True)
+    proc = _spawn_session_sleeper()
     try:
         pgid = os.getpgid(proc.pid)
         record = {"task_id": "t", "attempt": 1, "dispatch_id": "orphan-1", "worker_id": "w",
-                  "owner_pid": 2 ** 30, "child_pid": proc.pid, "pgid": pgid}
-        claims = tmp_path / "run" / "claims"
-        claims.mkdir(parents=True)
-        (claims / "dispatch-orphan-1.json").write_text(json.dumps(record), encoding="utf-8")
+                  "owner_pid": 2 ** 30, "owner_create_time": 1.0,
+                  "child_pid": proc.pid, "child_create_time": _process_create_time(proc.pid),
+                  "pgid": pgid, "boot_id": _boot_id()}
+        claims = _write_dispatch_claim(tmp_path, "orphan-1", record)
         assert H.run_orphan_gate(str(tmp_path)) == 1
         assert list(claims.glob("*.json")) == []
         # The "orphan" is this test's own child, so it stays a zombie (and its group
@@ -308,9 +338,183 @@ def test_orphan_gate_reaps_dead_owner_tree(tmp_path):
         proc.wait(timeout=10)
         assert pgid_dead(pgid)
     finally:
-        if proc.poll() is None:
-            proc.kill()
-            proc.wait()
+        _stop_process(proc)
+
+
+def test_orphan_gate_does_not_signal_unrelated_group_with_reused_pid(tmp_path):
+    """A live PID whose start time differs is a different process. Never signal it."""
+    if os.name == "nt":
+        pytest.skip("POSIX killpg gate; Windows relies on job close semantics")
+    proc = _spawn_session_sleeper()
+    try:
+        pgid = os.getpgid(proc.pid)
+        record = {"task_id": "t", "attempt": 1, "dispatch_id": "reused-1", "worker_id": "w",
+                  "owner_pid": 2 ** 30, "owner_create_time": 1.0,
+                  "child_pid": proc.pid,
+                  "child_create_time": _process_create_time(proc.pid) + 1000.0,
+                  "pgid": pgid, "boot_id": _boot_id()}
+        claims = _write_dispatch_claim(tmp_path, "reused-1", record)
+        H.run_orphan_gate(str(tmp_path))
+        assert proc.poll() is None
+        assert os.getpgid(proc.pid) == pgid
+        assert list(claims.glob("dispatch-*.json")) == []
+    finally:
+        _stop_process(proc)
+
+
+def test_orphan_gate_does_not_signal_across_boot_id(tmp_path):
+    """Matching PID and start time from another boot is not this machine's process."""
+    if os.name == "nt":
+        pytest.skip("POSIX killpg gate; Windows relies on job close semantics")
+    proc = _spawn_session_sleeper()
+    try:
+        pgid = os.getpgid(proc.pid)
+        record = {"task_id": "t", "attempt": 1, "dispatch_id": "boot-1", "worker_id": "w",
+                  "owner_pid": 2 ** 30, "owner_create_time": 1.0,
+                  "child_pid": proc.pid, "child_create_time": _process_create_time(proc.pid),
+                  "pgid": pgid, "boot_id": "not-this-boot"}
+        _write_dispatch_claim(tmp_path, "boot-1", record)
+        H.run_orphan_gate(str(tmp_path))
+        assert proc.poll() is None
+        assert os.getpgid(proc.pid) == pgid
+    finally:
+        _stop_process(proc)
+
+
+def test_orphan_gate_reaps_when_owner_pid_was_reused(tmp_path):
+    """A reused owner PID must not hide a still-matching child tree."""
+    if os.name == "nt":
+        pytest.skip("POSIX killpg gate; Windows relies on job close semantics")
+    owner = subprocess.Popen([PY, "-c", "import time; time.sleep(60)"])
+    child = _spawn_session_sleeper()
+    try:
+        pgid = os.getpgid(child.pid)
+        record = {"task_id": "t", "attempt": 1, "dispatch_id": "owner-reused", "worker_id": "w",
+                  "owner_pid": owner.pid,
+                  "owner_create_time": _process_create_time(owner.pid) + 5000.0,
+                  "child_pid": child.pid, "child_create_time": _process_create_time(child.pid),
+                  "pgid": pgid, "boot_id": _boot_id()}
+        claims = _write_dispatch_claim(tmp_path, "owner-reused", record)
+        assert H.run_orphan_gate(str(tmp_path)) == 1
+        assert owner.poll() is None
+        child.wait(timeout=10)
+        assert pgid_dead(pgid)
+        assert list(claims.glob("dispatch-*.json")) == []
+    finally:
+        _stop_process(owner)
+        _stop_process(child)
+
+
+def test_orphan_gate_leaves_tree_owned_by_the_same_owner(tmp_path):
+    """A live owner with the same start time still owns the tree."""
+    if os.name == "nt":
+        pytest.skip("POSIX killpg gate; Windows relies on job close semantics")
+    child = _spawn_session_sleeper()
+    try:
+        pgid = os.getpgid(child.pid)
+        record = {"task_id": "t", "attempt": 1, "dispatch_id": "live-owner", "worker_id": "w",
+                  "owner_pid": os.getpid(), "owner_create_time": _process_create_time(os.getpid()),
+                  "child_pid": child.pid, "child_create_time": _process_create_time(child.pid),
+                  "pgid": pgid, "boot_id": _boot_id()}
+        claims = _write_dispatch_claim(tmp_path, "live-owner", record)
+        assert H.run_orphan_gate(str(tmp_path)) == 0
+        assert child.poll() is None
+        assert os.getpgid(child.pid) == pgid
+        assert list(claims.glob("dispatch-*.json"))
+    finally:
+        _stop_process(child)
+
+
+def test_orphan_gate_does_not_signal_claim_without_start_time(tmp_path):
+    """A PID in the claim, with no start time, is not permission to signal."""
+    if os.name == "nt":
+        pytest.skip("POSIX killpg gate; Windows relies on job close semantics")
+    proc = _spawn_session_sleeper()
+    try:
+        pgid = os.getpgid(proc.pid)
+        record = {"task_id": "t", "attempt": 1, "dispatch_id": "no-start", "worker_id": "w",
+                  "owner_pid": 2 ** 30, "child_pid": proc.pid, "pgid": pgid,
+                  "boot_id": _boot_id()}
+        claims = _write_dispatch_claim(tmp_path, "no-start", record)
+        assert H.run_orphan_gate(str(tmp_path)) == 0
+        assert proc.poll() is None
+        assert list(claims.glob("dispatch-*.json"))
+    finally:
+        _stop_process(proc)
+
+
+def test_claim_record_stores_start_time_and_boot_id(tmp_path):
+    proc = _spawn_session_sleeper()
+    try:
+        run = H.ContainedRun(proc, None, "", "")
+        spec = make_spec(tmp_path, dispatch="ident-1")
+        path = H._write_claim_record(str(tmp_path), spec, run)
+        record = json.loads(path.read_text(encoding="utf-8"))
+        assert record["owner_pid"] == os.getpid()
+        assert record["child_pid"] == proc.pid
+        assert abs(record["owner_create_time"] - _process_create_time(os.getpid())) <= 0.05
+        assert abs(record["child_create_time"] - _process_create_time(proc.pid)) <= 0.05
+        assert record["boot_id"] == H.current_boot_id()
+        assert record["boot_id"] == _boot_id()
+        assert proc.poll() is None
+    finally:
+        _stop_process(proc)
+
+
+def test_orphan_gate_windows_bookkeeping_does_not_signal(tmp_path, monkeypatch):
+    """The Windows gate drops a dead owner's claim and must not signal by PID.
+
+    On POSIX this forces the ``os.name == 'nt'`` branch. It does not execute
+    a Windows Job Object; that still needs a real Windows host.
+    """
+    proc = subprocess.Popen([PY, "-c", "import time; time.sleep(60)"])
+    try:
+        record = {"task_id": "t", "attempt": 1, "dispatch_id": "win-1", "worker_id": "w",
+                  "owner_pid": 2 ** 30, "owner_create_time": 1.0,
+                  "child_pid": proc.pid, "child_create_time": _process_create_time(proc.pid),
+                  "pgid": None, "boot_id": _boot_id()}
+        claims = _write_dispatch_claim(tmp_path, "win-1", record)
+        signaled = []
+        if hasattr(os, "killpg"):
+            real_killpg = os.killpg
+
+            def _spy(target, sig):
+                signaled.append((target, sig))
+                return real_killpg(target, sig)
+
+            monkeypatch.setattr(os, "killpg", _spy)
+        monkeypatch.setattr(H, "_windows_job_reaps", lambda: True)
+        assert H.run_orphan_gate(str(tmp_path)) == 1
+        assert signaled == []
+        assert proc.poll() is None
+        assert list(claims.glob("dispatch-*.json")) == []
+    finally:
+        _stop_process(proc)
+
+
+def test_orphan_gate_keeps_claim_when_group_signal_is_denied(tmp_path, monkeypatch):
+    """PermissionError is not proof the group is gone."""
+    if os.name == "nt":
+        pytest.skip("POSIX killpg gate; Windows relies on job close semantics")
+    proc = _spawn_session_sleeper()
+    try:
+        pgid = os.getpgid(proc.pid)
+        record = {"task_id": "t", "attempt": 1, "dispatch_id": "denied-1", "worker_id": "w",
+                  "owner_pid": 2 ** 30, "owner_create_time": 1.0,
+                  "child_pid": proc.pid, "child_create_time": _process_create_time(proc.pid),
+                  "pgid": pgid, "boot_id": _boot_id()}
+        claims = _write_dispatch_claim(tmp_path, "denied-1", record)
+
+        def _denied(pgid_arg, sig):
+            raise PermissionError(f"cannot signal {pgid_arg} with {sig}")
+
+        monkeypatch.setattr(os, "killpg", _denied)
+        assert H.run_orphan_gate(str(tmp_path)) == 0
+        assert list(claims.glob("dispatch-*.json"))
+        assert proc.poll() is None
+    finally:
+        monkeypatch.undo()
+        _stop_process(proc)
 
 
 def test_home_lock_second_host_refused(tmp_path):
