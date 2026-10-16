@@ -620,6 +620,8 @@ def _paths_overlap(left: str, right: str) -> bool:
     a, b = _norm(left), _norm(right)
     if a == b or fnmatchcase(a, b) or fnmatchcase(b, a):
         return True
+    if _inside_dir(a, b) or _inside_dir(b, a):
+        return True
     a_wild, b_wild = _wild(a), _wild(b)
     if a_wild and not b_wild:
         return b.startswith(_prefix(a) + "/")
@@ -655,6 +657,14 @@ def _prefix(pattern: str) -> str:
 
 def _wild(value: str) -> bool:
     return any(ch in value for ch in "*?[")
+
+
+def _inside_dir(directory: str, path: str) -> bool:
+    """A scope that ends in / names that directory and everything under it."""
+    if not directory.endswith("/") or _wild(directory):
+        return False
+    bare = directory[:-1]
+    return path == bare or path.startswith(directory)
 
 
 def _public(item: dict) -> dict:
