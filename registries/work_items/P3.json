@@ -1,0 +1,12 @@
+{
+  "id": "P3",
+  "title": "Write a manifest for one finished render",
+  "lane": "L3",
+  "branch": "lane/L3-render-manifest-P3",
+  "files_scope": ["courier_core/render_manifest.py", "tests/test_render_manifest.py"],
+  "depends_on": [],
+  "acceptance": ["tests", "draft PR"],
+  "provider_hints": ["headless", "interactive"],
+  "status": "READY",
+  "lease": null
+}

@@ -1,0 +1,12 @@
+{
+  "id": "P1",
+  "title": "ffprobe media verify for a rendered mp4",
+  "lane": "L4",
+  "branch": "lane/L4-media-verify-P1",
+  "files_scope": ["courier_core/media_verify.py", "tests/test_media_verify.py"],
+  "depends_on": [],
+  "acceptance": ["tests", "draft PR"],
+  "provider_hints": ["headless", "interactive"],
+  "status": "DONE",
+  "lease": null
+}
