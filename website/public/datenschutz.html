@@ -36,11 +36,14 @@
         h1 { color: #fff; margin-top: 0; }
         a { color: var(--accent); text-decoration: none; }
         a:hover { text-decoration: underline; }
-        .back-link { display: inline-block; margin-bottom: 20px; font-weight: 600; }
+        .skip { position: absolute; left: -999px; top: 8px; background: #030712; color: #fff; padding: 8px 12px; z-index: 5; }
+        .skip:focus, .skip:focus-visible { left: 12px; }
+        a:focus-visible { outline: 2px solid #93c5fd; outline-offset: 3px; }
     </style>
 </head>
 <body>
-    <div class="container">
+    <a class="skip" href="#inhalt">Zum Inhalt</a>
+    <div class="container" id="inhalt">
         <a href="index.html" class="back-link">&larr; Zurück zur Startseite</a>
         <h1>Datenschutzerklärung</h1>
         <p>Hier finden Sie die Datenschutzerklärung der Courier Symphony (Placeholder).</p>

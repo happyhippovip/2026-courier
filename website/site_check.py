@@ -72,6 +72,9 @@ def resolve_request(root, request_path):
 
 
 def not_found_home_href(html):
-    """First href on the not-found page. That is the way back home."""
-    match = _HREF.search(html)
-    return match.group(1) if match else ""
+    """First href on the not-found page that navigates away. That is the way back home."""
+    for match in _HREF.finditer(html):
+        href = match.group(1)
+        if not href.startswith("#"):
+            return href
+    return ""

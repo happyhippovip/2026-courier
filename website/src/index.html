@@ -328,9 +328,15 @@
             .hero { padding: 60px 0; }
             .footer-content { flex-direction: column; text-align: center; }
         }
+        .skip { position: absolute; left: -999px; top: 8px; background: #030712; color: #fff; padding: 8px 12px; z-index: 50; text-decoration: none; }
+        .skip:focus, .skip:focus-visible { left: 12px; }
+        a:focus-visible, button:focus-visible { outline: 2px solid #3b82f6; outline-offset: 3px; }
+        :target, #inhalt { scroll-margin-top: 88px; }
+        nav{background:#000}
     </style>
 </head>
 <body>
+    <a class="skip" href="#inhalt">Zum Inhalt</a>
     <div class="container">
         <header>
             <a href="#" class="logo">
@@ -360,7 +366,7 @@
                 </div>
             </section>
 
-            <section class="demo-section">
+            <section class="demo-section" id="angebote">
                 <div class="demo-terminal" id="demo-terminal">
                     <div class="terminal-header">
                         <div class="dot red"></div>
