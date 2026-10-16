@@ -655,6 +655,14 @@ adapter / verifier → live golden path.
 - Appends complete routing decision record (`TASK_ID`, `REQUIRED_CAPABILITY`, `CHOSEN_PROVIDER`, `CHOSEN_MODEL`, `REASONING_LEVEL`, `COST_CLASS`, `CHEAPER_CAPABLE_OPTION_AVAILABLE`, `ESCALATION_REASON`, `USER_WARNING_REQUIRED`) to tasks.
 - Added comprehensive unit tests in `tests/test_cost_aware_routing.py`.
 - 100% green CI across Ubuntu and Windows.
-
-
-
+## Step 31 — PR #695, L6 Windows Hub EXE Packaging Spec & Smoke Tests
+### `integration/v1` merged `lane/L6-win-exe-hub`
+- Implemented Windows packaging for the Courier Desktop Hub per the locked V1 route milestone (`WINDOWS EXE`).
+- Packaged `courier_hub/__main__.py` as single executable `CourierHub.exe` via `scripts/courier_hub_windows.spec` with hidden imports for hub and journal, plus static web assets.
+- Added cross-platform build driver `scripts/build_windows_exe.py` with `--check`, `--dist`, and `--smoke` modes.
+- Hardened cross-platform execution:
+  - Replaced Unix-only `select.select` pipe reading with thread-safe `queue.Queue` background reader to prevent Windows pipe `WinError 10038`.
+  - Portable child process termination via `psutil.pid_exists` to prevent Windows `WinError 87` on `os.kill(pid, 0)`.
+  - Explicit import of `importlib.util` and clean PyInstaller presence check in `tests/test_windows_exe_build.py` preventing clean-machine test collection errors.
+- Added documentation in `docs/work/WIN_EXE.md` covering build and verification steps.
+- 100% green CI across Ubuntu (2,425 passed) and Windows (2,341 passed).
