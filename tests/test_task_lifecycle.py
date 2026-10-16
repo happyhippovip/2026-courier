@@ -1,5 +1,6 @@
 import unittest
 import time
+from unittest import mock
 from courier_runtime.task_lifecycle import (
     TaskLifecycleManager, 
     TaskRecord, 
@@ -12,6 +13,14 @@ from courier_runtime.task_lifecycle import (
 class TestZeroHangTaskLifecycle(unittest.TestCase):
     def setUp(self):
         self.manager = TaskLifecycleManager()
+        # analyze_health doubles stall thresholds when the *host* CPU load is
+        # above 90% (G43). Pin the load to an idle value so the outcome does not
+        # depend on how busy the CI runner is (windows-latest flake on PR #577,
+        # ubuntu-latest on integration/v1 afabbd4). The load-dependent branch
+        # is covered explicitly in test_36b.
+        cpu_patch = mock.patch("courier_runtime.task_lifecycle.psutil.cpu_percent", return_value=0.0)
+        self.mock_cpu_percent = cpu_patch.start()
+        self.addCleanup(cpu_patch.stop)
         
     def test_1_hung_subprocess_detected_and_recovered(self):
         # Create a compute task
@@ -725,6 +734,22 @@ class TestZeroHangTaskLifecycle(unittest.TestCase):
         state = self.manager.detector.analyze_health(task, True, True, False)
         # We just assert it doesn't crash
         self.assertIn(state, [TaskState.CONFIRMED_STALL, TaskState.SUSPECTED_STALL, TaskState.HEALTHY, TaskState.LONG_RUNNING_HEALTHY])
+
+    def test_36b_dynamic_timeout_doubles_threshold_under_heavy_load(self):
+        """G43: above 90% host CPU the stall threshold doubles; at idle it does not."""
+        def quiet_task(task_id):
+            return TaskRecord(
+                task_id=task_id, workkey="w1", owner_session="s1", owner_host="h1",
+                pid_or_execution_id="p1", process_start_identity="ps1", started_at=time.time(),
+                expected_activity_class=ActivityClass.USER_INTERACTION,
+                last_useful_progress=time.time() - 2000,
+            )
+        self.mock_cpu_percent.return_value = 0.0
+        self.assertEqual(self.manager.detector.analyze_health(quiet_task("idle"), True, True, False),
+                         TaskState.LONG_RUNNING_HEALTHY)
+        self.mock_cpu_percent.return_value = 95.0
+        self.assertEqual(self.manager.detector.analyze_health(quiet_task("loaded"), True, True, False),
+                         TaskState.HEALTHY)
 
     def test_37_automatic_process_renice(self):
         """G44: Automatic Process Renice for Recovery."""
