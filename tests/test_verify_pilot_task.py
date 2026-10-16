@@ -83,6 +83,13 @@ def test_verify_pilot_task_wrong_status(capsys):
     assert "FAILED: status should be QUEUED, got IN_PROGRESS" in captured.out
     m_exit.assert_called_once_with(1)
 
+def test_verify_pilot_task_from_other_cwd(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    m_exit = run_script()
+    captured = capsys.readouterr()
+    assert "PILOT TASK VERIFIED - SCHEMA MATCHES" in captured.out
+    m_exit.assert_not_called()
+
 def test_verify_pilot_task_exception(capsys):
     with patch("builtins.open", side_effect=Exception("Disk broken")):
         m_exit = run_script()

@@ -126,8 +126,10 @@ def check_pilot_gate_readiness(evidence=None):
     report = {
         "gate": "PILOT_READINESS_GATE",
         "status": "BLOCKED",
+        "go_decision": "NO_GO",
+        "go_reason": "metrics are not measured",
         "metrics": {
-            name: {"target": target, "actual": None, "status": "NOT_PROVEN"}
+            name: {"target": target, "actual": None, "status": "NOT_MEASURED"}
             for name, target in METRIC_TARGETS
         },
         "prerequisites": {
