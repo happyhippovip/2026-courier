@@ -35,6 +35,8 @@ class VerifiedFounderReviewGate:
     founder_approval: FounderApprovalState
     feedback_notes: str
     timestamp_utc: str
+    author_id: str = ""
+    reviewer_id: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return dataclasses.asdict(self)
@@ -73,6 +75,11 @@ class FoundrySchemaValidator:
         data = gate.to_dict()
         data["founder_approval"] = data["founder_approval"].value if isinstance(data["founder_approval"], Enum) else data["founder_approval"]
         jsonschema.validate(instance=data, schema=schema)
+        if data["founder_approval"] == FounderApprovalState.APPROVED.value:
+            author = str(data.get("author_id") or "").strip()
+            reviewer = str(data.get("reviewer_id") or "").strip()
+            if not reviewer or reviewer == author:
+                raise ValueError("approved review requires an independent reviewer")
 
     def validate_evidence(self, evidence: PilotEvidenceRecord):
         schema = self._load_schema("pilot_evidence_record.schema.json")
