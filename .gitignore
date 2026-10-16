@@ -208,3 +208,4 @@ report*.xml
 *.bak*
 /EVIDENCE_*.json
 /pytest-temp/
+/.courier_genesis/
