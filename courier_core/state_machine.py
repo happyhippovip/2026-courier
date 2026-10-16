@@ -22,7 +22,10 @@ Invariants enforced here:
   EFFECT_CONFIRMED (the effect happened; COMPLETE without re-executing it),
   RETRY_AUTHORIZED (one fresh, fenced attempt) or cancellation. Each names
   the blocked attempt, so a stale decision cannot act on a later block;
-- lease deadlines are not state: the projection keeps the TTL duration only.
+- lease deadlines are not state: the projection keeps the TTL duration only;
+- a task created with depends_on is claimed only together with an input that
+  names that dependency; whether the dependency is verified and complete is
+  the controller's check, because this fold sees one task at a time.
 """
 
 from __future__ import annotations
@@ -93,6 +96,12 @@ class TaskState:
     late_results: int = 0
     resolution: str | None = None
     decided_by: str | None = None
+    # A task that depends on another one runs only on that task's verified result.
+    # input is what the current attempt was given (TASK_CLAIMED payload["input"]): the
+    # dependency's task, dispatch and result id and its artifact references with sha256,
+    # so a verifier can recompute from the same bytes without reading the journal.
+    depends_on: str | None = None
+    input: dict | None = None
     created_seq: int | None = None
     updated_seq: int | None = None
 
@@ -155,7 +164,8 @@ def apply(state: TaskState | None, event: Event) -> TaskState | None:
         return TaskState(
             task_id=event.task_id, status=TaskStatus.QUEUED, adapter=p["adapter"], params=p["params"],
             effect_class=p["effect_class"], max_attempts=p["max_attempts"], lease_ttl_s=p["lease_ttl_s"],
-            timeout_s=p.get("timeout_s"), created_seq=event.seq, updated_seq=event.seq)
+            timeout_s=p.get("timeout_s"), depends_on=p.get("depends_on"),
+            created_seq=event.seq, updated_seq=event.seq)
     if state is None:
         raise _fail(event, state, "unknown task")
     if event.task_id != state.task_id:
@@ -191,9 +201,15 @@ def _transition(state: TaskState, event: Event) -> TaskState:
             raise _fail(event, state, f"next attempt must be {state.attempt + 1}")
         if event.attempt > state.max_attempts:
             raise _fail(event, state, f"max_attempts {state.max_attempts} exhausted")
+        bound = event.payload.get("input")
+        if state.depends_on is None:
+            if bound is not None:
+                raise _fail(event, state, "only a task with depends_on is given an input")
+        elif bound is None or bound.get("task_id") != state.depends_on:
+            raise _fail(event, state, "a dependent task is claimed only with the verified result of its dependency")
         return replace(state, status=TaskStatus.CLAIMED, attempt=event.attempt, dispatch_id=event.dispatch_id,
                        worker_id=event.worker_id, started=False, pending_result_id=None,
-                       failure_kind=None, retryable=None, last_reason=None)
+                       failure_kind=None, retryable=None, last_reason=None, input=bound)
 
     if t is EventType.TASK_STARTED:
         if s is not TaskStatus.CLAIMED:

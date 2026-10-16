@@ -25,6 +25,7 @@ timeout, lease or cancellation machinery terminates the owned tree.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import sys
@@ -86,6 +87,44 @@ def _write_report(path: str, report: dict) -> None:
         raise
 
 
+class _InputRefused(Exception):
+    """The request's input cannot be trusted as the dependency's verified result."""
+
+
+def _verified_input_files(bound, home) -> list:
+    """Absolute paths of the input artifacts, each checked against its sha256.
+
+    ``bound`` is the claim spec's input as the host wrote it into the request:
+    artifact paths relative to ``home`` with the sha256 the controller journaled
+    for the dependency's accepted result. A path outside home, a missing file
+    or a hash mismatch refuses the whole input.
+    """
+    if not isinstance(bound, dict) or not isinstance(home, str) or not os.path.isabs(home):
+        raise _InputRefused("malformed input")
+    artifacts = bound.get("artifacts")
+    if not isinstance(artifacts, list) or not artifacts:
+        raise _InputRefused("input names no artifact")
+    scope = Path(home).resolve()
+    files = []
+    for ref in artifacts:
+        name = ref.get("path") if isinstance(ref, dict) else None
+        digest = ref.get("sha256") if isinstance(ref, dict) else None
+        if (not isinstance(name, str) or not name or "\\" in name or ":" in name or name.startswith("/")
+                or any(part in ("", ".", "..") for part in name.split("/")) or not isinstance(digest, str)):
+            raise _InputRefused("malformed input artifact")
+        candidate = (scope / name).resolve()
+        if scope not in candidate.parents:
+            raise _InputRefused("input artifact path escapes the home")
+        try:
+            data = candidate.read_bytes()
+        except OSError:
+            raise _InputRefused("input artifact is missing") from None
+        if hashlib.sha256(data).hexdigest() != digest:
+            raise _InputRefused("input artifact hash does not match the verified result")
+        files.append(str(candidate))
+    return files
+
+
 def main(argv: list) -> int:
     if len(argv) != 1:
         print("adapter_runner: expected exactly one request path", file=sys.stderr)
@@ -108,13 +147,26 @@ def main(argv: list) -> int:
         return 2
     os.makedirs(workdir, exist_ok=True)
 
+    input_files = None
+    if "input" in request:
+        try:
+            input_files = _verified_input_files(request.get("input"), request.get("home"))
+        except _InputRefused as exc:
+            # The adapter never sees an input whose bytes are not the verified ones.
+            print(f"adapter_runner: input refused: {exc}", file=sys.stderr)
+            _write_report(report, {"outcome": "failure", "reason": f"input refused: {exc}"[:500], "retryable": False})
+            return 0
+
     if adapter == "provider_exec":
         return _run_provider_exec(request, workdir, report, attempt, params)
 
     from adapters import synthetic
 
     try:
-        result = synthetic.run(params, workdir, attempt)
+        if input_files is None:
+            result = synthetic.run(params, workdir, attempt)
+        else:
+            result = synthetic.run(params, workdir, attempt, input_files=input_files)
     except synthetic.SyntheticHang:
         print("adapter_runner: synthetic hang (waiting to be terminated)", file=sys.stderr, flush=True)
         while True:

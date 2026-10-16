@@ -51,7 +51,7 @@ from courier_core.events import (
 from courier_core.journal import DedupeConflict, Journal, JournalError
 from courier_core.projection import ProjectionError
 from courier_core.state_machine import (
-    ACTIVE_LEASE, TERMINAL, Decision, TaskState, TaskStatus, TransitionError, decide_after_failure,
+    ACTIVE_LEASE, RESOLVED_VERIFIED, TERMINAL, Decision, TaskState, TaskStatus, TransitionError, decide_after_failure,
 )
 from courier_core.verification import ADAPTER_NAME, VerifyFn, adapter_verifier, run_verifier
 
@@ -66,7 +66,8 @@ MAX_HEARTBEAT_DISPATCHES = 256
 MAX_ARTIFACTS = 1000
 SUSPEND_GAP_S = 5.0  # a tick gap this long means the machine slept; leases are not punished for it
 
-TASK_FIELDS = {"adapter", "params", "effect_class", "max_attempts", "lease_ttl_s", "timeout_s", "idempotency_key"}
+TASK_FIELDS = {"adapter", "params", "effect_class", "max_attempts", "lease_ttl_s", "timeout_s", "idempotency_key",
+               "depends_on"}
 RESULT_FIELDS = {"dispatch_id", "result_id", "artifacts", "outcome", "retryable", "reason"}
 MAX_REASON_CHARS = 2000
 
@@ -326,11 +327,16 @@ class Controller:
         payload = {name: body[name] for name in ("adapter", "params", "effect_class", "max_attempts", "lease_ttl_s")}
         if timeout_s is not None:
             payload["timeout_s"] = timeout_s
+        depends_on = _require_id(body, "depends_on") if body.get("depends_on") is not None else None
+        if depends_on is not None:
+            payload["depends_on"] = depends_on
         try:
             event = Event(type=EventType.TASK_CREATED, task_id=task_id, payload=payload)
         except EventValidationError as exc:
             raise ApiError(400, "invalid_request", str(exc)) from None
         with self._locked():
+            if depends_on is not None and self.journal.task(depends_on) is None:
+                raise ApiError(400, "unknown_dependency", "depends_on names a task that does not exist")
             try:
                 result = self._append(event)
             except DedupeConflict:
@@ -346,18 +352,51 @@ class Controller:
             for task in self.journal.tasks(TaskStatus.QUEUED.value):
                 if task.cancel_requested:
                     continue
+                bound = None
+                if task.depends_on is not None:
+                    bound = self._verified_input(task)
+                    if bound is None:
+                        continue  # not claimable yet, or just failed with its dependency
                 dispatch_id = "dsp-" + uuid.uuid4().hex
                 attempt = task.attempt + 1
+                claimed = {"ttl_s": task.lease_ttl_s}
+                if bound is not None:
+                    claimed["input"] = bound
                 self._append(Event(type=EventType.TASK_CLAIMED, task_id=task.task_id, attempt=attempt,
-                                   dispatch_id=dispatch_id, worker_id=worker_id,
-                                   payload={"ttl_s": task.lease_ttl_s}))
+                                   dispatch_id=dispatch_id, worker_id=worker_id, payload=claimed))
                 self._leases[dispatch_id] = Lease(task.task_id, dispatch_id, worker_id, task.lease_ttl_s,
                                                   self._clock() + task.lease_ttl_s, "ttl")
                 spec = {"adapter": task.adapter, "params": task.params, "effect_class": task.effect_class,
                         "timeout_s": task.timeout_s, "effect_key": effect_key(task.task_id)}
+                if bound is not None:
+                    spec["input"] = bound
                 return {"task_id": task.task_id, "attempt": attempt, "dispatch_id": dispatch_id,
                         "worker_id": worker_id, "ttl_s": task.lease_ttl_s,
                         "heartbeat_s": heartbeat_interval(task.lease_ttl_s), "spec": spec}
+        return None
+
+    def _verified_input(self, task: TaskState) -> dict | None:
+        """The verified result a dependent task may run on, or None if it cannot be claimed now.
+
+        Only a dependency that completed through an accepted result counts: its
+        RESULT_READY event names the artifacts and their sha256. A dependency
+        that failed, was cancelled, or was completed by a human confirmation
+        will never have a verified result, so the dependent task is failed
+        here instead of waiting forever. Called under the controller lock.
+        """
+        dep = self.journal.task(task.depends_on)
+        if dep is not None and dep.status is TaskStatus.COMPLETE and dep.resolution == RESOLVED_VERIFIED:
+            result = self.journal.get_event_by_dedupe_key(f"result:{dep.dispatch_id}:{dep.accepted_result_id}")
+            if result is not None and result.payload.get("artifacts"):
+                return {"task_id": dep.task_id, "dispatch_id": dep.dispatch_id, "result_id": dep.accepted_result_id,
+                        "artifacts": [{"path": a["path"], "sha256": a["sha256"]} for a in result.payload["artifacts"]]}
+            why = "its verified result names no artifact"
+        elif dep is None or dep.status in TERMINAL:
+            why = "it is missing" if dep is None else f"it ended {dep.status.value} without a verified result"
+        else:
+            return None
+        self._append(self._task_event(EventType.TASK_FAILED, task, payload={
+            "reason": f"dependency {task.depends_on} cannot provide an input: {why}"}))
         return None
 
     def _claim_of(self, dispatch_id: str) -> Event:

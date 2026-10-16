@@ -191,6 +191,7 @@ def resolve_spec(claim: dict, worker_id: str, artifacts_root: str, heartbeat_s: 
     if not isinstance(ttl_s, (int, float)) or ttl_s < 1:
         raise SpecError("claim carries no valid ttl_s")
     adapter, params, effect_key = adapter_bridge.validate_request(spec)
+    bound = adapter_bridge.request_input(spec)
     home = home or os.path.dirname(os.path.abspath(artifacts_root))
     timeout_s = spec.get("timeout_s") or DEFAULT_TIMEOUT_S
     if not isinstance(timeout_s, (int, float)) or not 0 < timeout_s <= MAX_TIMEOUT_S:
@@ -206,7 +207,7 @@ def resolve_spec(claim: dict, worker_id: str, artifacts_root: str, heartbeat_s: 
         result_id=result_id, argv=adapter_bridge.runner_argv(home, dispatch_id),
         timeout_s=float(timeout_s), lease_ttl_s=float(ttl_s),
         artifact_dir=os.path.join(artifacts_root, dispatch_id), heartbeat_s=heartbeat_s,
-        adapter=adapter, params=params, effect_key=effect_key)
+        adapter=adapter, params=params, effect_key=effect_key, input=bound)
 
 
 def _artifact_prefix(artifact_dir: str, home: Optional[str]) -> str:
