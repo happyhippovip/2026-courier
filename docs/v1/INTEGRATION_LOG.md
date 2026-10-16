@@ -636,3 +636,16 @@ adapter / verifier → live golden path.
 - Added fail-closed continuity metrics engine (`courier_core/continuity_metrics.py`) and recorded catalog results 2626–2650.
 - Golden skip ratchet and regression gates verified 100% passing across Ubuntu and Windows.
 
+## Step 28 — PR #689, L4 AirDrop & Media File Intake Acceptance
+### `integration/v1` merged `lane/L4-airdrop-acceptance` (commit `4164bd6f6`)
+- Implemented `courier_core/airdrop_intake.py` with zero data loss, atomic file moves with fsync, filename collision disambiguation, idempotent deduplication, and crash recovery.
+- Added comprehensive 10-scenario test suite in `tests/core/test_airdrop_acceptance.py`.
+- 100% green CI on Ubuntu (2,425 passed) and Windows (2,332 passed).
+
+## Step 29 — PR #134, L4 Real Adapters Test Suite & Local Delivery Hash Fix
+### `integration/v1` merged `lane/L4-real-adapters-tests` (commit `5232993ed`)
+- Resolved Issue #112 milestone: verified targeted tests for Cryptoknowmics intake, Decrypt RSS intake, AI ranking worker, Telegram delivery, and local JSON delivery.
+- Fixed artifact SHA-256 calculation in `courier_adapters/local_json_delivery.py` replacing placeholder `"0" * 64` with real file digest.
+- 100% green CI across Ubuntu and Windows.
+
+
