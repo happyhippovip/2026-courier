@@ -83,8 +83,11 @@ def test_stale_fingerprint_after_amendment_is_blocked(tmp_path):
 
 
 def test_unconfirmed_contract_is_blocked(tmp_path):
+    from courier_core.goal_contract import _envelope
     contract = _contract()
-    home = _setup(tmp_path, _goal_spec(contract), [contract])
+    home = _home(tmp_path, {"A": _goal_spec(contract)})
+    (home / "goal_contracts.jsonl").write_text(_envelope(contract), encoding="utf-8")
+    _seed(home, [_ready("A", "a-assign")])
     http = FakeHTTP()
     assert _run(home, http)[0] == 0
     _assert_blocked_without_effect(home, http, "HUMAN_CONFIRMATION_REQUIRED")
