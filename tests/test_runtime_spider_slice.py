@@ -149,3 +149,86 @@ def test_policy_epoch_invalidation(tmp_path):
     assert out1["anchor"]["effect_key"] != out2["anchor"]["effect_key"]
     assert out1["anchor"]["policy_epoch"] == 1
     assert out2["anchor"]["policy_epoch"] == 2
+
+
+def test_empty_or_whitespace_quote_rejected(tmp_path):
+    log = AcceptedLog(str(tmp_path / "a.jsonl"))
+    for empty in ("", "   ", "\t\n"):
+        req = ResearchRequest("wk-empty", "https://example.org/p", empty, "https://example.org")
+        out = check_claim(req, lambda u: (u, PAGE), ContentStore(), log, Clock())
+        assert out["conclusion"] == "REJECTED"
+        assert "empty quote" in out["reason"]
+    assert log.facts() == []
+
+
+def test_payload_size_limit_exceeded_blocked(tmp_path):
+    big_page = b"A" * 1000
+    log = AcceptedLog(str(tmp_path / "a.jsonl"))
+    req = ResearchRequest("wk-big", "https://example.org/p", "A", "https://example.org", max_bytes=500)
+    out = check_claim(req, lambda u: (u, big_page), ContentStore(), log, Clock())
+    assert out["conclusion"] == "BLOCKED"
+    assert "payload exceeded size limit" in out["reason"]
+    assert log.facts() == []
+
+
+def test_offline_untrusted_link_extraction():
+    from courier_runtime.spider_slice import extract_untrusted_links
+    html = """
+    <html><body>
+        <a href="/relative/path">Relative</a>
+        <a href="https://example.org/absolute?b=2&a=1">Absolute</a>
+        <a href="#fragment">Fragment</a>
+        <a href="javascript:alert(1)">JS</a>
+        <a href="mailto:test@example.org">Mail</a>
+    </body></html>
+    """
+    links = extract_untrusted_links(html, "https://example.org/root/")
+    assert len(links) == 2
+    assert all(item["status"] == "PROPOSED" for item in links)
+    assert links[0]["url"] == "https://example.org/relative/path"
+    assert links[1]["url"] == "https://example.org/absolute?a=1&b=2"
+
+
+def test_doi_syntax_offline_validation():
+    from courier_runtime.spider_slice import verify_doi_syntax
+    valid_cases = [
+        "10.1000/182",
+        "10.1038/nature.2014.16434",
+        "doi:10.1109/5.771073",
+        "https://doi.org/10.1002/(SICI)1097-0142(19970815)80:4<654::AID-CNCR4>3.0.CO;2-9",
+    ]
+    invalid_cases = [
+        "",
+        "not-a-doi",
+        "11.1000/182",
+        "10.999",
+        "10./empty-registrant",
+    ]
+    for doi in valid_cases:
+        assert verify_doi_syntax(doi) is True, f"Expected {doi} to be valid"
+    for doi in invalid_cases:
+        assert verify_doi_syntax(doi) is False, f"Expected {doi} to be invalid"
+
+
+def test_isbn_checksum_offline_validation():
+    from courier_runtime.spider_slice import verify_isbn_checksum
+    # Valid ISBN-10 and ISBN-13
+    valid = [
+        "0-306-40615-2",
+        "0306406152",
+        "0-8044-2957-X",
+        "978-0-306-40615-7",
+        "9780306406157",
+    ]
+    invalid = [
+        "0-306-40615-3",
+        "0-8044-2957-9",
+        "978-0-306-40615-8",
+        "short",
+        "not-an-isbn",
+        "123456789012345",
+    ]
+    for isbn in valid:
+        assert verify_isbn_checksum(isbn) is True, f"Expected {isbn} to be valid"
+    for isbn in invalid:
+        assert verify_isbn_checksum(isbn) is False, f"Expected {isbn} to be invalid"
