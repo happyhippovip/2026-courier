@@ -84,6 +84,14 @@ def group_exists(pgid):
     except ProcessLookupError:
         return False
     except PermissionError:
+        try:
+            out = subprocess.check_output(
+                ["ps", "-p", str(int(pgid)), "-o", "stat="],
+                text=True, timeout=1, stderr=subprocess.DEVNULL).strip()
+            if not out or "Z" in out:
+                return False
+        except Exception:
+            return False
         return True
 
 
@@ -112,6 +120,10 @@ def cleanup_group(proc, identity, grace=2.0):
             os.killpg(pgid, sig)
         except ProcessLookupError:
             return True
+        except PermissionError:
+            if not group_exists(pgid):
+                return True
+            return False
         deadline = time.monotonic() + grace
         while time.monotonic() < deadline:
             proc.poll()  # Reap our direct child; grandchildren may still remain.

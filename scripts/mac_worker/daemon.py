@@ -7,6 +7,9 @@ import signal
 # scripts/ must be importable before sibling imports: the daemon is launched
 # standalone (launchd WorkingDirectory=repo root, run_physical spawn), where
 # sys.path[0] is scripts/mac_worker/ and resource_governor is unreachable.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from resource_governor import governor
 from contextlib import nullcontext

@@ -35,7 +35,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from runtime_state import (CANONICAL_WORKSPACE, atomic_json, read_object, control_lock,
-                           process_identity, same_process, cleanup_group, sync_directory)
+                           process_identity, same_process, cleanup_group, sync_directory,
+                           group_exists)
 
 WALL_DIR = Path(os.environ.get("COURIER_WALL_DIR", Path.home() / "Downloads" / "courier_work" / "muse_wall"))
 SLOTS_FILE = WALL_DIR / "slots.json"
@@ -145,9 +146,10 @@ def read_macos_metrics():
         pressure = subprocess.check_output(["memory_pressure"], text=True, timeout=2)
         free = re.search(r"System-wide memory free percentage:\s*(\d+)%", pressure)
         used = re.search(r"used = ([\d.]+)M", swap)
-        if not free or not used:
+        load_m = re.search(r"\{\s*([\d.]+)", load)
+        if not free or not used or not load_m:
             return None
-        return {"swap_mb": float(used.group(1)), "load_1m": float(re.findall(r"[\d.]+", load)[0]),
+        return {"swap_mb": float(used.group(1)), "load_1m": float(load_m.group(1)),
                 "mem_free_pct": float(free.group(1))}
     except (OSError, subprocess.SubprocessError, IndexError, ValueError):
         return None
@@ -206,10 +208,24 @@ class ProcessLauncher:
             return False
         proc = self.children.get(slot_id)
         if proc is None:
-            # Recovered process: no waitpid ownership, but identity is verified.
             class Recovered:
-                def __init__(self, value): self.pid = int(value)
-                def poll(self): return None
+                def __init__(self, value):
+                    self.pid = int(value)
+                    self.returncode = None
+                def poll(self):
+                    if self.returncode is not None:
+                        return self.returncode
+                    try:
+                        pid, status = os.waitpid(self.pid, os.WNOHANG)
+                        if pid == self.pid:
+                            self.returncode = os.waitstatus_to_exitcode(status) if hasattr(os, "waitstatus_to_exitcode") else (status >> 8)
+                            return self.returncode
+                    except (ChildProcessError, OSError):
+                        pass
+                    if not group_exists(self.pid):
+                        self.returncode = 0
+                        return self.returncode
+                    return None
             proc = Recovered(pid)
         return cleanup_group(proc, identity)
 
@@ -375,11 +391,12 @@ def _stop(terminate=False, launcher=None):
     launcher = launcher or ProcessLauncher()
     slots = load_slots()
     for slot in slots.values():
-        if slot["state"] == RUNNING:
-            if terminate:
-                if not launcher.terminate(slot["slot_id"], slot.get("pid"), slot.get("process_identity")):
-                    slot["blocker"] = "CLEANUP_NOT_PROVEN: reconcile owned processes"
-        else:
+        if terminate and slot.get("pid"):
+            if not launcher.terminate(slot["slot_id"], slot.get("pid"), slot.get("process_identity")):
+                slot["blocker"] = "CLEANUP_NOT_PROVEN: reconcile owned processes"
+            else:
+                slot["pid"] = None
+        if terminate or slot["state"] != RUNNING:
             slot["state"] = STOPPED
     save_slots(slots)
     print("STOP set: no new starts or restarts.")
@@ -410,7 +427,12 @@ def _resume_slot(slot_id):
     return 0
 
 
-def cmd_status():
+def cmd_status(as_json=False):
+    if as_json:
+        slots = load_slots()
+        models = [slot_model(sid) for sid in sorted(slots.keys())]
+        print(json.dumps(models, indent=2))
+        return 0
     config = read_json(CONFIG_FILE, {})
     print(f"target={config.get('target', 4)}{' STOP' if STOP_FILE.exists() else ''}")
     print("slot\tstate\ttask\tphase\tbranch\tlast_commit\texit\trestarts\tcrashes\tnext")
@@ -422,6 +444,120 @@ def cmd_status():
                                          w["branch"] or "-", (w["last_commit"] or "-")[:10],
                                          slot.get("last_exit_code", "-"), slot.get("restart_count", 0),
                                          slot.get("crash_count", 0), w["next_task"] or "-")))
+    return 0
+
+
+def slot_model(slot_id):
+    """Formats a single slot into the 12 canonical fields required by Section E."""
+    slots = load_slots()
+    slot_data = slots.get(slot_id, {})
+    wv = worker_view(slot_id)
+    state = slot_data.get("state", "UNKNOWN")
+    pid = slot_data.get("pid")
+
+    if not pid:
+        proc_status = "NONE"
+    else:
+        proc_status = "ALIVE" if state == RUNNING else "REAPED"
+
+    backoff_until = slot_data.get("backoff_until", 0)
+    now = time.time()
+    backoff_remaining = max(0, int(backoff_until - now)) if backoff_until > now else 0
+    backoff_str = f"{backoff_remaining}s" if backoff_remaining > 0 else "NONE"
+
+    return {
+        "SLOT_ID": slot_id,
+        "HOST": slot_data.get("host") or "mac-antigravity",
+        "AGENT": slot_data.get("agent") or "MUSE",
+        "PROCESS_STATUS": proc_status,
+        "CURRENT_WORKKEY": wv.get("task_id") or "UNKNOWN",
+        "OWNER": slot_data.get("owner") or "happyhippovip",
+        "LEASE": slot_data.get("lease") or ("ACTIVE" if state == RUNNING else "EXPIRED"),
+        "LAST_ACTIVITY": slot_data.get("last_started_at") or slot_data.get("updated_at") or "UNKNOWN",
+        "BACKOFF": backoff_str,
+        "RESOURCE_STATUS": slot_data.get("resource_status") or "NORMAL",
+        "SOURCE_PROVENANCE": slot_data.get("source_provenance") or "scripts/mac_worker/muse_supervisor.py",
+        "VERIFICATION_STATUS": wv.get("next_task") or "PENDING",
+    }
+
+
+def bulletin_feed():
+    """Deterministic, zero-token bulletin generator per Section F."""
+    slots = load_slots()
+    models = [slot_model(sid) for sid in sorted(slots.keys())]
+    events = []
+    now_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+    if STOP_FILE.exists():
+        events.append({
+            "timestamp": now_iso,
+            "level": "CRITICAL",
+            "code": "RESOURCE_PAUSE_ACTIVE",
+            "message": "RESOURCE_PAUSE ist aktiv: Not-Aus STOP Datei sperrt alle Slots."
+        })
+
+    for s in models:
+        slot_id = s["SLOT_ID"]
+        state = s["PROCESS_STATUS"]
+        backoff = s["BACKOFF"]
+        workkey = s["CURRENT_WORKKEY"]
+        lease = s["LEASE"]
+        verif = s["VERIFICATION_STATUS"]
+
+        if state == "ALIVE":
+            events.append({
+                "timestamp": now_iso,
+                "level": "INFO",
+                "code": "SLOT_RUNNING",
+                "message": f"Slot {slot_id} wurde nachweisbar gestartet (Workkey: {workkey})."
+            })
+        elif backoff != "NONE":
+            events.append({
+                "timestamp": now_iso,
+                "level": "WARN",
+                "code": "SLOT_BACKOFF",
+                "message": f"Slot {slot_id} befindet sich im Backoff ({backoff} verbleibend)."
+            })
+        elif state == "NONE":
+            events.append({
+                "timestamp": now_iso,
+                "level": "INFO",
+                "code": "SLOT_WAITING",
+                "message": f"Slot {slot_id} wartet auf autorisierte Arbeitszuteilung."
+            })
+
+        if lease != "ACTIVE" and workkey != "UNKNOWN":
+            events.append({
+                "timestamp": now_iso,
+                "level": "ERROR",
+                "code": "LEASE_INVALID",
+                "message": f"Workkey {workkey} an Slot {slot_id} besitzt keinen gültigen Lease."
+            })
+
+        if verif == "PENDING" and workkey != "UNKNOWN":
+            events.append({
+                "timestamp": now_iso,
+                "level": "INFO",
+                "code": "VERIFIER_PENDING",
+                "message": f"Verifier-Ergebnis für Workkey {workkey} steht aus."
+            })
+
+    metrics = read_macos_metrics()
+    if metrics and metrics.get("load_1m", 0) > 10.0:
+        events.append({
+            "timestamp": now_iso,
+            "level": "WARN",
+            "code": "HOST_PRESSURE_HIGH",
+            "message": f"Hoststatus unter Druck: Load-1m bei {metrics.get('load_1m')}."
+        })
+
+    return events
+
+
+def cmd_bulletin():
+    events = bulletin_feed()
+    for e in events:
+        print(f"[{e['timestamp']}] [{e['level']}] [{e['code']}] {e['message']}")
     return 0
 
 
@@ -500,7 +636,9 @@ def main(argv=None):
     if argv[:1] == ["start"] and len(argv) > 1:
         return cmd_start(int(argv[1]), "--allow-64" in argv, "--no-loop" not in argv)
     if argv[:1] == ["status"]:
-        return cmd_status()
+        return cmd_status(as_json="--json" in argv)
+    if argv[:1] == ["bulletin"]:
+        return cmd_bulletin()
     if argv == ["canary"]:
         return cmd_canary()
     if argv[:1] == ["stop"]:
