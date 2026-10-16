@@ -227,6 +227,7 @@ class ProcessLauncher:
                 def __init__(self, value):
                     self.pid = int(value)
                     self.returncode = None
+                    self._recovered = True
                 def poll(self):
                     if self.returncode is not None:
                         return self.returncode

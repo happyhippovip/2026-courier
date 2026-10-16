@@ -104,7 +104,11 @@ def cleanup_group(proc, identity, grace=2.0):
     pgid = proc.pid
     if proc.poll() is not None and not group_exists(pgid):
         return True
-    is_direct_unreaped = isinstance(proc, subprocess.Popen) and proc.poll() is None
+    popen_cls = getattr(subprocess, "Popen", None)
+    is_direct_unreaped = (
+        (isinstance(popen_cls, type) and isinstance(proc, popen_cls))
+        or (hasattr(proc, "poll") and hasattr(proc, "wait") and not getattr(proc, "_recovered", False))
+    ) and proc.poll() is None
     if not is_direct_unreaped:
         if identity is None or identity.get("pgid") != pgid:
             return False
