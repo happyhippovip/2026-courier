@@ -676,3 +676,14 @@ adapter / verifier → live golden path.
 - Integrated `user_summary` into `GET /goals/<goal_id>` without breaking legacy clients, plus added dedicated `GET /goals/<goal_id>/grandma` endpoint.
 - Added comprehensive test suite in `tests/core/test_grandma_state_mapping.py` (9/9 passed).
 - 100% green CI across Ubuntu and Windows (12/12 checks passing).
+
+## Step 33 — PR #701, L4 Artifact Receipt & Provenance Verification
+### `integration/v1` merged `lane/L4-artifact-receipt` (commit `742c230ba`)
+- Implemented User Requirement 02 (`ops/ai/USER_REQUIREMENT_02_ARTIFACT_RECEIPT_AND_INTEGRITY.md`) in `courier_core/artifact_receipt.py`.
+- Formulated verifiable artifact receipt with byte sizes (`format_size`), shortened fingerprint (`format_fingerprint`), and deterministic integrity statuses (`VERIFIED_MATCH`, `EXTERNAL_PRODUCED`, `HASH_MISMATCH`, `MISSING_DATA`).
+- Guaranteed leak-free presentation without internal paths or server stack traces.
+- Added API route `GET /artifacts/<artifact_id>/receipt` to Flask Blueprint in `scripts/artifact_store.py`.
+- Added in-memory verification helper `verify_artifact_receipt(receipt, data)`.
+- Added comprehensive unit and integration test suite in `tests/core/test_artifact_receipt.py` (7/7 passed).
+- 100% green CI across Ubuntu and Windows (12/12 checks passing).
+
