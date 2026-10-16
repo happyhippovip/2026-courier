@@ -232,3 +232,67 @@ def test_isbn_checksum_offline_validation():
         assert verify_isbn_checksum(isbn) is True, f"Expected {isbn} to be valid"
     for isbn in invalid:
         assert verify_isbn_checksum(isbn) is False, f"Expected {isbn} to be invalid"
+
+
+def test_spider_retry_avoids_double_fetch(tmp_path):
+    fetch_counter = {"calls": 0}
+
+    def counting_fetch(u):
+        fetch_counter["calls"] += 1
+        return (u, PAGE)
+
+    store = ContentStore()
+    log1 = AcceptedLog(str(tmp_path / "try1.jsonl"))
+    log2 = AcceptedLog(str(tmp_path / "try2.jsonl"))
+
+    req1 = ResearchRequest("wk-r1", "https://example.org/cached", "conclusion supported", "https://example.org")
+    req2 = ResearchRequest("wk-r2", "https://example.org/cached", "conclusion supported", "https://example.org")
+
+    # First fetch: calls network
+    out1 = check_claim(req1, counting_fetch, store, log1, Clock())
+    assert out1["conclusion"] == "SUPPORTED"
+    assert fetch_counter["calls"] == 1
+
+    # Retry with same effect key: must read from store cache without double-fetch
+    out2 = check_claim(req2, counting_fetch, store, log2, Clock())
+    assert out2["conclusion"] == "SUPPORTED"
+    assert fetch_counter["calls"] == 1, "fetch must not be called again on retry with cached effect key"
+    assert out1["anchor"]["sha256"] == out2["anchor"]["sha256"]
+
+
+def test_spider_receipt_provenance_validation():
+    from courier_runtime.spider_slice import verify_spider_receipt_provenance
+    valid_receipt = {
+        "conclusion": "SUPPORTED",
+        "anchor": {
+            "sha256": "abc123456",
+            "url": "https://example.org/p",
+            "effect_key": "eff9999",
+        },
+    }
+    invalid_receipts = [
+        {},
+        {"conclusion": "UNKNOWN"},
+        {"conclusion": "SUPPORTED"},
+        {"conclusion": "SUPPORTED", "anchor": {"sha256": "abc"}},  # missing url & effect_key
+        {"conclusion": "SUPPORTED", "anchor": {"url": "https://example.org"}},  # missing sha256
+    ]
+    assert verify_spider_receipt_provenance(valid_receipt) is True
+    assert verify_spider_receipt_provenance({"conclusion": "BLOCKED", "reason": "denied"}) is True
+    for inv in invalid_receipts:
+        assert verify_spider_receipt_provenance(inv) is False
+
+
+def test_validate_spider_gate():
+    from courier_runtime.spider_slice import validate_spider_gate
+    req_good = ResearchRequest("wk", "https://example.org/p", "q", "https://example.org")
+    ok, err = validate_spider_gate(req_good)
+    assert ok is True and err is None
+
+    req_http = ResearchRequest("wk", "http://example.org/p", "q", "https://example.org")
+    ok, err = validate_spider_gate(req_http)
+    assert ok is False and "not https" in err
+
+    req_foreign = ResearchRequest("wk", "https://foreign.org/p", "q", "https://example.org")
+    ok, err = validate_spider_gate(req_foreign)
+    assert ok is False and "not the approved origin" in err
