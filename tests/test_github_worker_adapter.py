@@ -208,6 +208,7 @@ def test_durable_result_preserves_github_run_attempt():
     task = packet()
     result = {
         **packet(), "run_id": "99", "run_attempt": "1", "result_id": "result-dispatch-1",
+        "source_sha": "a" * 40,
         "status": "SUCCESS", "artifacts": [{"path": "courier_output_dispatch-1.json", "sha256": "a" * 64}],
     }
     assert validate_durable_result(task, result)["run_attempt"] == "1"

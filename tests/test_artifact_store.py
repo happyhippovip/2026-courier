@@ -99,7 +99,8 @@ TASK = dict(BINDING)
 
 
 def durable(artifacts):
-    return {**BINDING, "run_id": "r", "result_id": "result-1", "status": "SUCCESS", "artifacts": artifacts}
+    return {**BINDING, "run_id": "r", "result_id": "result-1", "source_sha": "a" * 40,
+            "status": "SUCCESS", "artifacts": artifacts}
 
 
 def test_contract_accepts_path_only_and_uploaded_references():

@@ -36,8 +36,8 @@ def claim(http, worker="WINDOWS-01"):
 
 
 def result_for(task, refs):
-    return {**{f: task[f] for f in IDS}, "run_id": "r1", "result_id": "result-1", "status": "SUCCESS",
-            "artifacts": refs}
+    return {**{f: task[f] for f in IDS}, "run_id": "r1", "result_id": "result-1", "source_sha": "a" * 40,
+            "status": "SUCCESS", "artifacts": refs}
 
 
 # ---------------------------------------------------------------- P3 patch

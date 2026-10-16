@@ -16,6 +16,7 @@ def _result(task, dispatch_id):
         "worker_id": task["worker_id"],
         "run_id": "pid-123",
         "result_id": "result-1",
+        "source_sha": "a" * 40,
         "status": "SUCCESS",
         "artifacts": [
             {"path": "bounded.txt", "sha256": hashlib.sha256(b"bounded\n").hexdigest()}
