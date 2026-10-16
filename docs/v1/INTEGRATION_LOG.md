@@ -707,7 +707,7 @@ adapter / verifier → live golden path.
 - Implemented canonical 12-field slot model (`slot_model(slot_id)`) and zero-token deterministic event bulletin feed (`bulletin_feed()`).
 - Added unit and integration test suite in `tests/test_muse_supervisor.py` (11/11 passed in 14.34s).
 ## Step 36 — PR #703, L2 Completion Certificate & Binding Goal Closure
-### `integration/v1` merged `lane/L2-completion-certificate`
+### `integration/v1` merged `lane/L2-completion-certificate` (commit `69950b719`)
 - Implemented User Acceptance Requirement O: Completion Certificate (Fertig-Zertifikat / Verbindlicher Abschluss) in `courier_core/completion_certificate.py`.
 - Authentic Completion Certificate: Quotable, tamper-evident certificate (`cert-<sha256>`) generated deterministically for completed goals.
 - Proof-Level Guarantee: Confirms all plan steps achieved independent verifier PASS (`proof_level: 'VERIFIED_CRYPTOGRAPHIC'`).
@@ -717,3 +717,17 @@ adapter / verifier → live golden path.
 - Wired `certificate` into `GET /goals/<goal_id>` without breaking backward compatibility, plus added dedicated `GET /goals/<goal_id>/certificate` endpoint.
 - Added comprehensive unit and contract test suite in `tests/core/test_completion_certificate.py` (6/6 passed).
 - 100% green CI across Ubuntu and Windows (12/12 checks passing).
+
+## Step 37 — PR #705, L3 Muse Wall V9 Operations & Kolibri Heartbeat Sync
+### `integration/v1` merged `lane/L3-muse-wall-ops-v9` (commit `7e1f8c300`)
+- Implemented discrete Muse Wall V9 operations per Section D:
+  - `WALL-AUFBAUEN` (`cmd_build`): Technical slot initialization (`work`, `logs`, `state`), writes configuration, sets up slot records in `slots.json`, strictly zero worker spawning.
+  - `WALL-ORDNEN` (`cmd_reconcile`): Reconciles live process table with slot records, cleans up orphaned or unowned child processes, updates state fail-closed to `IDLE` or `PAUSED_ERROR`, and clears stale blockers.
+  - `WALL-NOTAUS` (`cmd_notaus`): Emergency shutdown terminating all slot processes immediately with graceful `SIGTERM` followed by `SIGKILL` cleanup.
+  - Wired CLI aliases for operator ergonomics: `wall-aufbauen`, `wall-ordnen`, `wall-starten`, `wall-stoppen`, `wall-notaus`, `wall-status`, `wall-bulletin`, `wall-canary`, `wall-resume`.
+- Section F Kolibri synchronization:
+  - `save_slots` persists canonical `state.json` (`slot_id`, `state`, `process`, `updated_at`, `workdir`) in each slot's directory.
+  - `resolve_muse_wall` in `courier_hub/kolibri_data.py` seamlessly handles `WALL_DIR / "slots"` subdirectories when pointing to standard Courier wall paths.
+- Added 5 comprehensive test cases in `tests/test_muse_supervisor.py` (16/16 passed in 17.43s).
+- 100% green CI across Ubuntu and Windows (12/12 checks passing).
+
