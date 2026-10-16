@@ -22,12 +22,12 @@
     
     <div id="setup-view">
       <div class="step">
-        <label>1. What do you want to do?</label>
+        <label for="goal-text">1. What do you want to do?</label>
         <textarea id="goal-text" rows="3" placeholder="e.g. Test the physics engine collision..."></textarea>
       </div>
 
       <div class="step">
-        <label>2. Your AI Provider</label>
+        <label for="ai-provider">2. Your AI Provider</label>
         <select id="ai-provider">
           <option value="mac">Local Mac Worker</option>
           <option value="windows">Windows Worker</option>
@@ -35,15 +35,16 @@
       </div>
 
       <div class="step">
-        <label>3. Connection API Key</label>
+        <label for="api-key">3. Connection API Key</label>
         <input type="text" id="api-key" placeholder="Courier API Key" />
       </div>
 
       <div class="step" style="background: #fff3cd; padding: 10px; border-radius: 4px; border: 1px solid #ffeeba;">
-        <label>4. Approximate Cost / Risk</label>
+        <p id="cost-note-label"><strong>4. Approximate Cost / Risk</strong></p>
         <p style="margin: 0; font-size: 14px;">Estimated cost: <strong>$0.15</strong>. Courier requires read/write access to your work directory. Cryptographic proofs will be saved.</p>
       </div>
 
+      <p id="setup-error" role="alert" hidden></p>
       <button id="start-btn">Start Courier</button>
     </div>
 
@@ -52,27 +53,41 @@
       <div id="status-box" class="status">Connecting...</div>
       
       <div style="margin-top: 20px;">
-        <label>5. What result Courier is producing:</label>
-        <ul id="task-list"></ul>
+        <h2 id="task-list-label">5. What result Courier is producing:</h2>
+        <ul id="task-list" aria-labelledby="task-list-label"></ul>
       </div>
 
       <div style="margin-top: 20px;">
-        <label>6. When is Courier done?</label>
-        <div id="completion-box" style="font-weight: bold; color: #28a745;">Running...</div>
+        <h2 id="completion-label">6. When is Courier done?</h2>
+        <div id="completion-box" aria-labelledby="completion-label" style="font-weight: bold; color: #28a745;">Running...</div>
       </div>
     </div>
   </div>
 
+  <script src="pilot_form.js"></script>
   <script>
     document.getElementById('start-btn').addEventListener('click', async () => {
       const goalText = document.getElementById('goal-text').value;
       const apiKey = document.getElementById('api-key').value;
       const provider = document.getElementById('ai-provider').value;
-
-      if (!goalText || !apiKey) {
-        alert("Please provide goal and API key");
+      const error = document.getElementById('setup-error');
+      const missing = missingPilotFields(goalText, apiKey);
+      for (const id of ['goal-text', 'api-key']) {
+        document.getElementById(id).removeAttribute('aria-invalid');
+      }
+      if (missing.length) {
+        error.hidden = false;
+        error.textContent = pilotFieldError(missing);
+        for (const field of missing) {
+          const el = document.getElementById(field.id);
+          el.setAttribute('aria-invalid', 'true');
+          el.setAttribute('aria-describedby', 'setup-error');
+        }
+        document.getElementById(missing[0].id).focus();
         return;
       }
+      error.hidden = true;
+      error.textContent = '';
 
       document.getElementById('setup-view').classList.add('hidden');
       document.getElementById('progress-view').classList.remove('hidden');

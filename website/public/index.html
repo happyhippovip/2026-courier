@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Courier Symphony — Repo Reality Check</title>
     <meta name="description" content="Lösen Sie Entwicklungsblockaden in 48 Stunden. Buchen Sie unseren KI-gestützten Repo Reality Check für sofortige strategische Klarheit.">
+    <meta property="og:title" content="Courier Symphony — Repo Reality Check">
+    <meta property="og:description" content="Lösen Sie Entwicklungsblockaden in 48 Stunden. Buchen Sie unseren KI-gestützten Repo Reality Check für sofortige strategische Klarheit.">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="de_DE">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -147,19 +151,22 @@
             gap: 8px;
         }
 
+        .demo-section {
+            margin: 60px auto;
+            max-width: 800px;
+        }
+        
         .demo-terminal {
-            background-color: rgba(0, 0, 0, 0.6);
+            background-color: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
-            border-radius: 16px;
+            border-radius: 16px 16px 0 0;
             padding: 24px;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.95rem;
             color: var(--text-muted);
-            margin: 60px auto;
-            max-width: 800px;
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-            overflow: hidden;
+            min-height: 250px;
             text-align: left;
         }
 
@@ -167,6 +174,23 @@
             display: flex;
             gap: 8px;
             margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        .terminal-title {
+            color: #6b7280;
+            font-size: 0.8rem;
+            margin-left: auto;
+        }
+
+        .demo-controls {
+            background-color: rgba(255,255,255,0.02);
+            border: 1px solid var(--glass-border);
+            border-top: none;
+            border-radius: 0 0 16px 16px;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
         }
 
         .dot {
@@ -180,26 +204,44 @@
 
         .line {
             margin: 10px 0;
-            opacity: 0;
-            animation: fadeIn 0.1s forwards;
             display: flex;
             align-items: center;
             gap: 12px;
         }
-
-        .line::before {
-            content: '❯';
-            color: var(--accent);
-        }
-        .line.sys::before { content: ''; }
-
-        .line:nth-child(2) { animation-delay: 0.5s; }
-        .line:nth-child(3) { animation-delay: 1.5s; }
-        .line:nth-child(4) { animation-delay: 2.2s; }
-        .line:nth-child(5) { animation-delay: 3.5s; color: var(--success); }
         
-        @keyframes fadeIn {
-            to { opacity: 1; }
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 80px;
+        }
+        
+        .step-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 30px;
+            position: relative;
+        }
+        
+        .step-number {
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: var(--accent);
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+        }
+        
+        .step-card h3 {
+            color: #fff;
+            margin-top: 10px;
         }
 
         .features {
@@ -286,9 +328,18 @@
             .hero { padding: 60px 0; }
             .footer-content { flex-direction: column; text-align: center; }
         }
+        @media (max-width: 720px) {
+            .hero { overflow: visible; align-items: flex-start; }
+        }
+        .skip { position: absolute; left: -999px; top: 8px; background: #030712; color: #fff; padding: 8px 12px; z-index: 50; text-decoration: none; }
+        .skip:focus, .skip:focus-visible { left: 12px; }
+        a:focus-visible, button:focus-visible { outline: 2px solid #3b82f6; outline-offset: 3px; }
+        :target, #inhalt { scroll-margin-top: 88px; }
+        nav{background:#000}
     </style>
 </head>
 <body>
+    <a class="skip" href="#inhalt">Zum Inhalt</a>
     <div class="container">
         <header>
             <a href="#" class="logo">
@@ -300,13 +351,14 @@
             <span class="badge">Repo Reality Check Beta</span>
         </header>
 
-        <main>
+        <main id="inhalt">
             <section class="hero">
+                <iframe src="assets/bird/bird.html#embed" title="Dekorative Animation: ein Vogel trägt Umschläge zwischen Agenten. Keine Auftragsdaten und kein Status." tabindex="-1"></iframe>
                 <h1>Lösen Sie Entwicklungsblockaden in 48 Stunden.</h1>
                 <p>Courier Symphony orchestriert spezialisierte KI-Agenten, die echten Code prüfen, Architektur-Engpässe identifizieren und verifizierte Lösungen liefern – fehlerfrei dokumentiert in unserem Ledger.</p>
                 <p id="kundennutzen" class="lead">Sie bekommen einen schriftlichen Prüfbericht zum festen Preis. Ein Mensch liest den Bericht, bevor er geliefert wird.</p>
                 
-                <a href="https://buy.stripe.com/test_beta" class="cta-button">
+                <a href="#angebote" class="cta-button">
                     Repo Audit buchen (5,00 €)
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                 </a>
@@ -317,20 +369,48 @@
                 </div>
             </section>
 
-            <section class="demo-terminal">
-                <div class="terminal-header">
-                    <div class="dot red"></div>
-                    <div class="dot yellow"></div>
-                    <div class="dot green"></div>
+            <section class="demo-section" id="angebote">
+                <div class="demo-terminal" id="demo-terminal">
+                    <div class="terminal-header">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                        <span class="terminal-title">courier-symphony-audit ~ bash</span>
+                    </div>
+                    <div class="terminal-content" id="terminal-content">
+                        <div class="line" style="opacity: 1;">Bereit für Repo-Analyse. Klicken Sie auf "Audit starten".</div>
+                    </div>
                 </div>
-                <div class="line">[Ledger] Initialisiere Repo Reality Check für Kundencode...</div>
-                <div class="line">[Analyzer] Scanne Commit-Historie und identifiziere fehlende Testabdeckung.</div>
-                <div class="line">[Foundry Engine] Synthetisiere Architekturfehler: Circular Dependency in Modul B.</div>
-                <div class="line">[Overlay] Erstelle lösungsorientierten 48-Stunden-Bericht...</div>
-                <div class="line sys">➔ Check erfolgreich. PDF-Bericht generiert und zur Überprüfung bereit.</div>
+                <div class="demo-controls">
+                    <button class="cta-button" id="start-audit-btn" onclick="runAuditDemo()">
+                        Audit Simulation starten
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    </button>
+                </div>
             </section>
 
-            <section class="features">
+            <section class="how-it-works">
+                <h2 style="text-align: center; color: #fff; margin-bottom: 40px;">So funktioniert's</h2>
+                <div class="steps-grid">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <h3>Repo-Zugriff & Checkpoint</h3>
+                        <p>Sie geben uns (Lese-)Zugang zu Ihrem Repository. Unser System erstellt einen sicheren, initialen Ledger-Checkpoint und identifiziert sofort veraltete Branches und offene PRs.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <h3>Deep-Scan & Synthese</h3>
+                        <p>KI-Agenten wie Muse und Codex scannen parallel nach Architektur-Fehlern, fehlenden Tests und Sicherheitslücken (z.B. Secret-Leaks oder ungeschützte Endpunkte).</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <h3>Der 48h-Bericht</h3>
+                        <p>Innerhalb von 48 Stunden erhalten Sie einen lösungsorientierten Bericht (Foundry Synthesis) mit konkreten Handlungsempfehlungen, um Blockaden aufzulösen und Kosten zu senken.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="features" id="vision">
                 <div class="feature-card">
                     <h3>Ungeschönte Wahrheit</h3>
                     <p>Wir scannen Ihr privates oder öffentliches Repository tiefgründig und decken Architekturfehler sowie tote Enden schonungslos auf. Kein Bullshit, nur Fakten.</p>
@@ -343,8 +423,85 @@
                     <h3>Foundry Synthesis</h3>
                     <p>Unsere eigens entwickelte Foundry Engine aggregiert Code-Beweise zu klaren, strategischen Handlungsempfehlungen für Ihr gesamtes Entwicklungsteam.</p>
                 </div>
+                <p style="grid-column: 1 / -1; margin-top: 20px; font-size: 0.9rem; color: var(--text-muted); text-align: center;">
+                    Das ist eine Vision, kein Angebot und kein Leistungsversprechen. Heute bieten wir ausschließlich die oben genannten Leistungen an.
+                </p>
             </section>
         </main>
+
+        <script>
+            function typeText(element, text, speed, callback) {
+                let i = 0;
+                element.innerHTML = text.startsWith('[System]') ? text : '> ';
+                if (text.startsWith('[System]')) {
+                    callback();
+                    return;
+                }
+                
+                function typeChar() {
+                    if (i < text.length) {
+                        element.innerHTML += text.charAt(i);
+                        i++;
+                        setTimeout(typeChar, speed);
+                    } else {
+                        callback();
+                    }
+                }
+                typeChar();
+            }
+
+            function runAuditDemo() {
+                const btn = document.getElementById('start-audit-btn');
+                const content = document.getElementById('terminal-content');
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                content.innerHTML = '';
+                
+                const lines = [
+                    "[Ledger] Initialisiere Repo Reality Check...",
+                    "[Host] Spawn Worker 'Mac AntiGravity' für Website-Prüfung...",
+                    "[Analyzer] Analysiere 'integration/v1' Branch...",
+                    "[Foundry] WARNUNG: PR #128 gemergt, aber Tests schlagen fehl.",
+                    "[Muse] Analysiere Code-Pfade: Circular Dependency in 'local_swarm_claim.py' gefunden.",
+                    "[Ledger] CLAIM-Schritt Fehler erkannt (Write-Abort nicht behandelt).",
+                    "[Codex] Generiere Patch zur Fehlerbehebung...",
+                    "[System] ➔ Check abgeschlossen. Bericht bereit zur Überprüfung."
+                ];
+
+                let currentLine = 0;
+
+                function processNextLine() {
+                    if (currentLine >= lines.length) {
+                        setTimeout(() => {
+                            btn.disabled = false;
+                            btn.style.opacity = '1';
+                            btn.innerHTML = 'Erneut testen <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>';
+                        }, 1000);
+                        return;
+                    }
+
+                    const text = lines[currentLine];
+                    const div = document.createElement('div');
+                    div.className = 'line sys';
+                    
+                    if (text.startsWith('[System]')) {
+                        div.style.color = 'var(--success)';
+                        div.style.fontWeight = 'bold';
+                    } else if (text.includes('WARNUNG') || text.includes('Fehler')) {
+                        div.style.color = '#f59e0b';
+                    }
+
+                    content.appendChild(div);
+
+                    typeText(div, text, 15 + Math.random() * 20, () => {
+                        currentLine++;
+                        setTimeout(processNextLine, 300 + Math.random() * 500);
+                    });
+                }
+                
+                processNextLine();
+            }
+        </script>
 
         <footer>
             <div class="footer-content">

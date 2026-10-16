@@ -146,6 +146,9 @@ def check_pilot_gate_readiness(evidence=None):
         expected_sha=evidence.get("final_sha"),
     )
     files_ok = all(report["prerequisites"][name] for name in FILE_PREREQUISITES)
+    gaps = [name for name in FILE_PREREQUISITES if not report["prerequisites"][name]]
+    report["pre_codex_evidence_gaps"] = gaps
+    report["pre_codex_evidence_gap_count"] = len(gaps)
     report["reason"] = "Missing prerequisites" if not files_ok else "PRE_CODEX_NOT_READY"
     print(json.dumps(report, indent=2))
     return 1

@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Courier Symphony — Repo Reality Check</title>
     <meta name="description" content="Lösen Sie Entwicklungsblockaden in 48 Stunden. Buchen Sie unseren KI-gestützten Repo Reality Check für sofortige strategische Klarheit.">
+    <meta property="og:title" content="Courier Symphony — Repo Reality Check">
+    <meta property="og:description" content="Lösen Sie Entwicklungsblockaden in 48 Stunden. Buchen Sie unseren KI-gestützten Repo Reality Check für sofortige strategische Klarheit.">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="de_DE">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -324,9 +328,18 @@
             .hero { padding: 60px 0; }
             .footer-content { flex-direction: column; text-align: center; }
         }
+        @media (max-width: 720px) {
+            .hero { overflow: visible; align-items: flex-start; }
+        }
+        .skip { position: absolute; left: -999px; top: 8px; background: #030712; color: #fff; padding: 8px 12px; z-index: 50; text-decoration: none; }
+        .skip:focus, .skip:focus-visible { left: 12px; }
+        a:focus-visible, button:focus-visible { outline: 2px solid #3b82f6; outline-offset: 3px; }
+        :target, #inhalt { scroll-margin-top: 88px; }
+        nav{background:#000}
     </style>
 </head>
 <body>
+    <a class="skip" href="#inhalt">Zum Inhalt</a>
     <div class="container">
         <header>
             <a href="#" class="logo">
@@ -338,13 +351,14 @@
             <span class="badge">Repo Reality Check Beta</span>
         </header>
 
-        <main>
+        <main id="inhalt">
             <section class="hero">
+                <iframe src="assets/bird/bird.html#embed" title="Dekorative Animation: ein Vogel trägt Umschläge zwischen Agenten. Keine Auftragsdaten und kein Status." tabindex="-1"></iframe>
                 <h1>Lösen Sie Entwicklungsblockaden in 48 Stunden.</h1>
                 <p>Courier Symphony orchestriert spezialisierte KI-Agenten, die echten Code prüfen, Architektur-Engpässe identifizieren und verifizierte Lösungen liefern – fehlerfrei dokumentiert in unserem Ledger.</p>
                 <p id="kundennutzen" class="lead">Sie bekommen einen schriftlichen Prüfbericht zum festen Preis. Ein Mensch liest den Bericht, bevor er geliefert wird.</p>
                 
-                <a href="https://buy.stripe.com/test_beta" class="cta-button">
+                <a href="#angebote" class="cta-button">
                     Repo Audit buchen (5,00 €)
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                 </a>
@@ -355,7 +369,7 @@
                 </div>
             </section>
 
-            <section class="demo-section">
+            <section class="demo-section" id="angebote">
                 <div class="demo-terminal" id="demo-terminal">
                     <div class="terminal-header">
                         <div class="dot red"></div>
@@ -396,7 +410,7 @@
                 </div>
             </section>
 
-            <section class="features">
+            <section class="features" id="vision">
                 <div class="feature-card">
                     <h3>Ungeschönte Wahrheit</h3>
                     <p>Wir scannen Ihr privates oder öffentliches Repository tiefgründig und decken Architekturfehler sowie tote Enden schonungslos auf. Kein Bullshit, nur Fakten.</p>
@@ -409,6 +423,9 @@
                     <h3>Foundry Synthesis</h3>
                     <p>Unsere eigens entwickelte Foundry Engine aggregiert Code-Beweise zu klaren, strategischen Handlungsempfehlungen für Ihr gesamtes Entwicklungsteam.</p>
                 </div>
+                <p style="grid-column: 1 / -1; margin-top: 20px; font-size: 0.9rem; color: var(--text-muted); text-align: center;">
+                    Das ist eine Vision, kein Angebot und kein Leistungsversprechen. Heute bieten wir ausschließlich die oben genannten Leistungen an.
+                </p>
             </section>
         </main>
 
