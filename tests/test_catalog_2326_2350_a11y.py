@@ -3,8 +3,11 @@
 Static files plus the pure pilot field check. No network and no spend.
 """
 import re
+import shutil
 import subprocess
+import sys
 from pathlib import Path
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 BIRD_TEXT = (
@@ -58,9 +61,12 @@ def test_studio_directive_has_a_matching_label():
     assert 'id="human-idea-input"' in html
 
 
-def test_pilot_field_errors_name_the_missing_fields():
+def test_pilot_field_errors_name_the_missing_fields(tmp_path):
+    if not shutil.which("node"):
+        pytest.skip("node is not installed")
     script = r"""
-const { missingPilotFields, pilotFieldError } = require(process.argv[1]);
+const target = process.argv[2] || process.argv[1];
+const { missingPilotFields, pilotFieldError } = require(target);
 function check(goal, key) {
   const missing = missingPilotFields(goal, key);
   return JSON.stringify({ ids: missing.map(m => m.id), text: pilotFieldError(missing) });
@@ -73,9 +79,12 @@ const cases = [
 ];
 for (const [goal, key] of cases) console.log(check(goal, key));
 """
+    runner = tmp_path / "runner.js"
+    runner.write_text(script, encoding="utf-8")
+    use_shell = sys.platform == "win32"
     out = subprocess.run(
-        ["node", "-e", script, str(FORM_JS)],
-        check=True, capture_output=True, text=True,
+        ["node", str(runner), str(FORM_JS)],
+        check=True, capture_output=True, text=True, shell=use_shell,
     )
     lines = out.stdout.splitlines()
     assert "goal-text" in lines[0] and "api-key" in lines[0]
@@ -84,8 +93,8 @@ for (const [goal, key] of cases) console.log(check(goal, key));
     assert "api-key" in lines[2] and "goal-text" not in lines[2]
     assert lines[3] == '{"ids":[],"text":""}'
     again = subprocess.run(
-        ["node", "-e", script, str(FORM_JS)],
-        check=True, capture_output=True, text=True,
+        ["node", str(runner), str(FORM_JS)],
+        check=True, capture_output=True, text=True, shell=use_shell,
     )
     assert again.stdout == out.stdout
 
