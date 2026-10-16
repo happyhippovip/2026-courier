@@ -115,7 +115,13 @@ def test_unrecognised_receipt_does_not_call_a_schedule_a_resumption():
 
 
 def test_needs_you_renderer_shows_the_next_action():
+    import os
+    import shutil
     import subprocess
+
+    node = shutil.which("node") or shutil.which("node.cmd") or shutil.which("node.exe")
+    if not node:
+        pytest.skip("node is not installed")
 
     script = """
 import { renderCard } from './courier_hub/static/hub_core.mjs';
@@ -129,5 +135,6 @@ if (!html.includes(next) || !html.includes(why)) {
   process.exit(1);
 }
 """
-    result = subprocess.run(["node", "--input-type=module", "-e", script], capture_output=True, text=True, check=False)
+    result = subprocess.run([node, "--input-type=module", "-e", script], capture_output=True, text=True, check=False, shell=(os.name == "nt"))
     assert result.returncode == 0, result.stdout + result.stderr
+
