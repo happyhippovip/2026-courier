@@ -223,6 +223,7 @@ def submit_goal():
 @app.route("/goals/<goal_id>", methods=["GET"])
 @require_auth
 def get_goal(goal_id):
+    from courier_core.cost_transparency import derive_goal_cost_summary
     from courier_core.grandma_state import derive_user_state
 
     state = load_state()
@@ -231,7 +232,13 @@ def get_goal(goal_id):
         return jsonify({"error": "Unknown goal"}), 404
     tasks = [task for task in state["tasks"].values() if task.get("goal_id") == goal_id]
     user_summary = derive_user_state(goal, state)
-    return jsonify({"goal": goal, "tasks": tasks, "user_summary": user_summary})
+    cost_summary = derive_goal_cost_summary(goal, state)
+    return jsonify({
+        "goal": goal,
+        "tasks": tasks,
+        "user_summary": user_summary,
+        "cost_summary": cost_summary,
+    })
 
 
 @app.route("/goals/<goal_id>/grandma", methods=["GET"])
@@ -244,6 +251,19 @@ def get_goal_grandma_state(goal_id):
     if not goal:
         return jsonify({"error": "Unknown goal"}), 404
     return jsonify(derive_user_state(goal, state))
+
+
+@app.route("/goals/<goal_id>/cost", methods=["GET"])
+@require_auth
+def get_goal_cost(goal_id):
+    from courier_core.cost_transparency import derive_goal_cost_summary
+
+    state = load_state()
+    goal = state["goals"].get(goal_id)
+    if not goal:
+        return jsonify({"error": "Unknown goal"}), 404
+    return jsonify(derive_goal_cost_summary(goal, state))
+
 
 @app.route("/workers", methods=["GET"])
 @require_auth
