@@ -105,7 +105,7 @@ class CourierScheduler:
         probe_provider(connection, capability, timeout_s) must enforce its supplied
         I/O deadline using the existing bounded connector/worker runtime.
         """
-        if primary_provider == "codex" and state_path is None:
+        if primary_provider in ("codex", "claude") and state_path is None:
             raise ValueError("Codex continuity requires durable state_path")
         self.primary_provider = primary_provider
         self.state_path = Path(state_path) if state_path is not None else None
@@ -114,6 +114,7 @@ class CourierScheduler:
             Provider(id="muse", is_authorized=True, capabilities=["completion"]),
             Provider(id="gemini", is_authorized=True, capabilities=["completion"]),
             Provider(id="codex", is_authorized=False, capabilities=["completion"]),
+            Provider(id="claude", is_authorized=False, capabilities=["completion"]),
         ]
         if self.state_path is not None and providers is None:
             self.providers = [Provider(id=p.id, capabilities=p.capabilities) for p in self.providers]

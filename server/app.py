@@ -200,7 +200,7 @@ def submit_goal():
             target_agent = str(step.get("target_agent", "linux")).lower()
             if "github" in target_agent:
                 target_agent = "github"
-            elif "windows" in target_agent or "codex" in target_agent:
+            elif "windows" in target_agent or "codex" in target_agent or "claude" in target_agent:
                 target_agent = "windows"
             elif "mac" in target_agent or "antigravity" in target_agent or "gemini" in target_agent:
                 target_agent = "mac"
