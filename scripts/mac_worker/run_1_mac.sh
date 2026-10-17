@@ -10,7 +10,7 @@ rm -f ledger_run1.db
 touch ledger_run1.db
 
 echo "== RUN_1: Port & Process Isolation =="
-if lsof -i :8080 | grep -q "LISTEN"; then
+if lsof -iTCP:8080 -sTCP:LISTEN >/dev/null 2>&1; then
     echo "ERROR: Port 8080 is already in use. Run aborted."
     exit 1
 fi

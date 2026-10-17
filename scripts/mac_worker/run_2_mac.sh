@@ -23,7 +23,7 @@ echo "== RUN_2: Checking Port Conflicts =="
 # Wait to ensure port is freed by OS
 sleep 2
 
-if lsof -i :8080 | grep -q "LISTEN"; then
+if lsof -iTCP:8080 -sTCP:LISTEN >/dev/null 2>&1; then
     echo "ERROR: Port 8080 is still in use after kill. Port-conflict recovery failed."
     exit 1
 fi
