@@ -1,7 +1,10 @@
-import pytest
 import os
 import tempfile
 from unittest.mock import patch, MagicMock
+
+import pytest
+
+pytest.importorskip("tkinter")
 
 from courier_overlay.layout_engine import LayoutEngine, WindowAdapter, Screen, Rect
 from courier_overlay.state_machine import OverlayStateMachine
