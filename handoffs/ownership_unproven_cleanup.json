@@ -1,0 +1,36 @@
+{
+  "WORKKEY": "OWNERSHIP-UNPROVEN-CLEANUP",
+  "OWNER": "codex-cloud",
+  "BRANCH": "codex/ownership-unproven-cleanup",
+  "HEAD/COMMIT": "b3af8aa1ea6361812aaed4781b351579b2f0eca8",
+  "CURRENT_STATE": "FINAL",
+  "MUTABLE_SCOPE": "courier_runtime.ownership identity and unresolved cleanup receipts",
+  "FILES": [
+    "courier_runtime/ownership.py",
+    "tests/test_runtime_ownership.py",
+    "handoffs/ownership_unproven_cleanup.json"
+  ],
+  "OWNERSHIP_EVIDENCE": "Open PRs #132-#159 inspected; none touch selected files; integration refreshed unchanged.",
+  "TEST_EVIDENCE": [
+    {
+      "command": ".venv/bin/python -m pytest -q tests/test_runtime_ownership.py tests/test_runtime_snapshot.py tests/test_runtime_continuity.py --timeout=30",
+      "passed": 48,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 10.28,
+      "platform": "Linux"
+    },
+    {
+      "command": "git diff --check",
+      "exit_status": 0
+    }
+  ],
+  "UNPROVEN": [
+    "remote CI",
+    "Windows-native cleanup",
+    "automatic descendant reconciliation when a cleanup-pending parent disappears"
+  ],
+  "NEXT_EXACT_ACTION": "L1 review PR #160; reuse recorded tests and preserve unresolved descendant cleanup evidence.",
+  "OWNERSHIP_STATE": "PR_REVIEW_OWNER",
+  "PR": 160
+}
