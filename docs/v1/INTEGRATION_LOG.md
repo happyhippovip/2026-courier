@@ -748,5 +748,33 @@ adapter / verifier → live golden path.
 - Verified with `python3 scripts/build_windows_exe.py --check` (`SPEC OK`) and `tests/test_windows_exe_build.py` (5 passed, 1 skipped).
 - 100% green CI across Ubuntu and Windows (12/12 checks passing).
 
+## Step 40 — PR #304, L2 Worker Tokens (P6)
+### `integration/v1` merged `lane/L2-worker-tokens-P6` (commit `8cf9179c`)
+- TokenStore: mint/verify/revoke/get/purge, salted sha256, fail-closed.
+- Pre-merge CI green: Acceptance ubuntu+windows, desktop JS, golden ratchet, pytest ubuntu+windows — all PASS.
+- Merged under Founder-Lease 2026-10-17 (READY-shortlist, sequenced single-writer).
+
+## Step 41 — PR #315, L4 Adapter-Bridge Pins (P9)
+### `integration/v1` merged `lane/L4-adapter-bridge-P9-adapter_bridge` (commit `77373ae0`)
+- Offline contract pins for `courier_worker.adapter_bridge`.
+- Pre-merge CI green (same gate set, all PASS). Founder-Lease 2026-10-17.
+
+## Step 42 — PR #316, L4 Adapter-Runner Pins (P9)
+### `integration/v1` merged `lane/L4-adapter-runner-P9-adapter_runner` (commit `1a5d4735`)
+- Spawned-process contract pins for `courier_worker.adapter_runner`.
+- Pre-merge CI green (same gate set, all PASS). Founder-Lease 2026-10-17.
+
+## Step 43 — PR #318, L4 Verification Pins (P9)
+### `integration/v1` merged `lane/L4-verification-tests-P9` (commit `23d71495`)
+- Test hardening for `courier_core.verification`.
+- Pre-merge CI green (same gate set, all PASS). Founder-Lease 2026-10-17.
+
+## Step 44 — PR #319, L4 Service Pins (P9)
+### `integration/v1` merged `lane/L4-service-tests-P9` (commit `6d252048`)
+- Test hardening for `courier_worker.service`.
+- Pre-merge CI green (same gate set, all PASS, Bugbot skipping). Founder-Lease 2026-10-17.
+
+Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-receipt proof card) landed on trunk via parallel L1 action during this window (tip `388246a5d`); steps above cover only the five lease-scoped merges.
+
 
 
