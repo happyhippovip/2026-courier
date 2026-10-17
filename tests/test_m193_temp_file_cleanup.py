@@ -36,6 +36,10 @@ def simulate_fixed_tmp_crash(test_dir: Path):
     leaked = list(test_dir.glob("*.tmp"))
     assert len(leaked) == 1, f"Expected 1 leaked file, got {len(leaked)}"
     assert temp_path.read_text(encoding="utf-8") == "partial2"
+def test_m193_temp_file_cleanup(tmp_path):
+    simulate_chief_commander_crash(tmp_path)
+    simulate_fixed_tmp_crash(tmp_path)
+
 
 if __name__ == "__main__":
     with TemporaryDirectory() as td:
