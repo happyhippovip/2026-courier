@@ -146,6 +146,7 @@ courier.db-shm
 /courier_canary_*.txt
 # outputs legacy scripts and workflows write into the repo root (history copies in attic/)
 /central_state.json
+central_state.json.lock
 /dummy_task_2.json
 /dummy_task_3.json
 /founder_concierge_result.json
