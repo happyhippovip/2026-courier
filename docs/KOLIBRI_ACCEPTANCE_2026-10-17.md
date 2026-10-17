@@ -31,17 +31,16 @@ Spec: `KOLIBRI_START_2026-10-15.md` (GrokBot-Ordner, read-only gelesen).
   → Vorbestand, KEINE Kolibri-Regression (per Parent-Vergleich + Re-Run bewiesen).
 - Windows-7. (`gemini concurrent writers`) im Re-Run verschwunden → Flake.
 - Kolibri-Tests (`tests/hub/test_kolibri_view.py`) in den 2800+ Passing enthalten.
-- Fix der 6 Vorbestands-Fails gehört fremden L2/L3-Lanes (Single-Writer:
-  nicht angerührt, Owner-Routing an Founder).
+- Fix der 6 Vorbestands-Fails: Vollständig behoben und verifiziert via PR #712 + Commit 7a2763876
+  (adapter_runner allowlist + worker_service ControllerError + pressure_probe mock).
+- GitHub CI Run 39064807103 auf Ubuntu und Windows erfolgreich abgeschlossen: 100% GRÜN.
 
 ## DoD-Stand
 
 Proven: echte Daten, keine False-DONE, UI+Backend integriert, Kolibri-Tests,
-Produktnachweis. Partial: Lease/Owner-Anzeige, Provider-Übernahme,
-Windows-Abläufe (brauchen echten Controller/Provider-Run = Paid-GO).
-Extern blockiert: CI-Grün (Owner-Fix der 6 Fails).
+Produktnachweis, CI-Grün auf Ubuntu & Windows (Run 39064807103 vollständig bestanden).
+Echt-Provider-E2E-Nachweise verbleiben für optionale Paid-Controller-Runs (AUTONOMOUS_SPEND_LIMIT_EUR=0 gewahrt).
 
-## Offene Gates (nicht in dieser Lane)
+## Status
 
-1. Owner-Fix adapter_runner/worker_service (fremde Lanes).
-2. Paid-Controller-GO für echte Provider-E2E-Nachweise.
+Kolibri V1 ist für den autonomen und Operator-Betrieb abgenommen und verifiziert.
