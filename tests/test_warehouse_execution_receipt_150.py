@@ -276,6 +276,8 @@ def test_warehouse_receipt_duplicate_idempotency_and_conflict_rejection(catalog,
         required_capability="orchestration",
         task_id="task-wh-dupe",
         goal_id="goal-wh-dupe",
+        workkey=WORKKEY,
+        source_sha=SOURCE_SHA,
         artifacts=["out.txt"],
     )
     raw_result = {
@@ -285,6 +287,8 @@ def test_warehouse_receipt_duplicate_idempotency_and_conflict_rejection(catalog,
         "dispatch_id": task["dispatch_id"],
         "worker_id": task["worker_id"],
         "owner": task["owner"],
+        "workkey": task["workkey"],
+        "source_sha": task["source_sha"],
         "run_id": "run-dupe",
         "status": "SUCCESS",
     }
