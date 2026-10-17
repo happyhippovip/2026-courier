@@ -42,6 +42,36 @@ def test_broken_resource_does_not_abort_stabilize():
     
     assert good_res.terminated is True # Handled safely
 
+def test_still_running_process_is_not_a_proven_cleanup():
+    """terminate() returning is not proof. A live process stays cleanup-unknown."""
+    import subprocess
+    import sys
+
+    import psutil
+
+    child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
+    try:
+        class Resource:
+            def is_alive(self):
+                return child.poll() is None
+
+            def safe_to_retire(self):
+                return True
+
+            def terminate(self):
+                return None
+
+        hg = HostGuardian()
+        hg.state = HostState.STABILIZING
+        hg.stabilize([Resource()])
+        assert hg.cleanup_unknown is True
+        assert psutil.Process(child.pid).is_running()
+    finally:
+        if child.poll() is None:
+            child.kill()
+            child.wait()
+
+
 def test_idle_bit_alone_cannot_kill():
     hg = HostGuardian()
     hg.state = HostState.STABILIZING
