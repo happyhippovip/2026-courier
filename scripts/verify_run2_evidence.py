@@ -30,8 +30,10 @@ def verify_run2_evidence(evidence_dir="artifacts/run2"):
         if not res or res[0] != 'RECONCILED':
             errors.append(f"Task B is not RECONCILED. Current: {res[0] if res else 'MISSING'}")
     
-    # 3. Check for Task A re-execution
-    if os.path.exists(server_log):
+    # 3. Check for Task A re-execution. A missing log is not evidence of no replay.
+    if not os.path.exists(server_log):
+        errors.append("server_run2.log is missing")
+    else:
         with open(server_log, "r") as f:
             content = f.read()
             if "Claimed task A" in content or "Result for task A" in content:
