@@ -56,7 +56,7 @@ def _make_request(
 
 def test_allowed_adapters_frozen():
     assert isinstance(adapter_runner.ALLOWED, frozenset)
-    assert adapter_runner.ALLOWED == frozenset({"synthetic"})
+    assert adapter_runner.ALLOWED == frozenset({"synthetic", "local_shell", "provider_exec"})
 
 
 # -- Unit: _write_report -----------------------------------------------------
@@ -140,7 +140,6 @@ def test_main_rejects_non_dict_json(tmp_path: Path, raw_payload, capsys: pytest.
 @pytest.mark.parametrize("bad_adapter", [
     "shell",
     "bash",
-    "local_shell",
     "unknown",
     "",
     123,
@@ -400,3 +399,12 @@ def test_adapter_bridge_read_report_compatible(tmp_path: Path):
     assert report is not None
     assert report["outcome"] == "success"
     assert report["retryable"] is False
+
+
+def test_main_local_shell_without_valid_command_fails_closed(tmp_path: Path, capsys: pytest.CaptureFixture):
+    # local_shell is allowlisted since provider wiring; it must still refuse
+    # a request without a valid argv (fail-closed, exit 2).
+    req = _make_request(tmp_path, adapter="local_shell")
+    code = adapter_runner.main([str(req)])
+    assert code == 2
+    assert "params rejected" in capsys.readouterr().err

@@ -185,9 +185,10 @@ def test_controller_client_claim():
     with patch.object(client, "_call", return_value=(204, None)):
         assert client.claim("w1") is None
 
-    # 200 with non-dict
+    # 200 with non-dict is a contract failure: fail closed, never "no work"
     with patch.object(client, "_call", return_value=(200, "string-not-dict")):
-        assert client.claim("w1") is None
+        with pytest.raises(S.ControllerError, match="claim: status 200"):
+            client.claim("w1")
 
     # ControllerError
     with patch.object(client, "_call", side_effect=S.ControllerError("timeout")):
@@ -210,14 +211,14 @@ def test_controller_client_start():
         with pytest.raises(S.StaleDispatch, match="rejects dispatch d1: 409"):
             client.start("d1")
 
-    # Non-200 -> StaleDispatch
+    # Other non-200 -> ControllerError (claim stays owned server-side)
     with patch.object(client, "_call", return_value=(400, None)):
-        with pytest.raises(S.StaleDispatch, match="status 400"):
+        with pytest.raises(S.ControllerError, match="status 400"):
             client.start("d1")
 
-    # ControllerError -> StaleDispatch
+    # Transport errors propagate as ControllerError (transient, not stale)
     with patch.object(client, "_call", side_effect=S.ControllerError("connection reset")):
-        with pytest.raises(S.StaleDispatch, match="connection reset"):
+        with pytest.raises(S.ControllerError, match="connection reset"):
             client.start("d1")
 
 
@@ -774,6 +775,7 @@ def test_worker_loop_iterate_host_shutdown_abandoned(tmp_path):
     mock_client.claim.return_value = claim
 
     mock_engine = MagicMock()
+    mock_engine._pressure_probe.return_value = None  # NORMAL host, see #167
     spec = S.resolve_spec(claim, "w1", str(tmp_path / "artifacts"), 1.0, home=str(tmp_path))
     result = ExecutionResult(spec=spec, outcome=Outcome.CANCELLED, returncode=-15)
     mock_engine.run_once.return_value = result
@@ -801,6 +803,7 @@ def test_worker_loop_iterate_task_cancelled_delivers_and_beats(tmp_path):
     mock_client.claim.return_value = claim
 
     mock_engine = MagicMock()
+    mock_engine._pressure_probe.return_value = None  # NORMAL host, see #167
     spec = S.resolve_spec(claim, "w1", str(tmp_path / "artifacts"), 1.0, home=str(tmp_path))
     result = ExecutionResult(spec=spec, outcome=Outcome.CANCELLED, returncode=-15)
 
