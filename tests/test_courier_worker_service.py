@@ -218,8 +218,11 @@ def test_controller_client_start():
 
     # Transport errors propagate as ControllerError (transient, not stale)
     with patch.object(client, "_call", side_effect=S.ControllerError("connection reset")):
-        with pytest.raises(S.ControllerError, match="connection reset"):
+        with pytest.raises(S.ControllerError, match="connection reset") as excinfo:
             client.start("d1")
+        # StaleDispatch subclasses ControllerError; a transport error must not
+        # be reclassified as stale (the claim stays owned, retry is allowed).
+        assert not isinstance(excinfo.value, S.StaleDispatch)
 
 
 def test_controller_client_heartbeat():
