@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/happyhippovip/2026-courier/schemas/pending_action_record.schema.json",
+  "title": "Pending Action Record",
+  "description": "Durable queue for next actions discovered during a mission.",
+  "type": "object",
+  "required": [
+    "action_id", "priority", "source_role_id", "risk_class", "dedupe_key", "status"
+  ],
+  "properties": {
+    "action_id": {"type": "string", "minLength": 1},
+    "priority": {"type": "integer"},
+    "source_role_id": {"type": "string", "minLength": 1},
+    "dependency_action_ids": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "risk_class": {"type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]},
+    "dedupe_key": {"type": "string", "minLength": 1},
+    "status": {"type": "string", "enum": ["PENDING", "DISPATCHED", "CANCELLED", "SUPERSEDED"]},
+    "payload": {"type": "object"}
+  }
+}

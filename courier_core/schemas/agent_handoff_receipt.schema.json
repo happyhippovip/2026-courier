@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/happyhippovip/2026-courier/schemas/agent_handoff_receipt.schema.json",
+  "title": "Agent Handoff Receipt",
+  "description": "Delta-only structured handoff from an agent to the Chief or another agent.",
+  "type": "object",
+  "required": [
+    "origin", "agent_instance", "assignment_id", "host_os", "authority",
+    "created_at", "status", "new_findings", "changed_findings",
+    "resolved_findings", "blocking_findings", "evidence", "actions_taken",
+    "production_files_modified", "waiting_for", "safe_parallel_work",
+    "next_independent_task", "recommended_next_agent", "continuation_gate",
+    "wait_resume_contract", "previous_receipt_hash", "receipt_hash"
+  ],
+  "properties": {
+    "origin": {"type": "string", "minLength": 1},
+    "agent_instance": {"type": "string", "minLength": 1},
+    "assignment_id": {"type": "string", "minLength": 1},
+    "host_os": {"type": "string", "enum": ["WINDOWS", "MACOS", "LINUX", "UNKNOWN"]},
+    "authority": {"type": "string", "enum": ["READ_ONLY", "MUTABLE_L1", "MUTABLE_L2", "MUTABLE_L3", "MUTABLE_L4", "MUTABLE_L5", "MUTABLE_L6"]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "source_freeze_id": {"type": ["string", "null"]},
+    "status": {"type": "string", "enum": ["NEW", "CHANGED", "BLOCKING", "RESOLVED", "UNCHANGED", "UNKNOWN", "NO_MATERIAL_DELTA", "WAITING_DEPENDENCY"]},
+    "new_findings": {"type": "array", "items": {"type": "string"}},
+    "changed_findings": {"type": "array", "items": {"type": "string"}},
+    "resolved_findings": {"type": "array", "items": {"type": "string"}},
+    "blocking_findings": {"type": "array", "items": {"type": "string"}},
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "hash", "type"],
+        "properties": {
+          "path": {"type": "string"},
+          "hash": {"type": "string"},
+          "command": {"type": "string"},
+          "result": {"type": "string"},
+          "type": {"type": "string"}
+        }
+      }
+    },
+    "actions_taken": {"type": "array", "items": {"type": "string"}},
+    "production_files_modified": {"type": "array", "items": {"type": "string"}},
+    "waiting_for": {"type": "array", "items": {"type": "string"}},
+    "safe_parallel_work": {"type": "array", "items": {"type": "string"}},
+    "next_independent_task": {"type": "string"},
+    "recommended_next_agent": {"type": "string"},
+    "continuation_gate": {"type": "string", "enum": ["OPEN", "BLOCKED", "HUMAN_REQUIRED", "DEPENDENCY_REQUIRED"]},
+    "wait_resume_contract": {"type": "string"},
+    "previous_receipt_hash": {"type": ["string", "null"]},
+    "receipt_hash": {"type": "string"}
+  }
+}
