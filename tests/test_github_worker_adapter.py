@@ -459,6 +459,7 @@ def _workflow_python_blocks() -> list[str]:
 
 
 def _claimed_github_task(tmp_path, monkeypatch):
+    pytest.importorskip("flask")
     from server import app as server_app
 
     monkeypatch.setattr(server_app, "STATE_FILE", str(tmp_path / "state.json"))
