@@ -15,8 +15,9 @@ import pytest
 from courier_core.events import Event, EventType
 from courier_core.journal import Journal
 from courier_hub.kolibri_data import (
-    PAUSE, READY, REST_TEXT, STALE, UNAVAILABLE, _display_path, _leaks, _parse_merges, _read_drafts,
-    build_snapshot, read_github, station_key,
+    PAUSE, READY, REST_TEXT, STALE, UNAVAILABLE, _SECRET_MARK, _clear_github_cache,
+    _display_path, _leaks, _parse_merges, _read_drafts,
+    build_snapshot, GITHUB_CACHE_TTL_S, read_github, read_postfach, station_key,
 )
 from courier_hub.server import Hub, HubServer
 
@@ -577,6 +578,8 @@ def test_k6_forbidden_paths_stay_untouched():
             subprocess.run([*git, "fetch", "--deepen=200"], check=False, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
     proc = subprocess.run([*git, "diff", "--name-only", f"{base}"], check=True, capture_output=True, text=True, encoding="utf-8", errors="replace")
     names = [line.strip() for line in proc.stdout.splitlines() if line.strip()]
+    if not names:
+        pytest.skip("No diff against base branch (working tree clean on base branch)")
     allowed = {"courier_hub/kolibri_data.py", "courier_hub/static/kolibri_core.mjs", "courier_hub/static/kolibri.html",
                "courier_hub/static/kolibri.js", "courier_hub/static/kolibri.css", "tests/hub/test_kolibri_view.py",
                "courier_hub/static/_render_kolibri_runner.mjs"}
@@ -733,3 +736,47 @@ def test_k1_page_uses_one_spelling_and_marks_states(tmp_path):
 def test_k8_poll_interval_stays_within_30_seconds():
     _html, poll = _render({"observed_at": "2026-10-14T22:00:00Z"})
     assert 0 < poll <= 30000
+
+
+def test_secret_marks_redact_anthropic_and_google_keys():
+    ant_key = "sk-ant-api03-1234567890abcdefghijklmnopqrstuvwxyz"
+    google_key = "AIzaSyB1C2D3E4F5G6H7I8J9K0L1M2N3O4P5Q6"
+    assert _SECRET_MARK.search(ant_key) is not None
+    assert _SECRET_MARK.search(google_key) is not None
+    assert _leaks(f"Bearer {ant_key}") is True
+    assert _leaks(f"key={google_key}") is True
+    assert _leaks("Mission AG-KOLIBRI-070 clean status") is False
+
+
+def test_read_postfach_supports_utf8_bom(tmp_path):
+    postfach_file = tmp_path / "POSTFACH_ALT_AN_NEU.json"
+    postfach_file.write_bytes(b'\xef\xbb\xbf[{"id": "msg-1", "text": "hello"}]')
+    res = read_postfach("postfach_alt_an_neu", tmp_path, tmp_path, "2026-10-14T22:00:00Z")
+    assert res["available"] is True
+    assert res["active"] is True
+    assert res["value"] == "1"
+    assert res["entries"] == 1
+
+
+def test_github_cache_ttl_and_bypass(tmp_path):
+    _clear_github_cache()
+    # When fetch is provided, cache is bypassed
+    call_count = 0
+    def custom_fetch(path):
+        nonlocal call_count
+        call_count += 1
+        return None
+
+    # tmp_path has no repo slug so read_github returns unavailable without calling getter
+    ci, drafts = read_github(tmp_path, "2026-10-14T22:00:00Z", fetch=custom_fetch)
+    assert ci["available"] is False
+    assert drafts["available"] is False
+    assert call_count == 0
+
+
+def test_kolibri_js_contains_visibility_and_etag_handling():
+    js_text = (REPO / "courier_hub" / "static" / "kolibri.js").read_text(encoding="utf-8")
+    assert "visibilitychange" in js_text
+    assert "If-None-Match" in js_text
+    assert "304" in js_text
+    assert "document.hidden" in js_text

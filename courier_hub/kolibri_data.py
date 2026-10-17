@@ -12,6 +12,7 @@ import os
 import re
 import subprocess
 import threading
+import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
@@ -29,7 +30,10 @@ _SLOT_ID = re.compile(r"^MUSE-(\d+)$")
 _SQUASH_PR = re.compile(r"\(#(\d+)\)\s*$")
 _MERGE_PR = re.compile(r"^Merge pull request #(\d+)\b")
 _GITHUB_SLUG = re.compile(r"github\.com[:/](?P<owner>[^/]+)/(?P<repo>[^/.]+)")
-_SECRET_MARK = re.compile(r"(ghs_|ghp_|github_pat_|x-access-token)", re.I)
+_SECRET_MARK = re.compile(
+    r"(ghs_|ghp_|github_pat_|x-access-token|sk-ant-[0-9a-zA-Z_\-]{10,}|AIzaSy[0-9a-zA-Z_\-]{20,})",
+    re.I,
+)
 FLOWERS = (
     "muse_wall",
     "ledger",
@@ -47,6 +51,14 @@ _POSTFACH = {
 _MISSION_FIELDS = ("status", "reason", "task_id")
 _merge_cache_lock = threading.Lock()
 _merge_cache: dict[str, tuple[str, str, list[dict]]] = {}
+_github_cache_lock = threading.Lock()
+_github_cache: dict[str, tuple[float, tuple[dict, dict]]] = {}
+GITHUB_CACHE_TTL_S = 60.0
+
+
+def _clear_github_cache() -> None:
+    with _github_cache_lock:
+        _github_cache.clear()
 
 
 def utc_now() -> str:
@@ -140,7 +152,7 @@ def _leaks(text: str) -> bool:
     if "~" in text or _UNC.search(text) or _DRIVE.search(text):
         return True
     lowered = text.lower()
-    if any(mark in lowered for mark in ("ghs_", "ghp_", "github_pat_")):
+    if any(mark in lowered for mark in ("ghs_", "ghp_", "github_pat_", "sk-ant-", "aizasy")):
         return True
     if any(email != _ALLOWED_EMAIL for email in _EMAIL.findall(text)):
         return True
@@ -252,7 +264,7 @@ def read_merged_prs(root: Path, observed_at: str) -> dict:
     source = f"git log {ref}"
     try:
         head = subprocess.run(
-            ["git", "-C", str(root), "log", "-1", "--pretty=format:%H%x1f%cI", ref],
+            ["git", "-C", str(root), "log", "-1", "--pretty=format:%H%x1f%cI", ref, "--"],
             check=True, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=20,
         )
         head_sha, _, head_at = head.stdout.partition("\x1f")
@@ -268,7 +280,7 @@ def read_merged_prs(root: Path, observed_at: str) -> dict:
             rows = cached[2]
         else:
             log = subprocess.run(
-                ["git", "-C", str(root), "log", ref, "--pretty=format:%H%x1f%cI%x1f%s"],
+                ["git", "-C", str(root), "log", ref, "--pretty=format:%H%x1f%cI%x1f%s", "--"],
                 check=True, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
             )
             rows = _parse_merges(log.stdout, source)
@@ -609,7 +621,7 @@ def read_postfach(flower: str, home: Optional[Path], root: Path, observed_at: st
         block["entries"] = None
         return block
     try:
-        text = chosen.read_text(encoding="utf-8")
+        text = chosen.read_text(encoding="utf-8-sig")
     except (OSError, UnicodeError):
         block = _unavailable(name, observed_at)
         block["entries"] = None
@@ -690,11 +702,30 @@ def read_github(root: Path, observed_at: str, fetch=None) -> tuple[dict, dict]:
         ci["checks"] = []
         drafts["rows"] = []
         return ci, drafts
+
+    if fetch is None:
+        now = time.monotonic()
+        cache_key = f"{root.resolve()}|{slug}"
+        with _github_cache_lock:
+            cached = _github_cache.get(cache_key)
+            if cached is not None and (now - cached[0]) < GITHUB_CACHE_TTL_S:
+                ci_cached, drafts_cached = cached[1]
+                ci_copy = dict(ci_cached)
+                ci_copy["observed_at"] = observed_at
+                drafts_copy = dict(drafts_cached)
+                drafts_copy["observed_at"] = observed_at
+                return ci_copy, drafts_copy
+
     getter = fetch if fetch is not None else _github_get
     status = getter(f"/repos/{slug}/commits/{MERGED_REF}/status")
     pulls = getter(f"/repos/{slug}/pulls?state=open&base={MERGED_REF}&per_page=100")
     ci = _read_ci(status, ci_source, observed_at)
     drafts = _read_drafts(pulls, pr_source, observed_at)
+
+    if fetch is None:
+        with _github_cache_lock:
+            _github_cache[cache_key] = (now, (dict(ci), dict(drafts)))
+
     return ci, drafts
 
 

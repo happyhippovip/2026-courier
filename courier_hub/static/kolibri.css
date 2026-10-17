@@ -16,14 +16,14 @@ section h2, .flower h2 { font-size: 13px; text-transform: uppercase; letter-spac
 .flower[data-active="yes"] .flower-mark { color: var(--gold); }
 #kolibri-activity { margin: 8px 0 0; font-size: 16px; }
 .state-legend { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 0 0 12px; }
-.state-legend li, .card[data-state] { border-left: 4px solid var(--line); padding-left: 8px; }
-.state-ready { border-left-color: #2f7d32; }
-.state-stale { border-left-color: #b8860b; }
-.state-pause { border-left-color: #6b6b6b; }
-.state-fehler { border-left-color: #a12626; }
-.state-leerlauf { border-left-color: #3d6f8f; }
-.state-beendet { border-left-color: #5c4d7a; }
-.state-pausiert { border-left-color: #8a6a2f; }
+.state-legend li, .card[data-state] { border-left: 5px solid var(--line); padding-left: 8px; }
+.state-ready { border-left-color: #388e3c; }
+.state-stale { border-left-color: #d49a00; }
+.state-pause { border-left-color: #808080; }
+.state-fehler { border-left-color: #c62828; }
+.state-leerlauf { border-left-color: #438cb8; }
+.state-beendet { border-left-color: #7b62a6; }
+.state-pausiert { border-left-color: #a87e38; }
 .state-unknown { border-left-color: var(--quiet); }
 @media (max-width: 700px) {
   .counts, .garden { grid-template-columns: 1fr; }
