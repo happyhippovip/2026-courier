@@ -117,5 +117,49 @@ def test_evaluate_result_and_decide_pass_no_next(tmp_path):
         workflow_id="wf1",
         result_file=result_file
     )
-    # Passed value gate, but no next task
-    assert decision.decision == "COMPLETE"
+    # A model PASS is not progress without a grant, a workkey, and a known resource state.
+    assert decision.decision == "PAUSE"
+    assert decision.next_task is None
+    reason = decision.reason.lower()
+    assert "grant" in reason
+    assert "workkey" in reason
+    assert "resource" in reason
+
+
+def test_suggestion_without_grant_workkey_or_resource_state_pauses(tmp_path):
+    chief = ChiefCommander(repo_dir=tmp_path)
+    assert chief.resource_intelligence is None
+    result_file = tmp_path / "result.json"
+    result_file.write_text(json.dumps({
+        "payload": {
+            "verdict": "PASS",
+            "confidence": 0.99,
+            "data": "model suggested the next step",
+        },
+        "source": "antigravity",
+    }), encoding="utf-8")
+    decision = chief.evaluate_result_and_decide(
+        task_id="t-gate",
+        correlation_id="c-gate",
+        workflow_id="wf-gate",
+        result_file=result_file,
+        workflow_plan=[
+            {
+                "task_id": "wf-gate-STEP-1",
+                "instruction": "completed step",
+                "target_agent": "antigravity",
+            },
+            {
+                "task_id": "wf-gate-STEP-2",
+                "instruction": "continue from the model suggestion",
+                "target_agent": "antigravity",
+            },
+        ],
+        round_index=0,
+    )
+    assert decision.decision == "PAUSE"
+    assert decision.next_task is None
+    reason = decision.reason.lower()
+    assert "grant" in reason
+    assert "workkey" in reason
+    assert "resource" in reason
