@@ -235,6 +235,67 @@ def test_resume_restores_exact_checkpoint():
     assert restored.authority_boundary == "PRESERVED"
 
 
+def test_resume_partial_failure_reports_and_stays_hibernated():
+    def boom(name):
+        raise RuntimeError(f"reacquire failed for {name}")
+
+    lane = LaneHibernator()
+    lane.register_resource("gpu", kind="provider", reacquire_hook=boom)
+    lane.register_resource("watcher", kind="watcher",
+                           reacquire_hook=lambda name: None)
+    lane.hibernate(_checkpoint())
+    assert lane.state == LaneState.HIBERNATED
+    restored = lane.resume()  # never raises for a failing hook
+    assert restored.task_id == "t-prov"
+    assert lane.resume_report == {"reacquired": ["watcher"], "failed": ["gpu"]}
+    assert lane.state == LaneState.HIBERNATED
+    assert lane.resources["gpu"].released is True  # still out, truthfully
+    assert lane.resources["watcher"].released is False
+    assert lane.to_dict()["resume_report"]["failed"] == ["gpu"]
+    rebuilt = LaneHibernator.from_dict(lane.to_dict())
+    assert rebuilt.state == LaneState.HIBERNATED
+    assert rebuilt.resume_report["failed"] == ["gpu"]
+
+
+class _Ctx:
+    def __enter__(self):
+        return {"workkey": "wk1", "mutable_scope": "scope1",
+                "next_units": ["t-prov"], "next_action": "go"}
+
+    def __exit__(self, *args):
+        return False
+
+
+def test_failed_reacquire_parks_wake_without_executing(tmp_path):
+    def boom(name):
+        raise RuntimeError(f"reacquire failed for {name}")
+
+    lane = LaneHibernator()
+    lane.register_resource("provider:muse", "provider", reacquire_hook=boom)
+    cp = ContinuationCheckpoint(workkey="wk1", mutable_scope="scope1",
+                               provider_connection_id="muse",
+                               open_provider_units=["t-prov"])
+    lane.hibernate(cp)
+    assert lane.state == LaneState.HIBERNATED
+    executed = []
+    sched = CourierScheduler(
+        primary_provider="muse", state_path=str(tmp_path / "cont.json"),
+        providers=[Provider(id="muse", is_authorized=True,
+                            capabilities=["completion"])],
+        refresh_repository=lambda c: {"repo_sha": "abc", "branch": "integration/v1"},
+        reconcile_ownership=lambda c, truth: _Ctx(),
+        authority_check=lambda p, t, c: True,
+        execute_provider=lambda p, t, c: executed.append(t.task_id) or {"status": "DONE", "evidence": ["ref1"]},
+        execute_local=lambda t, c: {"status": "DONE", "evidence": ["ref0"]},
+    )
+    tasks = [TaskContext(task_id="t-prov", required_capability="completion",
+                         fingerprint="fp1")]
+    assert sched.handle_wake("w1", tasks, hibernator=lane, checkpoint=cp) == "WAITING_RESOURCE_CONNECTOR"
+    assert executed == []
+    assert lane.state == LaneState.HIBERNATED
+    assert lane.resume_report["failed"] == ["provider:muse"]
+
+
 def test_restart_reconstructs_hibernated_lane():
     released = []
     lane = _hibernator_with_resources(released)

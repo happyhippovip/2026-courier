@@ -139,6 +139,7 @@ class LaneHibernator:
         self.reacquire_hooks: Dict[str, Callable[[str], None]] = {}
         self.checkpoint: Optional[ContinuationCheckpoint] = None
         self.release_report: Dict[str, Any] = {}
+        self.resume_report: Dict[str, Any] = {}
 
     def register_resource(
         self,
@@ -195,19 +196,39 @@ class LaneHibernator:
         return dict(self.release_report)
 
     def resume(self) -> ContinuationCheckpoint:
+        """Reacquire released resources and return the checkpoint.
+
+        Never raises for a failing hook: failures are collected into
+        resume_report (mirroring hibernate()'s failed[] accounting) and the
+        lane stays HIBERNATED until everything is really reacquired.
+        res.released flips to False only after its own hook succeeds, so a
+        partial resume is never mistaken for a live lane. Callers that would
+        execute provider work must check resume_report["failed"] first.
+        """
         if self.state != LaneState.HIBERNATED:
             raise RuntimeError("lane is not HIBERNATED")
         if self.checkpoint is None:
             raise RuntimeError("no checkpoint to resume from")
-        
-        for name, res in self.resources.items():
-            if res.released:
-                hook = self.reacquire_hooks.get(name)
-                if hook is not None:
-                    hook(name)  # Failure must not pretend the resource is acquired.
-                res.released = False
-                
-        self.state = LaneState.ACTIVE
+
+        reacquired: List[str] = []
+        failed: List[str] = []
+        for res in self.resources.values():
+            if not res.released:
+                continue
+            hook = self.reacquire_hooks.get(res.name)
+            if hook is not None:
+                try:
+                    hook(res.name)
+                except Exception:
+                    failed.append(res.name)
+                    continue
+            res.released = False
+            reacquired.append(res.name)
+        self.resume_report = {
+            "reacquired": sorted(reacquired),
+            "failed": sorted(failed),
+        }
+        self.state = LaneState.ACTIVE if not failed else LaneState.HIBERNATED
         return self.checkpoint
 
     def to_dict(self) -> Dict[str, Any]:
@@ -215,6 +236,7 @@ class LaneHibernator:
             "state": self.state.value,
             "checkpoint": self.checkpoint.to_dict() if self.checkpoint else None,
             "release_report": self.release_report,
+            "resume_report": self.resume_report,
             "resources": {
                 name: {
                     "kind": res.kind,
@@ -230,6 +252,7 @@ class LaneHibernator:
         lane = cls()
         lane.state = LaneState(data.get("state", "ACTIVE"))
         lane.release_report = dict(data.get("release_report", {}))
+        lane.resume_report = dict(data.get("resume_report", {}))
         if data.get("checkpoint"):
             lane.checkpoint = ContinuationCheckpoint.from_dict(data["checkpoint"])
         for name, spec in (data.get("resources") or {}).items():
