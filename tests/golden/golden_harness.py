@@ -74,6 +74,39 @@ def pids_alive(pids):
     return alive
 
 
+def process_identities(pids):
+    """Snapshot (pid, create_time) for the processes those PIDs are right now.
+
+    A later liveness check must use the create time. PIDs are reused, so a
+    bare PID that outlives the gap between a hard kill and the assertion can
+    belong to a different process.
+    """
+    identities = []
+    for pid in pids:
+        try:
+            proc = psutil.Process(pid)
+            if proc.status() == psutil.STATUS_ZOMBIE:
+                continue
+            identities.append((int(pid), float(proc.create_time())))
+        except (psutil.Error, TypeError, ValueError):
+            continue
+    return identities
+
+
+def identities_alive(identities):
+    alive = []
+    for pid, created in identities:
+        try:
+            proc = psutil.Process(pid)
+            if proc.status() == psutil.STATUS_ZOMBIE:
+                continue
+            if abs(proc.create_time() - created) <= 0.05:
+                alive.append(pid)
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    return alive
+
+
 def descendants(pid):
     try:
         children = psutil.Process(pid).children(recursive=True)
