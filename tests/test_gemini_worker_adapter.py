@@ -164,3 +164,88 @@ def test_main_negative(tmp_path, monkeypatch):
         
     assert os.path.exists("dummy_task_3.json")
     assert os.path.exists("gemini_result_task-gemini-003-invalid.json")
+
+
+def test_consume_corrupt_state_fails_closed(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    corrupt_content = "NOT_VALID_JSON{{"
+    with open("central_state.json", "w") as f:
+        f.write(corrupt_content)
+        
+    res_json = {"status": "SUCCESS", "dispatch_ref": "ref1", "pid": 12}
+    with pytest.raises(ValueError, match="corrupt JSON"):
+        gemini_worker_adapter.consume(res_json, "task_fail", "ref.json")
+        
+    # File content must NOT be overwritten or wiped to empty tasks
+    with open("central_state.json", "r") as f:
+        assert f.read() == corrupt_content
+
+
+def test_consume_missing_tasks_key_fails_closed(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    with open("central_state.json", "w") as f:
+        json.dump({"not_tasks": 123}, f)
+        
+    res_json = {"status": "SUCCESS", "dispatch_ref": "ref1", "pid": 12}
+    with pytest.raises(ValueError, match="missing 'tasks' object"):
+        gemini_worker_adapter.consume(res_json, "task_fail", "ref.json")
+
+
+def test_consume_custom_state_file(tmp_path):
+    custom_state = tmp_path / "custom_state.json"
+    res_json = {"status": "SUCCESS", "dispatch_ref": "ref1", "pid": 12}
+    gemini_worker_adapter.consume(res_json, "task_custom", "ref.json", state_file=str(custom_state))
+    
+    assert custom_state.exists()
+    state = json.loads(custom_state.read_text())
+    assert "task_custom" in state["tasks"]
+    assert state["tasks"]["task_custom"]["reconciled_status"] == "SUCCESS"
+
+
+def test_consume_concurrent_writers_preserve_all_records(tmp_path):
+    import threading
+    state_file = tmp_path / "concurrent_state.json"
+    
+    def worker_thread(tid, status):
+        res = {"status": status, "dispatch_ref": f"ref-{tid}", "pid": 100}
+        gemini_worker_adapter.consume(res, tid, f"res_{tid}.json", state_file=str(state_file))
+        
+    threads = [
+        threading.Thread(target=worker_thread, args=(f"task-{i}", "SUCCESS" if i % 2 == 0 else "FAILED"))
+        for i in range(10)
+    ]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join(timeout=30)
+        
+    state = json.loads(state_file.read_text())
+    assert len(state["tasks"]) == 10
+    for i in range(10):
+        tid = f"task-{i}"
+        assert tid in state["tasks"]
+        expected_status = "SUCCESS" if i % 2 == 0 else "FAILED"
+        assert state["tasks"][tid]["reconciled_status"] == expected_status
+
+
+def test_run_worker_with_state_file(tmp_path, monkeypatch):
+    task_file = tmp_path / "task.json"
+    custom_state = tmp_path / "worker_state.json"
+    task_file.write_text(json.dumps({"task_id": "gemini-custom", "instruction": "echo"}))
+    
+    mock_process = mock.Mock()
+    mock_process.pid = 4321
+    mock_process.communicate.return_value = ("{\"status\": \"SUCCESS\"}", "")
+    
+    monkeypatch.chdir(tmp_path)
+    with mock.patch("subprocess.Popen", return_value=mock_process):
+        pid, d_ref, r_ref = gemini_worker_adapter.run_worker(str(task_file), state_file=str(custom_state))
+        
+    assert pid == 4321
+    assert custom_state.exists()
+    state = json.loads(custom_state.read_text())
+    assert "gemini-custom" in state["tasks"]
+    assert state["tasks"]["gemini-custom"]["reconciled_status"] == "SUCCESS"
+    if os.path.exists(tmp_path / r_ref):
+        os.remove(tmp_path / r_ref)
+
