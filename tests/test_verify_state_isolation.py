@@ -46,8 +46,10 @@ def test_verify_state_isolation_success(capsys, mock_fs):
 def test_verify_state_isolation_missing_dir(capsys, mock_fs):
     mock_fs['exists'].return_value = False
     m_exit = run_script()
-    mock_fs['makedirs'].assert_called_once()
-    m_exit.assert_called_once_with(0)
+    captured = capsys.readouterr()
+    assert "STATE ISOLATION VALID" not in captured.out
+    mock_fs['makedirs'].assert_not_called()
+    m_exit.assert_called_once_with(1)
 
 def test_verify_state_isolation_stale_files(capsys, mock_fs):
     mock_fs['listdir'].return_value = ["file1.txt"]
