@@ -45,6 +45,7 @@ _POSTFACH = {
 _MISSION_FIELDS = ("status", "reason", "task_id")
 _merge_cache_lock = threading.Lock()
 _merge_cache: dict[str, tuple[str, str, list[dict]]] = {}
+_github_api_cache: dict[str, tuple[float, Optional[object]]] = {}
 
 
 def utc_now() -> str:
@@ -496,7 +497,14 @@ def _github_slug(root: Path) -> Optional[str]:
 
 
 def _github_get(path: str) -> Optional[object]:
+    now_mono = threading.current_thread()  # keep import-free monotonic via datetime
+    now_ts = datetime.now(timezone.utc).timestamp()
+    with _merge_cache_lock:
+        cached = _github_api_cache.get(path)
+        if cached is not None and (now_ts - cached[0]) <= 15.0:
+            return cached[1]
     token = (os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN") or "").strip()
+    result = None
     if token:
         request = urllib.request.Request(
             "https://api.github.com" + path,
@@ -507,22 +515,22 @@ def _github_get(path: str) -> Optional[object]:
             },
         )
         try:
-            with urllib.request.urlopen(request, timeout=5) as response:
-                return json.loads(response.read().decode("utf-8"))
+            with urllib.request.urlopen(request, timeout=3) as response:
+                result = json.loads(response.read().decode("utf-8"))
         except (OSError, UnicodeError, json.JSONDecodeError, urllib.error.URLError, ValueError):
-            return None
-    try:
-        proc = subprocess.run(
-            ["gh", "api", path], check=False, capture_output=True, text=True, timeout=8,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return None
-    if proc.returncode != 0 or not proc.stdout.strip():
-        return None
-    try:
-        return json.loads(proc.stdout)
-    except json.JSONDecodeError:
-        return None
+            result = None
+    else:
+        try:
+            proc = subprocess.run(
+                ["gh", "api", path], check=False, capture_output=True, text=True, timeout=3,
+            )
+            if proc.returncode == 0 and proc.stdout.strip():
+                result = json.loads(proc.stdout)
+        except (OSError, subprocess.SubprocessError, json.JSONDecodeError):
+            result = None
+    with _merge_cache_lock:
+        _github_api_cache[path] = (now_ts, result)
+    return result
 
 
 def read_github(root: Path, observed_at: str, fetch=None) -> tuple[dict, dict]:
@@ -663,4 +671,10 @@ def build_snapshot(hub, *, root: Optional[Path] = None, wall: Optional[Path] = N
 
 
 def snapshot_for_hub(hub) -> dict:
-    return build_snapshot(hub)
+    return build_snapshot(
+        hub,
+        root=getattr(hub, "kolibri_root", None),
+        wall=getattr(hub, "kolibri_wall", None),
+        wall_label=getattr(hub, "kolibri_wall_label", None),
+        github_fetch=getattr(hub, "github_fetch", None),
+    )

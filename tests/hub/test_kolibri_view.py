@@ -39,7 +39,9 @@ process.stdout.write(JSON.stringify({ html, poll: mod.POLL_MS, rest: mod.REST_TE
 
 
 def _hub(home: Path) -> Hub:
-    return Hub(home, "http://127.0.0.1:9", actor="desktop:kolibri", timeout_s=0.2)
+    hub = Hub(home, "http://127.0.0.1:9", actor="desktop:kolibri", timeout_s=0.2)
+    hub.github_fetch = OFFLINE
+    return hub
 
 
 def _journal(home: Path, title: str, task_id: str = "kolibri-ledger") -> None:

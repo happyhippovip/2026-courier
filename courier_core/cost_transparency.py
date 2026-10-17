@@ -88,13 +88,13 @@ def derive_goal_cost_summary(
                 cost_class = COST_CLASS_LOW
 
         norm_cost = str(cost_class).lower()
-        if norm_cost == COST_CLASS_HIGH:
-            steps_payg += 1
-            payg_triggered = True
+        if norm_cost == COST_CLASS_FREE:
+            steps_free += 1
         elif norm_cost in (COST_CLASS_LOW, COST_CLASS_MEDIUM):
             steps_included += 1
         else:
-            steps_free += 1
+            steps_payg += 1
+            payg_triggered = True
 
         billing_desc = describe_billing_mode(norm_cost, provider)
         breakdown.append({

@@ -55,10 +55,12 @@ def drain_pending(kirby, slot):
     return kirby.deliver(slot)
 
 
-def run_once(kirby, slot, signal_path, state):
+def run_once(kirby, slot, signal_path, state, on_wake_ready=None):
     """One loop iteration. ``state`` = {"offset": int, "last_tick": float,
     "notified": {slot: [session_id, workkey, token]}}; mutated in place.
 
+    If ``on_wake_ready`` is provided, drains the single pending wake for ``slot``
+    after recording the notice and invokes ``on_wake_ready(slot, workkey, token)``.
     Returns (results, actions, notices). Missing/truncated signal file is
     fail-closed: no lines fed, offset reset, tick still runs on cadence.
     """
@@ -76,6 +78,11 @@ def run_once(kirby, slot, signal_path, state):
         actions = kirby.tick()                                  # fast fallback + 15-min snapshot cadence
         state["last_tick"] = kirby.clock()
     notices = _notice(kirby, slot, state)
+    if on_wake_ready is not None:
+        workkey = drain_pending(kirby, slot)
+        if workkey is not None:
+            session = kirby.sessions.get(slot)
+            on_wake_ready(slot, workkey, session.token if session else 0)
     return results, actions, notices
 
 

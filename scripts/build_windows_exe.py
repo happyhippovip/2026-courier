@@ -28,6 +28,7 @@ REQUIRED_HIDDEN_IMPORTS = (
     "courier_hub",
     "courier_hub.server",
     "courier_hub.model",
+    "courier_hub.kolibri_data",
     "courier_core",
     "courier_core.build",
     "courier_core.journal",

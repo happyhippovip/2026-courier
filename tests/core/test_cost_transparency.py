@@ -121,6 +121,24 @@ def test_derive_goal_cost_summary_with_payg_detection():
     assert "financial budget firewall recorded" in res["human_summary"].lower()
 
 
+def test_unknown_cost_class_triggers_firewall_fail_closed():
+    goal = {
+        "goal_id": "goal-unknown-cost",
+        "workflow_plan": [
+            {"task_id": "task-unclassified", "instruction": "Run external step", "worker_id": "w-unknown"}
+        ],
+    }
+    state = {
+        "tasks": {"task-unclassified": {"worker_id": "w-unknown"}},
+        "workers": {"w-unknown": {"cost_class": "unknown", "provider": "external_api"}},
+    }
+    res = derive_goal_cost_summary(goal, state)
+    assert res["payg_spend_triggered"] is True
+    assert res["budget_firewall_status"] == FIREWALL_TRIGGERED
+    assert res["steps_free"] == 0
+    assert res["steps_payg"] == 1
+
+
 def test_server_goal_cost_endpoint(tmp_path, monkeypatch):
     """Test Flask endpoint /goals/<goal_id>/cost."""
     import server.app as courier_server

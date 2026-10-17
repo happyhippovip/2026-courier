@@ -194,3 +194,17 @@ def test_lines_for_unknown_slot_are_ignored(tmp_path):
     results, _, notices = run_once(k, "nope", signals, state)
     assert results == ["IGNORED_NO_SLOT"] * 2 and notices == []
     assert len(world.started) == 1 and all(w.state == "OPEN" for w in k.workkeys.values())
+
+
+def test_run_once_on_wake_ready_drains_and_dispatches_once(tmp_path):
+    k, _, world, signals, state = setup(tmp_path, ["W0", "W1"], slot="s1", provider="muse")
+    dispatched = []
+    emit_signal(signals, "IDLE")
+    run_once(k, "s1", signals, state, on_wake_ready=lambda sl, wk, tok: dispatched.append((sl, wk, tok)))
+    assert dispatched == [("s1", "W0", 1)]
+    assert k.sessions["s1"].state == "WORKING"
+    emit_signal(signals, "TURN_ENDED outcome=DONE checkpoint=w0-done")
+    run_once(k, "s1", signals, state, on_wake_ready=lambda sl, wk, tok: dispatched.append((sl, wk, tok)))
+    assert dispatched == [("s1", "W0", 1), ("s1", "W1", 1)]
+    assert k.workkeys["W0"].state == DONE
+    assert len(world.started) == 1
