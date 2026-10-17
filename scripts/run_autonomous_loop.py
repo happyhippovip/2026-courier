@@ -23,6 +23,7 @@ import json
 import os
 import sys
 from scripts.host_guardian import HostGuardian, AdmissionState
+import threading
 import time
 import uuid
 from pathlib import Path
@@ -39,6 +40,7 @@ INCOMING_DIR = EVENTS_DIR / "incoming"
 DECISIONS_DIR = EVENTS_DIR / "chief-decisions"
 STATES_DIR = EVENTS_DIR / "agent-states"
 LOCKS_DIR = EVENTS_DIR / "locks"
+WORKFLOWS_DIR = EVENTS_DIR / "workflows"
 
 # Import verified Antigravity Bridge runner components
 try:
@@ -86,6 +88,14 @@ except ImportError:
         ReviewDedupeTracker,
     )
 
+try:
+    from google_builder_worker import execute_google_task
+except ImportError:
+    try:
+        from scripts.google_builder_worker import execute_google_task
+    except ImportError:
+        execute_google_task = None
+
 
 
 class WorkflowLockedError(Exception):
@@ -111,6 +121,8 @@ class AutonomousLevel6Loop:
 
         self.locks_dir = repo_dir / "events/locks"
         self.locks_dir.mkdir(parents=True, exist_ok=True)
+        self.workflows_dir = repo_dir / "events/workflows"
+        self.workflows_dir.mkdir(parents=True, exist_ok=True)
 
         self.steward = UpdateSteward(repo_dir=repo_dir)
 
@@ -130,6 +142,69 @@ class AutonomousLevel6Loop:
 
         self.lease_manager = TaskLeaseManager(repo_dir=repo_dir)
         self.dedupe_engine = TaskDedupeEngine(repo_dir=repo_dir)
+
+    def save_workflow_state(self, workflow_id: str, state_data: dict) -> Path:
+        """Atomically saves durable workflow state to events/workflows/{workflow_id}-state.json."""
+        self.workflows_dir.mkdir(parents=True, exist_ok=True)
+        target_file = self.workflows_dir / f"{workflow_id}-state.json"
+        tmp_file = self.workflows_dir / f".{workflow_id}.{os.getpid()}.{threading.get_ident()}.statetmp"
+        now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        state_data.setdefault("updated_at", now_iso)
+
+        with open(tmp_file, "w", encoding="utf-8") as f:
+            json.dump(state_data, f, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_file, target_file)
+        return target_file
+
+    def load_workflow_state(self, workflow_id: str) -> dict | None:
+        """Loads durable workflow state from disk if it exists."""
+        target_file = self.workflows_dir / f"{workflow_id}-state.json"
+        if not target_file.exists():
+            return None
+        try:
+            return load_json(target_file)
+        except Exception:
+            return None
+
+    def reconcile_workflow_progress(self, workflow_plan: list[dict]) -> tuple[int, list[dict]]:
+        """Inspects disk events to find the earliest uncompleted step index and recovered history."""
+        recovered_history = []
+        first_uncompleted_index = len(workflow_plan)
+
+        for idx, step in enumerate(workflow_plan):
+            task_id = step.get("task_id")
+            if not task_id:
+                first_uncompleted_index = idx
+                break
+
+            dec_file = self.repo_dir / f"events/chief-decisions/{task_id}-chief-decision.json"
+            res_file = self.repo_dir / f"events/processed/{task_id}-result.json"
+
+            if dec_file.exists():
+                try:
+                    dec_data = load_json(dec_file)
+                    if dec_data.get("verdict") in ("ACCEPTED", "PASS"):
+                        recovered_history.append({
+                            "round": idx + 1,
+                            "task_id": task_id,
+                            "target_agent": step.get("target_agent", "antigravity"),
+                            "parent_task_id": workflow_plan[idx - 1].get("task_id") if idx > 0 else None,
+                            "correlation_id": dec_data.get("correlation_id", ""),
+                            "verdict": dec_data.get("verdict"),
+                            "action": dec_data.get("action", "DISPATCH_NEXT_WORKFLOW_TASK"),
+                            "result_file": res_file.name if res_file.exists() else "",
+                            "decision_file": dec_file.name,
+                        })
+                        continue
+                except Exception:
+                    pass
+
+            first_uncompleted_index = idx
+            break
+
+        return first_uncompleted_index, recovered_history
 
     def acquire_workflow_lock(
         self,
@@ -302,6 +377,7 @@ class AutonomousLevel6Loop:
                     "allowed_scope": next_step.get("allowed_scope", []),
                     "target_agent": next_step.get("target_agent", "antigravity"),
                     "payload_override": next_step.get("payload_override"),
+                    "parameters": next_step.get("parameters"),
                 }
 
             if next_task_info:
@@ -332,6 +408,20 @@ class AutonomousLevel6Loop:
                     "reason": "All planned workflow rounds successfully executed.",
                     "created_at": now_iso,
                 }
+        elif verdict in ("PAUSED_PROVIDER_LIMIT", "QUOTA_EXCEEDED") or (payload and any(k in str(payload.get("error", "")).upper() for k in ("QUOTA", "RATE_LIMIT", "RESOURCE_EXHAUSTED", "429"))):
+            decision = {
+                "schema_version": "2.0",
+                "decision_id": f"dec-{uuid.uuid4().hex[:10]}",
+                "task_id": task_id,
+                "correlation_id": correlation_id,
+                "workflow_id": workflow_id,
+                "round_index": round_index,
+                "verdict": "PAUSED_PROVIDER_LIMIT",
+                "action": "PAUSE_ON_PROVIDER_LIMIT",
+                "next_task": None,
+                "reason": payload.get("error", "Provider quota / rate limit encountered. Workflow paused safely without losing progress."),
+                "created_at": now_iso,
+            }
         else:
             decision = {
                 "schema_version": "2.0",
@@ -357,6 +447,8 @@ class AutonomousLevel6Loop:
         workflow_plan: list[dict],
         correlation_id: str | None = None,
         try_real_codex: bool = False,
+        initial_history: list[dict] | None = None,
+        start_step_index: int = 0,
     ) -> dict:
         """Executes a multi-round Level 6 workflow until completion, human gate, or max iterations."""
         if not correlation_id:
@@ -364,22 +456,33 @@ class AutonomousLevel6Loop:
 
         self.acquire_workflow_lock(workflow_id)
 
-        history = []
+        history = list(initial_history or [])
         status = "RUNNING"
         stop_reason = "UNKNOWN"
         start_time = time.time()
 
         print(f"\n=======================================================")
         print(f"=== STARTING LEVEL 6 AUTONOMOUS LOOP: {workflow_id} ===")
-        print(f"=== Total Plan Steps: {len(workflow_plan)} | Max Iterations: {self.max_iterations} ===")
+        print(f"=== Total Plan Steps: {len(workflow_plan)} | Start Step: {start_step_index + 1} | Max Iterations: {self.max_iterations} ===")
         print(f"=======================================================")
 
-        try:
-            current_task_info = workflow_plan[0] if workflow_plan else None
-            parent_task_id = None
+        # Persist initial durable state
+        self.save_workflow_state(workflow_id, {
+            "workflow_id": workflow_id,
+            "correlation_id": correlation_id,
+            "workflow_plan": workflow_plan,
+            "current_step_index": start_step_index,
+            "status": "RUNNING",
+            "stop_reason": "IN_PROGRESS",
+            "history": history,
+        })
 
-            for iteration in range(self.max_iterations):
-                if not current_task_info:
+        try:
+            current_task_info = workflow_plan[start_step_index] if (workflow_plan and start_step_index < len(workflow_plan)) else None
+            parent_task_id = history[-1].get("task_id") if history else None
+
+            for iteration in range(start_step_index, start_step_index + self.max_iterations):
+                if not current_task_info or iteration >= len(workflow_plan):
                     status = "COMPLETED"
                     stop_reason = "PLAN_COMPLETED"
                     break
@@ -423,9 +526,19 @@ class AutonomousLevel6Loop:
                     has_lease = True
                 
                 is_codex = "codex" in target_agent_raw
-                target_agent_name = "courier-codex-bridge" if is_codex else "courier-antigravity-bridge"
-                active_tracker = self.codex_state_tracker if is_codex else self.state_tracker
-                active_hooks = self.codex_hooks if is_codex else self.hooks
+                is_google = "google" in target_agent_raw or "builder" in target_agent_raw
+                if is_codex:
+                    target_agent_name = "courier-codex-bridge"
+                    active_tracker = self.codex_state_tracker
+                    active_hooks = self.codex_hooks
+                elif is_google:
+                    target_agent_name = "google-mac"
+                    active_tracker = self.state_tracker
+                    active_hooks = self.hooks
+                else:
+                    target_agent_name = "courier-antigravity-bridge"
+                    active_tracker = self.state_tracker
+                    active_hooks = self.hooks
 
                 print(f"\n--- [ROUND {iteration + 1}/{self.max_iterations}] Task: {task_id} (Target: {target_agent_name}) ---")
 
@@ -484,6 +597,7 @@ class AutonomousLevel6Loop:
                     "context_version": current_task_info.get("context_version"),
                     "context_snapshot_hash": current_task_info.get("context_snapshot_hash"),
                     "bounded_context": current_task_info.get("bounded_context"),
+                    "parameters": current_task_info.get("parameters"),
                     "routing_decision": {
                         "target_agent": target_agent_name,
                         "routing_reason": current_task_info.get("routing_reason", "Assigned by SmartResourceRouter"),
@@ -496,7 +610,7 @@ class AutonomousLevel6Loop:
 
                 # 3. Deduplication Check & Single-Owner Lease Enforcement
                 cached_res = self.dedupe_engine.get_cached_result(task_hash)
-                if cached_res and not payload_override:
+                if cached_res and not payload_override and cached_res.get("payload", {}).get("verdict") not in ("PAUSED_PROVIDER_LIMIT", "FAILED"):
                     print(f"[DEDUPE] Identical task input hash ({task_hash[:12]}...) found. Reusing verified result without executing model.")
                     result_file = self.repo_dir / f"events/processed/{task_id}-result.json"
                     save_json(result_file, cached_res)
@@ -540,6 +654,12 @@ class AutonomousLevel6Loop:
                                 dispatch_file,
                                 active_hooks,
                                 try_real_cli=try_real_codex,
+                            )
+                        elif is_google and execute_google_task:
+                            result_file = execute_google_task(
+                                dispatch_file,
+                                active_hooks,
+                                repo_dir=self.repo_dir,
                             )
                         else:
                             result_file = execute_bridge_task(dispatch_file, active_hooks)
@@ -634,6 +754,20 @@ class AutonomousLevel6Loop:
                     )
                     break
 
+                elif action == "PAUSE_ON_PROVIDER_LIMIT":
+                    status = "PAUSED_PROVIDER_LIMIT"
+                    stop_reason = f"Provider rate/quota limit reached: {decision.get('reason')}"
+                    active_tracker.update_state(
+                        state="PAUSED_PROVIDER_LIMIT",
+                        task=task_id,
+                        progress=float(iteration) / float(len(workflow_plan)),
+                        workflow=workflow_id,
+                        last_action=f"Paused due to provider limits: {task_id}",
+                        next_action=f"Retry {task_id} when quota restores",
+                        blocked=True,
+                    )
+                    break
+
                 elif action == "COMPLETE_WORKFLOW":
                     status = "COMPLETED"
                     stop_reason = "ALL_STEPS_ACCEPTED"
@@ -652,7 +786,15 @@ class AutonomousLevel6Loop:
                 elif action in ("DISPATCH_NEXT_WORKFLOW_TASK", "QUEUE_SCOPED_REPAIR_TASK"):
                     parent_task_id = task_id
                     current_task_info = decision.get("next_task")
-                    # Advance to next iteration automatically
+                    self.save_workflow_state(workflow_id, {
+                        "workflow_id": workflow_id,
+                        "correlation_id": correlation_id,
+                        "workflow_plan": workflow_plan,
+                        "current_step_index": iteration + 1,
+                        "status": "RUNNING",
+                        "stop_reason": f"Step {iteration + 1} completed; advancing to step {iteration + 2}",
+                        "history": history,
+                    })
                     continue
 
                 else:
@@ -666,6 +808,16 @@ class AutonomousLevel6Loop:
         finally:
             if 'has_lease' in locals() and has_lease:
                 self.host_guardian.release_heavy_lease(cleanup_proven=False)
+            final_step_index = len(workflow_plan) if status == "COMPLETED" else len(history)
+            self.save_workflow_state(workflow_id, {
+                "workflow_id": workflow_id,
+                "correlation_id": correlation_id,
+                "workflow_plan": workflow_plan,
+                "current_step_index": final_step_index,
+                "status": status,
+                "stop_reason": stop_reason,
+                "history": history,
+            })
             self.release_workflow_lock(workflow_id)
 
         print(f"\n=== LEVEL 6 LOOP FINISHED: {status} ({stop_reason}) ===")
@@ -726,6 +878,99 @@ class AutonomousLevel6Loop:
             try_real_codex=try_real_codex,
         )
 
+    def resume_interrupted_workflow(
+        self,
+        workflow_id: str,
+        try_real_codex: bool = False,
+    ) -> dict:
+        """Resumes an interrupted or paused workflow from durable disk state without human relay."""
+        state = self.load_workflow_state(workflow_id)
+        if not state:
+            return {
+                "workflow_id": workflow_id,
+                "correlation_id": "",
+                "status": "NOT_FOUND",
+                "stop_reason": f"Workflow state for {workflow_id} not found on disk.",
+                "history": [],
+            }
+
+        workflow_plan = state.get("workflow_plan", [])
+        correlation_id = state.get("correlation_id", f"corr-wf-{uuid.uuid4().hex[:8]}")
+        prev_status = state.get("status")
+
+        if prev_status == "COMPLETED":
+            print(f"[RESUME] Workflow {workflow_id} is already COMPLETED.")
+            return state
+
+        # If it was blocked by a human gate, verify if human approval is present
+        if prev_status == "BLOCKED_HUMAN_GATE":
+            approval = self.check_human_approval(workflow_id, correlation_id)
+            if not approval:
+                print(f"[RESUME] Workflow {workflow_id} remains BLOCKED_HUMAN_GATE (no matching approval).")
+                return state
+            appr_action = approval.get("decision") or approval.get("action", "")
+            if appr_action == "REJECT":
+                state["status"] = "REJECTED_BY_HUMAN"
+                state["stop_reason"] = "HUMAN_OPERATOR_REJECTED"
+                self.save_workflow_state(workflow_id, state)
+                return state
+
+        # Reconcile disk state against plan
+        first_uncompleted_idx, recovered_history = self.reconcile_workflow_progress(workflow_plan)
+
+        state_history = state.get("history", [])
+        effective_history = recovered_history if len(recovered_history) >= len(state_history) else state_history
+
+        if first_uncompleted_idx >= len(workflow_plan):
+            print(f"[RESUME] All steps in workflow {workflow_id} are already accepted on disk. Marking COMPLETED.")
+            state["status"] = "COMPLETED"
+            state["stop_reason"] = "ALL_STEPS_ACCEPTED"
+            state["history"] = effective_history
+            state["current_step_index"] = len(workflow_plan)
+            self.save_workflow_state(workflow_id, state)
+            return state
+
+        print(f"\n[RESUME] Unattended resume for {workflow_id}: starting from Step {first_uncompleted_idx + 1}/{len(workflow_plan)}...")
+        return self.run_multi_round_workflow(
+            workflow_id=workflow_id,
+            workflow_plan=workflow_plan,
+            correlation_id=correlation_id,
+            try_real_codex=try_real_codex,
+            initial_history=effective_history,
+            start_step_index=first_uncompleted_idx,
+        )
+
+    def auto_resume_pending_workflows(self, try_real_codex: bool = False) -> list[dict]:
+        """Discovers and automatically resumes any pending/interrupted workflows on disk."""
+        results = []
+        if not self.workflows_dir.exists():
+            return results
+
+        state_files = sorted(self.workflows_dir.glob("*-state.json"))
+        for sf in state_files:
+            try:
+                state = load_json(sf)
+            except Exception:
+                continue
+
+            wf_id = state.get("workflow_id")
+            if not wf_id:
+                continue
+
+            status = state.get("status")
+            if status in ("RUNNING", "INTERRUPTED", "RESOURCE_PAUSE", "PAUSED_RESOURCE_PRESSURE", "PAUSED_PROVIDER_LIMIT"):
+                print(f"[AUTO_RESUME] Found interrupted workflow {wf_id} ({status}). Resuming unattended...")
+                res = self.resume_interrupted_workflow(wf_id, try_real_codex=try_real_codex)
+                results.append(res)
+            elif status == "BLOCKED_HUMAN_GATE":
+                appr = self.check_human_approval(wf_id, state.get("correlation_id", ""))
+                if appr:
+                    print(f"[AUTO_RESUME] Approval found for previously blocked workflow {wf_id}. Resuming unattended...")
+                    res = self.resume_interrupted_workflow(wf_id, try_real_codex=try_real_codex)
+                    results.append(res)
+
+        return results
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run Level 6 Autonomous Multi-Turn Loop")
@@ -733,13 +978,26 @@ def main() -> int:
     parser.add_argument("--max-iterations", type=int, default=3)
     parser.add_argument("--plan-file", type=Path, help="JSON file containing list of task step objects")
     parser.add_argument("--real-codex", action="store_true", help="Use the installed Codex CLI for Codex-targeted plan steps")
+    parser.add_argument("--resume-workflow", type=str, help="Resume an interrupted workflow by ID")
+    parser.add_argument("--auto-resume", action="store_true", help="Auto-resume all pending/interrupted workflows")
     args = parser.parse_args()
+
+    engine = AutonomousLevel6Loop(max_iterations=args.max_iterations)
+
+    if args.auto_resume:
+        res_list = engine.auto_resume_pending_workflows(try_real_codex=args.real_codex)
+        print(json.dumps(res_list, indent=2))
+        return 0
+
+    if args.resume_workflow:
+        result = engine.resume_interrupted_workflow(args.resume_workflow, try_real_codex=args.real_codex)
+        print(json.dumps(result, indent=2))
+        return 0 if result.get("status") == "COMPLETED" else 1
 
     plan = []
     if args.plan_file and args.plan_file.exists():
         plan = load_json(args.plan_file)
 
-    engine = AutonomousLevel6Loop(max_iterations=args.max_iterations)
     result = engine.run_multi_round_workflow(
         args.workflow_id,
         plan,

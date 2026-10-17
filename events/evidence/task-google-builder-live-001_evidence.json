@@ -1,0 +1,20 @@
+{
+  "task_id": "task-google-builder-live-001",
+  "target_sha": "fd678a9509bac2fb65fc5b6c262f96fb90d24185",
+  "worker_id": "google-mac",
+  "task_type": "run_tests",
+  "instruction": "Execute core work packet unit tests",
+  "timestamp": "2026-10-08T02:43:19.928772+00:00",
+  "allowed_scope": [
+    "tests/core/test_work_packet.py"
+  ],
+  "command": [
+    "/usr/local/bin/python3",
+    "-m",
+    "pytest",
+    "tests/core/test_work_packet.py",
+    "-q"
+  ],
+  "exit_code": 0,
+  "output_summary": ".......                                                                  [100%]\n7 passed in 0.12s"
+}

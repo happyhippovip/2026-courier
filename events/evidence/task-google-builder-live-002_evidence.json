@@ -1,0 +1,17 @@
+{
+  "task_id": "task-google-builder-live-002",
+  "target_sha": "fd678a9509bac2fb65fc5b6c262f96fb90d24185",
+  "worker_id": "google-mac",
+  "task_type": "code_contract_check",
+  "instruction": "Verify syntax and public AST contract for L3 worker modules",
+  "timestamp": "2026-10-08T02:43:20.773937+00:00",
+  "allowed_scope": [
+    "scripts/google_builder_worker.py",
+    "courier_core/work_packet.py"
+  ],
+  "modules_checked": [
+    "scripts/google_builder_worker.py",
+    "courier_core/work_packet.py"
+  ],
+  "syntax_verified": true
+}
