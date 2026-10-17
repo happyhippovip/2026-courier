@@ -731,6 +731,7 @@ def test_worker_loop_iterate_spec_rejected(tmp_path):
 
     loop = S.WorkerLoop(str(tmp_path), "http://127.0.0.1:8080", "w1", 1.0,
                         client_factory=lambda: mock_client)
+    loop.engine._pressure_probe = MagicMock(return_value=None)
 
     with patch.object(loop, "flush_outbox", return_value=0), \
          patch.object(loop, "_deliver_payload") as mock_deliver:
@@ -756,6 +757,7 @@ def test_worker_loop_iterate_stale_dispatch_at_start(tmp_path):
 
     loop = S.WorkerLoop(str(tmp_path), "http://127.0.0.1:8080", "w1", 1.0,
                         client_factory=lambda: mock_client)
+    loop.engine._pressure_probe = MagicMock(return_value=None)
 
     with patch.object(loop, "flush_outbox", return_value=0), \
          patch("courier_worker.adapter_bridge.cleanup") as mock_cleanup:
