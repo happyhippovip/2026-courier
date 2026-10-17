@@ -776,5 +776,46 @@ adapter / verifier → live golden path.
 
 Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-receipt proof card) landed on trunk via parallel L1 action during this window (tip `388246a5d`); steps above cover only the five lease-scoped merges.
 
+## Step 45 — Parallel Provider & Continuity Merges (PRs #167, #168, #170, #177, #182, #184, #185, #187, #196, #197, #202, #206, #208, #247, #252, #256, #257, #259)
+### `integration/v1` merged provider hardening & continuity branches (commit `90d534021`)
+- Landed real Google builder worker, Gemini worker adapter central lock, Mac worker verified install status, truthful health checks, and poison intake quarantine.
+
+## Step 46 — Kolibri Sprint 1 (Commit `85429e019`)
+### `integration/v1` commit `85429e019`
+- `courier_hub/kolibri_data.py`: Added 15s API caching, 3s timeout, and parameter passthrough.
+- Windows EXE Spec: Added `courier_hub.kolibri_data` to required hidden imports (`scripts/courier_hub_windows.spec`, `scripts/build_windows_exe.py`).
+- Verified with `tests/hub/test_kolibri_view.py` (19/19 PASS).
+
+## Step 47 — Kolibri Sprint 2 (Commit `81b1437cc`)
+### `integration/v1` commit `81b1437cc`
+- Kolibri dynamic workkey, owner, lease, blocker, and `resource_pause` rendering with real provenance and timestamps; secret redaction (`owner_token`, `ghs_`).
+- Registered `/kolibri` route in `courier_hub/server.py` and top nav link in `kolibri.html` / `kolibri.css`.
+- Provider Fencing (`K-0003`): `probe_in_flight` and `claim_probe()` in `courier_runtime/provider_circuit.py`.
+- Receipt Provenance (`K-0019`): `branch` and `source_sha` verification in `courier_core/artifact_receipt.py`.
+
+## Step 48 — CI-Rescue & Test Hardening (PR #712, Commits `ce97583d7`, `7a2763876`)
+### `integration/v1` merged `ci-rescue/81b1437c-stale-tests`
+- Hardened `tests/test_courier_worker_service.py`: Mocked `engine._pressure_probe` to make tests resilient to Mac host swap pressure.
+- Aligned `tests/test_adapter_runner.py` allowlist.
+- Added `.gitignore` rule for `central_state.json.lock`.
+- Verified 100% green CI on Ubuntu and Windows (Run `39064807103`).
+
+## Step 49 — P9 Soak & MCP Server Integration (PR #710, PR #711, Commits `e7cdff4b9`, `8e24a8f4c`)
+### `integration/v1` commits `e7cdff4b9`, `8e24a8f4c`
+- Integrated baseline metrics soak sampler tests (`tests/test_baseline_metrics.py`, 9 tests).
+- Integrated MCP server stdio bridge tests (`tests/test_mcp_server.py`, 7 tests).
+- Verified cryptographic chronological integrity in `registries/work_queue_ledger.jsonl`.
+
+## Step 50 — Kolibri Formal Acceptance, Unified Spider Slice & Canonical Result-ID Binding (PR #713, PR #565, PR #566, Commits `f7963689c`, `9cebd6a38`, `cb5839fe9`, `e86baacdc`, `011dbb580`)
+### `integration/v1` commits `f7963689c`..`011dbb580`
+- Landed `docs/KOLIBRI_ACCEPTANCE_2026-10-17.md` proving 100% Kolibri Definition of Done compliance.
+- Landed `courier_runtime/spider_slice.py` with UTF-8 gate, byte offsets, and 1MB fetch cap (46 tests PASS).
+- Bound Mac, Windows, and GitHub results to canonical `result_id` hash in daemons and `courier_worker.yml`.
+- Added Flask import guard in `tests/test_github_worker_adapter.py` for lightweight customer-reality runner.
+- Verified 100% green across both pipelines:
+  - `Courier v1 CI` Run 39066516012 (Ubuntu: 2879 passed, Windows: 2762 passed, JS: pass, Golden skip ratchet: pass).
+  - `GitHub Customer-Reality Gate` Run 39066516035 (Ubuntu & Windows: 100% SUCCESS).
+
+
 
 
