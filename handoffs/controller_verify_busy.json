@@ -1,0 +1,35 @@
+{
+  "WORKKEY": "CONTROLLER-VERIFY-BUSY-REQUEUE",
+  "OWNER": "codex-cloud",
+  "BRANCH": "codex/controller-verify-busy-requeue",
+  "HEAD/COMMIT": "b6e30827f504bc836ac16895c0d88715ec67f722",
+  "CURRENT_STATE": "FINAL",
+  "MUTABLE_SCOPE": "Controller.verify_next queue preservation on lock timeout",
+  "FILES": [
+    "courier_core/controller.py",
+    "tests/controller/test_ctrl_verify_busy.py",
+    "handoffs/controller_verify_busy.json"
+  ],
+  "OWNERSHIP_EVIDENCE": "Fresh integration fetch and open PRs #132-#160; no other PR mutates selected controller method or test file.",
+  "TEST_EVIDENCE": [
+    {
+      "command": ".venv/bin/python -m pytest -q tests/controller/test_ctrl_verify_busy.py tests/controller/test_ctrl_lifecycle.py tests/controller/test_ctrl_adversarial.py tests/controller/test_ctrl_restart_integrity.py --timeout=30",
+      "passed": 80,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 4.98,
+      "platform": "Linux"
+    },
+    {
+      "command": "git diff --check",
+      "exit_status": 0
+    }
+  ],
+  "UNPROVEN": [
+    "remote CI",
+    "Windows-native execution"
+  ],
+  "NEXT_EXACT_ACTION": "L1 review PR #161 and preserve existing verifier read-only contract; reuse recorded 80-test proof.",
+  "OWNERSHIP_STATE": "PR_REVIEW_OWNER",
+  "PR": 161
+}
