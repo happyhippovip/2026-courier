@@ -72,6 +72,29 @@ def discover_pending_command(incoming_dir: Path, processed_dir: Path) -> Path | 
     return None
 
 
+def load_result_record(result_file: Path) -> dict | None:
+    if not result_file.is_file():
+        return None
+    try:
+        data = json.loads(result_file.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def claims_unverified_success(record: dict) -> bool:
+    """A validation stamp or an explicit non-execution is not a verified result."""
+    if record.get("status") == "BLOCKED":
+        return True
+    payload = record.get("payload")
+    if not isinstance(payload, dict):
+        return False
+    if payload.get("test_results") == "NOT_RUN":
+        return True
+    summary = str(payload.get("summary") or "")
+    return summary.startswith("Executed Chief Command") or summary.startswith("Command not executed")
+
+
 def run_cycle(
     repo_dir: Path,
     incoming_dir: Path,
@@ -160,11 +183,10 @@ def run_cycle(
         capture_output=True,
         text=True,
     )
-    if res.returncode != 0:
-        fail(f"Consumer failed: {res.stderr.strip()}")
-
     result_file = processed_dir / f"{task_id}-result.json"
     if not result_file.exists():
+        if res.returncode != 0:
+            fail(f"Consumer failed: {res.stderr.strip()}")
         fail(f"Result file was not created: {result_file}")
 
     # 4. Validate generated result
@@ -185,6 +207,21 @@ def run_cycle(
     )
     if val_res.returncode != 0:
         fail(f"Result validation failed: {val_res.stderr.strip()}")
+
+    recorded = load_result_record(result_file)
+    if recorded is not None and claims_unverified_success(recorded):
+        return {
+            "status": "NOT_VERIFIED",
+            "command_processed": pending_cmd.as_posix(),
+            "task_id": task_id,
+            "message_id": cmd_data["message_id"],
+            "worker_job_path": worker_job_file.as_posix(),
+            "result_path": result_file.as_posix(),
+            "memory_cycle": None,
+            "commit_sha": None,
+        }
+    if res.returncode != 0:
+        fail(f"Consumer failed: {res.stderr.strip()}")
 
     # 5. Autonomous Memory Pipeline (086 -> 088 -> 087)
     memory_cycle_summary = None
@@ -293,8 +330,30 @@ def run_cycle(
     }
 
 
+def run_pending_cycles(**kwargs) -> list[dict]:
+    """Run the existing cycle once per distinct pending command.
+
+    A verified completion and an unverified block both leave the queue so the
+    next authorized command is discovered by the same run_cycle path.
+    """
+    outcomes: list[dict] = []
+    seen: set[str] = set()
+    while True:
+        outcome = run_cycle(**kwargs)
+        outcomes.append(outcome)
+        if outcome.get("status") == "IDLE":
+            break
+        message_id = outcome.get("message_id")
+        if not isinstance(message_id, str) or message_id in seen:
+            break
+        seen.add(message_id)
+        if outcome.get("status") not in {"COMPLETED", "NOT_VERIFIED"}:
+            break
+    return outcomes
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run one Chief Relay cycle with Autonomous Memory Policy (max_iterations=1)")
+    parser = argparse.ArgumentParser(description="Run each pending Chief Relay command once (max_iterations=1 per command)")
     parser.add_argument("--repo-dir", default=".", help="Repository root directory")
     parser.add_argument("--incoming-dir", default="events/incoming", help="Incoming events directory")
     parser.add_argument("--processed-dir", default="events/processed", help="Processed events directory")
@@ -318,7 +377,7 @@ def main() -> None:
     decisions_dir = (repo_dir / args.decisions_dir).resolve()
     memory_repo = Path(args.memory_repo).resolve() if args.memory_repo else None
 
-    result = run_cycle(
+    outcomes = run_pending_cycles(
         repo_dir=repo_dir,
         incoming_dir=incoming_dir,
         processed_dir=processed_dir,
@@ -332,7 +391,9 @@ def main() -> None:
         pull=args.pull,
         push=args.push,
     )
-    print(json.dumps(result, indent=2))
+    print(json.dumps(outcomes, indent=2))
+    if any(item.get("status") == "NOT_VERIFIED" for item in outcomes):
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
