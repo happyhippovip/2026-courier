@@ -116,6 +116,29 @@ def test_windows_requirement_never_runs_or_evidences_on_linux(world):
     assert accept_evidence(Evidence("wk", "windows_native", "win-1", "abc", True), "windows_native", ws.hosts)[0]
 
 
+def test_completed_workkey_is_not_run_again_from_step_zero(world):
+    """Accepted work stays accepted. A second run must not repeat the effect."""
+    ws, _, _, tmp = world
+    runs = tmp / "runs.txt"
+    steps = [write_step("fetch", str(runs))]
+    first = ws.run("wk-done", Requirement(frozenset({"python"})), "project:p1", request("r1"), steps)
+    assert first["state"] == "DONE"
+    assert runs.read_text().splitlines() == ["fetch"]
+    second = ws.run("wk-done", Requirement(frozenset({"python"})), "project:p1", request("r2"), steps)
+    assert second["state"] == "DONE"
+    assert second.get("resume_step") is None
+    assert runs.read_text().splitlines() == ["fetch"]
+    assert [fact.step for fact in ws.log.facts("wk-done")] == [0]
+
+
+def test_finished_plan_with_a_live_owned_process_is_not_safe():
+    cp = Checkpoint("wk", ["a"], last_accepted_step=0)
+    decision = decide(cp, grants_valid={}, owned_alive=[4321], lease_available=True)
+    assert decision["safe"] is False
+    assert decision["state"] == "RECOVERING"
+    assert decision["resume_step"] is None
+
+
 def test_continuation_refuses_unsafe_resumes():
     cp = Checkpoint("wk", ["a", "b", "c"], last_accepted_step=0,
                     attempted={1: {"effect_class": "non_idempotent", "effect_confirmed": False}}, grant_ids=["g1"])
