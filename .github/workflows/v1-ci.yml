@@ -5,7 +5,7 @@ name: Courier v1 CI
 # merges must carry exact-SHA evidence) and on PRs into integration/v1.
 on:
   push:
-    branches: ["lane/**", "integration/v1"]
+    branches: ["integration/v1"]
     paths-ignore:
       - "**/*.md"
       - "docs/**"
@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: v1-ci-${{ github.ref }}
+  group: v1-ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
