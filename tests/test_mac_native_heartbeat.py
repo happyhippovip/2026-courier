@@ -32,13 +32,31 @@ def run_with(daemon, monkeypatch, instruction, config, interval=1):
     return daemon.run_native(task, config), beats
 
 
+def hang_sleep_instead(daemon, monkeypatch, seconds):
+    """Echo no longer spawns a shell, so task text cannot stretch a run. Tests
+    needing a long-lived child simulate one here: heartbeat cadence, not task
+    text, is what they exercise."""
+    real_popen = daemon.subprocess.Popen
+
+    def hang_instead(*args, **kwargs):
+        assert kwargs.get("shell") in (None, False)  # no shell anywhere
+        if not kwargs.get("start_new_session"):
+            # ps probes (process_identity) and friends run untouched.
+            return real_popen(*args, **kwargs)
+        return real_popen(["sleep", str(seconds)], stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE, text=True,
+                          start_new_session=True)
+
+    monkeypatch.setattr(daemon.subprocess, "Popen", hang_instead)
+
+
 def test_native_heartbeats_during_execution(tmp_path, monkeypatch):
     daemon = load_daemon(tmp_path, monkeypatch)
-    result, beats = run_with(daemon, monkeypatch, "echo go; sleep 4", {
+    hang_sleep_instead(daemon, monkeypatch, 4)
+    result, beats = run_with(daemon, monkeypatch, "echo go", {
         "WORKER_ID": "MAC-01", "COURIER_SERVER": "http://courier.invalid",
         "NATIVE_TIMEOUT_SECONDS": 30})
     assert result["status"] == "SUCCESS"
-    assert result["stdout"] == "go\n"
     hb = [data for endpoint, data in beats if endpoint == "/workers/heartbeat"]
     assert len(hb) >= 2, f"expected heartbeats during 4s run, got {beats}"
     assert all(d.get("worker_id") == "MAC-01" for d in hb)
@@ -55,7 +73,8 @@ def test_native_no_server_configured_no_heartbeat_attempt(tmp_path, monkeypatch)
 
 def test_native_timeout_still_fail_closed_with_heartbeat(tmp_path, monkeypatch):
     daemon = load_daemon(tmp_path, monkeypatch)
-    result, beats = run_with(daemon, monkeypatch, "echo go; sleep 60", {
+    hang_sleep_instead(daemon, monkeypatch, 60)
+    result, beats = run_with(daemon, monkeypatch, "echo go", {
         "WORKER_ID": "MAC-01", "COURIER_SERVER": "http://courier.invalid",
         "NATIVE_TIMEOUT_SECONDS": 3}, interval=1)
     assert result["status"] == "FAILED"
