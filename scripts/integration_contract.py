@@ -305,8 +305,6 @@ def validate_durable_result(task: dict, result: dict) -> dict:
             if artifact["size"] > MAX_ARTIFACT_BYTES:
                 raise ContractError("artifact exceeds size limit")
             total_artifact_size += artifact["size"]
-    if total_artifact_size > MAX_ARTIFACT_BYTES:
-        raise ContractError("total artifact size exceeds limit")
         path = artifact["path"]
         digest = artifact["sha256"]
         if not isinstance(path, str) or not path or Path(path).is_absolute() or ".." in Path(path).parts:
@@ -316,6 +314,8 @@ def validate_durable_result(task: dict, result: dict) -> dict:
             raise ContractError("unsafe artifact path")
         if not isinstance(digest, str) or not re.fullmatch(r"[a-f0-9]{64}", digest):
             raise ContractError("invalid artifact fingerprint")
+    if total_artifact_size > MAX_ARTIFACT_BYTES:
+        raise ContractError("total artifact size exceeds limit")
     return {field: result[field] for field in required}
 
 
