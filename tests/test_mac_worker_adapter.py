@@ -1,8 +1,6 @@
 import pytest; pytest.importorskip("fcntl")
-import os
 import json
 import time
-from unittest import mock
 import pytest
 from pathlib import Path
 
@@ -21,8 +19,16 @@ def test_run_success(tmp_path, monkeypatch):
         with open(outbox_file, "w") as f:
             json.dump({"status": "SUCCESS"}, f)
             
-    with mock.patch("scripts.mac_worker_adapter.time.sleep", side_effect=mock_sleep):
-        mac_worker_adapter.run(str(task_file))
+    # Bind a private clock. Patching mac_worker_adapter.time.sleep replaces the
+    # shared time module, so other threads in the suite re-enter mock_sleep and
+    # truncate the outbox while it is being read.
+    real_sleep = time.sleep
+    monkeypatch.setattr(mac_worker_adapter, "time", type("Clock", (), {
+        "time": staticmethod(time.time),
+        "sleep": staticmethod(mock_sleep),
+    })())
+    assert time.sleep is real_sleep
+    mac_worker_adapter.run(str(task_file))
         
     incoming = Path("results/incoming/mac1_result.json")
     assert incoming.exists()
@@ -33,6 +39,43 @@ def test_run_success(tmp_path, monkeypatch):
         
     outbox_file = Path("scripts/mac_worker/outbox/mac1_result.json")
     assert not outbox_file.exists()
+
+
+def test_a_truncated_outbox_is_not_published(tmp_path, monkeypatch):
+    """The reader must not treat 'file exists' as 'write finished'.
+
+    open(path, 'w') creates an empty file before json.dump. Publishing that
+    window is the empty mac1_result.json JSONDecodeError.
+    """
+    monkeypatch.chdir(tmp_path)
+    task_file = tmp_path / "task.json"
+    task_file.write_text(json.dumps({"task_id": "mac1", "goal_id": "g1"}), encoding="utf-8")
+    outbox = Path("scripts/mac_worker/outbox/mac1_result.json")
+    polls = {"n": 0}
+
+    def mock_sleep(seconds):
+        polls["n"] += 1
+        outbox.parent.mkdir(parents=True, exist_ok=True)
+        if polls["n"] == 1:
+            with open(outbox, "w", encoding="utf-8"):
+                pass  # the truncate window: exists, zero bytes
+            return
+        with open(outbox, "w", encoding="utf-8") as handle:
+            json.dump({"status": "SUCCESS"}, handle)
+
+    # Replace the adapter's clock binding only. Patching mac_worker_adapter.time.sleep
+    # replaces the shared time module and lets other threads enter this writer.
+    monkeypatch.setattr(mac_worker_adapter, "time", type("Clock", (), {
+        "time": staticmethod(time.time),
+        "sleep": staticmethod(mock_sleep),
+    })())
+    mac_worker_adapter.run(str(task_file))
+
+    incoming = Path("results/incoming/mac1_result.json")
+    assert incoming.exists()
+    loaded = json.loads(incoming.read_text(encoding="utf-8"))
+    assert loaded["status"] == "SUCCESS"
+    assert polls["n"] >= 2
 
 
 def test_run_timeout(tmp_path, monkeypatch):
@@ -50,8 +93,11 @@ def test_run_timeout(tmp_path, monkeypatch):
         start_time += 400
         return res
         
-    with mock.patch("scripts.mac_worker_adapter.time.time", side_effect=mock_time):
-        mac_worker_adapter.run(str(task_file))
+    monkeypatch.setattr(mac_worker_adapter, "time", type("Clock", (), {
+        "time": staticmethod(mock_time),
+        "sleep": staticmethod(time.sleep),
+    })())
+    mac_worker_adapter.run(str(task_file))
         
     incoming = Path("results/incoming/mac2_result.json")
     assert incoming.exists()
