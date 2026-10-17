@@ -25,7 +25,9 @@ def load_daemon(tmp_path, monkeypatch, timeout=2):
     (tmp_path / "logs").mkdir()
     monkeypatch.setattr(daemon, "STATE_DIR", tmp_path / "state")
     monkeypatch.setattr(daemon, "LOGS_DIR", tmp_path / "logs")
-    monkeypatch.setattr(daemon.time, "sleep", lambda seconds: None)
+    # daemon.time is the process-wide time module. Replacing sleep with a no-op
+    # turns every other thread blocked in time.sleep into a busy loop. run_agy
+    # bounds the wait with communicate(timeout=), so this harness does not patch it.
     config = {"COURIER_SERVER": "http://courier.invalid", "WORKER_ID": "MAC-01",
               "AGY_TIMEOUT_SECONDS": timeout}
     return daemon, config
@@ -69,9 +71,12 @@ def run_with_fake_agy(daemon, monkeypatch, tmp_path, body, timeout=2):
 
 
 def test_agy_timeout_kills_group_and_reaps(tmp_path, monkeypatch):
+    real_sleep = time.sleep
     daemon, _ = load_daemon(tmp_path, monkeypatch)
+    assert daemon.time.sleep is real_sleep
     result, instances, elapsed = run_with_fake_agy(
         daemon, monkeypatch, tmp_path, "sleep 60", timeout=2)
+    assert time.sleep is real_sleep
     assert result["status"] == "FAILED"
     assert result["reason"] == "TIMEOUT"
     assert result["execution_mode"] == "ANTIGRAVITY"
