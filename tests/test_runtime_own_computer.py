@@ -135,3 +135,40 @@ def test_accepted_log_rejects_unsourced_or_unauthorized_facts(tmp_path):
         log.append(AcceptedFact("wk", 0, "x", (), "controller", 1.0))
     with pytest.raises(ValueError):
         log.append(AcceptedFact("wk", 0, "x", ("ev",), "model", 1.0))
+
+
+def test_orphans_remaining_after_stop_are_not_accepted(world):
+    """A stop receipt of ORPHANS_REMAIN is not a finished step. The survivor stays running."""
+    import subprocess
+
+    import psutil
+
+    ws, _, _, tmp = world
+    child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
+    real = ws.registry
+
+    class StopLeavesOrphans:
+        def add(self, record):
+            return real.add(record)
+
+        def owned(self, workkey=None):
+            return real.owned(workkey)
+
+        def stop(self, workkey=None, timeout=5.0):
+            return [{"pid": child.pid, "workkey": workkey, "owner": "test",
+                     "action": "TERMINATE_OWNED_TREE", "terminated": [],
+                     "still_alive": [child.pid], "result": "ORPHANS_REMAIN"}]
+
+    ws.registry = StopLeavesOrphans()
+    try:
+        result = ws.run("wk-orphans", Requirement(frozenset({"python"})), "project:p1", request("r-orphans"),
+                        [write_step("fetch", str(tmp / "runs.txt"))])
+        assert result["state"] == "RECOVERING"
+        assert "termination not proven" in result["reasons"]
+        assert child.pid in result["still_alive"]
+        assert ws.log.facts("wk-orphans") == []
+        assert psutil.Process(child.pid).is_running()
+    finally:
+        if child.poll() is None:
+            child.kill()
+            child.wait()
