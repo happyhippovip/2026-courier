@@ -4,8 +4,10 @@ Contract: tests/golden/README.md. Each case is an independent Courier home.
 """
 
 import json
+import os
 import sqlite3
 import time
+import warnings
 
 from golden_harness import GOLDEN_SHA256, open_handles, pids_alive, wait_until
 
@@ -117,7 +119,16 @@ def test_timeout_kills_the_task_tree_and_retries(courier):
     assert complete["attempt"] == 2
     assert len(accepted_events(courier, task_id)) == 1
     time.sleep(2)
-    assert open_handles(worker.pid) <= baseline_handles + 4, "worker host leaked handles/descriptors"
+    after_handles = open_handles(worker.pid)
+    # Diagnostic so passing Windows CI runs also record the measured delta.
+    warnings.warn(f"golden handles: baseline={baseline_handles} after={after_handles} "
+                  f"delta={after_handles - baseline_handles} os={os.name}")
+    # Windows CI (#537, run 38415397962) measured 180 -> 182 (+2) once
+    # courier_worker/host.py imports psutil eagerly; before that, a lazy first
+    # import after the baseline cost +35 (147 -> 182). Same +4 bound everywhere.
+    tolerance = 4
+    assert after_handles <= baseline_handles + tolerance, (
+        f"worker host leaked handles/descriptors: {baseline_handles} -> {after_handles}")
 
 
 def test_cancel_while_running(courier):

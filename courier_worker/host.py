@@ -32,6 +32,16 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
 
+try:  # Loaded once at import, before any task runs: a lazy first import during
+    # a task cost the Windows worker ~35 extra OS handles after the golden
+    # baseline (182 vs 147 in Windows CI). The own create_time is fixed for the
+    # process lifetime, so it is read once as well.
+    import psutil as _psutil
+    _OWNER_CREATE_TIME = float(_psutil.Process(os.getpid()).create_time())
+except Exception:  # pragma: no cover - psutil is a pinned dependency
+    _psutil = None
+    _OWNER_CREATE_TIME = 0.0
+
 # -- bounds (all of them are load-bearing contracts) --------------------------
 MAX_TIMEOUT_S = 3600.0
 DEFAULT_TIMEOUT_S = 300.0
@@ -440,6 +450,13 @@ class ContainedRun:
         if self.job is not None:
             _close_job(self.job)
             self.job = None
+        if os.name == "nt":
+            handle = getattr(self.proc, "_handle", None)
+            if handle is not None and hasattr(handle, "Close"):
+                try:
+                    handle.Close()
+                except Exception:
+                    pass
 
 
 def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
@@ -510,9 +527,19 @@ def _claim_path(home: str, dispatch_id: str) -> Path:
     return _claims_dir(home) / f"dispatch-{safe or 'unnamed'}.json"
 
 
-def _owner_alive(owner_pid: int) -> bool:
+def _owner_alive(owner_pid: int, owner_create_time: float | None = None) -> bool:
     if owner_pid <= 0:
         return False
+    if owner_create_time and owner_create_time > 0.0:
+        try:
+            proc = _psutil.Process(owner_pid)
+            if proc.status() == _psutil.STATUS_ZOMBIE:
+                return False
+            if abs(proc.create_time() - owner_create_time) > 0.1:
+                return False
+            return True
+        except (Exception,):
+            return False
     try:
         if os.name == "nt":
             import ctypes
@@ -529,9 +556,10 @@ def _owner_alive(owner_pid: int) -> bool:
 
 def _write_claim_record(home: str, spec: ExecutionSpec, run: ContainedRun) -> Path:
     _claims_dir(home).mkdir(parents=True, exist_ok=True)
+    owner_create_time = _OWNER_CREATE_TIME
     record = {"task_id": spec.task_id, "attempt": spec.attempt, "dispatch_id": spec.dispatch_id,
-              "worker_id": spec.worker_id, "owner_pid": os.getpid(), "child_pid": run.pid,
-              "pgid": run.group_id()}
+              "worker_id": spec.worker_id, "owner_pid": os.getpid(), "owner_create_time": owner_create_time,
+              "child_pid": run.pid, "pgid": run.group_id()}
     path = _claim_path(home, spec.dispatch_id)
     fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".claim-", suffix=".tmp")
     try:
@@ -559,13 +587,14 @@ def run_orphan_gate(home: str) -> int:
         try:
             record = json.loads(path.read_text(encoding="utf-8"))
             owner_pid = int(record.get("owner_pid", 0) or 0)
+            owner_create_time = float(record.get("owner_create_time", 0.0) or 0.0)
         except (OSError, ValueError, TypeError):
             try:
                 path.rename(path.with_suffix('.json.corrupt'))
             except OSError:
                 pass
             continue
-        if _owner_alive(owner_pid):
+        if _owner_alive(owner_pid, owner_create_time):
             continue  # another live host owns this tree; hands off
         _reap_orphan(record)
         try:
