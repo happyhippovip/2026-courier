@@ -16,9 +16,11 @@ async function refresh() {
     const snapshot = await response.json();
     view.innerHTML = renderKolibri(snapshot);
     status.textContent = `Read at ${snapshot.observed_at || observed}`;
+    delete status.dataset.tone;
   } catch {
     view.innerHTML = renderKolibri(unavailableSnapshot(observed));
     status.textContent = "UNKNOWN / nicht erreichbar";
+    status.dataset.tone = "warn";
   }
   window.setTimeout(refresh, POLL_MS);
 }

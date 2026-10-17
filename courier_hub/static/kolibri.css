@@ -1,4 +1,5 @@
 main { padding: 8px 24px 32px; }
+a.link { color: var(--gold); text-decoration: underline; font-size: 14px; }
 .note { color: var(--quiet); font-size: 13px; max-width: 70ch; }
 section { margin: 28px 0; }
 section h2, .flower h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--quiet); margin: 0 0 12px; }

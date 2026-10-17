@@ -115,11 +115,19 @@ export function unavailableSnapshot(observedAt) {
 }
 
 function stationHtml(stations) {
+  const optional = [
+    ["Workkey", "workkey"],
+    ["Owner", "owner"],
+    ["Lease", "lease"],
+    ["Blocker", "blocker"],
+    ["Resource pause", "resource_pause"],
+  ];
   return stations.map((station) => `<article class="card" data-station="${escapeHtml(station.id)}">
       <h3>${escapeHtml(text(station.id))}</h3>
       ${field("State", station.state)}
       ${field("Process", station.process)}
       ${field("DONE", station.done)}
+      ${optional.filter(([, key]) => station[key]).map(([label, key]) => field(label, station[key])).join("")}
     </article>`).join("");
 }
 
@@ -163,12 +171,16 @@ function detailHtml(snapshot) {
       <div class="stations">${missions.map((mission) => `<article class="card" data-mission="${escapeHtml(mission.id)}">
         <h3>${escapeHtml(text(mission.id))}</h3>
         ${field("Status", { value: mission.status, source: mission.source, at: mission.at })}
+        ${["workkey", "task_id", "owner", "lease", "blocker", "resource_pause", "reason"]
+          .filter((k) => mission[k])
+          .map((k) => field(k, { value: mission[k], source: mission.source, at: mission.at }))
+          .join("")}
       </article>`).join("")}</div>
     </section>
     <section id="github-ci" data-available="${ci.available ? "yes" : "no"}">
       <h2>GitHub CI</h2>
       ${field("Reading", ci)}
-      <div class="stations">${checks.map((check) => `<article class="card">
+      <div class="stations">${checks.map((check) => `<article class="card" data-check="${escapeHtml(check.context)}">
         ${field(text(check.context), { value: check.state, source: check.source, at: check.at })}
       </article>`).join("")}</div>
     </section>

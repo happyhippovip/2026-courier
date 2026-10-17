@@ -339,6 +339,71 @@ def test_hub_route_serves_one_page(tmp_path):
             assert response.status == 200
             page = response.read().decode("utf-8")
         assert page.count("<main") == 1 and "kolibri.js" in page
+        with urllib.request.urlopen(base + "/kolibri", timeout=10) as response:
+            assert response.status == 200
+            alias_page = response.read().decode("utf-8")
+        assert alias_page == page
     finally:
         server.shutdown()
         server.server_close()
+
+
+def test_kolibri_workkey_lease_blocker_and_resource_pause_visibility(tmp_path):
+    observed = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    now_ts = datetime.now(timezone.utc).timestamp()
+    wall = tmp_path / "wall"
+    slot_live = wall / "MUSE-01"
+    slot_paused = wall / "MUSE-02"
+    slot_live.mkdir(parents=True)
+    slot_paused.mkdir(parents=True)
+    (slot_live / "state.json").write_text(json.dumps({
+        "slot_id": "MUSE-01",
+        "state": "RUNNING",
+        "process": {"pid": 42},
+        "updated_at": now_ts,
+        "workkey": "K-000019",
+        "owner": "L4-verifier",
+        "lease": "LEASE_ACTIVE",
+        "owner_token": "secret-token-never-show",
+    }), encoding="utf-8")
+    (slot_paused / "state.json").write_text(json.dumps({
+        "slot_id": "MUSE-02",
+        "state": "READY",
+        "process": None,
+        "updated_at": 1_700_000_000,
+        "workkey": "STALE-WORKKEY-HIDDEN",
+        "blocker": "WAITING_AUTHORITY",
+        "resource_pause": True,
+    }), encoding="utf-8")
+    home = tmp_path / "home"
+    home.mkdir(parents=True)
+    (home / "ledger_bridge_state.json").write_text(json.dumps({
+        "missions": {
+            "M-KOLIBRI-1": {
+                "status": "IN_PROGRESS",
+                "workkey": "K-000003",
+                "owner": "L2-controller",
+                "lease": "LEASE_VALID",
+                "resource_pause": "RESPECT",
+                "updated_at": observed,
+            }
+        }
+    }), encoding="utf-8")
+    snapshot = build_snapshot(
+        _hub(home), root=tmp_path / "no-repo", wall=wall, wall_label="wall",
+        observed_at=observed, github_fetch=OFFLINE,
+    )
+    s1, s2 = snapshot["muse_wall"]["stations"]
+    assert s1["workkey"]["value"] == "K-000019"
+    assert s1["owner"]["value"] == "L4-verifier"
+    assert s1["lease"]["value"] == "LEASE_ACTIVE"
+    assert "workkey" not in s2  # stale slot must not claim active workkey
+    assert s2["blocker"]["value"] == "WAITING_AUTHORITY"
+    assert s2["resource_pause"]["value"] == "RESOURCE_PAUSE"
+    html, _ = _render(snapshot)
+    assert "K-000019" in html and "L4-verifier" in html and "LEASE_ACTIVE" in html
+    assert "STALE-WORKKEY-HIDDEN" not in html
+    assert "WAITING_AUTHORITY" in html and "RESOURCE_PAUSE" in html
+    assert "K-000003" in html and "LEASE_VALID" in html
+    assert "secret-token-never-show" not in html
+

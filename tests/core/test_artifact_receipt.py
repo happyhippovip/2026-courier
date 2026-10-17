@@ -113,10 +113,27 @@ def test_verify_artifact_receipt():
     receipt = {
         "sha256": hashlib.sha256(data).hexdigest(),
         "size_bytes": len(data),
+        "provenance": {
+            "branch": "integration/v1",
+            "source_sha": "0b55fc11be5f6280f2dd6977682cf142106a81e7",
+        },
     }
-    valid, msg = verify_artifact_receipt(receipt, data)
+    valid, msg = verify_artifact_receipt(
+        receipt,
+        data,
+        expected_branch="integration/v1",
+        expected_source_sha="0b55fc11be5f6280f2dd6977682cf142106a81e7",
+    )
     assert valid is True
     assert msg == "VERIFIED"
+
+    valid_branch, msg_branch = verify_artifact_receipt(receipt, data, expected_branch="main")
+    assert valid_branch is False
+    assert "branch mismatch" in msg_branch
+
+    valid_sha, msg_sha = verify_artifact_receipt(receipt, data, expected_source_sha="deadbeef")
+    assert valid_sha is False
+    assert "source_sha mismatch" in msg_sha
 
     valid_corrupt, msg_corrupt = verify_artifact_receipt(receipt, b"Tampered data")
     assert valid_corrupt is False

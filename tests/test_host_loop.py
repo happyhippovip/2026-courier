@@ -220,3 +220,21 @@ def test_run_once_on_wake_ready_drains_and_dispatches_once(tmp_path):
     assert dispatched == [("s1", "W0", 1), ("s1", "W1", 1)]
     assert k.workkeys["W0"].state == DONE
     assert len(world.started) == 1
+
+
+def test_provider_circuit_single_probe_fencing():
+    from courier_runtime.provider_circuit import AuthorizedFallbackRouter, CircuitBreaker
+
+    cb = CircuitBreaker()
+    router = AuthorizedFallbackRouter(cb)
+    router.register_connection("conn-primary", ["code"], {})
+    cb.record_error("conn-primary", "code", 429, {"retry_after": -1})
+
+    # First caller after retry_after claims the single recovery probe
+    assert router.find_fallback("code", {}) == "conn-primary"
+    # Second concurrent caller is fenced out while probe is in flight
+    assert router.find_fallback("code", {}) is None
+    # Once probe succeeds, circuit closes and normal traffic resumes
+    cb.record_success("conn-primary", "code")
+    assert router.find_fallback("code", {}) == "conn-primary"
+

@@ -141,6 +141,8 @@ def generate_artifact_receipt(
                 "worker_id": None,
                 "dispatch_id": None,
                 "attempt_id": None,
+                "branch": None,
+                "source_sha": None,
             },
             "human_summary": f"Artifact '{artifact_id}' could not be located in storage.",
             "file_access": {
@@ -205,6 +207,8 @@ def generate_artifact_receipt(
             "worker_id": record.get("worker_id"),
             "dispatch_id": record.get("dispatch_id"),
             "attempt_id": record.get("attempt_id"),
+            "branch": record.get("branch") or task_dict.get("branch"),
+            "source_sha": record.get("source_sha") or task_dict.get("source_sha"),
         },
         "human_summary": human_summary,
         "file_access": {
@@ -214,7 +218,13 @@ def generate_artifact_receipt(
     }
 
 
-def verify_artifact_receipt(receipt: Mapping[str, Any], data: bytes) -> tuple[bool, str]:
+def verify_artifact_receipt(
+    receipt: Mapping[str, Any],
+    data: bytes,
+    *,
+    expected_branch: str | None = None,
+    expected_source_sha: str | None = None,
+) -> tuple[bool, str]:
     """Verify in-memory or downloaded bytes against a receipt."""
     actual_sha = hashlib.sha256(data).hexdigest()
     if actual_sha != receipt.get("sha256"):
@@ -223,5 +233,12 @@ def verify_artifact_receipt(receipt: Mapping[str, Any], data: bytes) -> tuple[bo
     expected_size = receipt.get("size_bytes")
     if expected_size is not None and len(data) != expected_size:
         return False, f"size mismatch: expected {expected_size} bytes, got {len(data)}"
+
+    prov = receipt.get("provenance") or {}
+    if expected_branch is not None and prov.get("branch") != expected_branch:
+        return False, f"branch mismatch: expected {expected_branch}, got {prov.get('branch')}"
+
+    if expected_source_sha is not None and prov.get("source_sha") != expected_source_sha:
+        return False, f"source_sha mismatch: expected {expected_source_sha}, got {prov.get('source_sha')}"
 
     return True, "VERIFIED"

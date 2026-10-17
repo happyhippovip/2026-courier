@@ -42,7 +42,7 @@ _POSTFACH = {
     "postfach_alt_an_neu": "POSTFACH_ALT_AN_NEU",
     "postfach_neu_an_alt": "POSTFACH_NEU_AN_ALT",
 }
-_MISSION_FIELDS = ("status", "reason", "task_id")
+_MISSION_FIELDS = ("status", "reason", "task_id", "workkey", "owner", "lease", "blocker", "resource_pause")
 _merge_cache_lock = threading.Lock()
 _merge_cache: dict[str, tuple[str, str, list[dict]]] = {}
 _github_api_cache: dict[str, tuple[float, Optional[object]]] = {}
@@ -314,13 +314,24 @@ def read_muse_wall(root: Path, wall: Optional[Path], label: str, observed_at: st
             process_value = "none"
         else:
             process_value = "present"
-        stations.append({
+        station_entry = {
             "id": slot_id,
             "heartbeat": live,
             "state": {"value": state_value, "source": rel, "at": at},
             "process": {"value": process_value, "source": rel, "at": at},
             "done": _done_for(slot_id, merged),
-        })
+        }
+        for opt_key in ("workkey", "owner", "lease"):
+            raw_val = data.get(opt_key)
+            if live and isinstance(raw_val, str) and raw_val.strip() and not _SECRET_MARK.search(raw_val):
+                station_entry[opt_key] = {"value": raw_val.strip()[:80], "source": rel, "at": at}
+        for alert_key in ("blocker", "resource_pause"):
+            raw_alert = data.get(alert_key)
+            if isinstance(raw_alert, bool) and raw_alert:
+                station_entry[alert_key] = {"value": "RESOURCE_PAUSE" if alert_key == "resource_pause" else "BLOCKED", "source": rel, "at": at}
+            elif isinstance(raw_alert, str) and raw_alert.strip() and not _SECRET_MARK.search(raw_alert):
+                station_entry[alert_key] = {"value": raw_alert.strip()[:80], "source": rel, "at": at}
+        stations.append(station_entry)
     stations.sort(key=lambda station: station_key(station["id"]))
     live_count = sum(1 for station in stations if station["heartbeat"])
     times = [station["state"]["at"] for station in stations if station["state"]["at"] != UNAVAILABLE]

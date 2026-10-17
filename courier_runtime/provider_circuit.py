@@ -29,6 +29,7 @@ class ProviderState:
     reset_time: Optional[float] = None
     retry_after: Optional[float] = None
     open_circuit: bool = False
+    probe_in_flight: bool = False
     
     def update_from_error(self, error_code: int, retry_metadata: dict):
         if error_code == 429:
@@ -44,6 +45,7 @@ class ProviderState:
         elif error_code >= 500:
             self.availability = ProviderAvailability.PROVIDER_UNAVAILABLE
             self.open_circuit = True
+        self.probe_in_flight = False
         
     def check_recovery(self) -> bool:
         if not self.open_circuit:
@@ -58,6 +60,12 @@ class ProviderState:
             self.availability = ProviderAvailability.RECOVERY_PROBE_DUE
             return True
             
+        return False
+
+    def claim_probe(self) -> bool:
+        if self.availability == ProviderAvailability.RECOVERY_PROBE_DUE and not self.probe_in_flight:
+            self.probe_in_flight = True
+            return True
         return False
 
 class CircuitBreaker:
@@ -80,6 +88,7 @@ class CircuitBreaker:
         state.open_circuit = False
         state.reset_time = None
         state.retry_after = None
+        state.probe_in_flight = False
 
 class AuthorizedFallbackRouter:
     def __init__(self, circuit_breaker: CircuitBreaker):
@@ -100,7 +109,9 @@ class AuthorizedFallbackRouter:
                 # Check constraints (simplified for demo)
                 if self._check_constraints(conn["constraints"], project_constraints):
                     state = self.circuit_breaker.get_state(conn["id"], required_capability)
-                    if not state.open_circuit or state.check_recovery():
+                    if not state.open_circuit:
+                        return conn["id"]
+                    if state.check_recovery() and state.claim_probe():
                         return conn["id"]
         return None
         

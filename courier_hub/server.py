@@ -437,7 +437,7 @@ class Handler(BaseHTTPRequestHandler):
                                         "the list shows what it has recorded now."})
 
     def _static(self, path: str):
-        name = "index.html" if path in ("/", "/index.html") else path.lstrip("/")
+        name = "index.html" if path in ("/", "/index.html") else ("kolibri.html" if path == "/kolibri" else path.lstrip("/"))
         if "/" in name or "\\" in name or name.startswith("."):
             return self._send(404, {"error": "not_found"})
         file = STATIC_DIR / name
