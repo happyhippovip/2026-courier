@@ -85,7 +85,7 @@ def derive_goal_cost_summary(
             if provider in ("local", "linux", "mac", "windows", "verifier"):
                 cost_class = COST_CLASS_FREE
             else:
-                cost_class = COST_CLASS_LOW
+                cost_class = "unknown"  # UNKNOWN_COST: never assume included/free
 
         norm_cost = str(cost_class).lower()
         if norm_cost == COST_CLASS_FREE:

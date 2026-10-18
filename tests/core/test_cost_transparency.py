@@ -179,3 +179,11 @@ def test_server_goal_cost_endpoint(tmp_path, monkeypatch):
     res_404 = client.get("/goals/nonexistent-goal-id/cost", headers=headers)
     assert res_404.status_code == 404
 
+
+
+# --- REDTEAM R1 negative test --------------------------------------------
+def test_unknown_provider_without_cost_class_is_not_zero_spend():
+    goal = {"goal_id": "g", "workflow_plan": [{"task_id": "t1", "target_agent": "openai-api-gpt"}]}
+    s = derive_goal_cost_summary(goal, {"tasks": {}, "workers": {}})
+    assert s["budget_firewall_status"] != "INTACT"
+    assert "Zero-Spend" not in s["human_summary"]
