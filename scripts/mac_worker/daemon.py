@@ -481,6 +481,8 @@ def _reap_agy_group(process, identity):
 
 # agy runs under the active Google subscription; a call has no per-run charge.
 AGY_RESOURCE_ID = "google_antigravity_plus"
+# Muse runs only once the resource policy lists this resource as active.
+MUSE_RESOURCE_ID = "muse_subscription"
 
 
 def cost_gate(resource_id):
@@ -600,7 +602,14 @@ def run_muse(task, config):
     supervisor, decision = admit_surface("muse", task, config, needs_visible=True, allow_headless=False)
     if decision.action == "COALESCED":
         return coalesced_result(decision, "MUSE")
-    
+
+    gate = cost_gate(MUSE_RESOURCE_ID)
+    if not gate.get("allowed"):
+        return {"status": "FAILED", "reason": "COST_GATE_" + str(gate.get("reason") or "DENIED"),
+                "execution_mode": "MUSE"}
+    if muse_adapter.cli_capabilities(config).get("yolo"):
+        return {"status": "FAILED", "reason": "YOLO_NOT_ALLOWED", "execution_mode": "MUSE"}
+
     slot = os.environ.get("COURIER_SLOT_ID") or config["WORKER_ID"]
     workspace = os.environ.get("COURIER_MUSE_WORKSPACE", config.get("MUSE_WORKSPACE", CANONICAL_WORKSPACE))
     binding = muse_adapter.task_binding(task, slot, workspace)

@@ -27,6 +27,8 @@ SECRET = "SECRET_RESPONSE /tmp/customer-leak"
 @pytest.fixture(autouse=True)
 def _admit_heavy(monkeypatch):
     monkeypatch.setattr(provider_exec, "admit_heavy", lambda: True)
+    # Cost admission is covered by tests/test_p0_provider_costgate.py.
+    monkeypatch.setattr(provider_exec, "admit_cost", lambda provider: None)
 
 
 def _write_fake(directory: Path) -> str:

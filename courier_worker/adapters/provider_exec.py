@@ -180,6 +180,25 @@ def admit_heavy() -> bool:
         return False
 
 
+# Each allowlisted provider runs under a named subscription resource. A resource
+# the policy does not list as active is an unknown cost and is refused.
+PROVIDER_RESOURCE = {"agy": "google_antigravity_plus", "muse": "muse_subscription"}
+
+
+def admit_cost(provider: str) -> str | None:
+    """Ask CostGate before any launch. None means admitted, else a reason code. Fail closed."""
+    try:
+        from scripts.resource_policy import CostGate
+        verdict = CostGate.evaluate_spend_request(PROVIDER_RESOURCE.get(provider, provider),
+                                                  estimated_cost_eur=0.0)
+    except Exception:
+        return "COST_GATE_UNAVAILABLE"
+    if not isinstance(verdict, Mapping) or verdict.get("allowed") is not True:
+        reason = verdict.get("reason") if isinstance(verdict, Mapping) else None
+        return "COST_GATE_" + str(reason or "DENIED")
+    return None
+
+
 def run(params: Mapping, workdir, attempt: int = 1, *, config: Mapping | None = None) -> ProviderResult:
     """Run one provider attempt. Never retries and never invents a success."""
     try:
@@ -193,6 +212,9 @@ def run(params: Mapping, workdir, attempt: int = 1, *, config: Mapping | None = 
     binary = resolve_binary(spec["provider"], config)
     if binary is None:
         return _finish("UNAVAILABLE", "BINARY_MISSING", blocked=True)
+    refused = admit_cost(spec["provider"])
+    if refused is not None:
+        return _finish("UNAVAILABLE", refused, blocked=True)
     if not _slot.acquire(blocking=False):
         return _finish("deferred", "PROVIDER_BUSY", parked=True)
     try:

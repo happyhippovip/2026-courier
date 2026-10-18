@@ -84,6 +84,7 @@ def env(tmp_path, monkeypatch):
         "'COURIER_API_KEY': os.environ['COURIER_API_KEY'], 'WORKER_ID': os.environ['COURIER_WORKER_ID'], "
         "'POLL_INTERVAL_SECONDS': 0.1}\n"
         "d.resource_ready = lambda: True\n"
+        "d.cost_gate = lambda resource_id: {'allowed': True}\n"
         "def stop(*args): raise d.WorkerShutdown()\n"
         "signal.signal(signal.SIGTERM, stop)\n"
         "try: d.loop()\nexcept d.WorkerShutdown: pass\n")
