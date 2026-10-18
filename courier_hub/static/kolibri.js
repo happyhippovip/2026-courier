@@ -34,5 +34,13 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("focus", () => refresh());
 window.addEventListener("online", () => refresh());
 
+document.querySelector("#refresh")?.addEventListener("click", () => refresh());
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "r" && !event.ctrlKey && !event.metaKey && document.activeElement?.tagName !== "TEXTAREA" && document.activeElement?.tagName !== "INPUT") {
+    refresh();
+  }
+});
+
 refresh();
 
