@@ -1,21 +1,226 @@
-main { padding: 8px 24px 32px; }
-a.link { color: var(--gold); text-decoration: underline; font-size: 14px; }
+/* Kolibri Neon Research Facility — 2D-HUD & Dark-Neon Styling.
+   Farben:
+   Violett  (#a855f7) = RUNNING
+   Cyan     (#06b6d4) = TRANSFERRED
+   Türkis   (#14b8a6) = Agent übernimmt / CLAIMED
+   Gold     (#d8b46a) = VERIFYING / Gold accents
+   Grün     (#10b981) = Unabhängig VERIFIED
+   Rot      (#ef4444) = BLOCKED / FAILED
+   Orange   (#f59e0b) = WARNUNG / NEEDS
+   Magenta  (#ec4899) = Router / DEMO
+   Blau     (#3b82f6) = Infrastruktur
+   Grau     (#6b7280) = UNKNOWN
+*/
+
+:root {
+  --neon-violet: #a855f7;
+  --neon-cyan: #06b6d4;
+  --neon-turquoise: #14b8a6;
+  --neon-gold: #d8b46a;
+  --neon-green: #10b981;
+  --neon-red: #ef4444;
+  --neon-orange: #f59e0b;
+  --neon-magenta: #ec4899;
+  --neon-blue: #3b82f6;
+  --neon-gray: #6b7280;
+  --hud-bg-grid: rgba(255, 255, 255, 0.02);
+  --hud-line: rgba(255, 255, 255, 0.1);
+}
+
+body {
+  background: radial-gradient(circle at 50% 20%, #131722 0%, #0a0d14 100%);
+  background-attachment: fixed;
+}
+
+main {
+  padding: 12px 24px 40px;
+  background-image: 
+    linear-gradient(to right, var(--hud-bg-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--hud-bg-grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+a.link {
+  color: var(--neon-cyan);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+a.link:hover {
+  background: rgba(6, 182, 212, 0.15);
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
+}
+
 .note { color: var(--quiet); font-size: 13px; max-width: 70ch; }
-section { margin: 28px 0; }
-section h2, .flower h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--quiet); margin: 0 0 12px; }
-.stations, .flowers { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+section { margin: 32px 0; }
+section h2, .flower h2 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--neon-cyan);
+  margin: 0 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+section h2::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 8px var(--neon-cyan);
+  border-radius: 1px;
+}
+
+.stations, .flowers {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+}
 .stations .card h3, .flower h2 { margin: 0 0 8px; }
-.flower h2 { font-size: 13px; }
+.flower h2 { font-size: 12px; }
+.stations .card h3 {
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+
 .field { margin: 8px 0; }
 .field p { margin: 0; }
-.counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
-.garden { display: grid; grid-template-columns: 180px 1fr; gap: 16px; align-items: start; margin-top: 12px; }
-.perch, .flower { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
-.flower[data-active="yes"] { border-color: var(--gold); }
-.bird { color: var(--gold); }
-.flower-mark { color: var(--quiet); }
-.flower[data-active="yes"] .flower-mark { color: var(--gold); }
-#kolibri-activity { margin: 8px 0 0; font-size: 16px; }
-@media (max-width: 700px) {
-  .counts, .garden { grid-template-columns: 1fr; }
+
+.counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 14px;
 }
+
+.garden {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 18px;
+  align-items: start;
+  margin-top: 14px;
+}
+
+.perch, .flower {
+  background: rgba(18, 24, 38, 0.7);
+  border: 1px solid var(--hud-line);
+  border-radius: 10px;
+  padding: 14px;
+  backdrop-filter: blur(10px);
+  position: relative;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+
+.card {
+  background: rgba(18, 24, 38, 0.65);
+  border: 1px solid var(--hud-line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  backdrop-filter: blur(8px);
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.card:hover, .flower:hover {
+  border-color: rgba(6, 182, 212, 0.4);
+  box-shadow: 0 0 16px rgba(6, 182, 212, 0.12);
+}
+
+.flower[data-active="yes"] {
+  border-color: var(--neon-violet);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.25);
+  background: rgba(28, 20, 48, 0.75);
+}
+
+.flower[data-active="yes"] h2 {
+  color: var(--neon-violet);
+}
+
+.bird {
+  color: var(--neon-cyan);
+  filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.8));
+}
+
+.flower-mark {
+  color: var(--quiet);
+  transition: color 0.2s ease;
+}
+
+.flower[data-active="yes"] .flower-mark {
+  color: var(--neon-violet);
+  filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.7));
+}
+
+#kolibri-activity {
+  margin: 10px 0 0;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: var(--neon-cyan);
+}
+
+/* Ticker / Mode Banner Support */
+.hud-ticker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(6, 182, 212, 0.25);
+  border-radius: 8px;
+  padding: 6px 14px;
+  margin-bottom: 16px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--quiet);
+}
+
+.hud-ticker .badge-live {
+  color: var(--neon-green);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+.hud-ticker .badge-live::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--neon-green);
+  box-shadow: 0 0 8px var(--neon-green);
+}
+
+.badge-demo {
+  color: var(--neon-magenta);
+  font-weight: 700;
+  border: 1px solid var(--neon-magenta);
+  padding: 2px 8px;
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(236, 72, 153, 0.4);
+}
+
+/* Responsive & Reduced Motion */
+@media (max-width: 760px) {
+  .counts, .garden { grid-template-columns: 1fr; }
+  main { padding: 10px 14px 28px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .flower, .bird, a.link {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
