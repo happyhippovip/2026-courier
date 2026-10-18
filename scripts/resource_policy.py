@@ -207,8 +207,8 @@ class TaskLeaseManager:
             current_owner = existing.get("owner_id")
 
             if expires_at > now_ts:
-                if current_owner == owner_id:
-                    # Renew lease atomically
+                if current_owner == owner_id and existing.get("task_hash") == task_hash:
+                    # Renew lease atomically (only for the same input)
                     existing["expires_at"] = now_ts + duration_sec
                     save_json(lease_path, existing)
                     return True, "LEASE_RENEWED", existing
