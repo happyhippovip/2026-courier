@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from scripts.verified_continuation import (
+    MARATHON_20_WORKKEYS,
     ExecutionMode,
     VerifiedContinuation,
     canonical_json_hash,
@@ -238,3 +239,36 @@ def test_cli_verify_autonomy_isolated(tmp_path, capsys):
     assert "sequential_handoff_proven" in captured.out
     assert "WORKKEY_UNIT_1_LEDGER" in captured.out
     assert "WORKKEY_UNIT_2_BUILDER" in captured.out
+
+
+def test_marathon_20_sequential_continuation(continuation_engine):
+    report = continuation_engine.run_marathon_20()
+    assert report["status"] == "PASS"
+    assert report["marathon_count"] == 20
+    assert len(report["units_completed"]) == 20
+    assert report["units_completed"] == MARATHON_20_WORKKEYS
+    assert report["sequential_handoff_proven"] is True
+    assert report["manual_prompts_required"] == 0
+    assert len(report["checkpoints"]) == 20
+    assert len(report["result_hashes"]) == 20
+
+    # Verify first and last checkpoint files exist
+    cp_first = continuation_engine.checkpoints_dir / f"{MARATHON_20_WORKKEYS[0]}.checkpoint.json"
+    cp_last = continuation_engine.checkpoints_dir / f"{MARATHON_20_WORKKEYS[-1]}.checkpoint.json"
+    assert cp_first.exists()
+    assert cp_last.exists()
+
+    d_first = json.loads(cp_first.read_text(encoding="utf-8"))
+    assert d_first["next_workkey"] == MARATHON_20_WORKKEYS[1]
+
+    d_last = json.loads(cp_last.read_text(encoding="utf-8"))
+    assert d_last["next_workkey"] is None
+
+
+def test_cli_verify_marathon_20_isolated(tmp_path, capsys):
+    ledger_dir = str(tmp_path / "cli_marathon_ledger")
+    ret = main(["--verify-marathon-20", "--ledger-dir", ledger_dir])
+    assert ret == 0
+    captured = capsys.readouterr()
+    assert "MARATHON_01_TRUTH_EVIDENCE" in captured.out
+    assert "MARATHON_20_MONEY_FACTORY_GOAL" in captured.out

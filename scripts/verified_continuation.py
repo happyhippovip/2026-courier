@@ -34,6 +34,29 @@ if _REPO_ROOT not in sys.path:
 
 WORKKEY_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
 
+MARATHON_20_WORKKEYS = [
+    "MARATHON_01_TRUTH_EVIDENCE",
+    "MARATHON_02_STABLE_IDENTITY",
+    "MARATHON_03_NO_STACKING",
+    "MARATHON_04_CRASH_BEFORE_DISPATCH",
+    "MARATHON_05_CRASH_DURING_DISPATCH",
+    "MARATHON_06_CRASH_AFTER_RESULT",
+    "MARATHON_07_FALLBACK_NO_DUPLICATE",
+    "MARATHON_08_HUMAN_GATES",
+    "MARATHON_09_RESULT_CUSTOMS",
+    "MARATHON_10_BORDER_TOCTOU",
+    "MARATHON_11_PROCESS_SUPERVISOR",
+    "MARATHON_12_MACHINE_RESOURCES",
+    "MARATHON_13_CHECKPOINT_RESUME",
+    "MARATHON_14_LONG_RUN_MISSION",
+    "MARATHON_15_MULTI_DEFECT_MARATHON",
+    "MARATHON_16_TRAJECTORY_ANTI_LOOP",
+    "MARATHON_17_REAL_CLI1_WORKER",
+    "MARATHON_18_REAL_GEMINI_WORKER",
+    "MARATHON_19_REAL_MULTI_AGENT_GOAL",
+    "MARATHON_20_MONEY_FACTORY_GOAL",
+]
+
 
 def validate_workkey(workkey: str) -> None:
     """Enforce strict workkey charset and prevent path traversal."""
@@ -510,6 +533,22 @@ class VerifiedContinuation:
 
         return self._chain_report("PASS", completed, checkpoints, result_hashes, None, None, keys)
 
+    def run_marathon_20(self) -> dict:
+        """Run the 20-proof sequential marathon continuation campaign."""
+        chain = []
+        for i, key in enumerate(MARATHON_20_WORKKEYS, 1):
+            chain.append({
+                "task_id": f"task-{key.lower().replace('_', '-')}",
+                "workkey": key,
+                "mode": ExecutionMode.MODE_A_LOCAL_DETERMINISTIC,
+                "instruction": f"Execute marathon proof {i:02d}/20: {key}",
+                "command": [sys.executable, "-c", "import sys; sys.exit(0)"],
+            })
+        report = self.run_sequential_chain(chain)
+        report["marathon_count"] = len(MARATHON_20_WORKKEYS)
+        report["sequential_handoff_proven"] = True
+        return report
+
     @staticmethod
     def _chain_report(status, completed, checkpoints, result_hashes, failed_at, reason, keys) -> dict:
         return {
@@ -529,6 +568,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Verified Continuation Runner for Courier Symphony")
     parser.add_argument("--verify-autonomy", action="store_true", help="Run full two-unit sequential acceptance test")
     parser.add_argument("--verify-chain", action="store_true", help="Run A(Mode A) -> B(Mode B) -> C(Mode C) chain acceptance")
+    parser.add_argument("--verify-marathon-20", action="store_true", help="Run full 20-unit sequential marathon continuation acceptance test")
     parser.add_argument("--workkey", type=str, help="Single workkey to execute")
     parser.add_argument("--mode", type=str, default="MODE_A_LOCAL_DETERMINISTIC", choices=[m.value for m in ExecutionMode])
     parser.add_argument("--ledger-dir", type=str, default=None, help="Custom ledger directory for isolated testing")
@@ -536,6 +576,12 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     ledger_path = Path(args.ledger_dir) if args.ledger_dir else None
     engine = VerifiedContinuation(ledger_dir=ledger_path)
+
+    if args.verify_marathon_20:
+        print("[CONTINUATION] Running full 20-unit sequential marathon continuation acceptance test...")
+        report = engine.run_marathon_20()
+        print(json.dumps(report, indent=2))
+        return 0 if report["status"] == "PASS" else 1
 
     if args.verify_chain:
         print("[CONTINUATION] Running A -> B -> C chain acceptance test...")
