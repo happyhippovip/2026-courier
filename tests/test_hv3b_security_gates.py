@@ -30,6 +30,10 @@ from scripts.run_antigravity_bridge import AntigravityHookRunner, AntigravityVis
 
 ROOT = Path(__file__).resolve().parents[1]
 DAEMON_PATH = ROOT / "scripts" / "mac_worker" / "daemon.py"
+# scripts/mac_worker is POSIX-only (runtime_state imports fcntl); L1 CI policy
+# runs it on Linux and macOS only.
+POSIX_ONLY = pytest.mark.skipif(importlib.util.find_spec("fcntl") is None,
+                                reason="scripts/mac_worker imports the POSIX-only fcntl module")
 BYPASS_FLAG = "--dangerously-skip-permissions"
 SHA = "f425d3285611333d81cfffa263deebba186e398c"
 SURFACE_OK = {"has_agy_cli": True, "authorized_mode": "CLI_ONLY"}
@@ -89,6 +93,7 @@ def _hooks(tmp_path):
     return AntigravityHookRunner(AntigravityVisualStateTracker(repo_dir=tmp_path))
 
 
+@POSIX_ONLY
 def test_daemon_agy_argv_never_skips_permissions(tmp_path, monkeypatch):
     daemon = load_daemon(tmp_path, monkeypatch)
     fake_agy_on_path(tmp_path, monkeypatch)
@@ -124,6 +129,7 @@ def test_cost_gate_allows_known_zero_cost_on_active_resource():
     assert res["allowed"] is True
 
 
+@POSIX_ONLY
 def test_daemon_cost_gate_denial_spawns_nothing(tmp_path, monkeypatch):
     daemon = load_daemon(tmp_path, monkeypatch)
     fake_agy_on_path(tmp_path, monkeypatch)

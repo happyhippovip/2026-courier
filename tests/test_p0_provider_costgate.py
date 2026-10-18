@@ -23,8 +23,11 @@ from scripts.resource_policy import CostGate
 
 ROOT = Path(__file__).resolve().parents[1]
 DAEMON_PATH = ROOT / "scripts" / "mac_worker" / "daemon.py"
+# scripts/mac_worker is POSIX-only (runtime_state imports fcntl). L1 CI policy
+# runs it on Linux and macOS only; provider_exec is checked on every platform.
+POSIX_ONLY = pytest.mark.skipif(importlib.util.find_spec("fcntl") is None,
+                                reason="scripts/mac_worker imports the POSIX-only fcntl module")
 sys.path.insert(0, str(ROOT / "scripts" / "mac_worker"))
-import muse_adapter  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -121,6 +124,7 @@ def _call_run_muse(daemon):
         return {"status": "RAISED", "reason": type(exc).__name__}
 
 
+@POSIX_ONLY
 def test_daemon_run_muse_refused_by_cost_gate(tmp_path, monkeypatch):
     daemon, launched = _load_daemon(tmp_path, monkeypatch)
     result = _call_run_muse(daemon)
@@ -129,6 +133,7 @@ def test_daemon_run_muse_refused_by_cost_gate(tmp_path, monkeypatch):
     assert result["reason"] == "COST_GATE_UNAUTHORIZED_RESOURCE_TIER"
 
 
+@POSIX_ONLY
 def test_daemon_run_muse_refuses_yolo(tmp_path, monkeypatch):
     daemon, launched = _load_daemon(tmp_path, monkeypatch)
     monkeypatch.setattr(daemon, "cost_gate", lambda resource_id: {"allowed": True}, raising=False)
@@ -139,7 +144,9 @@ def test_daemon_run_muse_refuses_yolo(tmp_path, monkeypatch):
     assert result["reason"] == "YOLO_NOT_ALLOWED"
 
 
+@POSIX_ONLY
 def test_muse_adapter_never_builds_yolo():
+    import muse_adapter
     task = {"task_id": "t-p0-3", "attempt": 1, "dispatch_id": "d-1"}
     with pytest.raises(muse_adapter.MuseCapabilityUnknown):
         muse_adapter.build_muse_command(task, {}, {"protocol": "headless-v1", "yolo": True},
