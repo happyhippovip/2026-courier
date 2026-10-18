@@ -31,6 +31,26 @@ export const FLOW_COLORS = Object.freeze({
   [FLOW_STATES.UNKNOWN]: "#6b7280",
 });
 
+// Fail-closed translation contract: a green VERIFIED pulse needs ALL of
+//   1. an explicit success claim (verified === true, verifier_verdict "pass"),
+//   2. an explicit event identity (event_id / id / task_id / source+at),
+//   3. a structured evidence object (state / verifier / verification),
+//   4. a success context (VERIFIED / SUCCESS / DONE),
+//   5. no replay (this explicit id was not translated before).
+// Status strings alone are display labels, never proof. UNKNOWN stays UNKNOWN.
+const unknownIdCounter = { value: 0 };
+function nextUnknownId() {
+  return `evt:unknown:${unknownIdCounter.value++}`;
+}
+const seenEventIds = new Set();
+function hasStructuredEvidence(signal) {
+  for (const key of ["state", "verifier", "verification"]) {
+    const value = signal?.[key];
+    if (typeof value === "object" && value !== null) return true;
+  }
+  return false;
+}
+
 /**
  * Maps a station/task snapshot property to a strictly validated flow state.
  * @param {Object} item
@@ -48,8 +68,24 @@ export function translateSignal(item) {
 
   const rawState = String(item.state?.value || item.status || item.value || "").toUpperCase();
   const blocker = String(item.blocker?.value || item.blocker || "").toUpperCase();
-  const eventId = String(item.event_id || item.id || item.task_id || `evt:${item.source || "gen"}:${item.at || "0"}`);
-  const isVerified = Boolean(item.verified || rawState === "VERIFIED" || rawState === "SUCCESS");
+  // Only caller-supplied ids count as provenance. A synthesized placeholder is
+  // unique per call and never re-emittable, so a signal without provenance can
+  // neither look real nor replay.
+  const explicitId =
+    item.event_id ?? item.id ?? item.task_id ??
+    (item.source != null && item.at != null ? `${item.source}:${item.at}` : undefined);
+  const eventId = String(explicitId ?? nextUnknownId());
+  const replay = explicitId !== undefined && seenEventIds.has(String(explicitId));
+  if (explicitId !== undefined) seenEventIds.add(String(explicitId));
+
+  const successClaim = item.verified === true || item.verifier_verdict === "pass";
+  const successContext = rawState === "VERIFIED" || rawState === "SUCCESS" || rawState === "DONE";
+  const isVerified =
+    successClaim &&
+    explicitId !== undefined &&
+    hasStructuredEvidence(item) &&
+    successContext &&
+    !replay;
 
   // Priority 1: Blocker or explicit failure
   if (blocker && blocker !== "NONE" && blocker !== "UNKNOWN / NICHT ERREICHBAR") {

@@ -183,14 +183,20 @@ def test_result_ready_is_only_redelivered(env):
     sup, server, http, auth, tmp = env
     add_goal(http, auth, "t-r")
     task = claim_as(http, auth, "MUSE-01")
+    contract = load_module("contract_redelivery", ROOT / "scripts" / "integration_contract.py")
     payload = {k: task[k] for k in ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")}
-    payload.update(run_id="run-before-crash", result_id="result-before-crash", status="SUCCESS",
+    payload.update(run_id="run-before-crash", status="SUCCESS",
                    artifacts=[{"path": "out.txt", "sha256": "a" * 64}])
+    # A real daemon stamps the canonical id before persisting RESULT_READY
+    # (daemon.py: payload["result_id"] = canonical_result_id(payload)); any
+    # other seeded id is a payload the daemon could never have written, and
+    # the server rightly rejects it with 400 "not the canonical hash".
+    payload["result_id"] = contract.canonical_result_id(payload)
     seed(sup, "01", dict(task, worker_phase="RESULT_READY", result_payload=payload))
     s = supervisor(sup, target=1)
     assert run_until(s, lambda: task_state(server, "t-r").get("status") == "RESULT_RECEIVED")
     stored = task_state(server, "t-r")
-    assert stored["result"]["result_id"] == "result-before-crash"
+    assert stored["result"]["result_id"] == payload["result_id"]
     assert stored["attempt_id"] == task["attempt_id"] and stored["dispatch_id"] == task["dispatch_id"]
     assert muse_calls(tmp) == []                                                   # not recomputed
     sup.cmd_stop()
