@@ -1,0 +1,94 @@
+/* Kolibri 2.5D Lab theme. Scoped under .lab25d: no global leakage into
+ * the existing Kolibri page. Status colors are semantic (one meaning each),
+ * glow is reserved for the live link and active nodes only.
+ */
+.lab25d {
+  --lab-bg: #070b16;
+  --lab-panel: #0d1526;
+  --lab-line: #1e2b47;
+  --lab-text: #dbe7ff;
+  --lab-quiet: #8494b3;
+  --lab-cyan: #22d3ee;
+  --lab-violet: #a78bfa;
+  --lab-turquoise: #2dd4bf;
+  --lab-gold: #fbbf24;
+  --lab-green: #34d399;
+  --lab-red: #f87171;
+  background: var(--lab-bg);
+  border: 1px solid var(--lab-line);
+  border-radius: 14px;
+  color: var(--lab-text);
+  padding: 16px;
+  perspective: 900px;
+}
+
+.lab25d-banner {
+  display: none;
+  border: 1px dashed var(--lab-gold);
+  border-radius: 8px;
+  color: var(--lab-gold);
+  font-size: 13px;
+  margin: 0 0 12px;
+  padding: 8px 12px;
+}
+
+.lab25d-demo .lab25d-banner {
+  display: block;
+}
+
+.lab25d svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--lab-panel);
+  border: 1px solid var(--lab-line);
+  border-radius: 10px;
+}
+
+.lab25d-node-ring {
+  fill: none;
+  stroke: var(--lab-line);
+  stroke-width: 2;
+}
+
+.lab25d-node[data-live="yes"] .lab25d-node-ring {
+  stroke: var(--lab-cyan);
+  filter: drop-shadow(0 0 6px var(--lab-cyan));
+}
+
+.lab25d-label {
+  fill: var(--lab-quiet);
+  font-size: 12px;
+  text-anchor: middle;
+}
+
+.lab25d-link {
+  stroke: var(--lab-line);
+  stroke-width: 2;
+  stroke-dasharray: 6 6;
+}
+
+.lab25d-link[data-live="yes"] {
+  stroke: var(--lab-turquoise);
+  filter: drop-shadow(0 0 5px var(--lab-turquoise));
+}
+
+.lab25d-particles {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: -8px;
+  pointer-events: none;
+}
+
+@media (max-width: 700px) {
+  .lab25d {
+    padding: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lab25d-link {
+    stroke-dasharray: none;
+  }
+}
