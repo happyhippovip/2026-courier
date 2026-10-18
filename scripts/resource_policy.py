@@ -192,6 +192,9 @@ class TaskLeaseManager:
 
         # 2. Inspect existing lease for renewal or active ownership
         existing = load_json(lease_path)
+        if existing is None and lease_path.exists():
+            # Empty/torn lease = a holder is mid-write. Never treat as expired.
+            return False, "LEASE_UNREADABLE_FAIL_CLOSED", {}
         if existing:
             expires_at = existing.get("expires_at", 0)
             current_owner = existing.get("owner_id")
@@ -217,6 +220,8 @@ class TaskLeaseManager:
         try:
             # Re-read lease under reclaim lock to ensure it is still expired
             current_existing = load_json(lease_path)
+            if current_existing is None and lease_path.exists():
+                return False, "LEASE_UNREADABLE_FAIL_CLOSED", {}
             if current_existing:
                 current_expires = current_existing.get("expires_at", 0)
                 if current_expires > now_ts:
