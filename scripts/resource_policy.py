@@ -9,6 +9,7 @@ from __future__ import annotations
 import datetime
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 from typing import Any
@@ -102,7 +103,7 @@ class CostGate:
     @staticmethod
     def evaluate_spend_request(
         resource_id: str,
-        estimated_cost_eur: float = 0.0,
+        estimated_cost_eur: float | None = None,
         requested_action: str = "EXECUTE_TASK",
         repo_dir: Path | None = None,
     ) -> dict:
@@ -129,6 +130,15 @@ class CostGate:
                 "requires_human_gate": True,
             }
 
+        # UNKNOWN_COST=BLOCK: only a finite, explicit 0.0 passes.
+        if (isinstance(estimated_cost_eur, bool) or not isinstance(estimated_cost_eur, (int, float))
+                or not math.isfinite(estimated_cost_eur) or estimated_cost_eur < 0.0):
+            return {
+                "allowed": False,
+                "reason": "UNKNOWN_COST",
+                "message": "Cost estimate missing or invalid; unknown cost is blocked.",
+                "requires_human_gate": True,
+            }
         # Check unapproved extra spending / capacity upgrades
         if estimated_cost_eur > 0.0 or "upgrade" in requested_action.lower() or "purchase" in requested_action.lower():
             return {
