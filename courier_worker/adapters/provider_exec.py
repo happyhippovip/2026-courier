@@ -88,6 +88,7 @@ KNOWN_PARAM_KEYS = frozenset({
     "approval_mode", "max_model_steps", "max_tool_output_bytes",
     "disable_web_tools", "no_foreign_personal_context",
     "reasoning_effort", "model",
+    "cost_class", "estimated_cost_eur", "unknown_cost",
     "argv", "args", "flags", "extra_args", "command",
 })
 DEFAULT_TIMEOUT_S = 1800.0
@@ -165,7 +166,13 @@ def validate(params: Mapping) -> dict:
     timeout_s = float(timeout)
     if not (0 < timeout_s <= DEFAULT_TIMEOUT_S):
         raise ProviderExecError("BAD_TIMEOUT")
-    return {"provider": provider, "prompt": prompt, "timeout_s": timeout_s, **_scoped_fields(params)}
+    return {
+        "provider": provider, "prompt": prompt, "timeout_s": timeout_s,
+        "cost_class": params.get("cost_class"),
+        "estimated_cost_eur": params.get("estimated_cost_eur", 0.0),
+        "unknown_cost": params.get("unknown_cost"),
+        **_scoped_fields(params),
+    }
 
 
 def admit_heavy() -> bool:
@@ -178,6 +185,49 @@ def admit_heavy() -> bool:
         return bool(governor.admit_job("HEAVY"))
     except Exception:
         return False
+
+
+def evaluate_cost_gate(spec: Mapping, config: Mapping | None) -> dict:
+    """CostGate evaluation before process start.
+    
+    UNKNOWN_COST or unapproved incremental spend must fail-closed (BLOCKED).
+    Free deterministic providers (local) are allowed without incremental cost.
+    """
+    cost_class = spec.get("cost_class")
+    estimated_cost = spec.get("estimated_cost_eur", 0.0)
+
+    # UNKNOWN_COST must block
+    if cost_class == "unknown" or spec.get("unknown_cost") is True:
+        return {
+            "allowed": False,
+            "outcome": "BLOCKED",
+            "reason_code": "UNKNOWN_COST_BLOCKED",
+            "message": "Tasks with unknown cost class are blocked by policy firewall.",
+        }
+
+    # If explicit estimated incremental cost > 0, check policy CostGate
+    if isinstance(estimated_cost, (int, float)) and estimated_cost > 0.0:
+        try:
+            from scripts.resource_policy import CostGate
+            resource_id = f"provider_{spec.get('provider')}"
+            eval_res = CostGate.evaluate_spend_request(resource_id, estimated_cost_eur=float(estimated_cost))
+            if not eval_res.get("allowed", False):
+                return {
+                    "allowed": False,
+                    "outcome": "BLOCKED",
+                    "reason_code": eval_res.get("reason", "SPEND_NOT_ALLOWED_BY_POLICY"),
+                    "message": eval_res.get("message", "CostGate rejected spending request."),
+                }
+        except ImportError:
+            # If CostGate cannot be consulted and estimated_cost > 0, fail closed
+            return {
+                "allowed": False,
+                "outcome": "BLOCKED",
+                "reason_code": "COSTGATE_UNAVAILABLE_FOR_SPEND",
+                "message": "CostGate unavailable to verify non-zero expenditure.",
+            }
+
+    return {"allowed": True}
 
 
 def run(params: Mapping, workdir, attempt: int = 1, *, config: Mapping | None = None) -> ProviderResult:
@@ -196,6 +246,14 @@ def run(params: Mapping, workdir, attempt: int = 1, *, config: Mapping | None = 
     if not _slot.acquire(blocking=False):
         return _finish("deferred", "PROVIDER_BUSY", parked=True)
     try:
+        # CostGate evaluation before process start (User Acceptance & AG-02 safety requirement)
+        cost_eval = evaluate_cost_gate(spec, config)
+        if not cost_eval["allowed"]:
+            return _finish(
+                cost_eval.get("outcome", "BLOCKED"),
+                cost_eval.get("reason_code", "COST_GATE_DENIED"),
+                blocked=True,
+            )
         if not admit_heavy():
             return _finish("deferred", "ADMISSION_DENIED", parked=True)
         return _execute(spec, workdir, binary, _output_cap(config))
