@@ -49,6 +49,7 @@ from scripts.run_antigravity_bridge import (
     run_chief_review_router,
 )
 from scripts.gemini_worker_adapter import consume
+from scripts.resource_policy import CostGate
 
 EVENTS_DIR = COURIER_DIR / "events"
 LOCKS_DIR = EVENTS_DIR / "locks"
@@ -340,6 +341,13 @@ def run_google_agent_task(
         evidence_data["provider_invoked"] = False
         return "FAILED"
 
+    # agy runs under the active Google subscription; a call has no per-run charge.
+    gate = CostGate.evaluate_spend_request("google_antigravity_plus", estimated_cost_eur=0.0)
+    if not gate.get("allowed"):
+        evidence_data["blocked_reason"] = "COST_GATE_" + str(gate.get("reason") or "DENIED")
+        evidence_data["provider_invoked"] = False
+        return "FAILED"
+
     timeout_s = int(payload_in.get("timeout_seconds") or AGENT_PRINT_TIMEOUT_SECONDS)
     argv = [
         "agy",
@@ -351,9 +359,6 @@ def run_google_agent_task(
         f"{timeout_s}s",
         "--sandbox",
         "--disable-slash-commands",
-        # Required for unattended print mode (no human to answer tool prompts);
-        # bounded by --sandbox, the packet's authorization and the verify step.
-        "--dangerously-skip-permissions",
     ]
     if payload_in.get("model"):
         argv += ["--model", str(payload_in["model"])]

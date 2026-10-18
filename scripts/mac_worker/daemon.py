@@ -479,6 +479,19 @@ def _reap_agy_group(process, identity):
     process.poll()
 
 
+# agy runs under the active Google subscription; a call has no per-run charge.
+AGY_RESOURCE_ID = "google_antigravity_plus"
+
+
+def cost_gate(resource_id):
+    """Ask CostGate before a provider starts. Any import or policy error denies."""
+    try:
+        from resource_policy import CostGate
+        return CostGate.evaluate_spend_request(resource_id, estimated_cost_eur=0.0)
+    except Exception as exc:
+        return {"allowed": False, "reason": "UNAVAILABLE_" + type(exc).__name__}
+
+
 def run_agy(task, config):
     write_log(f"Running AI task {task['task_id']} via agy")
     instruction = task.get('instruction', task.get('description', ''))
@@ -492,8 +505,13 @@ def run_agy(task, config):
     if not agy_bin:
         return {"status": "FAILED", "reason": "AGY_NOT_FOUND", "execution_mode": "ANTIGRAVITY"}
         
+    gate = cost_gate(AGY_RESOURCE_ID)
+    if not gate.get("allowed"):
+        return {"status": "FAILED", "reason": "COST_GATE_" + str(gate.get("reason") or "DENIED"),
+                "execution_mode": "ANTIGRAVITY"}
+
     wrapper = os.path.join(os.path.dirname(__file__), "limit_wrapper.sh")
-    cmd = [wrapper, agy_bin, "-p", prompt, "--dangerously-skip-permissions"]
+    cmd = [wrapper, agy_bin, "-p", prompt]
     timeout = min(float(config.get("AGY_TIMEOUT_SECONDS", 300)), 3600)
 
     process = None

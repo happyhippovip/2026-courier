@@ -58,7 +58,7 @@ def test_cost_gate_evaluate_spend(repo_dir):
     assert not res["allowed"]
     assert res["reason"] == "SPEND_NOT_ALLOWED_BY_POLICY"
 
-    res = CostGate.evaluate_spend_request("google_antigravity_plus", repo_dir=repo_dir)
+    res = CostGate.evaluate_spend_request("google_antigravity_plus", estimated_cost_eur=0.0, repo_dir=repo_dir)
     assert res["allowed"]
     assert res["reason"] == "AUTHORIZED_ACTIVE_RESOURCE"
 

@@ -9,6 +9,7 @@ from __future__ import annotations
 import datetime
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 from typing import Any
@@ -102,7 +103,7 @@ class CostGate:
     @staticmethod
     def evaluate_spend_request(
         resource_id: str,
-        estimated_cost_eur: float = 0.0,
+        estimated_cost_eur: float | None = None,
         requested_action: str = "EXECUTE_TASK",
         repo_dir: Path | None = None,
     ) -> dict:
@@ -126,6 +127,16 @@ class CostGate:
                 "allowed": False,
                 "reason": "UNAUTHORIZED_RESOURCE_TIER",
                 "message": f"Resource \\{resource_id}\\ is UNAVAILABLE or unauthorized by policy.",
+                "requires_human_gate": True,
+            }
+
+        # A missing, non-numeric, non-finite or negative cost is unknown: block it.
+        if (isinstance(estimated_cost_eur, bool) or not isinstance(estimated_cost_eur, (int, float))
+                or not math.isfinite(estimated_cost_eur) or estimated_cost_eur < 0):
+            return {
+                "allowed": False,
+                "reason": "UNKNOWN_COST",
+                "message": "Cost estimate is missing or not a finite number >= 0. Human Gate required.",
                 "requires_human_gate": True,
             }
 
