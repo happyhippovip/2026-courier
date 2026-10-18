@@ -407,3 +407,12 @@ def test_kolibri_workkey_lease_blocker_and_resource_pause_visibility(tmp_path):
     assert "K-000003" in html and "LEASE_VALID" in html
     assert "secret-token-never-show" not in html
 
+
+def test_kolibri_static_script_lifecycle_guards() -> None:
+    kolibri_js = (REPO / "courier_hub" / "static" / "kolibri.js").read_text(encoding="utf-8")
+    assert "document.hidden" in kolibri_js
+    assert "document.addEventListener(\"visibilitychange\"" in kolibri_js
+    assert "window.addEventListener(\"focus\"" in kolibri_js
+    assert "window.addEventListener(\"online\"" in kolibri_js
+    assert "clearTimeout(timer);" in kolibri_js
+
