@@ -31,10 +31,15 @@ if ($null -eq $launcher -or $launcher.ProcessName -ne "Courier") {
     exit 0
 }
 
+# Courier's own processes: the launcher, its python and console children
+# (controller, worker, hub) and everything below them. The browser the
+# launcher opens for the hub belongs to the user and is left alone.
 function Get-OwnedTree([int]$rootPid) {
-    $all = @(Get-CimInstance Win32_Process | Select-Object ProcessId, ParentProcessId)
-    $owned = @($rootPid)
-    $frontier = @($rootPid)
+    $all = @(Get-CimInstance Win32_Process | Select-Object ProcessId, ParentProcessId, Name)
+    $components = @($all | Where-Object { $_.ParentProcessId -eq $rootPid -and $_.Name -match '^(python|pythonw|conhost)\.exe$' } |
+        ForEach-Object { [int]$_.ProcessId })
+    $owned = @($rootPid) + $components
+    $frontier = $components
     while ($frontier.Count -gt 0) {
         $children = @($all | Where-Object { $frontier -contains $_.ParentProcessId -and $owned -notcontains $_.ProcessId } |
             ForEach-Object { [int]$_.ProcessId })
@@ -71,11 +76,16 @@ if (Test-Path $tokenPath) {
     }
 }
 
-# The launcher would restart the controller, so end the whole owned tree.
-& taskkill.exe /T /F /PID $launcherPid 2>&1 | Out-Null
+# The launcher first, so it cannot restart a component, then the rest.
 foreach ($p in $procs) {
     if (-not $p.HasExited) { try { $p.Kill() } catch { } }
 }
+# A component the launcher restarted during the graceful shutdown is not in
+# the first list; its parent is still the launcher PID.
+$late = @(Get-OwnedTree $launcherPid | Where-Object { $owned -notcontains $_ } |
+    ForEach-Object { Get-Process -Id $_ -ErrorAction SilentlyContinue } | Where-Object { $null -ne $_ })
+foreach ($p in $late) { try { $p.Kill() } catch { } }
+$procs += $late
 
 $deadline = (Get-Date).AddSeconds($WaitSeconds)
 do {

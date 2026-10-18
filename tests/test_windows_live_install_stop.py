@@ -133,9 +133,12 @@ def test_install_start_stop_by_pid_and_uninstall(tmp_path):
             pytest.fail("controller never became healthy\n" + logs)
         assert int(pid_path.read_text().strip()) == launcher.pid
         time.sleep(3)  # worker and hub start after the controller is healthy
+        # Courier's tree: launcher, its python/console children and their
+        # descendants. The browser it opens for the hub is the user's.
         root = psutil.Process(launcher.pid)
-        owned = {p.pid: (p.create_time(), p.name(), " ".join(p.cmdline())[:160])
-                 for p in [root] + root.children(recursive=True)}
+        components = [c for c in root.children() if c.name().lower() in ("python.exe", "pythonw.exe", "conhost.exe")]
+        tree = [root] + components + [d for c in components for d in c.children(recursive=True)]
+        owned = {p.pid: (p.create_time(), p.name(), " ".join(p.cmdline())[:160]) for p in tree}
         assert len(owned) >= 4, owned  # launcher + controller + worker + hub
 
         # 3. An unrelated program with the same image name.
