@@ -38,6 +38,21 @@ $config | ConvertTo-Json | Set-Content -Path $configPath -Encoding UTF8
 Write-Host "Copying files to $InstallDir..."
 Copy-Item -Path (Join-Path $PSScriptRoot "*") -Destination $InstallDir -Recurse -Force
 $launcher = Join-Path $InstallDir "Courier.exe"
+
+# A checked-in Courier.exe can be older than its source. When the source is
+# here, build the installed launcher from it with the csc that ships with the
+# .NET Framework on Windows 10 and 11. A packaged install has no source and
+# keeps the Courier.exe that build_package.ps1 built.
+$source = Join-Path $PSScriptRoot "launcher\CourierLauncher.cs"
+$csc = Join-Path $env:windir "Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+if ((Test-Path $source) -and (Test-Path $csc)) {
+    & $csc /nologo /target:winexe /reference:System.Windows.Forms.dll /reference:System.Drawing.dll "/out:$launcher" $source
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Could not build Courier.exe from $source." -ForegroundColor Red
+        exit 1
+    }
+    Write-Host "Built Courier.exe from $source."
+}
 if (-not (Test-Path $launcher)) {
     Write-Host "ERROR: $launcher is missing after copy." -ForegroundColor Red
     exit 1

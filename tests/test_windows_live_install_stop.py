@@ -1,9 +1,10 @@
 """Live Windows run: install without questions, start, stop by PID, uninstall.
 
-Builds the launcher from source, installs it with install.ps1 into temporary
-folders under a unique task name, starts it, and stops it with stop.bat while
-a second, unrelated program called Courier.exe runs. stop.bat must end the
-launcher and all of its children and leave the other program running.
+Installs from the repository layout with install.ps1, which builds the
+launcher from source, into temporary folders under a unique task name. Starts
+it and stops it with stop.bat while a second, unrelated program called
+Courier.exe runs. stop.bat must end the launcher and all of its Courier
+children and leave the other program and the user's browser running.
 uninstall.ps1 must remove the program, the task, the configuration and run\\,
 and keep the database and the logs.
 
@@ -86,8 +87,13 @@ def test_install_start_stop_by_pid_and_uninstall(tmp_path):
     package.mkdir()
     for name in ("install.ps1", "uninstall.ps1", "stop.ps1", "stop.bat", "start.bat"):
         shutil.copy2(WORKER / name, package / name)
-    _compile(WORKER / "launcher" / "CourierLauncher.cs", package / "Courier.exe",
-             "System.Windows.Forms.dll", "System.Drawing.dll")
+    # The repository layout: launcher source next to a checked-in Courier.exe
+    # that may be stale. install.ps1 must install a launcher built from the
+    # source, not the checked-in binary.
+    (package / "launcher").mkdir()
+    shutil.copy2(WORKER / "launcher" / "CourierLauncher.cs", package / "launcher" / "CourierLauncher.cs")
+    shutil.copy2(WORKER / "Courier.exe", package / "Courier.exe")
+    checked_in = (package / "Courier.exe").read_bytes()
 
     install_dir = tmp_path / "Programs" / "Courier"
     home = tmp_path / "home"
@@ -109,6 +115,8 @@ def test_install_start_stop_by_pid_and_uninstall(tmp_path):
         )
         assert installed.returncode == 0, installed.stdout + installed.stderr
         assert (install_dir / "Courier.exe").is_file()
+        assert "Built Courier.exe from" in installed.stdout, installed.stdout
+        assert (install_dir / "Courier.exe").read_bytes() != checked_in
         config = json.loads((home / "config.json").read_text(encoding="utf-8-sig"))
         assert config["COURIER_CONTROLLER_PORT"] == CONTROLLER_PORT
         assert config["COURIER_WORKER_ID"].startswith("WIN-")
