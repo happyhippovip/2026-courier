@@ -419,4 +419,6 @@ def test_kolibri_static_script_lifecycle_guards() -> None:
     assert 'document.querySelector("#refresh")?.addEventListener("click"' in kolibri_js
     assert 'event.key === "r"' in kolibri_js
     assert '<button type="button" id="refresh"' in kolibri_html
+    assert '<a class="skip" href="#view">Skip to view</a>' in kolibri_html
+    assert '<main id="view" tabindex="-1">' in kolibri_html
 
