@@ -22,6 +22,10 @@ STATUS_BLOCKED = "BLOCKED"
 STATUS_ABANDONED = "ABANDONED"
 
 
+def _is_nonempty_id(value: Any) -> bool:
+    return isinstance(value, str) and value.strip() != ""
+
+
 def derive_completion_certificate(
     goal: Mapping[str, Any] | None,
     state: Mapping[str, Any] | None,
@@ -84,10 +88,15 @@ def derive_completion_certificate(
         if attempts > 1 or task.get("resumed_from"):
             any_retried = True
 
-        # A step counts only with an independent verifier PASS bound to its result.
+        # A step counts only with an independent verifier PASS bound to its result:
+        # result_id must be a non-empty string on both sides (no None == None, no "" == "").
+        verified_result_id = verification.get("result_id")
+        bound_result_id = result.get("result_id")
         is_step_passed = (
             verdict == "PASS"
-            and verification.get("result_id") == result.get("result_id")
+            and _is_nonempty_id(verified_result_id)
+            and _is_nonempty_id(bound_result_id)
+            and verified_result_id == bound_result_id
         )
         if not is_step_passed:
             all_passed = False

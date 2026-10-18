@@ -88,7 +88,8 @@ def test_completion_certificate_done_certified():
             "task-fetch": {
                 "status": "RECONCILED",
                 "result_id": "res-fetch-101",
-                "verification": {"verdict": "PASS", "verifier_id": "v1_doc_verifier"},
+                "result": {"result_id": "res-fetch-101"},
+                "verification": {"verdict": "PASS", "verifier_id": "v1_doc_verifier", "result_id": "res-fetch-101"},
                 "artifacts": [{"name": "fin.pdf", "sha256": "abc123"}],
                 "attempts": 2,
                 "resumed_from": "attempt-1",
@@ -96,7 +97,8 @@ def test_completion_certificate_done_certified():
             "task-compute": {
                 "status": "RECONCILED",
                 "result_id": "res-compute-102",
-                "verification": {"verdict": "PASS", "verifier_id": "v1_calc_verifier"},
+                "result": {"result_id": "res-compute-102"},
+                "verification": {"verdict": "PASS", "verifier_id": "v1_calc_verifier", "result_id": "res-compute-102"},
                 "artifacts": [{"name": "metrics.csv", "sha256": "def456"}],
                 "attempts": 1,
             },
@@ -126,7 +128,8 @@ def test_completion_certificate_with_timestamp():
     }
     state = {
         "tasks": {
-            "t-1": {"status": "RECONCILED", "verification": {"verdict": "PASS"}}
+            "t-1": {"status": "RECONCILED", "result": {"result_id": "r-t-1"},
+                    "verification": {"verdict": "PASS", "result_id": "r-t-1"}}
         }
     }
     res = derive_completion_certificate(goal, state)
@@ -161,7 +164,8 @@ def test_server_goal_certificate_endpoint(tmp_path, monkeypatch):
         "tasks": {
             "t-done": {
                 "status": "RECONCILED",
-                "verification": {"verdict": "PASS"},
+                "result": {"result_id": "r-t-done"},
+                "verification": {"verdict": "PASS", "result_id": "r-t-done"},
             }
         },
         "workers": {},
@@ -204,3 +208,45 @@ def test_no_certificate_without_bound_verifier_pass(task):
     res = derive_completion_certificate(goal, {"tasks": {"t": task}})
     assert res["certified"] is False
     assert res["proof_level"] != "VERIFIED_CRYPTOGRAPHIC"
+
+
+# --- REDTEAM R1 F1 rev2 (Pruefer 5fd06fed FAIL on 649253a3) ----------------
+# A verifier PASS only binds when result_id is a non-empty string on BOTH
+# sides; None == None or "" == "" must not certify.
+@_pytest.mark.parametrize("task", [
+    # PASS, no result_id anywhere
+    {"status": "RECONCILED", "verification": {"verdict": "PASS", "verifier_id": "v"}},
+    {"status": "RECONCILED", "result": {},
+     "verification": {"verdict": "PASS", "verifier_id": "v"}},
+    # explicit None on both sides / on one side
+    {"status": "RECONCILED", "result": {"result_id": None},
+     "verification": {"verdict": "PASS", "verifier_id": "v", "result_id": None}},
+    {"status": "RECONCILED", "result": {"result_id": "r1"},
+     "verification": {"verdict": "PASS", "verifier_id": "v", "result_id": None}},
+    {"status": "RECONCILED", "result": {"result_id": None},
+     "verification": {"verdict": "PASS", "verifier_id": "v", "result_id": "r1"}},
+    # empty string on both sides / on one side
+    {"status": "RECONCILED", "result": {"result_id": ""},
+     "verification": {"verdict": "PASS", "verifier_id": "v", "result_id": ""}},
+    {"status": "RECONCILED", "result": {"result_id": "r1"},
+     "verification": {"verdict": "PASS", "verifier_id": "v", "result_id": ""}},
+    {"status": "RECONCILED", "result": {"result_id": ""},
+     "verification": {"verdict": "PASS", "verifier_id": "v", "result_id": "r1"}},
+], ids=["pass-no-result-id-anywhere", "pass-empty-result-dict",
+        "none-both", "none-verifier", "none-result",
+        "empty-both", "empty-verifier", "empty-result"])
+def test_no_certificate_for_pass_without_nonempty_result_id(task):
+    goal = {"goal_id": "g", "status": "DONE", "workflow_plan": [{"task_id": "t"}]}
+    res = derive_completion_certificate(goal, {"tasks": {"t": task}})
+    assert res["certified"] is False
+    assert res["status"] != STATUS_CERTIFIED
+    assert res["proof_level"] != PROOF_LEVEL_CRYPTOGRAPHIC
+
+
+def test_certificate_for_pass_bound_to_same_nonempty_result_id():
+    goal = {"goal_id": "g", "status": "DONE", "workflow_plan": [{"task_id": "t"}]}
+    task = {"status": "RECONCILED", "result": {"result_id": "r1"},
+            "verification": {"verdict": "PASS", "verifier_id": "v", "result_id": "r1"}}
+    res = derive_completion_certificate(goal, {"tasks": {"t": task}})
+    assert res["certified"] is True
+    assert res["proof_level"] == PROOF_LEVEL_CRYPTOGRAPHIC
