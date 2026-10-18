@@ -110,6 +110,60 @@ jobs:
             echo "tests/desktop not present yet; nothing to run."
           fi
 
+  windows-build:
+    # The pytest job installs only the test extra, so the CourierHub.exe build
+    # test always skips there, and a skipped launcher build looks the same as a
+    # green one. This job installs PyInstaller, parses every PowerShell script,
+    # and fails if either Windows build test is skipped.
+    name: windows build (launcher, hub exe, PowerShell)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install pinned dependencies with the build extra
+        run: python -m pip install -e ".[test,build]"
+
+      - name: Parse every tracked PowerShell script
+        shell: pwsh
+        run: |
+          $failed = 0
+          foreach ($file in (git ls-files '*.ps1')) {
+            $tokens = $null; $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file), [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $failed++
+              foreach ($e in $errors) { Write-Host "::error file=$file,line=$($e.Extent.StartLineNumber)::$($e.Message)" }
+            } else {
+              Write-Host "OK $file"
+            }
+          }
+          if ($failed -gt 0) { exit 1 }
+
+      - name: Build the C# launcher and the hub exe (no skips allowed)
+        shell: bash
+        run: |
+          python -m pytest -q -rA --timeout=900 \
+            --junitxml="$RUNNER_TEMP/windows-build.xml" \
+            tests/test_windows_launcher_guard.py \
+            "tests/test_windows_exe_build.py::test_windows_exe_builds_and_answers"
+          python - "$RUNNER_TEMP/windows-build.xml" <<'EOF'
+          import sys
+          import xml.etree.ElementTree as ET
+          root = ET.parse(sys.argv[1]).getroot()
+          cases = list(root.iter("testcase"))
+          skipped = [c.get("name") for c in cases if c.find("skipped") is not None]
+          print(f"cases={len(cases)} skipped={len(skipped)}")
+          if not cases or skipped:
+              sys.exit(f"Windows build tests must run, not skip: {skipped}")
+          EOF
+
   golden-skip-ratchet:
     # The 11 Golden tests skip by design until the v1 modules land; the
     # regression gate tolerates skips silently. This job pins the expected
