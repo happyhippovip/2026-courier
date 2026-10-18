@@ -84,7 +84,11 @@ def derive_completion_certificate(
         if attempts > 1 or task.get("resumed_from"):
             any_retried = True
 
-        is_step_passed = (verdict == "PASS" or step_status in ("RECONCILED", "SUCCESS", "DONE"))
+        # A step counts only with an independent verifier PASS bound to its result.
+        is_step_passed = (
+            verdict == "PASS"
+            and verification.get("result_id") == result.get("result_id")
+        )
         if not is_step_passed:
             all_passed = False
 

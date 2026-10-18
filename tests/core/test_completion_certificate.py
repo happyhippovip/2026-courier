@@ -185,3 +185,22 @@ def test_server_goal_certificate_endpoint(tmp_path, monkeypatch):
     # 404 for non-existent
     res_404 = client.get("/goals/nonexistent/certificate", headers=headers)
     assert res_404.status_code == 404
+
+
+# --- REDTEAM R1 negative tests -------------------------------------------
+import pytest as _pytest
+
+
+@_pytest.mark.parametrize("task", [
+    {"status": "DONE"},
+    {"status": "SUCCESS"},
+    {"status": "RECONCILED"},
+    {"status": "SUCCESS", "verification": {"verdict": "FAIL", "verifier_id": "v"}},
+    {"status": "RECONCILED", "result": {"result_id": "r2"},
+     "verification": {"verdict": "PASS", "verifier_id": "v", "result_id": "r1"}},
+])
+def test_no_certificate_without_bound_verifier_pass(task):
+    goal = {"goal_id": "g", "status": "DONE", "workflow_plan": [{"task_id": "t"}]}
+    res = derive_completion_certificate(goal, {"tasks": {"t": task}})
+    assert res["certified"] is False
+    assert res["proof_level"] != "VERIFIED_CRYPTOGRAPHIC"
