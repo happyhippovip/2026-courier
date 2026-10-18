@@ -8,7 +8,10 @@ function stamp() {
   return new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
 }
 
+let timer = null;
+
 async function refresh() {
+  clearTimeout(timer);
   const observed = stamp();
   try {
     const response = await fetch("/hub/api/kolibri", { cache: "no-store" });
@@ -22,7 +25,14 @@ async function refresh() {
     status.textContent = "UNKNOWN / nicht erreichbar";
     status.dataset.tone = "warn";
   }
-  window.setTimeout(refresh, POLL_MS);
+  timer = document.hidden ? null : window.setTimeout(refresh, POLL_MS);
 }
 
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) refresh();
+});
+window.addEventListener("focus", () => refresh());
+window.addEventListener("online", () => refresh());
+
 refresh();
+
