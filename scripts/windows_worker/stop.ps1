@@ -49,7 +49,7 @@ $owned = Get-OwnedTree $launcherPid
 # never mistaken for one of ours.
 $procs = @($owned | ForEach-Object { Get-Process -Id $_ -ErrorAction SilentlyContinue } | Where-Object { $null -ne $_ })
 foreach ($p in $procs) { try { $null = $p.Handle } catch { } }
-Write-Host "Stopping Courier (launcher PID $launcherPid, $($owned.Count) processes)..."
+Write-Host "Stopping Courier (launcher PID $launcherPid; processes: $($owned -join ', '))..."
 
 # Graceful first: the controller closes its journal before it exits.
 $configPath = Join-Path $CourierHome "config.json"

@@ -168,6 +168,21 @@ jobs:
               sys.exit(f"Windows build tests must run, not skip: {skipped}")
           EOF
 
+      - name: Build the launcher release binary from source
+        shell: pwsh
+        run: |
+          & scripts\windows_worker\launcher\build_launcher.ps1
+          $hash = (Get-FileHash scripts\windows_worker\Courier.exe -Algorithm SHA256).Hash
+          "Courier.exe SHA256 $hash (built from $env:GITHUB_SHA)" | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY
+
+      - name: Upload the launcher built from this commit
+        uses: actions/upload-artifact@v4
+        with:
+          name: courier-launcher-exe
+          path: scripts/windows_worker/Courier.exe
+          if-no-files-found: error
+          retention-days: 30
+
   golden-skip-ratchet:
     # The 11 Golden tests skip by design until the v1 modules land; the
     # regression gate tolerates skips silently. This job pins the expected

@@ -133,7 +133,9 @@ def test_install_start_stop_by_pid_and_uninstall(tmp_path):
             pytest.fail("controller never became healthy\n" + logs)
         assert int(pid_path.read_text().strip()) == launcher.pid
         time.sleep(3)  # worker and hub start after the controller is healthy
-        owned = [launcher.pid] + [child.pid for child in psutil.Process(launcher.pid).children(recursive=True)]
+        root = psutil.Process(launcher.pid)
+        owned = {p.pid: (p.create_time(), p.name(), " ".join(p.cmdline())[:160])
+                 for p in [root] + root.children(recursive=True)}
         assert len(owned) >= 4, owned  # launcher + controller + worker + hub
 
         # 3. An unrelated program with the same image name.
@@ -150,9 +152,17 @@ def test_install_start_stop_by_pid_and_uninstall(tmp_path):
                                  capture_output=True, text=True, env=env, timeout=60)
         assert stopped.returncode == 0, stopped.stdout + stopped.stderr
         launcher.wait(timeout=15)
-        survivors = [pid for pid in owned if psutil.pid_exists(pid) and
-                     psutil.Process(pid).status() != psutil.STATUS_ZOMBIE]
-        assert survivors == [], survivors
+
+        def still_running(pid, created):
+            # Windows reuses PIDs quickly: the same PID with another start
+            # time is a different process.
+            try:
+                return psutil.Process(pid).create_time() == created
+            except psutil.NoSuchProcess:
+                return False
+
+        survivors = {pid: info for pid, info in owned.items() if still_running(pid, info[0])}
+        assert survivors == {}, f"survivors={survivors}\nstop.bat output:\n{stopped.stdout}{stopped.stderr}"
         assert decoy.poll() is None, "stop.bat killed an unrelated Courier.exe"
         assert not pid_path.exists()
         assert not _healthy(token_path.read_text().strip())
