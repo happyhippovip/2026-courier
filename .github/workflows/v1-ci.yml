@@ -114,7 +114,8 @@ jobs:
     # The pytest job installs only the test extra, so the CourierHub.exe build
     # test always skips there, and a skipped launcher build looks the same as a
     # green one. This job installs PyInstaller, parses every PowerShell script,
-    # and fails if either Windows build test is skipped.
+    # runs a live install -> start -> stop-by-PID -> uninstall, and fails if any
+    # of these Windows tests is skipped.
     name: windows build (launcher, hub exe, PowerShell)
     runs-on: windows-latest
     timeout-minutes: 30
@@ -146,13 +147,16 @@ jobs:
           }
           if ($failed -gt 0) { exit 1 }
 
-      - name: Build the C# launcher and the hub exe (no skips allowed)
+      - name: Build the launcher and hub exe, live install/stop/uninstall (no skips allowed)
         shell: bash
+        env:
+          COURIER_LIVE_INSTALL_TEST: "1"
         run: |
           python -m pytest -q -rA --timeout=900 \
             --junitxml="$RUNNER_TEMP/windows-build.xml" \
             tests/test_windows_launcher_guard.py \
-            "tests/test_windows_exe_build.py::test_windows_exe_builds_and_answers"
+            "tests/test_windows_exe_build.py::test_windows_exe_builds_and_answers" \
+            tests/test_windows_live_install_stop.py
           python - "$RUNNER_TEMP/windows-build.xml" <<'EOF'
           import sys
           import xml.etree.ElementTree as ET

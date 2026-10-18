@@ -237,6 +237,12 @@ namespace CourierLauncher
                     return;
                 }
 
+            // stop.bat stops exactly this process and its children by this PID,
+            // never by image name. Only the instance that owns the mutex writes it.
+            string runDir = Path.Combine(dataDir, "run");
+            if (!Directory.Exists(runDir)) Directory.CreateDirectory(runDir);
+            File.WriteAllText(Path.Combine(runDir, "launcher.pid"), Process.GetCurrentProcess().Id.ToString());
+
             string pythonExe = "python";
             if (File.Exists(Path.Combine(baseDir, "python", "python.exe"))) {
                 pythonExe = Path.Combine(baseDir, "python", "python.exe");

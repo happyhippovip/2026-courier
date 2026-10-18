@@ -1,10 +1,5 @@
 @echo off
-echo Stopping Courier Windows Worker...
-taskkill /F /IM Courier.exe 2>NUL
-if not exist "%~dp0worker.pid" goto end
-set /p PID=<"%~dp0worker.pid"
-taskkill /F /T /PID %PID% 2>NUL
-del "%~dp0worker.pid"
-:end
-echo Stopped.
-
+rem Stops only this user's Courier launcher and its child processes, by the
+rem PID the launcher recorded. Never by image name (see stop.ps1).
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0stop.ps1" %*
+exit /b %ERRORLEVEL%
