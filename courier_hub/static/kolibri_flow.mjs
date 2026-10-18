@@ -31,6 +31,8 @@ export const FLOW_COLORS = Object.freeze({
   [FLOW_STATES.UNKNOWN]: "#6b7280",
 });
 
+const _seenVerifiedEvents = new Set();
+
 /**
  * Maps a station/task snapshot property to a strictly validated flow state.
  * @param {Object} item
@@ -48,8 +50,20 @@ export function translateSignal(item) {
 
   const rawState = String(item.state?.value || item.status || item.value || "").toUpperCase();
   const blocker = String(item.blocker?.value || item.blocker || "").toUpperCase();
-  const eventId = String(item.event_id || item.id || item.task_id || `evt:${item.source || "gen"}:${item.at || "0"}`);
-  const isVerified = Boolean(item.verified || rawState === "VERIFIED" || rawState === "SUCCESS");
+  
+  // Real event_id provenance: require authentic identifier or composite, no synthetic evt:gen:0
+  let eventId = item.event_id || item.id || item.task_id;
+  if (!eventId && item.source && item.at) {
+    eventId = `evt:${item.source}:${item.at}`;
+  }
+  eventId = eventId ? String(eventId) : "evt:unknown:0";
+
+  // Strict Verifier Evidence Rule:
+  // "Keine grüne Erfolgsanimation ohne echte Event-ID, verifizierte Resolution und gültige Evidenz."
+  // Status strings "VERIFIED" or "SUCCESS" alone are NOT evidence.
+  // Must have item.verified === true and genuine event_id (not evt:unknown:0 or synthetic generator).
+  const hasValidEventId = eventId !== "evt:unknown:0" && !eventId.startsWith("evt:gen:");
+  const isVerifierEvidence = Boolean(item.verified === true && hasValidEventId);
 
   // Priority 1: Blocker or explicit failure
   if (blocker && blocker !== "NONE" && blocker !== "UNKNOWN / NICHT ERREICHBAR") {
@@ -69,8 +83,18 @@ export function translateSignal(item) {
     };
   }
 
-  // Priority 2: Verifier evidence (Kein grüner Erfolg ohne Verifier-Evidenz)
-  if (isVerified) {
+  // Priority 2: Verifier evidence with replay deduplication
+  if (isVerifierEvidence) {
+    if (_seenVerifiedEvents.has(eventId)) {
+      // Replay of already verified item: do not re-emit active VERIFIED pulse
+      return {
+        state: FLOW_STATES.CLAIMED,
+        color: FLOW_COLORS[FLOW_STATES.CLAIMED],
+        event_id: eventId,
+        verified: false,
+      };
+    }
+    _seenVerifiedEvents.add(eventId);
     return {
       state: FLOW_STATES.VERIFIED,
       color: FLOW_COLORS[FLOW_STATES.VERIFIED],
