@@ -243,8 +243,9 @@ class WorkQueue:
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
         try:
-            if os.fstat(fd).st_size == 0:
-                os.write(fd, b"\0")
+            # No first byte is written: Windows locks a range past the end of
+            # file, and its byte locks are mandatory, so a write here could
+            # land in byte 0 while another claimant holds it.
             os.lseek(fd, 0, os.SEEK_SET)
             if os.name == "nt":
                 import msvcrt
