@@ -718,3 +718,17 @@ def test_support_export_is_one_item_read_only_and_holds_no_secrets(world):
     foreign = requests.get(f"{hub.base}/hub/api/items/{task_id}/support",
                            headers={"Host": "evil.example"}, timeout=10)
     assert foreign.status_code == 421
+
+
+def test_hub_kolibri_endpoint_returns_arbitrage_research(world):
+    _, hub, _ = world
+    resp = requests.get(f"{hub.base}/hub/api/kolibri", timeout=10)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "arbitrage_research" in data
+    arbi = data["arbitrage_research"]
+    assert arbi["available"] is True
+    assert "simulation" in arbi
+    assert arbi["simulation"]["status"] == "SIMULATED (NO REAL TRADES)"
+    assert arbi["verified_actual_revenue"]["amount_eur"] == 0.0
+

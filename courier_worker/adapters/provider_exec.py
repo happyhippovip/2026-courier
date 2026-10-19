@@ -205,6 +205,24 @@ def evaluate_cost_gate(spec: Mapping, config: Mapping | None) -> dict:
             "message": "Tasks with unknown cost class are blocked by policy firewall.",
         }
 
+    # Validate estimated_cost numeric integrity: NaN, Inf, or negative values must fail closed
+    if isinstance(estimated_cost, (int, float)):
+        import math
+        if math.isnan(estimated_cost) or math.isinf(estimated_cost) or estimated_cost < 0.0:
+            return {
+                "allowed": False,
+                "outcome": "BLOCKED",
+                "reason_code": "INVALID_COST_ESTIMATE",
+                "message": f"Cost estimate {estimated_cost} is invalid, non-finite or negative.",
+            }
+    elif estimated_cost is not None:
+        return {
+            "allowed": False,
+            "outcome": "BLOCKED",
+            "reason_code": "INVALID_COST_ESTIMATE",
+            "message": "Cost estimate must be a numeric value.",
+        }
+
     # If explicit estimated incremental cost > 0, check policy CostGate
     if isinstance(estimated_cost, (int, float)) and estimated_cost > 0.0:
         try:

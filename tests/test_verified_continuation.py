@@ -230,6 +230,52 @@ def test_sequential_two_unit_continuation(continuation_engine):
     assert data1["status"] == "PASS"
 
 
+def test_sequential_two_unit_failure_releases_claim(continuation_engine):
+    # P0 lease-hygiene: a failed unit 1 must raise AND release its claim (no
+    # stale lease blocking retries until TTL expiry), write no checkpoint,
+    # and never reach unit 2.
+    u1 = {
+        "task_id": "unit-1-fail",
+        "workkey": "WORKKEY_FAIL_1",
+        "mode": ExecutionMode.MODE_A_LOCAL_DETERMINISTIC,
+        "command": [sys.executable, "-c", "import sys; sys.exit(3)"],
+    }
+    u2 = {
+        "task_id": "unit-2-ok",
+        "workkey": "WORKKEY_FAIL_2",
+        "mode": ExecutionMode.MODE_A_LOCAL_DETERMINISTIC,
+        "command": [sys.executable, "-c", "import sys; sys.exit(0)"],
+    }
+    with pytest.raises(RuntimeError, match="Unit 1 verification failed"):
+        continuation_engine.run_sequential_two_unit(u1, u2)
+    assert continuation_engine.is_claimed("WORKKEY_FAIL_1") is None
+    assert continuation_engine.is_claimed("WORKKEY_FAIL_2") is None
+    assert not (continuation_engine.checkpoints_dir / "WORKKEY_FAIL_1.checkpoint.json").exists()
+
+
+def test_sequential_two_unit_unit2_failure_releases_claim(continuation_engine):
+    # Same lease-hygiene guarantee for a failed unit 2: unit 1 stays
+    # checkpointed and released, unit 2 raises and releases its claim.
+    u1 = {
+        "task_id": "unit-1-ok",
+        "workkey": "WORKKEY_U2F_1",
+        "mode": ExecutionMode.MODE_A_LOCAL_DETERMINISTIC,
+        "command": [sys.executable, "-c", "import sys; sys.exit(0)"],
+    }
+    u2 = {
+        "task_id": "unit-2-fail",
+        "workkey": "WORKKEY_U2F_2",
+        "mode": ExecutionMode.MODE_A_LOCAL_DETERMINISTIC,
+        "command": [sys.executable, "-c", "import sys; sys.exit(3)"],
+    }
+    with pytest.raises(RuntimeError, match="Unit 2 verification failed"):
+        continuation_engine.run_sequential_two_unit(u1, u2)
+    assert continuation_engine.is_claimed("WORKKEY_U2F_1") is None
+    assert continuation_engine.is_claimed("WORKKEY_U2F_2") is None
+    assert (continuation_engine.checkpoints_dir / "WORKKEY_U2F_1.checkpoint.json").exists()
+    assert not (continuation_engine.checkpoints_dir / "WORKKEY_U2F_2.checkpoint.json").exists()
+
+
 def test_cli_verify_autonomy_isolated(tmp_path, capsys):
     ledger_dir = str(tmp_path / "cli_ledger")
     ret = main(["--verify-autonomy", "--ledger-dir", ledger_dir])
@@ -238,3 +284,49 @@ def test_cli_verify_autonomy_isolated(tmp_path, capsys):
     assert "sequential_handoff_proven" in captured.out
     assert "WORKKEY_UNIT_1_LEDGER" in captured.out
     assert "WORKKEY_UNIT_2_BUILDER" in captured.out
+
+
+def test_cli_workkey_failure_writes_no_checkpoint(tmp_path, capsys, monkeypatch):
+    # Fail-closed (P0): a single---workkey run whose result does NOT verify
+    # must not leave a durable checkpoint behind, must still release the
+    # claim (no lease leak), and must exit nonzero.
+    fail_result = {
+        "task_id": "task-FAILKEY",
+        "mode": ExecutionMode.MODE_A_LOCAL_DETERMINISTIC.value,
+        "status": "FAIL",
+        "exit_code": 3,
+    }
+    fail_result["result_hash"] = canonical_json_hash(fail_result)
+    monkeypatch.setattr(
+        VerifiedContinuation,
+        "execute_unit",
+        lambda self, packet, mode=ExecutionMode.MODE_A_LOCAL_DETERMINISTIC: dict(fail_result),
+    )
+    ledger_dir = tmp_path / "fail_ledger"
+    ret = main(["--workkey", "FAILKEY", "--ledger-dir", str(ledger_dir)])
+    assert ret == 1
+    assert not (ledger_dir / "checkpoints" / "FAILKEY.checkpoint.json").exists()
+    assert VerifiedContinuation(ledger_dir=ledger_dir).is_claimed("FAILKEY") is None
+    assert "no checkpoint written" in capsys.readouterr().out
+
+
+def test_cli_workkey_success_still_checkpoints(tmp_path, monkeypatch):
+    # Guard the other side: verified results keep working through main().
+    ok_result = {
+        "task_id": "task-OKKEY",
+        "mode": ExecutionMode.MODE_A_LOCAL_DETERMINISTIC.value,
+        "status": "PASS",
+        "exit_code": 0,
+    }
+    ok_result["result_hash"] = canonical_json_hash(ok_result)
+    monkeypatch.setattr(
+        VerifiedContinuation,
+        "execute_unit",
+        lambda self, packet, mode=ExecutionMode.MODE_A_LOCAL_DETERMINISTIC: dict(ok_result),
+    )
+    ledger_dir = tmp_path / "ok_ledger"
+    ret = main(["--workkey", "OKKEY", "--ledger-dir", str(ledger_dir)])
+    assert ret == 0
+    cp_path = ledger_dir / "checkpoints" / "OKKEY.checkpoint.json"
+    assert cp_path.exists()
+    assert json.loads(cp_path.read_text(encoding="utf-8"))["status"] == "PASS"

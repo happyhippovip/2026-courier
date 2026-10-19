@@ -32,6 +32,17 @@ body {
   background-attachment: fixed;
 }
 
+#particles {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.8;
+}
+main, header.top { position: relative; z-index: 1; }
+
 main {
   padding: 12px 24px 40px;
   background-image: 
@@ -211,16 +222,199 @@ section h2::before {
   box-shadow: 0 0 8px rgba(236, 72, 153, 0.4);
 }
 
+/* Signal Lab lane: A → B → C → VERIFIED → DONE. One accent per stage via
+   --sig (set inline from the flow signal color). Text always carries state;
+   color/glow never acts alone. */
+.lane {
+  display: grid;
+  grid-template-columns: 1fr 28px 1fr 28px 1fr 28px 1fr 28px 1fr;
+  gap: 0;
+  align-items: stretch;
+  margin-top: 6px;
+}
+.lane-stage {
+  background: rgba(18, 24, 38, 0.7);
+  border: 1px solid color-mix(in srgb, var(--sig, #6b7280) 55%, transparent);
+  border-radius: 10px;
+  padding: 12px 14px;
+  min-width: 0;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--sig, #6b7280) 22%, transparent);
+  cursor: pointer;
+}
+.lane-stage h3 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  color: var(--sig, #6b7280);
+}
+.lane-agent { margin: 0; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.lane-status {
+  display: inline-block;
+  margin: 6px 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--sig, #6b7280);
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 1px 8px;
+}
+.lane-fields .field { margin: 6px 0; }
+.lane-link {
+  align-self: center;
+  height: 2px;
+  margin: 0 4px;
+  background: linear-gradient(to right, var(--neon-cyan), var(--neon-magenta));
+  opacity: 0.55;
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.5);
+}
+.lane-stage[data-state="VERIFIED"] {
+  box-shadow: 0 0 22px color-mix(in srgb, var(--sig) 40%, transparent);
+}
+.lane-stage[data-state="BLOCKED"] .lane-status,
+.lane-stage[data-state="FAILED"] .lane-status {
+  animation: lane-blink 1.6s ease-in-out infinite;
+}
+@keyframes lane-blink { 50% { opacity: 0.45; } }
+
+/* Event scroller: one calm horizontal drift, pauses off-screen or on demand. */
+.scroller { overflow: hidden; border: 1px solid var(--hud-line); border-radius: 8px; padding: 8px 0; }
+.scroller ul {
+  display: flex; gap: 28px; margin: 0; padding: 0 14px; list-style: none;
+  width: max-content;
+  animation: drift 40s linear infinite;
+}
+.scroller li { font-size: 13px; white-space: nowrap; }
+.scroller li[data-kind="draft"] { color: var(--neon-magenta); }
+.scroller li[data-kind="merge"] { color: var(--neon-cyan); }
+@keyframes drift { to { transform: translateX(-50%); } }
+
+/* Detail drawer for one workkey. */
+#workkey-detail .detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+}
+
+/* Arbitrage Research Module (Arbi-First V41) */
+#arbitrage-research {
+  margin: 24px 0 36px;
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: 10px;
+  padding: 16px 20px;
+  background: rgba(10, 15, 25, 0.6);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.08);
+}
+#arbitrage-research .arbi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.arbi-badge-sim {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(216, 180, 106, 0.15);
+  color: var(--neon-gold);
+  border: 1px solid rgba(216, 180, 106, 0.4);
+}
+.arbi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.arbi-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--hud-line);
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.arbi-card .arbi-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--neon-gray);
+}
+.arbi-card .arbi-value {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.arbi-card .arbi-sub {
+  font-size: 11px;
+  color: var(--neon-gray);
+}
+.highlight-cyan { color: var(--neon-cyan); text-shadow: 0 0 10px rgba(6, 182, 212, 0.5); }
+.highlight-gold { color: var(--neon-gold); text-shadow: 0 0 10px rgba(216, 180, 106, 0.5); }
+.highlight-green { color: var(--neon-green); text-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
+
+.arbi-venues {
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--hud-line);
+}
+.arbi-venues-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--neon-cyan);
+  margin-bottom: 8px;
+}
+.arbi-pairs-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.arbi-pair-chip {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--hud-line);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+.arbi-pair-chip .pair-spread {
+  color: var(--neon-gold);
+  font-weight: 600;
+}
+.arbi-pair-chip .pair-venues {
+  color: var(--neon-gray);
+  font-size: 11px;
+}
+
+#system-resources {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--hud-line);
+  opacity: 0.88;
+}
+
 /* Responsive & Reduced Motion */
 @media (max-width: 760px) {
   .counts, .garden { grid-template-columns: 1fr; }
+  .lane { grid-template-columns: 1fr; }
+  .lane-link { display: none; }
   main { padding: 10px 14px 28px; }
+  .arbi-grid { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card, .flower, .bird, a.link {
+  .card, .flower, .bird, a.link, .lane-stage, .scroller ul {
     transition: none !important;
     animation: none !important;
   }
+  #particles { display: none; }
 }
+
 

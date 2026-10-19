@@ -1,0 +1,106 @@
+"""L2 WebSocket Stream Provider Protocol & Deterministic Mock Feeder for Binance and Kraken.
+
+Safety Invariants:
+- Zero real trading, zero wallet interaction (REAL_TRADES=0, WALLET_SIGNING=NO).
+- Zero paid API calls / unauthenticated public streaming endpoints only.
+- Deterministic offline replay stream for reproducible testing without network dependencies.
+"""
+
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass
+from typing import Callable, Iterator, Optional
+
+from courier_core.arbi.models import (
+    NormalizedPair,
+    OrderbookLevel,
+    OrderbookSnapshot,
+    SymbolMapper,
+    utc_iso_now,
+)
+
+
+@dataclass
+class L2DeltaEvent:
+    exchange: str
+    pair: NormalizedPair
+    bids_updated: list[OrderbookLevel]
+    asks_updated: list[OrderbookLevel]
+    timestamp_utc: str
+    sequence_id: int
+
+
+class L2StreamMockFeeder:
+    """Simulates an incoming stream of L2 orderbook deltas for latency and race-condition audits."""
+
+    def __init__(self, pair: NormalizedPair, initial_mid: float = 60000.0):
+        self.pair = pair
+        self.mid = initial_mid
+        self._seq = 0
+
+    def generate_events(self, count: int = 10) -> Iterator[L2DeltaEvent]:
+        for i in range(count):
+            self._seq += 1
+            # Micro-shift in spread: alternating between Binance and Kraken
+            ex = "binance" if i % 2 == 0 else "kraken"
+            shift = (i * 1.5) if i % 4 == 0 else -(i * 0.8)
+            bid_p = self.mid + shift
+            ask_p = bid_p + 1.2
+
+            yield L2DeltaEvent(
+                exchange=ex,
+                pair=self.pair,
+                bids_updated=[OrderbookLevel(price=round(bid_p, 2), amount=1.5)],
+                asks_updated=[OrderbookLevel(price=round(ask_p, 2), amount=1.5)],
+                timestamp_utc=utc_iso_now(),
+                sequence_id=self._seq,
+            )
+
+
+class L2OrderbookBookkeeper:
+    """Maintains in-memory orderbook state updated by incoming L2 deltas."""
+
+    def __init__(self, exchange: str, pair: NormalizedPair):
+        self.exchange = exchange
+        self.pair = pair
+        self.bids: dict[float, float] = {}  # price -> amount
+        self.asks: dict[float, float] = {}  # price -> amount
+        self.last_sequence: int = 0
+        self.last_update_utc: str = utc_iso_now()
+
+    def apply_delta(self, event: L2DeltaEvent) -> None:
+        if event.exchange != self.exchange or event.pair != self.pair:
+            return
+
+        for level in event.bids_updated:
+            if level.amount <= 0:
+                self.bids.pop(level.price, None)
+            else:
+                self.bids[level.price] = level.amount
+
+        for level in event.asks_updated:
+            if level.amount <= 0:
+                self.asks.pop(level.price, None)
+            else:
+                self.asks[level.price] = level.amount
+
+        self.last_sequence = event.sequence_id
+        self.last_update_utc = event.timestamp_utc
+
+    def to_snapshot(self) -> OrderbookSnapshot:
+        # Sort bids descending, asks ascending
+        sorted_bids = [
+            OrderbookLevel(p, q) for p, q in sorted(self.bids.items(), key=lambda x: x[0], reverse=True)
+        ]
+        sorted_asks = [
+            OrderbookLevel(p, q) for p, q in sorted(self.asks.items(), key=lambda x: x[0])
+        ]
+        return OrderbookSnapshot(
+            exchange=self.exchange,
+            pair=self.pair,
+            bids=sorted_bids,
+            asks=sorted_asks,
+            timestamp_utc=self.last_update_utc,
+            latency_ms=1.5,
+        )
