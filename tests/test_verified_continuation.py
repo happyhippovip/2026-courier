@@ -177,6 +177,29 @@ def test_mode_d_recovery_resume(continuation_engine):
     assert continuation_engine.verify_result(recover_res) is True
 
 
+def test_mode_d_refuses_fail_status_checkpoint(continuation_engine):
+    # Fail-closed (P0): a stored checkpoint recording FAIL must NOT resume
+    # as PASS progress; recovery restarts from zero instead.
+    workkey = "WORKKEY_D_FAILCP"
+    fail_result = {
+        "task_id": "task-d-failed",
+        "mode": ExecutionMode.MODE_A_LOCAL_DETERMINISTIC.value,
+        "status": "FAIL",
+        "exit_code": 3,
+    }
+    fail_result["result_hash"] = canonical_json_hash(fail_result)
+    cp_file = continuation_engine.checkpoint(workkey, fail_result)
+    assert cp_file.exists()
+
+    recover_packet = {"task_id": "task-d-resume-fail", "workkey": workkey}
+    recover_res = continuation_engine.execute_unit(recover_packet, mode=ExecutionMode.MODE_D_RECOVERY_RESUME)
+    assert recover_res["status"] == "FAIL"
+    assert recover_res["checkpoint_recovered"] is False
+    assert recover_res["restarted_from_zero"] is True
+    assert recover_res["recovered_status"] == "FAIL"
+    assert continuation_engine.verify_result(recover_res) is False
+
+
 def test_verify_result_strict_integrity(continuation_engine):
     valid_result = {
         "task_id": "task-verify",

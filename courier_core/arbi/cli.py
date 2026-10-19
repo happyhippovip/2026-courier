@@ -30,7 +30,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--dry-run", action="store_true", help="Run audit without writing to disk")
     args = parser.parse_args(argv)
 
-    pipeline = ArbitrageResearchPipeline(virtual_capital_usd=args.capital)
+    pipeline = ArbitrageResearchPipeline(
+        virtual_capital_usd=args.capital, persist=not args.dry_run
+    )
     
     # Run cycle
     snapshot = pipeline.run_cycle()

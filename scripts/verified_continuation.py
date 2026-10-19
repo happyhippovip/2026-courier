@@ -369,6 +369,24 @@ class VerifiedContinuation:
             result["result_hash"] = canonical_json_hash(result)
             return result
 
+        # Fail-closed (P0): only a checkpoint recording a verified PASS may
+        # resume. A stored FAIL/UNAVAILABLE/unknown status must restart from
+        # zero instead of being recovered as progress.
+        recorded_status = cp_data.get("status")
+        if recorded_status != "PASS":
+            result = {
+                "task_id": task_id,
+                "workkey": workkey,
+                "mode": ExecutionMode.MODE_D_RECOVERY_RESUME.value,
+                "status": "FAIL",
+                "error": f"Checkpoint records unverified status {recorded_status!r}; refusing resume",
+                "checkpoint_recovered": False,
+                "recovered_status": recorded_status,
+                "restarted_from_zero": True,
+            }
+            result["result_hash"] = canonical_json_hash(result)
+            return result
+
         result = {
             "task_id": task_id,
             "workkey": workkey,

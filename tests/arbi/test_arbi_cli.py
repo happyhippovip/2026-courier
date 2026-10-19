@@ -28,7 +28,7 @@ def test_cli_text_output(capsys):
     with patch.object(
         NormalizedPair, "canonical", "BTC/EUR"
     ):
-        code = main(["--capital", "250"])
+        code = main(["--dry-run", "--capital", "250"])
         assert code == 0
         captured = capsys.readouterr()
         assert "👑 COURIER AI ARBITRAGE · BINANCE ↔ KRAKEN" in captured.out
@@ -37,10 +37,22 @@ def test_cli_text_output(capsys):
 
 
 def test_cli_json_output(capsys):
-    code = main(["--json", "--capital", "100"])
+    code = main(["--dry-run", "--json", "--capital", "100"])
     assert code == 0
     captured = capsys.readouterr()
     data = json.loads(captured.out)
     assert data["title"] == "👑 COURIER AI ARBITRAGE · BINANCE ↔ KRAKEN"
     assert data["simulation"]["status"] == "SIMULATED (NO REAL TRADES)"
     assert data["verified_actual_revenue"]["amount_eur"] == 0.0
+
+
+def test_cli_dry_run_leaves_tracked_registry_untouched(capsys):
+    # CI hygiene gate: test runs must not rewrite the tracked registry file.
+    from pathlib import Path
+    repo = Path(__file__).resolve().parents[2]
+    registry = repo / "registries" / "arbitrage_research.json"
+    before = registry.read_bytes()
+    code = main(["--dry-run", "--capital", "100"])
+    assert code == 0
+    capsys.readouterr()
+    assert registry.read_bytes() == before

@@ -38,10 +38,12 @@ class ArbitrageResearchPipeline:
         NormalizedPair("BTC", "USDT"),
     ]
 
-    def __init__(self, root: Optional[Path] = None, virtual_capital_usd: float = 100.0):
+    def __init__(self, root: Optional[Path] = None, virtual_capital_usd: float = 100.0,
+                 persist: bool = True):
         self.root = root or Path(__file__).resolve().parents[2]
         self.paper_engine = PaperTradingEngine(initial_capital_usd=virtual_capital_usd, simulated_venues=["binance", "kraken"])
         self.registry_file = self.root / "registries" / "arbitrage_research.json"
+        self.persist = persist
 
     def run_cycle(
         self,
@@ -156,7 +158,8 @@ class ArbitrageResearchPipeline:
             },
         }
 
-        # 5. Persist to registry
-        self.registry_file.parent.mkdir(parents=True, exist_ok=True)
-        self.registry_file.write_text(json.dumps(snapshot_data, indent=2), encoding="utf-8")
+        # 5. Persist to registry (skipped for dry-run audits)
+        if self.persist:
+            self.registry_file.parent.mkdir(parents=True, exist_ok=True)
+            self.registry_file.write_text(json.dumps(snapshot_data, indent=2), encoding="utf-8")
         return snapshot_data
