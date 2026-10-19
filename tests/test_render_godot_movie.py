@@ -91,3 +91,104 @@ def test_main_dry_run(mock_argv, mock_run, tmp_path):
         
     assert res == 0
     mock_run.assert_not_called()
+
+
+# --- real (non dry-run) path: admission lock + verification ----------------
+
+import json as _json
+import subprocess as _subprocess
+
+from scripts.render_godot_movie import heavy_job_lock, EXIT_ADMISSION_DENIED
+
+
+def _project(tmp_path):
+    for name in ("godot", "ffmpeg", "ffprobe"):
+        (tmp_path / name).write_text("")
+    (tmp_path / "main.tscn").write_text('[ext_resource path="res://script.gd" type="Script"]', encoding="utf-8")
+    (tmp_path / "script.gd").write_text("const DURATION := 2.0\nconst CAPTURE_FPS := 30", encoding="utf-8")
+    return [
+        "render.py", "--project", str(tmp_path), "--scene", "res://main.tscn",
+        "--output-dir", str(tmp_path / "out"), "--godot", str(tmp_path / "godot"),
+        "--ffmpeg", str(tmp_path / "ffmpeg"), "--ffprobe", str(tmp_path / "ffprobe"),
+        "--lock-file", str(tmp_path / "locks" / "heavy.lock"),
+    ]
+
+
+def _fake_run(width=360, height=640, duration="2.0", godot_rc=0):
+    def run(cmd, **kwargs):
+        if "--write-movie" in cmd:
+            if godot_rc == 0:
+                Path(cmd[cmd.index("--write-movie") + 1]).write_bytes(b"avi")
+            return _subprocess.CompletedProcess(cmd, godot_rc, "", "")
+        if "-show_entries" in cmd:
+            out = _json.dumps({"streams": [{"codec_type": "video", "codec_name": "h264", "width": width, "height": height},
+                                           {"codec_type": "audio", "codec_name": "aac"}],
+                               "format": {"duration": duration}})
+            return _subprocess.CompletedProcess(cmd, 0, out, "")
+        Path(cmd[-1]).write_bytes(b"mp4")
+        return _subprocess.CompletedProcess(cmd, 0, "", "")
+    return run
+
+
+def test_main_real_run_completes_and_verifies(tmp_path):
+    args = _project(tmp_path)
+    with patch("scripts.render_godot_movie.sys.argv", args), \
+         patch("scripts.render_godot_movie.subprocess.run", side_effect=_fake_run()):
+        assert main() == 0
+    out = tmp_path / "out"
+    assert (out / "render.mp4").is_file()
+    assert not (out / "render.avi").exists()
+    meta = _json.loads((out / "render_metadata.json").read_text())
+    assert meta["frame_limit"] == 60 and meta["mp4_probe"]["width"] == 360
+
+
+def test_main_denied_when_heavy_lock_held(tmp_path):
+    args = _project(tmp_path)
+    run = MagicMock()
+    with heavy_job_lock(tmp_path / "locks" / "heavy.lock") as held:
+        assert held
+        with patch("scripts.render_godot_movie.sys.argv", args), \
+             patch("scripts.render_godot_movie.subprocess.run", run):
+            assert main() == EXIT_ADMISSION_DENIED
+    run.assert_not_called()
+    assert not (tmp_path / "out").exists()
+
+
+def test_lock_is_released_after_run(tmp_path):
+    args = _project(tmp_path)
+    with patch("scripts.render_godot_movie.sys.argv", args), \
+         patch("scripts.render_godot_movie.subprocess.run", side_effect=_fake_run()):
+        assert main() == 0
+    with heavy_job_lock(tmp_path / "locks" / "heavy.lock") as held:
+        assert held
+
+
+def test_godot_failure_preserves_state_and_fails(tmp_path):
+    args = _project(tmp_path)
+    with patch("scripts.render_godot_movie.sys.argv", args), \
+         patch("scripts.render_godot_movie.subprocess.run", side_effect=_fake_run(godot_rc=1)):
+        assert main() == 1
+    assert not (tmp_path / "out" / "render.mp4").exists()
+
+
+def test_wrong_resolution_is_rejected_and_avi_kept(tmp_path):
+    args = _project(tmp_path)
+    with patch("scripts.render_godot_movie.sys.argv", args), \
+         patch("scripts.render_godot_movie.subprocess.run", side_effect=_fake_run(width=1080, height=1920)):
+        assert main() == 1
+    assert (tmp_path / "out" / "render.avi").is_file()
+    assert not (tmp_path / "out" / "render_metadata.json").exists()
+
+
+def test_custom_resolution_accepted(tmp_path):
+    args = _project(tmp_path) + ["--width", "1080", "--height", "1920"]
+    with patch("scripts.render_godot_movie.sys.argv", args), \
+         patch("scripts.render_godot_movie.subprocess.run", side_effect=_fake_run(width=1080, height=1920)):
+        assert main() == 0
+
+
+def test_duration_mismatch_rejected(tmp_path):
+    args = _project(tmp_path)
+    with patch("scripts.render_godot_movie.sys.argv", args), \
+         patch("scripts.render_godot_movie.subprocess.run", side_effect=_fake_run(duration="1.0")):
+        assert main() == 1
