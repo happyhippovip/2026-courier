@@ -208,3 +208,42 @@ def test_run_agy_costgate_enforced(tmp_path, monkeypatch):
     assert res_nan["status"] == "FAILED"
     assert "COST_GATE_DENIED" in res_nan["reason"]
     assert res_nan.get("blocked") is True
+
+
+def test_two_sequential_tasks_autonomous_transition(tmp_path, monkeypatch):
+    """Proves Mac worker autonomously claims, executes, delivers, and moves from Task 1 to Task 2."""
+    srv, http, headers = central(tmp_path, monkeypatch, artifacts=("effect1.txt",))
+    # Add a second task to the workflow plan
+    http.post("/goals", headers=headers, json={"goal_text": "g2", "workflow_plan": [
+        {"task_id": "task-2", "target_agent": "mac", "artifacts": ["effect2.txt"]}
+    ]})
+    monkeypatch.chdir(tmp_path)
+    daemon = load_daemon(tmp_path, monkeypatch)
+    executions = []
+
+    def execute(packet, config):
+        task_id = packet["task_id"]
+        executions.append(task_id)
+        if task_id == "task-1":
+            (tmp_path / "effect1.txt").write_text("done1\n")
+        elif task_id == "task-2":
+            (tmp_path / "effect2.txt").write_text("done2\n")
+        return {"status": "SUCCESS", "stdout": f"finished {task_id}", "stderr": "", "execution_mode": "NATIVE"}
+
+    bridge = Bridge(http, headers, max_calls=12)
+    monkeypatch.setattr(daemon, "http_post", bridge)
+    monkeypatch.setattr(daemon, "run_native", execute)
+    monkeypatch.setattr(daemon, "run_agy", execute)
+
+    with pytest.raises(StopLoop):
+        daemon.loop()
+
+    state = srv.load_state()
+    assert state["tasks"]["task-1"]["status"] == "RESULT_RECEIVED"
+    assert state["tasks"]["task-2"]["status"] == "RESULT_RECEIVED"
+    assert executions == ["task-1", "task-2"]
+    results = bridge.posted("/tasks/result")
+    assert len(results) == 2
+    assert results[0]["task_id"] == "task-1"
+    assert results[1]["task_id"] == "task-2"
+
