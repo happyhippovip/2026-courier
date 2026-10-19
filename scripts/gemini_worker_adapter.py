@@ -60,6 +60,21 @@ def run_worker(task_path, negative_test=False, state_file="central_state.json"):
         "--disable-slash-commands" 
     ]
     
+    # Enforce P0 CostGate before spawning agy process
+    from scripts.resource_policy import CostGate
+    cost_res = CostGate.evaluate_spend_request(
+        "google_antigravity_plus",
+        estimated_cost_eur=task.get("estimated_cost_eur", 0.0),
+        requested_action=task.get("requested_action", "EXECUTE_TASK"),
+    )
+    if not cost_res.get("allowed"):
+        return {
+            "status": "FAILED",
+            "reason": f"COST_GATE_DENIED: {cost_res.get('reason')}",
+            "error": cost_res.get("message", "Cost gate blocked execution"),
+            "blocked": True,
+        }
+
     # We remove --dangerously-skip-permissions. A harmless task doesn't use tools and shouldn't prompt.
     dispatch_ref = str(uuid.uuid4())
     
