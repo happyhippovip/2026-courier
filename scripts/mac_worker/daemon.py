@@ -491,6 +491,30 @@ def run_agy(task, config):
     agy_bin = shutil.which("agy") or shutil.which("agy", path=os.environ.get("PATH", "") + ":/Users/user/.local/bin:/usr/local/bin:/opt/homebrew/bin")
     if not agy_bin:
         return {"status": "FAILED", "reason": "AGY_NOT_FOUND", "execution_mode": "ANTIGRAVITY"}
+
+    # P0 CostGate: evaluate spend before spawning external process
+    try:
+        from scripts.resource_policy import CostGate
+        cost_eval = CostGate.evaluate_spend_request(
+            "google_antigravity_plus",
+            estimated_cost_eur=task.get("estimated_cost_eur", 0.0),
+            requested_action=task.get("requested_action", "EXECUTE_TASK"),
+            repo_dir=BASE_DIR,
+        )
+        if not cost_eval.get("allowed"):
+            return {
+                "status": "FAILED",
+                "reason": f"COST_GATE_DENIED: {cost_eval.get('reason')}",
+                "execution_mode": "ANTIGRAVITY",
+                "blocked": True,
+            }
+    except Exception as exc:
+        return {
+            "status": "FAILED",
+            "reason": f"COST_GATE_EXCEPTION: {exc}",
+            "execution_mode": "ANTIGRAVITY",
+            "blocked": True,
+        }
         
     wrapper = os.path.join(os.path.dirname(__file__), "limit_wrapper.sh")
     cmd = [wrapper, agy_bin, "-p", prompt, "--dangerously-skip-permissions"]
