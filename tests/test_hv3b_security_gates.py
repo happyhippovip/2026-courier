@@ -145,7 +145,8 @@ def test_daemon_cost_gate_denial_spawns_nothing(tmp_path, monkeypatch):
 def test_google_builder_cost_gate_denial_never_invokes_provider(tmp_path, monkeypatch):
     runner = RecordingRunner()
     monkeypatch.setattr(gbw, "AGENT_RUNNER", runner)
-    monkeypatch.setattr(gbw.CostGate, "evaluate_spend_request", staticmethod(lambda *a, **k: dict(DENY)))
+    # The builder imports CostGate lazily from scripts.resource_policy, so patch the class itself.
+    monkeypatch.setattr(CostGate, "evaluate_spend_request", staticmethod(lambda *a, **k: dict(DENY)))
     res = gbw.execute_packet_code_or_test_work(_packet(), tmp_path, _hooks(tmp_path), SURFACE_OK)
     assert runner.calls == []
     assert res["verdict"] == "FAILED"
