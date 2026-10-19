@@ -156,7 +156,6 @@ class CodexHookRunner:
         payload: dict,
         message_id: str | None = None,
     ) -> Path:
-        print(f"[CODEX_HOOK: ON_COMPLETION] Task {task_id} completed successfully. Writing RESULT_READY...")
         if not message_id:
             message_id = f"msg-res-cdx-{uuid.uuid4().hex[:12]}"
 
@@ -187,6 +186,21 @@ class CodexHookRunner:
         PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
         result_file = PROCESSED_DIR / f"{task_id}-result.json"
         save_json(result_file, result_envelope)
+        try:
+            recorded = json.loads(result_file.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            recorded = None
+        if (not result_file.is_file()
+                or not isinstance(recorded, dict)
+                or recorded.get("task_id") != task_id
+                or recorded.get("status") != "COMPLETED"
+                or recorded.get("correlation_id") != correlation_id
+                or recorded.get("payload_hash") != p_hash
+                or recorded.get("message_id") != result_envelope["message_id"]):
+            print(f"[CODEX_HOOK: ON_COMPLETION] Task {task_id} result was not durable; not reporting success")
+            raise SystemExit(1)
+
+        print(f"[CODEX_HOOK: ON_COMPLETION] Task {task_id} completed successfully. RESULT_READY is {result_file.name}")
 
         self.state_tracker.update_state(
             state="AWAITING_CHIEF_REVIEW",
