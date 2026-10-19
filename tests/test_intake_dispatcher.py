@@ -75,6 +75,37 @@ def test_dispatch_intake_subprocess_error(tmp_path):
             intake_dispatcher.dispatch_intake(str(intake_file))
         assert exc.value.code == 1
 
+def test_failed_durable_write_does_not_report_dispatch_success(tmp_path, capsys):
+    intake_file = tmp_path / "intake.json"
+    intake_file.write_text(json.dumps({
+        "target_owner": "test_owner",
+        "target_repo": "test_repo",
+        "target_sha": "123456",
+        "customer_reference": "CUST-001"
+    }))
+    real_save = intake_dispatcher.save_central_state
+    calls = {"n": 0}
+
+    def fail_final_save(path, state):
+        calls["n"] += 1
+        if calls["n"] >= 2:
+            raise OSError("durable write failed")
+        real_save(path, state)
+
+    with mock.patch("scripts.intake_dispatcher.subprocess.run") as mock_run, \
+         mock.patch("scripts.intake_dispatcher.resolve_execution_ref", return_value="9999"), \
+         mock.patch("scripts.intake_dispatcher.time.sleep"), \
+         mock.patch("scripts.intake_dispatcher.save_central_state", side_effect=fail_final_save):
+        mock_run.return_value = mock.Mock(stdout="dispatched")
+        with pytest.raises(OSError, match="durable write failed"):
+            intake_dispatcher.dispatch_intake(str(intake_file))
+
+    captured = capsys.readouterr().out
+    assert "Successfully dispatched" not in captured
+    assert "fully connected" not in captured
+    assert calls["n"] >= 2
+
+
 def test_dispatch_intake_corrupt_state_fails_closed(tmp_path):
     # M05-Q2: a corrupt central state is never reset-and-overwritten (that would
     # silently wipe every recorded task); the dispatch exits non-zero, unrecorded.
