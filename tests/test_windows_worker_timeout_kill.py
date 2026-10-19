@@ -47,6 +47,9 @@ def test_timed_out_process_is_killed_not_left_running(monkeypatch):
     monkeypatch.setattr(daemon.subprocess, "Popen", spawn_sleep)
     monkeypatch.setattr(real_popen_class, "communicate", short_timeout)
 
+    from scripts.resource_policy import CostGate
+    monkeypatch.setattr(CostGate, "evaluate_spend_request", lambda *a, **k: {"allowed": True, "reason": "TEST_ALLOWED"})
+
     result = daemon.run_task({"task_id": "t1", "instruction": "irrelevant", "goal_id": "g1"},
                              {"WORKER_ID": "WIN-TEST"})
 
