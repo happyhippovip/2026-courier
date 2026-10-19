@@ -34,12 +34,15 @@ def submit_intake(owner: str, repo: str, sha: str, customer_ref: str):
     res = requests.post(f"{API_URL}/goals", json=goal_payload, headers=HEADERS)
     if res.status_code == 200:
         print("Success!")
-    else:
-        print(f"Failed: {res.status_code} {res.text}")
+        return 0
+    print(f"Failed: {res.status_code} {res.text}")
+    return 1
 
 if __name__ == "__main__":
     if len(sys.argv) < 5:
         print("Usage: python3 revenue_customer_intake.py <owner> <repo> <sha> <customer_ref>")
         sys.exit(1)
         
-    submit_intake(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+    code = submit_intake(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+    if code != 0:
+        raise SystemExit(code)
