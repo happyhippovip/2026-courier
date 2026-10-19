@@ -229,6 +229,9 @@ def test_auto_resume_pending_workflows_unattended(repo_dir):
 
 def test_google_builder_worker_integration_in_autonomous_loop(repo_dir, monkeypatch):
     """Verifies that steps targeting 'google-mac' / 'builder' execute through google_builder_worker."""
+    # google_builder_worker records its checkpoint via consume() into a
+    # cwd-relative central_state.json (+ .lock); keep it out of the checkout.
+    monkeypatch.chdir(repo_dir)
     # Deterministic host sample; real overload refusal is covered in
     # tests/test_google_builder_real_execution.py.
     calm = lambda: {"memory_percent": 40.0, "swap_percent": 10.0}

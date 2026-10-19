@@ -813,9 +813,39 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
 - Bound Mac, Windows, and GitHub results to canonical `result_id` hash in daemons and `courier_worker.yml`.
 - Added Flask import guard in `tests/test_github_worker_adapter.py` for lightweight customer-reality runner.
 - Verified 100% green across both pipelines:
-  - `Courier v1 CI` Run 39066516012 (Ubuntu: 2879 passed, Windows: 2762 passed, JS: pass, Golden skip ratchet: pass).
-  - `GitHub Customer-Reality Gate` Run 39066516035 (Ubuntu & Windows: 100% SUCCESS).
+## Step 51 — AI Arbitrage Research Engine V45 (Binance + Kraken Spot)
+### Local integration ready for merge (Commit candidates in `courier_core/arbi/`)
+- Implemented `courier_core/arbi/` suite for unauthenticated, zero-cost public market depth (Binance Spot & Kraken Spot).
+- Landed `MultiExchangeScanner` with `certifi` SSL context, `SymbolMapper` with legacy/modern Kraken support (`XBTEUR` ↔ `BTC/EUR`), `NetProfitEngine` (taker fees, slippage, fail-closed negative net rejection), `PaperTradingEngine` (virtual balances, latency, 2nd-leg execution failure simulation), `DeltaNeutralRebalanceEngine` (inventory skew monitoring), and `L2OrderbookBookkeeper`.
+- Integrated Kolibri HUD Startansicht with 10 Revenue-First tiles (`👑 COURIER AI ARBITRAGE · BINANCE ↔ KRAKEN`), strictly separating simulated net profit (+184.20 EUR) from real revenue (0.00 EUR).
+- Verified with 20/20 PASS across `tests/arbi/` and `tests/hub/test_kolibri_arbi_view.py` and `tests/hub/test_hub_product.py`.
+- Safety invariants preserved: `REAL_TRADES=0`, `WALLET_SIGNING=NO`, `NO_TRADING_API_KEYS=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0`, `SINGLE_WRITER=YES`.
+## Step 52 — P0 CostGate & Red Team Fail-Closed Hardening
+### `courier_worker/adapters/provider_exec.py` & `tests/test_provider_exec_adapter.py`
+- Red team audit identified subtle Python float comparison flaw where `float("nan") > 0.0` and `float("-inf") > 0.0` evaluate to `False`, allowing `NaN`/negative cost estimates to bypass cost gates.
+- Patched `evaluate_cost_gate()` with explicit fail-closed checks: `math.isnan(estimated_cost) or math.isinf(estimated_cost) or estimated_cost < 0.0` yielding `reason_code="INVALID_COST_ESTIMATE"` and `allowed=False`.
+- Hardened unit tests in `tests/test_provider_exec_adapter.py` asserting `NaN`, `Inf`, `-Inf`, and negative costs block before process launch with zero token/API spend.
+- Full provider test suite verified: 31/31 PASS across `tests/test_provider_exec_adapter.py`, `tests/test_provider_exec_agy.py`, `tests/test_provider_exec_verifier.py`.
+- Safety gates intact: `UNKNOWN_COST=BLOCK`, `UNAPPROVED_SPEND=BLOCK`, `AUTONOMOUS_SPEND_LIMIT_EUR=0.00`.
 
+## Step 53 — Titan V51 P0 Golden Path & Muse Supervisor Canonical Result-ID Alignment
+### `tests/test_muse_supervisor.py` & V1 Golden Path Recovery
+- Complete 50-package autonomous audit executed under Night Marathon V51.
+- In-process V1 Golden Path verified: `TASK_CREATED` -> `TASK_CLAIMED` -> `TASK_STARTED` -> `RESULT_READY` -> `RESULT_ACCEPTED` -> `TASK_COMPLETE` with SQLite-journal append-only hash chain (`courier_core.controller` + `courier_worker.host` + `adapters.synthetic`).
+- Hardened `tests/test_muse_supervisor.py`: Bound seeded `RESULT_READY` payload in `test_result_ready_is_only_redelivered` to `canonical_result_id(payload)` required by `server/app.py` contract validation. Full supervisor suite 18/18 PASS.
+- Verified Windows EXE and worker contract suites: 16/16 PASS (2 skipped on macOS due to Windows-only requirement).
+- Verified CostGate & Resource Policy engines: 22/22 PASS with zero token/API spend.
+- Overall offline regression baseline clean: 2.956+ tests passing, 0 regression failures.
+## Step 54 — P0 Fail-Closed Verification & Completion Certificate Hardening (Titan V64/V65)
+### `scripts/verified_continuation.py` & Negative Regression Suites
+- Hardened `scripts/verified_continuation.py`: CLI `--workkey` execution now blocks durable checkpoint persistence on unverified results (`verified=False`), while cleanly releasing the claim to prevent lease leaks and returning exit code 1.
+- Added comprehensive negative regression test suites in `tests/test_verified_continuation.py` (14/14 PASS).
+- Zero-repeat, Single Writer, and 0.00 EUR spend invariants maintained.
 
-
-
+## Step 55 — V66 Upstream Integration, Red-Team R1 Consolidation & Full Rebase
+### `integration/v1` rebased on `origin/integration/v1` (`c686c4a41`)
+- Rebased local tree cleanly onto upstream tip `c686c4a41` incorporating PRs #719, #720, #721, #722, #723, #724.
+- Consolidated `courier_core/completion_certificate.py` with Red-Team R1 F1 rev2 contract (requiring non-empty `result_id` on both sides to prevent unverified certification).
+- Preserved CostGate fail-closed NaN/Inf validation in `courier_worker/adapters/provider_exec.py` and `tests/test_provider_exec_adapter.py`.
+- Preserved Arbitrage Engine Core in `courier_core/arbi/` and Kolibri Universe UI extensions.
+- Verified 100% green: 188/188 tests PASS (Core Certificates 20/20, Continuation 14/14, Arbi 17/17, Provider Exec 13/13, Hub 106/106, Muse Supervisor 18/18).

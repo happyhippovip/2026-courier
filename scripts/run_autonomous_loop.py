@@ -141,7 +141,14 @@ class AutonomousLevel6Loop:
         self.codex_hooks = CodexHookRunner(self.codex_state_tracker)
 
         self.lease_manager = TaskLeaseManager(repo_dir=repo_dir)
+        # Lease owner must identify this runner instance, not only the agent name,
+        # otherwise two runners for the same agent both "own" one task.
+        self.lease_instance = f"{os.getpid()}-{uuid.uuid4().hex[:12]}"
         self.dedupe_engine = TaskDedupeEngine(repo_dir=repo_dir)
+
+    def _lease_owner(self, agent_name: str) -> str:
+        """Lease owner id that is unique per runner instance."""
+        return f"{agent_name}#{self.lease_instance}"
 
     def save_workflow_state(self, workflow_id: str, state_data: dict) -> Path:
         """Atomically saves durable workflow state to events/workflows/{workflow_id}-state.json."""
@@ -618,7 +625,7 @@ class AutonomousLevel6Loop:
                     acquired, lease_reason, lease_data = self.lease_manager.acquire_lease(
                         task_id=task_id,
                         task_hash=task_hash,
-                        owner_id=target_agent_name,
+                        owner_id=self._lease_owner(target_agent_name),
                     )
                     if not acquired:
                         print(f"[COST GATE] Duplicate builder dispatch blocked for task {task_id}: Already claimed by {lease_data.get('owner_id')}.")
@@ -664,7 +671,7 @@ class AutonomousLevel6Loop:
                         else:
                             result_file = execute_bridge_task(dispatch_file, active_hooks)
                     finally:
-                        self.lease_manager.release_lease(task_id, target_agent_name)
+                        self.lease_manager.release_lease(task_id, self._lease_owner(target_agent_name))
 
                     if result_file and result_file.exists():
                         res_data = load_json(result_file)

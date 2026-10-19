@@ -249,3 +249,30 @@ def test_run_worker_with_state_file(tmp_path, monkeypatch):
     if os.path.exists(tmp_path / r_ref):
         os.remove(tmp_path / r_ref)
 
+
+def test_gemini_worker_adapter_costgate_enforced(tmp_path):
+    """Proves CostGate check in gemini_worker_adapter blocks spawn before subprocess."""
+    task_spend = tmp_path / "task_spend.json"
+    task_spend.write_text(json.dumps({
+        "task_id": "gemini-spend",
+        "instruction": "echo test",
+        "estimated_cost_eur": 15.0,
+    }))
+
+    res = gemini_worker_adapter.run_worker(str(task_spend))
+    assert res["status"] == "FAILED"
+    assert "COST_GATE_DENIED" in res["reason"]
+    assert res.get("blocked") is True
+
+    task_nan = tmp_path / "task_nan.json"
+    task_nan.write_text(json.dumps({
+        "task_id": "gemini-nan",
+        "instruction": "echo test",
+        "estimated_cost_eur": "invalid",
+    }))
+
+    res_nan = gemini_worker_adapter.run_worker(str(task_nan))
+    assert res_nan["status"] == "FAILED"
+    assert "COST_GATE_DENIED" in res_nan["reason"]
+    assert res_nan.get("blocked") is True
+

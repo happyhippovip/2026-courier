@@ -257,11 +257,32 @@ def kill_process_tree(pid):
 def run_task(task, config):
     print(f"[{config['WORKER_ID']}] Running task {task['task_id']}...")
 
+    # Enforce P0 CostGate before native PowerShell execution
+    from scripts.resource_policy import CostGate
+    cost_res = CostGate.evaluate_spend_request(
+        "windows_native",
+        estimated_cost_eur=task.get("estimated_cost_eur", 0.0),
+        requested_action=task.get("requested_action", "EXECUTE_TASK"),
+    )
+    if not cost_res.get("allowed"):
+        return {
+            "status": "FAILED",
+            "stdout": "",
+            "stderr": f"COST_GATE_DENIED: {cost_res.get('reason')} - {cost_res.get('message', 'Blocked by CostGate')}",
+            "goal_id": task.get("goal_id"),
+            "task_id": task["task_id"],
+            "worker_id": config["WORKER_ID"],
+            "provider": "windows_native",
+            "run_id": "blocked-by-costgate",
+            "blocked": True,
+        }
+
     instruction = task.get("instruction", "")
 
     out_clean = ""
     stderr = ""
     run_id = "win-native"
+
 
     print(f"[{config['WORKER_ID']}] Executing native PowerShell instruction.")
     import base64

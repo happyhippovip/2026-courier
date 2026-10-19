@@ -130,16 +130,15 @@ class CostGate:
                 "requires_human_gate": True,
             }
 
-        # A missing, non-numeric, non-finite or negative cost is unknown: block it.
+        # UNKNOWN_COST=BLOCK: only a finite, explicit 0.0 passes.
         if (isinstance(estimated_cost_eur, bool) or not isinstance(estimated_cost_eur, (int, float))
-                or not math.isfinite(estimated_cost_eur) or estimated_cost_eur < 0):
+                or not math.isfinite(estimated_cost_eur) or estimated_cost_eur < 0.0):
             return {
                 "allowed": False,
                 "reason": "UNKNOWN_COST",
-                "message": "Cost estimate is missing or not a finite number >= 0. Human Gate required.",
+                "message": "Cost estimate missing or invalid; unknown cost is blocked.",
                 "requires_human_gate": True,
             }
-
         # Check unapproved extra spending / capacity upgrades
         if estimated_cost_eur > 0.0 or "upgrade" in requested_action.lower() or "purchase" in requested_action.lower():
             return {
@@ -203,13 +202,16 @@ class TaskLeaseManager:
 
         # 2. Inspect existing lease for renewal or active ownership
         existing = load_json(lease_path)
+        if existing is None and lease_path.exists():
+            # Empty/torn lease = a holder is mid-write. Never treat as expired.
+            return False, "LEASE_UNREADABLE_FAIL_CLOSED", {}
         if existing:
             expires_at = existing.get("expires_at", 0)
             current_owner = existing.get("owner_id")
 
             if expires_at > now_ts:
-                if current_owner == owner_id:
-                    # Renew lease atomically
+                if current_owner == owner_id and existing.get("task_hash") == task_hash:
+                    # Renew lease atomically (only for the same input)
                     existing["expires_at"] = now_ts + duration_sec
                     save_json(lease_path, existing)
                     return True, "LEASE_RENEWED", existing
@@ -228,6 +230,8 @@ class TaskLeaseManager:
         try:
             # Re-read lease under reclaim lock to ensure it is still expired
             current_existing = load_json(lease_path)
+            if current_existing is None and lease_path.exists():
+                return False, "LEASE_UNREADABLE_FAIL_CLOSED", {}
             if current_existing:
                 current_expires = current_existing.get("expires_at", 0)
                 if current_expires > now_ts:

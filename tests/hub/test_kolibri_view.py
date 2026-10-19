@@ -407,3 +407,56 @@ def test_kolibri_workkey_lease_blocker_and_resource_pause_visibility(tmp_path):
     assert "K-000003" in html and "LEASE_VALID" in html
     assert "secret-token-never-show" not in html
 
+
+def test_kolibri_static_script_lifecycle_guards() -> None:
+    kolibri_js = (REPO / "courier_hub" / "static" / "kolibri.js").read_text(encoding="utf-8")
+    kolibri_html = (REPO / "courier_hub" / "static" / "kolibri.html").read_text(encoding="utf-8")
+    assert "document.hidden" in kolibri_js
+    assert "document.addEventListener(\"visibilitychange\"" in kolibri_js
+    assert "window.addEventListener(\"focus\"" in kolibri_js
+    assert "window.addEventListener(\"online\"" in kolibri_js
+    assert "clearTimeout(timer);" in kolibri_js
+    assert 'document.querySelector("#refresh")?.addEventListener("click"' in kolibri_js
+    assert 'event.key === "r"' in kolibri_js
+    assert '<button type="button" id="refresh"' in kolibri_html
+    assert '<a class="skip" href="#view">Skip to view</a>' in kolibri_html
+    assert '<main id="view" tabindex="-1">' in kolibri_html
+
+
+def test_kolibri_flow_signal_translation() -> None:
+    script = r"""
+import { pathToFileURL } from "node:url";
+const flow = await import(pathToFileURL(process.argv[1]).href);
+const results = {
+  running: flow.translateSignal({ state: { value: "RUNNING" }, id: "task-1" }),
+  transferred: flow.translateSignal({ status: "TRANSFERRED", task_id: "task-2" }),
+  claimed: flow.translateSignal({ status: "CLAIMED", id: "task-3" }),
+  verifying: flow.translateSignal({ state: { value: "VERIFYING" }, id: "task-4" }),
+  verified: flow.translateSignal({ verified: true, state: { value: "DONE" }, id: "task-5" }),
+  blocked: flow.translateSignal({ blocker: { value: "WAITING_AUTHORITY" }, id: "task-6" }),
+  failed: flow.translateSignal({ state: { value: "FAILED" }, id: "task-7" }),
+  warn: flow.translateSignal({ status: "WARN", id: "task-8" }),
+  router: flow.translateSignal({ status: "ROUTER", id: "task-9" }),
+  infra: flow.translateSignal({ status: "INFRA", id: "task-10" }),
+  unknown: flow.translateSignal({}),
+};
+process.stdout.write(JSON.stringify(results));
+"""
+    proc = subprocess.run(
+        ["node", "--input-type=module", "-e", script, str(REPO / "courier_hub" / "static" / "kolibri_flow.mjs")],
+        capture_output=True,
+        check=True,
+    )
+    res = json.loads(proc.stdout)
+    assert res["running"]["state"] == "RUNNING" and res["running"]["color"] == "#a855f7"
+    assert res["transferred"]["state"] == "TRANSFERRED" and res["transferred"]["color"] == "#06b6d4"
+    assert res["claimed"]["state"] == "CLAIMED" and res["claimed"]["color"] == "#14b8a6"
+    assert res["verifying"]["state"] == "VERIFYING" and res["verifying"]["color"] == "#d8b46a"
+    assert res["verified"]["state"] == "VERIFIED" and res["verified"]["color"] == "#10b981" and res["verified"]["verified"] is True
+    assert res["blocked"]["state"] == "BLOCKED" and res["blocked"]["color"] == "#ef4444"
+    assert res["failed"]["state"] == "FAILED" and res["failed"]["color"] == "#ef4444"
+    assert res["warn"]["state"] == "WARN" and res["warn"]["color"] == "#f59e0b"
+    assert res["router"]["state"] == "ROUTER" and res["router"]["color"] == "#ec4899"
+    assert res["infra"]["state"] == "INFRA" and res["infra"]["color"] == "#3b82f6"
+    assert res["unknown"]["state"] == "UNKNOWN" and res["unknown"]["color"] == "#6b7280"
+

@@ -313,3 +313,34 @@ def test_two_distinct_units_sequential_execution(tmp_path, monkeypatch):
         central = json.load(f)
     assert central["tasks"]["work-unit-1-test"]["reconciled_status"] == "SUCCESS"
     assert central["tasks"]["work-unit-2-verify"]["reconciled_status"] == "SUCCESS"
+
+
+def test_google_agent_task_costgate_enforced(tmp_path):
+    """Proves P0 CostGate fail-closed guard before Google agent spawn."""
+    from scripts.google_builder_worker import run_google_agent_task
+
+    evidence = {}
+    surface = {"has_agy_cli": True}
+
+    # 1. Positive cost without human gate -> blocked
+    payload_spend = {
+        "workkey": "WK-SPEND",
+        "instruction": "do something paid",
+        "estimated_cost_eur": 5.0,
+    }
+    verdict = run_google_agent_task(payload_spend, tmp_path, evidence, surface)
+    assert verdict == "FAILED"
+    assert "COST_GATE_DENIED" in evidence.get("blocked_reason", "")
+    assert evidence.get("provider_invoked") is False
+
+    # 2. NaN / invalid cost -> blocked
+    payload_nan = {
+        "workkey": "WK-NAN",
+        "instruction": "do something invalid",
+        "estimated_cost_eur": float("nan"),
+    }
+    evidence_nan = {}
+    verdict = run_google_agent_task(payload_nan, tmp_path, evidence_nan, surface)
+    assert verdict == "FAILED"
+    assert "COST_GATE_DENIED" in evidence_nan.get("blocked_reason", "")
+    assert evidence_nan.get("provider_invoked") is False

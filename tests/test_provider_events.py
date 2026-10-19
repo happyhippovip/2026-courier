@@ -201,3 +201,21 @@ def test_invalid_utf8_terminal_record_cannot_complete_work(tmp_path):
     lines, offset = ev.read_new_lines(p, 0)
     assert ev.drive(k, "s1", lines) == ["IGNORED", "HEARTBEAT"]
     assert k.workkeys["W1"].state != DONE and offset == p.stat().st_size
+
+
+def test_replayed_done_line_never_double_completes(tmp_path):
+    # Log rotation / offset reset may re-feed an identical DONE line; the
+    # stale-writer guard must reconcile instead of completing twice.
+    k, _, _, ev = kirby(tmp_path)
+    k.add_workkeys(["W1"])
+    k.open_slot("s1", "muse")
+    ev.handle(k, "s1", "IDLE")
+    assert k.deliver("s1") == "W1"
+    line = "TURN_ENDED outcome=DONE checkpoint=step1"
+    ev.drive(k, "s1", [line])
+    assert k.workkeys["W1"].state == DONE
+    assert k.counters["completions"] == 1
+    ev.drive(k, "s1", [line])
+    assert k.workkeys["W1"].state == DONE
+    assert k.counters["completions"] == 1
+    assert k.sessions["s1"].workkey == ""

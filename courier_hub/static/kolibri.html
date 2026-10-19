@@ -10,12 +10,15 @@
 <script type="module" src="/kolibri.js"></script>
 </head>
 <body>
+<canvas id="particles" aria-hidden="true"></canvas>
+<a class="skip" href="#view">Skip to view</a>
 <header class="top">
   <h1>Kolibri</h1>
   <p id="status" role="status" aria-live="polite">Loading…</p>
+  <button type="button" id="refresh" title="Refresh (R)">Refresh</button>
   <a class="link" href="/">Hub</a>
 </header>
-<main id="view">
+<main id="view" tabindex="-1">
   <noscript>
     <p>UNKNOWN / nicht erreichbar</p>
     <p class="meta">source browser script</p>

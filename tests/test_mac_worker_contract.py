@@ -188,3 +188,23 @@ def test_missing_api_key_fails_closed_before_network(tmp_path, monkeypatch):
         daemon.loop()
     assert exc.value.code == 2
     assert calls == []
+
+
+def test_run_agy_costgate_enforced(tmp_path, monkeypatch):
+    """Proves P0 CostGate check in daemon.run_agy blocks spawn before subprocess."""
+    daemon = load_daemon(tmp_path, monkeypatch)
+    config = {"WORKER_ID": "MAC-01", "AGY_TIMEOUT_SECONDS": 30}
+
+    # 1. Positive cost without human gate -> blocked
+    task_spend = {"task_id": "t-spend", "instruction": "echo test", "estimated_cost_eur": 10.0}
+    res_spend = daemon.run_agy(task_spend, config)
+    assert res_spend["status"] == "FAILED"
+    assert "COST_GATE_DENIED" in res_spend["reason"]
+    assert res_spend.get("blocked") is True
+
+    # 2. NaN cost -> blocked
+    task_nan = {"task_id": "t-nan", "instruction": "echo test", "estimated_cost_eur": float("nan")}
+    res_nan = daemon.run_agy(task_nan, config)
+    assert res_nan["status"] == "FAILED"
+    assert "COST_GATE_DENIED" in res_nan["reason"]
+    assert res_nan.get("blocked") is True

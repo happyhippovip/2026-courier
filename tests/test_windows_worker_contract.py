@@ -267,3 +267,30 @@ def test_missing_api_key_fails_closed_before_network(tmp_path, monkeypatch):
         
     assert "COURIER_API_KEY is not set" in str(exc.value)
     assert calls == []
+
+
+def test_windows_worker_costgate_enforced(tmp_path, monkeypatch):
+    """Proves CostGate check in windows_worker/daemon blocks spawn before process execution."""
+    daemon = load_daemon(tmp_path, monkeypatch)
+    config = {"WORKER_ID": "WIN-01"}
+
+    task_spend = {
+        "task_id": "win-task-spend",
+        "instruction": "Write-Host 'hello'",
+        "estimated_cost_eur": 25.0,
+    }
+    res = daemon.run_task(task_spend, config)
+    assert res["status"] == "FAILED"
+    assert "COST_GATE_DENIED" in res["stderr"]
+    assert res.get("blocked") is True
+
+    task_nan = {
+        "task_id": "win-task-nan",
+        "instruction": "Write-Host 'hello'",
+        "estimated_cost_eur": "invalid",
+    }
+    res_nan = daemon.run_task(task_nan, config)
+    assert res_nan["status"] == "FAILED"
+    assert "COST_GATE_DENIED" in res_nan["stderr"]
+    assert res_nan.get("blocked") is True
+

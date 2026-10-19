@@ -27,6 +27,11 @@ import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+# Ensure repository root is on sys.path when executed directly as a script
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 WORKKEY_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
 
 
@@ -364,6 +369,24 @@ class VerifiedContinuation:
             result["result_hash"] = canonical_json_hash(result)
             return result
 
+        # Fail-closed (P0): only a checkpoint recording a verified PASS may
+        # resume. A stored FAIL/UNAVAILABLE/unknown status must restart from
+        # zero instead of being recovered as progress.
+        recorded_status = cp_data.get("status")
+        if recorded_status != "PASS":
+            result = {
+                "task_id": task_id,
+                "workkey": workkey,
+                "mode": ExecutionMode.MODE_D_RECOVERY_RESUME.value,
+                "status": "FAIL",
+                "error": f"Checkpoint records unverified status {recorded_status!r}; refusing resume",
+                "checkpoint_recovered": False,
+                "recovered_status": recorded_status,
+                "restarted_from_zero": True,
+            }
+            result["result_hash"] = canonical_json_hash(result)
+            return result
+
         result = {
             "task_id": task_id,
             "workkey": workkey,
@@ -435,27 +458,34 @@ class VerifiedContinuation:
         validate_workkey(k1)
         validate_workkey(k2)
 
-        # Unit 1
+        # Unit 1 (lease-hygiene: the claim is always released again, even when
+        # execution or verification fails — same pattern as the single-workkey
+        # path in main(). A failed unit raises, but never leaves a stale lease
+        # that would block retries until TTL expiry.)
         if not self.claim(k1):
             raise RuntimeError(f"Failed to claim unit 1: {k1}")
-        mode1 = unit1.get("mode", ExecutionMode.MODE_A_LOCAL_DETERMINISTIC)
-        res1 = self.execute_unit(unit1, mode=mode1)
-        if not self.verify_result(res1):
-            raise RuntimeError(f"Unit 1 verification failed: {k1}")
-        cp1 = self.checkpoint(k1, res1, next_workkey=k2)
-        if not self.release(k1):
-            raise RuntimeError(f"Failed to release unit 1: {k1}")
+        try:
+            mode1 = unit1.get("mode", ExecutionMode.MODE_A_LOCAL_DETERMINISTIC)
+            res1 = self.execute_unit(unit1, mode=mode1)
+            if not self.verify_result(res1):
+                raise RuntimeError(f"Unit 1 verification failed: {k1}")
+            cp1 = self.checkpoint(k1, res1, next_workkey=k2)
+        finally:
+            if not self.release(k1):
+                raise RuntimeError(f"Failed to release unit 1: {k1}")
 
         # Automatic Handoff to Unit 2
         if not self.claim(k2):
             raise RuntimeError(f"Failed to claim unit 2: {k2}")
-        mode2 = unit2.get("mode", ExecutionMode.MODE_B_GOOGLE_BUILDER)
-        res2 = self.execute_unit(unit2, mode=mode2)
-        if not self.verify_result(res2):
-            raise RuntimeError(f"Unit 2 verification failed: {k2}")
-        cp2 = self.checkpoint(k2, res2, next_workkey=None)
-        if not self.release(k2):
-            raise RuntimeError(f"Failed to release unit 2: {k2}")
+        try:
+            mode2 = unit2.get("mode", ExecutionMode.MODE_B_GOOGLE_BUILDER)
+            res2 = self.execute_unit(unit2, mode=mode2)
+            if not self.verify_result(res2):
+                raise RuntimeError(f"Unit 2 verification failed: {k2}")
+            cp2 = self.checkpoint(k2, res2, next_workkey=None)
+        finally:
+            if not self.release(k2):
+                raise RuntimeError(f"Failed to release unit 2: {k2}")
 
         return {
             "status": "PASS",
@@ -507,10 +537,16 @@ def main(argv: Optional[List[str]] = None) -> int:
         unit = {"task_id": f"task-{args.workkey}", "workkey": args.workkey, "instruction": f"Run {args.workkey}"}
         res = engine.execute_unit(unit, mode=ExecutionMode(args.mode))
         verified = engine.verify_result(res)
+        if not verified:
+            # Fail-closed (P0): never persist a durable checkpoint for an
+            # unverified result. Still release the claim so no lease leaks.
+            engine.release(args.workkey)
+            print(f"[CONTINUATION] Verification FAILED for {args.workkey}; no checkpoint written.")
+            return 1
         cp = engine.checkpoint(args.workkey, res)
         engine.release(args.workkey)
         print(f"[CONTINUATION] Verified: {verified}, Checkpoint: {cp.name}")
-        return 0 if verified else 1
+        return 0
 
     print("No action specified. Use --verify-autonomy or --workkey.")
     return 0

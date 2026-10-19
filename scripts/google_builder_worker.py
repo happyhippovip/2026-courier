@@ -49,7 +49,6 @@ from scripts.run_antigravity_bridge import (
     run_chief_review_router,
 )
 from scripts.gemini_worker_adapter import consume
-from scripts.resource_policy import CostGate
 
 EVENTS_DIR = COURIER_DIR / "events"
 LOCKS_DIR = EVENTS_DIR / "locks"
@@ -341,10 +340,17 @@ def run_google_agent_task(
         evidence_data["provider_invoked"] = False
         return "FAILED"
 
-    # agy runs under the active Google subscription; a call has no per-run charge.
-    gate = CostGate.evaluate_spend_request("google_antigravity_plus", estimated_cost_eur=0.0)
-    if not gate.get("allowed"):
-        evidence_data["blocked_reason"] = "COST_GATE_" + str(gate.get("reason") or "DENIED")
+    # Enforce CostGate before spawning Google Antigravity CLI process
+    from scripts.resource_policy import CostGate
+    cost_res = CostGate.evaluate_spend_request(
+        "google_antigravity_plus",
+        estimated_cost_eur=payload_in.get("estimated_cost_eur", 0.0),
+        requested_action=payload_in.get("requested_action", "EXECUTE_TASK"),
+        repo_dir=repo_dir,
+    )
+    if not cost_res.get("allowed"):
+        evidence_data["blocked_reason"] = f"COST_GATE_DENIED: {cost_res.get('reason')}"
+        evidence_data["error"] = cost_res.get("message", "Cost gate blocked execution")
         evidence_data["provider_invoked"] = False
         return "FAILED"
 

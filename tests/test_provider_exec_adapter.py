@@ -382,3 +382,30 @@ def test_prompt_text_cannot_inject_flags(tmp_path, monkeypatch):
     assert Path(recorded[2]).read_text(encoding="utf-8") == prompt
     _assert_no_forbidden(recorded)
     assert recorded[recorded.index("--approval-mode") + 1] == "never"
+
+
+def test_cost_gate_blocks_unknown_cost_and_unapproved_spend(tmp_path, monkeypatch):
+    # 1. UNKNOWN_COST must block before launch
+    result, _workdir, argv_log = _run(tmp_path, monkeypatch, params={"cost_class": "unknown"})
+    assert result.outcome == "BLOCKED"
+    assert result.reason_code == "UNKNOWN_COST_BLOCKED"
+    assert result.blocked is True
+    assert result.launched is False
+    assert not argv_log.exists()
+
+    # 2. unapproved spend (estimated_cost_eur > 0) must block before launch
+    result2, _workdir2, argv_log2 = _run(tmp_path, monkeypatch, params={"estimated_cost_eur": 15.0})
+    assert result2.outcome == "BLOCKED"
+    assert result2.blocked is True
+    assert result2.launched is False
+    assert not argv_log2.exists()
+
+    # 3. invalid costs (NaN, Inf, negative) must fail-closed before launch
+    for bad_cost in (float("nan"), float("inf"), float("-inf"), -0.01):
+        res, _, log_path = _run(tmp_path, monkeypatch, params={"estimated_cost_eur": bad_cost})
+        assert res.outcome == "BLOCKED"
+        assert res.reason_code == "INVALID_COST_ESTIMATE"
+        assert res.blocked is True
+        assert res.launched is False
+        assert not log_path.exists()
+

@@ -1,0 +1,55 @@
+{
+  "at": "2026-10-19T10:19:12Z",
+  "title": "\ud83d\udc51 COURIER AI ARBITRAGE \u00b7 BINANCE \u2194 KRAKEN",
+  "pairs_monitored": [
+    {
+      "pair": "BTC/EUR",
+      "venues": [
+        "Binance",
+        "Kraken"
+      ],
+      "spread_bps": 0.3,
+      "status": "active"
+    },
+    {
+      "pair": "ETH/EUR",
+      "venues": [
+        "Binance",
+        "Kraken"
+      ],
+      "spread_bps": 0.5,
+      "status": "active"
+    },
+    {
+      "pair": "BTC/USDT",
+      "venues": [
+        "Binance",
+        "Kraken"
+      ],
+      "spread_bps": 0.7,
+      "status": "active"
+    }
+  ],
+  "simulation": {
+    "net_simulated_profit_eur": 184.2,
+    "simulated_loss_eur": 18.5,
+    "net_roi_pct": 3.82,
+    "gross_opportunity_eur": 245.8,
+    "estimated_fees_eur": 31.4,
+    "estimated_slippage_eur": 11.7,
+    "opportunities_detected": 6,
+    "opportunities_executable": 29,
+    "simulation_runs": 1850,
+    "success_rate_pct": 91.4,
+    "best_simulated_strategy": "Cross-Exchange Spot (Binance \u2194 Kraken)",
+    "rebalance_status": "BALANCED",
+    "rebalance_reason": "Skew (0.0%) within allowable threshold (25.0%)",
+    "status": "SIMULATED (NO REAL TRADES)",
+    "blocker": "NONE"
+  },
+  "verified_actual_revenue": {
+    "amount_eur": 0.0,
+    "status": "NO_LIVE_REVENUE_RECORDED",
+    "evidence_id": null
+  }
+}

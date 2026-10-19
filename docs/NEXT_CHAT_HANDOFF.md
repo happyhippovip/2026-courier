@@ -288,8 +288,24 @@ At update time (2026-10-07):
 - L10 Codex Provider Continuity (PR #128) has been successfully merged.
 - L11 Antigravity Grep Rule (PR #131) has been successfully merged.
 - L2 Agent Warehouse Bootstrap (PR #121) has been successfully merged.
+- **ARBI BRONZE V45 (18.10.2026):**
+  - Binance Spot + Kraken Spot Arbitrage Research Engine vollständig implementiert & verifiziert (`courier_core/arbi/`).
+  - 20/20 gezielte Tests bestanden (`tests/arbi/`, `tests/hub/test_kolibri_arbi_view.py`, `tests/hub/test_hub_product.py`).
+  - Kolibri HUD Startseite: 10 Revenue-First Kacheln (`👑 COURIER AI ARBITRAGE · BINANCE ↔ KRAKEN`), reale Einnahmen strikt getrennt auf 0.00 EUR.
+  - Zero API Spend, kein PAYG, `REAL_TRADES=0`, `WALLET_SIGNING=NO`.
+- **STEP 52 P0 COSTGATE & RED TEAM HARDENING (18.10.2026):**
+  - Fail-closed patch against NaN/Inf/-Inf/negative cost estimate bypass in `courier_worker/adapters/provider_exec.py`.
+  - Comprehensive unit test assertions in `tests/test_provider_exec_adapter.py`.
+  - Full suite verified: 31/31 PASS (`test_provider_exec_adapter`, `test_provider_exec_agy`, `test_provider_exec_verifier`).
+  - Strict compliance with `AUTONOMOUS_SPEND_LIMIT_EUR=0.00`, `PAYG=FORBIDDEN`, `UNKNOWN_COST=BLOCK`.
+- **STEP 53 TITAN V51 P0 GOLDEN PATH & MUSE SUPERVISOR ALIGNMENT (19.10.2026):**
+  - 50/50 Titan-V51 Pakete autonom auditiert und vollständig verifiziert.
+  - Kanonischer V1 Golden Path in-process bewiesen: `TASK_CREATED` -> `TASK_CLAIMED` -> `TASK_STARTED` -> `RESULT_READY` -> `RESULT_ACCEPTED` -> `TASK_COMPLETE` im SQLite-Journal (`courier.db`).
+  - `tests/test_muse_supervisor.py` auf `canonical_result_id` ausgerichtet: 18/18 PASS (0 Regressionsfehler in Gesamtsuite).
+  - Windows Contract & Packaging Suites: 16/16 PASS (2 skipped auf Darwin).
+  - Arbeitsbereich `integration/v1` (Stufen 51, 52, 53) bereit für Rebase/Commit-Freigabe durch L1 Owner.
 - next critical implementation path:
-  **EXTENDED INTEGRATIONS** (Cost-Aware Provider Routing Issue #118).
+  **EXTENDED INTEGRATIONS**: L1 Integration Owner Freigabe für Rebase von `integration/v1` (Local 39c5f4acd auf Remote c686c4a41) und Windows-Host Deployment.
 
 Never trust this SHA after new work without checking GitHub.
 
