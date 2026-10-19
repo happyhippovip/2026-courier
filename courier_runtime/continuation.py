@@ -70,6 +70,11 @@ def decide(checkpoint, *, grants_valid, owned_alive, lease_available):
     reasons = []
     next_step = checkpoint.last_accepted_step + 1
     if next_step >= len(checkpoint.plan):
+        # A finished plan is not a reason to start again at step 0, and a
+        # still-running owned process is not a clean completion.
+        if owned_alive:
+            return {"safe": False, "resume_step": None, "state": "RECOVERING",
+                    "reasons": [f"owned processes still running: {owned_alive}; retire or reattach first"]}
         return {"safe": True, "resume_step": None, "state": "DONE", "reasons": ["all steps accepted"]}
     attempt = checkpoint.attempted.get(next_step) or checkpoint.attempted.get(str(next_step))
     if attempt and attempt.get("effect_class") == "non_idempotent" and not attempt.get("effect_confirmed"):
