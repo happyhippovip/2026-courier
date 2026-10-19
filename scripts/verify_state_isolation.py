@@ -6,14 +6,14 @@ def verify_state_isolation(state_dir="server/state", max_age_seconds=3600):
     errors = []
     
     if not os.path.exists(state_dir):
-        os.makedirs(state_dir, exist_ok=True)
-        
-    for item in os.listdir(state_dir):
-        path = os.path.join(state_dir, item)
-        if os.path.isfile(path):
-            age = time.time() - os.path.getmtime(path)
-            if age > max_age_seconds:
-                errors.append(f"Stale state file detected: {item} (Age: {age}s). Isolation failure or missed cleanup.")
+        errors.append(f"State directory is missing: {state_dir}")
+    else:
+        for item in os.listdir(state_dir):
+            path = os.path.join(state_dir, item)
+            if os.path.isfile(path):
+                age = time.time() - os.path.getmtime(path)
+                if age > max_age_seconds:
+                    errors.append(f"Stale state file detected: {item} (Age: {age}s). Isolation failure or missed cleanup.")
                 
     if not errors:
         print("STATE ISOLATION VALID")
