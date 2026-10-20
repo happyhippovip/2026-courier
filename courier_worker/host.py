@@ -247,7 +247,10 @@ def default_pressure_probe() -> Optional[str]:
             import psutil
             cpu = psutil.cpu_percent(interval=None)
             if cpu >= MAX_WIN_CPU_PRESSURE_PERCENT:
-                return f"cpu-pressure: cpu load {cpu:.1f}%"
+                # Bounded confirmation sample to filter single-microsecond burst jitter
+                confirmed_cpu = psutil.cpu_percent(interval=0.02)
+                if confirmed_cpu >= MAX_WIN_CPU_PRESSURE_PERCENT:
+                    return f"cpu-pressure: cpu load {confirmed_cpu:.1f}%"
         except Exception:
             pass
 
@@ -906,6 +909,32 @@ def outbox_remove(home: str, dispatch_id: str) -> None:
         (_outbox_dir(home) / f"{dispatch_id}.json").unlink()
     except OSError:
         pass
+
+def outbox_quarantine(home: str, dispatch_id: str, reason: str = "") -> Optional[Path]:
+    """Move a poison or persistently failing result payload to outbox/quarantine (E-L3-4)."""
+    if (not isinstance(dispatch_id, str) or not dispatch_id
+            or not SAFE_DISPATCH_ID_RE.match(dispatch_id)
+            or ".." in dispatch_id or "/" in dispatch_id or "\\" in dispatch_id):
+        return None
+    source = _outbox_dir(home) / f"{dispatch_id}.json"
+    if not source.exists():
+        return None
+    q_dir = _outbox_dir(home) / "quarantine"
+    q_dir.mkdir(parents=True, exist_ok=True)
+    dest = q_dir / f"{dispatch_id}.json"
+    try:
+        os.replace(source, dest)
+        if reason:
+            meta = q_dir / f"{dispatch_id}.meta.json"
+            meta.write_text(json.dumps({
+                "dispatch_id": dispatch_id,
+                "reason": reason,
+                "quarantined_at": time.time(),
+            }, indent=2), encoding="utf-8")
+        return dest
+    except OSError:
+        return None
+
 
 
 # -- the single-flight host ----------------------------------------------------

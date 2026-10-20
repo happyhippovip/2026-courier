@@ -41,6 +41,7 @@ from courier_worker.host import (
     SpecError,
     WorkerHost,
     acquire_home_lock,
+    outbox_quarantine,
     outbox_read_all,
     outbox_remove,
     outbox_write,
@@ -53,6 +54,7 @@ REQUEST_TIMEOUT_S = 10.0
 STARTUP_HEALTH_ATTEMPTS = 5
 STARTUP_HEALTH_SLEEP_S = 1.0
 FLUSH_TIMEOUT_S = 3.0
+MAX_OUTBOX_DELIVERY_ATTEMPTS = 5
 SSE_RECONNECTS = 3
 SSE_POLL_S = 0.25  # bounds how long stop() waits for the watcher thread
 
@@ -397,6 +399,7 @@ class WorkerLoop:
         self._watchers: dict = {}
         self._cooldown_until: float = 0.0
         self._last_resource_state: str = "NORMAL"
+        self._outbox_attempts: dict = {}
 
     def _default_client(self) -> ControllerClient:
         token_path = os.path.join(self.home, "run", "controller.token")
@@ -423,9 +426,20 @@ class WorkerLoop:
         self._client = client
         remaining = 0
         for _path, payload in outbox_read_all(self.home):
+            dispatch_id = str(payload.get("dispatch_id", ""))
             try:
                 client.deliver(payload)
-            except ControllerError:
+                self._outbox_attempts.pop(dispatch_id, None)
+            except ControllerError as exc:
+                attempts = self._outbox_attempts.get(dispatch_id, 0) + 1
+                self._outbox_attempts[dispatch_id] = attempts
+                err_msg = str(exc).lower()
+                is_poison_400 = "status 400" in err_msg or "bad request" in err_msg
+                if is_poison_400 or attempts >= MAX_OUTBOX_DELIVERY_ATTEMPTS:
+                    reason = f"poison_400: {exc}" if is_poison_400 else f"max_attempts_exceeded ({attempts}): {exc}"
+                    outbox_quarantine(self.home, dispatch_id, reason=reason)
+                    self._outbox_attempts.pop(dispatch_id, None)
+                    continue
                 remaining += 1
                 continue
             outbox_remove(self.home, payload["dispatch_id"])  # accepted AND stale
@@ -536,9 +550,17 @@ class WorkerLoop:
             except OutboxFull:
                 # Still full: do not crash the host process; log/leave unpersisted and return
                 return
+        dispatch_id = str(payload.get("dispatch_id", ""))
         try:
             self._client.deliver(payload)
-        except ControllerError:
+            self._outbox_attempts.pop(dispatch_id, None)
+        except ControllerError as exc:
+            attempts = self._outbox_attempts.get(dispatch_id, 0) + 1
+            self._outbox_attempts[dispatch_id] = attempts
+            err_msg = str(exc).lower()
+            if "status 400" in err_msg or "bad request" in err_msg:
+                outbox_quarantine(self.home, dispatch_id, reason=f"poison_400: {exc}")
+                self._outbox_attempts.pop(dispatch_id, None)
             return  # stays in the outbox for the next flush; no retry here
         outbox_remove(self.home, payload["dispatch_id"])  # accepted AND stale
 

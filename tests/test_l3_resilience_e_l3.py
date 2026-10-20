@@ -5,7 +5,8 @@ import pytest
 from courier_worker.host import (
     WorkerHost, ExecutionSpec, Outcome, ContainmentError, OutboxFull
 )
-from courier_worker.service import WorkerLoop
+from courier_worker.service import WorkerLoop, ControllerError
+from courier_worker.host import outbox_write, outbox_read_all
 
 
 def test_e_l3_2_oversized_artifacts_does_not_crash_host(tmp_path):
@@ -81,3 +82,58 @@ def test_e_l3_3_persistent_outbox_full_does_not_crash(tmp_path):
 
     # Controller deliver was skipped because outbox persistence could not be established
     loop._client.deliver.assert_not_called()
+
+
+def test_e_l3_4_poison_400_immediately_quarantined(tmp_path):
+    """E-L3-4: HTTP 400 immediately quarantines poison result and cleans outbox."""
+    home = tmp_path / "worker_home"
+    home.mkdir(parents=True, exist_ok=True)
+    loop = WorkerLoop(home=str(home), base_url="http://127.0.0.1:8088", worker_id="w-test", heartbeat_s=1.0)
+    loop._client = MagicMock()
+    loop._client.deliver.side_effect = ControllerError("result: status 400 Bad Request")
+
+    payload = {"dispatch_id": "dsp-poison", "task_id": "t-poison", "outcome": "completed"}
+    outbox_write(str(home), payload)
+
+    assert len(outbox_read_all(str(home))) == 1
+
+    remaining = loop.flush_outbox()
+    assert remaining == 0
+    # Outbox is clean!
+    assert len(outbox_read_all(str(home))) == 0
+
+    # Payload was moved to quarantine
+    q_file = home / "outbox" / "quarantine" / "dsp-poison.json"
+    assert q_file.is_file()
+    meta_file = home / "outbox" / "quarantine" / "dsp-poison.meta.json"
+    assert meta_file.is_file()
+    assert "poison_400" in meta_file.read_text(encoding="utf-8")
+
+
+def test_e_l3_4_persistent_error_quarantined_after_max_attempts(tmp_path):
+    """E-L3-4: Persistent delivery errors are retried up to MAX_OUTBOX_DELIVERY_ATTEMPTS then quarantined."""
+    home = tmp_path / "worker_home"
+    home.mkdir(parents=True, exist_ok=True)
+    loop = WorkerLoop(home=str(home), base_url="http://127.0.0.1:8088", worker_id="w-test", heartbeat_s=1.0)
+    loop._client = MagicMock()
+    loop._client.deliver.side_effect = ControllerError("result: status 500 Internal Server Error")
+
+    payload = {"dispatch_id": "dsp-retry", "task_id": "t-retry", "outcome": "completed"}
+    outbox_write(str(home), payload)
+
+    # First 4 attempts: stays in outbox
+    for i in range(1, 5):
+        rem = loop.flush_outbox()
+        assert rem == 1
+        assert len(outbox_read_all(str(home))) == 1
+
+    # 5th attempt: max attempts reached -> quarantined!
+    rem = loop.flush_outbox()
+    assert rem == 0
+    assert len(outbox_read_all(str(home))) == 0
+
+    q_file = home / "outbox" / "quarantine" / "dsp-retry.json"
+    assert q_file.is_file()
+    meta_file = home / "outbox" / "quarantine" / "dsp-retry.meta.json"
+    assert meta_file.is_file()
+    assert "max_attempts_exceeded (5)" in meta_file.read_text(encoding="utf-8")
