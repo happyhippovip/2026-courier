@@ -877,7 +877,19 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
   - `tests/test_adapter_runner.py` + `tests/test_l3_worker_host.py`: 106 PASS, 1 honest skip.
   - `tests/boundaries/run_boundaries.py`: 14/14 PASS (0 defects).
   - `scripts/verify_state_isolation.py`: Cleaned stale test artifacts from `server/state/` (`STATE ISOLATION VALID`).
-  - Desktop Node.js Suite (`tests/desktop/*.test.mjs`): 38/38 PASS.
+## Step 58 — Titan V160 verify_command V2 Hardening & Independent Verification Contract (Commit `56d68c9e5`)
+### `scripts/google_builder_worker.py` & `tests/test_google_builder_real_execution.py`
+- Upgraded independent test verification to `verify_command V2`:
+  - **Fail-Closed Command Validator:** Validates that `verify_command` is a non-empty sequence of non-empty strings with no null bytes (`\0`). Rejects permission-bypass flags (`--dangerously-skip-permissions`, `--skip-permissions`, `--no-sandbox`) with `FORBIDDEN_FLAG`.
+  - **Process Tree Containment (`_kill_process_tree`):** Subprocess executes in an isolated process group (`start_new_session=True` / `CREATE_NEW_PROCESS_GROUP`). Timeouts terminate the child process and its entire process tree, preventing orphan processes.
+  - **Token Scrubbing:** Stripped `COURIER_CONTROLLER_TOKEN` from child execution environment.
+- Verified test coverage: `tests/test_google_builder_real_execution.py` expanded from 16 to 20/20 PASS (including tests for bypass rejection, environment sanitization, process kill on timeout, and malformed command input).
+- Verified full regression and isolation:
+  - `tests/test_local_shell_adapter.py`: 25/25 PASS.
+  - `tests/boundaries/run_boundaries.py`: 14/14 PASS (0 defects).
+  - `scripts/verify_state_isolation.py`: STATE ISOLATION VALID.
+  - `tests/desktop/*.test.mjs`: 38/38 PASS.
 - Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
+
 
 

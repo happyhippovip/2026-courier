@@ -314,6 +314,9 @@ At update time (2026-10-07):
   - Tests: `tests/test_local_shell_adapter.py` auf 25/25 PASS erweitert.
   - Desktop Suite: 38/38 PASS (`evidence_badge.mjs`, `hub_core`, `kolibri_flow`, `kolibri_universe`).
   - State Isolation & Boundary Integrity: Bereinigt und validiert (`verify_state_isolation.py`: VALID, 14/14 Boundary Properties PASS).
+- **STEP 58 TITAN V160 VERIFY_COMMAND V2 HARDENING (21.10.2026):**
+  - Härtung der unabhängigen Verifikationsausführung in `scripts/google_builder_worker.py`: Fail-Closed Command Validator, Token-Sanitization, Prozessgruppen-Isolation und `_kill_process_tree` auf Timeout.
+  - Tests: `tests/test_google_builder_real_execution.py` auf 20/20 PASS erweitert.
 - next critical implementation path:
   **WINDOWS CLEAN-MACHINE ACCEPTANCE & WEBSITE HUMAN GATE**: Abnahme auf dem sauberen Windows-Host nach Host-Boot; Prüfung des Website-Impressums am Dennis Human-Gate (`fc219a1`).
 
