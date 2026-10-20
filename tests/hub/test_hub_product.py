@@ -611,6 +611,31 @@ def test_malformed_or_hostile_posts_are_refused(world, headers, body, status):
     assert live.get(f"/v1/tasks/{task_id}").json()["status"] == "BLOCKED"
 
 
+def test_a_slightly_oversized_body_is_refused_on_the_same_connection(world):
+    import http.client
+    live, hub, clock = world
+    task_id = blocked_task(live, clock)
+    port = hub.server.server_address[1]
+    conn = http.client.HTTPConnection("127.0.0.1", port, timeout=10)
+    body = b"x" * (17 * 1024)
+    conn.putrequest("POST", f"/hub/api/items/{task_id}/decision")
+    conn.putheader("Host", f"127.0.0.1:{port}")
+    conn.putheader("X-Courier-Hub", "1")
+    conn.putheader("Content-Type", "application/json")
+    conn.putheader("Content-Length", str(len(body)))
+    conn.endheaders()
+    conn.send(body)
+    refused = conn.getresponse()
+    assert refused.status == 413
+    refused.read()
+    conn.request("GET", "/hub/api/home", headers={"Host": f"127.0.0.1:{port}"})
+    follow = conn.getresponse()
+    assert follow.status == 200
+    follow.read()
+    conn.close()
+    assert live.get(f"/v1/tasks/{task_id}").json()["status"] == "BLOCKED"
+
+
 def test_unknown_or_malformed_task_ids_are_not_found(world):
     _, hub, _ = world
     assert hub.decide("task-does-not-exist", "cancel", 1).status_code == 404

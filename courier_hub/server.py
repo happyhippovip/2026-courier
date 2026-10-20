@@ -51,6 +51,10 @@ STATIC_TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript; ch
                 ".mjs": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
                 ".svg": "image/svg+xml"}
 MAX_BODY_BYTES = 16 * 1024
+# A body only slightly over the limit is read and discarded so the client can
+# see 413. Closing first makes Windows abort the upload (WinError 10053) and
+# the refusal never arrives. A much larger declared length is not read.
+DRAIN_LIMIT_BYTES = MAX_BODY_BYTES + 64 * 1024
 CONTROLLER_TIMEOUT_S = 5.0
 ACTOR_RE = re.compile(r"^[A-Za-z0-9_.:@-]{1,200}$")
 _ITEM = re.compile(r"^/hub/api/items/([A-Za-z0-9_.:-]{1,200})$")
@@ -413,8 +417,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(403, {"error": "forbidden"})
         length = self.headers.get("Content-Length")
         if length is None or not (length.isascii() and length.isdigit()) or int(length) > MAX_BODY_BYTES:
-            self.close_connection = True
-            return self._send(413, {"error": "bad_length"})
+            return self._refuse_oversized(length)
         try:
             body = json.loads(self.rfile.read(int(length)) or b"{}")
         except ValueError:
@@ -435,6 +438,23 @@ class Handler(BaseHTTPRequestHandler):
             self._send(500, {"result": "unknown",
                              "message": "The hub hit an internal error. Courier may have recorded this; "
                                         "the list shows what it has recorded now."})
+
+    def _refuse_oversized(self, length: Optional[str]):
+        declared = int(length) if length and length.isascii() and length.isdigit() else None
+        consumed = declared is not None and declared <= DRAIN_LIMIT_BYTES and self._discard(declared)
+        if not consumed:
+            # Unread bytes must never be parsed as the next request.
+            self.close_connection = True
+        return self._send(413, {"error": "bad_length"})
+
+    def _discard(self, count: int) -> bool:
+        remaining = count
+        while remaining:
+            chunk = self.rfile.read(min(remaining, 8192))
+            if not chunk:
+                return False
+            remaining -= len(chunk)
+        return True
 
     def _static(self, path: str):
         name = "index.html" if path in ("/", "/index.html") else ("kolibri.html" if path == "/kolibri" else path.lstrip("/"))
