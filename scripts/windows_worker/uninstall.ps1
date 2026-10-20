@@ -7,6 +7,12 @@ if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
 $taskName = "CourierWindowsWorker"
 $InstallDir = "$env:ProgramFiles\CourierWorker"
 
+& "$PSScriptRoot\stop.ps1" -AllProfiles
+if ($LASTEXITCODE -eq 1) {
+    Write-Host "ERROR: an owned Courier process is still running. Files were not removed." -ForegroundColor Red
+    exit 1
+}
+
 if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
     Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
     Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
