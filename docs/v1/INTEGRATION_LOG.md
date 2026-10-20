@@ -850,8 +850,8 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
 - Preserved Arbitrage Engine Core in `courier_core/arbi/` and Kolibri Universe UI extensions.
 - Verified 100% green: 188/188 tests PASS (Core Certificates 20/20, Continuation 14/14, Arbi 17/17, Provider Exec 13/13, Hub 106/106, Muse Supervisor 18/18).
 
-## Step 56 — Titan V152 Global Red-to-Green Recovery, Canonical Lease Authority & Hardening (Commits `fafc07687`..`a6ca52b1f`)
-### `integration/v1` commits `fafc07687`..`a6ca52b1f`
+## Step 56 — Titan V152 Global Red-to-Green Recovery, Canonical Lease Authority & Hardening (Commits `fafc07687`..`a8cd33d74`)
+### `integration/v1` commits `fafc07687`..`a8cd33d74`
 - P0-A1..A4: Canonical SQLite `authority.db` backing for `courier_runtime/lease.py` `LeaseStore`, hierarchical scope overlap protection (`scopes_overlap`), 4-tuple session holder binding (`format_session_holder`), and pre-write fencing (`FencedFileWriter`).
 - P0-01 & P0-02: Bound Windows Worker Daemon (`scripts/windows_worker/daemon.py`) and Mac Supervisor (`scripts/mac_worker/muse_supervisor.py`) to canonical `authority.db` `LeaseStore`.
 - P0-B1 & P0-B2: Hardened Windows Worker `build_package.ps1` with pre-flight refusal (exit 1 on missing components) and explicit bundling of `resource_policy.py` and `resource_policy.json` (verified via `tests/test_windows_packaging_contract.py`).
@@ -859,7 +859,10 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
 - P0-E1 & P0-E2: Unified `TaskLeaseManager` in `scripts/resource_policy.py` and workflow lock in `scripts/run_autonomous_loop.py` with canonical `authority.db` `LeaseStore`.
 - P0-10: Verified verifier revocation enforcement in `courier_core/verification.py` (`is_verifier_revoked`, `revoke_verifier_digest`).
 - ML-01: Bound `scripts/courier_mailbox.py` to `authority.db` under scope `mailbox:{name}` with `FencedFileWriter`.
+- Codex Bridge Canonical Authority: Implemented and wired `CanonicalAuthority` in `scripts/run_codex_bridge.py` to canonical `authority.db` `LeaseStore`, supporting atomic scope acquisition, session-bound holders, conflict rollback, and fenced execution (`tests/test_run_codex_bridge.py`: 9/9 PASS).
+- State & Boundary Integrity: Cleaned stale test artifacts from `server/state/` (`scripts/verify_state_isolation.py`: PASS). Verified `scripts/verify_auth_boundaries.py` (PASS), `scripts/verify_process_isolation.py` (PASS), `scripts/verify_resource_admission.py` (PASS), `tests/boundaries/run_boundaries.py` (14/14 PASS).
 - P1 Kolibri & Hub: Maintained Hub daemon on port 61543 serving `/kolibri` and `/mission-chip` with 32 Node.js desktop tests passing.
-- Chore: Added `events/locks/*.db*` to `.gitignore`.
-- Full verification: 3031 Pytest PASS (8 honest Windows-only skips on macOS Darwin arm64), 32 Node Desktop PASS, 14 Boundary Properties PASS (0 defects), 11 Golden Skips PASS (ratchet holds), Local Safety `new=0`, 19 Acceptance PASS.
+- P1 Website: `sh website/build_site.sh` clean (8 static pages built), remote unreviewed deployment held at Dennis Human-Gate (`fc219a1`).
+- Full verification: 3040 Pytest PASS (8 honest Windows-only skips on macOS Darwin arm64), 32 Node Desktop PASS, 14 Boundary Properties PASS (0 defects), 11 Golden Skips PASS (ratchet holds), Local Safety `new=0`.
 - Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `NO_UNAUTHORIZED_MERGE=YES`.
+
