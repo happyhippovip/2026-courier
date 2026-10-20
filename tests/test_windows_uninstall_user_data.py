@@ -27,6 +27,13 @@ def test_uninstall_asks_before_removing_user_data():
     assert "the installation is still present" in text
     assert "Database and logs" in text
     assert "was removed" in text
+    unregister = text.index("Unregister-ScheduledTask")
+    still_there = text.index("the scheduled task is still present")
+    claimed_gone = text.index("Unregistered and stopped")
+    cleanup = text.index("uninstall_user_data.ps1")
+    assert unregister < still_there < claimed_gone < cleanup
+    assert "Get-ScheduledTask" in text[unregister:still_there]
+    assert "exit 1" in text[still_there:claimed_gone]
 
 
 def _powershell():

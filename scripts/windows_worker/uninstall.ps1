@@ -21,7 +21,11 @@ if ($LASTEXITCODE -eq 1) {
 
 if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
     Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
-    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
+    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+    if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
+        Write-Host "ERROR: the scheduled task is still present: $taskName" -ForegroundColor Red
+        exit 1
+    }
     Write-Host "Unregistered and stopped Courier Windows Worker scheduled task."
 } else {
     Write-Host "Task $taskName does not exist."
