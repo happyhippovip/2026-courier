@@ -294,3 +294,47 @@ def test_windows_worker_costgate_enforced(tmp_path, monkeypatch):
     assert "COST_GATE_DENIED" in res_nan["stderr"]
     assert res_nan.get("blocked") is True
 
+
+def test_missing_cost_does_not_start_powershell(tmp_path, monkeypatch):
+    """Missing or flagged-unknown cost stays blocked even when windows_native is active."""
+    daemon = load_daemon(tmp_path, monkeypatch)
+    from scripts.resource_policy import ResourcePolicyManager
+    policy = {
+        "active_paid_resources": {"windows_native": {"status": "ACTIVE_PAID"}},
+        "planned_resources": {},
+        "unauthorized_resources": {},
+    }
+    monkeypatch.setattr(ResourcePolicyManager, "get_policy", staticmethod(lambda repo_dir=None: policy))
+    spawned = []
+
+    class _Proc:
+        pid = 4242
+        returncode = 0
+
+        def communicate(self, timeout=None):
+            return "ok", ""
+
+    def fake_popen(cmd, **kwargs):
+        spawned.append(list(cmd))
+        return _Proc()
+
+    monkeypatch.setattr(daemon.subprocess, "Popen", fake_popen)
+    config = {"WORKER_ID": "WIN-01"}
+    blocked = (
+        {"task_id": "missing", "instruction": "Write-Host hi"},
+        {"task_id": "none", "instruction": "Write-Host hi", "estimated_cost_eur": None},
+        {"task_id": "flag", "instruction": "Write-Host hi", "estimated_cost_eur": 0.0, "unknown_cost": True},
+    )
+    for task in blocked:
+        spawned.clear()
+        result = daemon.run_task(task, config)
+        assert result["status"] == "FAILED" and result.get("blocked") is True
+        assert "UNKNOWN_COST" in result["stderr"]
+        assert result["status"] not in ("DONE", "FINAL")
+        assert spawned == []
+    zero = daemon.run_task(
+        {"task_id": "zero", "instruction": "Write-Host hi", "estimated_cost_eur": 0.0}, config,
+    )
+    assert spawned and spawned[0][0] == "powershell"
+    assert zero["status"] == "SUCCESS"
+

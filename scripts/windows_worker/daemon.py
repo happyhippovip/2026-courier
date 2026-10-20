@@ -257,11 +257,15 @@ def kill_process_tree(pid):
 def run_task(task, config):
     print(f"[{config['WORKER_ID']}] Running task {task['task_id']}...")
 
-    # Enforce P0 CostGate before native PowerShell execution
+    # Enforce P0 CostGate before native PowerShell execution.
+    # A missing estimate stays missing. Never invent 0.0.
     from scripts.resource_policy import CostGate
+    estimate = task.get("estimated_cost_eur", None)
+    if task.get("unknown_cost") is True:
+        estimate = None
     cost_res = CostGate.evaluate_spend_request(
         "windows_native",
-        estimated_cost_eur=task.get("estimated_cost_eur", 0.0),
+        estimated_cost_eur=estimate,
         requested_action=task.get("requested_action", "EXECUTE_TASK"),
     )
     if not cost_res.get("allowed"):
