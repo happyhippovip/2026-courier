@@ -6,6 +6,7 @@ import os
 import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
 import pytest
 
@@ -100,8 +101,10 @@ def test_background_agents_fail_closed_without_api_key(script):
     env.pop("COURIER_API_KEY", None)
     env.pop("COURIER_VERIFIER_API_KEY", None)
 
+    root = Path(__file__).resolve().parents[1]
+    script_path = str(root / script)
     result = subprocess.run(
-        [sys.executable, script], capture_output=True, text=True, env=env, timeout=20
+        [sys.executable, script_path], capture_output=True, text=True, env=env, timeout=20, cwd=str(root)
     )
 
     assert result.returncode != 0
