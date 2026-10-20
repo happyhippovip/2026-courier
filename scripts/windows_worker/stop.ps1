@@ -1,12 +1,27 @@
 # Stop only a Courier process this install recorded.
 # A missing record is not a reason to stop every Courier.exe on the machine.
 param(
-    [switch]$AllProfiles
+    [switch]$AllProfiles,
+    [switch]$Library
 )
 
 $ErrorActionPreference = "Continue"
 $script:failed = $false
 $script:stopped = $false
+
+function Test-CourierProcessName {
+    param(
+        [string]$Actual,
+        [string]$Expected
+    )
+    if ([string]::IsNullOrWhiteSpace($Actual) -or [string]::IsNullOrWhiteSpace($Expected)) {
+        return $false
+    }
+    # Windows names a second Courier.exe "Courier#1". That is still Courier.
+    $left = [IO.Path]::GetFileNameWithoutExtension($Actual.Split('#')[0].Trim())
+    $right = [IO.Path]::GetFileNameWithoutExtension($Expected.Split('#')[0].Trim())
+    return [bool]($left -and $right -and ($left -eq $right))
+}
 
 function Stop-RecordedPid {
     param([string]$PidFile)
@@ -30,7 +45,7 @@ function Stop-RecordedPid {
         return
     }
 
-    if ($proc.ProcessName -ne "Courier") {
+    if (-not (Test-CourierProcessName -Actual $proc.ProcessName -Expected "Courier")) {
         Write-Output "ERROR: PID $processId is $($proc.ProcessName), not the recorded Courier process. Refusing to stop it."
         $script:failed = $true
         return
@@ -90,6 +105,8 @@ function Stop-RecordedPid {
     Write-Output "Stopped owned process $processId."
     $script:stopped = $true
 }
+
+if ($Library) { return }
 
 if (Get-Command Get-ScheduledTask -ErrorAction SilentlyContinue) {
     $task = Get-ScheduledTask -TaskName "CourierWindowsWorker" -ErrorAction SilentlyContinue

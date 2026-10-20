@@ -23,7 +23,7 @@ def test_status_bat_does_not_scan_every_courier_exe():
 
 def test_status_script_checks_the_recorded_process():
     text = STATUS_PS1.read_text(encoding="utf-8")
-    assert 'ProcessName -ne "Courier"' in text
+    assert 'Test-CourierProcessName -Actual $proc.ProcessName -Expected "Courier"' in text
     assert "tasklist" not in text.lower()
     assert "/IM" not in text
     assert "Stop-Process" not in text
@@ -66,6 +66,27 @@ def _run_status(tmp_path, pid_text=None):
         capture_output=True,
         timeout=30,
     )
+
+
+def test_windows_instance_suffix_is_still_courier():
+    shell = _powershell()
+    if shell is None:
+        return
+    script = (
+        f". '{STATUS_PS1}' -Library\n"
+        "if (-not (Test-CourierProcessName -Actual 'Courier#1' -Expected 'Courier')) { exit 1 }\n"
+        "if (-not (Test-CourierProcessName -Actual 'Courier.exe' -Expected 'Courier')) { exit 1 }\n"
+        "if (Test-CourierProcessName -Actual 'notepad' -Expected 'Courier') { exit 1 }\n"
+        "if (Test-CourierProcessName -Actual 'CourierHelper' -Expected 'Courier') { exit 1 }\n"
+        "exit 0\n"
+    )
+    completed = subprocess.run(
+        [shell, "-NoProfile", "-Command", script],
+        text=True,
+        capture_output=True,
+        timeout=30,
+    )
+    assert completed.returncode == 0, completed.stdout + completed.stderr
 
 
 def test_status_with_no_record_is_not_running(tmp_path):
@@ -111,7 +132,7 @@ def test_status_reports_a_matching_courier_process(tmp_path):
             timeout=20,
         )
         name, _, stamp = identity.stdout.strip().partition("|")
-        if name != "Courier" or not stamp:
+        if name.split("#", 1)[0].lower().removesuffix(".exe") != "courier" or not stamp:
             return
         wrong = _run_status(tmp_path, f"{proc.pid}\n1970-01-01T00:00:00.0000000Z\n")
         assert wrong.returncode == 2, wrong.stdout + wrong.stderr

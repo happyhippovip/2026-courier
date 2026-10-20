@@ -28,7 +28,7 @@ def test_stop_bat_does_not_kill_by_image_name():
 def test_stop_script_targets_recorded_pid_only():
     text = STOP_PS1.read_text(encoding="utf-8")
     assert "Stop-Process -Id $processId" in text
-    assert "ProcessName -ne \"Courier\"" in text
+    assert 'Test-CourierProcessName -Actual $proc.ProcessName -Expected "Courier"' in text
     assert "/IM" not in text
     assert "Stop-Process -Name" not in text
     assert "exit 1" in text
@@ -96,6 +96,27 @@ def _run_stop(tmp_path, pid_text):
     return completed
 
 
+def test_windows_instance_suffix_is_still_courier():
+    shell = _powershell()
+    if shell is None:
+        return
+    script = (
+        f". '{STOP_PS1}' -Library\n"
+        "if (-not (Test-CourierProcessName -Actual 'Courier#1' -Expected 'Courier')) { exit 1 }\n"
+        "if (-not (Test-CourierProcessName -Actual 'Courier.exe' -Expected 'Courier')) { exit 1 }\n"
+        "if (Test-CourierProcessName -Actual 'notepad' -Expected 'Courier') { exit 1 }\n"
+        "if (Test-CourierProcessName -Actual 'CourierHelper' -Expected 'Courier') { exit 1 }\n"
+        "exit 0\n"
+    )
+    completed = subprocess.run(
+        [shell, "-NoProfile", "-Command", script],
+        text=True,
+        capture_output=True,
+        timeout=30,
+    )
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+
+
 def test_stop_refuses_a_process_that_is_not_courier(tmp_path):
     completed = _run_stop(tmp_path, f"{os.getpid()}\n")
     if completed is None:
@@ -156,7 +177,7 @@ def test_stop_kills_only_a_courier_process_with_matching_start(tmp_path):
             timeout=20,
         )
         name, _, stamp = identity.stdout.strip().partition("|")
-        if name != "Courier" or not stamp:
+        if name.split("#", 1)[0].lower().removesuffix(".exe") != "courier" or not stamp:
             return
         wrong = _run_stop(tmp_path, f"{proc.pid}\n1970-01-01T00:00:00.0000000Z\n")
         assert wrong is not None
