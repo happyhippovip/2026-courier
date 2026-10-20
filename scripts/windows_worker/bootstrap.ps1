@@ -99,7 +99,8 @@ $apiKey | Set-Content -LiteralPath $tokenPath -NoNewline
 $ownerSid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
 & icacls $tokenPath /inheritance:r /grant:r "*${ownerSid}:(R)" | Out-Null
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "ERROR: could not restrict access to $tokenPath." -ForegroundColor Red
+    Remove-Item -LiteralPath $tokenPath -Force -ErrorAction SilentlyContinue
+    Write-Host "ERROR: could not restrict access to the controller token. The token was removed." -ForegroundColor Red
     exit 1
 }
 Write-Host "Configuration saved to $configPath. The API key is in the controller token, not in config.json."
@@ -116,7 +117,8 @@ $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIden
 if (-not $isAdmin) {
     Write-Host "Attempting to elevate privileges for Scheduled Task installation..."
     try {
-        $elevated = Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" -ServerArg `"$ServerArg`" -ApiKeyArg `"$ApiKeyArg`" -WorkerIdArg `"$WorkerIdArg`"" -Verb RunAs -PassThru -Wait -ErrorAction Stop
+        # The token file is already written. Do not put the API key on the elevated command line.
+        $elevated = Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" -ServerArg `"$ServerArg`" -WorkerIdArg `"$WorkerIdArg`"" -Verb RunAs -PassThru -Wait -ErrorAction Stop
         if ($null -eq $elevated.ExitCode) { exit 1 }
         exit $elevated.ExitCode
     } catch {
