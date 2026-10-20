@@ -9,9 +9,10 @@ if str(_SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_DIR))
 from integration_contract import canonical_result_id
 
-# No fallback key exists. The key comes from COURIER_API_KEY or, failing that,
-# from config.json where bootstrap.ps1 stores it; the server URL from
-# COURIER_SERVER (COURIER_SERVER_URL accepted), then config.json, then the default.
+# No fallback key exists. The key comes from COURIER_API_KEY, then
+# LOCALAPPDATA\Courier\run\controller.token, then a legacy config.json key.
+# The server URL comes from COURIER_SERVER (COURIER_SERVER_URL accepted),
+# then config.json, then the default.
 DEFAULT_SERVER = "http://192.168.178.162:8080"
 API_URL = (os.environ.get("COURIER_SERVER") or os.environ.get("COURIER_SERVER_URL") or DEFAULT_SERVER).rstrip("/")
 API_KEY = os.environ.get("COURIER_API_KEY", "").strip()
@@ -23,11 +24,21 @@ HEADERS = {
 class MissingCredentialError(RuntimeError):
     pass
 
+def read_controller_token():
+    """The installer writes the key here. It does not belong in config.json."""
+    path = APP_DATA_DIR / "run" / "controller.token"
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
+
+
 def apply_config_credentials(config):
-    """Environment wins; otherwise use the values bootstrap.ps1 wrote to config.json."""
+    """Environment wins, then the controller token, then a legacy config key."""
     global API_URL, API_KEY
     if not os.environ.get("COURIER_API_KEY", "").strip():
-        API_KEY = str(config.get("COURIER_API_KEY") or "").strip()
+        token = read_controller_token()
+        API_KEY = token or str(config.get("COURIER_API_KEY") or "").strip()
     if not (os.environ.get("COURIER_SERVER") or os.environ.get("COURIER_SERVER_URL")):
         server = str(config.get("COURIER_SERVER") or "").strip()
         if server and server.lower() != "local":
@@ -37,7 +48,7 @@ def apply_config_credentials(config):
 def require_api_key():
     """Fail closed before any network call when no API key is configured."""
     if not API_KEY:
-        raise MissingCredentialError("COURIER_API_KEY is not set (environment or config.json); refusing to contact the Courier server.")
+        raise MissingCredentialError("COURIER_API_KEY is not set (environment, controller.token, or config.json); refusing to contact the Courier server.")
 
 def get_app_data_dir():
     pd = os.environ.get("LOCALAPPDATA")
