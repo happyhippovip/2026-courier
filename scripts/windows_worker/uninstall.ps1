@@ -1,4 +1,8 @@
 # Requires Run as Administrator
+param(
+    [switch]$RemoveUserData
+)
+
 if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Write-Host "ERROR: Please run as Administrator." -ForegroundColor Red
     exit 1
@@ -21,21 +25,20 @@ if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
     Write-Host "Task $taskName does not exist."
 }
 
+$usersDir = if ($env:SystemDrive) { Join-Path $env:SystemDrive "Users" } else { "C:\Users" }
+& "$PSScriptRoot\uninstall_user_data.ps1" -UsersRoot $usersDir -IncludeEnvironment -RemoveUserData:$RemoveUserData
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "ERROR: user data cleanup failed. Program files were left in place." -ForegroundColor Red
+    exit $LASTEXITCODE
+}
+
 if (Test-Path $InstallDir) {
     Remove-Item -Recurse -Force $InstallDir
     Write-Host "Removed installation directory: $InstallDir"
 }
 
-Write-Host "Removing credentials (config.json and run/) from user profiles..."
-$usersDir = "C:\Users"
-Get-ChildItem -Path $usersDir | Where-Object { $_.PSIsContainer } | ForEach-Object {
-    $userCourierDir = Join-Path $_.FullName "AppData\Local\Courier"
-    if (Test-Path $userCourierDir) {
-        $configFile = Join-Path $userCourierDir "config.json"
-        $runDir = Join-Path $userCourierDir "run"
-        if (Test-Path $configFile) { Remove-Item -Force $configFile }
-        if (Test-Path $runDir) { Remove-Item -Recurse -Force $runDir }
-    }
+if ($RemoveUserData) {
+    Write-Host "Uninstall complete. User data under AppData\Local\Courier was removed."
+} else {
+    Write-Host "Uninstall complete. Database and logs in AppData\Local\Courier were preserved."
 }
-
-Write-Host "Uninstall complete. Database and logs in %LOCALAPPDATA%\Courier were preserved."
