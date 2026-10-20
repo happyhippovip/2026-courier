@@ -119,3 +119,42 @@ def test_chip_verifier_rejects_tampered_file_bytes(tmp_path):
     assert verdict.accepted is False
     assert "Artefakt-Bytes" in verdict.reason
 
+
+def test_chip_verifier_rejects_missing_artifacts(tmp_path):
+    from courier_hub.mission_chip import _chip_verifier
+    from types import SimpleNamespace
+    
+    verifier = _chip_verifier("synthetic")
+    task = {"task_id": "t3"}
+    # Missing artifacts list
+    result = SimpleNamespace(payload={})
+    verdict = verifier(task, result, tmp_path)
+    assert verdict.accepted is False
+    assert "Artefakt fehlt" in verdict.reason
+
+
+def test_chip_verifier_rejects_invalid_sha_format(tmp_path):
+    from courier_hub.mission_chip import _chip_verifier
+    from types import SimpleNamespace
+    
+    verifier = _chip_verifier("synthetic")
+    task = {"task_id": "t4"}
+    # Invalid sha format
+    result = SimpleNamespace(payload={
+        "artifacts": [{"path": "mission_result.txt", "sha256": "bad-short-sha", "size_bytes": 34}]
+    })
+    verdict = verifier(task, result, tmp_path)
+    assert verdict.accepted is False
+    assert "Ungültiges SHA-256 Format" in verdict.reason
+
+
+def test_mission_chip_cli_pretty_output(tmp_path, capsys):
+    from courier_hub.mission_chip import main
+    # Run CLI without --json
+    exit_code = main(["--home", str(tmp_path)])
+    assert exit_code == 0
+    captured = capsys.readouterr()
+    assert "COURIER MISSION CHIP" in captured.out
+    assert "ERSTE GRÜNE MISSION" in captured.out
+    assert "BYTE_LEVEL_GOLD_VERIFIED" or "verified" in captured.out
+
