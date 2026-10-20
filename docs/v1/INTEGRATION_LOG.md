@@ -849,3 +849,17 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
 - Preserved CostGate fail-closed NaN/Inf validation in `courier_worker/adapters/provider_exec.py` and `tests/test_provider_exec_adapter.py`.
 - Preserved Arbitrage Engine Core in `courier_core/arbi/` and Kolibri Universe UI extensions.
 - Verified 100% green: 188/188 tests PASS (Core Certificates 20/20, Continuation 14/14, Arbi 17/17, Provider Exec 13/13, Hub 106/106, Muse Supervisor 18/18).
+
+## Step 56 — Titan V152 Global Red-to-Green Recovery, Canonical Lease Authority & Hardening (Commits `fafc07687`..`a6ca52b1f`)
+### `integration/v1` commits `fafc07687`..`a6ca52b1f`
+- P0-A1..A4: Canonical SQLite `authority.db` backing for `courier_runtime/lease.py` `LeaseStore`, hierarchical scope overlap protection (`scopes_overlap`), 4-tuple session holder binding (`format_session_holder`), and pre-write fencing (`FencedFileWriter`).
+- P0-01 & P0-02: Bound Windows Worker Daemon (`scripts/windows_worker/daemon.py`) and Mac Supervisor (`scripts/mac_worker/muse_supervisor.py`) to canonical `authority.db` `LeaseStore`.
+- P0-B1 & P0-B2: Hardened Windows Worker `build_package.ps1` with pre-flight refusal (exit 1 on missing components) and explicit bundling of `resource_policy.py` and `resource_policy.json` (verified via `tests/test_windows_packaging_contract.py`).
+- P0-C & P0-D: CostGate firewall in `courier_worker/adapters/provider_exec.py` (blocks missing, unknown, NaN, Inf, and negative costs fail-closed before provider start) and strict rejection of `--dangerously-skip-permissions` with `FORBIDDEN_FLAG`.
+- P0-E1 & P0-E2: Unified `TaskLeaseManager` in `scripts/resource_policy.py` and workflow lock in `scripts/run_autonomous_loop.py` with canonical `authority.db` `LeaseStore`.
+- P0-10: Verified verifier revocation enforcement in `courier_core/verification.py` (`is_verifier_revoked`, `revoke_verifier_digest`).
+- ML-01: Bound `scripts/courier_mailbox.py` to `authority.db` under scope `mailbox:{name}` with `FencedFileWriter`.
+- P1 Kolibri & Hub: Maintained Hub daemon on port 61543 serving `/kolibri` and `/mission-chip` with 32 Node.js desktop tests passing.
+- Chore: Added `events/locks/*.db*` to `.gitignore`.
+- Full verification: 3031 Pytest PASS (8 honest Windows-only skips on macOS Darwin arm64), 32 Node Desktop PASS, 14 Boundary Properties PASS (0 defects), 11 Golden Skips PASS (ratchet holds), Local Safety `new=0`, 19 Acceptance PASS.
+- Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `NO_UNAUTHORIZED_MERGE=YES`.
