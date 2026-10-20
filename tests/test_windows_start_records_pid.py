@@ -5,6 +5,7 @@ of that name. A second start leaves the live record alone.
 """
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -45,6 +46,19 @@ def _run(script):
     return result
 
 
+def test_windows_instance_suffix_is_still_the_same_process():
+    result = _run(
+        f". '{START_PS1}'\n"
+        "if (-not (Test-CourierProcessName -Actual 'python#1' -Expected 'python')) { exit 1 }\n"
+        "if (-not (Test-CourierProcessName -Actual 'Courier#2' -Expected 'Courier')) { exit 1 }\n"
+        "if (-not (Test-CourierProcessName -Actual 'python.exe' -Expected 'python')) { exit 1 }\n"
+        "if (Test-CourierProcessName -Actual 'notepad' -Expected 'Courier') { exit 1 }\n"
+        "if (Test-CourierProcessName -Actual 'CourierHelper' -Expected 'Courier') { exit 1 }\n"
+        "exit 0\n"
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
 def test_missing_executable_does_not_write_a_pid(tmp_path):
     pidfile = tmp_path / "worker.pid"
     result = _run(
@@ -59,7 +73,7 @@ def test_missing_executable_does_not_write_a_pid(tmp_path):
 
 
 def test_start_records_the_live_process_once(tmp_path):
-    py = shutil.which("python3") or shutil.which("python")
+    py = sys.executable
     if not py:
         pytest.skip("python is not installed")
     name = Path(py).stem
@@ -81,7 +95,13 @@ def test_start_records_the_live_process_once(tmp_path):
         "if ($again[-1] -ne 0) { exit 1 }\n"
         "$again | Select-Object -SkipLast 1 | Write-Output\n"
         f"$still = [int]((Get-Content -LiteralPath '{pidfile}')[0].Trim())\n"
-        "if ($still -ne $procId) { Write-Output 'pid file was replaced'; exit 1 }\n"
+        "if ($still -ne $procId) {\n"
+        "  $seen = Get-Process -Id $procId -ErrorAction SilentlyContinue\n"
+        "  $seenName = if ($seen) { $seen.ProcessName } else { 'gone' }\n"
+        f"  $file = ((Get-Content -LiteralPath '{pidfile}') -join '|')\n"
+        "  Write-Output \"pid file was replaced. recorded=$procId name=$seenName file=$file\"\n"
+        "  exit 1\n"
+        "}\n"
         "Stop-Process -Id $procId -Force -ErrorAction SilentlyContinue\n"
         "exit 0\n"
     )
