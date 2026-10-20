@@ -24,8 +24,11 @@ def test_diagnostics_bundle_v1(tmp_path, monkeypatch):
     # Create V1 files
     db_path = home / "courier.db"
     conn = sqlite3.connect(db_path)
-    conn.execute("CREATE TABLE events (seq INTEGER PRIMARY KEY, type TEXT)")
-    conn.execute("INSERT INTO events (type) VALUES ('START')")
+    conn.execute("CREATE TABLE events (seq INTEGER PRIMARY KEY, type TEXT, note TEXT)")
+    conn.execute(
+        "INSERT INTO events (type, note) VALUES ('START', ?)",
+        ("secret_token_12345 ghp_abcdefghijklmnopqrstuvwxyz",),
+    )
     conn.commit()
     conn.close()
     
@@ -37,7 +40,9 @@ def test_diagnostics_bundle_v1(tmp_path, monkeypatch):
     logs_dir = home / "logs"
     logs_dir.mkdir()
     log_file = logs_dir / "worker.log"
-    log_file.write_text("worker log with secret_token_12345 and other things")
+    log_file.write_text(
+        "worker log with secret_token_12345 and ghp_abcdefghijklmnopqrstuvwxyz"
+    )
     
     config_file = home / "config.json"
     config_file.write_text(json.dumps({"COURIER_API_KEY": "secret_api_key_abc"}))
@@ -63,9 +68,14 @@ def test_diagnostics_bundle_v1(tmp_path, monkeypatch):
         
         log_content = zf.read("logs/worker.log").decode("utf-8")
         assert "secret_token_12345" not in log_content
+        assert "ghp_abcdefghijklmnopqrstuvwxyz" not in log_content
         
         config_content = zf.read("config.json").decode("utf-8")
         assert "secret_api_key_abc" not in config_content
+
+        ledger = zf.read("courier.db")
+        assert b"secret_token_12345" not in ledger
+        assert b"ghp_abcdefghijklmnopqrstuvwxyz" not in ledger
 
 
 def _home(tmp_path, monkeypatch):
