@@ -344,3 +344,49 @@ def test_google_agent_task_costgate_enforced(tmp_path):
     assert verdict == "FAILED"
     assert "COST_GATE_DENIED" in evidence_nan.get("blocked_reason", "")
     assert evidence_nan.get("provider_invoked") is False
+
+
+def test_missing_cost_does_not_start_agy(tmp_path, monkeypatch):
+    """Missing or flagged-unknown cost stays blocked before agy starts."""
+    import scripts.google_builder_worker as gbw
+    from scripts.google_builder_worker import run_google_agent_task
+
+    calls = []
+
+    def runner(argv, **kwargs):
+        calls.append(list(argv))
+        raise AssertionError("agy must not start")
+
+    monkeypatch.setattr(gbw, "AGENT_RUNNER", runner)
+    surface = {"has_agy_cli": True}
+    blocked = (
+        {"workkey": "WK-MISS", "instruction": "do it"},
+        {"workkey": "WK-NONE", "instruction": "do it", "estimated_cost_eur": None},
+        {"workkey": "WK-FLAG", "instruction": "do it", "estimated_cost_eur": 0.0, "unknown_cost": True},
+    )
+    for payload in blocked:
+        evidence = {}
+        verdict = run_google_agent_task(payload, tmp_path, evidence, surface)
+        assert verdict == "FAILED"
+        assert "UNKNOWN_COST" in evidence.get("blocked_reason", "")
+        assert evidence.get("provider_invoked") is False
+        assert verdict not in ("PASS", "DONE", "FINAL")
+    assert calls == []
+
+    class _Proc:
+        returncode = 0
+        stdout = "{}"
+        stderr = ""
+
+    def allowed(argv, **kwargs):
+        calls.append(list(argv))
+        return _Proc()
+
+    monkeypatch.setattr(gbw, "AGENT_RUNNER", allowed)
+    evidence = {}
+    run_google_agent_task(
+        {"workkey": "WK-ZERO", "instruction": "do it", "estimated_cost_eur": 0.0},
+        tmp_path, evidence, surface,
+    )
+    assert evidence.get("provider_invoked") is True
+    assert calls and calls[0][0] == "agy"

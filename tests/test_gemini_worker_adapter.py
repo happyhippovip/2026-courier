@@ -12,7 +12,7 @@ from scripts import gemini_worker_adapter
 def test_gemini_worker_adapter_success(tmp_path, monkeypatch):
     task_file = tmp_path / "dummy_task.json"
     with open(task_file, "w") as f:
-        json.dump({"task_id": "gemini-1", "instruction": "do it"}, f)
+        json.dump({"task_id": "gemini-1", "instruction": "do it", "estimated_cost_eur": 0.0}, f)
         
     mock_process = mock.Mock()
     mock_process.pid = 1234
@@ -51,7 +51,7 @@ def test_gemini_worker_rejects_path_unsafe_task_id(tmp_path):
 def test_gemini_worker_negative_mode(tmp_path, monkeypatch):
     task_file = tmp_path / "dummy_task.json"
     with open(task_file, "w") as f:
-        json.dump({"task_id": "gemini-neg", "instruction": "do it"}, f)
+        json.dump({"task_id": "gemini-neg", "instruction": "do it", "estimated_cost_eur": 0.0}, f)
         
     mock_process = mock.Mock()
     mock_process.pid = 9999
@@ -75,7 +75,7 @@ def test_gemini_worker_negative_mode(tmp_path, monkeypatch):
 def test_gemini_worker_out_clean_ticks(tmp_path, monkeypatch):
     task_file = tmp_path / "dummy_task.json"
     with open(task_file, "w") as f:
-        json.dump({"task_id": "gemini-ticks", "instruction": "do it"}, f)
+        json.dump({"task_id": "gemini-ticks", "instruction": "do it", "estimated_cost_eur": 0.0}, f)
         
     mock_process = mock.Mock()
     mock_process.pid = 1111
@@ -94,7 +94,7 @@ def test_gemini_worker_out_clean_ticks(tmp_path, monkeypatch):
 def test_gemini_worker_out_clean_no_ticks(tmp_path, monkeypatch):
     task_file = tmp_path / "dummy_task.json"
     with open(task_file, "w") as f:
-        json.dump({"task_id": "gemini-noticks", "instruction": "do it"}, f)
+        json.dump({"task_id": "gemini-noticks", "instruction": "do it", "estimated_cost_eur": 0.0}, f)
         
     mock_process = mock.Mock()
     mock_process.pid = 2222
@@ -231,7 +231,9 @@ def test_consume_concurrent_writers_preserve_all_records(tmp_path):
 def test_run_worker_with_state_file(tmp_path, monkeypatch):
     task_file = tmp_path / "task.json"
     custom_state = tmp_path / "worker_state.json"
-    task_file.write_text(json.dumps({"task_id": "gemini-custom", "instruction": "echo"}))
+    task_file.write_text(json.dumps({
+        "task_id": "gemini-custom", "instruction": "echo", "estimated_cost_eur": 0.0,
+    }))
     
     mock_process = mock.Mock()
     mock_process.pid = 4321
@@ -275,4 +277,35 @@ def test_gemini_worker_adapter_costgate_enforced(tmp_path):
     assert res_nan["status"] == "FAILED"
     assert "COST_GATE_DENIED" in res_nan["reason"]
     assert res_nan.get("blocked") is True
+
+
+def test_missing_cost_does_not_start_agy(tmp_path, monkeypatch):
+    """Missing or flagged-unknown cost stays blocked before agy starts."""
+    monkeypatch.chdir(tmp_path)
+    blocked = (
+        {"task_id": "gemini-missing", "instruction": "echo"},
+        {"task_id": "gemini-none", "instruction": "echo", "estimated_cost_eur": None},
+        {"task_id": "gemini-flag", "instruction": "echo", "estimated_cost_eur": 0.0, "unknown_cost": True},
+    )
+    with mock.patch("subprocess.Popen") as popen:
+        for index, task in enumerate(blocked):
+            path = tmp_path / f"blocked-{index}.json"
+            path.write_text(json.dumps(task))
+            result = gemini_worker_adapter.run_worker(str(path))
+            assert result["status"] == "FAILED" and result.get("blocked") is True
+            assert "UNKNOWN_COST" in result["reason"]
+            assert result["status"] not in ("DONE", "FINAL", "SUCCESS")
+        popen.assert_not_called()
+
+    mock_process = mock.Mock()
+    mock_process.pid = 7
+    mock_process.communicate.return_value = ('{"status": "SUCCESS"}', "")
+    zero = tmp_path / "zero.json"
+    zero.write_text(json.dumps({
+        "task_id": "gemini-zero", "instruction": "echo", "estimated_cost_eur": 0.0,
+    }))
+    with mock.patch("subprocess.Popen", return_value=mock_process) as popen:
+        pid, _, _ = gemini_worker_adapter.run_worker(str(zero))
+    assert pid == 7
+    assert popen.call_args.args[0][0] == "agy"
 

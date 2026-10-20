@@ -60,11 +60,15 @@ def run_worker(task_path, negative_test=False, state_file="central_state.json"):
         "--disable-slash-commands" 
     ]
     
-    # Enforce P0 CostGate before spawning agy process
+    # Enforce P0 CostGate before spawning agy process.
+    # A missing estimate stays missing. Never invent 0.0.
     from scripts.resource_policy import CostGate
+    estimate = task.get("estimated_cost_eur", None)
+    if task.get("unknown_cost") is True:
+        estimate = None
     cost_res = CostGate.evaluate_spend_request(
         "google_antigravity_plus",
-        estimated_cost_eur=task.get("estimated_cost_eur", 0.0),
+        estimated_cost_eur=estimate,
         requested_action=task.get("requested_action", "EXECUTE_TASK"),
     )
     if not cost_res.get("allowed"):
@@ -146,11 +150,11 @@ if __name__ == "__main__":
     if mode == "positive":
         task_id = "task-gemini-002"
         with open('dummy_task_2.json', 'w') as f:
-            json.dump({"task_id": task_id, "instruction": "Respond with {'status': 'SUCCESS'}"}, f)
+            json.dump({"task_id": task_id, "instruction": "Respond with {'status': 'SUCCESS'}", "estimated_cost_eur": 0.0}, f)
         run_worker('dummy_task_2.json', negative_test=False)
         
     elif mode == "negative":
         task_id = "task-gemini-003-invalid"
         with open('dummy_task_3.json', 'w') as f:
-            json.dump({"task_id": task_id, "instruction": "Respond with garbage"}, f)
+            json.dump({"task_id": task_id, "instruction": "Respond with garbage", "estimated_cost_eur": 0.0}, f)
         run_worker('dummy_task_3.json', negative_test=True)

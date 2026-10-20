@@ -340,11 +340,15 @@ def run_google_agent_task(
         evidence_data["provider_invoked"] = False
         return "FAILED"
 
-    # Enforce CostGate before spawning Google Antigravity CLI process
+    # Enforce CostGate before spawning Google Antigravity CLI process.
+    # A missing estimate stays missing. Never invent 0.0.
     from scripts.resource_policy import CostGate
+    estimate = payload_in.get("estimated_cost_eur", None)
+    if payload_in.get("unknown_cost") is True:
+        estimate = None
     cost_res = CostGate.evaluate_spend_request(
         "google_antigravity_plus",
-        estimated_cost_eur=payload_in.get("estimated_cost_eur", 0.0),
+        estimated_cost_eur=estimate,
         requested_action=payload_in.get("requested_action", "EXECUTE_TASK"),
         repo_dir=repo_dir,
     )

@@ -84,7 +84,7 @@ def _config(binary: str, **extra) -> dict:
 
 
 def _params(**extra) -> dict:
-    params = {"provider": "muse", "prompt": PROMPT}
+    params = {"provider": "muse", "prompt": PROMPT, "estimated_cost_eur": 0.0}
     params.update(extra)
     return params
 
@@ -406,4 +406,34 @@ def test_cost_gate_blocks_unknown_cost_and_unapproved_spend(tmp_path, monkeypatc
         assert res.blocked is True
         assert res.launched is False
         assert not log_path.exists()
+
+
+def test_missing_cost_does_not_launch(tmp_path, monkeypatch):
+    """A missing estimate is not an authorized zero, so the provider stays down."""
+    fake = _write_fake(tmp_path)
+    argv_log = tmp_path / "argv.jsonl"
+    monkeypatch.setenv("FAKE_MODE", "success")
+    monkeypatch.setenv("FAKE_ARGV", str(argv_log))
+    monkeypatch.delenv("COURIER_PROVIDER_MUSE_BIN", raising=False)
+    workdir = tmp_path / "work-missing"
+    workdir.mkdir()
+    blocked = (
+        {"provider": "muse", "prompt": PROMPT},
+        {"provider": "muse", "prompt": PROMPT, "estimated_cost_eur": None},
+        {"provider": "muse", "prompt": PROMPT, "estimated_cost_eur": 0.0, "unknown_cost": True},
+    )
+    for params in blocked:
+        result = provider_exec.run(params, workdir, config=_config(fake))
+        assert result.outcome == "BLOCKED"
+        assert result.reason_code == "UNKNOWN_COST_BLOCKED"
+        assert result.blocked is True
+        assert result.launched is False
+        assert not argv_log.exists()
+    allowed = provider_exec.run(
+        {"provider": "muse", "prompt": PROMPT, "estimated_cost_eur": 0.0},
+        workdir, config=_config(fake),
+    )
+    assert allowed.outcome == "success"
+    assert allowed.launched is True
+    assert argv_log.exists()
 

@@ -63,6 +63,7 @@ AGY_SUCCESS_EVIDENCE = b'{"provider":"agy","status":"SUCCESS"}\n'
 AGY_PARAM_KEYS = frozenset({
     "provider", "prompt", "timeout_s", "print_timeout_s",
     "model", "effort", "mode", "json_schema",
+    "cost_class", "estimated_cost_eur", "unknown_cost",
     "argv", "args", "flags", "extra_args", "command",
     "dangerously_skip_permissions", "dangerously-skip-permissions",
     "continue", "conversation", "remote_control", "remote-control",
@@ -169,7 +170,7 @@ def validate(params: Mapping) -> dict:
     return {
         "provider": provider, "prompt": prompt, "timeout_s": timeout_s,
         "cost_class": params.get("cost_class"),
-        "estimated_cost_eur": params.get("estimated_cost_eur", 0.0),
+        "estimated_cost_eur": params.get("estimated_cost_eur"),
         "unknown_cost": params.get("unknown_cost"),
         **_scoped_fields(params),
     }
@@ -189,15 +190,16 @@ def admit_heavy() -> bool:
 
 def evaluate_cost_gate(spec: Mapping, config: Mapping | None) -> dict:
     """CostGate evaluation before process start.
-    
+
     UNKNOWN_COST or unapproved incremental spend must fail-closed (BLOCKED).
-    Free deterministic providers (local) are allowed without incremental cost.
+    A missing estimate stays missing. Never invent 0.0.
+    An explicit finite 0.0 is the free deterministic path.
     """
     cost_class = spec.get("cost_class")
-    estimated_cost = spec.get("estimated_cost_eur", 0.0)
+    estimated_cost = spec.get("estimated_cost_eur")
 
-    # UNKNOWN_COST must block
-    if cost_class == "unknown" or spec.get("unknown_cost") is True:
+    # UNKNOWN_COST must block. None is missing, not an authorized zero.
+    if cost_class == "unknown" or spec.get("unknown_cost") is True or estimated_cost is None:
         return {
             "allowed": False,
             "outcome": "BLOCKED",
@@ -459,6 +461,9 @@ def _validate_agy(params: Mapping) -> dict:
     mode = _agy_choice(params, "mode", AGY_MODES, "BAD_MODE")
     if mode:
         spec["mode"] = mode
+    for key in ("cost_class", "estimated_cost_eur", "unknown_cost"):
+        if key in params:
+            spec[key] = params.get(key)
     if "json_schema" in params and params.get("json_schema") is not None:
         schema = params.get("json_schema")
         if not isinstance(schema, str) or not schema or schema.startswith("-") or not is_safe_name(schema):
