@@ -1,4 +1,4 @@
-import json, time, os, sys, shutil, subprocess, hashlib
+import json, time, os, sys, shutil, subprocess, hashlib, uuid
 from pathlib import Path, PurePosixPath, PureWindowsPath
 import urllib.request
 import urllib.error
@@ -386,8 +386,24 @@ def is_resource_pressure_high():
         return False
 
 _lock_fd = None
+_worker_lease = None
+_lease_store = None
+
+
+def get_authority_store():
+    global _lease_store
+    if _lease_store is None:
+        try:
+            from courier_runtime.lease import LeaseStore
+            auth_db = STATE_DIR / "authority.db"
+            _lease_store = LeaseStore(str(auth_db))
+        except Exception:
+            _lease_store = None
+    return _lease_store
+
+
 def acquire_lock(worker_id):
-    global _lock_fd
+    global _lock_fd, _worker_lease
     if _lock_fd is not None:
         return None
     import psutil
@@ -404,12 +420,33 @@ def acquire_lock(worker_id):
         lock_data = json.dumps({'pid': os.getpid(), 'process_create_time': psutil.Process(os.getpid()).create_time()})
         os.write(fd, lock_data.encode('utf-8'))
         _lock_fd = fd
+
+        # Acquire canonical Courier writer lease in LeaseStore
+        store = get_authority_store()
+        if store is not None:
+            try:
+                from courier_runtime.lease import format_session_holder
+                holder = format_session_holder(worker_id, os.getpid(), psutil.Process(os.getpid()).create_time(), str(uuid.uuid4()))
+                _worker_lease = store.acquire(f"worker:{worker_id}", holder, "daemon_loop", ttl_s=3600)
+            except Exception:
+                release_lock(lock_file)
+                return None
+
         return lock_file
     except (OSError, ImportError):
         return None
 
+
 def release_lock(lock_path=None):
-    global _lock_fd
+    global _lock_fd, _worker_lease
+    if _worker_lease is not None:
+        store = get_authority_store()
+        if store is not None:
+            try:
+                store.release(_worker_lease)
+            except Exception:
+                pass
+        _worker_lease = None
     if _lock_fd is not None:
         try:
             if os.name == "nt":
@@ -434,6 +471,7 @@ def release_lock(lock_path=None):
             os.remove(lock_path)
         except OSError:
             pass
+
 
 
 def loop():

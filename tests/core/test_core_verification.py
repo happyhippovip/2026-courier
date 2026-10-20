@@ -294,3 +294,33 @@ class TestRunVerifier:
         v = run_verifier(lambda a: long_reason_verify, task, result, Path("/tmp"))
         assert len(v.reason) == 500
         assert v.reason == "r" * 500
+
+    def test_revoked_verifier_is_rejected_fail_closed(self, monkeypatch):
+        from courier_core.verification import clear_revoked_verifiers, revoke_verifier_digest
+
+        task = _sample_task()
+        result = _sample_result_event(outcome="success")
+
+        fake_mod = types.ModuleType("adapters.revoked_adapter")
+        fake_mod.__file__ = __file__
+
+        def good_verify(task, result, home):
+            return Verdict(accepted=True, reason="should not reach")
+
+        good_verify.__module__ = "adapters.revoked_adapter"
+        good_verify.__qualname__ = "good_verify"
+        monkeypatch.setitem(sys.modules, "adapters.revoked_adapter", fake_mod)
+
+        # Compute digest and revoke it
+        import hashlib
+
+        with open(__file__, "rb") as f:
+            digest = hashlib.sha256(f.read()).hexdigest()
+
+        revoke_verifier_digest(digest)
+        try:
+            v = run_verifier(lambda a: good_verify, task, result, Path("/tmp"))
+            assert v.accepted is False
+            assert "revoked" in v.reason
+        finally:
+            clear_revoked_verifiers()

@@ -89,3 +89,81 @@ def test_two_connections_see_the_same_lease(tmp_path):
         b.acquire("scope", "b", "wk", ttl_s=10)
     a.close()
     b.close()
+
+
+def test_hierarchical_scope_overlap_raises_conflict(leases):
+    store, _ = leases
+    # Parent scope acquired by Holder 1
+    store.acquire("repo://courier_hub/static", "holder-1", "wk-parent", ttl_s=30)
+
+    # Child scope attempted by Holder 2 -> LeaseConflict
+    with pytest.raises(LeaseConflict):
+        store.acquire("repo://courier_hub/static/evidence_badge.mjs", "holder-2", "wk-child", ttl_s=30)
+
+    # Different subpath attempted by different workkey on same holder -> LeaseConflict
+    with pytest.raises(LeaseConflict):
+        store.acquire("repo://courier_hub/static/kolibri.html", "holder-1", "wk-diff", ttl_s=30)
+
+
+def test_child_scope_blocks_parent_scope_acquisition(leases):
+    store, _ = leases
+    # Child scope acquired first
+    store.acquire("repo://courier_hub/static/evidence_badge.mjs", "holder-1", "wk-child", ttl_s=30)
+
+    # Parent scope attempted by another holder -> LeaseConflict
+    with pytest.raises(LeaseConflict):
+        store.acquire("repo://courier_hub/static", "holder-2", "wk-parent", ttl_s=30)
+
+
+def test_scope_canonicalization_normalizes_paths(leases):
+    from courier_runtime.lease import canonicalize_scope, scopes_overlap
+
+    assert canonicalize_scope("repo://courier_hub//static/") == "repo://courier_hub/static"
+    assert canonicalize_scope("path//to/dir/") == "path/to/dir"
+    assert scopes_overlap("repo://courier_hub/static", "repo://courier_hub/static/evidence_badge.mjs")
+    assert scopes_overlap("repo://courier_hub/static/evidence_badge.mjs", "repo://courier_hub/static")
+    assert not scopes_overlap("repo://courier_hub/static", "repo://courier_core/journal.py")
+
+
+def test_session_holder_binding_and_parse():
+    from courier_runtime.lease import format_session_holder, parse_session_holder
+
+    formatted = format_session_holder("mac-01", 1234, 17924500.1234, "sess-abc")
+    parsed = parse_session_holder(formatted)
+    assert parsed is not None
+    assert parsed["device"] == "mac-01"
+    assert parsed["pid"] == 1234
+    assert parsed["session_id"] == "sess-abc"
+    assert parse_session_holder("plain-string") is None
+
+
+def test_fenced_file_writer_prevents_unauthorized_writes(leases, tmp_path):
+    from courier_runtime.lease import FencedFileWriter
+
+    store, clock = leases
+    lease = store.acquire("repo://docs", "writer-1", "wk-doc", ttl_s=10)
+    target_file = tmp_path / "test.txt"
+
+    # Fenced writer with valid token succeeds
+    writer = FencedFileWriter(store, "repo://docs", lease.token)
+    with writer.open(target_file, "w") as f:
+        f.write("hello guarded world")
+    assert target_file.read_text() == "hello guarded world"
+
+    # Fenced writer with stale token raises StaleLease
+    stale_writer = FencedFileWriter(store, "repo://docs", lease.token + 99)
+    with pytest.raises(StaleLease):
+        stale_writer.open(target_file, "w")
+
+    # When lease expires, write is refused
+    clock.t += 15
+    with pytest.raises(StaleLease):
+        writer.open(target_file, "w")
+
+
+def test_enclosing_parent_scope_authorizes_child_path_write(leases):
+    store, _ = leases
+    lease = store.acquire("repo://courier_hub/static", "writer-1", "wk-hub", ttl_s=30)
+    # Child path write check with parent token passes
+    checked = store.check_write("repo://courier_hub/static/evidence_badge.mjs", lease.token)
+    assert checked.token == lease.token

@@ -85,6 +85,26 @@ def _source_sha256(module_name: str) -> str | None:
         return None
 
 
+_REVOKED_VERIFIER_DIGESTS: set[str] = set()
+
+
+def revoke_verifier_digest(sha256_digest: str) -> None:
+    """Register a known compromised or obsolete verifier source digest."""
+    _REVOKED_VERIFIER_DIGESTS.add(sha256_digest.strip().lower())
+
+
+def clear_revoked_verifiers() -> None:
+    """Clear revocation set (for test teardown)."""
+    _REVOKED_VERIFIER_DIGESTS.clear()
+
+
+def is_verifier_revoked(digest: str | None) -> bool:
+    """True if the given module digest is on the revocation list."""
+    if not digest:
+        return False
+    return digest.strip().lower() in _REVOKED_VERIFIER_DIGESTS
+
+
 def verifier_identity(verify: Callable) -> dict:
     """Which verifier code produced a verdict (no PASS depends on this)."""
     module_name = getattr(verify, "__module__", None) or "?"
@@ -113,6 +133,8 @@ def run_verifier(resolve: Callable[[str], VerifyFn | None], task: TaskState, res
         return Verdict(False, f"no verifier registered for adapter {task.adapter!r}", False,
                        _rule("no_verifier", task.adapter))
     identity = verifier_identity(verify)
+    if is_verifier_revoked(identity.get("source_sha256")):
+        return Verdict(False, f"verifier {identity['name']} source is revoked", False, identity)
     try:
         verdict = verify(task, result, home)
     except Exception as exc:  # noqa: BLE001 - fail closed
@@ -120,3 +142,4 @@ def run_verifier(resolve: Callable[[str], VerifyFn | None], task: TaskState, res
     if not isinstance(verdict, Verdict) or not isinstance(verdict.accepted, bool):
         return Verdict(False, "verifier returned an invalid verdict", False, identity)
     return replace(verdict, reason=str(verdict.reason)[:500], retryable=bool(verdict.retryable), verifier=identity)
+

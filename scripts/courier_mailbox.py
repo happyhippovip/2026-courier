@@ -30,7 +30,7 @@ def _get_resource_pause_file() -> Path:
 
 
 def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = None) -> list[dict[str, Any]]:
-    """Process all pending tasks from inbox.jsonl."""
+    """Process all pending tasks from inbox.jsonl under authoritative writer lease."""
     if _get_resource_pause_file().exists():
         print("[MAILBOX] RESOURCE_PAUSE is active. Aborting run fail-closed.", file=sys.stderr)
         return []
@@ -38,62 +38,91 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
     if not inbox_path.exists():
         return []
 
-    lines = inbox_path.read_text(encoding="utf-8").splitlines()
-    tasks = []
-    for line in lines:
-        if line.strip():
+    lease = None
+    lease_store = None
+    try:
+        from courier_runtime.lease import LeaseConflict, LeaseStore
+        auth_db = (home_path or inbox_path.parent) / "authority.db"
+        lease_store = LeaseStore(str(auth_db))
+        scope = f"mailbox:{inbox_path.name}"
+        holder = f"mailbox_runner:{os.getpid()}"
+        lease = lease_store.acquire(scope, holder, "process_inbox", ttl_s=60)
+    except Exception as exc:
+        if isinstance(exc, LeaseConflict):
+            print(f"[MAILBOX] Another runner holds lease on {inbox_path.name}. Aborting.", file=sys.stderr)
+            return []
+        lease = None
+
+    try:
+        lines = inbox_path.read_text(encoding="utf-8").splitlines()
+        tasks = []
+        for line in lines:
+            if line.strip():
+                try:
+                    tasks.append(json.loads(line))
+                except Exception:
+                    pass
+
+        executed = []
+        updated_lines = []
+
+        for task in tasks:
+            task_id = task.get("task_id", f"task-{int(time.time()*1000)}")
+            status = task.get("status", "PENDING")
+
+            if status == "PENDING":
+                # P0 CostGate Check
+                est_cost = task.get("estimated_cost_eur", 0.0)
+                if est_cost is None or est_cost > 0.0:
+                    task["status"] = "BLOCKED_COSTGATE"
+                    task["resolution"] = "COSTGATE_REJECTED"
+                    task["processed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                    updated_lines.append(json.dumps(task))
+                    continue
+
+                print(f"[MAILBOX] Executing task: {task_id} ({task.get('name', 'unnamed')})")
+                
+                # Execute deterministically
+                res = run_mission_chip(target_home=home_path)
+                
+                task["status"] = "DONE"
+                task["resolution"] = res["verifier_result"]["resolution"]
+                task["accepted_result_id"] = res["verifier_result"]["accepted_result_id"]
+                task["artifact_sha256"] = res["verifier_result"]["artifact_sha256"]
+                task["processed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                
+                outbox_entry = {
+                    "task_id": task_id,
+                    "inbox_task": task,
+                    "execution_result": res,
+                    "completed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                }
+                if lease and lease_store:
+                    from courier_runtime.lease import FencedFileWriter
+                    writer = FencedFileWriter(lease_store, f"mailbox:{inbox_path.name}", lease.token)
+                    with writer.open(outbox_path, "a", encoding="utf-8") as out_f:
+                        out_f.write(json.dumps(outbox_entry) + "\n")
+                else:
+                    with outbox_path.open("a", encoding="utf-8") as out_f:
+                        out_f.write(json.dumps(outbox_entry) + "\n")
+                    
+                executed.append(outbox_entry)
+
+            updated_lines.append(json.dumps(task))
+
+        # Atomically write back updated inbox
+        tmp_inbox = inbox_path.with_suffix(".tmp")
+        tmp_inbox.write_text("\n".join(updated_lines) + ("\n" if updated_lines else ""), encoding="utf-8")
+        tmp_inbox.replace(inbox_path)
+
+        return executed
+    finally:
+        if lease and lease_store:
             try:
-                tasks.append(json.loads(line))
+                lease_store.release(lease)
+                lease_store.close()
             except Exception:
                 pass
-
-    executed = []
-    updated_lines = []
-
-    for task in tasks:
-        task_id = task.get("task_id", f"task-{int(time.time()*1000)}")
-        status = task.get("status", "PENDING")
-
-        if status == "PENDING":
-            # P0 CostGate Check
-            est_cost = task.get("estimated_cost_eur", 0.0)
-            if est_cost is None or est_cost > 0.0:
-                task["status"] = "BLOCKED_COSTGATE"
-                task["resolution"] = "COSTGATE_REJECTED"
-                task["processed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-                updated_lines.append(json.dumps(task))
-                continue
-
-            print(f"[MAILBOX] Executing task: {task_id} ({task.get('name', 'unnamed')})")
-            
-            # Execute deterministically
-            res = run_mission_chip(target_home=home_path)
-            
-            task["status"] = "DONE"
-            task["resolution"] = res["verifier_result"]["resolution"]
-            task["accepted_result_id"] = res["verifier_result"]["accepted_result_id"]
-            task["artifact_sha256"] = res["verifier_result"]["artifact_sha256"]
-            task["processed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-            
-            outbox_entry = {
-                "task_id": task_id,
-                "inbox_task": task,
-                "execution_result": res,
-                "completed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            }
-            with outbox_path.open("a", encoding="utf-8") as out_f:
-                out_f.write(json.dumps(outbox_entry) + "\n")
-                
-            executed.append(outbox_entry)
-
-        updated_lines.append(json.dumps(task))
-
-    # Atomically write back updated inbox
-    tmp_inbox = inbox_path.with_suffix(".tmp")
-    tmp_inbox.write_text("\n".join(updated_lines) + ("\n" if updated_lines else ""), encoding="utf-8")
-    tmp_inbox.replace(inbox_path)
-
-    return executed
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -232,3 +232,38 @@ def test_windows_host_executes_under_courier_ledger_writer_lease(tmp_path):
         store.check_write(scope, lease.token)
 
     store.close()
+
+
+def test_daemon_acquire_lock_integrates_canonical_lease_store(tmp_path, monkeypatch):
+    """Proves that scripts.windows_worker.daemon.acquire_lock binds to authority.db LeaseStore."""
+    import scripts.windows_worker.daemon as daemon
+    from courier_runtime.lease import LeaseStore
+
+    auth_db = tmp_path / "authority.db"
+    monkeypatch.setattr(daemon, "STATE_DIR", tmp_path)
+    monkeypatch.setattr(daemon, "_lease_store", None)
+    monkeypatch.setattr(daemon, "_lock_fd", None)
+    monkeypatch.setattr(daemon, "_worker_lease", None)
+
+    # 1. Acquire lock
+    lock_path = daemon.acquire_lock("worker-test-auth")
+    assert lock_path is not None
+    assert daemon._worker_lease is not None
+    assert daemon._worker_lease.scope == "worker:worker-test-auth"
+    assert daemon._worker_lease.token >= 1
+
+    # Check store independently sees the active lease
+    store = LeaseStore(str(auth_db))
+    current = store.current("worker:worker-test-auth")
+    assert current is not None
+    assert "worker-test-auth" in current.holder
+    store.close()
+
+    # 2. Release lock
+    daemon.release_lock(lock_path)
+    assert daemon._worker_lease is None
+
+    # Check store sees the lease as released
+    store = LeaseStore(str(auth_db))
+    assert store.current("worker:worker-test-auth") is None
+    store.close()

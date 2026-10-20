@@ -81,6 +81,40 @@ def test_mailbox_resource_pause_blocks_execution(tmp_path, monkeypatch):
     results = process_inbox(inbox, outbox)
     assert results == []
     assert not outbox.exists()
-    # Task remains untouched in inbox for later execution
     in_lines = inbox.read_text(encoding="utf-8").strip().splitlines()
     assert json.loads(in_lines[0])["status"] == "PENDING"
+
+
+def test_mailbox_single_writer_lease_conflict_prevents_race(tmp_path):
+    """Proves that a competing runner holding the mailbox lease aborts safely fail-closed."""
+    from courier_runtime.lease import LeaseStore
+
+    inbox = tmp_path / "inbox.jsonl"
+    outbox = tmp_path / "outbox.jsonl"
+    home = tmp_path / "courier_home"
+    home.mkdir(parents=True, exist_ok=True)
+
+    task = {
+        "task_id": "mission-compete",
+        "name": "Konkurrierende Aufgabe",
+        "estimated_cost_eur": 0.0,
+        "status": "PENDING",
+    }
+    inbox.write_text(json.dumps(task) + "\n", encoding="utf-8")
+
+    # Another runner holds the lease on this mailbox
+    auth_db = home / "authority.db"
+    store = LeaseStore(str(auth_db))
+    held_lease = store.acquire(f"mailbox:{inbox.name}", "other_runner:9999", "external_lock", ttl_s=60)
+
+    # process_inbox detects LeaseConflict and aborts without executing
+    results = process_inbox(inbox, outbox, home_path=home)
+    assert results == []
+    assert not outbox.exists()
+
+    # Once released, process_inbox succeeds
+    store.release(held_lease)
+    store.close()
+    results = process_inbox(inbox, outbox, home_path=home)
+    assert len(results) == 1
+    assert outbox.exists()
