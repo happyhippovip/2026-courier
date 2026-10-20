@@ -1,8 +1,26 @@
 # Report only a Courier process this install recorded.
 # Another Courier.exe on the machine is not this install.
+param(
+    [switch]$Library
+)
+
 $ErrorActionPreference = "Continue"
 $script:running = $false
 $script:sawRecord = $false
+
+function Test-CourierProcessName {
+    param(
+        [string]$Actual,
+        [string]$Expected
+    )
+    if ([string]::IsNullOrWhiteSpace($Actual) -or [string]::IsNullOrWhiteSpace($Expected)) {
+        return $false
+    }
+    # Windows names a second Courier.exe "Courier#1". That is still Courier.
+    $left = [IO.Path]::GetFileNameWithoutExtension($Actual.Split('#')[0].Trim())
+    $right = [IO.Path]::GetFileNameWithoutExtension($Expected.Split('#')[0].Trim())
+    return [bool]($left -and $right -and ($left -eq $right))
+}
 
 function Test-RecordedPid {
     param([string]$PidFile)
@@ -23,7 +41,7 @@ function Test-RecordedPid {
         Write-Output "Recorded process $processId is not running."
         return
     }
-    if ($proc.ProcessName -ne "Courier") {
+    if (-not (Test-CourierProcessName -Actual $proc.ProcessName -Expected "Courier")) {
         Write-Output "Recorded PID $processId is $($proc.ProcessName), not Courier."
         return
     }
@@ -55,6 +73,8 @@ function Test-RecordedPid {
     Write-Output "Courier is running (PID $processId)."
     $script:running = $true
 }
+
+if ($Library) { return }
 
 if (Get-Command Get-ScheduledTask -ErrorAction SilentlyContinue) {
     $task = Get-ScheduledTask -TaskName "CourierWindowsWorker" -ErrorAction SilentlyContinue
