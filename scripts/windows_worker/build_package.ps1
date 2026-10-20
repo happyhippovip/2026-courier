@@ -87,7 +87,7 @@ Add-Content -Path "$pyDir\python312._pth" -Value ".."
 
 Write-Host "Installing dependencies using uv..."
 $projectRoot = (Resolve-Path "$PSScriptRoot\..\..\").Path
-uv pip install --target "$OutDir\libs" $projectRoot
+uv pip install --target "$OutDir\libs" "$projectRoot"
 Add-Content -Path "$pyDir\python312._pth" -Value "..\libs"
 
 # 3b. Verify Package Integrity using smoke_package.ps1
@@ -104,6 +104,6 @@ if (Test-Path "$PSScriptRoot\smoke_package.ps1") {
 $zipOut = "$PSScriptRoot\CourierWorker-v1.zip"
 if (Test-Path $zipOut) { Remove-Item -Force $zipOut }
 Write-Host "Zipping package to $zipOut..."
-Compress-Archive -Path "$OutDir\*" -DestinationPath $zipOut
+Compress-Archive -Path "$OutDir\*" -DestinationPath "$zipOut"
 
 Write-Host "Done! Package is ready at $zipOut"
