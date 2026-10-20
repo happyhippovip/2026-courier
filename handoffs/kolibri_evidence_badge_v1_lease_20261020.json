@@ -1,0 +1,76 @@
+{
+  "workkey": "KOLIBRI-EVIDENCE-BADGE-V1",
+  "WORKKEY": "KOLIBRI-EVIDENCE-BADGE-V1",
+  "task_id": "KOLIBRI-EVIDENCE-BADGE-V1",
+  "status": "CLAIMED",
+  "CURRENT_STATE": "CLAIMED_DELEGATED_TO_CODEX",
+  "lane": "L5",
+  "owner_id": "codex:l5-evidence-badge-v1",
+  "holder": "codex:l5-evidence-badge-v1",
+  "OWNER": "codex:l5-evidence-badge-v1",
+  "codex_session_id": "codex:l5-evidence-badge-v1",
+  "host": "local",
+  "delegated_by": "google-antigravity:l5-steward",
+  "authoritative_l5_delegation_ref": "handoffs/kolibri_evidence_badge_v1_lease_20261020.json",
+  "kolibri_owner_commit": "9d0e38b036a7e0afc2fccf4e93f9c6ea96976715",
+  "lease_id": "lease-l5-kolibri-evidence-badge-v1-20261020-gen1",
+  "fencing_token": 1,
+  "fencing_generation": 1,
+  "exclusive": true,
+  "single_writer": true,
+  "scope": "L5:courier_hub/static/evidence_badge.mjs,tests/desktop/evidence_badge.test.mjs",
+  "files_scope": [
+    "courier_hub/static/evidence_badge.mjs",
+    "tests/desktop/evidence_badge.test.mjs"
+  ],
+  "protected_files_do_not_touch": [
+    "courier_hub/static/kolibri_universe.mjs",
+    "courier_hub/static/kolibri_core.mjs",
+    "courier_hub/static/kolibri_flow.mjs",
+    "courier_hub/static/kolibri_particles.mjs",
+    "courier_hub/static/kolibri.js",
+    "courier_hub/static/kolibri.css",
+    "courier_hub/static/kolibri.html",
+    "courier_hub/server.py"
+  ],
+  "valid_from": "2026-10-20T07:40:00Z",
+  "acquired_iso": "2026-10-20T07:40:00Z",
+  "acquired_at": 1792482000.0,
+  "valid_until": "2026-10-21T07:40:00Z",
+  "expires_iso": "2026-10-21T07:40:00Z",
+  "expires_at": 1792568400.0,
+  "ttl_seconds": 86400,
+  "lease": {
+    "lease_id": "lease-l5-kolibri-evidence-badge-v1-20261020-gen1",
+    "holder": "codex:l5-evidence-badge-v1",
+    "owner_id": "codex:l5-evidence-badge-v1",
+    "workkey": "KOLIBRI-EVIDENCE-BADGE-V1",
+    "host": "local",
+    "fencing_token": 1,
+    "fencing_generation": 1,
+    "exclusive": true,
+    "valid_from": "2026-10-20T07:40:00Z",
+    "expires_at": "2026-10-21T07:40:00Z"
+  },
+  "evidence_contract": {
+    "required_tuple": [
+      "journal_entry_id",
+      "task_id",
+      "attempt",
+      "dispatch_id",
+      "accepted_result_id",
+      "artifact_sha256"
+    ],
+    "verified_resolution": "BYTE_LEVEL_GOLD_VERIFIED",
+    "boolean_alone_insufficient": true,
+    "synthetic_ids_rejected": [
+      "evt:unknown:0",
+      "evt:gen:*"
+    ],
+    "missing_or_contradictory_maps_to": "UNKNOWN",
+    "unconfirmed_claim_maps_to": "REPORTED",
+    "active_block_maps_to": "BLOCKED"
+  },
+  "allowed_test_command": "node --test tests/desktop/evidence_badge.test.mjs",
+  "integration_rule": "Integration into existing Kolibri views remains exclusively with Google Antigravity (L5 Steward)."
+}
