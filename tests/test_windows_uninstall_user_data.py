@@ -22,6 +22,9 @@ def test_uninstall_asks_before_removing_user_data():
     cleanup = text.index("uninstall_user_data.ps1")
     remove_install = text.index("Remove-Item -Recurse -Force $InstallDir")
     assert cleanup < remove_install
+    remove_line = next(line for line in text.splitlines() if "Remove-Item -Recurse -Force $InstallDir" in line)
+    assert "-ErrorAction Stop" in remove_line
+    assert "the installation is still present" in text
     assert "Database and logs" in text
     assert "was removed" in text
 

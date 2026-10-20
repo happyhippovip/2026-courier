@@ -34,9 +34,14 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-if (Test-Path $InstallDir) {
-    Remove-Item -Recurse -Force $InstallDir
-    Write-Host "Removed installation directory: $InstallDir"
+if (Test-Path -LiteralPath $InstallDir) {
+    try {
+        Remove-Item -Recurse -Force $InstallDir -ErrorAction Stop
+        Write-Host "Removed installation directory: $InstallDir"
+    } catch {
+        Write-Host "ERROR: the installation is still present: $InstallDir" -ForegroundColor Red
+        exit 1
+    }
 }
 
 if ($LegacyDir -and (Test-Path -LiteralPath $LegacyDir)) {
