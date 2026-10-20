@@ -12,7 +12,7 @@ from integration_contract import canonical_result_id
 # No fallback key exists. The key comes from COURIER_API_KEY or, failing that,
 # from config.json where bootstrap.ps1 stores it; the server URL from
 # COURIER_SERVER (COURIER_SERVER_URL accepted), then config.json, then the default.
-DEFAULT_SERVER = "http://192.168.178.162:8080"
+DEFAULT_SERVER = "http://127.0.0.1:8080"
 API_URL = (os.environ.get("COURIER_SERVER") or os.environ.get("COURIER_SERVER_URL") or DEFAULT_SERVER).rstrip("/")
 API_KEY = os.environ.get("COURIER_API_KEY", "").strip()
 HEADERS = {

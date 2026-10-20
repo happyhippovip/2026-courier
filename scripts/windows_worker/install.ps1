@@ -39,11 +39,18 @@ if (Test-Path $ConfigPath) {
 }
 
 if (-not $Server) {
-    $Server = Read-Host "Enter Courier Server URL (default: http://192.168.178.162:8080)"
-    if (-not $Server) { $Server = "http://192.168.178.162:8080" }
+    $Server = Read-Host "Enter Courier Server URL (for example http://127.0.0.1:8080)"
+    if (-not $Server) {
+        Write-Host "ERROR: a Courier server URL is required. Pass -ServerArg." -ForegroundColor Red
+        exit 1
+    }
 }
 if (-not $ApiKey) {
     $ApiKey = Read-Host "Enter Courier API Key"
+    if (-not $ApiKey) {
+        Write-Host "ERROR: a Courier API key is required. Pass -ApiKeyArg." -ForegroundColor Red
+        exit 1
+    }
 }
 if (-not $WorkerId) {
     $WorkerId = Read-Host "Enter a unique Worker ID (default: auto-generated)"
@@ -77,7 +84,10 @@ if ($IsAdmin) {
     $trigger = New-ScheduledTaskTrigger -AtStartup
     $action = New-ScheduledTaskAction -Execute $scriptPath -WorkingDirectory $InstallDir
     $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
-    Register-ScheduledTask -TaskName $taskName -Trigger $trigger -Action $action -Principal $principal | Out-Null
+    # Task Scheduler stops a task after 72 hours and does not restart it.
+    # The worker stays up, restarts after a failure, and never starts a second copy.
+    $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -StartWhenAvailable -MultipleInstances IgnoreNew
+    Register-ScheduledTask -TaskName $taskName -Trigger $trigger -Action $action -Principal $principal -Settings $settings | Out-Null
 
     Write-Host "Starting Service..."
     Start-ScheduledTask -TaskName $taskName
