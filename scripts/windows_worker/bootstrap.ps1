@@ -10,12 +10,7 @@ Write-Host "========================================"
 
 # 1. Runtime / Package Installation Check
 Write-Host "`n[1] Checking Runtime Prerequisites..."
-if (-not (Get-Command "uv" -ErrorAction SilentlyContinue)) {
-    Write-Host "ERROR: uv is not installed or not in PATH." -ForegroundColor Red
-    exit 1
-}
-$pyVer = uv run python --version
-Write-Host "Found Python (via uv): $pyVer"
+Write-Host "Courier.exe is the worker. A separate Python toolchain is not required."
 
 # 2. Exact repo/start path
 Write-Host "`n[2] Verifying Paths..."
@@ -117,8 +112,9 @@ $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIden
 if (-not $isAdmin) {
     Write-Host "Attempting to elevate privileges for Scheduled Task installation..."
     try {
-        Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" `"$ServerArg`" `"$ApiKeyArg`" `"$WorkerIdArg`"" -Verb RunAs -ErrorAction Stop
-        exit 0
+        $elevated = Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" -ServerArg `"$ServerArg`" -ApiKeyArg `"$ApiKeyArg`" -WorkerIdArg `"$WorkerIdArg`"" -Verb RunAs -PassThru -Wait -ErrorAction Stop
+        if ($null -eq $elevated.ExitCode) { exit 1 }
+        exit $elevated.ExitCode
     } catch {
         Write-Host "UAC elevation cancelled or failed. Proceeding with fallback." -ForegroundColor Yellow
     }
@@ -126,45 +122,34 @@ if (-not $isAdmin) {
 
 # Run install_service.ps1
 Write-Host "Running install_service.ps1..."
+. (Join-Path $PSScriptRoot "confirm_daemon.ps1")
+$logDir = Join-Path $dataDir "logs"
+New-Item -ItemType Directory -Force -Path $logDir | Out-Null
+$logFile = Join-Path $logDir "daemon.log"
+$logStart = [int64]0
+if (Test-Path -LiteralPath $logFile) { $logStart = (Get-Item -LiteralPath $logFile).Length }
+
 $installResult = powershell -ExecutionPolicy Bypass -File $installScript *>&1
 $taskSuccess = $?
-
-$logDir = Join-Path $dataDir "logs"
-if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir | Out-Null }
-$logFile = Join-Path $logDir "host.log"
-if (Test-Path $logFile) { Clear-Content $logFile -ErrorAction SilentlyContinue }
-if (-not (Test-Path $logFile)) { New-Item -ItemType File -Path $logFile | Out-Null }
+$proc = $null
 
 if (-not $taskSuccess -or $installResult -match "Zugriff verweigert" -or $installResult -match "Access is denied" -or -not $isAdmin) {
     Write-Host "UAC elevation missing for Scheduled Task. Falling back to background process for current session." -ForegroundColor Yellow
     $proc = Start-Process -FilePath $daemonPath -WorkingDirectory $workerDir -WindowStyle Hidden -PassThru
-    $proc.Id | Out-File -FilePath "$workerDir\worker.pid" -Encoding ascii
+    $stamp = ""
+    try { $stamp = $proc.StartTime.ToUniversalTime().ToString("o") } catch { $stamp = "" }
+    @($proc.Id, $stamp) | Out-File -FilePath "$workerDir\worker.pid" -Encoding ascii
 } else {
     Write-Host "Starting the service..."
     Start-ScheduledTask -TaskName "CourierWindowsWorker" -ErrorAction SilentlyContinue
 }
 
-# 5. Worker registration & Health confirmation
-Write-Host "`n[5] Waiting for Registration & Health Confirmation..."
-$timeout = 10
-$watch = [System.Diagnostics.Stopwatch]::StartNew()
-$success = $true
-
-while ($watch.Elapsed.TotalSeconds -lt $timeout) {
-    $content = Get-Content $logFile -Tail 20 -ErrorAction SilentlyContinue
-    if ($content -match "FATAL" -or $content -match "Error launching daemon") {
-        Write-Host "Worker encountered a fatal error during boot:" -ForegroundColor Red
-        $content | Where-Object { $_ -match "FATAL" -or $_ -match "Error" } | Write-Host
-        $success = $false
-        break
-    }
-    Start-Sleep -Seconds 2
+# 5. Confirm the daemon started. An empty log is not a healthy worker.
+Write-Host "`n[5] Waiting until the worker reports that it started..."
+$started = Wait-CourierDaemon -LogFile $logFile -LogStart $logStart -Process $proc -TimeoutSeconds 20
+if (-not $started) {
+    Write-Host "ERROR: Courier did not start. Check $logFile" -ForegroundColor Red
+    exit 1
 }
-
-if ($success) {
-    Write-Host "`n[SUCCESS] Worker started and appears healthy!" -ForegroundColor Green
-    Write-Host "Bootstrap complete. CourierWindowsWorker is running." -ForegroundColor Green
-} else {
-    Write-Host "`n[WARNING] Worker startup failed or encountered errors." -ForegroundColor Yellow
-    Write-Host "Check logs at: $logFile"
-}
+Write-Host "Courier started." -ForegroundColor Green
+Write-Host "Bootstrap complete." -ForegroundColor Green
