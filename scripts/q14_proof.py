@@ -6,13 +6,19 @@ import urllib.request
 import urllib.error
 import sys
 
+import pathlib
+REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 # Setup
 os.environ["COURIER_API_KEY"] = "test-api-key-12345"
 os.environ["COURIER_VERIFIER_API_KEY"] = "test-api-key-12345-verifier"
-os.environ["COURIER_STATE_FILE"] = "server/state/test_state.json"
+state_file = REPO_ROOT / "server" / "state" / "test_q14_state.json"
+os.environ["COURIER_STATE_FILE"] = str(state_file)
 
-if os.path.exists(os.environ["COURIER_STATE_FILE"]):
-    os.remove(os.environ["COURIER_STATE_FILE"])
+if state_file.exists():
+    state_file.unlink()
 
 import threading
 from server.app import app
@@ -82,4 +88,10 @@ try:
 
 except Exception as e:
     print(e)
+finally:
+    if state_file.exists():
+        state_file.unlink()
+    sig_file = pathlib.Path(str(state_file) + ".sig")
+    if sig_file.exists():
+        sig_file.unlink()
 print("Done")

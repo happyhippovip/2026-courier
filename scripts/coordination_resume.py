@@ -7,8 +7,14 @@ so two racing workers can never both become the writer.
 """
 import dataclasses
 import hashlib
+import sys
+from pathlib import Path
 from datetime import datetime, timezone
 from typing import List, Optional
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from scripts.coordination_ledger import (
     AgentID,

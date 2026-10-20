@@ -4,6 +4,11 @@ import re
 import subprocess
 import sys
 import uuid
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 try:
     from scripts.google_builder_worker import (

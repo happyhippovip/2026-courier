@@ -13,6 +13,10 @@ import sys
 import uuid
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 # Import local memory resolver
 try:
     from resolve_project_memory import build_memory_context_package, DEFAULT_MEMORY_REPO_PATH

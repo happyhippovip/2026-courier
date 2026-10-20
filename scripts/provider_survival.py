@@ -1,9 +1,15 @@
 import datetime
 import enum
 import json
+import sys
 from pathlib import Path
 from dataclasses import asdict, dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from scripts.provider_circuit import ProviderCircuitBreaker, ProviderState
 from scripts.automation_wake_coalescing import AutomationContext, AutoState, Wakeup
 from scripts.provider_hibernation import (ContinuationCheckpoint, LaneHibernator,
