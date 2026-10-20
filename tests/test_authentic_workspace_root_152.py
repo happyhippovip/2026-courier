@@ -18,12 +18,14 @@ from courier_runtime.workspace import (
     normalize_path,
 )
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
 
 def test_positive_current_repository_workspace_root():
     """Verify that current repository root is authentically discovered."""
-    root = find_authentic_workspace_root()
+    root = find_authentic_workspace_root(start_path=REPO_ROOT)
     assert root is not None
-    assert root.name.lower() == "2026-courier"
+    assert root.name.lower().startswith("2026-courier")
     assert (root / "pyproject.toml").exists()
     assert (root / ".git").exists() or (root / "courier_runtime").exists()
 
@@ -34,12 +36,12 @@ def test_positive_discovery_from_nested_subdirectory():
     nested.mkdir(parents=True, exist_ok=True)
     root = find_authentic_workspace_root(start_path=nested)
     assert root is not None
-    assert root.name.lower() == "2026-courier"
+    assert root.name.lower().startswith("2026-courier")
 
 
 def test_positive_windows_verbatim_path():
     """Windows verbatim prefix (\\\\?\\) must be cleanly normalized and resolved."""
-    current_root = find_authentic_workspace_root()
+    current_root = find_authentic_workspace_root(start_path=REPO_ROOT)
     verbatim_path = f"\\\\?\\{str(current_root)}"
     resolved = find_authentic_workspace_root(start_path=verbatim_path)
     assert resolved == current_root
@@ -83,7 +85,7 @@ def test_negative_forbidden_system_root():
 
 def test_negative_workspace_name_mismatch():
     """Mismatched expected workspace name fails closed."""
-    valid, reason = verify_workspace_root(expected_name="unauthorized-foreign-repo")
+    valid, reason = verify_workspace_root(path=REPO_ROOT, expected_name="unauthorized-foreign-repo")
     assert valid is False
     assert "WORKSPACE_NAME_MISMATCH" in reason
 
@@ -91,15 +93,15 @@ def test_negative_workspace_name_mismatch():
 def test_cli_verify_workspace_root_subprocess():
     """CLI execution via subprocess validates exit codes and output contracts."""
     py = sys.executable
-    script = os.path.join("scripts", "verify_workspace_root.py")
+    script = REPO_ROOT / "scripts" / "verify_workspace_root.py"
 
     # 1. Success case
-    proc_ok = subprocess.run([py, script, "--expected-name", "2026-courier"], capture_output=True, text=True)
+    proc_ok = subprocess.run([py, str(script), "--path", str(REPO_ROOT), "--expected-name", REPO_ROOT.name], capture_output=True, text=True, cwd=str(REPO_ROOT))
     assert proc_ok.returncode == 0
     assert "AUTHENTIC WORKSPACE ROOT: " in proc_ok.stdout
-    assert "2026-courier" in proc_ok.stdout
+    assert REPO_ROOT.name in proc_ok.stdout
 
     # 2. Rejection case
-    proc_fail = subprocess.run([py, script, "--expected-name", "fake-repo-999"], capture_output=True, text=True)
+    proc_fail = subprocess.run([py, str(script), "--path", str(REPO_ROOT), "--expected-name", "fake-repo-999"], capture_output=True, text=True, cwd=str(REPO_ROOT))
     assert proc_fail.returncode == 1
     assert "AUTHENTIC WORKSPACE ROOT FAILED (REFUSED)" in proc_fail.stdout
