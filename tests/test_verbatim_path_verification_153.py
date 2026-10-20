@@ -113,16 +113,17 @@ def test_negative_null_byte_rejection():
 def test_cli_verify_verbatim_path_subprocess():
     """CLI execution via subprocess validates exit codes and output contracts."""
     py = sys.executable
-    script = os.path.join("scripts", "verify_verbatim_path.py")
-    repo_file = Path(__file__).resolve().parent.parent / "pyproject.toml"
+    repo_root = Path(__file__).resolve().parents[1]
+    script = repo_root / "scripts" / "verify_verbatim_path.py"
+    repo_file = repo_root / "pyproject.toml"
     valid_verbatim = f"\\\\?\\{str(repo_file)}"
 
     # 1. Success case
-    proc_ok = subprocess.run([py, script, valid_verbatim, "--must-exist"], capture_output=True, text=True)
+    proc_ok = subprocess.run([py, str(script), valid_verbatim, "--must-exist"], capture_output=True, text=True, cwd=str(repo_root))
     assert proc_ok.returncode == 0
     assert "VERBATIM PATH VALID: " in proc_ok.stdout
 
     # 2. Rejection case
-    proc_fail = subprocess.run([py, script, "C:\\not_verbatim.txt"], capture_output=True, text=True)
+    proc_fail = subprocess.run([py, str(script), "C:\\not_verbatim.txt"], capture_output=True, text=True, cwd=str(repo_root))
     assert proc_fail.returncode == 1
     assert "VERBATIM PATH FAILED (REFUSED)" in proc_fail.stdout
