@@ -21,7 +21,11 @@ if ($LASTEXITCODE -eq 1) {
 
 if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
     Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
-    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
+    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+    if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
+        Write-Host "ERROR: the scheduled task is still present: $taskName" -ForegroundColor Red
+        exit 1
+    }
     Write-Host "Unregistered and stopped Courier Windows Worker scheduled task."
 } else {
     Write-Host "Task $taskName does not exist."
@@ -34,9 +38,14 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-if (Test-Path $InstallDir) {
-    Remove-Item -Recurse -Force $InstallDir
-    Write-Host "Removed installation directory: $InstallDir"
+if (Test-Path -LiteralPath $InstallDir) {
+    try {
+        Remove-Item -Recurse -Force $InstallDir -ErrorAction Stop
+        Write-Host "Removed installation directory: $InstallDir"
+    } catch {
+        Write-Host "ERROR: the installation is still present: $InstallDir" -ForegroundColor Red
+        exit 1
+    }
 }
 
 if ($LegacyDir -and (Test-Path -LiteralPath $LegacyDir)) {
