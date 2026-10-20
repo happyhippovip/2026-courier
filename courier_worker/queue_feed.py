@@ -34,6 +34,19 @@ def _read_json(path: Path, default):
         return json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
         return default
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        _quarantine_corrupt(path)
+        return default
+
+
+def _quarantine_corrupt(path: Path) -> None:
+    """Move an unreadable state file aside (best effort) so the next pass
+    starts from the default instead of crashing again."""
+    try:
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        path.rename(path.with_name(f"{path.name}.corrupt-{stamp}"))
+    except OSError:
+        pass
 
 
 def _atomic_write(path: Path, data) -> None:
