@@ -100,6 +100,21 @@ def test_run_rejects_bad_attempt(tmp_path):
         local_shell.run({"command": write_argv()}, tmp_path, attempt=0)
 
 
+def test_run_rejects_forbidden_bypass_flags(tmp_path):
+    for flag in ("--dangerously-skip-permissions", "--skip-permissions", "--no-sandbox"):
+        with pytest.raises(LocalShellError, match="permission-bypass flag"):
+            local_shell.run({"command": ["agy", flag], "write": "out.txt"}, tmp_path)
+
+
+def test_run_sanitizes_controller_token_from_env(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_CONTROLLER_TOKEN", "super-secret-token")
+    argv = [sys.executable, "-c",
+            "import os; open('out.txt', 'w').write(os.environ.get('COURIER_CONTROLLER_TOKEN', 'SAFE_NONE'))"]
+    res = local_shell.run({"command": argv, "write": "out.txt"}, tmp_path)
+    assert res.outcome == "success"
+    assert (tmp_path / "out.txt").read_text() == "SAFE_NONE"
+
+
 # -- execution: failure + timeout ----------------------------------------------
 
 def test_nonzero_exit_is_failure_without_evidence(tmp_path):

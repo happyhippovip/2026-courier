@@ -54,6 +54,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import signal
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -65,6 +66,12 @@ from adapters.synthetic import SHA256_RE, is_safe_name
 VERIFIER_VERSION = "1"
 
 MAX_TIMEOUT_S = 600
+
+FORBIDDEN_COMMAND_FLAGS = frozenset({
+    "--dangerously-skip-permissions",
+    "--skip-permissions",
+    "--no-sandbox",
+})
 
 
 def _verdict_type():
@@ -98,11 +105,41 @@ class LocalShellTimeout(RuntimeError):
     """The command outlived ``timeout_s`` and was killed (never-finishes analog)."""
 
 
+def _kill_process_tree(proc: subprocess.Popen) -> None:
+    """Terminate child process and its process tree to prevent orphan processes."""
+    pid = getattr(proc, "pid", None)
+    if isinstance(pid, int) and pid > 0 and pid != os.getpid():
+        if os.name == "nt":
+            subprocess.run(
+                ["taskkill", "/PID", str(pid), "/T", "/F"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=10,
+                check=False,
+                shell=False,
+            )
+        else:
+            try:
+                os.killpg(pid, signal.SIGKILL)
+            except (ProcessLookupError, PermissionError, OSError):
+                pass
+    try:
+        proc.kill()
+    except Exception:
+        pass
+    try:
+        proc.communicate(timeout=5)
+    except Exception:
+        pass
+
+
 def _reject_unspawnable_argv(command: Sequence[str]) -> None:
-    """Reject argv values ``subprocess`` cannot spawn (embedded NUL, bad encoding)."""
+    """Reject argv values ``subprocess`` cannot spawn (embedded NUL, bad encoding, bypass flags)."""
     for arg in command:
         if "\0" in arg:
             raise LocalShellError("command argv must not contain embedded null bytes")
+        if arg in FORBIDDEN_COMMAND_FLAGS or "--dangerously-skip-permissions" in arg:
+            raise LocalShellError("command argv contains forbidden permission-bypass flag")
         try:
             os.fsencode(arg)
         except (UnicodeError, ValueError) as exc:
@@ -165,23 +202,42 @@ def run(params: Mapping[str, Any], workdir: str | os.PathLike, attempt: int = 1)
     except OSError as exc:
         raise LocalShellError(f"unusable workdir: {exc}") from exc
     env = dict(os.environ)
+    env.pop("COURIER_CONTROLLER_TOKEN", None)
     env.update(cfg["env"])
+
+    popen_kwargs: dict[str, Any] = {
+        "cwd": str(root),
+        "env": env,
+        "stdin": subprocess.DEVNULL,
+        "stdout": subprocess.PIPE,
+        "stderr": subprocess.PIPE,
+        "shell": False,
+    }
+    if os.name == "nt":
+        popen_kwargs["creationflags"] = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+    else:
+        popen_kwargs["start_new_session"] = True
+
     try:
-        completed = subprocess.run(
-            cfg["command"], cwd=str(root), env=env, timeout=cfg["timeout_s"],
-            stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            shell=False, check=False,
-        )
-    except subprocess.TimeoutExpired as exc:
-        raise LocalShellTimeout(
-            f"local_shell command outlived {cfg['timeout_s']}s and was killed") from exc
+        proc = subprocess.Popen(cfg["command"], **popen_kwargs)
     except (OSError, ValueError) as exc:
         raise LocalShellError(f"local_shell command could not start: {exc}") from exc
-    if completed.returncode != 0:
-        tail = completed.stderr.decode("utf-8", errors="replace")[-500:]
+
+    try:
+        stdout_bytes, stderr_bytes = proc.communicate(timeout=cfg["timeout_s"])
+    except subprocess.TimeoutExpired as exc:
+        _kill_process_tree(proc)
+        raise LocalShellTimeout(
+            f"local_shell command outlived {cfg['timeout_s']}s and was killed") from exc
+    except BaseException:
+        _kill_process_tree(proc)
+        raise
+
+    if proc.returncode != 0:
+        tail = stderr_bytes.decode("utf-8", errors="replace")[-500:]
         return RunResult("failure", [],
-                         f"command exited {completed.returncode}: {tail}".strip() or
-                         f"command exited {completed.returncode}", False)
+                         f"command exited {proc.returncode}: {tail}".strip() or
+                         f"command exited {proc.returncode}", False)
     evidence = root / cfg["write"]
     try:
         data = evidence.read_bytes()
