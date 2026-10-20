@@ -65,6 +65,13 @@ $configObj | ConvertTo-Json | Set-Content $ConfigPath
 
 $tokenPath = Join-Path $DataDir "run\controller.token"
 $ApiKey | Set-Content $tokenPath -NoNewline
+# SYSTEM runs the scheduled task. Other local users must not read the token.
+$ownerSid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+& icacls $tokenPath /inheritance:r /grant:r "*S-1-5-18:(R)" "*${ownerSid}:(R)" | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "ERROR: could not restrict access to $tokenPath." -ForegroundColor Red
+    exit 1
+}
 
 Write-Host "Configuration saved to $ConfigPath."
 Write-Host "Token saved to $tokenPath."
