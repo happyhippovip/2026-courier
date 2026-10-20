@@ -28,7 +28,7 @@ def test_stop_bat_does_not_kill_by_image_name():
 def test_stop_script_targets_recorded_pid_only():
     text = STOP_PS1.read_text(encoding="utf-8")
     assert "Stop-Process -Id $processId" in text
-    assert "ProcessName -ne \"Courier\"" in text
+    assert 'Test-CourierProcessName -Actual $proc.ProcessName -Expected "Courier"' in text
     assert "/IM" not in text
     assert "Stop-Process -Name" not in text
     assert "exit 1" in text
@@ -63,11 +63,35 @@ def test_uninstall_stops_owned_processes_before_deleting_files():
 
 
 def _powershell():
+    bundled = Path("/tmp/pwsh/pwsh")
+    if bundled.is_file():
+        return str(bundled)
     for name in ("pwsh", "powershell"):
         path = shutil.which(name)
         if path:
             return path
     return None
+
+
+def test_windows_instance_suffix_is_still_courier():
+    shell = _powershell()
+    if shell is None:
+        return
+    script = (
+        f". '{STOP_PS1}' -Library\n"
+        "if (-not (Test-CourierProcessName -Actual 'Courier#1' -Expected 'Courier')) { exit 1 }\n"
+        "if (-not (Test-CourierProcessName -Actual 'Courier.exe' -Expected 'Courier')) { exit 1 }\n"
+        "if (Test-CourierProcessName -Actual 'notepad' -Expected 'Courier') { exit 1 }\n"
+        "if (Test-CourierProcessName -Actual 'CourierHelper' -Expected 'Courier') { exit 1 }\n"
+        "exit 0\n"
+    )
+    completed = subprocess.run(
+        [shell, "-NoProfile", "-Command", script],
+        text=True,
+        capture_output=True,
+        timeout=30,
+    )
+    assert completed.returncode == 0, completed.stdout + completed.stderr
 
 
 def _run_stop(tmp_path, pid_text):
