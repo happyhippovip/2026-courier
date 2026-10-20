@@ -105,6 +105,11 @@ def main(argv=None):
         lines.append("")
         lines.append("RATCHET FAIL:")
         lines.extend("  - " + problem for problem in problems)
+        tail = output.splitlines()[-80:]
+        if tail:
+            lines.append("")
+            lines.append("pytest output (tail):")
+            lines.extend(tail)
         print("\n".join(lines))
         return 1
     lines.append("RATCHET PASS: %d/%d golden tests skipped for the "
