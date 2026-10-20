@@ -35,7 +35,7 @@ if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
 }
 
 $trigger = New-ScheduledTaskTrigger -AtStartup
-$action = New-ScheduledTaskAction -Execute $scriptPath
+$action = New-ScheduledTaskAction -Execute $scriptPath -WorkingDirectory $PSScriptRoot
 $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
 
 Register-ScheduledTask -TaskName $taskName -Trigger $trigger -Action $action -Principal $principal

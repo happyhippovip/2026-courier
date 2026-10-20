@@ -505,3 +505,21 @@ def test_windows_worker_costgate_enforced(tmp_path, monkeypatch):
     assert res_nan["status"] == "FAILED"
     assert "COST_GATE_DENIED" in res_nan["stderr"]
     assert res_nan.get("blocked") is True
+
+
+def test_scheduled_task_action_working_directory_contract():
+    """Beweis: Sowohl install.ps1 als auch install_service.ps1 konfigurieren
+    -WorkingDirectory explizit bei New-ScheduledTaskAction, damit der Windows-Worker-Dienst
+    beim Systemstart niemals im Default-Verzeichnis System32 ausgeführt wird."""
+    repo_root = Path(__file__).resolve().parents[1]
+    install_ps1 = (repo_root / "scripts" / "windows_worker" / "install.ps1").read_text(encoding="utf-8")
+    install_service_ps1 = (repo_root / "scripts" / "windows_worker" / "install_service.ps1").read_text(encoding="utf-8")
+
+    assert "-WorkingDirectory $InstallDir" in install_ps1, "install.ps1 must specify -WorkingDirectory $InstallDir"
+    assert "-WorkingDirectory $PSScriptRoot" in install_service_ps1, "install_service.ps1 must specify -WorkingDirectory $PSScriptRoot"
+
+    for script_name, content in [("install.ps1", install_ps1), ("install_service.ps1", install_service_ps1)]:
+        for line in content.splitlines():
+            if "New-ScheduledTaskAction" in line and not line.strip().startswith("#"):
+                assert "-WorkingDirectory" in line, f"{script_name} New-ScheduledTaskAction must contain -WorkingDirectory"
+
