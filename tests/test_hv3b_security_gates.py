@@ -97,7 +97,7 @@ def test_google_builder_missing_cost_never_invokes_provider(tmp_path, monkeypatc
 
 def test_no_bypass_flag_outside_the_deny_list():
     allowed = {ROOT / "courier_worker" / "adapters" / "provider_exec.py"}
-    skipped = {"tests", "attic", ".git", "node_modules", "__pycache__", "mac_worker"}
+    skipped = {"tests", "attic", ".git", "node_modules", "__pycache__"}
     hits = []
     for path in ROOT.rglob("*"):
         if path.suffix not in (".py", ".sh") or not path.is_file() or path in allowed:

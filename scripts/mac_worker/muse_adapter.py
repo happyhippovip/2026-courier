@@ -44,6 +44,8 @@ def build_prompt(task, checkpoint, masterprompt=""):
 
 def build_muse_command(task, checkpoint, capabilities, *, slot_id=None,
                        workspace=None, action="exec", prompt=None):
+    if capabilities.get("yolo"):
+        raise MuseCapabilityUnknown("--yolo is not allowed: it skips Muse approvals")
     if capabilities.get("protocol") != "headless-v1":
         raise MuseCapabilityUnknown("Confirm MUSE_CLI.protocol=headless-v1 before launch")
     binding = task_binding(task, slot_id, workspace)
@@ -55,8 +57,6 @@ def build_muse_command(task, checkpoint, capabilities, *, slot_id=None,
     if action == "exec":
         if capabilities.get("reasoning_effort"):
             cmd.extend(["--reasoning-effort", str(capabilities["reasoning_effort"])])
-        if capabilities.get("yolo") is True:
-            cmd.append("--yolo")
         cmd.append(prompt if prompt is not None else build_prompt(task, checkpoint))
     else:
         if (capabilities.get("session_ref_format") != "json-envelope-v1"
@@ -67,8 +67,6 @@ def build_muse_command(task, checkpoint, capabilities, *, slot_id=None,
         cmd.append(checkpoint["session_ref"])
         if action == "session-message":
             cmd.append(prompt if prompt is not None else build_prompt(task, checkpoint))
-        elif capabilities.get("yolo") is True:
-            cmd.append("--yolo")
     return cmd, None
 
 

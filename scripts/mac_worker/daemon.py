@@ -520,7 +520,7 @@ def run_agy(task, config):
         return {"status": "FAILED", "reason": "AGY_NOT_FOUND", "execution_mode": "ANTIGRAVITY"}
 
     wrapper = os.path.join(os.path.dirname(__file__), "limit_wrapper.sh")
-    cmd = [wrapper, agy_bin, "-p", prompt, "--dangerously-skip-permissions"]
+    cmd = [wrapper, agy_bin, "-p", prompt]
     timeout = min(float(config.get("AGY_TIMEOUT_SECONDS", 300)), 3600)
 
     process = None
@@ -599,13 +599,37 @@ def run_agy(task, config):
             if not clean:
                 raise RuntimeError("agy child cleanup unproven; no new execution allowed")
 
+def cost_gate(resource_id, estimated_cost_eur=None):
+    """Ask CostGate before a provider starts. A missing estimate stays missing."""
+    try:
+        from scripts.resource_policy import CostGate
+        return CostGate.evaluate_spend_request(
+            resource_id, estimated_cost_eur=estimated_cost_eur,
+        )
+    except Exception as exc:
+        return {"allowed": False, "reason": "UNAVAILABLE_" + type(exc).__name__}
+
+
 def run_muse(task, config):
     """Muse slot execution through the muse_adapter boundary (no guessed CLI method)."""
     if str(BASE_DIR) not in sys.path:
         sys.path.insert(0, str(BASE_DIR))
     import muse_adapter
     write_log(f"Running MUSE task {task['task_id']}")
-    
+    estimate = task.get("estimated_cost_eur", None)
+    if task.get("unknown_cost") is True:
+        estimate = None
+    gate = cost_gate("muse_subscription", estimate)
+    if not gate.get("allowed"):
+        return {
+            "status": "FAILED",
+            "reason": "COST_GATE_" + str(gate.get("reason") or "DENIED"),
+            "execution_mode": "MUSE",
+            "blocked": True,
+        }
+    if muse_adapter.cli_capabilities(config).get("yolo"):
+        return {"status": "FAILED", "reason": "YOLO_NOT_ALLOWED", "execution_mode": "MUSE"}
+
     supervisor, decision = admit_surface("muse", task, config, needs_visible=True, allow_headless=False)
     if decision.action == "COALESCED":
         return coalesced_result(decision, "MUSE")

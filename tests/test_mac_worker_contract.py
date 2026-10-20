@@ -221,3 +221,46 @@ def test_run_agy_costgate_enforced(tmp_path, monkeypatch):
         assert blocked["status"] == "FAILED" and blocked.get("blocked") is True
         assert "UNKNOWN_COST" in blocked["reason"]
         assert looked_up == []
+
+
+MUSE_TASK = {
+    "goal_id": "g-p0", "task_id": "t-p0", "attempt_id": "a-1", "dispatch_id": "d-1",
+    "instruction": "x", "mode": "MUSE",
+}
+
+
+def test_run_muse_refused_without_active_subscription(tmp_path, monkeypatch):
+    daemon = load_daemon(tmp_path, monkeypatch)
+    monkeypatch.setenv("COURIER_MUSE_WORKSPACE", str(tmp_path / "ws"))
+    (tmp_path / "ws").mkdir()
+    launched = []
+    monkeypatch.setattr(daemon.subprocess, "Popen", lambda *a, **k: launched.append(a) or (_ for _ in ()).throw(AssertionError("muse")))
+    result = daemon.run_muse(dict(MUSE_TASK), {"WORKER_ID": "MAC-01"})
+    assert launched == []
+    assert result["status"] == "FAILED"
+    assert result["reason"] == "COST_GATE_UNAUTHORIZED_RESOURCE_TIER"
+    assert result.get("blocked") is True
+
+
+def test_run_muse_refuses_yolo(tmp_path, monkeypatch):
+    daemon = load_daemon(tmp_path, monkeypatch)
+    monkeypatch.setattr(daemon, "cost_gate", lambda resource_id, estimated_cost_eur=None: {"allowed": True})
+    monkeypatch.setenv("COURIER_MUSE_CLI", '{"protocol": "headless-v1", "yolo": true}')
+    launched = []
+    monkeypatch.setattr(daemon.subprocess, "Popen", lambda *a, **k: launched.append(a) or (_ for _ in ()).throw(AssertionError("muse")))
+    result = daemon.run_muse(dict(MUSE_TASK), {"WORKER_ID": "MAC-01"})
+    assert launched == []
+    assert result["status"] == "FAILED"
+    assert result["reason"] == "YOLO_NOT_ALLOWED"
+
+
+def test_muse_adapter_never_builds_yolo():
+    import sys
+    sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "mac_worker"))
+    import muse_adapter
+    task = {"task_id": "t-p0-3", "attempt_id": "a-1", "dispatch_id": "d-1", "goal_id": "g"}
+    with pytest.raises(muse_adapter.MuseCapabilityUnknown):
+        muse_adapter.build_muse_command(
+            task, {}, {"protocol": "headless-v1", "yolo": True},
+            slot_id="MAC-01", workspace="/tmp/ws", action="exec", prompt="p",
+        )
