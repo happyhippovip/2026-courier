@@ -21,6 +21,7 @@ function Clear-OneCourierDir {
         Write-Output "Removed user data: $CourierDir"
         return
     }
+    $blocked = $false
     foreach ($name in @("config.json", "run")) {
         $path = Join-Path $CourierDir $name
         if (Test-Path -LiteralPath $path) {
@@ -28,9 +29,11 @@ function Clear-OneCourierDir {
             if (Test-Path -LiteralPath $path) {
                 Write-Output "ERROR: credential path is still present at $path."
                 $script:failed = $true
+                $blocked = $true
             }
         }
     }
+    if ($blocked) { return }
     Write-Output "Removed credentials from $CourierDir. Database and logs were preserved."
 }
 

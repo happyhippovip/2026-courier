@@ -75,6 +75,31 @@ def test_default_uninstall_keeps_the_ledger_and_logs(tmp_path):
     assert "preserved" in text
 
 
+def test_failed_credential_delete_does_not_claim_success(tmp_path):
+    blocked = _profile(tmp_path, "alice")
+    cleaned = _profile(tmp_path, "beth")
+    blocked.chmod(0o555)
+    try:
+        completed = _run(tmp_path, remove=False)
+    finally:
+        blocked.chmod(0o755)
+    if completed is None:
+        return
+    text = completed.stdout + completed.stderr
+    assert completed.returncode == 1, text
+    assert "credential path is still present" in text
+    success_lines = [line for line in text.splitlines() if line.startswith("Removed credentials from")]
+    assert len(success_lines) == 1, text
+    assert "alice" not in success_lines[0]
+    assert "beth" in success_lines[0]
+    assert (blocked / "config.json").is_file()
+    assert (blocked / "config.json").read_text(encoding="utf-8") == '{"COURIER_API_KEY":"secret"}'
+    assert (blocked / "courier.db").read_text(encoding="utf-8") == "ledger"
+    assert not (cleaned / "config.json").exists()
+    assert not (cleaned / "run").exists()
+    assert (cleaned / "courier.db").read_text(encoding="utf-8") == "ledger"
+
+
 def test_remove_user_data_deletes_the_courier_directory(tmp_path):
     courier = _profile(tmp_path, "alice")
     other = tmp_path / "alice" / "Documents" / "keep.txt"
