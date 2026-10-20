@@ -295,7 +295,7 @@ namespace CourierLauncher
                     string msg = "Controller failed to start or become healthy.\nCheck logs at: " + logDir;
                     File.WriteAllText(Path.Combine(dataDir, "crash.txt"), msg);
                     MessageBox(IntPtr.Zero, msg, "Courier Launcher Error", 0x10);
-                    return;
+                    Environment.Exit(1);
                 }
 
                 var pWorker = StartComponent(hJob, pythonExe, baseDir, logDir, "worker", workerArgs, "worker.log");
@@ -357,6 +357,7 @@ namespace CourierLauncher
                 string msg = "Error launching daemon: " + ex.Message + "\nCheck logs at: " + logDir;
                 File.WriteAllText(Path.Combine(dataDir, "crash.txt"), "Error launching daemon: " + ex.ToString());
                 MessageBox(IntPtr.Zero, msg, "Courier Launcher Error", 0x10);
+                Environment.Exit(1);
             }
         }
 

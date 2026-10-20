@@ -23,3 +23,12 @@ def test_fast_exits_stop_the_restart_loop():
     assert "hubFast > 3" in loop
     assert "MessageBox" not in loop
     assert "crash.txt" in loop
+    assert "Environment.Exit" not in loop
+
+
+def test_unhealthy_start_is_a_failed_process():
+    text = LAUNCHER.read_text(encoding="utf-8")
+    health = text.split("if (!healthOk)", 1)[1].split("while (true)", 1)[0]
+    assert "Environment.Exit(1)" in health
+    caught = text.split("catch (Exception ex)", 1)[1]
+    assert "Environment.Exit(1)" in caught
