@@ -505,3 +505,16 @@ def test_windows_worker_costgate_enforced(tmp_path, monkeypatch):
     assert res_nan["status"] == "FAILED"
     assert "COST_GATE_DENIED" in res_nan["stderr"]
     assert res_nan.get("blocked") is True
+
+
+def test_uninstall_script_credential_cleanup_contract():
+    """Beweis: uninstall.ps1 bereinigt Credentials vollständig aus User-Profilen,
+    ProgramData und dem SYSTEM-Profil, um verbleibende Token-/Schlüsselreste nach
+    der Deinstallation auszuschließen."""
+    repo_root = Path(__file__).resolve().parents[1]
+    uninstall_ps1 = (repo_root / "scripts" / "windows_worker" / "uninstall.ps1").read_text(encoding="utf-8")
+
+    assert "PROGRAMDATA" in uninstall_ps1, "uninstall.ps1 must clean ProgramData credentials"
+    assert "systemprofile" in uninstall_ps1, "uninstall.ps1 must clean SYSTEM profile credentials"
+    assert "config.json" in uninstall_ps1, "uninstall.ps1 must remove config.json"
+    assert "run" in uninstall_ps1, "uninstall.ps1 must remove run/ directory containing tokens"

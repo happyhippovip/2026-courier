@@ -32,4 +32,21 @@ Get-ChildItem -Path $usersDir | Where-Object { $_.PSIsContainer } | ForEach-Obje
     }
 }
 
+# Clean ProgramData credentials
+$progDataDir = [System.Environment]::ExpandEnvironmentVariables("%PROGRAMDATA%\CourierWorker")
+if (Test-Path $progDataDir) {
+    Remove-Item -Recurse -Force $progDataDir -ErrorAction SilentlyContinue
+    Write-Host "Removed ProgramData credentials directory: $progDataDir"
+}
+
+# Clean SYSTEM profile credentials
+$systemProfileData = "$env:SystemRoot\system32\config\systemprofile\AppData\Local\Courier"
+if (Test-Path $systemProfileData) {
+    $sysConfig = Join-Path $systemProfileData "config.json"
+    $sysRun = Join-Path $systemProfileData "run"
+    if (Test-Path $sysConfig) { Remove-Item -Force $sysConfig -ErrorAction SilentlyContinue }
+    if (Test-Path $sysRun) { Remove-Item -Recurse -Force $sysRun -ErrorAction SilentlyContinue }
+    Write-Host "Removed credentials from SYSTEM profile."
+}
+
 Write-Host "Uninstall complete. Database and logs in %LOCALAPPDATA%\Courier were preserved."
