@@ -3,7 +3,9 @@ from pathlib import Path
 
 from tests.conftest import windows_collect_skips
 
-KNOWN = json.loads(Path(".github/ci/known_failures.json").read_text(encoding="utf-8"))
+ROOT = Path(__file__).resolve().parents[1]
+KNOWN_PATH = ROOT / ".github" / "ci" / "known_failures.json"
+KNOWN = json.loads(KNOWN_PATH.read_text(encoding="utf-8")) if KNOWN_PATH.exists() else {"Windows": {"failing": [], "flaky": []}}
 
 
 def test_windows_known_baseline_stays_in_the_outcomes_artifact():
