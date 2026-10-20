@@ -113,20 +113,7 @@ if (-not (Test-Path $installScript)) {
     exit 1
 }
 
-$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $isAdmin) {
-    Write-Host "Attempting to elevate privileges for Scheduled Task installation..."
-    try {
-        # The token file is already written. Do not put the API key on the elevated command line.
-        $elevated = Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" -ServerArg `"$ServerArg`" -WorkerIdArg `"$WorkerIdArg`"" -Verb RunAs -PassThru -Wait -ErrorAction Stop
-        if ($null -eq $elevated.ExitCode) { exit 1 }
-        exit $elevated.ExitCode
-    } catch {
-        Write-Host "UAC elevation cancelled or failed. Proceeding with fallback." -ForegroundColor Yellow
-    }
-}
-
-# Run install_service.ps1
+# The task runs as the signed-in user at logon. It does not ask for a higher privilege.
 Write-Host "Running install_service.ps1..."
 . (Join-Path $PSScriptRoot "confirm_daemon.ps1")
 $logDir = Join-Path $dataDir "logs"
@@ -139,8 +126,8 @@ $installResult = powershell -ExecutionPolicy Bypass -File $installScript *>&1
 $taskSuccess = $?
 $proc = $null
 
-if (-not $taskSuccess -or $installResult -match "Zugriff verweigert" -or $installResult -match "Access is denied" -or -not $isAdmin) {
-    Write-Host "UAC elevation missing for Scheduled Task. Falling back to background process for current session." -ForegroundColor Yellow
+if (-not $taskSuccess -or $installResult -match "Zugriff verweigert" -or $installResult -match "Access is denied") {
+    Write-Host "The scheduled task could not be registered. Starting Courier for this sign-in only." -ForegroundColor Yellow
     $proc = Start-Process -FilePath $daemonPath -WorkingDirectory $workerDir -WindowStyle Hidden -PassThru
     $stamp = ""
     try { $stamp = $proc.StartTime.ToUniversalTime().ToString("o") } catch { $stamp = "" }

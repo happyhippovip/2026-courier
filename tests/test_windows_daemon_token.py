@@ -23,8 +23,8 @@ def test_bootstrap_does_not_store_the_api_key_in_config():
     assert "Pass -ApiKeyArg." in text
     assert "LOCALAPPDATA" in text
     assert "The token was removed." in text
-    elevate = text.split("Start-Process powershell.exe", 1)[1].split("-Verb RunAs", 1)[0]
-    assert "-ApiKeyArg" not in elevate
+    assert "RunAs" not in text
+    assert "ApiKeyArg" not in text.split("Running install_service.ps1", 1)[1]
 
 
 def test_token_file_supplies_the_api_key(tmp_path, monkeypatch):

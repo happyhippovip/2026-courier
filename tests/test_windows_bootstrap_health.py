@@ -19,8 +19,10 @@ def test_bootstrap_does_not_treat_silence_as_health():
     assert "confirm_daemon.ps1" in text
     assert "Courier did not start" in text
     assert "exit 1" in text
-    assert "-PassThru -Wait" in text
     assert "-ServerArg" in text
+    assert "RunAs" not in text
+    assert "Administrator" not in text
+    assert "Starting Courier for this sign-in only." in text
 
 
 def _pwsh():
