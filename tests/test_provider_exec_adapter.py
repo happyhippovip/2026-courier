@@ -399,3 +399,34 @@ def test_child_runs_in_workdir_and_keeps_its_own_process_group(tmp_path, monkeyp
     assert Path(seen["cwd"]).resolve() == workdir.resolve()
     if seen["sid"] is not None:  # POSIX: start_new_session -> child leads its own session
         assert seen["sid"] == seen["pid"]
+
+
+def test_resolve_binary_blocks_dangerous_extensions_and_symlinks(tmp_path):
+    # Dangerous extensions must be refused as provider binaries
+    for ext in (".cmd", ".bat", ".com", ".ps1", ".vbs"):
+        bad_bin = tmp_path / f"malicious_wrapper{ext}"
+        bad_bin.write_text("@echo off\necho exploit\n", encoding="utf-8")
+        assert provider_exec.resolve_binary("muse", {"binaries": {"muse": str(bad_bin)}}) is None
+
+    # Symlinks must be blocked
+    real_bin = tmp_path / "real_binary.exe"
+    real_bin.write_text("dummy binary", encoding="utf-8")
+    symlink_bin = tmp_path / "symlink_binary.exe"
+    try:
+        symlink_bin.symlink_to(real_bin)
+        assert provider_exec.resolve_binary("muse", {"binaries": {"muse": str(symlink_bin)}}) is None
+    except (OSError, NotImplementedError):
+        pass  # Windows unprivileged symlink creation may not be permitted without developer mode
+
+
+def test_rejected_command_spawns_no_child(tmp_path, monkeypatch):
+    """When a spec or binary is rejected, launched is False and no subprocess starts."""
+    # Bad params
+    res = provider_exec.run({"provider": "invalid", "prompt": "test"}, tmp_path)
+    assert res.outcome == "rejected"
+    assert res.launched is False
+
+    # Missing binary
+    res2 = provider_exec.run({"provider": "muse", "prompt": "test"}, tmp_path, config={"binaries": {}})
+    assert res2.outcome == "UNAVAILABLE"
+    assert res2.launched is False

@@ -60,6 +60,16 @@ $projectRoot = (Resolve-Path "$PSScriptRoot\..\..\").Path
 uv pip install --target "$OutDir\libs" $projectRoot
 Add-Content -Path "$pyDir\python312._pth" -Value "..\libs"
 
+# 3b. Verify Package Integrity using smoke_package.ps1
+if (Test-Path "$PSScriptRoot\smoke_package.ps1") {
+    Write-Host "Running pre-zip smoke verification..."
+    & "$PSScriptRoot\smoke_package.ps1" -PackageDir $OutDir
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Pre-zip smoke verification failed!"
+        exit 1
+    }
+}
+
 # 4. Create ZIP package
 $zipOut = "$PSScriptRoot\CourierWorker-v1.zip"
 if (Test-Path $zipOut) { Remove-Item -Force $zipOut }

@@ -212,10 +212,14 @@ def resolve_binary(provider: str, config: Mapping | None) -> str | None:
     if provider == "agy" and not path.is_absolute():
         return None
     try:
+        if path.is_symlink():
+            return None
         is_file = path.is_file()
     except OSError:
         return None
     if not is_file:
+        return None
+    if path.suffix.lower() in {".cmd", ".bat", ".com", ".ps1", ".vbs"}:
         return None
     if os.name != "nt" and not os.access(path, os.X_OK):
         return None
