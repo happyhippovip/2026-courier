@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -37,17 +38,38 @@ class CorruptStateError(Exception):
 
 def _read_json(path: Path, default):
     try:
+        if path.is_symlink():
+            raise CorruptStateError(f"{path.name} is a symlink, refusing insecure state read")
         return json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
         return default  # missing file: default is correct
+    except CorruptStateError:
+        raise
     except (json.JSONDecodeError, UnicodeDecodeError, OSError) as exc:
         raise CorruptStateError(f"{path.name} is corrupt, refusing silent reset: {exc}") from exc
 
 
 def _atomic_write(path: Path, data) -> None:
+    if path.is_symlink():
+        raise CorruptStateError(f"{path.name} is a symlink, refusing insecure state write")
     tmp = path.with_name(path.name + f".{os.getpid()}.tmp")
-    tmp.write_text(json.dumps(data, sort_keys=True, indent=2), encoding="utf-8")
-    os.replace(tmp, path)
+    payload = json.dumps(data, sort_keys=True, indent=2)
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write(payload)
+        f.flush()
+        os.fsync(f.fileno())
+    for attempt in range(20):
+        try:
+            os.replace(tmp, path)
+            break
+        except (PermissionError, OSError):
+            if attempt == 19:
+                try:
+                    tmp.unlink(missing_ok=True)
+                except Exception:
+                    pass
+                raise
+            time.sleep(0.01)
 
 
 def _utc(now=None) -> str:
