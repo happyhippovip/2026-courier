@@ -254,7 +254,9 @@ class TaskLeaseManager:
             temp_reclaim = lease_path.with_suffix(f".tmp.{os.getpid()}.{now_ts}")
             save_json(temp_reclaim, lease_data)
             os.replace(temp_reclaim, lease_path)
-            synced = os.open(str(lease_path), os.O_RDONLY)
+            # Windows FlushFileBuffers rejects a read-only handle (EBADF).
+            # The winner must flush the replaced lease before the reclaim lock drops.
+            synced = os.open(str(lease_path), os.O_RDWR)
             try:
                 os.fsync(synced)
             finally:
