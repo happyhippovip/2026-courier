@@ -716,8 +716,6 @@ def test_result_payload_passes_l2_validation(tmp_path):
         events_mod.validate(event)  # raises on any contract deviation
 
 
-@pytest.mark.skipif(sys.version_info < (3, 10),
-                    reason="L2 projection uses zip(strict), 3.10+; graded CI runs 3.12")
 def test_result_payload_journals_clean_in_real_l2(tmp_path):
     journal_mod = pytest.importorskip("courier_core.journal")
     from courier_core.events import Event, EventType

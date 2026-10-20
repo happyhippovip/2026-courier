@@ -19,7 +19,7 @@ IDS = ("goal_id", "task_id", "attempt_id", "dispatch_id", "worker_id")
 def setup(tmp_path, monkeypatch, worker="WINDOWS-01", target="windows", caps=("windows",), artifacts=("win.txt",)):
     srv = load_patched_server(tmp_path, monkeypatch)
     http = srv.app.test_client()
-    http.post("/workers/register", headers=WORKER, json={"worker_id": worker, "capabilities": list(caps)})
+    http.post("/workers/register", headers=WORKER, json={"worker_id": worker, "capabilities": list(caps), "cost_class": "free"})
     http.post("/goals", headers=WORKER, json={"goal_text": "g", "workflow_plan": [
         {"task_id": "w1", "target_agent": target, "instruction": "make it", "artifacts": list(artifacts)}]})
     return srv, http
