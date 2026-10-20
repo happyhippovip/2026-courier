@@ -38,7 +38,8 @@ const _seenVerifiedEvents = new Set();
  * @param {Object} item
  * @returns {{ state: string, color: string, event_id: string, verified: boolean }}
  */
-export function translateSignal(item) {
+export function translateSignal(item, options) {
+  const opts = options && typeof options === "object" ? options : {};
   if (!item || typeof item !== "object") {
     return {
       state: FLOW_STATES.UNKNOWN,
@@ -94,7 +95,9 @@ export function translateSignal(item) {
         verified: false,
       };
     }
-    _seenVerifiedEvents.add(eventId);
+    if (!opts.peek) {
+      _seenVerifiedEvents.add(eventId);
+    }
     return {
       state: FLOW_STATES.VERIFIED,
       color: FLOW_COLORS[FLOW_STATES.VERIFIED],

@@ -9,6 +9,7 @@ const view = document.querySelector("#view");
 
 const MODE = new URLSearchParams(window.location.search).get("mode") === "demo" ? "demo" : "live";
 let selected = null;
+let universePaused = false;
 
 function stamp() {
   return new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
@@ -17,7 +18,7 @@ function stamp() {
 let timer = null;
 
 function paint(snapshot) {
-  view.innerHTML = renderKolibri(snapshot, { mode: MODE, selected });
+  view.innerHTML = renderKolibri(snapshot, { mode: MODE, selected, paused: universePaused });
 }
 
 async function refresh() {
@@ -61,6 +62,12 @@ document.addEventListener("keydown", (event) => {
 });
 
 view?.addEventListener("click", (event) => {
+  const toggleBtn = event.target?.closest?.("#universe-toggle-motion");
+  if (toggleBtn) {
+    universePaused = !universePaused;
+    refresh();
+    return;
+  }
   const picked = event.target?.closest?.("[data-workkey]");
   if (!picked) return;
   selected = selected === picked.dataset.workkey ? null : picked.dataset.workkey;

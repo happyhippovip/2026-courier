@@ -6,6 +6,7 @@
 // real event_id (see kolibri_flow.mjs); DEMO fixtures stay ROUTER-magenta.
 
 import { translateSignal } from "./kolibri_flow.mjs";
+import { renderKolibriUniverse } from "./kolibri_universe.mjs";
 
 export const UNAVAILABLE = "UNKNOWN / nicht erreichbar";
 export const REST_TEXT = "Keine Aktivität";
@@ -584,6 +585,7 @@ export function renderKolibri(snapshot, options) {
   return `<div class="kolibri" data-bird="${resting ? "rest" : "fly"}" data-mode="${mode}">
     ${renderTicker(mode, data.observed_at)}
     ${renderArbitrageResearch(data)}
+    ${renderKolibriUniverse(data, opts)}
     ${renderSignalLane(data)}
     ${renderMissionChipCard(data, opts)}
     ${renderScroller(data)}

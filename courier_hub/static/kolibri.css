@@ -400,6 +400,182 @@ section h2::before {
   opacity: 0.88;
 }
 
+/* Kolibri Celestial Universe (Visual First) */
+.kolibri-universe-section {
+  margin: 32px 0;
+  background: rgba(13, 17, 28, 0.75);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: 0 0 28px rgba(168, 85, 247, 0.08);
+}
+
+.universe-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 16px;
+}
+
+.universe-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.universe-title-wrap h2 {
+  margin: 0;
+  color: var(--neon-violet);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+}
+
+.universe-title-wrap h2::before {
+  background: var(--neon-violet);
+  box-shadow: 0 0 8px var(--neon-violet);
+}
+
+.universe-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--neon-cyan);
+  background: rgba(6, 182, 212, 0.12);
+  border: 1px solid rgba(6, 182, 212, 0.35);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.universe-ctrl-btn {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-color, #e5e7eb);
+  border: 1px solid var(--hud-line);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.universe-ctrl-btn:hover {
+  background: rgba(168, 85, 247, 0.18);
+  border-color: var(--neon-violet);
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+}
+
+.universe-viewport {
+  background: radial-gradient(circle at 50% 50%, rgba(30, 27, 75, 0.4) 0%, rgba(10, 13, 20, 0.95) 75%);
+  border: 1px solid var(--hud-line);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.universe-canvas {
+  width: 100%;
+  max-height: 520px;
+  height: auto;
+  display: block;
+}
+
+.universe-planet {
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.universe-planet:hover,
+.universe-planet:focus-visible {
+  filter: drop-shadow(0 0 8px var(--neon-cyan));
+}
+
+.universe-planet:focus-visible circle:nth-child(2),
+.universe-planet:focus-visible polygon {
+  stroke-width: 3.2px;
+}
+
+.planet-selected circle:nth-child(2),
+.planet-selected polygon {
+  stroke: var(--neon-gold) !important;
+  stroke-width: 3.5px !important;
+  filter: drop-shadow(0 0 12px rgba(216, 180, 106, 0.8));
+}
+
+@keyframes orbit-pulse {
+  0% { transform: scale(1); opacity: 0.15; }
+  50% { transform: scale(1.3); opacity: 0.35; }
+  100% { transform: scale(1); opacity: 0.15; }
+}
+
+.planet-pulse {
+  transform-origin: center;
+  animation: orbit-pulse 3.5s ease-in-out infinite;
+}
+
+@keyframes dash-flow {
+  to { stroke-dashoffset: -24; }
+}
+
+.universe-workflow-line[stroke-dasharray] {
+  animation: dash-flow 3s linear infinite;
+}
+
+.universe-footer-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--neon-gray);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.universe-legend {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.universe-legend .legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.universe-legend .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.universe-legend .dot-verified { background: var(--neon-green); }
+.universe-legend .dot-reported { background: var(--neon-cyan); }
+.universe-legend .dot-blocked { background: var(--neon-red); }
+.universe-legend .dot-unknown { background: var(--neon-gray); }
+[data-mode="demo"] .universe-legend .dot-verified { background: var(--neon-magenta); }
+
+.universe-summary {
+  display: flex;
+  gap: 14px;
+  font-size: 11.5px;
+}
+
+.universe-summary strong {
+  color: #fff;
+}
+
 /* Responsive & Reduced Motion */
 @media (max-width: 760px) {
   .counts, .garden { grid-template-columns: 1fr; }
@@ -407,14 +583,25 @@ section h2::before {
   .lane-link { display: none; }
   main { padding: 10px 14px 28px; }
   .arbi-grid { grid-template-columns: 1fr; }
+  .universe-header { flex-direction: column; align-items: flex-start; }
+  .universe-footer-bar { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .universe-legend { gap: 10px; }
+  .kolibri-universe-section { padding: 14px; margin: 20px 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card, .flower, .bird, a.link, .lane-stage, .scroller ul {
+  .card, .flower, .bird, a.link, .lane-stage, .scroller ul,
+  .universe-planet, .planet-pulse, .universe-workflow-line {
     transition: none !important;
     animation: none !important;
   }
   #particles { display: none; }
 }
+
+.universe-paused .planet-pulse,
+.universe-paused .universe-workflow-line {
+  animation: none !important;
+}
+
 
 
