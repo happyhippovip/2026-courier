@@ -1,6 +1,13 @@
+import sys
+from pathlib import Path
 from enum import Enum
 import dataclasses
 from typing import Optional
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from scripts.coordination_ledger import AgentID, CoordinationEvent, EventType, MissionStatus
 
 class NextActionType(str, Enum):

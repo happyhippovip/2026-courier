@@ -1,4 +1,11 @@
+import sys
+from pathlib import Path
 from typing import Dict, List, Optional
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from scripts.coordination_ledger import CoordinationReducer, MissionStatus, EventType
 from scripts.coordination_delivery import NextAction, NextActionType, AgentID
 
