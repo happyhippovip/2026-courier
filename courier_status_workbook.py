@@ -54,8 +54,8 @@ def build_cells(stand_utc):
     for i, h in enumerate(["key", "owner", "status", "branch/sha", "evidence", "next"]):
         c[cell(i, 11)] = h
     for r, row in enumerate([
-        ["FREE-1", "FREE", "open, recipe ready", "trunk scripts/windows_worker/dist/*",
-         "handoff forensics + raw 200/947B", "Shell: git rm + PR"],
+        ["FREE-1", "FREE", "VERIFIED_CURRENT", "grokbot/gb-free-01",
+         "untracked 55 files, .gitignore dist/, 97/97 tests pass", "merged to candidate"],
         ["E-L3-1+", "L3", "specified", "courier_worker/host.py dispatch job",
          "static verified (WIN-WORKER)", "Shell: live repro + fix"],
         ["E-L3-2", "L3", "specified", "host.py:920/725", "static verified", "Shell: wrap + test"],
@@ -141,7 +141,7 @@ def build_cells(stand_utc):
         ["P0", "Muse restart + shell probe", "Dennis", "user-seitig"],
         ["P0", "TUI /settings enge Allows prüfen", "Dennis", "user-seitig"],
         ["P1", "Varianten-Kollision #140/#145/#153 + base=main", "L1/Dennis", "Entscheidung"],
-        ["P1", "FREE-1 ausführen (git rm + PR)", "Shell-Fenster", "Shell"],
+        ["P1", "FREE-1 ausgeführt (git rm dist/ + .gitignore)", "grokbot/gb-free-01", "VERIFIED"],
         ["P1", "E-L3 live repro + fixes + CAP-1", "L3/Shell", "Shell"],
         ["P1", "BREAKER-Patches auf #153 anwenden+testen", "Shell/L2", "Shell"],
         ["P2", "#200 R-200-1 bounded re-sample", "Cursor-Owner", "Owner-PR"],
