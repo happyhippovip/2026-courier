@@ -95,7 +95,7 @@ def test_429_quota_exhausted_opens_circuit_with_reset():
 
 def test_naive_reset_timestamp_does_not_crash_scheduler_path():
     sched = CourierScheduler()
-    naive = datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
+    naive = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None) + datetime.timedelta(minutes=15)
     assert naive.tzinfo is None
     sched.breaker.record_failure("muse", "completion", 429, "quota exhausted",
                                  reset_time=naive)
