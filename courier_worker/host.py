@@ -960,7 +960,16 @@ class WorkerHost:
         if outcome != Outcome.COMPLETED:
             crash_report_path = write_crash_report(
                 spec.artifact_dir, spec, outcome, returncode, duration_s, run.stderr_path)
-        artifacts = collect_artifacts(spec.artifact_dir)
+        try:
+            artifacts = collect_artifacts(spec.artifact_dir)
+        except ContainmentError:
+            # Artifact bounds exceeded: report non-retryable failure instead of crashing host (E-L3-2)
+            outcome = Outcome.CRASH
+            artifacts = ()
+            if returncode is None or returncode == 0:
+                returncode = 1
+            crash_report_path = write_crash_report(
+                spec.artifact_dir, spec, outcome, returncode, duration_s, run.stderr_path)
         return ExecutionResult(
             spec=spec, outcome=outcome, returncode=returncode,
             was_signal=returncode is not None and returncode < 0,

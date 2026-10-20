@@ -44,6 +44,7 @@ from courier_worker.host import (
     outbox_read_all,
     outbox_remove,
     outbox_write,
+    OutboxFull,
     release_home_lock,
     run_orphan_gate,
 )
@@ -522,7 +523,19 @@ class WorkerLoop:
         return True
 
     def _deliver_payload(self, payload: dict) -> None:
-        outbox_write(self.home, payload)
+        try:
+            outbox_write(self.home, payload)
+        except OutboxFull:
+            # Outbox at capacity: flush pending results first, then retry write once (E-L3-3)
+            try:
+                self.flush_outbox()
+            except Exception:
+                pass
+            try:
+                outbox_write(self.home, payload)
+            except OutboxFull:
+                # Still full: do not crash the host process; log/leave unpersisted and return
+                return
         try:
             self._client.deliver(payload)
         except ControllerError:
