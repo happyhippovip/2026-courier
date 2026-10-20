@@ -309,8 +309,13 @@ At update time (2026-10-07):
   - State Isolation bereinigt und verifiziert (`scripts/verify_state_isolation.py`: PASS).
   - Auth, Process & Resource Admission Boundaries validiert (`scripts/verify_auth_boundaries.py`, `scripts/verify_process_isolation.py`, `scripts/verify_resource_admission.py`, `tests/boundaries/run_boundaries.py`: 14/14 PASS).
   - 100% GRÜN: 3040 Pytest PASS (8 Windows-Skips auf Darwin), 32 Node Desktop PASS, 11 Golden Skips PASS (Ratchet holds), Local Safety `new=0`.
+- **STEP 57 SECURITY STACK V3 & LOCAL SHELL HARDENING (20.10.2026):**
+  - Schließung der kritischen L4-Sicherheitslücke in `adapters/local_shell.py`: Fail-Closed Abweisung von Permission-Bypass Flags (`--dangerously-skip-permissions`, `--skip-permissions`, `--no-sandbox`), Prozesskapselung und Verhinderung verwaister Kindprozesse via `_kill_process_tree` (`start_new_session=True` / `CREATE_NEW_PROCESS_GROUP`), sowie Bereinigung von `COURIER_CONTROLLER_TOKEN` aus dem Subprozess-Environment.
+  - Tests: `tests/test_local_shell_adapter.py` auf 25/25 PASS erweitert.
+  - Desktop Suite: 38/38 PASS (`evidence_badge.mjs`, `hub_core`, `kolibri_flow`, `kolibri_universe`).
+  - State Isolation & Boundary Integrity: Bereinigt und validiert (`verify_state_isolation.py`: VALID, 14/14 Boundary Properties PASS).
 - next critical implementation path:
-  **L1 PROMOTION & WINDOWS-HOST ACCEPTANCE**: Freigabe und Push von `integration/v1` (`cdace49f..HEAD`) durch Dennis/L1 Owner, anschließend Validierung auf dem sauberen Windows-Host.
+  **WINDOWS CLEAN-MACHINE ACCEPTANCE & WEBSITE HUMAN GATE**: Abnahme auf dem sauberen Windows-Host nach Host-Boot; Prüfung des Website-Impressums am Dennis Human-Gate (`fc219a1`).
 
 Never trust this SHA after new work without checking GitHub.
 

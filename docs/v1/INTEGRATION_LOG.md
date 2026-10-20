@@ -866,3 +866,18 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
 - Full verification: 3040 Pytest PASS (8 honest Windows-only skips on macOS Darwin arm64), 32 Node Desktop PASS, 14 Boundary Properties PASS (0 defects), 11 Golden Skips PASS (ratchet holds), Local Safety `new=0`.
 - Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `NO_UNAUTHORIZED_MERGE=YES`.
 
+## Step 57 — Security Stack V3 & Local Shell Adapter Hardening (Commit `b511f5772`)
+### `adapters/local_shell.py` & `tests/test_local_shell_adapter.py`
+- Closed critical security gap in L4 `adapters/local_shell.py`:
+  - **Fail-Closed Permission Bypass Filter:** Parameter validator rejects `--dangerously-skip-permissions`, `--skip-permissions`, and `--no-sandbox` immediately with `LocalShellError`.
+  - **Process Tree Containment (`_kill_process_tree`):** Spawned children are isolated in a new session (`start_new_session=True` under POSIX, `CREATE_NEW_PROCESS_GROUP` on Windows); timeouts and abnormal exits terminate the entire process group, eliminating orphan processes.
+  - **Environment Sanitization:** Scrubbed `COURIER_CONTROLLER_TOKEN` from the child environment before spawn.
+- Verified test coverage: `tests/test_local_shell_adapter.py` expanded to 25/25 PASS.
+- Verified full regression and isolation:
+  - `tests/test_adapter_runner.py` + `tests/test_l3_worker_host.py`: 106 PASS, 1 honest skip.
+  - `tests/boundaries/run_boundaries.py`: 14/14 PASS (0 defects).
+  - `scripts/verify_state_isolation.py`: Cleaned stale test artifacts from `server/state/` (`STATE ISOLATION VALID`).
+  - Desktop Node.js Suite (`tests/desktop/*.test.mjs`): 38/38 PASS.
+- Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
+
+
