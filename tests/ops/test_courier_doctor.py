@@ -76,6 +76,17 @@ def test_diagnostics_bundle_v1(tmp_path, monkeypatch):
         ledger = zf.read("courier.db")
         assert b"secret_token_12345" not in ledger
         assert b"ghp_abcdefghijklmnopqrstuvwxyz" not in ledger
+        opened_path = tmp_path / "opened.db"
+        opened_path.write_bytes(ledger)
+        opened = sqlite3.connect(opened_path)
+        try:
+            note = opened.execute("SELECT note FROM events").fetchone()[0]
+            kind = opened.execute("SELECT type FROM events").fetchone()[0]
+        finally:
+            opened.close()
+        assert kind == "START"
+        assert "secret_token_12345" not in note
+        assert "ghp_" not in note
 
 
 def _home(tmp_path, monkeypatch):

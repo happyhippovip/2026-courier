@@ -90,13 +90,19 @@ def redact_secrets(content, secrets):
     return TOKEN_SHAPES.sub("***REDACTED***", content)
 
 
+def _same_length_mask(value):
+    """Keep the surrounding file the same size. A shorter mask corrupts SQLite."""
+    return "*" * len(value)
+
+
 def redact_secret_bytes(data, secrets):
-    """Scrub a file that may be binary. Known secrets and token shapes go away."""
+    """Scrub a binary file without moving the bytes that follow a secret."""
     for secret in secrets:
         if secret and len(secret) > 4:
-            data = data.replace(secret.encode("utf-8"), b"***REDACTED***")
+            raw = secret.encode("utf-8")
+            data = data.replace(raw, b"*" * len(raw))
     text = data.decode("latin-1")
-    text = TOKEN_SHAPES.sub("***REDACTED***", text)
+    text = TOKEN_SHAPES.sub(lambda match: _same_length_mask(match.group(0)), text)
     return text.encode("latin-1")
 
 def export_diagnostics(out_path):
