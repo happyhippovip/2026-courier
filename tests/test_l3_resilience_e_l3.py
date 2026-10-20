@@ -137,3 +137,67 @@ def test_e_l3_4_persistent_error_quarantined_after_max_attempts(tmp_path):
     meta_file = home / "outbox" / "quarantine" / "dsp-retry.meta.json"
     assert meta_file.is_file()
     assert "max_attempts_exceeded (5)" in meta_file.read_text(encoding="utf-8")
+
+
+def test_e_l3_5_recycled_owner_pid_detected_and_reaped(tmp_path):
+    """E-L3-5: Recycled PID with divergent create_time is recognized as dead owner and reaped."""
+    import os, json
+    from courier_worker.host import _owner_alive, run_orphan_gate, _get_process_create_time
+
+    current_pid = os.getpid()
+    actual_create_time = _get_process_create_time(current_pid)
+    assert actual_create_time is not None
+
+    # Mismatched create_time simulates PID recycled after former owner's death
+    bogus_create_time = actual_create_time - 3600.0  # 1 hour earlier
+    assert not _owner_alive(current_pid, owner_create_time=bogus_create_time)
+
+    # Place a claim record with mismatched create_time in claims directory
+    claims_dir = tmp_path / "run" / "claims"
+    claims_dir.mkdir(parents=True, exist_ok=True)
+    claim_file = claims_dir / "dispatch-recycled-1.json"
+    record = {
+        "task_id": "t-recycled",
+        "dispatch_id": "dsp-recycled",
+        "worker_id": "w-recycled",
+        "owner_pid": current_pid,
+        "owner_create_time": bogus_create_time,
+        "child_pid": 0,
+    }
+    claim_file.write_text(json.dumps(record), encoding="utf-8")
+
+    # run_orphan_gate should reap this claim record because the owner was recycled
+    reaped = run_orphan_gate(str(tmp_path))
+    assert reaped == 1
+    assert not claim_file.exists()
+
+
+def test_e_l3_5_matching_owner_pid_and_create_time_preserved(tmp_path):
+    """E-L3-5: Matching PID and create_time confirms genuine live owner and hands off."""
+    import os, json
+    from courier_worker.host import _owner_alive, run_orphan_gate, _get_process_create_time
+
+    current_pid = os.getpid()
+    actual_create_time = _get_process_create_time(current_pid)
+    assert actual_create_time is not None
+
+    # Exact matching create_time confirms authentic live owner
+    assert _owner_alive(current_pid, owner_create_time=actual_create_time)
+
+    claims_dir = tmp_path / "run" / "claims"
+    claims_dir.mkdir(parents=True, exist_ok=True)
+    claim_file = claims_dir / "dispatch-active-1.json"
+    record = {
+        "task_id": "t-active",
+        "dispatch_id": "dsp-active",
+        "worker_id": "w-active",
+        "owner_pid": current_pid,
+        "owner_create_time": actual_create_time,
+        "child_pid": 0,
+    }
+    claim_file.write_text(json.dumps(record), encoding="utf-8")
+
+    # Genuine active owner must NOT be reaped
+    reaped = run_orphan_gate(str(tmp_path))
+    assert reaped == 0
+    assert claim_file.exists()

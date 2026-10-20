@@ -590,7 +590,18 @@ def _claim_path(home: str, dispatch_id: str) -> Path:
     return _claims_dir(home) / f"dispatch-{safe or 'unnamed'}.json"
 
 
-def _owner_alive(owner_pid: int) -> bool:
+
+def _get_process_create_time(pid: int) -> Optional[float]:
+    """Return process creation timestamp using psutil, or None if unavailable (E-L3-5)."""
+    if pid <= 0:
+        return None
+    try:
+        import psutil
+        return psutil.Process(pid).create_time()
+    except Exception:
+        return None
+
+def _owner_alive(owner_pid: int, owner_create_time: Optional[float] = None) -> bool:
     if owner_pid <= 0:
         return False
     try:
@@ -600,18 +611,35 @@ def _owner_alive(owner_pid: int) -> bool:
             if not handle:
                 return False
             ctypes.windll.kernel32.CloseHandle(handle)
-            return True
-        os.kill(owner_pid, 0)
-        return True
+        else:
+            os.kill(owner_pid, 0)
     except (OSError, ProcessLookupError):
         return False
+
+    # Verify that the live process matches the recorded create_time against PID recycling (E-L3-5)
+    if owner_create_time is not None:
+        live_create_time = _get_process_create_time(owner_pid)
+        if live_create_time is not None:
+            # 1.0 second tolerance for timestamp float representation differences across queries
+            if abs(live_create_time - owner_create_time) > 1.0:
+                return False  # PID was recycled by the OS!
+    return True
 
 
 def _write_claim_record(home: str, spec: ExecutionSpec, run: ContainedRun) -> Path:
     _claims_dir(home).mkdir(parents=True, exist_ok=True)
-    record = {"task_id": spec.task_id, "attempt": spec.attempt, "dispatch_id": spec.dispatch_id,
-              "worker_id": spec.worker_id, "owner_pid": os.getpid(), "child_pid": run.pid,
-              "pgid": run.group_id()}
+    owner_pid = os.getpid()
+    record = {
+        "task_id": spec.task_id,
+        "attempt": spec.attempt,
+        "dispatch_id": spec.dispatch_id,
+        "worker_id": spec.worker_id,
+        "owner_pid": owner_pid,
+        "owner_create_time": _get_process_create_time(owner_pid),
+        "child_pid": run.pid,
+        "child_create_time": _get_process_create_time(run.pid) if run.pid > 0 else None,
+        "pgid": run.group_id(),
+    }
     path = _claim_path(home, spec.dispatch_id)
     fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".claim-", suffix=".tmp")
     try:
@@ -645,7 +673,13 @@ def run_orphan_gate(home: str) -> int:
             except OSError:
                 pass
             continue
-        if _owner_alive(owner_pid):
+        owner_create_time = record.get("owner_create_time")
+        if owner_create_time is not None:
+            try:
+                owner_create_time = float(owner_create_time)
+            except (ValueError, TypeError):
+                owner_create_time = None
+        if _owner_alive(owner_pid, owner_create_time=owner_create_time):
             continue  # another live host owns this tree; hands off
         _reap_orphan(record)
         try:
@@ -658,6 +692,15 @@ def run_orphan_gate(home: str) -> int:
 
 def _reap_orphan(record: dict) -> None:
     child_pid = int(record.get("child_pid", 0) or 0)
+    child_create_time = record.get("child_create_time")
+    if child_create_time is not None:
+        try:
+            child_create_time = float(child_create_time)
+            live_child_ct = _get_process_create_time(child_pid)
+            if live_child_ct is not None and abs(live_child_ct - child_create_time) > 1.0:
+                return  # child pid was recycled by an unrelated process (E-L3-5)
+        except (ValueError, TypeError):
+            pass
     pgid = record.get("pgid")
     if os.name == "nt":
         return  # KILL_ON_JOB_CLOSE already reaped the tree at host death
