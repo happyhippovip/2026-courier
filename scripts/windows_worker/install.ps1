@@ -6,7 +6,8 @@ param (
 
 $IsAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-Not $IsAdmin) {
-    Write-Host "WARNING: Not running as Administrator. Scheduled Task will not be registered." -ForegroundColor Yellow
+    Write-Host "ERROR: this installer writes to Program Files and must be run as Administrator." -ForegroundColor Red
+    exit 1
 }
 
 $InstallDir = "$env:ProgramFiles\CourierWorker"
@@ -65,9 +66,9 @@ $configObj | ConvertTo-Json | Set-Content $ConfigPath
 
 $tokenPath = Join-Path $DataDir "run\controller.token"
 $ApiKey | Set-Content $tokenPath -NoNewline
-# SYSTEM runs the scheduled task. Other local users must not read the token.
+# The installing user runs the task. Other local users must not read the token.
 $ownerSid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
-& icacls $tokenPath /inheritance:r /grant:r "*S-1-5-18:(R)" "*${ownerSid}:(R)" | Out-Null
+& icacls $tokenPath /inheritance:r /grant:r "*${ownerSid}:(R)" | Out-Null
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: could not restrict access to $tokenPath." -ForegroundColor Red
     exit 1
@@ -79,27 +80,27 @@ Write-Host "Token saved to $tokenPath."
 Write-Host "Copying files to $InstallDir..."
 Copy-Item "$PSScriptRoot\*" -Destination $InstallDir -Recurse -Force
 
-if ($IsAdmin) {
-    Write-Host "Registering Scheduled Task..."
-    $taskName = "CourierWindowsWorker"
-    $scriptPath = "$InstallDir\Courier.exe"
+Write-Host "Registering Scheduled Task..."
+$taskName = "CourierWindowsWorker"
+$scriptPath = "$InstallDir\Courier.exe"
+$userId = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 
-    if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
-        Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
-    }
-
-    $trigger = New-ScheduledTaskTrigger -AtStartup
-    $action = New-ScheduledTaskAction -Execute $scriptPath -WorkingDirectory $InstallDir
-    $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
-    # Task Scheduler stops a task after 72 hours and does not restart it.
-    # The worker stays up, restarts after a failure, and never starts a second copy.
-    $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -StartWhenAvailable -MultipleInstances IgnoreNew
-    Register-ScheduledTask -TaskName $taskName -Trigger $trigger -Action $action -Principal $principal -Settings $settings | Out-Null
-
-    Write-Host "Starting Service..."
-    Start-ScheduledTask -TaskName $taskName
-} else {
-    Write-Host "Skipped Scheduled Task registration (requires Administrator)." -ForegroundColor Yellow
+if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
+    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
 }
 
-Write-Host "Courier installed successfully!"
+$trigger = New-ScheduledTaskTrigger -AtLogOn -User $userId
+$action = New-ScheduledTaskAction -Execute $scriptPath -WorkingDirectory $InstallDir
+$principal = New-ScheduledTaskPrincipal -UserId $userId -LogonType Interactive -RunLevel Limited
+# Task Scheduler stops a task after 72 hours and does not restart it.
+# The worker stays up, restarts after a failure, and never starts a second copy.
+$settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -StartWhenAvailable -MultipleInstances IgnoreNew
+Register-ScheduledTask -TaskName $taskName -Trigger $trigger -Action $action -Principal $principal -Settings $settings | Out-Null
+
+Write-Host "Starting the worker..."
+try {
+    Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
+    Write-Host "Courier installed and started for $userId."
+} catch {
+    Write-Host "Courier installed for $userId. It will start at the next logon."
+}

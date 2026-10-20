@@ -34,6 +34,17 @@ def test_install_task_survives_and_restarts():
         assert re.search(r"Register-ScheduledTask\b[^\n]*-Settings\s+\$settings", text)
 
 
+def test_install_task_runs_as_the_installing_user():
+    for path in INSTALLERS:
+        text = path.read_text(encoding="utf-8")
+        assert 'UserId "SYSTEM"' not in text
+        assert "ServiceAccount" not in text
+        assert "installed successfully" not in text
+        assert "must be run as Administrator." in text
+        assert "-AtLogOn" in text
+        assert "GetCurrent().Name" in text
+
+
 def test_daemon_default_server_is_loopback():
     text = DAEMON.read_text(encoding="utf-8")
     assert 'DEFAULT_SERVER = "http://127.0.0.1:8080"' in text
