@@ -505,3 +505,19 @@ def test_windows_worker_costgate_enforced(tmp_path, monkeypatch):
     assert res_nan["status"] == "FAILED"
     assert "COST_GATE_DENIED" in res_nan["stderr"]
     assert res_nan.get("blocked") is True
+
+
+def test_stop_and_status_scripts_process_hygiene_contract():
+    """Beweis: stop.bat und status.bat zielen präzise auf die vom CourierLauncher
+    geschriebene worker.pid in %LOCALAPPDATA%\\Courier, verwenden taskkill nur mit /PID
+    und verletzen niemals die Process-Hygiene-Regel (kein taskkill /IM)."""
+    repo_root = Path(__file__).resolve().parents[1]
+    stop_bat = (repo_root / "scripts" / "windows_worker" / "stop.bat").read_text(encoding="utf-8")
+    status_bat = (repo_root / "scripts" / "windows_worker" / "status.bat").read_text(encoding="utf-8")
+
+    assert "%LOCALAPPDATA%\\Courier\\worker.pid" in stop_bat, "stop.bat must target %LOCALAPPDATA%\\Courier\\worker.pid"
+    assert "%LOCALAPPDATA%\\Courier\\worker.pid" in status_bat, "status.bat must check %LOCALAPPDATA%\\Courier\\worker.pid"
+
+    assert "/IM" not in stop_bat, "stop.bat must not use taskkill /IM (kill by name)"
+    assert "/IM" not in status_bat, "status.bat must not use taskkill /IM"
+    assert "/PID" in stop_bat, "stop.bat must kill by exact PID"
