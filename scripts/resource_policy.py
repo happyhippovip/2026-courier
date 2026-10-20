@@ -212,6 +212,7 @@ class TaskLeaseManager:
                 f.write(payload_bytes)
                 f.flush()
                 os.fsync(f.fileno())
+            self._sync_authority_acquire(task_id, task_hash, owner_id, duration_sec, lease_data)
             return True, "LEASE_ACQUIRED", lease_data
         except FileExistsError:
             pass
@@ -230,6 +231,7 @@ class TaskLeaseManager:
                     # Renew lease atomically (only for the same input)
                     existing["expires_at"] = now_ts + duration_sec
                     save_json(lease_path, existing)
+                    self._sync_authority_acquire(task_id, task_hash, owner_id, duration_sec, existing)
                     return True, "LEASE_RENEWED", existing
                 else:
                     # Another builder holds an active unexpired lease
@@ -258,6 +260,7 @@ class TaskLeaseManager:
             temp_reclaim = lease_path.with_suffix(f".tmp.{os.getpid()}.{now_ts}")
             save_json(temp_reclaim, lease_data)
             os.replace(temp_reclaim, lease_path)
+            self._sync_authority_acquire(task_id, task_hash, owner_id, duration_sec, lease_data)
             return True, "LEASE_RECLAIMED_EXPIRED", lease_data
         finally:
             try:
@@ -266,14 +269,58 @@ class TaskLeaseManager:
                 pass
             reclaim_lock_path.unlink(missing_ok=True)
 
+    def _sync_authority_acquire(
+        self,
+        task_id: str,
+        task_hash: str,
+        owner_id: str,
+        duration_sec: int,
+        lease_dict: dict,
+    ) -> None:
+        try:
+            from courier_runtime.lease import LeaseStore, LeaseConflict
+            authority_db = self.locks_dir / "authority.db"
+            store = LeaseStore(authority_db)
+            try:
+                clean_id = task_id.replace("/", "_").replace("\\", "_")
+                scope = f"task:{clean_id}"
+                rec = store.acquire(scope=scope, holder=owner_id, workkey=task_hash, ttl_s=duration_sec)
+                lease_dict["fencing_token"] = rec.token
+            except LeaseConflict:
+                pass
+            finally:
+                store.close()
+        except Exception:
+            pass
+
+    def _sync_authority_release(self, task_id: str, owner_id: str) -> None:
+        try:
+            from courier_runtime.lease import LeaseStore
+            authority_db = self.locks_dir / "authority.db"
+            if not authority_db.exists():
+                return
+            store = LeaseStore(authority_db)
+            try:
+                clean_id = task_id.replace("/", "_").replace("\\", "_")
+                scope = f"task:{clean_id}"
+                lease = store.current(scope)
+                if lease and lease.holder == owner_id:
+                    store.release(lease)
+            finally:
+                store.close()
+        except Exception:
+            pass
+
     def release_lease(self, task_id: str, owner_id: str) -> bool:
         lease_path = self._get_lease_path(task_id)
         if not lease_path.exists():
+            self._sync_authority_release(task_id, owner_id)
             return True
         existing = load_json(lease_path)
         if existing and existing.get("owner_id") == owner_id:
             try:
                 lease_path.unlink(missing_ok=True)
+                self._sync_authority_release(task_id, owner_id)
                 return True
             except Exception:
                 return False

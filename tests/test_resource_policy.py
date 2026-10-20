@@ -175,3 +175,30 @@ def test_task_dedupe_engine_missing_expected_hash(repo_dir):
     
     cached = engine.get_cached_result(task_hash)
     assert cached is None
+
+
+def test_task_lease_manager_syncs_authority_db(repo_dir):
+    from courier_runtime.lease import LeaseStore
+
+    tlm = TaskLeaseManager(repo_dir)
+    success, reason, data = tlm.acquire_lease("job-task-99", "hash99", "runner-alpha", duration_sec=60)
+    assert success is True
+    assert "fencing_token" in data
+    assert data["fencing_token"] >= 1
+
+    # Verify authority.db contains the active lease under scope
+    authority_db = repo_dir / "events" / "locks" / "authority.db"
+    assert authority_db.exists()
+    store = LeaseStore(authority_db)
+    lease = store.current("task:job-task-99")
+    assert lease is not None
+    assert lease.holder == "runner-alpha"
+    assert lease.token == data["fencing_token"]
+    store.close()
+
+    # Release and verify it is cleared in authority.db
+    assert tlm.release_lease("job-task-99", "runner-alpha") is True
+    store2 = LeaseStore(authority_db)
+    assert store2.current("task:job-task-99") is None
+    store2.close()
+
