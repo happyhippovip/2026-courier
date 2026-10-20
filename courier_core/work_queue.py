@@ -243,8 +243,9 @@ class WorkQueue:
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
         try:
-            if os.fstat(fd).st_size == 0:
-                os.write(fd, b"\0")
+            # Windows byte locks are mandatory and cover a range past the end
+            # of the file. Writing a first byte here can land in byte 0 after
+            # another claimant has locked it, which raises PermissionError.
             os.lseek(fd, 0, os.SEEK_SET)
             if os.name == "nt":
                 import msvcrt
