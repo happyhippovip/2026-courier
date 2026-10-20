@@ -98,6 +98,7 @@ def make_success_result(task):
         "run_id": "run-success-125",
         "result_id": f"result-success-{task['attempt_id']}",
         "status": "SUCCESS",
+        "source_sha": "0" * 40,
         "artifacts": [
             {
                 "path": "out_125.txt",
@@ -117,6 +118,7 @@ def make_failed_result(task):
         "run_id": f"run-failed-{task['attempt_id']}",
         "result_id": f"result-failed-{task['attempt_id']}",
         "status": "FAILED",
+        "source_sha": "0" * 40,
         "artifacts": [],
     }
 

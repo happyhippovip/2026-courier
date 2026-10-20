@@ -176,6 +176,16 @@ def test_check_skipped_tests_policy():
     assert ok is False
     assert any("REQUIRED_TEST_MISSING: test_cost_limit" in v for v in violations)
 
+    # Scenario 4: Required test present but FAILED/ERROR must be rejected
+    results_failed = [
+        {"name": "test_security_gate", "status": "FAILED"},
+        {"name": "test_cost_limit", "status": "PASSED"},
+        {"name": "test_symlink_escape", "status": "PASSED"},
+    ]
+    ok, violations = check_skipped_tests(results_failed, required_suite, allowed_patterns)
+    assert ok is False
+    assert any("REQUIRED_TEST_NOT_PASSED: test_security_gate" in v for v in violations)
+
 
 def test_twelve_case_matrix_evaluation():
     # Build complete passing evidence dict
@@ -197,3 +207,10 @@ def test_twelve_case_matrix_evaluation():
     assert failing_report["all_passed"] is False
     assert failing_report["passed_count"] == 11
     assert failing_report["matrix"]["CASE_06_ZERO_SPEND_LIMIT_FAIL_CLOSED"]["status"] == "FAIL"
+
+    # Empty proof_sha on PASS entry must be rejected
+    missing_proof_evidence = dict(complete_evidence)
+    missing_proof_evidence["CASE_01_LOCAL_DETERMINISTIC"] = {"status": "PASS", "proof_sha": "   "}
+    no_proof_report = evaluate_twelve_case_matrix(missing_proof_evidence)
+    assert no_proof_report["all_passed"] is False
+    assert no_proof_report["passed_count"] == 11

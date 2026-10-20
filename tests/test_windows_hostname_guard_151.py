@@ -3,6 +3,7 @@
 Tests both synthetic positive/negative edge cases and live Windows host verification.
 """
 import os
+from pathlib import Path
 import platform
 import socket
 import subprocess
@@ -103,14 +104,15 @@ def test_host_guardian_integration_mismatch_locks_admission(monkeypatch):
 def test_cli_verify_windows_hostname_subprocess():
     """Verify standalone script process execution and exit codes."""
     py = sys.executable
-    script = os.path.join("scripts", "verify_windows_hostname.py")
+    repo_root = Path(__file__).resolve().parent.parent
+    script = str(repo_root / "scripts" / "verify_windows_hostname.py")
 
     # 1. Successful execution
-    proc_ok = subprocess.run([py, script], capture_output=True, text=True)
+    proc_ok = subprocess.run([py, script], capture_output=True, text=True, cwd=str(repo_root))
     assert proc_ok.returncode == 0
     assert "WINDOWS HOSTNAME VALID" in proc_ok.stdout
 
     # 2. Rejected execution with foreign expected host
-    proc_fail = subprocess.run([py, script, "--expected-host", "FOREIGN-NODE-99"], capture_output=True, text=True)
+    proc_fail = subprocess.run([py, script, "--expected-host", "FOREIGN-NODE-99"], capture_output=True, text=True, cwd=str(repo_root))
     assert proc_fail.returncode == 1
     assert "WINDOWS HOSTNAME FAILED" in proc_fail.stdout

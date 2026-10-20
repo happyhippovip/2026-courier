@@ -136,6 +136,7 @@ def test_result_artifacts_exceeding_max_count_rejected_400(env):
         "run_id": "run-obs-106",
         "result_id": "result-too_many_arts",
         "status": "SUCCESS",
+        "source_sha": "0" * 40,
         "artifacts": too_many_artifacts,
     }
 
@@ -158,6 +159,7 @@ def test_result_single_artifact_exceeding_max_bytes_rejected_400(env):
         "run_id": "run-obs-106",
         "result_id": "result-too_large_art",
         "status": "SUCCESS",
+        "source_sha": "0" * 40,
         "artifacts": [
             {"path": "out.txt", "sha256": "0" * 64, "artifact_id": f"art-{'a' * 64}", "size": MAX_ARTIFACT_BYTES + 1}
         ],
@@ -184,6 +186,7 @@ def test_result_total_artifacts_exceeding_max_bytes_rejected_400(env):
         "run_id": "run-obs-106",
         "result_id": "result-total_size_oversized",
         "status": "SUCCESS",
+        "source_sha": "0" * 40,
         "artifacts": [
             {"path": "out1.txt", "sha256": "0" * 64, "artifact_id": f"art-{'1' * 64}", "size": half},
             {"path": "out2.txt", "sha256": "0" * 64, "artifact_id": f"art-{'2' * 64}", "size": half},
@@ -226,6 +229,7 @@ def test_valid_result_within_size_limits_accepted_200(env):
         "run_id": "run-obs-106",
         "result_id": "res-valid-106",
         "status": "SUCCESS",
+        "source_sha": "0" * 40,
         "artifacts": [
             {"path": "out.txt", "sha256": "a" * 64}
         ],
@@ -254,6 +258,7 @@ def test_boundary_exact_max_artifacts_accepted(env):
         "run_id": "run-b64",
         "result_id": "res-b64",
         "status": "SUCCESS",
+        "source_sha": "0" * 40,
         "artifacts": exact_64,
     }
     res = client.post("/tasks/result", headers=AUTH_HEADERS, json=payload)
@@ -276,6 +281,7 @@ def test_negative_and_boolean_artifact_size_rejected(env):
             "run_id": "run-bad-size",
             "result_id": f"res-bad-size-{idx}",
             "status": "SUCCESS",
+            "source_sha": "0" * 40,
             "artifacts": [{"path": "out.txt", "sha256": "0" * 64, "size": bad_size}],
         }
         res = client.post("/tasks/result", headers=AUTH_HEADERS, json=payload)
@@ -332,6 +338,7 @@ def test_persistence_and_restart_reconstruction_with_size_limits(env):
         "run_id": "run-restart-106",
         "result_id": "res-restart-106",
         "status": "SUCCESS",
+        "source_sha": "0" * 40,
         "artifacts": [{"path": "out.txt", "sha256": "c" * 64, "size": 4096}],
     }
 
@@ -363,6 +370,7 @@ def test_idempotent_duplicate_resend_preserves_persisted_state(env):
         "run_id": "run-idemp-106",
         "result_id": "res-idemp-106",
         "status": "SUCCESS",
+        "source_sha": "0" * 40,
         "artifacts": [{"path": "out.txt", "sha256": "d" * 64, "size": 2048}],
     }
 

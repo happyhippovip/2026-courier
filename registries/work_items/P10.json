@@ -1,0 +1,23 @@
+{
+  "id": "P10",
+  "title": "Verify artifact collection integrity and path containment",
+  "lane": "L4",
+  "branch": "lane/L4-artifact-verifier-P10",
+  "files_scope": [
+    "courier_core/artifact_verifier.py",
+    "tests/test_artifact_verifier.py"
+  ],
+  "depends_on": [
+    "P4"
+  ],
+  "acceptance": [
+    "tests",
+    "draft PR"
+  ],
+  "provider_hints": [
+    "headless",
+    "interactive"
+  ],
+  "status": "READY",
+  "lease": null
+}

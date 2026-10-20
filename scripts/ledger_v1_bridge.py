@@ -274,7 +274,11 @@ def _feedback_event(mission, mapping, spec, agent, host, view):
     fingerprint = mapping.get("spec_fingerprint") if isinstance(mapping.get("spec_fingerprint"), str) else None
     if not fingerprint and isinstance(spec, dict):
         fingerprint = _fingerprint(spec)
-    task_id = view.get("task_id") or mapping.get("task_id")
+    view_task_id = view.get("task_id")
+    map_task_id = mapping.get("task_id")
+    if view_task_id is not None and map_task_id is not None and view_task_id != map_task_id:
+        return None
+    task_id = view_task_id or map_task_id
     if not source or not fingerprint or not isinstance(task_id, str) or not task_id:
         return None
     result_id = _result_id(view)
@@ -282,6 +286,9 @@ def _feedback_event(mission, mapping, spec, agent, host, view):
     evidence = _identity(task_id, result_id, attempt, fingerprint, source, goal)
     if status == "COMPLETE":
         if result_id is None:
+            return None
+        resolution = view.get("resolution")
+        if resolution is not None and resolution != "verified":
             return None
         kind, event_type, mission_status = "final", EventType.FINAL, MissionStatus.DONE
         digest_key = f"{task_id}|{result_id}"
@@ -329,7 +336,7 @@ def _identity(task_id, result_id, attempt, fingerprint, source_sha, goal=None) -
 def _result_id(view):
     if not isinstance(view, dict):
         return None
-    for key in ("accepted_result_id", "result_id", "pending_result_id"):
+    for key in ("accepted_result_id", "result_id"):
         value = view.get(key)
         if isinstance(value, str) and value:
             return value

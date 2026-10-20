@@ -1,0 +1,22 @@
+{
+  "id": "P59",
+  "title": "Real-Time Observability Prometheus and OpenTelemetry Metrics Bridge",
+  "lane": "L3",
+  "branch": "lane/L3-metrics-bridge-P59",
+  "files_scope": [
+    "courier_core/metrics_bridge.py",
+    "tests/test_metrics_bridge.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "standard Prometheus text exposition format generation for gauges, counters, and histograms",
+    "aggregation of cluster metrics from sentinel, backpressure, fencing, and replica engines",
+    "in-memory metric registry with labeled metric dimensions and counter increments",
+    "http scrape handler producing valid OpenMetrics responses for monitoring agents",
+    "cli export, inspect, and serve metrics operations"
+  ],
+  "provider_hints": ["local", "metrics-bridge"],
+  "status": "DONE",
+  "lease": null
+}

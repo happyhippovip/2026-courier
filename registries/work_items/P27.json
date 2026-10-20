@@ -1,0 +1,20 @@
+{
+  "id": "P27",
+  "title": "Cross-Host Network RPC Transport Adapter",
+  "lane": "L1",
+  "branch": "lane/L1-rpc-transport-P27",
+  "files_scope": [
+    "courier_core/rpc_transport.py",
+    "tests/test_rpc_transport.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "bearer authentication and signature check",
+    "idempotency key deduplication",
+    "timeout and retry resilience"
+  ],
+  "provider_hints": ["headless", "interactive"],
+  "status": "READY",
+  "lease": null
+}

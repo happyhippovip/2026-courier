@@ -151,15 +151,18 @@ class WorkQueue:
         holder = _require_token(holder, "HOLDER")
         result = _require_result(result)
         moment = _now(now)
+        target_status = "BLOCKED" if _is_failed_result(result) else "DONE"
         with self._lock():
             items = self._effective(moment)
             current = items.get(item_id)
             if current is None:
                 raise WorkQueueError("UNKNOWN_ITEM")
-            if current["status"] == "DONE" and current.get("result") == result and current.get("released_by") == holder:
-                return {"item_id": item_id, "status": "DONE", "result": result, "idempotent": True}
+            if current["status"] in ("DONE", "BLOCKED") and current.get("result") == result and current.get("released_by") == holder:
+                return {"item_id": item_id, "status": current["status"], "result": result, "idempotent": True}
             if current["status"] == "DONE":
                 raise WorkQueueError("ALREADY_DONE")
+            if current["status"] == "BLOCKED":
+                raise WorkQueueError("NOT_CLAIMABLE")
             if not _held(current, moment) or current["lease"]["holder"] != holder:
                 raise WorkQueueError("NOT_HOLDER")
             self._append({
@@ -169,7 +172,7 @@ class WorkQueue:
                 "result": result,
                 "at": _stamp(moment),
             })
-            return {"item_id": item_id, "status": "DONE", "result": result, "idempotent": False}
+            return {"item_id": item_id, "status": target_status, "result": result, "idempotent": False}
 
     def items(self, now=None) -> list[dict]:
         moment = _now(now)
@@ -436,6 +439,11 @@ def _read_ledger(path: Path) -> list[dict]:
     return events
 
 
+def _is_failed_result(result: str) -> bool:
+    norm = result.strip().upper()
+    return norm.startswith(("FAIL", "ABORT", "BLOCK", "ERROR"))
+
+
 def _apply(items: dict[str, dict], event: dict) -> None:
     item = items.get(event.get("item_id"))
     if item is None or item["status"] in ("DONE", "BLOCKED"):
@@ -465,7 +473,7 @@ def _apply(items: dict[str, dict], event: dict) -> None:
         raise WorkQueueError("UNREADABLE")
     if not _event_token(event.get("holder")) or item["lease"]["holder"] != event["holder"]:
         return
-    item["status"] = "DONE"
+    item["status"] = "BLOCKED" if _is_failed_result(result) else "DONE"
     item["lease"] = None
     item["result"] = result.strip()
     item["released_by"] = event["holder"]

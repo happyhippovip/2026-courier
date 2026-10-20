@@ -1,0 +1,22 @@
+{
+  "id": "P29",
+  "title": "Distributed Single-Writer Lock Manager with Monotonic Fencing Tokens",
+  "lane": "L3",
+  "branch": "lane/L3-lock-manager-P29",
+  "files_scope": [
+    "courier_core/lock_manager.py",
+    "tests/test_lock_manager.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "monotonic fencing token increments across acquisitions",
+    "mutual exclusion between competing holders",
+    "split-brain protection: stale token rejection on write guard",
+    "atomic file-backed lease state persistence",
+    "lease renewal and clean release"
+  ],
+  "provider_hints": ["local", "single-writer"],
+  "status": "DONE",
+  "lease": null
+}

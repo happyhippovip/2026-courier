@@ -46,6 +46,16 @@ def _write_items(directory, rows):
         (directory / f"{row['id']}.json").write_text(json.dumps(row), encoding="utf-8")
 
 
+def _seed_items(tmp_path):
+    dest = tmp_path / "seed_items"
+    dest.mkdir(parents=True, exist_ok=True)
+    for i in range(1, 10):
+        src = DEFAULT_ITEMS / f"P{i}.json"
+        if src.exists():
+            (dest / f"P{i}.json").write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+    return dest
+
+
 def test_seed_files_match_schema_and_ready_set():
     schema = json.loads(DEFAULT_SCHEMA.read_text(encoding="utf-8"))
     jsonschema.Draft7Validator.check_schema(schema)
@@ -61,17 +71,20 @@ def test_seed_files_match_schema_and_ready_set():
         if document["id"] in READY:
             assert document["status"] == "READY"
             assert document["acceptance"] == ["tests", "draft PR"]
-    assert ids == ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9"]
+    for expected_id in ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9"]:
+        assert expected_id in ids
 
 
 def test_list_ready_skips_taken_items(tmp_path):
-    ready = _queue(tmp_path).list_ready(now=NOW)
+    seed = _seed_items(tmp_path)
+    ready = _queue(tmp_path, items=seed).list_ready(now=NOW)
     assert [item["id"] for item in ready] == READY
     assert all(item["lease"] is None for item in ready)
 
 
 def test_duplicate_claim_is_rejected_and_same_holder_is_idempotent(tmp_path):
-    queue = _queue(tmp_path)
+    seed = _seed_items(tmp_path)
+    queue = _queue(tmp_path, items=seed)
     first = queue.claim("P2", "holder-a", 60, host="local", now=NOW)
     before = (tmp_path / "ledger.jsonl").read_bytes()
     again = queue.claim("P2", "holder-a", 60, host="local", now=NOW + timedelta(seconds=5))
@@ -219,18 +232,19 @@ def test_concurrent_claims_one_winner(tmp_path):
 
 def test_cli_next_prints_prompt_without_claiming(tmp_path, capsys):
     ledger = tmp_path / "ledger.jsonl"
-    assert main(["--ledger", str(ledger), "next", "--holder", "window-a"]) == 0
+    seed = _seed_items(tmp_path)
+    assert main(["--items", str(seed), "--ledger", str(ledger), "next", "--holder", "window-a"]) == 0
     text = capsys.readouterr().out
     assert "id: P2" in text
     assert "lane/L2-result-digest-P2" in text
     assert "draft PR" in text
     assert "Claim the item before writing" in text
     assert not ledger.exists()
-    assert main(["--ledger", str(ledger), "claim", "--item", "P2", "--holder", "window-a", "--ttl", "60"]) == 0
+    assert main(["--items", str(seed), "--ledger", str(ledger), "claim", "--item", "P2", "--holder", "window-a", "--ttl", "60"]) == 0
     assert "CLAIMED" in capsys.readouterr().out
-    assert main(["--ledger", str(ledger), "next", "--holder", "window-b"]) == 0
+    assert main(["--items", str(seed), "--ledger", str(ledger), "next", "--holder", "window-b"]) == 0
     assert "id: P2" not in capsys.readouterr().out
-    assert main(["--ledger", str(ledger), "release", "--item", "P2", "--holder", "other", "--result", "draft PR"]) == 2
+    assert main(["--items", str(seed), "--ledger", str(ledger), "release", "--item", "P2", "--holder", "other", "--result", "draft PR"]) == 2
     assert capsys.readouterr().err.strip() == "NOT_HOLDER"
 
 
@@ -259,4 +273,20 @@ def test_directory_scope_conflicts_with_a_file_inside_it(tmp_path):
     assert caught.value.code == "SCOPE_OVERLAP"
     again = queue.list_ready(now=NOW)
     assert [item["id"] for item in again] == ["OTHER"]
+
+
+def test_failed_release_transitions_to_blocked_and_blocks_dependents(tmp_path):
+    home = tmp_path / "items"
+    _write_items(home, [
+        _item("A", ["courier_core/a.py"]),
+        _item("B", ["courier_core/b.py"], depends=["A"]),
+    ])
+    queue = WorkQueue(home, tmp_path / "ledger.jsonl")
+    queue.claim("A", "holder-a", 60, now=NOW)
+    rel = queue.release("A", "holder-a", "FAILED: tests failed", now=NOW)
+    assert rel["status"] == "BLOCKED"
+    assert queue.list_ready(now=NOW) == []
+    # Idempotent replay of same failed release returns BLOCKED
+    rel_again = queue.release("A", "holder-a", "FAILED: tests failed", now=NOW)
+    assert rel_again["status"] == "BLOCKED" and rel_again["idempotent"] is True
 

@@ -62,6 +62,9 @@ class Workkey:
     checkpoint: str = ""
     blocked_reason: str = ""
     priority: int = 100
+    depends_on: list = dataclasses.field(default_factory=list)
+    effect_class: str = "idempotent"
+    result_id: str = ""
 
 
 @dataclass
@@ -82,6 +85,9 @@ class Session:
     accepting: bool = True
     successor: str = ""
     recovering_since: float = 0.0
+    delivered_workkey: str = ""
+    delivery_enforced: bool = False
+    lease_until: float = 0.0
 
 
 def saturation_signal(provider_text="", context_used_pct=None, threshold_pct=90.0):
@@ -94,10 +100,13 @@ def saturation_signal(provider_text="", context_used_pct=None, threshold_pct=90.
 
 class Kirby:
     def __init__(self, path, host, max_slots=12, identity=lambda s: True, terminate=lambda s: {"result": "NONE"},
-                 start_session=None, clock=time.time):
+                 start_session=None, clock=time.time, verifier=None, dispatcher=None, lease_seconds=0.0):
         self.path, self.host, self.max_slots = Path(path), host, max_slots
         self.identity, self.terminate, self.clock = identity, terminate, clock
         self.start_session = start_session or (lambda slot, gen: (f"{slot}-g{gen}", 0, 0.0))
+        self.verifier = verifier
+        self.dispatcher = dispatcher
+        self.lease_seconds = float(lease_seconds or 0.0)
         self._load()
 
     # ---- persistence --------------------------------------------------------
@@ -108,12 +117,15 @@ class Kirby:
         self.counters = d.get("counters", {"coalesced": 0, "manual_continue": 0, "auto_wakes": 0,
                                            "rotations": 0, "recoveries": 0, "completions": 0})
         self.last_snapshot = d.get("last_snapshot", 0.0)
+        max_tok = max([0] + [w.token for w in self.workkeys.values()] + [s.token for s in self.sessions.values()])
+        self.token_seq = max(int(d.get("token_seq", 0)), max_tok)
 
     def _save(self):
         self.path.parent.mkdir(parents=True, exist_ok=True)
         d = {"workkeys": {k: dataclasses.asdict(v) for k, v in self.workkeys.items()},
              "sessions": {k: dataclasses.asdict(v) for k, v in self.sessions.items()},
-             "counters": self.counters, "last_snapshot": self.last_snapshot}
+             "counters": self.counters, "last_snapshot": self.last_snapshot,
+             "token_seq": getattr(self, "token_seq", 0)}
         fd, tmp = tempfile.mkstemp(dir=self.path.parent, prefix=".kirby.")
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump(d, f, sort_keys=True)
@@ -124,9 +136,25 @@ class Kirby:
             f.write(json.dumps(record, sort_keys=True) + "\n")
 
     # ---- campaign + slots ---------------------------------------------------
-    def add_workkeys(self, keys, priority=100):
+    def add_workkeys(self, keys, priority=100, depends_on=None, effect_class="idempotent"):
+        deps = list(depends_on or [])
         for k in keys:
-            self.workkeys.setdefault(k, Workkey(k, priority=priority))
+            if isinstance(k, dict):
+                key = k["key"]
+                self.workkeys.setdefault(
+                    key,
+                    Workkey(
+                        key,
+                        priority=k.get("priority", priority),
+                        depends_on=list(k.get("depends_on", deps)),
+                        effect_class=k.get("effect_class", effect_class),
+                    ),
+                )
+            else:
+                self.workkeys.setdefault(
+                    k,
+                    Workkey(k, priority=priority, depends_on=list(deps), effect_class=effect_class),
+                )
         self._save()
 
     def open_slot(self, slot, provider, activity="interactive"):
@@ -146,13 +174,44 @@ class Kirby:
         self._save()
         return self.sessions[slot]
 
+    def reconnect_slot(self, slot, provider=None, activity=None):
+        """Reopen a retired/disconnected slot or wake an idle reconnected slot."""
+        existing = self.sessions.get(slot)
+        prov = provider or (existing.provider if existing else "antigravity")
+        act = activity or (existing.activity if existing else "interactive")
+        if existing is not None and existing.state in LIVE and not self.identity(existing):
+            if existing.workkey:
+                self.recover(slot, "worker reconnected after disconnect")
+                return self.sessions[slot]
+            existing.state = RETIRED
+            self._save()
+        s = self.open_slot(slot, prov, activity=act)
+        if self.has_ready_work() or (s.workkey and self.workkeys[s.workkey].owner == s.session_id):
+            self.wake(slot)
+        return self.sessions[slot]
+
+    def _is_ready(self, w):
+        if w.state != OPEN:
+            return False
+        return all(self.workkeys.get(dep) is not None and self.workkeys[dep].state == DONE for dep in w.depends_on)
+
+    def ready_workkeys(self):
+        ready = [w for w in self.workkeys.values() if self._is_ready(w)]
+        ready.sort(key=lambda w: (w.priority, w.key))
+        return ready
+
+    def has_ready_work(self):
+        return bool(self.ready_workkeys())
+
     def _next_workkey(self):
-        free = [w for w in self.workkeys.values() if w.state == OPEN]
-        return min(free, key=lambda w: (w.priority, w.key)) if free else None
+        ready = self.ready_workkeys()
+        return ready[0] if ready else None
 
     def _claim(self, s, w):
-        w.state, w.owner, w.token = CLAIMED, s.session_id, w.token + 1
+        self.token_seq = getattr(self, "token_seq", 0) + 1
+        w.state, w.owner, w.token = CLAIMED, s.session_id, self.token_seq
         s.workkey, s.token = w.key, w.token
+        s.delivered_workkey = ""
 
     # ---- event-driven continuation -----------------------------------------
     def wake(self, slot, manual=False):
@@ -161,6 +220,8 @@ class Kirby:
         s = self.sessions[slot]
         if manual:
             self.counters["manual_continue"] += 1
+        if s.state == RETIRED:
+            s = self.open_slot(slot, s.provider, activity=s.activity)
         if s.state in (WAKE_PENDING, WORKING, RECOVERING) or not s.accepting:
             self.counters["coalesced"] += 1
             self._save()
@@ -170,7 +231,9 @@ class Kirby:
         else:
             w = self._next_workkey()
             if w is None:
-                s.state = WAITING_FOR_USER if any(x.state == BLOCKED for x in self.workkeys.values()) else IDLE
+                has_blocked = any(x.state == BLOCKED for x in self.workkeys.values())
+                has_unready_open = any(x.state == OPEN and not self._is_ready(x) for x in self.workkeys.values())
+                s.state = WAITING_FOR_USER if (has_blocked or has_unready_open) else IDLE
                 self._save()
                 return s.state
             self._claim(s, w)
@@ -186,29 +249,51 @@ class Kirby:
             return None
         now = self.clock()
         s.state, s.last_heartbeat, s.last_progress = WORKING, now, now
+        s.delivered_workkey = s.workkey
+        s.delivery_enforced = True
+        if self.lease_seconds > 0:
+            s.lease_until = now + self.lease_seconds
         self._save()
         return s.workkey
 
-    def on_turn_end(self, slot, outcome, token, checkpoint="", reason=""):
+    def on_turn_end(self, slot, outcome, token, checkpoint="", reason="", workkey=None, result_id=""):
         """Provider returned idle. outcome: DONE | BLOCKED | STILL_OPEN | FAILED_FINAL.
         The stale-token check is the duplicate-writer guard."""
         s = self.sessions[slot]
+        if workkey:
+            target = self.workkeys.get(workkey)
+            if target is not None and target.state == DONE:
+                return "DUPLICATE_IGNORED"
+            if s.workkey != workkey:
+                return "REJECTED_STALE_WRITER"
+        if result_id and any(x.result_id == result_id and x.state == DONE for x in self.workkeys.values()):
+            return "DUPLICATE_IGNORED"
         w = self.workkeys.get(s.workkey)
         if w is None or w.owner != s.session_id or w.token != token:
             return "REJECTED_STALE_WRITER"
+        if s.delivery_enforced and s.delivered_workkey != s.workkey:
+            return "DUPLICATE_IGNORED"
         w.checkpoint = checkpoint or w.checkpoint
         if outcome == "DONE":
+            if self.verifier is not None and not self.verifier(w.key, w.checkpoint, s):
+                w.state, w.owner, w.blocked_reason = BLOCKED, "", reason or "verification_failed"
+                s.workkey, s.delivered_workkey, s.lease_until = "", "", 0.0
+                s.state = IDLE
+                self._save()
+                return self.wake(slot)
             w.state, w.owner = DONE, ""
-            s.workkey = ""
+            if result_id:
+                w.result_id = result_id
+            s.workkey, s.delivered_workkey, s.lease_until = "", "", 0.0
             self.counters["completions"] += 1
             self._log("receipts.jsonl", {"workkey": w.key, "outcome": DONE, "session": s.session_id,
                                          "checkpoint": w.checkpoint, "at": self.clock()})
         elif outcome == "BLOCKED":
             w.state, w.owner, w.blocked_reason = BLOCKED, "", reason
-            s.workkey = ""
+            s.workkey, s.delivered_workkey, s.lease_until = "", "", 0.0
         elif outcome == "FAILED_FINAL":
             w.state, w.owner = FAILED_FINAL, ""
-            s.workkey = ""
+            s.workkey, s.delivered_workkey, s.lease_until = "", "", 0.0
         s.state = IDLE
         self._save()
         return self.wake(slot)                                  # TURN_ENDED != CAMPAIGN_COMPLETED
@@ -219,6 +304,8 @@ class Kirby:
         s.last_heartbeat = now
         if progress:
             s.last_progress = now
+        if self.lease_seconds > 0 and s.state == WORKING:
+            s.lease_until = now + self.lease_seconds
         if checkpoint is not None and s.workkey:
             self.workkeys[s.workkey].checkpoint = checkpoint
         self._save()
@@ -232,6 +319,8 @@ class Kirby:
         hb_grace, progress_window = ACTIVITY.get(s.activity, ACTIVITY["interactive"])
         now = self.clock()
         signals = []
+        if s.lease_until > 0 and now >= s.lease_until:
+            signals.append("lease_expired")
         if now - s.last_heartbeat > hb_grace:
             signals.append("heartbeat_missed")
         if now - s.last_progress > progress_window:
@@ -240,7 +329,7 @@ class Kirby:
             signals.append("executor_gone")
         if not signals:
             return "OK", []
-        if len(signals) == 1 and signals != ["executor_gone"]:
+        if len(signals) == 1 and signals not in (["executor_gone"], ["lease_expired"]):
             return "INVESTIGATE", signals
         return "RECOVER", signals
 
@@ -286,15 +375,25 @@ class Kirby:
         now = self.clock()
         new = Session(slot, sid, old.provider, self.host, IDLE, pid, ct, generation=gen, activity=old.activity,
                       last_heartbeat=now, last_progress=now, recovering_since=0.0)
+        quarantined = False
         if w is not None and w.owner == old.session_id:
-            self._claim(new, w)                                  # same workkey, new fencing token
-            new.state = WAKE_PENDING                             # resumes from w.checkpoint
+            if kind == "RECOVER" and w.effect_class == "non_idempotent":
+                self.token_seq = getattr(self, "token_seq", 0) + 1
+                w.state, w.owner, w.token = BLOCKED, "", self.token_seq
+                w.blocked_reason = f"unknown external effect ({reason})"
+                quarantined = True
+            else:
+                self._claim(new, w)                              # same workkey, new fencing token
+                new.state = WAKE_PENDING                         # resumes from w.checkpoint
         old.state, old.successor = RETIRED, sid
         self.sessions[slot] = new
+        if quarantined:
+            self.wake(slot)
         self._log("retired.jsonl", dataclasses.asdict(old))
         self.counters["rotations" if kind == "ROTATE" else "recoveries"] += 1
         receipt = {"incident": f"{kind}-{slot}-g{gen}", "slot": slot, "kind": kind, "reason": reason,
                    "old_session": old.session_id, "new_session": sid, "workkey": new.workkey,
+                   "quarantined_workkey": w.key if quarantined else "",
                    "checkpoint": w.checkpoint if w else "", "cleanup": cleanup,
                    "foreign_process_touched": False, "duplicate_execution": False, "at": now}
         self._log("recovery_receipts.jsonl", receipt)

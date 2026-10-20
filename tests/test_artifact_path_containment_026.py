@@ -95,7 +95,7 @@ def test_case_e_symlink_reparse_point_boundary(tmp_path):
     # Create a Windows directory junction pointing from inside workdir to outside
     junc = workdir / "junc_link"
     res = subprocess.run(["cmd", "/c", "mklink", "/J", str(junc), str(outside)],
-                         capture_output=True, text=True)
+                         capture_output=True, text=True, encoding="utf-8", errors="replace")
     if res.returncode == 0:
         collected = collect_artifacts(str(workdir))
         paths = [a.path.replace("\\", "/") for a in collected]

@@ -1,0 +1,22 @@
+{
+  "id": "P37",
+  "title": "Security Policy Enforcement and Sandbox Jail Verifier",
+  "lane": "L1",
+  "branch": "lane/L1-sandbox-verifier-P37",
+  "files_scope": [
+    "courier_core/sandbox_verifier.py",
+    "tests/test_sandbox_verifier.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "filesystem jail escape detection (path traversal and root containment)",
+    "destructive shell command blocking (rm -rf, format, broad del)",
+    "banned cli tool filtering (grep, rg, select-string)",
+    "sensitive credential pattern protection (.env, id_rsa, wallet)",
+    "cli verification toolchain"
+  ],
+  "provider_hints": ["local", "security"],
+  "status": "DONE",
+  "lease": null
+}

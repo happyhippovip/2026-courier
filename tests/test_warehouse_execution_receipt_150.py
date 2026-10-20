@@ -301,6 +301,16 @@ def test_warehouse_receipt_duplicate_idempotency_and_conflict_rejection(catalog,
     _, path2 = verify_and_persist_warehouse_receipt(task, raw_result, workspace, receipt_dir)
     assert path2 == path1
 
+    # 3. Conflicting result for same task_id (even with different run_id / derived result_id) -> raises ContractError
+    conflicting_result = dict(raw_result, run_id="run-conflicting-2")
+    with pytest.raises(ContractError, match="Conflicting result for already processed task"):
+        verify_and_persist_warehouse_receipt(task, conflicting_result, workspace, receipt_dir)
+
+    # 4. Missing owner on result when task has bound owner -> raises ContractError
+    missing_owner_result = dict(raw_result, owner="")
+    with pytest.raises(ContractError, match="owner mismatch"):
+        verify_and_persist_warehouse_receipt(task, missing_owner_result, workspace, receipt_dir)
+
 
 def test_capability_selector_duplicate_writer_gating(catalog):
     """Capability selector respects active owners and prevents duplicate writers."""

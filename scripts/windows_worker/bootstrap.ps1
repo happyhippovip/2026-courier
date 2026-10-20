@@ -67,6 +67,28 @@ $newConfig = @{
 $newConfig | ConvertTo-Json | Set-Content $configPath
 Write-Host "Configuration saved to $configPath (API Key stored securely in config)."
 
+$localDataDir = [System.Environment]::ExpandEnvironmentVariables("%LOCALAPPDATA%\Courier")
+if (-not (Test-Path $localDataDir)) { New-Item -ItemType Directory -Force -Path $localDataDir | Out-Null }
+$localRunDir = Join-Path $localDataDir "run"
+if (-not (Test-Path $localRunDir)) { New-Item -ItemType Directory -Force -Path $localRunDir | Out-Null }
+$newConfig | ConvertTo-Json | Set-Content (Join-Path $localDataDir "config.json")
+if ($apiKey) {
+    $apiKey | Set-Content (Join-Path $localRunDir "controller.token") -NoNewline
+}
+
+# Also sync to SYSTEM profile if running elevated so the Scheduled Task has immediate access
+$systemProfileData = "$env:SystemRoot\system32\config\systemprofile\AppData\Local\Courier"
+$isAdminCheck = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+if ($isAdminCheck -and (Test-Path (Split-Path $systemProfileData))) {
+    New-Item -ItemType Directory -Force -Path $systemProfileData -ErrorAction SilentlyContinue | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $systemProfileData "run") -ErrorAction SilentlyContinue | Out-Null
+    $newConfig | ConvertTo-Json | Set-Content (Join-Path $systemProfileData "config.json")
+    if ($apiKey) {
+        $apiKey | Set-Content (Join-Path $systemProfileData "run\controller.token") -NoNewline
+    }
+}
+
+
 # 4. Service / Start Command
 Write-Host "`n[4] Installing Service (Scheduled Task)..."
 $installScript = Join-Path $workerDir "install_service.ps1"
@@ -77,12 +99,16 @@ if (-not (Test-Path $installScript)) {
 
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
-    Write-Host "Attempting to elevate privileges for Scheduled Task installation..."
-    try {
-        Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" `"$ServerArg`" `"$ApiKeyArg`" `"$WorkerIdArg`"" -Verb RunAs -ErrorAction Stop
-        exit 0
-    } catch {
-        Write-Host "UAC elevation cancelled or failed. Proceeding with fallback." -ForegroundColor Yellow
+    if ($env:CI -or $env:COURIER_TEST_NO_JOB -or (-not [Environment]::UserInteractive)) {
+        Write-Host "WARNING: Not running as Administrator in non-interactive environment. Scheduled Task will not be registered." -ForegroundColor Yellow
+    } else {
+        Write-Host "Attempting to elevate privileges for Scheduled Task installation..."
+        try {
+            Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" `"$ServerArg`" `"$ApiKeyArg`" `"$WorkerIdArg`"" -Verb RunAs -ErrorAction Stop
+            exit 0
+        } catch {
+            Write-Host "UAC elevation cancelled or failed. Proceeding with fallback." -ForegroundColor Yellow
+        }
     }
 }
 

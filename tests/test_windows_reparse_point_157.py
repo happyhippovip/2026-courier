@@ -75,6 +75,8 @@ def _create_junction(link_path: Path, target_path: Path) -> bool:
         ["cmd", "/c", "mklink", "/J", str(link_path), str(target_path)],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     return res.returncode == 0
 
@@ -288,6 +290,8 @@ def test_cli_verify_reparse_point(tmp_path):
         [sys.executable, str(script_path), str(reg_file), "--workdir", str(ws)],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     assert res_reg.returncode == 0
     assert "REPARSE POINT SAFE" in res_reg.stdout
@@ -303,6 +307,8 @@ def test_cli_verify_reparse_point(tmp_path):
             [sys.executable, str(script_path), str(bad_junc), "--workdir", str(ws)],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         assert res_esc.returncode == 1
         assert "REPARSE POINT REFUSED" in res_esc.stdout
@@ -318,14 +324,16 @@ def test_cli_verify_reparse_point(tmp_path):
                     [sys.executable, str(script_path), str(good_junc), "--workdir", str(ws), "--disallow-all"],
                     capture_output=True,
                     text=True,
+                    encoding="utf-8",
+                    errors="replace",
                 )
                 assert res_disallow.returncode == 1
                 assert "REPARSE_POINT_DISALLOWED" in res_disallow.stdout
             finally:
-                subprocess.run(["cmd", "/c", "rmdir", str(good_junc)], capture_output=True)
+                subprocess.run(["cmd", "/c", "rmdir", str(good_junc)], capture_output=True, encoding="utf-8", errors="replace")
     finally:
-        subprocess.run(["cmd", "/c", "rmdir", str(bad_junc)], capture_output=True)
+        subprocess.run(["cmd", "/c", "rmdir", str(bad_junc)], capture_output=True, encoding="utf-8", errors="replace")
 
     # Fall 4: Parameter fehlt -> Exit Code 2
-    res_err = subprocess.run([sys.executable, str(script_path)], capture_output=True, text=True)
+    res_err = subprocess.run([sys.executable, str(script_path)], capture_output=True, text=True, encoding="utf-8", errors="replace")
     assert res_err.returncode == 2

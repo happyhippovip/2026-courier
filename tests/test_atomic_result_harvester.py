@@ -90,6 +90,7 @@ def make_durable_result(task, status="SUCCESS", content=b"harvest-artifact\n"):
         "worker_id": task["worker_id"],
         "run_id": "run-pid-456",
         "status": status,
+        "source_sha": "0" * 40,
         "artifacts": [{"path": "harvest.txt", "sha256": art_sha}],
     }
     canonical = json.dumps(identity, sort_keys=True, separators=(",", ":"))

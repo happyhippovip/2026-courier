@@ -1,0 +1,23 @@
+{
+  "id": "P13",
+  "title": "Fail-closed resource watchdog and hysteresis cooldown policy for RESOURCE_PAUSE",
+  "lane": "L3",
+  "branch": "lane/L3-resource-watchdog-P13",
+  "files_scope": [
+    "courier_core/resource_watchdog.py",
+    "tests/test_resource_watchdog.py"
+  ],
+  "depends_on": [
+    "P8"
+  ],
+  "acceptance": [
+    "tests",
+    "draft PR"
+  ],
+  "provider_hints": [
+    "headless",
+    "interactive"
+  ],
+  "status": "READY",
+  "lease": null
+}

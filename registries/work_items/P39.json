@@ -1,0 +1,23 @@
+{
+  "id": "P39",
+  "title": "Artifact Content Deduplication Engine (CAS)",
+  "lane": "L3",
+  "branch": "lane/L3-content-dedup-P39",
+  "files_scope": [
+    "courier_core/content_dedup.py",
+    "tests/test_content_dedup.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "content-addressed storage with sha256 chunking",
+    "zero-redundancy deduplication index",
+    "reconstruction of original files from chunk manifests",
+    "atomic write and path traversal protection",
+    "garbage collection and orphan chunk pruning",
+    "cli storage inspection and compression metrics"
+  ],
+  "provider_hints": ["local", "content-dedup"],
+  "status": "DONE",
+  "lease": null
+}

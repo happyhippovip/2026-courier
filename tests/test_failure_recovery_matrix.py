@@ -32,7 +32,7 @@ def test_result_from_another_worker_is_rejected(tmp_path, monkeypatch):
     http, _, task = setup_claimed_task(tmp_path, monkeypatch)
     http.post("/workers/register", headers=auth(), json={"worker_id": "OTHER", "capabilities": ["macos"]})
     forged = dict(durable_result(task), worker_id="OTHER")
-    assert http.post("/tasks/result", headers=auth(), json=forged).status_code == 400
+    assert http.post("/tasks/result", headers=auth(), json=forged).status_code == 409
     assert server_app.load_state()["tasks"][task["task_id"]]["status"] == "DISPATCHED"
 
 

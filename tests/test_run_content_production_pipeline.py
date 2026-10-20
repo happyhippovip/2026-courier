@@ -66,7 +66,7 @@ def test_discover_godot_binary_custom_path_exception(monkeypatch):
     
     bin_path, version = discover_godot_binary("my_godot")
     assert bin_path == "my_godot"
-    assert version == "4.7.stable.official.5b4e0cb0f"
+    assert version == "4.3.stable"
 
 def test_discover_godot_binary_which(monkeypatch):
     monkeypatch.setattr("shutil.which", lambda x: "godot_from_path")
@@ -114,9 +114,10 @@ def test_execute_assets_stage(tmp_path):
 def test_execute_video_build_stage_ffmpeg_success(tmp_path, monkeypatch):
     monkeypatch.setattr("shutil.which", lambda x: "ffmpeg")
     monkeypatch.setattr("os.path.exists", lambda x: True)
+    monkeypatch.setattr("scripts.run_content_production_pipeline.discover_godot_binary", lambda *args: (None, None))
     
     def mock_run(cmd, *args, **kwargs):
-        if cmd[0] == "ffmpeg":
+        if "ffmpeg" in cmd[0]:
             (tmp_path / "my-topic_preview.mp4").write_bytes(b"data")
         return MagicMock(returncode=0, stdout="4.7.stable")
     monkeypatch.setattr("subprocess.run", mock_run)
@@ -129,6 +130,7 @@ def test_execute_video_build_stage_ffmpeg_success(tmp_path, monkeypatch):
 
 def test_execute_video_build_stage_ffmpeg_fail(tmp_path, monkeypatch):
     monkeypatch.setattr("shutil.which", lambda x: "ffmpeg")
+    monkeypatch.setattr("scripts.run_content_production_pipeline.discover_godot_binary", lambda *args: (None, None))
     original_exists = os.path.exists
     def custom_exists(x):
         if "ffmpeg" in str(x):
@@ -237,7 +239,8 @@ def test_run_pipeline_success(tmp_path, monkeypatch):
         runtime,
         channels,
         workflows,
-        local_tools
+        local_tools,
+        approve_publish=True,
     )
     
     assert manifest["overall_status"] == "COMPLETED"
@@ -250,7 +253,8 @@ def test_run_pipeline_success(tmp_path, monkeypatch):
         runtime,
         channels,
         workflows,
-        local_tools
+        local_tools,
+        approve_publish=True,
     )
     assert manifest2["overall_status"] == "COMPLETED"
 

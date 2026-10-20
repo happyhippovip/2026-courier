@@ -1,0 +1,23 @@
+{
+  "id": "P43",
+  "title": "Cross-Worker Work Stealing & Dynamic Load Balancer",
+  "lane": "L3",
+  "branch": "lane/L3-work-stealing-P43",
+  "files_scope": [
+    "courier_core/work_stealing.py",
+    "tests/test_work_stealing.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "decentralized work stealing from overloaded peer ready queues",
+    "fencing token updates and atomic ownership reassignment",
+    "capability and affinity constraint enforcement",
+    "protection of currently running tasks against theft",
+    "cluster rebalance algorithm with load equilibrium verification",
+    "cli inspection of worker queue depths and cluster balance"
+  ],
+  "provider_hints": ["local", "work-stealing"],
+  "status": "DONE",
+  "lease": null
+}

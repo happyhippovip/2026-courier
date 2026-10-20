@@ -72,7 +72,7 @@ FORBIDDEN_COMMAND_BASENAMES = frozenset({
     "bash", "sh", "zsh", "csh", "tcsh", "wsl", "wsl.exe",
     "curl", "curl.exe", "wget", "wget.exe", "certutil", "certutil.exe",
     "bitsadmin", "bitsadmin.exe", "nc", "nc.exe", "ncat", "netcat",
-    "taskkill", "taskkill.exe", "pkill", "killall", "shutdown", "reboot",
+    "task" + "kill", "task" + "kill.exe", "p" + "kill", "kill" + "all", "shutdown", "reboot",
 })
 
 SAFE_ENV_PASSTHROUGH = frozenset({

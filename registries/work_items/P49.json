@@ -1,0 +1,23 @@
+{
+  "id": "P49",
+  "title": "Dual-Channel Event Sourcing and Real-Time Replay Log",
+  "lane": "L3",
+  "branch": "lane/L3-event-sourcing-P49",
+  "files_scope": [
+    "courier_core/event_sourcing.py",
+    "tests/test_event_sourcing.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "append-only event sourcing log with monotonically increasing event sequences",
+    "dual-channel distribution: persistent storage flush and real-time subscriber streaming",
+    "state machine reconstruction via historical replay",
+    "event checksum validation preventing corrupted or tampered history",
+    "snapshot compaction with delta event catch-up",
+    "cli event appending, subscription replay, and snapshot compaction"
+  ],
+  "provider_hints": ["local", "event-sourcing"],
+  "status": "DONE",
+  "lease": null
+}

@@ -1,0 +1,23 @@
+{
+  "id": "P55",
+  "title": "Dynamic Workload Profiler and Anomaly Detection Sentinel",
+  "lane": "L3",
+  "branch": "lane/L3-workload-sentinel-P55",
+  "files_scope": [
+    "courier_core/workload_sentinel.py",
+    "tests/test_workload_sentinel.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "sliding window telemetry collection for duration, failure rate, and throughput",
+    "statistical anomaly detection with z-score and moving percentile thresholds",
+    "burst failure and latency degradation alert generation with remediation recommendations",
+    "worker quarantine and lane throttling trigger evaluation",
+    "profile snapshot export and forensic alert journal serialization",
+    "cli record, analyze, alerts, and inspect workload profile"
+  ],
+  "provider_hints": ["local", "workload-sentinel"],
+  "status": "DONE",
+  "lease": null
+}

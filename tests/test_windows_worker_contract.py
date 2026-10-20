@@ -12,7 +12,8 @@ from pathlib import Path
 
 import pytest
 
-DAEMON_PATH = Path(__file__).resolve().parents[1] / "scripts" / "windows_worker" / "daemon.py"
+ROOT = Path(__file__).resolve().parents[1]
+DAEMON_PATH = ROOT / "scripts" / "windows_worker" / "daemon.py"
 
 
 class StopLoop(BaseException):
@@ -266,7 +267,7 @@ def test_register_and_result_carry_real_platform_and_source_sha(tmp_path, monkey
     assert body["platform"] == daemon.host_platform()
     if sys.platform != "win32":
         assert body["platform"] != "windows"
-    head = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+    head = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True, cwd=ROOT).strip()
     assert body["source_sha"] == head
 
     work = tmp_path / "work"
@@ -300,3 +301,207 @@ def test_missing_api_key_fails_closed_before_network(tmp_path, monkeypatch):
         
     assert "COURIER_API_KEY is not set" in str(exc.value)
     assert calls == []
+
+
+def test_load_config_fallback_to_programdata(tmp_path, monkeypatch):
+    local_app_data = tmp_path / "local"
+    program_data = tmp_path / "programdata"
+    local_app_data.mkdir()
+    program_data.mkdir()
+
+    # Do not create config in LOCALAPPDATA; simulate bootstrap.ps1 writing to PROGRAMDATA
+    worker_cfg_dir = program_data / "CourierWorker"
+    worker_cfg_dir.mkdir()
+    (worker_cfg_dir / "config.json").write_text(json.dumps({
+        "COURIER_SERVER": "http://programdata.server:8080",
+        "COURIER_WORKER_ID": "WIN-BOOTSTRAP",
+        "COURIER_API_KEY": "bootstrap-secret-key"
+    }))
+
+    monkeypatch.setenv("LOCALAPPDATA", str(local_app_data))
+    monkeypatch.setenv("PROGRAMDATA", str(program_data))
+    monkeypatch.delenv("COURIER_API_KEY", raising=False)
+    monkeypatch.delenv("COURIER_SERVER", raising=False)
+    monkeypatch.delenv("COURIER_SERVER_URL", raising=False)
+
+    spec = importlib.util.spec_from_file_location("test_daemon_programdata", DAEMON_PATH)
+    daemon = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(daemon)
+
+    cfg = daemon.load_config()
+    assert cfg.get("COURIER_SERVER") == "http://programdata.server:8080"
+    assert cfg.get("COURIER_API_KEY") == "bootstrap-secret-key"
+    daemon.apply_config_credentials(cfg)
+    assert daemon.API_KEY == "bootstrap-secret-key"
+    assert daemon.API_URL == "http://programdata.server:8080"
+
+
+def test_bootstrap_worker_id_normalization_contract(tmp_path, monkeypatch):
+    """Beweis: Aus bootstrap.ps1 / CourierLauncher stammendes COURIER_WORKER_ID
+    wird zuverlässig normalisiert, sodass daemon.loop / run_task kein KeyError: 'WORKER_ID' werfen."""
+    daemon = load_daemon(tmp_path, monkeypatch)
+    bootstrap_cfg = {
+        "COURIER_SERVER": "http://127.0.0.1:8080",
+        "COURIER_WORKER_ID": "WIN-BOOTSTRAP-99",
+        "COURIER_API_KEY": "secret-key",
+    }
+    daemon.apply_config_credentials(bootstrap_cfg)
+    assert bootstrap_cfg.get("WORKER_ID") == "WIN-BOOTSTRAP-99"
+
+
+def test_install_script_dual_path_sync_contract(tmp_path, monkeypatch):
+    """Beweis: install.ps1 und bootstrap.ps1 synchronisieren Konfiguration und API-Schlüssel
+    zuverlässig zwischen LocalAppData und ProgramData, sodass der Windows Worker
+    sowohl im User- als auch im SYSTEM-Kontext sofort arbeitsfähig ist."""
+    local_app_data = tmp_path / "local"
+    program_data = tmp_path / "programdata"
+    local_app_data.mkdir()
+    program_data.mkdir()
+
+    monkeypatch.setenv("LOCALAPPDATA", str(local_app_data))
+    monkeypatch.setenv("PROGRAMDATA", str(program_data))
+    monkeypatch.setenv("ProgramFiles", str(tmp_path / "ProgramFiles"))
+
+    install_ps1 = Path(__file__).resolve().parents[1] / "scripts" / "windows_worker" / "install.ps1"
+
+    # Führe install.ps1 mit Testargumenten aus
+    cmd = [
+        "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(install_ps1),
+        "-ServerArg", "http://127.0.0.1:8800",
+        "-ApiKeyArg", "install-secret-key-123",
+        "-WorkerIdArg", "WIN-TEST-INSTALL"
+    ]
+    res = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+    assert res.returncode == 0, f"install.ps1 failed: {res.stdout}\n{res.stderr}"
+
+    # Verifiziere LocalAppData
+    local_cfg_path = local_app_data / "Courier" / "config.json"
+    assert local_cfg_path.exists(), "config.json must exist in LocalAppData"
+    local_cfg = json.loads(local_cfg_path.read_text(encoding="utf-8"))
+    assert local_cfg["COURIER_SERVER"] == "http://127.0.0.1:8800"
+    assert local_cfg["COURIER_WORKER_ID"] == "WIN-TEST-INSTALL"
+    assert local_cfg["COURIER_API_KEY"] == "install-secret-key-123"
+
+    token_path = local_app_data / "Courier" / "run" / "controller.token"
+    assert token_path.exists(), "controller.token must exist in LocalAppData/run"
+    assert token_path.read_text(encoding="utf-8").strip() == "install-secret-key-123"
+
+    # Verifiziere ProgramData
+    prog_cfg_path = program_data / "CourierWorker" / "config.json"
+    assert prog_cfg_path.exists(), "config.json must exist in ProgramData"
+    prog_cfg = json.loads(prog_cfg_path.read_text(encoding="utf-8"))
+    assert prog_cfg["COURIER_SERVER"] == "http://127.0.0.1:8800"
+    assert prog_cfg["COURIER_WORKER_ID"] == "WIN-TEST-INSTALL"
+    assert prog_cfg["COURIER_API_KEY"] == "install-secret-key-123"
+
+
+def test_bootstrap_script_dual_path_sync_contract(tmp_path, monkeypatch):
+    """Beweis: bootstrap.ps1 synchronisiert Konfiguration und API-Schlüssel
+    zuverlässig zwischen LocalAppData und ProgramData."""
+    local_app_data = tmp_path / "local_boot"
+    program_data = tmp_path / "programdata_boot"
+    local_app_data.mkdir()
+    program_data.mkdir()
+
+    monkeypatch.setenv("LOCALAPPDATA", str(local_app_data))
+    monkeypatch.setenv("PROGRAMDATA", str(program_data))
+
+    bootstrap_ps1 = Path(__file__).resolve().parents[1] / "scripts" / "windows_worker" / "bootstrap.ps1"
+
+    cmd = [
+        "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(bootstrap_ps1),
+        "-ServerArg", "http://127.0.0.1:8900",
+        "-ApiKeyArg", "bootstrap-secret-token-456",
+        "-WorkerIdArg", "WIN-TEST-BOOTSTRAP"
+    ]
+    res = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+    # bootstrap.ps1 will attempt install_service.ps1 which might fail if not admin or already registered, but config sync happens before step 4
+    # Check that LocalAppData and ProgramData configs were written
+    local_cfg_path = local_app_data / "Courier" / "config.json"
+    assert local_cfg_path.exists(), "config.json must exist in LocalAppData via bootstrap.ps1"
+    local_cfg = json.loads(local_cfg_path.read_text(encoding="utf-8"))
+    assert local_cfg["COURIER_SERVER"] == "http://127.0.0.1:8900"
+    assert local_cfg["COURIER_WORKER_ID"] == "WIN-TEST-BOOTSTRAP"
+    assert local_cfg["COURIER_API_KEY"] == "bootstrap-secret-token-456"
+
+    token_path = local_app_data / "Courier" / "run" / "controller.token"
+    assert token_path.exists(), "controller.token must exist in LocalAppData/run via bootstrap.ps1"
+    assert token_path.read_text(encoding="utf-8").strip() == "bootstrap-secret-token-456"
+
+    prog_cfg_path = program_data / "CourierWorker" / "config.json"
+    assert prog_cfg_path.exists(), "config.json must exist in ProgramData via bootstrap.ps1"
+    prog_cfg = json.loads(prog_cfg_path.read_text(encoding="utf-8"))
+    assert prog_cfg["COURIER_SERVER"] == "http://127.0.0.1:8900"
+    assert prog_cfg["COURIER_WORKER_ID"] == "WIN-TEST-BOOTSTRAP"
+    assert prog_cfg["COURIER_API_KEY"] == "bootstrap-secret-token-456"
+
+
+
+
+
+def test_windows_worker_blocks_task_with_unknown_cost(tmp_path, monkeypatch):
+    daemon = load_daemon(tmp_path, monkeypatch)
+    config = {"WORKER_ID": "WIN-01", "AUTONOMOUS_SPEND_LIMIT_EUR": 0.0}
+
+    # 1. unknown_cost = True
+    task_unknown = {
+        "task_id": "t-unknown-1",
+        "instruction": "Write-Output 'Should not run'",
+        "unknown_cost": True,
+        "goal_id": "g-1",
+    }
+    res = daemon.run_task(task_unknown, config)
+    assert res["status"] == "FAILED"
+    assert res["run_id"] == "cost-gate-blocked"
+    assert "UNKNOWN_COST_BLOCKED" in res["stderr"]
+
+    # 2. estimated_cost_eur exceeding limit
+    task_expensive = {
+        "task_id": "t-expensive-1",
+        "instruction": "Write-Output 'Should not run'",
+        "estimated_cost_eur": 25.0,
+        "goal_id": "g-1",
+    }
+    res_exp = daemon.run_task(task_expensive, config)
+    assert res_exp["status"] == "FAILED"
+    assert res_exp["run_id"] == "cost-gate-blocked"
+    assert "UNKNOWN_COST_BLOCKED" in res_exp["stderr"]
+
+    # 3. estimated_cost_eur = None
+    task_none = {
+        "task_id": "t-none-1",
+        "instruction": "Write-Output 'Should not run'",
+        "estimated_cost_eur": None,
+        "goal_id": "g-1",
+    }
+    res_none = daemon.run_task(task_none, config)
+    assert res_none["status"] == "FAILED"
+    assert res_none["run_id"] == "cost-gate-blocked"
+    assert "UNKNOWN_COST_BLOCKED" in res_none["stderr"]
+
+
+
+def test_windows_worker_costgate_enforced(tmp_path, monkeypatch):
+    """Proves CostGate check in windows_worker/daemon blocks spawn before process execution."""
+    daemon = load_daemon(tmp_path, monkeypatch)
+    config = {"WORKER_ID": "WIN-01"}
+
+    task_spend = {
+        "task_id": "win-task-spend",
+        "instruction": "Write-Host 'hello'",
+        "estimated_cost_eur": 25.0,
+    }
+    res = daemon.run_task(task_spend, config)
+    assert res["status"] == "FAILED"
+    assert "COST_GATE_DENIED" in res["stderr"]
+    assert res.get("blocked") is True
+
+    task_nan = {
+        "task_id": "win-task-nan",
+        "instruction": "Write-Host 'hello'",
+        "estimated_cost_eur": "invalid",
+    }
+    res_nan = daemon.run_task(task_nan, config)
+    assert res_nan["status"] == "FAILED"
+    assert "COST_GATE_DENIED" in res_nan["stderr"]
+    assert res_nan.get("blocked") is True

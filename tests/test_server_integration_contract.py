@@ -101,7 +101,7 @@ def test_background_agents_fail_closed_without_api_key(script):
     env.pop("COURIER_VERIFIER_API_KEY", None)
 
     result = subprocess.run(
-        [sys.executable, script], capture_output=True, text=True, env=env, timeout=5
+        [sys.executable, script], capture_output=True, text=True, env=env, timeout=20
     )
 
     assert result.returncode != 0

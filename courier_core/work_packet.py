@@ -70,6 +70,13 @@ class PacketQueue:
         
         currents = [p for p in self.packets.values() if p.state == PacketState.CURRENT]
         if currents:
+            for extra in currents[1:]:
+                self.packets[extra.id] = WorkPacket(
+                    id=extra.id,
+                    owner_id=extra.owner_id,
+                    target_sha=extra.target_sha,
+                    state=PacketState.NEXT,
+                )
             return currents[0]
             
         nexts = [p for p in self.packets.values() if p.state == PacketState.NEXT]

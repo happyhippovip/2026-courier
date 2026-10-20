@@ -1,0 +1,22 @@
+{
+  "id": "P35",
+  "title": "Autonomous Worker Auto-Recovery and Process Supervisor",
+  "lane": "L3",
+  "branch": "lane/L3-process-supervisor-P35",
+  "files_scope": [
+    "courier_core/process_supervisor.py",
+    "tests/test_process_supervisor.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "supervised process lifecycle management (start, stop, poll)",
+    "crash detection and exponential backoff restart",
+    "restart limit exhaustion handling",
+    "graceful termination with timeout and kill fallback",
+    "cli process monitoring and status output"
+  ],
+  "provider_hints": ["local", "supervisor"],
+  "status": "DONE",
+  "lease": null
+}

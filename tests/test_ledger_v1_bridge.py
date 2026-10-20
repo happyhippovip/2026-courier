@@ -569,3 +569,48 @@ def test_token_never_appears_in_stdout_stderr_or_log(tmp_path):
     blob += (home / "coordination_ledger.jsonl").read_text(encoding="utf-8")
     assert TOKEN not in blob
     assert "Bearer" not in out + err + log
+
+
+def test_complete_without_verified_resolution_or_accepted_result_never_emits_final(tmp_path):
+    # Case 1: COMPLETE with resolution != "verified" (e.g. "effect_confirmed") must NOT emit FINAL
+    http = FakeHTTP()
+    home = _home(tmp_path / "unverified_res", {"A": _spec(source_sha=SHA)})
+    _seed(home, [_ready("A", "a-assign")])
+    (home / "ledger_bridge_state.json").write_text(
+        json.dumps({"missions": {"A": _mapped()}}), encoding="utf-8"
+    )
+    http.views["task-a"] = {
+        "task_id": "task-a",
+        "status": "COMPLETE",
+        "resolution": "effect_confirmed",
+        "attempt": 1,
+        "accepted_result_id": "result-a",
+        "last_reason": None,
+    }
+    code, out, *_ = _run(home, http)
+    assert code == 2
+    assert "identity_missing" in out
+    reducer = reduce_store(FileCoordinationStore(home / "coordination_ledger.jsonl"))
+    assert not any(e.event_type == EventType.FINAL for e in reducer.events)
+
+    # Case 2: COMPLETE with only pending_result_id (no accepted_result_id) must NOT emit FINAL
+    http2 = FakeHTTP()
+    home2 = _home(tmp_path / "pending_only", {"A": _spec(source_sha=SHA)})
+    _seed(home2, [_ready("A", "a-assign")])
+    (home2 / "ledger_bridge_state.json").write_text(
+        json.dumps({"missions": {"A": _mapped()}}), encoding="utf-8"
+    )
+    http2.views["task-a"] = {
+        "task_id": "task-a",
+        "status": "COMPLETE",
+        "resolution": "verified",
+        "attempt": 1,
+        "accepted_result_id": None,
+        "pending_result_id": "pending-unverified-res",
+        "last_reason": None,
+    }
+    code2, out2, *_ = _run(home2, http2)
+    assert code2 == 2
+    assert "identity_missing" in out2
+    reducer2 = reduce_store(FileCoordinationStore(home2 / "coordination_ledger.jsonl"))
+    assert not any(e.event_type == EventType.FINAL for e in reducer2.events)

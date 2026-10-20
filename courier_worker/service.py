@@ -207,7 +207,9 @@ def resolve_spec(claim: dict, worker_id: str, artifacts_root: str, heartbeat_s: 
         result_id=result_id, argv=adapter_bridge.runner_argv(home, dispatch_id),
         timeout_s=float(timeout_s), lease_ttl_s=float(ttl_s),
         artifact_dir=os.path.join(artifacts_root, dispatch_id), heartbeat_s=heartbeat_s,
-        adapter=adapter, params=params, effect_key=effect_key, input=bound)
+        adapter=adapter, params=params, effect_key=effect_key,
+        effect_class=spec.get("effect_class") if isinstance(spec, dict) else None,
+        input=bound)
 
 
 def _artifact_prefix(artifact_dir: str, home: Optional[str]) -> str:
@@ -397,13 +399,17 @@ class WorkerLoop:
 
     def _default_client(self) -> ControllerClient:
         token_path = os.path.join(self.home, "run", "controller.token")
-        try:
-            with open(token_path, encoding="utf-8") as fh:
-                token = fh.read().strip()
-        except OSError as exc:
-            raise ControllerUnreachable(f"no controller token at {token_path}: {exc}") from exc
+        token = ""
+        if os.path.exists(token_path):
+            try:
+                with open(token_path, encoding="utf-8") as fh:
+                    token = fh.read().strip()
+            except OSError as exc:
+                raise ControllerUnreachable(f"cannot read controller token at {token_path}: {exc}") from exc
         if not token:
-            raise ControllerUnreachable("controller token file is empty")
+            token = (os.environ.get("COURIER_TOKEN") or os.environ.get("COURIER_API_KEY") or "").strip()
+        if not token:
+            raise ControllerUnreachable(f"no controller token at {token_path} and none in environment")
         return ControllerClient(self.base_url, token)
 
     def artifacts_root(self) -> str:
@@ -571,6 +577,10 @@ def main(argv: Optional[list] = None) -> int:
     parser.add_argument("--max-tasks", type=int, default=1)
     parser.add_argument("--heartbeat", type=float, default=2.0)
     parser.add_argument("--worker-id", default=f"worker-{os.getpid()}")
+    if argv is None:
+        argv = sys.argv[1:]
+    elif argv and not argv[0].startswith("-"):
+        argv = argv[1:]
     args = parser.parse_args(argv)
     if args.max_tasks != 1:
         parser.error("--max-tasks supports exactly 1 (single-flight ownership)")

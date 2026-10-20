@@ -1,0 +1,23 @@
+{
+  "id": "P57",
+  "title": "Multi-Node Geo-Fence Replica Coordinator and State Synchronizer",
+  "lane": "L3",
+  "branch": "lane/L3-replica-coordinator-P57",
+  "files_scope": [
+    "courier_core/replica_coordinator.py",
+    "tests/test_replica_coordinator.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "quorum-backed state mutation replication across peer cluster replicas",
+    "fail-closed rejection when active peer count is below quorum threshold",
+    "anti-entropy delta catchup sync for lagging replica nodes",
+    "deterministic split-brain divergence resolution favoring higher fence token generation",
+    "peer dynamic membership and health heartbeat state tracking",
+    "cli replicate, status, catchup, peers, and sync operations"
+  ],
+  "provider_hints": ["local", "replica-coordinator"],
+  "status": "DONE",
+  "lease": null
+}

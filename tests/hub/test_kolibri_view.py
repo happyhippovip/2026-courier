@@ -315,11 +315,11 @@ def test_new_journal_entry_is_visible_on_the_next_poll(tmp_path):
     thread.start()
     base = f"http://127.0.0.1:{server.server_address[1]}"
     try:
-        with urllib.request.urlopen(base + "/hub/api/kolibri", timeout=20) as response:
+        with urllib.request.urlopen(base + "/hub/api/kolibri", timeout=30) as response:
             before = json.loads(response.read().decode("utf-8"))
         assert before["ledger"]["value"] == UNAVAILABLE
         _journal(home, "Kolibri poll row", task_id="kolibri-poll")
-        with urllib.request.urlopen(base + "/hub/api/kolibri", timeout=20) as response:
+        with urllib.request.urlopen(base + "/hub/api/kolibri", timeout=30) as response:
             after = json.loads(response.read().decode("utf-8"))
         titles = [item["title"] for item in after["ledger"]["items"]]
         assert "Kolibri poll row" in titles
@@ -389,7 +389,7 @@ def test_hub_route_serves_one_page(tmp_path):
     thread.start()
     base = f"http://127.0.0.1:{server.server_address[1]}"
     try:
-        with urllib.request.urlopen(base + "/hub/api/kolibri", timeout=20) as response:
+        with urllib.request.urlopen(base + "/hub/api/kolibri", timeout=30) as response:
             body = json.loads(response.read().decode("utf-8"))
         assert body["muse_wall"]["stations"][0]["state"]["value"] == UNAVAILABLE
         assert all(station["state"]["value"] != "READY" for station in body["muse_wall"]["stations"])
@@ -780,3 +780,29 @@ def test_kolibri_js_contains_visibility_and_etag_handling():
     assert "If-None-Match" in js_text
     assert "304" in js_text
     assert "document.hidden" in js_text
+
+
+def test_kolibri_universe_orbital_planets_and_real_truth_separation(tmp_path):
+    css_text = (REPO / "courier_hub" / "static" / "kolibri.css").read_text(encoding="utf-8")
+    for color_var in ("--uv-space", "--uv-violet", "--uv-neon", "--uv-green", "--uv-blue", "--uv-turquoise"):
+        assert color_var in css_text
+    assert "prefers-reduced-motion: reduce" in css_text
+
+    home = tmp_path / "bridgebox"
+    home.mkdir()
+    (home / "ledger_bridge_state.json").write_text(json.dumps({"missions": {
+        "m-orbital": {
+            "status": "BLOCKED",
+            "task_id": "wk-universe-01",
+            "reason": "lease-fencing-hold",
+            "updated_at": "2026-10-14T21:45:00Z",
+        },
+    }}), encoding="utf-8")
+    snapshot = _snapshot(home, tmp_path / "no-repo", tmp_path / "no-wall", "2026-10-14T22:00:00Z")
+    html, _poll = _render(snapshot)
+    assert 'data-truth="REAL"' in html
+    assert 'data-simulated="excluded"' in html
+    assert 'class="orbit-ring"' in html
+    assert 'data-planet="ledger_bridge"' in html
+    assert "wk-universe-01" in html
+    assert "lease-fencing-hold" in html

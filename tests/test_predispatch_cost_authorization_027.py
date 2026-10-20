@@ -59,12 +59,21 @@ def test_case_b_known_positive_cost_denied_without_grant():
     assert res["requires_human_gate"] is True
 
 
-@pytest.mark.parametrize("unknown_cost", [None, "unknown", "", object()])
+@pytest.mark.parametrize("unknown_cost", [None, "unknown", "", object(), float("nan"), float("inf"), float("-inf"), True, False, "0", "abc", "inf"])
 def test_case_c_unknown_cost_denied(unknown_cost):
     """Case C: Unknown or indeterminate cost fails closed and is denied."""
     res = CostGate.evaluate_spend_request("google_antigravity_plus", estimated_cost_eur=unknown_cost)
     assert res["allowed"] is False
     assert res["reason"] == "UNKNOWN_COST_UNAUTHORIZED"
+    assert res["requires_human_gate"] is True
+
+
+@pytest.mark.parametrize("invalid_neg_cost", [-1, -1.0, -0.0, -99.99])
+def test_case_c2_negative_cost_strictly_denied(invalid_neg_cost):
+    """Case C2: Negative costs (including negative zero -0.0) are strictly denied."""
+    res = CostGate.evaluate_spend_request("google_antigravity_plus", estimated_cost_eur=invalid_neg_cost)
+    assert res["allowed"] is False
+    assert res["reason"] == "INVALID_NEGATIVE_COST"
     assert res["requires_human_gate"] is True
 
 
@@ -171,3 +180,66 @@ def test_case_f_replay_after_denial_remains_blocked(test_client):
     assert claim2["task"] is None
     # Still denied, no money or side-effects minted
     assert claim2.get("reason") in ("UNKNOWN_COST_UNAUTHORIZED", None)
+
+
+def test_case_g_server_boolean_or_nan_cost_blocked(test_client):
+    """Case G: Tasks with boolean or non-finite cost cannot be dispatched via server."""
+    test_client.post("/workers/register", json={
+        "worker_id": "W-03",
+        "capabilities": ["linux"],
+        "cost_class": "free"
+    }, headers=TEST_AUTH)
+
+    # Goal with boolean False cost (which in raw Python could cast to 0.0)
+    test_client.post("/goals", json={
+        "goal_text": "Bool cost task",
+        "workflow_plan": [{
+            "task_id": "task-bool-01",
+            "instruction": "Test boolean cost rejection",
+            "target_agent": "linux",
+            "estimated_cost_eur": False,
+        }]
+    }, headers=TEST_AUTH)
+
+    claim = test_client.post("/tasks/claim", json={"worker_id": "W-03"}, headers=TEST_AUTH).get_json()
+    assert claim["task"] is None
+    assert claim["reason"] == "UNKNOWN_COST_UNAUTHORIZED"
+
+
+def test_case_h_invalid_grant_limits():
+    """Case H: Spend grants with invalid, non-finite, negative, or bool limits are rejected."""
+    for bad_limit in [float("nan"), float("inf"), -5.0, True, False, "100"]:
+        grant = SpendGrant("g_bad", "acct", "api", "llm", bad_limit, start=1000.0, end=2000.0)
+        res = CostGate.evaluate_spend_request(
+            "google_antigravity_plus",
+            estimated_cost_eur=10.0,
+            grant=grant,
+            at=1500.0,
+        )
+        assert res["allowed"] is False
+        assert res["reason"] == "INVALID_GRANT_LIMIT"
+        assert res["requires_human_gate"] is True
+
+
+
+def test_case_i_unknown_cost_boolean_flag_blocked(test_client):
+    """Case I: Tasks with unknown_cost=True are strictly blocked pre-dispatch."""
+    test_client.post("/workers/register", json={
+        "worker_id": "W-04",
+        "capabilities": ["linux"],
+        "cost_class": "free"
+    }, headers=TEST_AUTH)
+
+    test_client.post("/goals", json={
+        "goal_text": "Task with unknown_cost=True",
+        "workflow_plan": [{
+            "task_id": "task-flag-01",
+            "instruction": "Test unknown_cost flag",
+            "target_agent": "linux",
+            "unknown_cost": True,
+        }]
+    }, headers=TEST_AUTH)
+
+    claim = test_client.post("/tasks/claim", json={"worker_id": "W-04"}, headers=TEST_AUTH).get_json()
+    assert claim["task"] is None
+    assert claim["reason"] == "UNKNOWN_COST_UNAUTHORIZED"

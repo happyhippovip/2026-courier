@@ -1,0 +1,23 @@
+{
+  "id": "P44",
+  "title": "Byzantine Fault Tolerant Consensus Quorum Verifier",
+  "lane": "L3",
+  "branch": "lane/L3-quorum-verifier-P44",
+  "files_scope": [
+    "courier_core/quorum_verifier.py",
+    "tests/test_quorum_verifier.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "multi-worker proposal voting and result digest aggregation",
+    "strict majority and bft two-thirds supermajority consensus evaluation",
+    "byzantine rogue worker detection and divergence isolation",
+    "worker reputation scoring and suspect slashing",
+    "canonical payload hashing and sybil vote deduplication",
+    "cli proposal submission and quorum verification"
+  ],
+  "provider_hints": ["local", "quorum-verifier"],
+  "status": "DONE",
+  "lease": null
+}

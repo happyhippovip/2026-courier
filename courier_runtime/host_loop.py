@@ -17,12 +17,14 @@ import argparse
 import json
 import os
 import sys
+import tempfile
 import time
 
-from courier_runtime.continuity import HEALTH_TICK_S
+from courier_runtime.continuity import HEALTH_TICK_S, IDLE, WAKE_PENDING
 from courier_runtime.provider_events import drive, read_new_lines
 
 NOTICES = "wakeups.jsonl"
+LOOP_STATE_FILE = "host_loop_state.json"
 
 
 def _file_size(path):
@@ -30,6 +32,37 @@ def _file_size(path):
         return os.path.getsize(path)
     except OSError:
         return None
+
+
+def load_loop_state(kirby):
+    """Load persisted host-loop offset and notice state across process restarts."""
+    p = kirby.path.parent / LOOP_STATE_FILE
+    if p.exists():
+        try:
+            d = json.loads(p.read_text(encoding="utf-8"))
+            return {
+                "offset": int(d.get("offset", 0)),
+                "last_tick": float(d.get("last_tick", 0.0)),
+                "notified": dict(d.get("notified", {})),
+            }
+        except (OSError, ValueError, TypeError):
+            pass
+    return {"offset": 0, "last_tick": 0.0, "notified": {}}
+
+
+def _save_loop_state(kirby, state):
+    """Persist host-loop offset and notice state atomically."""
+    kirby.path.parent.mkdir(parents=True, exist_ok=True)
+    p = kirby.path.parent / LOOP_STATE_FILE
+    payload = {
+        "offset": int(state.get("offset", 0)),
+        "last_tick": float(state.get("last_tick", 0.0)),
+        "notified": dict(state.get("notified", {})),
+    }
+    fd, tmp = tempfile.mkstemp(dir=kirby.path.parent, prefix=".loop_state.")
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        json.dump(payload, f, sort_keys=True)
+    os.replace(tmp, p)
 
 
 def emit_signal(signal_path, line):
@@ -50,20 +83,19 @@ def drain_pending(kirby, slot):
     """Provider lane takes the single pending wake, if any. Returns the
     workkey and moves the session to WORKING, else None. A second call
     returns None: one wake becomes exactly one execution."""
-    from courier_runtime.continuity import WAKE_PENDING
-
     session = kirby.sessions.get(slot)
     if session is None or session.state != WAKE_PENDING:
         return None
     return kirby.deliver(slot)
 
 
-def run_once(kirby, slot, signal_path, state):
+def run_once(kirby, slot, signal_path, state, dispatch=None):
     """One loop iteration. ``state`` = {"offset": int, "last_tick": float,
     "notified": {slot: [session_id, workkey, token]}}; mutated in place.
 
-    Returns (results, actions, notices). Missing/truncated signal file is
-    fail-closed: no lines fed, offset reset, tick still runs on cadence.
+    If ``dispatch`` (or ``kirby.dispatcher``) is provided, a pending wake on
+    ``slot`` is automatically drained via ``drain_pending`` and handed to
+    ``dispatch(slot, workkey, session)`` exactly once.
     """
     results, actions, notices = [], {}, []
     size = _file_size(signal_path)
@@ -75,11 +107,50 @@ def run_once(kirby, slot, signal_path, state):
         lines, state["offset"] = read_new_lines(signal_path, state["offset"])
         if lines:
             results = drive(kirby, slot, lines)                 # only new lines; never prequeued
+    session = kirby.sessions.get(slot)
+    if (
+        session is not None
+        and session.state == IDLE
+        and kirby.has_ready_work()
+        and kirby.counters.get("completions", 0) > 0
+    ):
+        results.append(kirby.wake(slot))
     if kirby.clock() - state.get("last_tick", 0.0) >= HEALTH_TICK_S:
         actions = kirby.tick()                                  # fast fallback + 15-min snapshot cadence
         state["last_tick"] = kirby.clock()
     notices = _notice(kirby, slot, state)
+    dispatch_fn = dispatch if dispatch is not None else getattr(kirby, "dispatcher", None)
+    if dispatch_fn is not None:
+        workkey = drain_pending(kirby, slot)
+        if workkey is not None:
+            s = kirby.sessions[slot]
+            kirby._log("dispatches.jsonl", {
+                "at": kirby.clock(),
+                "slot": slot,
+                "session_id": s.session_id,
+                "workkey": workkey,
+                "token": s.token,
+            })
+            dispatch_fn(slot, workkey, s)
+    _save_loop_state(kirby, state)
     return results, actions, notices
+
+
+def run_until_idle(kirby, slot, signal_path, state, dispatch=None, max_steps=500):
+    """Drive bounded autonomous continuation until READY is empty or blocked/in-flight."""
+    steps = 0
+    while steps < max_steps:
+        steps += 1
+        results, actions, notices = run_once(kirby, slot, signal_path, state, dispatch=dispatch)
+        if _queue_idle(kirby):
+            break
+        size = _file_size(signal_path)
+        has_unread = size is not None and size > state.get("offset", 0)
+        session = kirby.sessions.get(slot)
+        has_pending = session is not None and session.state == WAKE_PENDING
+        if not has_unread and not has_pending and not results and not actions and not notices:
+            break
+    return steps
 
 
 def _notice(kirby, slot, state):
@@ -90,8 +161,6 @@ def _notice(kirby, slot, state):
     (session_id, workkey, token) only changes when a genuinely new
     continuation arises.
     """
-    from courier_runtime.continuity import WAKE_PENDING
-
     session = kirby.sessions.get(slot)
     if session is None or session.state != WAKE_PENDING:
         return []
@@ -193,7 +262,8 @@ def main(argv=None):
 
     from courier_runtime.continuity import Kirby
     kirby = Kirby(args.state, args.host)
-    state = {"offset": 0, "last_tick": 0.0, "notified": {}}
+    kirby.reconcile_after_restart()
+    state = load_loop_state(kirby)
     while True:
         run_once(kirby, args.slot, args.signals, state)
         if args.once:

@@ -64,6 +64,7 @@ function field(label, record) {
 
 function flowerSvg() {
   return `<svg class="flower-mark" viewBox="0 0 48 64" width="48" height="64" aria-hidden="true">
+    <ellipse class="orbit-ring" cx="24" cy="22" rx="20" ry="7" fill="none" stroke-width="1.2" stroke-dasharray="3 2"/>
     <line x1="24" y1="28" x2="24" y2="60" stroke="currentColor" stroke-width="2"/>
     <circle cx="24" cy="18" r="8" fill="none" stroke="currentColor" stroke-width="2"/>
     <circle cx="14" cy="24" r="6" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -188,6 +189,8 @@ function detailHtml(snapshot) {
       <div class="stations">${missions.map((mission) => `<article class="card" data-mission="${escapeHtml(mission.id)}">
         <h3>${escapeHtml(text(mission.id))}</h3>
         ${field("Status", { value: mission.status, source: mission.source, at: mission.at })}
+        ${mission.task_id ? field("Workkey", { value: mission.task_id, source: mission.source, at: mission.at }) : ""}
+        ${mission.reason ? field("Blocker", { value: mission.reason, source: mission.source, at: mission.at }) : ""}
       </article>`).join("")}</div>
     </section>
     <section id="github-ci" data-available="${ci.available ? "yes" : "no"}">
@@ -226,7 +229,7 @@ export function renderKolibri(snapshot) {
     const block = blockOf(data, id);
     const active = block.active === true;
     const here = !resting && id === target;
-    return `<article class="flower" data-flower="${escapeHtml(id)}" data-active="${active ? "yes" : "no"}">
+    return `<article class="flower" data-flower="${escapeHtml(id)}" data-planet="${escapeHtml(id)}" data-active="${active ? "yes" : "no"}">
       ${here ? `<div class="bird" data-state="fly" data-target="${escapeHtml(id)}">${birdSvg()}</div>` : ""}
       ${flowerSvg()}
       <h2>${escapeHtml(label)}</h2>
@@ -236,7 +239,11 @@ export function renderKolibri(snapshot) {
   const perch = resting
     ? `<div class="perch"><div class="bird" data-state="rest">${birdSvg()}</div><p id="kolibri-activity">${REST_TEXT}</p></div>`
     : `<div class="perch"><p id="kolibri-activity" data-target="${escapeHtml(target)}"></p></div>`;
-  return `<div class="kolibri" data-bird="${resting ? "rest" : "fly"}">
+  return `<div class="kolibri" data-bird="${resting ? "rest" : "fly"}" data-truth="REAL">
+    <div class="universe-bar" data-truth="REAL" data-simulated="excluded">
+      <span class="universe-badge">REAL LEDGER TELEMETRY</span>
+      <span class="universe-orbit-hint">SIMULATED: EXCLUDED · ORBITAL NODES: ${FLOWERS.length} · ACTIVE: ${targets.length}</span>
+    </div>
     <p class="note">Stations are ordered newest first. Equal timestamps keep id order.</p>
     <div class="garden">
       ${perch}

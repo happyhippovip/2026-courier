@@ -1,0 +1,20 @@
+{
+  "id": "P23",
+  "title": "Distributed Worker Health Beacon and Heartbeat Transmitter",
+  "lane": "L2",
+  "branch": "lane/L2-health-beacon-P23",
+  "files_scope": [
+    "courier_core/health_beacon.py",
+    "tests/test_health_beacon.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "telemetry pulse generation",
+    "proactive lease renewal trigger",
+    "status serialization and persistence"
+  ],
+  "provider_hints": ["headless", "interactive"],
+  "status": "READY",
+  "lease": null
+}

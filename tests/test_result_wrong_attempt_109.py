@@ -187,6 +187,7 @@ def test_contract_validate_durable_result_checks_attempt():
         "result_id": "result-ok-1",
         "status": "SUCCESS",
         "attempt": 1,
+        "source_sha": "0" * 40,
         "artifacts": [{"path": "art.txt", "sha256": "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"}],
     }
     # Pass

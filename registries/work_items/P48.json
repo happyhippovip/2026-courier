@@ -1,0 +1,22 @@
+{
+  "id": "P48",
+  "title": "Multi-Stage Worker Chain and Cryptographic Witness Orchestrator",
+  "lane": "L3",
+  "branch": "lane/L3-stage-handoff-P48",
+  "files_scope": [
+    "courier_core/stage_handoff.py",
+    "tests/test_stage_handoff.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "multi-stage sequential worker chain orchestration (DISPATCH -> WORKER_A -> HANDOFF -> WORKER_B -> VERIFIER -> DONE)",
+    "cryptographic witness tokens with HMAC-SHA256 stage sealing and previous token hash linkage",
+    "tamper detection in stage output or pipeline token history",
+    "fail-closed halt on stage failure with reason recording",
+    "cli pipeline initialization, advancement, and audit trail verification"
+  ],
+  "provider_hints": ["local", "stage-handoff"],
+  "status": "DONE",
+  "lease": null
+}

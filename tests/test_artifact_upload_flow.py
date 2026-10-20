@@ -20,7 +20,7 @@ def setup(tmp_path, monkeypatch, worker="WINDOWS-01", target="windows", caps=("w
     http = srv.app.test_client()
     http.post("/workers/register", headers=WORKER, json={"worker_id": worker, "capabilities": list(caps)})
     http.post("/goals", headers=WORKER, json={"goal_text": "g", "workflow_plan": [
-        {"task_id": "w1", "target_agent": target, "instruction": "make it", "artifacts": list(artifacts)}]})
+        {"task_id": "w1", "target_agent": target, "instruction": "make it", "artifacts": list(artifacts), "estimated_cost_eur": 0.0}]})
     return srv, http
 
 

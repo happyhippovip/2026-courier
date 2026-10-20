@@ -1,0 +1,21 @@
+{
+  "id": "P21",
+  "title": "Unified Worker Daemon Runtime with Resilience Wiring",
+  "lane": "L2",
+  "branch": "lane/L2-worker-daemon-P21",
+  "files_scope": [
+    "courier_core/worker_daemon.py",
+    "tests/test_worker_daemon.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "resource precheck",
+    "zero-cost gating",
+    "crash harvesting on failure",
+    "cryptographic receipt signing on success"
+  ],
+  "provider_hints": ["headless", "interactive"],
+  "status": "READY",
+  "lease": null
+}

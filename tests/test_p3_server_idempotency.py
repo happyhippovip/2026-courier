@@ -118,7 +118,8 @@ def test_unregistered_worker_stays_stopped_despite_heartbeat(srv):
     assert http.post("/workers/unregister", headers=WORKER, json={"worker_id": "MAC-01"}).status_code == 200
     assert http.post("/workers/heartbeat", headers=WORKER, json={"worker_id": "MAC-01"}).status_code == 200
     assert http.post("/tasks/claim", headers=WORKER, json={"worker_id": "MAC-01"}).get_json()["task"] is None
-    assert srv.load_state()["tasks"] == {}
+    assert srv.load_state()["workers"]["MAC-01"]["current_task"] is None
+    assert srv.load_state()["tasks"]["task-stop"]["status"] == "QUEUED"
     # An explicit re-registration is the only way back into service.
     assert http.post("/workers/register", headers=WORKER, json=worker).status_code == 200
     claimed = http.post("/tasks/claim", headers=WORKER, json={"worker_id": "MAC-01"}).get_json()["task"]

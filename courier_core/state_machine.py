@@ -142,7 +142,11 @@ def decide_after_failure(state: TaskState) -> Decision:
         raise ValueError(f"task {state.task_id} is {state.status.value}, not RETRY_PENDING")
     # An uncertain outcome of anything not known to be idempotent outranks a cancel
     # request: the effect may already have happened, so a human decides.
-    if state.failure_kind == "lease_lost" and state.started and not may_auto_retry(state.effect_class):
+    reason_lower = (state.last_reason or "").lower()
+    uncertain_rejection = state.failure_kind == "rejected" and (
+        "timeout" in reason_lower or "lease-lost" in reason_lower or "lease_lost" in reason_lower
+    )
+    if (state.failure_kind == "lease_lost" or uncertain_rejection) and state.started and not may_auto_retry(state.effect_class):
         return Decision.BLOCK
     if state.cancel_requested:
         return Decision.CANCEL

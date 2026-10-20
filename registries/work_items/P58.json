@@ -1,0 +1,22 @@
+{
+  "id": "P58",
+  "title": "End-to-End Cluster Chaos Injector and Resilience Validator",
+  "lane": "L3",
+  "branch": "lane/L3-chaos-injector-P58",
+  "files_scope": [
+    "courier_core/chaos_injector.py",
+    "tests/test_chaos_injector.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "programmable fault injection for network partitions, crashes, and split-brain tokens",
+    "byzantine payload corruption and checksum tamper detection under stress",
+    "automated invariant verification confirming zero split-brain and monotonic fence progression",
+    "chaos run execution report with fault duration and recovery latency metrics",
+    "cli run, list-faults, and verify chaos test suite"
+  ],
+  "provider_hints": ["local", "chaos-injector"],
+  "status": "DONE",
+  "lease": null
+}

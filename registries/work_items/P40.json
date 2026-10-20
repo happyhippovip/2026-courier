@@ -1,0 +1,23 @@
+{
+  "id": "P40",
+  "title": "Task Priority Preemption & Fair-Share Scheduler",
+  "lane": "L3",
+  "branch": "lane/L3-priority-scheduler-P40",
+  "files_scope": [
+    "courier_core/priority_scheduler.py",
+    "tests/test_priority_scheduler.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "weighted fair queuing priority scheduling",
+    "preemption of lower priority tasks for critical workloads",
+    "checkpoint preservation for preempted tasks",
+    "starvation prevention via dynamic wait time aging",
+    "slot concurrency guard invariants",
+    "cli inspection of queues and fairness metrics"
+  ],
+  "provider_hints": ["local", "priority-scheduler"],
+  "status": "DONE",
+  "lease": null
+}

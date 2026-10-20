@@ -1,0 +1,15 @@
+{
+  "id": "P18",
+  "title": "Dual-Ledger Bridge and State Reconciler",
+  "lane": "L1",
+  "branch": "lane/L1-dual-ledger-sync-P18",
+  "files_scope": [
+    "courier_core/ledger_sync.py",
+    "tests/test_ledger_sync.py"
+  ],
+  "depends_on": [],
+  "acceptance": ["tests", "idempotent ledger reconciliation", "event sequence integrity"],
+  "provider_hints": ["headless", "interactive"],
+  "status": "READY",
+  "lease": null
+}

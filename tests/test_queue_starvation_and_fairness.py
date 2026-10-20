@@ -66,7 +66,7 @@ def test_server_selector_starvation_and_fairness(tmp_path, monkeypatch):
             "workflow_plan": [
                 {
                     "task_id": "task-cloud-1",
-                    "target_agent": "cloud_llm",
+                    "target_agent": "linux",
                     "instruction": "call unavailable provider",
                     "artifacts": ["cloud.out"],
                     "status_note": "PROVIDER_UNAVAILABLE",
@@ -185,6 +185,7 @@ def test_server_selector_starvation_and_fairness(tmp_path, monkeypatch):
             "result_id": f"result-{task_id}",
             "status": "SUCCESS",
             "artifacts": [{"path": task["artifacts"][0], "sha256": "e" * 64}],
+            "source_sha": "0" * 40,
         }
         res_post = http.post("/tasks/result", headers=auth(), json=result_payload)
         assert res_post.status_code == 200
@@ -355,5 +356,13 @@ def test_coordination_dag_selector_fairness(tmp_path):
     assert action_types["TASK_HUMAN_REQUIRED"] == NextActionType.HUMAN_ACTION_REQUIRED
     assert "HUMAN_REQUIRED" in reasons["TASK_HUMAN_REQUIRED"]
 
-    # TASK_DOWNSTREAM darf keinesfalls in den Aktionen auftauchen:
-    assert "TASK_DOWNSTREAM" not in action_types
+    # TASK_DOWNSTREAM meldet HUMAN_ACTION_REQUIRED wegen blockierter Abhängigkeit:
+    assert action_types["TASK_DOWNSTREAM"] == NextActionType.HUMAN_ACTION_REQUIRED
+    assert "blocked by failed/blocked dependencies" in reasons["TASK_DOWNSTREAM"]
+
+    # In den tatsächlich ausführbaren Arbeiten darf keines der blockierten Elemente auftauchen:
+    ready_actions = engine.select_all_ready()
+    ready_ids = [a.mission_id for a in ready_actions if a.mission_id]
+    assert "TASK_DOWNSTREAM" not in ready_ids
+    assert "TASK_HUMAN_REQUIRED" not in ready_ids
+    assert "TASK_PROVIDER_UNAVAILABLE" not in ready_ids

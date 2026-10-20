@@ -1,19 +1,68 @@
+:root {
+  --uv-space: #070510;
+  --uv-space-panel: #0e0b1c;
+  --uv-violet: #7b2cbf;
+  --uv-neon: #c77dff;
+  --uv-green: #80ed99;
+  --uv-blue: #3a86ff;
+  --uv-turquoise: #00f5d4;
+}
 main { padding: 8px 24px 32px; }
+.kolibri {
+  background: radial-gradient(circle at 18% 12%, rgba(123, 44, 191, 0.18), rgba(58, 134, 255, 0.08) 42%, var(--uv-space) 88%);
+  border: 1px solid rgba(199, 125, 255, 0.24);
+  border-radius: 16px;
+  padding: 16px;
+}
+.universe-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(14, 11, 28, 0.85);
+  border: 1px solid rgba(0, 245, 212, 0.28);
+  font-size: 12px;
+}
+.universe-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--uv-turquoise);
+  color: var(--uv-green);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+.universe-orbit-hint {
+  color: var(--uv-neon);
+}
 .note { color: var(--quiet); font-size: 13px; max-width: 70ch; }
 section { margin: 28px 0; }
 section h2, .flower h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--quiet); margin: 0 0 12px; }
 .stations, .flowers { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
 .stations .card h3, .flower h2 { margin: 0 0 8px; }
-.flower h2 { font-size: 13px; }
+.flower h2 { font-size: 13px; color: var(--uv-neon); }
 .field { margin: 8px 0; }
 .field p { margin: 0; }
 .counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
 .garden { display: grid; grid-template-columns: 180px 1fr; gap: 16px; align-items: start; margin-top: 12px; }
-.perch, .flower { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
-.flower[data-active="yes"] { border-color: var(--gold); }
+.perch, .flower {
+  background: linear-gradient(160deg, rgba(14, 11, 28, 0.92), var(--panel));
+  border: 1px solid rgba(58, 134, 255, 0.32);
+  border-radius: 12px;
+  padding: 12px;
+  position: relative;
+}
+.flower[data-active="yes"] {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px var(--uv-turquoise);
+}
 .bird { color: var(--gold); }
-.flower-mark { color: var(--quiet); }
-.flower[data-active="yes"] .flower-mark { color: var(--gold); }
+.flower-mark { color: var(--uv-blue); }
+.flower[data-active="yes"] .flower-mark { color: var(--uv-green); }
+.orbit-ring { stroke: var(--uv-turquoise); opacity: 0.55; }
 #kolibri-activity { margin: 8px 0 0; font-size: 16px; }
 .state-legend { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 0 0 12px; }
 .state-legend li, .card[data-state] { border-left: 5px solid var(--line); padding-left: 8px; }
@@ -25,6 +74,9 @@ section h2, .flower h2 { font-size: 13px; text-transform: uppercase; letter-spac
 .state-beendet { border-left-color: #7b62a6; }
 .state-pausiert { border-left-color: #a87e38; }
 .state-unknown { border-left-color: var(--quiet); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
 @media (max-width: 700px) {
   .counts, .garden { grid-template-columns: 1fr; }
 }

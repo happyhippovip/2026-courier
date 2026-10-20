@@ -145,3 +145,15 @@ def test_failed_effect_is_not_confirmed_and_stays_open(tmp_path):
     report = resume_outbox(tmp_path, lambda entry: calls.append(entry["dispatch_id"]))
     assert calls == ["d1"]
     assert report["continued"] == ["d1"]
+
+
+def test_missing_or_empty_effect_key_fails_closed(tmp_path):
+    _entry(tmp_path, "d-no-key", raw=json.dumps({"dispatch_id": "d-no-key"}))
+    calls = []
+    with pytest.raises(OutboxRestartError, match="missing or empty effect_key"):
+        resume_outbox(tmp_path, lambda entry: calls.append(entry))
+    with pytest.raises(OutboxRestartError, match="missing or empty effect_key"):
+        cleanup_confirmed(tmp_path)
+    with pytest.raises(OutboxRestartError, match="effect_key must be a non-empty string"):
+        record_confirmation(tmp_path, "", "d-no-key")
+    assert calls == []

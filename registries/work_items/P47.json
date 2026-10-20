@@ -1,0 +1,22 @@
+{
+  "id": "P47",
+  "title": "Dynamic Capability Self-Discovery and Host Fingerprinter",
+  "lane": "L3",
+  "branch": "lane/L3-host-fingerprint-P47",
+  "files_scope": [
+    "courier_core/host_fingerprint.py",
+    "tests/test_host_fingerprint.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "deterministic host identification and hardware capability probing",
+    "optional accelerator and instruction set feature discovery",
+    "runtime environment fingerprint hashing with SHA-256 for worker attestation",
+    "tamper-resistant fingerprint generation with attestation token",
+    "cli host fingerprint inspection and attestation verification"
+  ],
+  "provider_hints": ["local", "host-fingerprint"],
+  "status": "DONE",
+  "lease": null
+}

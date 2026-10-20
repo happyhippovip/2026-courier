@@ -1,0 +1,22 @@
+{
+  "id": "P33",
+  "title": "Token-Bucket and Sliding-Window Multi-Tier Rate Limiter",
+  "lane": "L2",
+  "branch": "lane/L2-rate-limiter-P33",
+  "files_scope": [
+    "courier_core/rate_limiter.py",
+    "tests/test_rate_limiter.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "token bucket rate refill and burst capacity",
+    "blocking and non-blocking token acquisition with timeout",
+    "sliding window rolling quota enforcement",
+    "multi-tier rule composition (burst + sustained)",
+    "cli simulation and rate check"
+  ],
+  "provider_hints": ["local", "rate-limiter"],
+  "status": "DONE",
+  "lease": null
+}

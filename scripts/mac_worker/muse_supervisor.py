@@ -208,8 +208,14 @@ class ProcessLauncher:
         if proc is None:
             # Recovered process: no waitpid ownership, but identity is verified.
             class Recovered:
-                def __init__(self, value): self.pid = int(value)
-                def poll(self): return None
+                def __init__(self, value):
+                    self.pid = int(value)
+                    self.returncode = None
+                    self._recovered = True
+                def poll(self):
+                    if self.returncode is not None:
+                        return self.returncode
+                    return None
             proc = Recovered(pid)
         return cleanup_group(proc, identity)
 

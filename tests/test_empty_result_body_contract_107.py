@@ -140,6 +140,7 @@ def test_valid_complete_result_accepted_200(env):
         "run_id": "run-ok-107",
         "result_id": "res-ok-107",
         "status": "SUCCESS",
+        "source_sha": "0" * 40,
         "artifacts": [{"path": "out.txt", "sha256": hashlib.sha256(b"done").hexdigest()}],
     }
 

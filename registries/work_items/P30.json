@@ -1,0 +1,22 @@
+{
+  "id": "P30",
+  "title": "Work Queue Ledger Compaction and Snapshot Engine",
+  "lane": "L4",
+  "branch": "lane/L4-ledger-compactor-P30",
+  "files_scope": [
+    "courier_core/ledger_compactor.py",
+    "tests/test_ledger_compactor.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "collapse multi-event history to terminal or active lease states",
+    "deterministic snapshot generation with sha256 checksum",
+    "full replay vs snapshot+delta state equivalence verification",
+    "atomic file replacement during compaction",
+    "cli compaction and verification toolchain"
+  ],
+  "provider_hints": ["local", "storage"],
+  "status": "DONE",
+  "lease": null
+}

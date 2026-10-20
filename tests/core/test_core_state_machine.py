@@ -225,3 +225,86 @@ def test_uncertain_non_idempotent_outcome_outranks_a_cancel_request():
     blocked = apply(lost, task_event(EventType.TASK_BLOCKED, reason="uncertain"))
     cancelled = apply(blocked, task_event(EventType.TASK_CANCELLED, actor="desk:ana"))
     assert cancelled.status is TaskStatus.CANCELLED and cancelled.resolution == "cancelled_effect_unknown"
+
+
+def test_non_idempotent_timeout_rejection_blocks_and_verifier_clamps_retryable(tmp_path):
+    from courier_core.verification import Verdict, run_verifier
+    from courier_worker.host import ExecutionResult, ExecutionSpec, Outcome
+
+    # 1. ExecutionResult.retryable is False for non-idempotent timeout
+    spec = ExecutionSpec(
+        task_id="t-non-idem",
+        attempt=1,
+        dispatch_id="d-non-idem",
+        worker_id="w1",
+        result_id="r-non-idem",
+        argv=("python", "-c", "pass"),
+        timeout_s=5.0,
+        lease_ttl_s=30.0,
+        artifact_dir=str(tmp_path),
+        effect_class="non_idempotent",
+    )
+    res = ExecutionResult(spec=spec, outcome=Outcome.TIMEOUT)
+    assert res.retryable is False
+
+    # 1b. ExecutionResult.retryable is also False when effect_class is None (fail-closed)
+    spec_none = ExecutionSpec(
+        task_id="t-none-idem",
+        attempt=1,
+        dispatch_id="d-none-idem",
+        worker_id="w1",
+        result_id="r-none-idem",
+        argv=("python", "-c", "pass"),
+        timeout_s=5.0,
+        lease_ttl_s=30.0,
+        artifact_dir=str(tmp_path),
+        effect_class=None,
+    )
+    res_none = ExecutionResult(spec=spec_none, outcome=Outcome.TIMEOUT)
+    assert res_none.retryable is False
+
+    # 1c. ExecutionResult.retryable is True ONLY when explicitly declared idempotent
+    spec_idem = ExecutionSpec(
+        task_id="t-idem",
+        attempt=1,
+        dispatch_id="d-idem",
+        worker_id="w1",
+        result_id="r-idem",
+        argv=("python", "-c", "pass"),
+        timeout_s=5.0,
+        lease_ttl_s=30.0,
+        artifact_dir=str(tmp_path),
+        effect_class="idempotent",
+    )
+    res_idem = ExecutionResult(spec=spec_idem, outcome=Outcome.TIMEOUT)
+    assert res_idem.retryable is True
+
+    # 2. run_verifier clamps retryable=False when effect_class is non_idempotent
+    from courier_core.events import Event
+    a = Attempt()
+    fail_event = Event(
+        type=EventType.RESULT_READY,
+        task_id=a.task_id,
+        attempt=a.attempt,
+        dispatch_id=a.dispatch_id,
+        worker_id=a.worker_id,
+        result_id=f"r-{a.task_id}-{a.attempt}",
+        payload={"artifacts": [], "outcome": "failure", "retryable": True, "reason": "worker outcome: timeout"},
+    )
+    verifying = run([created(effect_class="non_idempotent"), a.claimed(), a.started(), fail_event])
+    verdict = run_verifier(lambda _: Verdict(False, "fail", retryable=True), verifying, fail_event, tmp_path)
+    assert verdict.retryable is False
+
+    # 3. decide_after_failure returns Decision.BLOCK on started non_idempotent timeout rejection
+    timed_out = run(
+        [
+            created(effect_class="non_idempotent"),
+            a.claimed(),
+            a.started(),
+            fail_event,
+            a.rejected(retryable=False, reason="worker outcome: timeout"),
+        ]
+    )
+    assert decide_after_failure(timed_out) is Decision.BLOCK
+    with pytest.raises(TransitionError, match="retry forbidden"):
+        apply(timed_out, a.retry_scheduled())

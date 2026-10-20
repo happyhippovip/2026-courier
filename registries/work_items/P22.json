@@ -1,0 +1,20 @@
+{
+  "id": "P22",
+  "title": "Task Dependency DAG Resolver with Cycle Detection",
+  "lane": "L1",
+  "branch": "lane/L1-dag-resolver-P22",
+  "files_scope": [
+    "courier_core/dag_resolver.py",
+    "tests/test_dag_resolver.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "topological resolution",
+    "circular dependency detection",
+    "ledger prerequisite verification"
+  ],
+  "provider_hints": ["headless", "interactive"],
+  "status": "READY",
+  "lease": null
+}

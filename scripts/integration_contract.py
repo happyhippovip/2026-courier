@@ -109,7 +109,10 @@ def verify_result(task: dict, raw_result: dict, workspace: Path) -> dict:
     if "owner" in task or "owner" in raw_result:
         owner_task = task.get("owner")
         owner_res = raw_result.get("owner")
-        if owner_task is not None and owner_res is not None and owner_res != owner_task:
+        if owner_task is not None:
+            if "owner" in raw_result and owner_res != owner_task:
+                raise ContractError("owner mismatch")
+        elif owner_res is not None:
             raise ContractError("owner mismatch")
 
     if raw_result.get("status") not in RESULT_STATES:
@@ -228,12 +231,13 @@ def validate_durable_result(task: dict, result: dict) -> dict:
     if "owner" in task or "owner" in result:
         owner_task = task.get("owner")
         owner_res = result.get("owner")
-        if owner_task and owner_res and owner_task != owner_res:
-            raise ContractError("owner mismatch")
-        owner_val = owner_res or owner_task
-        if owner_val:
-            result["owner"] = owner_val
+        if owner_task is not None:
+            if "owner" in result and owner_res != owner_task:
+                raise ContractError("owner mismatch")
+            result["owner"] = owner_task
             required.add("owner")
+        elif owner_res is not None:
+            raise ContractError("owner mismatch")
 
     missing = sorted(required - set(result))
     if missing:
@@ -349,6 +353,16 @@ def persist_durable_receipt(task: dict, result: dict, receipt_dir: Path) -> Path
         except Exception:
             pass
         raise ContractError("Conflicting result for already processed task")
+
+    for existing_file in receipt_dir.glob("rcpt-*.json"):
+        try:
+            existing = json.loads(existing_file.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if isinstance(existing, dict) and existing.get("task_id") == valid["task_id"]:
+            if existing == receipt_body:
+                return existing_file
+            raise ContractError("Conflicting result for already processed task")
 
     temp_file = receipt_dir / f".tmp-{uuid.uuid4().hex}-{target.name}"
     content = json.dumps(receipt_body, indent=2, sort_keys=True) + "\n"

@@ -9,7 +9,9 @@ from __future__ import annotations
 import datetime
 import hashlib
 import json
+import math
 import os
+import time
 from pathlib import Path
 from typing import Any
 
@@ -46,7 +48,18 @@ def save_json(path: Path, data: Any) -> None:
     temp_path = path.with_suffix(path.suffix + f".tmp.{os.getpid()}")
     with open(temp_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
-    os.replace(temp_path, path)
+    for attempt in range(20):
+        try:
+            os.replace(temp_path, path)
+            break
+        except (PermissionError, OSError):
+            if attempt == 19:
+                try:
+                    temp_path.unlink(missing_ok=True)
+                except Exception:
+                    pass
+                raise
+            time.sleep(0.01)
 
 
 class ResourcePolicyManager:
@@ -121,14 +134,59 @@ class CostGate:
     @staticmethod
     def evaluate_spend_request(
         resource_id: str,
-        estimated_cost_eur: float | None = 0.0,
+        estimated_cost_eur: float | None = None,
         requested_action: str = "EXECUTE_TASK",
         repo_dir: Path | None = None,
         grant: Any | None = None,
         at: float | None = None,
     ) -> dict:
-        # Unknown cost or missing estimation cannot be authorized
-        if estimated_cost_eur is None or not isinstance(estimated_cost_eur, (int, float)):
+        try:
+            policy = ResourcePolicyManager.get_policy(repo_dir)
+        except PolicyEpochError:
+            return {
+                "allowed": False,
+                "reason": "POLICY_EPOCH_REJECTED",
+                "message": "policy schema_version is not the accepted epoch",
+                "requires_human_gate": True,
+            }
+        active = policy.get("active_paid_resources", {})
+        planned = policy.get("planned_resources", {})
+        unauth = policy.get("unauthorized_resources", {})
+
+        # Check planned non-active
+        if resource_id in planned:
+            return {
+                "allowed": False,
+                "reason": "RESOURCE_PLANNED_NOT_ACTIVE",
+                "message": f"Resource \"{resource_id}\" is PLANNED_NOT_ACTIVE and cannot be used for routing or budget.",
+                "requires_human_gate": True,
+            }
+
+        # Check unauthorized / on-demand
+        if resource_id in unauth or resource_id not in active:
+            return {
+                "allowed": False,
+                "reason": "UNAUTHORIZED_RESOURCE_TIER",
+                "message": f"Resource \"{resource_id}\" is UNAVAILABLE or unauthorized by policy.",
+                "requires_human_gate": True,
+            }
+
+        # Check unapproved capacity upgrades / purchases
+        if "upgrade" in requested_action.lower() or "purchase" in requested_action.lower():
+            return {
+                "allowed": False,
+                "reason": "SPEND_NOT_ALLOWED_BY_POLICY",
+                "message": "Automatic budget increases or paid plan upgrades are blocked. Human Gate required.",
+                "requires_human_gate": True,
+            }
+
+        # Unknown cost, missing estimation, boolean, or non-finite float cannot be authorized
+        if (
+            estimated_cost_eur is None
+            or isinstance(estimated_cost_eur, bool)
+            or not isinstance(estimated_cost_eur, (int, float))
+            or not math.isfinite(estimated_cost_eur)
+        ):
             return {
                 "allowed": False,
                 "reason": "UNKNOWN_COST_UNAUTHORIZED",
@@ -136,7 +194,7 @@ class CostGate:
                 "requires_human_gate": True,
             }
 
-        if estimated_cost_eur < 0.0:
+        if estimated_cost_eur < 0.0 or (estimated_cost_eur == 0.0 and math.copysign(1.0, estimated_cost_eur) < 0.0):
             return {
                 "allowed": False,
                 "reason": "INVALID_NEGATIVE_COST",
@@ -172,6 +230,18 @@ class CostGate:
                     "requires_human_gate": True,
                 }
             max_spend = getattr(grant, "max_spend_eur", 0.0)
+            if (
+                not isinstance(max_spend, (int, float))
+                or isinstance(max_spend, bool)
+                or not math.isfinite(max_spend)
+                or max_spend < 0.0
+            ):
+                return {
+                    "allowed": False,
+                    "reason": "INVALID_GRANT_LIMIT",
+                    "message": "The spend grant specifies an invalid or non-finite limit.",
+                    "requires_human_gate": True,
+                }
             if estimated_cost_eur > max_spend:
                 return {
                     "allowed": False,
@@ -180,50 +250,10 @@ class CostGate:
                     "requires_human_gate": True,
                 }
 
-        try:
-            policy = ResourcePolicyManager.get_policy(repo_dir)
-        except PolicyEpochError:
-            return {
-                "allowed": False,
-                "reason": "POLICY_EPOCH_REJECTED",
-                "message": "policy schema_version is not the accepted epoch",
-                "requires_human_gate": True,
-            }
-        active = policy.get("active_paid_resources", {})
-        planned = policy.get("planned_resources", {})
-        unauth = policy.get("unauthorized_resources", {})
-
-        # Check planned non-active
-        if resource_id in planned:
-            return {
-                "allowed": False,
-                "reason": "RESOURCE_PLANNED_NOT_ACTIVE",
-                "message": f"Resource \\{resource_id}\\ is PLANNED_NOT_ACTIVE and cannot be used for routing or budget.",
-                "requires_human_gate": True,
-            }
-
-        # Check unauthorized / on-demand
-        if resource_id in unauth or resource_id not in active:
-            return {
-                "allowed": False,
-                "reason": "UNAUTHORIZED_RESOURCE_TIER",
-                "message": f"Resource \\{resource_id}\\ is UNAVAILABLE or unauthorized by policy.",
-                "requires_human_gate": True,
-            }
-
-        # Check unapproved capacity upgrades / purchases
-        if "upgrade" in requested_action.lower() or "purchase" in requested_action.lower():
-            return {
-                "allowed": False,
-                "reason": "SPEND_NOT_ALLOWED_BY_POLICY",
-                "message": "Automatic budget increases or paid plan upgrades are blocked. Human Gate required.",
-                "requires_human_gate": True,
-            }
-
         return {
             "allowed": True,
             "reason": "AUTHORIZED_ACTIVE_RESOURCE",
-            "message": f"Resource \\{resource_id}\\ is authorized under active paid subscription.",
+            "message": f"Resource \"{resource_id}\" is authorized under active paid subscription.",
             "requires_human_gate": False,
         }
 
@@ -274,13 +304,16 @@ class TaskLeaseManager:
 
         # 2. Inspect existing lease for renewal or active ownership
         existing = load_json(lease_path)
+        if existing is None and lease_path.exists():
+            # Empty/torn lease = a holder is mid-write. Never treat as expired.
+            return False, "LEASE_UNREADABLE_FAIL_CLOSED", {}
         if existing:
             expires_at = existing.get("expires_at", 0)
             current_owner = existing.get("owner_id")
 
             if expires_at > now_ts:
-                if current_owner == owner_id:
-                    # Renew lease atomically
+                if current_owner == owner_id and existing.get("task_hash") == task_hash:
+                    # Renew lease atomically (only for the same input)
                     existing["expires_at"] = now_ts + duration_sec
                     save_json(lease_path, existing)
                     return True, "LEASE_RENEWED", existing
@@ -299,6 +332,8 @@ class TaskLeaseManager:
         try:
             # Re-read lease under reclaim lock to ensure it is still expired
             current_existing = load_json(lease_path)
+            if current_existing is None and lease_path.exists():
+                return False, "LEASE_UNREADABLE_FAIL_CLOSED", {}
             if current_existing:
                 current_expires = current_existing.get("expires_at", 0)
                 if current_expires > now_ts:
@@ -308,7 +343,18 @@ class TaskLeaseManager:
             # Atomic replace under reclaim lock
             temp_reclaim = lease_path.with_suffix(f".tmp.{os.getpid()}.{now_ts}")
             save_json(temp_reclaim, lease_data)
-            os.replace(temp_reclaim, lease_path)
+            for attempt in range(20):
+                try:
+                    os.replace(temp_reclaim, lease_path)
+                    break
+                except (PermissionError, OSError):
+                    if attempt == 19:
+                        try:
+                            temp_reclaim.unlink(missing_ok=True)
+                        except Exception:
+                            pass
+                        raise
+                    time.sleep(0.01)
             return True, "LEASE_RECLAIMED_EXPIRED", lease_data
         finally:
             try:

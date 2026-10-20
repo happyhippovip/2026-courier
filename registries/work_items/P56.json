@@ -1,0 +1,23 @@
+{
+  "id": "P56",
+  "title": "Dynamic Backpressure Flow Controller and Rate Governor",
+  "lane": "L3",
+  "branch": "lane/L3-backpressure-flow-controller-P56",
+  "files_scope": [
+    "courier_core/backpressure_controller.py",
+    "tests/test_backpressure_controller.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "dynamic permit admission and AIMD dispatch rate regulation",
+    "anomaly-driven throttle and load shedding with safety thresholds",
+    "inflight task capacity tracking across cluster workers",
+    "fail-closed load shedding rejection under system saturation",
+    "telemetry state snapshot export and forensic directive journal",
+    "cli admit, adjust, status, and reset governor state"
+  ],
+  "provider_hints": ["local", "backpressure-governor"],
+  "status": "DONE",
+  "lease": null
+}

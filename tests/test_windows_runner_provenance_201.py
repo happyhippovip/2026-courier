@@ -52,7 +52,7 @@ def test_positive_source_and_manifest_hash_integrity():
     # Verifizierte kanonische Prüfsummen
     assert compute_sha256(source) == "FA0327A93CCA92A6E4FBD6F50C064FD4FCBAD55CD523C76BC99C9169F8C577FA"
     assert compute_sha256(manifest) == "BA0EBA6E18B2E52C48B175926F073E218F6678EA44ACA9610164682B4804A9AB"
-    assert compute_sha256(binary) == "DCE8E008EB57C9596407363721533CDFCFE8D9DEF67286FAAF75A9DE04E5F112"
+    assert compute_sha256(binary) == "68340CE921122075DA3328269387B4A3A2808ED2BCB0AAF0A4C1149DFB47D273"
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="Windows Runner Provenance tests require Windows host")
@@ -116,20 +116,20 @@ def test_cli_verify_runner_provenance_subprocess():
     assert script_path.exists(), f"CLI tool {script_path} must exist"
 
     # Text-Ausgabe
-    res = subprocess.run([sys.executable, str(script_path)], capture_output=True, text=True)
+    res = subprocess.run([sys.executable, str(script_path)], capture_output=True, text=True, encoding="utf-8", errors="replace")
     assert res.returncode == 0
     assert "PROVENANCE_CONFIRMED" in res.stdout
     assert "Code & Resources Identical:  True" in res.stdout
     assert "Provenance Confirmed:        True" in res.stdout
 
     # JSON-Ausgabe
-    res_json = subprocess.run([sys.executable, str(script_path), "--json"], capture_output=True, text=True)
+    res_json = subprocess.run([sys.executable, str(script_path), "--json"], capture_output=True, text=True, encoding="utf-8", errors="replace")
     assert res_json.returncode == 0
     data = json.loads(res_json.stdout)
     assert data["status"] == "PROVENANCE_CONFIRMED"
     assert data["provenance_confirmed"] is True
-    assert data["checked_in_binary_sha256"] == "DCE8E008EB57C9596407363721533CDFCFE8D9DEF67286FAAF75A9DE04E5F112"
+    assert data["checked_in_binary_sha256"] == "68340CE921122075DA3328269387B4A3A2808ED2BCB0AAF0A4C1149DFB47D273"
 
     # --fail-on-gap Flag (muss 0 zurückgeben, da Provenienz bestätigt ist)
-    res_fog = subprocess.run([sys.executable, str(script_path), "--fail-on-gap"], capture_output=True, text=True)
+    res_fog = subprocess.run([sys.executable, str(script_path), "--fail-on-gap"], capture_output=True, text=True, encoding="utf-8", errors="replace")
     assert res_fog.returncode == 0

@@ -1,0 +1,22 @@
+{
+  "id": "P32",
+  "title": "Cross-Lane Asynchronous Event Bus Bridge with Topic Wildcards",
+  "lane": "L5",
+  "branch": "lane/L5-event-bus-P32",
+  "files_scope": [
+    "courier_core/event_bus.py",
+    "tests/test_event_bus.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "topic wildcard matching (* and #)",
+    "backpressure and buffer overflow policies (RAISE, DROP_OLDEST)",
+    "subscriber isolation: subscriber exception caught and sent to DLQ",
+    "optional append-only journal file persistence",
+    "cli publication and topic inspection"
+  ],
+  "provider_hints": ["local", "event-bus"],
+  "status": "DONE",
+  "lease": null
+}

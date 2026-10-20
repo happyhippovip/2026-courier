@@ -1,0 +1,20 @@
+{
+  "id": "P26",
+  "title": "Automated Artifact Checkpoint Packager and Manifest Signer",
+  "lane": "L4",
+  "branch": "lane/L4-artifact-packager-P26",
+  "files_scope": [
+    "courier_core/artifact_packager.py",
+    "tests/test_artifact_packager.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "artifact archive bundling",
+    "cryptographic manifest signing",
+    "package integrity and traversal verification"
+  ],
+  "provider_hints": ["headless", "interactive"],
+  "status": "READY",
+  "lease": null
+}

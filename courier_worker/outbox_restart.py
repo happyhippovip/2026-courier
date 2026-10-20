@@ -19,6 +19,10 @@ class OutboxRestartError(Exception):
 
 def record_confirmation(home: Path | str, effect_key: str, dispatch_id: str) -> None:
     """Record confirmation of an effect in the run journal."""
+    if not isinstance(effect_key, str) or not effect_key.strip():
+        raise OutboxRestartError("effect_key must be a non-empty string")
+    if not isinstance(dispatch_id, str) or not dispatch_id.strip():
+        raise OutboxRestartError("dispatch_id must be a non-empty string")
     home_path = Path(home)
     run_dir = home_path / "run"
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -75,8 +79,13 @@ def resume_outbox(
             data = json.loads(raw)
             if not isinstance(data, dict):
                 raise OutboxRestartError(f"corrupt outbox entry (not a dict): {p.name}")
+        except OutboxRestartError:
+            raise
         except Exception as exc:
             raise OutboxRestartError(f"corrupt outbox entry: {p.name}") from exc
+        effect_key = data.get("effect_key")
+        if not isinstance(effect_key, str) or not effect_key.strip():
+            raise OutboxRestartError(f"corrupt outbox entry (missing or empty effect_key): {p.name}")
         entries.append((p, data))
 
     confirmed_keys = _load_confirmed_keys(home_path)
@@ -86,30 +95,28 @@ def resume_outbox(
     skipped: List[str] = []
 
     for p, entry in entries:
-        effect_key = entry.get("effect_key")
-        dispatch_id = entry.get("dispatch_id", p.stem)
+        effect_key = entry["effect_key"]
+        dispatch_id = entry.get("dispatch_id") or p.stem
 
         # Skip if already confirmed in journal or seen earlier in this pass
         is_confirmed = (
-            (effect_key is not None and effect_key in confirmed_keys)
+            effect_key in confirmed_keys
             or dispatch_id in confirmed_keys
         )
-        is_duplicate = (effect_key is not None and effect_key in seen_in_pass)
+        is_duplicate = effect_key in seen_in_pass
 
         if is_confirmed or is_duplicate:
             skipped.append(dispatch_id)
             continue
 
-        if effect_key is not None:
-            seen_in_pass.add(effect_key)
+        seen_in_pass.add(effect_key)
 
         # Execute effect
         execute_callback(entry)
 
         # Record confirmation only on successful callback completion
-        record_confirmation(home_path, effect_key or "", dispatch_id)
-        if effect_key is not None:
-            confirmed_keys.add(effect_key)
+        record_confirmation(home_path, effect_key, dispatch_id)
+        confirmed_keys.add(effect_key)
         confirmed_keys.add(dispatch_id)
         continued.append(dispatch_id)
 
@@ -131,8 +138,13 @@ def cleanup_confirmed(home: Path | str) -> List[str]:
             data = json.loads(raw)
             if not isinstance(data, dict):
                 raise OutboxRestartError(f"corrupt outbox entry (not a dict): {p.name}")
+        except OutboxRestartError:
+            raise
         except Exception as exc:
             raise OutboxRestartError(f"corrupt outbox entry: {p.name}") from exc
+        effect_key = data.get("effect_key")
+        if not isinstance(effect_key, str) or not effect_key.strip():
+            raise OutboxRestartError(f"corrupt outbox entry (missing or empty effect_key): {p.name}")
         entries.append((p, data))
 
     confirmed_keys = _load_confirmed_keys(home_path)

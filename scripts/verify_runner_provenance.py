@@ -30,7 +30,7 @@ def find_csc_compiler() -> str | None:
 def get_compiler_banner(csc_path: str) -> str:
     """Extract compiler version information."""
     try:
-        res = subprocess.run([csc_path, "/help"], capture_output=True, text=True, timeout=10)
+        res = subprocess.run([csc_path, "/help"], capture_output=True, text=True, timeout=10, encoding="utf-8", errors="replace")
         lines = res.stdout.splitlines()
         if lines:
             return lines[0].strip()
@@ -90,14 +90,14 @@ def audit_runner_provenance(
             cmd1.append(f"/win32manifest:{manifest_path.resolve()}")
         cmd1.extend([f"/out:{fresh_exe1.resolve()}", str(source_path.resolve())])
 
-        comp_res1 = subprocess.run(cmd1, capture_output=True, text=True)
+        comp_res1 = subprocess.run(cmd1, capture_output=True, text=True, encoding="utf-8", errors="replace")
         if comp_res1.returncode != 0:
             raise RuntimeError(f"Compilation of CourierLauncher.cs failed: {comp_res1.stderr or comp_res1.stdout}")
 
         # Second compilation to measure intrinsic compiler non-determinism (TimeDateStamp + MVID GUID)
         cmd2 = list(cmd1)
         cmd2[-2] = f"/out:{fresh_exe2.resolve()}"
-        comp_res2 = subprocess.run(cmd2, capture_output=True, text=True)
+        comp_res2 = subprocess.run(cmd2, capture_output=True, text=True, encoding="utf-8", errors="replace")
         if comp_res2.returncode != 0:
             raise RuntimeError(f"Second compilation failed: {comp_res2.stderr or comp_res2.stdout}")
 

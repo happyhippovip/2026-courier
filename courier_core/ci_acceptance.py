@@ -135,6 +135,8 @@ def check_skipped_tests(
                 is_permitted = any(pat.lower() in reason.lower() for pat in allowed_skip_patterns)
                 if not is_permitted:
                     violations.append(f"REQUIRED_TEST_FORBIDDEN_SKIP: {name} skipped with reason: {reason!r}")
+        elif name in required_tests and status not in ("PASSED", "PASS"):
+            violations.append(f"REQUIRED_TEST_NOT_PASSED: {name} finished with status: {status!r}")
 
     # Check if any required test was completely omitted
     tested_names = {item.get("name", "") for item in test_results}
@@ -171,11 +173,17 @@ def evaluate_twelve_case_matrix(evidence_receipts: Dict[str, Any]) -> Dict[str, 
     passed_count = 0
     for case in TWELVE_MATRIX_CASES:
         entry = evidence_receipts.get(case)
-        if isinstance(entry, dict) and entry.get("status") == "PASS":
-            results[case] = {"status": "PASS", "proof_sha": entry.get("proof_sha", "")}
+        proof_sha = entry.get("proof_sha") if isinstance(entry, dict) else None
+        if (
+            isinstance(entry, dict)
+            and entry.get("status") == "PASS"
+            and isinstance(proof_sha, str)
+            and bool(proof_sha.strip())
+        ):
+            results[case] = {"status": "PASS", "proof_sha": proof_sha.strip()}
             passed_count += 1
         else:
-            results[case] = {"status": "FAIL", "reason": "Missing or non-passing evidence"}
+            results[case] = {"status": "FAIL", "reason": "Missing, unverified, or non-passing evidence"}
 
     all_passed = passed_count == len(TWELVE_MATRIX_CASES)
     summary_digest = hashlib.sha256(

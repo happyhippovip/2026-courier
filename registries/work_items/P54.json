@@ -1,0 +1,23 @@
+{
+  "id": "P54",
+  "title": "Distributed Lease Fence Token and Split-Brain Prevention Guard",
+  "lane": "L3",
+  "branch": "lane/L3-fencing-token-P54",
+  "files_scope": [
+    "courier_core/fencing_token.py",
+    "tests/test_fencing_token.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "monotonically increasing fencing token allocation per resource",
+    "split-brain write rejection when presented token is stale",
+    "atomic lease acquisition and token generation with TTL",
+    "fence validation hook for storage and ledger writers",
+    "audit history tracking token allocations and rejected stale accesses",
+    "cli allocate, validate, and inspect resource fences"
+  ],
+  "provider_hints": ["local", "fencing-token"],
+  "status": "DONE",
+  "lease": null
+}

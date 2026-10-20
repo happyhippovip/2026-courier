@@ -1,0 +1,15 @@
+{
+  "id": "P17",
+  "title": "Crash Report Harvester and Diagnostic Bundler",
+  "lane": "L3",
+  "branch": "lane/L3-crash-harvester-P17",
+  "files_scope": [
+    "courier_core/crash_harvester.py",
+    "tests/test_crash_harvester.py"
+  ],
+  "depends_on": [],
+  "acceptance": ["tests", "reproducible failure isolation", "structured crash dump"],
+  "provider_hints": ["headless", "interactive"],
+  "status": "READY",
+  "lease": null
+}

@@ -730,6 +730,19 @@ def _kill_tree(proc: subprocess.Popen) -> None:
     pid = proc.pid
     if pid is None or pid <= 0 or pid == os.getpid():
         return
+
+    # Snapshot descendant processes before initial signals are sent
+    descendants = []
+    try:
+        import psutil
+        try:
+            p = psutil.Process(pid)
+            descendants = p.children(recursive=True)
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            descendants = []
+    except ImportError:
+        descendants = []
+
     if os.name == "nt":
         subprocess.run(
             ["taskkill", "/PID", str(pid), "/T", "/F"],
@@ -739,16 +752,27 @@ def _kill_tree(proc: subprocess.Popen) -> None:
             check=False,
             shell=False,
         )
-        return
-    try:
-        os.killpg(pid, signal.SIGKILL)
-    except ProcessLookupError:
-        return
-    except PermissionError:
+    else:
         try:
-            proc.kill()
-        except OSError:
-            return
+            os.killpg(pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        except PermissionError:
+            try:
+                proc.kill()
+            except OSError:
+                pass
+
+    try:
+        proc.kill()
+    except OSError:
+        pass
+
+    for child in descendants:
+        try:
+            child.kill()
+        except Exception:
+            pass
 
 
 def _wait(proc: subprocess.Popen, timeout_s: float, cap: int):

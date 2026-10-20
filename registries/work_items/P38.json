@@ -1,0 +1,22 @@
+{
+  "id": "P38",
+  "title": "Multi-Worker Lease Heartbeat Keepalive Synchronizer",
+  "lane": "L3",
+  "branch": "lane/L3-lease-sync-P38",
+  "files_scope": [
+    "courier_core/lease_sync.py",
+    "tests/test_lease_sync.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "proactive lease renewal prior to expiry threshold",
+    "heartbeat beacon pulse synchronization during long execution",
+    "fail-closed lease loss detection and split-brain abort signal",
+    "thread-safe background loop and deterministic step execution",
+    "cli inspection and keepalive monitoring"
+  ],
+  "provider_hints": ["local", "lease-sync"],
+  "status": "DONE",
+  "lease": null
+}

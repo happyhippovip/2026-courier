@@ -1,0 +1,23 @@
+{
+  "id": "P52",
+  "title": "Content-Addressable Immutable Cache Store with TTL and LRU Pruning",
+  "lane": "L3",
+  "branch": "lane/L3-immutable-cas-cache-P52",
+  "files_scope": [
+    "courier_core/immutable_cas_cache.py",
+    "tests/test_immutable_cas_cache.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "content-addressable storage keyed strictly by SHA-256 digest of payload",
+    "immutability guarantees rejecting divergent content under identical digest",
+    "LRU capacity eviction when max byte size is exceeded",
+    "TTL expiration pruning for ephemeral build and verification artifacts",
+    "metadata index tracking access counts, timestamps, sizes, and tags",
+    "cli store, retrieve, inspect, and prune operations"
+  ],
+  "provider_hints": ["local", "immutable-cas-cache"],
+  "status": "DONE",
+  "lease": null
+}

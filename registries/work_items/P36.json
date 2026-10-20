@@ -1,0 +1,22 @@
+{
+  "id": "P36",
+  "title": "Provenance Trace and Audit Chain Graph Generator",
+  "lane": "L5",
+  "branch": "lane/L5-provenance-graph-P36",
+  "files_scope": [
+    "courier_core/provenance_graph.py",
+    "tests/test_provenance_graph.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "provenance dag node and edge integrity verification",
+    "hash-chain linking validation between steps",
+    "a->b->c->verifier->done path reachability proof",
+    "mermaid diagram generation for visual audit",
+    "cli export and validation toolchain"
+  ],
+  "provider_hints": ["local", "audit-graph"],
+  "status": "DONE",
+  "lease": null
+}

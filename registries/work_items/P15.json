@@ -1,0 +1,23 @@
+{
+  "id": "P15",
+  "title": "Durable worker outbox drain coordinator with fail-closed delivery idempotency",
+  "lane": "L3",
+  "branch": "lane/L3-outbox-drain-P15",
+  "files_scope": [
+    "courier_core/outbox_drain.py",
+    "tests/test_outbox_drain.py"
+  ],
+  "depends_on": [
+    "P8"
+  ],
+  "acceptance": [
+    "tests",
+    "draft PR"
+  ],
+  "provider_hints": [
+    "headless",
+    "interactive"
+  ],
+  "status": "READY",
+  "lease": null
+}

@@ -31,11 +31,17 @@ DEFAULT_TTL_S = 3600
 MAX_KNOWN_ISSUES = 8
 
 
+class CorruptStateError(Exception):
+    """A state file exists but is unreadable: never silently reset it."""
+
+
 def _read_json(path: Path, default):
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
-        return default
+        return default  # missing file: default is correct
+    except (json.JSONDecodeError, UnicodeDecodeError, OSError) as exc:
+        raise CorruptStateError(f"{path.name} is corrupt, refusing silent reset: {exc}") from exc
 
 
 def _atomic_write(path: Path, data) -> None:
@@ -126,7 +132,10 @@ def _resume_event_id(home: Path, mission, spec):
 
 def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
     home = Path(home)
-    config = _read_json(home / CONFIG_NAME, None)
+    try:
+        config = _read_json(home / CONFIG_NAME, None)
+    except CorruptStateError as exc:
+        return {"outcome": "config-corrupt", "error": str(exc)}
     if config is None:
         return {"outcome": "off"}
 
@@ -140,25 +149,29 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
     holder = config["holder"]
     ttl = int(config.get("ttl_s", DEFAULT_TTL_S))
     specs = config.get("specs") or {}
-    queue = WorkQueue(items_dir=config["items_dir"], ledger_path=config["ledger"])
-    blocked = _ids_with_status(queue, "BLOCKED", now)
-    over_cap = len(blocked) > MAX_KNOWN_ISSUES
-    store = FileCoordinationStore(home / "coordination_ledger.jsonl")
-    bridge_state = _read_json(home / "ledger_bridge_state.json", {"missions": {}})
+    try:
+        bridge_state = _read_json(home / "ledger_bridge_state.json", {"missions": {}})
+    except CorruptStateError as exc:
+        return {"outcome": "bridge-state-corrupt", "error": str(exc)}
     missions = bridge_state.get("missions") or {}
+
+    queue = WorkQueue(items_dir=config["items_dir"], ledger_path=config["ledger"])
+    queue_blocked = _ids_with_status(queue, "BLOCKED", now)
+    over_cap = len(queue_blocked) > MAX_KNOWN_ISSUES
+    store = FileCoordinationStore(home / "coordination_ledger.jsonl")
     report = {"outcome": "idle", "released": [], "claimed": [], "assigned": [], "renewed": [],
               "blocked": []}
     # A parked mission (BLOCKED in the ledger) needs a human. Its workkey is
     # neither renewed, released nor reclaimed, so dependents keep waiting, but
     # it no longer occupies the holder: independent READY work continues.
     reducer_now = reduce_store(store)
-    blocked = {mid for mid, m in reducer_now.missions.items()
-               if m.get("status") == MissionStatus.BLOCKED}
+    ledger_blocked = {mid for mid, m in reducer_now.missions.items()
+                      if m.get("status") == MissionStatus.BLOCKED}
     report["needs_you"] = []
     report["resumed"] = []
     inbox_path = home / "run" / NEEDS_YOU_INBOX
     seen = _inbox_keys(inbox_path)
-    for mission_id in sorted(blocked):
+    for mission_id in sorted(ledger_blocked):
         mission = reducer_now.get_mission(mission_id)
         spec = specs.get(mission_id)
         # Resume exactly once per newly confirmed contract: the same refusal
@@ -176,7 +189,7 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
                     payload_hash="work_queue", ownership=agent_id,
                 ))
                 report["resumed"].append(mission_id)
-            blocked.discard(mission_id)
+            ledger_blocked.discard(mission_id)
             continue
         # Wake signal: one NEEDS_YOU inbox line per BLOCKED event (deduped).
         key = f"{mission_id}|{mission.get('latest_event_id')}"
@@ -195,7 +208,11 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
         if reducer.get_mission(item_id) is not None:
             return
         tasks_path = home / "ledger_tasks.json"
-        tasks = _read_json(tasks_path, {})
+        try:
+            tasks = _read_json(tasks_path, {})
+        except CorruptStateError:
+            report.setdefault("corrupt_skipped", []).append(item_id)
+            return
         if tasks.get(item_id) != specs[item_id]:
             tasks[item_id] = specs[item_id]
             _atomic_write(tasks_path, tasks)
@@ -218,7 +235,7 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
             queue.release(item_id, holder, f"FINAL_DONE {mapping.get('task_id', '')}".strip(), now=now)
             report["released"].append(item_id)
             continue
-        if item_id in blocked:
+        if item_id in ledger_blocked:
             report["blocked"].append(item_id)
             continue
         still_held.append(item_id)
@@ -229,13 +246,13 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
 
     if not still_held and not over_cap:
         for item in queue.list_ready(now=now):
-            if item["id"] in specs and item["id"] not in blocked:
+            if item["id"] in specs and item["id"] not in ledger_blocked:
                 queue.claim(item["id"], holder, ttl, host=host_id, now=now)
                 report["claimed"].append(item["id"])
                 assign(item["id"])
                 break
 
-    report["known_issues"] = [] if over_cap else list(blocked)
+    report["known_issues"] = [] if over_cap else sorted(set(queue_blocked) | set(ledger_blocked))
     report["next_owner"] = holder if report["claimed"] else None
     if over_cap:
         report["outcome"] = "known_issues"

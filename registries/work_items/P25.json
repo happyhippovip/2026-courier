@@ -1,0 +1,20 @@
+{
+  "id": "P25",
+  "title": "Pipeline Orchestrator for Real A to B to C Handoffs",
+  "lane": "L2",
+  "branch": "lane/L2-pipeline-orchestrator-P25",
+  "files_scope": [
+    "courier_core/pipeline_orchestrator.py",
+    "tests/test_pipeline_orchestrator.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "worker handoff chaining",
+    "cryptographic stage receipt verification",
+    "independent verifier gating"
+  ],
+  "provider_hints": ["headless", "interactive"],
+  "status": "READY",
+  "lease": null
+}

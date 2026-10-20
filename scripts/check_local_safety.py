@@ -56,7 +56,10 @@ ALLOW_PRAGMA = re.compile(r"local-safety:\s*allow\s+\S")
 
 def iter_files(root):
     for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = sorted(d for d in dirnames if d not in SKIPPED_DIRS)
+        dirnames[:] = sorted(
+            d for d in dirnames
+            if d not in SKIPPED_DIRS and not d.startswith(".wt") and not d.startswith(".carrier")
+        )
         for name in sorted(filenames):
             if name.endswith(SCANNED_SUFFIXES):
                 yield os.path.join(dirpath, name)

@@ -194,3 +194,243 @@ def test_lines_for_unknown_slot_are_ignored(tmp_path):
     results, _, notices = run_once(k, "nope", signals, state)
     assert results == ["IGNORED_NO_SLOT"] * 2 and notices == []
     assert len(world.started) == 1 and all(w.state == "OPEN" for w in k.workkeys.values())
+
+
+def test_v75_scenario_a_two_consecutive_ready_tasks_with_verifier_and_dependencies(tmp_path):
+    """Scenario A: Task A READY -> Worker gets A -> Result -> Verifier confirms ->
+    Ledger stores DONE -> Task B (depends_on A) becomes READY -> Courier selects and delivers B once."""
+    from courier_runtime.host_loop import run_until_idle
+
+    verified = []
+    dispatched = []
+    k, _, world, signals, state = setup(
+        tmp_path,
+        [{"key": "TaskA", "priority": 10}, {"key": "TaskB", "priority": 20, "depends_on": ["TaskA"]}],
+        slot="s1",
+        provider="antigravity",
+        verifier=lambda key, ckpt, sess: verified.append((key, ckpt)) or ckpt.startswith("verified:"),
+    )
+    assert [w.key for w in k.ready_workkeys()] == ["TaskA"]
+
+    def adapter(slot, workkey, session):
+        dispatched.append((workkey, session.token))
+        emit_signal(
+            signals,
+            f"TURN_ENDED workkey={workkey} token={session.token} result_id=res-{workkey} outcome=DONE checkpoint=verified:{workkey}",
+        )
+
+    emit_signal(signals, "IDLE")
+    run_until_idle(k, "s1", signals, state, dispatch=adapter)
+
+    assert dispatched == [("TaskA", 1), ("TaskB", 2)]
+    assert verified == [("TaskA", "verified:TaskA"), ("TaskB", "verified:TaskB")]
+    assert k.workkeys["TaskA"].state == DONE and k.workkeys["TaskB"].state == DONE
+    assert k.counters["manual_continue"] == 0 and len(world.started) == 1
+
+
+def test_v75_scenario_b_ten_sequential_ready_tasks_zero_manual_refill(tmp_path):
+    """Scenario B: 10 sequential READY tasks execute without manual refill."""
+    from courier_runtime.host_loop import _queue_idle, run_until_idle
+
+    keys = [f"T{i:02d}" for i in range(10)]
+    dispatched = []
+    k, _, world, signals, state = setup(tmp_path, keys, slot="s1", provider="antigravity")
+
+    def adapter(slot, workkey, session):
+        dispatched.append(workkey)
+        emit_signal(
+            signals,
+            f"TURN_ENDED workkey={workkey} token={session.token} outcome=DONE checkpoint=done-{workkey}",
+        )
+
+    emit_signal(signals, "IDLE")
+    run_until_idle(k, "s1", signals, state, dispatch=adapter)
+
+    assert dispatched == keys
+    assert all(k.workkeys[key].state == DONE for key in keys)
+    assert k.counters["manual_continue"] == 0 and k.counters["completions"] == 10
+    assert _queue_idle(k) is True and len(world.started) == 1
+
+
+def test_v75_scenario_c_provider_turn_ends_after_task_3_and_resumes_to_completion(tmp_path):
+    """Scenario C: Provider turn ends after Task 3; Courier automatically wakes and dispatches Tasks 4..10."""
+    from courier_runtime.host_loop import run_until_idle
+
+    keys = [f"T{i:02d}" for i in range(10)]
+    dispatched = []
+    k, _, world, signals, state = setup(tmp_path, keys, slot="s1", provider="muse")
+
+    # Turn 1 executes 3 tasks (T00, T01, T02) and then the provider turn ends
+    def adapter(slot, workkey, session):
+        dispatched.append(workkey)
+        emit_signal(
+            signals,
+            f"TURN_ENDED workkey={workkey} token={session.token} outcome=DONE checkpoint=done-{workkey}",
+        )
+
+    emit_signal(signals, "IDLE")
+    run_once(k, "s1", signals, state, dispatch=adapter)  # T00 dispatched
+    run_once(k, "s1", signals, state, dispatch=adapter)  # T00 DONE -> T01 dispatched
+    run_once(k, "s1", signals, state, dispatch=adapter)  # T01 DONE -> T02 (Task 3) dispatched & emits TURN_ENDED
+    assert dispatched == ["T00", "T01", "T02"]
+
+    # After Task 3's provider turn ends, Courier automatically continues T03..T09 without manual refill
+    run_until_idle(k, "s1", signals, state, dispatch=adapter)
+
+    assert dispatched == keys
+    assert all(k.workkeys[key].state == DONE for key in keys)
+    assert k.counters["manual_continue"] == 0 and len(world.started) == 1
+
+
+def test_v75_scenario_d_controlled_courier_process_stop_and_restart(tmp_path):
+    """Scenario D: Courier process stops mid-campaign and restarts cleanly from persisted offset without replaying signals."""
+    from courier_runtime.host_loop import load_loop_state, run_until_idle
+
+    dispatched = []
+    k, clock, world, signals, state = setup(tmp_path, ["W1", "W2", "W3", "W4"], slot="s1", provider="muse")
+
+    def step_adapter(slot, workkey, session):
+        dispatched.append((workkey, session.session_id, session.token))
+
+    emit_signal(signals, "IDLE")
+    run_once(k, "s1", signals, state, dispatch=step_adapter)  # claims & dispatches W1
+    emit_signal(signals, f"TURN_ENDED workkey=W1 token={k.sessions['s1'].token} outcome=DONE checkpoint=W1-ok")
+    run_once(k, "s1", signals, state, dispatch=step_adapter)  # completes W1, claims & dispatches W2
+    assert [d[0] for d in dispatched] == ["W1", "W2"]
+
+    # Controlled stop & restart of Courier supervisor + host_loop
+    k2 = Kirby(tmp_path / "kirby.json", "mac-1", identity=world.identity, terminate=world.terminate,
+               start_session=world.start, clock=clock)
+    assert k2.reconcile_after_restart() == {"s1": "RESUMED"}
+    state2 = load_loop_state(k2)
+    assert state2["offset"] == state["offset"] > 0
+
+    def auto_adapter(slot, workkey, session):
+        dispatched.append((workkey, session.session_id, session.token))
+        emit_signal(signals, f"TURN_ENDED workkey={workkey} token={session.token} outcome=DONE checkpoint={workkey}-ok")
+
+    # Re-running with no new signal does NOT replay W1/W2
+    run_once(k2, "s1", signals, state2, dispatch=auto_adapter)
+    assert [d[0] for d in dispatched] == ["W1", "W2"]
+
+    # Now W2 completes -> W3 and W4 automatically dispatch and complete
+    emit_signal(signals, f"TURN_ENDED workkey=W2 token={k2.sessions['s1'].token} outcome=DONE checkpoint=W2-ok")
+    run_until_idle(k2, "s1", signals, state2, dispatch=auto_adapter)
+
+    assert [d[0] for d in dispatched] == ["W1", "W2", "W3", "W4"]
+    assert all(w.state == DONE for w in k2.workkeys.values())
+
+
+def test_v75_scenario_e_worker_available_after_reconnect(tmp_path):
+    """Scenario E: Worker disconnects while idle (ARCHIVED_STALE), then reconnects and resumes READY work."""
+    from courier_runtime.host_loop import run_until_idle
+
+    dispatched = []
+    k, _, world, signals, state = setup(tmp_path, ["W1", "W2"], slot="s1", provider="antigravity")
+    world.alive.pop(k.sessions["s1"].pid)
+    assert k.reconcile_after_restart() == {"s1": "ARCHIVED_STALE"}
+    assert k.sessions["s1"].state == "RETIRED"
+
+    def adapter(slot, workkey, session):
+        dispatched.append((workkey, session.session_id))
+        emit_signal(signals, f"TURN_ENDED workkey={workkey} token={session.token} outcome=DONE checkpoint={workkey}-ok")
+
+    emit_signal(signals, "RECONNECTED")
+    run_until_idle(k, "s1", signals, state, dispatch=adapter)
+
+    assert dispatched == [("W1", "s1-g2"), ("W2", "s1-g2")]
+    assert all(w.state == DONE for w in k.workkeys.values())
+
+
+def test_v75_scenario_f_duplicate_confirmed_result_never_causes_false_done(tmp_path):
+    """Scenario F: Duplicate arrival of an already confirmed Result never marks the next task DONE."""
+    k, _, _, signals, state = setup(tmp_path, ["TaskA", "TaskB"], slot="s1", provider="muse")
+    emit_signal(signals, "IDLE")
+    run_once(k, "s1", signals, state)
+    assert drain_pending(k, "s1") == "TaskA"
+    tok_a = k.sessions["s1"].token
+
+    # TaskA finishes, and a duplicate TURN_ENDED arrives both un-tagged (while TaskB is WAKE_PENDING)
+    # and tagged with TaskA's identity after TaskB is WORKING:
+    emit_signal(signals, f"TURN_ENDED workkey=TaskA token={tok_a} result_id=R-A outcome=DONE checkpoint=A-done")
+    emit_signal(signals, "TURN_ENDED outcome=DONE checkpoint=A-done-dup")
+    results, _, _ = run_once(k, "s1", signals, state)
+    assert results == [WAKE_PENDING, "DUPLICATE_IGNORED"]
+    assert k.workkeys["TaskA"].state == DONE
+    assert k.workkeys["TaskB"].state == "CLAIMED"             # NOT FALSE_DONE!
+
+    # Now TaskB starts WORKING, and another late duplicate for TaskA arrives:
+    assert drain_pending(k, "s1") == "TaskB"
+    emit_signal(signals, f"TURN_ENDED workkey=TaskA token={tok_a} result_id=R-A outcome=DONE checkpoint=A-done")
+    results, _, _ = run_once(k, "s1", signals, state)
+    assert results == ["DUPLICATE_IGNORED"]
+    assert k.workkeys["TaskB"].state == "CLAIMED" and k.sessions["s1"].state == "WORKING"
+
+    # TaskB only completes when its own verified result arrives:
+    tok_b = k.sessions["s1"].token
+    emit_signal(signals, f"TURN_ENDED workkey=TaskB token={tok_b} result_id=R-B outcome=DONE checkpoint=B-done")
+    run_once(k, "s1", signals, state)
+    assert k.workkeys["TaskB"].state == DONE and k.counters["completions"] == 2
+
+
+def test_v75_scenario_g_lease_expires_with_unknown_external_effect_quarantines_non_idempotent(tmp_path):
+    """Scenario G: Lease expires while external effect of a non_idempotent task is unknown ->
+    quarantines as BLOCKED (zero duplicate execution) and moves on to next READY task."""
+    from courier_runtime.continuity import BLOCKED
+
+    dispatched = []
+    k, clock, world, signals, state = setup(
+        tmp_path,
+        [
+            {"key": "EXT_SIDE_EFFECT", "priority": 1, "effect_class": "non_idempotent"},
+            {"key": "SAFE_NEXT", "priority": 2, "effect_class": "idempotent"},
+        ],
+        slot="s1",
+        provider="muse",
+        lease_seconds=30.0,
+    )
+
+    emit_signal(signals, "IDLE")
+    run_once(k, "s1", signals, state, dispatch=lambda slot, wk, s: dispatched.append((wk, s.session_id)))
+    assert dispatched == [("EXT_SIDE_EFFECT", "s1-g1")]
+    stale_token = k.sessions["s1"].token
+
+    # Lease expires (30s) + tick cadence (45s) while external effect is unknown
+    clock.t += 45.0
+    _, actions, _ = run_once(k, "s1", signals, state, dispatch=lambda slot, wk, s: dispatched.append((wk, s.session_id)))
+    assert actions["s1"]["quarantined_workkey"] == "EXT_SIDE_EFFECT"
+    assert k.workkeys["EXT_SIDE_EFFECT"].state == BLOCKED
+    assert "unknown external effect" in k.workkeys["EXT_SIDE_EFFECT"].blocked_reason
+    # Successor session automatically moved on to SAFE_NEXT instead of re-executing EXT_SIDE_EFFECT:
+    assert dispatched == [("EXT_SIDE_EFFECT", "s1-g1"), ("SAFE_NEXT", "s1-g2")]
+    assert k.on_turn_end("s1", "DONE", stale_token, workkey="EXT_SIDE_EFFECT") == "REJECTED_STALE_WRITER"
+
+
+def test_v75_scenario_h_and_i_ready_becomes_empty_parks_idle_then_real_event_wakes(tmp_path):
+    """Scenarios H & I: When READY becomes empty, Courier parks cleanly in IDLE; when a new
+    authorized READY workkey arrives via a real event, Courier wakes and executes it once."""
+    from courier_runtime.host_loop import _queue_idle, run_until_idle
+
+    dispatched = []
+    k, _, world, signals, state = setup(tmp_path, ["W1"], slot="s1", provider="antigravity")
+
+    def adapter(slot, workkey, session):
+        dispatched.append(workkey)
+        emit_signal(signals, f"TURN_ENDED workkey={workkey} token={session.token} outcome=DONE checkpoint={workkey}-ok")
+
+    emit_signal(signals, "IDLE")
+    run_until_idle(k, "s1", signals, state, dispatch=adapter)
+
+    # Scenario H: READY is empty -> cleanly IDLE, no artificial loop
+    assert _queue_idle(k) is True
+    assert k.sessions["s1"].state == "IDLE"
+    assert dispatched == ["W1"]
+
+    # Scenario I: New authorized READY workkey becomes available via a real event
+    emit_signal(signals, "WORKKEY_READY key=W2 priority=10")
+    run_until_idle(k, "s1", signals, state, dispatch=adapter)
+
+    assert dispatched == ["W1", "W2"]
+    assert k.workkeys["W2"].state == DONE
+    assert _queue_idle(k) is True and k.sessions["s1"].state == "IDLE"
+    assert len(world.started) == 1

@@ -351,3 +351,47 @@ def test_cli_execution_clean_and_error(tmp_path, capsys):
     assert ret_bad == 2
     err = capsys.readouterr().err
     assert "WorkQueue Audit: FAILED" in err
+
+
+def test_failed_release_and_expired_lease_count(tmp_path):
+    ledger = tmp_path / "failed_and_expired.jsonl"
+    events = [
+        {
+            "type": "CLAIM",
+            "item_id": "P2",
+            "holder": "holder-1",
+            "host": "local",
+            "created_at": _stamp(NOW),
+            "expires_at": _stamp(NOW + timedelta(minutes=5)),
+        },
+        {
+            "type": "RELEASE",
+            "item_id": "P2",
+            "holder": "holder-1",
+            "created_at": _stamp(NOW + timedelta(minutes=2)),
+            "result": "FAILED: verification rejected",
+        },
+        {
+            "type": "CLAIM",
+            "item_id": "P3",
+            "holder": "holder-2",
+            "host": "local",
+            "created_at": _stamp(NOW + timedelta(minutes=3)),
+            "expires_at": _stamp(NOW + timedelta(minutes=4)),
+        },
+        {
+            "type": "CLAIM",
+            "item_id": "P4",
+            "holder": "holder-3",
+            "host": "local",
+            "created_at": _stamp(NOW + timedelta(minutes=10)),
+            "expires_at": _stamp(NOW + timedelta(minutes=20)),
+        },
+    ]
+    _write_ledger(ledger, events)
+    report = audit_work_queue_ledger(ledger)
+    assert report.valid is True
+    assert report.items["P2"]["status"] == "BLOCKED"
+    assert report.completed_count == 0
+    # P3 expired at minute 4 before P4 was claimed at minute 10 -> only P4 is an active lease
+    assert report.active_leases_count == 1

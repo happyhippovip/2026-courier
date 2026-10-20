@@ -273,4 +273,5 @@ def test_blocked_task_is_not_silently_skipped_and_blocks_dependents(tmp_path):
     engine = CoordinationEngine(reducer)
     actions = engine.evaluate_dag()
     assert any(a.mission_id == "B" and a.action_type == NextActionType.HUMAN_ACTION_REQUIRED for a in actions)
-    assert not any(a.mission_id == "C" for a in actions)
+    assert any(a.mission_id == "C" and a.action_type == NextActionType.HUMAN_ACTION_REQUIRED for a in actions)
+    assert engine.select_first_ready() is None

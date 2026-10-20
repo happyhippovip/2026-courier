@@ -1,0 +1,22 @@
+{
+  "id": "P31",
+  "title": "Dynamic Provider Fallback and Circuit-Breaker Failover Router",
+  "lane": "L1",
+  "branch": "lane/L1-provider-failover-P31",
+  "files_scope": [
+    "courier_core/provider_failover.py",
+    "tests/test_provider_failover.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "ordered provider fallback cascade on failure",
+    "zero-spend cost gate enforcement for every fallback candidate",
+    "circuit breaker cooldown on repeated provider failures",
+    "audit trail logging of all attempts and rejection reasons",
+    "cli routing and status inspection"
+  ],
+  "provider_hints": ["local", "router"],
+  "status": "DONE",
+  "lease": null
+}

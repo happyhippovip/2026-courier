@@ -1,0 +1,20 @@
+{
+  "id": "P19",
+  "title": "Dead-Letter Queue Inspector and Auto-Retrier",
+  "lane": "L3",
+  "branch": "lane/L3-dead-letter-queue-P19",
+  "files_scope": [
+    "courier_core/dead_letter_queue.py",
+    "tests/test_dead_letter_queue.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "exponential backoff retry",
+    "poison message isolation",
+    "quarantine audit"
+  ],
+  "provider_hints": ["headless", "interactive"],
+  "status": "READY",
+  "lease": null
+}

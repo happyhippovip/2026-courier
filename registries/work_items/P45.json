@@ -1,0 +1,23 @@
+{
+  "id": "P45",
+  "title": "Structured Telemetry & OpenTelemetry Metric Exporter",
+  "lane": "L3",
+  "branch": "lane/L3-telemetry-exporter-P45",
+  "files_scope": [
+    "courier_core/telemetry_exporter.py",
+    "tests/test_telemetry_exporter.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "otlp json compliant metric and span serialization",
+    "counter gauge and histogram aggregations",
+    "in-memory buffering with atomic batch file flush",
+    "resource attribution and w3c trace context linkage",
+    "fail-closed payload size limits and metric name validation",
+    "cli metric recording and otlp export"
+  ],
+  "provider_hints": ["local", "telemetry-exporter"],
+  "status": "DONE",
+  "lease": null
+}

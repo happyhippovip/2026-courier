@@ -1,0 +1,23 @@
+{
+  "id": "P14",
+  "title": "Verify branch diff against declared scope and protect V3 baseline from unauthorized changes",
+  "lane": "L4",
+  "branch": "lane/L4-branch-diff-verifier-P14",
+  "files_scope": [
+    "courier_core/branch_diff_verifier.py",
+    "tests/test_branch_diff_verifier.py"
+  ],
+  "depends_on": [
+    "P7"
+  ],
+  "acceptance": [
+    "tests",
+    "draft PR"
+  ],
+  "provider_hints": [
+    "headless",
+    "interactive"
+  ],
+  "status": "READY",
+  "lease": null
+}

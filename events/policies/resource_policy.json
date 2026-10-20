@@ -15,7 +15,9 @@
         "architecture_builds",
         "3d_media_pipelines",
         "planning_and_synthesis"
-      ]
+      ],
+      "cost_per_run_eur": 0.0,
+      "allow_zero_cost_start": true
     },
     "chatgpt_plus_codex": {
       "provider": "openai",
@@ -29,7 +31,20 @@
         "diff_inspections",
         "security_gates",
         "commit_verification"
-      ]
+      ],
+      "cost_per_run_eur": 0.0,
+      "allow_zero_cost_start": true
+    },
+    "windows_native": {
+      "provider": "local",
+      "tier": "included",
+      "status": "ACTIVE_PAID",
+      "role": "LOCAL_EXECUTOR",
+      "capabilities": [
+        "explicit_zero_cost_local_execution"
+      ],
+      "cost_per_run_eur": 0.0,
+      "allow_zero_cost_start": true
     }
   },
   "planned_resources": {
@@ -59,7 +74,9 @@
     "allow_auto_capacity_expansion": false,
     "require_human_gate_for_tier_change": true,
     "require_human_gate_for_spend": true,
-    "max_autonomous_iterations_per_task": 1
+    "max_autonomous_iterations_per_task": 1,
+    "allow_zero_cost_start": true,
+    "default_run_cost_eur": 0.0
   },
   "agent_lifecycle_states": [
     "REGISTERED",

@@ -403,6 +403,9 @@ class CourierScheduler:
         self._save()
 
     def _hibernate(self):
+        if self.lane.state == LaneState.HIBERNATED:
+            self._save()
+            return
         self.lane.hibernate(self.lane.checkpoint, persist=self._save)
         if self.lane.release_report.get("failed"):
             self.stop_reason = "RESOURCE_RELEASE_FAILED"

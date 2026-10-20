@@ -23,6 +23,7 @@ import errno
 import hashlib
 import json
 import os
+import re
 import signal
 import subprocess
 import sys
@@ -50,6 +51,8 @@ LOAD_PRESSURE_FACTOR = 4.0
 
 CLAIM_RECORD_GLOB = "dispatch-*.json"
 CRASH_REPORT_NAME = "crash.json"
+
+SAFE_DISPATCH_ID_RE = re.compile(r"^[A-Za-z0-9_.-]+$")
 
 
 class SpecError(ValueError):
@@ -122,6 +125,7 @@ class ExecutionSpec:
     adapter: Optional[str] = None
     params: Optional[dict] = field(default=None, compare=False)
     effect_key: Optional[str] = None
+    effect_class: Optional[str] = None
     # The verified result of the task this one depends on (claim spec "input"),
     # already shape-checked by the adapter bridge. None for an independent task.
     input: Optional[dict] = field(default=None, compare=False)
@@ -177,9 +181,10 @@ class ExecutionResult:
 
     @property
     def retryable(self) -> bool:
-        # Only environment-shaped ends are worth a blind retry. A crash or a
-        # cancellation is evidence, not a transient: the controller (and the
-        # non-idempotent BLOCK rule) must see retryable=false.
+        # Only environment-shaped ends are worth a blind retry, and only when
+        # the spec explicitly declares an idempotent effect_class.
+        if self.spec.effect_class != "idempotent":
+            return False
         return self.outcome in (Outcome.TIMEOUT, Outcome.LEASE_LOST)
 
 
@@ -795,6 +800,11 @@ def _outbox_dir(home: str) -> Path:
 
 
 def outbox_write(home: str, payload: dict) -> Path:
+    dispatch_id = payload.get("dispatch_id")
+    if (not isinstance(dispatch_id, str) or not dispatch_id
+            or not SAFE_DISPATCH_ID_RE.match(dispatch_id)
+            or ".." in dispatch_id or "/" in dispatch_id or "\\" in dispatch_id):
+        raise SpecError("dispatch_id in result payload is missing, malformed or attempts path traversal")
     serialized = json.dumps(payload, sort_keys=True)
     if len(serialized.encode("utf-8")) > MAX_RESULT_PAYLOAD_BYTES:
         raise SpecError(f"result payload exceeds size limit of {MAX_RESULT_PAYLOAD_BYTES} bytes")
@@ -802,9 +812,9 @@ def outbox_write(home: str, payload: dict) -> Path:
     outbox.mkdir(parents=True, exist_ok=True)
     existing = list(outbox.glob("*.json"))
     if len(existing) >= OUTBOX_CAP and not any(
-            p.name == f"{payload['dispatch_id']}.json" for p in existing):
+            p.name == f"{dispatch_id}.json" for p in existing):
         raise OutboxFull(f"outbox holds {len(existing)} results; controller must drain it")
-    path = outbox / f"{payload['dispatch_id']}.json"
+    path = outbox / f"{dispatch_id}.json"
     fd, tmp = tempfile.mkstemp(dir=str(outbox), prefix=".outbox-", suffix=".tmp")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as fh:
@@ -841,6 +851,10 @@ def outbox_read_all(home: str) -> list:
 
 
 def outbox_remove(home: str, dispatch_id: str) -> None:
+    if (not isinstance(dispatch_id, str) or not dispatch_id
+            or not SAFE_DISPATCH_ID_RE.match(dispatch_id)
+            or ".." in dispatch_id or "/" in dispatch_id or "\\" in dispatch_id):
+        return
     try:
         (_outbox_dir(home) / f"{dispatch_id}.json").unlink()
     except OSError:

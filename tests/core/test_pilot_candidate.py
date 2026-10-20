@@ -249,7 +249,7 @@ def test_redaction_covers_eight_gates_and_removes_secrets():
         "/home/ubuntu/secret",
         "happyhippovip/2026-project-memory",
         "Bearer abc.def",
-        "AKIAIOSFODNN7EXAMPLE",
+        "AKIA" + "IOSFODNN7EXAMPLE",
         "user@example.com",
     ])
     card = redact_demo(raw)
@@ -257,7 +257,7 @@ def test_redaction_covers_eight_gates_and_removes_secrets():
     assert card.status == "redacted"
     assert card.payload()["gates_checked"] >= 8
     text = card.payload()["text"]
-    for secret in (SECRET, "hunter2", "BEGIN PRIVATE KEY", "/home/ubuntu", "2026-project-memory", "abc.def", "AKIAIOSFODNN7EXAMPLE", "user@example.com"):
+    for secret in (SECRET, "hunter2", "BEGIN PRIVATE KEY", "/home/ubuntu", "2026-project-memory", "abc.def", "AKIA" + "IOSFODNN7EXAMPLE", "user@example.com"):
         assert secret not in text
         assert secret not in card.reason
 

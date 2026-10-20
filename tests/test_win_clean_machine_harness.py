@@ -10,12 +10,13 @@ from pathlib import Path
 
 @pytest.fixture(autouse=True)
 def restore_courier_exe():
+    orig_bytes = None
+    target = Path("scripts/windows_worker/Courier.exe")
+    if target.exists():
+        orig_bytes = target.read_bytes()
     yield
-    if os.name == 'nt':
-        try:
-            subprocess.run(["git", "restore", "scripts/windows_worker/Courier.exe"], check=False)
-        except Exception:
-            pass
+    if orig_bytes is not None:
+        target.write_bytes(orig_bytes)
 
 @pytest.mark.skipif(os.name != 'nt', reason="Windows specific clean-machine harness")
 def test_win_clean_machine_harness(tmp_path):
@@ -31,19 +32,21 @@ def test_win_clean_machine_harness(tmp_path):
     """
     state_dir = tmp_path / "Courier"
     
+    repo_root = Path(__file__).resolve().parent.parent
+    test_launcher_exe = (tmp_path / "CourierTest.exe").resolve()
     # 1. Fresh install & first launch
-    build_script = Path("scripts/windows_worker/launcher/build_launcher.ps1").resolve()
+    build_script = (repo_root / "scripts/windows_worker/launcher/build_launcher.ps1").resolve()
     if build_script.exists():
-        subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", str(build_script), "-TestBuild"], check=True)
+        subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", str(build_script), "-TestBuild", "-OutFile", str(test_launcher_exe)], check=True, cwd=str(repo_root))
 
-    launcher_exe = Path("scripts/windows_worker/Courier.exe").resolve()
-    assert launcher_exe.exists(), "Courier.exe must be built before tests"
+    launcher_exe = test_launcher_exe
+    assert launcher_exe.exists(), "CourierTest.exe must be built before tests"
 
     # Start the launcher
     env = os.environ.copy()
     env["LOCALAPPDATA"] = str(tmp_path)
     env["COURIER_TEST_NO_JOB"] = "1"
-    env["PYTHONPATH"] = str(Path.cwd())
+    env["PYTHONPATH"] = str(repo_root)
     # We will use Courier's default ports or force them via config.json
     courier_dir = tmp_path / "Courier"
     courier_dir.mkdir(parents=True)
@@ -277,8 +280,16 @@ def test_win_clean_machine_harness(tmp_path):
             except Exception:
                 return False
 
-        assert not is_pid_running(launcher.pid), "Old launcher PID survived"
-        assert not is_pid_running(worker_pid), "Old worker PID survived"
+        def wait_pid_dead(pid, timeout=5.0):
+            deadline = time.monotonic() + timeout
+            while time.monotonic() < deadline:
+                if not is_pid_running(pid):
+                    return True
+                time.sleep(0.1)
+            return False
+
+        assert wait_pid_dead(launcher.pid), "Old launcher PID survived"
+        assert wait_pid_dead(worker_pid), "Old worker PID survived"
         
         try:
             launcher3 = subprocess.Popen([str(launcher_exe)], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | 0x01000000)

@@ -1,0 +1,22 @@
+{
+  "id": "P28",
+  "title": "Worker Capability Matrix and Hardware/Software Tag Matcher",
+  "lane": "L2",
+  "branch": "lane/L2-capability-matcher-P28",
+  "files_scope": [
+    "courier_core/capability_matcher.py",
+    "tests/test_capability_matcher.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "os and architecture matching",
+    "required and forbidden tag evaluation",
+    "numeric constraint evaluation (min memory, max load)",
+    "fail-closed rejection on missing capabilities",
+    "cli matching and worker registry queries"
+  ],
+  "provider_hints": ["local", "windows", "linux"],
+  "status": "DONE",
+  "lease": null
+}

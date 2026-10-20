@@ -145,6 +145,7 @@ def test_positive_matching_worker_and_workkey_succeeds(server_env):
         "run_id": "run-1",
         "result_id": "res-legit-1",
         "status": "SUCCESS",
+        "source_sha": "0" * 40,
         "artifacts": [{"path": "out.txt", "sha256": "0" * 64}],
     }
 
@@ -200,6 +201,7 @@ def test_seed_110_contract_level_worker_id_mismatch():
         "run_id": "run-w-1",
         "result_id": "res-w-1",
         "status": "SUCCESS",
+        "source_sha": "0" * 40,
         "artifacts": [{"path": "out.txt", "sha256": "a" * 64}],
     }
     with pytest.raises(ContractError, match="worker_id mismatch"):
@@ -224,6 +226,7 @@ def test_seed_110_run_id_equals_worker_id_rejected():
         "run_id": task["worker_id"],  # illegal: run_id == worker_id
         "result_id": "res-w-2",
         "status": "SUCCESS",
+        "source_sha": "0" * 40,
         "artifacts": [{"path": "out.txt", "sha256": "b" * 64}],
     }
     with pytest.raises(ContractError, match="run_id must not equal worker_id"):
@@ -245,6 +248,7 @@ def test_seed_110_reassigned_task_rejects_stale_prior_worker(server_env):
         "run_id": "run-fail-1",
         "result_id": "res-fail-1",
         "status": "FAILED",
+        "source_sha": "0" * 40,
         "artifacts": [{"path": "out.txt", "sha256": "0" * 64}],
     }
     res_f = client.post("/tasks/result", headers=AUTH_HEADERS, json=fail_res)
@@ -271,6 +275,7 @@ def test_seed_110_reassigned_task_rejects_stale_prior_worker(server_env):
         "run_id": "run-stale-1",
         "result_id": "res-stale-1",
         "status": "SUCCESS",
+        "source_sha": "0" * 40,
         "artifacts": [{"path": "out.txt", "sha256": "0" * 64}],
     }
     res_stale = client.post("/tasks/result", headers=AUTH_HEADERS, json=stale_worker_payload)

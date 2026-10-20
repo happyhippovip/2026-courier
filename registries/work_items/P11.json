@@ -1,0 +1,23 @@
+{
+  "id": "P11",
+  "title": "Project task execution receipts from journal into canonical proof record",
+  "lane": "L2",
+  "branch": "lane/L2-receipt-projector-P11",
+  "files_scope": [
+    "courier_core/receipt_projector.py",
+    "tests/test_receipt_projector.py"
+  ],
+  "depends_on": [
+    "P2"
+  ],
+  "acceptance": [
+    "tests",
+    "draft PR"
+  ],
+  "provider_hints": [
+    "headless",
+    "interactive"
+  ],
+  "status": "READY",
+  "lease": null
+}

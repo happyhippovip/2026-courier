@@ -11,6 +11,15 @@ if "COURIER_API_KEY" not in os.environ:
 if "COURIER_VERIFIER_API_KEY" not in os.environ:
     os.environ["COURIER_VERIFIER_API_KEY"] = "local-verifier-key"
 
+REPO_ROOT = str(Path(__file__).resolve().parent.parent)
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+if "PYTHONPATH" in os.environ:
+    if REPO_ROOT not in os.environ["PYTHONPATH"].split(os.pathsep):
+        os.environ["PYTHONPATH"] = f"{REPO_ROOT}{os.pathsep}{os.environ['PYTHONPATH']}"
+else:
+    os.environ["PYTHONPATH"] = REPO_ROOT
+
 if sys.platform == "win32":
     # Monkeypatch cleanup_dead_symlinks to ignore PermissionError on Windows during teardown
     try:
@@ -73,3 +82,18 @@ def pytest_collection_modifyitems(config, items):
         for item in items:
             if windows_skips_as_unix_only(str(item.nodeid)):
                 item.add_marker(skip_mac)
+
+
+@pytest.fixture(autouse=True)
+def reset_provider_circuits():
+    try:
+        from scripts.provider_circuit import ProviderCircuitBreaker
+        ProviderCircuitBreaker._shared_circuits.clear()
+    except Exception:
+        pass
+    yield
+    try:
+        from scripts.provider_circuit import ProviderCircuitBreaker
+        ProviderCircuitBreaker._shared_circuits.clear()
+    except Exception:
+        pass

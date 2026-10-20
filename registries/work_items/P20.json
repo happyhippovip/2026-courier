@@ -1,0 +1,20 @@
+{
+  "id": "P20",
+  "title": "Cryptographic Event Receipt Signer and Verifier",
+  "lane": "L2",
+  "branch": "lane/L2-receipt-signer-P20",
+  "files_scope": [
+    "courier_core/receipt_signer.py",
+    "tests/test_receipt_signer.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "hmac receipt signing",
+    "tamper and clock skew rejection",
+    "token authority verification"
+  ],
+  "provider_hints": ["headless", "interactive"],
+  "status": "READY",
+  "lease": null
+}

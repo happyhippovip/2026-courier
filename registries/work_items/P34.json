@@ -1,0 +1,22 @@
+{
+  "id": "P34",
+  "title": "Distributed Ephemeral Storage Cache with TTL and Cryptographic Integrity",
+  "lane": "L4",
+  "branch": "lane/L4-ephemeral-cache-P34",
+  "files_scope": [
+    "courier_core/ephemeral_cache.py",
+    "tests/test_ephemeral_cache.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "ttl expiration and background purge",
+    "lru eviction when max items capacity reached",
+    "cryptographic sha256 checksum verification on read",
+    "thread-safe concurrent access and hit/miss statistics",
+    "cli inspection and cache simulation"
+  ],
+  "provider_hints": ["local", "cache"],
+  "status": "DONE",
+  "lease": null
+}

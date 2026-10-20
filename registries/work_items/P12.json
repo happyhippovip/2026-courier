@@ -1,0 +1,23 @@
+{
+  "id": "P12",
+  "title": "Fail-closed provider cost guard enforcing zero spend and unknown cost block",
+  "lane": "L2",
+  "branch": "lane/L2-cost-guard-P12",
+  "files_scope": [
+    "courier_core/provider_cost_guard.py",
+    "tests/test_provider_cost_guard.py"
+  ],
+  "depends_on": [
+    "P5"
+  ],
+  "acceptance": [
+    "tests",
+    "draft PR"
+  ],
+  "provider_hints": [
+    "headless",
+    "interactive"
+  ],
+  "status": "READY",
+  "lease": null
+}

@@ -41,7 +41,7 @@ def test_hardcoded_metrics_are_not_a_pass(tmp_path, monkeypatch, capsys):
     assert body["prerequisites"]["PRE_CODEX_HANDOFF"] is True
     assert body["prerequisites"]["TARGETED_TESTS_GREEN"] is False
     for metric in body["metrics"].values():
-        assert metric["status"] == "NOT_PROVEN"
+        assert metric["status"] == "NOT_MEASURED"
         assert metric["actual"] is None
     assert body["pre_codex"]["claim_allowed"] is False
     assert body["pre_codex"]["status"] == "NOT_READY"

@@ -1,0 +1,23 @@
+{
+  "id": "P46",
+  "title": "Zero-Copy Shared Memory Ring Buffer for Worker IPC",
+  "lane": "L3",
+  "branch": "lane/L3-shared-memory-ring-P46",
+  "files_scope": [
+    "courier_core/shared_memory_ring.py",
+    "tests/test_shared_memory_ring.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "shared memory ring buffer allocation with circular head and tail framing",
+    "zero-copy producer writes and consumer reads with wrap-around support",
+    "buffer full and buffer empty boundary guard enforcement",
+    "magic header and corruption detection defenses",
+    "clean multi-process detachment and shared memory unlinking",
+    "cli ring buffer creation inspection and data transfer"
+  ],
+  "provider_hints": ["local", "shared-memory-ring"],
+  "status": "DONE",
+  "lease": null
+}

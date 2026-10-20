@@ -96,18 +96,30 @@ def cleanup_group(proc, identity, grace=2.0):
     pgid = proc.pid
     if proc.poll() is not None and not group_exists(pgid):
         return True
-    if identity is None or identity.get("pgid") != pgid:
-        return False
-    current = process_identity(pgid)
-    if current is not None and current != identity:
-        return False
+    popen_cls = getattr(subprocess, "Popen", None)
+    is_direct_unreaped = (
+        (isinstance(popen_cls, type) and isinstance(proc, popen_cls))
+        or (hasattr(proc, "poll") and hasattr(proc, "wait") and not getattr(proc, "_recovered", False))
+    ) and proc.poll() is None
+    if not is_direct_unreaped:
+        if identity is None or identity.get("pgid") != pgid:
+            return False
+        current = process_identity(pgid)
+        if current is not None and current != identity:
+            return False
+    else:
+        if identity is not None:
+            current = process_identity(pgid)
+            if current is not None and current != identity:
+                return False
     for sig in (signal.SIGTERM, signal.SIGKILL):
         if not group_exists(pgid):
             proc.poll()
             return True
-        current = process_identity(pgid)
-        if current is not None and current != identity:
-            return False
+        if not is_direct_unreaped:
+            current = process_identity(pgid)
+            if current is not None and current != identity:
+                return False
         try:
             os.killpg(pgid, sig)
         except ProcessLookupError:

@@ -1,0 +1,22 @@
+{
+  "id": "P50",
+  "title": "Cross-Platform Process Resource Sandbox and Isolation Engine",
+  "lane": "L3",
+  "branch": "lane/L3-resource-sandbox-P50",
+  "files_scope": [
+    "courier_core/resource_sandbox.py",
+    "tests/test_resource_sandbox.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "resource quota specifications: memory limit, CPU time limit, wall timeout, subprocess limits",
+    "Windows Job Object configuration and POSIX rlimit enforcement",
+    "execution sandboxing with process tree containment and guaranteed cleanup",
+    "violation telemetry reporting: peak memory, CPU time consumed, exit code, breach reason",
+    "cli sandboxed execution and violation reporting"
+  ],
+  "provider_hints": ["local", "resource-sandbox"],
+  "status": "DONE",
+  "lease": null
+}

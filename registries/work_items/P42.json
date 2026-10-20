@@ -1,0 +1,23 @@
+{
+  "id": "P42",
+  "title": "Incremental Artifact Delta Patcher",
+  "lane": "L3",
+  "branch": "lane/L3-delta-patcher-P42",
+  "files_scope": [
+    "courier_core/delta_patcher.py",
+    "tests/test_delta_patcher.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "binary block matching and delta patch generation",
+    "sha256 pre-verification of base and post-verification of target",
+    "copy and insert patch operations with compact serialization",
+    "fail-closed rejection of mismatched base hashes or corrupted targets",
+    "atomic patch application and path traversal defense",
+    "cli diff and patch execution"
+  ],
+  "provider_hints": ["local", "delta-patcher"],
+  "status": "DONE",
+  "lease": null
+}

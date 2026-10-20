@@ -1,4 +1,4 @@
-import json, time, os, sys, shutil, subprocess, uuid, hashlib
+import json, time, os, sys, shutil, subprocess, uuid, hashlib, math
 from pathlib import Path, PurePosixPath, PureWindowsPath
 import urllib.request
 import urllib.error
@@ -28,6 +28,13 @@ def apply_config_credentials(config):
         if server and server.lower() != "local":
             API_URL = server.rstrip("/")
     HEADERS["Authorization"] = f"Bearer {API_KEY}"
+    worker_id = (os.environ.get("COURIER_WORKER_ID") or
+                 os.environ.get("WORKER_ID") or
+                 config.get("COURIER_WORKER_ID") or
+                 config.get("WORKER_ID") or
+                 f"WINDOWS-{os.environ.get('COMPUTERNAME', 'DEFAULT')}")
+    config["WORKER_ID"] = str(worker_id).strip()
+    config["COURIER_WORKER_ID"] = config["WORKER_ID"]
 
 def require_api_key():
     """Fail closed before any network call when no API key is configured."""
@@ -73,7 +80,12 @@ setup_logging()
 def load_config():
     config_path = APP_DATA_DIR / "config.json"
     if not config_path.exists():
-        config_path = Path(__file__).parent / "config.json"
+        pd = os.environ.get("PROGRAMDATA") or "C:\\ProgramData"
+        prog_data_cfg = Path(pd) / "CourierWorker" / "config.json"
+        if prog_data_cfg.exists():
+            config_path = prog_data_cfg
+        else:
+            config_path = Path(__file__).parent / "config.json"
     with open(config_path, "r") as f:
         return json.load(f)
 MAX_RESULT_POST_ATTEMPTS = 5
@@ -271,22 +283,63 @@ def build_result_payload(task, result, config):
     return payload
 
 def kill_process_tree(pid):
-    """Best-effort: stop the child and anything PowerShell spawned under it.
-
-    communicate(timeout=...) never kills the child on TimeoutExpired (Python
-    docs), so a hung/long instruction otherwise keeps running and mutating
-    the workspace after run_task() already returned FAILED. taskkill /T
-    reaches the process tree on Windows; elsewhere only the direct child can
-    be stopped, so its own children (if any) may still need a tree kill.
+    """Stop the child and anything PowerShell spawned under it.
+    Uses psutil to recursively track and terminate all descendants, combined with
+    Windows taskkill /T /F to prevent orphaned processes after timeout.
     """
+    descendants = []
+    try:
+        import psutil
+        try:
+            p = psutil.Process(pid)
+            descendants = p.children(recursive=True)
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            descendants = []
+    except ImportError:
+        descendants = []
+
     if os.name == "nt":
         subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=15)
     else:
-        os.kill(pid, 9)  # non-Windows test/dev path; no tree kill available here.
+        try:
+            os.kill(pid, 9)
+        except OSError:
+            pass
+
+    for child in descendants:
+        try:
+            child.kill()
+        except Exception:
+            pass
 
 def run_task(task, config):
     print(f"[{config['WORKER_ID']}] Running task {task['task_id']}...")
+
+    # Enforce P0 CostGate before native PowerShell execution
+    from scripts.resource_policy import CostGate
+    if task.get("unknown_cost") is True or "estimated_cost_eur" not in task:
+        estimate = None
+    else:
+        estimate = task["estimated_cost_eur"]
+
+    cost_res = CostGate.evaluate_spend_request(
+        "windows_native",
+        estimated_cost_eur=estimate,
+        requested_action=task.get("requested_action", "EXECUTE_TASK"),
+    )
+    if not cost_res.get("allowed"):
+        return {
+            "status": "FAILED",
+            "stdout": "",
+            "stderr": f"COST_GATE_DENIED: UNKNOWN_COST_BLOCKED ({cost_res.get('reason')}) - {cost_res.get('message', 'Blocked by CostGate')}",
+            "goal_id": task.get("goal_id"),
+            "task_id": task["task_id"],
+            "worker_id": config["WORKER_ID"],
+            "provider": "windows_native",
+            "run_id": "cost-gate-blocked",
+            "blocked": True,
+        }
 
     instruction = task.get("instruction", "")
 

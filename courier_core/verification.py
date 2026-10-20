@@ -101,9 +101,13 @@ def _rule(name: str, adapter: str) -> dict:
 def run_verifier(resolve: Callable[[str], VerifyFn | None], task: TaskState, result: Event, home: Path) -> Verdict:
     """Apply the fail-closed rules around the adapter's verdict."""
     if result.payload.get("outcome") != "success":
-        retryable = result.payload.get("retryable", may_auto_retry(task.effect_class))
         reason = str(result.payload.get("reason") or "worker reported failure")
-        return Verdict(False, reason[:500], bool(retryable), _rule("worker_reported_failure", task.adapter))
+        raw_retryable = result.payload.get("retryable", may_auto_retry(task.effect_class))
+        if "timeout" in reason.lower() and not may_auto_retry(task.effect_class):
+            retryable = False
+        else:
+            retryable = bool(raw_retryable)
+        return Verdict(False, reason[:500], retryable, _rule("worker_reported_failure", task.adapter))
     try:
         verify = resolve(task.adapter)
     except Exception as exc:  # noqa: BLE001 - a broken adapter module must not PASS
@@ -119,4 +123,7 @@ def run_verifier(resolve: Callable[[str], VerifyFn | None], task: TaskState, res
         return Verdict(False, f"verifier raised {type(exc).__name__}", False, identity)
     if not isinstance(verdict, Verdict) or not isinstance(verdict.accepted, bool):
         return Verdict(False, "verifier returned an invalid verdict", False, identity)
-    return replace(verdict, reason=str(verdict.reason)[:500], retryable=bool(verdict.retryable), verifier=identity)
+    allowed_retry = bool(verdict.retryable)
+    if "timeout" in str(verdict.reason).lower() and not may_auto_retry(task.effect_class):
+        allowed_retry = False
+    return replace(verdict, reason=str(verdict.reason)[:500], retryable=allowed_retry, verifier=identity)

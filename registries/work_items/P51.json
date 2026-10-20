@@ -1,0 +1,22 @@
+{
+  "id": "P51",
+  "title": "Worker Heartbeat Health Aggregator and Cluster Liveness Mesh",
+  "lane": "L3",
+  "branch": "lane/L3-cluster-health-mesh-P51",
+  "files_scope": [
+    "courier_core/cluster_health_mesh.py",
+    "tests/test_cluster_health_mesh.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "heartbeat ingestion with monotonic sequences, timestamps, and node status",
+    "sliding window timeout evaluation classifying silent nodes as DEAD",
+    "cluster quorum health calculation and topology inspection",
+    "node drainage lifecycle support",
+    "cli heartbeat reporting, cluster status inspection, and dead node pruning"
+  ],
+  "provider_hints": ["local", "cluster-health-mesh"],
+  "status": "DONE",
+  "lease": null
+}

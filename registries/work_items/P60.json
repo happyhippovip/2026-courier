@@ -1,0 +1,23 @@
+{
+  "id": "P60",
+  "title": "Zero-Downtime Rolling Upgrade and Version Handshake Protocol",
+  "lane": "L3",
+  "branch": "lane/L3-rolling-upgrade-P60",
+  "files_scope": [
+    "courier_core/rolling_upgrade.py",
+    "tests/test_rolling_upgrade.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "worker version handshake and schema capability compatibility negotiation",
+    "fail-closed rejection of incompatible or superseded binary versions",
+    "zero-downtime four-phase rolling upgrade lifecycle (drain, upgrade, verify, activate)",
+    "quorum safety preservation limiting concurrent upgrading nodes",
+    "automatic rollback trigger upon canary verification failure",
+    "cli plan, drain, upgrade, verify, and status operations"
+  ],
+  "provider_hints": ["local", "rolling-upgrade"],
+  "status": "DONE",
+  "lease": null
+}

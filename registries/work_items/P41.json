@@ -1,0 +1,23 @@
+{
+  "id": "P41",
+  "title": "Distributed Trace Context Propagator & W3C Traceparent Engine",
+  "lane": "L3",
+  "branch": "lane/L3-trace-context-P41",
+  "files_scope": [
+    "courier_core/trace_context.py",
+    "tests/test_trace_context.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "w3c traceparent and tracestate header parsing and validation",
+    "trace correlation generation and child span inheritance",
+    "http header and event bus dictionary carrier injection and extraction",
+    "fail-closed validation against zero trace-ids and invalid hex",
+    "thread-safe contextvar scope management",
+    "cli inspection and trace validation"
+  ],
+  "provider_hints": ["local", "trace-context"],
+  "status": "DONE",
+  "lease": null
+}

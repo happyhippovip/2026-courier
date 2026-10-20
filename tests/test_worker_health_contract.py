@@ -169,3 +169,58 @@ def test_version_mismatch_and_degraded_rejected(stub_server):
     # Restored to normal v1 -> healthy
     server.stub_mode = "normal"
     assert client.health() is True
+
+
+def test_worker_loop_startup_health_retries_and_succeeds(stub_server, tmp_path, monkeypatch):
+    """6. Startup-Wiederholung: Server wird erst nach 2 Fehlversuchen gesund -> Loop startet."""
+    server, base_url = stub_server
+    server.stub_mode = "starting_up"
+    attempts = 0
+
+    import courier_worker.service as srv
+    from courier_worker.service import WorkerLoop
+
+    monkeypatch.setenv("COURIER_TOKEN", TOKEN)
+    monkeypatch.setattr(srv, "STARTUP_HEALTH_SLEEP_S", 0.05)
+
+    loop = WorkerLoop(str(tmp_path), base_url, "WIN-WORKER-01", heartbeat_s=0.2)
+    client = loop._default_client()
+
+    orig_health = client.health
+
+    def flaky_health():
+        nonlocal attempts
+        attempts += 1
+        if attempts >= 3:
+            server.stub_mode = "normal"
+        return orig_health()
+
+    monkeypatch.setattr(client, "health", flaky_health)
+    monkeypatch.setattr(loop, "_default_client", lambda: client)
+
+    stop = threading.Event()
+    # Stoppe nach dem Starten sofort, damit run() nicht ewig laeuft
+    monkeypatch.setattr(loop, "iterate", lambda s: stop.set() or "idle")
+
+    ret = loop.run(stop)
+    assert ret == 0
+    assert attempts >= 3
+
+
+def test_worker_loop_startup_health_exhaustion_raises_controller_unreachable(stub_server, tmp_path, monkeypatch):
+    """7. Startup-Fehlversuche ausgeschoepft: ControllerUnreachable wird geworfen."""
+    server, base_url = stub_server
+    server.stub_mode = "degraded_broken"
+
+    import courier_worker.service as srv
+    from courier_worker.service import WorkerLoop, ControllerUnreachable
+
+    monkeypatch.setenv("COURIER_TOKEN", TOKEN)
+    monkeypatch.setattr(srv, "STARTUP_HEALTH_SLEEP_S", 0.05)
+
+    loop = WorkerLoop(str(tmp_path), base_url, "WIN-WORKER-01", heartbeat_s=0.2)
+    stop = threading.Event()
+
+    with pytest.raises(ControllerUnreachable) as exc:
+        loop.run(stop)
+    assert "unhealthy after" in str(exc.value)

@@ -7,6 +7,7 @@ def test_autonomous_loop_crashes_yield_unproven_cleanup():
     
     # Mock to allow lease
     loop.host_guardian.evaluate_admission = lambda: AdmissionState.OPEN
+    loop.host_guardian.request_heavy_lease = lambda: True
     
     # Track what is passed to release_heavy_lease
     cleanup_calls = []

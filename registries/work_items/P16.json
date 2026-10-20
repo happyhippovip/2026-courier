@@ -1,0 +1,23 @@
+{
+  "id": "P16",
+  "title": "Heartbeat liveness prober with progressive quiet, slow, probing and lease revocation states",
+  "lane": "L3",
+  "branch": "lane/L3-liveness-prober-P16",
+  "files_scope": [
+    "courier_core/liveness_prober.py",
+    "tests/test_liveness_prober.py"
+  ],
+  "depends_on": [
+    "P8"
+  ],
+  "acceptance": [
+    "tests",
+    "draft PR"
+  ],
+  "provider_hints": [
+    "headless",
+    "interactive"
+  ],
+  "status": "READY",
+  "lease": null
+}

@@ -1,0 +1,23 @@
+{
+  "id": "P53",
+  "title": "Cryptographic Result Notary and Transparency Merkle Tree",
+  "lane": "L3",
+  "branch": "lane/L3-result-notary-P53",
+  "files_scope": [
+    "courier_core/result_notary.py",
+    "tests/test_result_notary.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "deterministic binary Merkle tree generation over worker execution receipts",
+    "cryptographic Merkle inclusion proofs for individual result verification",
+    "inclusion proof verification function against attested root",
+    "notary transparency log with monotonic root history and HMAC signature",
+    "tamper detection rejecting modified leaf hashes or corrupted sibling paths",
+    "cli batch notarization, proof generation, and proof verification"
+  ],
+  "provider_hints": ["local", "result-notary"],
+  "status": "DONE",
+  "lease": null
+}

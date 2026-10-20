@@ -170,6 +170,7 @@ class WorkQueueAuditor:
 
         items: Dict[str, Dict[str, Any]] = {}
         prev_created_at: Optional[datetime] = None
+        last_created_at: Optional[datetime] = None
         total_lines = 0
         events_count = 0
 
@@ -219,7 +220,7 @@ class WorkQueueAuditor:
             kind = event.get("type")
             item_id = event.get("item_id")
             holder = event.get("holder")
-            created_at_raw = event.get("created_at")
+            created_at_raw = event.get("created_at") or event.get("at")
 
             # Validate basic envelope tokens
             if kind not in ("CLAIM", "RENEW", "RELEASE"):
@@ -278,6 +279,7 @@ class WorkQueueAuditor:
                     )
                 )
             prev_created_at = created_at
+            last_created_at = created_at
 
             # State transition analysis per item
             state = items.setdefault(
@@ -477,7 +479,7 @@ class WorkQueueAuditor:
                     )
                     continue
 
-                if state["status"] == "DONE":
+                if state["status"] in ("DONE", "BLOCKED"):
                     if state.get("released_by") == holder and state.get("result") == result.strip():
                         # Idempotent replay
                         pass
@@ -511,7 +513,9 @@ class WorkQueueAuditor:
                             )
                         )
                     else:
-                        state["status"] = "DONE"
+                        norm_res = result.strip().upper()
+                        is_failed = norm_res.startswith(("FAIL", "ABORT", "BLOCK", "ERROR"))
+                        state["status"] = "BLOCKED" if is_failed else "DONE"
                         state["lease"] = None
                         state["result"] = result.strip()
                         state["released_by"] = holder
@@ -523,6 +527,10 @@ class WorkQueueAuditor:
             if s["status"] == "DONE":
                 completed += 1
             elif s["status"] == "CLAIMED":
+                lease = s.get("lease") or {}
+                exp = _parse_time(lease.get("expires_at"))
+                if exp is not None and last_created_at is not None and exp <= last_created_at:
+                    continue
                 active_leases += 1
 
         is_valid = len(violations) == 0

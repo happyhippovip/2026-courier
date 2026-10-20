@@ -8,7 +8,7 @@ data path. codesign_identity stays None: nothing is signed and nothing is bought
 """
 from pathlib import Path
 
-ROOT = Path(SPECPATH).resolve().parents[1]
+ROOT = Path(SPECPATH).resolve().parent
 ENTRY = "courier_hub/__main__.py"
 
 hiddenimports = [

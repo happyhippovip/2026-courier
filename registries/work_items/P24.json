@@ -1,0 +1,20 @@
+{
+  "id": "P24",
+  "title": "Adaptive Concurrency Scaler and Permit Controller",
+  "lane": "L3",
+  "branch": "lane/L3-concurrency-scaler-P24",
+  "files_scope": [
+    "courier_core/concurrency_scaler.py",
+    "tests/test_concurrency_scaler.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "dynamic capacity adjustment",
+    "pressure-based backoff",
+    "permit lease tracking"
+  ],
+  "provider_hints": ["headless", "interactive"],
+  "status": "READY",
+  "lease": null
+}

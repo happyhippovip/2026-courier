@@ -20,7 +20,7 @@ WATCHDOG_PID=$!
 echo "Starting Gunicorn server..."
 # Using -w 1 --threads 4 to avoid file locking issues with state.json
 
-gunicorn -w 1 --threads 4 -b 0.0.0.0:8080 server.app:app &
+gunicorn -w 1 --threads 4 -b 127.0.0.1:8080 server.app:app &
 GUNICORN_PID=$!
 
 trap "echo 'Stopping all...'; kill $VERIFIER_PID $DISPATCHER_PID $WATCHDOG_PID $GUNICORN_PID 2>/dev/null; exit 0" EXIT SIGINT SIGTERM

@@ -1,0 +1,22 @@
+{
+  "id": "P61",
+  "title": "Ephemeral Scratch Workspace Garbage Collector and Leak Patrol",
+  "lane": "L3",
+  "branch": "lane/L3-workspace-janitor-P61",
+  "files_scope": [
+    "courier_core/workspace_janitor.py",
+    "tests/test_workspace_janitor.py"
+  ],
+  "depends_on": [],
+  "acceptance": [
+    "tests",
+    "detection of orphaned scratch directories and dead-process temporary workspaces",
+    "stale lock file pruning with active lease and PID existence verification",
+    "safe dry-run mode and protected baseline directory exemption",
+    "reclaimed disk space tracking and forensic cleanup audit reporting",
+    "cli scan, prune, and report operations"
+  ],
+  "provider_hints": ["local", "workspace-janitor"],
+  "status": "READY",
+  "lease": null
+}
