@@ -1,6 +1,8 @@
 """Bootstrap must see the daemon start. An old log line and a missing toolchain are not health."""
 import shutil
 import subprocess
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import pytest
@@ -21,6 +23,12 @@ def test_bootstrap_does_not_treat_silence_as_health():
     assert "exit 1" in text
     assert "-PassThru -Wait" in text
     assert "-ServerArg" in text
+    assert "-ControllerPort $controllerPort" in text
+    assert "-Token $apiKey" in text
+    confirm = CONFIRM.read_text(encoding="utf-8")
+    assert "http://127.0.0.1:" in confirm
+    assert "X-Courier-Token" in confirm
+    assert "$server" not in confirm
 
 
 def _pwsh():
@@ -89,3 +97,39 @@ def test_exited_process_is_not_a_start(tmp_path):
         "if ($ok) { exit 0 } else { exit 1 }\n"
     )
     assert code == 1
+
+
+class _HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        ok = self.headers.get("X-Courier-Token") == "local-controller-token"
+        self.send_response(200 if ok else 401)
+        self.end_headers()
+
+    def log_message(self, fmt, *args):
+        return
+
+
+def test_loopback_controller_counts_when_daemon_log_is_silent(tmp_path):
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _HealthHandler)
+    port = server.server_address[1]
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    log = tmp_path / "daemon.log"
+    try:
+        code = _run(
+            f". '{CONFIRM}'\n"
+            f"$ok = Wait-CourierDaemon -LogFile '{log}' -LogStart 0 -TimeoutSeconds 4 "
+            f"-Token 'local-controller-token' -ControllerPort {port}\n"
+            "if (-not $ok) { exit 1 }\n"
+        )
+        assert code == 0
+        refused = _run(
+            f". '{CONFIRM}'\n"
+            f"$ok = Wait-CourierDaemon -LogFile '{log}' -LogStart 0 -TimeoutSeconds 2 "
+            f"-Token 'wrong-token' -ControllerPort {port}\n"
+            "if ($ok) { exit 0 } else { exit 1 }\n"
+        )
+        assert refused == 1
+    finally:
+        server.shutdown()
+        server.server_close()
