@@ -103,7 +103,12 @@ def _config(binary: str, **extra) -> dict:
 
 
 def _params(**extra) -> dict:
-    params = {"provider": "agy", "prompt": PROMPT}
+    params = {
+        "provider": "agy",
+        "prompt": PROMPT,
+        "cost_class": "included_quota",
+        "estimated_cost_eur": 0.0,
+    }
     params.update(extra)
     return params
 

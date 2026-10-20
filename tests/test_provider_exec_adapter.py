@@ -26,6 +26,7 @@ MARKER = provider_exec.TRUNCATION_MARKER
 def _admit_heavy(monkeypatch):
     """Do not read host load. Admission is stubbed unless a test overrides it."""
     monkeypatch.setattr(provider_exec, "admit_heavy", lambda: True)
+    monkeypatch.setattr(provider_exec, "admit_cost", lambda provider: None)
 
 
 def _write_fake(directory: Path) -> str:
@@ -84,7 +85,7 @@ def _config(binary: str, **extra) -> dict:
 
 
 def _params(**extra) -> dict:
-    params = {"provider": "muse", "prompt": PROMPT}
+    params = {"provider": "muse", "prompt": PROMPT, "estimated_cost_eur": 0.0}
     params.update(extra)
     return params
 
@@ -406,4 +407,19 @@ def test_cost_gate_blocks_unknown_cost_and_unapproved_spend(tmp_path, monkeypatc
         assert res.blocked is True
         assert res.launched is False
         assert not log_path.exists()
+
+    # 4. missing estimated_cost_eur or explicit None must fail-closed before launch
+    res_none, _, log_none = _run(tmp_path, monkeypatch, params={"estimated_cost_eur": None})
+    assert res_none.outcome == "BLOCKED"
+    assert res_none.reason_code == "UNKNOWN_COST_BLOCKED"
+    assert res_none.launched is False
+    assert not log_none.exists()
+
+    workdir_raw = tmp_path / "work-raw"
+    workdir_raw.mkdir()
+    fake = _write_fake(tmp_path)
+    res_omit = provider_exec.run({"provider": "muse", "prompt": PROMPT}, workdir_raw, config=_config(fake))
+    assert res_omit.outcome == "BLOCKED"
+    assert res_omit.reason_code == "UNKNOWN_COST_BLOCKED"
+    assert res_omit.launched is False
 

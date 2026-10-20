@@ -30,22 +30,12 @@ def test_gate_still_blocks_declared_unknown_cost():
     assert verdict["outcome"] == "BLOCKED"
 
 
-@pytest.mark.xfail(
-    reason="P0: agy spec carries no cost evidence, gate allows without CostGate; "
-    "owner decision (#714/L1) pending",
-    strict=False,
-)
 def test_agy_without_cost_evidence_is_blocked():
     spec = _agy_spec()
     verdict = evaluate_cost_gate(spec, None)
     assert verdict["allowed"] is False
 
 
-@pytest.mark.xfail(
-    reason="P0: AGY_PARAM_KEYS rejects cost keys with UNKNOWN_KEY, so callers "
-    "cannot declare agy cost; owner decision (#714/L1) pending",
-    strict=False,
-)
 def test_agy_accepts_declared_cost_evidence():
     spec = validate(
         {

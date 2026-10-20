@@ -64,6 +64,7 @@ AGY_PARAM_KEYS = frozenset({
     "provider", "prompt", "timeout_s", "print_timeout_s",
     "model", "effort", "mode", "json_schema",
     "argv", "args", "flags", "extra_args", "command",
+    "cost_class", "estimated_cost_eur", "unknown_cost",
     "dangerously_skip_permissions", "dangerously-skip-permissions",
     "continue", "conversation", "remote_control", "remote-control",
     "prompt_interactive", "prompt-interactive", "add_dir", "add-dir",
@@ -169,7 +170,7 @@ def validate(params: Mapping) -> dict:
     return {
         "provider": provider, "prompt": prompt, "timeout_s": timeout_s,
         "cost_class": params.get("cost_class"),
-        "estimated_cost_eur": params.get("estimated_cost_eur", 0.0),
+        "estimated_cost_eur": params.get("estimated_cost_eur"),
         "unknown_cost": params.get("unknown_cost"),
         **_scoped_fields(params),
     }
@@ -187,6 +188,25 @@ def admit_heavy() -> bool:
         return False
 
 
+# Each allowlisted provider runs under a named subscription resource. A resource
+# the policy does not list as active is an unknown cost and is refused.
+PROVIDER_RESOURCE = {"agy": "google_antigravity_plus", "muse": "muse_subscription"}
+
+
+def admit_cost(provider: str) -> str | None:
+    """Ask CostGate before any launch. None means admitted, else a reason code. Fail closed."""
+    try:
+        from scripts.resource_policy import CostGate
+        verdict = CostGate.evaluate_spend_request(PROVIDER_RESOURCE.get(provider, provider),
+                                                  estimated_cost_eur=0.0)
+    except Exception:
+        return "COST_GATE_UNAVAILABLE"
+    if not isinstance(verdict, Mapping) or verdict.get("allowed") is not True:
+        reason = verdict.get("reason") if isinstance(verdict, Mapping) else None
+        return "COST_GATE_" + str(reason or "DENIED")
+    return None
+
+
 def evaluate_cost_gate(spec: Mapping, config: Mapping | None) -> dict:
     """CostGate evaluation before process start.
     
@@ -194,28 +214,19 @@ def evaluate_cost_gate(spec: Mapping, config: Mapping | None) -> dict:
     Free deterministic providers (local) are allowed without incremental cost.
     """
     cost_class = spec.get("cost_class")
-    estimated_cost = spec.get("estimated_cost_eur", 0.0)
+    estimated_cost = spec.get("estimated_cost_eur")
 
-    # UNKNOWN_COST must block
-    if cost_class == "unknown" or spec.get("unknown_cost") is True:
+    # UNKNOWN_COST, missing cost or None must block
+    if cost_class == "unknown" or spec.get("unknown_cost") is True or estimated_cost is None:
         return {
             "allowed": False,
             "outcome": "BLOCKED",
             "reason_code": "UNKNOWN_COST_BLOCKED",
-            "message": "Tasks with unknown cost class are blocked by policy firewall.",
+            "message": "Tasks with missing, None, or unknown cost class are blocked by policy firewall.",
         }
 
     # Validate estimated_cost numeric integrity: NaN, Inf, or negative values must fail closed
-    if isinstance(estimated_cost, (int, float)):
-        import math
-        if math.isnan(estimated_cost) or math.isinf(estimated_cost) or estimated_cost < 0.0:
-            return {
-                "allowed": False,
-                "outcome": "BLOCKED",
-                "reason_code": "INVALID_COST_ESTIMATE",
-                "message": f"Cost estimate {estimated_cost} is invalid, non-finite or negative.",
-            }
-    elif estimated_cost is not None:
+    if isinstance(estimated_cost, bool) or not isinstance(estimated_cost, (int, float)):
         return {
             "allowed": False,
             "outcome": "BLOCKED",
@@ -223,8 +234,17 @@ def evaluate_cost_gate(spec: Mapping, config: Mapping | None) -> dict:
             "message": "Cost estimate must be a numeric value.",
         }
 
+    import math
+    if math.isnan(estimated_cost) or math.isinf(estimated_cost) or estimated_cost < 0.0:
+        return {
+            "allowed": False,
+            "outcome": "BLOCKED",
+            "reason_code": "INVALID_COST_ESTIMATE",
+            "message": f"Cost estimate {estimated_cost} is invalid, non-finite or negative.",
+        }
+
     # If explicit estimated incremental cost > 0, check policy CostGate
-    if isinstance(estimated_cost, (int, float)) and estimated_cost > 0.0:
+    if estimated_cost > 0.0:
         try:
             from scripts.resource_policy import CostGate
             resource_id = f"provider_{spec.get('provider')}"
@@ -261,6 +281,9 @@ def run(params: Mapping, workdir, attempt: int = 1, *, config: Mapping | None = 
     binary = resolve_binary(spec["provider"], config)
     if binary is None:
         return _finish("UNAVAILABLE", "BINARY_MISSING", blocked=True)
+    refused = admit_cost(spec["provider"])
+    if refused is not None:
+        return _finish("UNAVAILABLE", refused, blocked=True)
     if not _slot.acquire(blocking=False):
         return _finish("deferred", "PROVIDER_BUSY", parked=True)
     try:
@@ -449,6 +472,9 @@ def _validate_agy(params: Mapping) -> dict:
     spec = {
         "provider": "agy", "prompt": prompt, "timeout_s": timeout_s,
         "print_timeout_s": print_timeout_s,
+        "cost_class": params.get("cost_class"),
+        "estimated_cost_eur": params.get("estimated_cost_eur"),
+        "unknown_cost": params.get("unknown_cost"),
     }
     model = _agy_model(params)
     if model:
