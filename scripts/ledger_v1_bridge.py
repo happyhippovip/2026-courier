@@ -140,6 +140,14 @@ def _feedback(store, state, specs, agent, host, args, transport, token, emit, ho
                 ok = False
             continue
         event = _feedback_event(mission, mapping, spec, agent, host, view)
+        if event is None and view.get("status") == "COMPLETE" and _verified_result_id(view) is None:
+            if view.get("resolution") == "effect_confirmed":
+                # A person confirmed the effect; that is not a verified result and never FINAL_DONE.
+                emit({"mission_id": mission_id, "outcome": "human_confirmed", "task_id": mapping.get("task_id")})
+            else:
+                emit({"mission_id": mission_id, "outcome": "skipped", "reason": "evidence_missing"})
+                ok = False
+            continue
         if event is None:
             if view.get("status") in ("COMPLETE", "BLOCKED", *TERMINAL_FAILURE):
                 emit({"mission_id": mission_id, "outcome": "skipped", "reason": "identity_missing"})
@@ -288,6 +296,9 @@ def _feedback_event(mission, mapping, spec, agent, host, view):
     if not source or not fingerprint or not isinstance(task_id, str) or not task_id:
         return None
     result_id = _result_id(view)
+    if status == "COMPLETE":
+        # FINAL needs the verifier's accepted result, never a pending or human-confirmed one.
+        result_id = _verified_result_id(view)
     goal_kind, goal_value = _goal_binding(spec)
     goal = goal_value if goal_kind == "ok" else None
     evidence = _identity(task_id, result_id, attempt, fingerprint, source, goal, _mapping_inputs_digest(mapping))
@@ -419,6 +430,18 @@ def _result_id(view):
         if isinstance(value, str) and value:
             return value
     return None
+
+
+def _verified_result_id(view):
+    """The accepted result of a verified COMPLETE, else None.
+
+    A view without a resolution field predates projection v2 and is read as
+    verified only when it names an accepted result.
+    """
+    if not isinstance(view, dict) or view.get("resolution", "verified") != "verified":
+        return None
+    value = view.get("accepted_result_id")
+    return value if isinstance(value, str) and value else None
 
 
 def _blocker(view) -> str:

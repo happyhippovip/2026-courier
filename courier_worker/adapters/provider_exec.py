@@ -188,6 +188,30 @@ def admit_heavy() -> bool:
         return False
 
 
+# Each allowlisted provider runs under a named subscription resource. A resource
+# the policy does not list as active is refused. The estimate is the caller's.
+PROVIDER_RESOURCE = {"agy": "google_antigravity_plus", "muse": "muse_subscription"}
+
+
+def admit_cost(provider: str, estimated_cost_eur=None) -> str | None:
+    """Ask CostGate before any launch. None means admitted, else a reason code.
+
+    A missing estimate stays missing. Never invent 0.0.
+    """
+    try:
+        from scripts.resource_policy import CostGate
+        verdict = CostGate.evaluate_spend_request(
+            PROVIDER_RESOURCE.get(provider, provider),
+            estimated_cost_eur=estimated_cost_eur,
+        )
+    except Exception:
+        return "COST_GATE_UNAVAILABLE"
+    if not isinstance(verdict, Mapping) or verdict.get("allowed") is not True:
+        reason = verdict.get("reason") if isinstance(verdict, Mapping) else None
+        return "COST_GATE_" + str(reason or "DENIED")
+    return None
+
+
 def evaluate_cost_gate(spec: Mapping, config: Mapping | None) -> dict:
     """CostGate evaluation before process start.
 
@@ -274,6 +298,9 @@ def run(params: Mapping, workdir, attempt: int = 1, *, config: Mapping | None = 
                 cost_eval.get("reason_code", "COST_GATE_DENIED"),
                 blocked=True,
             )
+        refused = admit_cost(spec["provider"], spec.get("estimated_cost_eur"))
+        if refused is not None:
+            return _finish("UNAVAILABLE", refused, blocked=True)
         if not admit_heavy():
             return _finish("deferred", "ADMISSION_DENIED", parked=True)
         return _execute(spec, workdir, binary, _output_cap(config))

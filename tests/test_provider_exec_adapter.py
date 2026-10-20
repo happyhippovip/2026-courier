@@ -26,6 +26,8 @@ MARKER = provider_exec.TRUNCATION_MARKER
 def _admit_heavy(monkeypatch):
     """Do not read host load. Admission is stubbed unless a test overrides it."""
     monkeypatch.setattr(provider_exec, "admit_heavy", lambda: True)
+    # Resource admission is covered by tests/test_p0_provider_costgate.py.
+    monkeypatch.setattr(provider_exec, "admit_cost", lambda provider, estimated_cost_eur=None: None)
 
 
 def _write_fake(directory: Path) -> str:
