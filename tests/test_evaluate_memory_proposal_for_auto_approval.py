@@ -83,8 +83,8 @@ class TestEvaluateMemoryProposal(unittest.TestCase):
     def test_check_secret_guard(self):
         self.assertFalse(check_secret_guard("Normal text"))
         self.assertTrue(check_secret_guard("password='password123'"))
-        self.assertTrue(check_secret_guard("ghp_123456789012345678901234567890"))
-        self.assertTrue(check_secret_guard("sk-123456789012345678901234567890"))
+        self.assertTrue(check_secret_guard("ghp_" + "123456789012345678901234567890"))
+        self.assertTrue(check_secret_guard("sk-" + "123456789012345678901234567890"))
         self.assertTrue(check_secret_guard("AIza12345678901234567890123456789012345"))
         self.assertTrue(check_secret_guard("-----BEGIN RSA PRIVATE KEY-----"))
 

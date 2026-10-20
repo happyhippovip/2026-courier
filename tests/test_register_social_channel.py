@@ -19,7 +19,7 @@ def test_check_secrets():
     assert "CHANNEL_REGISTRATION_ERROR" in str(exc.value)
 
     with pytest.raises(SystemExit) as exc:
-        rsc.check_secrets("Here is a token: ghp_123456789012345678901234567890")
+        rsc.check_secrets("Here is a token: " + "ghp_" + "123456789012345678901234567890")
 
 def test_register_channel_success(tmp_path):
     config_path = tmp_path / "social_channels.json"
