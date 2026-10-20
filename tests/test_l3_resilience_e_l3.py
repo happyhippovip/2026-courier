@@ -1,3 +1,4 @@
+import threading
 import os
 import json
 from unittest.mock import MagicMock, patch
@@ -309,3 +310,53 @@ def test_e_l3_6_cap_stdio_file_helper_preserves_tail(tmp_path):
     _cap_stdio_file(str(test_file), max_bytes=100)
     assert os.path.getsize(test_file) == 100
     assert test_file.read_bytes() == b"B" * 100
+
+
+def test_e_l3_7_claim_auth_failure_raises_authentication_error():
+    """E-L3-7: ControllerClient.claim raises AuthenticationError on HTTP 401 and 403."""
+    from courier_worker.service import ControllerClient, AuthenticationError
+
+    client = ControllerClient("http://127.0.0.1:8088", "token-test")
+
+    with patch.object(client, "_call", return_value=(401, {"error": "invalid token"})):
+        with pytest.raises(AuthenticationError) as exc_info:
+            client.claim("w-test")
+        assert "401" in str(exc_info.value)
+
+    with patch.object(client, "_call", return_value=(403, {"error": "forbidden"})):
+        with pytest.raises(AuthenticationError) as exc_info:
+            client.claim("w-test")
+        assert "403" in str(exc_info.value)
+
+
+def test_e_l3_7_iterate_handles_auth_failure_cleanly(tmp_path):
+    """E-L3-7: WorkerLoop.iterate returns 'auth-failed' and does not masquerade as 'idle' on 401/403."""
+    from courier_worker.service import WorkerLoop, AuthenticationError
+
+    home = tmp_path / "worker_home"
+    home.mkdir(parents=True, exist_ok=True)
+    loop = WorkerLoop(home=str(home), base_url="http://127.0.0.1:8088", worker_id="w-test", heartbeat_s=1.0)
+    loop._client = MagicMock()
+    loop._client.claim.side_effect = AuthenticationError("claim rejected: 401")
+
+    action = loop.iterate(threading.Event())
+    assert action == "auth-failed"
+
+
+def test_e_l3_7_start_and_heartbeat_raise_authentication_error():
+    """E-L3-7: ControllerClient.start and heartbeat raise AuthenticationError on HTTP 401/403."""
+    from courier_worker.service import ControllerClient, AuthenticationError
+
+    client = ControllerClient("http://127.0.0.1:8088", "token-test")
+
+    with patch.object(client, "_call", return_value=(401, {"error": "unauthorized"})):
+        with pytest.raises(AuthenticationError):
+            client.start("dsp-auth")
+        with pytest.raises(AuthenticationError):
+            client.heartbeat("w-test", ["dsp-auth"])
+
+    with patch.object(client, "_call", return_value=(403, {"error": "forbidden"})):
+        with pytest.raises(AuthenticationError):
+            client.start("dsp-auth")
+        with pytest.raises(AuthenticationError):
+            client.heartbeat("w-test", ["dsp-auth"])

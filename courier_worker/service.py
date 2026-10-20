@@ -73,6 +73,10 @@ class StaleDispatch(ControllerError):
     """The controller no longer owns this dispatch (404/409); drop it."""
 
 
+class AuthenticationError(ControllerError):
+    """The controller rejected the worker token or credentials (HTTP 401/403)."""
+
+
 class ControllerClient:
     """One attempt per call, explicit timeouts, token header always."""
 
@@ -136,6 +140,8 @@ class ControllerClient:
             status, payload = self._call("POST", "/claim", {"worker_id": worker_id, "resource_state": resource_state})
         except ControllerError:
             return None
+        if status in (401, 403):
+            raise AuthenticationError(f"claim rejected with authentication failure: status {status}")
         if status == 204:
             return None
         if status == 200 and isinstance(payload, dict):
@@ -147,6 +153,8 @@ class ControllerClient:
             status, _ = self._call("POST", "/start", {"dispatch_id": dispatch_id})
         except ControllerError as exc:
             raise StaleDispatch(f"start for {dispatch_id} failed: {exc}") from exc
+        if status in (401, 403):
+            raise AuthenticationError(f"start for {dispatch_id} rejected with authentication failure: {status}")
         if status in (404, 409):
             raise StaleDispatch(f"controller rejects dispatch {dispatch_id}: {status}")
         if status != 200:
@@ -155,6 +163,8 @@ class ControllerClient:
     def heartbeat(self, worker_id: str, dispatch_ids: list, resource_state: str = "NORMAL") -> dict:
         status, payload = self._call("POST", "/heartbeat",
                                {"worker_id": worker_id, "dispatch_ids": dispatch_ids, "resource_state": resource_state})
+        if status in (401, 403):
+            raise AuthenticationError(f"heartbeat rejected with authentication failure: {status}")
         if status != 200:
             raise ControllerError(f"heartbeat: status {status}")
         return payload or {}
@@ -474,7 +484,11 @@ class WorkerLoop:
                 pass
             return "idle"
             
-        claim = client.claim(self.worker_id, resource_state=self._last_resource_state)
+        try:
+            claim = client.claim(self.worker_id, resource_state=self._last_resource_state)
+        except AuthenticationError as exc:
+            print(f"courier_worker.service: claim rejected: authentication failure: {exc}", file=sys.stderr)
+            return "auth-failed"
         if claim is None:
             # Send idle heartbeat
             try:
@@ -586,6 +600,9 @@ class WorkerLoop:
             while not stop.is_set():
                 try:
                     action = self.iterate(stop)
+                except AuthenticationError as exc:
+                    print(f"courier_worker.service: authentication failure: {exc}", file=sys.stderr)
+                    action = "auth-failed"
                 except ControllerError:
                     action = "idle"
                 except HostBusy:
@@ -593,7 +610,7 @@ class WorkerLoop:
                 except ResourcePaused as exc:
                     print(f"courier_worker.service: paused due to resource pressure: {exc}", file=sys.stderr)
                     action = "idle"
-                if action == "idle":
+                if action in ("idle", "auth-failed"):
                     stop.wait(self.heartbeat_s)
             try:
                 remaining = self.flush_outbox()
