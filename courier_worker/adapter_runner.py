@@ -37,7 +37,7 @@ from pathlib import Path
 # derived from this file instead of trusting the inherited environment.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-ALLOWED = frozenset({"synthetic", "provider_exec"})
+ALLOWED = frozenset({"synthetic", "provider_exec", "local_shell"})
 COST_GATE_ENV = "COURIER_PROVIDER_EXEC_COST_GATE"
 
 
@@ -160,6 +160,9 @@ def main(argv: list) -> int:
     if adapter == "provider_exec":
         return _run_provider_exec(request, workdir, report, attempt, params)
 
+    if adapter == "local_shell":
+        return _run_local_shell(request, workdir, report, attempt, params)
+
     from adapters import synthetic
 
     try:
@@ -196,6 +199,23 @@ def _run_provider_exec(request, workdir, report, attempt, params) -> int:
                            "retryable": bool(result.retryable),
                            "launched": bool(getattr(result, "launched", False)),
                            "verified": bool(getattr(result, "verified", False))})
+    return 0
+
+
+def _run_local_shell(request, workdir, report, attempt, params) -> int:
+    from adapters import local_shell
+
+    try:
+        result = local_shell.run(params, workdir, attempt)
+    except local_shell.LocalShellTimeout:
+        print("adapter_runner: local_shell timeout (waiting to be terminated)", file=sys.stderr, flush=True)
+        while True:
+            time.sleep(3600)
+    except local_shell.LocalShellError as exc:
+        print(f"adapter_runner: params rejected: {exc}", file=sys.stderr)
+        return 2
+    _write_report(report, {"outcome": result.outcome, "reason": str(result.reason)[:500],
+                           "retryable": bool(result.retryable)})
     return 0
 
 

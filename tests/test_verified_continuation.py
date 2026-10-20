@@ -272,3 +272,190 @@ def test_cli_verify_marathon_20_isolated(tmp_path, capsys):
     captured = capsys.readouterr()
     assert "MARATHON_01_TRUTH_EVIDENCE" in captured.out
     assert "MARATHON_20_MONEY_FACTORY_GOAL" in captured.out
+
+
+def test_cli_verify_stress_chain_isolated(tmp_path, capsys):
+    ledger_dir = str(tmp_path / "cli_stress_ledger")
+    ret = main(["--verify-stress-chain", "--ledger-dir", ledger_dir])
+    assert ret == 0
+    captured = capsys.readouterr()
+    assert "WK_CACHE_POISON_IMMUNITY" in captured.out
+    assert "stress_performance_proven" in captured.out
+
+
+def test_cli_verify_result_customs_isolated(tmp_path, capsys):
+    ledger_dir = str(tmp_path / "cli_customs_ledger")
+    ret = main(["--verify-result-customs", "--ledger-dir", ledger_dir])
+    assert ret == 0
+    captured = capsys.readouterr()
+    assert "WK_ATOMIC_RESULT_HARVESTER" in captured.out
+    assert "result_customs_proven" in captured.out
+
+
+def test_cli_verify_chain_a_b_c_isolated(tmp_path, capsys):
+    ledger_dir = str(tmp_path / "cli_chain_ledger")
+    ret = main(["--verify-chain-a-b-c", "--ledger-dir", ledger_dir])
+    assert ret == 0
+    captured = capsys.readouterr()
+    assert "WORKKEY_CHAIN_A_LOCAL" in captured.out
+    assert "WORKKEY_CHAIN_B_BUILDER" in captured.out
+    assert "WORKKEY_CHAIN_C_SCHEDULE" in captured.out
+
+
+def test_p0_no_false_pass_timeout_lease_and_cost_guards(continuation_engine):
+    # 1. P0-1: Failed checkpoint must NEVER recover as PASS in Mode D
+    failed_res = {
+        "task_id": "task-fail-orig",
+        "mode": ExecutionMode.MODE_A_LOCAL_DETERMINISTIC.value,
+        "status": "FAIL",
+        "exit_code": 1,
+    }
+    failed_res["result_hash"] = canonical_json_hash(failed_res)
+    continuation_engine.checkpoint("WORKKEY_FAILED_CP", failed_res)
+
+    rec = continuation_engine.execute_unit(
+        {"task_id": "task-rec", "workkey": "WORKKEY_FAILED_CP"},
+        mode=ExecutionMode.MODE_D_RECOVERY_RESUME,
+    )
+    assert rec["status"] == "FAIL"
+    assert rec["checkpoint_recovered"] is False
+    assert continuation_engine.verify_result(rec) is False
+
+    # 2. P0-2: Timeout in Mode A returns deterministic FAIL and marks non-idempotent as retryable=False
+    timeout_res = continuation_engine.execute_unit(
+        {
+            "task_id": "task-timeout",
+            "command": [sys.executable, "-c", "import time; time.sleep(2)"],
+            "timeout_s": 0.1,
+            "idempotent": False,
+        },
+        mode=ExecutionMode.MODE_A_LOCAL_DETERMINISTIC,
+    )
+    assert timeout_res["status"] == "FAIL"
+    assert timeout_res["timed_out"] is True
+    assert timeout_res["retryable"] is False
+    assert continuation_engine.verify_result(timeout_res) is False
+
+    # 3. P0-3: Lease must be immediately released when run_sequential_two_unit fails
+    u1_fail = {
+        "task_id": "u1-fail",
+        "workkey": "WK_U1_FAIL_LEASE",
+        "mode": ExecutionMode.MODE_A_LOCAL_DETERMINISTIC,
+        "command": [sys.executable, "-c", "import sys; sys.exit(1)"],
+    }
+    u2_ok = {
+        "task_id": "u2-ok",
+        "workkey": "WK_U2_NEVER_CLAIMED",
+        "mode": ExecutionMode.MODE_A_LOCAL_DETERMINISTIC,
+        "command": [sys.executable, "-c", "import sys; sys.exit(0)"],
+    }
+    with pytest.raises(RuntimeError, match="Unit 1 verification failed"):
+        continuation_engine.run_sequential_two_unit(u1_fail, u2_ok)
+    assert continuation_engine.is_claimed("WK_U1_FAIL_LEASE") is None
+    assert continuation_engine.is_claimed("WK_U2_NEVER_CLAIMED") is None
+
+    # 4. P0-4: Mode B rejects unknown (None, NaN) or positive estimated_cost_eur
+    for bad_cost in (None, float("nan"), -0.01, 0.01):
+        with pytest.raises(ValueError, match="Cost policy violation"):
+            continuation_engine.execute_unit(
+                {
+                    "task_id": "task-bad-cost",
+                    "workkey": "WK_BAD_COST",
+                    "cost_policy": "ZERO_COST_ONLY",
+                    "estimated_cost_eur": bad_cost,
+                },
+                mode=ExecutionMode.MODE_B_GOOGLE_BUILDER,
+            )
+
+
+def test_p0_v64_checkpoint_workkey_mismatch_and_duplicate_task_id_guards(continuation_engine):
+    # 1. Foreign checkpoint copied under another workkey filename must fail recovery
+    foreign_res = {
+        "task_id": "task-foreign-orig",
+        "workkey": "WK_FOREIGN_ORIGIN",
+        "mode": ExecutionMode.MODE_A_LOCAL_DETERMINISTIC.value,
+        "status": "PASS",
+        "exit_code": 0,
+    }
+    foreign_res["result_hash"] = canonical_json_hash(foreign_res)
+    continuation_engine.checkpoint("WK_FOREIGN_ORIGIN", foreign_res)
+
+    # Copy foreign checkpoint file to a target workkey filename
+    src_cp = continuation_engine.checkpoints_dir / "WK_FOREIGN_ORIGIN.checkpoint.json"
+    dst_cp = continuation_engine.checkpoints_dir / "WK_STOLEN_TARGET.checkpoint.json"
+    dst_cp.write_text(src_cp.read_text(encoding="utf-8"), encoding="utf-8")
+
+    rec = continuation_engine.execute_unit(
+        {"task_id": "task-target", "workkey": "WK_STOLEN_TARGET"},
+        mode=ExecutionMode.MODE_D_RECOVERY_RESUME,
+    )
+    assert rec["status"] == "FAIL"
+    assert rec["checkpoint_recovered"] is False
+    assert "workkey mismatch" in rec["error"]
+
+    # 2. verify_result rejects result whose task_id or workkey does not match expected unit
+    valid_res = {
+        "task_id": "task-expected-1",
+        "workkey": "WK_EXPECTED_1",
+        "mode": ExecutionMode.MODE_A_LOCAL_DETERMINISTIC.value,
+        "status": "PASS",
+        "exit_code": 0,
+    }
+    valid_res["result_hash"] = canonical_json_hash(valid_res)
+    assert continuation_engine.verify_result(
+        valid_res, expected_task_id="task-expected-1", expected_workkey="WK_EXPECTED_1"
+    ) is True
+    assert continuation_engine.verify_result(
+        valid_res, expected_task_id="task-other-2", expected_workkey="WK_EXPECTED_1"
+    ) is False
+    assert continuation_engine.verify_result(
+        valid_res, expected_task_id="task-expected-1", expected_workkey="WK_OTHER_2"
+    ) is False
+
+    # 3. Duplicate task_id or duplicate workkey in sequential chain must raise ValueError
+    u1 = {
+        "task_id": "dup-task-1",
+        "workkey": "WK_CHAIN_1",
+        "mode": ExecutionMode.MODE_A_LOCAL_DETERMINISTIC,
+    }
+    u2_dup_task = {
+        "task_id": "dup-task-1",
+        "workkey": "WK_CHAIN_2",
+        "mode": ExecutionMode.MODE_A_LOCAL_DETERMINISTIC,
+    }
+    with pytest.raises(ValueError, match="Duplicate task_id"):
+        continuation_engine.run_sequential_two_unit(u1, u2_dup_task)
+    with pytest.raises(ValueError, match="Duplicate task_id"):
+        continuation_engine.run_sequential_chain([u1, u2_dup_task])
+
+
+def test_mode_b_google_builder_payload_validation_rejects_malformed_inputs(continuation_engine):
+    base_packet = {
+        "task_id": "valid-task-b",
+        "workkey": "WORKKEY_B",
+        "instruction": "Build component",
+        "allowed_scope": ["happyhippovip/2026-courier"],
+        "cost_policy": "ZERO_COST_ONLY",
+        "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+    }
+
+    # 1. Invalid task_id
+    with pytest.raises(ValueError, match="task_id"):
+        continuation_engine.execute_unit(dict(base_packet, task_id=""), mode=ExecutionMode.MODE_B_GOOGLE_BUILDER)
+    with pytest.raises(ValueError, match="invalid characters"):
+        continuation_engine.execute_unit(dict(base_packet, task_id="bad task!"), mode=ExecutionMode.MODE_B_GOOGLE_BUILDER)
+
+    # 2. Invalid instruction (empty or NUL)
+    with pytest.raises(ValueError, match="instruction"):
+        continuation_engine.execute_unit(dict(base_packet, instruction="   "), mode=ExecutionMode.MODE_B_GOOGLE_BUILDER)
+    with pytest.raises(ValueError, match="instruction"):
+        continuation_engine.execute_unit(dict(base_packet, instruction="bad\x00instr"), mode=ExecutionMode.MODE_B_GOOGLE_BUILDER)
+
+    # 3. Invalid allowed_scope (empty, traversal, drive, UNC)
+    with pytest.raises(ValueError, match="allowed_scope"):
+        continuation_engine.execute_unit(dict(base_packet, allowed_scope=[]), mode=ExecutionMode.MODE_B_GOOGLE_BUILDER)
+    with pytest.raises(ValueError, match="allowed_scope"):
+        continuation_engine.execute_unit(dict(base_packet, allowed_scope="not-a-list"), mode=ExecutionMode.MODE_B_GOOGLE_BUILDER)
+    for bad_scope in ["../escape", "C:/Windows", "\\\\evil\\share", "/absolute/path"]:
+        with pytest.raises(ValueError, match="escapes sandbox or is unsafe"):
+            continuation_engine.execute_unit(dict(base_packet, allowed_scope=[bad_scope]), mode=ExecutionMode.MODE_B_GOOGLE_BUILDER)

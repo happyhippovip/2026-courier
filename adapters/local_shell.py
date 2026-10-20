@@ -65,6 +65,22 @@ from adapters.synthetic import SHA256_RE, is_safe_name
 VERIFIER_VERSION = "1"
 
 MAX_TIMEOUT_S = 600
+MAX_EVIDENCE_BYTES = 10 * 1024 * 1024  # 10 MiB hard cap
+
+FORBIDDEN_COMMAND_BASENAMES = frozenset({
+    "cmd", "cmd.exe", "powershell", "powershell.exe", "pwsh", "pwsh.exe",
+    "bash", "sh", "zsh", "csh", "tcsh", "wsl", "wsl.exe",
+    "curl", "curl.exe", "wget", "wget.exe", "certutil", "certutil.exe",
+    "bitsadmin", "bitsadmin.exe", "nc", "nc.exe", "ncat", "netcat",
+    "taskkill", "taskkill.exe", "pkill", "killall", "shutdown", "reboot",
+})
+
+SAFE_ENV_PASSTHROUGH = frozenset({
+    "PATH", "SYSTEMROOT", "SYSTEMDRIVE", "TEMP", "TMP", "COMSPEC",
+    "USERPROFILE", "HOME", "LANG", "LC_ALL", "PYTHONPATH", "PYTHONDONTWRITEBYTECODE",
+})
+
+SECRET_ENV_SUBSTRINGS = ("TOKEN", "KEY", "SECRET", "PASS", "AUTH", "CRED", "GHS_", "GHP_")
 
 
 def _verdict_type():
@@ -106,6 +122,12 @@ def _params(params: Mapping[str, Any]) -> dict:
     if (not isinstance(command, Sequence) or isinstance(command, (str, bytes))
             or not command or any(not isinstance(a, str) or not a for a in command)):
         raise LocalShellError("command must be a non-empty argv list of non-empty strings")
+    for arg in command:
+        if "\x00" in arg:
+            raise LocalShellError("command argument contains null byte")
+    exe_name = Path(command[0]).name.lower()
+    if exe_name in FORBIDDEN_COMMAND_BASENAMES:
+        raise LocalShellError(f"executable {exe_name!r} is strictly forbidden in local_shell")
     out = {
         "command": list(command),
         "write": params.get("write", "out.txt"),
@@ -152,8 +174,17 @@ def run(params: Mapping[str, Any], workdir: str | os.PathLike, attempt: int = 1)
         root.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
         raise LocalShellError(f"unusable workdir: {exc}") from exc
-    env = dict(os.environ)
-    env.update(cfg["env"])
+    # Sanitize environment: only permit safe baseline variables, strip host secrets
+    env = {}
+    for k, v in os.environ.items():
+        k_upper = k.upper()
+        if k_upper in SAFE_ENV_PASSTHROUGH and not any(sub in k_upper for sub in SECRET_ENV_SUBSTRINGS):
+            env[k] = v
+    for k, v in cfg["env"].items():
+        k_upper = k.upper()
+        if any(sub in k_upper for sub in SECRET_ENV_SUBSTRINGS):
+            raise LocalShellError(f"env variable {k!r} rejected: contains sensitive keyword")
+        env[k] = v
     try:
         completed = subprocess.run(
             cfg["command"], cwd=str(root), env=env, timeout=cfg["timeout_s"],
@@ -170,8 +201,15 @@ def run(params: Mapping[str, Any], workdir: str | os.PathLike, attempt: int = 1)
         return RunResult("failure", [],
                          f"command exited {completed.returncode}: {tail}".strip() or
                          f"command exited {completed.returncode}", False)
-    evidence = root / cfg["write"]
+    evidence = (root / cfg["write"]).resolve()
     try:
+        evidence.relative_to(root.resolve())
+    except ValueError:
+        return RunResult("failure", [], "evidence file path escapes sandbox workdir", False)
+    try:
+        size = evidence.stat().st_size
+        if size > MAX_EVIDENCE_BYTES:
+            return RunResult("failure", [], f"evidence file exceeds {MAX_EVIDENCE_BYTES} bytes limit", False)
         data = evidence.read_bytes()
     except OSError:
         return RunResult("failure", [], "command produced no evidence file", False)

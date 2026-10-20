@@ -224,3 +224,76 @@ def test_rejection_preserves_evidence(tmp_path):
     after = snapshot(tmp_path)
     assert after == {str(Path("out.txt")): hashlib.sha256(b"tampered").hexdigest()}
     assert set(after) == set(before)
+
+# -- security hardening & bypass closure --------------------------------------
+
+def test_run_rejects_forbidden_command_interpreters(tmp_path):
+    for bad_cmd in ("cmd.exe", "powershell.exe", "pwsh", "bash", "sh", "curl", "wget", "taskkill"):
+        with pytest.raises(LocalShellError, match="strictly forbidden"):
+            local_shell.run({"command": [bad_cmd, "-c", "echo 1"], "write": "out.txt"}, tmp_path)
+
+
+def test_run_rejects_command_arguments_with_null_bytes(tmp_path):
+    with pytest.raises(LocalShellError, match="null byte"):
+        local_shell.run({"command": [sys.executable, "evil\x00.py"], "write": "out.txt"}, tmp_path)
+
+
+def test_run_rejects_env_with_secret_keywords(tmp_path):
+    for bad_env_key in ("API_TOKEN", "GITHUB_KEY", "APP_SECRET", "USER_PASSWORD", "AUTH_BEARER", "CREDENTIALS"):
+        with pytest.raises(LocalShellError, match="sensitive keyword"):
+            local_shell.run({"command": write_argv(), "write": "out.txt", "env": {bad_env_key: "val"}}, tmp_path)
+
+
+def test_run_strips_host_secrets_from_child_environment(tmp_path, monkeypatch):
+    monkeypatch.setenv("SECRET_LEAK_TEST_KEY", "super_secret_value_123")
+    script = "import os; open('out.txt', 'w').write(str('SECRET_LEAK_TEST_KEY' in os.environ))"
+    argv = [sys.executable, "-c", script]
+    res = local_shell.run({"command": argv, "write": "out.txt"}, tmp_path)
+    assert res.outcome == "success"
+    assert (tmp_path / "out.txt").read_text(encoding="utf-8") == "False"
+
+
+def test_run_rejects_oversized_evidence_file_fail_closed(tmp_path):
+    script = "open('out.txt', 'wb').write(b'x' * (10 * 1024 * 1024 + 1024))"
+    argv = [sys.executable, "-c", script]
+    res = local_shell.run({"command": argv, "write": "out.txt"}, tmp_path)
+    assert res.outcome == "failure"
+    assert "exceeds" in res.reason
+    assert res.artifacts == []
+
+
+def test_adapter_runner_executes_local_shell_end_to_end(tmp_path):
+    """Proves local_shell execution through the adapter bridge and adapter_runner."""
+    from courier_worker.adapter_bridge import ADAPTERS, write_request, read_report
+    from courier_worker import adapter_runner
+    from courier_worker.host import ExecutionSpec
+
+    assert "local_shell" in ADAPTERS
+
+    workdir = tmp_path / "artifacts" / "d1"
+    workdir.mkdir(parents=True)
+    home = str(tmp_path)
+
+    spec = ExecutionSpec(
+        task_id="t1",
+        attempt=1,
+        dispatch_id="d1",
+        worker_id="w1",
+        result_id="r1",
+        argv=("dummy",),
+        timeout_s=60.0,
+        lease_ttl_s=60.0,
+        artifact_dir=str(workdir),
+        adapter="local_shell",
+        params={"command": write_argv("e2e-runner-evidence"), "write": "out.txt"},
+        effect_key="eff-1",
+    )
+    req_path = write_request(home, spec)
+    rc = adapter_runner.main([req_path])
+    assert rc == 0
+
+    report = read_report(home, "d1")
+    assert report is not None
+    assert report["outcome"] == "success"
+    assert (workdir / "out.txt").is_file()
+    assert (workdir / "out.txt").read_text(encoding="utf-8") == "e2e-runner-evidence"
