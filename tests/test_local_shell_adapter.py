@@ -97,6 +97,27 @@ def test_run_rejects_bad_attempt(tmp_path):
     with pytest.raises(LocalShellError):
         local_shell.run({"command": write_argv()}, tmp_path, attempt=0)
 
+def test_run_rejects_forbidden_bypass_flags(tmp_path):
+    for flag in ("--dangerously-skip-permissions", "--skip-permissions", "--no-sandbox"):
+        with pytest.raises(LocalShellError, match="permission-bypass flag"):
+            local_shell.run({"command": ["agy", flag], "write": "out.txt"}, tmp_path)
+
+
+def test_run_sanitizes_controller_token_from_env(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_CONTROLLER_TOKEN", "super-secret-token")
+    argv = [sys.executable, "-c",
+            "import os; open('out.txt', 'w').write(os.environ.get('COURIER_CONTROLLER_TOKEN', 'SAFE_NONE'))"]
+    res = local_shell.run({"command": argv, "write": "out.txt"}, tmp_path)
+    assert res.outcome == "success"
+    assert (tmp_path / "out.txt").read_text(encoding="utf-8") == "SAFE_NONE"
+
+
+def test_kill_process_tree_handles_timeout(tmp_path):
+    argv = [sys.executable, "-c", "import time; time.sleep(10)"]
+    with pytest.raises(LocalShellTimeout):
+        local_shell.run({"command": argv, "write": "out.txt", "timeout_s": 0.2}, tmp_path)
+
+
 
 # -- execution: failure + timeout ----------------------------------------------
 

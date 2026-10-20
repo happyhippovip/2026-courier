@@ -54,6 +54,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import signal
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -66,6 +67,12 @@ VERIFIER_VERSION = "1"
 
 MAX_TIMEOUT_S = 600
 MAX_EVIDENCE_BYTES = 10 * 1024 * 1024  # 10 MiB hard cap
+
+FORBIDDEN_COMMAND_FLAGS = frozenset({
+    "--dangerously-skip-permissions",
+    "--skip-permissions",
+    "--no-sandbox",
+})
 
 FORBIDDEN_COMMAND_BASENAMES = frozenset({
     "cmd", "cmd.exe", "powershell", "powershell.exe", "pwsh", "pwsh.exe",
@@ -114,6 +121,34 @@ class LocalShellTimeout(RuntimeError):
     """The command outlived ``timeout_s`` and was killed (never-finishes analog)."""
 
 
+def _kill_process_tree(proc: subprocess.Popen) -> None:
+    """Terminate child process and its process tree to prevent orphan processes."""
+    pid = getattr(proc, "pid", None)
+    if isinstance(pid, int) and pid > 0 and pid != os.getpid():
+        if os.name == "nt":
+            subprocess.run(
+                ["taskkill", "/PID", str(pid), "/T", "/F"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=10,
+                check=False,
+                shell=False,
+            )
+        else:
+            try:
+                os.killpg(pid, signal.SIGKILL)
+            except (ProcessLookupError, PermissionError, OSError):
+                pass
+    try:
+        proc.kill()
+    except Exception:
+        pass
+    try:
+        proc.communicate(timeout=5)
+    except Exception:
+        pass
+
+
 def _params(params: Mapping[str, Any]) -> dict:
     """Validate local_shell params; raise LocalShellError describing the first gap."""
     if not isinstance(params, Mapping):
@@ -125,6 +160,8 @@ def _params(params: Mapping[str, Any]) -> dict:
     for arg in command:
         if "\x00" in arg:
             raise LocalShellError("command argument contains null byte")
+        if arg in FORBIDDEN_COMMAND_FLAGS or "--dangerously-skip-permissions" in arg:
+            raise LocalShellError("command argv contains forbidden permission-bypass flag")
     exe_name = Path(command[0]).name.lower()
     if exe_name in FORBIDDEN_COMMAND_BASENAMES:
         raise LocalShellError(f"executable {exe_name!r} is strictly forbidden in local_shell")
@@ -185,22 +222,38 @@ def run(params: Mapping[str, Any], workdir: str | os.PathLike, attempt: int = 1)
         if any(sub in k_upper for sub in SECRET_ENV_SUBSTRINGS):
             raise LocalShellError(f"env variable {k!r} rejected: contains sensitive keyword")
         env[k] = v
+    env.pop("COURIER_CONTROLLER_TOKEN", None)
+    creationflags = 0
+    start_new_session = False
+    if os.name == "nt":
+        creationflags = subprocess.CREATE_NEW_PROCESS_GROUP
+    else:
+        start_new_session = True
+
     try:
-        completed = subprocess.run(
-            cfg["command"], cwd=str(root), env=env, timeout=cfg["timeout_s"],
+        proc = subprocess.Popen(
+            cfg["command"], cwd=str(root), env=env,
             stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            shell=False, check=False,
+            shell=False, creationflags=creationflags, start_new_session=start_new_session,
         )
-    except subprocess.TimeoutExpired as exc:
-        raise LocalShellTimeout(
-            f"local_shell command outlived {cfg['timeout_s']}s and was killed") from exc
     except OSError as exc:
         raise LocalShellError(f"local_shell command could not start: {exc}") from exc
-    if completed.returncode != 0:
-        tail = completed.stderr.decode("utf-8", errors="replace")[-500:]
+
+    try:
+        stdout_bytes, stderr_bytes = proc.communicate(timeout=cfg["timeout_s"])
+    except subprocess.TimeoutExpired as exc:
+        _kill_process_tree(proc)
+        raise LocalShellTimeout(
+            f"local_shell command outlived {cfg['timeout_s']}s and was killed") from exc
+    except Exception:
+        _kill_process_tree(proc)
+        raise
+
+    if proc.returncode != 0:
+        tail = (stderr_bytes or b"").decode("utf-8", errors="replace")[-500:]
         return RunResult("failure", [],
-                         f"command exited {completed.returncode}: {tail}".strip() or
-                         f"command exited {completed.returncode}", False)
+                         f"command exited {proc.returncode}: {tail}".strip() or
+                         f"command exited {proc.returncode}", False)
     evidence = (root / cfg["write"]).resolve()
     try:
         evidence.relative_to(root.resolve())
