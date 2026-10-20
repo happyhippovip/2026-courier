@@ -450,7 +450,7 @@ export function renderArbitrageResearch(snapshot) {
       </div>
       <div class="arbi-card" data-metric="sim-loss">
         <span class="arbi-label">Simulierte Verlustsumme</span>
-        <span class="arbi-value highlight-gold">${escapeHtml(simLossText)}</span>
+        <span class="arbi-value highlight-cyan">${escapeHtml(simLossText)}</span>
         <span class="arbi-sub">Ausführungsrisiko &amp; 2nd Leg Rejects</span>
       </div>
       <div class="arbi-card" data-metric="net-roi">
@@ -470,7 +470,7 @@ export function renderArbitrageResearch(snapshot) {
       </div>
       <div class="arbi-card" data-metric="success-rate">
         <span class="arbi-label">Erfolgsquote &amp; Simulationen</span>
-        <span class="arbi-value highlight-gold">${sim.success_rate_pct !== undefined ? sim.success_rate_pct + "%" : UNAVAILABLE}</span>
+        <span class="arbi-value highlight-green">${sim.success_rate_pct !== undefined ? sim.success_rate_pct + "%" : UNAVAILABLE}</span>
         <span class="arbi-sub">${sim.simulation_runs !== undefined ? sim.simulation_runs + " Testläufe" : "0"} · Replay-Prüfung</span>
       </div>
       <div class="arbi-card" data-metric="best-strategy">
@@ -491,6 +491,69 @@ export function renderArbitrageResearch(snapshot) {
       <div class="arbi-card span-2" data-metric="monitored-venues">
         <span class="arbi-label">Beobachtete Börsen &amp; Handelspaare</span>
         <div class="arbi-pairs-list">${pairsHtml}</div>
+      </div>
+    </div>
+  </section>`;
+}
+
+export function renderMissionChipCard(snapshot, options) {
+  const opts = options && typeof options === "object" ? options : {};
+  const isDemo = opts.mode === "demo";
+  const badgeColor = isDemo ? "var(--neon-cyan)" : "#10b981";
+  const badgeBg = isDemo ? "rgba(6, 182, 212, 0.15)" : "rgba(16, 185, 129, 0.15)";
+  const badgeBorder = isDemo ? "rgba(6, 182, 212, 0.4)" : "rgba(16, 185, 129, 0.4)";
+  const btnGrad = isDemo
+    ? "linear-gradient(135deg, #0284c7 0%, #06b6d4 100%)"
+    : "linear-gradient(135deg, #059669 0%, #10b981 100%)";
+  const btnShadow = isDemo ? "rgba(6, 182, 212, 0.4)" : "rgba(16, 185, 129, 0.4)";
+  const st1Color = isDemo ? "var(--neon-cyan)" : "var(--neon-green)";
+
+  return `<section id="kolibri-mission-chip" aria-label="Erste grüne Mission">
+    <h2>Erste grüne Mission · Mission Chip</h2>
+    <div class="card" style="padding: 20px; border-color: rgba(6, 182, 212, 0.4); box-shadow: 0 0 20px rgba(6, 182, 212, 0.08);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+        <div>
+          <div style="font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 4px;">👑 V139/V142 Mission Chip Cockpit</div>
+          <p class="note" style="margin: 0;">Deterministischer Prüflauf mit unabhängiger Byte-Gold-Verifikation &amp; unveränderlichem Ledger-Beleg.</p>
+        </div>
+        <span style="font-size: 12px; font-weight: 700; color: ${badgeColor}; background: ${badgeBg}; border: 1px solid ${badgeBorder}; padding: 4px 10px; border-radius: 6px;">
+          0,00 € (CostGate Safe)
+        </span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 18px 0;">
+        <div class="card" id="k-st-1" style="margin: 0; background: rgba(10, 13, 20, 0.8); border-color: var(--hud-line);">
+          <div style="font-size: 11px; text-transform: uppercase; color: var(--neon-gray); letter-spacing: 0.08em; font-weight: 600;">Stufe 1</div>
+          <div style="font-size: 13px; font-weight: 600; color: #fff; margin: 4px 0;">Eingabe &amp; Budget</div>
+          <div id="k-st-status-1" style="font-size: 12px; color: ${st1Color};">Bereit (0,00 €)</div>
+        </div>
+        <div class="card" id="k-st-2" style="margin: 0; background: rgba(10, 13, 20, 0.8); border-color: var(--hud-line);">
+          <div style="font-size: 11px; text-transform: uppercase; color: var(--neon-gray); letter-spacing: 0.08em; font-weight: 600;">Stufe 2</div>
+          <div style="font-size: 13px; font-weight: 600; color: #fff; margin: 4px 0;">Ausführung &amp; Artefakt</div>
+          <div id="k-st-status-2" style="font-size: 12px; color: var(--text-muted);">Wartet auf Start</div>
+        </div>
+        <div class="card" id="k-st-3" style="margin: 0; background: rgba(10, 13, 20, 0.8); border-color: var(--hud-line);">
+          <div style="font-size: 11px; text-transform: uppercase; color: var(--neon-gray); letter-spacing: 0.08em; font-weight: 600;">Stufe 3</div>
+          <div style="font-size: 13px; font-weight: 600; color: #fff; margin: 4px 0;">Byte-Gold-Verifikation</div>
+          <div id="k-st-status-3" style="font-size: 12px; color: var(--text-muted);">Wartet auf Start</div>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin: 12px 0;">
+        <button type="button" id="k-mission-btn" onclick="window.startKolibriMission()" style="background: ${btnGrad}; color: #fff; border: none; font-size: 14px; font-weight: 700; padding: 12px 36px; border-radius: 9999px; cursor: pointer; box-shadow: 0 4px 16px ${btnShadow}; letter-spacing: 0.04em;">
+          ▶ Mission starten
+        </button>
+      </div>
+
+      <div id="k-mission-receipt" style="display: none; margin-top: 18px; background: rgba(7, 9, 14, 0.9); border: 1px dashed rgba(6, 182, 212, 0.4); border-radius: 8px; padding: 14px; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 12px;">
+        <div style="color: var(--neon-cyan); font-weight: 700; margin-bottom: 8px; display: flex; justify-content: space-between;">
+          <span>✓ UNVERÄNDERLICHER LEDGER-BELEG</span>
+          <span style="color: var(--neon-green);">BYTE_LEVEL_GOLD_VERIFIED</span>
+        </div>
+        <div style="margin: 4px 0;"><span style="color: var(--text-muted);">Task-ID:</span> <span id="k-r-task" style="color: #fff;">-</span></div>
+        <div style="margin: 4px 0;"><span style="color: var(--text-muted);">Resolution:</span> <span id="k-r-res" style="color: var(--neon-green); font-weight: 600;">-</span></div>
+        <div style="margin: 4px 0;"><span style="color: var(--text-muted);">Gold SHA-256:</span> <span id="k-r-sha" style="color: var(--neon-cyan);">-</span></div>
+        <div style="margin: 4px 0;"><span style="color: var(--text-muted);">Journal-Events:</span> <span id="k-r-events" style="color: var(--neon-green); font-weight: 600;">-</span></div>
       </div>
     </div>
   </section>`;
@@ -522,6 +585,7 @@ export function renderKolibri(snapshot, options) {
     ${renderTicker(mode, data.observed_at)}
     ${renderArbitrageResearch(data)}
     ${renderSignalLane(data)}
+    ${renderMissionChipCard(data, opts)}
     ${renderScroller(data)}
     ${renderDetail(data, opts.selected || null)}
     <section id="system-resources" aria-label="System & Ressourcen">

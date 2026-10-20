@@ -327,7 +327,7 @@ def default_actor() -> str:
 
 class HubServer(ThreadingHTTPServer):
     daemon_threads = True
-    allow_reuse_address = False
+    allow_reuse_address = os.name != "nt"
 
     def __init__(self, hub: Hub, port: int):
         super().__init__(("127.0.0.1", port), Handler)
@@ -381,6 +381,9 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(200, hub.status())
             if path == "/hub/api/kolibri":
                 return self._send(200, snapshot_for_hub(hub))
+            if path in ("/hub/api/mission-chip", "/api/mission-chip"):
+                from courier_hub.mission_chip import run_mission_chip
+                return self._send(200, run_mission_chip())
             match = _ITEM.match(path)
             if match:
                 try:
@@ -421,7 +424,11 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(400, {"error": "invalid_json"})
         if not isinstance(body, dict):
             return self._send(400, {"error": "invalid_json"})
-        match = _ITEM_ACTION.match(urlsplit(self.path).path)
+        path = urlsplit(self.path).path
+        if path in ("/hub/api/mission-chip", "/api/mission-chip"):
+            from courier_hub.mission_chip import run_mission_chip
+            return self._send(200, run_mission_chip())
+        match = _ITEM_ACTION.match(path)
         if not match:
             return self._send(404, {"error": "not_found"})
         hub: Hub = self.server.hub
@@ -437,7 +444,7 @@ class Handler(BaseHTTPRequestHandler):
                                         "the list shows what it has recorded now."})
 
     def _static(self, path: str):
-        name = "index.html" if path in ("/", "/index.html") else ("kolibri.html" if path == "/kolibri" else path.lstrip("/"))
+        name = "index.html" if path in ("/", "/index.html") else ("kolibri.html" if path == "/kolibri" else ("mission_chip.html" if path in ("/mission-chip", "/mission_chip", "/chip") else path.lstrip("/")))
         if "/" in name or "\\" in name or name.startswith("."):
             return self._send(404, {"error": "not_found"})
         file = STATIC_DIR / name

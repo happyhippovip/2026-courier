@@ -15,6 +15,7 @@ hiddenimports = [
     "courier_hub.server",
     "courier_hub.model",
     "courier_hub.kolibri_data",
+    "courier_hub.mission_chip",
     "courier_core",
     "courier_core.build",
     "courier_core.journal",
