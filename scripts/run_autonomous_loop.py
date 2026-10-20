@@ -248,6 +248,7 @@ class AutonomousLevel6Loop:
                     except psutil.NoSuchProcess:
                         # Stale lock from crashed process -> can safely reclaim
                         print(f"[LOCK] Reclaiming stale lock for {workflow_id} from dead PID {existing_pid}")
+                        self._release_authority_workflow_lock(workflow_id)
             except (json.JSONDecodeError, KeyError):
                 pass
 
@@ -262,8 +263,44 @@ class AutonomousLevel6Loop:
             "created_at": now_iso,
             "updated_at": now_iso,
         }
+        self._sync_authority_workflow_lock(workflow_id, pid, lock_data)
         save_json(lock_file, lock_data)
         return lock_file
+
+    def _sync_authority_workflow_lock(self, workflow_id: str, pid: int, lock_data: dict) -> None:
+        try:
+            from courier_runtime.lease import LeaseStore, format_session_holder, LeaseConflict
+            authority_db = self.locks_dir / "authority.db"
+            store = LeaseStore(authority_db)
+            try:
+                import psutil
+                ctime = psutil.Process(pid).create_time()
+                holder = format_session_holder("mac", pid, ctime, workflow_id)
+                lease = store.acquire(scope=f"workflow:{workflow_id}", holder=holder, workkey=workflow_id, ttl_s=3600)
+                lock_data["fencing_token"] = lease.token
+            except LeaseConflict as exc:
+                raise WorkflowLockedError(f"Workflow {workflow_id} is locked in authority.db: {exc}")
+            finally:
+                store.close()
+        except Exception as e:
+            if isinstance(e, WorkflowLockedError):
+                raise
+
+    def _release_authority_workflow_lock(self, workflow_id: str) -> None:
+        try:
+            from courier_runtime.lease import LeaseStore
+            authority_db = self.locks_dir / "authority.db"
+            if authority_db.exists():
+                store = LeaseStore(authority_db)
+                try:
+                    scope = f"workflow:{workflow_id}"
+                    lease = store.current(scope)
+                    if lease:
+                        store.release(lease)
+                finally:
+                    store.close()
+        except Exception:
+            pass
 
     def release_workflow_lock(self, workflow_id: str) -> None:
         """Releases the workflow lock file."""
@@ -273,6 +310,7 @@ class AutonomousLevel6Loop:
                 lock_file.unlink()
             except OSError:
                 pass
+        self._release_authority_workflow_lock(workflow_id)
 
     def check_human_approval(
         self,

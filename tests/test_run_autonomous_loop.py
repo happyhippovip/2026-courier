@@ -247,3 +247,33 @@ def test_reconcile_workflow_progress(repo_dir):
     assert hist2[0]["task_id"] == "step-1"
     assert hist2[0]["verdict"] == "ACCEPTED"
     assert hist2[0]["round"] == 1
+
+
+def test_workflow_lock_authority_db_integration(repo_dir):
+    from courier_runtime.lease import LeaseStore
+
+    loop = AutonomousLevel6Loop(repo_dir=repo_dir)
+    wf_id = "wf-auth-test"
+
+    lock_file = loop.acquire_workflow_lock(wf_id, "corr-test", "task-init")
+    assert lock_file.exists()
+    data = json.loads(lock_file.read_text())
+    assert "fencing_token" in data
+    assert data["fencing_token"] >= 1
+
+    # Verify authority.db lease
+    authority_db = repo_dir / "events" / "locks" / "authority.db"
+    assert authority_db.exists()
+    store = LeaseStore(authority_db)
+    lease = store.current(f"workflow:{wf_id}")
+    assert lease is not None
+    assert lease.token == data["fencing_token"]
+    store.close()
+
+    # Release and verify lease is cleared in authority.db
+    loop.release_workflow_lock(wf_id)
+    assert not lock_file.exists()
+    store2 = LeaseStore(authority_db)
+    assert store2.current(f"workflow:{wf_id}") is None
+    store2.close()
+
