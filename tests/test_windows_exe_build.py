@@ -59,7 +59,7 @@ def test_checked_in_spec_names_hidden_imports_and_static_files():
     for name in (
         "index.html", "hub.js", "hub.css", "hub_core.mjs", "favicon.svg",
         "kolibri.html", "kolibri.js", "kolibri.css", "kolibri_core.mjs",
-        "mission_chip.html",
+        "mission_chip.html", "evidence_badge.mjs",
     ):
         assert (static / name).is_file()
     assert ("courier_hub/static", "courier_hub/static") in mod["REQUIRED_DATA"]
