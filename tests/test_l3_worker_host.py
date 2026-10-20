@@ -302,6 +302,33 @@ def test_spec_validation_refusals(tmp_path, bad):
         make_spec(tmp_path, **kw)
 
 
+def test_contained_child_dies_when_its_parent_is_killed(tmp_path):
+    if sys.platform != "linux":
+        pytest.skip("parent-death signal is Linux; Windows uses the job object")
+    parent = (
+        "import os, sys\n"
+        "from courier_worker.host import _spawn_contained\n"
+        "import time\n"
+        "run = _spawn_contained([sys.executable, '-c', 'import time; time.sleep(120)'], sys.argv[1], 'child')\n"
+        "time.sleep(0.3)\n"
+        "os.write(1, (str(run.pid) + '\\n').encode())\n"
+        "os.kill(os.getpid(), 9)\n"
+    )
+    proc = subprocess.Popen([PY, "-c", parent, str(tmp_path)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = proc.communicate(timeout=20)
+    assert out, err
+    child_pid = int(out.splitlines()[0])
+    deadline = time.monotonic() + 10
+    while time.monotonic() < deadline:
+        try:
+            os.kill(child_pid, 0)
+        except OSError:
+            return
+        time.sleep(0.05)
+    os.kill(child_pid, 9)
+    raise AssertionError(f"child {child_pid} survived its parent: {err!r}")
+
+
 def test_orphan_gate_reaps_dead_owner_tree(tmp_path):
     if os.name == "nt":
         pytest.skip("POSIX killpg gate; Windows relies on job close semantics")

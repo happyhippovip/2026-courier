@@ -461,6 +461,22 @@ class ContainedRun:
             self.job = None
 
 
+def _argv_dies_with_parent(argv: list) -> list:
+    """Linux: set PR_SET_PDEATHSIG to SIGKILL, then exec the real argv.
+
+    The wrapper is the child. After exec the same pid keeps the parent-death
+    signal. No preexec_fn, so a multithreaded host cannot deadlock in the fork.
+    """
+    boot = (
+        "import ctypes, os, sys\n"
+        "rc = ctypes.CDLL(None).prctl(1, 9)\n"
+        "if rc != 0:\n"
+        "    raise SystemExit(1)\n"
+        "os.execv(sys.argv[1], sys.argv[1:])\n"
+    )
+    return [sys.executable, "-c", boot, *list(argv)]
+
+
 def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
     """Spawn argv contained. EMFILE/ENFILE becomes ResourcePaused, once."""
     stdout_path = os.path.join(run_dir, f"{tag}.out")
@@ -479,6 +495,11 @@ def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
         popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP | 0x00000004
     else:
         popen_kwargs["start_new_session"] = True
+        # setsid survives the host. On Linux the child still asks the kernel to
+        # kill it when this parent dies, so a hard-killed host does not leave
+        # the adapter sleeping until a later host happens to reap it.
+        if sys.platform == "linux":
+            argv = _argv_dies_with_parent(argv)
     try:
         proc = subprocess.Popen(argv, **popen_kwargs)
     except OSError as exc:
