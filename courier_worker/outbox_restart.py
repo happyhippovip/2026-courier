@@ -7,6 +7,7 @@ a confirmed effect. Cleanup only removes entries confirmed by journal proof.
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import time
 from typing import Any, Callable, Dict, List, Set
@@ -35,6 +36,11 @@ def record_confirmation(home: Path | str, effect_key: str, dispatch_id: str) -> 
     }
     with journal.open("a", encoding="utf-8") as f:
         f.write(json.dumps(entry, sort_keys=True) + "\n")
+        f.flush()
+        try:
+            os.fsync(f.fileno())
+        except OSError:
+            pass
 
 
 def _load_confirmed_keys(home: Path) -> Set[str]:
@@ -49,12 +55,14 @@ def _load_confirmed_keys(home: Path) -> Set[str]:
             continue
         try:
             data = json.loads(line)
+            if not isinstance(data, dict):
+                raise OutboxRestartError(f"corrupt journal line in {journal.name} (not a dict)")
             if "effect_key" in data and data["effect_key"]:
                 confirmed.add(data["effect_key"])
             if "dispatch_id" in data and data["dispatch_id"]:
                 confirmed.add(data["dispatch_id"])
-        except json.JSONDecodeError:
-            continue
+        except json.JSONDecodeError as exc:
+            raise OutboxRestartError(f"corrupt journal line in {journal.name}") from exc
     return confirmed
 
 

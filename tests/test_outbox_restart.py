@@ -157,3 +157,38 @@ def test_missing_or_empty_effect_key_fails_closed(tmp_path):
     with pytest.raises(OutboxRestartError, match="effect_key must be a non-empty string"):
         record_confirmation(tmp_path, "", "d-no-key")
     assert calls == []
+
+def test_corrupt_journal_line_fails_closed_and_does_not_replay(tmp_path):
+    _entry(tmp_path, "d1")
+    run_dir = tmp_path / "run"
+    run_dir.mkdir(parents=True, exist_ok=True)
+    journal = run_dir / "effect-journal.jsonl"
+    journal.write_text('{"effect_key": "effect-alpha",\n', encoding="utf-8")
+
+    calls = []
+    with pytest.raises(OutboxRestartError, match="corrupt journal line"):
+        resume_outbox(tmp_path, lambda entry: calls.append(entry))
+
+    with pytest.raises(OutboxRestartError, match="corrupt journal line"):
+        cleanup_confirmed(tmp_path)
+
+    assert calls == []
+    assert (tmp_path / "outbox" / "d1.json").is_file()
+
+
+def test_non_dict_journal_line_fails_closed(tmp_path):
+    _entry(tmp_path, "d1")
+    run_dir = tmp_path / "run"
+    run_dir.mkdir(parents=True, exist_ok=True)
+    journal = run_dir / "effect-journal.jsonl"
+    journal.write_text('"not a dict"\n', encoding="utf-8")
+
+    calls = []
+    with pytest.raises(OutboxRestartError, match="not a dict"):
+        resume_outbox(tmp_path, lambda entry: calls.append(entry))
+
+    with pytest.raises(OutboxRestartError, match="not a dict"):
+        cleanup_confirmed(tmp_path)
+
+    assert calls == []
+
