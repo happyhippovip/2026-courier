@@ -43,7 +43,7 @@ WINDOWS_SKIP_MARKERS = (
     "mac_deliver",
     "muse",
     "run_physical",
-    "ci_acceptance",
+    "ci_acceptance_credentials",
 )
 
 

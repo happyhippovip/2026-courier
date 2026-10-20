@@ -12,7 +12,7 @@ _PATH_MARKERS = (
     "mac_agy",
     "mac_deliver",
     "run_physical",
-    "ci_acceptance",
+    "ci_acceptance_credentials",
 )
 
 _FILE_NAMES = frozenset({
