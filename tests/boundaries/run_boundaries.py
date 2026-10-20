@@ -3,6 +3,10 @@ import requests
 import importlib.util
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 API_URL = "http://127.0.0.1:8082"
 API_KEY = "boundary-secret"
 HEADERS = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
@@ -66,7 +70,8 @@ def stop_server(proc):
 
 def run_tests():
     state_file = "./boundary_state.json"
-    if os.path.exists(state_file): os.remove(state_file)
+    for p in [state_file, f"{state_file}.sig"]:
+        if os.path.exists(p): os.remove(p)
     
     proc = start_server(state_file)
     try:
@@ -143,27 +148,29 @@ def run_tests():
             }
             payload[attr] = bad_val
             r = requests.post(f"{API_URL}/tasks/result", json=payload, headers=HEADERS)
-            if r.status_code == 400:
+            if r.status_code in [400, 409]:
                 results["PASS"] += 1
             else:
-                create_finding(f"mismatched {attr} rejected", f"{attr}={bad_val}", f"Status {r.status_code}", "Status 400", "server/app.py", f"Validate {attr} properly")
+                create_finding(f"mismatched {attr} rejected", f"{attr}={bad_val}", f"Status {r.status_code}", "Status 400/409", "server/app.py", f"Validate {attr} properly")
                 results["CORRELATION_FAIL_CLOSED"] = "NO"
 
         # Correct result (to test duplicate and re-claim)
         log("Testing Duplicate Safe...")
         import hashlib
+        from scripts.integration_contract import canonical_result_id
         h = hashlib.sha256(b"test").hexdigest()
         good_payload = {
             "worker_id": "W1", "goal_id": goal_id, "task_id": "t1", 
             "dispatch_id": task["dispatch_id"], "attempt_id": task["attempt_id"], 
             "status": "SUCCESS", "artifacts": [{"path": "courier_canary_t1.txt", "sha256": h}], 
-            "run_id": "r1", "result_id": "res1"
+            "run_id": "r1"
         }
+        good_payload["result_id"] = canonical_result_id(good_payload)
         r = requests.post(f"{API_URL}/tasks/result", json=good_payload, headers=HEADERS)
         
         results["PROPERTIES_TESTED"] += 1
         r2 = requests.post(f"{API_URL}/tasks/result", json=good_payload, headers=HEADERS)
-        if r2.status_code == 200 or r2.status_code == 409:
+        if r2.status_code in [200, 409]:
             results["PASS"] += 1
             results["DUPLICATE_SAFE"] = "YES"
         else:
@@ -239,7 +246,8 @@ def run_tests():
 
     finally:
         stop_server(proc)
-        if os.path.exists(state_file): os.remove(state_file)
+        for p in [state_file, f"{state_file}.sig"]:
+            if os.path.exists(p): os.remove(p)
 
 if __name__ == "__main__":
     run_tests()

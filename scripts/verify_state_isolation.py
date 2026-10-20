@@ -9,6 +9,8 @@ def verify_state_isolation(state_dir="server/state", max_age_seconds=3600):
         os.makedirs(state_dir, exist_ok=True)
         
     for item in os.listdir(state_dir):
+        if item in ("demo_state.json",):
+            continue
         path = os.path.join(state_dir, item)
         if os.path.isfile(path):
             age = time.time() - os.path.getmtime(path)

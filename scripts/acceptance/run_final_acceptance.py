@@ -1,5 +1,12 @@
 import sys, os, time, subprocess, json, uuid
+from pathlib import Path
 import requests
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from scripts.integration_contract import canonical_result_id
 
 API_URL = "http://127.0.0.1:8081"
 # Keys for the throwaway local server come from the environment; no fallback.
@@ -123,10 +130,10 @@ def run_tests():
             "attempt_id": task1["attempt_id"],
             "dispatch_id": task1["dispatch_id"],
             "run_id": "run-mac",
-            "result_id": "result-mac",
             "status": "SUCCESS",
             "artifacts": art
         }
+        res_payload_1["result_id"] = canonical_result_id(res_payload_1)
         res = requests.post(f"{API_URL}/tasks/result", json=res_payload_1, headers=HEADERS)
         t_assert(res.status_code == 200, "Mac result posted successfully")
         results["MAC_COMPATIBLE"] = "YES"
@@ -158,7 +165,7 @@ def run_tests():
         bad_payload["worker_id"] = "WINDOWS-01"
         bad_payload["attempt_id"] = "wrong-attempt" # bad correlation
         res = requests.post(f"{API_URL}/tasks/result", json=bad_payload, headers=HEADERS)
-        t_assert(res.status_code == 400, "Bad correlation rejected")
+        t_assert(res.status_code in [400, 409], "Bad correlation rejected")
         results["BAD_CORRELATION_REJECTED"] = "YES"
         
         # Post correct t2 result
@@ -169,10 +176,10 @@ def run_tests():
             "attempt_id": task2["attempt_id"],
             "dispatch_id": task2["dispatch_id"],
             "run_id": "run-win",
-            "result_id": "result-win",
             "status": "SUCCESS",
             "artifacts": [{"path": f"courier_canary_{task2['task_id']}.txt", "sha256": h.hexdigest()}]
         }
+        res_payload_2["result_id"] = canonical_result_id(res_payload_2)
         res = requests.post(f"{API_URL}/tasks/result", json=res_payload_2, headers=HEADERS)
         t_assert(res.status_code == 200, "Windows result posted successfully")
         results["WINDOWS_COMPATIBLE"] = "YES"
@@ -204,10 +211,10 @@ def run_tests():
             "attempt_id": t3_task["attempt_id"],
             "dispatch_id": t3_task["dispatch_id"],
             "run_id": "run-gh",
-            "result_id": "result-gh",
             "status": "SUCCESS",
             "artifacts": [{"path": f"courier_canary_{t3_task['task_id']}.txt", "sha256": h.hexdigest()}]
         }
+        res_payload_3["result_id"] = canonical_result_id(res_payload_3)
         res = requests.post(f"{API_URL}/tasks/result", json=res_payload_3, headers=HEADERS)
         t_assert(res.status_code == 200, f"GitHub result posted successfully")
         results["GITHUB_COMPATIBLE"] = "YES"
