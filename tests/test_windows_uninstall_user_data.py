@@ -4,6 +4,7 @@ Rule 0 step 12: program files go away, user data stays, and an explicit
 choice can remove that data too. A hardcoded C:\\Users walk misses a
 profile that is not on that drive.
 """
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -75,14 +76,37 @@ def test_default_uninstall_keeps_the_ledger_and_logs(tmp_path):
     assert "preserved" in text
 
 
+def _prevent_delete(courier):
+    """Stop credential removal. POSIX mode bits do not do that for the owner on Windows."""
+    if os.name != "nt":
+        courier.chmod(0o555)
+        return lambda: courier.chmod(0o755)
+    import ctypes
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.CreateFileW.argtypes = [
+        ctypes.c_wchar_p, ctypes.c_uint32, ctypes.c_uint32, ctypes.c_void_p,
+        ctypes.c_uint32, ctypes.c_uint32, ctypes.c_void_p,
+    ]
+    kernel.CreateFileW.restype = ctypes.c_void_p
+    kernel.CloseHandle.argtypes = [ctypes.c_void_p]
+    handle = kernel.CreateFileW(str(courier / "config.json"), 0x80000000, 0, None, 3, 0x80, None)
+    if not handle or handle == ctypes.c_void_p(-1).value:
+        raise OSError(ctypes.get_last_error(), "could not lock config.json")
+
+    def release():
+        kernel.CloseHandle(handle)
+
+    return release
+
+
 def test_failed_credential_delete_does_not_claim_success(tmp_path):
     blocked = _profile(tmp_path, "alice")
     cleaned = _profile(tmp_path, "beth")
-    blocked.chmod(0o555)
+    release = _prevent_delete(blocked)
     try:
         completed = _run(tmp_path, remove=False)
     finally:
-        blocked.chmod(0o755)
+        release()
     if completed is None:
         return
     text = completed.stdout + completed.stderr
