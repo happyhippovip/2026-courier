@@ -34,6 +34,17 @@ def test_install_task_survives_and_restarts():
         assert re.search(r"Register-ScheduledTask\b[^\n]*-Settings\s+\$settings", text)
 
 
+def test_unattended_install_does_not_prompt():
+    for path in INSTALLERS:
+        text = path.read_text(encoding="utf-8")
+        assert "IsInputRedirected" in text
+        assert "at least 32 characters" in text
+        prompt = text.index("function Test-CanPrompt")
+        worker_prompt = text.index("Enter a unique Worker ID")
+        assert prompt < worker_prompt
+        assert "if (Test-CanPrompt)" in text[worker_prompt - 80:worker_prompt]
+
+
 def test_install_task_runs_as_the_installing_user():
     for path in INSTALLERS:
         text = path.read_text(encoding="utf-8")

@@ -39,7 +39,19 @@ if (Test-Path $ConfigPath) {
     if (-not $WorkerId) { $WorkerId = $existing.COURIER_WORKER_ID }
 }
 
+function Test-CanPrompt {
+    try {
+        return [Environment]::UserInteractive -and -not [Console]::IsInputRedirected
+    } catch {
+        return $false
+    }
+}
+
 if (-not $Server) {
+    if (-not (Test-CanPrompt)) {
+        Write-Host "ERROR: a Courier server URL is required. Pass -ServerArg." -ForegroundColor Red
+        exit 1
+    }
     $Server = Read-Host "Enter Courier Server URL (for example http://127.0.0.1:8080)"
     if (-not $Server) {
         Write-Host "ERROR: a Courier server URL is required. Pass -ServerArg." -ForegroundColor Red
@@ -47,14 +59,24 @@ if (-not $Server) {
     }
 }
 if (-not $ApiKey) {
+    if (-not (Test-CanPrompt)) {
+        Write-Host "ERROR: a Courier API key is required. Pass -ApiKeyArg." -ForegroundColor Red
+        exit 1
+    }
     $ApiKey = Read-Host "Enter Courier API Key"
     if (-not $ApiKey) {
         Write-Host "ERROR: a Courier API key is required. Pass -ApiKeyArg." -ForegroundColor Red
         exit 1
     }
 }
+if ($ApiKey.Length -lt 32) {
+    Write-Host "ERROR: the API key must be at least 32 characters. Pass -ApiKeyArg." -ForegroundColor Red
+    exit 1
+}
 if (-not $WorkerId) {
-    $WorkerId = Read-Host "Enter a unique Worker ID (default: auto-generated)"
+    if (Test-CanPrompt) {
+        $WorkerId = Read-Host "Enter a unique Worker ID (default: auto-generated)"
+    }
     if (-not $WorkerId) { $WorkerId = "WIN-$( [guid]::NewGuid().ToString().Substring(0,8) )" }
 }
 
