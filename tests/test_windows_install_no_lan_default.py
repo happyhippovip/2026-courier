@@ -64,6 +64,17 @@ def test_install_task_runs_as_the_installing_user():
         assert "GetCurrent().Name" in text
 
 
+def test_install_does_not_promise_logon_without_a_registered_task():
+    for path in INSTALLERS:
+        text = path.read_text(encoding="utf-8")
+        still_there = text.index("the previous scheduled task is still present")
+        missing = text.index("the scheduled task could not be registered")
+        start = text.index("Starting the worker...")
+        later = text.index("It will start at the next logon.")
+        assert still_there < missing < start < later
+        assert "$registeredTask.Principal.UserId -ne $userId" in text
+
+
 def test_install_does_not_call_a_queued_task_ready():
     for path in INSTALLERS:
         text = path.read_text(encoding="utf-8")
