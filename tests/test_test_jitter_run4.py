@@ -1,7 +1,27 @@
 import runpy
-from unittest.mock import patch
+import time
 from pathlib import Path
 import scripts.test_jitter_run4 as jitter_module
+
+def test_a_slow_warmup_still_measures_intervals(capsys, monkeypatch):
+    clock = {"perf": 0.0}
+
+    def perf():
+        return clock["perf"]
+
+    def sleep(seconds):
+        clock["perf"] += max(seconds, 0.015)
+
+    monkeypatch.setattr(time, "perf_counter", perf)
+    monkeypatch.setattr(time, "perf_counter_ns", lambda: int(clock["perf"] * 1_000_000_000))
+    monkeypatch.setattr(time, "sleep", sleep)
+    monkeypatch.setattr(time, "time", perf)
+
+    jitter_module.measure_jitter(duration_sec=0.2, interval_sec=0.01)
+    out = capsys.readouterr().out
+    assert "Measured 0 intervals." not in out
+    assert "Max jitter (deviation):" in out
+
 
 def test_measure_jitter_fast(capsys):
     jitter_module.measure_jitter(duration_sec=0.2, interval_sec=0.01)
