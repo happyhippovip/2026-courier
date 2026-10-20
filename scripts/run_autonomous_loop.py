@@ -22,7 +22,6 @@ import hashlib
 import json
 import os
 import sys
-from scripts.host_guardian import HostGuardian, AdmissionState
 import threading
 import time
 import uuid
@@ -30,6 +29,10 @@ from pathlib import Path
 
 SCRIPTS_DIR = Path(__file__).resolve().parent
 COURIER_DIR = SCRIPTS_DIR.parent
+if str(COURIER_DIR) not in sys.path:
+    sys.path.insert(0, str(COURIER_DIR))
+
+from scripts.host_guardian import HostGuardian, AdmissionState
 
 EVENTS_DIR = COURIER_DIR / "events"
 SCHEMAS_DIR = COURIER_DIR / "schemas"
