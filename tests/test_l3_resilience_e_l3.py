@@ -360,3 +360,58 @@ def test_e_l3_7_start_and_heartbeat_raise_authentication_error():
             client.start("dsp-auth")
         with pytest.raises(AuthenticationError):
             client.heartbeat("w-test", ["dsp-auth"])
+
+
+@pytest.mark.parametrize("bad_id", [
+    "../escape",
+    "..\\escape",
+    "subdir/task1",
+    "subdir\\task1",
+    "task with spaces",
+    "task;rm",
+    "task$foo",
+    "task#bar",
+    "task|pipe",
+])
+def test_e_l3_11_execution_spec_rejects_path_traversal_and_unsafe_ids(bad_id, tmp_path):
+    """E-L3-11: ExecutionSpec strictly rejects path traversal and unsafe characters in all IDs."""
+    from courier_worker.host import ExecutionSpec, SpecError
+
+    valid_kwargs = {
+        "task_id": "t-safe",
+        "attempt": 1,
+        "dispatch_id": "dsp-safe",
+        "worker_id": "w-safe",
+        "result_id": "res-safe",
+        "argv": ["cmd.exe", "/c", "echo", "hi"],
+        "timeout_s": 10.0,
+        "lease_ttl_s": 30.0,
+        "artifact_dir": str(tmp_path / "artifacts"),
+    }
+
+    for id_field in ("task_id", "dispatch_id", "worker_id", "result_id"):
+        kwargs = dict(valid_kwargs, **{id_field: bad_id})
+        with pytest.raises(SpecError) as exc_info:
+            ExecutionSpec(**kwargs)
+        assert "unsafe characters or path traversal attempt" in str(exc_info.value)
+
+
+def test_e_l3_11_execution_spec_accepts_valid_alphanumeric_ids(tmp_path):
+    """E-L3-11: ExecutionSpec accepts standard alphanumeric IDs with dashes, dots, and underscores."""
+    from courier_worker.host import ExecutionSpec
+
+    spec = ExecutionSpec(
+        task_id="t-123_abc.xyz",
+        attempt=1,
+        dispatch_id="dsp-456_def.uvw",
+        worker_id="w-WIN_01.node",
+        result_id="res-789_ghi.rst",
+        argv=["cmd.exe", "/c", "echo", "hi"],
+        timeout_s=10.0,
+        lease_ttl_s=30.0,
+        artifact_dir=str(tmp_path / "artifacts"),
+    )
+    assert spec.task_id == "t-123_abc.xyz"
+    assert spec.dispatch_id == "dsp-456_def.uvw"
+    assert spec.worker_id == "w-WIN_01.node"
+    assert spec.result_id == "res-789_ghi.rst"

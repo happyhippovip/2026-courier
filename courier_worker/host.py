@@ -139,6 +139,8 @@ class ExecutionSpec:
             value = getattr(self, name)
             if not isinstance(value, str) or not value or len(value) > 200:
                 raise SpecError(f"{name} must be a non-empty string of at most 200 chars")
+            if not SAFE_DISPATCH_ID_RE.match(value) or ".." in value or "/" in value or "\\" in value:
+                raise SpecError(f"{name} contains unsafe characters or path traversal attempt (E-L3-11)")
         if isinstance(self.attempt, bool) or not isinstance(self.attempt, int) or self.attempt < 1:
             raise SpecError("attempt must be an integer >= 1")
         if (not isinstance(self.argv, (list, tuple)) or not self.argv
