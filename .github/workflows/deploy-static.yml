@@ -14,9 +14,14 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: deploy-static-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
         with:

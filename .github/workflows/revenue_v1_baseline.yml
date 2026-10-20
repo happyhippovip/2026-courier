@@ -28,9 +28,14 @@ on:
         required: true
         type: string
 
+concurrency:
+  group: revenue-baseline-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   worker:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -105,6 +110,7 @@ jobs:
   verifier:
     needs: worker
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -130,6 +136,7 @@ jobs:
   handoff:
     needs: verifier
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: write
       pull-requests: write

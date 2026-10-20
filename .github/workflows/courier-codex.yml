@@ -9,9 +9,14 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: courier-codex-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate-task:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
     outputs:
@@ -49,6 +54,7 @@ jobs:
     if: ${{ needs.validate-task.outputs.task_id == 'COURIER-CODEX-AUTO-E2E-073' && needs.validate-task.outputs.message_id == 'msg-cgca-073-task-6eb40334-9ce1-4af1-bf0a-20eb47f5cb86' }}
     needs: validate-task
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
     outputs:
@@ -80,6 +86,7 @@ jobs:
     if: ${{ needs.validate-task.outputs.task_id == 'COURIER-CODEX-AUTO-E2E-073' && needs.validate-task.outputs.message_id == 'msg-cgca-073-task-6eb40334-9ce1-4af1-bf0a-20eb47f5cb86' }}
     needs: [validate-task, codex-and-publish-result]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: write
     steps:
