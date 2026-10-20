@@ -78,6 +78,10 @@ if ([string]::IsNullOrWhiteSpace($apiKey)) {
     Write-Host "ERROR: a Courier API key is required. Pass -ApiKeyArg." -ForegroundColor Red
     exit 1
 }
+if ($apiKey.Length -lt 32) {
+    Write-Host "ERROR: the API key must be at least 32 characters. Pass -ApiKeyArg." -ForegroundColor Red
+    exit 1
+}
 
 $workerId = $config.COURIER_WORKER_ID
 if (-not [string]::IsNullOrWhiteSpace($WorkerIdArg)) {
@@ -93,7 +97,7 @@ $newConfig = @{
 $newConfig | ConvertTo-Json | Set-Content $configPath
 $apiKey | Set-Content -LiteralPath $tokenPath -NoNewline
 $ownerSid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
-& icacls $tokenPath /inheritance:r /grant:r "*S-1-5-18:(R)" "*${ownerSid}:(R)" | Out-Null
+& icacls $tokenPath /inheritance:r /grant:r "*${ownerSid}:(R)" | Out-Null
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: could not restrict access to $tokenPath." -ForegroundColor Red
     exit 1

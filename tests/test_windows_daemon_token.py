@@ -15,6 +15,9 @@ def test_bootstrap_does_not_store_the_api_key_in_config():
     assert "COURIER_API_KEY = $apiKey" not in text
     assert "controller.token" in text
     assert "icacls $tokenPath /inheritance:r" in text
+    assert "*${ownerSid}:(R)" in text
+    assert "*S-1-5-18:(R)" not in text
+    assert "at least 32 characters" in text
     assert "IsInputRedirected" in text
     assert "Pass -ServerArg." in text
     assert "Pass -ApiKeyArg." in text
