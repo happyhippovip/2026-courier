@@ -1,10 +1,11 @@
 import sys
 import os
 from pathlib import Path
-from courier_runtime.revenue import Lead, CONTACTED, HUMAN_GATED
 
 # Add project root to sys.path
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from courier_runtime.revenue import Lead, CONTACTED, HUMAN_GATED
 
 env_path = Path(__file__).parent.parent / ".env"
 if env_path.exists():
