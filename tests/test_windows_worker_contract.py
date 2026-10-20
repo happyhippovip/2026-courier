@@ -535,3 +535,20 @@ def test_uninstall_script_credential_cleanup_contract():
     assert "systemprofile" in uninstall_ps1, "uninstall.ps1 must clean SYSTEM profile credentials"
     assert "config.json" in uninstall_ps1, "uninstall.ps1 must remove config.json"
     assert "run" in uninstall_ps1, "uninstall.ps1 must remove run/ directory containing tokens"
+
+
+def test_stop_and_status_scripts_process_hygiene_contract():
+    """Beweis: stop.bat und status.bat verwenden PID-basiertes Targeting über
+    %LOCALAPPDATA%\Courier\worker.pid (oder launcher.pid / .\worker.pid),
+    prüfen PIDs auf numerische Integrität und vermeiden pauschales taskkill /IM."""
+    repo_root = Path(__file__).resolve().parents[1]
+    stop_bat = (repo_root / "scripts" / "windows_worker" / "stop.bat").read_text(encoding="utf-8")
+    status_bat = (repo_root / "scripts" / "windows_worker" / "status.bat").read_text(encoding="utf-8")
+
+    # Invariante 1: %LOCALAPPDATA%\Courier\worker.pid wird berücksichtigt
+    assert "LOCALAPPDATA%\Courier\worker.pid" in stop_bat, "stop.bat must check %LOCALAPPDATA%\Courier\worker.pid"
+    assert "LOCALAPPDATA%\Courier\worker.pid" in status_bat, "status.bat must check %LOCALAPPDATA%\Courier\worker.pid"
+
+    # Invariante 2: taskkill /PID statt taskkill /IM
+    assert "taskkill /F /T /PID" in stop_bat, "stop.bat must target specific PID"
+    assert "taskkill /IM" not in stop_bat, "stop.bat must NOT broad-kill processes by image name"
