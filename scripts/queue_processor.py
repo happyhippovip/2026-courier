@@ -18,7 +18,7 @@ def already_recorded(intake_file):
     Raises OSError/ValueError/KeyError when the answer is unknowable;
     callers fall through to dispatch (which fails closed itself).
     """
-    with open(intake_file, 'r') as f:
+    with open(intake_file, 'r', encoding='utf-8') as f:
         intake = json.load(f)
     state = load_central_state('central_state.json')
     task = state["tasks"].get(fingerprint_task_id(intake))
@@ -47,7 +47,15 @@ def process_queue():
                 print(f"Already dispatched {intake_file}; skipping re-dispatch")
             else:
                 dispatch_intake(intake_file)
-            shutil.move(intake_file, os.path.join("intakes/processed", os.path.basename(intake_file)))
+            dest = os.path.join("intakes/processed", os.path.basename(intake_file))
+            if os.path.exists(dest):
+                try:
+                    os.replace(intake_file, dest)
+                except OSError:
+                    os.remove(dest)
+                    shutil.move(intake_file, dest)
+            else:
+                shutil.move(intake_file, dest)
             print(f"Successfully processed and moved {intake_file}")
         except (Exception, SystemExit) as e:
             # dispatch_intake signals dispatch failure via sys.exit();

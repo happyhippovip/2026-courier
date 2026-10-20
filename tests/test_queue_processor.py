@@ -88,3 +88,24 @@ def test_process_queue_error(tmp_path):
     # Should catch the exception and NOT move the file
     mock_move.assert_not_called()
 
+
+def test_process_queue_destination_exists_overwrites(tmp_path):
+    pending_dir = tmp_path / "intakes" / "pending"
+    processed_dir = tmp_path / "intakes" / "processed"
+    pending_dir.mkdir(parents=True, exist_ok=True)
+    processed_dir.mkdir(parents=True, exist_ok=True)
+
+    task_file = pending_dir / "dup_intake.json"
+    task_file.write_text('{"foo": "new"}', encoding="utf-8")
+    existing_dest = processed_dir / "dup_intake.json"
+    existing_dest.write_text('{"foo": "old"}', encoding="utf-8")
+
+    with mock.patch("scripts.queue_processor.glob.glob", return_value=[str(task_file)]):
+        with mock.patch("scripts.queue_processor.dispatch_intake"):
+            with mock.patch("scripts.queue_processor.already_recorded", return_value=False):
+                with mock.patch("scripts.queue_processor.os.path.join", return_value=str(existing_dest)):
+                    queue_processor.process_queue()
+
+    assert not task_file.exists()
+    assert existing_dest.exists()
+    assert json.loads(existing_dest.read_text(encoding="utf-8")) == {"foo": "new"}
