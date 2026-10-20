@@ -243,7 +243,13 @@ namespace CourierLauncher
             }
             
             if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir);
-            
+            string runDir = Path.Combine(dataDir, "run");
+            Directory.CreateDirectory(runDir);
+            Process self = Process.GetCurrentProcess();
+            File.WriteAllText(
+                Path.Combine(runDir, "launcher.pid"),
+                self.Id.ToString() + Environment.NewLine + self.StartTime.ToUniversalTime().ToString("o") + Environment.NewLine);
+
             string ctrlArgs = string.Format("-m courier_core.serve --home \"{0}\" --port {1}", dataDir, cp);
             string workerArgs = string.Format("-m courier_worker.host --home \"{0}\" --controller http://127.0.0.1:{1} --max-tasks 1 --heartbeat 2", dataDir, cp);
             if (!string.IsNullOrEmpty(workerId)) {

@@ -22,8 +22,27 @@ Copy-Item -Recurse "$PSScriptRoot\..\..\courier_worker" -Destination "$OutDir\co
 if (Test-Path "$PSScriptRoot\..\..\adapters") {
     Copy-Item -Recurse "$PSScriptRoot\..\..\adapters" -Destination "$OutDir\adapters"
 }
-Copy-Item "$PSScriptRoot\install.ps1" -Destination $OutDir
-Copy-Item "$PSScriptRoot\uninstall.ps1" -Destination $OutDir
+# uninstall.ps1 calls stop.ps1 and uninstall_user_data.ps1 beside itself.
+# A package that omits them deletes files while the worker is still running.
+$packageScripts = @(
+    "install.ps1",
+    "install_service.ps1",
+    "uninstall.ps1",
+    "uninstall_user_data.ps1",
+    "stop.ps1",
+    "stop.bat",
+    "status.ps1",
+    "status.bat",
+    "start.bat"
+)
+foreach ($name in $packageScripts) {
+    $path = Join-Path $PSScriptRoot $name
+    if (-not (Test-Path -LiteralPath $path)) {
+        Write-Error "Package is missing $name"
+        exit 1
+    }
+    Copy-Item -LiteralPath $path -Destination $OutDir
+}
 
 # 3. Download and embed Python
 $pyZip = "$env:TEMP\python-embed.zip"

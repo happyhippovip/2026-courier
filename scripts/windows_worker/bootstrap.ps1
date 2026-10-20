@@ -100,7 +100,9 @@ if (-not (Test-Path $logFile)) { New-Item -ItemType File -Path $logFile | Out-Nu
 if (-not $taskSuccess -or $installResult -match "Zugriff verweigert" -or $installResult -match "Access is denied" -or -not $isAdmin) {
     Write-Host "UAC elevation missing for Scheduled Task. Falling back to background process for current session." -ForegroundColor Yellow
     $proc = Start-Process -FilePath $daemonPath -WorkingDirectory $workerDir -WindowStyle Hidden -PassThru
-    $proc.Id | Out-File -FilePath "$workerDir\worker.pid" -Encoding ascii
+    $stamp = ""
+    try { $stamp = $proc.StartTime.ToUniversalTime().ToString("o") } catch { $stamp = "" }
+    @($proc.Id, $stamp) | Out-File -FilePath "$workerDir\worker.pid" -Encoding ascii
 } else {
     Write-Host "Starting the service..."
     Start-ScheduledTask -TaskName "CourierWindowsWorker" -ErrorAction SilentlyContinue
