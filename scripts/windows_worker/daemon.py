@@ -333,39 +333,49 @@ def run_task(task, config):
 
 _last_sys_times = None
 
-def is_resource_pressure_high():
+def read_cpu_load_percent():
+    """CPU load on Windows. None means the probe failed. A host without the Windows API returns 0.0."""
     global _last_sys_times
     try:
         import ctypes
+        windll = ctypes.windll
+    except AttributeError:
+        return 0.0
+    try:
         class FILETIME(ctypes.Structure):
             _fields_ = [("dwLowDateTime", ctypes.c_uint), ("dwHighDateTime", ctypes.c_uint)]
         idle = FILETIME()
         kernel = FILETIME()
         user = FILETIME()
-        ctypes.windll.kernel32.GetSystemTimes(ctypes.byref(idle), ctypes.byref(kernel), ctypes.byref(user))
-        
+        windll.kernel32.GetSystemTimes(ctypes.byref(idle), ctypes.byref(kernel), ctypes.byref(user))
+
         i = (idle.dwHighDateTime << 32) | idle.dwLowDateTime
         k = (kernel.dwHighDateTime << 32) | kernel.dwLowDateTime
         u = (user.dwHighDateTime << 32) | user.dwLowDateTime
         t = k + u
-        
+
         if _last_sys_times is None:
             _last_sys_times = (i, t)
-            return False
-            
+            return 0.0
+
         i_prev, t_prev = _last_sys_times
         _last_sys_times = (i, t)
-        
+
         dt = t - t_prev
         di = i - i_prev
-        if dt == 0:
-            return False
-            
-        load = (dt - di) / dt * 100.0
-        return load > 85.0
+        if dt <= 0:
+            return None
+        return (dt - di) / dt * 100.0
     except Exception:
-        # Defaults to safe (no pressure) if check fails to prevent starvation, but we could also back off
-        return False
+        return None
+
+
+def is_resource_pressure_high():
+    """True pauses claims. None means the probe failed and claims must pause too."""
+    load = read_cpu_load_percent()
+    if load is None:
+        return None
+    return load > 85.0
 
 _lock_fd = None
 def acquire_lock(worker_id):
@@ -432,8 +442,13 @@ def loop():
                     if e.code == 404:
                         register_worker(worker_id)
                 
-                # 2. Resource Pressure Check
-                if is_resource_pressure_high():
+                # 2. Resource Pressure Check. A failed probe is not "idle".
+                pressure = is_resource_pressure_high()
+                if pressure is None:
+                    print(f"[{worker_id}] Resource check failed. Pausing claims.")
+                    time.sleep(60)
+                    continue
+                if pressure:
                     print(f"[{worker_id}] Resource pressure high. Pausing claims.")
                     time.sleep(60)
                     continue
