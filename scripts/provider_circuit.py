@@ -125,6 +125,15 @@ class CircuitState:
 class ProviderCircuitBreaker:
     _shared_circuits: dict[str, CircuitState] = {}
 
+    @classmethod
+    def reset_shared(cls):
+        """Reset the process-shared circuits dictionary.
+
+        Ensures deterministic test isolation and clean-slate resets between
+        test runs or daemon restarts without requiring module reloading.
+        """
+        cls._shared_circuits.clear()
+
     def __init__(self, *, isolated=False):
         self.circuits = {} if isolated else self._shared_circuits
 
