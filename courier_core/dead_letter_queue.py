@@ -10,6 +10,7 @@ import argparse
 import json
 import os
 import sys
+import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -56,6 +57,10 @@ class DLQEntry:
         )
 
 
+class CorruptDLQError(ValueError):
+    """Raised when the DLQ state file is corrupt or unreadable: never silently reset."""
+
+
 class DeadLetterQueue:
     """Core manager for DLQ persistence, state transitions, and retries."""
 
@@ -74,19 +79,40 @@ class DeadLetterQueue:
     def _load(self):
         if not self.dlq_path.exists():
             return
+        if self.dlq_path.is_symlink():
+            raise CorruptDLQError(f"{self.dlq_path} is a symlink: refusing insecure load")
         try:
             raw = json.loads(self.dlq_path.read_text(encoding="utf-8"))
             for k, v in raw.items():
                 self.entries[k] = DLQEntry.from_dict(v)
-        except Exception:
-            self.entries = {}
+        except CorruptDLQError:
+            raise
+        except (json.JSONDecodeError, UnicodeDecodeError, OSError, KeyError, TypeError) as exc:
+            raise CorruptDLQError(f"Corrupt DLQ file at {self.dlq_path}: {exc}") from exc
 
     def _save(self):
+        if self.dlq_path.is_symlink():
+            raise CorruptDLQError(f"{self.dlq_path} is a symlink: refusing insecure write")
         self.dlq_path.parent.mkdir(parents=True, exist_ok=True)
         dump = {k: v.to_dict() for k, v in self.entries.items()}
-        tmp = self.dlq_path.with_suffix(".tmp")
-        tmp.write_text(json.dumps(dump, indent=2), encoding="utf-8")
-        tmp.replace(self.dlq_path)
+        tmp = self.dlq_path.with_name(self.dlq_path.name + f".tmp.{os.getpid()}")
+        payload = json.dumps(dump, indent=2)
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.write(payload)
+            f.flush()
+            os.fsync(f.fileno())
+        for attempt in range(20):
+            try:
+                os.replace(tmp, self.dlq_path)
+                break
+            except (PermissionError, OSError):
+                if attempt == 19:
+                    try:
+                        tmp.unlink(missing_ok=True)
+                    except Exception:
+                        pass
+                    raise
+                time.sleep(0.01)
 
     def record_failure(
         self,

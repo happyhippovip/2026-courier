@@ -10,6 +10,7 @@ import pytest
 from courier_core.dead_letter_queue import (
     DeadLetterQueue,
     DLQEntry,
+    CorruptDLQError,
     record_failure,
     get_retryable_items,
     quarantine_item,
@@ -168,3 +169,41 @@ def test_cli_invocation(tmp_path):
 
     data = json.loads(dlq_file.read_text(encoding="utf-8"))
     assert data["cli_task"]["state"] == "QUARANTINED"
+
+
+def test_corrupt_dlq_file_raises_instead_of_silent_reset(tmp_path):
+    dlq_file = tmp_path / "dlq_corrupt.json"
+    dlq_file.write_text("{broken json", encoding="utf-8")
+    with pytest.raises(CorruptDLQError, match="Corrupt DLQ file"):
+        DeadLetterQueue(dlq_path=str(dlq_file))
+
+
+def test_symlink_dlq_file_load_and_save_refused(tmp_path, monkeypatch):
+    symlink_file = tmp_path / "dlq_link.json"
+    symlink_file.write_text('{"a": 1}', encoding="utf-8")
+    monkeypatch.setattr(Path, "is_symlink", lambda self: True if self == symlink_file else False)
+
+    with pytest.raises(CorruptDLQError, match="refusing insecure load"):
+        DeadLetterQueue(dlq_path=str(symlink_file))
+
+
+def test_atomic_save_fsync_and_retry_resilience(tmp_path, monkeypatch):
+    import os
+    dlq_file = tmp_path / "dlq_flaky.json"
+    dlq = DeadLetterQueue(dlq_path=str(dlq_file))
+
+    attempts = {"count": 0}
+    real_replace = os.replace
+
+    def flaky_replace(src, dst):
+        attempts["count"] += 1
+        if attempts["count"] < 3:
+            raise PermissionError("Simulated transient Windows file lock")
+        return real_replace(src, dst)
+
+    monkeypatch.setattr(os, "replace", flaky_replace)
+    dlq.record_failure("retry_task", "Transient network blip", attempts=1)
+    assert attempts["count"] == 3
+    assert dlq_file.exists()
+    reloaded = DeadLetterQueue(dlq_path=str(dlq_file))
+    assert "retry_task" in reloaded.entries
