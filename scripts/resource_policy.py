@@ -45,35 +45,39 @@ def save_json(path: Path, data: Any) -> None:
 class ResourcePolicyManager:
     """Reads and enforces canonical resource & routing policy."""
 
+    _FAIL_CLOSED_POLICY: dict = {
+        "_policy_invalid": True,
+        "active_paid_resources": {},
+        "planned_resources": {},
+        "unauthorized_resources": {},
+        "operating_invariants": {
+            "standard": "ONE_TASK_ONE_BUILDER_ONE_RESULT_ONE_REVIEW",
+            "default_builder": "courier-antigravity-bridge",
+            "default_reviewer": "courier-codex-bridge",
+            "allow_parallel_builder_dispatch": False,
+            "allow_redundant_second_opinion": False,
+            "allow_auto_capacity_expansion": False,
+            "require_human_gate_for_tier_change": True,
+            "max_autonomous_iterations_per_task": 1,
+        },
+    }
+
     @staticmethod
-    def get_policy(repo_dir: Path | None = None) -> dict:
+    def get_policy(repo_dir: Path | None = None, *, require_policy_file: bool = False) -> dict:
         p_path = (repo_dir / "events" / "policies" / "resource_policy.json") if repo_dir else POLICY_FILE
-        policy = load_json(p_path)
-        if policy and isinstance(policy, dict):
-            return policy
-        return {
-            "active_paid_resources": {
-                "google_antigravity_plus": {"status": "ACTIVE_PAID", "role": "PRIMARY_BUILDER"},
-                "chatgpt_plus_codex": {"status": "ACTIVE_PAID", "role": "PRIMARY_CONTROLLER_REVIEWER"},
-                "windows_native": {"status": "ACTIVE_PAID", "role": "WINDOWS_WORKER_EXECUTOR"}
-            },
-            "planned_resources": {
-                "future_google_upgrade": {"status": "PLANNED_NOT_ACTIVE", "budget_eligible": False}
-            },
-            "unauthorized_resources": {
-                "on_demand_api_tiers": {"status": "UNAVAILABLE", "spend_allowed": False}
-            },
-            "operating_invariants": {
-                "standard": "ONE_TASK_ONE_BUILDER_ONE_RESULT_ONE_REVIEW",
-                "default_builder": "courier-antigravity-bridge",
-                "default_reviewer": "courier-codex-bridge",
-                "allow_parallel_builder_dispatch": False,
-                "allow_redundant_second_opinion": False,
-                "allow_auto_capacity_expansion": False,
-                "require_human_gate_for_tier_change": True,
-                "max_autonomous_iterations_per_task": 1
-            }
-        }
+        if p_path.exists():
+            policy = load_json(p_path)
+            if isinstance(policy, dict) and isinstance(policy.get("active_paid_resources"), dict):
+                return policy
+            return dict(ResourcePolicyManager._FAIL_CLOSED_POLICY)
+        if require_policy_file or repo_dir is None:
+            return dict(ResourcePolicyManager._FAIL_CLOSED_POLICY)
+        # Fallback to canonical repo policy file only if it exists and is valid on disk (never hardcoded active resources)
+        if POLICY_FILE.exists():
+            canonical = load_json(POLICY_FILE)
+            if isinstance(canonical, dict) and isinstance(canonical.get("active_paid_resources"), dict):
+                return canonical
+        return dict(ResourcePolicyManager._FAIL_CLOSED_POLICY)
 
     @staticmethod
     def get_default_builder() -> str:
@@ -94,6 +98,8 @@ class ResourcePolicyManager:
     @staticmethod
     def is_resource_allowed(resource_id: str, repo_dir: Path | None = None) -> bool:
         policy = ResourcePolicyManager.get_policy(repo_dir)
+        if policy.get("_policy_invalid"):
+            return False
         active = policy.get("active_paid_resources", {})
         return resource_id in active and active[resource_id].get("status") == "ACTIVE_PAID"
 
@@ -107,8 +113,17 @@ class CostGate:
         estimated_cost_eur: float | None = None,
         requested_action: str = "EXECUTE_TASK",
         repo_dir: Path | None = None,
+        *,
+        require_policy_file: bool = False,
     ) -> dict:
-        policy = ResourcePolicyManager.get_policy(repo_dir)
+        policy = ResourcePolicyManager.get_policy(repo_dir, require_policy_file=require_policy_file)
+        if policy.get("_policy_invalid"):
+            return {
+                "allowed": False,
+                "reason": "POLICY_MISSING_OR_CORRUPT",
+                "message": "Resource policy file is missing, empty, or corrupt; failing closed.",
+                "requires_human_gate": True,
+            }
         active = policy.get("active_paid_resources", {})
         planned = policy.get("planned_resources", {})
         unauth = policy.get("unauthorized_resources", {})

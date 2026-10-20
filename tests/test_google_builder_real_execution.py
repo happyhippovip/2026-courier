@@ -104,6 +104,7 @@ def test_agent_pass_requires_independent_verify(tmp_path, monkeypatch):
     argv, kwargs = runner.calls[0]
     assert argv[:3] == ["agy", "--print", "Add a docstring to foo()"]
     assert "--sandbox" in argv and "--output-format" in argv
+    assert "--dangerously-skip-permissions" not in argv
     assert kwargs["cwd"] == tmp_path and kwargs["timeout"] > 0
     ev = json.loads((tmp_path / res["evidence_file"]).read_text())
     assert ev["workkey"] == "WK-TEST-1" and ev["verify_exit_code"] == 0

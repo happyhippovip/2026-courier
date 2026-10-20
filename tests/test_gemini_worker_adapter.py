@@ -276,3 +276,36 @@ def test_gemini_worker_adapter_costgate_enforced(tmp_path):
     assert "COST_GATE_DENIED" in res_nan["reason"]
     assert res_nan.get("blocked") is True
 
+
+def test_gemini_worker_timeout_kills_process_tree(tmp_path, monkeypatch):
+    """Proves hung subprocesses are killed cleanly via process-group containment on timeout."""
+    monkeypatch.chdir(tmp_path)
+    task_file = tmp_path / "task_timeout.json"
+    task_file.write_text(json.dumps({
+        "task_id": "gemini-timeout",
+        "instruction": "sleep forever",
+        "timeout_seconds": 0.05,
+    }))
+
+    mock_process = mock.Mock()
+    mock_process.pid = 77777
+    mock_process.communicate.side_effect = [
+        subprocess.TimeoutExpired(cmd=["agy"], timeout=0.05),
+        ("", ""),
+    ]
+
+    with mock.patch("subprocess.Popen", return_value=mock_process) as mock_popen:
+        with mock.patch("os.killpg") as mock_killpg:
+            pid, d_ref, r_ref = gemini_worker_adapter.run_worker(str(task_file))
+
+    assert pid == 77777
+    if os.name != "nt":
+        assert mock_popen.call_args.kwargs.get("start_new_session") is True
+        mock_killpg.assert_called_once()
+    mock_process.kill.assert_called_once()
+
+    res_data = json.loads((tmp_path / r_ref).read_text())
+    assert res_data["status"] == "FAILED"
+    assert res_data["reason"] == "TIMEOUT"
+
+

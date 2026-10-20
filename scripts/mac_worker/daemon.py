@@ -517,7 +517,7 @@ def run_agy(task, config):
         return {"status": "FAILED", "reason": "AGY_NOT_FOUND", "execution_mode": "ANTIGRAVITY"}
         
     wrapper = os.path.join(os.path.dirname(__file__), "limit_wrapper.sh")
-    cmd = [wrapper, agy_bin, "-p", prompt, "--dangerously-skip-permissions"]
+    cmd = [wrapper, agy_bin, "-p", prompt, "--sandbox", "--disable-slash-commands"]
     timeout = min(float(config.get("AGY_TIMEOUT_SECONDS", 300)), 3600)
 
     process = None

@@ -1,10 +1,40 @@
 import json
 import os
 import re
+import signal
 import subprocess
 import sys
 import uuid
 from pathlib import Path
+
+
+def _kill_process_tree(process: subprocess.Popen) -> None:
+    """Terminate child process and its process group to prevent orphan processes."""
+    pid = getattr(process, "pid", None)
+    if isinstance(pid, int) and pid > 0 and pid != os.getpid():
+        if os.name == "nt":
+            subprocess.run(
+                ["taskkill", "/PID", str(pid), "/T", "/F"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=10,
+                check=False,
+                shell=False,
+            )
+        else:
+            try:
+                os.killpg(pid, signal.SIGKILL)
+            except (ProcessLookupError, PermissionError, OSError):
+                pass
+    try:
+        process.kill()
+    except Exception:
+        pass
+    try:
+        process.communicate(timeout=5)
+    except Exception:
+        pass
+
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
@@ -82,11 +112,33 @@ def run_worker(task_path, negative_test=False, state_file="central_state.json"):
 
     # We remove --dangerously-skip-permissions. A harmless task doesn't use tools and shouldn't prompt.
     dispatch_ref = str(uuid.uuid4())
-    
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    timeout_s = float(task.get("timeout_seconds", 60))
+
+    popen_kwargs = {"stdout": subprocess.PIPE, "stderr": subprocess.PIPE, "text": True}
+    if os.name == "nt":
+        popen_kwargs["creationflags"] = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+    else:
+        popen_kwargs["start_new_session"] = True
+
+    process = subprocess.Popen(cmd, **popen_kwargs)
     pid = process.pid
-    
-    stdout, stderr = process.communicate(timeout=60)
+
+    try:
+        stdout, stderr = process.communicate(timeout=timeout_s)
+    except subprocess.TimeoutExpired:
+        _kill_process_tree(process)
+        res_json = {
+            "status": "FAILED",
+            "reason": "TIMEOUT",
+            "error": f"Worker subprocess timed out after {timeout_s:g}s; process tree terminated.",
+            "pid": pid,
+            "dispatch_ref": dispatch_ref,
+        }
+        result_ref = f"gemini_result_{task['task_id']}.json"
+        with open(result_ref, 'w') as f:
+            json.dump(res_json, f, indent=2)
+        consume(res_json, task['task_id'], result_ref, state_file=state_file)
+        return pid, dispatch_ref, result_ref
     
     out = stdout.strip()
     

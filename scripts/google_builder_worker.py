@@ -365,9 +365,6 @@ def run_google_agent_task(
         f"{timeout_s}s",
         "--sandbox",
         "--disable-slash-commands",
-        # Required for unattended print mode (no human to answer tool prompts);
-        # bounded by --sandbox, the packet's authorization and the verify step.
-        "--dangerously-skip-permissions",
     ]
     if payload_in.get("model"):
         argv += ["--model", str(payload_in["model"])]
