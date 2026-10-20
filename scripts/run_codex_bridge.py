@@ -22,16 +22,79 @@ import os
 import re
 import subprocess
 import sys
+import time
 import uuid
 from pathlib import Path
 
 SCRIPTS_DIR = Path(__file__).resolve().parent
 COURIER_DIR = SCRIPTS_DIR.parent
 
-try:
-    CanonicalAuthority = None
-except ImportError:
-    pass
+if str(COURIER_DIR) not in sys.path:
+    sys.path.insert(0, str(COURIER_DIR))
+
+from courier_runtime.lease import Lease, LeaseConflict, LeaseStore, format_session_holder
+
+
+class CanonicalAuthority:
+    """Canonical Scope Authority bridging Codex tasks to LeaseStore in authority.db."""
+
+    def __init__(self, db_path: Path | None = None) -> None:
+        self.db_path = db_path or (COURIER_DIR / "events" / "locks" / "authority.db")
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self.store = LeaseStore(self.db_path)
+        self.acquired_leases: dict[str, Lease] = {}
+
+    def acquire_scopes(
+        self,
+        owner_id: str,
+        task_id: str,
+        scopes: list[str],
+        ttl_s: int = 300,
+    ) -> tuple[bool, int, str]:
+        holder = format_session_holder(owner_id, os.getpid(), time.time(), task_id)
+        max_token = 0
+        try:
+            for scope in scopes:
+                clean_scope = f"codex:{str(scope).strip()}"
+                lease = self.store.acquire(
+                    clean_scope,
+                    holder,
+                    task_id,
+                    ttl_s,
+                )
+                self.acquired_leases[f"{task_id}:{scope}"] = lease
+                if lease.token and lease.token > max_token:
+                    max_token = lease.token
+            return True, max_token, ""
+        except LeaseConflict as exc:
+            self.release_scopes(owner_id, task_id, scopes, max_token)
+            return False, 0, f"Scope conflict: {exc}"
+        except Exception as exc:
+            self.release_scopes(owner_id, task_id, scopes, max_token)
+            return False, 0, str(exc)
+
+    def release_scopes(
+        self,
+        owner_id: str,
+        task_id: str,
+        scopes: list[str],
+        generation: int = 0,
+    ) -> None:
+        for scope in scopes:
+            key = f"{task_id}:{scope}"
+            lease = self.acquired_leases.pop(key, None)
+            if lease:
+                try:
+                    self.store.release(lease)
+                except Exception:
+                    pass
+            else:
+                try:
+                    current = self.store.current(f"codex:{str(scope).strip()}")
+                    if current and task_id in current.holder:
+                        self.store.release(current)
+                except Exception:
+                    pass
 
 EVENTS_DIR = COURIER_DIR / "events"
 SCHEMAS_DIR = COURIER_DIR / "schemas"
@@ -397,7 +460,8 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
         return result_file
 
     # Acquire Canonical Scope Authority
-    auth = CanonicalAuthority() if CanonicalAuthority else None
+    db_path = EVENTS_DIR / "locks" / "authority.db"
+    auth = CanonicalAuthority(db_path=db_path) if CanonicalAuthority else None
     target_scopes = [s for s in allowed_scope if isinstance(s, str) and s.strip()] or ["CODEX:BRIDGE"]
     owner_id = "agent-codex-bridge"
     if auth:

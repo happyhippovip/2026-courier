@@ -96,3 +96,72 @@ def test_run_chief_review_router(tmp_path, monkeypatch):
     dec3 = run_chief_review_router("task-3", res_file3)
     assert dec3["verdict"] == "HUMAN_APPROVAL_REQUIRED"
     assert dec3["action"] == "STOP_AT_HUMAN_GATE"
+
+
+def test_canonical_authority_acquire_and_release(tmp_path):
+    from scripts.run_codex_bridge import CanonicalAuthority
+    db_path = tmp_path / "authority.db"
+    auth = CanonicalAuthority(db_path=db_path)
+
+    ok, gen, err = auth.acquire_scopes(
+        owner_id="owner-test",
+        task_id="t-1",
+        scopes=["repo/sub", "docs"],
+        ttl_s=60,
+    )
+    assert ok is True
+    assert gen > 0
+    assert err == ""
+
+    # Current leases exist in store
+    assert auth.store.current("codex:docs") is not None
+
+    # Release leases
+    auth.release_scopes(
+        owner_id="owner-test",
+        task_id="t-1",
+        scopes=["repo/sub", "docs"],
+        generation=gen,
+    )
+    assert auth.store.current("codex:docs") is None
+
+
+def test_canonical_authority_scope_conflict(tmp_path):
+    from scripts.run_codex_bridge import CanonicalAuthority
+    db_path = tmp_path / "authority.db"
+    auth1 = CanonicalAuthority(db_path=db_path)
+    auth2 = CanonicalAuthority(db_path=db_path)
+
+    ok1, gen1, err1 = auth1.acquire_scopes("owner-1", "t-1", ["shared:scope"])
+    assert ok1 is True
+
+    ok2, gen2, err2 = auth2.acquire_scopes("owner-2", "t-2", ["shared:scope"])
+    assert ok2 is False
+    assert "Scope conflict" in err2
+
+
+def test_execute_codex_task_with_canonical_authority(tmp_path, monkeypatch):
+    import scripts.run_codex_bridge as codex_bridge
+    monkeypatch.setattr(codex_bridge, "PROCESSED_DIR", tmp_path / "processed")
+    monkeypatch.setattr(codex_bridge, "EVENTS_DIR", tmp_path / "events")
+    (tmp_path / "events" / "locks").mkdir(parents=True, exist_ok=True)
+
+    tracker = codex_bridge.CodexVisualStateTracker(repo_dir=tmp_path)
+    hooks = codex_bridge.CodexHookRunner(tracker)
+
+    # Create dummy job file
+    job_file = tmp_path / "job.json"
+    job_data = {
+        "task_id": "task-test-cdx-1",
+        "correlation_id": "corr-1",
+        "instruction": "Test codex execution with authority",
+        "allowed_scope": ["test_scope"],
+    }
+    job_file.write_text(json.dumps(job_data), encoding="utf-8")
+
+    result_file = codex_bridge.execute_codex_task(job_file, hooks)
+    assert result_file.exists()
+    data = json.loads(result_file.read_text(encoding="utf-8"))
+    assert data["status"] == "COMPLETED"
+    assert data["payload"]["verdict"] == "PASS"
+    assert data["payload"]["zero_cost_policy"] == "ZERO_COST_ONLY"
