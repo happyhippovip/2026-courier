@@ -1,3 +1,5 @@
+import os
+import json
 from unittest.mock import MagicMock, patch
 from pathlib import Path
 import pytest
@@ -201,3 +203,109 @@ def test_e_l3_5_matching_owner_pid_and_create_time_preserved(tmp_path):
     reaped = run_orphan_gate(str(tmp_path))
     assert reaped == 0
     assert claim_file.exists()
+
+
+def test_e_l3_6_live_stdio_overflow_terminates_run_and_caps_files(tmp_path):
+    """E-L3-6: Runaway stdout/stderr exceeding MAX_LIVE_STDIO_BYTES is terminated and capped without host crash."""
+    from courier_worker.host import _cap_stdio_file, MAX_LIVE_STDIO_BYTES
+
+    spec = ExecutionSpec(
+        task_id="t-stdio-overflow",
+        attempt=1,
+        dispatch_id="dsp-stdio-overflow",
+        worker_id="w-test",
+        result_id="res-stdio-overflow",
+        argv=["cmd.exe", "/c", "echo", "test"],
+        timeout_s=10.0,
+        lease_ttl_s=30.0,
+        artifact_dir=str(tmp_path / "artifacts"),
+    )
+    Path(spec.artifact_dir).mkdir(parents=True, exist_ok=True)
+
+    fake_run = MagicMock()
+    # While waiting, simulate child alive (wait returns None)
+    fake_run.wait.return_value = None
+    fake_run.poll.return_value = None
+
+    stdout_file = tmp_path / "overflow.out"
+    stderr_file = tmp_path / "normal.err"
+
+    # Write oversized stdout (> 10 MiB)
+    oversized_bytes = MAX_LIVE_STDIO_BYTES + 1024 * 512
+    with open(stdout_file, "wb") as f:
+        f.seek(oversized_bytes - 1)
+        f.write(b"X")
+
+    stderr_file.write_text("standard log", encoding="utf-8")
+
+    fake_run.stdout_path = str(stdout_file)
+    fake_run.stderr_path = str(stderr_file)
+
+    host = WorkerHost(home=str(tmp_path))
+    result = host._wait(spec, fake_run, on_heartbeat=None, is_cancelled=lambda: False)
+
+    # Process must be terminated fail-closed
+    assert fake_run.terminate_tree.called
+    assert result.outcome == Outcome.CRASH
+    assert result.returncode == 1
+    assert result.crash_report_path is not None
+
+    crash_data = json.loads(Path(result.crash_report_path).read_text(encoding="utf-8"))
+    assert crash_data.get("reason") == "stdio_overflow"
+
+    # Verify stdout file was capped on disk to <= MAX_LIVE_STDIO_BYTES
+    assert os.path.getsize(stdout_file) <= MAX_LIVE_STDIO_BYTES
+
+
+def test_e_l3_6_completed_task_with_oversized_stdio_marked_crash_and_capped(tmp_path):
+    """E-L3-6: Task exiting 0 but exceeding MAX_LIVE_STDIO_BYTES is rejected fail-closed as CRASH."""
+    from courier_worker.host import MAX_LIVE_STDIO_BYTES
+
+    spec = ExecutionSpec(
+        task_id="t-stdio-completed",
+        attempt=1,
+        dispatch_id="dsp-stdio-completed",
+        worker_id="w-test",
+        result_id="res-stdio-completed",
+        argv=["cmd.exe", "/c", "echo", "test"],
+        timeout_s=10.0,
+        lease_ttl_s=30.0,
+        artifact_dir=str(tmp_path / "artifacts"),
+    )
+    Path(spec.artifact_dir).mkdir(parents=True, exist_ok=True)
+
+    fake_run = MagicMock()
+    fake_run.wait.return_value = 0  # Process exited with code 0
+    fake_run.poll.return_value = 0
+
+    stdout_file = tmp_path / "overflow_exit0.out"
+    stderr_file = tmp_path / "err_exit0.err"
+
+    with open(stdout_file, "wb") as f:
+        f.seek(MAX_LIVE_STDIO_BYTES + 2048)
+        f.write(b"Z")
+    stderr_file.write_text("", encoding="utf-8")
+
+    fake_run.stdout_path = str(stdout_file)
+    fake_run.stderr_path = str(stderr_file)
+
+    host = WorkerHost(home=str(tmp_path))
+    result = host._wait(spec, fake_run, on_heartbeat=None, is_cancelled=lambda: False)
+
+    assert result.outcome == Outcome.CRASH
+    assert result.returncode == 1
+    assert os.path.getsize(stdout_file) <= MAX_LIVE_STDIO_BYTES
+
+
+def test_e_l3_6_cap_stdio_file_helper_preserves_tail(tmp_path):
+    """E-L3-6: _cap_stdio_file correctly truncates oversized files and preserves the exact tail."""
+    from courier_worker.host import _cap_stdio_file
+
+    test_file = tmp_path / "sample.log"
+    # Write 1000 bytes: 900 bytes of 'A' followed by 100 bytes of 'B'
+    test_file.write_bytes(b"A" * 900 + b"B" * 100)
+    assert os.path.getsize(test_file) == 1000
+
+    _cap_stdio_file(str(test_file), max_bytes=100)
+    assert os.path.getsize(test_file) == 100
+    assert test_file.read_bytes() == b"B" * 100

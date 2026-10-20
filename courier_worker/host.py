@@ -44,6 +44,7 @@ MAX_ARGV_BYTES = 64 * 1024
 MAX_ARTIFACTS = 64
 MAX_ARTIFACT_BYTES = 16 * 1024 * 1024
 MAX_STDIO_TAIL = 64 * 1024
+MAX_LIVE_STDIO_BYTES = 10 * 1024 * 1024  # 10 MiB limit on live stdout/stderr files (E-L3-6)
 MAX_RESULT_PAYLOAD_BYTES = 1024 * 1024  # 1 MiB wire limit for outbox payloads
 OUTBOX_CAP = 32
 ORPHAN_TERM_GRACE_S = 2.0
@@ -855,14 +856,33 @@ def _tail(path: str, limit: int = MAX_STDIO_TAIL) -> str:
         return ""
 
 
+def _cap_stdio_file(path: Optional[str], max_bytes: int = MAX_LIVE_STDIO_BYTES) -> None:
+    """Ensure a stdio file does not exceed max_bytes on disk, retaining the tail (E-L3-6)."""
+    if not path:
+        return
+    try:
+        size = os.path.getsize(path)
+        if size > max_bytes:
+            with open(path, "rb") as fh:
+                fh.seek(size - max_bytes)
+                tail_data = fh.read(max_bytes)
+            with open(path, "wb") as fh:
+                fh.write(tail_data)
+    except OSError:
+        pass
+
+
 def write_crash_report(artifact_dir: str, spec: ExecutionSpec, outcome: str,
-                       returncode: Optional[int], duration_s: float, stderr_path: str) -> str:
+                       returncode: Optional[int], duration_s: float, stderr_path: str,
+                       reason: Optional[str] = None) -> str:
     """Persist the abnormal end as evidence; the report itself is an artifact."""
     os.makedirs(artifact_dir, exist_ok=True)
     report = {"dispatch_id": spec.dispatch_id, "task_id": spec.task_id, "attempt": spec.attempt,
               "worker_id": spec.worker_id, "outcome": outcome, "returncode": returncode,
               "duration_s": round(duration_s, 3),
               "stderr_tail": _tail(stderr_path)[-8000:]}
+    if reason:
+        report["reason"] = reason
     path = os.path.join(artifact_dir, CRASH_REPORT_NAME)
     fd, tmp = tempfile.mkstemp(dir=artifact_dir, prefix=".crash-", suffix=".tmp")
     try:
@@ -1030,6 +1050,17 @@ class WorkerHost:
             except OSError:
                 pass
 
+    def _check_stdio_exceeded(self, run: ContainedRun, limit: int = MAX_LIVE_STDIO_BYTES) -> bool:
+        """Check if stdout or stderr files exceed live stream bounds (E-L3-6)."""
+        for p in (run.stdout_path, run.stderr_path):
+            if p:
+                try:
+                    if os.path.getsize(p) > limit:
+                        return True
+                except OSError:
+                    pass
+        return False
+
     def _wait(self, spec: ExecutionSpec, run: ContainedRun,
               on_heartbeat: Optional[Callable[[float], None]],
               is_cancelled: Optional[Callable[[], bool]]) -> ExecutionResult:
@@ -1040,6 +1071,7 @@ class WorkerHost:
         outcome: Optional[str] = None
         returncode: Optional[int] = None
         wakes = 0
+        overflow = False
         while outcome is None:
             now = time.monotonic()
             remaining = min(timeout_at, lease_at) - now
@@ -1062,10 +1094,31 @@ class WorkerHost:
                     run.terminate_tree()
                     returncode = run.poll()
                     break
+
+            # Live streaming disk containment guard (E-L3-6 / GB-ROT-01)
+            if self._check_stdio_exceeded(run):
+                overflow = True
+                outcome = Outcome.CRASH
+                run.terminate_tree()
+                polled = run.poll()
+                try:
+                    returncode = int(polled) if polled is not None else 1
+                except (ValueError, TypeError):
+                    returncode = 1
+                if returncode == 0:
+                    returncode = 1
+                break
+
             returncode = run.wait(timeout=min(quantum, remaining))
             wakes += 1
             if returncode is not None:
-                outcome = Outcome.COMPLETED if returncode == 0 else Outcome.CRASH
+                if self._check_stdio_exceeded(run):
+                    overflow = True
+                    outcome = Outcome.CRASH
+                    if returncode == 0:
+                        returncode = 1
+                else:
+                    outcome = Outcome.COMPLETED if returncode == 0 else Outcome.CRASH
                 run.terminate_tree()
                 break
             if on_heartbeat is not None:
@@ -1075,10 +1128,16 @@ class WorkerHost:
                 except Exception:
                     pass  # a failed heartbeat never kills a healthy run
         duration_s = time.monotonic() - start
+
+        # Cap stdio files on disk to bound storage usage (E-L3-6)
+        _cap_stdio_file(run.stdout_path)
+        _cap_stdio_file(run.stderr_path)
+
         crash_report_path = None
         if outcome != Outcome.COMPLETED:
             crash_report_path = write_crash_report(
-                spec.artifact_dir, spec, outcome, returncode, duration_s, run.stderr_path)
+                spec.artifact_dir, spec, outcome, returncode, duration_s, run.stderr_path,
+                reason="stdio_overflow" if overflow else None)
         try:
             artifacts = collect_artifacts(spec.artifact_dir)
         except ContainmentError:
