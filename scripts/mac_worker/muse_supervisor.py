@@ -32,6 +32,7 @@ import signal
 import subprocess
 import sys
 import time
+import uuid
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -336,15 +337,74 @@ class Supervisor:
         return slots
 
 
+_supervisor_lease_store = None
+
+
+def get_authority_store():
+    global _supervisor_lease_store
+    if _supervisor_lease_store is None:
+        try:
+            from courier_runtime.lease import LeaseStore
+            auth_db = WALL_DIR / "authority.db"
+            _supervisor_lease_store = LeaseStore(str(auth_db))
+        except Exception:
+            _supervisor_lease_store = None
+    return _supervisor_lease_store
+
+
+class SupervisorLock:
+    def __init__(self, handle, lease, store):
+        self.handle = handle
+        self.lease = lease
+        self.store = store
+
+    def close(self):
+        if self.lease and self.store:
+            try:
+                self.store.release(self.lease)
+            except Exception:
+                pass
+            self.lease = None
+        if self.handle:
+            try:
+                fcntl.flock(self.handle, fcntl.LOCK_UN)
+                self.handle.close()
+            except Exception:
+                pass
+            self.handle = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+
 def acquire_lock():
     WALL_DIR.mkdir(parents=True, exist_ok=True)
-    handle = open(LOCK_FILE, "w")
     try:
+        handle = open(LOCK_FILE, "w")
         fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except OSError:
-        handle.close()
         return None
-    return handle
+
+    # Acquire canonical writer lease in authority.db
+    store = get_authority_store()
+    lease = None
+    if store is not None:
+        try:
+            from courier_runtime.lease import format_session_holder
+            import psutil
+            holder = format_session_holder("mac_supervisor", os.getpid(), psutil.Process(os.getpid()).create_time(), str(uuid.uuid4()))
+            lease = store.acquire("supervisor:mac_wall", holder, "supervise", ttl_s=3600)
+        except Exception:
+            try:
+                fcntl.flock(handle, fcntl.LOCK_UN)
+                handle.close()
+            except Exception:
+                pass
+            return None
+    return SupervisorLock(handle, lease, store)
 
 
 def supervise(supervisor=None, interval=5.0, lock=None):
@@ -352,6 +412,7 @@ def supervise(supervisor=None, interval=5.0, lock=None):
     if lock is None:
         print("Another Muse supervisor is running; not starting a second one.")
         return 1
+
     sup = supervisor or Supervisor()
     while True:
         slots = sup.tick()

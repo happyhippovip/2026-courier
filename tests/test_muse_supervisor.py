@@ -465,4 +465,32 @@ def test_teardown_leaves_no_slot_processes(env):
         assert proc.poll() is not None
 
 
+def test_supervisor_acquire_lock_integrates_authority_store(env):
+    """Proves that mac supervisor acquire_lock binds to authority.db LeaseStore."""
+    from courier_runtime.lease import LeaseStore
+
+    sup, server, http, auth, tmp = env
+    auth_db = sup.WALL_DIR / "authority.db"
+
+    lock = sup.acquire_lock()
+    assert lock is not None
+
+    # Verify store has active lease
+    store = LeaseStore(str(auth_db))
+    current = store.current("supervisor:mac_wall")
+    assert current is not None
+    assert "mac_supervisor" in current.holder
+    store.close()
+
+    # Second acquisition fails
+    second_lock = sup.acquire_lock()
+    assert second_lock is None
+
+    # Release frees lease
+    lock.close()
+    store = LeaseStore(str(auth_db))
+    assert store.current("supervisor:mac_wall") is None
+    store.close()
+
+
 
