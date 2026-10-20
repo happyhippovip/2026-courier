@@ -198,3 +198,43 @@ def test_human_block_is_never_released_by_provider_signal(tmp_path, monkeypatch)
 def test_sha_drift_supersedes_sticky_park():
     p = _packet(state=PacketState.PARKED_PROVIDER_LIMIT)
     assert evaluate_packet(p, "other-sha", host_safe=True).state == PacketState.SUPERSEDED
+
+
+# ---- TEST G: verify_command V2 hardening tests -----------------------------
+
+def test_verify_command_v2_rejects_bypass_flags(tmp_path):
+    for flag in ("--dangerously-skip-permissions", "--skip-permissions", "--no-sandbox"):
+        res = gbw.execute_verify_command_v2(["agy", flag], tmp_path)
+        assert res["status"] == "FAILED"
+        assert "FORBIDDEN_FLAG" in res["error"]
+        assert res["exit_code"] == 2
+
+
+def test_verify_command_v2_sanitizes_environment(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_CONTROLLER_TOKEN", "super-secret-token")
+    out_file = tmp_path / "env_check.txt"
+    cmd = [sys.executable, "-c",
+           f"import os; open(r'{out_file}', 'w').write(os.environ.get('COURIER_CONTROLLER_TOKEN', 'SAFE_NONE'))"]
+    res = gbw.execute_verify_command_v2(cmd, tmp_path)
+    assert res["status"] == "PASS"
+    assert out_file.read_text(encoding="utf-8") == "SAFE_NONE"
+
+
+def test_verify_command_v2_kills_on_timeout(tmp_path):
+    cmd = [sys.executable, "-c", "import time; time.sleep(10)"]
+    res = gbw.execute_verify_command_v2(cmd, tmp_path, timeout_s=0.2)
+    assert res["status"] == "FAILED"
+    assert "VERIFY_TIMEOUT" in res["error"]
+    assert res["exit_code"] == 124
+
+
+def test_verify_command_v2_rejects_malformed_input(tmp_path):
+    # Non-sequence
+    assert gbw.execute_verify_command_v2("echo hi", tmp_path)["status"] == "FAILED"
+    assert gbw.execute_verify_command_v2(None, tmp_path)["status"] == "FAILED"
+    assert gbw.execute_verify_command_v2([], tmp_path)["status"] == "FAILED"
+    # Null bytes
+    assert gbw.execute_verify_command_v2(["echo", "foo\0bar"], tmp_path)["status"] == "FAILED"
+    # Non-string item
+    assert gbw.execute_verify_command_v2(["echo", 123], tmp_path)["status"] == "FAILED"
+

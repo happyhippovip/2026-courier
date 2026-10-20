@@ -27,6 +27,7 @@ import hashlib
 import json
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import threading
@@ -90,6 +91,131 @@ PARKED_VERDICT_STATES = {
     VERDICT_HUMAN_APPROVAL: PacketState.BLOCKED_HUMAN_APPROVAL,
 }
 PARKED_STATES = frozenset(PARKED_VERDICT_STATES.values())
+
+FORBIDDEN_COMMAND_FLAGS = frozenset({
+    "--dangerously-skip-permissions",
+    "--skip-permissions",
+    "--no-sandbox",
+})
+
+
+def _kill_process_tree(proc: subprocess.Popen) -> None:
+    """Terminate child process and its process tree to prevent orphan processes."""
+    pid = getattr(proc, "pid", None)
+    if isinstance(pid, int) and pid > 0 and pid != os.getpid():
+        if os.name == "nt":
+            subprocess.run(
+                ["taskkill", "/PID", str(pid), "/T", "/F"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=10,
+                check=False,
+                shell=False,
+            )
+        else:
+            try:
+                os.killpg(pid, signal.SIGKILL)
+            except (ProcessLookupError, PermissionError, OSError):
+                pass
+    try:
+        proc.kill()
+    except Exception:
+        pass
+    try:
+        proc.communicate(timeout=5)
+    except Exception:
+        pass
+
+
+def execute_verify_command_v2(
+    verify_cmd: Any,
+    repo_dir: Path,
+    timeout_s: float = 300,
+) -> dict[str, Any]:
+    """Execute an independent verification command under V2 security contract.
+
+    Guarantees:
+    - Input sequence validation (fail-closed on non-sequence, empty, or non-str)
+    - Permission-bypass flag rejection (--dangerously-skip-permissions)
+    - Sensitive token scrubbing from environment
+    - Process tree containment via session isolation and _kill_process_tree on timeout
+    - Structured exit and excerpt reporting
+    """
+    if not isinstance(verify_cmd, (list, tuple)) or not verify_cmd:
+        return {
+            "status": "FAILED",
+            "error": "NO_INDEPENDENT_VERIFICATION: verify_command required and must be non-empty sequence",
+            "exit_code": 2,
+        }
+
+    for arg in verify_cmd:
+        if not isinstance(arg, str) or not arg:
+            return {
+                "status": "FAILED",
+                "error": "MALFORMED_VERIFY_COMMAND: argv items must be non-empty strings",
+                "exit_code": 2,
+            }
+        if "\0" in arg:
+            return {
+                "status": "FAILED",
+                "error": "MALFORMED_VERIFY_COMMAND: argv must not contain null bytes",
+                "exit_code": 2,
+            }
+        if arg in FORBIDDEN_COMMAND_FLAGS or "--dangerously-skip-permissions" in arg:
+            return {
+                "status": "FAILED",
+                "error": "FORBIDDEN_FLAG: verify_command contains forbidden permission-bypass flag",
+                "exit_code": 2,
+            }
+
+    env = dict(os.environ)
+    env.pop("COURIER_CONTROLLER_TOKEN", None)
+
+    popen_kwargs: dict[str, Any] = {
+        "cwd": str(repo_dir),
+        "env": env,
+        "stdin": subprocess.DEVNULL,
+        "stdout": subprocess.PIPE,
+        "stderr": subprocess.PIPE,
+        "text": True,
+        "shell": False,
+    }
+    if os.name == "nt":
+        popen_kwargs["creationflags"] = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+    else:
+        popen_kwargs["start_new_session"] = True
+
+    try:
+        proc = subprocess.Popen(list(verify_cmd), **popen_kwargs)
+    except (OSError, ValueError) as exc:
+        return {
+            "status": "FAILED",
+            "error": f"VERIFY_FAILED_TO_RUN: {exc}",
+            "exit_code": 1,
+        }
+
+    try:
+        stdout_text, stderr_text = proc.communicate(timeout=timeout_s)
+    except subprocess.TimeoutExpired:
+        _kill_process_tree(proc)
+        return {
+            "status": "FAILED",
+            "error": f"VERIFY_TIMEOUT: verify_command outlived {timeout_s}s and was killed",
+            "exit_code": 124,
+        }
+    except BaseException:
+        _kill_process_tree(proc)
+        raise
+
+    stdout_str = (stdout_text or "").strip()
+    stderr_str = (stderr_text or "").strip()
+    return {
+        "status": "PASS" if proc.returncode == 0 else "FAILED",
+        "exit_code": proc.returncode,
+        "stdout_excerpt": stdout_str[-500:] if stdout_str else "",
+        "stderr_excerpt": stderr_str[-500:] if stderr_str else "",
+        "error": None if proc.returncode == 0 else (stderr_str[-500:] or f"exit code {proc.returncode}"),
+    }
 
 
 def probe_integration_surface() -> dict[str, Any]:
@@ -401,20 +527,16 @@ def run_google_agent_task(
         return verdict
 
     verify_cmd = payload_in.get("verify_command")
-    if not verify_cmd:
-        evidence_data["error"] = "NO_INDEPENDENT_VERIFICATION: verify_command required"
-        return "FAILED"
-    try:
-        vproc = subprocess.run(
-            verify_cmd, cwd=repo_dir, capture_output=True, text=True, timeout=300
-        )
-    except (subprocess.TimeoutExpired, OSError) as exc:
-        evidence_data["error"] = f"VERIFY_FAILED_TO_RUN: {exc}"
-        return "FAILED"
+    v_res = execute_verify_command_v2(verify_cmd, repo_dir, timeout_s=300)
     evidence_data["verify_command"] = verify_cmd
-    evidence_data["verify_exit_code"] = vproc.returncode
-    evidence_data["verify_output_excerpt"] = (vproc.stdout or "").strip()[-500:]
-    return "PASS" if vproc.returncode == 0 else "FAILED"
+    evidence_data["verify_exit_code"] = v_res.get("exit_code")
+    if v_res.get("stdout_excerpt"):
+        evidence_data["verify_output_excerpt"] = v_res["stdout_excerpt"]
+    if v_res.get("stderr_excerpt"):
+        evidence_data["verify_stderr_excerpt"] = v_res["stderr_excerpt"]
+    if v_res.get("error"):
+        evidence_data["error"] = v_res["error"]
+    return v_res["status"]
 
 
 def execute_packet_code_or_test_work(
