@@ -17,7 +17,7 @@ function Stop-RecordedPid {
     $raw = ""
     if ($lines.Count -ge 1) { $raw = [string]$lines[0] }
     if (-not [int]::TryParse($raw.Trim(), [ref]$processId) -or $processId -le 0) {
-        Write-Host "ERROR: $PidFile does not contain a process id."
+        Write-Output "ERROR: $PidFile does not contain a process id."
         $script:failed = $true
         return
     }
@@ -25,13 +25,13 @@ function Stop-RecordedPid {
     $proc = Get-Process -Id $processId -ErrorAction SilentlyContinue
     if (-not $proc) {
         Remove-Item -LiteralPath $PidFile -Force -ErrorAction SilentlyContinue
-        Write-Host "Recorded process $processId is already gone."
+        Write-Output "Recorded process $processId is already gone."
         $script:stopped = $true
         return
     }
 
     if ($proc.ProcessName -ne "Courier") {
-        Write-Host "ERROR: PID $processId is $($proc.ProcessName), not the recorded Courier process. Refusing to stop it."
+        Write-Output "ERROR: PID $processId is $($proc.ProcessName), not the recorded Courier process. Refusing to stop it."
         $script:failed = $true
         return
     }
@@ -44,7 +44,7 @@ function Stop-RecordedPid {
             [Globalization.DateTimeStyles]::RoundtripKind,
             [ref]$expected)
         if (-not $parsed) {
-            Write-Host "ERROR: $PidFile has an unreadable start time. Refusing to stop PID $processId."
+            Write-Output "ERROR: $PidFile has an unreadable start time. Refusing to stop PID $processId."
             $script:failed = $true
             return
         }
@@ -52,12 +52,12 @@ function Stop-RecordedPid {
             $actual = $proc.StartTime.ToUniversalTime()
             $delta = [math]::Abs(($actual - $expected.ToUniversalTime()).TotalSeconds)
         } catch {
-            Write-Host "ERROR: could not read the start time of PID $processId. Refusing to stop it."
+            Write-Output "ERROR: could not read the start time of PID $processId. Refusing to stop it."
             $script:failed = $true
             return
         }
         if ($delta -gt 2) {
-            Write-Host "ERROR: PID $processId started at a different time. Refusing to stop it."
+            Write-Output "ERROR: PID $processId started at a different time. Refusing to stop it."
             $script:failed = $true
             return
         }
@@ -82,12 +82,12 @@ function Stop-RecordedPid {
         }
     }
     if ($alive) {
-        Write-Host "ERROR: owned process $processId is still running."
+        Write-Output "ERROR: owned process $processId is still running."
         $script:failed = $true
         return
     }
     Remove-Item -LiteralPath $PidFile -Force -ErrorAction SilentlyContinue
-    Write-Host "Stopped owned process $processId."
+    Write-Output "Stopped owned process $processId."
     $script:stopped = $true
 }
 
@@ -97,10 +97,10 @@ if (Get-Command Get-ScheduledTask -ErrorAction SilentlyContinue) {
         Stop-ScheduledTask -TaskName "CourierWindowsWorker" -ErrorAction SilentlyContinue
         $task = Get-ScheduledTask -TaskName "CourierWindowsWorker" -ErrorAction SilentlyContinue
         if ($task -and $task.State -eq "Running") {
-            Write-Host "ERROR: scheduled task CourierWindowsWorker is still running."
+            Write-Output "ERROR: scheduled task CourierWindowsWorker is still running."
             $script:failed = $true
         } else {
-            Write-Host "Stopped scheduled task CourierWindowsWorker."
+            Write-Output "Stopped scheduled task CourierWindowsWorker."
             $script:stopped = $true
         }
     }
@@ -131,12 +131,12 @@ foreach ($file in $pidFiles) {
 }
 
 if ($script:failed) {
-    Write-Host "Courier stop failed: an owned process is still running."
+    Write-Output "Courier stop failed: an owned process is still running."
     exit 1
 }
 if (-not $script:stopped) {
-    Write-Host "No owned Courier process was recorded."
+    Write-Output "No owned Courier process was recorded."
     exit 2
 }
-Write-Host "Stopped the owned Courier process."
+Write-Output "Stopped the owned Courier process."
 exit 0

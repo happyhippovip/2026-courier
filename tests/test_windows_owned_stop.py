@@ -100,8 +100,9 @@ def test_stop_refuses_a_process_that_is_not_courier(tmp_path):
     completed = _run_stop(tmp_path, f"{os.getpid()}\n")
     if completed is None:
         return
-    assert completed.returncode == 1, completed.stdout + completed.stderr
-    assert "Refusing" in completed.stdout
+    text = completed.stdout + completed.stderr
+    assert completed.returncode == 1, text
+    assert "Refusing" in text
     assert (tmp_path / "scripts" / "worker.pid").exists()
 
 
@@ -136,10 +137,13 @@ def test_stop_kills_only_a_courier_process_with_matching_start(tmp_path):
     sleep = shutil.which("sleep")
     if shell is None or sleep is None:
         return
-    courier = tmp_path / "Courier"
+    courier = tmp_path / ("Courier.exe" if os.name == "nt" else "Courier")
     shutil.copy(sleep, courier)
     courier.chmod(0o755)
-    proc = subprocess.Popen([str(courier), "30"])
+    try:
+        proc = subprocess.Popen([str(courier), "30"])
+    except OSError:
+        return
     try:
         identity = subprocess.run(
             [
