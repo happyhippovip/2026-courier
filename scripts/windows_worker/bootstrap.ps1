@@ -139,7 +139,14 @@ if (-not $taskSuccess -or $installResult -match "Zugriff verweigert" -or $instal
 
 # 5. Confirm the daemon started. An empty log is not a healthy worker.
 Write-Host "`n[5] Waiting until the worker reports that it started..."
-$started = Wait-CourierDaemon -LogFile $logFile -LogStart $logStart -Process $proc -TimeoutSeconds 20
+$controllerPort = 8765
+if ($config.COURIER_CONTROLLER_PORT) {
+    $parsedPort = 0
+    if ([int]::TryParse([string]$config.COURIER_CONTROLLER_PORT, [ref]$parsedPort) -and $parsedPort -gt 0) {
+        $controllerPort = $parsedPort
+    }
+}
+$started = Wait-CourierDaemon -LogFile $logFile -LogStart $logStart -Process $proc -TimeoutSeconds 20 -Token $apiKey -ControllerPort $controllerPort
 if (-not $started) {
     Write-Host "ERROR: Courier did not start. Check $logFile" -ForegroundColor Red
     exit 1
