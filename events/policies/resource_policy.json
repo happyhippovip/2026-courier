@@ -17,6 +17,15 @@
         "planning_and_synthesis"
       ]
     },
+    "windows_native": {
+      "provider": "local",
+      "tier": "included",
+      "status": "ACTIVE_PAID",
+      "role": "LOCAL_EXECUTOR",
+      "capabilities": [
+        "explicit_zero_cost_local_execution"
+      ]
+    },
     "chatgpt_plus_codex": {
       "provider": "openai",
       "tier": "plus",

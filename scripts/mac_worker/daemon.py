@@ -482,22 +482,16 @@ def _reap_agy_group(process, identity):
 def run_agy(task, config):
     write_log(f"Running AI task {task['task_id']} via agy")
     instruction = task.get('instruction', task.get('description', ''))
-    
-    supervisor, decision = admit_surface("antigravity", task, config, needs_visible=False, allow_headless=True)
-    if decision.action == "COALESCED":
-        return coalesced_result(decision, "ANTIGRAVITY")
-        
-    prompt = "Task ID: " + str(task["task_id"]) + "\nInstruction: " + str(instruction) + "\n\nYou are a headless worker on Mac. You MUST execute the instruction. After you have successfully executed the instruction, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did. IMPORTANT: Your current working directory is " + os.getcwd() + ". Any file artifacts you create MUST be relative to this directory."
-    agy_bin = shutil.which("agy") or shutil.which("agy", path=os.environ.get("PATH", "") + ":/Users/user/.local/bin:/usr/local/bin:/opt/homebrew/bin")
-    if not agy_bin:
-        return {"status": "FAILED", "reason": "AGY_NOT_FOUND", "execution_mode": "ANTIGRAVITY"}
 
-    # P0 CostGate: evaluate spend before spawning external process
+    # Cost before lookup or spawn. A missing estimate stays missing. Never invent 0.0.
     try:
         from scripts.resource_policy import CostGate
+        estimate = task.get("estimated_cost_eur", None)
+        if task.get("unknown_cost") is True:
+            estimate = None
         cost_eval = CostGate.evaluate_spend_request(
             "google_antigravity_plus",
-            estimated_cost_eur=task.get("estimated_cost_eur", 0.0),
+            estimated_cost_eur=estimate,
             requested_action=task.get("requested_action", "EXECUTE_TASK"),
             repo_dir=BASE_DIR,
         )
@@ -515,7 +509,16 @@ def run_agy(task, config):
             "execution_mode": "ANTIGRAVITY",
             "blocked": True,
         }
+
+    supervisor, decision = admit_surface("antigravity", task, config, needs_visible=False, allow_headless=True)
+    if decision.action == "COALESCED":
+        return coalesced_result(decision, "ANTIGRAVITY")
         
+    prompt = "Task ID: " + str(task["task_id"]) + "\nInstruction: " + str(instruction) + "\n\nYou are a headless worker on Mac. You MUST execute the instruction. After you have successfully executed the instruction, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did. IMPORTANT: Your current working directory is " + os.getcwd() + ". Any file artifacts you create MUST be relative to this directory."
+    agy_bin = shutil.which("agy") or shutil.which("agy", path=os.environ.get("PATH", "") + ":/Users/user/.local/bin:/usr/local/bin:/opt/homebrew/bin")
+    if not agy_bin:
+        return {"status": "FAILED", "reason": "AGY_NOT_FOUND", "execution_mode": "ANTIGRAVITY"}
+
     wrapper = os.path.join(os.path.dirname(__file__), "limit_wrapper.sh")
     cmd = [wrapper, agy_bin, "-p", prompt, "--dangerously-skip-permissions"]
     timeout = min(float(config.get("AGY_TIMEOUT_SECONDS", 300)), 3600)

@@ -208,3 +208,16 @@ def test_run_agy_costgate_enforced(tmp_path, monkeypatch):
     assert res_nan["status"] == "FAILED"
     assert "COST_GATE_DENIED" in res_nan["reason"]
     assert res_nan.get("blocked") is True
+
+    looked_up = []
+    monkeypatch.setattr(daemon.shutil, "which", lambda *args, **kwargs: looked_up.append(args) or None)
+    for task in (
+        {"task_id": "t-missing", "instruction": "echo test"},
+        {"task_id": "t-none", "instruction": "echo test", "estimated_cost_eur": None},
+        {"task_id": "t-flag", "instruction": "echo test", "estimated_cost_eur": 0.0, "unknown_cost": True},
+    ):
+        looked_up.clear()
+        blocked = daemon.run_agy(task, config)
+        assert blocked["status"] == "FAILED" and blocked.get("blocked") is True
+        assert "UNKNOWN_COST" in blocked["reason"]
+        assert looked_up == []
