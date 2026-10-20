@@ -105,7 +105,7 @@ jobs:
         shell: bash
         run: |
           if [ -d tests/desktop ]; then
-            node --test tests/desktop/
+            node --test tests/desktop/*.test.mjs
           else
             echo "tests/desktop not present yet; nothing to run."
           fi
