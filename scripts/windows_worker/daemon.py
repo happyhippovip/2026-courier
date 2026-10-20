@@ -259,9 +259,31 @@ def run_task(task, config):
 
     # Enforce P0 CostGate before native PowerShell execution
     from scripts.resource_policy import CostGate
+    if task.get("cost_class") == "unknown" or task.get("unknown_cost") is True:
+        return {
+            "status": "FAILED",
+            "stdout": "",
+            "stderr": "COST_GATE_DENIED: UNKNOWN_COST - Unknown cost class is blocked by policy firewall.",
+            "goal_id": task.get("goal_id"),
+            "task_id": task["task_id"],
+            "worker_id": config["WORKER_ID"],
+            "provider": "windows_native",
+            "run_id": "blocked-by-costgate",
+            "blocked": True,
+        }
+
+    # Free / included quota defaults to 0.0 EUR
+    cost_class = task.get("cost_class")
+    if not cost_class and isinstance(task.get("routing_decision"), dict):
+        cost_class = task["routing_decision"].get("COST_CLASS")
+
+    cost_val = task.get("estimated_cost_eur")
+    if cost_val is None and cost_class in ("included_quota", "free", "local"):
+        cost_val = 0.0
+
     cost_res = CostGate.evaluate_spend_request(
         "windows_native",
-        estimated_cost_eur=task.get("estimated_cost_eur", 0.0),
+        estimated_cost_eur=cost_val,
         requested_action=task.get("requested_action", "EXECUTE_TASK"),
     )
     if not cost_res.get("allowed"):
@@ -366,19 +388,53 @@ def is_resource_pressure_high():
 _lock_fd = None
 def acquire_lock(worker_id):
     global _lock_fd
-    import msvcrt
+    if _lock_fd is not None:
+        return None
     import psutil
     lock_file = Path(tempfile.gettempdir()) / f"courier_worker_{worker_id}.lock"
     try:
         fd = os.open(str(lock_file), os.O_CREAT | os.O_RDWR)
-        msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+        if os.name == "nt":
+            import msvcrt
+            msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         os.ftruncate(fd, 0)
         lock_data = json.dumps({'pid': os.getpid(), 'process_create_time': psutil.Process(os.getpid()).create_time()})
         os.write(fd, lock_data.encode('utf-8'))
         _lock_fd = fd
         return lock_file
-    except OSError:
+    except (OSError, ImportError):
         return None
+
+def release_lock(lock_path=None):
+    global _lock_fd
+    if _lock_fd is not None:
+        try:
+            if os.name == "nt":
+                import msvcrt
+                os.lseek(_lock_fd, 0, os.SEEK_SET)
+                msvcrt.locking(_lock_fd, msvcrt.LK_UNLCK, 1)
+            else:
+                try:
+                    import fcntl
+                    fcntl.flock(_lock_fd, fcntl.LOCK_UN)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        try:
+            os.close(_lock_fd)
+        except OSError:
+            pass
+        _lock_fd = None
+    if lock_path and os.path.exists(lock_path):
+        try:
+            os.remove(lock_path)
+        except OSError:
+            pass
+
 
 def loop():
     config = load_config()
@@ -484,22 +540,7 @@ def loop():
             time.sleep(10)
             
     finally:
-        if _lock_fd is not None:
-            try:
-                import msvcrt
-                os.lseek(_lock_fd, 0, os.SEEK_SET)
-                msvcrt.locking(_lock_fd, msvcrt.LK_UNLCK, 1)
-            except Exception:
-                pass
-            try:
-                os.close(_lock_fd)
-            except OSError:
-                pass
-        if lock_path and os.path.exists(lock_path):
-            try:
-                os.remove(lock_path)
-            except OSError:
-                pass
+        release_lock(lock_path)
 
 if __name__ == "__main__":
     try:

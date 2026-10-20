@@ -30,6 +30,17 @@
         "security_gates",
         "commit_verification"
       ]
+    },
+    "windows_native": {
+      "provider": "windows",
+      "tier": "native",
+      "status": "ACTIVE_PAID",
+      "role": "WINDOWS_WORKER_EXECUTOR",
+      "capabilities": [
+        "powershell",
+        "windows_native",
+        "file_operations"
+      ]
     }
   },
   "planned_resources": {

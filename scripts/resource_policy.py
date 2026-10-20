@@ -54,7 +54,8 @@ class ResourcePolicyManager:
         return {
             "active_paid_resources": {
                 "google_antigravity_plus": {"status": "ACTIVE_PAID", "role": "PRIMARY_BUILDER"},
-                "chatgpt_plus_codex": {"status": "ACTIVE_PAID", "role": "PRIMARY_CONTROLLER_REVIEWER"}
+                "chatgpt_plus_codex": {"status": "ACTIVE_PAID", "role": "PRIMARY_CONTROLLER_REVIEWER"},
+                "windows_native": {"status": "ACTIVE_PAID", "role": "WINDOWS_WORKER_EXECUTOR"}
             },
             "planned_resources": {
                 "future_google_upgrade": {"status": "PLANNED_NOT_ACTIVE", "budget_eligible": False}

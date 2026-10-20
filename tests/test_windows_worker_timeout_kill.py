@@ -88,3 +88,15 @@ def test_kill_process_tree_uses_taskkill_on_windows(tmp_path, monkeypatch):
         daemon.os.name = real_name
     assert calls and calls[0][0][0][:2] == ["taskkill", "/PID"]
     assert "/T" in calls[0][0][0] and "/F" in calls[0][0][0]
+
+
+def test_cost_gate_blocks_missing_or_unknown_cost_in_windows_daemon(tmp_path, monkeypatch):
+    daemon = load_daemon(tmp_path, monkeypatch)
+
+    # Task with unapproved spend must fail closed with COST_GATE_DENIED
+    task_paid = {"task_id": "t-paid", "instruction": "dir", "goal_id": "g1", "estimated_cost_eur": 15.0}
+    res = daemon.run_task(task_paid, {"WORKER_ID": "WIN-TEST"})
+
+    assert res["status"] == "FAILED"
+    assert res["blocked"] is True
+    assert "COST_GATE_DENIED" in res["stderr"]
