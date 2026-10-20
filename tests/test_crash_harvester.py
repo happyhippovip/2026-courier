@@ -21,13 +21,17 @@ from courier_core.crash_harvester import (
 
 
 def test_redaction_of_sensitive_patterns():
+    ghp_dummy = "ghp_" + "1234567890abcdefghijklmnopqrstuvwxyz"
+    ghs_dummy = "ghs_" + "1234567890abcdefghijklmnopqrstuvwxyz"
+    pat_dummy = "github_pat_" + "11ABCDEF0123456789_secret"
+    google_dummy = "AIzaSy" + "AbCdEfGhIjKlMnOpQrStUvWxYz0123456"
     raw = (
         "Authorization: Bearer my-secret-jwt-token-12345\n"
         "Connecting with api_key=sk-ant-api03-abcdef1234567890\n"
         "password=SuperSecretPassword! in connection URI\n"
-        "token: ghp_1234567890abcdefghijklmnopqrstuvwxyz\n"
-        "ghs_1234567890abcdefghijklmnopqrstuvwxyz and github_pat_11ABCDEF0123456789_secret\n"
-        "google key AIzaSyAbCdEfGhIjKlMnOpQrStUvWxYz0123456\n"
+        f"token: {ghp_dummy}\n"
+        f"{ghs_dummy} and {pat_dummy}\n"
+        f"google key {google_dummy}\n"
     )
     redacted = redact_sensitive_text(raw)
     assert "my-secret-jwt-token-12345" not in redacted
