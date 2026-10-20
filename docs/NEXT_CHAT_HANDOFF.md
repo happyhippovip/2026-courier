@@ -298,14 +298,19 @@ At update time (2026-10-07):
   - Comprehensive unit test assertions in `tests/test_provider_exec_adapter.py`.
   - Full suite verified: 31/31 PASS (`test_provider_exec_adapter`, `test_provider_exec_agy`, `test_provider_exec_verifier`).
   - Strict compliance with `AUTONOMOUS_SPEND_LIMIT_EUR=0.00`, `PAYG=FORBIDDEN`, `UNKNOWN_COST=BLOCK`.
-- **STEP 53 TITAN V51 P0 GOLDEN PATH & MUSE SUPERVISOR ALIGNMENT (19.10.2026):**
-  - 50/50 Titan-V51 Pakete autonom auditiert und vollständig verifiziert.
-  - Kanonischer V1 Golden Path in-process bewiesen: `TASK_CREATED` -> `TASK_CLAIMED` -> `TASK_STARTED` -> `RESULT_READY` -> `RESULT_ACCEPTED` -> `TASK_COMPLETE` im SQLite-Journal (`courier.db`).
-  - `tests/test_muse_supervisor.py` auf `canonical_result_id` ausgerichtet: 18/18 PASS (0 Regressionsfehler in Gesamtsuite).
-  - Windows Contract & Packaging Suites: 16/16 PASS (2 skipped auf Darwin).
-  - Arbeitsbereich `integration/v1` (Stufen 51, 52, 53) bereit für Rebase/Commit-Freigabe durch L1 Owner.
+- **STEP 56 TITAN V152 RED-TO-GREEN LEASE AUTHORITY & CODEX BRIDGE (20.10.2026):**
+  - Alle 14 Defekte (11 P0, 3 P1) vollständig behoben und unabhängig verifiziert.
+  - Kanonische SQLite-gestützte Writer-Autorität in `courier_runtime/lease.py` (`authority.db`), FencedFileWriter, 4-Tupel Session Binding und hierarchischer Scope-Überlappungsschutz.
+  - Windows Worker Daemon (`scripts/windows_worker/daemon.py`), Muse Mac Supervisor (`scripts/mac_worker/muse_supervisor.py`), TaskLeaseManager (`scripts/resource_policy.py`), Workflow Locks (`scripts/run_autonomous_loop.py`) und Mailbox (`scripts/courier_mailbox.py`) an `authority.db` gebunden.
+  - CostGate Firewall in `courier_worker/adapters/provider_exec.py` blockiert NaN, Inf, Negativ- und Unknown-Kosten vor Prozessstart; Umgehungsflags (`--dangerously-skip-permissions`) strikt abgewiesen.
+  - Windows Worker `build_package.ps1` bricht bei fehlenden Komponenten fail-closed ab und bündelt `resource_policy`.
+  - Verifier Revocation in `courier_core/verification.py` aktiv durchgesetzt.
+  - Codex Bridge in `scripts/run_codex_bridge.py` über `CanonicalAuthority` voll an `authority.db` gebunden (9/9 Tests PASS).
+  - State Isolation bereinigt und verifiziert (`scripts/verify_state_isolation.py`: PASS).
+  - Auth, Process & Resource Admission Boundaries validiert (`scripts/verify_auth_boundaries.py`, `scripts/verify_process_isolation.py`, `scripts/verify_resource_admission.py`, `tests/boundaries/run_boundaries.py`: 14/14 PASS).
+  - 100% GRÜN: 3040 Pytest PASS (8 Windows-Skips auf Darwin), 32 Node Desktop PASS, 11 Golden Skips PASS (Ratchet holds), Local Safety `new=0`.
 - next critical implementation path:
-  **EXTENDED INTEGRATIONS**: L1 Integration Owner Freigabe für Rebase von `integration/v1` (Local 39c5f4acd auf Remote c686c4a41) und Windows-Host Deployment.
+  **L1 PROMOTION & WINDOWS-HOST ACCEPTANCE**: Freigabe und Push von `integration/v1` (`cdace49f..HEAD`) durch Dennis/L1 Owner, anschließend Validierung auf dem sauberen Windows-Host.
 
 Never trust this SHA after new work without checking GitHub.
 
