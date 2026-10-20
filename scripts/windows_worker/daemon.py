@@ -369,20 +369,34 @@ def is_resource_pressure_high():
 
 _lock_fd = None
 def acquire_lock(worker_id):
+    """Return the lock path, or None when another worker already holds it.
+
+    A missing temp directory or a failed write is raised. Those are not a
+    second instance, and they must not look like a clean exit.
+    """
     global _lock_fd
-    import msvcrt
-    import psutil
     lock_file = Path(tempfile.gettempdir()) / f"courier_worker_{worker_id}.lock"
+    fd = os.open(str(lock_file), os.O_CREAT | os.O_RDWR)
     try:
-        fd = os.open(str(lock_file), os.O_CREAT | os.O_RDWR)
+        import msvcrt
+        import psutil
+    except Exception:
+        os.close(fd)
+        raise
+    try:
         msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+    except OSError:
+        os.close(fd)
+        return None
+    try:
         os.ftruncate(fd, 0)
         lock_data = json.dumps({'pid': os.getpid(), 'process_create_time': psutil.Process(os.getpid()).create_time()})
         os.write(fd, lock_data.encode('utf-8'))
-        _lock_fd = fd
-        return lock_file
     except OSError:
-        return None
+        os.close(fd)
+        raise
+    _lock_fd = fd
+    return lock_file
 
 def loop():
     config = load_config()
