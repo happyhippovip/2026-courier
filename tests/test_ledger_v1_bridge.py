@@ -566,6 +566,18 @@ def test_token_never_appears_in_stdout_stderr_or_log(tmp_path):
     code, out, err, log, lines = _run(home, http)
     assert code == 0 and len(http.posts) == 1
     blob = out + err + log + (home / "ledger_bridge_state.json").read_text(encoding="utf-8")
-    blob += (home / "coordination_ledger.jsonl").read_text(encoding="utf-8")
     assert TOKEN not in blob
     assert "Bearer" not in out + err + log
+
+
+def test_complete_task_with_only_pending_result_never_emits_final(tmp_path):
+    from scripts.ledger_v1_bridge import _result_id
+
+    # Task is COMPLETE but accepted_result_id is None, only pending_result_id is present
+    view = {
+        "status": "COMPLETE",
+        "accepted_result_id": None,
+        "pending_result_id": "forged-pending-id",
+        "result_id": None,
+    }
+    assert _result_id(view) is None

@@ -414,6 +414,10 @@ def _file_sha256(home, path):
 def _result_id(view):
     if not isinstance(view, dict):
         return None
+    # For a COMPLETE task, only a verifier-accepted result can finalize; pending results must never emit FINAL
+    if view.get("status") == "COMPLETE":
+        val = view.get("accepted_result_id")
+        return val if isinstance(val, str) and val else None
     for key in ("accepted_result_id", "result_id", "pending_result_id"):
         value = view.get(key)
         if isinstance(value, str) and value:
