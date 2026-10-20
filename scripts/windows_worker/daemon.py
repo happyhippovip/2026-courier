@@ -277,6 +277,9 @@ def build_result_payload(task, result, config):
         "stdout": result.get("stdout", ""),
         "stderr": result.get("stderr", ""),
     }
+    if result.get("blocked"):
+        payload["blocked"] = True
+        payload["block_reason"] = "COST_GATE_DENIED"
     source_sha = checkout_source_sha()
     if source_sha:
         payload["source_sha"] = source_sha

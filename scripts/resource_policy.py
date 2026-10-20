@@ -67,7 +67,14 @@ class ResourcePolicyManager:
 
     @staticmethod
     def get_policy(repo_dir: Path | None = None) -> dict:
-        p_path = (repo_dir / "events" / "policies" / "resource_policy.json") if repo_dir else POLICY_FILE
+        if repo_dir:
+            p_path = repo_dir / "events" / "policies" / "resource_policy.json"
+        elif POLICY_FILE.exists():
+            p_path = POLICY_FILE
+        elif (SCRIPTS_DIR / "resource_policy.json").exists():
+            p_path = SCRIPTS_DIR / "resource_policy.json"
+        else:
+            p_path = POLICY_FILE
         policy = load_json(p_path)
         if policy and isinstance(policy, dict):
             version = policy.get("schema_version")
@@ -79,7 +86,18 @@ class ResourcePolicyManager:
         return {
             "active_paid_resources": {
                 "google_antigravity_plus": {"status": "ACTIVE_PAID", "role": "PRIMARY_BUILDER"},
-                "chatgpt_plus_codex": {"status": "ACTIVE_PAID", "role": "PRIMARY_CONTROLLER_REVIEWER"}
+                "chatgpt_plus_codex": {"status": "ACTIVE_PAID", "role": "PRIMARY_CONTROLLER_REVIEWER"},
+                "windows_native": {
+                    "provider": "local",
+                    "tier": "included",
+                    "status": "ACTIVE_PAID",
+                    "role": "LOCAL_EXECUTOR",
+                    "capabilities": [
+                        "explicit_zero_cost_local_execution"
+                    ],
+                    "cost_per_run_eur": 0.0,
+                    "allow_zero_cost_start": True
+                }
             },
             "planned_resources": {
                 "future_google_upgrade": {"status": "PLANNED_NOT_ACTIVE", "budget_eligible": False}

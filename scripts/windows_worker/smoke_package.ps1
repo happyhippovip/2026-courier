@@ -69,7 +69,7 @@ try {
 # 3. Security guards verification in local_shell adapter
 $localShell = Join-Path $PackageDir "adapters\local_shell.py"
 $localShellContent = Get-Content -LiteralPath $localShell -Raw -Encoding UTF8
-if ($localShellContent -notmatch "x00|nul" -or $localShellContent -notmatch "command_blocklist|blocked") {
+if ($localShellContent -notmatch "x00|nul" -or $localShellContent -notmatch "FORBIDDEN_COMMAND_BASENAMES|command_blocklist|blocked") {
     Write-Error "SMOKE_FAIL: local_shell.py is missing NUL-byte or command blocklist defense."
     exit 1
 }
