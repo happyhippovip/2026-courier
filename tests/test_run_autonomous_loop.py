@@ -192,3 +192,58 @@ def test_resume_workflow_rejected(repo_dir):
     }))
     res = loop.resume_workflow("wf-1", "c1", [])
     assert res["status"] == "REJECTED_BY_HUMAN"
+
+
+def test_save_and_load_workflow_state(repo_dir):
+    loop = AutonomousLevel6Loop(repo_dir=repo_dir)
+    state = {
+        "workflow_id": "wf-persisted",
+        "status": "RUNNING",
+        "step": 2,
+    }
+    saved_path = loop.save_workflow_state("wf-persisted", state)
+    assert saved_path.exists()
+
+    loaded = loop.load_workflow_state("wf-persisted")
+    assert loaded is not None
+    assert loaded["workflow_id"] == "wf-persisted"
+    assert loaded["status"] == "RUNNING"
+    assert loaded["step"] == 2
+    assert "updated_at" in loaded
+
+    # Non-existent workflow state returns None
+    assert loop.load_workflow_state("non-existent-wf") is None
+
+
+def test_reconcile_workflow_progress(repo_dir):
+    loop = AutonomousLevel6Loop(repo_dir=repo_dir)
+    plan = [
+        {"task_id": "step-1", "target_agent": "antigravity"},
+        {"task_id": "step-2", "target_agent": "codex"},
+        {"task_id": "step-3", "target_agent": "antigravity"},
+    ]
+
+    # No events on disk -> earliest uncompleted is index 0
+    idx, hist = loop.reconcile_workflow_progress(plan)
+    assert idx == 0
+    assert hist == []
+
+    # Create passed decision and result for step-1
+    dec_dir = repo_dir / "events" / "chief-decisions"
+    proc_dir = repo_dir / "events" / "processed"
+    dec_dir.mkdir(parents=True, exist_ok=True)
+    proc_dir.mkdir(parents=True, exist_ok=True)
+
+    (dec_dir / "step-1-chief-decision.json").write_text(json.dumps({
+        "verdict": "ACCEPTED",
+        "action": "DISPATCH_NEXT_WORKFLOW_TASK",
+        "correlation_id": "corr-123",
+    }))
+    (proc_dir / "step-1-result.json").write_text(json.dumps({"status": "SUCCESS"}))
+
+    idx2, hist2 = loop.reconcile_workflow_progress(plan)
+    assert idx2 == 1
+    assert len(hist2) == 1
+    assert hist2[0]["task_id"] == "step-1"
+    assert hist2[0]["verdict"] == "ACCEPTED"
+    assert hist2[0]["round"] == 1
