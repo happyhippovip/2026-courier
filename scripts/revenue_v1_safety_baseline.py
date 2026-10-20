@@ -415,6 +415,9 @@ def reconcile_handoff(
     }
 
 if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print("Usage: python3 revenue_v1_safety_baseline.py <worker|verify|reconcile> <task_path> [work_dir] ...")
+        sys.exit(2)
     cmd = sys.argv[1]
     task_path = Path(sys.argv[2])
     work_dir = Path(sys.argv[3]) if len(sys.argv) > 3 else Path(".")
