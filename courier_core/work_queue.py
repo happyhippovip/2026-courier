@@ -214,7 +214,10 @@ class WorkQueue:
         fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
         try:
             if os.fstat(fd).st_size == 0:
-                os.write(fd, b"\0")
+                try:
+                    os.write(fd, b"\0")
+                except (PermissionError, OSError):
+                    pass
             os.lseek(fd, 0, os.SEEK_SET)
             if os.name == "nt":
                 import msvcrt

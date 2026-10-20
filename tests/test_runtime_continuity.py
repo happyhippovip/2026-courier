@@ -2,6 +2,7 @@
 import json
 
 import pytest
+from pathlib import Path
 
 from courier_runtime.continuity import (BLOCKED, DONE, RETIRED, SNAPSHOT_EVERY_S, WAITING_FOR_USER, WAKE_PENDING,
                                         WORKING, Kirby, concurrency_advice, saturation_signal)
@@ -324,3 +325,12 @@ def test_real_hung_child_is_recovered_with_ownership_identity(tmp_path):
             if p.poll() is None:
                 p.kill()
                 p.wait()
+
+def test_kirby_symlink_state_file_refused(tmp_path, monkeypatch):
+    state_file = tmp_path / "symlink_state.json"
+    state_file.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(Path, "is_symlink", lambda self: True if self == state_file else False)
+
+    with pytest.raises(RuntimeError, match="symlink state file refused"):
+        Kirby(state_file, "host")
+

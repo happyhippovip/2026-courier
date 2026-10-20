@@ -111,6 +111,8 @@ class Kirby:
 
     # ---- persistence --------------------------------------------------------
     def _load(self):
+        if self.path.is_symlink():
+            raise RuntimeError(f"symlink state file refused: {self.path}")
         d = json.loads(self.path.read_text(encoding="utf-8")) if self.path.exists() else {}
         self.workkeys = {k: Workkey(**v) for k, v in d.get("workkeys", {}).items()}
         self.sessions = {k: Session(**v) for k, v in d.get("sessions", {}).items()}
@@ -121,6 +123,8 @@ class Kirby:
         self.token_seq = max(int(d.get("token_seq", 0)), max_tok)
 
     def _save(self):
+        if self.path.is_symlink():
+            raise RuntimeError(f"symlink state file refused: {self.path}")
         self.path.parent.mkdir(parents=True, exist_ok=True)
         d = {"workkeys": {k: dataclasses.asdict(v) for k, v in self.workkeys.items()},
              "sessions": {k: dataclasses.asdict(v) for k, v in self.sessions.items()},
@@ -129,11 +133,32 @@ class Kirby:
         fd, tmp = tempfile.mkstemp(dir=self.path.parent, prefix=".kirby.")
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump(d, f, sort_keys=True)
-        os.replace(tmp, self.path)
+            f.flush()
+            try:
+                os.fsync(f.fileno())
+            except OSError:
+                pass
+        for attempt in range(20):
+            try:
+                os.replace(tmp, self.path)
+                break
+            except (PermissionError, OSError):
+                if attempt == 19:
+                    try:
+                        os.unlink(tmp)
+                    except Exception:
+                        pass
+                    raise
+                time.sleep(0.01)
 
     def _log(self, name, record):
         with open(self.path.parent / name, "a", encoding="utf-8") as f:
             f.write(json.dumps(record, sort_keys=True) + "\n")
+            f.flush()
+            try:
+                os.fsync(f.fileno())
+            except OSError:
+                pass
 
     # ---- campaign + slots ---------------------------------------------------
     def add_workkeys(self, keys, priority=100, depends_on=None, effect_class="idempotent"):
