@@ -209,3 +209,6 @@ report*.xml
 /EVIDENCE_*.json
 /pytest-temp/
 /.courier_genesis/
+
+# Process IDs
+*.pid
