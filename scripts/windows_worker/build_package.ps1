@@ -4,6 +4,28 @@ param(
 )
 
 Write-Host "Building Courier Windows Package..."
+$projectRoot = (Resolve-Path "$PSScriptRoot\..\..\").Path
+
+# Pre-flight check: Refuse build if required files are missing (Fail-Closed)
+$requiredPaths = @(
+    "$PSScriptRoot\Courier.exe",
+    "$PSScriptRoot\install.ps1",
+    "$PSScriptRoot\uninstall.ps1",
+    "$projectRoot\courier_core",
+    "$projectRoot\courier_hub",
+    "$projectRoot\courier_runtime",
+    "$projectRoot\courier_worker",
+    "$projectRoot\scripts\resource_policy.py",
+    "$projectRoot\events\policies\resource_policy.json"
+)
+
+foreach ($req in $requiredPaths) {
+    if (-not (Test-Path $req)) {
+        Write-Error "BUILD REFUSED: Required component '$req' is missing. Aborting package build."
+        exit 1
+    }
+}
+
 if (Test-Path $OutDir) {
     Remove-Item -Recurse -Force $OutDir
 }
@@ -16,11 +38,24 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-# 2. Copy binaries and scripts
+# 2. Copy binaries, core modules, runtime, and policies
 Copy-Item "$PSScriptRoot\Courier.exe" -Destination $OutDir
-Copy-Item -Recurse "$PSScriptRoot\..\..\courier_worker" -Destination "$OutDir\courier_worker"
-if (Test-Path "$PSScriptRoot\..\..\adapters") {
-    Copy-Item -Recurse "$PSScriptRoot\..\..\adapters" -Destination "$OutDir\adapters"
+Copy-Item -Recurse "$projectRoot\courier_core" -Destination "$OutDir\courier_core"
+Copy-Item -Recurse "$projectRoot\courier_hub" -Destination "$OutDir\courier_hub"
+Copy-Item -Recurse "$projectRoot\courier_runtime" -Destination "$OutDir\courier_runtime"
+Copy-Item -Recurse "$projectRoot\courier_worker" -Destination "$OutDir\courier_worker"
+
+# Package scripts/resource_policy.py into scripts/
+New-Item -ItemType Directory -Force -Path "$OutDir\scripts" | Out-Null
+Copy-Item "$projectRoot\scripts\resource_policy.py" -Destination "$OutDir\scripts\resource_policy.py"
+New-Item -ItemType File -Force -Path "$OutDir\scripts\__init__.py" | Out-Null
+
+# Package events/policies/resource_policy.json (Fail-closed canonical policy)
+New-Item -ItemType Directory -Force -Path "$OutDir\events\policies" | Out-Null
+Copy-Item "$projectRoot\events\policies\resource_policy.json" -Destination "$OutDir\events\policies\resource_policy.json"
+
+if (Test-Path "$projectRoot\adapters") {
+    Copy-Item -Recurse "$projectRoot\adapters" -Destination "$OutDir\adapters"
 }
 Copy-Item "$PSScriptRoot\install.ps1" -Destination $OutDir
 Copy-Item "$PSScriptRoot\uninstall.ps1" -Destination $OutDir
