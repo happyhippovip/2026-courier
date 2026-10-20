@@ -4,14 +4,15 @@ param (
     [string]$WorkerIdArg = ""
 )
 
-$IsAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-Not $IsAdmin) {
-    Write-Host "ERROR: this installer writes to Program Files and must be run as Administrator." -ForegroundColor Red
+if (-not $env:LOCALAPPDATA) {
+    Write-Host "ERROR: LOCALAPPDATA is not set. The installer cannot choose a user folder." -ForegroundColor Red
     exit 1
 }
 
-$InstallDir = "$env:ProgramFiles\CourierWorker"
-$DataDir = "$env:LOCALAPPDATA\Courier"
+# The program and the ledger live in the installing user's profile.
+# No Administrator right and no Program Files copy.
+$InstallDir = Join-Path $env:LOCALAPPDATA "Courier\app"
+$DataDir = Join-Path $env:LOCALAPPDATA "Courier"
 $ConfigPath = Join-Path $DataDir "config.json"
 
 Write-Host "========================================"

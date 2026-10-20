@@ -51,7 +51,9 @@ def test_install_task_runs_as_the_installing_user():
         assert 'UserId "SYSTEM"' not in text
         assert "ServiceAccount" not in text
         assert "installed successfully" not in text
-        assert "must be run as Administrator." in text
+        assert "must be run as Administrator." not in text
+        assert 'Join-Path $env:LOCALAPPDATA "Courier\\app"' in text
+        assert "$env:ProgramFiles" not in text
         assert "-AtLogOn" in text
         assert "GetCurrent().Name" in text
 

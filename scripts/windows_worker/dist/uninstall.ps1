@@ -1,15 +1,17 @@
-# Requires Run as Administrator
+# Removes this user's Courier app. An older Program Files copy is removed too
+# when this process is allowed to delete it.
 param(
     [switch]$RemoveUserData
 )
 
-if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Host "ERROR: Please run as Administrator." -ForegroundColor Red
+if (-not $env:LOCALAPPDATA) {
+    Write-Host "ERROR: LOCALAPPDATA is not set. The uninstaller cannot find the user folder." -ForegroundColor Red
     exit 1
 }
 
 $taskName = "CourierWindowsWorker"
-$InstallDir = "$env:ProgramFiles\CourierWorker"
+$InstallDir = Join-Path $env:LOCALAPPDATA "Courier\app"
+$LegacyDir = if ($env:ProgramFiles) { Join-Path $env:ProgramFiles "CourierWorker" } else { "" }
 
 & "$PSScriptRoot\stop.ps1" -AllProfiles
 if ($LASTEXITCODE -eq 1) {
@@ -35,6 +37,16 @@ if ($LASTEXITCODE -ne 0) {
 if (Test-Path $InstallDir) {
     Remove-Item -Recurse -Force $InstallDir
     Write-Host "Removed installation directory: $InstallDir"
+}
+
+if ($LegacyDir -and (Test-Path -LiteralPath $LegacyDir)) {
+    try {
+        Remove-Item -LiteralPath $LegacyDir -Recurse -Force -ErrorAction Stop
+        Write-Host "Removed the older Program Files installation: $LegacyDir"
+    } catch {
+        Write-Host "ERROR: the older Program Files installation is still present: $LegacyDir" -ForegroundColor Red
+        exit 1
+    }
 }
 
 if ($RemoveUserData) {
