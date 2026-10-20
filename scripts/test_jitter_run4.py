@@ -4,22 +4,23 @@ import sys
 
 def measure_jitter(duration_sec=10, interval_sec=0.01):
     print(f"Starting timing-jitter measurement for {duration_sec}s with {interval_sec}s intervals...")
-    
-    delays = []
-    end_time = time.time() + duration_sec
-    
-    # Warmup
+
+    # Warm up before the window starts. On Windows a requested 1ms sleep can
+    # take much longer, and that used to consume a short measurement entirely.
     for _ in range(100):
         time.sleep(0.001)
-        
-    while time.time() < end_time:
+
+    delays = []
+    end_time = time.perf_counter() + max(0.0, duration_sec)
+    while True:
         start = time.perf_counter_ns()
         time.sleep(interval_sec)
         actual_delay = time.perf_counter_ns() - start
-        
-        # Convert to milliseconds
         delays.append(actual_delay / 1_000_000.0)
-        
+        # Two samples are required for a standard deviation.
+        if len(delays) >= 2 and time.perf_counter() >= end_time:
+            break
+
     expected_ms = interval_sec * 1000
     deviations = [abs(d - expected_ms) for d in delays]
     
