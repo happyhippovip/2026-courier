@@ -38,7 +38,16 @@ def main() -> None:
 
     task_path = Path(args.task)
     processed_dir = Path(args.processed_dir)
-    task = json.loads(task_path.read_text(encoding="utf-8"))
+    if not task_path.exists() or not task_path.is_file():
+        fail("task path is not a regular file")
+    if task_path.is_symlink():
+        fail("task path must not be a symlink")
+    if task_path.stat().st_size > 10 * 1024 * 1024:
+        fail("task file exceeds maximum size")
+    try:
+        task = json.loads(task_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        fail(f"malformed json payload: {exc}")
     if set(task) != REQUIRED:
         fail("unexpected envelope fields")
     if task["schema_version"] != "2.0":
@@ -59,6 +68,8 @@ def main() -> None:
         fail("unsupported result_request")
 
     for candidate in processed_dir.glob("*.json"):
+        if candidate.is_symlink() or not candidate.is_file():
+            continue
         try:
             processed = json.loads(candidate.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):

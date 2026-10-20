@@ -142,3 +142,43 @@ def test_validate_courier_task_already_processed(tmp_path):
     
     err = run_main(task_file, processed_dir)
     assert err == "invalid courier task: TASK already has a terminal record"
+
+
+def test_validate_courier_task_file_not_found(tmp_path):
+    missing_file = tmp_path / "non_existent.json"
+    err = run_main(missing_file, tmp_path)
+    assert err == "invalid courier task: task path is not a regular file"
+
+
+def test_validate_courier_task_symlink_refused(tmp_path, monkeypatch):
+    task = create_base_task()
+    task_file = tmp_path / "task.json"
+    task_file.write_text(json.dumps(task), encoding="utf-8")
+    monkeypatch.setattr(Path, "is_symlink", lambda self: True if self == task_file else False)
+
+    err = run_main(task_file, tmp_path)
+    assert err == "invalid courier task: task path must not be a symlink"
+
+
+def test_validate_courier_task_malformed_json(tmp_path):
+    task_file = tmp_path / "broken.json"
+    task_file.write_text("{bad json", encoding="utf-8")
+    err = run_main(task_file, tmp_path)
+    assert err is not None and "malformed json payload" in err
+
+
+def test_validate_courier_task_candidate_symlink_skipped(tmp_path, monkeypatch):
+    task = create_base_task()
+    task_file = tmp_path / "task.json"
+    task_file.write_text(json.dumps(task), encoding="utf-8")
+
+    processed_dir = tmp_path / "processed"
+    processed_dir.mkdir()
+    cand = processed_dir / "candidate_link.json"
+    cand.write_text('{"message_id": "msg-123"}', encoding="utf-8")
+
+    # Mark candidate as symlink; validation should skip candidate symlink and pass
+    monkeypatch.setattr(Path, "is_symlink", lambda self: True if self == cand else False)
+
+    err = run_main(task_file, processed_dir)
+    assert err is None
