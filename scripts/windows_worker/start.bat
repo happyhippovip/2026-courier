@@ -1,4 +1,4 @@
 @echo off
-echo Starting Courier Windows Worker...
 cd /d "%~dp0"
-start "" Courier.exe
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0start.ps1"
+exit /b %ERRORLEVEL%

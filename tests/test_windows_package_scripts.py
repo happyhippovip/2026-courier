@@ -15,7 +15,16 @@ REQUIRED = (
     "status.ps1",
     "status.bat",
     "start.bat",
+    "start.ps1",
 )
+
+
+def test_package_start_records_a_pid_instead_of_detaching():
+    start_bat = (ROOT / "scripts" / "windows_worker" / "start.bat").read_text(encoding="utf-8")
+    package = PACKAGE.read_text(encoding="utf-8")
+    assert "start.ps1" in start_bat
+    assert 'start ""' not in start_bat
+    assert '"start.ps1"' in package
 
 
 def test_package_refuses_to_omit_a_lifecycle_script():
