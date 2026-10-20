@@ -34,6 +34,16 @@ def test_single_instance_only():
     assert re.search(r"-MultipleInstances\s+IgnoreNew", _text())
 
 
+def test_registration_is_checked_before_it_is_announced():
+    text = _text()
+    still_there = text.index("the previous scheduled task is still present")
+    missing = text.index("the scheduled task could not be registered")
+    announced = text.index("scheduled task registered for $userId at logon.")
+    assert still_there < missing < announced
+    assert "$registeredTask.Principal.UserId -ne $userId" in text
+    assert "exit 1" in text[still_there:announced]
+
+
 def test_task_runs_as_the_installing_user_at_logon():
     text = _text()
     assert 'UserId "SYSTEM"' not in text

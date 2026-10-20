@@ -6,7 +6,11 @@ $scriptPath = "$PSScriptRoot\Courier.exe"
 $userId = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 
 if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
-    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
+    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+    if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
+        Write-Host "ERROR: the previous scheduled task is still present: $taskName" -ForegroundColor Red
+        exit 1
+    }
     Write-Host "Unregistered existing task."
 }
 
@@ -17,6 +21,15 @@ $principal = New-ScheduledTaskPrincipal -UserId $userId -LogonType Interactive -
 # a failure. The worker runs unattended, so: no time limit, restart after a
 # failure, and never a second copy.
 $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -StartWhenAvailable -MultipleInstances IgnoreNew
-
-Register-ScheduledTask -TaskName $taskName -Trigger $trigger -Action $action -Principal $principal -Settings $settings
+try {
+    Register-ScheduledTask -TaskName $taskName -Trigger $trigger -Action $action -Principal $principal -Settings $settings -ErrorAction Stop
+} catch {
+    Write-Host "ERROR: the scheduled task could not be registered for $userId." -ForegroundColor Red
+    exit 1
+}
+$registeredTask = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+if (-not $registeredTask -or $registeredTask.Principal.UserId -ne $userId) {
+    Write-Host "ERROR: the scheduled task could not be registered for $userId." -ForegroundColor Red
+    exit 1
+}
 Write-Host "Courier Windows Worker scheduled task registered for $userId at logon."
