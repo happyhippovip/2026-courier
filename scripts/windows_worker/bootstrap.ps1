@@ -122,7 +122,7 @@ if (-not $isAdmin) {
 
 # Run install_service.ps1
 Write-Host "Running install_service.ps1..."
-$installResult = powershell -ExecutionPolicy Bypass -File $installScript *>&1
+$installResult = powershell -ExecutionPolicy Bypass -File "$installScript" *>&1
 $taskSuccess = $?
 
 $logDir = Join-Path $dataDir "logs"

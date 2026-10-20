@@ -552,3 +552,17 @@ def test_stop_and_status_scripts_process_hygiene_contract():
     # Invariante 2: taskkill /PID statt taskkill /IM
     assert "taskkill /F /T /PID" in stop_bat, "stop.bat must target specific PID"
     assert "taskkill /IM" not in stop_bat, "stop.bat must NOT broad-kill processes by image name"
+
+def test_powershell_scripts_file_argument_quoting_contract():
+    """Beweis: Alle PowerShell-Skripte unter scripts/windows_worker quoten -File Pfad-Argumente,
+    um Leerzeichen-Divergenz auf Windows-Installationspfaden auszuschließen (GB-PKG-03 / E-133-1)."""
+    import re
+    repo_root = Path(__file__).resolve().parents[1]
+    ps1_dir = repo_root / "scripts" / "windows_worker"
+    for ps1 in ps1_dir.glob("*.ps1"):
+        content = ps1.read_text(encoding="utf-8")
+        for line in content.splitlines():
+            line_str = line.strip()
+            if re.search(r"(?<!Out)-File\s+", line_str) and not line_str.startswith("#"):
+                assert ('-File "$' in line_str or '-File `"$PSCommandPath`"' in line_str or '-File str(' in line_str or '-File "' in line_str), \
+                    f"{ps1.name} contains unquoted -File invocation: {line_str}"
