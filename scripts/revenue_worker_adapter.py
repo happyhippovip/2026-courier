@@ -71,7 +71,12 @@ def http_post(config, endpoint, data=None):
         with urllib.request.urlopen(req) as response:
             return json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
-        write_log(f"HTTPError: {e.code} {e.read().decode('utf-8')}")
+        err_msg = ""
+        try:
+            err_msg = e.read().decode("utf-8") if hasattr(e, "read") and e.fp else ""
+        except Exception:
+            pass
+        write_log(f"HTTPError: {e.code} {err_msg}".strip())
         return None
     except Exception as e:
         write_log(f"Request failed: {e}")
