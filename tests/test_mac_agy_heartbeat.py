@@ -41,7 +41,7 @@ def run_with(daemon, monkeypatch, tmp_path, body, config, interval=1):
     monkeypatch.setattr(daemon, "http_post",
                         lambda cfg, endpoint, data: beats.append((endpoint, data)) or ({}, None))
     monkeypatch.setattr(daemon, "AGY_HEARTBEAT_INTERVAL_SECONDS", interval, raising=False)
-    task = {"task_id": "task-agy-hb-1", "instruction": "do work"}
+    task = {"task_id": "task-agy-hb-1", "instruction": "do work", "estimated_cost_eur": 0.0}
     started = time.monotonic()
     result = daemon.run_agy(task, config)
     return result, beats, time.monotonic() - started
