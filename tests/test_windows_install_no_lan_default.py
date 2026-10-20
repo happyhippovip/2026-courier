@@ -5,7 +5,13 @@ URL or API key now stops the install. The scheduled task has no execution
 time limit, restarts after a failure, and does not start a second copy.
 """
 import re
+import shutil
+import subprocess
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 INSTALLERS = (
@@ -56,6 +62,66 @@ def test_install_task_runs_as_the_installing_user():
         assert "$env:ProgramFiles" not in text
         assert "-AtLogOn" in text
         assert "GetCurrent().Name" in text
+
+
+def test_install_does_not_call_a_queued_task_ready():
+    for path in INSTALLERS:
+        text = path.read_text(encoding="utf-8")
+        health = text.index("Test-CourierInstallHealth -Token $ApiKey")
+        claimed = text.index("Courier installed and started for $userId.")
+        assert health < claimed
+        assert "http://127.0.0.1:" in text
+        assert "it is not ready yet" in text
+        assert "The token was removed." in text
+        assert "$Server" not in text[text.index("function Test-CourierInstallHealth"):text.index("# end Test-CourierInstallHealth")]
+
+
+class _HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        ok = self.headers.get("X-Courier-Token") == "install-health-token"
+        self.send_response(200 if ok else 401)
+        self.end_headers()
+
+    def log_message(self, fmt, *args):
+        return
+
+
+def _pwsh():
+    for candidate in ("/tmp/pwsh/pwsh", "pwsh", "powershell"):
+        if candidate.startswith("/") and Path(candidate).is_file():
+            return candidate
+        found = shutil.which(candidate)
+        if found:
+            return found
+    pytest.skip("powershell is not installed")
+
+
+def test_install_health_accepts_only_the_local_token():
+    text = INSTALLERS[0].read_text(encoding="utf-8")
+    function = text[text.index("function Test-CourierInstallHealth"):text.index("# end Test-CourierInstallHealth")]
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _HealthHandler)
+    port = server.server_address[1]
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        ready = subprocess.run(
+            [_pwsh(), "-NoProfile", "-Command",
+             function + "\n"
+             f"$ok = Test-CourierInstallHealth -Token 'install-health-token' -Port {port} -TimeoutSeconds 4\n"
+             "if (-not $ok) { exit 1 }\n"],
+            capture_output=True, text=True, check=False,
+        )
+        assert ready.returncode == 0, ready.stderr
+        refused = subprocess.run(
+            [_pwsh(), "-NoProfile", "-Command",
+             function + "\n"
+             f"$ok = Test-CourierInstallHealth -Token 'wrong-token' -Port {port} -TimeoutSeconds 2\n"
+             "if ($ok) { exit 0 } else { exit 1 }\n"],
+            capture_output=True, text=True, check=False,
+        )
+        assert refused.returncode == 1, refused.stderr
+    finally:
+        server.shutdown()
+        server.server_close()
 
 
 def test_daemon_default_server_is_loopback():

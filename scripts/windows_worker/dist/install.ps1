@@ -48,6 +48,34 @@ function Test-CanPrompt {
     }
 }
 
+function Test-CourierInstallHealth {
+    param(
+        [string]$Token,
+        [int]$Port = 8765,
+        [int]$TimeoutSeconds = 20
+    )
+    # The launcher serves the controller on this PC. Task Scheduler accepting
+    # the start is not the same as Courier being ready.
+    if ([string]::IsNullOrWhiteSpace($Token) -or $Port -lt 1 -or $TimeoutSeconds -lt 1) { return $false }
+    $watch = [System.Diagnostics.Stopwatch]::StartNew()
+    while ($true) {
+        $res = $null
+        try {
+            $req = [System.Net.HttpWebRequest]::Create("http://127.0.0.1:$Port/v1/health")
+            $req.Timeout = 1000
+            $req.Headers.Add("X-Courier-Token", $Token)
+            $res = $req.GetResponse()
+            if ([int]$res.StatusCode -eq 200) { return $true }
+        } catch {
+        } finally {
+            if ($res) { $res.Close() }
+        }
+        if ($watch.Elapsed.TotalSeconds -ge $TimeoutSeconds) { return $false }
+        Start-Sleep -Seconds 1
+    }
+}
+# end Test-CourierInstallHealth
+
 if (-not $Server) {
     if (-not (Test-CanPrompt)) {
         Write-Host "ERROR: a Courier server URL is required. Pass -ServerArg." -ForegroundColor Red
@@ -93,7 +121,8 @@ $ApiKey | Set-Content $tokenPath -NoNewline
 $ownerSid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
 & icacls $tokenPath /inheritance:r /grant:r "*${ownerSid}:(R)" | Out-Null
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "ERROR: could not restrict access to $tokenPath." -ForegroundColor Red
+    Remove-Item -LiteralPath $tokenPath -Force -ErrorAction SilentlyContinue
+    Write-Host "ERROR: could not restrict access to the controller token. The token was removed." -ForegroundColor Red
     exit 1
 }
 
@@ -121,9 +150,19 @@ $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero) 
 Register-ScheduledTask -TaskName $taskName -Trigger $trigger -Action $action -Principal $principal -Settings $settings | Out-Null
 
 Write-Host "Starting the worker..."
+$startedNow = $false
 try {
     Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
-    Write-Host "Courier installed and started for $userId."
+    $startedNow = $true
 } catch {
     Write-Host "Courier installed for $userId. It will start at the next logon."
+}
+if ($startedNow) {
+    $ready = Test-CourierInstallHealth -Token $ApiKey -Port 8765 -TimeoutSeconds 20
+    if ($ready) {
+        Write-Host "Courier installed and started for $userId."
+    } else {
+        Write-Host "ERROR: Courier is installed for $userId, but it is not ready yet. It will try again at the next logon." -ForegroundColor Red
+        exit 1
+    }
 }
