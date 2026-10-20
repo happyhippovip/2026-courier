@@ -39,12 +39,14 @@ def get_compiler_banner(csc_path: str) -> str:
     return "Microsoft (R) Visual C# Compiler (Framework v4.0.30319)"
 
 
-def compute_sha256(path: str | Path) -> str:
-    """Compute SHA-256 of file bytes."""
+def compute_sha256(path: str | Path, normalize_newlines: bool = False) -> str:
+    """Compute SHA-256 of file bytes, optionally normalizing CRLF to LF for text sources."""
     h = hashlib.sha256()
     with open(path, "rb") as f:
-        while chunk := f.read(65536):
-            h.update(chunk)
+        data = f.read()
+    if normalize_newlines:
+        data = data.replace(b"\r\n", b"\n")
+    h.update(data)
     return h.hexdigest().upper()
 
 
@@ -70,15 +72,19 @@ def audit_runner_provenance(
         raise RuntimeError("No .NET C# compiler (csc.exe) found on this Windows host")
 
     compiler_banner = get_compiler_banner(csc)
-    source_sha = compute_sha256(source_path)
-    manifest_sha = compute_sha256(manifest_path) if manifest_path.exists() else None
-    checked_in_sha = compute_sha256(checked_in_exe)
+    source_sha = compute_sha256(source_path, normalize_newlines=True)
+    manifest_sha = compute_sha256(manifest_path, normalize_newlines=True) if manifest_path.exists() else None
+    checked_in_sha = compute_sha256(checked_in_exe, normalize_newlines=False)
     checked_in_size = checked_in_exe.stat().st_size
 
     # Compile fresh test copy in isolated temp directory using exact output name Courier.exe
     with tempfile.TemporaryDirectory() as tmp_dir1, tempfile.TemporaryDirectory() as tmp_dir2:
         fresh_exe1 = Path(tmp_dir1) / "Courier.exe"
         fresh_exe2 = Path(tmp_dir2) / "Courier.exe"
+
+        # Ensure deterministic LF line endings in isolated temp copies for compiler consistency
+        compile_source1 = Path(tmp_dir1) / "CourierLauncher.cs"
+        compile_source1.write_bytes(source_path.read_bytes().replace(b"\r\n", b"\n"))
 
         cmd1 = [
             csc,
@@ -87,16 +93,29 @@ def audit_runner_provenance(
             "/reference:System.Drawing.dll",
         ]
         if manifest_path.exists():
-            cmd1.append(f"/win32manifest:{manifest_path.resolve()}")
-        cmd1.extend([f"/out:{fresh_exe1.resolve()}", str(source_path.resolve())])
+            compile_manifest1 = Path(tmp_dir1) / "Courier.manifest"
+            compile_manifest1.write_bytes(manifest_path.read_bytes().replace(b"\r\n", b"\n"))
+            cmd1.append(f"/win32manifest:{compile_manifest1.resolve()}")
+        cmd1.extend([f"/out:{fresh_exe1.resolve()}", str(compile_source1.resolve())])
 
         comp_res1 = subprocess.run(cmd1, capture_output=True, text=True, encoding="utf-8", errors="replace")
         if comp_res1.returncode != 0:
             raise RuntimeError(f"Compilation of CourierLauncher.cs failed: {comp_res1.stderr or comp_res1.stdout}")
 
         # Second compilation to measure intrinsic compiler non-determinism (TimeDateStamp + MVID GUID)
-        cmd2 = list(cmd1)
-        cmd2[-2] = f"/out:{fresh_exe2.resolve()}"
+        compile_source2 = Path(tmp_dir2) / "CourierLauncher.cs"
+        compile_source2.write_bytes(compile_source1.read_bytes())
+        cmd2 = [
+            csc,
+            "/target:winexe",
+            "/reference:System.Windows.Forms.dll",
+            "/reference:System.Drawing.dll",
+        ]
+        if manifest_path.exists():
+            compile_manifest2 = Path(tmp_dir2) / "Courier.manifest"
+            compile_manifest2.write_bytes(compile_manifest1.read_bytes())
+            cmd2.append(f"/win32manifest:{compile_manifest2.resolve()}")
+        cmd2.extend([f"/out:{fresh_exe2.resolve()}", str(compile_source2.resolve())])
         comp_res2 = subprocess.run(cmd2, capture_output=True, text=True, encoding="utf-8", errors="replace")
         if comp_res2.returncode != 0:
             raise RuntimeError(f"Second compilation failed: {comp_res2.stderr or comp_res2.stdout}")

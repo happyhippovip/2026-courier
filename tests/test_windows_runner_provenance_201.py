@@ -49,10 +49,10 @@ def test_positive_source_and_manifest_hash_integrity():
     assert manifest.exists(), f"Manifest file {manifest} must exist"
     assert binary.exists(), f"Binary file {binary} must exist"
 
-    # Verifizierte kanonische Prüfsummen
-    assert compute_sha256(source) == "FA0327A93CCA92A6E4FBD6F50C064FD4FCBAD55CD523C76BC99C9169F8C577FA"
-    assert compute_sha256(manifest) == "BA0EBA6E18B2E52C48B175926F073E218F6678EA44ACA9610164682B4804A9AB"
-    assert compute_sha256(binary) == "68340CE921122075DA3328269387B4A3A2808ED2BCB0AAF0A4C1149DFB47D273"
+    # Verifizierte kanonische Prüfsummen (LF-normalisiert gegen Windows core.autocrlf)
+    assert compute_sha256(source, normalize_newlines=True) == "FA0327A93CCA92A6E4FBD6F50C064FD4FCBAD55CD523C76BC99C9169F8C577FA"
+    assert compute_sha256(manifest, normalize_newlines=True) == "BA0EBA6E18B2E52C48B175926F073E218F6678EA44ACA9610164682B4804A9AB"
+    assert compute_sha256(binary, normalize_newlines=False) == "68340CE921122075DA3328269387B4A3A2808ED2BCB0AAF0A4C1149DFB47D273"
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="Windows Runner Provenance tests require Windows host")

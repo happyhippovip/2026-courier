@@ -1,0 +1,3 @@
+# Ensure deterministic LF line endings for C# launcher sources across all platforms
+scripts/windows_worker/launcher/CourierLauncher.cs text eol=lf
+scripts/windows_worker/launcher/Courier.manifest text eol=lf
