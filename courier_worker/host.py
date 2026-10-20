@@ -48,6 +48,9 @@ MAX_RESULT_PAYLOAD_BYTES = 1024 * 1024  # 1 MiB wire limit for outbox payloads
 OUTBOX_CAP = 32
 ORPHAN_TERM_GRACE_S = 2.0
 LOAD_PRESSURE_FACTOR = 4.0
+MAX_WIN_RAM_PRESSURE_PERCENT = 95
+MIN_WIN_AVAIL_RAM_MB = 256
+MAX_WIN_CPU_PRESSURE_PERCENT = 95.0
 
 CLAIM_RECORD_GLOB = "dispatch-*.json"
 CRASH_REPORT_NAME = "crash.json"
@@ -188,6 +191,34 @@ class ExecutionResult:
         return self.outcome in (Outcome.TIMEOUT, Outcome.LEASE_LOST)
 
 
+def _win_memory_status() -> Optional[tuple[int, int]]:
+    """Query Windows native physical RAM load percent and available megabytes (CAP-1)."""
+    try:
+        import ctypes
+
+        class _MEMORYSTATUSEX(ctypes.Structure):
+            _fields_ = [
+                ("dwLength", ctypes.c_ulong),
+                ("dwMemoryLoad", ctypes.c_ulong),
+                ("ullTotalPhys", ctypes.c_ulonglong),
+                ("ullAvailPhys", ctypes.c_ulonglong),
+                ("ullTotalPageFile", ctypes.c_ulonglong),
+                ("ullAvailPageFile", ctypes.c_ulonglong),
+                ("ullTotalVirtual", ctypes.c_ulonglong),
+                ("ullAvailVirtual", ctypes.c_ulonglong),
+                ("sullAvailExtendedVirtual", ctypes.c_ulonglong),
+            ]
+
+        stat = _MEMORYSTATUSEX()
+        stat.dwLength = ctypes.sizeof(stat)
+        if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat)):
+            avail_mb = int(stat.ullAvailPhys // (1024 * 1024))
+            return int(stat.dwMemoryLoad), avail_mb
+    except Exception:
+        pass
+    return None
+
+
 def default_pressure_probe() -> Optional[str]:
     """Return None when the host may spawn, else a short reason.
 
@@ -204,6 +235,22 @@ def default_pressure_probe() -> Optional[str]:
     except OSError as exc:
         return f"fd-exhaustion: {exc.strerror or exc}"
         
+    # OS-native CPU and RAM pressure signal on Windows (CAP-1)
+    if sys.platform == "win32":
+        mem = _win_memory_status()
+        if mem is not None:
+            load_pct, avail_mb = mem
+            if load_pct >= MAX_WIN_RAM_PRESSURE_PERCENT or avail_mb < MIN_WIN_AVAIL_RAM_MB:
+                return f"ram-pressure: memory load {load_pct}%, avail {avail_mb}MB"
+
+        try:
+            import psutil
+            cpu = psutil.cpu_percent(interval=None)
+            if cpu >= MAX_WIN_CPU_PRESSURE_PERCENT:
+                return f"cpu-pressure: cpu load {cpu:.1f}%"
+        except Exception:
+            pass
+
     # Prefer OS-native thermal pressure signal on macOS
     if sys.platform == "darwin":
         import subprocess

@@ -63,7 +63,7 @@ def build_cells(stand_utc):
          "Shell: ResourcePaused path + test"],
         ["BREAKER-01..09", "Muse (breaker)", "patches ready, UNAPPLIED", "PR#153 @672e9bc1",
          "9 defects + 18 tests (Report)", "Shell: apply+pytest+push"],
-        ["CAP-1", "L3", "gap, no PR", "host.py:182-214", "audit WIN4", "L3/Shell: Win CPU/RAM probe"],
+        ["CAP-1", "L3", "VERIFIED_CURRENT", "grokbot/gb-cap-01", "ctypes GlobalMemoryStatusEx + psutil probe", "merged to candidate"],
         ["REVIEW-200", "Cursor bc-c8de3c1f", "handed off", "PR#200 @a7559a7",
          "R-200-1/2 (Report)", "Owner: bounded re-sample"],
     ], start=12):
@@ -142,7 +142,7 @@ def build_cells(stand_utc):
         ["P0", "TUI /settings enge Allows prüfen", "Dennis", "user-seitig"],
         ["P1", "Varianten-Kollision #140/#145/#153 + base=main", "L1/Dennis", "Entscheidung"],
         ["P1", "FREE-1 ausgeführt (git rm dist/ + .gitignore)", "grokbot/gb-free-01", "VERIFIED"],
-        ["P1", "E-L3 live repro + fixes + CAP-1", "L3/Shell", "Shell"],
+        ["P1", "E-L3 fixes + CAP-1 probe complete", "grokbot/gb-cap-01", "VERIFIED"],
         ["P1", "BREAKER-Patches auf #153 anwenden+testen", "Shell/L2", "Shell"],
         ["P2", "#200 R-200-1 bounded re-sample", "Cursor-Owner", "Owner-PR"],
         ["P2", "Issue-Scan + Trunk-CI im Quota-Fenster", "Analyse-Fenster", "Quota"],
