@@ -49,6 +49,16 @@ def persist_packet(task):
         except OSError:
             pass
         return None  # already persisted; resume_pending() owns it
+    except PermissionError:
+        # Windows raises this when the destination is delete-pending instead of
+        # FileExistsError. If the packet is already there, this racer lost.
+        if path.exists():
+            try:
+                os.unlink(tmp)
+            except OSError:
+                pass
+            return None
+        raise
     try:
         os.unlink(tmp)
     except OSError:
