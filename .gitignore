@@ -25,6 +25,7 @@ __pycache__/
 # Runtime locks & leases
 events/locks/*.lease
 events/locks/*.lock
+events/locks/*.db*
 
 # Runtime GitHub Transport envelopes remain local.
 events/transport/incoming/*.json
