@@ -26,6 +26,12 @@ def test_package_refuses_to_omit_a_lifecycle_script():
         assert f'"{name}"' in text
 
 
+def test_shipped_dist_uninstall_matches_the_source_and_can_stop():
+    root = ROOT / "scripts" / "windows_worker"
+    for name in ("uninstall.ps1", "stop.ps1", "uninstall_user_data.ps1"):
+        assert (root / name).read_bytes() == (root / "dist" / name).read_bytes()
+
+
 def test_uninstall_helpers_are_in_the_package_list():
     uninstall = UNINSTALL.read_text(encoding="utf-8")
     package = PACKAGE.read_text(encoding="utf-8")
