@@ -33,7 +33,8 @@ $packageScripts = @(
     "stop.bat",
     "status.ps1",
     "status.bat",
-    "start.bat"
+    "start.bat",
+    "start.ps1"
 )
 foreach ($name in $packageScripts) {
     $path = Join-Path $PSScriptRoot $name
