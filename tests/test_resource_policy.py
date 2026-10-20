@@ -26,7 +26,7 @@ def test_resource_policy_manager_defaults(repo_dir):
     assert ResourcePolicyManager.get_default_builder() == "courier-antigravity-bridge"
     assert ResourcePolicyManager.get_default_reviewer() == "courier-codex-bridge"
     assert ResourcePolicyManager.get_default_iterations(repo_dir) == 1
-    assert ResourcePolicyManager.is_resource_allowed("google_antigravity_plus", repo_dir) is True
+    assert ResourcePolicyManager.is_resource_allowed("google_antigravity_plus", repo_dir) is False
     assert ResourcePolicyManager.is_resource_allowed("unknown_resource", repo_dir) is False
 
 def test_resource_policy_manager_loaded(repo_dir):
@@ -46,6 +46,10 @@ def test_resource_policy_manager_loaded(repo_dir):
     assert ResourcePolicyManager.is_resource_allowed("my_resource", repo_dir) is True
 
 def test_cost_gate_evaluate_spend(repo_dir):
+    canonical = Path(__file__).resolve().parents[1] / "events" / "policies" / "resource_policy.json"
+    (repo_dir / "events" / "policies" / "resource_policy.json").write_text(
+        canonical.read_text(encoding="utf-8"), encoding="utf-8",
+    )
     res = CostGate.evaluate_spend_request("future_google_upgrade", repo_dir=repo_dir)
     assert not res["allowed"]
     assert res["reason"] == "RESOURCE_PLANNED_NOT_ACTIVE"

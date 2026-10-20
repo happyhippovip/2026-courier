@@ -346,3 +346,25 @@ def test_run_fenced_lease_theft_raises_stale_lease(workspace_env):
     step = Step("s", [sys.executable, "-c", "open('tamper.out', 'w').write('1')"], "tamper.out")
     with pytest.raises(StaleLease):
         ws.run("wk-tamper", Requirement(frozenset({"python"})), "scope:stolen", req, [step])
+
+
+def test_step_does_not_start_when_the_fence_is_already_stale(workspace_env):
+    """A stolen lease must fail before the step process mutates the workspace."""
+    ws, clock, req, tmp_path = workspace_env
+    original = ws.leases.acquire
+
+    def acquire_then_lose(scope, holder, workkey, ttl_s):
+        lease = original(scope, holder, workkey, ttl_s)
+        clock.advance(ttl_s + 1)
+        original(scope, "attacker-host", "wk-other", ttl_s=300)
+        return lease
+
+    ws.leases.acquire = acquire_then_lose
+    step = Step(
+        "s",
+        [sys.executable, "-c", "open('must-not-run.out', 'w').write('ran')"],
+        "must-not-run.out",
+    )
+    with pytest.raises(StaleLease):
+        ws.run("wk-fence", Requirement(frozenset({"python"})), "scope:fence", req, [step])
+    assert not (tmp_path / "must-not-run.out").exists()

@@ -51,6 +51,16 @@ def _hooks(tmp_path):
     return AntigravityHookRunner(AntigravityVisualStateTracker(repo_dir=tmp_path))
 
 
+@pytest.fixture(autouse=True)
+def _active_zero_cost_policy(tmp_path):
+    folder = tmp_path / "events" / "policies"
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / "resource_policy.json").write_text(
+        '{"active_paid_resources":{"google_antigravity_plus":{"status":"ACTIVE_PAID"}}}',
+        encoding="utf-8",
+    )
+
+
 def test_google_builder_argv_never_skips_permissions(tmp_path, monkeypatch):
     runner = RecordingRunner()
     monkeypatch.setattr(gbw, "AGENT_RUNNER", runner)

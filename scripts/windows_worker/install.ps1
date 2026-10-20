@@ -109,7 +109,11 @@ $scriptPath = "$InstallDir\Courier.exe"
 $userId = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 
 if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
-    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
+    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+    if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
+        Write-Host "ERROR: the scheduled task is still present: $taskName" -ForegroundColor Red
+        exit 1
+    }
 }
 
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $userId
@@ -118,7 +122,16 @@ $principal = New-ScheduledTaskPrincipal -UserId $userId -LogonType Interactive -
 # Task Scheduler stops a task after 72 hours and does not restart it.
 # The worker stays up, restarts after a failure, and never starts a second copy.
 $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -StartWhenAvailable -MultipleInstances IgnoreNew
-Register-ScheduledTask -TaskName $taskName -Trigger $trigger -Action $action -Principal $principal -Settings $settings | Out-Null
+try {
+    Register-ScheduledTask -TaskName $taskName -Trigger $trigger -Action $action -Principal $principal -Settings $settings -ErrorAction Stop | Out-Null
+} catch {
+    Write-Host "ERROR: the scheduled task was not registered: $taskName" -ForegroundColor Red
+    exit 1
+}
+if (-not (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue)) {
+    Write-Host "ERROR: the scheduled task was not registered: $taskName" -ForegroundColor Red
+    exit 1
+}
 
 Write-Host "Starting the worker..."
 try {

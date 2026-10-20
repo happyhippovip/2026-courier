@@ -42,6 +42,20 @@ def save_json(path: Path, data: Any) -> None:
     os.replace(temp_path, path)
 
 
+def _closed_policy() -> dict:
+    """No file, an empty file, or unreadable JSON authorizes nothing."""
+    return {
+        "active_paid_resources": {},
+        "planned_resources": {},
+        "unauthorized_resources": {},
+        "operating_invariants": {
+            "max_autonomous_iterations_per_task": 1,
+            "require_human_gate_for_spend": True,
+        },
+        "policy_status": "MISSING_OR_UNREADABLE",
+    }
+
+
 class ResourcePolicyManager:
     """Reads and enforces canonical resource & routing policy."""
 
@@ -49,30 +63,9 @@ class ResourcePolicyManager:
     def get_policy(repo_dir: Path | None = None) -> dict:
         p_path = (repo_dir / "events" / "policies" / "resource_policy.json") if repo_dir else POLICY_FILE
         policy = load_json(p_path)
-        if policy and isinstance(policy, dict):
+        if isinstance(policy, dict) and policy and policy.get("policy_status") != "MISSING_OR_UNREADABLE":
             return policy
-        return {
-            "active_paid_resources": {
-                "google_antigravity_plus": {"status": "ACTIVE_PAID", "role": "PRIMARY_BUILDER"},
-                "chatgpt_plus_codex": {"status": "ACTIVE_PAID", "role": "PRIMARY_CONTROLLER_REVIEWER"}
-            },
-            "planned_resources": {
-                "future_google_upgrade": {"status": "PLANNED_NOT_ACTIVE", "budget_eligible": False}
-            },
-            "unauthorized_resources": {
-                "on_demand_api_tiers": {"status": "UNAVAILABLE", "spend_allowed": False}
-            },
-            "operating_invariants": {
-                "standard": "ONE_TASK_ONE_BUILDER_ONE_RESULT_ONE_REVIEW",
-                "default_builder": "courier-antigravity-bridge",
-                "default_reviewer": "courier-codex-bridge",
-                "allow_parallel_builder_dispatch": False,
-                "allow_redundant_second_opinion": False,
-                "allow_auto_capacity_expansion": False,
-                "require_human_gate_for_tier_change": True,
-                "max_autonomous_iterations_per_task": 1
-            }
-        }
+        return _closed_policy()
 
     @staticmethod
     def get_default_builder() -> str:
@@ -108,6 +101,13 @@ class CostGate:
         repo_dir: Path | None = None,
     ) -> dict:
         policy = ResourcePolicyManager.get_policy(repo_dir)
+        if policy.get("policy_status") == "MISSING_OR_UNREADABLE":
+            return {
+                "allowed": False,
+                "reason": "POLICY_UNAVAILABLE",
+                "message": "Resource policy is missing or unreadable. No spend is authorized.",
+                "requires_human_gate": True,
+            }
         active = policy.get("active_paid_resources", {})
         planned = policy.get("planned_resources", {})
         unauth = policy.get("unauthorized_resources", {})

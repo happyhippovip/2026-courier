@@ -34,6 +34,18 @@ def _hooks(tmp_path):
     return AntigravityHookRunner(AntigravityVisualStateTracker(repo_dir=tmp_path))
 
 
+@pytest.fixture(autouse=True)
+def _active_zero_cost_policy(tmp_path):
+    """These cases exercise execution after an explicit free estimate."""
+    folder = tmp_path / "events" / "policies"
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / "resource_policy.json").write_text(json.dumps({
+        "active_paid_resources": {"google_antigravity_plus": {"status": "ACTIVE_PAID"}},
+        "planned_resources": {},
+        "unauthorized_resources": {},
+    }), encoding="utf-8")
+
+
 def _packet(pid="pkt-g", state=PacketState.CURRENT, **payload):
     base = {"task_type": "google_agent_execute", "workkey": "WK-TEST-1",
             "instruction": "Add a docstring to foo()", "verify_command": OK_VERIFY,

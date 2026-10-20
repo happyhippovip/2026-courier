@@ -58,6 +58,7 @@ class Workspace:
         lease = self.leases.acquire(scope, host.device_id, workkey, ttl_s=self.ttl)
         for index in range(decision["resume_step"] or 0, len(steps)):
             step = steps[index]
+            self.leases.check_write(scope, lease.token)             # fence before the step can mutate
             proc = subprocess.Popen(step.argv, cwd=self.workdir, stdin=subprocess.DEVNULL)
             self.registry.add(OwnedProcess.capture(proc.pid, workkey, host.device_id))
             if stop_after == index:

@@ -493,7 +493,7 @@ def run_agy(task, config):
             "google_antigravity_plus",
             estimated_cost_eur=estimate,
             requested_action=task.get("requested_action", "EXECUTE_TASK"),
-            repo_dir=BASE_DIR,
+            repo_dir=REPO_ROOT,
         )
         if not cost_eval.get("allowed"):
             return {

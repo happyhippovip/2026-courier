@@ -8,6 +8,18 @@ from unittest import mock
 import pytest
 
 from courier_core.work_packet import PacketQueue, PacketState, WorkPacket
+
+
+@pytest.fixture(autouse=True)
+def _active_zero_cost_policy(tmp_path):
+    """Launch checks in this file assume a present policy, not a missing one."""
+    folder = tmp_path / "events" / "policies"
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / "resource_policy.json").write_text(json.dumps({
+        "active_paid_resources": {"google_antigravity_plus": {"status": "ACTIVE_PAID"}},
+        "planned_resources": {},
+        "unauthorized_resources": {},
+    }), encoding="utf-8")
 from scripts.google_builder_worker import (
     acquire_packet_lock,
     execute_packet_code_or_test_work,
