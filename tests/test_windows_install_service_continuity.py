@@ -32,3 +32,12 @@ def test_restarts_after_failure():
 
 def test_single_instance_only():
     assert re.search(r"-MultipleInstances\s+IgnoreNew", _text())
+
+
+def test_task_runs_as_the_installing_user():
+    text = _text()
+    assert 'UserId "SYSTEM"' not in text
+    assert "ServiceAccount" not in text
+    assert "-AtLogOn" in text
+    assert "WindowsIdentity" in text
+    assert "GetCurrent().Name" in text
