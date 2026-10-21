@@ -342,8 +342,27 @@ export class LivingHQController {
         const idea = btn.getAttribute("data-idea");
         if (this.humanIdeaInput && idea) {
           this.humanIdeaInput.value = idea;
+          try { localStorage.setItem("courier_studio_draft_idea", idea); } catch (_) {}
         }
       });
+    });
+
+    try {
+      const savedDraft = localStorage.getItem("courier_studio_draft_idea");
+      if (savedDraft && this.humanIdeaInput && !this.humanIdeaInput.value) {
+        this.humanIdeaInput.value = savedDraft;
+      }
+    } catch (_) {}
+
+    this.humanIdeaInput?.addEventListener("input", () => {
+      const val = this.humanIdeaInput?.value?.trim();
+      try {
+        if (val) {
+          localStorage.setItem("courier_studio_draft_idea", val);
+        } else {
+          localStorage.removeItem("courier_studio_draft_idea");
+        }
+      } catch (_) {}
     });
 
     this.btnDispatchIdea?.addEventListener("click", () => this.dispatchHumanIdea());
@@ -1460,6 +1479,7 @@ export class LivingHQController {
       });
       if (res.ok) {
         this.humanIdeaInput.value = "";
+        try { localStorage.removeItem("courier_studio_draft_idea"); } catch (_) {}
         this.drawer?.classList.add("hidden");
       }
     } catch (e) {
