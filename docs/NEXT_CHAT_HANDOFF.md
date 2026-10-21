@@ -317,6 +317,12 @@ At update time (2026-10-07):
 - **STEP 58 TITAN V160 VERIFY_COMMAND V2 HARDENING (21.10.2026):**
   - Härtung der unabhängigen Verifikationsausführung in `scripts/google_builder_worker.py`: Fail-Closed Command Validator, Token-Sanitization, Prozessgruppen-Isolation und `_kill_process_tree` auf Timeout.
   - Tests: `tests/test_google_builder_real_execution.py` auf 20/20 PASS erweitert.
+- **STEP 59 KOLIBRI EVIDENCE BADGE FAIL-CLOSED HARDENING (21.10.2026):**
+  - Schließung der Kolibri Evidence-Badge P0-Vertragslücke unter L5 Repair Lease (`KOLIBRI-EVIDENCE-BADGE-V1-REPAIR`):
+  - Fail-Closed Auflösung erfordert strikt `BYTE_LEVEL_GOLD_VERIFIED`, Proof-Bindung an `RESULT_ACCEPTED` im SQLite-Event-Journal mit vollständigem 6-Tupel (`journal_entry_id`, `task_id`, `attempt`, `dispatch_id`, `accepted_result_id`, `artifact_sha256`).
+  - Blockers ohne aktiven dokumentierten Grund und foreign blockers fallen fail-closed auf `UNKNOWN`.
+  - Anbindung an Kolibri Neon CSS Tokens (`--neon-green`, `--neon-blue`, etc.).
+  - Tests: `tests/desktop/evidence_badge.test.mjs` auf 17/17 PASS erweitert; gesamte Desktop-Suite auf 49/49 PASS gehoben (0 Regressionen).
 - next critical implementation path:
   **WINDOWS CLEAN-MACHINE ACCEPTANCE & WEBSITE HUMAN GATE**: Abnahme auf dem sauberen Windows-Host nach Host-Boot; Prüfung des Website-Impressums am Dennis Human-Gate (`fc219a1`).
 

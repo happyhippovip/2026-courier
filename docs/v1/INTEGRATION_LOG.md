@@ -889,7 +889,16 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
   - `tests/boundaries/run_boundaries.py`: 14/14 PASS (0 defects).
   - `scripts/verify_state_isolation.py`: STATE ISOLATION VALID.
   - `tests/desktop/*.test.mjs`: 38/38 PASS.
+## Step 59 — Kolibri Fail-Closed Evidence Badge Contract & Proof Binding (Commit `17942d3bd`)
+### `courier_hub/static/evidence_badge.mjs` & `tests/desktop/evidence_badge.test.mjs`
+- Resolved Kolibri Evidence-Badge P0 Contract Gap under authoritative L5 Repair Lease (`KOLIBRI-EVIDENCE-BADGE-V1-REPAIR`):
+  - **Fail-Closed Resolution Verification:** Evidence evaluation strictly requires canonical resolution `BYTE_LEVEL_GOLD_VERIFIED`. Generic strings (e.g. `"verified"`, `"accepted"`, or boolean truthiness) strictly fail closed to `UNKNOWN`.
+  - **Cryptographic Proof & Journal Binding (`proofBinds`):** Enforced that evidence proof must bind to journal event `RESULT_ACCEPTED`, matching task ID, attempt number, dispatch ID, sequence ID, and 64-hex SHA-256 artifact checksum.
+  - **Fail-Closed Blocker Semantics:** Blockers without active documented reason fail closed to `UNKNOWN (BLOCKED_WITHOUT_REASON)`. Foreign blockers bound to other tasks are rejected (`BLOCKER_NOT_BOUND`).
+  - **Kolibri Neon Token Integration:** Badge styling bound to Kolibri CSS neon tokens (`--neon-green`, `--neon-blue`, `--neon-red`, `--neon-gray`) with hex fallbacks.
+- Verified test coverage:
+  - `node --test tests/desktop/evidence_badge.test.mjs`: 17/17 PASS (expanded from 6 with 11 fail-closed, blocker-binding, and token tests).
+  - `node --test tests/desktop/*.test.mjs`: 49/49 PASS (baseline raised from 38 to 49 with zero regressions).
+  - `pytest tests/test_windows_exe_build.py`: 5 passed, 1 skipped (evidence badge packaging contract verified).
+  - `pytest tests/test_runtime_lease.py`: 13 passed.
 - Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
-
-
-
