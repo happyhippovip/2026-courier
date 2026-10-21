@@ -1146,3 +1146,25 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
   - Desktop JS: **72/72 PASS** (100% green).
   - Core intake & loop test suites: **44/44 PASS**.
 - Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
+
+## Step 75 — Hardened TaskLeaseManager LeaseConflict Handling & Mailbox Fail-Closed Security
+### `scripts/resource_policy.py`, `scripts/courier_mailbox.py`, `tests/`
+- Implemented, hardened, and verified:
+  - **P0 TaskLeaseManager Authority DB Fencing Integrity (`scripts/resource_policy.py`):**
+    - `TaskLeaseManager._sync_authority_acquire` now returns a boolean status indicating whether lease acquisition in canonical `authority.db` succeeded.
+    - If `LeaseConflict` occurs, it is no longer swallowed with `pass`. `acquire_lease()` detects the conflict, immediately unlinks any newly created filesystem `.lease` file (rollback), and returns `(False, "TASK_ALREADY_CLAIMED_BY_ANOTHER_BUILDER", {"reason": "AUTHORITY_DB_LEASE_CONFLICT"})`.
+    - Eliminates split-brain double claims where two processes could believe they both held the same task lease.
+    - Added unit test `test_task_lease_manager_authority_db_conflict_rejected` in `tests/test_resource_policy.py` (11/11 PASS).
+  - **P0 Mailbox Fail-Closed Lease & Cost Enforcement (`scripts/courier_mailbox.py`):**
+    - Tasks without explicit `estimated_cost_eur` no longer default to `0.0`; they fail closed immediately with `UNKNOWN_COST` / `BLOCKED_COSTGATE`. Non-numeric, negative, NaN, Inf, and positive costs are strictly blocked.
+    - If the authoritative writer lease on `mailbox:<inbox_name>` cannot be acquired from `authority.db` (due to conflict, permission, or I/O error), execution aborts immediately fail-closed (returns `[]`) without modifying outbox or inbox files.
+    - Enforced lease fence verification (`lease_store.check_write`) prior to replacing `inbox.jsonl`.
+    - Added unit tests in `tests/test_courier_mailbox.py` (6/6 PASS).
+- Full verification:
+  - Resource policy suite: **11/11 PASS**.
+  - Mailbox suite: **6/6 PASS**.
+  - Lease runtime suite: **13/13 PASS**.
+  - Golden Harness: **11/11 PASS**.
+  - Desktop JS: **72/72 PASS**.
+- Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
+
