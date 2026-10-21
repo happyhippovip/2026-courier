@@ -432,10 +432,95 @@ def heartbeat():
             worker["available"] = True
         else:
             worker["available"] = False
+
+        # CP-13: Process confirmed stopped dispatches from worker
+        from courier_core.cancel_handler import CancelHandler
+        stopped_dispatches = data.get("stopped_dispatches") or []
+        for d_id in stopped_dispatches:
+            for t in state.get("tasks", {}).values():
+                if t.get("dispatch_id") == d_id and t.get("worker_id") == worker_id:
+                    if t.get("cancel_requested"):
+                        CancelHandler.confirm_stop(t, worker_id, d_id)
+                        if worker.get("current_task") == t.get("task_id"):
+                            worker["current_task"] = None
+                            if worker.get("resource_state", "NORMAL") == "NORMAL" and not worker.get("unregistered"):
+                                worker["available"] = True
+
+        # CP-13: Return dispatches that have cancel requested
+        cancel_dispatches = [
+            t.get("dispatch_id")
+            for t in state.get("tasks", {}).values()
+            if t.get("worker_id") == worker_id and t.get("cancel_requested") and t.get("dispatch_id")
+        ]
+
         save_state(state)
-        return jsonify({"status": "OK"})
+        return jsonify({"status": "OK", "cancel": cancel_dispatches})
     else:
         return jsonify({"error": "Unknown worker"}), 404
+
+@app.route("/tasks/<task_id>/cancel", methods=["POST"])
+
+@require_auth
+
+@serialize_state_mutation
+
+def cancel_task(task_id):
+
+    if not isinstance(task_id, str) or not task_id:
+
+        return jsonify({"error": "task_id is required"}), 400
+
+    if not SAFE_ID_RE.match(task_id) or ".." in task_id or "/" in task_id or "\\" in task_id:
+
+        return jsonify({"error": f"invalid task_id: forbidden characters or traversal: {task_id!r}"}), 400
+
+
+
+    data = request.get_json(silent=True) or {}
+
+    actor = data.get("actor")
+
+    reason = data.get("reason")
+
+
+
+    state = load_state()
+
+    if task_id not in state.get("tasks", {}):
+
+        return jsonify({"error": f"Task {task_id} not found"}), 404
+
+
+
+    task = state["tasks"][task_id]
+
+    from courier_core.cancel_handler import CancelHandler, CancelHandlerError
+
+    try:
+
+        updated = CancelHandler.request_cancellation(task, actor=actor, reason=reason)
+
+    except CancelHandlerError as exc:
+
+        return jsonify({"error": exc.message, "code": exc.code}), exc.status_code
+
+
+
+    save_state(state)
+
+    return jsonify({
+
+        "task_id": task_id,
+
+        "status": updated.get("status"),
+
+        "cancel_requested": updated.get("cancel_requested", False),
+
+        "resolution": updated.get("resolution")
+
+    }), 200
+
+
 
 @app.route("/tasks/claim", methods=["POST"])
 @require_auth
@@ -618,6 +703,17 @@ def task_result():
         if task.get("status") in ["RECONCILED", "FAILED_TERMINAL", "RESULT_RECEIVED", "FAILED_VERIFICATION"]:
             return jsonify({"error": "Task is not awaiting a result; Conflicting result for already processed task"}), 409
 
+        # CP-13: Check cancellation status before normal result processing
+        if task.get("cancel_requested") or task.get("status") == "CANCELLED":
+            from courier_core.cancel_handler import CancelHandler
+            receipt = CancelHandler.record_late_result(task, data)
+            save_state(state)
+            return jsonify({
+                "error": "task cancellation was requested; result recorded as discarded effect-receipt",
+                "code": "cancel_requested",
+                "receipt_digest": receipt.receipt_digest
+            }), 409
+
         if task.get("status") != "DISPATCHED":
             return jsonify({"error": "Task is not awaiting a result"}), 409
 
@@ -709,14 +805,19 @@ def reclaim_stale():
         if goal.get("status") == "ACTIVE" and "workflow_plan" in goal:
             for step in goal["workflow_plan"]:
                 if step.get("status") == "DISPATCHED" and step.get("worker_id") in stale_workers:
-                    step["status"] = "HUMAN_REQUIRED"
-                    step["recovery_reason"] = "STALE_WORKER_EFFECT_AMBIGUOUS"
-                    quarantined_count += 1
-
                     task = state.get("tasks", {}).get(step.get("task_id"))
-                    if task:
-                        task["status"] = "HUMAN_REQUIRED"
-                        task["recovery_reason"] = step["recovery_reason"]
+                    from courier_core.cancel_handler import CancelHandler
+                    if task and task.get("cancel_requested"):
+                        CancelHandler.handle_vanished_worker(task)
+                        step["status"] = task.get("status")
+                        step["recovery_reason"] = task.get("recovery_reason")
+                    else:
+                        step["status"] = "HUMAN_REQUIRED"
+                        step["recovery_reason"] = "STALE_WORKER_EFFECT_AMBIGUOUS"
+                        if task:
+                            task["status"] = "HUMAN_REQUIRED"
+                            task["recovery_reason"] = step["recovery_reason"]
+                    quarantined_count += 1
                     worker = state.get("workers", {}).get(step.get("worker_id"))
                     if worker and worker.get("current_task") == step.get("task_id"):
                         worker["current_task"] = None
