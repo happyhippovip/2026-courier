@@ -76,6 +76,34 @@ def test_concurrent_persist_admits_single_winner(monkeypatch, tmp_path):
     assert not list((tmp_path / "dispatch").glob("*.tmp"))
 
 
+def test_permission_error_after_the_packet_exists_does_not_spawn(monkeypatch, tmp_path):
+    d = load(monkeypatch, tmp_path)
+    winner = d.persist_packet(packet())
+    assert winner is not None
+
+    def denied(src, dst):
+        raise PermissionError(13, "delete pending")
+
+    monkeypatch.setattr(os, "link", denied)
+    assert d.persist_packet(packet()) is None
+    assert not list((tmp_path / "dispatch").glob("*.tmp"))
+
+
+def test_permission_error_without_a_packet_is_not_hidden(monkeypatch, tmp_path):
+    d = load(monkeypatch, tmp_path)
+
+    def denied(src, dst):
+        raise PermissionError(13, "access denied")
+
+    monkeypatch.setattr(os, "link", denied)
+    try:
+        d.persist_packet(packet())
+    except PermissionError:
+        pass
+    else:
+        raise AssertionError("a permission error with no packet must not look like a lost race")
+
+
 def test_sequential_duplicate_persist_stays_single(monkeypatch, tmp_path):
     d = load(monkeypatch, tmp_path)
     first = d.persist_packet(packet())
