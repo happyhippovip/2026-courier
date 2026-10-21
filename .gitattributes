@@ -1,0 +1,13 @@
+# Auto-detect text files and normalize line endings to LF on checkout (BLK-06)
+* text=auto eol=lf
+tests/golden/** text eol=lf
+*.py text eol=lf
+*.json text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.md text eol=lf
+*.ps1 text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
