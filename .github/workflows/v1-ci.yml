@@ -156,7 +156,8 @@ jobs:
             --junitxml="$RUNNER_TEMP/windows-build.xml" \
             tests/test_windows_launcher_guard.py \
             "tests/test_windows_exe_build.py::test_windows_exe_builds_and_answers" \
-            tests/test_windows_live_install_stop.py
+            tests/test_windows_live_install_stop.py \
+            tests/test_windows_live_agy_fake.py
           python - "$RUNNER_TEMP/windows-build.xml" <<'EOF'
           import sys
           import xml.etree.ElementTree as ET

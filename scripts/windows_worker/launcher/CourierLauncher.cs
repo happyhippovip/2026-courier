@@ -28,6 +28,10 @@ namespace CourierLauncher
 
         static int s_controllerPort = 8765;
         static string s_token = "";
+        // Absolute path of the Antigravity CLI from config.json, or "" when not
+        // configured. Only the worker gets it; provider_exec keeps refusing a
+        // missing, relative or non-existent path with BINARY_MISSING.
+        static string s_agyBin = "";
 
         static bool ConsoleCtrlCheck(uint ctrlType)
         {
@@ -100,6 +104,9 @@ namespace CourierLauncher
                 RedirectStandardError = true,
                 CreateNoWindow = true
             };
+            if (name == "worker" && s_agyBin.Length > 0) {
+                psi.EnvironmentVariables["COURIER_PROVIDER_AGY_BIN"] = s_agyBin;
+            }
             Process p = new Process();
             p.StartInfo = psi;
             
@@ -193,6 +200,13 @@ namespace CourierLauncher
                 
                 System.Text.RegularExpressions.Match workerMatch = System.Text.RegularExpressions.Regex.Match(json, "\"COURIER_WORKER_ID\"\\s*:\\s*\"([^\"]+)\"");
                 if (workerMatch.Success) workerId = workerMatch.Groups[1].Value;
+
+                // JSON escapes the backslashes of a Windows path ("C:\\Tools\\agy.exe").
+                System.Text.RegularExpressions.Match agyMatch = System.Text.RegularExpressions.Regex.Match(json, "\"COURIER_PROVIDER_AGY_BIN\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"");
+                if (agyMatch.Success) {
+                    string agy = agyMatch.Groups[1].Value.Replace("\\\\", "\\").Replace("\\/", "/");
+                    if (Path.IsPathRooted(agy)) s_agyBin = agy;
+                }
             }
 
             string tokenPath = Path.Combine(dataDir, @"run\controller.token");

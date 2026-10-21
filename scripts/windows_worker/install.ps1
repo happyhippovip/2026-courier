@@ -10,7 +10,10 @@ param (
     # Do not start Courier when the user logs on.
     [switch]$NoAutoStart,
     # Do not start Courier now.
-    [switch]$NoLaunch
+    [switch]$NoLaunch,
+    # Absolute path of the Google Antigravity CLI (agy). Optional: without it
+    # agy tasks stay refused with BINARY_MISSING. Never searched for.
+    [string]$AgyPath = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -29,6 +32,13 @@ if (Test-Path $configPath) {
     Write-Host "Keeping existing configuration $configPath."
     $existing = Get-Content $configPath -Raw | ConvertFrom-Json
     foreach ($property in $existing.PSObject.Properties) { $config[$property.Name] = $property.Value }
+}
+if ($AgyPath) {
+    if (-not [System.IO.Path]::IsPathRooted($AgyPath) -or -not (Test-Path -LiteralPath $AgyPath -PathType Leaf)) {
+        Write-Host "ERROR: -AgyPath must be the absolute path of an existing file." -ForegroundColor Red
+        exit 1
+    }
+    $config["COURIER_PROVIDER_AGY_BIN"] = (Resolve-Path -LiteralPath $AgyPath).Path
 }
 if (-not $config["COURIER_WORKER_ID"]) {
     $config["COURIER_WORKER_ID"] = "WIN-" + [guid]::NewGuid().ToString().Substring(0, 8)
