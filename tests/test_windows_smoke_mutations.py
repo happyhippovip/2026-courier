@@ -52,7 +52,10 @@ def mock_valid_package(tmp_path: Path) -> Path:
     (pkg / "daemon.py").write_text("#!/usr/bin/env python\nprint('daemon')\n", encoding="utf-8")
     (pkg / "bootstrap.ps1").write_text("# Bootstrap script\nWrite-Host 'boot'\n", encoding="utf-8")
     (pkg / "install.ps1").write_text("# Install script\nWrite-Host 'install'\n", encoding="utf-8")
+    (pkg / "install_service.ps1").write_text("# Install service script\nWrite-Host 'install_service'\n", encoding="utf-8")
     (pkg / "uninstall.ps1").write_text("# Uninstall script\nWrite-Host 'uninstall'\n", encoding="utf-8")
+    (pkg / "status.bat").write_text("@echo off\r\necho status\r\n", encoding="utf-8")
+    (pkg / "stop.bat").write_text("@echo off\r\necho stop\r\n", encoding="utf-8")
 
     # Worker package
     worker_dir = pkg / "courier_worker"
@@ -281,3 +284,27 @@ def test_mutation_policy_tampered_human_gate_disabled(mock_valid_package: Path):
     rc, out = _run_smoke(mock_valid_package)
     assert rc != 0
     assert "violates spend invariant" in out
+
+
+def test_mutation_missing_install_service_script(mock_valid_package: Path):
+    (mock_valid_package / "install_service.ps1").unlink()
+    _generate_manifest_for_pkg(mock_valid_package)
+    rc, out = _run_smoke(mock_valid_package)
+    assert rc != 0
+    assert "Missing required package files: install_service.ps1" in out
+
+
+def test_mutation_missing_status_lifecycle_script(mock_valid_package: Path):
+    (mock_valid_package / "status.bat").unlink()
+    _generate_manifest_for_pkg(mock_valid_package)
+    rc, out = _run_smoke(mock_valid_package)
+    assert rc != 0
+    assert "Missing required package files: status.bat" in out
+
+
+def test_mutation_missing_stop_lifecycle_script(mock_valid_package: Path):
+    (mock_valid_package / "stop.bat").unlink()
+    _generate_manifest_for_pkg(mock_valid_package)
+    rc, out = _run_smoke(mock_valid_package)
+    assert rc != 0
+    assert "Missing required package files: stop.bat" in out

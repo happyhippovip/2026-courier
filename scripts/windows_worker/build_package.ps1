@@ -44,7 +44,13 @@ Copy-Item "$PSScriptRoot\bootstrap.ps1" -Destination $OutDir
 
 Copy-Item "$PSScriptRoot\install.ps1" -Destination $OutDir
 
+Copy-Item "$PSScriptRoot\install_service.ps1" -Destination $OutDir
+
 Copy-Item "$PSScriptRoot\uninstall.ps1" -Destination $OutDir
+
+Copy-Item "$PSScriptRoot\status.bat" -Destination $OutDir
+
+Copy-Item "$PSScriptRoot\stop.bat" -Destination $OutDir
 
 Copy-Item -Recurse "$PSScriptRoot\..\..\courier_worker" -Destination "$OutDir\courier_worker"
 

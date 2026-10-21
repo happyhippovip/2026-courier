@@ -626,3 +626,21 @@ def test_windows_shell_escape_and_script_extension_contract():
 
     assert "FORBIDDEN_SCRIPT_EXTENSIONS" in sandbox_py
     assert ".bat" in sandbox_py and ".cmd" in sandbox_py and ".ps1" in sandbox_py
+
+
+def test_windows_package_lifecycle_bundling_contract():
+    """Beweis: build_package.ps1 bündelt install_service.ps1, status.bat und stop.bat,
+    und smoke_package.ps1 erzwingt diese Lifecycle-Dateien als erforderliche Paketbestandteile (GB-PKG-06)."""
+    repo_root = Path(__file__).resolve().parents[1]
+    build_ps1 = (repo_root / "scripts" / "windows_worker" / "build_package.ps1").read_text(encoding="utf-8")
+    smoke_ps1 = (repo_root / "scripts" / "windows_worker" / "smoke_package.ps1").read_text(encoding="utf-8")
+
+    # Invariante 1: build_package.ps1 kopiert install_service.ps1, status.bat, stop.bat
+    assert 'Copy-Item "$PSScriptRoot\\install_service.ps1" -Destination $OutDir' in build_ps1
+    assert 'Copy-Item "$PSScriptRoot\\status.bat" -Destination $OutDir' in build_ps1
+    assert 'Copy-Item "$PSScriptRoot\\stop.bat" -Destination $OutDir' in build_ps1
+
+    # Invariante 2: smoke_package.ps1 listet install_service.ps1, status.bat, stop.bat in $requiredFiles
+    assert '"install_service.ps1"' in smoke_ps1
+    assert '"status.bat"' in smoke_ps1
+    assert '"stop.bat"' in smoke_ps1
