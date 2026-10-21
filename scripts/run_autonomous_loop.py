@@ -224,7 +224,8 @@ class AutonomousLevel6Loop:
         pid = os.getpid()
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
-        if lock_file.exists():
+        creating_new = not lock_file.exists()
+        if not creating_new:
             try:
                 data = load_json(lock_file)
             except json.JSONDecodeError as exc:
@@ -274,8 +275,29 @@ class AutonomousLevel6Loop:
             "created_at": now_iso,
             "updated_at": now_iso,
         }
-        save_json(lock_file, lock_data)
+        if creating_new:
+            # Two runners can both observe a missing file. Exclusive create
+            # fails closed if the other runner creates the lock first.
+            # Same-PID refresh of an existing readable lock still uses save_json.
+            self._create_workflow_lock_exclusive(lock_file, lock_data)
+        else:
+            save_json(lock_file, lock_data)
         return lock_file
+
+    def _create_workflow_lock_exclusive(self, lock_file: Path, lock_data: dict) -> None:
+        """Create a new lock with O_EXCL. An existing file is never replaced."""
+        payload = (json.dumps(lock_data, indent=2) + "\n").encode("utf-8")
+        try:
+            fd = os.open(lock_file, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+        except FileExistsError as exc:
+            raise WorkflowLockedError(
+                f"Workflow {lock_data.get('workflow_id')} lock appeared during create; refusing to take it."
+            ) from exc
+        try:
+            os.write(fd, payload)
+            os.fsync(fd)
+        finally:
+            os.close(fd)
 
     def release_workflow_lock(self, workflow_id: str) -> None:
         """Releases the workflow lock file."""

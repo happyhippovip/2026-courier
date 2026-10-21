@@ -1,6 +1,7 @@
 import pytest
 import os
 import json
+import threading
 from pathlib import Path
 from unittest import mock
 import sys
@@ -85,6 +86,60 @@ def test_unreadable_workflow_lock_is_not_taken(repo_dir):
         loop.acquire_workflow_lock("wf-torn", "corr-1", "task-1")
 
     assert lock_file.read_text(encoding="utf-8") == original
+
+
+def test_two_contenders_cannot_both_acquire_a_missing_lock(repo_dir):
+    """Both runners observe a missing lock, then exclusive create admits one."""
+    loop_a = AutonomousLevel6Loop(repo_dir=repo_dir)
+    loop_b = AutonomousLevel6Loop(repo_dir=repo_dir)
+    lock_file = repo_dir / "events" / "locks" / "wf-both.lock"
+    both_saw_missing = threading.Barrier(2)
+    real_exists = Path.exists
+    ident_to_pid = {}
+
+    def missing_until_both_look(self):
+        if self == lock_file:
+            both_saw_missing.wait(timeout=5)
+            return False
+        return real_exists(self)
+
+    def fake_getpid():
+        return ident_to_pid[threading.get_ident()]
+
+    def fake_process(pid):
+        proc = mock.MagicMock()
+        proc.create_time.return_value = float(pid)
+        return proc
+
+    outcomes = []
+    gate = threading.Lock()
+
+    def run(loop, fake_pid):
+        ident_to_pid[threading.get_ident()] = fake_pid
+        try:
+            loop.acquire_workflow_lock("wf-both", "corr", "task")
+            status = "acquired"
+        except WorkflowLockedError:
+            status = "refused"
+        with gate:
+            outcomes.append((fake_pid, status))
+
+    with mock.patch.object(Path, "exists", missing_until_both_look), \
+         mock.patch("os.getpid", fake_getpid), \
+         mock.patch("psutil.Process", fake_process):
+        threads = [
+            threading.Thread(target=run, args=(loop_a, 111111)),
+            threading.Thread(target=run, args=(loop_b, 222222)),
+        ]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join(timeout=10)
+            assert not thread.is_alive()
+
+    assert sorted(status for _, status in outcomes) == ["acquired", "refused"]
+    holder = json.loads(lock_file.read_text(encoding="utf-8"))["pid"]
+    assert [pid for pid, status in outcomes if status == "acquired"] == [holder]
 
 
 def test_workflow_lock_without_holder_is_not_taken(repo_dir):
