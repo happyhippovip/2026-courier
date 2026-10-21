@@ -323,6 +323,12 @@ At update time (2026-10-07):
   - Blockers ohne aktiven dokumentierten Grund und foreign blockers fallen fail-closed auf `UNKNOWN`.
   - Anbindung an Kolibri Neon CSS Tokens (`--neon-green`, `--neon-blue`, etc.).
   - Tests: `tests/desktop/evidence_badge.test.mjs` auf 17/17 PASS erweitert; gesamte Desktop-Suite auf 49/49 PASS gehoben (0 Regressionen).
+- **STEP 60 L6 WINDOWS HUB SPEC FIX & PILOT BLOCKERS MERGE (21.10.2026):**
+  - Merge von `origin/ag03/win-pilot-blockers` (inkl. `origin/ag03/windows-build-ci`):
+  - Behebung des fehlenden Imports `from pathlib import Path` in `scripts/courier_hub_windows.spec` (beseitigt `NameError: name 'Path' is not defined` beim PyInstaller-Build von `CourierHub.exe`).
+  - Neuer Regressionstest `test_spec_executes_with_pyinstaller_globals` in `tests/test_windows_exe_build.py`.
+  - Windows Launcher `install.ps1` baut nun `CourierLauncher.cs` sauber aus den Quellen mit `csc.exe`, falls vorhanden; `stop.ps1` stoppt zielgenau per PID nur eigene Prozesse.
+  - Tests: `tests/test_windows_exe_build.py` 5 passed, 2 skipped (1 Windows-only, 1 Sandbox-Loopback); Desktop-Suite 49/49 PASS; State/Auth/Process/Resource Boundaries 100% VALID.
 - next critical implementation path:
   **WINDOWS CLEAN-MACHINE ACCEPTANCE & WEBSITE HUMAN GATE**: Abnahme auf dem sauberen Windows-Host nach Host-Boot; Prüfung des Website-Impressums am Dennis Human-Gate (`fc219a1`).
 

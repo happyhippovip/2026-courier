@@ -902,3 +902,17 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
   - `pytest tests/test_windows_exe_build.py`: 5 passed, 1 skipped (evidence badge packaging contract verified).
   - `pytest tests/test_runtime_lease.py`: 13 passed.
 - Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
+
+## Step 60 — L6 Windows Hub Spec Fix & Pilot Blockers Resolution (Commits `3165c63b6`, `006d80e08`)
+### `scripts/courier_hub_windows.spec`, `scripts/windows_worker/`, `tests/test_windows_exe_build.py`
+- Merged `origin/ag03/win-pilot-blockers` resolving critical Windows packaging & pilot blocker defects:
+  - **PyInstaller Hub Spec Missing Import Fixed:** Added missing `from pathlib import Path` to `scripts/courier_hub_windows.spec`. Eliminates `NameError: name 'Path' is not defined` during Windows `CourierHub.exe` standalone builds.
+  - **Spec Execution Test:** Added `test_spec_executes_with_pyinstaller_globals` to `tests/test_windows_exe_build.py`, ensuring all symbols required by PyInstaller's `exec()` environment are imported.
+  - **Windows Launcher Source Compilation:** `scripts/windows_worker/install.ps1` now compiles `CourierLauncher.cs` from source via .NET Framework `csc.exe` when present, ensuring the installed launcher binary matches repository source.
+  - **Targeted Stop by PID:** `scripts/windows_worker/stop.ps1` terminates only the owned Courier process tree by recorded PID, leaving user browsers and unrelated processes untouched.
+  - **Live Windows CI Integration:** Updated `.github/workflows/v1-ci.yml` to compile C# launcher and Hub EXE on Windows CI, and added `tests/test_windows_live_install_stop.py`.
+- Verified test coverage:
+  - `pytest tests/test_windows_exe_build.py`: 5 passed, 2 skipped (1 non-windows skip, 1 loopback socket skip on Darwin sandbox).
+  - `node --test tests/desktop/*.test.mjs`: 49/49 PASS (zero regressions).
+  - Boundary integrity: `scripts/verify_state_isolation.py` VALID, `scripts/verify_auth_boundaries.py` VALID, `scripts/verify_process_isolation.py` VALID, `scripts/verify_resource_admission.py` VALID.
+- Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
