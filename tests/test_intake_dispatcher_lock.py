@@ -25,7 +25,7 @@ def load_dispatcher(monkeypatch, tmp_path):
 
 def write_intake(path, ref):
     path.write_text(json.dumps({"customer_reference": ref, "target_owner": "o",
-                                "target_repo": "r", "target_sha": "s"}))
+                                "target_repo": "r", "target_sha": "s", "paid": True}))
 
 
 def run_thread(d, path, errors):

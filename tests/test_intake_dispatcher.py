@@ -20,7 +20,8 @@ def test_dispatch_intake_success(tmp_path):
         "target_owner": "test_owner",
         "target_repo": "test_repo",
         "target_sha": "123456",
-        "customer_reference": "CUST-001"
+        "customer_reference": "CUST-001",
+        "paid": True
     }))
     
     # Run binding (exactly one new run after dispatch, else UNBOUND) is pinned by
@@ -67,7 +68,8 @@ def test_dispatch_intake_subprocess_error(tmp_path):
         "target_owner": "test_owner",
         "target_repo": "test_repo",
         "target_sha": "123456",
-        "customer_reference": "CUST-001"
+        "customer_reference": "CUST-001",
+        "paid": True
     }))
     
     with mock.patch("scripts.intake_dispatcher.subprocess.run", side_effect=subprocess.CalledProcessError(1, "cmd", stderr="error")):
@@ -83,7 +85,8 @@ def test_dispatch_intake_corrupt_state_fails_closed(tmp_path):
         "target_owner": "test_owner",
         "target_repo": "test_repo",
         "target_sha": "123456",
-        "customer_reference": "CUST-001"
+        "customer_reference": "CUST-001",
+        "paid": True
     }))
 
     state_file = "central_state.json"
@@ -99,3 +102,82 @@ def test_dispatch_intake_corrupt_state_fails_closed(tmp_path):
 
     with open(state_file, "r") as f:
         assert f.read() == "not a valid json"
+
+
+def _paid_intake(**extra):
+    intake = {
+        "target_owner": "test_owner",
+        "target_repo": "test_repo",
+        "target_sha": "123456",
+        "customer_reference": "CUST-UNPAID",
+    }
+    intake.update(extra)
+    return intake
+
+
+def test_missing_paid_marker_does_not_run_workflow(tmp_path):
+    intake_file = tmp_path / "intake.json"
+    intake_file.write_text(json.dumps(_paid_intake()))
+    with mock.patch("scripts.intake_dispatcher.subprocess.run") as mock_run:
+        with pytest.raises(intake_dispatcher.UnpaidIntakeError):
+            intake_dispatcher.dispatch_intake(str(intake_file))
+        mock_run.assert_not_called()
+    assert not os.path.exists("central_state.json")
+
+
+def test_paid_false_does_not_run_workflow(tmp_path):
+    intake_file = tmp_path / "intake.json"
+    intake_file.write_text(json.dumps(_paid_intake(paid=False)))
+    with mock.patch("scripts.intake_dispatcher.subprocess.run") as mock_run:
+        with pytest.raises(intake_dispatcher.UnpaidIntakeError):
+            intake_dispatcher.dispatch_intake(str(intake_file))
+        mock_run.assert_not_called()
+
+
+def test_paid_true_dispatches_when_there_is_no_single_canonical_price(tmp_path, monkeypatch):
+    # pricing_config is 149/390 and the website shows 99 and 149. Do not pick one.
+    prices = intake_dispatcher._published_prices()
+    assert prices == {99, 149, 390}
+    intake_file = tmp_path / "intake.json"
+    intake_file.write_text(json.dumps(_paid_intake(paid=True, customer_reference="CUST-PAID")))
+    with mock.patch("scripts.intake_dispatcher.subprocess.run") as mock_run, \
+         mock.patch("scripts.intake_dispatcher.resolve_execution_ref", return_value="9999"), \
+         mock.patch("scripts.intake_dispatcher.time.sleep"):
+
+        def fake_run(cmd, *args, **kwargs):
+            assert cmd[1] == "workflow"
+            return mock.Mock(stdout="dispatched")
+
+        mock_run.side_effect = fake_run
+        intake_dispatcher.dispatch_intake(str(intake_file))
+        assert mock_run.call_count == 1
+
+
+def test_single_canonical_price_must_match_exactly(tmp_path, monkeypatch):
+    monkeypatch.setattr(intake_dispatcher, "_published_prices", lambda root=None: {149})
+    intake_file = tmp_path / "intake.json"
+    intake_file.write_text(json.dumps(_paid_intake(paid=True, price_eur=99)))
+    with mock.patch("scripts.intake_dispatcher.subprocess.run") as mock_run:
+        with pytest.raises(intake_dispatcher.UnpaidIntakeError):
+            intake_dispatcher.dispatch_intake(str(intake_file))
+        mock_run.assert_not_called()
+
+    intake_file.write_text(json.dumps(_paid_intake(
+        paid=True, price_eur=149, customer_reference="CUST-149")))
+    with mock.patch("scripts.intake_dispatcher.subprocess.run") as mock_run, \
+         mock.patch("scripts.intake_dispatcher.resolve_execution_ref", return_value="9999"), \
+         mock.patch("scripts.intake_dispatcher.time.sleep"):
+        mock_run.return_value = mock.Mock(stdout="dispatched")
+        intake_dispatcher.dispatch_intake(str(intake_file))
+        workflow_cmds = [call.args[0] for call in mock_run.call_args_list if call.args[0][1] == "workflow"]
+        assert len(workflow_cmds) == 1
+
+
+def test_single_canonical_price_rejects_missing_price(tmp_path, monkeypatch):
+    monkeypatch.setattr(intake_dispatcher, "_published_prices", lambda root=None: {149})
+    intake_file = tmp_path / "intake.json"
+    intake_file.write_text(json.dumps(_paid_intake(paid=True)))
+    with mock.patch("scripts.intake_dispatcher.subprocess.run") as mock_run:
+        with pytest.raises(intake_dispatcher.UnpaidIntakeError):
+            intake_dispatcher.dispatch_intake(str(intake_file))
+        mock_run.assert_not_called()

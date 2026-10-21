@@ -30,6 +30,7 @@ def _valid_intake(tmp_path):
                 "target_owner": "o",
                 "target_repo": "r",
                 "target_sha": "s",
+                "paid": True,
             }
         )
     )
