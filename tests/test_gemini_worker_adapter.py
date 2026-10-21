@@ -287,7 +287,7 @@ def test_gemini_worker_timeout_kills_process_tree(tmp_path, monkeypatch):
         "timeout_seconds": 0.05,
     }))
 
-    mock_process = mock.Mock()
+    mock_process = mock.MagicMock()
     mock_process.pid = 77777
     mock_process.communicate.side_effect = [
         subprocess.TimeoutExpired(cmd=["agy"], timeout=0.05),
@@ -295,13 +295,17 @@ def test_gemini_worker_timeout_kills_process_tree(tmp_path, monkeypatch):
     ]
 
     with mock.patch("subprocess.Popen", return_value=mock_process) as mock_popen:
-        with mock.patch("os.killpg", create=True) as mock_killpg:
-            pid, d_ref, r_ref = gemini_worker_adapter.run_worker(str(task_file))
+        with mock.patch("subprocess.run") as mock_run:
+            with mock.patch("os.killpg", create=True) as mock_killpg:
+                pid, d_ref, r_ref = gemini_worker_adapter.run_worker(str(task_file))
 
     assert pid == 77777
     if os.name != "nt":
         assert mock_popen.call_args.kwargs.get("start_new_session") is True
         mock_killpg.assert_called_once()
+    else:
+        mock_run.assert_called_once()
+        assert "taskkill" in mock_run.call_args.args[0]
     mock_process.kill.assert_called_once()
 
     res_data = json.loads((tmp_path / r_ref).read_text())
