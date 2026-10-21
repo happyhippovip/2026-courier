@@ -1,5 +1,7 @@
 """Local Repo Reality Check. Fixtures live under tmp_path. No network."""
 
+from __future__ import annotations
+
 import json
 import socket
 import subprocess

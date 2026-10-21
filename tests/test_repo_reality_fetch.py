@@ -1,5 +1,7 @@
 """Offline tests for the public GitHub tarball fetch. No network."""
 
+from __future__ import annotations
+
 import email
 import hashlib
 import io
@@ -210,7 +212,7 @@ def test_symlink_and_hardlink_escape_and_device_are_rejected(monkeypatch):
     ]
     messages = ["link points outside", "link points outside", "link points outside", "device file"]
     created = _track_temp(monkeypatch)
-    for payload, message in zip(cases, messages, strict=True):
+    for payload, message in zip(cases, messages):
         monkeypatch.setattr(fetch, "urlopen", _serve(payload))
         with pytest.raises(FetchError, match=message):
             fetch.fetch_public("acme/widgets@main")
