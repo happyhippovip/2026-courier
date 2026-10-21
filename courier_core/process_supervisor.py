@@ -17,6 +17,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from courier_core.process_tree import kill_process_tree
+
 
 class ProcessStatus(str, Enum):
     STOPPED = "STOPPED"
@@ -121,13 +123,9 @@ class ProcessSupervisor:
 
             p = proc.popen
 
-        # Terminate outside lock
+        # Terminate process tree outside lock (S05)
         try:
-            p.terminate()
-            p.wait(timeout=timeout)
-        except subprocess.TimeoutExpired:
-            p.kill()
-            p.wait(timeout=1.0)
+            kill_process_tree(p, timeout_s=timeout)
         except Exception:
             pass
 

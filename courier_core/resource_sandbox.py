@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import asdict, dataclass
+from courier_core.process_tree import kill_process_tree
 import json
 import os
 import shlex
@@ -76,27 +77,8 @@ class ProcessSandbox:
         pass
 
     def _kill_process_tree(self, pid: int) -> None:
-        """Forcefully terminate process and all child processes."""
-        if sys.platform == "win32":
-            try:
-                subprocess.run(
-                    ["taskkill", "/F", "/T", "/PID", str(pid)],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                    check=False,
-                )
-            except Exception:
-                pass
-        else:
-            try:
-                import signal
-                os.killpg(os.getpgid(pid), signal.SIGKILL)
-            except Exception:
-                try:
-                    os.kill(pid, 9)
-                except Exception:
-                    pass
-
+        """Forcefully terminate process and all child processes (S05)."""
+        kill_process_tree(pid)
     def run(
         self,
         command: list[str] | str,

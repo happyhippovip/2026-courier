@@ -124,31 +124,35 @@ class LocalShellTimeout(RuntimeError):
 
 
 def _kill_process_tree(proc: subprocess.Popen) -> None:
-    """Terminate child process and its process tree to prevent orphan processes."""
-    pid = getattr(proc, "pid", None)
-    if isinstance(pid, int) and pid > 0 and pid != os.getpid():
-        if os.name == "nt":
-            subprocess.run(
-                ["taskkill", "/PID", str(pid), "/T", "/F"],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                timeout=10,
-                check=False,
-                shell=False,
-            )
-        else:
-            try:
-                os.killpg(pid, signal.SIGKILL)
-            except (ProcessLookupError, PermissionError, OSError):
-                pass
+    """Terminate child process and its process tree to prevent orphan processes (S05)."""
     try:
-        proc.kill()
-    except Exception:
-        pass
-    try:
-        proc.communicate(timeout=5)
-    except Exception:
-        pass
+        from courier_core.process_tree import kill_process_tree
+        kill_process_tree(proc)
+    except ImportError:
+        pid = getattr(proc, "pid", None)
+        if isinstance(pid, int) and pid > 0 and pid != os.getpid():
+            if os.name == "nt":
+                subprocess.run(
+                    ["taskkill", "/PID", str(pid), "/T", "/F"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=10,
+                    check=False,
+                    shell=False,
+                )
+            else:
+                try:
+                    os.killpg(pid, signal.SIGKILL)
+                except (ProcessLookupError, PermissionError, OSError):
+                    pass
+        try:
+            proc.kill()
+        except Exception:
+            pass
+        try:
+            proc.communicate(timeout=5)
+        except Exception:
+            pass
 
 
 def _normalize_token(text: str) -> str:
