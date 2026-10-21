@@ -1001,3 +1001,21 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
   - All local test suites pass 100% green.
   - Ledger integrity check passed on every merge commit.
 - Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
+
+## Step 66 — Kolibri Truth Proof & Work-Queue Windows Byte Lock Fix (Commits `162794a50`, `91eafe071`)
+### `courier_hub/`, `courier_core/work_queue.py`, `tests/`
+- Merged and verified:
+  - **L5 PR #725 (`ag03/kolibri-truth-black-orb`):**
+    - Enforced verifier evidence in Kolibri only from journaled `RESULT_ACCEPTED` proof (`proof["event"] == "RESULT_ACCEPTED"`, seq >= 1, valid `result_id`). Event ID is strictly mapped to `journal:<seq>:RESULT_ACCEPTED`, preventing synthesized or unproven events from emitting green pulses.
+    - Enforced fail-closed behavior for arbitrage research: without a valid `registries/arbitrage_research.json`, verified revenue carries `{"status": UNAVAILABLE}` without fabricating numbers (`amount_eur: 0.00`).
+    - Added comprehensive P0 truth test suite (`tests/hub/test_kolibri_truth_p0.py`): **16/16 PASS**.
+    - Verified all desktop JS tests (`tests/desktop/*.test.mjs`): **59/59 PASS**.
+    - Verified all hub tests (`tests/hub/`): **131/131 PASS**.
+  - **L2 PR #727 / #749 (`l2-proposal/work-queue-lock-race`):**
+    - Removed empty byte write (`os.write(fd, b"\0")`) prior to acquiring file lock in `courier_core/work_queue.py`. On Windows, byte-range locks are mandatory; writing into byte 0 while another claimant held it caused `PermissionError` and intermittent race condition failures in `test_concurrent_claims_one_winner`.
+    - Added mandatory byte lock emulation test (`tests/test_work_queue_windows_lock.py`): **16/16 PASS** across work queue suite.
+- Verified test coverage:
+  - `tests/hub/`: **131/131 PASS**.
+  - `tests/desktop/*.test.mjs`: **59/59 PASS**.
+  - `tests/test_work_queue*.py`: **16/16 PASS**.
+- Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
