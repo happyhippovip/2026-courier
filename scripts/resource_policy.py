@@ -11,6 +11,7 @@ import hashlib
 import json
 import math
 import os
+import time
 from pathlib import Path
 from typing import Any
 
@@ -237,11 +238,22 @@ class TaskLeaseManager:
                     # Another builder holds an active unexpired lease
                     return False, "TASK_ALREADY_CLAIMED_BY_ANOTHER_BUILDER", existing
 
-        # 3. Existing lease is expired -> acquire task-specific atomic reclaim lock
-        try:
-            lock_fd = os.open(reclaim_lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
-        except FileExistsError:
-            # Another competing process is currently in the middle of reclaiming this expired lease
+        # 3. Existing lease is expired -> acquire task-specific atomic reclaim lock.
+        # On Windows a delete-pending lock raises PermissionError, not FileExistsError.
+        # That lost race must block. It must not crash and it must not claim twice.
+        lock_fd = None
+        for _attempt in range(8):
+            try:
+                lock_fd = os.open(reclaim_lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+                break
+            except (FileExistsError, PermissionError):
+                current_existing = load_json(lease_path) or existing or {}
+                if current_existing.get("expires_at", 0) > now_ts:
+                    return False, "TASK_ALREADY_CLAIMED_BY_ANOTHER_BUILDER", current_existing
+                time.sleep(0.02)
+        if lock_fd is None:
+            # The reclaim lock stayed busy. That is the other builder's claim,
+            # even when this process has not yet observed the renewed expiry.
             current_existing = load_json(lease_path) or existing or {}
             return False, "TASK_ALREADY_CLAIMED_BY_ANOTHER_BUILDER", current_existing
 
@@ -260,6 +272,13 @@ class TaskLeaseManager:
             temp_reclaim = lease_path.with_suffix(f".tmp.{os.getpid()}.{now_ts}")
             save_json(temp_reclaim, lease_data)
             os.replace(temp_reclaim, lease_path)
+            # Windows FlushFileBuffers rejects a read-only handle (EBADF).
+            # The winner must flush the replaced lease before the reclaim lock drops.
+            synced = os.open(str(lease_path), os.O_RDWR)
+            try:
+                os.fsync(synced)
+            finally:
+                os.close(synced)
             self._sync_authority_acquire(task_id, task_hash, owner_id, duration_sec, lease_data)
             return True, "LEASE_RECLAIMED_EXPIRED", lease_data
         finally:
