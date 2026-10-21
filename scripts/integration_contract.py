@@ -81,6 +81,10 @@ def prepare_task(task: dict) -> dict:
     packet.setdefault("result_id", None)
     packet.setdefault("artifacts", [f"courier_canary_{task_id}.txt"])
     packet.setdefault("status", "QUEUED")
+    if bool(packet.get("unknown_cost")):
+        packet["estimated_cost_eur"] = None
+    else:
+        packet.setdefault("estimated_cost_eur", 0.0)
     if packet["status"] not in TASK_STATES:
         raise ContractError(f"invalid task status: {packet['status']}")
     return packet

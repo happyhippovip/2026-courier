@@ -243,3 +243,93 @@ def test_case_i_unknown_cost_boolean_flag_blocked(test_client):
     claim = test_client.post("/tasks/claim", json={"worker_id": "W-04"}, headers=TEST_AUTH).get_json()
     assert claim["task"] is None
     assert claim["reason"] == "UNKNOWN_COST_UNAUTHORIZED"
+
+
+def test_case_j_missing_cost_in_state_fails_closed_and_is_blocked(test_client):
+    """Case J: A task injected into state without estimated_cost_eur fails closed and is blocked."""
+    test_client.post("/workers/register", json={
+        "worker_id": "W-05",
+        "capabilities": ["linux"],
+        "cost_class": "free"
+    }, headers=TEST_AUTH)
+
+    # Directly create a goal in state where a task completely lacks estimated_cost_eur
+    state = server_app.load_state()
+    goal_id = "goal-raw-missing-cost"
+    task_id = "task-raw-missing-cost"
+    raw_task = {
+        "task_id": task_id,
+        "goal_id": goal_id,
+        "instruction": "Unannotated raw task",
+        "target_agent": "linux",
+        "target_capability": "linux",
+        "status": "QUEUED",
+        "attempts": 0,
+    }
+    state["goals"][goal_id] = {
+        "goal_id": goal_id,
+        "goal_text": "Goal with unannotated task",
+        "status": "ACTIVE",
+        "budget_limit": 0.0,
+        "budget_spent": 0.0,
+        "workflow_plan": [raw_task],
+        "current_step_index": 0,
+    }
+    state["tasks"][task_id] = raw_task
+    server_app.save_state(state)
+
+    claim = test_client.post("/tasks/claim", json={"worker_id": "W-05"}, headers=TEST_AUTH).get_json()
+    assert claim["task"] is None
+    assert claim["reason"] == "UNKNOWN_COST_UNAUTHORIZED"
+
+    # Verify task state is marked blocked
+    updated_state = server_app.load_state()
+    assert updated_state["tasks"][task_id]["status"] == "BLOCKED_COST_AUTHORIZATION"
+    assert updated_state["tasks"][task_id]["blocked_reason"] == "UNKNOWN_COST_UNAUTHORIZED"
+
+
+def test_case_k_unknown_cost_truthy_string_blocked(test_client):
+    """Case K: Tasks with truthy unknown_cost strings (e.g. 'true') are strictly blocked."""
+    test_client.post("/workers/register", json={
+        "worker_id": "W-06",
+        "capabilities": ["linux"],
+        "cost_class": "free"
+    }, headers=TEST_AUTH)
+
+    test_client.post("/goals", json={
+        "goal_text": "Task with unknown_cost='true'",
+        "workflow_plan": [{
+            "task_id": "task-flag-str-01",
+            "instruction": "Test truthy unknown_cost string",
+            "target_agent": "linux",
+            "unknown_cost": "true",
+        }]
+    }, headers=TEST_AUTH)
+
+    claim = test_client.post("/tasks/claim", json={"worker_id": "W-06"}, headers=TEST_AUTH).get_json()
+    assert claim["task"] is None
+    assert claim["reason"] == "UNKNOWN_COST_UNAUTHORIZED"
+
+
+def test_case_l_prepare_task_sanitizes_missing_cost_and_preserves_unknown():
+    """Case L: prepare_task binds estimated_cost_eur=0.0 by default, and None for unknown."""
+    from scripts.integration_contract import prepare_task
+
+    # 1. Default zero-cost for standard tasks
+    t1 = prepare_task({"task_id": "t1", "goal_id": "g1", "target_agent": "windows"})
+    assert t1["estimated_cost_eur"] == 0.0
+
+    # 2. Preserves explicit positive cost
+    t2 = prepare_task({"task_id": "t2", "goal_id": "g1", "target_agent": "windows", "estimated_cost_eur": 12.5})
+    assert t2["estimated_cost_eur"] == 12.5
+
+    # 3. Preserves explicit None
+    t3 = prepare_task({"task_id": "t3", "goal_id": "g1", "target_agent": "windows", "estimated_cost_eur": None})
+    assert t3["estimated_cost_eur"] is None
+
+    # 4. Sets None when unknown_cost is True or truthy
+    t4 = prepare_task({"task_id": "t4", "goal_id": "g1", "target_agent": "windows", "unknown_cost": True})
+    assert t4["estimated_cost_eur"] is None
+
+    t5 = prepare_task({"task_id": "t5", "goal_id": "g1", "target_agent": "windows", "unknown_cost": "yes"})
+    assert t5["estimated_cost_eur"] is None

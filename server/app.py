@@ -453,12 +453,10 @@ def claim_task():
                         # Pre-dispatch cost authorization gate:
                         # Check estimated task cost and resource tier against CostGate.
                         # Fail-closed: unknown cost or unapproved positive spend blocks dispatch.
-                        if next_task.get("unknown_cost") is True:
+                        if bool(next_task.get("unknown_cost")):
                             est_cost = None
-                        elif "estimated_cost_eur" in next_task:
-                            est_cost = next_task["estimated_cost_eur"]
                         else:
-                            est_cost = 0.0
+                            est_cost = next_task.get("estimated_cost_eur")
                         res_id = next_task.get("resource_id", "google_antigravity_plus")
                         cost_eval = CostGate.evaluate_spend_request(
                             resource_id=res_id,
