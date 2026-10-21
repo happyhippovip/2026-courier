@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Courier — Magic Composer</title>
+  <meta name="description" content="Ein Satz an Courier. Datei und Sprache auf Wunsch. Dann prüfen, absenden, Task-ID.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23090a0e'/%3E%3Cpath d='M6 20c6-2 10-8 20-9' fill='none' stroke='%23c9b0ff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./composer.css">
+</head>
+<body>
+  <a class="skip" href="#goal">Zum Auftrag</a>
+  <main class="shell">
+    <header class="intro">
+      <p class="brand"><span class="brand-mark">Courier</span><span class="brand-name">Magic Composer</span></p>
+      <h1>Was soll Courier <span class="title-rest">für dich tun?</span></h1>
+      <p class="lead">Ein Satz genügt. Datei und Sprache nur auf Wunsch.</p>
+      <ol class="path" id="path" aria-label="Ablauf">
+        <li data-step="type" aria-current="step">Tippen</li>
+        <li data-step="file">Datei<span class="sr-only">, optional</span></li>
+        <li data-step="voice">Sprache<span class="sr-only">, optional</span></li>
+        <li data-step="review">Prüfen</li>
+        <li data-step="send">Absenden</li>
+        <li data-step="task">Task-ID</li>
+      </ol>
+    </header>
+
+    <section class="stage" id="stage" data-phase="compose" aria-labelledby="composer-label">
+      <h2 class="sr-only" id="composer-label">Auftrag</h2>
+      <div class="field" id="field">
+        <div class="aurora" aria-hidden="true">
+          <span class="aurora-breath"></span>
+          <span class="aurora-core"></span>
+        </div>
+
+        <div class="glass">
+          <div id="compose">
+            <label class="sr-only" for="goal">Dein Auftrag</label>
+            <textarea id="goal" rows="3" spellcheck="true" autocomplete="off" enterkeyhint="done" placeholder="Erstelle mir einen Bericht aus diesen Dateien." aria-describedby="execution-hint permission-hint key-hint"></textarea>
+            <ul class="chips" id="chips" hidden></ul>
+            <p class="caption" id="voice-caption" hidden></p>
+            <div class="ask" id="voice-ask" hidden>
+              <p id="voice-ask-text">Mikrofon nur für diese Eingabe. Der Text bleibt hier, bis du absendest.</p>
+              <div class="ask-actions">
+                <button type="button" id="voice-allow">Erlauben</button>
+                <button type="button" id="voice-decline">Nicht jetzt</button>
+              </div>
+            </div>
+            <p class="drop-note" id="drop-note">Dateien loslassen, um sie aufzunehmen.</p>
+            <div class="rail">
+              <button type="button" class="tool" id="file-button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7.5A1.5 1.5 0 0 0 6 4.5v15A1.5 1.5 0 0 0 7.5 21h9a1.5 1.5 0 0 0 1.5-1.5V8L14 3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 3v5h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+                Datei
+              </button>
+              <input id="file-input" class="file-input" type="file" multiple tabindex="-1" aria-hidden="true">
+              <button type="button" class="tool" id="voice-button" aria-pressed="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6.5 11.5a5.5 5.5 0 0 0 11 0M12 17v3.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                <span id="voice-label">Sprache</span>
+              </button>
+              <button type="button" class="send" id="review-button" aria-disabled="true">Auftrag prüfen</button>
+            </div>
+          </div>
+
+          <div id="review" hidden>
+            <h2 id="review-heading" tabindex="-1">Auftrag prüfen</h2>
+            <blockquote id="goal-quote" class="goal-quote"></blockquote>
+            <dl class="facts">
+              <div><dt>Dateien</dt><dd id="review-files"></dd></div>
+              <div><dt>Sprache</dt><dd id="review-voice"></dd></div>
+              <div><dt>Ausführung</dt><dd id="review-execution"></dd></div>
+              <div><dt>Berechtigung</dt><dd id="review-permission"></dd></div>
+            </dl>
+            <div class="rail">
+              <button type="button" class="tool" id="back-button">Zurück</button>
+              <button type="button" class="send is-ready" id="send-button">Absenden</button>
+            </div>
+          </div>
+
+          <div id="receipt" hidden>
+            <h2 id="receipt-heading" tabindex="-1">Auftrag bereit</h2>
+            <p class="receipt-note">Die Task-ID gehört zu diesem Auftrag.</p>
+            <div class="task-well">
+              <div class="task-row">
+                <span class="task-label">Task-ID</span>
+                <button type="button" class="send is-ready" id="copy-button">Kopieren</button>
+              </div>
+              <p id="task-id" class="task-id"></p>
+            </div>
+            <div class="rail rail-end">
+              <button type="button" class="tool" id="again-button">Neuen Auftrag</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="notes">
+        <p><span class="note-label">Ausführung</span> <span id="execution-hint">Absenden vergibt eine Task-ID. Die Ausführung beginnt nach deiner Freigabe.</span></p>
+        <p><span class="note-label">Berechtigung</span> <span id="permission-hint">Datei und Mikrofon bleiben geschlossen, bis du sie hier öffnest. Übernommen werden dein Text und die Dateinamen.</span></p>
+        <p><span class="note-label">Taste</span> <span id="key-hint">Strg + Enter oder Befehl + Enter geht den nächsten Schritt.</span></p>
+      </div>
+    </section>
+    <p id="status" class="sr-only" role="status" aria-live="polite"></p>
+  </main>
+  <noscript><p class="noscript">Dieser Entwurf braucht JavaScript, damit Prüfen und die Task-ID hier entstehen.</p></noscript>
+  <script type="module" src="./composer.mjs"></script>
+</body>
+</html>
