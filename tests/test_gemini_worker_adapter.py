@@ -295,7 +295,7 @@ def test_gemini_worker_timeout_kills_process_tree(tmp_path, monkeypatch):
     ]
 
     with mock.patch("subprocess.Popen", return_value=mock_process) as mock_popen:
-        with mock.patch("os.killpg") as mock_killpg:
+        with mock.patch("os.killpg", create=True) as mock_killpg:
             pid, d_ref, r_ref = gemini_worker_adapter.run_worker(str(task_file))
 
     assert pid == 77777

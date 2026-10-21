@@ -132,23 +132,36 @@ def test_windows_writer_lease_cross_process_mutual_exclusion(tmp_path, monkeypat
     ready_file = tmp_path / "child.ready"
     stop_file = tmp_path / "child.stop"
 
-    child_script = f"""
+    repo_root = str(Path(__file__).resolve().parents[1])
+    child_script = """
 import sys, time
 from pathlib import Path
-sys.path.insert(0, '{Path(__file__).resolve().parents[1]}')
+sys.path.insert(0, sys.argv[1])
 from scripts.windows_worker import daemon
-lock = daemon.acquire_lock('{worker_id}')
+worker_id = sys.argv[2]
+ready_file = Path(sys.argv[3])
+stop_file = Path(sys.argv[4])
+
+lock = daemon.acquire_lock(worker_id)
 assert lock is not None, 'Child could not acquire lock'
-Path('{ready_file}').write_text('READY')
+ready_file.write_text('READY')
 
 # Wait for parent signal to release
 deadline = time.monotonic() + 10
-while time.monotonic() < deadline and not Path('{stop_file}').exists():
+while time.monotonic() < deadline and not stop_file.exists():
     time.sleep(0.05)
 
 daemon.release_lock(lock)
 """
-    proc = subprocess.Popen([sys.executable, "-c", child_script])
+    proc = subprocess.Popen([
+        sys.executable,
+        "-c",
+        child_script,
+        repo_root,
+        worker_id,
+        str(ready_file),
+        str(stop_file),
+    ])
     try:
         # Wait for child to durably hold the lock
         deadline = time.monotonic() + 10
