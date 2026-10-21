@@ -229,3 +229,34 @@ def test_verify_file_access_unicode_credential_blocked(tmp_path):
         verdict = verifier.verify_file_access(s_file)
         assert verdict.allowed is False
         assert any("Sensitive credential access" in v for v in verdict.violations)
+
+
+def test_verify_command_control_characters_and_newlines_blocked(tmp_path):
+    verifier = SandboxJailVerifier(allowed_roots=[tmp_path])
+    bad_cmds = [
+        "python -c 'print(1)'\ncalc.exe",
+        "echo test\r\nwhoami",
+        ["python", "arg1\narg2"],
+        ["python", "arg1\rarg2"],
+    ]
+    for cmd in bad_cmds:
+        verdict = verifier.verify_command(cmd)
+        assert verdict.allowed is False
+        assert verdict.risk_level == RiskLevel.CRITICAL_BLOCKED
+        assert any("Control character or newline" in v for v in verdict.violations)
+
+
+def test_verify_command_forbidden_script_extensions_blocked(tmp_path):
+    verifier = SandboxJailVerifier(allowed_roots=[tmp_path])
+    bad_scripts = [
+        "evil.bat",
+        "script.cmd arg1",
+        "setup.ps1",
+        "payload.vbs",
+        ["app.js", "run"],
+    ]
+    for cmd in bad_scripts:
+        verdict = verifier.verify_command(cmd)
+        assert verdict.allowed is False
+        assert verdict.risk_level == RiskLevel.CRITICAL_BLOCKED
+        assert any("Forbidden script extension" in v for v in verdict.violations)

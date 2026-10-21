@@ -349,3 +349,34 @@ def test_run_rejects_unicode_bypasses_for_forbidden_interpreters(tmp_path):
     for cmd in bypasses:
         with pytest.raises(LocalShellError, match="strictly forbidden in local_shell"):
             run({"command": cmd}, tmp_path)
+
+
+def test_run_rejects_forbidden_script_extensions(tmp_path):
+    import pytest
+    from adapters.local_shell import run, LocalShellError
+
+    bad_scripts = [
+        ["script.bat", "arg1"],
+        ["run.cmd", "arg2"],
+        ["setup.ps1", "-Flag"],
+        ["payload.vbs"],
+        ["app.js"],
+        ["tool.wsf"],
+    ]
+    for cmd in bad_scripts:
+        with pytest.raises(LocalShellError, match="strictly forbidden in local_shell"):
+            run({"command": cmd}, tmp_path)
+
+
+def test_run_rejects_arguments_with_newlines_and_carriage_returns(tmp_path):
+    import pytest
+    from adapters.local_shell import run, LocalShellError
+
+    bad_args = [
+        ["python", "arg1\narg2"],
+        ["python", "arg1\r\narg2"],
+        ["python", "test\r"],
+    ]
+    for cmd in bad_args:
+        with pytest.raises(LocalShellError, match="contains newline or carriage return"):
+            run({"command": cmd}, tmp_path)

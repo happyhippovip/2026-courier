@@ -66,6 +66,21 @@ BANNED_TOOLS: Set[str] = {
     "select-string",
 }
 
+FORBIDDEN_SCRIPT_EXTENSIONS: Set[str] = {
+    ".bat",
+    ".cmd",
+    ".com",
+    ".ps1",
+    ".vbs",
+    ".vbe",
+    ".js",
+    ".jse",
+    ".wsf",
+    ".wsh",
+    ".scr",
+    ".pif",
+}
+
 DESTRUCTIVE_PATTERNS: List[re.Pattern] = [
     re.compile(r"\brm\s+-[a-zA-Z]*r[a-zA-Z]*f\s+/", re.IGNORECASE),
     re.compile(r"\brmdir\s+/[sS]", re.IGNORECASE),
@@ -142,12 +157,21 @@ class SandboxJailVerifier:
         violations: List[str] = []
         is_critical = False
 
-        # 0. NUL-byte injection defense (V2)
+        # 0. NUL-byte, CR/LF injection defense (V2/V3 - S06)
         if "\x00" in cmd_str or (isinstance(command, list) and any("\x00" in str(arg) for arg in command)):
             return SandboxVerdict(
                 allowed=False,
                 risk_level=RiskLevel.CRITICAL_BLOCKED,
                 violations=["Null byte injection detected in command arguments"],
+                version="2.0",
+            )
+        if any(c in cmd_str for c in ("\r", "\n")) or (
+            isinstance(command, list) and any(any(c in str(arg) for c in ("\r", "\n")) for arg in command)
+        ):
+            return SandboxVerdict(
+                allowed=False,
+                risk_level=RiskLevel.CRITICAL_BLOCKED,
+                violations=["Control character or newline injection detected in command arguments"],
                 version="2.0",
             )
 
@@ -177,6 +201,12 @@ class SandboxJailVerifier:
         # 3. Banned CLI tools & suspicious executable check (V2)
         for token in lower_tokens:
             base_tool = Path(token).stem.lower()
+            token_suffix = Path(token).suffix.lower()
+            if token_suffix in FORBIDDEN_SCRIPT_EXTENSIONS:
+                violations.append(
+                    f"Forbidden script extension detected: '{token}'. Direct script execution is blocked."
+                )
+                is_critical = True
             if base_tool in BANNED_TOOLS or token in BANNED_TOOLS:
                 violations.append(
                     f"Banned CLI tool detected: '{token}'. Use Python or IDE tools instead."

@@ -553,6 +553,10 @@ def test_stop_and_status_scripts_process_hygiene_contract():
     assert "taskkill /F /T /PID" in stop_bat, "stop.bat must target specific PID"
     assert "taskkill /IM" not in stop_bat, "stop.bat must NOT broad-kill processes by image name"
 
+    # Invariante 3: Numerische PID-Validierung (S06)
+    assert "delims=0123456789" in stop_bat, "stop.bat must validate PID is numeric"
+    assert "delims=0123456789" in status_bat, "status.bat must validate PID is numeric"
+
 def test_powershell_scripts_file_argument_quoting_contract():
     """Beweis: Alle PowerShell-Skripte unter scripts/windows_worker quoten -File Pfad-Argumente,
     um Leerzeichen-Divergenz auf Windows-Installationspfaden auszuschließen (GB-PKG-03 / E-133-1)."""
@@ -606,3 +610,19 @@ def test_mandatory_policy_bundling_contract():
     assert "missing mandatory governance invariants" in smoke_ps1, "smoke_package.ps1 must enforce governance invariants"
     assert "require_human_gate_for_spend must be true" in smoke_ps1, "smoke_package.ps1 must enforce require_human_gate_for_spend invariant"
     assert "max_spend must be 0.00" in smoke_ps1, "smoke_package.ps1 must enforce zero-spend invariant"
+
+
+def test_windows_shell_escape_and_script_extension_contract():
+    """Beweis: adapters/local_shell.py und courier_core/sandbox_verifier.py blockieren
+    gefährliche Script-Dateierweiterungen (.bat, .cmd, .ps1, .vbs) sowie Newline-/CR-Injection,
+    um Windows-Shell-Escape- und BatBadBut-Vektoren fail-closed auszuschließen (GB-SEC-09 / S06)."""
+    repo_root = Path(__file__).resolve().parents[1]
+    local_shell_py = (repo_root / "adapters" / "local_shell.py").read_text(encoding="utf-8")
+    sandbox_py = (repo_root / "courier_core" / "sandbox_verifier.py").read_text(encoding="utf-8")
+
+    assert "FORBIDDEN_COMMAND_EXTENSIONS" in local_shell_py
+    assert ".bat" in local_shell_py and ".cmd" in local_shell_py and ".ps1" in local_shell_py
+    assert "\r" in local_shell_py or "\n" in local_shell_py
+
+    assert "FORBIDDEN_SCRIPT_EXTENSIONS" in sandbox_py
+    assert ".bat" in sandbox_py and ".cmd" in sandbox_py and ".ps1" in sandbox_py

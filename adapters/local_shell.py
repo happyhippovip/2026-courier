@@ -84,6 +84,10 @@ FORBIDDEN_COMMAND_BASENAMES = frozenset({
     "task" + "kill", "task" + "kill.exe", "p" + "kill", "kill" + "all", "shutdown", "reboot",
 })
 
+FORBIDDEN_COMMAND_EXTENSIONS = frozenset({
+    ".bat", ".cmd", ".com", ".ps1", ".vbs", ".vbe", ".js", ".jse", ".wsf", ".wsh", ".scr", ".pif",
+})
+
 SAFE_ENV_PASSTHROUGH = frozenset({
     "PATH", "SYSTEMROOT", "SYSTEMDRIVE", "TEMP", "TMP", "COMSPEC",
     "USERPROFILE", "HOME", "LANG", "LC_ALL", "PYTHONPATH", "PYTHONDONTWRITEBYTECODE",
@@ -172,12 +176,17 @@ def _params(params: Mapping[str, Any]) -> dict:
     for arg in command:
         if "\x00" in arg:
             raise LocalShellError("command argument contains null byte")
+        if "\r" in arg or "\n" in arg:
+            raise LocalShellError("command argument contains newline or carriage return")
         norm_arg = _normalize_token(arg)
         if norm_arg in FORBIDDEN_COMMAND_FLAGS or "--dangerously-skip-permissions" in norm_arg or "--skip-permissions" in norm_arg or "--no-sandbox" in norm_arg:
             raise LocalShellError("command argv contains forbidden permission-bypass flag")
-    exe_name = Path(_normalize_token(command[0])).name.lower()
+    exe_path = Path(_normalize_token(command[0]))
+    exe_name = exe_path.name.lower()
     if exe_name in FORBIDDEN_COMMAND_BASENAMES:
         raise LocalShellError(f"executable {exe_name!r} is strictly forbidden in local_shell")
+    if exe_path.suffix.lower() in FORBIDDEN_COMMAND_EXTENSIONS:
+        raise LocalShellError(f"executable extension {exe_path.suffix!r} is strictly forbidden in local_shell")
     out = {
         "command": list(command),
         "write": params.get("write", "out.txt"),
