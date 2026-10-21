@@ -1,5 +1,10 @@
 @echo off
 echo Stopping Courier Windows Worker...
+python "%~dp0process_ownership.py" stop 2>NUL
+if %ERRORLEVEL% equ 0 (
+    echo Stopped.
+    exit /b 0
+)
 if exist "%LOCALAPPDATA%\Courier\worker.pid" (
     set /p PID=<"%LOCALAPPDATA%\Courier\worker.pid"
     set "NONNUM="

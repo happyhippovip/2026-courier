@@ -1,4 +1,6 @@
 @echo off
+python "%~dp0process_ownership.py" status 2>NUL
+if %ERRORLEVEL% equ 0 exit /b 0
 if exist "%LOCALAPPDATA%\Courier\worker.pid" (
     set /p PID=<"%LOCALAPPDATA%\Courier\worker.pid"
     set "NONNUM="

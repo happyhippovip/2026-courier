@@ -457,6 +457,14 @@ def loop():
         print(f"[{worker_id}] Another instance is already running. Exiting to prevent duplicates.")
         sys.exit(0)
     
+    ownership_file = APP_DATA_DIR / "worker_ownership.json"
+    try:
+        from courier_core.windows_process_hygiene import create_current_ownership_record, save_ownership_record
+        rec = create_current_ownership_record(worker_id=worker_id, pid=os.getpid(), daemon_path=str(__file__))
+        save_ownership_record(rec, ownership_file)
+    except Exception:
+        pass
+
     try:
         print(f"[{worker_id}] Windows Worker HTTP Daemon started. PID={os.getpid()}")
         
@@ -566,6 +574,11 @@ def loop():
                 os.remove(lock_path)
             except OSError:
                 pass
+        try:
+            if "ownership_file" in locals() and ownership_file and os.path.exists(ownership_file):
+                os.remove(ownership_file)
+        except OSError:
+            pass
 
 if __name__ == "__main__":
     try:
