@@ -214,3 +214,4 @@ report*.xml
 
 # Process IDs
 *.pid
+scripts/windows_worker/CourierSetup-v1.exe
