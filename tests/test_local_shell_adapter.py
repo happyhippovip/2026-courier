@@ -318,3 +318,34 @@ def test_adapter_runner_executes_local_shell_end_to_end(tmp_path):
     assert report["outcome"] == "success"
     assert (workdir / "out.txt").is_file()
     assert (workdir / "out.txt").read_text(encoding="utf-8") == "e2e-runner-evidence"
+
+
+def test_run_rejects_unicode_bypasses_for_forbidden_flags(tmp_path):
+    import pytest
+    from adapters.local_shell import run, LocalShellError
+
+    bypasses = [
+        ["python", "--dangerously\u200B-skip-permissions"],
+        ["python", "\uFF0D\uFF0Ddangerously-skip-permissions"],
+        ["python", "--skip-permissions\u200B"],
+        ["python", "--no-sandbox\uFEFF"],
+        ["python", "\u00A0--dangerously-skip-permissions"],
+    ]
+    for cmd in bypasses:
+        with pytest.raises(LocalShellError, match="forbidden permission-bypass flag"):
+            run({"command": cmd}, tmp_path)
+
+
+def test_run_rejects_unicode_bypasses_for_forbidden_interpreters(tmp_path):
+    import pytest
+    from adapters.local_shell import run, LocalShellError
+
+    bypasses = [
+        ["cmd\u200B.exe", "/c", "dir"],
+        ["\uFF43\uFF4D\uFF44", "/c", "dir"],
+        ["powershell\uFEFF.exe", "-Command", "Write-Host test"],
+        ["\uFF50\uFF57\uFF53\uFF48", "-Command", "Write-Host test"],
+    ]
+    for cmd in bypasses:
+        with pytest.raises(LocalShellError, match="strictly forbidden in local_shell"):
+            run({"command": cmd}, tmp_path)

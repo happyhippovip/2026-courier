@@ -54,6 +54,8 @@ from __future__ import annotations
 
 import hashlib
 import os
+import re
+import unicodedata
 import signal
 import subprocess
 import sys
@@ -149,6 +151,12 @@ def _kill_process_tree(proc: subprocess.Popen) -> None:
         pass
 
 
+def _normalize_token(text: str) -> str:
+    """Normalize text for fail-closed security checks (Unicode / encoding bypass defense)."""
+    norm = unicodedata.normalize("NFKC", text)
+    norm = re.sub(r"[\u200B-\u200F\u202A-\u202E\uFEFF]", "", norm)
+    return norm.strip()
+
 def _params(params: Mapping[str, Any]) -> dict:
     """Validate local_shell params; raise LocalShellError describing the first gap."""
     if not isinstance(params, Mapping):
@@ -160,9 +168,10 @@ def _params(params: Mapping[str, Any]) -> dict:
     for arg in command:
         if "\x00" in arg:
             raise LocalShellError("command argument contains null byte")
-        if arg in FORBIDDEN_COMMAND_FLAGS or "--dangerously-skip-permissions" in arg:
+        norm_arg = _normalize_token(arg)
+        if norm_arg in FORBIDDEN_COMMAND_FLAGS or "--dangerously-skip-permissions" in norm_arg or "--skip-permissions" in norm_arg or "--no-sandbox" in norm_arg:
             raise LocalShellError("command argv contains forbidden permission-bypass flag")
-    exe_name = Path(command[0]).name.lower()
+    exe_name = Path(_normalize_token(command[0])).name.lower()
     if exe_name in FORBIDDEN_COMMAND_BASENAMES:
         raise LocalShellError(f"executable {exe_name!r} is strictly forbidden in local_shell")
     out = {

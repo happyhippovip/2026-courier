@@ -13,6 +13,7 @@ import os
 import re
 import shlex
 import sys
+import unicodedata
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -23,6 +24,23 @@ class RiskLevel(str, Enum):
     SAFE = "SAFE"
     CAUTION = "CAUTION"
     CRITICAL_BLOCKED = "CRITICAL_BLOCKED"
+
+
+def normalize_security_text(text: str) -> str:
+    """Normalize text for fail-closed security checks (Unicode / encoding bypass defense).
+
+    1. Applies Unicode NFKC normalization (converting full-width characters, NBSP, etc.).
+    2. Strips invisible zero-width and bidirectional formatting codepoints.
+    3. Normalizes any remaining Unicode whitespace characters to standard ASCII space.
+    """
+    if not isinstance(text, str):
+        text = str(text)
+    norm = unicodedata.normalize("NFKC", text)
+    # Strip zero-width & invisible format characters
+    norm = re.sub(r"[\u200B-\u200F\u202A-\u202E\uFEFF]", "", norm)
+    # Normalize unicode whitespace to ASCII space
+    norm = re.sub(r"[\s\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]+", " ", norm)
+    return norm.strip()
 
 
 @dataclass
@@ -133,17 +151,20 @@ class SandboxJailVerifier:
                 version="2.0",
             )
 
+        # Unicode normalization & zero-width / bypass defense (V3)
+        normalized_cmd_str = normalize_security_text(cmd_str)
+
         # 1. Destructive shell command pattern check
         for pattern in DESTRUCTIVE_PATTERNS:
-            if pattern.search(cmd_str):
+            if pattern.search(cmd_str) or pattern.search(normalized_cmd_str):
                 violations.append(f"Destructive system command pattern detected: '{pattern.pattern}'")
                 is_critical = True
 
         # 2. Token extraction (including sub-tokens separated by shell operators ;, |, &)
         try:
-            raw_tokens = shlex.split(cmd_str, posix=os.name != "nt")
+            raw_tokens = shlex.split(normalized_cmd_str, posix=os.name != "nt")
         except Exception:
-            raw_tokens = cmd_str.split()
+            raw_tokens = normalized_cmd_str.split()
 
         tokens: List[str] = []
         for raw_tok in raw_tokens:
@@ -151,7 +172,7 @@ class SandboxJailVerifier:
                 if part:
                     tokens.append(part)
 
-        lower_tokens = [t.lower() for t in tokens]
+        lower_tokens = [normalize_security_text(t).lower() for t in tokens]
 
         # 3. Banned CLI tools & suspicious executable check (V2)
         for token in lower_tokens:
@@ -201,7 +222,7 @@ class SandboxJailVerifier:
         violations: List[str] = []
 
         # 1. Sensitive credential pattern check
-        filename = target.name.lower()
+        filename = normalize_security_text(target.name).lower()
         if filename in SENSITIVE_FILENAME_PATTERNS or filename.endswith((".pfx", ".key", ".pem")):
             violations.append(f"Sensitive credential access blocked: '{filename}'")
 
