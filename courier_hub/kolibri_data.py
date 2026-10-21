@@ -363,7 +363,11 @@ def read_ledger(view: Optional[dict], observed_at: str) -> dict:
             at = change.get("at") if isinstance(change.get("at"), str) and change.get("at") else UNAVAILABLE
             title = card.get("title") if isinstance(card.get("title"), str) and card.get("title").strip() else UNAVAILABLE
             task_id = card.get("id") if isinstance(card.get("id"), str) and card.get("id") else UNAVAILABLE
-            items.append({"id": task_id, "title": title, "pile": pile, "source": source, "at": at})
+            item = {"id": task_id, "title": title, "pile": pile, "source": source, "at": at}
+            if pile == "done" and card.get("outcome") == "verified" and task_id != UNAVAILABLE:
+                item["verified"] = True
+                item["event_id"] = f"task:{task_id}:verified"
+            items.append(item)
     counts = view.get("counts") if isinstance(view.get("counts"), dict) else {}
     safe_counts = {}
     for key in ("needs_you", "working", "done"):
@@ -628,31 +632,11 @@ def read_arbitrage_research(root: Path, observed_at: str) -> dict:
     """
     arbi_file = root / "registries" / "arbitrage_research.json"
     if not arbi_file.is_file():
-        # Fallback to safe zero-trade research baseline
-        return {
-            "available": True,
-            "source": "simulated_arbitrage_engine",
-            "at": observed_at,
-            "pairs_monitored": [
-                {"pair": "BTC/EUR", "venues": ["Kraken", "Bitstamp"], "spread_bps": 12.4, "status": "active"},
-                {"pair": "ETH/EUR", "venues": ["Kraken", "Coinbase"], "spread_bps": 7.8, "status": "active"},
-                {"pair": "SOL/EUR", "venues": ["Binance", "Kraken"], "spread_bps": 15.1, "status": "active"},
-            ],
-            "simulation": {
-                "gross_opportunity_eur": 128.40,
-                "estimated_fees_eur": 38.50,
-                "estimated_slippage_eur": 14.20,
-                "net_simulated_profit_eur": 75.70,
-                "simulation_runs": 1420,
-                "success_rate_pct": 89.4,
-                "status": "SIMULATED (NO REAL TRADES)",
-            },
-            "verified_actual_revenue": {
-                "amount_eur": 0.00,
-                "status": "NO_LIVE_REVENUE_RECORDED",
-                "evidence_id": None,
-            },
-        }
+        res = _unavailable("registries/arbitrage_research.json", observed_at)
+        res["pairs_monitored"] = []
+        res["simulation"] = {}
+        res["verified_actual_revenue"] = {"amount_eur": 0.00, "status": UNAVAILABLE}
+        return res
 
     try:
         data = json.loads(arbi_file.read_text(encoding="utf-8"))
