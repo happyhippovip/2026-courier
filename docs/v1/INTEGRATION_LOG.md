@@ -1071,3 +1071,14 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
   - `pytest tests/*windows*`: **47 passed, 5 skipped (Windows-only), 0 failed**.
 - Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
 
+## Step 70 — V22 Kolibri 2.5D Neon Laser Engine Core (PR #715)
+### `courier_hub/static/`, `tests/desktop/`
+- Merged and verified:
+  - **L5 PR #715 (`muse/lab25d-v22`):**
+    - Isolated visual core for Kolibri 2.5D neon laser engine (`kolibri_lab25d.mjs`, `kolibri_lab25d.css`, `render_lab25d_snapshot.mjs`).
+    - Event-driven state transitions with authentic `event_id`, bounded particle budget (<=300), strict separation of LIVE/DEMO/REPLAY modes, respect for Reduced Motion and `RESOURCE_PAUSE`.
+    - Added desktop integration test `tests/desktop/kolibri_lab25d.test.mjs`: **13/13 PASS**.
+- Full test suite:
+  - `node --test tests/desktop/*.test.mjs`: **72/72 PASS** (0 failed).
+- Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
+
