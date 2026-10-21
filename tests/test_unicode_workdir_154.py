@@ -173,14 +173,15 @@ def test_negative_path_escaping_unicode_workdir_rejected(tmp_path):
 def test_cli_verify_workspace_root_in_unicode_path_subprocess(tmp_path):
     """CLI subprocess tool validates authentic root when path contains Unicode."""
     py = sys.executable
-    script = os.path.join("scripts", "verify_workspace_root.py")
+    repo_root_candidate = Path(__file__).resolve().parents[1]
+    script = str(repo_root_candidate / "scripts" / "verify_workspace_root.py")
 
     repo_root = tmp_path / "München_Root_2026"
     deep = repo_root / "sub" / "leaf"
     deep.mkdir(parents=True)
     (repo_root / "pyproject.toml").touch()
 
-    proc = subprocess.run([py, script, "--path", str(deep), "--expected-name", "München_Root_2026"], capture_output=True, text=True)
+    proc = subprocess.run([py, script, "--path", str(deep), "--expected-name", "München_Root_2026"], capture_output=True, text=True, cwd=str(repo_root_candidate))
     assert proc.returncode == 0
     assert "AUTHENTIC WORKSPACE ROOT: " in proc.stdout
     assert "München_Root_2026" in proc.stdout

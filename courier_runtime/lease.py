@@ -9,6 +9,7 @@ write any more, even if it is still running.
 SQLite with an immediate transaction makes acquire/renew/release atomic across
 processes on one device. Time is injected so tests are deterministic.
 """
+import math
 import sqlite3
 import time
 from dataclasses import dataclass
@@ -31,6 +32,16 @@ class Lease:
     expires_at: float
 
 
+def _validate_ttl(ttl_s):
+    if not isinstance(ttl_s, (int, float)) or isinstance(ttl_s, bool) or math.isnan(ttl_s) or math.isinf(ttl_s) or ttl_s <= 0:
+        raise ValueError(f"ttl_s must be a positive finite number, got {ttl_s!r}")
+
+
+def _validate_str(val, name):
+    if not isinstance(val, str) or not val.strip():
+        raise ValueError(f"{name} must be a non-empty string, got {val!r}")
+
+
 class LeaseStore:
     def __init__(self, path, clock=time.time):
         self.clock = clock
@@ -47,6 +58,7 @@ class LeaseStore:
         return Lease(*row) if row else None
 
     def current(self, scope):
+        _validate_str(scope, "scope")
         lease = self._row(scope)
         if lease and lease.holder is not None and lease.expires_at > self.clock():
             return lease
@@ -54,6 +66,11 @@ class LeaseStore:
 
     def acquire(self, scope, holder, workkey, ttl_s):
         """Take the scope if it is free or expired. Re-acquire by the same holder renews."""
+        _validate_str(scope, "scope")
+        _validate_str(holder, "holder")
+        _validate_str(workkey, "workkey")
+        _validate_ttl(ttl_s)
+
         now = self.clock()
         self.db.execute("BEGIN IMMEDIATE")
         try:
@@ -76,6 +93,10 @@ class LeaseStore:
 
     def renew(self, lease, ttl_s):
         """Heartbeat. Fails if the lease expired or the token moved on."""
+        if not isinstance(lease, Lease):
+            raise ValueError(f"lease must be a Lease instance, got {lease!r}")
+        _validate_ttl(ttl_s)
+
         now = self.clock()
         self.db.execute("BEGIN IMMEDIATE")
         try:
@@ -91,11 +112,16 @@ class LeaseStore:
 
     def check_write(self, scope, token):
         """Fence: raise unless token is the current, unexpired token for scope."""
+        _validate_str(scope, "scope")
+        if not isinstance(token, int) or isinstance(token, bool) or token <= 0:
+            raise StaleLease(f"token must be a positive integer, got {token!r}")
         lease = self.current(scope)
         if lease is None or lease.token != token:
             raise StaleLease(f"write to {scope} with token {token} refused")
         return lease
 
     def release(self, lease):
+        if not isinstance(lease, Lease):
+            return
         self.db.execute("UPDATE lease SET holder=NULL, workkey=NULL, expires_at=0 WHERE scope=? AND token=?"
                         " AND holder=?", (lease.scope, lease.token, lease.holder))
