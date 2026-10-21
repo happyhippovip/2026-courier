@@ -971,3 +971,16 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
   - `pytest tests/test_windows_exe_build.py`: **6 passed, 1 skipped**.
   - Isolation boundaries (State, Auth, Process, Resource): **100% VALID**.
 - Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
+
+## Step 64 — Windows CI Regression Gate Fixes (Commit `ca5766637`)
+### `tests/test_gemini_worker_adapter.py`, `tests/test_windows_costgate_and_writer_lease.py`
+- Diagnosed and resolved the 2 failures blocking the Windows CI regression gate (`Courier v1 CI`):
+  - **Gemini Worker Adapter Windows Mock ([`tests/test_gemini_worker_adapter.py`](file:///Users/user/Downloads/2026-courier/tests/test_gemini_worker_adapter.py)):** On Windows, `os.killpg` does not exist, causing `mock.patch("os.killpg")` to raise `AttributeError: <module 'os' (frozen)> does not have the attribute 'killpg'`. Fixed with `mock.patch("os.killpg", create=True)`.
+  - **Writer Lease Cross-Process Child Script ([`tests/test_windows_costgate_and_writer_lease.py`](file:///Users/user/Downloads/2026-courier/tests/test_windows_costgate_and_writer_lease.py)):** On Windows, `Path.resolve()` in multi-line f-strings produced unescaped backslashes (`\U` in `C:\Users\...` and `\t` in `\temp`), causing Python to abort child processes with `SyntaxError: (unicode error) 'unicodeescape' codec can't decode bytes`. Fixed by passing parameters cleanly via `sys.argv` without string interpolation.
+- Verified test coverage:
+  - `pytest tests/test_gemini_worker_adapter.py`: **16/16 PASS**.
+  - `pytest tests/test_windows_costgate_and_writer_lease.py`: **6/6 PASS**.
+  - `pytest tests/golden/`: **11/11 PASS**.
+  - `node --test tests/desktop/*.test.mjs`: **59/59 PASS**.
+  - Isolation boundaries (State, Auth, Process, Resource): **100% VALID**.
+- Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.

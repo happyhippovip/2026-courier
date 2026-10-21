@@ -341,6 +341,8 @@ At update time (2026-10-07):
   - Behebung von BLK-06 via [`.gitattributes`](file:///Users/user/Downloads/2026-courier/.gitattributes): Repository-weite Normalisierung auf `eol=lf` für Quelltext und Test-Fixtures. Beseitigt Windows-CRLF-Bytecount-Differenzen.
   - Vollständige Golden-Test-Suite (`pytest tests/golden/ -v`): **11/11 PASS** (alle Ausfall- und Replay-Tests 100% grün).
   - Kanonische Blocker-Registry (`BLOCKER_REGISTRY_V26_CURRENT.md`): BLK-01, BLK-06, BLK-07 und BLK-09 auf `RESOLVED_GREEN` aktualisiert.
+- **STEP 64 WINDOWS CI REGRESSION GATE GREEN (21.10.2026):**
+  - Behebung der 2 Windows CI Regression Gate Fails (`Courier v1 CI`): `os.killpg` Mock-Patching via `create=True` in `tests/test_gemini_worker_adapter.py` und Bereinigung von Windows-Backslash Escape-SyntaxError via `sys.argv` in `tests/test_windows_costgate_and_writer_lease.py`.
 - next critical implementation path:
   **WINDOWS CLEAN-MACHINE ACCEPTANCE & WEBSITE HUMAN GATE**: Abnahme auf dem sauberen Windows-Host nach Host-Boot; Prüfung des Website-Impressums am Dennis Human-Gate (`fc219a1`).
 
