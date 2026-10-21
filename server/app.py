@@ -127,6 +127,7 @@ def load_state():
     state.setdefault("goals", {})
     state.setdefault("tasks", {})
     state.setdefault("workers", {})
+    state.setdefault("goal_idempotency", {})
     return state
 
 def save_state(state):
@@ -169,6 +170,16 @@ def status():
         "workers": len(state["workers"])
     })
 
+def _canonical_goal_payload(data: dict) -> str:
+    canonical = {
+        "goal_text": str(data.get("goal_text", "")).strip(),
+        "budget": float(data.get("budget", 0.0)),
+    }
+    if "workflow_plan" in data:
+        canonical["workflow_plan"] = data["workflow_plan"]
+    return json.dumps(canonical, sort_keys=True, separators=(",", ":"))
+
+
 @app.route("/goals", methods=["POST"])
 @require_auth
 @serialize_state_mutation
@@ -176,9 +187,40 @@ def submit_goal():
     data = request.get_json(silent=True) or {}
     if not isinstance(data.get("goal_text"), str) or not data["goal_text"].strip():
         return jsonify({"error": "goal_text is required"}), 400
-    goal_id = f"goal-{uuid.uuid4().hex[:8]}"
+
+    idempotency_key = data.get("idempotency_key") or request.headers.get("Idempotency-Key")
+    if idempotency_key is not None:
+        if not isinstance(idempotency_key, str) or not idempotency_key.strip() or len(idempotency_key) > 128:
+            return jsonify({"error": "idempotency_key must be a non-empty string of at most 128 chars"}), 400
+        idempotency_key = idempotency_key.strip()
+
     state = load_state()
-    
+    state.setdefault("goal_idempotency", {})
+
+    if idempotency_key:
+        payload_hash = hashlib.sha256(_canonical_goal_payload(data).encode("utf-8")).hexdigest()
+        existing_rec = state["goal_idempotency"].get(idempotency_key)
+        if existing_rec:
+            existing_goal_id = existing_rec.get("goal_id")
+            existing_hash = existing_rec.get("payload_hash")
+            if existing_hash != payload_hash:
+                return jsonify({
+                    "error": "idempotency_conflict",
+                    "message": "idempotency_key was already used for a different goal",
+                }), 409
+            existing_goal = state["goals"].get(existing_goal_id)
+            if existing_goal:
+                return jsonify({
+                    "goal_id": existing_goal_id,
+                    "status": existing_goal.get("status", "ACTIVE"),
+                    "duplicate": True,
+                }), 200
+
+    if idempotency_key:
+        goal_id = f"goal-{hashlib.sha256(idempotency_key.encode('utf-8')).hexdigest()[:16]}"
+    else:
+        goal_id = f"goal-{uuid.uuid4().hex[:8]}"
+
     goal = {
         "goal_id": goal_id,
         "goal_text": data.get("goal_text"),
@@ -186,6 +228,8 @@ def submit_goal():
         "budget_limit": float(data.get("budget", 0.0)),
         "budget_spent": 0.0
     }
+    if idempotency_key:
+        goal["idempotency_key"] = idempotency_key
     
     if "workflow_plan" in data:
         raw_plan = data["workflow_plan"]
@@ -236,8 +280,14 @@ def submit_goal():
             state["tasks"][bound_step["task_id"]] = bound_step
         
     state["goals"][goal_id] = goal
+    if idempotency_key:
+        state["goal_idempotency"][idempotency_key] = {
+            "goal_id": goal_id,
+            "payload_hash": payload_hash,
+            "created_at": time.time(),
+        }
     save_state(state)
-    return jsonify({"goal_id": goal_id, "status": "ACTIVE"})
+    return jsonify({"goal_id": goal_id, "status": "ACTIVE", "duplicate": False})
 
 
 @app.route("/goals/<goal_id>", methods=["GET"])
