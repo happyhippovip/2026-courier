@@ -928,5 +928,17 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
   - `pytest tests/hub/test_kolibri_truth_p0.py`: **3/3 PASS** (K1/K2 truth assertions).
   - `pytest tests/hub/test_kolibri_bridge.py`: 14/14 PASS.
   - `pytest tests/test_runtime_lease.py`: 13/13 PASS.
-  - Boundary integrity: 100% VALID (State, Auth, Process, Resource Admission).
+- Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
+
+## Step 62 — BLK-09 Artifact Path Type-Guard Resolution in Verifier (Commit `a1d022c78`)
+### `scripts/courier_verifier.py` & `tests/test_courier_verifier.py`
+- Resolved BLK-09 from Canonical Blocker Registry:
+  - **Fail-Closed Artifact Type Guards:** `verify_artifacts` in [`scripts/courier_verifier.py`](file:///Users/user/Downloads/2026-courier/scripts/courier_verifier.py) now validates that task artifacts and result artifact paths are valid string/byte instances. Nested dicts, malformed structures, or non-string paths are safely rejected with `FAIL` and clean error logging, eliminating `TypeError: unhashable type: 'dict'` crashes.
+  - **Regression Test Coverage:** Added dedicated unit tests `test_verify_artifacts_non_string_expected_path_fails_closed` and `test_verify_artifacts_non_string_actual_path_fails_closed` in [`tests/test_courier_verifier.py`](file:///Users/user/Downloads/2026-courier/tests/test_courier_verifier.py).
+- Verified test coverage:
+  - `pytest tests/test_courier_verifier.py`: **23/23 PASS** (expanded from 21).
+  - `pytest tests/test_repo_hygiene.py`: **4/4 PASS** (BLK-01 clean).
+  - `pytest tests/test_run_antigravity_bridge.py`: **10/10 PASS** (BLK-07 clean).
+  - Desktop Suite: **59/59 PASS**.
+  - Boundary integrity: 100% VALID.
 - Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.

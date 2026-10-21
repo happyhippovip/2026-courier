@@ -334,6 +334,9 @@ At update time (2026-10-07):
   - K1: Verifier-Evidence mit `outcome="verified"` wird in `read_ledger()` sauber mit `verified=True` und `event_id` an die Kolibri-Oberfläche weitergereicht.
   - K2: Zero-Fabrication-Garantie: fehlende Arbitrage-Dateien werden nicht durch erfundene Fake-Zahlen kaschiert, sondern ehrlich als UNAVAILABLE ausgewiesen.
   - Tests: Desktop-Suite auf **59/59 PASS** gehoben (10 neue Black Orb Tests, 0 Regressionen); `test_kolibri_truth_p0.py` 3/3 PASS; Boundaries 100% VALID.
+- **STEP 62 VERIFIER BLK-09 FAIL-CLOSED RESOLUTION (21.10.2026):**
+  - Behebung von BLK-09 in `scripts/courier_verifier.py`: Typprüfung für Task- und Ergebnisartefaktpfade; dict-förmige oder nicht-stringförmige Pfade werden fail-closed mit FAIL abgewiesen (`TypeError: unhashable type: 'dict'` eliminiert).
+  - Tests: `tests/test_courier_verifier.py` auf **23/23 PASS** erweitert; `test_repo_hygiene.py` (BLK-01) 4/4 PASS; `test_run_antigravity_bridge.py` (BLK-07) 10/10 PASS.
 - next critical implementation path:
   **WINDOWS CLEAN-MACHINE ACCEPTANCE & WEBSITE HUMAN GATE**: Abnahme auf dem sauberen Windows-Host nach Host-Boot; Prüfung des Website-Impressums am Dennis Human-Gate (`fc219a1`).
 
