@@ -90,6 +90,7 @@ def _dispatch_with_list_runs(tmp_path, monkeypatch, list_runs):
                 "target_owner": "o",
                 "target_repo": "r",
                 "target_sha": "s",
+                "paid": True,
             }
         )
     )
@@ -150,6 +151,7 @@ def test_dispatch_gh_list_failure_marks_unbound(tmp_path, monkeypatch):
                 "target_owner": "o",
                 "target_repo": "r",
                 "target_sha": "s",
+                "paid": True,
             }
         )
     )

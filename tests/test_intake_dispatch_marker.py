@@ -29,6 +29,7 @@ def _intake_dict():
         "target_owner": "o",
         "target_repo": "r",
         "target_sha": "s",
+        "paid": True,
     }
 
 

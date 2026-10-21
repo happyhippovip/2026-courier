@@ -1,6 +1,7 @@
 import contextlib
 import hashlib
 import json
+import re
 import sys
 import time
 import subprocess
@@ -113,6 +114,98 @@ def resolve_execution_ref(workflow, since_epoch, attempts=BIND_ATTEMPTS,
     return None
 
 
+class UnpaidIntakeError(RuntimeError):
+    """Raised when an intake must not start a workflow."""
+
+
+_PRICE_DIV = re.compile(r'class="price">\s*(\d+)\s*€')
+
+
+def _repo_root():
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _published_prices(root=None):
+    """Prices already published in pricing_config.json and the website.
+
+    Returns the set of whole-euro amounts. Callers must not invent a price
+    when this set is empty or has more than one amount.
+    """
+    root = root or _repo_root()
+    prices = set()
+    config_path = os.path.join(root, "pilot", "pricing_config.json")
+    try:
+        with open(config_path, "r", encoding="utf-8") as handle:
+            config = json.load(handle)
+    except (OSError, ValueError):
+        config = None
+    if isinstance(config, dict):
+        for value in config.values():
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                continue
+            if value == int(value) and value > 0:
+                prices.add(int(value))
+    for rel in ("website/src/index.html", "website/public/index.html"):
+        path = os.path.join(root, rel)
+        try:
+            with open(path, "r", encoding="utf-8") as handle:
+                text = handle.read()
+        except OSError:
+            continue
+        for match in _PRICE_DIV.findall(text):
+            prices.add(int(match))
+    return prices
+
+
+def _price_tokens(canonical):
+    return {
+        str(canonical),
+        f"EUR_{canonical}",
+        f"EUR {canonical}",
+        f"{canonical} EUR",
+        f"{canonical} €",
+    }
+
+
+def _intake_price_matches(intake, canonical):
+    observed = False
+    for key in ("price_eur", "price"):
+        if key not in intake:
+            continue
+        value = intake[key]
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            return False
+        if value != canonical:
+            return False
+        observed = True
+    if "price_currency" in intake:
+        if str(intake["price_currency"]).strip() not in _price_tokens(canonical):
+            return False
+        observed = True
+    return observed
+
+
+def _assert_dispatch_paid(intake):
+    """Fail closed before a new workflow run.
+
+    An explicit paid marker is required. When pricing_config and the website
+    publish exactly one price, the intake price must match it. When they do
+    not, no new price is chosen and only the paid marker is enforced.
+    """
+    if intake.get("paid") is not True:
+        raise UnpaidIntakeError(
+            "Refusing dispatch: intake has no explicit paid marker."
+        )
+    prices = _published_prices()
+    if len(prices) != 1:
+        return
+    canonical = next(iter(prices))
+    if not _intake_price_matches(intake, canonical):
+        raise UnpaidIntakeError(
+            f"Refusing dispatch: price does not match canonical {canonical}."
+        )
+
+
 def fingerprint_task_id(intake):
     """Stable id for an intake so recovery re-dispatch is idempotent.
 
@@ -172,7 +265,9 @@ def dispatch_intake(intake_file):
             # Fresh admission or stale marker: record DISPATCHING *before* the
             # external call so recovery can adopt instead of blind re-dispatch.
             # A stale marker means the old attempt is dead; exactly one new
-            # dispatch replaces it.
+            # dispatch replaces it. Payment is required before that record and
+            # before `gh workflow run`.
+            _assert_dispatch_paid(intake)
             dispatch_start = time.time()
             state["tasks"][task_id] = {
                 "task_id": task_id,

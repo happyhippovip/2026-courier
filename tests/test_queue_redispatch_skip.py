@@ -25,6 +25,7 @@ def _intake_dict(ref="cust-1"):
         "target_owner": "o",
         "target_repo": "r",
         "target_sha": "s",
+        "paid": True,
     }
 
 
