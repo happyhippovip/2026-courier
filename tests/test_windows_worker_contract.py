@@ -216,6 +216,47 @@ def test_crash_after_rejection_still_releases_on_restart(tmp_path, monkeypatch):
     assert srv.load_state()["workers"]["WIN-01"]["current_task"] is None
 
 
+def test_restart_after_interrupted_execution_quarantines_and_never_replays(tmp_path, monkeypatch):
+    """Beweis (GB-RECOV-01 / W07): Ein waehrend der Ausfuehrung (STARTED oder Legacy ohne Phase)
+    unterbrochener Task wird nach Daemon-Neustart NIEMALS unkontrolliert erneut ausgefuehrt.
+    Stattdessen meldet der Worker current_task=None an /workers/register, der Server
+    quarantiert den Task als HUMAN_REQUIRED mit WORKER_RESTARTED_AND_LOST_STATE, blockiert das Goal,
+    und das lokale state_file wird bereinigt, um Crash-Loops zu verhindern."""
+    srv, http, headers = central(tmp_path, monkeypatch)
+    claimed = http.post("/tasks/claim", headers=headers, json={"worker_id": "WIN-01"}).get_json()["task"]
+
+    # 1. Unterbrechung im Zustand STARTED
+    daemon, executions = load_daemon(tmp_path, monkeypatch), []
+    state_file(daemon).write_text(json.dumps(dict(claimed, worker_phase="STARTED")))
+
+    go(daemon, monkeypatch, Bridge(http, headers, max_calls=5), executions, tmp_path=tmp_path)
+
+    assert executions == []
+    assert not state_file(daemon).exists()
+    state = srv.load_state()
+    assert state["tasks"]["task-1"]["status"] == "HUMAN_REQUIRED"
+    assert state["tasks"]["task-1"]["recovery_reason"] == "WORKER_RESTARTED_AND_LOST_STATE"
+    assert state["workers"]["WIN-01"]["current_task"] is None
+    assert any(g["status"] == "BLOCKED" for g in state["goals"].values())
+
+    # 2. Unterbrechung bei Legacy state_file ohne worker_phase -> faellt auf STARTED zurueck
+    http.post("/goals", headers=headers, json={"goal_text": "g2", "workflow_plan": [
+        {"task_id": "task-2", "target_agent": "windows", "artifacts": ["effect.txt"]}]})
+    claimed2 = http.post("/tasks/claim", headers=headers, json={"worker_id": "WIN-01"}).get_json()["task"]
+
+    daemon2, executions2 = load_daemon(tmp_path, monkeypatch), []
+    state_file(daemon2).write_text(json.dumps(claimed2))
+
+    go(daemon2, monkeypatch, Bridge(http, headers, max_calls=5), executions2, tmp_path=tmp_path)
+
+    assert executions2 == []
+    assert not state_file(daemon2).exists()
+    state2 = srv.load_state()
+    assert state2["tasks"]["task-2"]["status"] == "HUMAN_REQUIRED"
+    assert state2["tasks"]["task-2"]["recovery_reason"] == "WORKER_RESTARTED_AND_LOST_STATE"
+    assert state2["workers"]["WIN-01"]["current_task"] is None
+
+
 @pytest.mark.parametrize("bad", ["../outside.txt", "/etc/passwd", "a/../../x.txt", "C:/Windows/System32"])
 def test_unsafe_artifact_is_never_read_and_never_success(tmp_path, monkeypatch, bad):
     srv, http, headers = central(tmp_path, monkeypatch, artifacts=(bad,))
