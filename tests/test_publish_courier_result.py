@@ -187,3 +187,162 @@ def test_publish_courier_result_target_exists(tmp_path):
     
     err = run_main(task_file, processed_dir, github_output, result)
     assert err == "invalid Codex courier result: terminal result path already exists"
+
+
+def _result_files(root):
+    return [path for path in root.rglob("*") if path.is_file() and path.name.endswith(".result.json")]
+
+
+def test_p1_corrupt_history_entry_rejects(tmp_path):
+    task, task_file, processed_dir, github_output = setup_files(tmp_path)
+    (processed_dir / "broken.json").write_text("{not-json", encoding="utf-8")
+
+    err = run_main(task_file, processed_dir, github_output, create_result(task))
+    assert err == "invalid Codex courier result: unreadable history entry broken.json"
+    assert _result_files(tmp_path) == []
+
+
+def test_p1_non_object_history_entry_rejects(tmp_path):
+    task, task_file, processed_dir, github_output = setup_files(tmp_path)
+    (processed_dir / "broken.json").write_text("[]", encoding="utf-8")
+
+    err = run_main(task_file, processed_dir, github_output, create_result(task))
+    assert err == "invalid Codex courier result: unreadable history entry broken.json"
+    assert _result_files(tmp_path) == []
+
+
+def test_p1_undecodable_history_entry_rejects(tmp_path):
+    task, task_file, processed_dir, github_output = setup_files(tmp_path)
+    (processed_dir / "broken.json").write_bytes(b"\xff\xfe{")
+
+    err = run_main(task_file, processed_dir, github_output, create_result(task))
+    assert err == "invalid Codex courier result: unreadable history entry broken.json"
+    assert _result_files(tmp_path) == []
+
+
+def test_p1_unreadable_history_directory_rejects(tmp_path):
+    task, task_file, processed_dir, github_output = setup_files(tmp_path)
+    (processed_dir / "broken.json").mkdir()
+
+    err = run_main(task_file, processed_dir, github_output, create_result(task))
+    assert err == "invalid Codex courier result: unreadable history entry broken.json"
+    assert _result_files(tmp_path) == []
+
+
+def test_p2_duplicate_result_same_parent_different_filename(tmp_path):
+    task, task_file, processed_dir, github_output = setup_files(tmp_path)
+    result = create_result(task)
+    (processed_dir / "legacy-other-name.json").write_text(
+        json.dumps({
+            "type": "RESULT",
+            "status": "DONE",
+            "task_id": "different-task",
+            "parent_id": task["message_id"],
+            "message_id": "older-result",
+        }),
+        encoding="utf-8",
+    )
+
+    err = run_main(task_file, processed_dir, github_output, result)
+    assert err == "invalid Codex courier result: duplicate terminal result"
+    assert not (processed_dir / f"{task['message_id']}.result.json").exists()
+
+
+def test_p2_duplicate_result_same_task_different_filename(tmp_path):
+    task, task_file, processed_dir, github_output = setup_files(tmp_path)
+    result = create_result(task)
+    (processed_dir / "task-abc-result.json").write_text(
+        json.dumps({
+            "type": "RESULT",
+            "status": "DONE",
+            "task_id": task["task_id"],
+            "parent_id": "older-parent",
+            "message_id": "older-result",
+        }),
+        encoding="utf-8",
+    )
+
+    err = run_main(task_file, processed_dir, github_output, result)
+    assert err == "invalid Codex courier result: duplicate terminal result"
+    assert not (processed_dir / f"{task['message_id']}.result.json").exists()
+
+
+@pytest.mark.parametrize("message_id", [
+    "../escaped",
+    "..",
+    "foo/bar",
+    "foo\\bar",
+    "a..b",
+    "bad id",
+    "",
+    ".hidden",
+])
+def test_p3_unsafe_task_message_id_rejects(tmp_path, message_id):
+    task, task_file, processed_dir, github_output = setup_files(tmp_path)
+    task["message_id"] = message_id
+    task_file.write_text(json.dumps(task), encoding="utf-8")
+
+    err = run_main(task_file, processed_dir, github_output, create_result(task))
+    assert err == "invalid Codex courier result: unsafe task message_id"
+    assert _result_files(tmp_path) == []
+    assert not (tmp_path / "escaped.result.json").exists()
+
+
+def test_p3_result_message_id_dotdot_rejects(tmp_path):
+    task, task_file, processed_dir, github_output = setup_files(tmp_path)
+    result = create_result(task)
+    result["message_id"] = "a..b"
+
+    err = run_main(task_file, processed_dir, github_output, result)
+    assert err == "invalid Codex courier result: unsafe result message_id"
+    assert _result_files(tmp_path) == []
+
+
+def test_p4_exclusive_create_does_not_overwrite(tmp_path, monkeypatch):
+    task, task_file, processed_dir, github_output = setup_files(tmp_path)
+    target = processed_dir / f"{task['message_id']}.result.json"
+    original = '{"preserved": true}\n'
+    target.write_text(original, encoding="utf-8")
+    # The exists-then-write window: a raced exists() reports the target free.
+    monkeypatch.setattr(Path, "exists", lambda self: False)
+
+    err = run_main(task_file, processed_dir, github_output, create_result(task))
+    assert err == "invalid Codex courier result: terminal result path already exists"
+    assert target.read_text(encoding="utf-8") == original
+
+
+def test_p5_missing_results_directory_rejects(tmp_path):
+    task, task_file, processed_dir, github_output = setup_files(tmp_path)
+    processed_dir.rmdir()
+
+    err = run_main(task_file, processed_dir, github_output, create_result(task))
+    assert err == "invalid Codex courier result: results directory does not exist"
+    assert not processed_dir.exists()
+    assert _result_files(tmp_path) == []
+
+
+def test_p6_valid_publish_is_byte_identical(tmp_path):
+    task, task_file, processed_dir, github_output = setup_files(tmp_path)
+    (processed_dir / "unrelated.json").write_text(
+        json.dumps({
+            "type": "RESULT",
+            "status": "DONE",
+            "task_id": "other-task",
+            "parent_id": "other-parent",
+            "message_id": "other-result",
+        }),
+        encoding="utf-8",
+    )
+    result = create_result(task)
+
+    err = run_main(task_file, processed_dir, github_output, result)
+    assert err is None
+
+    expected_path = processed_dir / f"{task['message_id']}.result.json"
+    expected_body = json.dumps(result, sort_keys=True, indent=2) + "\n"
+    expected_output = f"result_path={expected_path.as_posix()}\n"
+    if os.linesep != "\n":
+        expected_body = expected_body.replace("\n", os.linesep)
+        expected_output = expected_output.replace("\n", os.linesep)
+    assert expected_path.read_bytes() == expected_body.encode("utf-8")
+    assert github_output.read_bytes() == expected_output.encode("utf-8")
