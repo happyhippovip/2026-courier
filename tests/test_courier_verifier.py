@@ -261,3 +261,15 @@ def test_run_loop_poll_exception():
             run_loop()
         except KeyboardInterrupt:
             pass
+
+def test_verify_artifacts_non_string_expected_path_fails_closed():
+    # BLK-09 regression: nested dict in task artifacts must fail closed cleanly
+    task = {"artifacts": [{"nested": 1}]}
+    result = {"artifacts": [{"path": "out.txt", "hash": "abc"}]}
+    assert verify_artifacts(task, result) == "FAIL"
+
+def test_verify_artifacts_non_string_actual_path_fails_closed():
+    # BLK-09 regression: nested dict in result artifact path must fail closed cleanly
+    task = {"artifacts": ["out.txt"]}
+    result = {"artifacts": [{"path": {"nested": "bad"}, "hash": "abc"}]}
+    assert verify_artifacts(task, result) == "FAIL"

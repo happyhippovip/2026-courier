@@ -63,8 +63,22 @@ def verify_artifacts(task, result, fetch=fetch_artifact, local_verify=None):
     if not isinstance(artifacts, list) or any(not isinstance(art, dict) for art in artifacts):
         log("Malformed artifact evidence; failing closed.")
         return "FAIL"
-    expected_paths = set(task.get("artifacts") or [])
-    if expected_paths and not expected_paths.issubset({art.get("path") for art in artifacts}):
+    expected_raw = task.get("artifacts") or []
+    if not isinstance(expected_raw, (list, set, tuple)):
+        log("Malformed expected artifacts; failing closed.")
+        return "FAIL"
+    if any(not isinstance(p, (str, bytes)) for p in expected_raw):
+        log("Non-string expected artifact path; failing closed.")
+        return "FAIL"
+    expected_paths = set(expected_raw)
+    actual_paths = set()
+    for art in artifacts:
+        p = art.get("path")
+        if not isinstance(p, (str, bytes)):
+            log("Non-string actual artifact path; failing closed.")
+            return "FAIL"
+        actual_paths.add(p)
+    if expected_paths and not expected_paths.issubset(actual_paths):
         log("Result is missing expected artifacts.")
         return "FAIL"
     if not artifacts:
