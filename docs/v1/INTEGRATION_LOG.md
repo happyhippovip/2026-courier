@@ -1128,4 +1128,21 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
   - Desktop JS: **72/72 PASS** (zero failed).
 - Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
 
-
+## Step 74 — Refuse Unpaid Workflow Dispatch & Harden Concurrency Workflow Lock (PR #774, #775)
+### `scripts/intake_dispatcher.py`, `scripts/run_autonomous_loop.py`, `tests/`
+- Implemented, integrated, and verified:
+  - **L2/L4 Unpaid Workflow Dispatch Refusal (PR #775):**
+    - `dispatch_intake` in `scripts/intake_dispatcher.py` now enforces `_assert_dispatch_paid(intake)` before recording tasks into central state and before running `gh workflow run`.
+    - Intakes lacking explicit `paid: True` raise `UnpaidIntakeError` fail-closed, blocking unauthorized or unpaid external workflow runs.
+    - Verified canonical price integrity against published prices in `pricing_config.json` and the website.
+    - Added unit test suite `tests/test_intake_dispatcher.py` and updated intake fixture bindings across test suite (31/31 PASS).
+  - **L1/L2 Hardened Workflow Lock & Holder Verification (PR #774):**
+    - `AutonomousLevel6Loop.acquire_workflow_lock` in `scripts/run_autonomous_loop.py` creates missing locks exclusively via `os.open(..., os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)` with `os.fsync`.
+    - Unreadable, torn, non-dict locks and locks without a provable holder PID fail closed with `WorkflowLockedError` instead of being overwritten.
+    - Stale locks are only reclaimed if the PID is dead (`NoSuchProcess`) or reused (verified via creation time), while fully preserving canonical `authority.db` `LeaseStore` synchronization.
+    - Added comprehensive lock test suite `tests/test_run_autonomous_loop.py`: **13/13 PASS**.
+- Full test suite:
+  - Golden Harness: **11/11 PASS** (100% green).
+  - Desktop JS: **72/72 PASS** (100% green).
+  - Core intake & loop test suites: **44/44 PASS**.
+- Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
