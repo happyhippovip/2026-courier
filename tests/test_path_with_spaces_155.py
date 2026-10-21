@@ -168,14 +168,15 @@ def test_negative_path_escaping_workspace_with_spaces(tmp_path):
 def test_cli_verify_workspace_root_with_spaces_subprocess(tmp_path):
     """CLI subprocess validates authentic root when paths contain spaces."""
     py = sys.executable
-    script = os.path.join("scripts", "verify_workspace_root.py")
+    repo_root = Path(__file__).resolve().parents[1]
+    script = repo_root / "scripts" / "verify_workspace_root.py"
 
-    repo_root = tmp_path / "My Courier App 2026"
-    deep = repo_root / "nested sub dir" / "leaf"
+    target_app = tmp_path / "My Courier App 2026"
+    deep = target_app / "nested sub dir" / "leaf"
     deep.mkdir(parents=True)
-    (repo_root / "pyproject.toml").touch()
+    (target_app / "pyproject.toml").touch()
 
-    proc = subprocess.run([py, script, "--path", str(deep), "--expected-name", "My Courier App 2026"], capture_output=True, text=True)
+    proc = subprocess.run([py, str(script), "--path", str(deep), "--expected-name", "My Courier App 2026"], capture_output=True, text=True, cwd=str(repo_root))
     assert proc.returncode == 0
     assert "AUTHENTIC WORKSPACE ROOT: " in proc.stdout
     assert "My Courier App 2026" in proc.stdout
@@ -184,7 +185,8 @@ def test_cli_verify_workspace_root_with_spaces_subprocess(tmp_path):
 def test_cli_verify_verbatim_path_with_spaces_subprocess(tmp_path):
     """CLI subprocess validates verbatim paths with spaces."""
     py = sys.executable
-    script = os.path.join("scripts", "verify_verbatim_path.py")
+    repo_root = Path(__file__).resolve().parents[1]
+    script = repo_root / "scripts" / "verify_verbatim_path.py"
 
     spaced_dir = tmp_path / "Folder With Spaces"
     spaced_dir.mkdir(parents=True)
@@ -192,7 +194,7 @@ def test_cli_verify_verbatim_path_with_spaces_subprocess(tmp_path):
     spaced_file.write_text("ok")
 
     verbatim_path = f"\\\\?\\{str(spaced_file)}"
-    proc = subprocess.run([py, script, verbatim_path, "--must-exist"], capture_output=True, text=True)
+    proc = subprocess.run([py, str(script), verbatim_path, "--must-exist"], capture_output=True, text=True, cwd=str(repo_root))
     assert proc.returncode == 0
     assert "VERBATIM PATH VALID: " in proc.stdout
     assert "target file.txt" in proc.stdout

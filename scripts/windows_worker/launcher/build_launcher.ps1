@@ -8,10 +8,13 @@ if (-Not (Test-Path $csc)) {
     $csc = "$env:windir\Microsoft.NET\Framework\v4.0.30319\csc.exe"
 }
 
+$sourceFile = Join-Path $PSScriptRoot "CourierLauncher.cs"
+$manifestFile = Join-Path $PSScriptRoot "Courier.manifest"
+
 if ($TestBuild) {
-    & $csc /target:winexe /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /out:"$OutFile" "$PSScriptRoot\CourierLauncher.cs"
+    & $csc /target:winexe /reference:System.Windows.Forms.dll /reference:System.Drawing.dll "/out:$OutFile" "$sourceFile"
 } else {
-    & $csc /target:winexe /win32manifest:"$PSScriptRoot\Courier.manifest" /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /out:"$OutFile" "$PSScriptRoot\CourierLauncher.cs"
+    & $csc /target:winexe "/win32manifest:$manifestFile" /reference:System.Windows.Forms.dll /reference:System.Drawing.dll "/out:$OutFile" "$sourceFile"
 }
 
 if ($LASTEXITCODE -eq 0) {

@@ -644,3 +644,32 @@ def test_windows_package_lifecycle_bundling_contract():
     assert '"install_service.ps1"' in smoke_ps1
     assert '"status.bat"' in smoke_ps1
     assert '"stop.bat"' in smoke_ps1
+
+
+def test_launcher_build_script_supports_paths_with_spaces_contract(tmp_path):
+    """Beweis: scripts/windows_worker/launcher/build_launcher.ps1 quotiert /out: und /win32manifest:
+    sauber und baut Courier.exe fehlerfrei in Zielpfade mit Leerzeichen (GB-SPACE-01 / W03)."""
+    repo_root = Path(__file__).resolve().parents[1]
+    bl_ps1 = (repo_root / "scripts" / "windows_worker" / "launcher" / "build_launcher.ps1").read_text(encoding="utf-8")
+
+    # Invariante 1: build_launcher.ps1 verwendet gequotete Switches fuer /out: und /win32manifest:
+    assert '"/out:$OutFile"' in bl_ps1, "build_launcher.ps1 must quote /out switch"
+    assert '"/win32manifest:$manifestFile"' in bl_ps1, "build_launcher.ps1 must quote /win32manifest switch"
+
+    # Invariante 2: Reale Testkompilierung in Verzeichnis mit Leerzeichen
+    import subprocess
+    spaced_dir = tmp_path / "Spaced Build Dir"
+    spaced_dir.mkdir()
+    out_file = spaced_dir / "Courier.exe"
+    script = repo_root / "scripts" / "windows_worker" / "launcher" / "build_launcher.ps1"
+
+    cmd = [
+        "powershell",
+        "-ExecutionPolicy", "Bypass",
+        "-File", str(script),
+        "-TestBuild",
+        "-OutFile", str(out_file),
+    ]
+    res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(repo_root))
+    assert res.returncode == 0, f"Compilation failed: {res.stderr}\n{res.stdout}"
+    assert out_file.exists(), "Courier.exe must exist in spaced output directory"
