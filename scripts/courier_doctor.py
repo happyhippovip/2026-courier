@@ -5,11 +5,22 @@ Courier Doctor: Beginner UX tool to diagnose the health of the local Courier Sym
 
 import json
 import os
+import re
 import urllib.request
 import urllib.error
 from pathlib import Path
 import time
 import zipfile
+
+# Shapes that are secrets even when they are not in the local config.
+TOKEN_SHAPES = re.compile(
+    r"(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{8,}"
+    r"|github_pat_[A-Za-z0-9_]{8,}"
+    r"|sk-[A-Za-z0-9]{8,}"
+    r"|xox[baprs]-[A-Za-z0-9-]{8,}"
+    r"|Bearer\s+[A-Za-z0-9._\-]{8,}"
+)
+
 
 def get_app_data_dir():
     import sys
@@ -77,7 +88,23 @@ def redact_secrets(content, secrets):
     for secret in secrets:
         if secret and len(secret) > 4:
             content = content.replace(secret, "***REDACTED***")
-    return content
+    return TOKEN_SHAPES.sub("***REDACTED***", content)
+
+
+def _same_length_mask(value):
+    """Keep the surrounding file the same size. A shorter mask corrupts SQLite."""
+    return "*" * len(value)
+
+
+def redact_secret_bytes(data, secrets):
+    """Scrub a binary file without moving the bytes that follow a secret."""
+    for secret in secrets:
+        if secret and len(secret) > 4:
+            raw = secret.encode("utf-8")
+            data = data.replace(raw, b"*" * len(raw))
+    text = data.decode("latin-1")
+    text = TOKEN_SHAPES.sub(lambda match: _same_length_mask(match.group(0)), text)
+    return text.encode("latin-1")
 
 def export_diagnostics(out_path):
     app_data = get_app_data_dir()
@@ -105,7 +132,7 @@ def export_diagnostics(out_path):
         # Export V1 ledger
         db_path = app_data / "courier.db"
         if db_path.exists():
-            zf.write(db_path, "courier.db")
+            zf.writestr("courier.db", redact_secret_bytes(db_path.read_bytes(), secrets))
                 
         # Export logs
         log_dir = app_data / "logs"
