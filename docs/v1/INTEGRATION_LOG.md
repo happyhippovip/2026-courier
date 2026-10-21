@@ -1019,3 +1019,18 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
   - `tests/desktop/*.test.mjs`: **59/59 PASS**.
   - `tests/test_work_queue*.py`: **16/16 PASS**.
 - Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
+
+## Step 67 — Windows Delete-Pending Race & Reclaim Lock Hardening (Commits `ef1400444`, `e3c86e512`)
+### `scripts/courier_github_dispatcher.py`, `scripts/resource_policy.py`, `tests/`
+- Merged and verified:
+  - **L4 PR #753 (`cursor/dispatch-link-permission-44b0`):**
+    - Handled Windows `PermissionError` on `os.link` when destination is delete-pending or taken by another process. If the packet exists, it is cleanly treated as a lost race; temporary file is removed without spawning duplicate adapters or crashing the poller.
+    - Added test coverage in `tests/test_github_dispatcher_persist_race.py`: **4/4 PASS**.
+  - **L2/L3 PR #748 (`cursor/lease-reclaim-permission-44b0`):**
+    - Resolved known race `test_03b_atomic_expired_lease_reclaim_single_winner`: On Windows, acquiring an expired lease whose `.reclaim.lock` is in delete-pending state throws `PermissionError(13)` rather than `FileExistsError`. Added 8-attempt retry with 20ms backoff and fail-closed competitor ownership verification.
+    - Fixed Windows `FlushFileBuffers` `EBADF`: replaced read-only handle flush with writable handle (`os.O_RDWR`) before releasing the reclaim lock.
+    - Added `tests/test_lease_reclaim_permission.py`: **2/2 PASS**.
+    - Verified resource policy test suite: **12/12 PASS**.
+- Full Golden Harness:
+  - `pytest tests/golden/ -v`: **11/11 PASS**.
+- Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
