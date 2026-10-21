@@ -1,0 +1,66 @@
+{
+  "workkey": "KOLIBRI-EVIDENCE-BADGE-V1-REPAIR",
+  "WORKKEY": "KOLIBRI-EVIDENCE-BADGE-V1-REPAIR",
+  "task_id": "KOLIBRI-EVIDENCE-BADGE-V1-REPAIR",
+  "status": "COMPLETED",
+  "CURRENT_STATE": "COMPLETED_L5_STEWARD_VERIFIED",
+  "lane": "L5",
+  "owner_id": "google-antigravity:l5-steward",
+  "holder": "google-antigravity:l5-steward",
+  "OWNER": "google-antigravity:l5-steward",
+  "host": "local",
+  "delegated_by": "google-antigravity:l5-steward",
+  "authoritative_l5_delegation_ref": "handoffs/kolibri_evidence_badge_v1_repair_lease_20261021.json",
+  "base_commit": "e54a194b8ad0d2fd6e8f2b5a42ae92601484960e",
+  "lease_id": "lease-l5-kolibri-evidence-badge-v1-repair-20261021-gen2",
+  "fencing_token": 2,
+  "fencing_generation": 2,
+  "exclusive": true,
+  "single_writer": true,
+  "scope": "L5:courier_hub/static/evidence_badge.mjs,tests/desktop/evidence_badge.test.mjs",
+  "files_scope": [
+    "courier_hub/static/evidence_badge.mjs",
+    "tests/desktop/evidence_badge.test.mjs"
+  ],
+  "patch_ref": "/Users/user/Downloads/V151R2_EVIDENCE_BADGE_FAILCLOSED.diff",
+  "patch_bytes": 14448,
+  "patch_sha256": "c0b4727c4bd55865c71a5f68d82f2c8091e03dc5030b7af6b7a249b5a656b56a",
+  "protected_files_do_not_touch": [
+    "courier_hub/static/kolibri_universe.mjs",
+    "courier_hub/static/kolibri_core.mjs",
+    "courier_hub/static/kolibri_flow.mjs",
+    "courier_hub/static/kolibri_particles.mjs",
+    "courier_hub/static/kolibri.js",
+    "courier_hub/static/kolibri.css",
+    "courier_hub/static/kolibri.html",
+    "courier_hub/server.py"
+  ],
+  "valid_from": "2026-10-21T10:15:00Z",
+  "acquired_iso": "2026-10-21T10:15:00Z",
+  "completed_iso": "2026-10-21T10:18:00Z",
+  "valid_until": "2026-10-22T10:15:00Z",
+  "ttl_seconds": 86400,
+  "evidence_contract": {
+    "required_tuple": [
+      "journal_entry_id",
+      "task_id",
+      "attempt",
+      "dispatch_id",
+      "accepted_result_id",
+      "artifact_sha256"
+    ],
+    "verified_resolution": "BYTE_LEVEL_GOLD_VERIFIED",
+    "boolean_alone_insufficient": true,
+    "proof_binding_required": true,
+    "missing_or_contradictory_maps_to": "UNKNOWN",
+    "unconfirmed_claim_maps_to": "REPORTED",
+    "active_block_maps_to": "BLOCKED"
+  },
+  "verification_results": {
+    "node_badge_tests": "17 pass, 0 fail (duration 167.8ms)",
+    "node_desktop_suite": "49 pass, 0 fail (duration 185.7ms)",
+    "windows_exe_build_tests": "5 pass, 1 skipped (duration 0.51s)",
+    "runtime_lease_tests": "13 pass, 0 fail (duration 0.27s)"
+  },
+  "allowed_test_command": "node --test tests/desktop/evidence_badge.test.mjs"
+}
