@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+from unittest import mock
 from scripts.courier_mailbox import process_inbox, main
 
 
@@ -118,3 +119,45 @@ def test_mailbox_single_writer_lease_conflict_prevents_race(tmp_path):
     results = process_inbox(inbox, outbox, home_path=home)
     assert len(results) == 1
     assert outbox.exists()
+
+
+def test_mailbox_costgate_blocks_missing_cost(tmp_path):
+    inbox = tmp_path / "inbox.jsonl"
+    outbox = tmp_path / "outbox.jsonl"
+    task = {
+        "task_id": "mission-no-cost",
+        "name": "Aufgabe ohne Kostenschätzung",
+        "status": "PENDING",
+    }
+    inbox.write_text(json.dumps(task) + "\n", encoding="utf-8")
+
+    results = process_inbox(inbox, outbox)
+    assert len(results) == 0
+    assert not outbox.exists()
+
+    in_lines = inbox.read_text(encoding="utf-8").strip().splitlines()
+    updated = json.loads(in_lines[0])
+    assert updated["status"] == "BLOCKED_COSTGATE"
+    assert updated["resolution"] == "UNKNOWN_COST"
+
+
+def test_mailbox_lease_store_failure_fails_closed(tmp_path, monkeypatch):
+    inbox = tmp_path / "inbox.jsonl"
+    outbox = tmp_path / "outbox.jsonl"
+    task = {
+        "task_id": "mission-lease-fail",
+        "name": "Aufgabe bei LeaseStore-Fehler",
+        "estimated_cost_eur": 0.0,
+        "status": "PENDING",
+    }
+    inbox.write_text(json.dumps(task) + "\n", encoding="utf-8")
+
+    from courier_runtime import lease
+    monkeypatch.setattr(lease.LeaseStore, "acquire", mock.MagicMock(side_effect=OSError("disk I/O error")))
+
+    results = process_inbox(inbox, outbox)
+    assert results == []
+    assert not outbox.exists()
+    in_lines = inbox.read_text(encoding="utf-8").strip().splitlines()
+    assert json.loads(in_lines[0])["status"] == "PENDING"
+

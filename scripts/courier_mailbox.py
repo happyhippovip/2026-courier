@@ -38,20 +38,17 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
     if not inbox_path.exists():
         return []
 
-    lease = None
-    lease_store = None
     try:
-        from courier_runtime.lease import LeaseConflict, LeaseStore
+        from courier_runtime.lease import LeaseConflict, LeaseStore, FencedFileWriter
         auth_db = (home_path or inbox_path.parent) / "authority.db"
+        auth_db.parent.mkdir(parents=True, exist_ok=True)
         lease_store = LeaseStore(str(auth_db))
         scope = f"mailbox:{inbox_path.name}"
         holder = f"mailbox_runner:{os.getpid()}"
         lease = lease_store.acquire(scope, holder, "process_inbox", ttl_s=60)
     except Exception as exc:
-        if isinstance(exc, LeaseConflict):
-            print(f"[MAILBOX] Another runner holds lease on {inbox_path.name}. Aborting.", file=sys.stderr)
-            return []
-        lease = None
+        print(f"[MAILBOX] Failed to acquire writer lease on {inbox_path.name} ({exc}). Aborting fail-closed.", file=sys.stderr)
+        return []
 
     try:
         lines = inbox_path.read_text(encoding="utf-8").splitlines()
@@ -71,11 +68,20 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
             status = task.get("status", "PENDING")
 
             if status == "PENDING":
-                # P0 CostGate Check
-                est_cost = task.get("estimated_cost_eur", 0.0)
-                if est_cost is None or est_cost > 0.0:
+                # P0 CostGate Check: fail closed on missing, non-numeric, or positive cost
+                if "estimated_cost_eur" not in task:
                     task["status"] = "BLOCKED_COSTGATE"
-                    task["resolution"] = "COSTGATE_REJECTED"
+                    task["resolution"] = "UNKNOWN_COST"
+                    task["reason"] = "Task has no explicit estimated_cost_eur."
+                    task["processed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                    updated_lines.append(json.dumps(task))
+                    continue
+
+                est_cost = task["estimated_cost_eur"]
+                import math
+                if isinstance(est_cost, bool) or not isinstance(est_cost, (int, float)) or est_cost < 0.0 or est_cost > 0.0 or math.isnan(est_cost) or math.isinf(est_cost):
+                    task["status"] = "BLOCKED_COSTGATE"
+                    task["resolution"] = "COSTGATE_REJECTED" if (isinstance(est_cost, (int, float)) and est_cost > 0.0) else "UNKNOWN_COST"
                     task["processed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
                     updated_lines.append(json.dumps(task))
                     continue
@@ -97,20 +103,16 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
                     "execution_result": res,
                     "completed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                 }
-                if lease and lease_store:
-                    from courier_runtime.lease import FencedFileWriter
-                    writer = FencedFileWriter(lease_store, f"mailbox:{inbox_path.name}", lease.token)
-                    with writer.open(outbox_path, "a", encoding="utf-8") as out_f:
-                        out_f.write(json.dumps(outbox_entry) + "\n")
-                else:
-                    with outbox_path.open("a", encoding="utf-8") as out_f:
-                        out_f.write(json.dumps(outbox_entry) + "\n")
+                writer = FencedFileWriter(lease_store, f"mailbox:{inbox_path.name}", lease.token)
+                with writer.open(outbox_path, "a", encoding="utf-8") as out_f:
+                    out_f.write(json.dumps(outbox_entry) + "\n")
                     
                 executed.append(outbox_entry)
 
             updated_lines.append(json.dumps(task))
 
-        # Atomically write back updated inbox
+        # Verify fence before atomic inbox replace
+        lease_store.check_write(scope, lease.token)
         tmp_inbox = inbox_path.with_suffix(".tmp")
         tmp_inbox.write_text("\n".join(updated_lines) + ("\n" if updated_lines else ""), encoding="utf-8")
         tmp_inbox.replace(inbox_path)

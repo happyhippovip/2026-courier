@@ -78,6 +78,22 @@ def test_task_lease_manager(repo_dir):
     assert tlm.release_lease("task1", "ownerA") is True
     assert tlm.is_task_claimed("task1") is False
 
+
+def test_task_lease_manager_authority_db_conflict_rejected(repo_dir):
+    from courier_runtime.lease import LeaseStore
+    auth_db = repo_dir / "events" / "locks" / "authority.db"
+    store = LeaseStore(auth_db)
+    store.acquire("task:conflict_task", "foreign_holder", "foreign_hash", ttl_s=300)
+    store.close()
+
+    tlm = TaskLeaseManager(repo_dir)
+    success, reason, data = tlm.acquire_lease("conflict_task", "my_hash", "my_owner", duration_sec=60)
+    assert success is False
+    assert reason == "TASK_ALREADY_CLAIMED_BY_ANOTHER_BUILDER"
+    assert data.get("reason") == "AUTHORITY_DB_LEASE_CONFLICT"
+    assert not (repo_dir / "events" / "locks" / "task_conflict_task.lease").exists()
+
+
 def test_file_manifest_tracker(repo_dir):
     test_file = repo_dir / "test.txt"
     test_file.write_text("hello world")
