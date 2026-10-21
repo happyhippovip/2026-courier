@@ -71,6 +71,49 @@ def exit_code_for_status(final_status: str) -> int:
     """
     return 0 if final_status == "SUCCESS" else 1
 
+def _listener_pids(port: int):
+    """PIDs holding a TCP listen socket on port (UNIX lsof; None if unknown)."""
+    import shutil
+    if shutil.which("lsof") is None:
+        return None
+    try:
+        out = subprocess.run(
+            ["lsof", "-iTCP:%d" % port, "-sTCP:LISTEN", "-t", "-n", "-P"],
+            capture_output=True, text=True, timeout=10).stdout
+    except Exception:
+        return None
+    pids = set()
+    for line in out.splitlines():
+        line = line.strip()
+        if line.isdigit():
+            pids.add(int(line))
+    return pids
+
+
+def assert_server_ownership(server_proc, port: int):
+    """Fail closed unless the listener on port is our server process.
+
+    A foreign (possibly stale) service on the port answers health checks and
+    accepts goals, which previously surfaced as a misleading FALSIFIED failure.
+    Checking only that our process is alive is not enough: it may still be
+    importing while already doomed to fail its bind. Refuse instead of
+    talking to an unknown service.
+    """
+    if server_proc is None:
+        return
+    if server_proc.poll() is not None:
+        raise RuntimeError(
+            f"Server process died during boot on port {port}; refusing to run "
+            "against whatever answers there (stale process holding the port?)."
+        )
+    listeners = _listener_pids(port)
+    if listeners is not None and server_proc.pid not in listeners:
+        raise RuntimeError(
+            f"Port {port} is held by another process (not our server pid "
+            f"{server_proc.pid}); refusing to run against an unknown service "
+            "(stale process holding the port?)."
+        )
+
 def execute_run(sha: str, evidence_dir: str, port: int = 8081):
     """Execute physical RUN pipeline by orchestrating real processes."""
     os.makedirs(evidence_dir, exist_ok=True)
@@ -185,6 +228,7 @@ def execute_run(sha: str, evidence_dir: str, port: int = 8081):
                 time.sleep(0.5)
         if not ready:
             raise RuntimeError("Server failed to boot or bind.")
+        assert_server_ownership(server_proc, port)
 
         # 2. Spawn Worker
         print("[RUN] Spawning Mac Worker...")
