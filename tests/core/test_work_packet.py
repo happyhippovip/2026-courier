@@ -46,3 +46,34 @@ def test_packet_queue_blocks_promotion_when_host_unsafe():
     admissible = queue.get_admissible_packet("sha1", host_safe=False)
     assert admissible is None
     assert queue.packets["p2"].state == PacketState.PARKED_BY_HOST
+
+
+def test_evaluate_leaves_current_unchanged_when_sha_matches_and_host_safe():
+    packet = WorkPacket(id="p5", owner_id="writer1", target_sha="sha1", state=PacketState.CURRENT)
+    new_packet = evaluate_packet(packet, current_sha="sha1", host_safe=True)
+    assert new_packet is packet
+    assert new_packet.state == PacketState.CURRENT
+
+
+def test_evaluate_passes_through_waiting_and_after_next_when_admissible():
+    for state in (PacketState.WAITING_FOR_EVIDENCE, PacketState.AFTER_NEXT):
+        packet = WorkPacket(id="p6", owner_id="writer1", target_sha="sha1", state=state)
+        new_packet = evaluate_packet(packet, current_sha="sha1", host_safe=True)
+        assert new_packet is packet
+        assert new_packet.state is state
+
+
+def test_packet_queue_empty_returns_none():
+    queue = PacketQueue()
+    assert queue.get_admissible_packet("sha1", host_safe=True) is None
+
+
+def test_packet_queue_supersedes_stale_current_then_promotes_next():
+    queue = PacketQueue()
+    queue.add_packet(WorkPacket("p1", "w1", "sha-old", PacketState.CURRENT))
+    queue.add_packet(WorkPacket("p2", "w2", "sha-new", PacketState.NEXT))
+    admissible = queue.get_admissible_packet("sha-new", host_safe=True)
+    assert queue.packets["p1"].state == PacketState.SUPERSEDED
+    assert admissible is not None
+    assert admissible.id == "p2"
+    assert admissible.state == PacketState.CURRENT
