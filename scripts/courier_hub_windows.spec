@@ -6,6 +6,8 @@ by tests/test_windows_exe_build.py. PyInstaller does not see files that the
 hub opens with Path(__file__) / "static", so that directory is an explicit
 data path. codesign_identity stays None: nothing is signed and nothing is bought.
 """
+from pathlib import Path
+
 _spec_path = Path(SPECPATH).resolve()
 ROOT = _spec_path.parents[1] if (_spec_path.is_file() or _spec_path.name.endswith(".spec")) else _spec_path.parent
 ENTRY = "courier_hub/__main__.py"

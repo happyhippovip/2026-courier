@@ -165,3 +165,28 @@ def _pid_alive(pid: int) -> bool:
     except PermissionError:
         return True
     return True
+
+
+def test_spec_executes_with_pyinstaller_globals(tmp_path):
+    # PyInstaller runs the spec with exec() and injects only its own names
+    # (SPECPATH, Analysis, PYZ, EXE). Any other name the spec uses must be
+    # imported in the spec itself, or the Windows build fails at line 1.
+    spec_path = _build()["SPEC_PATH"]
+    calls = {}
+
+    class _Analysis:
+        def __init__(self, scripts, **kwargs):
+            calls["scripts"] = scripts
+            calls["datas"] = kwargs["datas"]
+            self.pure = self.scripts = self.binaries = self.datas = []
+
+    namespace = {
+        "SPECPATH": str(spec_path.parent),
+        "Analysis": _Analysis,
+        "PYZ": lambda *args, **kwargs: None,
+        "EXE": lambda *args, **kwargs: calls.setdefault("exe", kwargs["name"]),
+    }
+    exec(compile(spec_path.read_text(encoding="utf-8"), str(spec_path), "exec"), namespace)
+    assert calls["exe"] == "CourierHub"
+    assert Path(calls["scripts"][0]) == ROOT / "courier_hub" / "__main__.py"
+    assert Path(calls["datas"][0][0]) == ROOT / "courier_hub" / "static"

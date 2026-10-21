@@ -1,35 +1,49 @@
-# Requires Run as Administrator
-if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Host "ERROR: Please run as Administrator." -ForegroundColor Red
-    exit 1
-}
+# Removes Courier for the current user. No administrator needed.
+#
+# Order: stop this user's running Courier (by its recorded PID only), remove
+# the logon task, delete the program files, then remove configuration and
+# runtime state. The database (courier.db) and the logs stay, so a reinstall
+# keeps the history.
+param (
+    [string]$InstallDir = (Join-Path $env:LOCALAPPDATA "Programs\Courier"),
+    [string]$CourierHome = $(if ($env:COURIER_HOME) { $env:COURIER_HOME } else { Join-Path $env:LOCALAPPDATA "Courier" }),
+    [string]$TaskName = "CourierWindowsWorker"
+)
 
-$taskName = "CourierWindowsWorker"
-$InstallDir = "$env:ProgramFiles\CourierWorker"
+$ErrorActionPreference = "Stop"
 
-if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
-    Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
-    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
-    Write-Host "Unregistered and stopped Courier Windows Worker scheduled task."
-} else {
-    Write-Host "Task $taskName does not exist."
-}
-
-if (Test-Path $InstallDir) {
-    Remove-Item -Recurse -Force $InstallDir
-    Write-Host "Removed installation directory: $InstallDir"
-}
-
-Write-Host "Removing credentials (config.json and run/) from user profiles..."
-$usersDir = "C:\Users"
-Get-ChildItem -Path $usersDir | Where-Object { $_.PSIsContainer } | ForEach-Object {
-    $userCourierDir = Join-Path $_.FullName "AppData\Local\Courier"
-    if (Test-Path $userCourierDir) {
-        $configFile = Join-Path $userCourierDir "config.json"
-        $runDir = Join-Path $userCourierDir "run"
-        if (Test-Path $configFile) { Remove-Item -Force $configFile }
-        if (Test-Path $runDir) { Remove-Item -Recurse -Force $runDir }
+$stopScript = Join-Path $PSScriptRoot "stop.ps1"
+if (-not (Test-Path $stopScript)) { $stopScript = Join-Path $InstallDir "stop.ps1" }
+if (Test-Path $stopScript) {
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $stopScript -CourierHome $CourierHome
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Courier is still running. Nothing was removed." -ForegroundColor Red
+        exit 1
     }
 }
 
-Write-Host "Uninstall complete. Database and logs in %LOCALAPPDATA%\Courier were preserved."
+if (Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue) {
+    Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
+    Write-Host "Removed the logon task $TaskName."
+}
+
+# PowerShell has already read this script, so it may delete its own folder;
+# only the working directory must not be inside it.
+Set-Location $env:TEMP
+if (Test-Path $InstallDir) {
+    Remove-Item -Recurse -Force $InstallDir
+    Write-Host "Removed $InstallDir."
+}
+
+$configFile = Join-Path $CourierHome "config.json"
+$runDir = Join-Path $CourierHome "run"
+if (Test-Path $configFile) { Remove-Item -Force $configFile }
+if (Test-Path $runDir) { Remove-Item -Recurse -Force $runDir }
+
+$legacy = Join-Path $env:ProgramFiles "CourierWorker"
+if (Test-Path $legacy) {
+    Write-Host "An older machine-wide install remains in $legacy. Remove it as administrator." -ForegroundColor Yellow
+}
+
+Write-Host "Uninstall complete. Database and logs in $CourierHome were kept."
+exit 0
