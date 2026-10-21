@@ -39,6 +39,8 @@ WORKER_IDS = {
     "mac": "MAC-01",
     "windows": "WINDOWS-01",
     "linux": "AWS-LINUX-01",
+    "antigravity": "ANTIGRAVITY-POOL",
+    "generic": "GENERIC-ROUTER",
 }
 
 
@@ -57,15 +59,26 @@ def _canonical_hash(value: object) -> str:
 
 
 def normalize_target_capability(target: str) -> str:
-    target_lower = str(target or "").lower()
+    """Normalize target capability while strictly separating platform from provider.
+
+    Decoupled Contract (CP-16):
+    - Antigravity is an agent provider/runtime, NOT an OS requirement.
+    - Generic tasks are platform-neutral.
+    - Strict OS targets (windows, mac, linux) remain strictly bounded.
+    """
+    target_lower = str(target or "").lower().strip()
     if "github" in target_lower:
         return "github"
-    if "windows" in target_lower or "codex" in target_lower:
+    if "antigravity" in target_lower:
+        return "antigravity"
+    if "windows" in target_lower:
         return "windows"
-    if "mac" in target_lower or "antigravity" in target_lower or "gemini" in target_lower:
+    if "mac" in target_lower or "darwin" in target_lower:
         return "mac"
     if "linux" in target_lower:
         return "linux"
+    if target_lower in ("generic", "any", "neutral", "all", "python", "deterministic", ""):
+        return "generic"
     raise ContractError(f"unsupported target_capability: {target}")
 
 

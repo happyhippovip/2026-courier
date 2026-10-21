@@ -268,7 +268,11 @@ def submit_goal():
                 "task_id": step.get("task_id", f"task-{uuid.uuid4().hex[:8]}"),
                 "goal_id": goal_id,
                 "instruction": step.get("instruction", "Next bounded step"),
-                "target_agent": str(step.get("target_agent", "linux")),
+                "target_agent": str(step.get("target_agent", "generic")),
+                "required_os": step.get("required_os"),
+                "required_provider": step.get("required_provider"),
+                "provider_preference": step.get("provider_preference"),
+                "required_capabilities": list(step.get("required_capabilities", [])),
                 "status": "QUEUED",
                 "attempts": 0,
             }
@@ -526,6 +530,7 @@ def cancel_task(task_id):
 @require_auth
 @serialize_state_mutation
 def claim_task():
+    from courier_core.capability_matcher import parse_task_routing, parse_worker_capabilities, match_capabilities
     data = request.get_json(silent=True) or {}
     worker_id = data.get("worker_id")
     if not isinstance(worker_id, str) or not worker_id:
@@ -575,14 +580,11 @@ def claim_task():
             if idx < len(goal["workflow_plan"]):
                 next_task = goal["workflow_plan"][idx]
                 if next_task["status"] == "QUEUED":
-                    target = next_task.get("target_agent", "linux").lower()
-                    
-                    matched = False
-                    if "github" in target and "github" in worker["capabilities"]: matched = True
-                    elif "mac" in target and "macos" in worker["capabilities"]: matched = True
-                    elif "windows" in target and "windows" in worker["capabilities"]: matched = True
-                    elif "linux" in target and "linux" in worker["capabilities"]: matched = True
-                    elif "antigravity" in target and "antigravity" in worker["capabilities"]: matched = True
+                    target = next_task.get("target_capability") or next_task.get("target_agent", "generic")
+                    task_req = parse_task_routing(next_task)
+                    worker_caps = parse_worker_capabilities(worker)
+                    match_res = match_capabilities(worker_caps, task_req)
+                    matched = match_res.matched
                     
                     if matched:
                         # Cost-based routing check:
@@ -607,16 +609,13 @@ def claim_task():
                                     is_cheaper = False
                                     
                                 if is_cheaper:
-                                    # Is other qualified?
-                                    if "github" in target and "github" in other_w["capabilities"]: cheaper_available = True
-                                    elif "mac" in target and "macos" in other_w["capabilities"]: cheaper_available = True
-                                    elif "windows" in target and "windows" in other_w["capabilities"]: cheaper_available = True
-                                    elif "linux" in target and "linux" in other_w["capabilities"]: cheaper_available = True
-                                    elif "antigravity" in target and "antigravity" in other_w["capabilities"]: cheaper_available = True
+                                    other_caps = parse_worker_capabilities(other_w)
+                                    if match_capabilities(other_caps, task_req).matched:
+                                        cheaper_available = True
+                                        break
                                 
                             if cheaper_available:
                                 # We decline this claim to let the cheaper worker grab it.
-                                # But we can't return error, we just skip this task and let it return empty.
                                 matched = False
 
                     if matched:

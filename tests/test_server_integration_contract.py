@@ -254,7 +254,7 @@ def test_goal_without_manual_plan_uses_existing_planner(tmp_path, monkeypatch):
     observed = http.get(f"/goals/{goal_id}", headers=auth()).get_json()
     plan = observed["goal"]["workflow_plan"]
     assert [task["task_id"] for task in plan] == ["planned-a", "planned-b"]
-    assert [task["target_agent"] for task in plan] == ["github", "mac"]
+    assert [task["target_agent"] for task in plan] == ["github", "antigravity"]
     assert observed["goal"]["current_step_index"] == 0
 
 
