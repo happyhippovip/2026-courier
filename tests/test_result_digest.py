@@ -197,3 +197,148 @@ def test_cli_invocation(tmp_path, capsys):
     captured2 = capsys.readouterr()
     assert "Status: OK" in captured2.out
     assert "Total Accepted Tasks: 0" in captured2.out
+
+
+def test_summarize_home_with_rejected_results(tmp_path):
+    home = tmp_path / "rejected_home"
+    journal = Journal(home / "courier.db").open()
+
+    task_created = Event(
+        EventType.TASK_CREATED,
+        task_id="task-rej-01",
+        payload={
+            "adapter": "synthetic",
+            "params": {"write": "out.txt"},
+            "effect_class": "idempotent",
+            "max_attempts": 3,
+            "lease_ttl_s": 30,
+        },
+    )
+    journal.append(task_created)
+    journal.append(Event(EventType.TASK_CLAIMED, task_id="task-rej-01", attempt=1, dispatch_id="disp-rej-1", worker_id="w1", payload={"ttl_s": 30}))
+    journal.append(Event(EventType.TASK_STARTED, task_id="task-rej-01", attempt=1, dispatch_id="disp-rej-1", worker_id="w1"))
+    journal.append(Event(
+        EventType.RESULT_READY,
+        task_id="task-rej-01",
+        attempt=1,
+        dispatch_id="disp-rej-1",
+        worker_id="w1",
+        result_id="res-rej-1",
+        payload={"outcome": "failure", "artifacts": []},
+    ))
+    journal.append(Event(
+        EventType.RESULT_REJECTED,
+        task_id="task-rej-01",
+        attempt=1,
+        dispatch_id="disp-rej-1",
+        result_id="res-rej-1",
+        payload={"reason": "compilation error", "retryable": True},
+    ))
+    journal.close()
+
+    digest = summarize_home(home)
+    assert digest.status == "OK"
+    assert digest.total_accepted == 0
+    assert digest.total_rejected == 1
+    assert digest.total_artifacts == 0
+    assert digest.adapters == ["synthetic"]
+    assert digest.tasks == []
+    assert len(digest.rejected_tasks) == 1
+
+    rej = digest.rejected_tasks[0]
+    assert rej["task_id"] == "task-rej-01"
+    assert rej["result_id"] == "res-rej-1"
+    assert rej["adapter"] == "synthetic"
+    assert rej["reason"] == "compilation error"
+    assert rej["retryable"] is True
+
+
+def test_summarize_home_with_mixed_accepted_and_rejected(tmp_path):
+    home = tmp_path / "mixed_home"
+    journal = Journal(home / "courier.db").open()
+
+    # Accepted task
+    journal.append(Event(
+        EventType.TASK_CREATED,
+        task_id="task-acc",
+        payload={"adapter": "synthetic", "params": {}, "effect_class": "idempotent", "max_attempts": 1, "lease_ttl_s": 30},
+    ))
+    journal.append(Event(EventType.TASK_CLAIMED, task_id="task-acc", attempt=1, dispatch_id="d1", worker_id="w1", payload={"ttl_s": 30}))
+    journal.append(Event(EventType.TASK_STARTED, task_id="task-acc", attempt=1, dispatch_id="d1", worker_id="w1"))
+    journal.append(Event(
+        EventType.RESULT_READY,
+        task_id="task-acc", attempt=1, dispatch_id="d1", worker_id="w1", result_id="r1",
+        payload={"outcome": "success", "artifacts": [{"path": "ok.txt", "sha256": "1" * 64}]},
+    ))
+    journal.append(Event(EventType.RESULT_ACCEPTED, task_id="task-acc", attempt=1, dispatch_id="d1", result_id="r1"))
+
+    # Rejected task
+    journal.append(Event(
+        EventType.TASK_CREATED,
+        task_id="task-rej",
+        payload={"adapter": "local_json_delivery", "params": {}, "effect_class": "idempotent", "max_attempts": 1, "lease_ttl_s": 30},
+    ))
+    journal.append(Event(EventType.TASK_CLAIMED, task_id="task-rej", attempt=1, dispatch_id="d2", worker_id="w2", payload={"ttl_s": 30}))
+    journal.append(Event(EventType.TASK_STARTED, task_id="task-rej", attempt=1, dispatch_id="d2", worker_id="w2"))
+    journal.append(Event(
+        EventType.RESULT_READY,
+        task_id="task-rej", attempt=1, dispatch_id="d2", worker_id="w2", result_id="r2",
+        payload={"outcome": "failure", "artifacts": []},
+    ))
+    journal.append(Event(
+        EventType.RESULT_REJECTED,
+        task_id="task-rej", attempt=1, dispatch_id="d2", result_id="r2",
+        payload={"reason": "schema mismatch", "retryable": False},
+    ))
+    journal.close()
+
+    digest = summarize_home(home)
+    assert digest.status == "OK"
+    assert digest.total_accepted == 1
+    assert digest.total_rejected == 1
+    assert digest.total_artifacts == 1
+    assert sorted(digest.adapters) == ["local_json_delivery", "synthetic"]
+    assert len(digest.tasks) == 1
+    assert len(digest.rejected_tasks) == 1
+    assert digest.tasks[0]["task_id"] == "task-acc"
+    assert digest.rejected_tasks[0]["task_id"] == "task-rej"
+    assert digest.rejected_tasks[0]["reason"] == "schema mismatch"
+
+
+def test_cli_invocation_shows_rejected_tasks(tmp_path, capsys):
+    home = tmp_path / "cli_rej_home"
+    journal = Journal(home / "courier.db").open()
+    journal.append(Event(
+        EventType.TASK_CREATED,
+        task_id="t-rej",
+        payload={"adapter": "synthetic", "params": {}, "effect_class": "idempotent", "max_attempts": 1, "lease_ttl_s": 30},
+    ))
+    journal.append(Event(EventType.TASK_CLAIMED, task_id="t-rej", attempt=1, dispatch_id="d1", worker_id="w1", payload={"ttl_s": 30}))
+    journal.append(Event(EventType.TASK_STARTED, task_id="t-rej", attempt=1, dispatch_id="d1", worker_id="w1"))
+    journal.append(Event(
+        EventType.RESULT_READY,
+        task_id="t-rej", attempt=1, dispatch_id="d1", worker_id="w1", result_id="r1",
+        payload={"outcome": "failure", "artifacts": []},
+    ))
+    journal.append(Event(
+        EventType.RESULT_REJECTED,
+        task_id="t-rej", attempt=1, dispatch_id="d1", result_id="r1",
+        payload={"reason": "fatal timeout", "retryable": False},
+    ))
+    journal.close()
+
+    # JSON mode
+    ret = main(["--home", str(home), "--json"])
+    assert ret == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["total_accepted"] == 0
+    assert data["total_rejected"] == 1
+    assert len(data["rejected_tasks"]) == 1
+    assert data["rejected_tasks"][0]["reason"] == "fatal timeout"
+
+    # Human-readable mode
+    ret2 = main(["--home", str(home)])
+    assert ret2 == 0
+    out2 = capsys.readouterr().out
+    assert "Total Accepted Tasks: 0" in out2
+    assert "Total Rejected Tasks: 1" in out2

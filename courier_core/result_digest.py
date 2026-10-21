@@ -1,6 +1,6 @@
-"""Summarize accepted results for one Courier home (P2).
+"""Summarize accepted and rejected results for one Courier home (P2/P4).
 
-Read-only, fail-closed digest of all accepted task outcomes and artifacts
+Read-only, fail-closed digest of all accepted and rejected task outcomes and artifacts
 recorded in <home>/courier.db. Produces a deterministic, cryptographic
 digest that can be attested across restarts or verified by external tooling.
 """
@@ -39,13 +39,27 @@ class AcceptedTaskSummary:
 
 
 @dataclass(frozen=True)
+class RejectedTaskSummary:
+    task_id: str
+    result_id: str
+    dispatch_id: str
+    attempt: int
+    adapter: str
+    reason: str
+    retryable: bool
+    rejected_at: str
+
+
+@dataclass(frozen=True)
 class ResultDigest:
     status: str  # "OK", "EMPTY", "NOT_FOUND", "CORRUPT"
     home: str
     total_accepted: int = 0
+    total_rejected: int = 0
     total_artifacts: int = 0
     adapters: list[str] = field(default_factory=list)
     tasks: list[dict[str, Any]] = field(default_factory=list)
+    rejected_tasks: list[dict[str, Any]] = field(default_factory=list)
     digest_sha256: str = ""
     error_detail: str | None = None
 
@@ -54,9 +68,11 @@ class ResultDigest:
             "status": self.status,
             "home": self.home,
             "total_accepted": self.total_accepted,
+            "total_rejected": self.total_rejected,
             "total_artifacts": self.total_artifacts,
             "adapters": self.adapters,
             "tasks": self.tasks,
+            "rejected_tasks": self.rejected_tasks,
             "digest_sha256": self.digest_sha256,
             "error_detail": self.error_detail,
         }
@@ -69,7 +85,7 @@ def _compute_digest_sha256(tasks_data: list[dict[str, Any]]) -> str:
 
 
 def summarize_home(home: Path | str) -> ResultDigest:
-    """Extract and summarize all accepted task results from one Courier home."""
+    """Extract and summarize all accepted and rejected task results from one Courier home."""
     home_path = Path(home).resolve()
     db_path = home_path / "courier.db"
 
@@ -119,15 +135,29 @@ def summarize_home(home: Path | str) -> ResultDigest:
         )
         accepted_rows = cursor.fetchall()
 
-        if not accepted_rows:
+        # Retrieve all RESULT_REJECTED events ordered by seq
+        cursor.execute(
+            """
+            SELECT seq, task_id, attempt, dispatch_id, result_id, ts_utc, payload
+            FROM events
+            WHERE type = ?
+            ORDER BY seq ASC;
+            """,
+            (EventType.RESULT_REJECTED.value,),
+        )
+        rejected_rows = cursor.fetchall()
+
+        if not accepted_rows and not rejected_rows:
             conn.close()
             return ResultDigest(
                 status="OK",
                 home=str(home_path),
                 total_accepted=0,
+                total_rejected=0,
                 total_artifacts=0,
                 adapters=[],
                 tasks=[],
+                rejected_tasks=[],
                 digest_sha256=hashlib.sha256(b"[]").hexdigest(),
             )
 
@@ -206,17 +236,48 @@ def summarize_home(home: Path | str) -> ResultDigest:
                 "accepted_at": accepted_at,
             })
 
+        summarized_rejected: list[dict[str, Any]] = []
+        for row in rejected_rows:
+            task_id = row["task_id"]
+            dispatch_id = row["dispatch_id"]
+            result_id = row["result_id"]
+            attempt = row["attempt"]
+            rejected_at = row["ts_utc"]
+            adapter = task_adapters.get(task_id, "unknown")
+            distinct_adapters.add(adapter)
+
+            try:
+                p = json.loads(row["payload"]) if row["payload"] else {}
+            except (json.JSONDecodeError, TypeError):
+                p = {}
+            reason = str(p.get("reason", "unknown"))
+            retryable = bool(p.get("retryable", False))
+
+            summarized_rejected.append({
+                "task_id": task_id,
+                "result_id": result_id,
+                "dispatch_id": dispatch_id,
+                "attempt": attempt,
+                "adapter": adapter,
+                "reason": reason,
+                "retryable": retryable,
+                "rejected_at": rejected_at,
+            })
+
         # Sort tasks deterministically by task_id then result_id
         summarized_tasks.sort(key=lambda t: (t["task_id"], t["result_id"]))
+        summarized_rejected.sort(key=lambda t: (t["task_id"], t["result_id"]))
         digest_hash = _compute_digest_sha256(summarized_tasks)
 
         return ResultDigest(
             status="OK",
             home=str(home_path),
             total_accepted=len(summarized_tasks),
+            total_rejected=len(summarized_rejected),
             total_artifacts=total_artifacts_count,
             adapters=sorted(distinct_adapters),
             tasks=summarized_tasks,
+            rejected_tasks=summarized_rejected,
             digest_sha256=digest_hash,
         )
 
@@ -233,7 +294,7 @@ def summarize_home(home: Path | str) -> ResultDigest:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Summarize accepted results for a Courier home.")
+    parser = argparse.ArgumentParser(description="Summarize accepted and rejected results for a Courier home.")
     parser.add_argument("--home", type=Path, default=None, help="Path to COURIER_HOME (defaults to env)")
     parser.add_argument("--json", action="store_true", help="Output summary as JSON")
     args = parser.parse_args(argv)
@@ -250,6 +311,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Status: {digest.status}")
         print(f"Home: {digest.home}")
         print(f"Total Accepted Tasks: {digest.total_accepted}")
+        if digest.total_rejected > 0:
+            print(f"Total Rejected Tasks: {digest.total_rejected}")
         print(f"Total Artifacts: {digest.total_artifacts}")
         print(f"Adapters: {', '.join(digest.adapters) if digest.adapters else 'None'}")
         print(f"Digest SHA-256: {digest.digest_sha256}")
