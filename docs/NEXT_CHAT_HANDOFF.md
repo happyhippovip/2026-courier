@@ -337,6 +337,10 @@ At update time (2026-10-07):
 - **STEP 62 VERIFIER BLK-09 FAIL-CLOSED RESOLUTION (21.10.2026):**
   - Behebung von BLK-09 in `scripts/courier_verifier.py`: Typprüfung für Task- und Ergebnisartefaktpfade; dict-förmige oder nicht-stringförmige Pfade werden fail-closed mit FAIL abgewiesen (`TypeError: unhashable type: 'dict'` eliminiert).
   - Tests: `tests/test_courier_verifier.py` auf **23/23 PASS** erweitert; `test_repo_hygiene.py` (BLK-01) 4/4 PASS; `test_run_antigravity_bridge.py` (BLK-07) 10/10 PASS.
+- **STEP 63 BLK-06 LF LINE-ENDING NORMALIZATION & GOLDEN SUITE 11/11 PASS (21.10.2026):**
+  - Behebung von BLK-06 via [`.gitattributes`](file:///Users/user/Downloads/2026-courier/.gitattributes): Repository-weite Normalisierung auf `eol=lf` für Quelltext und Test-Fixtures. Beseitigt Windows-CRLF-Bytecount-Differenzen.
+  - Vollständige Golden-Test-Suite (`pytest tests/golden/ -v`): **11/11 PASS** (alle Ausfall- und Replay-Tests 100% grün).
+  - Kanonische Blocker-Registry (`BLOCKER_REGISTRY_V26_CURRENT.md`): BLK-01, BLK-06, BLK-07 und BLK-09 auf `RESOLVED_GREEN` aktualisiert.
 - next critical implementation path:
   **WINDOWS CLEAN-MACHINE ACCEPTANCE & WEBSITE HUMAN GATE**: Abnahme auf dem sauberen Windows-Host nach Host-Boot; Prüfung des Website-Impressums am Dennis Human-Gate (`fc219a1`).
 

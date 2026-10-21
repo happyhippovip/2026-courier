@@ -942,3 +942,32 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
   - Desktop Suite: **59/59 PASS**.
   - Boundary integrity: 100% VALID.
 - Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
+
+## Step 63 — BLK-06 LF Line-Ending Normalization & Full Golden Suite Verification (Commit `45c2590a9`)
+### `.gitattributes`, `tests/golden/`, `BLOCKER_REGISTRY_V26_CURRENT.md`
+- Resolved BLK-06 from Canonical Blocker Registry:
+  - **LF Line-Ending Normalization ([`.gitattributes`](file:///Users/user/Downloads/2026-courier/.gitattributes)):** Configured repository-wide `* text=auto eol=lf`, `tests/golden/** text eol=lf`, code and data file extensions to enforce LF line endings. Eliminates Windows CRLF byte-count assertion drift during checkout and cross-platform CI.
+  - **Golden Test Suite Verification:** Ran the entire golden failure and happy-path suite (`pytest tests/golden/ -v`). All 11 tests passed 100% green without error:
+    - `test_kill_worker_mid_task_is_retried_once` PASSED
+    - `test_duplicate_result_is_acknowledged_without_new_events` PASSED
+    - `test_late_result_from_superseded_attempt_is_discarded` PASSED
+    - `test_timeout_kills_the_task_tree_and_retries` PASSED
+    - `test_cancel_while_running` PASSED
+    - `test_corrupt_journal_starts_degraded_and_read_only` PASSED
+    - `test_controller_restart_mid_run_keeps_the_same_dispatch` PASSED
+    - `test_restart_grace_expires_lease_when_worker_is_gone` PASSED
+    - `test_transient_provider_failures_retry_until_success` PASSED
+    - `test_non_idempotent_task_blocks_instead_of_retrying` PASSED
+    - `test_golden_happy_path_restart_and_replay` PASSED
+  - **Canonical Blocker Registry Update:** Marked BLK-01, BLK-06, BLK-07, and BLK-09 as `RESOLVED_GREEN` in [`BLOCKER_REGISTRY_V26_CURRENT.md`](file:///Users/user/Downloads/2026-project-memory/BLOCKER_REGISTRY_V26_CURRENT.md).
+- Verified test coverage:
+  - `pytest tests/golden/`: **11/11 PASS**.
+  - `node --test tests/desktop/*.test.mjs`: **59/59 PASS**.
+  - `pytest tests/test_courier_verifier.py`: **23/23 PASS**.
+  - `pytest tests/test_repo_hygiene.py`: **4/4 PASS**.
+  - `pytest tests/test_run_antigravity_bridge.py`: **10/10 PASS**.
+  - `pytest tests/hub/test_kolibri_truth_p0.py`: **3/3 PASS**.
+  - `pytest tests/test_runtime_lease.py`: **13/13 PASS**.
+  - `pytest tests/test_windows_exe_build.py`: **6 passed, 1 skipped**.
+  - Isolation boundaries (State, Auth, Process, Resource): **100% VALID**.
+- Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
