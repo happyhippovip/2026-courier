@@ -15,6 +15,8 @@ from courier_core.verifier_receipt import (  # noqa: E402
     issue,
     verify,
     main,
+    _safe_rel,
+    _pytest_skipped,
 )
 
 
@@ -168,3 +170,111 @@ def test_cli_verify_rejects_and_accepts(repo, tmp_path):
     receipt["result"] = "RESULT_ACCEPTED"
     path.write_text(json.dumps(receipt))
     assert main(["verify", str(path), "--repo", str(repo)]) == 1
+
+
+def test_safe_rel_rejects_backslashes_and_traversals():
+    assert _safe_rel("foo/bar.txt") == "foo/bar.txt"
+    assert _safe_rel("") is None
+    assert _safe_rel("   ") is None
+    assert _safe_rel("/foo/bar.txt") is None
+    assert _safe_rel(r"\foo\bar.txt") is None
+    assert _safe_rel(r"foo\bar.txt") is None
+    assert _safe_rel("../bar.txt") is None
+    assert _safe_rel("foo/../../bar.txt") is None
+    assert _safe_rel("C:/foo/bar.txt") is None
+    assert _safe_rel(123) is None
+
+
+def test_issue_rejects_empty_artifacts_or_missing_files(repo):
+    rec_empty = issue(repo, test_command="pytest", exit_code=0, skipped=0, artifacts=[])
+    assert rec_empty["result"] == "RESULT_REJECTED"
+
+    rec_missing = issue(repo, test_command="pytest", exit_code=0, skipped=0, artifacts=["nonexistent.txt"])
+    assert rec_missing["result"] == "RESULT_REJECTED"
+
+    rec_backslash = issue(repo, test_command="pytest", exit_code=0, skipped=0, artifacts=[r"dir\file.txt"])
+    assert rec_backslash["result"] == "RESULT_REJECTED"
+
+    rec_empty_cmd = issue(repo, test_command="  ", exit_code=0, skipped=0, artifacts=["effect.txt"])
+    assert rec_empty_cmd["result"] == "RESULT_REJECTED"
+
+
+def test_verify_rejects_extra_fields_or_duplicate_artifacts(repo):
+    receipt = _issued(repo)
+    receipt["extra_field"] = "surprise"
+    check = verify(receipt, repo)
+    assert check["result"] == "RESULT_REJECTED"
+    assert check["reason"] == "unknown_state"
+
+    receipt2 = _issued(repo)
+    receipt2["artifacts"] = receipt2["artifacts"] + receipt2["artifacts"]
+    check2 = verify(receipt2, repo)
+    assert check2["result"] == "RESULT_REJECTED"
+    assert check2["reason"] == "artifact_hash"
+
+    receipt3 = _issued(repo)
+    receipt3["artifacts"][0]["sha256"] = "invalid-hex-length"
+    check3 = verify(receipt3, repo)
+    assert check3["result"] == "RESULT_REJECTED"
+    assert check3["reason"] == "artifact_hash"
+
+
+def test_verify_rejects_naive_timestamp_or_invalid_counts(repo):
+    receipt = _issued(repo)
+    receipt["timestamp"] = "2026-10-13T15:30:00"
+    check = verify(receipt, repo)
+    assert check["result"] == "RESULT_REJECTED"
+    assert check["reason"] == "unknown_state"
+
+    receipt2 = _issued(repo)
+    receipt2["exit_code"] = "0"
+    check2 = verify(receipt2, repo)
+    assert check2["result"] == "RESULT_REJECTED"
+    assert check2["reason"] == "unknown_state"
+
+    receipt3 = _issued(repo)
+    receipt3["skipped"] = -1
+    check3 = verify(receipt3, repo)
+    assert check3["result"] == "RESULT_REJECTED"
+    assert check3["reason"] == "unknown_state"
+
+
+def test_pytest_skipped_parser_contract():
+    assert _pytest_skipped("14 passed in 0.50s") == 0
+    assert _pytest_skipped("12 passed, 2 skipped in 1.23s") == 2
+    assert _pytest_skipped("no summary line here") is None
+
+
+def test_cli_issue_success_and_failure(repo, tmp_path):
+    out_file = tmp_path / "out_receipt.json"
+    res0 = main([
+        "issue",
+        "--repo", str(repo),
+        "--command", "pytest",
+        "--artifact", "effect.txt",
+        "--exit-code", "0",
+        "--skipped", "0",
+        "--out", str(out_file),
+    ])
+    assert res0 == 0
+    assert out_file.is_file()
+    data = json.loads(out_file.read_text())
+    assert data["result"] == "RESULT_ACCEPTED"
+
+    res1 = main([
+        "issue",
+        "--repo", str(repo),
+        "--command", "pytest",
+        "--artifact", "effect.txt",
+        "--exit-code", "1",
+        "--skipped", "0",
+    ])
+    assert res1 == 1
+
+    res2 = main([
+        "issue",
+        "--repo", str(repo),
+        "--command", "pytest",
+        "--artifact", "effect.txt",
+    ])
+    assert res2 == 2
