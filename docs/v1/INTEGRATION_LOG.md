@@ -914,5 +914,19 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
 - Verified test coverage:
   - `pytest tests/test_windows_exe_build.py`: 5 passed, 2 skipped (1 non-windows skip, 1 loopback socket skip on Darwin sandbox).
   - `node --test tests/desktop/*.test.mjs`: 49/49 PASS (zero regressions).
-  - Boundary integrity: `scripts/verify_state_isolation.py` VALID, `scripts/verify_auth_boundaries.py` VALID, `scripts/verify_process_isolation.py` VALID, `scripts/verify_resource_admission.py` VALID.
+- Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
+
+## Step 61 — Kolibri Black Orb & Beams Integration + K1/K2 Truth Hardening (Commit `cd2a5f6e1`)
+### `courier_hub/static/kolibri_beams.mjs`, `kolibri_biosphere.mjs`, `kolibri_insight.mjs`, `courier_hub/kolibri_data.py`
+- Integrated Founder-Option B Black Orb & Beams rendering suite from `origin/ag03/kolibri-truth-black-orb`:
+  - **Black Glossy Master Orb & Volumetric Beams ([`kolibri_beams.mjs`](file:///Users/user/Downloads/2026-courier/courier_hub/static/kolibri_beams.mjs)):** Quadratic Bezier beams with three glow layers, deterministic layout and curves, budget-capped pulse animations (1 pulse per `event_id`), reduced-motion draw mode, and zero memory leaks (destroy frees all sprites/frames).
+  - **Bioluminescent Cosmos Background ([`kolibri_biosphere.mjs`](file:///Users/user/Downloads/2026-courier/courier_hub/static/kolibri_biosphere.mjs)):** Deterministic PRNG-seeded background glyphs and clusters; CSS-only drift; strictly excludes verified green token.
+  - **Fact-Based Insight Engine ([`kolibri_insight.mjs`](file:///Users/user/Downloads/2026-courier/courier_hub/static/kolibri_insight.mjs)):** Pure facts with source and timestamp; missing queue counts surface as UNKNOWN (never 0); green edge/node requires verified evidence with authentic `event_id`; DEMO mode strictly locked to magenta.
+  - **K1/K2 Truth Hardening ([`courier_hub/kolibri_data.py`](file:///Users/user/Downloads/2026-courier/courier_hub/kolibri_data.py)):** Verifier evidence with `outcome="verified"` from hub cards surfaces with `verified=True` and `event_id="task:<id>:verified"`. Missing research files return `available=False` without fabricating fake metrics.
+- Verified test coverage:
+  - `node --test tests/desktop/*.test.mjs`: **59/59 PASS** (10 new Black Orb tests, 17 Badge tests, 32 Core/Universe tests).
+  - `pytest tests/hub/test_kolibri_truth_p0.py`: **3/3 PASS** (K1/K2 truth assertions).
+  - `pytest tests/hub/test_kolibri_bridge.py`: 14/14 PASS.
+  - `pytest tests/test_runtime_lease.py`: 13/13 PASS.
+  - Boundary integrity: 100% VALID (State, Auth, Process, Resource Admission).
 - Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.

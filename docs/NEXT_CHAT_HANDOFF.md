@@ -329,6 +329,11 @@ At update time (2026-10-07):
   - Neuer Regressionstest `test_spec_executes_with_pyinstaller_globals` in `tests/test_windows_exe_build.py`.
   - Windows Launcher `install.ps1` baut nun `CourierLauncher.cs` sauber aus den Quellen mit `csc.exe`, falls vorhanden; `stop.ps1` stoppt zielgenau per PID nur eigene Prozesse.
   - Tests: `tests/test_windows_exe_build.py` 5 passed, 2 skipped (1 Windows-only, 1 Sandbox-Loopback); Desktop-Suite 49/49 PASS; State/Auth/Process/Resource Boundaries 100% VALID.
+- **STEP 61 KOLIBRI BLACK ORB, BEAMS & K1/K2 TRUTH INTEGRATION (21.10.2026):**
+  - Integration der Black Orb & Beams Suite (`kolibri_beams.mjs`, `kolibri_biosphere.mjs`, `kolibri_insight.mjs`):
+  - K1: Verifier-Evidence mit `outcome="verified"` wird in `read_ledger()` sauber mit `verified=True` und `event_id` an die Kolibri-Oberfläche weitergereicht.
+  - K2: Zero-Fabrication-Garantie: fehlende Arbitrage-Dateien werden nicht durch erfundene Fake-Zahlen kaschiert, sondern ehrlich als UNAVAILABLE ausgewiesen.
+  - Tests: Desktop-Suite auf **59/59 PASS** gehoben (10 neue Black Orb Tests, 0 Regressionen); `test_kolibri_truth_p0.py` 3/3 PASS; Boundaries 100% VALID.
 - next critical implementation path:
   **WINDOWS CLEAN-MACHINE ACCEPTANCE & WEBSITE HUMAN GATE**: Abnahme auf dem sauberen Windows-Host nach Host-Boot; Prüfung des Website-Impressums am Dennis Human-Gate (`fc219a1`).
 
