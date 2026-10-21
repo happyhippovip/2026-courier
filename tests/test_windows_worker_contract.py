@@ -565,6 +565,27 @@ def test_scheduled_task_action_working_directory_contract():
                 assert "-WorkingDirectory" in line, f"{script_name} New-ScheduledTaskAction must contain -WorkingDirectory"
 
 
+def test_scheduled_task_settings_and_auto_restart_reliability_contract():
+    """Beweis (GB-WINST-01 / W10): Sowohl install.ps1 als auch install_service.ps1 konfigurieren
+    New-ScheduledTaskSettingsSet mit -ExecutionTimeLimit ([TimeSpan]::Zero), um die 72-Stunden-Zwangstrennung
+    der Windows Aufgabenplanung zu deaktivieren, sowie automatisches Restart-Verhalten
+    (-RestartCount 3, -RestartInterval 1 Minute) und unterbrechungsfreien Batteriebetrieb
+    (-AllowStartIfOnBatteries, -DontStopIfGoingOnBatteries, -StartWhenAvailable)."""
+    repo_root = Path(__file__).resolve().parents[1]
+    install_ps1 = (repo_root / "scripts" / "windows_worker" / "install.ps1").read_text(encoding="utf-8")
+    install_service_ps1 = (repo_root / "scripts" / "windows_worker" / "install_service.ps1").read_text(encoding="utf-8")
+
+    for script_name, content in [("install.ps1", install_ps1), ("install_service.ps1", install_service_ps1)]:
+        assert "New-ScheduledTaskSettingsSet" in content, f"{script_name} must invoke New-ScheduledTaskSettingsSet"
+        assert "-ExecutionTimeLimit ([TimeSpan]::Zero)" in content, f"{script_name} must disable 72h time limit via [TimeSpan]::Zero"
+        assert "-RestartCount 3" in content, f"{script_name} must specify -RestartCount 3"
+        assert "-RestartInterval (New-TimeSpan -Minutes 1)" in content, f"{script_name} must specify 1 minute restart interval"
+        assert "-AllowStartIfOnBatteries" in content, f"{script_name} must specify -AllowStartIfOnBatteries"
+        assert "-DontStopIfGoingOnBatteries" in content, f"{script_name} must specify -DontStopIfGoingOnBatteries"
+        assert "-StartWhenAvailable" in content, f"{script_name} must specify -StartWhenAvailable"
+        assert "-Settings $settings" in content, f"{script_name} must pass -Settings $settings to Register-ScheduledTask"
+
+
 def test_uninstall_script_credential_cleanup_contract():
     """Beweis: uninstall.ps1 bereinigt Credentials vollständig aus User-Profilen,
     ProgramData und dem SYSTEM-Profil, um verbleibende Token-/Schlüsselreste nach
