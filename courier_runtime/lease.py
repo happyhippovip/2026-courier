@@ -151,13 +151,17 @@ class LeaseStore:
             raise
         return Lease(c_scope, lease.holder, lease.workkey, lease.token, now + ttl_s)
 
-    def check_write(self, scope, token):
+    def check_write(self, scope, token, holder=None, workkey=None):
         """Fence: raise unless token is the current, unexpired token for scope or an enclosing parent scope."""
         c_scope = canonicalize_scope(scope)
         lease = self.current(c_scope)
         if lease is not None:
             if lease.token != token:
                 raise StaleLease(f"write to {c_scope} with token {token} refused (current token is {lease.token})")
+            if holder is not None and lease.holder != holder:
+                raise StaleLease(f"write to {c_scope} with holder {holder} refused (current holder is {lease.holder})")
+            if workkey is not None and lease.workkey != workkey:
+                raise StaleLease(f"write to {c_scope} with workkey {workkey} refused (current workkey is {lease.workkey})")
             return lease
         # Check if an enclosing scope is held with this token
         rows = self.db.execute(
@@ -166,7 +170,14 @@ class LeaseStore:
         ).fetchall()
         for r in rows:
             live = Lease(*r)
-            if scopes_overlap(live.scope, c_scope) and live.token == token:
+            ca = canonicalize_scope(live.scope)
+            cb = c_scope
+            is_enclosing = (ca == cb) or cb.startswith(ca + "/")
+            if is_enclosing and live.token == token:
+                if holder is not None and live.holder != holder:
+                    raise StaleLease(f"write to {c_scope} under enclosing {live.scope} with holder {holder} refused (current holder is {live.holder})")
+                if workkey is not None and live.workkey != workkey:
+                    raise StaleLease(f"write to {c_scope} under enclosing {live.scope} with workkey {workkey} refused (current workkey is {live.workkey})")
                 return live
         raise StaleLease(f"write to {c_scope} with token {token} refused")
 
@@ -178,13 +189,15 @@ class LeaseStore:
 
 class FencedFileWriter:
     """Ensures that before writing to any path, the lease token is verified against the LeaseStore."""
-    def __init__(self, lease_store: LeaseStore, scope: str, token: int):
+    def __init__(self, lease_store: LeaseStore, scope: str, token: int, holder: str | None = None, workkey: str | None = None):
         self.store = lease_store
         self.scope = canonicalize_scope(scope)
         self.token = token
+        self.holder = holder
+        self.workkey = workkey
 
     def check(self):
-        return self.store.check_write(self.scope, self.token)
+        return self.store.check_write(self.scope, self.token, holder=self.holder, workkey=self.workkey)
 
     def open(self, path, mode="w", *args, **kwargs):
         if any(m in mode for m in ("w", "a", "+", "x")):

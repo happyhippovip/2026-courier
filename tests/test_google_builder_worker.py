@@ -344,3 +344,15 @@ def test_google_agent_task_costgate_enforced(tmp_path):
     assert verdict == "FAILED"
     assert "COST_GATE_DENIED" in evidence_nan.get("blocked_reason", "")
     assert evidence_nan.get("provider_invoked") is False
+
+    # 3. Missing estimated_cost_eur -> blocked (UNKNOWN_COST)
+    payload_missing = {
+        "workkey": "WK-MISSING-COST",
+        "instruction": "do something unestimated",
+    }
+    evidence_missing = {}
+    verdict = run_google_agent_task(payload_missing, tmp_path, evidence_missing, surface)
+    assert verdict == "FAILED"
+    assert "COST_GATE_DENIED" in evidence_missing.get("blocked_reason", "")
+    assert "UNKNOWN_COST" in evidence_missing.get("blocked_reason", "")
+    assert evidence_missing.get("provider_invoked") is False

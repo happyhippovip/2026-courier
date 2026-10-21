@@ -470,7 +470,7 @@ def run_google_agent_task(
     from scripts.resource_policy import CostGate
     cost_res = CostGate.evaluate_spend_request(
         "google_antigravity_plus",
-        estimated_cost_eur=payload_in.get("estimated_cost_eur", 0.0),
+        estimated_cost_eur=payload_in.get("estimated_cost_eur"),
         requested_action=payload_in.get("requested_action", "EXECUTE_TASK"),
         repo_dir=repo_dir,
     )
