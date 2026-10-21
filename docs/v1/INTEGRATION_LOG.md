@@ -1034,3 +1034,22 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
 - Full Golden Harness:
   - `pytest tests/golden/ -v`: **11/11 PASS**.
 - Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
+
+## Step 68 — Windows Launcher Health Failure Exit, Fast Crash Throttle Loop, and Dist Package Parity
+### `scripts/windows_worker/launcher/CourierLauncher.cs`, `scripts/windows_worker/dist/`, `.github/ci/known_failures.json`, `tests/`
+- Merged and verified:
+  - **L6 PR #770 / #760 (`cursor/windows-launcher-health-exit-44b0`):**
+    - Windows Launcher now explicitly calls `Environment.Exit(1)` when the controller fails to become healthy or when launching throws an exception, enabling the Windows Scheduled Task to restart it according to its restart policy rather than hanging or returning code 0.
+    - Inside the monitor loop, bounded fast crash throttling is enforced: if controller, worker, or hub crashes repeatedly (>3 fast crashes within 30 seconds), the launcher writes `crash.txt` and terminates cleanly to prevent infinite spin.
+    - Added comprehensive launcher contract test suite (`tests/test_windows_launcher_restart_budget.py`): **3/3 PASS**.
+  - **L6 PR #747 / #751 (`cursor/windows-dist-uninstall-stops-44b0` / `cursor/windows-package-lifecycle-44b0`):**
+    - Shipped packaged distribution under `scripts/windows_worker/dist/` (`install.ps1`, `uninstall.ps1`, `stop.ps1`, `stop.bat`, `start.bat`) updated to full byte-parity with the source per-user non-elevated lifecycle scripts.
+    - Updated `scripts/windows_worker/build_package.ps1` to bundle `stop.ps1`, `stop.bat`, and `start.bat` into the generated ZIP artifact.
+  - **CI Ratchet:**
+    - Removed resolved BLK-12 (`test_03b_atomic_expired_lease_reclaim_single_winner`) from Windows `flaky` list in `.github/ci/known_failures.json` following proven fix in Step 67.
+- Verified test coverage:
+  - `tests/test_windows_launcher_restart_budget.py`: **3/3 PASS**.
+  - `tests/test_windows_packaging_contract.py`: **3/3 PASS**.
+  - Full CI Run 39587380730: **100% GREEN** across Ubuntu (`passed=3232, failed=0`), Windows (`passed=3113, failed=0`), Golden skip ratchet (`11/11 PASS`), desktop JS (`59/59 PASS`), and Windows executable build.
+- Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
+

@@ -50,9 +50,7 @@
       "tests/test_muse_supervisor.py::test_stop_prevents_restart",
       "tests/test_muse_supervisor.py::test_unconfirmed_prompt_method_fails_closed"
     ],
-    "flaky": [
-      "tests/test_resource_policy_mission_093.py::TestMission093And095And097HardenedPolicy::test_03b_atomic_expired_lease_reclaim_single_winner"
-    ],
+    "flaky": [],
     "causes": {
       "fcntl": "scripts/mac_worker/runtime_state.py imports the POSIX-only fcntl module: test_mac_worker_contract, test_mac_worker_recovery, test_mac_worker_standalone_boot, test_muse_supervisor, test_muse_convergence (collection)"
     },

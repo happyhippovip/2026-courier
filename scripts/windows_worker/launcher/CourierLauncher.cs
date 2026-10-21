@@ -295,7 +295,7 @@ namespace CourierLauncher
                     string msg = "Controller failed to start or become healthy.\nCheck logs at: " + logDir;
                     File.WriteAllText(Path.Combine(dataDir, "crash.txt"), msg);
                     MessageBox(IntPtr.Zero, msg, "Courier Launcher Error", 0x10);
-                    return;
+                    Environment.Exit(1);
                 }
 
                 var pWorker = StartComponent(hJob, pythonExe, baseDir, logDir, "worker", workerArgs, "worker.log");
@@ -305,12 +305,51 @@ namespace CourierLauncher
                 pBrowser.UseShellExecute = true;
                 Process.Start(pBrowser);
 
+                int ctrlFast = 0;
+                int workerFast = 0;
+                int hubFast = 0;
+                DateTime ctrlStarted = DateTime.UtcNow;
+                DateTime workerStarted = DateTime.UtcNow;
+                DateTime hubStarted = DateTime.UtcNow;
                 while (true)
                 {
                     Thread.Sleep(5000);
-                    if (pCtrl.HasExited) pCtrl = StartComponent(hJob, pythonExe, baseDir, logDir, "controller", ctrlArgs, "controller.log");
-                    if (pWorker.HasExited) pWorker = StartComponent(hJob, pythonExe, baseDir, logDir, "worker", workerArgs, "worker.log");
-                    if (pHub.HasExited) pHub = StartComponent(hJob, pythonExe, baseDir, logDir, "hub", hubArgs, "hub.log");
+                    if (pCtrl.HasExited)
+                    {
+                        if ((DateTime.UtcNow - ctrlStarted).TotalSeconds < 30) ctrlFast++;
+                        else ctrlFast = 1;
+                        if (ctrlFast > 3)
+                        {
+                            File.WriteAllText(Path.Combine(dataDir, "crash.txt"), "Controller stopped after repeated fast exits.\r\nCheck logs at: " + logDir);
+                            return;
+                        }
+                        ctrlStarted = DateTime.UtcNow;
+                        pCtrl = StartComponent(hJob, pythonExe, baseDir, logDir, "controller", ctrlArgs, "controller.log");
+                    }
+                    if (pWorker.HasExited)
+                    {
+                        if ((DateTime.UtcNow - workerStarted).TotalSeconds < 30) workerFast++;
+                        else workerFast = 1;
+                        if (workerFast > 3)
+                        {
+                            File.WriteAllText(Path.Combine(dataDir, "crash.txt"), "Worker stopped after repeated fast exits.\r\nCheck logs at: " + logDir);
+                            return;
+                        }
+                        workerStarted = DateTime.UtcNow;
+                        pWorker = StartComponent(hJob, pythonExe, baseDir, logDir, "worker", workerArgs, "worker.log");
+                    }
+                    if (pHub.HasExited)
+                    {
+                        if ((DateTime.UtcNow - hubStarted).TotalSeconds < 30) hubFast++;
+                        else hubFast = 1;
+                        if (hubFast > 3)
+                        {
+                            File.WriteAllText(Path.Combine(dataDir, "crash.txt"), "Hub stopped after repeated fast exits.\r\nCheck logs at: " + logDir);
+                            return;
+                        }
+                        hubStarted = DateTime.UtcNow;
+                        pHub = StartComponent(hJob, pythonExe, baseDir, logDir, "hub", hubArgs, "hub.log");
+                    }
                 }
             }
             catch (Exception ex)
@@ -318,6 +357,7 @@ namespace CourierLauncher
                 string msg = "Error launching daemon: " + ex.Message + "\nCheck logs at: " + logDir;
                 File.WriteAllText(Path.Combine(dataDir, "crash.txt"), "Error launching daemon: " + ex.ToString());
                 MessageBox(IntPtr.Zero, msg, "Courier Launcher Error", 0x10);
+                Environment.Exit(1);
             }
         }
 

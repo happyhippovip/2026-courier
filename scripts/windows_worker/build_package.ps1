@@ -59,6 +59,9 @@ if (Test-Path "$projectRoot\adapters") {
 }
 Copy-Item "$PSScriptRoot\install.ps1" -Destination $OutDir
 Copy-Item "$PSScriptRoot\uninstall.ps1" -Destination $OutDir
+if (Test-Path "$PSScriptRoot\stop.ps1") { Copy-Item "$PSScriptRoot\stop.ps1" -Destination $OutDir }
+if (Test-Path "$PSScriptRoot\stop.bat") { Copy-Item "$PSScriptRoot\stop.bat" -Destination $OutDir }
+if (Test-Path "$PSScriptRoot\start.bat") { Copy-Item "$PSScriptRoot\start.bat" -Destination $OutDir }
 
 # 3. Download and embed Python
 $pyZip = "$env:TEMP\python-embed.zip"
