@@ -49,6 +49,7 @@ if ($null -ne $existing) {
 $exePath = Join-Path $InstallDir "Courier.exe"
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $principalUser
 $action = New-ScheduledTaskAction -Execute $exePath -WorkingDirectory $InstallDir
+$principal = New-ScheduledTaskPrincipal -UserId $principalUser -LogonType Interactive -RunLevel Limited
 $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -StartWhenAvailable -MultipleInstances IgnoreNew
 
 try {

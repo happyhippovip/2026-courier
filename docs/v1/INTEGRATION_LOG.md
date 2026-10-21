@@ -1109,6 +1109,23 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
 - Full test suite:
   - Pytest: **50/50 PASS** across security, costgate, packaging, and binary config suites.
   - Desktop JS: **72/72 PASS** (0 failed).
+## Step 73 — Provider CostGate Caller Hardening, Scheduled Task Principal Preservation & Simulation Stubs
+### `scripts/mac_worker/daemon.py`, `scripts/windows_worker/install_service.ps1`, `tests/`
+- Implemented and verified:
+  - **P0 CostGate Caller Hardening (L1/L3):**
+    - Updated `daemon.py:cost_gate` to accept `(resource_id, *args, **kwargs)` and evaluate the caller's explicit `estimated_cost_eur`, failing closed on `unknown_cost`.
+    - Maintained backward compatibility with 1-parameter test mocks via `try/except TypeError`.
+    - Evaluated CostGate before surface admission and process spawning in `run_agy` and `run_muse`.
+  - **Windows Scheduled Task Principal Preservation (L6):**
+    - Retained `$principal = New-ScheduledTaskPrincipal -UserId $principalUser -LogonType Interactive -RunLevel Limited` alongside `$settings` in `install_service.ps1`.
+    - Verified `tests/test_windows_install_service_contract.py` and `tests/test_windows_install_service_continuity.py`: **5/5 PASS**.
+  - **Test Simulation Stubs & Security Verification (L4):**
+    - Aligned `tests/test_hv3b_security_gates.py` and `tests/test_muse_supervisor.py` with the hardened contract.
+    - Added `d.cost_gate` stub to `test_muse_supervisor.py` bootstrap daemon so fake Muse supervisor simulations pass without external billing policy locks.
+- Full local test coverage:
+  - Pytest: **61 passed, 2 skipped (Windows native)** across worker contracts, security gates, costgate, binary config, and Muse supervisor suites.
+  - Golden Harness: **11/11 PASS** (zero failed, zero skipped).
+  - Desktop JS: **72/72 PASS** (zero failed).
 - Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
 
 

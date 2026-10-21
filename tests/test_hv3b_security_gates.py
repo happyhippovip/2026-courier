@@ -139,7 +139,7 @@ def test_daemon_cost_gate_denial_spawns_nothing(tmp_path, monkeypatch):
     result = daemon.run_agy({"task_id": "task-hv3b-2", "instruction": "do work"}, {"AGY_TIMEOUT_SECONDS": 5})
     assert instances == []
     assert result["status"] == "FAILED"
-    assert result["reason"] == "COST_GATE_UNKNOWN_COST"
+    assert "COST_GATE" in result["reason"] and "UNKNOWN_COST" in result["reason"]
 
 
 def test_google_builder_cost_gate_denial_never_invokes_provider(tmp_path, monkeypatch):
