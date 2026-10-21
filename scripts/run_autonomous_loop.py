@@ -227,26 +227,41 @@ class AutonomousLevel6Loop:
         if lock_file.exists():
             try:
                 data = load_json(lock_file)
-                existing_pid = data.get("pid")
-                existing_create_time = data.get("process_create_time")
-                
-                if existing_pid and existing_pid != pid:
-                    import psutil
-                    try:
-                        p = psutil.Process(existing_pid)
-                        # Process exists, check if it's the exact same process by creation time
-                        if not existing_create_time or p.create_time() == existing_create_time:
-                            raise WorkflowLockedError(
-                                f"Workflow {workflow_id} is already locked by PID {existing_pid}."
-                            )
-                        else:
-                            # PID was reused by a different process -> can safely reclaim
-                            print(f"[LOCK] PID {existing_pid} reused; reclaiming stale lock for {workflow_id}")
-                    except psutil.NoSuchProcess:
-                        # Stale lock from crashed process -> can safely reclaim
-                        print(f"[LOCK] Reclaiming stale lock for {workflow_id} from dead PID {existing_pid}")
-            except (json.JSONDecodeError, KeyError):
-                pass
+            except json.JSONDecodeError as exc:
+                raise WorkflowLockedError(
+                    f"Workflow {workflow_id} lock is unreadable; refusing to take it."
+                ) from exc
+            if not isinstance(data, dict):
+                raise WorkflowLockedError(
+                    f"Workflow {workflow_id} lock is unreadable; refusing to take it."
+                )
+            existing_pid = data.get("pid")
+            existing_create_time = data.get("process_create_time")
+
+            # Same process may refresh its own lock. Anything else must be
+            # proven dead or proven to be a reused pid before the file is replaced.
+            if existing_pid != pid:
+                if isinstance(existing_pid, bool) or not isinstance(existing_pid, int) or existing_pid <= 0:
+                    raise WorkflowLockedError(
+                        f"Workflow {workflow_id} lock has no provable holder; refusing to take it."
+                    )
+                import psutil
+                try:
+                    p = psutil.Process(existing_pid)
+                    # Process exists, check if it's the exact same process by creation time
+                    if not existing_create_time or p.create_time() == existing_create_time:
+                        raise WorkflowLockedError(
+                            f"Workflow {workflow_id} is already locked by PID {existing_pid}."
+                        )
+                    # PID was reused by a different process -> can safely reclaim
+                    print(f"[LOCK] PID {existing_pid} reused; reclaiming stale lock for {workflow_id}")
+                except psutil.NoSuchProcess:
+                    # Stale lock from crashed process -> can safely reclaim
+                    print(f"[LOCK] Reclaiming stale lock for {workflow_id} from dead PID {existing_pid}")
+                except psutil.Error as exc:
+                    raise WorkflowLockedError(
+                        f"Workflow {workflow_id} lock holder PID {existing_pid} cannot be verified."
+                    ) from exc
 
         import psutil
         lock_data = {

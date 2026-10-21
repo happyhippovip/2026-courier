@@ -75,6 +75,30 @@ def test_workflow_lock(repo_dir):
     assert not lock_file.exists()
 
 
+def test_unreadable_workflow_lock_is_not_taken(repo_dir):
+    loop = AutonomousLevel6Loop(repo_dir=repo_dir)
+    lock_file = repo_dir / "events" / "locks" / "wf-torn.lock"
+    original = "{not-json"
+    lock_file.write_text(original, encoding="utf-8")
+
+    with pytest.raises(WorkflowLockedError):
+        loop.acquire_workflow_lock("wf-torn", "corr-1", "task-1")
+
+    assert lock_file.read_text(encoding="utf-8") == original
+
+
+def test_workflow_lock_without_holder_is_not_taken(repo_dir):
+    loop = AutonomousLevel6Loop(repo_dir=repo_dir)
+    lock_file = repo_dir / "events" / "locks" / "wf-nopid.lock"
+    original = "{}\n"
+    lock_file.write_text(original, encoding="utf-8")
+
+    with pytest.raises(WorkflowLockedError):
+        loop.acquire_workflow_lock("wf-nopid", "corr-1", "task-1")
+
+    assert lock_file.read_text(encoding="utf-8") == original
+
+
 def test_check_human_approval(repo_dir):
     loop = AutonomousLevel6Loop(repo_dir=repo_dir)
     
