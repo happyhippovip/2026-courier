@@ -45,7 +45,7 @@ const snap = (over = {}) => ({
     counts: { needs_you: 1, working: 2, done: 2 },
     items: [
       { id: "t1", pile: "working", source: "j", at: "2026-10-19T09:48:00Z" },
-      { id: "t2", pile: "done", source: "j", at: AT, verified: true, event_id: "task:t2:verified" },
+      { id: "t2", pile: "done", source: "j", at: AT, verified: true, event_id: "journal:7:RESULT_ACCEPTED" },
       { id: "t3", pile: "done", source: "j", at: AT },
     ] },
   muse_wall: { available: true, stations: [
@@ -77,7 +77,7 @@ test("insight: waiting only with a recorded timestamp; blockers and missing evid
 test("insight: green only for verifier evidence with a real event id", () => {
   const i = deriveInsights(snap(), AT);
   const green = i.graph.edges.filter((e) => e.color === GREEN);
-  assert.deepEqual(green.map((e) => e.event_id), ["task:t2:verified"]);
+  assert.deepEqual(green.map((e) => e.event_id), ["journal:7:RESULT_ACCEPTED"]);
   const fake = snap(); fake.ledger.items[1].event_id = "evt:unknown:0";
   assert.equal(deriveInsights(fake, AT).graph.edges.filter((e) => e.color === GREEN).length, 0);
   const statusOnly = snap(); delete statusOnly.ledger.items[1].verified; statusOnly.ledger.items[1].status = "VERIFIED";

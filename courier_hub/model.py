@@ -249,6 +249,24 @@ def _last_change(events: List[Any]) -> Optional[dict]:
     return None
 
 
+def acceptance_proof(task: Any, events: List[Any]) -> Optional[dict]:
+    """The journaled RESULT_ACCEPTED event behind a verified completion, or None.
+
+    Only a sealed journal event counts: its seq and the result it accepted must
+    match the task. Nothing is derived from the task id alone."""
+    if done_outcome(task) != OUTCOME_VERIFIED:
+        return None
+    accepted = _get(task, "accepted_result_id")
+    if not isinstance(accepted, str) or not accepted:
+        return None
+    for event in reversed(events):
+        seq = _get(event, "seq")
+        if (_type(event) == "RESULT_ACCEPTED" and _get(event, "result_id") == accepted
+                and isinstance(seq, int) and not isinstance(seq, bool) and seq >= 1):
+            return {"event": "RESULT_ACCEPTED", "seq": seq, "result_id": accepted}
+    return None
+
+
 def card(task: Any, events: Iterable[Any]) -> dict:
     """The Home card for one task."""
     events = list(events)
@@ -267,6 +285,9 @@ def card(task: Any, events: Iterable[Any]) -> dict:
                                           "started, its result may still arrive."}})
     else:
         base.update(outcome_copy(task))
+        proof = acceptance_proof(task, events)
+        if proof is not None:
+            base["proof"] = proof
     return base
 
 

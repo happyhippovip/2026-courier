@@ -364,9 +364,18 @@ def read_ledger(view: Optional[dict], observed_at: str) -> dict:
             title = card.get("title") if isinstance(card.get("title"), str) and card.get("title").strip() else UNAVAILABLE
             task_id = card.get("id") if isinstance(card.get("id"), str) and card.get("id") else UNAVAILABLE
             item = {"id": task_id, "title": title, "pile": pile, "source": source, "at": at}
-            if pile == "done" and card.get("outcome") == "verified" and task_id != UNAVAILABLE:
+            # Verifier evidence only: the card must say "verified" (resolution
+            # verified) AND carry the journaled RESULT_ACCEPTED proof. The event id
+            # is that journal event, never derived from the task id; without a
+            # proof the item stays unverified.
+            proof = card.get("proof") if isinstance(card.get("proof"), dict) else {}
+            seq = proof.get("seq")
+            if (pile == "done" and card.get("outcome") == "verified" and task_id != UNAVAILABLE
+                    and proof.get("event") == "RESULT_ACCEPTED" and isinstance(seq, int)
+                    and not isinstance(seq, bool) and seq >= 1
+                    and isinstance(proof.get("result_id"), str) and proof.get("result_id")):
                 item["verified"] = True
-                item["event_id"] = f"task:{task_id}:verified"
+                item["event_id"] = f"journal:{seq}:RESULT_ACCEPTED"
             items.append(item)
     counts = view.get("counts") if isinstance(view.get("counts"), dict) else {}
     safe_counts = {}
@@ -632,10 +641,11 @@ def read_arbitrage_research(root: Path, observed_at: str) -> dict:
     """
     arbi_file = root / "registries" / "arbitrage_research.json"
     if not arbi_file.is_file():
+        # No research file, no numbers: a missing source stays UNKNOWN.
         res = _unavailable("registries/arbitrage_research.json", observed_at)
         res["pairs_monitored"] = []
         res["simulation"] = {}
-        res["verified_actual_revenue"] = {"amount_eur": 0.00, "status": UNAVAILABLE}
+        res["verified_actual_revenue"] = {"status": UNAVAILABLE}  # no amount: 0.00 would assert a value nobody knows
         return res
 
     try:
@@ -647,13 +657,13 @@ def read_arbitrage_research(root: Path, observed_at: str) -> dict:
             "title": data.get("title", "👑 COURIER AI ARBITRAGE · BINANCE ↔ KRAKEN"),
             "pairs_monitored": data.get("pairs_monitored", []),
             "simulation": data.get("simulation", {}),
-            "verified_actual_revenue": data.get("verified_actual_revenue", {"amount_eur": 0.00, "status": "UNKNOWN"}),
+            "verified_actual_revenue": data.get("verified_actual_revenue", {"status": "UNKNOWN"}),
         }
     except Exception:  # noqa: BLE001
         res = _unavailable("registries/arbitrage_research.json", observed_at)
         res["pairs_monitored"] = []
         res["simulation"] = {}
-        res["verified_actual_revenue"] = {"amount_eur": 0.00, "status": UNAVAILABLE}
+        res["verified_actual_revenue"] = {"status": UNAVAILABLE}  # no amount: 0.00 would assert a value nobody knows
         return res
 
 
@@ -710,7 +720,7 @@ def build_snapshot(hub, *, root: Optional[Path] = None, wall: Optional[Path] = N
         arbi = _unavailable("arbitrage_research", observed_at)
         arbi["pairs_monitored"] = []
         arbi["simulation"] = {}
-        arbi["verified_actual_revenue"] = {"amount_eur": 0.00, "status": UNAVAILABLE}
+        arbi["verified_actual_revenue"] = {"status": UNAVAILABLE}  # no amount: 0.00 would assert a value nobody knows
 
     snapshot = {
         "observed_at": observed_at,
