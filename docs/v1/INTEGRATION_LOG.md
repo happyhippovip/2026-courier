@@ -1082,3 +1082,33 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
   - `node --test tests/desktop/*.test.mjs`: **72/72 PASS** (0 failed).
 - Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
 
+## Step 71 — Fail-Closed Provider CostGate, Muse YOLO Ban, and Task Settings Continuity
+### `scripts/mac_worker/`, `scripts/ledger_v1_bridge.py`, `scripts/windows_worker/install_service.ps1`, `tests/`
+- Implemented and verified:
+  - **P0 CostGate & YOLO Ban (L1/L3):**
+    - `daemon.py` and `muse_adapter.py` enforce `cost_gate` before any process launch. Unlisted or unknown resource tiers fail closed.
+    - `--yolo` is completely banned from Muse execution and raises `MuseCapabilityUnknown` / `YOLO_NOT_ALLOWED`.
+    - Added `tests/test_p0_provider_costgate.py`: **8/8 PASS**.
+    - Added `tests/test_hv3b_security_gates.py`: **12/12 PASS**.
+  - **Ledger Verification Enforcement (L2):**
+    - `_verified_result_id(view)` in `scripts/ledger_v1_bridge.py` guarantees only accepted results from verified resolutions emit `FINAL`. Human-confirmed actions emit `human_confirmed` and never `FINAL_DONE`.
+    - Added verification tests in `tests/test_ledger_v1_bridge.py`: **18/18 PASS**.
+  - **Windows Scheduled Task Settings Continuity (L6):**
+    - `install_service.ps1` sets explicit settings set: zero execution time limit, restart count 3, restart interval 1 min, start when available, single instance ignore new.
+    - Added `tests/test_windows_install_service_continuity.py`: **4/4 PASS**.
+- Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
+
+## Step 72 — Pass Antigravity CLI Path from config.json to Worker (PR #726)
+### `scripts/windows_worker/install.ps1`, `scripts/windows_worker/launcher/CourierLauncher.cs`, `tests/`
+- Merged and verified:
+  - **L6 PR #726 (`ag03/agy-binary-config`):**
+    - `install.ps1` accepts optional `-AgyPath <path>` and persists it as `COURIER_PROVIDER_AGY_BIN` in `config.json`.
+    - `CourierLauncher.cs` unescapes backslashes in JSON paths, validates that the path is rooted, and passes `COURIER_PROVIDER_AGY_BIN` to the worker process.
+    - Added test suite `tests/test_agy_binary_config.py`: **5/5 PASS**.
+    - Added live Windows test `tests/test_windows_live_agy_fake.py`.
+- Full test suite:
+  - Pytest: **50/50 PASS** across security, costgate, packaging, and binary config suites.
+  - Desktop JS: **72/72 PASS** (0 failed).
+- Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
+
+
