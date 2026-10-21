@@ -24,7 +24,7 @@ if (-not [int]::TryParse((Get-Content $pidFile -Raw).Trim(), [ref]$launcherPid))
 }
 
 $launcher = Get-Process -Id $launcherPid -ErrorAction SilentlyContinue
-if ($null -eq $launcher -or $launcher.ProcessName -ne "Courier") {
+if ($null -eq $launcher -or ($launcher.ProcessName -ne "Courier" -and $launcher.ProcessName -notlike "Courier#*")) {
     # The PID is gone or now belongs to another program: leave it alone.
     Write-Host "Courier is not running (stale PID $launcherPid)."
     Remove-Item -Force $pidFile
