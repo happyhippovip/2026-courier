@@ -1053,3 +1053,21 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
   - Full CI Run 39587380730: **100% GREEN** across Ubuntu (`passed=3232, failed=0`), Windows (`passed=3113, failed=0`), Golden skip ratchet (`11/11 PASS`), desktop JS (`59/59 PASS`), and Windows executable build.
 - Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
 
+## Step 69 — Windows Fail-Closed Lock, CPU Probe, and Controller Token Security (PR #742, #739, #736)
+### `scripts/windows_worker/daemon.py`, `scripts/windows_worker/bootstrap.ps1`, `tests/`
+- Merged and verified:
+  - **L3/L6 PR #742 (`cursor/windows-lock-fail-closed-44b0`):**
+    - Windows worker daemon lock acquisition now distinguishes between an actually held lock (quiet duplicate exit with code 0) and an I/O / directory creation failure (raises `FileNotFoundError` or `PermissionError` so Task Scheduler restarts the task instead of terminating silently).
+    - Added `tests/test_windows_lock_fail_closed.py`: **3/3 PASS**.
+  - **L3 PR #739 (`cursor/windows-resource-probe-44b0`):**
+    - High CPU load (>85%) or failed CPU probe (`read_cpu_load_percent() is None`) pauses claims for 60 seconds instead of incorrectly assuming an idle machine.
+    - Added `tests/test_windows_resource_probe.py`: **4/4 PASS**.
+  - **L6 PR #736 (`cursor/windows-daemon-reads-token-44b0`):**
+    - `daemon.py` now reads the API key from `%LOCALAPPDATA%\Courier\run\controller.token` in priority over legacy `config.json`.
+    - `bootstrap.ps1` writes the token to `controller.token` with strict ACLs and fails non-interactively if mandatory arguments are missing.
+    - Added `tests/test_windows_daemon_token.py`: **5/5 PASS**.
+- Verified test coverage:
+  - `pytest tests/test_windows_lock_fail_closed.py tests/test_windows_resource_probe.py tests/test_windows_daemon_token.py`: **12/12 PASS**.
+  - `pytest tests/*windows*`: **47 passed, 5 skipped (Windows-only), 0 failed**.
+- Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
+

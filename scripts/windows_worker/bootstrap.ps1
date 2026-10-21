@@ -29,9 +29,23 @@ Write-Host "Worker directory: $workerDir"
 
 # 3. Secure env/credential prerequisites
 Write-Host "`n[3] Configuring Credentials..."
-$dataDir = [System.Environment]::ExpandEnvironmentVariables("%PROGRAMDATA%\CourierWorker")
-if (-not (Test-Path $dataDir)) { New-Item -ItemType Directory -Force -Path $dataDir | Out-Null }
+function Test-CanPrompt {
+    try {
+        return [Environment]::UserInteractive -and -not [Console]::IsInputRedirected
+    } catch {
+        return $false
+    }
+}
+
+if ($env:LOCALAPPDATA) {
+    $dataDir = Join-Path $env:LOCALAPPDATA "Courier"
+} else {
+    $dataDir = Join-Path $env:ProgramData "CourierWorker"
+}
+New-Item -ItemType Directory -Force -Path $dataDir | Out-Null
+New-Item -ItemType Directory -Force -Path (Join-Path $dataDir "run") | Out-Null
 $configPath = Join-Path $dataDir "config.json"
+$tokenPath = Join-Path $dataDir "run\controller.token"
 $config = @{}
 if (Test-Path $configPath) {
     $config = Get-Content $configPath -Raw | ConvertFrom-Json
@@ -41,15 +55,33 @@ $server = $config.COURIER_SERVER
 if (-not [string]::IsNullOrWhiteSpace($ServerArg)) {
     $server = $ServerArg
 } elseif ([string]::IsNullOrWhiteSpace($server) -or $server -eq "local") {
-    $server = Read-Host "Enter COURIER_SERVER URL (e.g. http://192.168.1.100:8080)"
+    if (-not (Test-CanPrompt)) {
+        Write-Host "ERROR: a Courier server URL is required. Pass -ServerArg." -ForegroundColor Red
+        exit 1
+    }
+    $server = Read-Host "Enter COURIER_SERVER URL (for example http://127.0.0.1:8080)"
+}
+if ([string]::IsNullOrWhiteSpace($server)) {
+    Write-Host "ERROR: a Courier server URL is required. Pass -ServerArg." -ForegroundColor Red
+    exit 1
 }
 
-$apiKey = $config.COURIER_API_KEY
+$apiKey = ""
+if (Test-Path $tokenPath) { $apiKey = (Get-Content -LiteralPath $tokenPath -Raw).Trim() }
+if ([string]::IsNullOrWhiteSpace($apiKey)) { $apiKey = [string]$config.COURIER_API_KEY }
 if (-not [string]::IsNullOrWhiteSpace($ApiKeyArg)) {
     $apiKey = $ApiKeyArg
 } elseif ([string]::IsNullOrWhiteSpace($apiKey)) {
+    if (-not (Test-CanPrompt)) {
+        Write-Host "ERROR: a Courier API key is required. Pass -ApiKeyArg." -ForegroundColor Red
+        exit 1
+    }
     $secureKey = Read-Host "Enter COURIER_API_KEY" -AsSecureString
     $apiKey = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureKey))
+}
+if ([string]::IsNullOrWhiteSpace($apiKey)) {
+    Write-Host "ERROR: a Courier API key is required. Pass -ApiKeyArg." -ForegroundColor Red
+    exit 1
 }
 
 $workerId = $config.COURIER_WORKER_ID
@@ -62,10 +94,16 @@ if (-not [string]::IsNullOrWhiteSpace($WorkerIdArg)) {
 $newConfig = @{
     COURIER_WORKER_ID = $workerId
     COURIER_SERVER = $server
-    COURIER_API_KEY = $apiKey
 }
 $newConfig | ConvertTo-Json | Set-Content $configPath
-Write-Host "Configuration saved to $configPath (API Key stored securely in config)."
+$apiKey | Set-Content -LiteralPath $tokenPath -NoNewline
+$ownerSid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+& icacls $tokenPath /inheritance:r /grant:r "*S-1-5-18:(R)" "*${ownerSid}:(R)" | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "ERROR: could not restrict access to $tokenPath." -ForegroundColor Red
+    exit 1
+}
+Write-Host "Configuration saved to $configPath. The API key is in the controller token, not in config.json."
 
 # 4. Service / Start Command
 Write-Host "`n[4] Installing Service (Scheduled Task)..."

@@ -23,22 +23,6 @@ HEADERS = {
 class MissingCredentialError(RuntimeError):
     pass
 
-def apply_config_credentials(config):
-    """Environment wins; otherwise use the values bootstrap.ps1 wrote to config.json."""
-    global API_URL, API_KEY
-    if not os.environ.get("COURIER_API_KEY", "").strip():
-        API_KEY = str(config.get("COURIER_API_KEY") or "").strip()
-    if not (os.environ.get("COURIER_SERVER") or os.environ.get("COURIER_SERVER_URL")):
-        server = str(config.get("COURIER_SERVER") or "").strip()
-        if server and server.lower() != "local":
-            API_URL = server.rstrip("/")
-    HEADERS["Authorization"] = f"Bearer {API_KEY}"
-
-def require_api_key():
-    """Fail closed before any network call when no API key is configured."""
-    if not API_KEY:
-        raise MissingCredentialError("COURIER_API_KEY is not set (environment or config.json); refusing to contact the Courier server.")
-
 def get_app_data_dir():
     pd = os.environ.get("LOCALAPPDATA")
     # Never inside the source tree: off Windows use COURIER_HOME or ~/.courier.
@@ -52,6 +36,35 @@ STATE_DIR = APP_DATA_DIR / "state"
 LOG_DIR = APP_DATA_DIR / "logs"
 STATE_DIR.mkdir(exist_ok=True)
 LOG_DIR.mkdir(exist_ok=True)
+
+
+def read_controller_token():
+    """The installer writes the key here. It does not belong in config.json."""
+    path = APP_DATA_DIR / "run" / "controller.token"
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
+
+
+def apply_config_credentials(config):
+    """Environment wins, then the controller token, then a legacy config key."""
+    global API_URL, API_KEY
+    if not os.environ.get("COURIER_API_KEY", "").strip():
+        token = read_controller_token()
+        API_KEY = token or str(config.get("COURIER_API_KEY") or "").strip()
+    if not (os.environ.get("COURIER_SERVER") or os.environ.get("COURIER_SERVER_URL")):
+        server = str(config.get("COURIER_SERVER") or "").strip()
+        if server and server.lower() != "local":
+            API_URL = server.rstrip("/")
+    HEADERS["Authorization"] = f"Bearer {API_KEY}"
+
+
+def require_api_key():
+    """Fail closed before any network call when no API key is configured."""
+    if not API_KEY:
+        raise MissingCredentialError("COURIER_API_KEY is not set (environment, controller.token, or config.json); refusing to contact the Courier server.")
+
 
 def setup_logging():
     import logging
@@ -351,39 +364,50 @@ def run_task(task, config):
 
 _last_sys_times = None
 
-def is_resource_pressure_high():
+
+def read_cpu_load_percent():
+    """CPU load on Windows. None means the probe failed. A host without the Windows API returns 0.0."""
     global _last_sys_times
     try:
         import ctypes
+        windll = ctypes.windll
+    except AttributeError:
+        return 0.0
+    try:
         class FILETIME(ctypes.Structure):
             _fields_ = [("dwLowDateTime", ctypes.c_uint), ("dwHighDateTime", ctypes.c_uint)]
         idle = FILETIME()
         kernel = FILETIME()
         user = FILETIME()
-        ctypes.windll.kernel32.GetSystemTimes(ctypes.byref(idle), ctypes.byref(kernel), ctypes.byref(user))
-        
+        windll.kernel32.GetSystemTimes(ctypes.byref(idle), ctypes.byref(kernel), ctypes.byref(user))
+
         i = (idle.dwHighDateTime << 32) | idle.dwLowDateTime
         k = (kernel.dwHighDateTime << 32) | kernel.dwLowDateTime
         u = (user.dwHighDateTime << 32) | user.dwLowDateTime
         t = k + u
-        
+
         if _last_sys_times is None:
             _last_sys_times = (i, t)
-            return False
-            
+            return 0.0
+
         i_prev, t_prev = _last_sys_times
         _last_sys_times = (i, t)
-        
+
         dt = t - t_prev
         di = i - i_prev
-        if dt == 0:
-            return False
-            
-        load = (dt - di) / dt * 100.0
-        return load > 85.0
+        if dt <= 0:
+            return None
+        return (dt - di) / dt * 100.0
     except Exception:
-        # Defaults to safe (no pressure) if check fails to prevent starvation, but we could also back off
-        return False
+        return None
+
+
+def is_resource_pressure_high():
+    """True pauses claims. None means the probe failed and claims must pause too."""
+    load = read_cpu_load_percent()
+    if load is None:
+        return None
+    return load > 85.0
 
 _lock_fd = None
 _worker_lease = None
@@ -403,38 +427,49 @@ def get_authority_store():
 
 
 def acquire_lock(worker_id):
+    """Return the lock path, or None when another worker already holds it.
+
+    A missing temp directory or a failed write is raised. Those are not a
+    second instance, and they must not look like a clean exit.
+    """
     global _lock_fd, _worker_lease
     if _lock_fd is not None:
         return None
     import psutil
     lock_file = Path(tempfile.gettempdir()) / f"courier_worker_{worker_id}.lock"
+    fd = os.open(str(lock_file), os.O_CREAT | os.O_RDWR)
     try:
-        fd = os.open(str(lock_file), os.O_CREAT | os.O_RDWR)
-        if os.name == "nt":
+        if os.name == "nt" or "msvcrt" in sys.modules:
             import msvcrt
             msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
         else:
             import fcntl
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except (OSError, ImportError):
+        os.close(fd)
+        return None
+    try:
         os.ftruncate(fd, 0)
         lock_data = json.dumps({'pid': os.getpid(), 'process_create_time': psutil.Process(os.getpid()).create_time()})
         os.write(fd, lock_data.encode('utf-8'))
-        _lock_fd = fd
+    except OSError:
+        os.close(fd)
+        raise
 
-        # Acquire canonical Courier writer lease in LeaseStore
-        store = get_authority_store()
-        if store is not None:
-            try:
-                from courier_runtime.lease import format_session_holder
-                holder = format_session_holder(worker_id, os.getpid(), psutil.Process(os.getpid()).create_time(), str(uuid.uuid4()))
-                _worker_lease = store.acquire(f"worker:{worker_id}", holder, "daemon_loop", ttl_s=3600)
-            except Exception:
-                release_lock(lock_file)
-                return None
+    _lock_fd = fd
 
-        return lock_file
-    except (OSError, ImportError):
-        return None
+    # Acquire canonical Courier writer lease in LeaseStore
+    store = get_authority_store()
+    if store is not None:
+        try:
+            from courier_runtime.lease import format_session_holder
+            holder = format_session_holder(worker_id, os.getpid(), psutil.Process(os.getpid()).create_time(), str(uuid.uuid4()))
+            _worker_lease = store.acquire(f"worker:{worker_id}", holder, "daemon_loop", ttl_s=3600)
+        except Exception:
+            release_lock(lock_file)
+            return None
+
+    return lock_file
 
 
 def release_lock(lock_path=None):
@@ -522,8 +557,13 @@ def loop():
                     if e.code == 404:
                         register_worker(worker_id)
                 
-                # 2. Resource Pressure Check
-                if is_resource_pressure_high():
+                # 2. Resource Pressure Check. A failed probe is not "idle".
+                pressure = is_resource_pressure_high()
+                if pressure is None:
+                    print(f"[{worker_id}] Resource check failed. Pausing claims.")
+                    time.sleep(60)
+                    continue
+                if pressure:
                     print(f"[{worker_id}] Resource pressure high. Pausing claims.")
                     time.sleep(60)
                     continue
