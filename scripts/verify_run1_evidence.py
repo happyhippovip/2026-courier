@@ -23,8 +23,10 @@ def verify_run1_evidence(evidence_dir="artifacts/run1"):
         if not res or res[0] != 'RECONCILED':
             errors.append(f"Task A is not RECONCILED. Current: {res[0] if res else 'MISSING'}")
     
-    # Check exactly once
-    if os.path.exists(server_log):
+    # Exactly-once and no-failure are claims about the server log. A missing log is not evidence.
+    if not os.path.exists(server_log):
+        errors.append("server_run1.log is missing")
+    else:
         with open(server_log, "r") as f:
             content = f.read()
             claims = content.count("Claimed task A")
@@ -33,6 +35,8 @@ def verify_run1_evidence(evidence_dir="artifacts/run1"):
             results = content.count("Result for task A")
             if results != 1:
                 errors.append(f"Task A result submitted {results} times, expected exactly 1.")
+            if "FAILED" in content or "Traceback" in content:
+                errors.append("server_run1.log records a failure")
     
     if not errors:
         print("RUN_1 EVIDENCE VALID: RECONCILED, EXACTLY_ONCE, NO_FAILURES")
