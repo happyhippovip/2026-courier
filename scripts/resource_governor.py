@@ -17,6 +17,9 @@ class HostPressureController:
 
     def measure_pressure(self):
         """Mock reading system metrics. Avoids third-party dependencies."""
+        override = os.environ.get("COURIER_MOCK_HOST_PRESSURE")
+        if override:
+            return override
         try:
             if hasattr(os, "getloadavg"):
                 load1, load5, load15 = os.getloadavg()

@@ -37,10 +37,11 @@ def _run_agy_task(tmp_path, agy_bin):
     report = tmp_path / "report.json"
     request.write_text(json.dumps({
         "adapter": "provider_exec", "workdir": str(work), "report": str(report), "attempt": 1,
-        "params": {"provider": "agy", "prompt": "noop"},
+        "params": {"provider": "agy", "prompt": "noop", "estimated_cost_eur": 0.0, "cost_class": "included_quota"},
     }), encoding="utf-8")
     env = {k: v for k, v in os.environ.items() if k != "COURIER_PROVIDER_AGY_BIN"}
     env["PYTHONPATH"] = str(ROOT)
+    env["COURIER_MOCK_HOST_PRESSURE"] = "GREEN"
     if agy_bin is not None:
         env["COURIER_PROVIDER_AGY_BIN"] = str(agy_bin)
     done = subprocess.run([sys.executable, "-m", "courier_worker.adapter_runner", str(request)],
