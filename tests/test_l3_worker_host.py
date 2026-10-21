@@ -69,6 +69,11 @@ def _install_adapter_double():
 
 
 @pytest.fixture(autouse=True)
+def _isolate_host_pressure(monkeypatch):
+    monkeypatch.setattr(H, 'default_pressure_probe', lambda: None)
+
+
+@pytest.fixture(autouse=True)
 def _adapter_double():
     added = _install_adapter_double()
     prev = os.environ.get("PYTHONPATH")

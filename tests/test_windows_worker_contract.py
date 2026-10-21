@@ -776,3 +776,74 @@ def test_powershell_51_ast_compatibility_contract():
     cmd = ["powershell", "-Command", parse_script]
     res = subprocess.run(cmd, capture_output=True, text=True)
     assert res.returncode == 0, f"PowerShell 5.1 AST parser reported syntax errors: {res.stderr}\n{res.stdout}"
+
+def test_worker_service_resource_paused_cleans_up_request_and_enters_hysteresis(tmp_path, monkeypatch):
+    """Beweis: Wenn run_once waehrend der Ausfuehrung ResourcePaused ausloest, raeumt
+    service.WorkerLoop.iterate die geschriebene Request-Datei via adapter_bridge.cleanup ab,
+    setzt _last_resource_state='PRESSURED' und aktiviert die 60-Sekunden Cooldown-Hysterese (GB-CAP-02 / W08)."""
+    import time
+    import threading
+    from courier_worker import service as S
+    from courier_worker.host import ResourcePaused
+    from tests.test_l3_worker_host import _install_adapter_double, claim_body
+
+    _install_adapter_double()
+
+    home = tmp_path / "worker_home"
+    home.mkdir()
+    (home / "artifacts").mkdir()
+
+    token_file = home / "run" / "controller.token"
+    token_file.parent.mkdir(parents=True, exist_ok=True)
+    token_file.write_text("test-token", encoding="utf-8")
+
+    class FakeClient:
+        token = "test-token"
+        def __init__(self):
+            self.claims = [claim_body(dispatch="d-pressure-01", task="t-pressure")]
+            self.heartbeats = []
+            self.started = []
+
+        def claim(self, worker_id, resource_state="NORMAL"):
+            return self.claims.pop(0) if self.claims else None
+
+        def start(self, dispatch_id):
+            self.started.append(dispatch_id)
+
+        def heartbeat(self, worker_id, dispatch_ids, resource_state="NORMAL"):
+            self.heartbeats.append((worker_id, dispatch_ids, resource_state))
+            return {}
+
+        def deliver(self, payload):
+            pass
+
+    client = FakeClient()
+    loop = S.WorkerLoop(str(home), "http://127.0.0.1:9", "w-win", 0.2, client_factory=lambda: client)
+
+    # Probe liefert None, damit der Task geclaimt und Request geschrieben wird
+    monkeypatch.setattr(loop.engine, "_pressure_probe", lambda: None)
+
+    def failing_run_once(*args, **kwargs):
+        raise ResourcePaused("cpu-pressure: cpu load 98.5%")
+
+    monkeypatch.setattr(loop.engine, "run_once", failing_run_once)
+
+    # 1. Erste Iteration loest ResourcePaused in run_once aus
+    with pytest.raises(ResourcePaused) as exc_info:
+        loop.iterate(threading.Event())
+    assert "cpu-pressure" in str(exc_info.value)
+
+    # Invariante 1: Request-Datei in run/requests/<dispatch_id>.json wurde sauber abgeraeumt
+    req_file = home / "run" / "requests" / "d-pressure-01.json"
+    assert not req_file.exists(), "Request file must be cleaned up on ResourcePaused"
+
+    # Invariante 2: Resource state ist auf PRESSURED gesetzt und Cooldown aktiviert
+    assert loop._last_resource_state == "PRESSURED"
+    assert loop._cooldown_until > time.time() + 50.0
+
+    # Invariante 3: Naechste Iteration beachtet Hysterese und bleibt im COOLDOWN idle ohne Task-Claim
+    action = loop.iterate(threading.Event())
+    assert action == "idle"
+    assert loop._last_resource_state == "COOLDOWN"
+    assert len(client.heartbeats) >= 1
+    assert client.heartbeats[-1][2] == "COOLDOWN"

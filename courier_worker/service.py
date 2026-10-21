@@ -520,6 +520,11 @@ class WorkerLoop:
                 spec,
                 on_heartbeat=lambda _elapsed: self._send_heartbeat(client, spec),
                 is_cancelled=lambda: watcher.cancelled() or stop.is_set())
+        except ResourcePaused:
+            adapter_bridge.cleanup(self.home, spec.dispatch_id)
+            self._last_resource_state = 'PRESSURED'
+            self._cooldown_until = time.time() + 60.0
+            raise
         finally:
             watcher.stop()
             self._watchers.pop(spec.dispatch_id, None)

@@ -251,7 +251,7 @@ def default_pressure_probe() -> Optional[str]:
             cpu = psutil.cpu_percent(interval=None)
             if cpu >= MAX_WIN_CPU_PRESSURE_PERCENT:
                 # Bounded confirmation sample to filter single-microsecond burst jitter
-                confirmed_cpu = psutil.cpu_percent(interval=0.02)
+                confirmed_cpu = psutil.cpu_percent(interval=0.1)
                 if confirmed_cpu >= MAX_WIN_CPU_PRESSURE_PERCENT:
                     return f"cpu-pressure: cpu load {confirmed_cpu:.1f}%"
         except Exception:
