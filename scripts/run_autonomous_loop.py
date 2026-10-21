@@ -227,30 +227,46 @@ class AutonomousLevel6Loop:
         pid = os.getpid()
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
-        if lock_file.exists():
+        creating_new = not lock_file.exists()
+        if not creating_new:
             try:
                 data = load_json(lock_file)
-                existing_pid = data.get("pid")
-                existing_create_time = data.get("process_create_time")
-                
-                if existing_pid and existing_pid != pid:
-                    import psutil
-                    try:
-                        p = psutil.Process(existing_pid)
-                        # Process exists, check if it's the exact same process by creation time
-                        if not existing_create_time or p.create_time() == existing_create_time:
-                            raise WorkflowLockedError(
-                                f"Workflow {workflow_id} is already locked by PID {existing_pid}."
-                            )
-                        else:
-                            # PID was reused by a different process -> can safely reclaim
-                            print(f"[LOCK] PID {existing_pid} reused; reclaiming stale lock for {workflow_id}")
-                    except psutil.NoSuchProcess:
-                        # Stale lock from crashed process -> can safely reclaim
-                        print(f"[LOCK] Reclaiming stale lock for {workflow_id} from dead PID {existing_pid}")
-                        self._release_authority_workflow_lock(workflow_id)
-            except (json.JSONDecodeError, KeyError):
-                pass
+            except json.JSONDecodeError as exc:
+                raise WorkflowLockedError(
+                    f"Workflow {workflow_id} lock is unreadable; refusing to take it."
+                ) from exc
+            if not isinstance(data, dict):
+                raise WorkflowLockedError(
+                    f"Workflow {workflow_id} lock is unreadable; refusing to take it."
+                )
+            existing_pid = data.get("pid")
+            existing_create_time = data.get("process_create_time")
+
+            # Same process may refresh its own lock. Anything else must be
+            # proven dead or proven to be a reused pid before the file is replaced.
+            if existing_pid != pid:
+                if isinstance(existing_pid, bool) or not isinstance(existing_pid, int) or existing_pid <= 0:
+                    raise WorkflowLockedError(
+                        f"Workflow {workflow_id} lock has no provable holder; refusing to take it."
+                    )
+                import psutil
+                try:
+                    p = psutil.Process(existing_pid)
+                    # Process exists, check if it's the exact same process by creation time
+                    if not existing_create_time or p.create_time() == existing_create_time:
+                        raise WorkflowLockedError(
+                            f"Workflow {workflow_id} is already locked by PID {existing_pid}."
+                        )
+                    # PID was reused by a different process -> can safely reclaim
+                    print(f"[LOCK] PID {existing_pid} reused; reclaiming stale lock for {workflow_id}")
+                except psutil.NoSuchProcess:
+                    # Stale lock from crashed process -> can safely reclaim
+                    print(f"[LOCK] Reclaiming stale lock for {workflow_id} from dead PID {existing_pid}")
+                    self._release_authority_workflow_lock(workflow_id)
+                except psutil.Error as exc:
+                    raise WorkflowLockedError(
+                        f"Workflow {workflow_id} lock holder PID {existing_pid} cannot be verified."
+                    ) from exc
 
         import psutil
         lock_data = {
@@ -264,8 +280,29 @@ class AutonomousLevel6Loop:
             "updated_at": now_iso,
         }
         self._sync_authority_workflow_lock(workflow_id, pid, lock_data)
-        save_json(lock_file, lock_data)
+        if creating_new:
+            # Two runners can both observe a missing file. Exclusive create
+            # fails closed if the other runner creates the lock first.
+            # Same-PID refresh of an existing readable lock still uses save_json.
+            self._create_workflow_lock_exclusive(lock_file, lock_data)
+        else:
+            save_json(lock_file, lock_data)
         return lock_file
+
+    def _create_workflow_lock_exclusive(self, lock_file: Path, lock_data: dict) -> None:
+        """Create a new lock with O_EXCL. An existing file is never replaced."""
+        payload = (json.dumps(lock_data, indent=2) + "\n").encode("utf-8")
+        try:
+            fd = os.open(lock_file, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+        except FileExistsError as exc:
+            raise WorkflowLockedError(
+                f"Workflow {lock_data.get('workflow_id')} lock appeared during create; refusing to take it."
+            ) from exc
+        try:
+            os.write(fd, payload)
+            os.fsync(fd)
+        finally:
+            os.close(fd)
 
     def _sync_authority_workflow_lock(self, workflow_id: str, pid: int, lock_data: dict) -> None:
         try:
