@@ -56,13 +56,18 @@ if (Test-Path "$PSScriptRoot\..\..\adapters") {
 
 
 
-# V49c Policy & R1 Integration: Ensure policy and observer modules are bundled
+# V49c Policy & R1 Integration: Ensure mandatory policy and observer modules are bundled (W05 / GB-PKG-05)
 
 $scriptsDir = Join-Path $OutDir "scripts"
 
 New-Item -ItemType Directory -Force -Path $scriptsDir | Out-Null
 
-Copy-Item "$PSScriptRoot\..\resource_policy.py" -Destination $scriptsDir
+$policyPy = "$PSScriptRoot\..\resource_policy.py"
+if (-not (Test-Path -LiteralPath $policyPy)) {
+    Write-Error "BUILD_FAIL: Mandatory policy script '$policyPy' does not exist."
+    exit 1
+}
+Copy-Item -LiteralPath $policyPy -Destination $scriptsDir
 
 if (Test-Path "$PSScriptRoot\..\inbound_response_observer.py") {
 
@@ -78,17 +83,18 @@ if (Test-Path "$PSScriptRoot\..\invoice_generator.py") {
 
 
 
-# Policy JSON definition
+# Policy JSON definition (Mandatory Policy Bundling - W05)
 
 $policiesDir = Join-Path $OutDir "events\policies"
 
 New-Item -ItemType Directory -Force -Path $policiesDir | Out-Null
 
-if (Test-Path "$PSScriptRoot\..\..\events\policies\resource_policy.json") {
-
-    Copy-Item "$PSScriptRoot\..\..\events\policies\resource_policy.json" -Destination $policiesDir
-
+$policyJson = "$PSScriptRoot\..\..\events\policies\resource_policy.json"
+if (-not (Test-Path -LiteralPath $policyJson)) {
+    Write-Error "BUILD_FAIL: Mandatory policy definition '$policyJson' does not exist."
+    exit 1
 }
+Copy-Item -LiteralPath $policyJson -Destination $policiesDir
 
 
 

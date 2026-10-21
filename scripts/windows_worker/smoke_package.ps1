@@ -53,7 +53,7 @@ if ($emptyFiles.Count -gt 0) {
     exit 1
 }
 
-# 2. Resource policy integrity
+# 2. Resource policy integrity & mandatory schema validation (W05 / GB-PKG-05)
 $policyJson = Join-Path $PackageDir "events\policies\resource_policy.json"
 try {
     $rawJson = Get-Content -LiteralPath $policyJson -Raw -Encoding UTF8
@@ -62,8 +62,31 @@ try {
         Write-Error "SMOKE_FAIL: resource_policy.json could not be parsed."
         exit 1
     }
+    # Enforce mandatory policy schema fields
+    $hasVersion = ($null -ne $parsed.schema_version) -or ($null -ne $parsed.policy_version)
+    if (-not $hasVersion) {
+        Write-Error "SMOKE_FAIL: resource_policy.json is missing required version specification."
+        exit 1
+    }
+    $hasInvariants = ($null -ne $parsed.operating_invariants) -or ($null -ne $parsed.max_spend)
+    if (-not $hasInvariants) {
+        Write-Error "SMOKE_FAIL: resource_policy.json is missing mandatory governance invariants."
+        exit 1
+    }
+    if ($null -ne $parsed.operating_invariants) {
+        if ($parsed.operating_invariants.require_human_gate_for_spend -ne $true) {
+            Write-Error "SMOKE_FAIL: resource_policy.json violates spend invariant: require_human_gate_for_spend must be true."
+            exit 1
+        }
+    }
+    if ($null -ne $parsed.max_spend) {
+        if ([double]$parsed.max_spend -gt 0.0) {
+            Write-Error "SMOKE_FAIL: resource_policy.json violates autonomous spend limit: max_spend must be 0.00."
+            exit 1
+        }
+    }
 } catch {
-    Write-Error "SMOKE_FAIL: resource_policy.json is corrupt: $_"
+    Write-Error "SMOKE_FAIL: resource_policy.json validation failed: $_"
     exit 1
 }
 

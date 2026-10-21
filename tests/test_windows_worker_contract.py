@@ -587,3 +587,22 @@ def test_package_manifest_generation_and_verification_contract():
     assert "manifest.json" in smoke_ps1, "smoke_package.ps1 must check manifest.json"
     assert "Cryptographic checksum failures" in smoke_ps1, "smoke_package.ps1 must verify cryptographic checksums"
     assert "Manifest file size discrepancies" in smoke_ps1, "smoke_package.ps1 must verify file sizes"
+
+
+def test_mandatory_policy_bundling_contract():
+    """Beweis: build_package.ps1 erzwingt das Vorhandensein von resource_policy.json und
+    resource_policy.py fail-closed beim Build (kein stiller Skip mehr), und smoke_package.ps1
+    validiert Schema-Integrität, Versionsangabe und Non-Zero-Spend-Verbot (GB-PKG-05 / W05)."""
+    repo_root = Path(__file__).resolve().parents[1]
+    build_ps1 = (repo_root / "scripts" / "windows_worker" / "build_package.ps1").read_text(encoding="utf-8")
+    smoke_ps1 = (repo_root / "scripts" / "windows_worker" / "smoke_package.ps1").read_text(encoding="utf-8")
+
+    # Invariante 1: build_package.ps1 prüft Existenz und bricht bei Fehlen mit BUILD_FAIL ab
+    assert "BUILD_FAIL: Mandatory policy definition" in build_ps1, "build_package.ps1 must fail closed if resource_policy.json is missing"
+    assert "BUILD_FAIL: Mandatory policy script" in build_ps1, "build_package.ps1 must fail closed if resource_policy.py is missing"
+
+    # Invariante 2: smoke_package.ps1 prüft Version und Governance-Invariants
+    assert "missing required version specification" in smoke_ps1, "smoke_package.ps1 must enforce policy version specification"
+    assert "missing mandatory governance invariants" in smoke_ps1, "smoke_package.ps1 must enforce governance invariants"
+    assert "require_human_gate_for_spend must be true" in smoke_ps1, "smoke_package.ps1 must enforce require_human_gate_for_spend invariant"
+    assert "max_spend must be 0.00" in smoke_ps1, "smoke_package.ps1 must enforce zero-spend invariant"

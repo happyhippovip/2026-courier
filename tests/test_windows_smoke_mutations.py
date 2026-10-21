@@ -233,3 +233,51 @@ def test_mutation_require_manifest_fails_when_manifest_missing(mock_valid_packag
     rc, out = _run_smoke(mock_valid_package, require_manifest=True)
     assert rc != 0
     assert "Required manifest.json is missing" in out
+
+
+# --- Mandatory Policy Bundling & Governance (W05 / GB-PKG-05) Mutations ---
+
+def test_mutation_policy_missing_version_specification(mock_valid_package: Path):
+    (mock_valid_package / "events" / "policies" / "resource_policy.json").write_text(
+        json.dumps({"max_spend": 0.00}), encoding="utf-8"
+    )
+    _generate_manifest_for_pkg(mock_valid_package)
+    rc, out = _run_smoke(mock_valid_package)
+    assert rc != 0
+    assert "missing required version specification" in out
+
+
+def test_mutation_policy_missing_mandatory_invariants(mock_valid_package: Path):
+    (mock_valid_package / "events" / "policies" / "resource_policy.json").write_text(
+        json.dumps({"policy_version": "2.0"}), encoding="utf-8"
+    )
+    _generate_manifest_for_pkg(mock_valid_package)
+    rc, out = _run_smoke(mock_valid_package)
+    assert rc != 0
+    assert "missing mandatory governance invariants" in out
+
+
+def test_mutation_policy_tampered_nonzero_spend(mock_valid_package: Path):
+    (mock_valid_package / "events" / "policies" / "resource_policy.json").write_text(
+        json.dumps({"policy_version": "2.0", "max_spend": 5.00}), encoding="utf-8"
+    )
+    _generate_manifest_for_pkg(mock_valid_package)
+    rc, out = _run_smoke(mock_valid_package)
+    assert rc != 0
+    assert "violates autonomous spend limit" in out
+
+
+def test_mutation_policy_tampered_human_gate_disabled(mock_valid_package: Path):
+    (mock_valid_package / "events" / "policies" / "resource_policy.json").write_text(
+        json.dumps({
+            "schema_version": "2026.08.30-policy-v1",
+            "operating_invariants": {
+                "require_human_gate_for_spend": False
+            }
+        }),
+        encoding="utf-8"
+    )
+    _generate_manifest_for_pkg(mock_valid_package)
+    rc, out = _run_smoke(mock_valid_package)
+    assert rc != 0
+    assert "violates spend invariant" in out
