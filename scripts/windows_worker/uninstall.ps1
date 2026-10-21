@@ -24,6 +24,10 @@ if (Test-Path $stopScript) {
 
 if (Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue) {
     Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
+    if (Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue) {
+        Write-Host "ERROR: Scheduled task $TaskName could not be removed." -ForegroundColor Red
+        exit 1
+    }
     Write-Host "Removed the logon task $TaskName."
 }
 
@@ -31,7 +35,11 @@ if (Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue) {
 # only the working directory must not be inside it.
 Set-Location $env:TEMP
 if (Test-Path $InstallDir) {
-    Remove-Item -Recurse -Force $InstallDir
+    Remove-Item -Recurse -Force -ErrorAction Stop $InstallDir
+    if (Test-Path $InstallDir) {
+        Write-Host "ERROR: Installation folder $InstallDir could not be removed." -ForegroundColor Red
+        exit 1
+    }
     Write-Host "Removed $InstallDir."
 }
 
