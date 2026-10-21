@@ -448,6 +448,20 @@ def claim_task():
     if not SAFE_ID_RE.match(worker_id) or ".." in worker_id or "/" in worker_id or "\\" in worker_id:
         return jsonify({"error": f"invalid worker_id: forbidden characters or traversal: {worker_id!r}"}), 400
     state = load_state()
+
+    if not state.get("_startup_reconciled"):
+        has_unreconciled_dispatched = any(
+            t.get("status") in ("DISPATCHED", "RUNNING", "STARTED")
+            for t in state.get("tasks", {}).values()
+        )
+        if has_unreconciled_dispatched:
+            from courier_core.startup_recovery import StartupRecoveryEngine
+            engine = StartupRecoveryEngine()
+            state, _ = engine.execute_recovery(state)
+            save_state(state)
+        else:
+            state["_startup_reconciled"] = True
+            save_state(state)
     
     if worker_id not in state["workers"]:
         return jsonify({"error": "Unknown worker"}), 404
@@ -995,3 +1009,15 @@ def external_claim():
         "message": f"State transition securely logged in Universal Ledger for provider: {provider}",
         "ledger_hash": "pending_activation"
     }), 201
+
+
+@app.route("/recovery/startup_reconcile", methods=["POST"])
+@require_auth
+@serialize_state_mutation
+def recovery_startup_reconcile():
+    state = load_state()
+    from courier_core.startup_recovery import StartupRecoveryEngine
+    engine = StartupRecoveryEngine()
+    state, report = engine.execute_recovery(state)
+    save_state(state)
+    return jsonify(report.to_dict())
