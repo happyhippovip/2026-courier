@@ -673,3 +673,44 @@ def test_launcher_build_script_supports_paths_with_spaces_contract(tmp_path):
     res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(repo_root))
     assert res.returncode == 0, f"Compilation failed: {res.stderr}\n{res.stdout}"
     assert out_file.exists(), "Courier.exe must exist in spaced output directory"
+
+
+def test_powershell_51_ast_compatibility_contract():
+    """Beweis: Alle PowerShell-Skripte unter scripts/windows_worker lassen sich fehlerfrei
+    mittels des nativen Windows PowerShell 5.1 AST-Parsers parsen und enthalten keine
+    PS 7+ exklusiven Operatoren (??, ?., &&, ||, ?:), um Abwaertskompatibilitaet zu sichern (GB-PS51-01 / W02)."""
+    import subprocess
+    import re
+    repo_root = Path(__file__).resolve().parents[1]
+    ps1_dir = repo_root / "scripts" / "windows_worker"
+
+    # 1. Regex-Check auf PS 7+ exklusive Syntax
+    ps7_patterns = [
+        (re.compile(r"\?\?"), "Null-coalescing ??"),
+        (re.compile(r"\?\["), "Null-conditional ?["),
+        (re.compile(r"\?\."), "Null-conditional ?."),
+        (re.compile(r"\s&&\s"), "Pipeline chain &&"),
+        (re.compile(r"\s\|\|\s"), "Pipeline chain ||"),
+        (re.compile(r"\s\?\s[^:]+:\s"), "Ternary operator ? :"),
+    ]
+    all_scripts = list(ps1_dir.glob("*.ps1")) + list(ps1_dir.glob("*/*.ps1"))
+    assert len(all_scripts) >= 5, "Must find at least 5 scripts to validate"
+    for ps1 in all_scripts:
+        text = ps1.read_text(encoding="utf-8")
+        for pat, desc in ps7_patterns:
+            assert not pat.search(text), f"{ps1.name} contains PS 7+ operator {desc}"
+
+    # 2. Native AST-Parser Validierung via powershell.exe (Windows PowerShell 5.1)
+    parse_script = (
+        f"$scripts = Get-ChildItem -Path '{str(ps1_dir)}' -Filter '*.ps1' -Recurse; "
+        "$errCount = 0; "
+        "foreach ($s in $scripts) { "
+        "  $t = $null; $e = $null; "
+        "  $ast = [System.Management.Automation.Language.Parser]::ParseFile($s.FullName, [ref]$t, [ref]$e); "
+        "  if ($e.Count -gt 0) { $errCount += $e.Count } "
+        "}; "
+        "exit $errCount"
+    )
+    cmd = ["powershell", "-Command", parse_script]
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    assert res.returncode == 0, f"PowerShell 5.1 AST parser reported syntax errors: {res.stderr}\n{res.stdout}"
