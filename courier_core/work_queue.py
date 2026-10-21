@@ -274,6 +274,12 @@ def main(argv=None) -> int:
     nxt.add_argument("--done-pr", action="append", default=[])
     nxt.add_argument("--draft-pr", action="append", default=[])
 
+    lst = sub.add_parser("list")
+    lst.add_argument("--all", action="store_true", help="list all items including completed and blocked")
+    lst.add_argument("--open-pr-file", action="append", default=[])
+    lst.add_argument("--done-pr", action="append", default=[])
+    lst.add_argument("--draft-pr", action="append", default=[])
+
     clm = sub.add_parser("claim")
     clm.add_argument("--item", required=True)
     clm.add_argument("--holder", required=True)
@@ -306,6 +312,17 @@ def main(argv=None) -> int:
                 print("NO_READY_ITEM")
                 return 0
             print(render_prompt(ready[0], args.holder), end="")
+            return 0
+        if args.command == "list":
+            if getattr(args, "all", False):
+                items = queue.items()
+            else:
+                items = queue.list_ready(
+                    open_pr_files=args.open_pr_file,
+                    done_prs=args.done_pr,
+                    draft_prs=args.draft_pr,
+                )
+            print(json.dumps(items, sort_keys=True))
             return 0
         if args.command == "claim":
             claimed = queue.claim(

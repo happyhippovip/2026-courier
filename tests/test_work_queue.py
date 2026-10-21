@@ -290,3 +290,121 @@ def test_failed_release_transitions_to_blocked_and_blocks_dependents(tmp_path):
     rel_again = queue.release("A", "holder-a", "FAILED: tests failed", now=NOW)
     assert rel_again["status"] == "BLOCKED" and rel_again["idempotent"] is True
 
+
+def test_cli_list_ready_and_all(tmp_path, capsys):
+    home = tmp_path / "items"
+    _write_items(home, [
+        _item("A", ["courier_core/a.py"]),
+        _item("B", ["courier_core/b.py"], status="DONE"),
+    ])
+    ledger = tmp_path / "ledger.jsonl"
+    # list ready
+    code = main(["--items", str(home), "--ledger", str(ledger), "list"])
+    assert code == 0
+    ready = json.loads(capsys.readouterr().out)
+    assert len(ready) == 1
+    assert ready[0]["id"] == "A"
+
+    # list --all
+    code = main(["--items", str(home), "--ledger", str(ledger), "list", "--all"])
+    assert code == 0
+    all_items = json.loads(capsys.readouterr().out)
+    assert len(all_items) == 2
+    assert [item["id"] for item in all_items] == ["A", "B"]
+
+
+def test_cli_renew_flow(tmp_path, capsys):
+    seed = _seed_items(tmp_path)
+    ledger = tmp_path / "ledger.jsonl"
+    # 1. Claim
+    assert main(["--items", str(seed), "--ledger", str(ledger), "claim", "--item", "P2", "--holder", "worker-1", "--ttl", "60"]) == 0
+    claimed = json.loads(capsys.readouterr().out)
+    assert claimed["status"] == "CLAIMED"
+    assert claimed["holder"] == "worker-1"
+
+    # 2. Renew by same holder
+    assert main(["--items", str(seed), "--ledger", str(ledger), "renew", "--item", "P2", "--holder", "worker-1", "--ttl", "120"]) == 0
+    renewed = json.loads(capsys.readouterr().out)
+    assert renewed["status"] == "CLAIMED"
+    assert renewed["holder"] == "worker-1"
+
+    # 3. Renew by wrong holder fails with NOT_HOLDER (exit code 2)
+    assert main(["--items", str(seed), "--ledger", str(ledger), "renew", "--item", "P2", "--holder", "worker-2", "--ttl", "120"]) == 2
+    err = capsys.readouterr().err.strip()
+    assert err == "NOT_HOLDER"
+
+
+def test_cli_claim_duplicate_rejected(tmp_path, capsys):
+    seed = _seed_items(tmp_path)
+    ledger = tmp_path / "ledger.jsonl"
+    # First claim
+    assert main(["--items", str(seed), "--ledger", str(ledger), "claim", "--item", "P3", "--holder", "worker-1", "--ttl", "60"]) == 0
+    capsys.readouterr()
+
+    # Second claim by different holder fails with DUPLICATE_CLAIM (exit code 2)
+    assert main(["--items", str(seed), "--ledger", str(ledger), "claim", "--item", "P3", "--holder", "worker-2", "--ttl", "60"]) == 2
+    assert capsys.readouterr().err.strip() == "DUPLICATE_CLAIM"
+
+
+def test_ledger_file_size_limit_fail_closed(tmp_path):
+    from courier_core.work_queue import MAX_LEDGER_BYTES
+    home = tmp_path / "items"
+    _write_items(home, [_item("A", ["courier_core/a.py"])])
+    ledger = tmp_path / "oversize_ledger.jsonl"
+    # Write oversized ledger
+    ledger.write_bytes(b"x" * (MAX_LEDGER_BYTES + 10))
+    queue = WorkQueue(home, ledger)
+    with pytest.raises(WorkQueueError) as caught:
+        queue.list_ready(now=NOW)
+    assert caught.value.code == "LEDGER_TOO_LARGE"
+
+
+def test_concurrent_non_overlapping_claims_both_succeed(tmp_path):
+    queue_path = tmp_path / "ledger.jsonl"
+    barrier = threading.Barrier(2)
+    outcomes = []
+
+    def attempt(item_id, holder):
+        barrier.wait()
+        try:
+            view = WorkQueue(DEFAULT_ITEMS, queue_path).claim(item_id, holder, 60, now=NOW)
+            outcomes.append((holder, view["status"]))
+        except WorkQueueError as exc:
+            outcomes.append((holder, exc.code))
+
+    t1 = threading.Thread(target=attempt, args=("P2", "holder-a"))
+    t2 = threading.Thread(target=attempt, args=("P3", "holder-b"))
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
+    assert sorted(outcomes) == [("holder-a", "CLAIMED"), ("holder-b", "CLAIMED")]
+
+
+def test_work_queue_items_reflects_runtime_status(tmp_path):
+    home = tmp_path / "items"
+    _write_items(home, [
+        _item("A", ["courier_core/a.py"]),
+        _item("B", ["courier_core/b.py"]),
+        _item("C", ["courier_core/c.py"]),
+    ])
+    queue = WorkQueue(home, tmp_path / "ledger.jsonl")
+    queue.claim("A", "holder-a", 60, now=NOW)
+    queue.claim("B", "holder-b", 60, now=NOW)
+    queue.release("B", "holder-b", "DONE: all good", now=NOW)
+
+    items = queue.items(now=NOW)
+    status_by_id = {item["id"]: item["status"] for item in items}
+    assert status_by_id["A"] == "CLAIMED"
+    assert status_by_id["B"] == "DONE"
+    assert status_by_id["C"] == "READY"
+    assert items[0]["lease"]["holder"] == "holder-a"
+    assert items[1]["lease"] is None
+    assert items[2]["lease"] is None
+
+
+def test_windows_backslash_path_normalization_in_scope():
+    assert scopes_overlap(["tests" + chr(92)], ["tests/test_short_video.py"]) is True
+    assert scopes_overlap(["courier_core" + chr(92) + "work_queue.py"], ["courier_core/work_queue.py"]) is True
+    assert scopes_overlap(["docs" + chr(92) + "readme.md"], ["tests/test_short_video.py"]) is False
+
