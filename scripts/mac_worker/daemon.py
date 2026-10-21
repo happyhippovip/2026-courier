@@ -479,6 +479,21 @@ def _reap_agy_group(process, identity):
     process.poll()
 
 
+# agy runs under the active Google subscription; a call has no per-run charge.
+AGY_RESOURCE_ID = "google_antigravity_plus"
+# Muse runs only once the resource policy lists this resource as active.
+MUSE_RESOURCE_ID = "muse_subscription"
+
+
+def cost_gate(resource_id):
+    """Ask CostGate before a provider starts. Any import or policy error denies."""
+    try:
+        from resource_policy import CostGate
+        return CostGate.evaluate_spend_request(resource_id, estimated_cost_eur=0.0)
+    except Exception as exc:
+        return {"allowed": False, "reason": "UNAVAILABLE_" + type(exc).__name__}
+
+
 def run_agy(task, config):
     write_log(f"Running AI task {task['task_id']} via agy")
     instruction = task.get('instruction', task.get('description', ''))
@@ -487,29 +502,10 @@ def run_agy(task, config):
     if decision.action == "COALESCED":
         return coalesced_result(decision, "ANTIGRAVITY")
         
-    # P0 CostGate: evaluate spend before spawning external process
-    try:
-        from scripts.resource_policy import CostGate
-        cost_eval = CostGate.evaluate_spend_request(
-            "google_antigravity_plus",
-            estimated_cost_eur=task.get("estimated_cost_eur", 0.0),
-            requested_action=task.get("requested_action", "EXECUTE_TASK"),
-            repo_dir=BASE_DIR,
-        )
-        if not cost_eval.get("allowed"):
-            return {
-                "status": "FAILED",
-                "reason": f"COST_GATE_DENIED: {cost_eval.get('reason')}",
-                "execution_mode": "ANTIGRAVITY",
-                "blocked": True,
-            }
-    except Exception as exc:
-        return {
-            "status": "FAILED",
-            "reason": f"COST_GATE_EXCEPTION: {exc}",
-            "execution_mode": "ANTIGRAVITY",
-            "blocked": True,
-        }
+    gate = cost_gate(AGY_RESOURCE_ID)
+    if not gate.get("allowed"):
+        return {"status": "FAILED", "reason": "COST_GATE_" + str(gate.get("reason") or "DENIED"),
+                "execution_mode": "ANTIGRAVITY", "blocked": True}
 
     prompt = "Task ID: " + str(task["task_id"]) + "\nInstruction: " + str(instruction) + "\n\nYou are a headless worker on Mac. You MUST execute the instruction. After you have successfully executed the instruction, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did. IMPORTANT: Your current working directory is " + os.getcwd() + ". Any file artifacts you create MUST be relative to this directory."
     agy_bin = shutil.which("agy") or shutil.which("agy", path=os.environ.get("PATH", "") + ":/Users/user/.local/bin:/usr/local/bin:/opt/homebrew/bin")
@@ -606,6 +602,13 @@ def run_muse(task, config):
     supervisor, decision = admit_surface("muse", task, config, needs_visible=True, allow_headless=False)
     if decision.action == "COALESCED":
         return coalesced_result(decision, "MUSE")
+
+    gate = cost_gate(MUSE_RESOURCE_ID)
+    if not gate.get("allowed"):
+        return {"status": "FAILED", "reason": "COST_GATE_" + str(gate.get("reason") or "DENIED"),
+                "execution_mode": "MUSE"}
+    if muse_adapter.cli_capabilities(config).get("yolo"):
+        return {"status": "FAILED", "reason": "YOLO_NOT_ALLOWED", "execution_mode": "MUSE"}
     
     slot = os.environ.get("COURIER_SLOT_ID") or config["WORKER_ID"]
     workspace = os.environ.get("COURIER_MUSE_WORKSPACE", config.get("MUSE_WORKSPACE", CANONICAL_WORKSPACE))

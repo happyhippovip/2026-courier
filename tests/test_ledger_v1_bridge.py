@@ -581,3 +581,45 @@ def test_complete_task_with_only_pending_result_never_emits_final(tmp_path):
         "result_id": None,
     }
     assert _result_id(view) is None
+
+
+# P1: FINAL means verified. A human-confirmed effect or a missing accepted
+# result never becomes FINAL_DONE.
+
+def _complete_view(tmp_path, **view_fields):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec()})
+    _seed(home, [_ready("A", "a-assign")])
+    assert _run(home, http)[0] == 0
+    task_id = "task-" + hashlib.sha256(http.posts[0]["idempotency_key"].encode()).hexdigest()[:32]
+    http.views[task_id].update({"status": "COMPLETE", "attempt": 1, **view_fields})
+    return http, home
+
+
+def _finals(home):
+    reducer = reduce_store(FileCoordinationStore(home / "coordination_ledger.jsonl"))
+    return [e for e in reducer.events if e.event_type == EventType.FINAL]
+
+
+def test_human_confirmed_effect_is_not_final(tmp_path):
+    http, home = _complete_view(tmp_path, resolution="effect_confirmed", decided_by="dennis",
+                                accepted_result_id=None, pending_result_id="result-pending")
+    code, out, err, log, lines = _run(home, http)
+    assert _finals(home) == []
+    assert code == 0
+    assert "human_confirmed" in out
+
+
+def test_complete_without_accepted_result_is_not_final(tmp_path):
+    http, home = _complete_view(tmp_path, accepted_result_id=None, pending_result_id="result-pending")
+    code, out, err, log, lines = _run(home, http)
+    assert _finals(home) == []
+    assert code == 2  # the bridge's not-ok exit code
+    assert "evidence_missing" in out
+
+
+def test_accepted_result_with_non_verified_resolution_is_not_final(tmp_path):
+    http, home = _complete_view(tmp_path, accepted_result_id="result-a", resolution="effect_confirmed")
+    code, out, err, log, lines = _run(home, http)
+    assert _finals(home) == []
+    assert "human_confirmed" in out

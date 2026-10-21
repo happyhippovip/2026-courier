@@ -49,10 +49,10 @@ if ($null -ne $existing) {
 $exePath = Join-Path $InstallDir "Courier.exe"
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $principalUser
 $action = New-ScheduledTaskAction -Execute $exePath -WorkingDirectory $InstallDir
-$principal = New-ScheduledTaskPrincipal -UserId $principalUser -LogonType Interactive -RunLevel Limited
+$settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -StartWhenAvailable -MultipleInstances IgnoreNew
 
 try {
-    Register-ScheduledTask -TaskName $TaskName -Trigger $trigger -Action $action -Principal $principal -ErrorAction Stop | Out-Null
+    Register-ScheduledTask -TaskName $TaskName -Trigger $trigger -Action $action -Principal $principal -Settings $settings -ErrorAction Stop | Out-Null
 } catch {
     Write-Host "Failed to register scheduled task ${TaskName}: $($_.Exception.Message)"
     exit 1
