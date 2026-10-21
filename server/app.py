@@ -3,7 +3,10 @@ import os, json, uuid, time, threading
 from functools import wraps
 from flask import Flask, request, jsonify
 
+import re
 from scripts.integration_contract import (
+    SAFE_ID_RE,
+    validate_safe_id,
     ContractError,
     prepare_task,
     validate_durable_result,
@@ -272,6 +275,14 @@ def register_worker():
     worker_id = data.get("worker_id")
     if not isinstance(worker_id, str) or not worker_id:
         return jsonify({"error": "worker_id is required"}), 400
+    if not SAFE_ID_RE.match(worker_id) or ".." in worker_id or "/" in worker_id or "\\" in worker_id:
+        return jsonify({"error": f"invalid worker_id: forbidden characters or traversal: {worker_id!r}"}), 400
+
+    incoming_epoch = data.get("session_epoch")
+    if incoming_epoch is not None:
+        if isinstance(incoming_epoch, bool) or not isinstance(incoming_epoch, int) or incoming_epoch < 0:
+            return jsonify({"error": "invalid session_epoch: non-negative integer required"}), 400
+
     state = load_state()
     
     existing = state["workers"].get(worker_id, {})

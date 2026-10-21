@@ -285,3 +285,61 @@ def test_case_f_old_result_arrives_after_reconnect(test_env):
     res_post2 = client.post("/tasks/result", headers=AUTH_HEADERS, json=old_result_payload)
     assert res_post2.status_code == 409
     assert "attempt or dispatch mismatch" in res_post2.get_json()["error"]
+
+
+def test_case_g_invalid_session_epoch_fails_closed(test_env):
+    """Case G: Non-integer, boolean, or negative session_epoch values fail closed with HTTP 400."""
+    client, _ = test_env
+
+    for bad_epoch in ["invalid", True, False, -1, -100, 1.5, [1], {"epoch": 1}]:
+        res = client.post(
+            "/workers/register",
+            headers=AUTH_HEADERS,
+            json={
+                "worker_id": "WIN-WORKER-01",
+                "platform": "windows",
+                "capabilities": ["windows"],
+                "session_epoch": bad_epoch,
+            },
+        )
+        assert res.status_code == 400
+        assert "invalid session_epoch" in res.get_json()["error"]
+
+
+def test_case_h_malformed_worker_id_fails_closed(test_env):
+    """Case H: Worker IDs with path traversals or illegal characters fail closed with HTTP 400."""
+    client, _ = test_env
+
+    for bad_id in [
+        "../../malicious",
+        "worker/slash",
+        "worker\\backslash",
+        "worker\x00null",
+        "worker with space",
+        "worker#hash",
+        "worker;semicolon",
+    ]:
+        res = client.post(
+            "/workers/register",
+            headers=AUTH_HEADERS,
+            json={
+                "worker_id": bad_id,
+                "platform": "windows",
+                "capabilities": ["windows"],
+            },
+        )
+        assert res.status_code == 400
+        assert "invalid worker_id" in res.get_json()["error"]
+
+
+def test_case_i_prepare_task_rejects_malformed_ids():
+    """Case I: prepare_task enforces safe charset and rejects path traversals in task_id and goal_id."""
+    from scripts.integration_contract import prepare_task, ContractError
+    import pytest
+
+    for bad_id in ["../../bad", "task/slash", "task\\backslash", "task with space", "task;evil"]:
+        with pytest.raises(ContractError, match="forbidden characters or path traversal"):
+            prepare_task({"task_id": bad_id, "goal_id": "g1", "target_agent": "windows"})
+
+        with pytest.raises(ContractError, match="forbidden characters or path traversal"):
+            prepare_task({"task_id": "t1", "goal_id": bad_id, "target_agent": "windows"})

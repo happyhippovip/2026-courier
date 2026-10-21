@@ -13,6 +13,17 @@ import uuid
 from pathlib import Path, PureWindowsPath
 
 
+SAFE_ID_RE = re.compile(r"^[A-Za-z0-9_.-]+$")
+
+
+def validate_safe_id(ident: str, field_name: str = "identifier") -> str:
+    if not isinstance(ident, str) or not ident:
+        raise ContractError(f"{field_name} is required and must be a non-empty string")
+    if not SAFE_ID_RE.match(ident) or ".." in ident or "/" in ident or "\\" in ident:
+        raise ContractError(f"{field_name} contains forbidden characters or path traversal: {ident!r}")
+    return ident
+
+
 TASK_STATES = {
     "QUEUED",
     "DISPATCHED",
@@ -69,6 +80,8 @@ def prepare_task(task: dict) -> dict:
     capability = normalize_target_capability(raw_cap)
     packet["target_capability"] = capability
     packet["target_agent"] = capability
+    validate_safe_id(task_id, "task_id")
+    validate_safe_id(goal_id, "goal_id")
     if not all(isinstance(value, str) and value for value in (task_id, goal_id, capability)):
         raise ContractError("task_id, goal_id and target_capability are required")
     if capability not in WORKER_IDS:
