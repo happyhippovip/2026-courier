@@ -366,6 +366,10 @@ def unregister_worker():
 def heartbeat():
     data = request.get_json(silent=True) or {}
     worker_id = data.get("worker_id")
+    if not isinstance(worker_id, str) or not worker_id:
+        return jsonify({"error": "worker_id is required"}), 400
+    if not SAFE_ID_RE.match(worker_id) or ".." in worker_id or "/" in worker_id or "\\" in worker_id:
+        return jsonify({"error": f"invalid worker_id: forbidden characters or traversal: {worker_id!r}"}), 400
     state = load_state()
     
     if worker_id in state["workers"]:
@@ -389,6 +393,10 @@ def heartbeat():
 def claim_task():
     data = request.get_json(silent=True) or {}
     worker_id = data.get("worker_id")
+    if not isinstance(worker_id, str) or not worker_id:
+        return jsonify({"error": "worker_id is required"}), 400
+    if not SAFE_ID_RE.match(worker_id) or ".." in worker_id or "/" in worker_id or "\\" in worker_id:
+        return jsonify({"error": f"invalid worker_id: forbidden characters or traversal: {worker_id!r}"}), 400
     state = load_state()
     
     if worker_id not in state["workers"]:
@@ -400,6 +408,8 @@ def claim_task():
         worker["resource_state"] = data["resource_state"]
         if worker["resource_state"] != "NORMAL":
             worker["available"] = False
+        elif not worker.get("current_task") and not worker.get("unregistered"):
+            worker["available"] = True
             
     if worker.get("current_task") or not worker.get("available", False):
         save_state(state)
@@ -521,6 +531,14 @@ def task_result():
 
     task_id = data.get("task_id")
     worker_id = data.get("worker_id")
+    if not isinstance(worker_id, str) or not worker_id:
+        return jsonify({"error": "worker_id is required"}), 400
+    if not SAFE_ID_RE.match(worker_id) or ".." in worker_id or "/" in worker_id or "\\" in worker_id:
+        return jsonify({"error": f"invalid worker_id: forbidden characters or traversal: {worker_id!r}"}), 400
+    if not isinstance(task_id, str) or not task_id:
+        return jsonify({"error": "task_id is required"}), 400
+    if not SAFE_ID_RE.match(task_id) or ".." in task_id or "/" in task_id or "\\" in task_id:
+        return jsonify({"error": f"invalid task_id: forbidden characters or traversal: {task_id!r}"}), 400
     state = load_state()
     
     if task_id in state["tasks"]:

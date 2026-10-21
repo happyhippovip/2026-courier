@@ -343,3 +343,67 @@ def test_case_i_prepare_task_rejects_malformed_ids():
 
         with pytest.raises(ContractError, match="forbidden characters or path traversal"):
             prepare_task({"task_id": "t1", "goal_id": bad_id, "target_agent": "windows"})
+
+
+def test_case_j_heartbeat_and_claim_reject_malformed_worker_id(test_env):
+    """Case J (S09): /workers/heartbeat und /tasks/claim verwerfen fehlerhafte oder manipulierende worker_ids mit HTTP 400."""
+    client, _ = test_env
+
+    for bad_id in [None, "", "../../escape", "worker/slash", "worker\\backslash", "worker with space", "worker#hash"]:
+        payload = {"worker_id": bad_id} if bad_id is not None else {}
+
+        # Heartbeat
+        res_hb = client.post("/workers/heartbeat", headers=AUTH_HEADERS, json=payload)
+        assert res_hb.status_code == 400
+        assert "worker_id" in res_hb.get_json()["error"]
+
+        # Claim
+        res_cl = client.post("/tasks/claim", headers=AUTH_HEADERS, json=payload)
+        assert res_cl.status_code == 400
+        assert "worker_id" in res_cl.get_json()["error"]
+
+
+def test_case_k_task_result_rejects_malformed_ids(test_env):
+    """Case K (S09): /tasks/result verwirft fehlerhafte worker_id oder task_id mit HTTP 400."""
+    client, _ = test_env
+
+    # Ungueltige worker_id
+    res1 = client.post("/tasks/result", headers=AUTH_HEADERS, json={"task_id": "valid-task-1", "worker_id": "../bad"})
+    assert res1.status_code == 400
+    assert "worker_id" in res1.get_json()["error"]
+
+    # Ungueltige task_id
+    res2 = client.post("/tasks/result", headers=AUTH_HEADERS, json={"task_id": "task/bad/slash", "worker_id": "valid-worker"})
+    assert res2.status_code == 400
+    assert "task_id" in res2.get_json()["error"]
+
+
+def test_case_l_resource_state_normal_restores_availability_on_claim(test_env):
+    """Case L (S09): Wenn ein Worker zuvor PAUSED meldete, stellt resource_state NORMAL beim naechsten Claim available=True wieder her."""
+    client, _ = test_env
+
+    # 1. Registrieren
+    reg = client.post("/workers/register", headers=AUTH_HEADERS, json={
+        "worker_id": "RECOV-WORKER-01", "platform": "windows", "capabilities": ["windows"]
+    })
+    assert reg.status_code == 200
+
+    # 2. Resource Pause melden
+    claim_pause = client.post("/tasks/claim", headers=AUTH_HEADERS, json={
+        "worker_id": "RECOV-WORKER-01", "resource_state": "PAUSED"
+    })
+    assert claim_pause.status_code == 200
+    assert claim_pause.get_json()["reason"] == "WORKER_BUSY"
+
+    # Worker-Status im Server ist now available=False
+    state = server_app.load_state()
+    assert state["workers"]["RECOV-WORKER-01"]["available"] is False
+
+    # 3. Last sinkt: Worker pollt /tasks/claim mit NORMAL
+    claim_normal = client.post("/tasks/claim", headers=AUTH_HEADERS, json={
+        "worker_id": "RECOV-WORKER-01", "resource_state": "NORMAL"
+    })
+    assert claim_normal.status_code == 200
+
+    state2 = server_app.load_state()
+    assert state2["workers"]["RECOV-WORKER-01"]["available"] is True
