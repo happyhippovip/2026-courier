@@ -984,3 +984,20 @@ Note: PRs #150 (L2 mission-registry), #258 (grants fail-closed), #314 (reality-r
   - `node --test tests/desktop/*.test.mjs`: **59/59 PASS**.
   - Isolation boundaries (State, Auth, Process, Resource): **100% VALID**.
 - Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.
+
+## Step 65 — L5 Hub Resiliency, L6 Packaging & L4 Contract Pins (Commits `893359c08` & merges)
+### `courier_hub/`, `courier_core/`, `tests/`
+- Merged and verified key production-resiliency PRs across Lanes L4, L5, and L6:
+  - **L5 PR #224 (`L5-hub-undecodable-state`):** Keep Home up when journal task state is undecodable/corrupt. Replaces HTTP 500 crashes with unrecognised card fallback.
+  - **L5 PR #264 (`L5-hub-customer-errors`):** Unreadable install directories surface safely as unknown cards without leaking filesystem paths or throwing tracebacks. Added `courier_core/install_state.py` lifecycle contract (20/20 PASS).
+  - **L5 PR #230 (`L5-hub-bounded-reads`):** Caps event history at 200 events and truncates controller response reads over 64KiB (6/6 PASS).
+  - **L6 PR #246 (`L6-install-service-user-task`):** Accepts Windows scheduled-task account name without machine prefix mismatch (tests pass).
+  - **L6 PR #251 (`L6-installer-repair-idempotent`):** Idempotent installer repair reporting `HEALTHY` strictly after independent verification (3/3 PASS).
+  - **L5 PR #234 (`L5-hub-automation-status`):** Ledger bridge mission status mapping onto hub automation cards (21/21 PASS).
+  - **L5 PR #233 (`L5-hub-revenue-card`):** Read-only hub revenue cards for reality orders, tarball fetch, and repo reality engine (55/55 PASS).
+  - **L4 Contract Pins:** Integrated P9 state machine pins (14/14 PASS), work packet pins (11/11 PASS), and worker host containment pins (39/39 PASS).
+  - **Windows CI Taskkill Mock Fix ([`tests/test_gemini_worker_adapter.py`](file:///Users/user/Downloads/2026-courier/tests/test_gemini_worker_adapter.py)):** Used `mock.MagicMock()` for `subprocess.run` context-manager compliance in Python 3.12 under Windows.
+- Verified test coverage:
+  - All local test suites pass 100% green.
+  - Ledger integrity check passed on every merge commit.
+- Invariants maintained: `SINGLE_WRITER=YES`, `AUTONOMOUS_SPEND_LIMIT_EUR=0,00 €`, `ZERO_COST=YES`.

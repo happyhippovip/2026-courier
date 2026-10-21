@@ -343,6 +343,10 @@ At update time (2026-10-07):
   - Kanonische Blocker-Registry (`BLOCKER_REGISTRY_V26_CURRENT.md`): BLK-01, BLK-06, BLK-07 und BLK-09 auf `RESOLVED_GREEN` aktualisiert.
 - **STEP 64 WINDOWS CI REGRESSION GATE GREEN (21.10.2026):**
   - Behebung der 2 Windows CI Regression Gate Fails (`Courier v1 CI`): `os.killpg` Mock-Patching via `create=True` in `tests/test_gemini_worker_adapter.py` und Bereinigung von Windows-Backslash Escape-SyntaxError via `sys.argv` in `tests/test_windows_costgate_and_writer_lease.py`.
+- **STEP 65 L5 HUB RESILIENCY, L6 PACKAGING & L4 CONTRACT PINS (21.10.2026):**
+  - PRs #224, #264, #230, #246, #251, #234, #233 sauber konfliktfrei gemergt (Desktop Hub Resilienz, Unreadable Cards Fallback, 200-Event Cap, Windows Account Normalization, Idempotente Installation/Reparatur, Reality Orders Engine).
+  - P9 State Machine, Work Packet und Worker Host Containment Pins integriert (alle Tests 100% grün).
+  - Windows Taskkill Mock für `subprocess.run` via `mock.MagicMock()` gehärtet.
 - next critical implementation path:
   **WINDOWS CLEAN-MACHINE ACCEPTANCE & WEBSITE HUMAN GATE**: Abnahme auf dem sauberen Windows-Host nach Host-Boot; Prüfung des Website-Impressums am Dennis Human-Gate (`fc219a1`).
 
