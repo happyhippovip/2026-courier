@@ -1,7 +1,8 @@
 # PowerShell Windows Package Smoke and Integrity Verifier
 # Courier Symphony - Hardened Mutation & Policy Verifier
 param(
-    [string]$PackageDir = "$PSScriptRoot\dist"
+    [string]$PackageDir = "$PSScriptRoot\dist",
+    [switch]$RequireManifest
 )
 
 $ErrorActionPreference = "Stop"
@@ -79,6 +80,65 @@ $policyScript = Join-Path $PackageDir "scripts\resource_policy.py"
 $policyScriptContent = Get-Content -LiteralPath $policyScript -Raw -Encoding UTF8
 if ($policyScriptContent -notmatch "UNKNOWN|CostGate|BLOCK") {
     Write-Error "SMOKE_FAIL: resource_policy.py is missing CostGate or UNKNOWN cost enforcement."
+    exit 1
+}
+
+
+# 5. Cryptographic Manifest & Hash Verification (W04 / GB-PKG-04)
+$manifestPath = Join-Path $PackageDir "manifest.json"
+if (Test-Path -LiteralPath $manifestPath) {
+    try {
+        $rawManifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8
+        $manifestObj = ConvertFrom-Json $rawManifest
+        if (-not $manifestObj -or -not $manifestObj.files) {
+            Write-Error "SMOKE_FAIL: manifest.json is invalid or missing 'files' dictionary."
+            exit 1
+        }
+    } catch {
+        Write-Error "SMOKE_FAIL: manifest.json is corrupt: $_"
+        exit 1
+    }
+
+    $manifestFiles = $manifestObj.files
+    $hashMismatches = @()
+    $sizeMismatches = @()
+    $missingFromDisk = @()
+
+    foreach ($prop in $manifestFiles.PSObject.Properties) {
+        $rel = $prop.Name
+        $expected = $prop.Value
+        $targetFile = Join-Path $PackageDir $rel
+
+        if (-not (Test-Path -LiteralPath $targetFile)) {
+            $missingFromDisk += $rel
+            continue
+        }
+
+        $item = Get-Item -LiteralPath $targetFile
+        if ($item.Length -ne $expected.size) {
+            $sizeMismatches += "$rel (expected $($expected.size) bytes, got $($item.Length) bytes)"
+        }
+
+        $computedHash = (Get-FileHash -LiteralPath $targetFile -Algorithm SHA256).Hash.ToUpper()
+        if ($computedHash -ne $expected.sha256.ToUpper()) {
+            $hashMismatches += "$rel (hash mismatch: expected $($expected.sha256), got $computedHash)"
+        }
+    }
+
+    if ($missingFromDisk.Count -gt 0) {
+        Write-Error "SMOKE_FAIL: Files in manifest missing from disk: $($missingFromDisk -join ', ')"
+        exit 1
+    }
+    if ($sizeMismatches.Count -gt 0) {
+        Write-Error "SMOKE_FAIL: Manifest file size discrepancies: $($sizeMismatches -join ', ')"
+        exit 1
+    }
+    if ($hashMismatches.Count -gt 0) {
+        Write-Error "SMOKE_FAIL: Cryptographic checksum failures: $($hashMismatches -join ', ')"
+        exit 1
+    }
+} elseif ($RequireManifest) {
+    Write-Error "SMOKE_FAIL: Required manifest.json is missing in '$PackageDir'."
     exit 1
 }
 

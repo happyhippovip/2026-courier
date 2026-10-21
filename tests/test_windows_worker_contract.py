@@ -566,3 +566,24 @@ def test_powershell_scripts_file_argument_quoting_contract():
             if re.search(r"(?<!Out)-File\s+", line_str) and not line_str.startswith("#"):
                 assert ('-File "$' in line_str or '-File `"$PSCommandPath`"' in line_str or '-File str(' in line_str or '-File "' in line_str), \
                     f"{ps1.name} contains unquoted -File invocation: {line_str}"
+
+
+def test_package_manifest_generation_and_verification_contract():
+    """Beweis: build_package.ps1 generiert ein kryptografisches manifest.json mit SHA256-Hashes
+    aller Dateien in $OutDir und smoke_package.ps1 verifiziert das Manifest fail-closed
+    (GB-PKG-04 / W04)."""
+    repo_root = Path(__file__).resolve().parents[1]
+    build_ps1 = (repo_root / "scripts" / "windows_worker" / "build_package.ps1").read_text(encoding="utf-8")
+    smoke_ps1 = (repo_root / "scripts" / "windows_worker" / "smoke_package.ps1").read_text(encoding="utf-8")
+
+    # Invariante 1: build_package.ps1 erzeugt manifest.json mit SHA256 und Depth >= 10
+    assert "manifest.json" in build_ps1, "build_package.ps1 must generate manifest.json"
+    assert "Get-FileHash" in build_ps1, "build_package.ps1 must compute file hashes"
+    assert "SHA256" in build_ps1, "build_package.ps1 must use SHA256 for manifest"
+    assert "-RequireManifest" in build_ps1, "build_package.ps1 must enforce -RequireManifest in smoke check"
+
+    # Invariante 2: smoke_package.ps1 unterstützt -RequireManifest und validiert Hashes & Sizes
+    assert "[switch]$RequireManifest" in smoke_ps1, "smoke_package.ps1 must declare [switch]$RequireManifest"
+    assert "manifest.json" in smoke_ps1, "smoke_package.ps1 must check manifest.json"
+    assert "Cryptographic checksum failures" in smoke_ps1, "smoke_package.ps1 must verify cryptographic checksums"
+    assert "Manifest file size discrepancies" in smoke_ps1, "smoke_package.ps1 must verify file sizes"

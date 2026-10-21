@@ -1,12 +1,14 @@
 """Hardened Mutation Tests for Windows Worker Package and Smoke Verifier.
 
 Tests that all intentional mutations (missing policy, truncated binaries,
-stripped security guards, invalid JSON, removed local_shell) are strictly
-detected and rejected by the smoke verification suite.
+stripped security guards, invalid JSON, removed local_shell, manifest corruption,
+and hash/size tampering) are strictly detected and rejected by the smoke
+verification suite.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import subprocess
 from pathlib import Path
@@ -15,6 +17,28 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 SMOKE_SCRIPT = ROOT / "scripts" / "windows_worker" / "smoke_package.ps1"
+
+
+def _generate_manifest_for_pkg(pkg: Path) -> dict:
+    files_dict = {}
+    for p in sorted(pkg.rglob("*")):
+        if p.is_file() and p.name != "manifest.json":
+            rel_path = str(p.relative_to(pkg)).replace("\\", "/")
+            data = p.read_bytes()
+            sha256 = hashlib.sha256(data).hexdigest().upper()
+            files_dict[rel_path] = {
+                "size": len(data),
+                "sha256": sha256
+            }
+    manifest = {
+        "manifest_version": "1.0",
+        "algorithm": "SHA256",
+        "package_name": "CourierWorker-Windows",
+        "file_count": len(files_dict),
+        "files": files_dict
+    }
+    (pkg / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    return manifest
 
 
 @pytest.fixture
@@ -65,10 +89,13 @@ def mock_valid_package(tmp_path: Path) -> Path:
         encoding="utf-8",
     )
 
+    # Generate valid cryptographic manifest
+    _generate_manifest_for_pkg(pkg)
+
     return pkg
 
 
-def _run_smoke(pkg_dir: Path) -> tuple[int, str]:
+def _run_smoke(pkg_dir: Path, require_manifest: bool = False) -> tuple[int, str]:
     cmd = [
         "powershell",
         "-NoProfile",
@@ -76,6 +103,8 @@ def _run_smoke(pkg_dir: Path) -> tuple[int, str]:
         "-File", str(SMOKE_SCRIPT),
         "-PackageDir", str(pkg_dir),
     ]
+    if require_manifest:
+        cmd.append("-RequireManifest")
     proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out = (proc.stdout or b"").decode("utf-8", errors="replace") + " " + (proc.stderr or b"").decode("utf-8", errors="replace")
     normalized = " ".join(out.split())
@@ -83,7 +112,7 @@ def _run_smoke(pkg_dir: Path) -> tuple[int, str]:
 
 
 def test_valid_package_passes_smoke(mock_valid_package: Path):
-    rc, out = _run_smoke(mock_valid_package)
+    rc, out = _run_smoke(mock_valid_package, require_manifest=True)
     assert rc == 0, f"Output was: {out}"
     assert "SMOKE_PASS" in out
 
@@ -129,6 +158,8 @@ def test_mutation_stripped_nul_guard_in_local_shell(mock_valid_package: Path):
     (mock_valid_package / "adapters" / "local_shell.py").write_text(
         "# Insecure local shell\ndef run(cmd): os.system(cmd)\n", encoding="utf-8"
     )
+    # regenerate manifest so smoke fails on the code guard, not the hash
+    _generate_manifest_for_pkg(mock_valid_package)
     rc, out = _run_smoke(mock_valid_package)
     assert rc != 0
     assert "local_shell.py is missing" in out
@@ -138,6 +169,8 @@ def test_mutation_stripped_costgate_in_policy(mock_valid_package: Path):
     (mock_valid_package / "scripts" / "resource_policy.py").write_text(
         "# Empty policy\npass\n", encoding="utf-8"
     )
+    # regenerate manifest so smoke fails on the policy guard, not the hash
+    _generate_manifest_for_pkg(mock_valid_package)
     rc, out = _run_smoke(mock_valid_package)
     assert rc != 0
     assert "resource_policy.py is missing CostGate" in out
@@ -148,3 +181,55 @@ def test_mutation_missing_entire_package_dir(tmp_path: Path):
     rc, out = _run_smoke(non_existent)
     assert rc != 0
     assert "does not exist" in out
+
+
+# --- Cryptographic Manifest (W04 / GB-PKG-04) Mutations ---
+
+def test_mutation_corrupt_manifest_json(mock_valid_package: Path):
+    (mock_valid_package / "manifest.json").write_text("{CORRUPT_JSON: true,", encoding="utf-8")
+    rc, out = _run_smoke(mock_valid_package)
+    assert rc != 0
+    assert "manifest.json is corrupt" in out
+
+
+def test_mutation_manifest_missing_files_dictionary(mock_valid_package: Path):
+    (mock_valid_package / "manifest.json").write_text(json.dumps({"manifest_version": "1.0"}), encoding="utf-8")
+    rc, out = _run_smoke(mock_valid_package)
+    assert rc != 0
+    assert "missing 'files' dictionary" in out
+
+
+def test_mutation_tampered_binary_hash_mismatch(mock_valid_package: Path):
+    # Alter bytes of Courier.exe without updating manifest
+    (mock_valid_package / "Courier.exe").write_bytes(b"MZ" + b"\xff" * 100)
+    rc, out = _run_smoke(mock_valid_package)
+    assert rc != 0
+    assert "Cryptographic checksum failures" in out
+    assert "Courier.exe" in out
+
+
+def test_mutation_tampered_file_size_mismatch(mock_valid_package: Path):
+    # Append content to daemon.py to change size
+    current = (mock_valid_package / "daemon.py").read_text(encoding="utf-8")
+    (mock_valid_package / "daemon.py").write_text(current + "# extra content\n", encoding="utf-8")
+    rc, out = _run_smoke(mock_valid_package)
+    assert rc != 0
+    assert "Manifest file size discrepancies" in out or "Cryptographic checksum failures" in out
+
+
+def test_mutation_manifest_file_missing_from_disk(mock_valid_package: Path):
+    # Manifest declares a file that doesn't exist
+    manifest_data = json.loads((mock_valid_package / "manifest.json").read_text(encoding="utf-8"))
+    manifest_data["files"]["ghost_file.dll"] = {"size": 100, "sha256": "ABCD1234"}
+    (mock_valid_package / "manifest.json").write_text(json.dumps(manifest_data), encoding="utf-8")
+    rc, out = _run_smoke(mock_valid_package)
+    assert rc != 0
+    assert "Files in manifest missing from disk" in out
+    assert "ghost_file.dll" in out
+
+
+def test_mutation_require_manifest_fails_when_manifest_missing(mock_valid_package: Path):
+    (mock_valid_package / "manifest.json").unlink()
+    rc, out = _run_smoke(mock_valid_package, require_manifest=True)
+    assert rc != 0
+    assert "Required manifest.json is missing" in out
