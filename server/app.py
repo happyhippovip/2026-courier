@@ -547,6 +547,8 @@ def claim_task():
                         next_task["attempts"] = next_task.get("attempts", 0) + 1
                         next_task["attempt_id"] = f"{next_task['task_id']}:attempt:{next_task['attempts']}"
                         next_task["dispatch_id"] = f"dispatch-{uuid.uuid4().hex}"
+                        next_task["lease_generation"] = next_task.get("lease_generation", 0) + 1
+                        next_task["fencing_token"] = next_task["lease_generation"]
                         next_task["run_id"] = None
                         next_task["result_id"] = None
                         next_task["target_capability"] = target
@@ -613,6 +615,14 @@ def task_result():
                 return jsonify({"error": f"workkey mismatch: task workkey is {task['workkey']}, got {data['workkey']}"}), 409
         elif "workkey" in data and "workkey" not in task:
             return jsonify({"error": "workkey mismatch: unexpected workkey on task"}), 409
+
+        if "fencing_token" in data and "fencing_token" in task:
+            if data["fencing_token"] != task["fencing_token"]:
+                return jsonify({"error": f"stale fencing token: presented {data['fencing_token']}, current generation is {task['fencing_token']}"}), 409
+
+        if "lease_generation" in data and "lease_generation" in task:
+            if data["lease_generation"] != task["lease_generation"]:
+                return jsonify({"error": f"stale lease generation: presented {data['lease_generation']}, current generation is {task['lease_generation']}"}), 409
 
         if data.get("attempt_id") != task.get("attempt_id") or (data.get("dispatch_id") and data.get("dispatch_id") != task.get("dispatch_id")):
             return jsonify({"error": "attempt or dispatch mismatch, possible replay"}), 409
@@ -794,6 +804,35 @@ def resume_task(task_id):
         goal["status"] = "ACTIVE"
         save_state(state)
         return jsonify({"status": "RESUMED", "task_id": task_id, "goal_id": goal["goal_id"]})
+    if action == "reconcile":
+        resolution = data.get("resolution")
+        if resolution not in ["CONFIRMED_EXECUTED", "PROVEN_NOT_EXECUTED"]:
+            return jsonify({"error": "resolution required; must be CONFIRMED_EXECUTED or PROVEN_NOT_EXECUTED"}), 400
+        if resolution == "CONFIRMED_EXECUTED":
+            for record in filter(None, (task, step)):
+                record["status"] = "RECONCILED"
+                record["reconciliation_resolution"] = resolution
+                record["reconciliation_note"] = data.get("note", "")
+                record["reconciled_by"] = data.get("operator_id", "operator")
+            all_done = all(s.get("status") in ["RECONCILED", "RESULT_RECEIVED", "DONE"] for s in goal.get("workflow_plan", []))
+            if all_done:
+                goal["status"] = "DONE"
+            else:
+                goal["status"] = "ACTIVE"
+            save_state(state)
+            return jsonify({"status": "RECONCILED", "task_id": task_id, "goal_id": goal["goal_id"], "resolution": resolution})
+        elif resolution == "PROVEN_NOT_EXECUTED":
+            for record in filter(None, (task, step)):
+                record["resumed_from"] = status
+                record["status"] = "QUEUED"
+                record["worker_id"] = None
+                record["reconciliation_resolution"] = resolution
+                record["reconciliation_note"] = data.get("note", "")
+            if "instruction_override" in data:
+                step["instruction"] = data["instruction_override"]
+            goal["status"] = "ACTIVE"
+            save_state(state)
+            return jsonify({"status": "RESUMED", "task_id": task_id, "goal_id": goal["goal_id"], "resolution": resolution})
     if action == "force_success":
         # Success must come from a DurableResult bound to a dispatch and an
         # independent verifier; a manual marker cannot provide either.
