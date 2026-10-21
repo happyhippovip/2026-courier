@@ -346,6 +346,35 @@ def read_muse_wall(root: Path, wall: Optional[Path], label: str, observed_at: st
     }
 
 
+_EVIDENCE_IDS = ("journal_entry_id", "task_id", "dispatch_id", "accepted_result_id")
+
+
+def _badge_evidence(evidence, task_id: str, event_id: str, proof: dict) -> Optional[dict]:
+    """The Kolibri badge tuple, passed on only when it is bound to this very proof.
+
+    Every id must match the card and its journal proof; anything else drops the
+    whole tuple, so the badge stays fail-closed instead of half-verified."""
+    if not isinstance(evidence, dict):
+        return None
+    out = {}
+    for key in _EVIDENCE_IDS:
+        value = evidence.get(key)
+        if not isinstance(value, str) or not value or len(value) > 200:
+            return None
+        out[key] = value
+    attempt = evidence.get("attempt")
+    sha = evidence.get("artifact_sha256")
+    if (out["task_id"] != task_id or out["journal_entry_id"] != event_id
+            or out["accepted_result_id"] != proof.get("result_id")
+            or isinstance(attempt, bool) or not isinstance(attempt, int) or attempt < 1
+            or not isinstance(sha, str) or not re.fullmatch(r"[0-9a-f]{64}", sha)
+            or evidence.get("resolution") != "BYTE_LEVEL_GOLD_VERIFIED"):
+        return None
+    out.update(attempt=attempt, artifact_sha256=sha, resolution="BYTE_LEVEL_GOLD_VERIFIED",
+               proof={"event": "RESULT_ACCEPTED", "seq": proof.get("seq"), "result_id": proof.get("result_id")})
+    return out
+
+
 def read_ledger(view: Optional[dict], observed_at: str) -> dict:
     source = "courier journal (courier.db)"
     if not isinstance(view, dict) or view.get("truth") != "ok":
@@ -376,6 +405,9 @@ def read_ledger(view: Optional[dict], observed_at: str) -> dict:
                     and isinstance(proof.get("result_id"), str) and proof.get("result_id")):
                 item["verified"] = True
                 item["event_id"] = f"journal:{seq}:RESULT_ACCEPTED"
+                evidence = _badge_evidence(card.get("evidence"), task_id, item["event_id"], proof)
+                if evidence is not None:
+                    item["evidence"] = evidence
             items.append(item)
     counts = view.get("counts") if isinstance(view.get("counts"), dict) else {}
     safe_counts = {}
