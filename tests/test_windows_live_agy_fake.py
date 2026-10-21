@@ -91,7 +91,8 @@ def test_install_agy_path_reaches_the_worker_and_completes_a_fake_run(tmp_path):
             time.sleep(0.5)
         assert token, "controller never became healthy"
         task_id = _api(token, "POST", "/v1/tasks", {
-            "adapter": "provider_exec", "params": {"provider": "agy", "prompt": "noop"},
+            "adapter": "provider_exec",
+            "params": {"provider": "agy", "prompt": "noop", "estimated_cost_eur": 0.0, "cost_class": "included_quota"},
             "effect_class": "idempotent", "max_attempts": 1, "lease_ttl_s": 60,
         })["task_id"]
         deadline = time.monotonic() + 90
