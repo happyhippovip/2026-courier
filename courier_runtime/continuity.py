@@ -435,13 +435,44 @@ class Kirby:
         return "WORKING" if live else "NEEDS YOU"
 
 
+def _measured_number(value):
+    """A real measurement. Missing, boolean, and non-finite values are not zero."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    if value != value or value in (float("inf"), float("-inf")):
+        return None
+    return value
+
+
 def concurrency_advice(windows):
     """Power-pool experiment: windows = [{"slots", "completions_per_h", "errors", "ram_pct"}].
     Recommend the smallest slot count with the best verified throughput; scale down
-    when more slots stop helping or the host is under pressure."""
-    healthy = [w for w in windows if w.get("ram_pct", 0) < 85 and w.get("errors", 0) <= 2]
+    when more slots stop helping or the host is under pressure.
+
+    A window that omits RAM or errors is not healthy. Missing pressure is not
+    0 percent and missing errors are not zero errors.
+    """
+    healthy = []
+    measured_slots = []
+    for window in windows:
+        if not isinstance(window, dict):
+            continue
+        ram = _measured_number(window.get("ram_pct"))
+        errors = _measured_number(window.get("errors"))
+        rate = _measured_number(window.get("completions_per_h"))
+        slots = _measured_number(window.get("slots"))
+        if slots is not None and slots >= 1:
+            measured_slots.append(slots)
+        if None in (ram, errors, rate, slots):
+            continue
+        if ram < 0 or errors < 0 or rate < 0 or slots < 1:
+            continue
+        if ram < 85 and errors <= 2:
+            healthy.append(window)
     if not healthy:
-        smallest = min(windows, key=lambda w: w["slots"])
-        return {"slots": max(1, smallest["slots"] // 2), "why": "resource pressure or errors: scale down"}
+        if not measured_slots:
+            return {"slots": 1, "why": "no usable measurement: scale down"}
+        smallest = min(measured_slots)
+        return {"slots": max(1, int(smallest) // 2), "why": "resource pressure or errors: scale down"}
     best = max(healthy, key=lambda w: (w["completions_per_h"], -w["slots"]))
     return {"slots": best["slots"], "why": f"best verified throughput {best['completions_per_h']}/h"}
