@@ -135,6 +135,16 @@ class StatisticalQualityAnalyzer:
             flags.append("NON_FINITE_COST")
             explanation_parts.append("Total cost is not a finite number.")
 
+        spread_pct = breakdown.gross_spread_pct
+        if (
+            isinstance(spread_pct, bool)
+            or not isinstance(spread_pct, (int, float))
+            or not math.isfinite(spread_pct)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_SPREAD_PCT")
+            explanation_parts.append("Gross spread percent is not a finite number.")
+
         gross = breakdown.gross_spread_usd
         if (
             isinstance(gross, bool)
