@@ -92,6 +92,60 @@ def test_propose_lesson_success(mock_lessons_dir, academy_env, monkeypatch):
     )
     assert lesson3["lesson_id"] == lesson1["lesson_id"]
 
+def test_lessons_dir_does_not_follow_a_symlink(academy_env, monkeypatch):
+    repo_dir, memory_dir = academy_env
+    outside = repo_dir.parent / "outside-lessons"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = repo_dir.parent / "linked-lessons"
+    linked.symlink_to(outside, target_is_directory=True)
+
+    parent_outside = repo_dir.parent / "lessons-parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = repo_dir.parent / "lessons-linked-parent"
+    linked_parent.symlink_to(parent_outside, target_is_directory=True)
+
+    teacher = AcademyTeacher(repo_dir=repo_dir, memory_dir=memory_dir)
+    teacher.curator = mock.MagicMock()
+
+    def run(folder):
+        monkeypatch.setattr("scripts.run_academy.LESSONS_DIR", folder)
+        try:
+            teacher.propose_lesson(
+                topic="secret-topic",
+                title="SECRET-LESSON",
+                summary="s",
+                source="s",
+            )
+        except ValueError as exc:
+            return str(exc)
+        return "wrote"
+
+    err_link = run(linked)
+    leaked = sorted(p.name for p in outside.iterdir())
+    err_parent = run(linked_parent / "lessons")
+    parent_names = sorted(p.name for p in parent_outside.iterdir())
+    plain = repo_dir / "events" / "academy" / "plain-lessons"
+    err_plain = run(plain)
+    plain_names = sorted(p.name for p in plain.iterdir()) if plain.exists() else []
+    assert (
+        err_link,
+        leaked,
+        err_parent,
+        parent_names,
+        err_plain,
+        any(name.startswith("lesson-") and name.endswith(".json") for name in plain_names),
+    ) == (
+        "refusing to follow a symlink",
+        ["keep.txt"],
+        "refusing to follow a symlink",
+        ["keep.txt"],
+        "wrote",
+        True,
+    )
+
+
 def test_queue_or_deliver_lesson_missing(academy_env):
     repo_dir, memory_dir = academy_env
     teacher = AcademyTeacher(repo_dir=repo_dir, memory_dir=memory_dir)

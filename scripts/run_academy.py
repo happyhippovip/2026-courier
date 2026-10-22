@@ -209,6 +209,8 @@ class AcademyTeacher:
         """Discovers and formulates a compact machine-readable Lesson Proposal with deduplication."""
         if lesson_type not in ALLOWED_LESSON_TYPES:
             raise ValueError(f"Invalid lesson_type '{lesson_type}'. Allowed: {ALLOWED_LESSON_TYPES}")
+        if LESSONS_DIR.is_symlink() or LESSONS_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
 
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         source_date = source_date or now_iso.split("T")[0]
