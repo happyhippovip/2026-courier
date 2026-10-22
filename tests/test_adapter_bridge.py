@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -298,6 +299,24 @@ def test_read_report_valid_cases(tmp_path):
     with open(rep_path, "w", encoding="utf-8") as f:
         json.dump(omitted_retryable, f)
     assert adapter_bridge.read_report(home, dispatch_id) == omitted_retryable
+
+
+def test_report_symlink_is_not_a_success(tmp_path):
+    home = tmp_path / "home"
+    dispatch_id = "dsp-link"
+    report = Path(adapter_bridge.report_path(str(home), dispatch_id))
+    report.parent.mkdir(parents=True)
+    outside = tmp_path / "outside.json"
+    outside.write_text('{"outcome": "success", "retryable": false}\n', encoding="utf-8")
+    report.symlink_to(outside)
+    adopted = adapter_bridge.read_report(str(home), dispatch_id)
+    real_id = "dsp-real"
+    real = Path(adapter_bridge.report_path(str(home), real_id))
+    real.write_text('{"outcome": "failure", "retryable": false}\n', encoding="utf-8")
+    ordinary = adapter_bridge.read_report(str(home), real_id)
+    assert adopted is None and ordinary == {"outcome": "failure", "retryable": False} and report.is_symlink(), (
+        adopted, ordinary, report.is_symlink(), outside.read_text(encoding="utf-8"),
+    )
 
 
 def test_cleanup(tmp_path):
