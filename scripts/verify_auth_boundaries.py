@@ -2,13 +2,17 @@ import os
 import sys
 import json
 import sqlite3
+from pathlib import Path
 
 def verify_auth_boundaries():
     errors = []
     
     # Check that Verifier Auth requires a different key
     # or that the server app requires it.
-    with open("server/app.py", "r") as f:
+    app_path = Path("server/app.py")
+    if app_path.is_symlink() or app_path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+    with open(app_path, "r") as f:
         content = f.read()
         if "VERIFIER_API_KEY == API_KEY" not in content:
             errors.append("server/app.py does not prevent VERIFIER_API_KEY from being the same as API_KEY.")
