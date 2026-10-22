@@ -1,4 +1,4 @@
-import json, time, os, sys, shutil, subprocess, uuid, traceback, fcntl
+import json, time, os, sys, shutil, subprocess, uuid, traceback, fcntl, atexit
 from pathlib import Path, PurePosixPath
 import urllib.request
 import urllib.error
@@ -26,6 +26,10 @@ CONFIG_PATH = Path(os.environ.get("COURIER_WORKER_CONFIG", BASE_DIR / "config.js
 WORKER_HOME = Path(os.environ["COURIER_WORKER_HOME"]) if os.environ.get("COURIER_WORKER_HOME") else None
 STATE_DIR = WORKER_HOME / "state" if WORKER_HOME else BASE_DIR / "state"
 LOGS_DIR = WORKER_HOME / "logs" if WORKER_HOME else BASE_DIR / "logs"
+_lease_store = None
+_worker_lease = None
+_worker_lock_handle = None
+_lock_release_registered = False
 
 def load_config():
     with open(CONFIG_PATH, "r") as f:
@@ -697,8 +701,60 @@ def run_muse(task, config):
                     raise RuntimeError("Muse child cleanup unproven; no new execution allowed")
     return result
 
+def get_authority_store():
+    """Open this worker home's authority.db. A constructor failure returns None."""
+    global _lease_store
+    if _lease_store is None:
+        try:
+            from courier_runtime.lease import LeaseStore
+            _lease_store = LeaseStore(str(STATE_DIR / "authority.db"))
+        except Exception:
+            _lease_store = None
+    return _lease_store
+
+
+def _drop_file_lock(handle):
+    if handle is None:
+        return
+    try:
+        fcntl.flock(handle, fcntl.LOCK_UN)
+    except OSError:
+        pass
+    try:
+        handle.close()
+    except OSError:
+        pass
+
+
+def release_worker_lock(handle=None):
+    """Release the writer lease and the file lock. A close error still clears the globals."""
+    global _worker_lease, _worker_lock_handle
+    handle = _worker_lock_handle if handle is None else handle
+    if _worker_lease is not None:
+        store = get_authority_store()
+        if store is not None:
+            try:
+                store.release(_worker_lease)
+            except Exception:
+                pass
+        _worker_lease = None
+    _drop_file_lock(handle)
+    if handle is _worker_lock_handle:
+        _worker_lock_handle = None
+
+
+def _release_worker_lock_at_exit():
+    release_worker_lock(_worker_lock_handle)
+
+
 def acquire_worker_lock():
-    """One daemon per state directory: a second one would re-claim or re-send."""
+    """One daemon per state directory: a second one would re-claim or re-send.
+
+    The file lock is not the writer lease. A missing authority store or an
+    unexpected lease error releases the file lock and raises. LeaseConflict
+    means another holder still owns the scope, so this process exits cleanly.
+    """
+    global _worker_lease, _worker_lock_handle, _lock_release_registered
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
     handle = open(STATE_DIR / "worker.lock", "w")
@@ -707,6 +763,28 @@ def acquire_worker_lock():
     except OSError:
         handle.close()
         return None
+    store = get_authority_store()
+    if store is None:
+        _drop_file_lock(handle)
+        raise RuntimeError(
+            "authority lease store unavailable; refusing to run without a writer lease"
+        )
+    try:
+        from courier_runtime.lease import LeaseConflict, format_session_holder
+        holder = format_session_holder("mac_worker", os.getpid(), time.time(), str(uuid.uuid4()))
+        _worker_lease = store.acquire("worker:mac", holder, "daemon_loop", ttl_s=3600)
+    except LeaseConflict:
+        _worker_lease = None
+        _drop_file_lock(handle)
+        return None
+    except Exception:
+        _worker_lease = None
+        _drop_file_lock(handle)
+        raise
+    _worker_lock_handle = handle
+    if not _lock_release_registered:
+        atexit.register(_release_worker_lock_at_exit)
+        _lock_release_registered = True
     return handle
 
 def loop():
@@ -714,206 +792,211 @@ def loop():
     if worker_lock is None:
         print("Another worker daemon already owns this state directory; exiting.")
         sys.exit(3)
-    # Supervisor slots: exit 0 after one task is delivered or released, so the
-    # slot restarts with a fresh process; task state survives in current_task.json.
-    one_task = os.environ.get("COURIER_WORKER_ONE_TASK") == "1"
-    write_log("Starting Mac Worker HTTP Daemon...")
-    config = load_config()
-    require_no_orphan()
-    if not str(config.get("COURIER_API_KEY") or "").strip():
-        write_log("FATAL: COURIER_API_KEY is not set (keychain or environment); refusing to contact the server.")
-        sys.exit(2)
-    current_task_state_file = STATE_DIR / "current_task.json"
+    # A returned loop drops the writer lease so the next process can acquire it.
+    try:
+        # Supervisor slots exit after one delivered task. Task state stays in
+        # current_task.json for the fresh process.
+        one_task = os.environ.get("COURIER_WORKER_ONE_TASK") == "1"
+        write_log("Starting Mac Worker HTTP Daemon...")
+        config = load_config()
+        require_no_orphan()
+        if not str(config.get("COURIER_API_KEY") or "").strip():
+            write_log("FATAL: COURIER_API_KEY is not set (keychain or environment); refusing to contact the server.")
+            sys.exit(2)
+        current_task_state_file = STATE_DIR / "current_task.json"
     
-    # Load previously claimed task for duplicate protection
-    task = None
-    release_ambiguous_task = False
-    if current_task_state_file.exists():
-        with open(current_task_state_file, 'r') as f:
-            task = json.load(f)
-        if task.get("worker_phase") not in ("CLAIMED", "RESULT_READY", "RECOVERY_BLOCKED"):
-            task["worker_phase"] = "STARTED"
-        write_log(f"Found unfinished task {task['task_id']} in phase {task['worker_phase']}, resuming...")
-        if task.get("worker_id") and task["worker_id"] != config["WORKER_ID"]:
-            raise RuntimeError("Restored task belongs to another worker; reconciliation required")
-        if (task.get("worker_phase") == "CLAIMED"
-                and task.get("mode", os.environ.get("COURIER_WORKER_DEFAULT_MODE")) == "MUSE"
-                and not task.get("runtime_binding")):
-            raise RuntimeError("Legacy unbound Muse claim requires reconciliation before execution")
-        bind_runtime_task(task, config)
+        # Load previously claimed task for duplicate protection
+        task = None
+        release_ambiguous_task = False
+        if current_task_state_file.exists():
+            with open(current_task_state_file, 'r') as f:
+                task = json.load(f)
+            if task.get("worker_phase") not in ("CLAIMED", "RESULT_READY", "RECOVERY_BLOCKED"):
+                task["worker_phase"] = "STARTED"
+            write_log(f"Found unfinished task {task['task_id']} in phase {task['worker_phase']}, resuming...")
+            if task.get("worker_id") and task["worker_id"] != config["WORKER_ID"]:
+                raise RuntimeError("Restored task belongs to another worker; reconciliation required")
+            if (task.get("worker_phase") == "CLAIMED"
+                    and task.get("mode", os.environ.get("COURIER_WORKER_DEFAULT_MODE")) == "MUSE"
+                    and not task.get("runtime_binding")):
+                raise RuntimeError("Legacy unbound Muse claim requires reconciliation before execution")
+            bind_runtime_task(task, config)
 
-    registered = False
+        registered = False
 
-    while True:
-        try:
-            if task and task.get("worker_phase") == "RECOVERY_BLOCKED":
-                # Storage failure during/after execution must not release and drain
-                # another task. Preserve the marker when storage becomes writable.
-                try:
-                    persist_task(current_task_state_file, task)
-                except OSError:
-                    pass
-                time.sleep(governor.get_poll_interval())
-                continue
-            if stopped() and (not task or task.get("worker_phase") == "CLAIMED"):
-                return
-            if task and task.get("worker_phase") == "STARTED":
-                # Interrupted mid-execution (restart or exception): the effect may
-                # already exist, so never replay it. Re-registering without the
-                # task hands it to Courier's restart recovery (HUMAN_REQUIRED,
-                # WORKER_RESTARTED_AND_LOST_STATE).
-                write_log(f"Task {task['task_id']} was interrupted during execution; not re-running it.")
-                release_ambiguous_task = True
-                registered = False
-                task = None
-
-            if not registered:
-                reg_payload = {
-                    "worker_id": config["WORKER_ID"],
-                    "platform": "macos",
-                    "capabilities": ["macos", "linux", "antigravity"]
-                }
-                if release_ambiguous_task:
-                    reg_payload["current_task"] = None
-                res, err = http_post(config, "/workers/register", reg_payload)
-                if err:
-                    write_log(f"Failed to register: {err}")
-                    time.sleep(5) # backoff
-                    continue
-                write_log("Registered successfully.")
-                registered = True
-                if release_ambiguous_task:
-                    # The release was already delivered via the register POST
-                    # above; a missing marker (operator cleanup) must neither
-                    # raise nor leave the flag stale for a duplicate release.
-                    current_task_state_file.unlink(missing_ok=True)
-                    release_ambiguous_task = False
-                
-            # Heartbeat
-            res, err = http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
-            if err:
-                write_log(f"Heartbeat failed: {err}")
-                registered = False
-                time.sleep(5)
-                continue
-                
-            if not task:
-                # Claim Task
-                if not governor.admit_job("HEAVY"):
+        while True:
+            try:
+                if task and task.get("worker_phase") == "RECOVERY_BLOCKED":
+                    # Storage failure during/after execution must not release and drain
+                    # another task. Preserve the marker when storage becomes writable.
+                    try:
+                        persist_task(current_task_state_file, task)
+                    except OSError:
+                        pass
                     time.sleep(governor.get_poll_interval())
                     continue
-                with admission_lock():
-                    if stopped():
-                        return
-                    require_no_orphan()
-                    if not resource_ready():
-                        res, err = {"task": None}, None
-                    else:
-                        res, err = http_post(config, "/tasks/claim", {"worker_id": config["WORKER_ID"]})
-                if err:
-                    write_log(f"Claim failed: {err}")
-                    time.sleep(5)
-                    continue
-                    
-                task = res.get("task")
-                if task:
-                    bind_runtime_task(task, config)
-                    task["worker_phase"] = "CLAIMED"
-                    persist_task(current_task_state_file, task)
-
-            if task and task.get("worker_phase") == "CLAIMED":
-                if task.get("worker_id") and task["worker_id"] != config["WORKER_ID"]:
-                    raise RuntimeError("Claimed task worker mismatch")
-                with admission_lock():
-                    if stopped():
-                        return
-                write_log(f"Processing task {task['task_id']}")
-                task["worker_phase"] = "STARTED"
-                persist_task(current_task_state_file, task)
-                mode = task.get("mode", os.environ.get("COURIER_WORKER_DEFAULT_MODE", "ANTIGRAVITY"))
-                # Fallback to NATIVE if requested via target_agent routing
-                target = task.get("target_agent", "").lower()
-                if "mac" in target and mode == "ANTIGRAVITY" and "echo" in task.get("instruction", "").lower():
-                    # For simple testing/canary routing we force NATIVE if they specify echo
-                    mode = "NATIVE"
-
-                if mode == "NATIVE":
-                    result = run_native(task, config)
-                elif mode == "MUSE":
-                    try:
-                        result = run_muse(task, config)
-                    except MuseAdmissionBlocked:
-                        task["worker_phase"] = "CLAIMED"
-                        persist_task(current_task_state_file, task)
-                        time.sleep(governor.get_poll_interval())
-                        continue
-                else:
-                    try:
-                        result = run_agy(task, config)
-                    except MuseAdmissionBlocked:
-                        task["worker_phase"] = "CLAIMED"
-                        persist_task(current_task_state_file, task)
-                        time.sleep(governor.get_poll_interval())
-                        continue
-                
-                # Format result payload
-                artifact_evidence = collect_artifact_evidence(task, result)
-                payload = {
-                    "worker_id": config["WORKER_ID"],
-                    "goal_id": task.get("goal_id"),
-                    "task_id": task["task_id"],
-                    "dispatch_id": task.get("dispatch_id"),
-                    "attempt_id": task.get("attempt_id"),
-                    "run_id": str(uuid.uuid4()),
-                    "status": result.get("status", "FAILED"),
-                    "artifacts": artifact_evidence,
-                    "provider": "mac_" + result.get("execution_mode", "unknown").lower(),
-                    "raw_result": result
-                }
-                payload["result_id"] = canonical_result_id(payload)
-                task["result_payload"] = payload
-                task["worker_phase"] = "RESULT_PENDING"
-
-            if task and task.get("worker_phase") == "RESULT_PENDING":
-                # Do not advance in-memory state until the durable write succeeded.
-                # On ENOSPC we retain this same result and IDs, retry only persistence,
-                # and neither send a success nor claim/execute another task.
-                durable = dict(task, worker_phase="RESULT_READY")
-                persist_ready_result(current_task_state_file, durable, config)
-                task = durable
-
-            if task:
-                outcome = upload_pending_artifacts(config, task, current_task_state_file) if upload_enabled(config) else "READY"
-                if outcome == "READY":
-                    outcome = deliver_result(config, task["result_payload"])
-                if outcome == "UNDELIVERED":
-                    # Keep the finished result; later cycles only redeliver it.
-                    write_log(f"Result for task {task['task_id']} not delivered yet; keeping it for redelivery.")
-                elif outcome == "REJECTED":
-                    persist_task(STATE_DIR / f"rejected_result_{task['task_id']}.json", task)
-                    # The server keeps the task assigned after a 4xx; release it (persisted
-                    # first, so a crash still releases on restart) instead of WORKER_BUSY forever.
-                    task["worker_phase"] = "RELEASE_PENDING"
-                    persist_task(current_task_state_file, task)
-                    write_log(f"Result for task {task['task_id']} rejected; releasing it to Courier recovery.")
+                if stopped() and (not task or task.get("worker_phase") == "CLAIMED"):
+                    return
+                if task and task.get("worker_phase") == "STARTED":
+                    # Interrupted mid-execution (restart or exception): the effect may
+                    # already exist, so never replay it. Re-registering without the
+                    # task hands it to Courier's restart recovery (HUMAN_REQUIRED,
+                    # WORKER_RESTARTED_AND_LOST_STATE).
+                    write_log(f"Task {task['task_id']} was interrupted during execution; not re-running it.")
                     release_ambiguous_task = True
                     registered = False
                     task = None
-                else:
-                    current_task_state_file.unlink(missing_ok=True)
-                    task = None
-                    if one_task:
-                        write_log("Task delivered; exiting for a fresh slot process.")
-                        return
+
+                if not registered:
+                    reg_payload = {
+                        "worker_id": config["WORKER_ID"],
+                        "platform": "macos",
+                        "capabilities": ["macos", "linux", "antigravity"]
+                    }
+                    if release_ambiguous_task:
+                        reg_payload["current_task"] = None
+                    res, err = http_post(config, "/workers/register", reg_payload)
+                    if err:
+                        write_log(f"Failed to register: {err}")
+                        time.sleep(5) # backoff
+                        continue
+                    write_log("Registered successfully.")
+                    registered = True
+                    if release_ambiguous_task:
+                        # The release was already delivered via the register POST
+                        # above; a missing marker (operator cleanup) must neither
+                        # raise nor leave the flag stale for a duplicate release.
+                        current_task_state_file.unlink(missing_ok=True)
+                        release_ambiguous_task = False
                 
-        except OSError as e:
-            if task and task.get("worker_phase") == "STARTED":
-                task.update(worker_phase="RECOVERY_BLOCKED", blocker="EXECUTION_STORAGE_FAILURE")
-            print(f"Storage failure: {type(e).__name__}; result/task retained, no completion acknowledged.")
-        except Exception as e:
-            write_log(f"Error in HTTP poll loop: {e}\n{traceback.format_exc()}")
+                # Heartbeat
+                res, err = http_post(config, "/workers/heartbeat", {"worker_id": config["WORKER_ID"]})
+                if err:
+                    write_log(f"Heartbeat failed: {err}")
+                    registered = False
+                    time.sleep(5)
+                    continue
+                
+                if not task:
+                    # Claim Task
+                    if not governor.admit_job("HEAVY"):
+                        time.sleep(governor.get_poll_interval())
+                        continue
+                    with admission_lock():
+                        if stopped():
+                            return
+                        require_no_orphan()
+                        if not resource_ready():
+                            res, err = {"task": None}, None
+                        else:
+                            res, err = http_post(config, "/tasks/claim", {"worker_id": config["WORKER_ID"]})
+                    if err:
+                        write_log(f"Claim failed: {err}")
+                        time.sleep(5)
+                        continue
+                    
+                    task = res.get("task")
+                    if task:
+                        bind_runtime_task(task, config)
+                        task["worker_phase"] = "CLAIMED"
+                        persist_task(current_task_state_file, task)
+
+                if task and task.get("worker_phase") == "CLAIMED":
+                    if task.get("worker_id") and task["worker_id"] != config["WORKER_ID"]:
+                        raise RuntimeError("Claimed task worker mismatch")
+                    with admission_lock():
+                        if stopped():
+                            return
+                    write_log(f"Processing task {task['task_id']}")
+                    task["worker_phase"] = "STARTED"
+                    persist_task(current_task_state_file, task)
+                    mode = task.get("mode", os.environ.get("COURIER_WORKER_DEFAULT_MODE", "ANTIGRAVITY"))
+                    # Fallback to NATIVE if requested via target_agent routing
+                    target = task.get("target_agent", "").lower()
+                    if "mac" in target and mode == "ANTIGRAVITY" and "echo" in task.get("instruction", "").lower():
+                        # For simple testing/canary routing we force NATIVE if they specify echo
+                        mode = "NATIVE"
+
+                    if mode == "NATIVE":
+                        result = run_native(task, config)
+                    elif mode == "MUSE":
+                        try:
+                            result = run_muse(task, config)
+                        except MuseAdmissionBlocked:
+                            task["worker_phase"] = "CLAIMED"
+                            persist_task(current_task_state_file, task)
+                            time.sleep(governor.get_poll_interval())
+                            continue
+                    else:
+                        try:
+                            result = run_agy(task, config)
+                        except MuseAdmissionBlocked:
+                            task["worker_phase"] = "CLAIMED"
+                            persist_task(current_task_state_file, task)
+                            time.sleep(governor.get_poll_interval())
+                            continue
+                
+                    # Format result payload
+                    artifact_evidence = collect_artifact_evidence(task, result)
+                    payload = {
+                        "worker_id": config["WORKER_ID"],
+                        "goal_id": task.get("goal_id"),
+                        "task_id": task["task_id"],
+                        "dispatch_id": task.get("dispatch_id"),
+                        "attempt_id": task.get("attempt_id"),
+                        "run_id": str(uuid.uuid4()),
+                        "status": result.get("status", "FAILED"),
+                        "artifacts": artifact_evidence,
+                        "provider": "mac_" + result.get("execution_mode", "unknown").lower(),
+                        "raw_result": result
+                    }
+                    payload["result_id"] = canonical_result_id(payload)
+                    task["result_payload"] = payload
+                    task["worker_phase"] = "RESULT_PENDING"
+
+                if task and task.get("worker_phase") == "RESULT_PENDING":
+                    # Do not advance in-memory state until the durable write succeeded.
+                    # On ENOSPC we retain this same result and IDs, retry only persistence,
+                    # and neither send a success nor claim/execute another task.
+                    durable = dict(task, worker_phase="RESULT_READY")
+                    persist_ready_result(current_task_state_file, durable, config)
+                    task = durable
+
+                if task:
+                    outcome = upload_pending_artifacts(config, task, current_task_state_file) if upload_enabled(config) else "READY"
+                    if outcome == "READY":
+                        outcome = deliver_result(config, task["result_payload"])
+                    if outcome == "UNDELIVERED":
+                        # Keep the finished result; later cycles only redeliver it.
+                        write_log(f"Result for task {task['task_id']} not delivered yet; keeping it for redelivery.")
+                    elif outcome == "REJECTED":
+                        persist_task(STATE_DIR / f"rejected_result_{task['task_id']}.json", task)
+                        # The server keeps the task assigned after a 4xx; release it (persisted
+                        # first, so a crash still releases on restart) instead of WORKER_BUSY forever.
+                        task["worker_phase"] = "RELEASE_PENDING"
+                        persist_task(current_task_state_file, task)
+                        write_log(f"Result for task {task['task_id']} rejected; releasing it to Courier recovery.")
+                        release_ambiguous_task = True
+                        registered = False
+                        task = None
+                    else:
+                        current_task_state_file.unlink(missing_ok=True)
+                        task = None
+                        if one_task:
+                            write_log("Task delivered; exiting for a fresh slot process.")
+                            return
+                
+            except OSError as e:
+                if task and task.get("worker_phase") == "STARTED":
+                    task.update(worker_phase="RECOVERY_BLOCKED", blocker="EXECUTION_STORAGE_FAILURE")
+                print(f"Storage failure: {type(e).__name__}; result/task retained, no completion acknowledged.")
+            except Exception as e:
+                write_log(f"Error in HTTP poll loop: {e}\n{traceback.format_exc()}")
             
-        time.sleep(governor.get_poll_interval())
+            time.sleep(governor.get_poll_interval())
+    finally:
+        release_worker_lock(worker_lock)
+
 
 if __name__ == "__main__":
     def shutdown(signum, frame):
