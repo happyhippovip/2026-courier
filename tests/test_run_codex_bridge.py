@@ -456,3 +456,38 @@ def test_bool_context_version_is_not_a_number(tmp_path, monkeypatch):
         ("Bool is not a number.", None),
         (None, 4),
     )
+
+def test_state_file_does_not_follow_a_symlink(tmp_path):
+    tracker = CodexVisualStateTracker(repo_dir=tmp_path / "repo")
+    outside = tmp_path / "outside-state.json"
+    outside.write_text('{"marker":"SECRET-STATE"}\n', encoding="utf-8")
+    tracker.state_file.symlink_to(outside)
+    try:
+        tracker.update_state(state="RUNNING", task="task-1")
+        err = None
+    except ValueError as exc:
+        err = str(exc)
+    parent_outside = tmp_path / "parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    repo = tmp_path / "linked-repo"
+    (repo / "events").mkdir(parents=True)
+    (repo / "events" / "agent-states").symlink_to(parent_outside)
+    linked = CodexVisualStateTracker(repo_dir=repo)
+    try:
+        linked.update_state(state="RUNNING", task="task-2")
+        err2 = None
+    except ValueError as exc:
+        err2 = str(exc)
+    names = sorted(path.name for path in parent_outside.iterdir())
+    assert (
+        err,
+        "SECRET-STATE" in outside.read_text(encoding="utf-8"),
+        err2,
+        names,
+    ) == (
+        "refusing to follow a symlink",
+        True,
+        "refusing to follow a symlink",
+        ["keep.txt"],
+    )

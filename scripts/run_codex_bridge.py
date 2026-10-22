@@ -189,6 +189,8 @@ class CodexVisualStateTracker:
             "human_gate": human_gate,
             "updated_at": now_iso,
         }
+        if self.state_file.is_symlink() or self.state_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         save_json(self.state_file, state_data)
         return state_data
 
