@@ -107,7 +107,8 @@ def derive_goal_cost_summary(
 
         # Default unassigned / local steps to free
         provider = worker.get("provider")
-        if provider is None:
+        loaded = isinstance(worker_id, str) and worker_id in workers_map
+        if provider is None and not loaded:
             target = step.get("target_agent")
             if target is None:
                 provider = "local"
@@ -115,7 +116,12 @@ def derive_goal_cost_summary(
                 provider = "unknown"
             else:
                 provider = target
-        elif isinstance(provider, bool) or not isinstance(provider, str) or not provider.strip():
+        elif (
+            provider is None
+            or isinstance(provider, bool)
+            or not isinstance(provider, str)
+            or not provider.strip()
+        ):
             provider = "unknown"
         cost_class = worker.get("cost_class")
         if provider == "unknown":
