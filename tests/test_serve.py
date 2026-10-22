@@ -144,6 +144,20 @@ def test_home_lock_refuses_a_symlink(tmp_path: Path):
     assert link.is_symlink()
 
 
+def test_home_lock_refuses_a_symlinked_parent(tmp_path: Path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    run = tmp_path / "run"
+    run.symlink_to(outside, target_is_directory=True)
+    lock = HomeLock(run / "controller.lock")
+    owned = lock.acquire()
+    try:
+        assert owned is False, sorted(path.name for path in outside.iterdir())
+    finally:
+        lock.release()
+    assert list(outside.iterdir()) == []
+
+
 def test_load_or_create_token_generates_valid_token(tmp_path: Path):
     token_file = tmp_path / "run" / "controller.token"
     token1 = load_or_create_token(token_file)
