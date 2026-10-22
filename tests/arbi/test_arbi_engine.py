@@ -252,6 +252,36 @@ def test_triangular_arbitrage_cycle():
     assert tri.net_roi_pct > 0.0
 
 
+def test_bool_triangular_inputs_are_not_numbers():
+    seen = []
+    for kwargs in ({"capital_usd": True}, {"capital_usd": False}, {"taker_fee_pct": True}):
+        try:
+            tri = ArbitrageStrategies.evaluate_triangular_arbitrage(
+                exchange="binance",
+                price_a_b=60000.0,
+                price_b_c=0.05,
+                price_c_a=3100.0,
+                **kwargs,
+            )
+        except ValueError as exc:
+            seen.append(("raised", str(exc)))
+        except Exception as exc:
+            seen.append((type(exc).__name__, str(exc)))
+        else:
+            seen.append((
+                "accepted",
+                tri.input_capital_usd,
+                tri.total_fees_usd,
+                tri.status,
+                tri.output_capital_usd,
+            ))
+    assert seen == [
+        ("raised", "Bool is not a number."),
+        ("raised", "Bool is not a number."),
+        ("raised", "Bool is not a number."),
+    ], seen
+
+
 def test_statistical_quality_scoring_blocks_crossed_book():
     pair = NormalizedPair("ETH", "USDT")
     # Crossed orderbook (bid > ask)

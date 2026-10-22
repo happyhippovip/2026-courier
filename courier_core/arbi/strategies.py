@@ -51,6 +51,11 @@ class ArbitrageStrategies:
         2. Buy ETH with BTC: eth_amount = (btc_amount / price_b_c) * (1 - fee)
         3. Sell ETH for USDT: final_usdt = (eth_amount * price_c_a) * (1 - fee)
         """
+        if any(
+            isinstance(value, bool)
+            for value in (price_a_b, price_b_c, price_c_a, capital_usd, taker_fee_pct)
+        ):
+            raise ValueError("Bool is not a number.")
         fee_mult = 1.0 - (taker_fee_pct / 100.0)
 
         # Step 1: Buy B with A
