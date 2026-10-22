@@ -227,6 +227,11 @@ class StatisticalQualityAnalyzer:
             flags.append("NON_FINITE_GROSS")
             explanation_parts.append("Gross spread is not a finite number.")
             gross_ok = False
+        elif gross < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_GROSS")
+            explanation_parts.append("Gross spread is negative.")
+            gross_ok = False
         else:
             gross_ok = True
 
