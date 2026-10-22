@@ -281,16 +281,25 @@ def dispatch_external(task_file: Path, task: dict[str, Any]) -> None:
     write_state(task_file, {"dispatch_id": task["dispatch_id"], "status": "WAITING_FOR_WORKER"})
 
 
+def _finite_timestamp(value: Any) -> float | None:
+    """A grace window needs a real number. True is an int and must not become 1.0."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    if value != value or value in (float("inf"), float("-inf")):
+        return None
+    return float(value)
+
+
 def await_dispatched_run(task: dict[str, Any], prior: dict[str, Any]) -> bool:
     """Wait up to the marker's grace for the interrupted dispatch's run.
 
     Returns True when a run for this dispatch_id becomes visible (the caller
     adopts it instead of dispatching again).
     """
-    try:
-        deadline = float(prior.get("dispatched_at") or 0) + DISPATCH_GRACE_SECONDS
-    except (TypeError, ValueError):
-        return False
+    started = _finite_timestamp(prior.get("dispatched_at") if isinstance(prior, dict) else None)
+    if started is None:
+        raise ValueError("DISPATCHING marker has no usable dispatched_at")
+    deadline = started + DISPATCH_GRACE_SECONDS
     while time.time() < deadline:
         time.sleep(POLL_SECONDS)
         run_id, _ = find_run(task["dispatch_id"])
@@ -326,12 +335,16 @@ def _run(task_file: Path, task: dict[str, Any]) -> int:
     if not run_id and not prior:
         dispatch_external(task_file, task)
     elif not run_id and prior.get("status") == "DISPATCHING":
-        # An earlier attempt recorded its intent but never confirmed WAITING:
-        # either it crashed around the external dispatch or GitHub has not
-        # listed the new run yet. Adopt the run if it appears within grace;
-        # dispatch exactly once more only when the marker is stale and no
-        # run exists, so a crash can neither duplicate nor lose the dispatch.
-        if not await_dispatched_run(task, prior):
+        # An earlier attempt recorded its intent but never confirmed WAITING.
+        # Adopt the run if it appears within grace. Dispatch once more only
+        # when the marker's timestamp is a finite number and that grace has
+        # elapsed. A missing timestamp is not proof the first dispatch is old.
+        try:
+            visible = await_dispatched_run(task, prior)
+        except ValueError as exc:
+            print(f"GITHUB_WORKER_ERROR={exc}", file=sys.stderr)
+            return 0
+        if not visible:
             dispatch_external(task_file, task)
 
     deadline = time.monotonic() + LOCAL_WAIT_SECONDS

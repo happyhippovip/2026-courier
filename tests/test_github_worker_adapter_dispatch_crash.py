@@ -101,3 +101,22 @@ def test_stale_marker_without_run_dispatches_exactly_once(tmp_path: Path, monkey
     assert adapter.run(str(task_file)) == 0
     assert gh.dispatches == 1
     assert json.loads(adapter.state_path(task_file).read_text(encoding="utf-8"))["status"] == "WAITING_FOR_WORKER"
+
+
+def test_marker_without_dispatched_at_does_not_redispatch(tmp_path: Path, monkeypatch):
+    task_file = tmp_path / "task.json"
+    task_file.write_text(json.dumps(packet()), encoding="utf-8")
+    for marker in (
+        {"dispatch_id": "dispatch-9", "status": "DISPATCHING"},
+        {"dispatch_id": "dispatch-9", "status": "DISPATCHING", "dispatched_at": True},
+    ):
+        adapter.write_state(task_file, marker)
+        gh = Gh(run_feed=[])
+        monkeypatch.setattr(adapter, "run_cmd", gh)
+        monkeypatch.setattr(adapter, "LOCAL_WAIT_SECONDS", 0)
+        monkeypatch.setattr(adapter, "POLL_SECONDS", 0)
+        monkeypatch.setattr(adapter, "DISPATCH_GRACE_SECONDS", 60)
+        assert adapter.run(str(task_file)) == 0
+        assert gh.dispatches == 0
+        saved = json.loads(adapter.state_path(task_file).read_text(encoding="utf-8"))
+        assert saved["status"] == "DISPATCHING"
