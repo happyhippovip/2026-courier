@@ -40,6 +40,20 @@ def test_no_grant_no_write(book):
     assert open(book, "rb").read() == before
 
 
+def test_bool_cell_is_not_a_number(book):
+    """True is not a price of 1. A bool must be refused before any write."""
+    before = open(book, "rb").read()
+    try:
+        preview = plan(book, {"B2": True})
+    except ValueError as exc:
+        assert "bool" in str(exc).lower(), exc
+    else:
+        raise AssertionError(preview)
+    with pytest.raises(ValueError):
+        apply(book, {"B2": False}, grant_id="g")
+    assert open(book, "rb").read() == before
+
+
 @pytest.mark.parametrize("changes", [{"B4": 5}, {"B2": "=1+1"}, {"b2": 5}, {"A1": object()}])
 def test_formulas_bad_refs_and_odd_values_are_refused(book, changes):
     before = open(book, "rb").read()

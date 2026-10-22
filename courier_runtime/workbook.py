@@ -60,8 +60,12 @@ def plan(path, changes):
             raise ValueError(f"bad cell reference {ref!r}")
         if isinstance(current.get(ref), str) and current[ref].startswith("="):
             raise ValueError(f"{ref} holds a formula; editing formulas is out of scope")
-        if not isinstance(value, (int, float, str)) or (isinstance(value, str) and value.startswith("=")):
-            raise ValueError(f"{ref}: only plain numbers and text can be written")
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, (int, float, str))
+            or (isinstance(value, str) and value.startswith("="))
+        ):
+            raise ValueError(f"{ref}: only plain numbers and text can be written. Bool is not a number.")
         out.append((ref, current.get(ref), value))
     return out
 
