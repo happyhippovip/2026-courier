@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 import textwrap
+import time
 import urllib.error
 from pathlib import Path
 
@@ -146,11 +147,31 @@ def test_stop_kills_the_child_process(tmp_path):
         stop_process_group(proc)
         proc.wait(timeout=5)
         assert proc.poll() is not None
-        alive = _pid_alive(child_pid)
+        deadline = time.monotonic() + 2
+        alive = True
+        while time.monotonic() < deadline:
+            alive = _sleeper_alive(child_pid)
+            if not alive:
+                break
+            time.sleep(0.05)
         assert alive is False
     finally:
         if proc.poll() is None:
             stop_process_group(proc)
+
+
+def _sleeper_alive(pid: int) -> bool:
+    """True only while this pid is still the sleep child, not a recycled pid."""
+    if not _pid_alive(pid):
+        return False
+    cmdline = Path(f"/proc/{pid}/cmdline")
+    if not cmdline.is_file():
+        return _pid_alive(pid)
+    try:
+        raw = cmdline.read_bytes().replace(b"\x00", b" ")
+    except OSError:
+        return False
+    return b"time.sleep" in raw
 
 
 def _pid_alive(pid: int) -> bool:
