@@ -106,6 +106,8 @@ class L2OrderbookBookkeeper:
                 raise ValueError("price is out of range.")
             if not isinstance(level.amount, (int, float)) or not math.isfinite(level.amount):
                 raise ValueError("amount is not a number.")
+            if level.amount < 0:
+                raise ValueError("amount is out of range.")
             if level.amount <= 0:
                 book.pop(level.price, None)
             else:
