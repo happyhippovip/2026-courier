@@ -112,6 +112,25 @@ def test_task_id_does_not_escape_the_processed_dir(tmp_path, monkeypatch):
         False,
     )
 
+def test_review_task_id_does_not_escape(tmp_path, monkeypatch):
+    import scripts.run_codex_bridge as codex_bridge
+    decisions = tmp_path / "repo" / "events" / "chief-decisions"
+    decisions.mkdir(parents=True)
+    monkeypatch.setattr(codex_bridge, "DECISIONS_DIR", decisions)
+    result = tmp_path / "res.json"
+    result.write_text(json.dumps({
+        "payload": {"verdict": "PASS"},
+        "correlation_id": "corr-1",
+    }), encoding="utf-8")
+    outside = tmp_path / "outside-chief-decision.json"
+    try:
+        run_chief_review_router("../../../outside", result)
+        err = None
+    except ValueError as exc:
+        err = str(exc)
+    body = outside.read_text(encoding="utf-8") if outside.exists() else ""
+    assert (err, "ACCEPTED" in body) == ("refusing an unsafe task id", False)
+
 def test_run_chief_review_router(tmp_path, monkeypatch):
     import scripts.run_codex_bridge as codex_bridge
     monkeypatch.setattr(codex_bridge, "DECISIONS_DIR", tmp_path / "decisions")
