@@ -263,6 +263,8 @@ def main() -> None:
 
     if args.validate_proposal:
         prop_file = Path(args.validate_proposal)
+        if prop_file.is_symlink() or prop_file.parent.is_symlink():
+            fail("refusing to follow a symlink")
         if not prop_file.exists():
             fail(f"Proposal file not found: {prop_file}")
         try:

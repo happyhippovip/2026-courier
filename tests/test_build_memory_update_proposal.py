@@ -1,7 +1,9 @@
+import io
 import json
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
@@ -499,6 +501,74 @@ class TestBuildMemoryUpdateProposal(unittest.TestCase):
             main()
         finally:
             sys.argv = original_argv
+
+    def test_validate_proposal_does_not_follow_a_symlink(self):
+        valid_proposal = {
+            "schema_version": "2.0",
+            "proposal_id": "prop-mem-secret-12345678",
+            "source_result_message_id": "msg-secret",
+            "task_id": "task-secret",
+            "correlation_id": "corr-secret",
+            "memory_base_commit": "1234567890abcdef1234567890abcdef12345678",
+            "target_files": ["TECHNICAL_CONTEXT.md"],
+            "proposed_changes": [{
+                "file": "TECHNICAL_CONTEXT.md",
+                "action": "APPEND",
+                "section": "Current verified local technical state",
+                "proposed_text": "- **VERIFIED_CURRENT** | SECRET-PROPOSAL-BODY",
+                "status_label": "VERIFIED_CURRENT"
+            }],
+            "reason": "SECRET-PROPOSAL-BODY",
+            "status_labels": ["VERIFIED_CURRENT"],
+            "source_references": ["file1.json"],
+            "requires_chief_approval": True,
+            "created_at": "2026-09-30T10:00:00Z"
+        }
+        outside = self.td_path / "outside-proposal.json"
+        outside.write_text(json.dumps(valid_proposal), encoding="utf-8")
+        link = self.td_path / "linked-proposal.json"
+        link.symlink_to(outside)
+
+        parent_outside = self.td_path / "parent-outside"
+        parent_outside.mkdir()
+        parent_file = parent_outside / "parent-proposal.json"
+        parent_file.write_text(json.dumps(valid_proposal), encoding="utf-8")
+        linked_parent = self.td_path / "linked-parent"
+        linked_parent.symlink_to(parent_outside, target_is_directory=True)
+
+        plain = self.td_path / "plain-proposal.json"
+        plain.write_text(json.dumps(valid_proposal), encoding="utf-8")
+
+        def run(path):
+            buf = io.StringIO()
+            original_argv = sys.argv
+            sys.argv = [
+                "build_memory_update_proposal.py",
+                "--validate-proposal",
+                str(path),
+            ]
+            try:
+                with redirect_stdout(buf):
+                    main()
+            except SystemExit as exc:
+                return ("err", str(exc), buf.getvalue())
+            finally:
+                sys.argv = original_argv
+            return ("ok", buf.getvalue())
+
+        linked = run(link)
+        parent = run(linked_parent / "parent-proposal.json")
+        real = run(plain)
+        self.assertEqual(
+            (linked, parent, real[0], "SECRET-PROPOSAL-BODY" in real[1], "MEMORY_UPDATE_PROPOSAL_SCHEMA_VALID" in real[1]),
+            (
+                ("err", "MEMORY_PROPOSAL_ERROR: refusing to follow a symlink", ""),
+                ("err", "MEMORY_PROPOSAL_ERROR: refusing to follow a symlink", ""),
+                "ok",
+                False,
+                True,
+            ),
+        )
 
     def test_main_cli_errors(self):
         original_argv = sys.argv
