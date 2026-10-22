@@ -530,7 +530,7 @@ class Handler(BaseHTTPRequestHandler):
         if "/" in name or "\\" in name or name.startswith("."):
             return self._send(404, {"error": "not_found"})
         file = STATIC_DIR / name
-        if not file.is_file():
+        if STATIC_DIR.is_symlink() or file.is_symlink() or not file.is_file():
             return self._send(404, {"error": "not_found"})
         return self._send(200, raw=file.read_bytes(),
                           content_type=STATIC_TYPES.get(file.suffix, "application/octet-stream"))
