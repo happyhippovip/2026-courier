@@ -34,6 +34,21 @@ _DIGEST_KEYS = (
 )
 
 
+def _inside(dir_path: Path, rel: str) -> Path | None:
+    """Resolve ``rel`` and return it only when it stays inside ``dir_path``."""
+    if not isinstance(rel, str) or not rel:
+        return None
+    candidate = Path(rel)
+    if candidate.is_absolute() or ".." in candidate.parts:
+        return None
+    resolved = (dir_path / candidate).resolve()
+    try:
+        resolved.relative_to(dir_path)
+    except ValueError:
+        return None
+    return resolved
+
+
 def _manifest_digest(data: dict[str, Any]) -> str:
     """Hash the manifest body. ``manifest_sha256`` itself is not an input."""
     core = {key: data.get(key) for key in _DIGEST_KEYS}
@@ -102,7 +117,9 @@ def create_manifest(
     if not dir_path.is_dir():
         raise FileNotFoundError(f"Render directory does not exist: {dir_path}")
 
-    target_path = dir_path / target_filename
+    target_path = _inside(dir_path, target_filename)
+    if target_path is None:
+        raise ValueError(f"Target render file escapes the render directory: {target_filename}")
     if not target_path.is_file():
         raise FileNotFoundError(f"Target render file does not exist: {target_path}")
 
@@ -116,6 +133,8 @@ def create_manifest(
     for item in sorted(dir_path.rglob("*")):
         if item.is_file() and item.name != "manifest.json":
             rel = str(item.relative_to(dir_path))
+            if _inside(dir_path, rel) is None:
+                raise ValueError(f"Artifact escapes the render directory: {rel}")
             artifacts.append({
                 "path": rel,
                 "size_bytes": item.stat().st_size,
@@ -199,7 +218,9 @@ def verify_manifest(manifest_path_or_dict: Path | str | dict[str, Any], render_d
     if not target_name:
         return False, "Manifest missing target_file"
 
-    target_path = dir_path / target_name
+    target_path = _inside(dir_path, target_name)
+    if target_path is None:
+        return False, "Target file escapes the render directory"
     if not target_path.is_file():
         return False, f"Target file does not exist: {target_path}"
 
@@ -220,7 +241,9 @@ def verify_manifest(manifest_path_or_dict: Path | str | dict[str, Any], render_d
         if not rel or not expected_sha or expected_size is None:
             return False, f"Malformed artifact entry: {art}"
 
-        art_file = dir_path / rel
+        art_file = _inside(dir_path, rel)
+        if art_file is None:
+            return False, f"Artifact path escapes the render directory: {rel}"
         if not art_file.is_file():
             return False, f"Artifact file missing: {art_file}"
 
