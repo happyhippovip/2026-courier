@@ -10,6 +10,7 @@ Supports:
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -40,7 +41,7 @@ class PaperTradingEngine:
     def __init__(self, initial_capital_usd: float = 100.0, simulated_venues: Optional[list[str]] = None):
         if isinstance(initial_capital_usd, bool):
             raise ValueError("Bool is not a number.")
-        if not isinstance(initial_capital_usd, (int, float)):
+        if not isinstance(initial_capital_usd, (int, float)) or not math.isfinite(initial_capital_usd):
             raise ValueError("virtual capital is not a number.")
         self.initial_capital_usd = initial_capital_usd
         self.venues = simulated_venues or ["binance", "bybit", "okx"]
