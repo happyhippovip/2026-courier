@@ -9,6 +9,7 @@ and does not read ``courier_worker``.
 from __future__ import annotations
 
 import argparse
+import errno
 import json
 import os
 import re
@@ -241,7 +242,17 @@ class WorkQueue:
     def _lock(self):
         lock_path = self.ledger_path.with_suffix(self.ledger_path.suffix + ".lock")
         lock_path.parent.mkdir(parents=True, exist_ok=True)
-        fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
+        if lock_path.is_symlink():
+            raise WorkQueueError("UNREADABLE")
+        flags = os.O_CREAT | os.O_RDWR
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+        try:
+            fd = os.open(lock_path, flags, 0o600)
+        except OSError as exc:
+            if exc.errno == errno.ELOOP:
+                raise WorkQueueError("UNREADABLE") from exc
+            raise
         try:
             # No first byte is written: Windows locks a range past the end of
             # file, and its byte locks are mandatory, so a write here could

@@ -330,6 +330,19 @@ def test_external_claim_ignores_the_clock(tmp_path):
     assert caught.value.code == "DUPLICATE_CLAIM"
 
 
+def test_lock_symlink_is_not_opened(tmp_path):
+    target = tmp_path / "outside"
+    target.write_bytes(b"")
+    ledger = tmp_path / "ledger.jsonl"
+    lock = tmp_path / "ledger.jsonl.lock"
+    lock.symlink_to(target)
+    queue = WorkQueue(DEFAULT_ITEMS, ledger, DEFAULT_SCHEMA)
+    with pytest.raises(WorkQueueError) as caught:
+        queue.items(now=NOW)
+    assert caught.value.code == "UNREADABLE"
+    assert target.read_bytes() == b""
+
+
 def test_cli_next_empty(tmp_path, capsys):
     home = tmp_path / "items"
     _write_items(home, [_item("A", ["courier_core/a.py"], status="DONE")])
