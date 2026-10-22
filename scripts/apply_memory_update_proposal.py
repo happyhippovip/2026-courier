@@ -329,9 +329,14 @@ def main() -> None:
     parser.add_argument("--approval-schema", help="Custom approval schema path")
     args = parser.parse_args()
 
-    proposal_path = Path(args.proposal).resolve()
-    approval_path = Path(args.approval).resolve()
-    memory_repo_path = Path(args.memory_repo).resolve()
+    proposal_path = Path(args.proposal)
+    approval_path = Path(args.approval)
+    memory_repo_path = Path(args.memory_repo)
+    if memory_repo_path.is_symlink() or memory_repo_path.parent.is_symlink():
+        fail("refusing to follow a symlink")
+    proposal_path = proposal_path.resolve()
+    approval_path = approval_path.resolve()
+    memory_repo_path = memory_repo_path.resolve()
     prop_schema = Path(args.proposal_schema).resolve() if args.proposal_schema else None
     appr_schema = Path(args.approval_schema).resolve() if args.approval_schema else None
 
