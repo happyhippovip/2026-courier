@@ -10,7 +10,8 @@ import uuid
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from scripts.run_autonomous_loop import (
     AutonomousLevel6Loop,
-    WorkflowLockedError
+    WorkflowLockedError,
+    cached_result_is_reusable,
 )
 
 @pytest.fixture
@@ -22,6 +23,17 @@ def repo_dir(tmp_path):
     (tmp_path / "events" / "approvals").mkdir(parents=True)
     (tmp_path / "events" / "chief-decisions").mkdir(parents=True)
     return tmp_path
+
+def test_cached_result_without_explicit_pass_is_not_reusable():
+    assert cached_result_is_reusable({"payload": {"verdict": "PASS"}}) is True
+    assert cached_result_is_reusable({"payload": {"verdict": "ACCEPTED"}}) is True
+    assert cached_result_is_reusable({"payload": {}}) is False
+    assert cached_result_is_reusable({"payload": {"verdict": True}}) is False
+    assert cached_result_is_reusable({"payload": {"verdict": "FAILED"}}) is False
+    assert cached_result_is_reusable({"payload": {"verdict": "PAUSED_PROVIDER_LIMIT"}}) is False
+    assert cached_result_is_reusable({"payload": "PASS"}) is False
+    assert cached_result_is_reusable(None) is False
+
 
 def test_workflow_lock(repo_dir):
     loop = AutonomousLevel6Loop(repo_dir=repo_dir)
