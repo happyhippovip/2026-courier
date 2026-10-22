@@ -79,6 +79,29 @@ def test_derive_status_loaded_stopped(tmp_path, monkeypatch):
     assert res["last_exit_status"] == 1
 
 
+def test_unreadable_worker_state_is_not_an_empty_task(tmp_path, monkeypatch):
+    plist = tmp_path / "com.courier.mac_worker.plist"
+    plist.write_text("<plist></plist>")
+    state = tmp_path / "state"
+    state.mkdir()
+    (state / "current_task.json").write_text("{not-json", encoding="utf-8")
+    (state / "checkpoint.json").write_text(
+        json.dumps({"task_id": "should-not-leak", "phase": "RUNNING"}),
+        encoding="utf-8",
+    )
+    import scripts.mac_worker.status as st
+    monkeypatch.setattr(
+        st,
+        "query_launchctl",
+        lambda label: {"loaded": True, "pid": 42, "last_exit_status": 0, "raw": ""},
+    )
+    res = derive_status(plist_path=plist, here_dir=tmp_path)
+    assert res["status"] == "RUNNING"
+    assert res["worker_state_readable"] is False
+    assert res["worker_task_id"] is None
+    assert res["worker_phase"] is None
+
+
 def test_status_cli_json_output(tmp_path):
     plist = tmp_path / "test.plist"
     cmd = [sys.executable, str(STATUS_PY), "--json", "--plist-path", str(plist)]

@@ -73,31 +73,57 @@ def query_launchctl(label=LABEL):
         }
 
 
+def _read_state_object(path):
+    """Return (object, True) or (None, False) when a present file is not a JSON object."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, UnicodeError):
+        return None, False
+    if not isinstance(data, dict):
+        return None, False
+    return data, True
+
+
 def query_worker_state(here_dir):
-    """Read local state files if present."""
+    """Read local state files if present.
+
+    A file that exists but cannot be read is not an empty task. Callers must
+    not treat that as "no work".
+    """
     state_dir = Path(here_dir) / "state"
     task_file = state_dir / "current_task.json"
     ckpt_file = state_dir / "checkpoint.json"
 
     task_data = {}
-    if task_file.exists():
-        try:
-            task_data = json.loads(task_file.read_text())
-        except Exception:
-            pass
-
     ckpt_data = {}
+    readable = True
+    if task_file.exists():
+        loaded, ok = _read_state_object(task_file)
+        if not ok:
+            readable = False
+        else:
+            task_data = loaded
     if ckpt_file.exists():
-        try:
-            ckpt_data = json.loads(ckpt_file.read_text())
-        except Exception:
-            pass
+        loaded, ok = _read_state_object(ckpt_file)
+        if not ok:
+            readable = False
+        else:
+            ckpt_data = loaded
+    if not readable:
+        return {
+            "task_id": None,
+            "phase": None,
+            "branch": None,
+            "dispatch_id": None,
+            "readable": False,
+        }
 
     return {
         "task_id": task_data.get("task_id") or ckpt_data.get("task_id"),
         "phase": task_data.get("worker_phase") or ckpt_data.get("phase"),
         "branch": ckpt_data.get("branch"),
-        "dispatch_id": task_data.get("dispatch_id")
+        "dispatch_id": task_data.get("dispatch_id"),
+        "readable": True,
     }
 
 
@@ -130,7 +156,8 @@ def derive_status(plist_path=None, here_dir=None):
         "last_exit_status": launch_info["last_exit_status"],
         "worker_task_id": worker_state.get("task_id"),
         "worker_phase": worker_state.get("phase"),
-        "worker_branch": worker_state.get("branch")
+        "worker_branch": worker_state.get("branch"),
+        "worker_state_readable": worker_state.get("readable", False),
     }
 
 
@@ -153,7 +180,9 @@ def main():
             print(f"Process PID:    {status_data['pid']}")
         if status_data["last_exit_status"] is not None:
             print(f"Last Exit:      {status_data['last_exit_status']}")
-        if status_data["worker_task_id"]:
+        if status_data["worker_state_readable"] is False:
+            print("Worker state:   UNREADABLE")
+        elif status_data["worker_task_id"]:
             print(f"Active Task:    {status_data['worker_task_id']} (Phase: {status_data['worker_phase']})")
 
     # Exit code: 0 if running or loaded_stopped, 1 if not installed, 2 if error
