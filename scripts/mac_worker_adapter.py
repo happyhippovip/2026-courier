@@ -45,6 +45,9 @@ def run(task_file):
     print(f"[Mac Transport] Task {task['task_id']} dropped in {target_inbox_file}. Waiting for result...")
     
     target_outbox_file = outbox / f"{task['task_id']}_result.json"
+    incoming_dir = Path("results/incoming")
+    if incoming_dir.is_symlink() or incoming_dir.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     timeout = 300
     start = time.time()
     
