@@ -180,7 +180,10 @@ class OrderBook:
         if order["status"] in {REFUNDED, FAILED, DELIVERED}:
             raise OrderError(f"{order['status']} cannot be fulfilled")
         known_price_cents(order.get("price_cents"))
-        report_path = Path(out_dir) / f"{order['order_id']}-report.md"
+        out = Path(out_dir)
+        if out.is_symlink():
+            raise OrderError("report directory must not be a symlink")
+        report_path = out / f"{order['order_id']}-report.md"
         if order["status"] == PAYMENT_CONFIRMED:
             self.mark_running(order_id)
             order = self._require(order_id)

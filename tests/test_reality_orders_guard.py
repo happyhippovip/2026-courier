@@ -68,6 +68,24 @@ def test_unknown_cost_blocks_before_network(tmp_path, monkeypatch):
         book.revenue_summary()
 
 
+def test_fulfill_refuses_a_symlinked_out_dir(tmp_path, monkeypatch):
+    calls = _spy(monkeypatch)
+    book = OrderBook(tmp_path / "book")
+    book.create_order(ORDER, REPO, _contact())
+    stored = dict(book._orders[ORDER])
+    stored["status"] = "PAYMENT_CONFIRMED"
+    book._orders[ORDER] = stored
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "out"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(OrderError, match="symlink"):
+        book.fulfill(ORDER, link)
+    assert calls == []
+    assert list(outside.iterdir()) == []
+    assert book.get(ORDER)["status"] == "PAYMENT_CONFIRMED"
+
+
 def test_order_book_refuses_a_symlinked_directory(tmp_path):
     outside = tmp_path / "outside"
     outside.mkdir()
