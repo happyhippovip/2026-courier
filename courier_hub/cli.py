@@ -41,12 +41,12 @@ def evidence_from_mapping(raw: dict) -> Evidence:
     if not isinstance(worker, str) or worker == "[redacted]":
         worker = None
     return Evidence(
-        config_present=bool(cleaned.get("config_present")),
-        runtime_present=bool(cleaned.get("runtime_present")),
-        scheduler_registered=bool(cleaned.get("scheduler_registered")),
+        config_present=cleaned.get("config_present") is True,
+        runtime_present=cleaned.get("runtime_present") is True,
+        scheduler_registered=cleaned.get("scheduler_registered") is True,
         scheduler_principal=_text(cleaned.get("scheduler_principal")),
         current_user=_text(cleaned.get("current_user")),
-        process_alive=bool(cleaned.get("process_alive")),
+        process_alive=cleaned.get("process_alive") is True,
         process_identity=identity,
         controller_worker_id=worker,
         controller_confirmed_at=confirmed,
