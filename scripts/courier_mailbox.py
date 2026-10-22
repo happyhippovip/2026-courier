@@ -54,11 +54,17 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
         lines = inbox_path.read_text(encoding="utf-8").splitlines()
         tasks = []
         for line in lines:
-            if line.strip():
-                try:
-                    tasks.append(json.loads(line))
-                except Exception:
-                    pass
+            if not line.strip():
+                continue
+            try:
+                item = json.loads(line)
+            except json.JSONDecodeError:
+                print(f"[MAILBOX] Inbox line is not JSON. Leaving {inbox_path.name} unchanged.", file=sys.stderr)
+                return []
+            if not isinstance(item, dict):
+                print(f"[MAILBOX] Inbox line is not an object. Leaving {inbox_path.name} unchanged.", file=sys.stderr)
+                return []
+            tasks.append(item)
 
         executed = []
         updated_lines = []
@@ -87,26 +93,36 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
                     continue
 
                 print(f"[MAILBOX] Executing task: {task_id} ({task.get('name', 'unnamed')})")
-                
-                # Execute deterministically
+
                 res = run_mission_chip(target_home=home_path)
-                
-                task["status"] = "DONE"
-                task["resolution"] = res["verifier_result"]["resolution"]
-                task["accepted_result_id"] = res["verifier_result"]["accepted_result_id"]
-                task["artifact_sha256"] = res["verifier_result"]["artifact_sha256"]
+                verdict = res.get("verifier_result") if isinstance(res.get("verifier_result"), dict) else {}
+                product_ready = res.get("product_ready") is True
+                complete = res.get("overall_status") == "COMPLETE"
+                task["resolution"] = verdict.get("resolution")
+                task["accepted_result_id"] = verdict.get("accepted_result_id")
+                task["artifact_sha256"] = verdict.get("artifact_sha256")
+                task["product_ready"] = product_ready
                 task["processed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-                
+                if not complete:
+                    task["status"] = "FAILED"
+                    task["reason"] = "Mission chip did not finish."
+                elif not product_ready:
+                    task["status"] = "DEMO_ONLY"
+                    task["reason"] = "Local demo is not a product completion."
+                else:
+                    task["status"] = "DONE"
+
                 outbox_entry = {
                     "task_id": task_id,
                     "inbox_task": task,
                     "execution_result": res,
+                    "product_completion": task["status"] == "DONE",
                     "completed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                 }
                 writer = FencedFileWriter(lease_store, f"mailbox:{inbox_path.name}", lease.token)
                 with writer.open(outbox_path, "a", encoding="utf-8") as out_f:
                     out_f.write(json.dumps(outbox_entry) + "\n")
-                    
+
                 executed.append(outbox_entry)
 
             updated_lines.append(json.dumps(task))
