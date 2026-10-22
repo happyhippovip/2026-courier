@@ -73,20 +73,20 @@ class L2OrderbookBookkeeper:
         if event.exchange != self.exchange or event.pair != self.pair:
             return
 
-        for level in event.bids_updated:
-            if level.amount <= 0:
-                self.bids.pop(level.price, None)
-            else:
-                self.bids[level.price] = level.amount
-
-        for level in event.asks_updated:
-            if level.amount <= 0:
-                self.asks.pop(level.price, None)
-            else:
-                self.asks[level.price] = level.amount
+        self._apply_levels(self.bids, event.bids_updated)
+        self._apply_levels(self.asks, event.asks_updated)
 
         self.last_sequence = event.sequence_id
         self.last_update_utc = event.timestamp_utc
+
+    def _apply_levels(self, book: dict, levels: list[OrderbookLevel]) -> None:
+        for level in levels:
+            if isinstance(level.price, bool) or isinstance(level.amount, bool):
+                raise ValueError("Bool is not a number.")
+            if level.amount <= 0:
+                book.pop(level.price, None)
+            else:
+                book[level.price] = level.amount
 
     def to_snapshot(self) -> OrderbookSnapshot:
         # Sort bids descending, asks ascending
