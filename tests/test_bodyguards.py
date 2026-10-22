@@ -318,3 +318,24 @@ class EightBodyguardsTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+def test_state_file_does_not_follow_a_symlink(tmp_path):
+    repo = tmp_path / "repo"
+    manager = BodyguardPoolManager(repo)
+    outside = tmp_path / "outside-alpha.json"
+    outside.write_text(json.dumps({
+        "id": "agent-bodyguard-alpha",
+        "callsign": "ALPHA",
+        "state": "STANDBY",
+        "marker": "SECRET-STATE",
+    }), encoding="utf-8")
+    (manager.states_dir / "agent-bodyguard-alpha.json").symlink_to(outside)
+    try:
+        states = manager.get_all_bodyguards()
+        err = None
+        marker = next((item.get("marker") for item in states if item.get("callsign") == "ALPHA"), None)
+    except ValueError as exc:
+        err = str(exc)
+        marker = None
+    assert (err, marker) == ("refusing to follow a symlink", None)
+    assert "SECRET-STATE" in outside.read_text(encoding="utf-8")

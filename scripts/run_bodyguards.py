@@ -87,6 +87,11 @@ def save_json(path: Path, value: dict[str, Any]) -> None:
     temp.replace(path)
 
 
+def _refuse_symlink(path: Path) -> None:
+    if path.is_symlink() or path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+
+
 def generate_bodyguard_speech(state: str, callsign: str, role: str | None = None) -> str:
     """Deterministic speech bubbles corresponding to bodyguard lifecycle states."""
     if state == "STANDBY":
@@ -124,6 +129,7 @@ class BodyguardPoolManager:
         states = []
         for bg in BODYGUARD_REGISTRY:
             path = self.states_dir / f"{bg['id']}.json"
+            _refuse_symlink(path)
             if force_reset or not path.exists():
                 state = {
                     "schema_version": "2.0",
@@ -159,6 +165,7 @@ class BodyguardPoolManager:
         states = []
         for bg in BODYGUARD_REGISTRY:
             path = self.states_dir / f"{bg['id']}.json"
+            _refuse_symlink(path)
             if path.exists():
                 states.append(load_json(path))
             else:
@@ -203,6 +210,7 @@ class BodyguardPoolManager:
 
         target_callsign = bg_to_assign["callsign"]
         path = self.states_dir / f"{bg_to_assign['id']}.json"
+        _refuse_symlink(path)
 
         # Check required capabilities
         reqs = required_capabilities or []
@@ -254,6 +262,7 @@ class BodyguardPoolManager:
         for bg in BODYGUARD_REGISTRY:
             if bg["callsign"] == callsign.upper():
                 path = self.states_dir / f"{bg['id']}.json"
+                _refuse_symlink(path)
                 current = load_json(path)
                 state_val = "WORKING" if working else current.get("state", "WORKING")
                 updated = {
@@ -277,6 +286,7 @@ class BodyguardPoolManager:
         for bg in BODYGUARD_REGISTRY:
             if bg["callsign"] == callsign.upper():
                 path = self.states_dir / f"{bg['id']}.json"
+                _refuse_symlink(path)
                 current = load_json(path)
                 # First step: RETURNING
                 returning_state = {
