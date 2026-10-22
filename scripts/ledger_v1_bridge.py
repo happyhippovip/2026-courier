@@ -488,12 +488,57 @@ def _fingerprint(spec) -> str:
     return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
 
 
-def _write_new(store, reducer, event) -> bool:
+def _event_admitted(reducer, event) -> bool:
+    """True only when the reducer would accept this event as new mission truth.
+
+    Called before any append. A duplicate, unknown authority, unusable
+    timestamp, stale checkpoint, or conflicting live owner is not written.
+    """
+    if not isinstance(event, CoordinationEvent):
+        return False
+    if not isinstance(event.event_id, str) or not event.event_id:
+        return False
+    if not isinstance(event.mission_id, str) or not event.mission_id:
+        return False
+    if not isinstance(event.evidence_ref, str) or not isinstance(event.payload_hash, str):
+        return False
     if event.event_id in reducer.processed_event_ids:
+        return False
+    if event.agent_id == AgentID.UNKNOWN or event.host_id == HostID.UNKNOWN:
+        return False
+    event_ts = parse_timestamp(event.created_at)
+    if event_ts is None:
+        return False
+    mission = reducer.missions.get(event.mission_id)
+    if mission is None:
+        return True
+    updated = parse_timestamp(mission.get("updated_at"))
+    if updated is None or event_ts < updated:
+        return False
+    new_owner = event.ownership or event.agent_id.value
+    current_owner = mission.get("ownership")
+    if current_owner and current_owner != new_owner:
+        if event.event_type == EventType.ASSIGNED:
+            if mission.get("status") != MissionStatus.ERROR:
+                return False
+        elif event.event_type == EventType.CANCELLED:
+            if (
+                reducer.lease_ttl_s is not None
+                and (event_ts - updated).total_seconds() < reducer.lease_ttl_s
+            ):
+                return False
+        else:
+            return False
+    return True
+
+
+def _write_new(store, reducer, event) -> bool:
+    if not _event_admitted(reducer, event):
         return False
     if not store.write_event(event):
         raise ConfigError("ledger write failed")
-    reducer.apply(event)
+    if not reducer.apply(event):
+        raise ConfigError("ledger event rejected after validation")
     return True
 
 

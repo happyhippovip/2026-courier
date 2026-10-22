@@ -37,6 +37,10 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
 
     if not inbox_path.exists():
         return []
+    for candidate in (inbox_path, outbox_path, home_path):
+        if candidate is not None and candidate.is_symlink():
+            print("[MAILBOX] Refusing to follow a symlink. Aborting fail-closed.", file=sys.stderr)
+            return []
 
     try:
         from courier_runtime.lease import LeaseConflict, LeaseStore, FencedFileWriter
@@ -62,10 +66,37 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
 
         executed = []
         updated_lines = []
+        seen_ids: set[str] = set()
+        if outbox_path.exists() and not outbox_path.is_symlink():
+            for prior_line in outbox_path.read_text(encoding="utf-8").splitlines():
+                if not prior_line.strip():
+                    continue
+                try:
+                    prior = json.loads(prior_line)
+                except Exception:
+                    continue
+                prior_id = prior.get("task_id") if isinstance(prior, dict) else None
+                if isinstance(prior_id, str) and prior_id and not isinstance(prior_id, bool):
+                    seen_ids.add(prior_id)
 
         for task in tasks:
-            task_id = task.get("task_id", f"task-{int(time.time()*1000)}")
+            raw_id = task.get("task_id")
+            if isinstance(raw_id, str) and raw_id:
+                task_id = raw_id
+            else:
+                task_id = f"task-{int(time.time()*1000)}"
             status = task.get("status", "PENDING")
+
+            if isinstance(raw_id, str) and raw_id and raw_id in seen_ids:
+                if status == "PENDING":
+                    task["status"] = "DUPLICATE"
+                    task["resolution"] = "IDEMPOTENT_REPLAY"
+                    task["reason"] = "The same task_id was already accepted."
+                    task["processed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                updated_lines.append(json.dumps(task))
+                continue
+            if isinstance(raw_id, str) and raw_id:
+                seen_ids.add(raw_id)
 
             if status == "PENDING":
                 # P0 CostGate Check: fail closed on missing, non-numeric, or positive cost
@@ -103,7 +134,7 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
                     "execution_result": res,
                     "completed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                 }
-                writer = FencedFileWriter(lease_store, f"mailbox:{inbox_path.name}", lease.token)
+                writer = FencedFileWriter(lease_store, f"mailbox:{inbox_path.name}", lease.token, lease.holder)
                 with writer.open(outbox_path, "a", encoding="utf-8") as out_f:
                     out_f.write(json.dumps(outbox_entry) + "\n")
                     
@@ -112,7 +143,7 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
             updated_lines.append(json.dumps(task))
 
         # Verify fence before atomic inbox replace
-        lease_store.check_write(scope, lease.token)
+        lease_store.check_write(scope, lease.token, lease.holder)
         tmp_inbox = inbox_path.with_suffix(".tmp")
         tmp_inbox.write_text("\n".join(updated_lines) + ("\n" if updated_lines else ""), encoding="utf-8")
         tmp_inbox.replace(inbox_path)

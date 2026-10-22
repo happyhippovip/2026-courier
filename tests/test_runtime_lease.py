@@ -23,10 +23,12 @@ def leases(tmp_path):
 
 def test_one_active_write_lease_per_scope(leases):
     store, _ = leases
-    store.acquire("repo:integration/v1", "mac:s1", "wk-1", ttl_s=30)
+    first = store.acquire("repo:integration/v1", "mac:s1", "wk-1", ttl_s=30)
     with pytest.raises(LeaseConflict):
         store.acquire("repo:integration/v1", "win:s2", "wk-2", ttl_s=30)
-    assert store.acquire("repo:other", "win:s2", "wk-2", ttl_s=30).token == 1
+    other = store.acquire("repo:other", "win:s2", "wk-2", ttl_s=30)
+    assert other.token != first.token
+    assert other.token > first.token
 
 
 def test_expired_lease_can_be_taken_over_and_old_holder_is_fenced(leases):

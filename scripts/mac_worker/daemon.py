@@ -489,7 +489,12 @@ def cost_gate(resource_id, *args, **kwargs):
     """Ask CostGate before a provider starts. Any import or policy error denies."""
     try:
         from scripts.resource_policy import CostGate
-        estimated_cost_eur = args[0] if args else kwargs.get("estimated_cost_eur", 0.0)
+        if args:
+            estimated_cost_eur = args[0]
+        elif "estimated_cost_eur" in kwargs:
+            estimated_cost_eur = kwargs["estimated_cost_eur"]
+        else:
+            estimated_cost_eur = None
         return CostGate.evaluate_spend_request(
             resource_id, estimated_cost_eur=estimated_cost_eur, repo_dir=BASE_DIR
         )
@@ -501,8 +506,8 @@ def run_agy(task, config):
     write_log(f"Running AI task {task['task_id']} via agy")
     instruction = task.get('instruction', task.get('description', ''))
 
-    estimate = task.get("estimated_cost_eur", 0.0)
-    if task.get("unknown_cost") is True:
+    estimate = task.get("estimated_cost_eur")
+    if task.get("unknown_cost") is True or isinstance(estimate, bool):
         estimate = None
     try:
         gate = cost_gate(AGY_RESOURCE_ID, estimate)
@@ -612,8 +617,8 @@ def run_muse(task, config):
     import muse_adapter
     write_log(f"Running MUSE task {task['task_id']}")
     
-    estimate = task.get("estimated_cost_eur", 0.0)
-    if task.get("unknown_cost") is True:
+    estimate = task.get("estimated_cost_eur")
+    if task.get("unknown_cost") is True or isinstance(estimate, bool):
         estimate = None
     try:
         gate = cost_gate(MUSE_RESOURCE_ID, estimate)

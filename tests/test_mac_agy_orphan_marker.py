@@ -42,7 +42,7 @@ def test_agy_marks_clean_on_success(tmp_path, monkeypatch):
     bindir = make_fake_agy(tmp_path,
         'printf \'```json\\n{"status": "SUCCESS", "stdout_summary": "ok"}\\n```\\n\'')
     monkeypatch.setenv("PATH", str(bindir) + os.pathsep + os.environ.get("PATH", ""))
-    result = daemon.run_agy({"task_id": "task-agy-m-1", "instruction": "do work"},
+    result = daemon.run_agy({"task_id": "task-agy-m-1", "instruction": "do work", "estimated_cost_eur": 0.0},
                             {"WORKER_ID": "MAC-01", "AGY_TIMEOUT_SECONDS": 30})
     assert result["status"] == "SUCCESS"
     marker = json.loads((tmp_path / "state" / "agy_process.json").read_text())

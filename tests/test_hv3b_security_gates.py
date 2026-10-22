@@ -86,7 +86,8 @@ class RecordingRunner:
 def _packet():
     return WorkPacket(id="pkt-hv3b", owner_id="google-mac", target_sha=SHA, state=PacketState.CURRENT,
                       payload={"task_type": "google_agent_execute", "workkey": "WK-HV3B",
-                               "instruction": "Add a docstring to foo()", "verify_command": OK_VERIFY})
+                               "instruction": "Add a docstring to foo()", "verify_command": OK_VERIFY,
+                               "estimated_cost_eur": 0.0})
 
 
 def _hooks(tmp_path):
@@ -99,7 +100,7 @@ def test_daemon_agy_argv_never_skips_permissions(tmp_path, monkeypatch):
     fake_agy_on_path(tmp_path, monkeypatch)
     instances = []
     monkeypatch.setattr(daemon, "subprocess", recording_subprocess(instances))
-    daemon.run_agy({"task_id": "task-hv3b-1", "instruction": "do work"}, {"AGY_TIMEOUT_SECONDS": 5})
+    daemon.run_agy({"task_id": "task-hv3b-1", "instruction": "do work", "estimated_cost_eur": 0.0}, {"AGY_TIMEOUT_SECONDS": 5})
     assert len(instances) == 1
     assert BYPASS_FLAG not in instances[0].args
 

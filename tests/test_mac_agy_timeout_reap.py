@@ -61,7 +61,7 @@ def run_with_fake_agy(daemon, monkeypatch, tmp_path, body, timeout=2):
     monkeypatch.setenv("PATH", str(bindir) + os.pathsep + os.environ.get("PATH", ""))
     instances = []
     monkeypatch.setattr(daemon, "subprocess", recording_popen_ns(instances))
-    task = {"task_id": "task-agy-1", "instruction": "do work"}
+    task = {"task_id": "task-agy-1", "instruction": "do work", "estimated_cost_eur": 0.0}
     started = time.monotonic()
     result = daemon.run_agy(task, {"AGY_TIMEOUT_SECONDS": timeout})
     elapsed = time.monotonic() - started

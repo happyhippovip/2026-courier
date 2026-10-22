@@ -309,6 +309,11 @@ class TaskLeaseManager:
                 clean_id = task_id.replace("/", "_").replace("\\", "_")
                 scope = f"task:{clean_id}"
                 rec = store.acquire(scope=scope, holder=owner_id, workkey=task_hash, ttl_s=duration_sec)
+                verified = store.check_write(scope, rec.token, owner_id)
+                if verified.holder != owner_id or verified.token != rec.token:
+                    return False
+                if isinstance(rec.token, bool) or not isinstance(rec.token, int) or rec.token < 1:
+                    return False
                 lease_dict["fencing_token"] = rec.token
                 return True
             except LeaseConflict:
@@ -316,7 +321,7 @@ class TaskLeaseManager:
             finally:
                 store.close()
         except Exception:
-            return True
+            return False
 
     def _sync_authority_release(self, task_id: str, owner_id: str) -> None:
         try:
