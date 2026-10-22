@@ -62,3 +62,11 @@ test("the Kolibri button uses the shared verdict and does not append a gold labe
   assert.match(src, /presentMissionChip/);
   assert.doesNotMatch(src, /BYTE_LEVEL_GOLD_VERIFIED\)/);
 });
+
+test("replay does not paint a demo completion as a passed gold stage", () => {
+  const src = fs.readFileSync(new URL("../../courier_hub/static/mission_chip.html", import.meta.url), "utf8");
+  const fn = src.slice(src.indexOf("function updateStageHighlights"));
+  assert.match(fn, /presentMissionChip/);
+  assert.match(fn, /shown\.gold \? "stage-box passed" : "stage-box active"/);
+  assert.doesNotMatch(fn, /getElementById\('stage-3'\)\.className = 'stage-box passed'/);
+});

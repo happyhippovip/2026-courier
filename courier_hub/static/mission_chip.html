@@ -417,22 +417,28 @@ function renderEvents(events, activeCount) {
 
 function updateStageHighlights(events, activeCount) {
   if (activeCount <= 0 || !events.length) return;
+  const shown = window.presentMissionChip && lastMissionData
+    ? window.presentMissionChip(lastMissionData)
+    : { gold: false };
+  const doneClass = shown.gold ? "stage-box passed" : "stage-box active";
   const currentEvent = events[activeCount - 1];
   const type = currentEvent.type;
 
-  // Stufen-Highlighting je nach Event-Typ
   if (type === 'CONTROLLER_STARTED' || type === 'TASK_CREATED') {
     document.getElementById('stage-1').className = 'stage-box active';
     document.getElementById('stage-2').className = 'stage-box';
     document.getElementById('stage-3').className = 'stage-box';
   } else if (type === 'TASK_CLAIMED' || type === 'TASK_STARTED' || type === 'RESULT_READY') {
-    document.getElementById('stage-1').className = 'stage-box passed';
+    document.getElementById('stage-1').className = doneClass;
     document.getElementById('stage-2').className = 'stage-box active';
     document.getElementById('stage-3').className = 'stage-box';
   } else if (type === 'RESULT_ACCEPTED' || type === 'TASK_COMPLETE') {
-    document.getElementById('stage-1').className = 'stage-box passed';
-    document.getElementById('stage-2').className = 'stage-box passed';
-    document.getElementById('stage-3').className = 'stage-box passed';
+    document.getElementById('stage-1').className = doneClass;
+    document.getElementById('stage-2').className = doneClass;
+    document.getElementById('stage-3').className = shown.gold ? "stage-box passed" : "stage-box active";
+    if (shown.stage3) {
+      document.getElementById('st-status-3').textContent = shown.stage3;
+    }
   }
 }
 

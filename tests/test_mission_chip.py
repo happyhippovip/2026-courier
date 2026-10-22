@@ -28,6 +28,7 @@ def test_mission_chip_deterministic_execution(tmp_path):
     verdict = res["verifier_result"]
     assert verdict["accepted"] is True
     assert verdict["resolution"] == "verified"
+    assert "BYTE_LEVEL_GOLD_VERIFIED" not in json.dumps(res)
     assert verdict["accepted_result_id"] == "res-chip-v139-01"
     assert len(verdict["artifact_sha256"]) == 64
     
@@ -156,7 +157,9 @@ def test_mission_chip_cli_pretty_output(tmp_path, capsys):
     captured = capsys.readouterr()
     assert "COURIER MISSION CHIP" in captured.out
     assert "ERSTE GRÜNE MISSION" in captured.out
-    assert "BYTE_LEVEL_GOLD_VERIFIED" or "verified" in captured.out
+    assert "DEMO" in captured.out
+    assert "verified" in captured.out
+    assert "BYTE_LEVEL_GOLD_VERIFIED" not in captured.out
 
 
 def test_ephemeral_mission_chip_home_is_removed(tmp_path, monkeypatch):

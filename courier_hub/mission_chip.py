@@ -41,7 +41,7 @@ def _chip_verifier(adapter: str):
                     return Verdict(False, "Artefakt-Bytes stimmen nicht mit Gold-Referenz überein")
                 if hashlib.sha256(content).hexdigest() != EXPECTED_GOLD_SHA256:
                     return Verdict(False, "Neu berechnete Prüfsumme der Datei weicht ab")
-        return Verdict(True, "BYTE_LEVEL_GOLD_VERIFIED: Deterministischer SHA-256 Hash und Byte-Inhalt gegen Gold-Referenz verifiziert")
+        return Verdict(True, "Lokale Demo-Prüfsumme stimmt mit der Referenzdatei überein")
     return _verify
 
 
