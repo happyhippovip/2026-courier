@@ -134,6 +134,10 @@ class StatisticalQualityAnalyzer:
             risk_score += 100
             flags.append("NEGATIVE_ROI")
             explanation_parts.append("ROI is negative.")
+        elif roi == 0:
+            risk_score += 100
+            flags.append("ZERO_ROI")
+            explanation_parts.append("ROI is zero.")
 
         size = breakdown.order_size_usd
         if (
