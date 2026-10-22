@@ -100,3 +100,30 @@ def test_no_double_external_effect_for_duplicate_wakes():
     
     ctx.finish_execution()
     assert ctx.state == AutoState.IDLE
+
+
+def test_text_false_cancel_is_not_a_cancel():
+    def run(flag):
+        ctx = AutomationContext()
+        ctx.enqueue_wake(Wakeup(trigger_id="t1", instruction="keep"))
+        ctx.enqueue_wake(Wakeup(trigger_id="t2", is_cancel=flag))
+        return (ctx.cancel_requested, ctx.state, ctx.pending_instruction)
+
+    text_false = run("false")
+    text_zero = run("0")
+    bool_false = run(False)
+    int_zero = run(0)
+    bool_true = run(True)
+    assert (
+        text_false,
+        text_zero,
+        bool_false,
+        int_zero,
+        bool_true,
+    ) == (
+        (False, AutoState.PENDING, "keep"),
+        (False, AutoState.PENDING, "keep"),
+        (False, AutoState.PENDING, "keep"),
+        (False, AutoState.PENDING, "keep"),
+        (True, AutoState.IDLE, None),
+    )
