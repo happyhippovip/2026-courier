@@ -458,16 +458,28 @@ def acquire_lock(worker_id):
 
     _lock_fd = fd
 
-    # Acquire canonical Courier writer lease in LeaseStore
+    # A missing authority store is not "no lease required". The file lock alone
+    # must not let this worker run.
     store = get_authority_store()
-    if store is not None:
-        try:
-            from courier_runtime.lease import format_session_holder
-            holder = format_session_holder(worker_id, os.getpid(), psutil.Process(os.getpid()).create_time(), str(uuid.uuid4()))
-            _worker_lease = store.acquire(f"worker:{worker_id}", holder, "daemon_loop", ttl_s=3600)
-        except Exception:
-            release_lock(lock_file)
-            return None
+    if store is None:
+        release_lock(lock_file)
+        raise RuntimeError(
+            "authority lease store unavailable; refusing to run without a writer lease"
+        )
+    try:
+        from courier_runtime.lease import LeaseConflict, format_session_holder
+    except Exception:
+        release_lock(lock_file)
+        raise
+    try:
+        holder = format_session_holder(worker_id, os.getpid(), psutil.Process(os.getpid()).create_time(), str(uuid.uuid4()))
+        _worker_lease = store.acquire(f"worker:{worker_id}", holder, "daemon_loop", ttl_s=3600)
+    except LeaseConflict:
+        release_lock(lock_file)
+        return None
+    except Exception:
+        release_lock(lock_file)
+        raise
 
     return lock_file
 
