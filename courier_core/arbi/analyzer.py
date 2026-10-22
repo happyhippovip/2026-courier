@@ -263,6 +263,10 @@ class StatisticalQualityAnalyzer:
             risk_score += 100
             flags.append("NEGATIVE_SELL_PRICE")
             explanation_parts.append("Sell price is negative.")
+        elif sell_price == 0:
+            risk_score += 100
+            flags.append("ZERO_SELL_PRICE")
+            explanation_parts.append("Sell price is zero.")
 
         gross = breakdown.gross_spread_usd
         if (
