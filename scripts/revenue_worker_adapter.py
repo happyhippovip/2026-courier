@@ -127,6 +127,8 @@ def main():
                 write_log(f"Claimed task {task_id}")
                 
                 work_dir = STATE_DIR / task_id
+                _refuse_symlink(STATE_DIR)
+                _refuse_symlink(work_dir)
                 if work_dir.exists():
                     shutil.rmtree(work_dir)
                 work_dir.mkdir(parents=True)
