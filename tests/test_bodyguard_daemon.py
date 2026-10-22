@@ -233,3 +233,43 @@ def test_task_file_does_not_follow_a_symlink(tmp_path, monkeypatch):
         and err_dir == "refusing to follow a symlink" and leaked_dir == ["keep.txt"] and seen_dir == []
         and (tmp_path / "events" / "agent-states").is_symlink()
     ), (err_file, body_file, seen_file, err_dir, leaked_dir, seen_dir)
+
+
+def test_task_id_does_not_escape_the_state_dir(tmp_path, monkeypatch):
+    from pathlib import Path
+    monkeypatch.chdir(tmp_path)
+    seen = []
+
+    class DummyProc:
+        returncode = 0
+        stdout = ""
+        stderr = ""
+
+    def mock_run(cmd, *args, **kwargs):
+        path = Path(cmd[3])
+        seen.append(str(path))
+        seen.append(path.read_text(encoding="utf-8") if path.exists() else "")
+        return DummyProc()
+
+    monkeypatch.setattr("scripts.bodyguard_daemon.subprocess.run", mock_run)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    task = {
+        "task_id": "../../outside/SECRET-TASK",
+        "goal_id": "g",
+        "attempt_id": "a",
+        "dispatch_id": "d",
+        "marker": "SECRET-TASK-BODY",
+    }
+    try:
+        execute_task(task, "w", "TECHNICAL_WORKER")
+        err = None
+    except SystemExit as exc:
+        err = str(exc)
+    leaked_names = sorted(p.name for p in outside.iterdir())
+    assert (err, leaked_names, seen) == (
+        "refusing an unsafe task id",
+        ["keep.txt"],
+        [],
+    )

@@ -36,7 +36,16 @@ def get_temporary_role(worker_id):
 
 def execute_task(task, worker_id, role):
     # Build a temporary file for the task
-    task_file = Path(f"events/agent-states/{task['task_id']}.json")
+    task_id = task["task_id"]
+    if (
+        not isinstance(task_id, str)
+        or task_id in ("", ".", "..")
+        or Path(task_id).name != task_id
+        or "/" in task_id
+        or "\\" in task_id
+    ):
+        raise SystemExit("refusing an unsafe task id")
+    task_file = Path(f"events/agent-states/{task_id}.json")
     if task_file.is_symlink() or task_file.parent.is_symlink():
         raise SystemExit("refusing to follow a symlink")
 
