@@ -94,6 +94,32 @@ def test_task_lease_manager_authority_db_conflict_rejected(repo_dir):
     assert not (repo_dir / "events" / "locks" / "task_conflict_task.lease").exists()
 
 
+def test_failed_renew_restores_previous_expiry(repo_dir):
+    from courier_runtime.lease import LeaseStore
+
+    tlm = TaskLeaseManager(repo_dir)
+    success, _reason, _data = tlm.acquire_lease("renew_task", "hash1", "ownerA", duration_sec=100)
+    assert success is True
+    path = repo_dir / "events" / "locks" / "task_renew_task.lease"
+    original = json.loads(path.read_text(encoding="utf-8"))
+
+    store = LeaseStore(repo_dir / "events" / "locks" / "authority.db")
+    live = store.current("task:renew_task")
+    assert live is not None
+    store.release(live)
+    store.acquire("task:renew_task", "foreign", "other-hash", ttl_s=300)
+    store.close()
+
+    success, reason, data = tlm.acquire_lease("renew_task", "hash1", "ownerA", duration_sec=500)
+    assert success is False
+    assert reason == "TASK_ALREADY_CLAIMED_BY_ANOTHER_BUILDER"
+    assert data.get("reason") == "AUTHORITY_DB_LEASE_CONFLICT"
+    restored = json.loads(path.read_text(encoding="utf-8"))
+    assert restored["expires_at"] == original["expires_at"]
+    assert restored["owner_id"] == "ownerA"
+    assert restored["task_hash"] == "hash1"
+
+
 def test_file_manifest_tracker(repo_dir):
     test_file = repo_dir / "test.txt"
     test_file.write_text("hello world")
