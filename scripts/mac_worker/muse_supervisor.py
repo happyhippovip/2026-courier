@@ -205,10 +205,10 @@ class ProcessLauncher:
         proc = self.children.get(slot_id)
         if proc is not None and str(proc.pid) == str(pid):
             return proc.poll() is None
-        if not pid:
+        if isinstance(pid, bool) or not isinstance(pid, int) or pid <= 0:
             return False
         try:
-            os.kill(int(pid), 0)
+            os.kill(pid, 0)
             return True
         except (OSError, ValueError):
             return False
@@ -227,7 +227,9 @@ class ProcessLauncher:
         if proc is None:
             class Recovered:
                 def __init__(self, value):
-                    self.pid = int(value)
+                    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+                        raise ValueError("pid is not a process id. Bool is not a number.")
+                    self.pid = value
                     self.returncode = None
                     self._recovered = True
                 def poll(self):

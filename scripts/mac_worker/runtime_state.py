@@ -67,16 +67,26 @@ def control_lock(wall):
         yield
 
 
+def _real_pid(pid):
+    """A bool is not a pid. True would become process 1."""
+    if isinstance(pid, bool) or not isinstance(pid, int) or pid <= 0:
+        return None
+    return pid
+
+
 def process_identity(pid):
     """No command arguments/secrets persisted; include OS start time, PGID, executable."""
+    pid = _real_pid(pid)
+    if pid is None:
+        return None
     try:
         value = subprocess.check_output(
-            ["ps", "-p", str(int(pid)), "-o", "pid=,pgid=,lstart=,comm="],
+            ["ps", "-p", str(pid), "-o", "pid=,pgid=,lstart=,comm="],
             text=True, timeout=2, stderr=subprocess.DEVNULL).strip()
         parts = value.split()
-        if len(parts) < 8 or int(parts[0]) != int(pid):
+        if len(parts) < 8 or int(parts[0]) != pid:
             return None
-        return {"pid": int(pid), "pgid": int(parts[1]),
+        return {"pid": pid, "pgid": int(parts[1]),
                 # exec() may change executable names without changing ownership.
                 "fingerprint": hashlib.sha256(" ".join(parts[:7]).encode()).hexdigest()}
     except (OSError, ValueError, subprocess.SubprocessError):
@@ -88,8 +98,11 @@ def same_process(pid, identity):
 
 
 def group_exists(pgid):
+    pgid = _real_pid(pgid)
+    if pgid is None:
+        return False
     try:
-        os.killpg(int(pgid), 0)
+        os.killpg(pgid, 0)
         return True
     except ProcessLookupError:
         return False
