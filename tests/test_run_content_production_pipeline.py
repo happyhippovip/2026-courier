@@ -548,3 +548,75 @@ def test_channels_config_does_not_follow_a_symlink(tmp_path, monkeypatch):
     assert "SECRET-CHANNEL" in outside.read_text(encoding="utf-8")
     assert "SECRET-PARENT" in (parent_outside / "channels.json").read_text(encoding="utf-8")
     assert "SECRET-CLI" in cli_outside.read_text(encoding="utf-8")
+
+def _workflow_file(path: Path, steps: list[str]) -> None:
+    save_json(path, {"workflows": [{"workflow_id": "w1", "production_steps": steps}]})
+
+def test_workflows_config_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    channels = tmp_path / "channels.json"
+    _channel_file(channels, "FruitKI")
+    tools = tmp_path / "tools.json"
+    outside = tmp_path / "outside-workflows.json"
+    _workflow_file(outside, ["IDEA"])
+    workflows = tmp_path / "workflows.json"
+    workflows.symlink_to(outside)
+    try:
+        run_pipeline("c1", "topic", "mission-1", runtime, channels, workflows, tools)
+        err = None
+    except ValueError as exc:
+        err = str(exc)
+    body = runtime / "c1" / "mission-1" / "manifest.json"
+    text = body.read_text(encoding="utf-8") if body.exists() else ""
+    parent_outside = tmp_path / "parent-outside"
+    parent_outside.mkdir()
+    _workflow_file(parent_outside / "workflows.json", ["IDEA"])
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = tmp_path / "linked-parent"
+    linked_parent.symlink_to(parent_outside)
+    try:
+        run_pipeline(
+            "c1",
+            "topic",
+            "mission-2",
+            runtime,
+            channels,
+            linked_parent / "workflows.json",
+            tools,
+        )
+        err2 = None
+    except ValueError as exc:
+        err2 = str(exc)
+    body2 = runtime / "c1" / "mission-2" / "manifest.json"
+    text2 = body2.read_text(encoding="utf-8") if body2.exists() else ""
+    cli_outside = tmp_path / "cli-workflows.json"
+    _workflow_file(cli_outside, ["IDEA"])
+    cli_link = tmp_path / "cli-workflows-link.json"
+    cli_link.symlink_to(cli_outside)
+    monkeypatch.setattr(sys, "argv", [
+        "run_content_production_pipeline.py",
+        "--channel-id", "c1",
+        "--topic", "topic",
+        "--mission-id", "mission-3",
+        "--runtime-dir", str(runtime),
+        "--config", str(channels),
+        "--workflows-config", str(cli_link),
+        "--tools-config", str(tools),
+    ])
+    try:
+        main()
+        err3 = None
+    except ValueError as exc:
+        err3 = str(exc)
+    body3 = runtime / "c1" / "mission-3" / "manifest.json"
+    text3 = body3.read_text(encoding="utf-8") if body3.exists() else ""
+    assert (err, "IDEA" in text, err2, "IDEA" in text2, err3, "IDEA" in text3) == (
+        "refusing to follow a symlink",
+        False,
+        "refusing to follow a symlink",
+        False,
+        "refusing to follow a symlink",
+        False,
+    )
+    assert "IDEA" in outside.read_text(encoding="utf-8")
