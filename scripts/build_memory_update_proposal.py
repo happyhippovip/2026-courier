@@ -133,6 +133,9 @@ def build_proposal_from_result(
     target_files: list[str] | None = None,
     custom_reason: str | None = None,
 ) -> dict:
+    result_file = Path(result_file)
+    if result_file.is_symlink() or result_file.parent.is_symlink():
+        fail("refusing to follow a symlink")
     if not result_file.exists():
         fail(f"Result file not found: {result_file}")
 

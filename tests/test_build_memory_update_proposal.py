@@ -292,6 +292,85 @@ class TestBuildMemoryUpdateProposal(unittest.TestCase):
             ),
         )
 
+    def test_result_file_does_not_follow_a_symlink(self):
+        outside = self.td_path / "outside-result.json"
+        outside.write_text(json.dumps({
+            "task_id": "task-secret",
+            "message_id": "msg-secret",
+            "correlation_id": "corr-secret",
+            "payload": {"summary": "x", "verified_facts": ["SECRET-RESULT-BODY"]},
+        }), encoding="utf-8")
+        linked = self.td_path / "linked-result.json"
+        linked.symlink_to(outside)
+        parent_real = self.td_path / "parent-real"
+        parent_real.mkdir()
+        nested = parent_real / "nested-result.json"
+        nested.write_text(json.dumps({
+            "task_id": "task-parent",
+            "message_id": "msg-parent",
+            "correlation_id": "corr-parent",
+            "payload": {"summary": "x", "verified_facts": ["SECRET-PARENT-BODY"]},
+        }), encoding="utf-8")
+        parent_link = self.td_path / "parent-link"
+        parent_link.symlink_to(parent_real)
+        plain = self.td_path / "plain-result.json"
+        plain.write_text(json.dumps({
+            "task_id": "task-plain",
+            "message_id": "msg-plain",
+            "correlation_id": "corr-plain",
+            "payload": {"summary": "x", "verified_facts": ["PLAIN-RESULT-BODY"]},
+        }), encoding="utf-8")
+
+        def run_main(result, tag):
+            out = self.td_path / f"out-{tag}"
+            original = sys.argv
+            sys.argv = [
+                "prog", "--result", str(result),
+                "--output-dir", str(out), "--memory-repo", str(self.td_path),
+            ]
+            try:
+                try:
+                    main()
+                    err = None
+                except SystemExit as exc:
+                    err = str(exc)
+            finally:
+                sys.argv = original
+            names = sorted(p.name for p in out.iterdir()) if out.exists() else []
+            body = (out / names[0]).read_text(encoding="utf-8") if names else ""
+            return err, names, body
+
+        err_link, names_link, body_link = run_main(linked, "link")
+        err_parent, names_parent, body_parent = run_main(parent_link / "nested-result.json", "parent")
+        out_lib = self.td_path / "out-lib"
+        try:
+            build_proposal_from_result(
+                result_file=linked, memory_repo_path=self.td_path, output_dir=out_lib,
+            )
+            err_lib = None
+        except SystemExit as exc:
+            err_lib = str(exc)
+        names_lib = sorted(p.name for p in out_lib.iterdir()) if out_lib.exists() else []
+        body_lib = (out_lib / names_lib[0]).read_text(encoding="utf-8") if names_lib else ""
+        err_plain, names_plain, body_plain = run_main(plain, "plain")
+        refused = "MEMORY_PROPOSAL_ERROR: refusing to follow a symlink"
+        self.assertEqual(
+            (
+                err_link, "SECRET-RESULT-BODY" in body_link, names_link,
+                err_parent, "SECRET-PARENT-BODY" in body_parent, names_parent,
+                err_lib, "SECRET-RESULT-BODY" in body_lib, names_lib,
+                err_plain, "PLAIN-RESULT-BODY" in body_plain, names_plain,
+                linked.is_symlink(), parent_link.is_symlink(),
+            ),
+            (
+                refused, False, [],
+                refused, False, [],
+                refused, False, [],
+                None, True, ["task-plain-memory-proposal.json"],
+                True, True,
+            ),
+        )
+
     def test_build_proposal_from_result_no_facts(self):
         result_file = self.td_path / "result2.json"
         result_file.write_text(json.dumps({
