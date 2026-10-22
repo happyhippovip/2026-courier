@@ -308,6 +308,15 @@ class AcademyTeacher:
             raise FileNotFoundError(f"Lesson file not found: {lesson_id}")
         lesson = load_json(lesson_file)
 
+        if (
+            not isinstance(target_agent, str)
+            or target_agent in ("", ".", "..")
+            or Path(target_agent).name != target_agent
+            or "/" in target_agent
+            or "\\" in target_agent
+        ):
+            raise ValueError("refusing an unsafe target agent")
+
         # Inspect target agent's current state
         agent_state_file = self.repo_dir / f"events/agent-states/{target_agent}.json"
         agent_state = load_json(agent_state_file) if agent_state_file.exists() else {}
