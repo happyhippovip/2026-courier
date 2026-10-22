@@ -87,7 +87,7 @@ class L2OrderbookBookkeeper:
         if event.exchange != self.exchange:
             raise ValueError("event is for another book.")
         if event.pair != self.pair:
-            return
+            raise ValueError("event is for another book.")
 
         sequence = event.sequence_id
         if isinstance(sequence, bool):
