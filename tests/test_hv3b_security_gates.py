@@ -86,7 +86,8 @@ class RecordingRunner:
 def _packet():
     return WorkPacket(id="pkt-hv3b", owner_id="google-mac", target_sha=SHA, state=PacketState.CURRENT,
                       payload={"task_type": "google_agent_execute", "workkey": "WK-HV3B",
-                               "instruction": "Add a docstring to foo()", "verify_command": OK_VERIFY})
+                               "instruction": "Add a docstring to foo()", "verify_command": OK_VERIFY,
+                               "estimated_cost_eur": 0.0})
 
 
 def _hooks(tmp_path):

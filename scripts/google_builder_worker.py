@@ -466,11 +466,16 @@ def run_google_agent_task(
         evidence_data["provider_invoked"] = False
         return "FAILED"
 
-    # Enforce CostGate before spawning Google Antigravity CLI process
+    # Enforce CostGate before spawning Google Antigravity CLI process.
+    # A missing estimate is unknown cost, not free. Explicit 0.0 still means
+    # the included subscription has no per-run charge.
     from scripts.resource_policy import CostGate
+    estimated = payload_in.get("estimated_cost_eur")
+    if payload_in.get("unknown_cost") is True:
+        estimated = None
     cost_res = CostGate.evaluate_spend_request(
         "google_antigravity_plus",
-        estimated_cost_eur=payload_in.get("estimated_cost_eur", 0.0),
+        estimated_cost_eur=estimated,
         requested_action=payload_in.get("requested_action", "EXECUTE_TASK"),
         repo_dir=repo_dir,
     )

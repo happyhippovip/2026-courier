@@ -344,3 +344,32 @@ def test_google_agent_task_costgate_enforced(tmp_path):
     assert verdict == "FAILED"
     assert "COST_GATE_DENIED" in evidence_nan.get("blocked_reason", "")
     assert evidence_nan.get("provider_invoked") is False
+
+    # 3. Omitted cost, unknown_cost, and a boolean must not become free spend.
+    def refuse_spawn(*_args, **_kwargs):
+        raise AssertionError("provider spawned without a known cost")
+
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr("scripts.google_builder_worker.AGENT_RUNNER", refuse_spawn)
+    try:
+        for payload in (
+            {"workkey": "WK-MISSING", "instruction": "do something"},
+            {
+                "workkey": "WK-UNKNOWN",
+                "instruction": "do something",
+                "estimated_cost_eur": 0.0,
+                "unknown_cost": True,
+            },
+            {
+                "workkey": "WK-BOOL",
+                "instruction": "do something",
+                "estimated_cost_eur": True,
+            },
+        ):
+            evidence_blocked = {}
+            verdict = run_google_agent_task(payload, tmp_path, evidence_blocked, surface)
+            assert verdict == "FAILED"
+            assert "UNKNOWN_COST" in evidence_blocked.get("blocked_reason", "")
+            assert evidence_blocked.get("provider_invoked") is False
+    finally:
+        monkeypatch.undo()
