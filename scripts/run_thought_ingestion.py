@@ -180,6 +180,8 @@ def run_ingestion(inbox: Path, processed: Path, rejected: Path, memory_repo: Pat
     """Serialize local runners. A live/stale lock fails closed rather than risking duplicate proposals."""
     if inbox.is_symlink() or inbox.parent.is_symlink():
         raise ValueError("refusing to follow a symlink")
+    if processed.is_symlink() or processed.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     if rejected.is_symlink() or rejected.parent.is_symlink():
         raise ValueError("refusing to follow a symlink")
     processed.mkdir(parents=True, exist_ok=True)
