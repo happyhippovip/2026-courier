@@ -648,6 +648,9 @@ class AcademyDirector:
             )
             raise ValueError(f"Adoption blocked: Evaluation for {lesson_id} failed.")
 
+        if ADOPTIONS_DIR.is_symlink() or ADOPTIONS_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
+
         # Adoption Approval
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         lesson["status"] = "ADOPTED"

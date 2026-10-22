@@ -701,6 +701,74 @@ def test_bool_minutes_saved_is_not_a_number(academy_env, monkeypatch):
     )
 
 
+def test_adoptions_dir_does_not_follow_a_symlink(academy_env, monkeypatch):
+    repo_dir, memory_dir = academy_env
+    lessons = repo_dir / "events" / "academy" / "lessons"
+    evals = repo_dir / "events" / "academy" / "evaluations"
+    monkeypatch.setattr("scripts.run_academy.LESSONS_DIR", lessons)
+    monkeypatch.setattr("scripts.run_academy.EVALS_DIR", evals)
+    (lessons / "lesson-1.json").write_text(json.dumps({
+        "title": "t",
+        "topic": "t",
+        "affected_agents": ["a"],
+    }), encoding="utf-8")
+    (evals / "eval-lesson-1.json").write_text(json.dumps({
+        "verdict": "PASS",
+        "evaluation_id": "e1",
+        "metrics": {"measured_minutes_saved": 1},
+    }), encoding="utf-8")
+    director = AcademyDirector(repo_dir=repo_dir, memory_dir=memory_dir)
+    director.steward = mock.MagicMock()
+
+    outside = repo_dir.parent / "outside-adoptions"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = repo_dir.parent / "linked-adoptions"
+    linked.symlink_to(outside, target_is_directory=True)
+
+    parent_outside = repo_dir.parent / "adoptions-parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = repo_dir.parent / "adoptions-linked-parent"
+    linked_parent.symlink_to(parent_outside, target_is_directory=True)
+
+    def run(folder):
+        monkeypatch.setattr("scripts.run_academy.ADOPTIONS_DIR", folder)
+        (lessons / "lesson-1.json").write_text(json.dumps({
+            "title": "t",
+            "topic": "t",
+            "affected_agents": ["a"],
+        }), encoding="utf-8")
+        try:
+            director.approve_adoption("lesson-1")
+        except ValueError as exc:
+            return str(exc)
+        return "adopted"
+
+    err_link = run(linked)
+    leaked = sorted(p.name for p in outside.iterdir())
+    err_parent = run(linked_parent / "adoptions")
+    parent_names = sorted(p.name for p in parent_outside.iterdir())
+    plain = repo_dir / "events" / "academy" / "plain-adoptions"
+    err_plain = run(plain)
+    plain_names = sorted(p.name for p in plain.iterdir()) if plain.exists() else []
+    assert (
+        err_link,
+        leaked,
+        err_parent,
+        parent_names,
+        err_plain,
+        any(name.startswith("adopt-") and name.endswith(".json") for name in plain_names),
+    ) == (
+        "refusing to follow a symlink",
+        ["keep.txt"],
+        "refusing to follow a symlink",
+        ["keep.txt"],
+        "adopted",
+        True,
+    )
+
+
 def test_adopt_does_not_follow_a_symlink(academy_env, monkeypatch):
     repo_dir, memory_dir = academy_env
     lessons = repo_dir / "events" / "academy" / "lessons"
