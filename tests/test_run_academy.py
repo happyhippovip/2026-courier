@@ -146,6 +146,38 @@ def test_lessons_dir_does_not_follow_a_symlink(academy_env, monkeypatch):
     )
 
 
+def test_delivery_does_not_follow_a_lesson_symlink(academy_env, monkeypatch):
+    repo_dir, memory_dir = academy_env
+    lessons = repo_dir / "events" / "academy" / "lessons"
+    deliveries = repo_dir / "events" / "academy" / "deliveries"
+    monkeypatch.setattr("scripts.run_academy.LESSONS_DIR", lessons)
+    monkeypatch.setattr("scripts.run_academy.DELIVERIES_DIR", deliveries)
+    teacher = AcademyTeacher(repo_dir=repo_dir, memory_dir=memory_dir)
+    teacher.steward = mock.MagicMock()
+    teacher.steward.get_latest_snapshot.return_value = {"context_version": 1}
+    outside = repo_dir.parent / "outside-delivery-lesson.json"
+    outside.write_text(json.dumps({
+        "summary": "SECRET-SUMMARY",
+        "topic": "secret-topic",
+        "proposed_method": "keep",
+        "lesson_type": "PROCESS_IMPROVEMENT",
+        "risk": "LOW",
+    }), encoding="utf-8")
+    (lessons / "lesson-secret.json").symlink_to(outside)
+    try:
+        package = teacher.queue_or_deliver_lesson("lesson-secret", "target-agent")
+        err = None
+        summary = package.get("relevant_summary")
+    except ValueError as exc:
+        err = str(exc)
+        summary = None
+    assert (err, summary, "SECRET-SUMMARY" in outside.read_text(encoding="utf-8")) == (
+        "refusing to follow a symlink",
+        None,
+        True,
+    )
+
+
 def test_queue_or_deliver_lesson_missing(academy_env):
     repo_dir, memory_dir = academy_env
     teacher = AcademyTeacher(repo_dir=repo_dir, memory_dir=memory_dir)
