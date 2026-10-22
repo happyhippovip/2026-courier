@@ -9,6 +9,7 @@ D. Historical Spread & Fee Tolerance Analysis
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Optional
 
@@ -56,6 +57,23 @@ class ArbitrageStrategies:
             for value in (price_a_b, price_b_c, price_c_a, capital_usd, taker_fee_pct)
         ):
             raise ValueError("Bool is not a number.")
+        if any(
+            not isinstance(value, (int, float)) or not math.isfinite(value)
+            for value in (price_a_b, price_b_c, price_c_a, capital_usd, taker_fee_pct)
+        ):
+            return TriangularArbiOpportunity(
+                exchange=exchange,
+                leg1="USDT -> BTC",
+                leg2="BTC -> ETH",
+                leg3="ETH -> USDT",
+                input_capital_usd=0.0,
+                output_capital_usd=0.0,
+                gross_roi_pct=0.0,
+                net_roi_pct=0.0,
+                total_fees_usd=0.0,
+                status="BLOCKED_INVALID_PRICE",
+                reason="Invalid prices",
+            )
         fee_mult = 1.0 - (taker_fee_pct / 100.0)
 
         # Step 1: Buy B with A
