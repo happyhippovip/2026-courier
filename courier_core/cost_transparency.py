@@ -124,6 +124,8 @@ def derive_goal_cost_summary(
         ):
             provider = "unknown"
         cost_class = worker.get("cost_class")
+        if cost_class is None:
+            cost_class = step.get("cost_class")
         if provider == "unknown":
             cost_class = "unknown"
         elif isinstance(cost_class, bool) or (
