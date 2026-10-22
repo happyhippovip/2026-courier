@@ -188,6 +188,10 @@ class StatisticalQualityAnalyzer:
             risk_score += 100
             flags.append("NON_FINITE_REBALANCE")
             explanation_parts.append("Rebalance cost is not a finite number.")
+        elif rebalance < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_REBALANCE")
+            explanation_parts.append("Rebalance cost is negative.")
 
         ask = breakdown.best_ask_price
         if (
