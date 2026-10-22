@@ -24,7 +24,13 @@ def write_log(msg):
     with open(log_file, "a") as f:
         f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
 
+def _refuse_symlink(path: Path) -> None:
+    if path.is_symlink() or path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+
+
 def get_config():
+    _refuse_symlink(CONFIG_PATH)
     if CONFIG_PATH.exists():
         with open(CONFIG_PATH, "r") as f:
             config = json.load(f)
@@ -33,6 +39,7 @@ def get_config():
             "WORKER_ID": f"REVENUE-MAC-{uuid.uuid4().hex[:6].upper()}",
             "POLL_INTERVAL_SECONDS": 5
         }
+        _refuse_symlink(CONFIG_PATH)
         with open(CONFIG_PATH, "w") as f:
             json.dump(config, f, indent=2)
             
