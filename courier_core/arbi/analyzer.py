@@ -104,6 +104,10 @@ class StatisticalQualityAnalyzer:
             risk_score += 100
             flags.append("NON_FINITE_NET")
             explanation_parts.append("Net profit is not a finite number.")
+        elif net < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_NET")
+            explanation_parts.append("Net profit is negative.")
 
         roi = breakdown.net_roi_pct
         if (
