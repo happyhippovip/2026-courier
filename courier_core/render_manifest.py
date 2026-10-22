@@ -78,6 +78,8 @@ def create_manifest(
     extra_metadata: dict[str, Any] | None = None,
 ) -> RenderManifest:
     """Create a verified RenderManifest for a finished render directory."""
+    if isinstance(duration_seconds, bool) or isinstance(fps, bool) or isinstance(frame_count, bool):
+        raise ValueError("Bool is not a duration or a frame count")
     dir_path = Path(render_dir)
     if dir_path.is_symlink() or dir_path.parent.is_symlink():
         raise OSError(f"{dir_path}: refusing to follow a symlink")
@@ -183,6 +185,12 @@ def verify_manifest(manifest_path_or_dict: Path | str | dict[str, Any], render_d
     if _file_sha256(target_path) != data.get("target_sha256"):
         return False, "Target file sha256 mismatch"
 
+    if isinstance(data.get("target_size_bytes"), bool):
+        return False, "Target size is not a byte count"
+    if (isinstance(data.get("duration_seconds"), bool) or isinstance(data.get("fps"), bool)
+            or isinstance(data.get("frame_count"), bool)):
+        return False, "Bool is not a duration or a frame count"
+
     if target_path.stat().st_size != data.get("target_size_bytes"):
         return False, "Target file size mismatch"
 
@@ -196,6 +204,8 @@ def verify_manifest(manifest_path_or_dict: Path | str | dict[str, Any], render_d
         expected_size = art.get("size_bytes")
         if not rel or not expected_sha or expected_size is None:
             return False, f"Malformed artifact entry: {art}"
+        if isinstance(expected_size, bool):
+            return False, f"Artifact size is not a byte count: {rel}"
 
         art_file = dir_path / rel
         if not art_file.is_file():

@@ -176,3 +176,44 @@ def test_create_manifest_refuses_a_symlinked_manifest(tmp_path):
     else:
         raise AssertionError(outside.read_text(encoding="utf-8"))
     assert outside.read_text(encoding="utf-8") == "keep"
+
+
+def test_bool_duration_is_not_recorded_as_one_second(tmp_path):
+    render_dir = tmp_path / "render_bool"
+    render_dir.mkdir()
+    (render_dir / "render.mp4").write_bytes(b"VIDEO")
+    with pytest.raises(ValueError, match="Bool"):
+        got = create_manifest(render_dir, duration_seconds=True, fps=30)
+        raise AssertionError(
+            f"recorded duration {got.duration_seconds} frames {got.frame_count}"
+        )
+    assert not (render_dir / "manifest.json").exists()
+    with pytest.raises(ValueError, match="Bool"):
+        create_manifest(render_dir, duration_seconds=1.0, fps=True)
+    with pytest.raises(ValueError, match="Bool"):
+        create_manifest(render_dir, duration_seconds=1.0, fps=30, frame_count=True)
+    assert not (render_dir / "manifest.json").exists()
+
+
+def test_bool_size_does_not_verify_as_one_byte(tmp_path):
+    render_dir = tmp_path / "render_size"
+    render_dir.mkdir()
+    (render_dir / "render.mp4").write_bytes(b"X")
+    manifest = create_manifest(render_dir, duration_seconds=1.0, fps=30)
+    data = json.loads((render_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest.target_size_bytes == 1
+    data["target_size_bytes"] = True
+    valid, reason = verify_manifest(data, render_dir=render_dir)
+    assert valid is False, (valid, reason)
+
+    fresh = json.loads((render_dir / "manifest.json").read_text(encoding="utf-8"))
+    for art in fresh["artifacts"]:
+        if art["path"] == "render.mp4":
+            art["size_bytes"] = True
+    valid, reason = verify_manifest(fresh, render_dir=render_dir)
+    assert valid is False, (valid, reason)
+
+    measured = json.loads((render_dir / "manifest.json").read_text(encoding="utf-8"))
+    measured["duration_seconds"] = True
+    valid, reason = verify_manifest(measured, render_dir=render_dir)
+    assert valid is False, (valid, reason)
