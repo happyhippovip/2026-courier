@@ -54,6 +54,14 @@ class NetProfitBreakdown:
     reason: str
 
 
+def _reject_bool_fee(sched: ExchangeFeeSchedule) -> None:
+    if any(
+        isinstance(value, bool)
+        for value in (sched.maker_fee_pct, sched.taker_fee_pct, sched.withdrawal_fee_usd)
+    ):
+        raise ValueError("Bool is not a number.")
+
+
 def _reject_bool_book(book: Optional[OrderbookSnapshot]) -> None:
     if book is None:
         return
@@ -155,6 +163,8 @@ class NetProfitEngine:
         # Fees
         b_fees = buy_fee_sched or DEFAULT_FEE_SCHEDULES.get(buy_book.exchange, ExchangeFeeSchedule(buy_book.exchange, 0.1, 0.1))
         s_fees = sell_fee_sched or DEFAULT_FEE_SCHEDULES.get(sell_book.exchange, ExchangeFeeSchedule(sell_book.exchange, 0.1, 0.1))
+        _reject_bool_fee(b_fees)
+        _reject_bool_fee(s_fees)
 
         buy_fee_usd = order_size_usd * (b_fees.taker_fee_pct / 100.0)
         sell_fee_usd = order_size_usd * (s_fees.taker_fee_pct / 100.0)

@@ -127,6 +127,34 @@ def test_bool_quote_is_not_one_dollar():
     assert seen == ("raised", "Bool is not a number."), seen
 
 
+def test_bool_fee_is_not_one_percent():
+    pair = NormalizedPair("BTC", "USDT")
+    buy = _mock_book("binance", pair, best_bid=64950.0, best_ask=65000.0, depth=10.0)
+    sell = _mock_book("bybit", pair, best_bid=65500.0, best_ask=65550.0, depth=10.0)
+    seen = []
+    schedules = (
+        ("taker", ExchangeFeeSchedule("binance", 0.1, True)),
+        ("maker", ExchangeFeeSchedule("binance", True, 0.1)),
+        ("withdraw", ExchangeFeeSchedule("binance", 0.1, 0.1, withdrawal_fee_usd=True)),
+        ("zero", ExchangeFeeSchedule("binance", 0.1, False)),
+    )
+    for name, sched in schedules:
+        try:
+            breakdown = NetProfitEngine.evaluate_opportunity(
+                pair, buy, sell, order_size_usd=100.0, buy_fee_sched=sched, include_transfer=(name == "withdraw"),
+            )
+        except ValueError as exc:
+            seen.append((name, "raised", str(exc)))
+        else:
+            seen.append((name, "accepted", breakdown.buy_fee_usd, breakdown.transfer_cost_usd, breakdown.status))
+    assert seen == [
+        ("taker", "raised", "Bool is not a number."),
+        ("maker", "raised", "Bool is not a number."),
+        ("withdraw", "raised", "Bool is not a number."),
+        ("zero", "raised", "Bool is not a number."),
+    ], seen
+
+
 def test_net_profit_blocks_when_fees_exceed_spread():
     # Binance ask: 65,000 | OKX bid: 65,050
     # Gross spread = 50 USD on 65,000 = ~0.0769%
