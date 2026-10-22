@@ -335,3 +335,20 @@ def test_gemini_worker_timeout_kills_process_tree(tmp_path, monkeypatch):
     assert res_data["reason"] == "TIMEOUT"
 
 
+
+
+def test_gemini_worker_unknown_cost_marker_beats_a_zero_estimate(tmp_path):
+    """An explicit UNKNOWN_COST marker blocks even when a 0.0 estimate is present."""
+    cases = (
+        {"task_id": "gemini-unknown-flag", "instruction": "echo test", "estimated_cost_eur": 0.0, "unknown_cost": True},
+        {"task_id": "gemini-unknown-class", "instruction": "echo test", "estimated_cost_eur": 0.0, "cost_class": "unknown"},
+    )
+    for payload in cases:
+        task = tmp_path / f"{payload['task_id']}.json"
+        task.write_text(json.dumps(payload))
+        with mock.patch("subprocess.Popen") as popen:
+            res = gemini_worker_adapter.run_worker(str(task))
+        popen.assert_not_called()
+        assert res["status"] == "FAILED"
+        assert res["blocked"] is True
+        assert res["reason"] == "COST_GATE_DENIED: UNKNOWN_COST"

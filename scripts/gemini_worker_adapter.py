@@ -99,9 +99,12 @@ def run_worker(task_path, negative_test=False, state_file="central_state.json"):
     from scripts.resource_policy import CostGate
     # Missing cost is not free. CostGate admits only an explicit finite 0.0;
     # a default of 0.0 here would hide UNKNOWN_COST and start agy anyway.
+    estimated = task.get("estimated_cost_eur")
+    if task.get("unknown_cost") is True or task.get("cost_class") == "unknown":
+        estimated = None
     cost_res = CostGate.evaluate_spend_request(
         "google_antigravity_plus",
-        estimated_cost_eur=task.get("estimated_cost_eur"),
+        estimated_cost_eur=estimated,
         requested_action=task.get("requested_action", "EXECUTE_TASK"),
     )
     if not cost_res.get("allowed"):
