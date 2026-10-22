@@ -125,6 +125,18 @@ def test_output_dir_does_not_follow_a_symlink(tmp_path, valid_command):
         "WORKER_JOB_BUILDER_ERROR: refusing to follow a symlink",
     ] and leaked == ["keep.txt"] and linked.is_symlink(), (errors, leaked, linked.is_symlink())
 
+def test_bool_max_iterations_is_not_one(valid_command):
+    command = json.loads(json.dumps(valid_command))
+    command["max_iterations"] = True
+    command_ok, command_reason = build_antigravity_worker_job.validate_command_for_job(command)
+    job = _valid_job()
+    job["max_iterations"] = True
+    job_ok, job_reason = build_antigravity_worker_job.validate_worker_job_against_schema(job, None)
+    numeric_ok, numeric_reason = build_antigravity_worker_job.validate_command_for_job(valid_command)
+    assert command_ok is False and job_ok is False and numeric_ok is True, (
+        command_ok, command_reason, job_ok, job_reason, numeric_ok, numeric_reason,
+    )
+
 @mock.patch("scripts.build_antigravity_worker_job.build_worker_job")
 def test_main_cli(mock_build, tmp_path, capsys):
     cmd_file = tmp_path / "cmd.json"

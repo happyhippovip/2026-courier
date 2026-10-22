@@ -138,7 +138,8 @@ def validate_worker_job_against_schema(job_data: dict, schema_path: Path | None 
     if job_data.get("human_gate_policy") != "STOP_ON_HUMAN_GATE_ONLY":
         return False, f"Invalid human_gate_policy: {job_data.get('human_gate_policy')} (strictly 'STOP_ON_HUMAN_GATE_ONLY' required)"
 
-    if job_data.get("max_iterations") != 1:
+    iterations = job_data.get("max_iterations")
+    if isinstance(iterations, bool) or iterations != 1:
         return False, f"Invalid max_iterations: {job_data.get('max_iterations')} (strictly 1 required)"
 
     if job_data.get("expected_output") != "ANTIGRAVITY_RESULT":
@@ -180,7 +181,8 @@ def validate_command_for_job(cmd_data: dict) -> tuple[bool, str]:
     if cmd_data.get("source") != "chief" or cmd_data.get("destination") != "antigravity":
         return False, f"Invalid route: {cmd_data.get('source')} -> {cmd_data.get('destination')}"
 
-    if cmd_data.get("max_iterations") != 1:
+    iterations = cmd_data.get("max_iterations")
+    if isinstance(iterations, bool) or iterations != 1:
         return False, f"max_iterations must be 1, got {cmd_data.get('max_iterations')}"
 
     payload = cmd_data.get("payload")
