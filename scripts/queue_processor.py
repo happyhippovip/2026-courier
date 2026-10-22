@@ -70,7 +70,13 @@ def _record_failure(intake_file, error):
     """Count one failed attempt; quarantine at the bound. Returns attempts."""
     counts = _load_counts()
     key = os.path.basename(intake_file)
-    attempts = int(counts.get(key, 0) or 0) + 1
+    raw = counts.get(key, 0)
+    # Bool is an int. True would become one prior failure and the poison
+    # intake would keep being retried. An undecidable count is parked now.
+    if isinstance(raw, bool) or not isinstance(raw, int) or raw < 0:
+        attempts = POISON_QUARANTINE_AFTER
+    else:
+        attempts = raw + 1
     if attempts >= POISON_QUARANTINE_AFTER:
         try:
             os.makedirs("intakes/quarantine", exist_ok=True)

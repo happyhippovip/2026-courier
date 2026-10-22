@@ -75,3 +75,27 @@ def test_success_clears_failure_count(tmp_path, monkeypatch):
     qp.process_queue()
     assert (tmp_path / "intakes" / "processed" / "flaky.json").exists()
     assert "flaky.json" not in qp._load_counts()
+
+
+def test_bool_failure_count_is_not_one_attempt(tmp_path, monkeypatch):
+    """True is not one failure. An undecidable count must not become attempt 2."""
+    qp = load_qp(monkeypatch, tmp_path)
+
+    def boom(path):
+        raise ValueError("boom")
+
+    monkeypatch.setattr(qp, "dispatch_intake", boom)
+    pending = tmp_path / "intakes" / "pending"
+    pending.mkdir(parents=True)
+    (pending / "poison.json").write_text("{not json")
+    (tmp_path / "intakes" / ".failure_counts.json").write_text(
+        json.dumps({"poison.json": True}), encoding="utf-8")
+    qp.process_queue()
+    parked = tmp_path / "intakes" / "quarantine" / "poison.json"
+    assert parked.exists(), qp._load_counts()
+    assert not (pending / "poison.json").exists()
+    (pending / "other.json").write_text("{not json")
+    (tmp_path / "intakes" / ".failure_counts.json").write_text(
+        json.dumps({"other.json": False}), encoding="utf-8")
+    qp.process_queue()
+    assert (tmp_path / "intakes" / "quarantine" / "other.json").exists()
