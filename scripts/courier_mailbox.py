@@ -54,11 +54,23 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
         lines = inbox_path.read_text(encoding="utf-8").splitlines()
         tasks = []
         for line in lines:
-            if line.strip():
-                try:
-                    tasks.append(json.loads(line))
-                except Exception:
-                    pass
+            if not line.strip():
+                continue
+            try:
+                parsed = json.loads(line)
+            except ValueError:
+                parsed = None
+            if not isinstance(parsed, dict):
+                # An unreadable line is not "no task". Rewriting the inbox
+                # would delete it, and executing the readable neighbours
+                # would hide the gap.
+                print(
+                    f"[MAILBOX] Unreadable inbox line in {inbox_path.name}; "
+                    "refusing to process or rewrite.",
+                    file=sys.stderr,
+                )
+                return []
+            tasks.append(parsed)
 
         executed = []
         updated_lines = []
