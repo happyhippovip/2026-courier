@@ -215,6 +215,14 @@ class PaperTradingEngine:
         self.virtual_balances[sell_ex]["USDT"] += (effective_size + net_pnl)
 
         roi = (net_pnl / effective_size) * 100.0 if effective_size > 0 else 0.0
+        movement_usd = (
+            breakdown.transfer_cost_usd * scale
+            + breakdown.rebalance_cost_usd * scale
+        )
+        if status == "SECOND_LEG_FAILED":
+            recorded_fees = breakdown.buy_fee_usd * scale + movement_usd
+        else:
+            recorded_fees = fees_usd + movement_usd
 
         record = SimulatedTradeRecord(
             trade_id=t_id,
@@ -224,12 +232,7 @@ class PaperTradingEngine:
             sell_exchange=sell_ex,
             order_size_usd=round(effective_size, 2),
             gross_spread_usd=round(0.0 if status == "SECOND_LEG_FAILED" else gross_usd, 4),
-            fees_usd=round(
-                fees_usd
-                + breakdown.transfer_cost_usd * scale
-                + breakdown.rebalance_cost_usd * scale,
-                4,
-            ),
+            fees_usd=round(recorded_fees, 4),
             slippage_usd=round(0.0 if status == "SECOND_LEG_FAILED" else slip_usd, 4),
             net_pnl_usd=round(net_pnl, 4),
             roi_pct=round(roi, 4),
