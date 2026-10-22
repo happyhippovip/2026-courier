@@ -59,6 +59,27 @@ def test_size_limit_is_enforced(tmp_path):
         store(tmp_path, limit=3).put(b"four", name="a.txt", binding=BINDING)
 
 
+def test_bool_max_bytes_is_not_one_byte(tmp_path):
+    """True is not a one-byte limit."""
+    with pytest.raises(ArtifactError, match="Bool"):
+        library = ArtifactStore(tmp_path / "limit", max_bytes=True)
+        library.put(b"X", name="a.txt", binding=BINDING)
+    with pytest.raises(ArtifactError, match="Bool"):
+        ArtifactStore(tmp_path / "limit-false", max_bytes=False)
+    assert list(tmp_path.rglob("*")) == []
+
+
+def test_bool_claimed_size_is_not_one_byte(tmp_path):
+    """True is not a claimed size of one byte."""
+    library = store(tmp_path)
+    with pytest.raises(ArtifactError, match="Bool"):
+        record = library.put(b"X", name="a.txt", binding=BINDING, claimed_size=True)
+        raise AssertionError(record["size"])
+    assert list((tmp_path / "store").rglob("*")) == []
+    with pytest.raises(ArtifactError, match="Bool"):
+        library.put(b"", name="empty.txt", binding=BINDING, claimed_size=False)
+
+
 @pytest.mark.parametrize("name", ["/etc/passwd", "../x", "a/../../x", "C:\\x", "C:x", "\\\\srv\\share\\x",
                                   "..\\x", "", "a\x00b"])
 def test_unsafe_names_rejected(tmp_path, name):

@@ -66,8 +66,10 @@ def _atomic_write(path: Path, data: bytes) -> None:
 
 class ArtifactStore:
     def __init__(self, root, max_bytes: int = DEFAULT_MAX_BYTES):
+        if isinstance(max_bytes, bool) or not isinstance(max_bytes, int) or max_bytes < 1:
+            raise ArtifactError("max_bytes is not a byte count. Bool is not a number.")
         self.root = Path(root)
-        self.max_bytes = int(max_bytes)
+        self.max_bytes = max_bytes
 
     @classmethod
     def from_env(cls):
@@ -94,8 +96,11 @@ class ArtifactStore:
         sha256 = hashlib.sha256(data).hexdigest()
         if claimed_sha256 is not None and claimed_sha256 != sha256:
             raise ArtifactError("uploaded bytes do not match the claimed sha256")
-        if claimed_size is not None and claimed_size != len(data):
-            raise ArtifactError("uploaded bytes do not match the claimed size")
+        if claimed_size is not None:
+            if isinstance(claimed_size, bool) or not isinstance(claimed_size, int) or claimed_size < 0:
+                raise ArtifactError("claimed size is not a byte count. Bool is not a number.")
+            if claimed_size != len(data):
+                raise ArtifactError("uploaded bytes do not match the claimed size")
 
         blob = self._blob_path(sha256)
         if blob.exists():
