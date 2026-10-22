@@ -146,6 +146,10 @@ class StatisticalQualityAnalyzer:
             risk_score += 100
             flags.append("NON_FINITE_COST")
             explanation_parts.append("Total cost is not a finite number.")
+        elif cost < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_COST")
+            explanation_parts.append("Total cost is negative.")
 
         spread_pct = breakdown.gross_spread_pct
         if (
