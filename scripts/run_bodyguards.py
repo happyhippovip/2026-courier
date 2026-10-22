@@ -75,6 +75,7 @@ def iso_now() -> str:
 
 
 def load_json(path: Path) -> dict[str, Any]:
+    _refuse_symlink(path)
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
