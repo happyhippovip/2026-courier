@@ -40,7 +40,10 @@ class HostPressureController:
             return False
 
         current_pressure = self.measure_pressure()
-        
+
+        if current_pressure == "UNKNOWN":
+            return False
+
         if current_pressure == "RED":
             self.trigger_quiesce()
             return False

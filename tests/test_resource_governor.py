@@ -51,6 +51,14 @@ def test_trigger_quiesce():
     # Check that jobs are rejected during recovery
     assert not controller.admit_job("LIGHT")
 
+def test_unknown_pressure_does_not_admit():
+    controller = HostPressureController()
+    with patch("os.getloadavg", side_effect=OSError("probe failed"), create=True):
+        assert controller.measure_pressure() == "UNKNOWN"
+        assert controller.admit_job("LIGHT") is False
+        assert controller.state != "RECOVERY"
+
+
 def test_admit_job_red():
     controller = HostPressureController()
     with patch.object(controller, "measure_pressure", return_value="RED"):
