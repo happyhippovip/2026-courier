@@ -132,3 +132,65 @@ def test_register_channel_bad_workflow_json(tmp_path):
         workflows_path=workflows_path
     )
     assert result["workflow_id"] == "fruitki-youtube"
+
+
+def test_config_does_not_follow_a_symlink(tmp_path):
+    workflows = tmp_path / "workflows.json"
+    workflows.write_text(json.dumps({"workflows": [{"workflow_id": "fruitki-youtube"}]}), encoding="utf-8")
+    kept = '{"channels":[],"marker":"keep"}\n'
+
+    def library(config):
+        try:
+            rsc.register_channel(
+                platform="YOUTUBE",
+                channel_label="Fruit Channel",
+                content_project="FruitKI",
+                config_path=config,
+                workflows_path=workflows,
+            )
+            return None
+        except SystemExit as exc:
+            return str(exc)
+
+    def cli(config):
+        argv = [
+            "prog", "--platform", "YOUTUBE", "--label", "Fruit Channel",
+            "--project", "FruitKI", "--config", str(config),
+            "--workflows-config", str(workflows),
+        ]
+        with patch("sys.argv", argv):
+            try:
+                rsc.main()
+                return None
+            except SystemExit as exc:
+                return str(exc)
+
+    outside = tmp_path / "outside-channels.json"
+    outside.write_text(kept, encoding="utf-8")
+    linked = tmp_path / "linked-channels.json"
+    linked.symlink_to(outside)
+    parent_real = tmp_path / "parent-real"
+    parent_real.mkdir()
+    nested = parent_real / "channels.json"
+    nested.write_text(kept, encoding="utf-8")
+    parent_link = tmp_path / "parent-link"
+    parent_link.symlink_to(parent_real)
+    plain = tmp_path / "plain-channels.json"
+
+    err_lib = library(linked)
+    err_cli = cli(linked)
+    err_parent = library(parent_link / "channels.json")
+    err_plain = library(plain)
+    plain_body = plain.read_text(encoding="utf-8") if plain.exists() else ""
+    refused = "CHANNEL_REGISTRATION_ERROR: refusing to follow a symlink"
+    assert (
+        err_lib == refused and outside.read_text(encoding="utf-8") == kept
+        and err_cli == refused and outside.read_text(encoding="utf-8") == kept
+        and err_parent == refused and nested.read_text(encoding="utf-8") == kept
+        and err_plain is None and "chan-yt-fruit-channel" in plain_body
+        and linked.is_symlink() and parent_link.is_symlink()
+    ), (
+        err_lib, outside.read_text(encoding="utf-8"),
+        err_cli, err_parent, nested.read_text(encoding="utf-8"),
+        err_plain, plain_body,
+    )
