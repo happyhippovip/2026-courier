@@ -96,6 +96,8 @@ class L2OrderbookBookkeeper:
             raise ValueError("sequence is out of range.")
         if self._accepted_sequence and sequence <= self.last_sequence:
             raise ValueError("sequence is stale.")
+        if self._accepted_sequence and sequence != self.last_sequence + 1:
+            raise ValueError("sequence is gapped.")
 
         self._apply_levels(self.bids, event.bids_updated)
         self._apply_levels(self.asks, event.asks_updated)
