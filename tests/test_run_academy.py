@@ -802,6 +802,26 @@ def test_director_approve_adoption(mock_adoptions_dir, mock_evals_dir, mock_less
     assert dir.economics["measured_minutes_saved"] == 5.0
     dir.steward.refresh_snapshot_after_event.assert_called_once()
     
+def test_bool_context_version_is_not_a_number(academy_env, monkeypatch):
+    repo_dir, memory_dir = academy_env
+    deliveries = repo_dir / "events" / "academy" / "deliveries"
+    monkeypatch.setattr("scripts.run_academy.DELIVERIES_DIR", deliveries)
+    director = AcademyDirector(repo_dir=repo_dir, memory_dir=memory_dir)
+
+    def run(version):
+        try:
+            ack = director.record_worker_acknowledgement("agent-1", "lesson-1", version)
+        except ValueError as exc:
+            return ("err", str(exc))
+        return ("ok", ack["lesson_version_seen"])
+
+    assert (run(True), run(False), run(2)) == (
+        ("err", "Bool is not a number."),
+        ("err", "Bool is not a number."),
+        ("ok", 2),
+    )
+
+
 def test_ack_ids_do_not_escape_the_deliveries_dir(academy_env, monkeypatch):
     repo_dir, memory_dir = academy_env
     deliveries = repo_dir / "events" / "academy" / "deliveries"
