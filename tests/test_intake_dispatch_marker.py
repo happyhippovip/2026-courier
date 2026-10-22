@@ -162,6 +162,31 @@ def test_stale_marker_redispatches_exactly_once(tmp_path, monkeypatch):
     assert record["admission"] == "ADMITTED"
 
 
+def test_marker_without_dispatched_at_does_not_redispatch(tmp_path, monkeypatch):
+    intake = _write_intake(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    for marker in (
+        {"task_id": _task_id(), "admission": "DISPATCHING"},
+        {
+            "task_id": _task_id(),
+            "admission": "DISPATCHING",
+            "dispatched_at": True,
+        },
+    ):
+        (tmp_path / "central_state.json").write_text(
+            json.dumps({"tasks": {_task_id(): marker}})
+        )
+        workflow_calls = []
+        _mocked_gh(monkeypatch, [], workflow_calls)
+        with pytest.raises(SystemExit):
+            intake_dispatcher.dispatch_intake(str(intake))
+        assert workflow_calls == []
+        with open(tmp_path / "central_state.json") as f:
+            record = json.load(f)["tasks"][_task_id()]
+        assert record["admission"] == "DISPATCHING"
+        assert record.get("dispatched_at") == marker.get("dispatched_at")
+
+
 def test_admitted_returns_without_subprocess(tmp_path, monkeypatch):
     intake = _write_intake(tmp_path)
     monkeypatch.chdir(tmp_path)
