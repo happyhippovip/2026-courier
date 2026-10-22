@@ -380,6 +380,14 @@ class SupervisorLock:
         self.close()
 
 
+def _release_supervisor_handle(handle):
+    try:
+        fcntl.flock(handle, fcntl.LOCK_UN)
+        handle.close()
+    except Exception:
+        pass
+
+
 def acquire_lock():
     WALL_DIR.mkdir(parents=True, exist_ok=True)
     try:
@@ -388,22 +396,29 @@ def acquire_lock():
     except OSError:
         return None
 
-    # Acquire canonical writer lease in authority.db
+    # A missing authority store is not "no lease required". The file lock alone
+    # must not let this supervisor run.
     store = get_authority_store()
-    lease = None
-    if store is not None:
-        try:
-            from courier_runtime.lease import format_session_holder
-            import psutil
-            holder = format_session_holder("mac_supervisor", os.getpid(), psutil.Process(os.getpid()).create_time(), str(uuid.uuid4()))
-            lease = store.acquire("supervisor:mac_wall", holder, "supervise", ttl_s=3600)
-        except Exception:
-            try:
-                fcntl.flock(handle, fcntl.LOCK_UN)
-                handle.close()
-            except Exception:
-                pass
-            return None
+    if store is None:
+        _release_supervisor_handle(handle)
+        raise RuntimeError(
+            "authority lease store unavailable; refusing to run without a writer lease"
+        )
+    try:
+        from courier_runtime.lease import LeaseConflict, format_session_holder
+        import psutil
+    except Exception:
+        _release_supervisor_handle(handle)
+        raise
+    try:
+        holder = format_session_holder("mac_supervisor", os.getpid(), psutil.Process(os.getpid()).create_time(), str(uuid.uuid4()))
+        lease = store.acquire("supervisor:mac_wall", holder, "supervise", ttl_s=3600)
+    except LeaseConflict:
+        _release_supervisor_handle(handle)
+        return None
+    except Exception:
+        _release_supervisor_handle(handle)
+        raise
     return SupervisorLock(handle, lease, store)
 
 
