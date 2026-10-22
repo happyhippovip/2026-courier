@@ -133,6 +133,8 @@ class PaperTradingEngine:
             raise ValueError("fail rate is out of range.")
         if not isinstance(simulated_latency_ms, (int, float)) or not math.isfinite(simulated_latency_ms):
             raise ValueError("latency is not a number.")
+        if simulated_latency_ms < 0:
+            raise ValueError("latency is out of range.")
         self._trade_counter += 1
         t_id = f"sim-trade-{self._trade_counter:04d}"
 
