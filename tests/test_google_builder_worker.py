@@ -75,6 +75,21 @@ def test_stale_lock_stealing(tmp_path):
     release_packet_lock(packet_id, lock_dir=lock_dir)
 
 
+def test_lock_without_numeric_start_is_not_stolen(tmp_path):
+    packet_id = "test-packet-untyped"
+    lock_dir = tmp_path / "locks"
+    lpath = lock_path(packet_id, lock_dir=lock_dir)
+    lpath.parent.mkdir(parents=True, exist_ok=True)
+    for body in (
+        {"pid": 999999, "packet_id": packet_id, "worker_id": "other-worker"},
+        {"pid": 999999, "packet_id": packet_id, "started_at": True, "worker_id": "other-worker"},
+    ):
+        original = json.dumps(body)
+        lpath.write_text(original, encoding="utf-8")
+        assert acquire_packet_lock(packet_id, lock_dir=lock_dir, timeout_seconds=300) is False
+        assert lpath.read_text(encoding="utf-8") == original
+
+
 CALM_HOST = lambda: {"memory_percent": 40.0, "swap_percent": 10.0}  # noqa: E731
 
 
