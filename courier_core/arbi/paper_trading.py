@@ -195,7 +195,8 @@ class PaperTradingEngine:
         if second_leg_fail_rate > 0.0 and (self._trade_counter % int(1.0 / second_leg_fail_rate) == 0):
             # Second leg failed! Position stuck on buy venue, unhedged liquidation penalty (-1.5%)
             liquidation_penalty_usd = effective_size * 0.015
-            net_pnl = -(breakdown.buy_fee_usd * scale + liquidation_penalty_usd)
+            transfer_usd = breakdown.transfer_cost_usd * scale
+            net_pnl = -(breakdown.buy_fee_usd * scale + liquidation_penalty_usd + transfer_usd)
             status = "SECOND_LEG_FAILED"
         else:
             transfer_usd = breakdown.transfer_cost_usd * scale
