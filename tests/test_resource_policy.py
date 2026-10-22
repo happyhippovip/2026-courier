@@ -94,6 +94,19 @@ def test_task_lease_manager_authority_db_conflict_rejected(repo_dir):
     assert not (repo_dir / "events" / "locks" / "task_conflict_task.lease").exists()
 
 
+def test_task_lease_manager_authority_error_fails_closed(repo_dir, monkeypatch):
+    def _boom(*_args, **_kwargs):
+        raise RuntimeError("authority.db unreadable")
+
+    monkeypatch.setattr("courier_runtime.lease.LeaseStore.acquire", _boom)
+    tlm = TaskLeaseManager(repo_dir)
+    success, reason, data = tlm.acquire_lease("repro-task", "hash", "owner", duration_sec=30)
+    assert success is False
+    assert reason == "TASK_ALREADY_CLAIMED_BY_ANOTHER_BUILDER"
+    assert not (repo_dir / "events" / "locks" / "task_repro-task.lease").exists()
+    assert "fencing_token" not in data
+
+
 def test_file_manifest_tracker(repo_dir):
     test_file = repo_dir / "test.txt"
     test_file.write_text("hello world")

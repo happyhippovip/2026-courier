@@ -231,10 +231,14 @@ class TaskLeaseManager:
 
             if expires_at > now_ts:
                 if current_owner == owner_id and existing.get("task_hash") == task_hash:
-                    # Renew lease atomically (only for the same input)
+                    # Renew lease atomically (only for the same input).
+                    # Roll the file back if the authority database refuses the renew.
+                    previous_expires = existing.get("expires_at")
                     existing["expires_at"] = now_ts + duration_sec
                     save_json(lease_path, existing)
                     if not self._sync_authority_acquire(task_id, task_hash, owner_id, duration_sec, existing):
+                        existing["expires_at"] = previous_expires
+                        save_json(lease_path, existing)
                         return False, "TASK_ALREADY_CLAIMED_BY_ANOTHER_BUILDER", {"reason": "AUTHORITY_DB_LEASE_CONFLICT"}
                     return True, "LEASE_RENEWED", existing
                 else:
@@ -316,7 +320,7 @@ class TaskLeaseManager:
             finally:
                 store.close()
         except Exception:
-            return True
+            return False
 
     def _sync_authority_release(self, task_id: str, owner_id: str) -> None:
         try:
