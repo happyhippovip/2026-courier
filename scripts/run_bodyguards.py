@@ -267,7 +267,7 @@ class BodyguardPoolManager:
             raise ValueError("Bool is not a number.")
         if not isinstance(progress, (int, float)) or not math.isfinite(progress):
             raise ValueError("progress is not a number.")
-        if progress < 0:
+        if progress < 0 or progress > 1:
             raise ValueError("progress is out of range.")
         for bg in BODYGUARD_REGISTRY:
             if bg["callsign"] == callsign.upper():
