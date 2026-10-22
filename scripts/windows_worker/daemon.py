@@ -39,8 +39,14 @@ LOG_DIR.mkdir(exist_ok=True)
 
 
 def read_controller_token():
-    """The installer writes the key here. It does not belong in config.json."""
+    """The installer writes the key here. It does not belong in config.json.
+
+    A symlink is not a local token. Returning it would adopt whatever file
+    the link names. An unreadable path stays an empty credential.
+    """
     path = APP_DATA_DIR / "run" / "controller.token"
+    if path.is_symlink() or path.parent.is_symlink():
+        return ""
     try:
         return path.read_text(encoding="utf-8").strip()
     except OSError:
