@@ -173,6 +173,49 @@ def test_main_loop_subprocess_fail(clean_env, monkeypatch):
     with pytest.raises(StopLoop):
         revenue_worker_adapter.main()
 
+def test_task_id_does_not_escape_the_state_dir(clean_env, monkeypatch, tmp_path):
+    c = {
+        "COURIER_SERVER": "x",
+        "COURIER_API_KEY": "y",
+        "WORKER_ID": "W1",
+        "POLL_INTERVAL_SECONDS": 1,
+    }
+    revenue_worker_adapter.CONFIG_PATH.write_text(json.dumps(c))
+    seen = []
+
+    def mock_http_post(config, endpoint, data=None):
+        if endpoint == "/tasks/claim":
+            return {"task_id": "../SECRET-TASK", "marker": "SECRET-TASK-BODY"}
+        return {}
+
+    monkeypatch.setattr(revenue_worker_adapter, "http_post", mock_http_post)
+
+    def mock_check_output(cmd, **kwargs):
+        if "revenue_v1_safety_baseline.py" in str(cmd):
+            seen.append(Path(cmd[-2]).read_text(encoding="utf-8"))
+            return b'{"ok": true}'
+        raise Exception("no keychain")
+
+    monkeypatch.setattr(subprocess, "check_output", mock_check_output)
+
+    def mock_sleep(s):
+        raise StopLoop()
+
+    monkeypatch.setattr(time, "sleep", mock_sleep)
+    try:
+        revenue_worker_adapter.main()
+        err = None
+    except (SystemExit, StopLoop) as exc:
+        err = str(exc)
+    outside = tmp_path / "SECRET-TASK" / "task.json"
+    body = outside.read_text(encoding="utf-8") if outside.exists() else ""
+    assert (err, "SECRET-TASK-BODY" in body, seen) == (
+        "refusing an unsafe task id",
+        False,
+        [],
+    )
+
+
 def test_main_loop_generic_error(clean_env, monkeypatch):
     c = {"COURIER_SERVER": "x", "COURIER_API_KEY": "y", "WORKER_ID": "W1", "POLL_INTERVAL_SECONDS": 1}
     revenue_worker_adapter.CONFIG_PATH.write_text(json.dumps(c))

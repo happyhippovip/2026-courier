@@ -107,6 +107,14 @@ def main():
                 task = claim_resp
                 task_id = task["task_id"]
                 attempt_id = task.get("attempt_id", task_id)
+                if (
+                    not isinstance(task_id, str)
+                    or task_id in ("", ".", "..")
+                    or "/" in task_id
+                    or "\\" in task_id
+                    or ".." in Path(task_id).parts
+                ):
+                    raise SystemExit("refusing an unsafe task id")
                 write_log(f"Claimed task {task_id}")
                 
                 work_dir = STATE_DIR / task_id
