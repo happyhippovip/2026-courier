@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 from courier_core.arbi.models import NormalizedPair, OrderbookLevel, OrderbookSnapshot
+from courier_core.arbi.scanner import MultiExchangeScanner
 from courier_core.arbi.service import ArbitrageResearchPipeline
 
 
@@ -45,3 +46,60 @@ def test_arbitrage_pipeline_cycle_execution(tmp_path: Path):
     assert saved["title"] == result["title"]
     assert saved["simulation"]["best_simulated_strategy"] == "Cross-Exchange Spot (Binance ↔ Kraken)"
     assert saved["simulation"]["status"] == "SIMULATED (NO REAL TRADES)"
+
+
+def test_empty_cycle_does_not_invent_simulation_numbers(tmp_path: Path, monkeypatch):
+    calls = []
+
+    def scan(cls, pair):
+        calls.append(pair.canonical)
+        return {"binance": None, "kraken": None}
+
+    monkeypatch.setattr(MultiExchangeScanner, "scan_pair_all_venues", classmethod(scan))
+    pipeline = ArbitrageResearchPipeline(root=tmp_path, persist=False)
+    empty = pipeline.run_cycle(pairs=[])
+
+    pair = NormalizedPair("BTC", "EUR")
+    flat = {
+        "BTC/EUR": {
+            "binance": _mock_snapshot("binance", pair, 100.0, 100.0),
+            "kraken": _mock_snapshot("kraken", pair, 100.0, 100.0),
+        }
+    }
+    measured = pipeline.run_cycle(pairs=[pair], books_provider=flat)
+    standby = pipeline.run_cycle(
+        pairs=[pair],
+        books_provider={"BTC/EUR": {"binance": None, "kraken": None}},
+    )
+    empty_sim = empty["simulation"]
+    measured_sim = measured["simulation"]
+    assert (
+        calls == []
+        and empty["pairs_monitored"] == []
+        and empty_sim["net_simulated_profit_eur"] == 0.0
+        and empty_sim["simulated_loss_eur"] == 0.0
+        and empty_sim["net_roi_pct"] == 0.0
+        and empty_sim["gross_opportunity_eur"] == 0.0
+        and empty_sim["estimated_fees_eur"] == 0.0
+        and empty_sim["estimated_slippage_eur"] == 0.0
+        and empty_sim["opportunities_detected"] == 0
+        and empty_sim["opportunities_executable"] == 0
+        and empty_sim["simulation_runs"] == 0
+        and empty_sim["success_rate_pct"] == 0.0
+        and empty["verified_actual_revenue"]["amount_eur"] == 0.0
+        and measured_sim["net_simulated_profit_eur"] == 0.0
+        and measured_sim["simulated_loss_eur"] == 0.0
+        and measured_sim["opportunities_executable"] == 0
+        and measured_sim["simulation_runs"] == 0
+        and measured_sim["success_rate_pct"] == 0.0
+        and measured_sim["opportunities_detected"] == 2
+        and standby["pairs_monitored"] == [
+            {"pair": "BTC/EUR", "venues": [], "spread_bps": 0.0, "status": "standby"}
+        ]
+    ), {
+        "calls": calls,
+        "empty": empty_sim,
+        "empty_pairs": empty["pairs_monitored"],
+        "measured": measured_sim,
+        "standby": standby["pairs_monitored"],
+    }
