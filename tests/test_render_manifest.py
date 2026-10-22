@@ -117,6 +117,59 @@ def test_verify_manifest_detects_tampered_artifact(tmp_path):
     assert "Artifact sha256 mismatch" in reason
 
 
+def test_verify_manifest_rejects_stale_digest(tmp_path):
+    render_dir = tmp_path / "render_stale_digest"
+    render_dir.mkdir()
+    (render_dir / "render.mp4").write_bytes(b"VIDEO")
+    create_manifest(render_dir, target_filename="render.mp4", duration_seconds=2.0, fps=30)
+    manifest_file = render_dir / "manifest.json"
+    body = json.loads(manifest_file.read_text(encoding="utf-8"))
+    body["duration_seconds"] = 99.0
+    manifest_file.write_text(json.dumps(body), encoding="utf-8")
+
+    valid, reason = verify_manifest(manifest_file)
+    assert valid is False
+    assert reason == "Manifest digest mismatch"
+
+    body.pop("manifest_sha256")
+    manifest_file.write_text(json.dumps(body), encoding="utf-8")
+    valid, reason = verify_manifest(manifest_file)
+    assert valid is False
+    assert reason == "Manifest missing manifest_sha256"
+
+
+def _consistent_manifest(body: dict) -> dict:
+    from courier_core.render_manifest import _manifest_digest
+    recorded = dict(body)
+    recorded["manifest_sha256"] = _manifest_digest(recorded)
+    return recorded
+
+
+def test_verify_rejects_target_outside_render_dir(tmp_path):
+    render_dir = tmp_path / "render"
+    render_dir.mkdir()
+    outside = tmp_path / "outside.mp4"
+    payload = b"OUTSIDE"
+    outside.write_bytes(payload)
+    import hashlib
+    body = _consistent_manifest({
+        "render_id": "rnd-outside",
+        "target_file": "../outside.mp4",
+        "target_sha256": hashlib.sha256(payload).hexdigest(),
+        "target_size_bytes": len(payload),
+        "duration_seconds": 0.0,
+        "fps": 30,
+        "frame_count": 0,
+        "scene": None,
+        "created_at_utc": "2026-10-22T00:00:00.000000Z",
+        "artifacts": [],
+        "extra_metadata": {},
+    })
+    valid, reason = verify_manifest(body, render_dir=render_dir)
+    assert valid is False
+    assert reason == "Target file escapes the render directory"
+
+
 def test_cli_create_and_verify(tmp_path, capsys):
     render_dir = tmp_path / "cli_render"
     render_dir.mkdir()
