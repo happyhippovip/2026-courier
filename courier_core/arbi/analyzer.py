@@ -174,6 +174,10 @@ class StatisticalQualityAnalyzer:
             risk_score += 100
             flags.append("NON_FINITE_TRANSFER")
             explanation_parts.append("Transfer cost is not a finite number.")
+        elif transfer < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_TRANSFER")
+            explanation_parts.append("Transfer cost is negative.")
 
         rebalance = breakdown.rebalance_cost_usd
         if (
