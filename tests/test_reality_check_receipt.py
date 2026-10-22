@@ -39,6 +39,25 @@ def report_dir(tmp_path, sample_report_data):
     return tmp_path
 
 
+def test_make_does_not_write_through_an_output_symlink(tmp_path, sample_report_data):
+    """The receipt must not replace a symlinked output or a symlinked directory."""
+    report = tmp_path / "report.json"
+    report.write_text(json.dumps(sample_report_data), encoding="utf-8")
+    outside = tmp_path / "outside.json"
+    outside.write_text("keep", encoding="utf-8")
+    link = tmp_path / "card.json"
+    link.symlink_to(outside)
+    code = main(["make", str(report), "--out", str(link)])
+    text = outside.read_text(encoding="utf-8")
+    outside_dir = tmp_path / "outside-dir"
+    outside_dir.mkdir()
+    linked_dir = tmp_path / "linked-dir"
+    linked_dir.symlink_to(outside_dir, target_is_directory=True)
+    code_dir = main(["make", str(report), "--out", str(linked_dir / "card.json")])
+    names = sorted(path.name for path in outside_dir.iterdir())
+    assert text == "keep" and code != 0 and names == [] and code_dir != 0, (code, text[:80], code_dir, names)
+
+
 def test_score_calculation():
     # 1 high (15), 2 medium (10), 1 low (1) -> 100 - 26 = 74
     assert compute_reality_score(1, 2, 1) == 74

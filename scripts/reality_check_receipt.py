@@ -296,6 +296,9 @@ def main(argv: list[str] | None = None) -> int:
             out_str = json.dumps(card, indent=2)
             if args.out:
                 out_path = Path(args.out)
+                if out_path.is_symlink() or out_path.parent.is_symlink():
+                    print(f"ERROR: {out_path}: refusing to follow a symlink", file=sys.stderr)
+                    return 1
                 out_path.parent.mkdir(parents=True, exist_ok=True)
                 out_path.write_text(out_str, encoding="utf-8")
                 print(f"WROTE: {out_path} ({card['receipt_id']})")
