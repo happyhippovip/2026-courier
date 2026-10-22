@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import pytest
@@ -64,6 +65,40 @@ def test_admit_job_orange():
         assert not controller.admit_job("MEDIUM")
         assert controller.admit_job("LIGHT")
         assert controller.state == "ORANGE"
+
+def test_unknown_pressure_does_not_admit(monkeypatch):
+    controller = HostPressureController()
+    with patch.object(controller, "measure_pressure", return_value="UNKNOWN"):
+        assert controller.admit_job("HEAVY") is False
+        assert controller.admit_job("MEDIUM") is False
+        assert controller.admit_job("LIGHT") is False
+    assert controller.state == "UNKNOWN"
+    assert controller.get_poll_interval() == 20
+
+    monkeypatch.setenv("COURIER_MOCK_HOST_PRESSURE", "BLUE")
+    fresh = HostPressureController()
+    assert fresh.measure_pressure() == "BLUE"
+    assert fresh.admit_job("LIGHT") is False
+    assert fresh.state == "UNKNOWN"
+
+
+def test_unreadable_load_is_unknown(monkeypatch):
+    controller = HostPressureController()
+    monkeypatch.delenv("COURIER_MOCK_HOST_PRESSURE", raising=False)
+
+    def boom():
+        raise OSError("loadavg unreadable")
+
+    with patch("os.getloadavg", boom, create=True):
+        assert controller.measure_pressure() == "UNKNOWN"
+        assert controller.admit_job("HEAVY") is False
+
+    # Windows has no getloadavg. Absence of the API must still admit the
+    # live agy path. Only a failed read refuses admission.
+    monkeypatch.delattr(os, "getloadavg", raising=False)
+    assert controller.measure_pressure() == "GREEN"
+    assert controller.admit_job("HEAVY") is True
+
 
 def test_get_poll_interval():
     controller = HostPressureController()
