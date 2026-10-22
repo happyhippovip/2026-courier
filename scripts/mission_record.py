@@ -2,8 +2,14 @@ import dataclasses
 import json
 from datetime import datetime
 from enum import Enum
+from pathlib import Path
 from typing import Dict, Any, List, Optional
 import jsonschema
+
+
+def _refuse_symlink(path: Path) -> None:
+    if path.is_symlink() or path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
 
 class ResourceClass(str, Enum):
     LIGHT = "LIGHT"
@@ -47,12 +53,11 @@ class ActiveMissionRecord:
 
 class MissionRecordValidator:
     def __init__(self, schemas_dir: str = "courier_core/schemas"):
-        import os
         self.schemas_dir = schemas_dir
 
     def validate(self, record: ActiveMissionRecord):
-        import os
-        path = os.path.join(self.schemas_dir, "active_mission_record.schema.json")
+        path = Path(self.schemas_dir) / "active_mission_record.schema.json"
+        _refuse_symlink(path)
         with open(path, "r") as f:
             schema = json.load(f)
         jsonschema.validate(instance=record.to_dict(), schema=schema)
@@ -88,8 +93,8 @@ class PendingActionRecord:
 
     @staticmethod
     def validate(record: 'PendingActionRecord', schemas_dir: str = "courier_core/schemas"):
-        import os
-        path = os.path.join(schemas_dir, "pending_action_record.schema.json")
+        path = Path(schemas_dir) / "pending_action_record.schema.json"
+        _refuse_symlink(path)
         with open(path, "r") as f:
             schema = json.load(f)
         jsonschema.validate(instance=record.to_dict(), schema=schema)
