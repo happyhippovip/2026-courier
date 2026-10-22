@@ -54,6 +54,9 @@ def build_workflow_tasks_for_channel(
     channels_path: Path = DEFAULT_CHANNELS_CONFIG,
     workflows_path: Path = DEFAULT_WORKFLOWS_CONFIG,
 ) -> list[dict]:
+    queue_dir = Path(queue_dir)
+    if queue_dir.is_symlink() or queue_dir.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     if not channels_path.exists():
         raise FileNotFoundError(f"Channel registry not found: {channels_path}")
     if not workflows_path.exists():
@@ -149,11 +152,14 @@ def main() -> None:
     parser.add_argument("--workflows-config", default=str(DEFAULT_WORKFLOWS_CONFIG), help="Path to content_workflows.json")
     args = parser.parse_args()
 
+    queue_dir = Path(args.queue_dir)
+    if queue_dir.is_symlink() or queue_dir.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     tasks = build_workflow_tasks_for_channel(
         channel_id=args.channel_id,
         topic=args.topic,
         priority=args.priority,
-        queue_dir=Path(args.queue_dir).resolve(),
+        queue_dir=queue_dir.resolve(),
         channels_path=Path(args.config).resolve(),
         workflows_path=Path(args.workflows_config).resolve(),
     )

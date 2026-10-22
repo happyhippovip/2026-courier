@@ -109,6 +109,87 @@ def test_build_workflow_success_and_dedupe(fake_configs):
     )
     assert len(tasks2) == 0
 
+def test_queue_dir_does_not_follow_a_symlink(tmp_path, fake_configs, monkeypatch):
+    channels_path, workflows_path, _queue = fake_configs
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = tmp_path / "linked-queue"
+    linked.symlink_to(outside, target_is_directory=True)
+
+    parent_outside = tmp_path / "parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = tmp_path / "linked-parent"
+    linked_parent.symlink_to(parent_outside, target_is_directory=True)
+
+    def run(queue):
+        try:
+            build_workflow_tasks_for_channel(
+                "chan-test-1",
+                "topic-x",
+                queue_dir=queue,
+                channels_path=channels_path,
+                workflows_path=workflows_path,
+            )
+        except ValueError as exc:
+            return str(exc)
+        return "wrote"
+
+    lib_link = run(linked)
+    leaked = sorted(p.name for p in outside.iterdir())
+    lib_parent = run(linked_parent / "queue")
+    parent_names = sorted(p.name for p in parent_outside.iterdir())
+    plain = tmp_path / "plain-queue"
+    plain_result = run(plain)
+    plain_names = sorted(p.name for p in plain.iterdir()) if plain.exists() else []
+
+    cli_outside = tmp_path / "cli-outside"
+    cli_outside.mkdir()
+    (cli_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    cli_link = tmp_path / "cli-linked"
+    cli_link.symlink_to(cli_outside, target_is_directory=True)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "prog",
+            "--channel-id", "chan-test-1",
+            "--topic", "cli-topic",
+            "--queue-dir", str(cli_link),
+            "--config", str(channels_path),
+            "--workflows-config", str(workflows_path),
+        ],
+    )
+    try:
+        main()
+        cli_err = None
+    except ValueError as exc:
+        cli_err = str(exc)
+    cli_names = sorted(p.name for p in cli_outside.iterdir())
+    assert (
+        lib_link,
+        leaked,
+        lib_parent,
+        parent_names,
+        plain_result,
+        plain_names,
+        cli_err,
+        cli_names,
+    ) == (
+        "refusing to follow a symlink",
+        ["keep.txt"],
+        "refusing to follow a symlink",
+        ["keep.txt"],
+        "wrote",
+        [
+            "TASK-TEST-1-TOPIC-X-SCRIPT-WRITING.json",
+            "TASK-TEST-1-TOPIC-X-VIDEO-RENDERING.json",
+        ],
+        "refusing to follow a symlink",
+        ["keep.txt"],
+    )
+
+
 def test_main(monkeypatch, fake_configs, capsys):
     ch, wf, qd = fake_configs
     
