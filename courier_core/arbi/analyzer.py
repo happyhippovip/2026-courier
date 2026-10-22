@@ -156,6 +156,10 @@ class StatisticalQualityAnalyzer:
             risk_score += 100
             flags.append("NON_FINITE_SPREAD_PCT")
             explanation_parts.append("Gross spread percent is not a finite number.")
+        elif spread_pct < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_SPREAD_PCT")
+            explanation_parts.append("Gross spread percent is negative.")
 
         transfer = breakdown.transfer_cost_usd
         if (
