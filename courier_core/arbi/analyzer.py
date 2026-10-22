@@ -165,6 +165,16 @@ class StatisticalQualityAnalyzer:
             flags.append("NON_FINITE_REBALANCE")
             explanation_parts.append("Rebalance cost is not a finite number.")
 
+        ask = breakdown.best_ask_price
+        if (
+            isinstance(ask, bool)
+            or not isinstance(ask, (int, float))
+            or not math.isfinite(ask)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_ASK")
+            explanation_parts.append("Ask price is not a finite number.")
+
         gross = breakdown.gross_spread_usd
         if (
             isinstance(gross, bool)
