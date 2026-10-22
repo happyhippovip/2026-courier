@@ -375,8 +375,17 @@ def run_native(task, config):
     # Bounded execution: every native child runs in its own process group so a
     # timeout or daemon interruption (WorkerShutdown) reaps the whole subtree
     # instead of orphaning it. Like run_agy/run_muse, kill via cleanup_group,
-    # which is PID-reuse safe.
-    timeout = min(float(config.get("NATIVE_TIMEOUT_SECONDS", 120)), 600)
+    # which is PID-reuse safe. Bool is an int, so reject it before float():
+    # True would become a one-second deadline and still start the child.
+    raw_timeout = config.get("NATIVE_TIMEOUT_SECONDS", 120)
+    if isinstance(raw_timeout, bool) or not isinstance(raw_timeout, (int, float)) or raw_timeout <= 0:
+        return {
+            "status": "FAILED",
+            "reason": "INVALID_TIMEOUT",
+            "execution_mode": "NATIVE",
+            "blocked": True,
+        }
+    timeout = min(float(raw_timeout), 600)
     if action == "echo":
         # Never a shell: the canary routes arbitrary instruction text here,
         # so separators, substitutions and redirects must be literal output,

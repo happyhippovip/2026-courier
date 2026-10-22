@@ -53,6 +53,50 @@ def hang_sleep_63_instead(daemon, monkeypatch):
     monkeypatch.setattr(daemon.subprocess, "Popen", hang_instead)
 
 
+def test_bool_native_timeout_does_not_spawn(tmp_path, monkeypatch):
+    """True is not one second. A bool timeout must not start a native child."""
+    daemon = load_daemon(tmp_path, monkeypatch)
+    assert stray_sleep(65) == set()
+    real_popen = daemon.subprocess.Popen
+    instances = []
+
+    def recording(*args, **kwargs):
+        if kwargs.get("start_new_session"):
+            proc = real_popen(
+                ["sleep", "65"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                start_new_session=True,
+            )
+            instances.append(proc)
+            return proc
+        return real_popen(*args, **kwargs)
+
+    monkeypatch.setattr(daemon.subprocess, "Popen", recording)
+    task = {"task_id": "task-native-bool", "action": "echo", "instruction": "echo go"}
+    started = time.monotonic()
+    result = daemon.run_native(
+        task, {"NATIVE_TIMEOUT_SECONDS": True, "WORKER_ID": "MAC-01"})
+    elapsed = time.monotonic() - started
+    assert instances == [], (
+        round(elapsed, 3),
+        [proc.returncode for proc in instances],
+        result,
+    )
+    assert result["status"] == "FAILED"
+    assert result.get("blocked") is True
+    assert result.get("reason") == "INVALID_TIMEOUT"
+    assert result["execution_mode"] == "NATIVE"
+    false_result = daemon.run_native(
+        task, {"NATIVE_TIMEOUT_SECONDS": False, "WORKER_ID": "MAC-01"})
+    assert instances == []
+    assert false_result["status"] == "FAILED"
+    assert false_result.get("blocked") is True
+    assert false_result.get("reason") == "INVALID_TIMEOUT"
+    assert stray_sleep(65) == set()
+
+
 def test_native_timeout_kills_group_and_reaps(tmp_path, monkeypatch):
     daemon = load_daemon(tmp_path, monkeypatch)
     assert stray_sleep(63) == set()  # distinctive duration: no foreign process
