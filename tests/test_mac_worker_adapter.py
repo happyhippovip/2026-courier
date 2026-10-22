@@ -161,3 +161,65 @@ def test_task_file_does_not_follow_a_symlink(tmp_path, monkeypatch):
         False,
     )
     assert "SECRET-JOB" in outside.read_text(encoding="utf-8")
+
+def test_inbox_dir_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    monkeypatch.setattr(mac_worker_adapter.time, "sleep", lambda _seconds: None)
+    clock = {"now": 0}
+
+    def fake_time():
+        clock["now"] += 400
+        return clock["now"]
+
+    monkeypatch.setattr(mac_worker_adapter.time, "time", fake_time)
+
+    def prepare(root: Path, task_id: str, marker: str) -> Path:
+        monkeypatch.chdir(root)
+        task = root / "task.json"
+        task.write_text(json.dumps({"task_id": task_id, "goal_id": marker}), encoding="utf-8")
+        Path("results/incoming").mkdir(parents=True, exist_ok=True)
+        return task
+
+    root = tmp_path / "file-case"
+    root.mkdir()
+    outside = tmp_path / "outside-inbox"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    task = prepare(root, "mac-inbox", "SECRET-INBOX")
+    inbox = Path("scripts/mac_worker/inbox")
+    inbox.parent.mkdir(parents=True)
+    inbox.symlink_to(outside)
+    outbox = Path("scripts/mac_worker/outbox")
+    outbox.mkdir()
+    (outbox / "mac-inbox_result.json").write_text('{"status":"SUCCESS"}\n', encoding="utf-8")
+    try:
+        mac_worker_adapter.run(str(task))
+        err = None
+    except ValueError as exc:
+        err = str(exc)
+    copied = outside / "mac-inbox.json"
+    body = copied.read_text(encoding="utf-8") if copied.exists() else ""
+
+    parent_root = tmp_path / "parent-case"
+    parent_root.mkdir()
+    parent_outside = tmp_path / "parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    parent_task = prepare(parent_root, "mac-parent", "SECRET-PARENT")
+    worker = Path("scripts/mac_worker")
+    worker.parent.mkdir(parents=True)
+    worker.symlink_to(parent_outside)
+    try:
+        mac_worker_adapter.run(str(parent_task))
+        err2 = None
+    except ValueError as exc:
+        err2 = str(exc)
+    parent_copied = parent_outside / "inbox" / "mac-parent.json"
+    parent_body = parent_copied.read_text(encoding="utf-8") if parent_copied.exists() else ""
+    names = sorted(path.name for path in parent_outside.iterdir())
+    assert (err, "SECRET-INBOX" in body, err2, "SECRET-PARENT" in parent_body, names) == (
+        "refusing to follow a symlink",
+        False,
+        "refusing to follow a symlink",
+        False,
+        ["keep.txt"],
+    )

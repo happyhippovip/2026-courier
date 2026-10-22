@@ -25,7 +25,9 @@ def run(task_file):
     base_dir = Path("scripts/mac_worker")
     inbox = base_dir / "inbox"
     outbox = base_dir / "outbox"
-    
+    if inbox.is_symlink() or inbox.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+
     inbox.mkdir(parents=True, exist_ok=True)
     outbox.mkdir(parents=True, exist_ok=True)
     
