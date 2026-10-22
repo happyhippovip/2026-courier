@@ -40,7 +40,7 @@ class L2StreamMockFeeder:
             raise ValueError("Bool is not a number.")
         if not isinstance(initial_mid, (int, float)) or not math.isfinite(initial_mid):
             raise ValueError("mid is not a number.")
-        if initial_mid < 0:
+        if initial_mid <= 0:
             raise ValueError("mid is out of range.")
         self.pair = pair
         self.mid = initial_mid
