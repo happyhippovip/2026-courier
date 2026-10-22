@@ -137,7 +137,11 @@ def main(argv=None):
     findings = diagnose(s)
     print(render(s, findings))
     if len(argv) == 2 and argv[0] == "--json":
-        Path(argv[1]).write_text(json.dumps({"snapshot": s, "findings": findings}, indent=1), encoding="utf-8")
+        dest = Path(argv[1])
+        if dest.is_symlink() or dest.parent.is_symlink():
+            print(f"{dest}: refusing to follow a symlink", file=sys.stderr)
+            return 2
+        dest.write_text(json.dumps({"snapshot": s, "findings": findings}, indent=1), encoding="utf-8")
     return 0
 
 
