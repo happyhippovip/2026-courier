@@ -344,6 +344,8 @@ class Service:
     """Controller + HTTP server + process lock, with one stop path."""
 
     def __init__(self, home: Path, port: int, controller: Controller | None = None):
+        if Path(home).is_symlink():
+            raise SystemExit(f"{home}: refusing to follow a symlink")
         self.home = home
         self.lock = HomeLock(home / "run" / "controller.lock")
         if not self.lock.acquire():
@@ -406,7 +408,10 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--port must be between 0 and 65535")
     logging.basicConfig(level=args.log_level.upper(), stream=sys.stderr,
                         format="%(asctime)s %(levelname)s %(name)s: %(message)s")
-    home = Path(args.home).expanduser().resolve()
+    home = Path(args.home).expanduser()
+    if home.is_symlink():
+        raise SystemExit(f"{home}: refusing to follow a symlink")
+    home = home.resolve()
     service = Service(home, args.port)
     for name in ("SIGTERM", "SIGINT", "SIGBREAK"):
         if hasattr(signal, name):

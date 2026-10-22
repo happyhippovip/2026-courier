@@ -74,6 +74,42 @@ def test_home_lock_double_release_safe(tmp_path: Path):
 # Token Management Tests
 # -----------------------------------------------------------------------------
 
+def test_service_refuses_a_symlinked_home(tmp_path: Path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "home"
+    link.symlink_to(outside, target_is_directory=True)
+    service = None
+    try:
+        service = Service(link, 0)
+    except SystemExit as exc:
+        assert "symlink" in str(exc)
+    else:
+        try:
+            names = sorted(path.relative_to(outside).as_posix() for path in outside.rglob("*"))
+            raise AssertionError(f"started through a symlink: {names}")
+        finally:
+            service.server.server_close()
+            service.controller.stop()
+            service.lock.release()
+    assert list(outside.iterdir()) == []
+
+
+def test_main_refuses_a_symlinked_home(tmp_path, monkeypatch):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "home"
+    link.symlink_to(outside, target_is_directory=True)
+
+    def boom(home, port, controller=None):
+        raise AssertionError(f"service started at {home}")
+
+    monkeypatch.setattr("courier_core.serve.Service", boom)
+    with pytest.raises(SystemExit, match="symlink"):
+        main(["--home", str(link), "--port", "0"])
+    assert list(outside.iterdir()) == []
+
+
 def test_home_lock_refuses_a_symlink(tmp_path: Path):
     target = tmp_path / "outside"
     target.write_bytes(b"")
