@@ -114,3 +114,28 @@ def test_stale_lock_is_stolen_and_released(tmp_path: Path, monkeypatch):
     assert adapter.run(str(task_file)) == 0
     assert dispatches == [1]
     assert not adapter.lock_path(task_file).exists()
+
+
+def test_lock_without_a_numeric_start_is_not_stolen(tmp_path: Path, monkeypatch):
+    task_file = tmp_path / "task.json"
+    task_file.write_text(json.dumps(packet()), encoding="utf-8")
+    dispatches = []
+
+    def fake_run_cmd(command):
+        if command[:2] == ["git", "branch"]:
+            return (0, "main", "")
+        if command[1:3] == ["workflow", "run"]:
+            dispatches.append(1)
+            return (0, "", "")
+        if command[1:3] == ["run", "list"]:
+            return (0, "[]", "")
+        raise AssertionError(command)
+
+    monkeypatch.setattr(adapter, "run_cmd", fake_run_cmd)
+    monkeypatch.setattr(adapter, "LOCAL_WAIT_SECONDS", 0)
+    for body in ({"pid": 999999}, {"pid": 999999, "started_at": True}):
+        original = json.dumps(body)
+        adapter.lock_path(task_file).write_text(original, encoding="utf-8")
+        assert adapter.run(str(task_file)) == 0
+        assert dispatches == []
+        assert adapter.lock_path(task_file).read_text(encoding="utf-8") == original

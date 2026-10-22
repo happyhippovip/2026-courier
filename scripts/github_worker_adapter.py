@@ -6,6 +6,7 @@ from __future__ import annotations
 import hashlib
 import base64
 import json
+import math
 import os
 import shutil
 import subprocess
@@ -78,13 +79,33 @@ def acquire_packet_lock(task_file: Path) -> bool:
     return True
 
 
+def _lock_started_at(payload: Any) -> float | None:
+    """A lock is stale only when started_at is a finite number old enough to expire.
+
+    A missing, boolean, or non-numeric timestamp is not an expiry. True is an
+    int in Python, so it must not become 1.0 and look ancient.
+    """
+    if not isinstance(payload, dict):
+        return None
+    started = payload.get("started_at")
+    if isinstance(started, bool) or not isinstance(started, (int, float)):
+        return None
+    if not math.isfinite(started):
+        return None
+    return float(started)
+
+
 def _steal_stale_lock(task_file: Path, path: Path) -> bool:
     # Lock content is published atomically (link of a complete tmp), so a
     # present lock always parses; unparseable means a foreign writer — treat
-    # as live and defer rather than risk duplicating its work.
+    # as live and defer rather than risk duplicating its work. A parsed lock
+    # with no usable started_at is the same: not proven stale.
     try:
-        started_at = float(json.loads(path.read_text(encoding="utf-8")).get("started_at") or 0)
-    except (OSError, ValueError, TypeError, AttributeError):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError):
+        return False
+    started_at = _lock_started_at(payload)
+    if started_at is None:
         return False
     if time.time() - started_at < LOCK_TIMEOUT_SECONDS:
         return False  # live holder owns the packet; defer to it
