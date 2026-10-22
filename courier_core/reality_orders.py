@@ -178,6 +178,7 @@ class OrderBook:
             raise OrderError("order is not paid")
         if order["status"] in {REFUNDED, FAILED, DELIVERED}:
             raise OrderError(f"{order['status']} cannot be fulfilled")
+        known_price_cents(order.get("price_cents"))
         report_path = Path(out_dir) / f"{order['order_id']}-report.md"
         if order["status"] == PAYMENT_CONFIRMED:
             self.mark_running(order_id)
@@ -246,9 +247,9 @@ class OrderBook:
         return {
             "currency": CURRENCY,
             "verified_count": len(verified),
-            "verified_cents": sum(order["price_cents"] for order in verified),
+            "verified_cents": _sum_cents(verified),
             "pending_count": len(pending),
-            "pending_cents": sum(order["price_cents"] for order in pending),
+            "pending_cents": _sum_cents(pending),
         }
 
     def _move(self, order_id: str, status: str, evidence_ref: str | None, *, allow_payment: bool) -> dict[str, Any]:
@@ -640,10 +641,23 @@ def _inside_git_checkout(path: Path) -> bool:
         current = parent
 
 
+def known_price_cents(value) -> int:
+    """A price is a non-negative int. Bool is not a cost. Missing stays blocked."""
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise OrderError("UNKNOWN_COST")
+    return value
+
+
+def _sum_cents(orders) -> int:
+    total = 0
+    for order in orders:
+        total += known_price_cents(order.get("price_cents"))
+    return total
+
+
 def _eur(cents: int) -> str:
-    sign = "-" if cents < 0 else ""
-    amount = abs(int(cents))
-    return f"{sign}{amount // 100}.{amount % 100:02d} EUR"
+    amount = known_price_cents(cents)
+    return f"{amount // 100}.{amount % 100:02d} EUR"
 
 
 def _new_order_id() -> str:
