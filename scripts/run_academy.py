@@ -676,6 +676,8 @@ class AcademyDirector:
         self.economics["total_lessons_adopted"] = self.economics.get("total_lessons_adopted", 0) + 1
         self.economics["measured_minutes_saved"] = round(self.economics.get("measured_minutes_saved", 0.0) + mins_saved, 2)
         self.economics["updated_at"] = now_iso
+        if self.economics_file.is_symlink() or self.economics_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         save_json(self.economics_file, self.economics)
 
         # Trigger Context Snapshot Refresh via Update Steward

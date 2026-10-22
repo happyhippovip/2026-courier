@@ -326,6 +326,40 @@ def test_economics_file_does_not_follow_a_symlink(academy_env):
     )
 
 
+def test_economics_save_does_not_follow_a_symlink(academy_env, monkeypatch):
+    repo_dir, memory_dir = academy_env
+    lessons = repo_dir / "events" / "academy" / "lessons"
+    evals = repo_dir / "events" / "academy" / "evaluations"
+    adoptions = repo_dir / "events" / "academy" / "adoptions"
+    monkeypatch.setattr("scripts.run_academy.LESSONS_DIR", lessons)
+    monkeypatch.setattr("scripts.run_academy.EVALS_DIR", evals)
+    monkeypatch.setattr("scripts.run_academy.ADOPTIONS_DIR", adoptions)
+    director = AcademyDirector(repo_dir=repo_dir, memory_dir=memory_dir)
+    director.steward = mock.MagicMock()
+    (lessons / "lesson-1.json").write_text(json.dumps({
+        "title": "t",
+        "topic": "t",
+        "affected_agents": ["a"],
+    }), encoding="utf-8")
+    (evals / "eval-lesson-1.json").write_text(json.dumps({
+        "verdict": "PASS",
+        "evaluation_id": "e1",
+        "metrics": {"measured_minutes_saved": 5},
+    }), encoding="utf-8")
+    outside = repo_dir.parent / "outside-econ-save.json"
+    outside.write_text(json.dumps({"marker": "SECRET-ECON"}), encoding="utf-8")
+    econ = repo_dir / "events" / "academy" / "economics.json"
+    econ.unlink()
+    econ.symlink_to(outside)
+    try:
+        director.approve_adoption("lesson-1")
+        err = None
+    except ValueError as exc:
+        err = str(exc)
+    body = outside.read_text(encoding="utf-8")
+    assert (err, "SECRET-ECON" in body) == ("refusing to follow a symlink", True)
+
+
 def test_lesson_id_does_not_escape_the_lessons_dir(academy_env, monkeypatch):
     repo_dir, memory_dir = academy_env
     lessons = repo_dir / "events" / "academy" / "lessons"
