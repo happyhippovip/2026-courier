@@ -259,6 +259,8 @@ class CodexHookRunner:
         if check_secrets_in_text(res_text) > 0:
             raise ValueError(f"Secret detected in Codex result payload for task {task_id}. Rejection triggered.")
 
+        if PROCESSED_DIR.is_symlink() or PROCESSED_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
         result_file = PROCESSED_DIR / f"{task_id}-result.json"
         save_json(result_file, result_envelope)
@@ -299,6 +301,8 @@ class CodexHookRunner:
             "max_iterations": 1,
         }
 
+        if PROCESSED_DIR.is_symlink() or PROCESSED_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
         result_file = PROCESSED_DIR / f"{task_id}-result.json"
         save_json(result_file, result_envelope)

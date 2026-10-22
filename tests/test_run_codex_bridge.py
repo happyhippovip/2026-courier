@@ -112,6 +112,45 @@ def test_task_id_does_not_escape_the_processed_dir(tmp_path, monkeypatch):
         False,
     )
 
+def test_processed_dir_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    import scripts.run_codex_bridge as codex_bridge
+    outside = tmp_path / "outside-processed"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    processed = tmp_path / "processed"
+    processed.symlink_to(outside)
+    monkeypatch.setattr(codex_bridge, "PROCESSED_DIR", processed)
+    tracker = CodexVisualStateTracker(repo_dir=tmp_path)
+    hooks = CodexHookRunner(tracker)
+    try:
+        hooks.on_task_completion("task-1", "corr-1", None, {"result": "SECRET-CODEX"})
+        err = None
+    except ValueError as exc:
+        err = str(exc)
+    written = outside / "task-1-result.json"
+    body = written.read_text(encoding="utf-8") if written.exists() else ""
+    parent_outside = tmp_path / "parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = tmp_path / "events-link"
+    linked_parent.symlink_to(parent_outside)
+    monkeypatch.setattr(codex_bridge, "PROCESSED_DIR", linked_parent / "processed")
+    try:
+        hooks.on_task_failure("task-2", "corr-2", None, "boom")
+        err2 = None
+    except ValueError as exc:
+        err2 = str(exc)
+    parent_written = parent_outside / "processed" / "task-2-result.json"
+    parent_body = parent_written.read_text(encoding="utf-8") if parent_written.exists() else ""
+    names = sorted(path.name for path in parent_outside.iterdir())
+    assert (err, "SECRET-CODEX" in body, err2, "boom" in parent_body, names) == (
+        "refusing to follow a symlink",
+        False,
+        "refusing to follow a symlink",
+        False,
+        ["keep.txt"],
+    )
+
 def test_review_task_id_does_not_escape(tmp_path, monkeypatch):
     import scripts.run_codex_bridge as codex_bridge
     decisions = tmp_path / "repo" / "events" / "chief-decisions"
