@@ -122,7 +122,11 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
                 import math
                 if isinstance(est_cost, bool) or not isinstance(est_cost, (int, float)) or est_cost < 0.0 or est_cost > 0.0 or math.isnan(est_cost) or math.isinf(est_cost):
                     task["status"] = "BLOCKED_COSTGATE"
-                    task["resolution"] = "COSTGATE_REJECTED" if (isinstance(est_cost, (int, float)) and est_cost > 0.0) else "UNKNOWN_COST"
+                    task["resolution"] = "COSTGATE_REJECTED" if (
+                        not isinstance(est_cost, bool)
+                        and isinstance(est_cost, (int, float))
+                        and est_cost > 0.0
+                    ) else "UNKNOWN_COST"
                     task["processed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
                     updated_lines.append(json.dumps(task))
                     continue

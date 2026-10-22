@@ -63,6 +63,34 @@ def test_mailbox_costgate_blocks_paid_task(tmp_path):
     assert updated["resolution"] == "COSTGATE_REJECTED"
 
 
+def test_mailbox_bool_cost_is_not_one_euro(tmp_path):
+    """True is not 1 euro. A bool estimate stays unknown and does not run."""
+    inbox = tmp_path / "inbox.jsonl"
+    outbox = tmp_path / "outbox.jsonl"
+    home = tmp_path / "courier_home"
+    task = {
+        "task_id": "mission-bool-cost",
+        "name": "Bool ist kein Euro",
+        "estimated_cost_eur": True,
+        "status": "PENDING",
+    }
+    inbox.write_text(json.dumps(task) + "\n", encoding="utf-8")
+    results = process_inbox(inbox, outbox, home_path=home)
+    updated = json.loads(inbox.read_text(encoding="utf-8").strip())
+    assert results == []
+    assert not outbox.exists()
+    assert updated["status"] == "BLOCKED_COSTGATE"
+    assert updated["resolution"] == "UNKNOWN_COST", updated["resolution"]
+    false_task = dict(task, task_id="mission-bool-false", estimated_cost_eur=False)
+    inbox.write_text(json.dumps(false_task) + "\n", encoding="utf-8")
+    results = process_inbox(inbox, outbox, home_path=home)
+    updated = json.loads(inbox.read_text(encoding="utf-8").strip())
+    assert results == []
+    assert not outbox.exists()
+    assert updated["status"] == "BLOCKED_COSTGATE"
+    assert updated["resolution"] == "UNKNOWN_COST"
+
+
 def test_mailbox_resource_pause_blocks_execution(tmp_path, monkeypatch):
     monkeypatch.setenv("COURIER_HOME", str(tmp_path))
     pause_file = tmp_path / "dev-night" / "RESOURCE_PAUSE"
