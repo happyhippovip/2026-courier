@@ -194,7 +194,8 @@ class PaperTradingEngine:
             net_pnl = -(breakdown.buy_fee_usd * scale + liquidation_penalty_usd)
             status = "SECOND_LEG_FAILED"
         else:
-            net_pnl = gross_usd - (fees_usd + slip_usd)
+            transfer_usd = breakdown.transfer_cost_usd * scale
+            net_pnl = gross_usd - (fees_usd + slip_usd + transfer_usd)
             status = "FULL_SUCCESS" if fill_fraction >= 0.999 else "PARTIAL_FILL"
 
         # Apply to virtual balances
