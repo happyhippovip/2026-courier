@@ -320,7 +320,10 @@ class ChiefCommander:
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         result_data = load_json(result_file)
         payload = result_data.get("payload", {})
-        verdict = payload.get("verdict", "PASS")
+        if not isinstance(payload, dict):
+            payload = {}
+        # Missing is not PASS. Only an explicit pass may complete or continue.
+        verdict = payload.get("verdict")
         result_id = result_data.get("result_id") or result_file.name
 
         # 1. Evaluate Value Gate
@@ -459,6 +462,27 @@ class ChiefCommander:
             return decision_obj
 
         # 6. Handle Pass & Check Next Task
+        if verdict not in ("PASS", "ACCEPTED"):
+            decision_obj = ChiefDecisionContract(
+                conversation_id=conversation_id,
+                chief_turn_id=chief_turn_id or f"turn-{uuid.uuid4().hex[:8]}",
+                workflow_id=workflow_id,
+                task_id=task_id,
+                correlation_id=correlation_id,
+                result_id=result_id,
+                decision="WAIT_FOR_HUMAN",
+                next_task=None,
+                risk_level="HIGH",
+                cost_class="ZERO_COST_LOCAL",
+                review_decision=review_decision,
+                value_gate=value_gate_res,
+                reason="Worker verdict is missing or not an explicit pass; refusing to complete or continue.",
+                evidence_refs=[str(result_file.name)],
+                created_at=now_iso,
+            )
+            self._persist_decision(task_id, decision_obj)
+            return decision_obj
+
         next_task_info = None
         if workflow_plan and (round_index + 1) < len(workflow_plan):
             next_step = workflow_plan[round_index + 1]
