@@ -314,9 +314,12 @@ class TaskLeaseManager:
             except LeaseConflict:
                 return False
             finally:
-                store.close()
+                try:
+                    store.close()
+                except Exception:
+                    pass
         except Exception:
-            return True
+            return False
 
     def _sync_authority_release(self, task_id: str, owner_id: str) -> None:
         try:

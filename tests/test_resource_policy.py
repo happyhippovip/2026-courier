@@ -94,6 +94,21 @@ def test_task_lease_manager_authority_db_conflict_rejected(repo_dir):
     assert not (repo_dir / "events" / "locks" / "task_conflict_task.lease").exists()
 
 
+def test_authority_error_does_not_keep_file_lease(repo_dir, monkeypatch):
+    import courier_runtime.lease as lease_mod
+
+    def boom(self, *args, **kwargs):
+        raise RuntimeError("authority down")
+
+    monkeypatch.setattr(lease_mod.LeaseStore, "acquire", boom)
+    tlm = TaskLeaseManager(repo_dir)
+    success, reason, data = tlm.acquire_lease("task_err", "hash", "owner", duration_sec=10)
+    assert success is False
+    assert reason == "TASK_ALREADY_CLAIMED_BY_ANOTHER_BUILDER"
+    assert data.get("reason") == "AUTHORITY_DB_LEASE_CONFLICT"
+    assert not (repo_dir / "events" / "locks" / "task_task_err.lease").exists()
+
+
 def test_file_manifest_tracker(repo_dir):
     test_file = repo_dir / "test.txt"
     test_file.write_text("hello world")
