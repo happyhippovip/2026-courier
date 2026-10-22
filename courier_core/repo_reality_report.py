@@ -598,7 +598,11 @@ def main(argv: list[str] | None = None) -> int:
         print("pass a local directory or --github owner/repo[@ref]", file=sys.stderr)
         return 2
     if args.out:
-        Path(args.out).write_text(report, encoding="utf-8")
+        out_path = Path(args.out)
+        if out_path.is_symlink() or out_path.parent.is_symlink():
+            print(f"{out_path}: refusing to follow a symlink", file=sys.stderr)
+            return 2
+        out_path.write_text(report, encoding="utf-8")
         return 0
     sys.stdout.write(report)
     return 0

@@ -493,6 +493,24 @@ def test_cli_out_stdout_and_missing_repo(tmp_path, capsys):
     assert "not a directory" in capsys.readouterr().err
 
 
+def test_out_does_not_follow_a_symlink(tmp_path):
+    repo = _repo(tmp_path)
+    _write(repo, "README.md", "# Demo\n")
+    outside = tmp_path / "outside.md"
+    outside.write_text("keep", encoding="utf-8")
+    link = tmp_path / "report.md"
+    link.symlink_to(outside)
+    code = main([str(repo), "--out", str(link)])
+    text = outside.read_text(encoding="utf-8")
+    outside_dir = tmp_path / "outside-dir"
+    outside_dir.mkdir()
+    linked_dir = tmp_path / "linked-dir"
+    linked_dir.symlink_to(outside_dir, target_is_directory=True)
+    code_dir = main([str(repo), "--out", str(linked_dir / "report.md")])
+    names = sorted(path.name for path in outside_dir.iterdir())
+    assert text == "keep" and code != 0 and names == [] and code_dir != 0, (code, text[:80], code_dir, names)
+
+
 def test_module_entrypoint(tmp_path):
     repo = _repo(tmp_path)
     _write(repo, "README.md", "# Demo\n")
