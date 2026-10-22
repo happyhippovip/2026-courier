@@ -113,3 +113,51 @@ def test_task_id_does_not_escape_the_inbox(tmp_path, monkeypatch):
     outside = tmp_path / "outside.json"
     body = outside.read_text(encoding="utf-8") if outside.exists() else ""
     assert (err, "SECRET-TASK" in body) == ("refusing an unsafe task id", False)
+
+def test_task_file_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(mac_worker_adapter.time, "sleep", lambda _seconds: None)
+    clock = {"now": 0}
+
+    def fake_time():
+        clock["now"] += 400
+        return clock["now"]
+
+    monkeypatch.setattr(mac_worker_adapter.time, "time", fake_time)
+    outside = tmp_path / "outside-task.json"
+    outside.write_text(json.dumps({"task_id": "mac-link", "goal_id": "SECRET-JOB"}), encoding="utf-8")
+    task = tmp_path / "task.json"
+    task.symlink_to(outside)
+    try:
+        mac_worker_adapter.run(str(task))
+        err = None
+    except ValueError as exc:
+        err = str(exc)
+    except OSError:
+        err = None
+    copied = Path("scripts/mac_worker/inbox/mac-link.json")
+    body = copied.read_text(encoding="utf-8") if copied.exists() else ""
+    parent_outside = tmp_path / "parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "task.json").write_text(
+        json.dumps({"task_id": "mac-parent", "goal_id": "SECRET-PARENT"}),
+        encoding="utf-8",
+    )
+    linked = tmp_path / "linked-parent"
+    linked.symlink_to(parent_outside)
+    try:
+        mac_worker_adapter.run(str(linked / "task.json"))
+        err2 = None
+    except ValueError as exc:
+        err2 = str(exc)
+    except OSError:
+        err2 = None
+    copied2 = Path("scripts/mac_worker/inbox/mac-parent.json")
+    body2 = copied2.read_text(encoding="utf-8") if copied2.exists() else ""
+    assert (err, "SECRET-JOB" in body, err2, "SECRET-PARENT" in body2) == (
+        "refusing to follow a symlink",
+        False,
+        "refusing to follow a symlink",
+        False,
+    )
+    assert "SECRET-JOB" in outside.read_text(encoding="utf-8")

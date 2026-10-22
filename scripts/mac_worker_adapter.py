@@ -13,7 +13,10 @@ def _refuse_task_id(task_id: object) -> None:
 
 
 def run(task_file):
-    with open(task_file, 'r') as f:
+    task_path = Path(task_file)
+    if task_path.is_symlink() or task_path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+    with open(task_path, 'r') as f:
         task = json.load(f)
     _refuse_task_id(task.get("task_id"))
         
