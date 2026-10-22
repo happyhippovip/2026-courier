@@ -184,6 +184,8 @@ class OrderBook:
         if out.is_symlink():
             raise OrderError("report directory must not be a symlink")
         report_path = out / f"{order['order_id']}-report.md"
+        if report_path.is_symlink():
+            raise OrderError("report path must not be a symlink")
         if order["status"] == PAYMENT_CONFIRMED:
             self.mark_running(order_id)
             order = self._require(order_id)
