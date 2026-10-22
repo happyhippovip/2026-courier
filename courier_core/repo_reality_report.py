@@ -1123,7 +1123,7 @@ def _parse_pytest(path: Path | None) -> dict:
     if path is None:
         return {"status": "not_supplied", **empty}
     try:
-        if not path.is_file():
+        if path.is_symlink() or path.parent.is_symlink() or not path.is_file():
             return {"status": "unreadable", **empty}
         text = path.read_text(encoding="utf-8")
     except OSError:

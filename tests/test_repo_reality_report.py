@@ -115,6 +115,37 @@ def test_pytest_summary_counts(tmp_path):
     assert str(blob) not in text
 
 
+def test_pytest_json_does_not_follow_a_symlink(tmp_path):
+    repo = _repo(tmp_path)
+    _write(repo, "README.md", "# Demo\n")
+    outside = tmp_path / "outside.json"
+    outside.write_text(
+        json.dumps({"summary": {"passed": 999, "failed": 0, "skipped": 0}}),
+        encoding="utf-8",
+    )
+    link = tmp_path / "pytest.json"
+    link.symlink_to(outside)
+    outside_dir = tmp_path / "outside-dir"
+    outside_dir.mkdir()
+    (outside_dir / "pytest.json").write_text(
+        json.dumps({"summary": {"passed": 888, "failed": 0, "skipped": 0}}),
+        encoding="utf-8",
+    )
+    linked_dir = tmp_path / "linked-dir"
+    linked_dir.symlink_to(outside_dir, target_is_directory=True)
+    file_data = analyze(repo, link)
+    dir_data = analyze(repo, linked_dir / "pytest.json")
+    text = build_report(repo, link)
+    assert (
+        file_data["pytest"]["status"] == "unreadable"
+        and file_data["pytest"]["passed"] is None
+        and dir_data["pytest"]["status"] == "unreadable"
+        and dir_data["pytest"]["passed"] is None
+        and "999" not in text
+        and "888" not in text
+    ), (file_data["pytest"], dir_data["pytest"])
+
+
 def test_pytest_counts_tests_array_without_summary(tmp_path):
     repo = _repo(tmp_path)
     secret = "ghp_" + "C" * 36
