@@ -31,7 +31,7 @@ VALID_INTEGRITY_STATUSES = {
 
 def format_size(size_bytes: int | float | None) -> str:
     """Formats byte counts into a readable string (e.g. 42.5 KB)."""
-    if size_bytes is None:
+    if isinstance(size_bytes, bool) or size_bytes is None:
         return "unknown"
     try:
         size = float(size_bytes)

@@ -34,6 +34,11 @@ def test_format_size():
     assert format_size("not-a-number") == "unknown"
 
 
+def test_format_size_bool_is_unknown():
+    assert format_size(True) == "unknown"
+    assert format_size(False) == "unknown"
+
+
 def test_format_fingerprint():
     full_sha = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     assert format_fingerprint(full_sha) == "e3b0c442...7852b855"
