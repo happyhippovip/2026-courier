@@ -364,6 +364,8 @@ class OrderBook:
         self._replace(self.state_path, (text + "\n").encode("utf-8"))
 
     def _replace(self, path: Path, payload: bytes) -> None:
+        if path.is_symlink():
+            raise OrderError("refusing to follow a symlink")
         self.root.mkdir(parents=True, exist_ok=True)
         fd, tmp_name = tempfile.mkstemp(dir=self.root, prefix=path.name + ".")
         tmp = Path(tmp_name)
@@ -447,6 +449,8 @@ def _log_bytes(receipts: list[dict[str, Any]]) -> bytes:
 
 
 def _read_receipts(path: Path) -> list[dict[str, Any]]:
+    if path.is_symlink():
+        raise OrderError("refusing to follow a symlink")
     if not path.exists():
         return []
     raw = path.read_bytes()
@@ -474,6 +478,8 @@ def _read_receipts(path: Path) -> list[dict[str, Any]]:
 
 
 def _read_state(path: Path) -> dict[str, Any] | None:
+    if path.is_symlink():
+        raise OrderError("refusing to follow a symlink")
     if not path.exists():
         return None
     try:

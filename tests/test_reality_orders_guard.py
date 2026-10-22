@@ -138,3 +138,38 @@ def test_order_book_refuses_a_symlinked_directory(tmp_path):
     assert list(outside.iterdir()) == []
     with pytest.raises(OrderError, match="symlink"):
         resolve_orders_dir(str(link))
+
+
+def test_order_book_does_not_read_a_symlinked_receipt_log(tmp_path):
+    outside = tmp_path / "foreign.jsonl"
+    outside.write_text('{"adopted": true}\n', encoding="utf-8")
+    root = tmp_path / "book"
+    root.mkdir()
+    (root / "receipts.jsonl").symlink_to(outside)
+    try:
+        OrderBook(root)
+    except OrderError as exc:
+        assert "symlink" in str(exc).lower(), str(exc)
+    else:
+        raise AssertionError("loaded a symlinked receipt log")
+    assert outside.read_text(encoding="utf-8") == '{"adopted": true}\n'
+
+
+def test_order_book_does_not_replace_a_symlinked_projection(tmp_path):
+    outside = tmp_path / "foreign-orders.json"
+    body = '{"head_seq": 99, "head_hash": "abc", "orders": {"foreign": {}}}\n'
+    outside.write_text(body, encoding="utf-8")
+    root = tmp_path / "book"
+    root.mkdir()
+    link = root / "orders.json"
+    link.symlink_to(outside)
+    try:
+        OrderBook(root)
+    except OrderError as exc:
+        assert "symlink" in str(exc).lower(), str(exc)
+    else:
+        raise AssertionError(
+            f"symlink={link.is_symlink()} local={link.read_text(encoding='utf-8')[:80]!r}"
+        )
+    assert link.is_symlink()
+    assert outside.read_text(encoding="utf-8") == body
