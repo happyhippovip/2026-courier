@@ -186,6 +186,10 @@ class StatisticalQualityAnalyzer:
             risk_score += 100
             flags.append("NON_FINITE_ASK")
             explanation_parts.append("Ask price is not a finite number.")
+        elif ask < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_ASK")
+            explanation_parts.append("Ask price is negative.")
 
         bid = breakdown.best_bid_price
         if (
