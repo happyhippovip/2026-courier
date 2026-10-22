@@ -35,11 +35,17 @@ def source_sha256() -> str | None:
     if not files:
         return None
     digest = hashlib.sha256()
+    hashed = False
     try:
         for path in files:
+            if path.is_symlink():
+                continue
+            hashed = True
             digest.update(path.name.encode("utf-8") + b"\0")
             digest.update(path.read_bytes() + b"\0")
     except OSError:
+        return None
+    if not hashed:
         return None
     return digest.hexdigest()
 

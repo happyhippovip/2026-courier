@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import platform
 import re
+from pathlib import Path
 
 import pytest
 
@@ -72,6 +73,26 @@ def test_source_sha256_shape_and_stable():
     first, second = source_sha256(), source_sha256()
     assert first == second
     assert first is None or (isinstance(first, str) and SHA256_RE.match(first))
+
+
+def test_source_sha256_does_not_follow_a_symlink(tmp_path):
+    """A symlink inside courier_core is not source. Its bytes must not change the digest."""
+    outside = tmp_path / "foreign.py"
+    outside.write_bytes(b"SECRET = 'adopted'\n")
+    package = Path(courier_core.__file__).resolve().parent
+    link = package / "zz_symlink_probe.py"
+    source_sha256.cache_clear()
+    before = source_sha256()
+    source_sha256.cache_clear()
+    link.symlink_to(outside)
+    try:
+        during = source_sha256()
+        assert during == before, (before, during)
+    finally:
+        if link.is_symlink() or link.exists():
+            link.unlink()
+        source_sha256.cache_clear()
+    assert outside.read_bytes() == b"SECRET = 'adopted'\n"
 
 
 # -- build_for_seq ------------------------------------------------------------
