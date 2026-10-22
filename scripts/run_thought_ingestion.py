@@ -108,6 +108,8 @@ def _run_ingestion(inbox: Path, processed: Path, rejected: Path, memory_repo: Pa
     batch_ids: dict[str, str] = {}
     batch_sources: dict[str, str] = {}
     for input_file in sorted(inbox.glob("*.json")):
+        if input_file.is_symlink() or input_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         try:
             raw = load_json(input_file, None)
         except json.JSONDecodeError:

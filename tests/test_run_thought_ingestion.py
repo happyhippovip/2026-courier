@@ -199,3 +199,30 @@ def test_processed_dir_does_not_follow_a_symlink(tmp_path):
         True,
         True,
     )
+
+
+def test_envelope_file_does_not_follow_a_symlink(tmp_path):
+    memory = tmp_path / "memory"
+    memory.mkdir()
+    outside = tmp_path / "outside-envelope.json"
+    outside.write_text(json.dumps({"secret": "SECRET-THOUGHT"}), encoding="utf-8")
+    inbox = tmp_path / "inbox"
+    inbox.mkdir()
+    (inbox / "bad.json").symlink_to(outside)
+    rejected = tmp_path / "rejected"
+    processed = tmp_path / "processed"
+    try:
+        run_ingestion(inbox, processed, rejected, memory)
+        err = None
+    except ValueError as exc:
+        err = str(exc)
+    rejected_names = sorted(p.name for p in rejected.iterdir()) if rejected.exists() else []
+    assert (
+        err,
+        rejected_names,
+        "SECRET-THOUGHT" in outside.read_text(encoding="utf-8"),
+    ) == (
+        "refusing to follow a symlink",
+        [],
+        True,
+    )
