@@ -131,6 +131,42 @@ def test_review_task_id_does_not_escape(tmp_path, monkeypatch):
     body = outside.read_text(encoding="utf-8") if outside.exists() else ""
     assert (err, "ACCEPTED" in body) == ("refusing an unsafe task id", False)
 
+def test_review_result_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    import scripts.run_codex_bridge as codex_bridge
+    decisions = tmp_path / "repo" / "events" / "chief-decisions"
+    decisions.mkdir(parents=True)
+    monkeypatch.setattr(codex_bridge, "DECISIONS_DIR", decisions)
+    outside = tmp_path / "outside-result.json"
+    outside.write_text(json.dumps({
+        "payload": {"verdict": "PASS"},
+        "correlation_id": "SECRET-RESULT",
+    }), encoding="utf-8")
+    linked = tmp_path / "linked-result.json"
+    linked.symlink_to(outside)
+    parent = tmp_path / "real-parent"
+    parent.mkdir()
+    (parent / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = tmp_path / "result-parent"
+    linked_parent.symlink_to(parent)
+    nested = linked_parent / "nested-result.json"
+    nested.write_text(json.dumps({
+        "payload": {"verdict": "PASS"},
+        "correlation_id": "SECRET-PARENT",
+    }), encoding="utf-8")
+    seen = []
+    for path in (linked, nested):
+        try:
+            dec = run_chief_review_router("task-1", path)
+            seen.append((None, dec.get("correlation_id")))
+        except ValueError as exc:
+            seen.append((str(exc), None))
+    assert seen == [
+        ("refusing to follow a symlink", None),
+        ("refusing to follow a symlink", None),
+    ]
+    assert "SECRET-RESULT" in outside.read_text(encoding="utf-8")
+    assert "SECRET-PARENT" in nested.read_text(encoding="utf-8")
+
 def test_run_chief_review_router(tmp_path, monkeypatch):
     import scripts.run_codex_bridge as codex_bridge
     monkeypatch.setattr(codex_bridge, "DECISIONS_DIR", tmp_path / "decisions")

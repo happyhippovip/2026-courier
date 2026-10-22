@@ -583,6 +583,8 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
 def run_chief_review_router(task_id: str, result_file: Path) -> dict:
     """Evaluates Chief Review Router for the given Codex task result."""
     _refuse_task_id(task_id)
+    if result_file.is_symlink() or result_file.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     DECISIONS_DIR.mkdir(parents=True, exist_ok=True)
     decision_file = DECISIONS_DIR / f"{task_id}-chief-decision.json"
 
