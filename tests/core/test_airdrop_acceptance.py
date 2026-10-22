@@ -294,3 +294,25 @@ def test_10_restart_after_aborted_organization_process(airdrop_env):
     rows = conn.execute("SELECT * FROM in_flight").fetchall()
     conn.close()
     assert len(rows) == 0
+
+
+def test_symlink_is_not_copied_into_the_library(tmp_path):
+    outside = tmp_path / "outside.txt"
+    outside.write_text("SECRET", encoding="utf-8")
+    incoming = tmp_path / "incoming"
+    library = tmp_path / "library"
+    quarantine = tmp_path / "quarantine"
+    incoming.mkdir()
+    link = incoming / "note.txt"
+    link.symlink_to(outside)
+    organizer = AirDropOrganizer(incoming, library, quarantine, tmp_path / "state" / "airdrop.db")
+    try:
+        result = organizer.organize_file(link)
+    except ValueError as exc:
+        seen = ("raised", str(exc))
+    else:
+        copied = sorted(path.relative_to(library).as_posix() for path in library.rglob("*") if path.is_file())
+        body = (library / copied[0]).read_text(encoding="utf-8") if copied else ""
+        seen = ("accepted", result.status.value, copied, body)
+    names = sorted(path.relative_to(library).as_posix() for path in library.rglob("*") if path.is_file())
+    assert seen[0] == "raised" and "symlink" in seen[1].lower() and names == [] and outside.read_text(encoding="utf-8") == "SECRET", seen
