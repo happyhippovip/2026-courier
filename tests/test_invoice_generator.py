@@ -58,3 +58,28 @@ def test_main_execution(tmp_path):
     assert list((tmp_path / "events" / "invoices").glob("*.json")), "invoice should be written under tmp_path"
     assert result.returncode == 0
     assert "Generated Invoice: " in result.stdout
+
+
+def test_invoice_dir_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    outside = tmp_path / "outside-invoices"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = tmp_path / "linked-invoices"
+    linked.symlink_to(outside)
+    monkeypatch.setattr(InvoiceGenerator, "INVOICE_DIR", linked)
+    try:
+        InvoiceGenerator.generate_invoice(
+            {"prospect_alias": "P-SAFE", "price_eur": 1.0},
+            "a@b.c",
+            "SECRET-INVOICE",
+        )
+        err = None
+    except ValueError as exc:
+        err = str(exc)
+    names = sorted(path.name for path in outside.iterdir())
+    bodies = [path.read_text(encoding="utf-8") for path in outside.glob("*.json")]
+    assert (err, any("SECRET-INVOICE" in body for body in bodies), names) == (
+        "refusing to follow a symlink",
+        False,
+        ["keep.txt"],
+    )

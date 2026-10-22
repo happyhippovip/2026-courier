@@ -9,6 +9,8 @@ class InvoiceGenerator:
     
     @classmethod
     def setup(cls):
+        if cls.INVOICE_DIR.is_symlink() or cls.INVOICE_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         cls.INVOICE_DIR.mkdir(parents=True, exist_ok=True)
         
     @classmethod
