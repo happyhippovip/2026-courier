@@ -90,3 +90,26 @@ def test_main(tmp_path, monkeypatch):
         
     incoming = Path("results/incoming/mac3_result.json")
     assert incoming.exists()
+
+def test_task_id_does_not_escape_the_inbox(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(mac_worker_adapter.time, "sleep", lambda _seconds: None)
+    clock = {"now": 0}
+
+    def fake_time():
+        clock["now"] += 400
+        return clock["now"]
+
+    monkeypatch.setattr(mac_worker_adapter.time, "time", fake_time)
+    task = tmp_path / "task.json"
+    task.write_text(json.dumps({"task_id": "../../../outside", "goal_id": "SECRET-TASK"}), encoding="utf-8")
+    try:
+        mac_worker_adapter.run(str(task))
+        err = None
+    except ValueError as exc:
+        err = str(exc)
+    except OSError:
+        err = None
+    outside = tmp_path / "outside.json"
+    body = outside.read_text(encoding="utf-8") if outside.exists() else ""
+    assert (err, "SECRET-TASK" in body) == ("refusing an unsafe task id", False)

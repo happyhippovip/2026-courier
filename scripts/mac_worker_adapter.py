@@ -1,9 +1,21 @@
 import json, sys, os, time, shutil
 from pathlib import Path
 
+def _refuse_task_id(task_id: object) -> None:
+    if (
+        not isinstance(task_id, str)
+        or task_id in ("", ".", "..")
+        or Path(task_id).name != task_id
+        or "/" in task_id
+        or "\\" in task_id
+    ):
+        raise ValueError("refusing an unsafe task id")
+
+
 def run(task_file):
     with open(task_file, 'r') as f:
         task = json.load(f)
+    _refuse_task_id(task.get("task_id"))
         
     print(f"[Mac Transport] Routing task {task['task_id']} to Mac Worker DualTransport...")
     
