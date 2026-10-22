@@ -342,8 +342,8 @@ def run_chief_review_router(task_id: str, result_file: Path) -> dict:
 
     res_data = load_json(result_file)
     payload = res_data.get("payload", {})
-
-    verdict = payload.get("verdict", "PASS")
+    # A missing verdict is not a pass. Only the explicit string PASS auto-approves.
+    verdict = payload.get("verdict") if isinstance(payload, dict) else None
 
     now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
     if verdict == "PASS":

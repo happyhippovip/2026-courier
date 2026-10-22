@@ -154,6 +154,13 @@ def test_run_chief_review_router(tmp_path, monkeypatch):
     assert dec3["verdict"] == "HUMAN_APPROVAL_REQUIRED"
     assert dec3["action"] == "STOP_AT_HUMAN_GATE"
 
+    result_file_missing = tmp_path / "res4.json"
+    result_file_missing.write_text(json.dumps({"payload": {}}))
+    dec4 = run_chief_review_router("t4", result_file_missing)
+    assert dec4["verdict"] == "HUMAN_APPROVAL_REQUIRED"
+    assert dec4["action"] == "STOP_AT_HUMAN_GATE"
+    assert dec4["verdict"] != "ACCEPTED"
+
 
 def test_execute_bridge_rejects_synthetic_fixture_summary_as_verified_product_pass(tmp_path, monkeypatch):
     import scripts.run_antigravity_bridge as rab
