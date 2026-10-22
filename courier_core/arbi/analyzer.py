@@ -195,6 +195,16 @@ class StatisticalQualityAnalyzer:
             flags.append("NON_FINITE_BUY_PRICE")
             explanation_parts.append("Buy price is not a finite number.")
 
+        sell_price = breakdown.effective_sell_price
+        if (
+            isinstance(sell_price, bool)
+            or not isinstance(sell_price, (int, float))
+            or not math.isfinite(sell_price)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_SELL_PRICE")
+            explanation_parts.append("Sell price is not a finite number.")
+
         gross = breakdown.gross_spread_usd
         if (
             isinstance(gross, bool)
