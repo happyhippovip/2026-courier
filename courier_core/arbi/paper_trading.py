@@ -108,7 +108,7 @@ class PaperTradingEngine:
         size = breakdown.order_size_usd
         if not isinstance(size, (int, float)) or not math.isfinite(size):
             raise ValueError("order size is not a number.")
-        if size == 0:
+        if size <= 0:
             raise ValueError("order size is out of range.")
         slip = breakdown.slippage_usd
         if not isinstance(slip, (int, float)) or not math.isfinite(slip):
