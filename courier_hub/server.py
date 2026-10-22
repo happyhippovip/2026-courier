@@ -134,6 +134,8 @@ class Hub:
     # -- canonical truth (read-only) -------------------------------------------
     def _open(self) -> Journal:
         db = self.home / "courier.db"
+        if self.home.is_symlink() or self.home.parent.is_symlink() or db.is_symlink():
+            raise TruthUnavailable("unreadable")
         if not db.exists():
             raise TruthUnavailable("not_set_up")
         try:
