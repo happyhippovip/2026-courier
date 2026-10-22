@@ -372,3 +372,91 @@ def test_ids_do_not_escape_the_runtime_dir(tmp_path):
         "refusing an unsafe mission id",
         False,
     )
+
+def test_runtime_dir_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    runtime_root = tmp_path / "repo" / "runtime"
+    runtime_root.mkdir(parents=True)
+    workflows = tmp_path / "workflows.json"
+    save_json(workflows, {"workflows": [{"workflow_id": "w1", "production_steps": []}]})
+    tools = tmp_path / "tools.json"
+    channels = tmp_path / "channels.json"
+    save_json(channels, {
+        "channels": [{
+            "channel_id": "c1",
+            "workflow_id": "w1",
+            "platform": "YOUTUBE",
+            "content_project": "FruitKI",
+        }]
+    })
+    outside = tmp_path / "outside-runtime"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    runtime = tmp_path / "runtime"
+    runtime.symlink_to(outside)
+    try:
+        run_pipeline("c1", "topic", "mission-1", runtime, channels, workflows, tools)
+        err = None
+    except ValueError as exc:
+        err = str(exc)
+    manifest = outside / "c1" / "mission-1" / "manifest.json"
+    body = manifest.read_text(encoding="utf-8") if manifest.exists() else ""
+    parent_outside = tmp_path / "parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = tmp_path / "linked-parent"
+    linked_parent.symlink_to(parent_outside)
+    try:
+        run_pipeline(
+            "c1",
+            "topic",
+            "mission-2",
+            linked_parent / "content",
+            channels,
+            workflows,
+            tools,
+        )
+        err2 = None
+    except ValueError as exc:
+        err2 = str(exc)
+    parent_manifest = parent_outside / "content" / "c1" / "mission-2" / "manifest.json"
+    parent_body = parent_manifest.read_text(encoding="utf-8") if parent_manifest.exists() else ""
+    names = sorted(path.name for path in parent_outside.iterdir())
+    cli_outside = tmp_path / "cli-outside"
+    cli_outside.mkdir()
+    (cli_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    cli_link = tmp_path / "cli-runtime"
+    cli_link.symlink_to(cli_outside)
+    monkeypatch.setattr(sys, "argv", [
+        "run_content_production_pipeline.py",
+        "--channel-id", "c1",
+        "--topic", "topic",
+        "--mission-id", "mission-3",
+        "--runtime-dir", str(cli_link),
+        "--config", str(channels),
+        "--workflows-config", str(workflows),
+        "--tools-config", str(tools),
+    ])
+    try:
+        main()
+        err3 = None
+    except ValueError as exc:
+        err3 = str(exc)
+    cli_manifest = cli_outside / "c1" / "mission-3" / "manifest.json"
+    cli_body = cli_manifest.read_text(encoding="utf-8") if cli_manifest.exists() else ""
+    assert (
+        err,
+        "mission-1" in body,
+        err2,
+        "mission-2" in parent_body,
+        names,
+        err3,
+        "mission-3" in cli_body,
+    ) == (
+        "refusing to follow a symlink",
+        False,
+        "refusing to follow a symlink",
+        False,
+        ["keep.txt"],
+        "refusing to follow a symlink",
+        False,
+    )

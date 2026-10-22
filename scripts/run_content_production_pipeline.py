@@ -468,6 +468,8 @@ def run_pipeline(
 
     _refuse_id(channel_id, "channel id")
     _refuse_id(mission_id, "mission id")
+    if runtime_dir.is_symlink() or runtime_dir.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     mission_dir = runtime_dir / channel_id / mission_id
     mission_dir.mkdir(parents=True, exist_ok=True)
     manifest_file = mission_dir / "manifest.json"
@@ -632,11 +634,14 @@ def main() -> None:
     parser.add_argument("--force", action="store_true", help="Force rerun all stages")
     args = parser.parse_args()
 
+    runtime_dir = Path(args.runtime_dir)
+    if runtime_dir.is_symlink() or runtime_dir.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     manifest = run_pipeline(
         channel_id=args.channel_id,
         topic=args.topic,
         mission_id=args.mission_id,
-        runtime_dir=Path(args.runtime_dir).resolve(),
+        runtime_dir=runtime_dir.resolve(),
         channels_path=Path(args.config).resolve(),
         workflows_path=Path(args.workflows_config).resolve(),
         local_tools_path=Path(args.tools_config).resolve(),
