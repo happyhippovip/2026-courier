@@ -93,6 +93,8 @@ class L2OrderbookBookkeeper:
             raise ValueError("sequence is not a number.")
         if sequence < 0:
             raise ValueError("sequence is out of range.")
+        if sequence < self.last_sequence:
+            raise ValueError("sequence is stale.")
 
         self._apply_levels(self.bids, event.bids_updated)
         self._apply_levels(self.asks, event.asks_updated)
