@@ -36,6 +36,17 @@ def test_agy_without_cost_evidence_is_blocked():
     assert verdict["allowed"] is False
 
 
+def test_positive_cost_is_blocked_when_costgate_raises(monkeypatch):
+    def _boom(*_args, **_kwargs):
+        raise RuntimeError("policy unreadable")
+
+    monkeypatch.setattr("scripts.resource_policy.CostGate.evaluate_spend_request", staticmethod(_boom))
+    verdict = evaluate_cost_gate({"provider": "muse", "estimated_cost_eur": 1.0}, None)
+    assert verdict["allowed"] is False
+    assert verdict["outcome"] == "BLOCKED"
+    assert verdict["reason_code"] == "COSTGATE_UNAVAILABLE_FOR_SPEND"
+
+
 def test_agy_accepts_declared_cost_evidence():
     spec = validate(
         {
