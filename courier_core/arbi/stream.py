@@ -87,6 +87,8 @@ class L2OrderbookBookkeeper:
             raise ValueError("Bool is not a number.")
         if not isinstance(sequence, int):
             raise ValueError("sequence is not a number.")
+        if sequence < 0:
+            raise ValueError("sequence is out of range.")
 
         self._apply_levels(self.bids, event.bids_updated)
         self._apply_levels(self.asks, event.asks_updated)
