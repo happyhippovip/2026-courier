@@ -137,6 +137,67 @@ def test_bool_max_iterations_is_not_one(valid_command):
         command_ok, command_reason, job_ok, job_reason, numeric_ok, numeric_reason,
     )
 
+
+def test_memory_repo_cli_does_not_follow_a_symlink(tmp_path, valid_command):
+    def run(mem: Path):
+        cmd = tmp_path / f"cmd-{mem.name}.json"
+        cmd.write_text(json.dumps(valid_command), encoding="utf-8")
+        out = tmp_path / f"out-{mem.name}"
+        argv = [
+            "prog",
+            "--command", str(cmd),
+            "--output-dir", str(out),
+            "--memory-repo", str(mem),
+        ]
+        with mock.patch.object(sys, "argv", argv):
+            try:
+                build_antigravity_worker_job.main()
+                err = None
+            except SystemExit as exc:
+                err = str(exc)
+        names = sorted(p.name for p in out.iterdir()) if out.exists() else []
+        body = (out / names[0]).read_text(encoding="utf-8") if names else ""
+        return err, names, body
+
+    real = tmp_path / "real-memory"
+    real.mkdir()
+    (real / "PROJECT_STATE.md").write_text("SECRET-MEMORY-BODY\n", encoding="utf-8")
+    linked = tmp_path / "linked-memory"
+    linked.symlink_to(real)
+
+    parent_real = tmp_path / "parent-real"
+    nested = parent_real / "repo"
+    nested.mkdir(parents=True)
+    (nested / "PROJECT_STATE.md").write_text("SECRET-PARENT-BODY\n", encoding="utf-8")
+    parent_link = tmp_path / "parent-link"
+    parent_link.symlink_to(parent_real)
+
+    plain = tmp_path / "plain-memory"
+    plain.mkdir()
+    (plain / "PROJECT_STATE.md").write_text("PLAIN-MEMORY-BODY\n", encoding="utf-8")
+
+    err_link, names_link, body_link = run(linked)
+    err_parent, names_parent, body_parent = run(parent_link / "repo")
+    err_plain, names_plain, body_plain = run(plain)
+    refused = "WORKER_JOB_BUILDER_ERROR: refusing to follow a symlink"
+    assert (
+        err_link == refused
+        and names_link == []
+        and "SECRET-MEMORY-BODY" not in body_link
+        and err_parent == refused
+        and names_parent == []
+        and "SECRET-PARENT-BODY" not in body_parent
+        and err_plain is None
+        and names_plain == ["t1-worker-job.json"]
+        and "PLAIN-MEMORY-BODY" in body_plain
+        and linked.is_symlink()
+        and parent_link.is_symlink()
+    ), (
+        err_link, names_link, "SECRET-MEMORY-BODY" in body_link,
+        err_parent, names_parent, "SECRET-PARENT-BODY" in body_parent,
+        err_plain, names_plain, "PLAIN-MEMORY-BODY" in body_plain,
+    )
+
 @mock.patch("scripts.build_antigravity_worker_job.build_worker_job")
 def test_main_cli(mock_build, tmp_path, capsys):
     cmd_file = tmp_path / "cmd.json"

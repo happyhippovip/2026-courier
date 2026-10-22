@@ -321,7 +321,11 @@ def main() -> None:
 
     command_path = Path(args.command)
     output_dir = Path(args.output_dir)
-    mem_repo_path = Path(args.memory_repo).resolve() if args.memory_repo else None
+    mem_repo_path = Path(args.memory_repo) if args.memory_repo else None
+    if mem_repo_path is not None and (mem_repo_path.is_symlink() or mem_repo_path.parent.is_symlink()):
+        fail("refusing to follow a symlink")
+    if mem_repo_path is not None:
+        mem_repo_path = mem_repo_path.resolve()
 
     job = build_worker_job(command_path, output_dir, schema_path, mem_repo_path)
     print(f"WORKER_JOB_CREATED: id={job['job_id']}, task={job['task_id']}, src_msg={job['source_command_message_id']}")
