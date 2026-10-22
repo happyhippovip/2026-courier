@@ -69,6 +69,23 @@ def test_bool_max_bytes_is_not_one_byte(tmp_path):
     assert list(tmp_path.rglob("*")) == []
 
 
+def test_store_does_not_write_through_a_symlinked_root(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "store"
+    link.symlink_to(outside, target_is_directory=True)
+    try:
+        library = ArtifactStore(link)
+        library.put(b"X", name="a.txt", binding=BINDING)
+    except ArtifactError as exc:
+        assert "symlink" in str(exc).lower(), str(exc)
+    else:
+        names = sorted(path.relative_to(outside).as_posix()
+                       for path in outside.rglob("*") if path.is_file())
+        raise AssertionError(names)
+    assert list(outside.iterdir()) == []
+
+
 def test_bool_claimed_size_is_not_one_byte(tmp_path):
     """True is not a claimed size of one byte."""
     library = store(tmp_path)

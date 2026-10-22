@@ -68,7 +68,10 @@ class ArtifactStore:
     def __init__(self, root, max_bytes: int = DEFAULT_MAX_BYTES):
         if isinstance(max_bytes, bool) or not isinstance(max_bytes, int) or max_bytes < 1:
             raise ArtifactError("max_bytes is not a byte count. Bool is not a number.")
-        self.root = Path(root)
+        root_path = Path(root)
+        if root_path.is_symlink() or root_path.parent.is_symlink():
+            raise ArtifactError(f"{root_path}: refusing to follow a symlink")
+        self.root = root_path
         self.max_bytes = max_bytes
 
     @classmethod
