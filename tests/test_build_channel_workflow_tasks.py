@@ -190,6 +190,80 @@ def test_queue_dir_does_not_follow_a_symlink(tmp_path, fake_configs, monkeypatch
     )
 
 
+def test_channels_config_does_not_follow_a_symlink(tmp_path, fake_configs, monkeypatch):
+    _channels, workflows_path, _queue = fake_configs
+    outside = tmp_path / "outside-channels.json"
+    outside.write_text(json.dumps({
+        "channels": [{
+            "channel_id": "chan-secret",
+            "channel_label": "SECRET-CHANNEL",
+            "platform": "YOUTUBE",
+            "content_project": "FruitKI",
+            "production_enabled": True,
+            "workflow_id": "wf-test-1",
+        }]
+    }), encoding="utf-8")
+    link = tmp_path / "linked-channels.json"
+    link.symlink_to(outside)
+
+    parent_outside = tmp_path / "channels-parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "channels.json").write_text(outside.read_text(encoding="utf-8"), encoding="utf-8")
+    linked_parent = tmp_path / "channels-linked-parent"
+    linked_parent.symlink_to(parent_outside, target_is_directory=True)
+
+    def run(config, name):
+        queue = tmp_path / name
+        try:
+            build_workflow_tasks_for_channel(
+                "chan-secret",
+                "topic-x",
+                queue_dir=queue,
+                channels_path=config,
+                workflows_path=workflows_path,
+            )
+            err = None
+        except ValueError as exc:
+            err = str(exc)
+        names = sorted(p.name for p in queue.iterdir()) if queue.exists() else []
+        body = (queue / names[0]).read_text(encoding="utf-8") if names else ""
+        return err, names, "SECRET-CHANNEL" in body
+
+    lib_link = run(link, "q-link")
+    lib_parent = run(linked_parent / "channels.json", "q-parent")
+    plain = tmp_path / "plain-channels.json"
+    plain.write_text(outside.read_text(encoding="utf-8"), encoding="utf-8")
+    plain_result = run(plain, "q-plain")
+
+    cli_queue = tmp_path / "q-cli"
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "prog",
+            "--channel-id", "chan-secret",
+            "--topic", "cli-topic",
+            "--queue-dir", str(cli_queue),
+            "--config", str(link),
+            "--workflows-config", str(workflows_path),
+        ],
+    )
+    try:
+        main()
+        cli_err = None
+    except ValueError as exc:
+        cli_err = str(exc)
+    cli_names = sorted(p.name for p in cli_queue.iterdir()) if cli_queue.exists() else []
+    cli_body = (cli_queue / cli_names[0]).read_text(encoding="utf-8") if cli_names else ""
+    assert (lib_link, lib_parent, plain_result[0], plain_result[2], cli_err, "SECRET-CHANNEL" in cli_body) == (
+        ("refusing to follow a symlink", [], False),
+        ("refusing to follow a symlink", [], False),
+        None,
+        True,
+        "refusing to follow a symlink",
+        False,
+    )
+
+
 def test_main(monkeypatch, fake_configs, capsys):
     ch, wf, qd = fake_configs
     
