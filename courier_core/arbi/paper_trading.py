@@ -43,6 +43,8 @@ class PaperTradingEngine:
             raise ValueError("Bool is not a number.")
         if not isinstance(initial_capital_usd, (int, float)) or not math.isfinite(initial_capital_usd):
             raise ValueError("virtual capital is not a number.")
+        if initial_capital_usd < 0:
+            raise ValueError("virtual capital is out of range.")
         self.initial_capital_usd = initial_capital_usd
         self.venues = simulated_venues or ["binance", "bybit", "okx"]
         
