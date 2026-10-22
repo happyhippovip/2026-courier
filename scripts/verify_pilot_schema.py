@@ -5,7 +5,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from scripts.integration_contract import prepare_task, WORKER_IDS
 
-with open('ops/ai/PILOT_DUMMY_TASK.json', 'r', encoding='utf-8') as f:
+_task_path = Path('ops/ai/PILOT_DUMMY_TASK.json')
+if _task_path.is_symlink() or _task_path.parent.is_symlink():
+    raise ValueError("refusing to follow a symlink")
+
+with open(_task_path, 'r', encoding='utf-8') as f:
     data = json.load(f)
 
 assert data.get('goal_id'), 'goal_id required'
