@@ -426,6 +426,26 @@ def get_authority_store():
     return _lease_store
 
 
+_WORKER_ID_CHARS = frozenset("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.-")
+
+
+def _lock_file_for(worker_id):
+    """A lock name stays inside the temp directory and is not a symlink."""
+    if (
+        not isinstance(worker_id, str)
+        or not worker_id
+        or ".." in worker_id
+        or any(ch not in _WORKER_ID_CHARS for ch in worker_id)
+    ):
+        raise ValueError(f"invalid worker id: {worker_id!r}")
+    lock_file = Path(tempfile.gettempdir()) / f"courier_worker_{worker_id}.lock"
+    if lock_file.is_symlink():
+        raise OSError(f"{lock_file}: refusing to follow a symlink")
+    if lock_file.parent != Path(tempfile.gettempdir()):
+        raise ValueError(f"invalid worker id: {worker_id!r}")
+    return lock_file
+
+
 def acquire_lock(worker_id):
     """Return the lock path, or None when another worker already holds it.
 
@@ -436,8 +456,11 @@ def acquire_lock(worker_id):
     if _lock_fd is not None:
         return None
     import psutil
-    lock_file = Path(tempfile.gettempdir()) / f"courier_worker_{worker_id}.lock"
-    fd = os.open(str(lock_file), os.O_CREAT | os.O_RDWR)
+    lock_file = _lock_file_for(worker_id)
+    flags = os.O_CREAT | os.O_RDWR
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    fd = os.open(str(lock_file), flags)
     try:
         if os.name == "nt" or "msvcrt" in sys.modules:
             import msvcrt
