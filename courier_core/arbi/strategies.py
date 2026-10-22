@@ -74,7 +74,7 @@ class ArbitrageStrategies:
                 status="BLOCKED_INVALID_PRICE",
                 reason="Invalid prices",
             )
-        if taker_fee_pct < 0:
+        if taker_fee_pct < 0 or taker_fee_pct > 100:
             return TriangularArbiOpportunity(
                 exchange=exchange,
                 leg1="USDT -> BTC",
