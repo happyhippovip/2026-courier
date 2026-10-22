@@ -32,7 +32,11 @@ def test_completion_certificate_in_progress():
     }
     state = {
         "tasks": {
-            "step-1": {"status": "RECONCILED", "verification": {"verdict": "PASS"}},
+            "step-1": {
+                "status": "RECONCILED",
+                "result": {"result_id": "r-step-1"},
+                "verification": {"verdict": "PASS", "verifier_id": "v-step-1", "result_id": "r-step-1"},
+            },
             "step-2": {"status": "QUEUED"},
         }
     }
@@ -129,12 +133,49 @@ def test_completion_certificate_with_timestamp():
     state = {
         "tasks": {
             "t-1": {"status": "RECONCILED", "result": {"result_id": "r-t-1"},
-                    "verification": {"verdict": "PASS", "result_id": "r-t-1"}}
+                    "verification": {"verdict": "PASS", "verifier_id": "v-timed", "result_id": "r-t-1"}}
         }
     }
     res = derive_completion_certificate(goal, state)
     assert res["certified"] is True
     assert res["completed_at"] == "2026-10-16T18:15:00Z"
+
+
+def test_missing_verifier_is_not_invented_and_does_not_certify():
+    goal = {
+        "goal_id": "goal-no-verifier",
+        "status": "DONE",
+        "workflow_plan": [{"task_id": "t-1", "status": "SUCCESS"}],
+    }
+    state = {
+        "tasks": {
+            "t-1": {
+                "status": "SUCCESS",
+                "result": {"result_id": "r-t-1"},
+                "verification": {"verdict": "PASS", "result_id": "r-t-1"},
+            }
+        }
+    }
+    res = derive_completion_certificate(goal, state)
+    assert res["certified"] is False
+    assert res["status"] == STATUS_INCOMPLETE
+    assert res["plan_extent"] == "0/1 Steps"
+    assert res["steps"][0]["verifier_id"] == "unrecorded"
+    assert "courier_verifier" not in res["human_summary"]
+    assert res["proof_level"] == PROOF_LEVEL_UNVERIFIED
+
+
+def test_status_word_does_not_fill_plan_extent():
+    goal = {
+        "goal_id": "goal-status-word",
+        "status": "ACTIVE",
+        "workflow_plan": [{"task_id": "t-1", "status": "DONE"}],
+    }
+    state = {"tasks": {"t-1": {"status": "SUCCESS"}}}
+    res = derive_completion_certificate(goal, state)
+    assert res["certified"] is False
+    assert res["plan_extent"] == "0/1 Steps"
+    assert res["steps"][0]["verifier_id"] == "unrecorded"
 
 
 def test_server_goal_certificate_endpoint(tmp_path, monkeypatch):
@@ -165,7 +206,7 @@ def test_server_goal_certificate_endpoint(tmp_path, monkeypatch):
             "t-done": {
                 "status": "RECONCILED",
                 "result": {"result_id": "r-t-done"},
-                "verification": {"verdict": "PASS", "result_id": "r-t-done"},
+                "verification": {"verdict": "PASS", "verifier_id": "v-done", "result_id": "r-t-done"},
             }
         },
         "workers": {},
