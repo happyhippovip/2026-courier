@@ -77,3 +77,29 @@ def test_bool_rebalance_settings_are_not_numbers():
         ("fee", "raised", "Bool is not a number."),
         ("ratio", "raised", "Bool is not a number."),
     ], seen
+
+
+def test_bool_inventory_is_not_one_euro():
+    engine = DeltaNeutralRebalanceEngine()
+    seen = []
+    for quote in (True, False):
+        try:
+            assessment = engine.evaluate_inventory_balance(
+                InventoryStatus(venue="binance", quote_balance=quote, base_balance=0.0),
+                InventoryStatus(venue="kraken", quote_balance=100.0, base_balance=0.0),
+                accumulated_pnl_eur=25.0,
+            )
+        except ValueError as exc:
+            seen.append((quote, "raised", str(exc)))
+        else:
+            seen.append((
+                quote,
+                "accepted",
+                assessment.status,
+                assessment.transfer_amount_quote,
+                assessment.source_venue,
+            ))
+    assert seen == [
+        (True, "raised", "Bool is not a number."),
+        (False, "raised", "Bool is not a number."),
+    ], seen

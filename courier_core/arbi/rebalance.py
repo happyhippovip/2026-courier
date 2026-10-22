@@ -58,6 +58,15 @@ class DeltaNeutralRebalanceEngine:
         kraken_inv: InventoryStatus,
         accumulated_pnl_eur: float,
     ) -> RebalanceAssessment:
+        amounts = (
+            binance_inv.quote_balance,
+            binance_inv.base_balance,
+            kraken_inv.quote_balance,
+            kraken_inv.base_balance,
+            accumulated_pnl_eur,
+        )
+        if any(isinstance(value, bool) for value in amounts):
+            raise ValueError("Bool is not a number.")
         total_quote = binance_inv.quote_balance + kraken_inv.quote_balance
         if total_quote <= 0:
             return RebalanceAssessment(
