@@ -50,6 +50,19 @@ test("claimed completion without a tracked chain is rejected", () => {
   assert.equal(lab.snapshot().workkeys["WK-A"].status, "UNKNOWN");
 });
 
+test("first-seen VERIFIED is not a green completion", () => {
+  const lab = createLab({ mode: "live" });
+  const res = lab.applyEvent(ev({ event_id: "e1", status: "VERIFIED" }));
+  assert.equal(res.applied, false);
+  assert.equal(res.reason, "out-of-order");
+  const snap = lab.snapshot();
+  assert.equal(snap.workkeys["WK-A"].status, "UNKNOWN");
+  assert.equal(snap.workkeys["WK-A"].station, null);
+  assert.deepEqual(snap.workkeys["WK-A"].evidence, []);
+  assert.equal(snap.particles.length, 0);
+  assert.equal(snap.counters.pulses, 0);
+});
+
 test("backward transition is rejected as out-of-order", () => {
   const lab = createLab();
   lab.applyEvent(ev({ event_id: "e1", status: "QUEUED" }));

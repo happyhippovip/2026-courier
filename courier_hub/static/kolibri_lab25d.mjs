@@ -64,10 +64,11 @@ export function validEvent(ev) {
 function forwardAllowed(from, to) {
   if (!(to in RANK) || !(from in RANK)) return false;
   if (from === to) return true; // same-status progress refreshes evidence
-  // First sighting: accept anything but claimed completion — DONE needs a
-  // tracked VERIFIED in the same chain ("DONE nur nach Abschlussnachweis").
+  // First sighting: accept in-flight progress, not a claimed completion.
+  // VERIFIED and DONE need the previous step in this chain. A bare status
+  // word is not a verifier result ("DONE nur nach Abschlussnachweis").
   // Fail edges stay fail-closed: BLOCKED/FAILED from anywhere, even UNKNOWN.
-  if (from === "UNKNOWN") return to !== "DONE";
+  if (from === "UNKNOWN") return to !== "DONE" && to !== "VERIFIED";
   if (TERMINAL.has(from)) return false; // terminal states never advance
   if (to === "BLOCKED" || to === "FAILED") return true; // fail edges from anywhere live
   if (to === "UNKNOWN") return false;
