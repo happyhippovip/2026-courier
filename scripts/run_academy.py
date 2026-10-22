@@ -394,6 +394,8 @@ class AcademyDirector:
         self.steward = UpdateSteward(repo_dir=repo_dir, memory_dir=memory_dir)
 
     def _load_or_init_economics(self) -> dict:
+        if self.economics_file.is_symlink() or self.economics_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         if self.economics_file.exists():
             try:
                 return json.loads(self.economics_file.read_text(encoding="utf-8"))

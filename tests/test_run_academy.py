@@ -269,6 +269,63 @@ def test_deliveries_dir_does_not_follow_a_symlink(academy_env, monkeypatch):
     )
 
 
+def test_economics_file_does_not_follow_a_symlink(academy_env):
+    repo_dir, memory_dir = academy_env
+    outside = repo_dir.parent / "outside-econ.json"
+    outside.write_text(json.dumps({
+        "secret": "SECRET-ECON",
+        "measured_minutes_saved": 99,
+    }), encoding="utf-8")
+    (repo_dir / "events" / "academy" / "economics.json").symlink_to(outside)
+
+    def start(repo):
+        try:
+            director = AcademyDirector(repo_dir=repo, memory_dir=memory_dir)
+        except ValueError as exc:
+            return str(exc), None
+        return "loaded", director.economics.get("secret")
+
+    err_file, secret_file = start(repo_dir)
+
+    parent_outside = repo_dir.parent / "econ-parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "economics.json").write_text(json.dumps({
+        "secret": "SECRET-PARENT",
+        "measured_minutes_saved": 7,
+    }), encoding="utf-8")
+    repo_parent = repo_dir.parent / "repo-econ-parent"
+    (repo_parent / "events" / "agent-states").mkdir(parents=True)
+    (repo_parent / "events" / "academy").symlink_to(parent_outside, target_is_directory=True)
+    err_parent, secret_parent = start(repo_parent)
+
+    repo_plain = repo_dir.parent / "repo-econ-plain"
+    (repo_plain / "events" / "agent-states").mkdir(parents=True)
+    (repo_plain / "events" / "academy").mkdir(parents=True)
+    err_plain, secret_plain = start(repo_plain)
+    plain_file = repo_plain / "events" / "academy" / "economics.json"
+    assert (
+        err_file,
+        secret_file,
+        "SECRET-ECON" in outside.read_text(encoding="utf-8"),
+        err_parent,
+        secret_parent,
+        "SECRET-PARENT" in (parent_outside / "economics.json").read_text(encoding="utf-8"),
+        err_plain,
+        secret_plain,
+        plain_file.exists() and not plain_file.is_symlink(),
+    ) == (
+        "refusing to follow a symlink",
+        None,
+        True,
+        "refusing to follow a symlink",
+        None,
+        True,
+        "loaded",
+        None,
+        True,
+    )
+
+
 def test_lesson_id_does_not_escape_the_lessons_dir(academy_env, monkeypatch):
     repo_dir, memory_dir = academy_env
     lessons = repo_dir / "events" / "academy" / "lessons"
