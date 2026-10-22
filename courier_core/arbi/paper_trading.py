@@ -98,8 +98,12 @@ class PaperTradingEngine:
             isinstance(simulated_latency_ms, bool)
             or isinstance(second_leg_fail_rate, bool)
             or isinstance(partial_fill_pct, bool)
+            or isinstance(breakdown.order_size_usd, bool)
         ):
             raise ValueError("Bool is not a number.")
+        size = breakdown.order_size_usd
+        if not isinstance(size, (int, float)) or not math.isfinite(size):
+            raise ValueError("order size is not a number.")
         self._trade_counter += 1
         t_id = f"sim-trade-{self._trade_counter:04d}"
 
