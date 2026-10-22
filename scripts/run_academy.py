@@ -327,6 +327,9 @@ class AcademyTeacher:
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         delivery_id = f"deliv-{uuid.uuid4().hex[:8]}"
 
+        if DELIVERIES_DIR.is_symlink() or DELIVERIES_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
+
         if is_busy and not is_urgent:
             # Safe Deferral: Queue until task completion boundary
             print(f"[TEACHER] Target agent '{target_agent}' is actively executing. Safe deferral queued.")

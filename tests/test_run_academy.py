@@ -208,6 +208,67 @@ def test_target_agent_does_not_escape_the_state_dir(academy_env, monkeypatch):
     )
 
 
+def test_deliveries_dir_does_not_follow_a_symlink(academy_env, monkeypatch):
+    repo_dir, memory_dir = academy_env
+    lessons = repo_dir / "events" / "academy" / "lessons"
+    monkeypatch.setattr("scripts.run_academy.LESSONS_DIR", lessons)
+    (lessons / "lesson-1.json").write_text(json.dumps({
+        "summary": "plain",
+        "topic": "plain-topic",
+        "proposed_method": "keep",
+        "lesson_type": "PROCESS_IMPROVEMENT",
+        "risk": "LOW",
+    }), encoding="utf-8")
+    (repo_dir / "events" / "agent-states" / "target-agent.json").write_text(
+        json.dumps({"state": "RUNNING", "task": "task-1"}),
+        encoding="utf-8",
+    )
+    teacher = AcademyTeacher(repo_dir=repo_dir, memory_dir=memory_dir)
+
+    outside = repo_dir.parent / "outside-deliveries"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = repo_dir.parent / "linked-deliveries"
+    linked.symlink_to(outside, target_is_directory=True)
+
+    parent_outside = repo_dir.parent / "deliveries-parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = repo_dir.parent / "deliveries-linked-parent"
+    linked_parent.symlink_to(parent_outside, target_is_directory=True)
+
+    def run(folder):
+        monkeypatch.setattr("scripts.run_academy.DELIVERIES_DIR", folder)
+        try:
+            teacher.queue_or_deliver_lesson("lesson-1", "target-agent")
+        except ValueError as exc:
+            return str(exc)
+        return "wrote"
+
+    err_link = run(linked)
+    leaked = sorted(p.name for p in outside.iterdir())
+    err_parent = run(linked_parent / "deliveries")
+    parent_names = sorted(p.name for p in parent_outside.iterdir())
+    plain = repo_dir / "events" / "academy" / "plain-deliveries"
+    err_plain = run(plain)
+    plain_names = sorted(p.name for p in plain.iterdir()) if plain.exists() else []
+    assert (
+        err_link,
+        leaked,
+        err_parent,
+        parent_names,
+        err_plain,
+        any(name.startswith("deliv-") and name.endswith(".json") for name in plain_names),
+    ) == (
+        "refusing to follow a symlink",
+        ["keep.txt"],
+        "refusing to follow a symlink",
+        ["keep.txt"],
+        "wrote",
+        True,
+    )
+
+
 def test_queue_or_deliver_lesson_missing(academy_env):
     repo_dir, memory_dir = academy_env
     teacher = AcademyTeacher(repo_dir=repo_dir, memory_dir=memory_dir)
