@@ -203,6 +203,8 @@ def build_report(
 def analyze(repo_path: Path | str, pytest_json: Path | str | None = None) -> dict:
     """Scan ``repo_path`` and return a JSON-ready summary. Paths are relative."""
     root = Path(repo_path)
+    if root.is_symlink() or root.parent.is_symlink():
+        raise ValueError(f"{root}: refusing to follow a symlink")
     files, capped = _walk(root)
     languages: dict[str, list[int]] = {}
     test_rows: list[dict] = []
@@ -590,6 +592,9 @@ def main(argv: list[str] | None = None) -> int:
             return 2
     elif args.repo_path:
         repo = Path(args.repo_path)
+        if repo.is_symlink() or repo.parent.is_symlink():
+            print(f"{repo}: refusing to follow a symlink", file=sys.stderr)
+            return 2
         if not repo.is_dir():
             print("repo path is not a directory", file=sys.stderr)
             return 2

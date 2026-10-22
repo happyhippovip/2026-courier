@@ -511,6 +511,25 @@ def test_out_does_not_follow_a_symlink(tmp_path):
     assert text == "keep" and code != 0 and names == [] and code_dir != 0, (code, text[:80], code_dir, names)
 
 
+def test_repo_argument_does_not_follow_a_symlink(tmp_path, capsys):
+    real = tmp_path / "real"
+    real.mkdir()
+    (real / "secret.py").write_text("SECRET = 1\n", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(real, target_is_directory=True)
+    code = main([str(link)])
+    captured = capsys.readouterr()
+    real_code = main([str(real)])
+    real_out = capsys.readouterr().out
+    assert (
+        code == 2
+        and "symlink" in captured.err.lower()
+        and "secret.py" not in captured.out
+        and real_code == 0
+        and "secret.py" in real_out
+    ), (code, captured.err, captured.out[:300], real_code, "secret.py" in real_out)
+
+
 def test_module_entrypoint(tmp_path):
     repo = _repo(tmp_path)
     _write(repo, "README.md", "# Demo\n")
