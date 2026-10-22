@@ -36,3 +36,19 @@ def test_pilot_evidence_validation():
         timestamp_utc=datetime.now(timezone.utc).isoformat()
     )
     validator.validate_evidence(evidence)
+
+def test_schema_name_does_not_escape(tmp_path):
+    schemas = tmp_path / "repo" / "schemas"
+    schemas.mkdir(parents=True)
+    outside = tmp_path / "outside.json"
+    outside.write_text('{"marker":"SECRET-SCHEMA"}\n', encoding="utf-8")
+    validator = FoundrySchemaValidator(str(schemas))
+    try:
+        data = validator._load_schema("../../outside.json")
+        err = None
+        marker = data.get("marker")
+    except ValueError as exc:
+        err = str(exc)
+        marker = None
+    assert (err, marker) == ("refusing an unsafe schema name", None)
+    assert "SECRET-SCHEMA" in outside.read_text(encoding="utf-8")
