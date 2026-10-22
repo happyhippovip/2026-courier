@@ -2,7 +2,7 @@
 
 import pytest
 
-from courier_core.reality_orders import NEW, OrderBook, OrderError
+from courier_core.reality_orders import NEW, OrderBook, OrderError, resolve_orders_dir
 
 REPO = "zip-upload"
 ORDER = "ord-guard"
@@ -66,3 +66,20 @@ def test_unknown_cost_blocks_before_network(tmp_path, monkeypatch):
     book._orders[ORDER] = stored
     with pytest.raises(OrderError, match="UNKNOWN_COST"):
         book.revenue_summary()
+
+
+def test_order_book_refuses_a_symlinked_directory(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "orders"
+    link.symlink_to(outside, target_is_directory=True)
+    try:
+        book = OrderBook(link)
+        book.create_order(ORDER, REPO, _contact())
+    except OrderError as exc:
+        assert "symlink" in str(exc)
+    else:
+        raise AssertionError(f"wrote through a symlink: {sorted(p.name for p in outside.iterdir())}")
+    assert list(outside.iterdir()) == []
+    with pytest.raises(OrderError, match="symlink"):
+        resolve_orders_dir(str(link))

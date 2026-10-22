@@ -89,6 +89,7 @@ class OrderBook:
 
     def __init__(self, directory: str | os.PathLike, *, on_receipt_durable: Callable[[], None] | None = None):
         self.root = Path(directory)
+        _refuse_directory_symlink(self.root)
         self.receipts_path = self.root / "receipts.jsonl"
         self.state_path = self.root / "orders.json"
         self._on_receipt_durable = on_receipt_durable
@@ -616,6 +617,12 @@ def courier_state_dir() -> Path:
     return Path.home() / ".courier"
 
 
+def _refuse_directory_symlink(path: Path) -> None:
+    """An order-book directory that is itself a symlink is not opened."""
+    if path.is_symlink():
+        raise OrderError("data dir must not be a symlink")
+
+
 def resolve_orders_dir(explicit: str | None = None) -> Path:
     """--data-dir, else COURIER_ORDERS_DIR, else <courier state>/reality-orders."""
     if explicit:
@@ -625,6 +632,7 @@ def resolve_orders_dir(explicit: str | None = None) -> Path:
     else:
         chosen = courier_state_dir() / "reality-orders"
     chosen = Path(os.path.abspath(chosen))
+    _refuse_directory_symlink(chosen)
     if _inside_git_checkout(chosen):
         raise OrderError("data dir must not sit inside a git checkout")
     return chosen
