@@ -93,6 +93,12 @@ class PaperTradingEngine:
         partial_fill_pct: float = 100.0,
     ) -> SimulatedTradeRecord:
         """Simulates atomic execution across buy and sell venues."""
+        if (
+            isinstance(simulated_latency_ms, bool)
+            or isinstance(second_leg_fail_rate, bool)
+            or isinstance(partial_fill_pct, bool)
+        ):
+            raise ValueError("Bool is not a number.")
         self._trade_counter += 1
         t_id = f"sim-trade-{self._trade_counter:04d}"
 

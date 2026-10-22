@@ -166,6 +166,51 @@ def test_bool_capital_is_not_one_dollar():
     ], seen
 
 
+def test_bool_fill_rate_is_not_a_fraction():
+    pair = NormalizedPair("BTC", "USDT")
+    breakdown = NetProfitBreakdown(
+        pair=pair,
+        buy_exchange="binance",
+        sell_exchange="kraken",
+        order_size_usd=20.0,
+        best_ask_price=100.0,
+        best_bid_price=101.0,
+        effective_buy_price=100.0,
+        effective_sell_price=101.0,
+        gross_spread_pct=1.0,
+        gross_spread_usd=1.0,
+        buy_fee_usd=0.1,
+        sell_fee_usd=0.1,
+        slippage_usd=0.0,
+        transfer_cost_usd=0.0,
+        rebalance_cost_usd=0.0,
+        total_costs_usd=0.2,
+        net_profit_usd=0.8,
+        net_roi_pct=4.0,
+        status="ELIGIBLE",
+        reason="test",
+    )
+    engine = PaperTradingEngine(initial_capital_usd=100.0, simulated_venues=["binance", "kraken"])
+    try:
+        rec = engine.execute_paper_arbitrage(
+            breakdown,
+            simulated_latency_ms=True,
+            second_leg_fail_rate=True,
+            partial_fill_pct=True,
+        )
+    except ValueError as exc:
+        seen = ("raised", str(exc), len(engine.trade_history))
+    else:
+        seen = (
+            "accepted",
+            rec.execution_status,
+            rec.order_size_usd,
+            rec.simulated_latency_ms,
+            len(engine.trade_history),
+        )
+    assert seen == ("raised", "Bool is not a number.", 0), seen
+
+
 def test_triangular_arbitrage_cycle():
     # USDT -> BTC (60,000) -> ETH (0.05 BTC = 3,000 USD equivalent) -> USDT (3,100)
     tri = ArbitrageStrategies.evaluate_triangular_arbitrage(
