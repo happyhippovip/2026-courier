@@ -445,6 +445,8 @@ def run_pipeline(
     local_tools_path: Path = DEFAULT_LOCAL_TOOLS_CONFIG,
     force_rerun: bool = False,
 ) -> dict:
+    if channels_path.is_symlink() or channels_path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     if not channels_path.exists():
         raise FileNotFoundError(f"Channels config not found: {channels_path}")
     if not workflows_path.exists():
@@ -637,12 +639,15 @@ def main() -> None:
     runtime_dir = Path(args.runtime_dir)
     if runtime_dir.is_symlink() or runtime_dir.parent.is_symlink():
         raise ValueError("refusing to follow a symlink")
+    channels_path = Path(args.config)
+    if channels_path.is_symlink() or channels_path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     manifest = run_pipeline(
         channel_id=args.channel_id,
         topic=args.topic,
         mission_id=args.mission_id,
         runtime_dir=runtime_dir.resolve(),
-        channels_path=Path(args.config).resolve(),
+        channels_path=channels_path.resolve(),
         workflows_path=Path(args.workflows_config).resolve(),
         local_tools_path=Path(args.tools_config).resolve(),
         force_rerun=args.force,
