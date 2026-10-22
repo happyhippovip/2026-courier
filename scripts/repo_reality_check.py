@@ -145,7 +145,10 @@ def leak_check(text):
 
 
 def check(repo, run_ci=False):
-    repo = Path(repo).resolve()
+    repo = Path(repo)
+    if repo.is_symlink() or repo.parent.is_symlink():
+        raise ValueError(f"{repo}: refusing to follow a symlink")
+    repo = repo.resolve()
     entries = git_files(repo)
     files = [p for mode, p in entries if mode != "160000"]
     findings = []
@@ -332,7 +335,13 @@ def main(argv=None):
     if len(argv) != 2:
         print("\n".join(__doc__.strip().splitlines()[-2:]), file=sys.stderr)
         return 2
-    result = check(argv[0], run_ci=run_ci)
+    try:
+        result = check(argv[0], run_ci=run_ci)
+    except ValueError as exc:
+        if "refusing to follow a symlink" not in str(exc):
+            raise
+        print(str(exc), file=sys.stderr)
+        return 2
     report_json, report_md, report_html = json.dumps(result, indent=1), to_markdown(result), to_html(result)
     leaks = leak_check(report_json + report_md + report_html)
     if leaks:
