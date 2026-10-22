@@ -4,6 +4,8 @@ from pathlib import Path
 
 def main():
     state_file = Path("server/state/central_state.json")
+    if state_file.is_symlink() or state_file.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     if not state_file.exists():
         print("Courier Symphony: No ledger found.")
         return
