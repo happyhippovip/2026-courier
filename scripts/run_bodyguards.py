@@ -82,8 +82,10 @@ def load_json(path: Path) -> dict[str, Any]:
 
 
 def save_json(path: Path, value: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
     temp = path.with_suffix(".tmp")
+    _refuse_symlink(path)
+    _refuse_symlink(temp)
+    path.parent.mkdir(parents=True, exist_ok=True)
     temp.write_text(json.dumps(value, indent=2, sort_keys=True), encoding="utf-8")
     temp.replace(path)
 
