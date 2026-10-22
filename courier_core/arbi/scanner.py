@@ -7,6 +7,7 @@ Zero API cost, zero credentials required.
 from __future__ import annotations
 
 import json
+import math
 import time
 import urllib.error
 import urllib.request
@@ -34,10 +35,28 @@ class MultiExchangeScanner:
         return limit
 
     @staticmethod
-    def _book_level(price, amount) -> OrderbookLevel:
-        if isinstance(price, bool) or isinstance(amount, bool):
+    def _finite_level_number(value, label: str) -> float:
+        if isinstance(value, bool):
             raise ValueError("Bool is not a number.")
-        return OrderbookLevel(float(price), float(amount))
+        if isinstance(value, (int, float)):
+            number = float(value)
+        elif isinstance(value, str):
+            try:
+                number = float(value)
+            except ValueError:
+                raise ValueError(f"{label} is not a number.") from None
+        else:
+            raise ValueError(f"{label} is not a number.")
+        if not math.isfinite(number):
+            raise ValueError(f"{label} is not a number.")
+        return number
+
+    @staticmethod
+    def _book_level(price, amount) -> OrderbookLevel:
+        return OrderbookLevel(
+            MultiExchangeScanner._finite_level_number(price, "price"),
+            MultiExchangeScanner._finite_level_number(amount, "amount"),
+        )
 
     @staticmethod
     def _fetch_json(url: str) -> dict:
