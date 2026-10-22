@@ -100,6 +100,8 @@ class PaperTradingEngine:
             or isinstance(partial_fill_pct, bool)
             or isinstance(breakdown.order_size_usd, bool)
             or isinstance(breakdown.slippage_usd, bool)
+            or isinstance(breakdown.buy_fee_usd, bool)
+            or isinstance(breakdown.sell_fee_usd, bool)
         ):
             raise ValueError("Bool is not a number.")
         size = breakdown.order_size_usd
@@ -108,6 +110,11 @@ class PaperTradingEngine:
         slip = breakdown.slippage_usd
         if not isinstance(slip, (int, float)) or not math.isfinite(slip):
             raise ValueError("slippage is not a number.")
+        if any(
+            not isinstance(value, (int, float)) or not math.isfinite(value)
+            for value in (breakdown.buy_fee_usd, breakdown.sell_fee_usd)
+        ):
+            raise ValueError("fee is not a number.")
         self._trade_counter += 1
         t_id = f"sim-trade-{self._trade_counter:04d}"
 
