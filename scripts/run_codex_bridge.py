@@ -320,7 +320,11 @@ class CodexHookRunner:
 
     def on_task_stop(self, task_id: str) -> bool:
         _refuse_task_id(task_id)
+        if PROCESSED_DIR.is_symlink() or PROCESSED_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         result_file = PROCESSED_DIR / f"{task_id}-result.json"
+        if result_file.is_symlink() or result_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         exists = result_file.exists()
         print(f"[CODEX_HOOK: ON_STOP] Result file verified for {task_id}: {exists}")
         return exists

@@ -151,6 +151,47 @@ def test_processed_dir_does_not_follow_a_symlink(tmp_path, monkeypatch):
         ["keep.txt"],
     )
 
+def test_stop_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    import scripts.run_codex_bridge as codex_bridge
+    outside = tmp_path / "outside-result.json"
+    outside.write_text('{"result":"SECRET-STOP"}', encoding="utf-8")
+    processed = tmp_path / "processed"
+    processed.mkdir()
+    (processed / "task-1-result.json").symlink_to(outside)
+    monkeypatch.setattr(codex_bridge, "PROCESSED_DIR", processed)
+    hooks = CodexHookRunner(CodexVisualStateTracker(repo_dir=tmp_path))
+    try:
+        found = hooks.on_task_stop("task-1")
+        err = None
+    except ValueError as exc:
+        err = str(exc)
+        found = None
+    outside_dir = tmp_path / "outside-processed"
+    outside_dir.mkdir()
+    (outside_dir / "task-2-result.json").write_text('{"result":"SECRET-DIR"}', encoding="utf-8")
+    linked = tmp_path / "processed-link"
+    linked.symlink_to(outside_dir)
+    monkeypatch.setattr(codex_bridge, "PROCESSED_DIR", linked)
+    try:
+        found2 = hooks.on_task_stop("task-2")
+        err2 = None
+    except ValueError as exc:
+        err2 = str(exc)
+        found2 = None
+    assert (err, found, err2, found2) == (
+        "refusing to follow a symlink",
+        None,
+        "refusing to follow a symlink",
+        None,
+    )
+    assert "SECRET-STOP" in outside.read_text(encoding="utf-8")
+    assert "SECRET-DIR" in (outside_dir / "task-2-result.json").read_text(encoding="utf-8")
+    plain = tmp_path / "plain-processed"
+    plain.mkdir()
+    (plain / "task-3-result.json").write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(codex_bridge, "PROCESSED_DIR", plain)
+    assert hooks.on_task_stop("task-3") is True
+
 def test_review_task_id_does_not_escape(tmp_path, monkeypatch):
     import scripts.run_codex_bridge as codex_bridge
     decisions = tmp_path / "repo" / "events" / "chief-decisions"
