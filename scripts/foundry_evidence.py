@@ -68,7 +68,9 @@ class FoundrySchemaValidator:
             raise ValueError("refusing an unsafe schema name")
         import os
         if schema_name not in self.schemas:
-            path = os.path.join(self.schemas_dir, schema_name)
+            path = Path(os.path.join(self.schemas_dir, schema_name))
+            if path.is_symlink() or path.parent.is_symlink():
+                raise ValueError("refusing to follow a symlink")
             with open(path, "r") as f:
                 self.schemas[schema_name] = json.load(f)
         return self.schemas[schema_name]
