@@ -113,6 +113,8 @@ class L2OrderbookBookkeeper:
             for level in levels:
                 if not isinstance(level, OrderbookLevel):
                     raise ValueError("level is not a quote.")
+        self._reject_bad_levels(event.bids_updated)
+        self._reject_bad_levels(event.asks_updated)
 
         self._apply_levels(self.bids, event.bids_updated)
         self._apply_levels(self.asks, event.asks_updated)
@@ -121,7 +123,7 @@ class L2OrderbookBookkeeper:
         self._accepted_sequence = True
         self.last_update_utc = event.timestamp_utc
 
-    def _apply_levels(self, book: dict, levels: list[OrderbookLevel]) -> None:
+    def _reject_bad_levels(self, levels: list[OrderbookLevel]) -> None:
         for level in levels:
             if isinstance(level.price, bool) or isinstance(level.amount, bool):
                 raise ValueError("Bool is not a number.")
@@ -133,6 +135,9 @@ class L2OrderbookBookkeeper:
                 raise ValueError("amount is not a number.")
             if level.amount < 0:
                 raise ValueError("amount is out of range.")
+
+    def _apply_levels(self, book: dict, levels: list[OrderbookLevel]) -> None:
+        for level in levels:
             if level.amount <= 0:
                 book.pop(level.price, None)
             else:
