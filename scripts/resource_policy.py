@@ -220,8 +220,15 @@ class TaskLeaseManager:
         except FileExistsError:
             pass
 
-        # 2. Inspect existing lease for renewal or active ownership
-        existing = load_json(lease_path)
+        # 2. Inspect existing lease for renewal or active ownership.
+        # The winner may still be writing the new file. Spin until the JSON
+        # is readable so a loser does not treat a mid-write as a torn lease.
+        existing = None
+        for _spin in range(25):
+            existing = load_json(lease_path)
+            if existing is not None or not lease_path.exists():
+                break
+            time.sleep(0.02)
         if existing is None and lease_path.exists():
             # Empty/torn lease = a holder is mid-write. Never treat as expired.
             return False, "LEASE_UNREADABLE_FAIL_CLOSED", {}
