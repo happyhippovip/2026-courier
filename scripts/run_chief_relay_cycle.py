@@ -329,7 +329,9 @@ def main() -> None:
     dispatch_dir = repo_dir / args.dispatch_dir
     _refuse_symlink(dispatch_dir)
     dispatch_dir = dispatch_dir.resolve()
-    proposals_dir = (repo_dir / args.proposals_dir).resolve()
+    proposals_dir = repo_dir / args.proposals_dir
+    _refuse_symlink(proposals_dir)
+    proposals_dir = proposals_dir.resolve()
     approvals_dir = (repo_dir / args.approvals_dir).resolve()
     decisions_dir = (repo_dir / args.decisions_dir).resolve()
     memory_repo = Path(args.memory_repo) if args.memory_repo else None
