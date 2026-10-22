@@ -271,6 +271,22 @@ def test_stale_controller_confirmation_is_not_healthy(tmp_path):
     _assert_schema(stale)
 
 
+def test_begin_refuses_a_symlinked_state_parent(tmp_path):
+    outside = tmp_path / "outside"
+    state = outside / "state"
+    state.mkdir(parents=True)
+    link = tmp_path / "home"
+    link.symlink_to(outside, target_is_directory=True)
+    try:
+        journal = InstallJournal(link / "state")
+        journal.begin("1.0.0", datetime(2026, 10, 22, tzinfo=timezone.utc))
+    except JournalUnreadable as exc:
+        assert "symlink" in str(exc)
+    else:
+        raise AssertionError(sorted(path.name for path in state.iterdir()))
+    assert list(state.iterdir()) == []
+
+
 def test_begin_refuses_a_symlinked_state_dir(tmp_path):
     outside = tmp_path / "outside"
     outside.mkdir()
