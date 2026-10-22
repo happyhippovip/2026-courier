@@ -44,9 +44,13 @@ def halt_system(reason):
 def get_bodyguard_invocations():
     total_invocations = 0
     states_dir = Path("events/agent-states")
+    if states_dir.is_symlink() or states_dir.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     if not states_dir.exists():
         return 0
     for state_file in states_dir.glob("*.json"):
+        if state_file.is_symlink() or state_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         try:
             data = json.loads(state_file.read_text(encoding="utf-8"))
             total_invocations += data.get("model_calls_incurred", 0)
