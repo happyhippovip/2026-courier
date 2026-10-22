@@ -62,6 +62,10 @@ def main() -> None:
         fail("unsafe result message_id")
 
     processed_dir = Path(args.processed_dir)
+    output_path = Path(args.github_output)
+    if (processed_dir.is_symlink() or processed_dir.parent.is_symlink()
+            or output_path.is_symlink() or output_path.parent.is_symlink()):
+        fail("refusing to follow a symlink")
     for candidate in processed_dir.glob("*.json"):
         try:
             existing = json.loads(candidate.read_text(encoding="utf-8"))
@@ -71,10 +75,12 @@ def main() -> None:
             fail("duplicate terminal result")
 
     target = processed_dir / f"{task['message_id']}.result.json"
+    if target.is_symlink() or target.parent.is_symlink():
+        fail("refusing to follow a symlink")
     if target.exists():
         fail("terminal result path already exists")
     target.write_text(json.dumps(result, sort_keys=True, indent=2) + "\n", encoding="utf-8")
-    with Path(args.github_output).open("a", encoding="utf-8") as output:
+    with output_path.open("a", encoding="utf-8") as output:
         output.write(f"result_path={target.as_posix()}\n")
 
 

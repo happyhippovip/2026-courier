@@ -187,3 +187,23 @@ def test_publish_courier_result_target_exists(tmp_path):
     
     err = run_main(task_file, processed_dir, github_output, result)
     assert err == "invalid Codex courier result: terminal result path already exists"
+
+
+def test_publish_does_not_follow_a_symlink(tmp_path):
+    task, task_file, _processed, _output = setup_files(tmp_path)
+    result = create_result(task)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = tmp_path / "linked-processed"
+    linked.symlink_to(outside)
+    secret = tmp_path / "secret-output.txt"
+    secret.write_text("keep-output", encoding="utf-8")
+    out_link = tmp_path / "github-out"
+    out_link.symlink_to(secret)
+    err = run_main(task_file, linked, out_link, result)
+    leaked = sorted(p.name for p in outside.iterdir())
+    body = secret.read_text(encoding="utf-8")
+    assert err == "invalid Codex courier result: refusing to follow a symlink" and leaked == ["keep.txt"] and body == "keep-output" and linked.is_symlink() and out_link.is_symlink(), (
+        err, leaked, body, linked.is_symlink(), out_link.is_symlink(),
+    )
