@@ -78,6 +78,9 @@ def query_worker_state(here_dir):
     state_dir = Path(here_dir) / "state"
     task_file = state_dir / "current_task.json"
     ckpt_file = state_dir / "checkpoint.json"
+    for path in (state_dir, task_file, ckpt_file):
+        if path.is_symlink() or path.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
 
     task_data = {}
     if task_file.exists():
