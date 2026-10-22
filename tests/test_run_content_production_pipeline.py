@@ -311,3 +311,64 @@ def test_main_block(monkeypatch):
             from scripts.run_content_production_pipeline import main
             main()
             mock_run.assert_called_once()
+
+def test_ids_do_not_escape_the_runtime_dir(tmp_path):
+    runtime = tmp_path / "repo" / "runtime" / "content"
+    runtime.mkdir(parents=True)
+    workflows = tmp_path / "workflows.json"
+    save_json(workflows, {"workflows": [{"workflow_id": "w1", "production_steps": []}]})
+    tools = tmp_path / "tools.json"
+    channels = tmp_path / "channels.json"
+    save_json(channels, {
+        "channels": [{
+            "channel_id": "../../../outside-channel",
+            "workflow_id": "w1",
+            "platform": "YOUTUBE",
+            "content_project": "FruitKI",
+        }]
+    })
+    try:
+        run_pipeline(
+            "../../../outside-channel",
+            "topic",
+            "mission-1",
+            runtime,
+            channels,
+            workflows,
+            tools,
+        )
+        err = None
+    except ValueError as exc:
+        err = str(exc)
+    manifest = tmp_path / "outside-channel" / "mission-1" / "manifest.json"
+    body = manifest.read_text(encoding="utf-8") if manifest.exists() else ""
+    safe_channels = tmp_path / "safe-channels.json"
+    save_json(safe_channels, {
+        "channels": [{
+            "channel_id": "c1",
+            "workflow_id": "w1",
+            "platform": "YOUTUBE",
+            "content_project": "FruitKI",
+        }]
+    })
+    try:
+        run_pipeline(
+            "c1",
+            "topic",
+            "../../../../outside-mission",
+            runtime,
+            safe_channels,
+            workflows,
+            tools,
+        )
+        err2 = None
+    except ValueError as exc:
+        err2 = str(exc)
+    manifest2 = tmp_path / "outside-mission" / "manifest.json"
+    body2 = manifest2.read_text(encoding="utf-8") if manifest2.exists() else ""
+    assert (err, "outside-channel" in body, err2, "outside-mission" in body2) == (
+        "refusing an unsafe channel id",
+        False,
+        "refusing an unsafe mission id",
+        False,
+    )

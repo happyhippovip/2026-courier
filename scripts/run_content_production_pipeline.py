@@ -67,6 +67,17 @@ def slugify(text: str) -> str:
     return s.strip("-")[:32]
 
 
+def _refuse_id(value: object, label: str) -> None:
+    if (
+        not isinstance(value, str)
+        or value in ("", ".", "..")
+        or Path(value).name != value
+        or "/" in value
+        or "\\" in value
+    ):
+        raise ValueError(f"refusing an unsafe {label}")
+
+
 def check_secrets_in_text(text: str) -> int:
     found = 0
     for pat in SECRET_PATTERNS:
@@ -455,6 +466,8 @@ def run_pipeline(
     if not mission_id:
         mission_id = f"prod-{slugify(channel_id.replace('chan-', ''))}-{slugify(topic)}"
 
+    _refuse_id(channel_id, "channel id")
+    _refuse_id(mission_id, "mission id")
     mission_dir = runtime_dir / channel_id / mission_id
     mission_dir.mkdir(parents=True, exist_ok=True)
     manifest_file = mission_dir / "manifest.json"
