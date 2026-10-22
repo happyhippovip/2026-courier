@@ -1,4 +1,5 @@
 import json
+import math
 import uuid
 import os
 from datetime import datetime, timedelta, timezone
@@ -15,13 +16,15 @@ class InvoiceGenerator:
         
     @classmethod
     def generate_invoice(cls, experiment_data: dict, customer_email: str, customer_name: str) -> dict:
+        amount = experiment_data.get("price_eur", 0.0)
+        if isinstance(amount, bool) or not isinstance(amount, (int, float)) or not math.isfinite(amount):
+            raise ValueError("price is not a number.")
         cls.setup()
         
         now = datetime.now(timezone.utc)
         due_date = now + timedelta(days=7)
         
         prospect_id = experiment_data.get("prospect_alias", "UNKNOWN-PROSPECT")
-        amount = experiment_data.get("price_eur", 0.0)
         target_offering = experiment_data.get("target_offering", "UNKNOWN-OFFERING")
         
         # Generate stable but unique references
