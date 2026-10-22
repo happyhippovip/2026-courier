@@ -223,7 +223,7 @@ class PaperTradingEngine:
             buy_exchange=buy_ex,
             sell_exchange=sell_ex,
             order_size_usd=round(effective_size, 2),
-            gross_spread_usd=round(gross_usd, 4),
+            gross_spread_usd=round(0.0 if status == "SECOND_LEG_FAILED" else gross_usd, 4),
             fees_usd=round(
                 fees_usd
                 + breakdown.transfer_cost_usd * scale
