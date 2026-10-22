@@ -342,6 +342,34 @@ def test_director_evaluate_lesson(mock_evals_dir, mock_lessons_dir, academy_env,
     assert res2["verdict"] == "FAIL"
     assert json.loads(l1.read_text())["status"] == "EVAL_FAIL"
 
+def test_bool_eval_metric_is_not_a_number(academy_env, monkeypatch):
+    repo_dir, memory_dir = academy_env
+    lessons = repo_dir / "events" / "academy" / "lessons"
+    evals = repo_dir / "events" / "academy" / "evaluations"
+    monkeypatch.setattr("scripts.run_academy.LESSONS_DIR", lessons)
+    monkeypatch.setattr("scripts.run_academy.EVALS_DIR", evals)
+    (lessons / "lesson-1.json").write_text(json.dumps({"status": "APPROVED_FOR_TEST"}), encoding="utf-8")
+    director = AcademyDirector(repo_dir=repo_dir, memory_dir=memory_dir)
+
+    def run(baseline, candidate):
+        try:
+            result = director.evaluate_lesson("lesson-1", baseline, candidate)
+        except ValueError as exc:
+            return ("err", str(exc))
+        return ("ok", result["verdict"], result["metrics"]["runtime_seconds_delta"], result["metrics"]["error_delta"])
+
+    numbers = {"runtime_seconds": 10, "error_count": 0, "test_pass_rate": 1}
+    assert (
+        run({"runtime_seconds": True, "error_count": 0, "test_pass_rate": 1}, numbers),
+        run({"runtime_seconds": 10, "error_count": True, "test_pass_rate": 1}, numbers),
+        run(numbers, numbers),
+    ) == (
+        ("err", "Bool is not a number."),
+        ("err", "Bool is not a number."),
+        ("ok", "PASS", 0, 0),
+    )
+
+
 def test_adopt_does_not_follow_a_symlink(academy_env, monkeypatch):
     repo_dir, memory_dir = academy_env
     lessons = repo_dir / "events" / "academy" / "lessons"

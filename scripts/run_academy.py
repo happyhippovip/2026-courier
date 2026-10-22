@@ -505,6 +505,11 @@ class AcademyDirector:
             raise FileNotFoundError(f"Lesson not found: {lesson_id}")
         lesson = load_json(lesson_file)
 
+        for metrics in (baseline_metrics, candidate_metrics):
+            for key in ("runtime_seconds", "error_count", "test_pass_rate"):
+                if isinstance(metrics.get(key), bool):
+                    raise ValueError("Bool is not a number.")
+
         eval_id = f"eval-{lesson_id}"
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
