@@ -9,7 +9,10 @@ def ensure():
         if p.is_symlink() or p.parent.is_symlink():
             raise SystemExit("refusing to follow a symlink")
     for p in (STATE,CLAIMS,DONE,BLOCKED,LOCKS): p.mkdir(parents=True,exist_ok=True)
-def bank(): return json.loads(BANK.read_text(encoding="utf-8"))["tasks"]
+def bank():
+    if BANK.is_symlink() or BANK.parent.is_symlink():
+        raise SystemExit("refusing to follow a symlink")
+    return json.loads(BANK.read_text(encoding="utf-8"))["tasks"]
 def emit(x): print(json.dumps(x,ensure_ascii=False,indent=2))
 def claim(pool):
     ensure()

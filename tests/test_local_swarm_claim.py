@@ -185,5 +185,62 @@ def test_claim_does_not_follow_a_symlink(mock_emit, tmp_path):
         and linked.is_symlink()
         and linked_claims.is_symlink()
     ), (
-        err_state, leaked_state, err_claims, leaked_claims, err_plain, plain_claims,
+        err_state, leaked_state, err_claims, leaked_claims,         err_plain, plain_claims,
+    )
+
+
+@patch("scripts.local_swarm_claim.emit")
+def test_bank_does_not_follow_a_symlink(mock_emit, tmp_path):
+    outside = tmp_path / "outside-bank.json"
+    outside.write_text(
+        json.dumps({"tasks": [{"id": "SECRET-TASK", "pool": "windows-google"}]}),
+        encoding="utf-8",
+    )
+    linked = tmp_path / "linked-bank.json"
+    linked.symlink_to(outside)
+    parent_real = tmp_path / "parent-real"
+    parent_real.mkdir()
+    (parent_real / "bank.json").write_text(
+        json.dumps({"tasks": [{"id": "SECRET-PARENT", "pool": "windows-google"}]}),
+        encoding="utf-8",
+    )
+    parent_link = tmp_path / "parent-link"
+    parent_link.symlink_to(parent_real)
+    plain_bank = tmp_path / "plain-bank.json"
+    plain_bank.write_text(
+        json.dumps({"tasks": [{"id": "T1", "pool": "windows-google"}]}),
+        encoding="utf-8",
+    )
+
+    def run(bank, tag):
+        state = tmp_path / f"state-{tag}"
+        saved = _point_swarm(state, bank)
+        mock_emit.reset_mock()
+        try:
+            try:
+                err = local_swarm_claim.claim("windows-google")
+            except SystemExit as exc:
+                err = str(exc)
+        finally:
+            _restore_swarm(saved)
+        names = sorted(p.name for p in (state / "claims").iterdir()) if (state / "claims").exists() else []
+        claimed = None
+        if mock_emit.called and mock_emit.call_args[0][0].get("status") == "CLAIMED":
+            claimed = mock_emit.call_args[0][0]["task"]["id"]
+        return err, names, claimed
+
+    err_link, names_link, claimed_link = run(linked, "link")
+    err_parent, names_parent, claimed_parent = run(parent_link / "bank.json", "parent")
+    err_plain, names_plain, claimed_plain = run(plain_bank, "plain")
+    refused = "refusing to follow a symlink"
+    assert (
+        err_link == refused and names_link == [] and claimed_link is None
+        and err_parent == refused and names_parent == [] and claimed_parent is None
+        and err_plain == 0 and names_plain == ["T1"] and claimed_plain == "T1"
+        and linked.is_symlink() and parent_link.is_symlink()
+        and outside.read_text(encoding="utf-8").startswith("{")
+    ), (
+        err_link, names_link, claimed_link,
+        err_parent, names_parent, claimed_parent,
+        err_plain, names_plain, claimed_plain,
     )
