@@ -118,6 +118,10 @@ class StatisticalQualityAnalyzer:
             risk_score += 100
             flags.append("NON_FINITE_ROI")
             explanation_parts.append("ROI is not a finite number.")
+        elif roi < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_ROI")
+            explanation_parts.append("ROI is negative.")
 
         size = breakdown.order_size_usd
         if (
