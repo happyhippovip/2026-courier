@@ -69,6 +69,10 @@ def test_derive_integrity_status():
     task_ext = {"source": "external"}
     assert derive_integrity_status(record, task=task_ext) == STATUS_EXTERNAL_PRODUCED
 
+    # A stored hash with no bytes and no task proof is not a verification.
+    assert derive_integrity_status(record) == STATUS_MISSING_DATA
+    assert derive_integrity_status(record, task={}) == STATUS_MISSING_DATA
+
 
 def test_generate_artifact_receipt_with_store():
     with tempfile.TemporaryDirectory() as tmpdir:
