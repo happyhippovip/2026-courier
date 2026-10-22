@@ -99,3 +99,62 @@ def test_bool_failure_count_is_not_one_attempt(tmp_path, monkeypatch):
         json.dumps({"other.json": False}), encoding="utf-8")
     qp.process_queue()
     assert (tmp_path / "intakes" / "quarantine" / "other.json").exists()
+
+
+def test_quarantine_does_not_follow_a_directory_symlink(tmp_path, monkeypatch):
+    """A symlinked quarantine directory must not receive the parked intake."""
+    qp = load_qp(monkeypatch, tmp_path)
+    monkeypatch.setattr(qp, "dispatch_intake", lambda path: (_ for _ in ()).throw(ValueError("poison")))
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    intakes = tmp_path / "intakes"
+    intakes.mkdir()
+    (intakes / "quarantine").symlink_to(outside, target_is_directory=True)
+    pending = intakes / "pending"
+    pending.mkdir()
+    (pending / "poison.json").write_text("{not json")
+    for _ in range(qp.POISON_QUARANTINE_AFTER):
+        qp.process_queue()
+    names = sorted(path.name for path in outside.iterdir())
+    assert names == [], names
+    assert (pending / "poison.json").is_file()
+
+
+def test_processed_does_not_follow_a_directory_symlink(tmp_path, monkeypatch):
+    """A symlinked processed directory must not receive a finished intake."""
+    qp = load_qp(monkeypatch, tmp_path)
+    monkeypatch.setattr(qp, "dispatch_intake", lambda path: "task-ok")
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    intakes = tmp_path / "intakes"
+    intakes.mkdir()
+    (intakes / "processed").symlink_to(outside, target_is_directory=True)
+    pending = intakes / "pending"
+    pending.mkdir()
+    write_valid(pending / "good.json")
+    qp.process_queue()
+    names = sorted(path.name for path in outside.iterdir())
+    assert names == [], names
+    assert (pending / "good.json").is_file()
+
+
+def test_pending_symlink_is_not_dispatched(tmp_path, monkeypatch):
+    """A symlinked pending directory must not be read or moved."""
+    qp = load_qp(monkeypatch, tmp_path)
+    calls = []
+
+    def fake_dispatch(path):
+        calls.append(path)
+        raise ValueError("should not run")
+
+    monkeypatch.setattr(qp, "dispatch_intake", fake_dispatch)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "foreign.json").write_text("{not json")
+    intakes = tmp_path / "intakes"
+    intakes.mkdir()
+    (intakes / "pending").symlink_to(outside, target_is_directory=True)
+    qp.process_queue()
+    assert calls == [], calls
+    assert (outside / "foreign.json").read_text() == "{not json"
+    assert [path.name for path in outside.iterdir()] == ["foreign.json"]

@@ -38,6 +38,14 @@ def _counts_path():
     return os.path.join("intakes", ".failure_counts.json")
 
 
+def _symlink_queue_dir():
+    """A symlink at the queue root or one of the directories inside it."""
+    for path in ("intakes", "intakes/pending", "intakes/processed", "intakes/quarantine"):
+        if os.path.islink(path):
+            return path
+    return None
+
+
 def _load_counts():
     try:
         with open(_counts_path(), 'r') as f:
@@ -78,9 +86,16 @@ def _record_failure(intake_file, error):
     else:
         attempts = raw + 1
     if attempts >= POISON_QUARANTINE_AFTER:
+        linked = _symlink_queue_dir()
+        if linked:
+            print(f"Refusing to follow a symlink: {linked}", file=sys.stderr)
+            return attempts
         try:
             os.makedirs("intakes/quarantine", exist_ok=True)
             dest = os.path.join("intakes/quarantine", key)
+            if os.path.islink(dest):
+                print(f"Refusing to follow a symlink: {dest}", file=sys.stderr)
+                return attempts
             shutil.move(intake_file, dest)
             with open(dest + ".reason.json", 'w') as f:
                 json.dump({"file": key, "failures": attempts,
@@ -97,6 +112,10 @@ def _record_failure(intake_file, error):
 
 
 def process_queue():
+    linked = _symlink_queue_dir()
+    if linked:
+        print(f"Refusing to follow a symlink: {linked}", file=sys.stderr)
+        return
     os.makedirs("intakes/pending", exist_ok=True)
     os.makedirs("intakes/processed", exist_ok=True)
 
