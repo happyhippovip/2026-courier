@@ -259,6 +259,8 @@ class BodyguardPoolManager:
         working: bool = True,
     ) -> dict[str, Any]:
         """Update bodyguard execution progress."""
+        if isinstance(progress, bool):
+            raise ValueError("Bool is not a number.")
         for bg in BODYGUARD_REGISTRY:
             if bg["callsign"] == callsign.upper():
                 path = self.states_dir / f"{bg['id']}.json"

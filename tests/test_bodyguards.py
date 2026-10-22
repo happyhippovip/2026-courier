@@ -339,3 +339,20 @@ def test_state_file_does_not_follow_a_symlink(tmp_path):
         marker = None
     assert (err, marker) == ("refusing to follow a symlink", None)
     assert "SECRET-STATE" in outside.read_text(encoding="utf-8")
+
+def test_bool_progress_is_not_a_number(tmp_path):
+    manager = BodyguardPoolManager(tmp_path / "repo")
+    manager.initialize_pool(force_reset=True)
+
+    def stored(progress):
+        try:
+            state = manager.update_progress("ALPHA", progress, "step")
+        except ValueError as exc:
+            return str(exc), None
+        return None, state["progress"]
+
+    assert (stored(True), stored(False), stored(0.4)) == (
+        ("Bool is not a number.", None),
+        ("Bool is not a number.", None),
+        (None, 0.4),
+    )
