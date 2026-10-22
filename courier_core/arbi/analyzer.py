@@ -111,11 +111,23 @@ class StatisticalQualityAnalyzer:
             explanation_parts.append("Orderbook depth slippage consumes over 40% of gross spread.")
 
         # Fee ratio check
-        total_fees = breakdown.buy_fee_usd + breakdown.sell_fee_usd
-        if total_fees > (breakdown.gross_spread_usd * 0.7):
-            risk_score += 20
-            flags.append("HIGH_FEE_BURDEN")
-            explanation_parts.append("Exchange fees absorb over 70% of gross opportunity.")
+        buy_fee = breakdown.buy_fee_usd
+        sell_fee = breakdown.sell_fee_usd
+        if any(
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or not math.isfinite(value)
+            for value in (buy_fee, sell_fee)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_FEE")
+            explanation_parts.append("Fee is not a finite number.")
+        else:
+            total_fees = buy_fee + sell_fee
+            if total_fees > (breakdown.gross_spread_usd * 0.7):
+                risk_score += 20
+                flags.append("HIGH_FEE_BURDEN")
+                explanation_parts.append("Exchange fees absorb over 70% of gross opportunity.")
 
         # Data health flags penalty
         if flags:
