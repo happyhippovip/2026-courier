@@ -322,12 +322,13 @@ class TaskLeaseManager:
         except Exception:
             return False
 
-    def _sync_authority_release(self, task_id: str, owner_id: str) -> None:
+    def _sync_authority_release(self, task_id: str, owner_id: str) -> bool:
+        """Release the authority-db lease. False means the authority row may still be held."""
         try:
             from courier_runtime.lease import LeaseStore
             authority_db = self.locks_dir / "authority.db"
             if not authority_db.exists():
-                return
+                return True
             store = LeaseStore(authority_db)
             try:
                 clean_id = task_id.replace("/", "_").replace("\\", "_")
@@ -335,21 +336,24 @@ class TaskLeaseManager:
                 lease = store.current(scope)
                 if lease and lease.holder == owner_id:
                     store.release(lease)
+                return True
             finally:
                 store.close()
         except Exception:
-            pass
+            return False
 
     def release_lease(self, task_id: str, owner_id: str) -> bool:
         lease_path = self._get_lease_path(task_id)
         if not lease_path.exists():
-            self._sync_authority_release(task_id, owner_id)
-            return True
+            return self._sync_authority_release(task_id, owner_id)
         existing = load_json(lease_path)
         if existing and existing.get("owner_id") == owner_id:
+            # Authority first. A failed authority release must keep the file lease
+            # so a second builder cannot treat the task as free.
+            if not self._sync_authority_release(task_id, owner_id):
+                return False
             try:
                 lease_path.unlink(missing_ok=True)
-                self._sync_authority_release(task_id, owner_id)
                 return True
             except Exception:
                 return False
