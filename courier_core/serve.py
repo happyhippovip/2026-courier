@@ -110,6 +110,8 @@ class HomeLock:
 
 def load_or_create_token(path: Path) -> str:
     """Per-install token: reuse a valid existing one, else create it atomically."""
+    if path.is_symlink():
+        raise OSError(f"{path}: refusing to follow a symlink")
     try:
         token = path.read_text(encoding="utf-8").strip()
         if len(token) >= 32:

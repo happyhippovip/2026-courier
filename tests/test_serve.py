@@ -96,6 +96,22 @@ def test_load_or_create_token_replaces_short_corrupt_token(tmp_path: Path):
     assert token != "too_short"
 
 
+def test_load_or_create_token_refuses_a_symlink(tmp_path: Path):
+    target = tmp_path / "outside"
+    secret = "k" * 40
+    target.write_text(secret + "\n", encoding="utf-8")
+    link = tmp_path / "controller.token"
+    link.symlink_to(target)
+    try:
+        token = load_or_create_token(link)
+    except OSError as exc:
+        assert "symlink" in str(exc).lower()
+    else:
+        raise AssertionError("adopted a foreign token" if token == secret else f"returned {token!r}")
+    assert target.read_text(encoding="utf-8") == secret + "\n"
+    assert link.is_symlink()
+
+
 def test_load_or_create_token_strips_whitespace(tmp_path: Path):
     token_file = tmp_path / "run" / "controller.token"
     token_file.parent.mkdir(parents=True, exist_ok=True)
