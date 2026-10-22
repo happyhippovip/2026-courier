@@ -95,6 +95,19 @@ class StatisticalQualityAnalyzer:
             risk_score += 60
             explanation_parts.append(f"Status not eligible: {breakdown.status} ({breakdown.reason})")
 
+        gross = breakdown.gross_spread_usd
+        if (
+            isinstance(gross, bool)
+            or not isinstance(gross, (int, float))
+            or not math.isfinite(gross)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_GROSS")
+            explanation_parts.append("Gross spread is not a finite number.")
+            gross_ok = False
+        else:
+            gross_ok = True
+
         # Slippage friction check
         slip = breakdown.slippage_usd
         if (
@@ -105,7 +118,7 @@ class StatisticalQualityAnalyzer:
             risk_score += 100
             flags.append("NON_FINITE_SLIPPAGE")
             explanation_parts.append("Slippage is not a finite number.")
-        elif slip > (breakdown.gross_spread_usd * 0.4):
+        elif gross_ok and slip > (gross * 0.4):
             risk_score += 25
             flags.append("HIGH_SLIPPAGE_DRAG")
             explanation_parts.append("Orderbook depth slippage consumes over 40% of gross spread.")
@@ -124,7 +137,7 @@ class StatisticalQualityAnalyzer:
             explanation_parts.append("Fee is not a finite number.")
         else:
             total_fees = buy_fee + sell_fee
-            if total_fees > (breakdown.gross_spread_usd * 0.7):
+            if gross_ok and total_fees > (gross * 0.7):
                 risk_score += 20
                 flags.append("HIGH_FEE_BURDEN")
                 explanation_parts.append("Exchange fees absorb over 70% of gross opportunity.")
