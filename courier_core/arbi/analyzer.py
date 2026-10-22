@@ -58,7 +58,7 @@ class StatisticalQualityAnalyzer:
                 if bid <= 0 or ask <= 0:
                     flags.append("NON_POSITIVE_PRICE")
 
-        if book.is_stale:
+        if book.is_stale is True:
             flags.append("STALE_DATA_TIMESTAMP")
 
         latency = book.latency_ms
