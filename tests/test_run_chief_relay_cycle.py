@@ -165,6 +165,93 @@ def test_command_does_not_follow_a_symlink(tmp_path, monkeypatch):
         refused,
     )
 
+def test_dispatch_dir_cli_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    secret = {
+        "schema_version": "2.0",
+        "type": "COMMAND",
+        "status": "NEW",
+        "source": "chief",
+        "destination": "antigravity",
+        "message_id": "SECRET-MSG",
+        "task_id": "SECRET-TASK",
+    }
+
+    class Dummy:
+        returncode = 0
+        stderr = ""
+        stdout = ""
+
+    def plant(name, link_dispatch):
+        repo = tmp_path / name
+        incoming = repo / "events" / "incoming"
+        incoming.mkdir(parents=True)
+        (incoming / "cmd.json").write_text(json.dumps(secret), encoding="utf-8")
+        recorded = []
+
+        def fake_run(cmd, *args, **kwargs):
+            recorded.append(list(cmd))
+            return Dummy()
+
+        monkeypatch.setattr("scripts.run_chief_relay_cycle.subprocess.run", fake_run)
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "prog",
+                "--repo-dir", str(repo),
+                "--incoming-dir", "events/incoming",
+                "--dispatch-dir", str(link_dispatch),
+                "--disable-auto-memory",
+            ],
+        )
+        try:
+            main()
+            err = None
+        except SystemExit as exc:
+            err = str(exc)
+        output_dirs = []
+        for cmd in recorded:
+            if "--output-dir" in cmd:
+                output_dirs.append(cmd[cmd.index("--output-dir") + 1])
+        return err, output_dirs
+
+    outside = tmp_path / "outside-dispatch"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = tmp_path / "linked-dispatch"
+    linked.symlink_to(outside, target_is_directory=True)
+    err_link, outs_link = plant("repo-link", linked)
+
+    parent_outside = tmp_path / "dispatch-parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = tmp_path / "dispatch-linked-parent"
+    linked_parent.symlink_to(parent_outside, target_is_directory=True)
+    err_parent, outs_parent = plant("repo-parent", linked_parent / "dispatch")
+
+    plain = tmp_path / "plain-dispatch"
+    err_plain, outs_plain = plant("repo-plain", plain)
+    refused = "RELAY_CYCLE_ERROR: refusing to follow a symlink"
+    assert (
+        err_link,
+        outs_link,
+        sorted(p.name for p in outside.iterdir()),
+        err_parent,
+        outs_parent,
+        sorted(p.name for p in parent_outside.iterdir()),
+        err_plain,
+        [Path(path).name for path in outs_plain],
+    ) == (
+        refused,
+        [],
+        ["keep.txt"],
+        refused,
+        [],
+        ["keep.txt"],
+        "RELAY_CYCLE_ERROR: Worker job file was not created: "
+        + str((plain.resolve() / "SECRET-TASK-worker-job.json")),
+        ["plain-dispatch"],
+    )
+
 @patch("scripts.run_chief_relay_cycle.subprocess.run")
 def test_run_cycle_no_pending(mock_run, tmp_path):
     res = run_cycle(

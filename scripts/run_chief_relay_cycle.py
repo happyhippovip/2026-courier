@@ -324,7 +324,9 @@ def main() -> None:
     repo_dir = repo_dir.resolve()
     incoming_dir = incoming_dir.resolve()
     processed_dir = (repo_dir / args.processed_dir).resolve()
-    dispatch_dir = (repo_dir / args.dispatch_dir).resolve()
+    dispatch_dir = repo_dir / args.dispatch_dir
+    _refuse_symlink(dispatch_dir)
+    dispatch_dir = dispatch_dir.resolve()
     proposals_dir = (repo_dir / args.proposals_dir).resolve()
     approvals_dir = (repo_dir / args.approvals_dir).resolve()
     decisions_dir = (repo_dir / args.decisions_dir).resolve()
