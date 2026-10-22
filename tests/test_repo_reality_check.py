@@ -67,6 +67,23 @@ def test_cli_writes_json_and_markdown(repo, tmp_path):
     assert (out / "report.md").read_text().startswith("# Repo Reality Check")
 
 
+def test_out_dir_does_not_follow_a_symlink(repo, tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    link = tmp_path / "out-link"
+    link.symlink_to(outside)
+    linked_parent = tmp_path / "linked-parent"
+    linked_parent.symlink_to(outside)
+    nested = linked_parent / "reports"
+    file_code = main([str(repo), str(link)])
+    dir_code = main([str(repo), str(nested)])
+    leaked = sorted(p.name for p in outside.iterdir())
+    assert file_code == 2 and dir_code == 2 and leaked == ["keep.txt"] and link.is_symlink(), (
+        file_code, dir_code, leaked, link.is_symlink(),
+    )
+
+
 def test_report_names_the_checked_commit(repo):
     git(repo, "-c", "user.email=t@example.invalid", "-c", "user.name=t", "commit", "-qm", "init")
     result = check(repo)

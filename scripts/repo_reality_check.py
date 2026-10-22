@@ -339,6 +339,9 @@ def main(argv=None):
         print(f"refusing to write report: second pass found {', '.join(leaks)}", file=sys.stderr)
         return 3
     out = Path(argv[1])
+    if out.is_symlink() or out.parent.is_symlink():
+        print(f"{out}: refusing to follow a symlink", file=sys.stderr)
+        return 2
     out.mkdir(parents=True, exist_ok=True)
     (out / "report.json").write_text(report_json, encoding="utf-8")
     (out / "report.md").write_text(report_md, encoding="utf-8")
