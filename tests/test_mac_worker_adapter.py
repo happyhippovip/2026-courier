@@ -223,3 +223,38 @@ def test_inbox_dir_does_not_follow_a_symlink(tmp_path, monkeypatch):
         False,
         ["keep.txt"],
     )
+
+
+def test_outbox_dir_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(mac_worker_adapter.time, "sleep", lambda _seconds: None)
+    clock = {"now": 0}
+
+    def fake_time():
+        clock["now"] += 400
+        return clock["now"]
+
+    monkeypatch.setattr(mac_worker_adapter.time, "time", fake_time)
+    task = tmp_path / "task.json"
+    task.write_text(json.dumps({"task_id": "mac-out", "goal_id": "LOCAL"}), encoding="utf-8")
+    outside = tmp_path / "outside-outbox"
+    outside.mkdir()
+    secret = outside / "mac-out_result.json"
+    secret.write_text('{"status":"SUCCESS","goal_id":"SECRET-OUTBOX"}\n', encoding="utf-8")
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    Path("scripts/mac_worker/inbox").mkdir(parents=True)
+    Path("scripts/mac_worker/outbox").symlink_to(outside)
+    Path("results/incoming").mkdir(parents=True)
+    try:
+        mac_worker_adapter.run(str(task))
+        err = None
+    except ValueError as exc:
+        err = str(exc)
+    incoming = Path("results/incoming/mac-out_result.json")
+    body = incoming.read_text(encoding="utf-8") if incoming.exists() else ""
+    assert (err, "SECRET-OUTBOX" in body, secret.exists()) == (
+        "refusing to follow a symlink",
+        False,
+        True,
+    )
+    assert "SECRET-OUTBOX" in secret.read_text(encoding="utf-8")
