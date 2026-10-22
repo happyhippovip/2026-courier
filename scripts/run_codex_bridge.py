@@ -122,6 +122,17 @@ def save_json(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 
+def _refuse_task_id(task_id: object) -> None:
+    if (
+        not isinstance(task_id, str)
+        or task_id in ("", ".", "..")
+        or Path(task_id).name != task_id
+        or "/" in task_id
+        or "\\" in task_id
+    ):
+        raise ValueError("refusing an unsafe task id")
+
+
 def payload_hash(payload: object) -> str:
     return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
 
@@ -220,6 +231,7 @@ class CodexHookRunner:
         message_id: str | None = None,
     ) -> Path:
         print(f"[CODEX_HOOK: ON_COMPLETION] Task {task_id} completed successfully. Writing RESULT_READY...")
+        _refuse_task_id(task_id)
         if not message_id:
             message_id = f"msg-res-cdx-{uuid.uuid4().hex[:12]}"
 
@@ -266,6 +278,7 @@ class CodexHookRunner:
 
     def on_task_failure(self, task_id: str, correlation_id: str, parent_id: str | None, error_message: str) -> Path:
         print(f"[CODEX_HOOK: ON_FAILURE] Task {task_id} failed: {error_message}")
+        _refuse_task_id(task_id)
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         payload = {"verdict": "FAILED", "error": error_message}
         p_hash = payload_hash(payload)
@@ -302,6 +315,7 @@ class CodexHookRunner:
         return result_file
 
     def on_task_stop(self, task_id: str) -> bool:
+        _refuse_task_id(task_id)
         result_file = PROCESSED_DIR / f"{task_id}-result.json"
         exists = result_file.exists()
         print(f"[CODEX_HOOK: ON_STOP] Result file verified for {task_id}: {exists}")

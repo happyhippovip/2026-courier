@@ -72,6 +72,46 @@ def test_codex_hook_runner_success(tmp_path, monkeypatch):
     assert data["source"] == "codex"
     assert data["status"] == "COMPLETED"
 
+def test_task_id_does_not_escape_the_processed_dir(tmp_path, monkeypatch):
+    import scripts.run_codex_bridge as codex_bridge
+    processed = tmp_path / "repo" / "events" / "processed"
+    processed.mkdir(parents=True)
+    monkeypatch.setattr(codex_bridge, "PROCESSED_DIR", processed)
+    tracker = CodexVisualStateTracker(repo_dir=tmp_path)
+    hooks = CodexHookRunner(tracker)
+    outside = tmp_path / "outside-result.json"
+    fail_outside = tmp_path / "fail-outside-result.json"
+
+    def complete():
+        try:
+            hooks.on_task_completion("../../../outside", "corr-1", None, {"result": "SECRET-CODEX"})
+        except ValueError as exc:
+            return str(exc)
+        return "wrote"
+
+    def fail():
+        try:
+            hooks.on_task_failure("../../../fail-outside", "corr-2", None, "boom")
+        except ValueError as exc:
+            return str(exc)
+        return "wrote"
+
+    err_ok = complete()
+    ok_body = outside.read_text(encoding="utf-8") if outside.exists() else ""
+    err_fail = fail()
+    fail_body = fail_outside.read_text(encoding="utf-8") if fail_outside.exists() else ""
+    assert (
+        err_ok,
+        "SECRET-CODEX" in ok_body,
+        err_fail,
+        "boom" in fail_body,
+    ) == (
+        "refusing an unsafe task id",
+        False,
+        "refusing an unsafe task id",
+        False,
+    )
+
 def test_run_chief_review_router(tmp_path, monkeypatch):
     import scripts.run_codex_bridge as codex_bridge
     monkeypatch.setattr(codex_bridge, "DECISIONS_DIR", tmp_path / "decisions")
