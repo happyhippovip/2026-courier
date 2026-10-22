@@ -105,6 +105,16 @@ class StatisticalQualityAnalyzer:
             flags.append("NON_FINITE_NET")
             explanation_parts.append("Net profit is not a finite number.")
 
+        roi = breakdown.net_roi_pct
+        if (
+            isinstance(roi, bool)
+            or not isinstance(roi, (int, float))
+            or not math.isfinite(roi)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_ROI")
+            explanation_parts.append("ROI is not a finite number.")
+
         gross = breakdown.gross_spread_usd
         if (
             isinstance(gross, bool)
