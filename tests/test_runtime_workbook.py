@@ -40,6 +40,25 @@ def test_no_grant_no_write(book):
     assert open(book, "rb").read() == before
 
 
+def test_boolean_cell_is_not_read_as_a_number(tmp_path):
+    """An xlsx boolean cell is not the number 1 or 0."""
+    path = make_fixture(str(tmp_path / "flags.xlsx"), {"A1": "Name", "B2": 1})
+    with zipfile.ZipFile(path) as source:
+        sheet = source.read("xl/worksheets/sheet1.xml").decode("utf-8")
+        others = {name: source.read(name) for name in source.namelist() if name != "xl/worksheets/sheet1.xml"}
+    sheet = sheet.replace('<c r="B2">', '<c r="B2" t="b">', 1)
+    with zipfile.ZipFile(path, "w") as dest:
+        for name, data in others.items():
+            dest.writestr(name, data)
+        dest.writestr("xl/worksheets/sheet1.xml", sheet)
+    try:
+        cells = read_cells(path)
+    except ValueError as exc:
+        assert "bool" in str(exc).lower(), exc
+    else:
+        raise AssertionError(cells)
+
+
 def test_bool_cell_is_not_a_number(book):
     """True is not a price of 1. A bool must be refused before any write."""
     before = open(book, "rb").read()

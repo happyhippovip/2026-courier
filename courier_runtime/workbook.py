@@ -46,6 +46,8 @@ def read_cells(path):
             cells[ref] = shared[int(v.text)]
         elif kind == "inlineStr" and is_ is not None:
             cells[ref] = "".join(t.text or "" for t in is_.iter(_q("t")))
+        elif kind == "b":
+            raise ValueError(f"{ref}: Bool is not a number.")
         elif v is not None:
             cells[ref] = float(v.text) if "." in v.text else int(v.text)
     return cells
