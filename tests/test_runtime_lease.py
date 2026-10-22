@@ -193,6 +193,22 @@ def test_lease_store_refuses_a_symlink_and_leaves_the_target_empty(tmp_path):
     assert target.read_bytes() == b""
 
 
+def test_fenced_writer_refuses_a_symlinked_parent(leases, tmp_path):
+    from courier_runtime.lease import FencedFileWriter
+
+    store, _ = leases
+    lease = store.acquire("repo://docs", "writer-1", "wk-doc", ttl_s=10)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "linked"
+    link.symlink_to(outside, target_is_directory=True)
+    writer = FencedFileWriter(store, "repo://docs", lease.token, "writer-1")
+    with pytest.raises(OSError, match="symlink"):
+        with writer.open(link / "report.txt", "w") as handle:
+            handle.write("nope")
+    assert list(outside.iterdir()) == []
+
+
 def test_fenced_writer_refuses_a_symlink_and_leaves_the_target(leases, tmp_path):
     from courier_runtime.lease import FencedFileWriter
 

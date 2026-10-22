@@ -246,7 +246,8 @@ class FencedFileWriter:
     def open(self, path, mode="w", *args, **kwargs):
         if any(m in mode for m in ("w", "a", "+", "x")):
             self.check()
-            if Path(path).is_symlink():
+            candidate = Path(path)
+            if candidate.is_symlink() or candidate.parent.is_symlink():
                 raise OSError(f"{path}: refusing to follow a symlink")
         return open(path, mode, *args, **kwargs)
 
