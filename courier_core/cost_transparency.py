@@ -20,7 +20,9 @@ FIREWALL_TRIGGERED = "PAYG_TRIGGERED"
 
 def describe_billing_mode(cost_class: str, provider: str) -> str:
     """Format human-readable provider and billing mode description."""
-    if isinstance(cost_class, bool):
+    if isinstance(cost_class, bool) or (
+        cost_class is not None and not isinstance(cost_class, str)
+    ):
         cost_class = "unknown"
     norm_class = (cost_class or COST_CLASS_FREE).lower()
     norm_provider = (provider or "local").title()
