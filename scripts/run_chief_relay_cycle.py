@@ -332,7 +332,9 @@ def main() -> None:
     proposals_dir = repo_dir / args.proposals_dir
     _refuse_symlink(proposals_dir)
     proposals_dir = proposals_dir.resolve()
-    approvals_dir = (repo_dir / args.approvals_dir).resolve()
+    approvals_dir = repo_dir / args.approvals_dir
+    _refuse_symlink(approvals_dir)
+    approvals_dir = approvals_dir.resolve()
     decisions_dir = repo_dir / args.decisions_dir
     _refuse_symlink(decisions_dir)
     decisions_dir = decisions_dir.resolve()
