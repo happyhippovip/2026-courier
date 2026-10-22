@@ -25,6 +25,8 @@ def describe_billing_mode(cost_class: str, provider: str) -> str:
     ):
         cost_class = "unknown"
     norm_class = (cost_class or COST_CLASS_FREE).lower()
+    if isinstance(provider, bool) or (provider is not None and not isinstance(provider, str)):
+        provider = "unknown"
     norm_provider = (provider or "local").title()
 
     if norm_class == COST_CLASS_FREE:
