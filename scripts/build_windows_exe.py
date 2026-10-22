@@ -109,10 +109,13 @@ def stop_process_group(proc: subprocess.Popen) -> None:
         try:
             proc.wait(timeout=2)
         except subprocess.TimeoutExpired:
-            try:
-                os.killpg(proc.pid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
+            pass
+        # The leader can exit on SIGTERM while a child in the same group is
+        # still alive. Escalate so that child does not outlive the stop.
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
     try:
         proc.wait(timeout=5)
     except subprocess.TimeoutExpired:
