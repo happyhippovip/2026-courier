@@ -427,3 +427,32 @@ def test_job_file_does_not_follow_a_symlink(tmp_path, monkeypatch):
         False,
     )
     assert "SECRET-JOB" in outside.read_text(encoding="utf-8")
+
+def test_bool_context_version_is_not_a_number(tmp_path, monkeypatch):
+    import scripts.run_codex_bridge as codex_bridge
+    processed = tmp_path / "processed"
+    monkeypatch.setattr(codex_bridge, "PROCESSED_DIR", processed)
+    monkeypatch.setattr(codex_bridge, "EVENTS_DIR", tmp_path / "events")
+    hooks = CodexHookRunner(CodexVisualStateTracker(repo_dir=tmp_path))
+
+    def seen(task: str, version: object):
+        job = tmp_path / f"{task}.json"
+        job.write_text(json.dumps({
+            "task_id": task,
+            "correlation_id": "corr-1",
+            "instruction": "inspect",
+            "context_version": version,
+        }), encoding="utf-8")
+        try:
+            execute_codex_task(job, hooks)
+        except ValueError as exc:
+            return str(exc), None
+        result = processed / f"{task}-result.json"
+        data = json.loads(result.read_text(encoding="utf-8"))
+        return None, data["payload"]["context_version_seen"]
+
+    assert (seen("task-true", True), seen("task-false", False), seen("task-int", 4)) == (
+        ("Bool is not a number.", None),
+        ("Bool is not a number.", None),
+        (None, 4),
+    )
