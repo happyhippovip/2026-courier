@@ -47,6 +47,8 @@ class L2StreamMockFeeder:
     def generate_events(self, count: int = 10) -> Iterator[L2DeltaEvent]:
         if isinstance(count, bool):
             raise ValueError("Bool is not a number.")
+        if not isinstance(count, int):
+            raise ValueError("count is not a number.")
         for i in range(count):
             self._seq += 1
             # Micro-shift in spread: alternating between Binance and Kraken
