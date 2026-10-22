@@ -381,6 +381,11 @@ class SupervisorLock:
 
 
 def acquire_lock():
+    if WALL_DIR.is_symlink() or WALL_DIR.parent.is_symlink():
+        raise OSError(f"{WALL_DIR}: refusing to follow a symlink")
+    lock_path = Path(LOCK_FILE)
+    if lock_path.is_symlink() or lock_path.parent.is_symlink():
+        raise OSError(f"{lock_path}: refusing to follow a symlink")
     WALL_DIR.mkdir(parents=True, exist_ok=True)
     try:
         handle = open(LOCK_FILE, "w")
