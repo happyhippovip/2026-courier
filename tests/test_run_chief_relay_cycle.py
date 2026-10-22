@@ -8,6 +8,7 @@ from scripts.run_chief_relay_cycle import (
     is_command_pending,
     discover_pending_command,
     run_cycle,
+    main,
 )
 
 def test_fail():
@@ -87,6 +88,82 @@ def test_discover_pending_command_found(tmp_path):
     
     found = discover_pending_command(incoming, processed)
     assert found == cmd_file
+
+def test_command_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    secret = {
+        "schema_version": "2.0",
+        "type": "COMMAND",
+        "status": "NEW",
+        "source": "chief",
+        "destination": "antigravity",
+        "message_id": "SECRET-MSG",
+        "task_id": "SECRET-TASK",
+    }
+    outside = tmp_path / "outside-cmd.json"
+    outside.write_text(json.dumps(secret), encoding="utf-8")
+    incoming = tmp_path / "incoming"
+    incoming.mkdir()
+    link = incoming / "cmd.json"
+    link.symlink_to(outside)
+    processed = tmp_path / "processed"
+    processed.mkdir()
+
+    outside_dir = tmp_path / "outside-incoming"
+    outside_dir.mkdir()
+    (outside_dir / "cmd.json").write_text(json.dumps(secret), encoding="utf-8")
+    linked_incoming = tmp_path / "linked-incoming"
+    linked_incoming.symlink_to(outside_dir, target_is_directory=True)
+
+    plain_incoming = tmp_path / "plain-incoming"
+    plain_incoming.mkdir()
+    plain = plain_incoming / "cmd.json"
+    plain.write_text(json.dumps(secret), encoding="utf-8")
+
+    def pending(path, folder):
+        try:
+            return ("ok", is_command_pending(path, folder))
+        except SystemExit as exc:
+            return ("err", str(exc))
+
+    def discover(folder):
+        try:
+            found = discover_pending_command(folder, processed)
+        except SystemExit as exc:
+            return ("err", str(exc))
+        if found is None:
+            return ("ok", None, None)
+        data = json.loads(found.read_text(encoding="utf-8"))
+        return ("ok", found.name, data.get("message_id"))
+
+    refused = "RELAY_CYCLE_ERROR: refusing to follow a symlink"
+    file_result = pending(link, processed)
+    dir_result = discover(linked_incoming)
+    plain_result = pending(plain, processed)
+
+    repo = tmp_path / "repo"
+    (repo / "events").mkdir(parents=True)
+    (repo / "events" / "incoming").symlink_to(outside_dir, target_is_directory=True)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "prog",
+            "--repo-dir", str(repo),
+            "--incoming-dir", "events/incoming",
+            "--disable-auto-memory",
+        ],
+    )
+    try:
+        main()
+        cli_err = None
+    except SystemExit as exc:
+        cli_err = str(exc)
+
+    assert (file_result, dir_result, plain_result, cli_err) == (
+        ("err", refused),
+        ("err", refused),
+        ("ok", True),
+        refused,
+    )
 
 @patch("scripts.run_chief_relay_cycle.subprocess.run")
 def test_run_cycle_no_pending(mock_run, tmp_path):
