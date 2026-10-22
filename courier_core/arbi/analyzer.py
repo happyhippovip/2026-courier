@@ -61,7 +61,14 @@ class StatisticalQualityAnalyzer:
         if book.is_stale:
             flags.append("STALE_DATA_TIMESTAMP")
 
-        if book.latency_ms > 1500.0:
+        latency = book.latency_ms
+        if (
+            isinstance(latency, bool)
+            or not isinstance(latency, (int, float))
+            or not math.isfinite(latency)
+        ):
+            flags.append("NON_FINITE_LATENCY")
+        elif latency > 1500.0:
             flags.append("HIGH_NETWORK_LATENCY")
 
         return flags
