@@ -160,6 +160,27 @@ def test_mailbox_bool_task_id_does_not_execute(tmp_path):
     assert not outbox.exists()
 
 
+def test_mailbox_non_string_task_id_does_not_execute(tmp_path):
+    inbox = tmp_path / "inbox.jsonl"
+    outbox = tmp_path / "outbox.jsonl"
+    home = tmp_path / "home"
+    lines = []
+    for raw_id in (7, "", {"n": 1}):
+        lines.append(json.dumps({
+            "task_id": raw_id,
+            "name": "bad id",
+            "estimated_cost_eur": 0.0,
+            "status": "PENDING",
+        }))
+    inbox.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    results = process_inbox(inbox, outbox, home_path=home)
+    assert results == []
+    assert not outbox.exists()
+    updated = [json.loads(line) for line in inbox.read_text(encoding="utf-8").splitlines() if line]
+    assert [row["resolution"] for row in updated] == ["INVALID_TASK_ID"] * 3
+    assert [row["status"] for row in updated] == ["BLOCKED"] * 3
+
+
 def test_mailbox_lease_store_failure_fails_closed(tmp_path, monkeypatch):
     inbox = tmp_path / "inbox.jsonl"
     outbox = tmp_path / "outbox.jsonl"

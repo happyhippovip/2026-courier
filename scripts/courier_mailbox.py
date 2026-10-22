@@ -81,17 +81,20 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
 
         for task in tasks:
             raw_id = task.get("task_id")
-            if isinstance(raw_id, bool):
+            if raw_id is None:
+                # A missing id still gets a generated id. Any supplied value
+                # that is not a non-empty string is not an id: a bool, a
+                # number, or an object would otherwise run as a new task.
+                task_id = f"task-{int(time.time()*1000)}"
+            elif isinstance(raw_id, str) and raw_id:
+                task_id = raw_id
+            else:
                 task["status"] = "BLOCKED"
                 task["resolution"] = "INVALID_TASK_ID"
-                task["reason"] = "Bool is not a task id."
+                task["reason"] = "Task id must be a non-empty string."
                 task["processed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
                 updated_lines.append(json.dumps(task))
                 continue
-            if isinstance(raw_id, str) and raw_id:
-                task_id = raw_id
-            else:
-                task_id = f"task-{int(time.time()*1000)}"
             status = task.get("status", "PENDING")
 
             if isinstance(raw_id, str) and raw_id and raw_id in seen_ids:
