@@ -49,7 +49,11 @@ def main(argv=None):
     if len(argv) != 1:
         print(__doc__.strip().splitlines()[-1], file=sys.stderr)
         return 2
-    text, problems = draft(json.loads(Path(argv[0]).read_text(encoding="utf-8")))
+    report_path = Path(argv[0])
+    if report_path.is_symlink() or report_path.parent.is_symlink():
+        print("refusing to follow a symlink", file=sys.stderr)
+        return 2
+    text, problems = draft(json.loads(report_path.read_text(encoding="utf-8")))
     if text is None:
         print("nothing worth a notice (only low findings)")
         return 0
