@@ -9,6 +9,7 @@ Safety Invariants:
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass
 from typing import Callable, Iterator, Optional
 
@@ -87,6 +88,10 @@ class L2OrderbookBookkeeper:
         for level in levels:
             if isinstance(level.price, bool) or isinstance(level.amount, bool):
                 raise ValueError("Bool is not a number.")
+            if not isinstance(level.price, (int, float)) or not math.isfinite(level.price):
+                raise ValueError("price is not a number.")
+            if not isinstance(level.amount, (int, float)) or not math.isfinite(level.amount):
+                raise ValueError("amount is not a number.")
             if level.amount <= 0:
                 book.pop(level.price, None)
             else:
