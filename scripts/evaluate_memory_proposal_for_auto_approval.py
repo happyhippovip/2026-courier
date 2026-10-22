@@ -239,6 +239,12 @@ def process_proposal_for_chief_decision(
     created_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
     generated_approval_id = None
 
+    output_decisions_dir = Path(output_decisions_dir)
+    output_approvals_dir = Path(output_approvals_dir)
+    if (output_decisions_dir.is_symlink() or output_decisions_dir.parent.is_symlink()
+            or output_approvals_dir.is_symlink() or output_approvals_dir.parent.is_symlink()):
+        fail("refusing to follow a symlink")
+
     if decision == "AUTO_APPROVE":
         # Generate 087 schema-compliant Chief Approval
         generated_approval_id = f"appr-mem-{task_id}-{uuid.uuid4().hex[:8]}"
@@ -294,8 +300,13 @@ def main() -> None:
 
     proposal_path = Path(args.proposal).resolve()
     memory_repo_path = Path(args.memory_repo).resolve()
-    dec_dir = Path(args.output_decisions).resolve()
-    appr_dir = Path(args.output_approvals).resolve()
+    dec_dir = Path(args.output_decisions)
+    appr_dir = Path(args.output_approvals)
+    if (dec_dir.is_symlink() or dec_dir.parent.is_symlink()
+            or appr_dir.is_symlink() or appr_dir.parent.is_symlink()):
+        fail("refusing to follow a symlink")
+    dec_dir = dec_dir.resolve()
+    appr_dir = appr_dir.resolve()
 
     result = process_proposal_for_chief_decision(
         proposal_file=proposal_path,

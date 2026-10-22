@@ -244,6 +244,37 @@ class TestEvaluateMemoryProposal(unittest.TestCase):
         self.assertEqual(appr_data["approved_by"], "AUTONOMOUS_CHIEF_POLICY")
         self.assertEqual(appr_data["approval_status"], "APPROVED")
 
+    def test_output_dirs_do_not_follow_a_symlink(self):
+        prop_file = self.td_path / "proposal.json"
+        prop_file.write_text(json.dumps(self.valid_proposal), encoding="utf-8")
+        outside_dec = self.td_path / "outside-dec"
+        outside_appr = self.td_path / "outside-appr"
+        outside_dec.mkdir()
+        outside_appr.mkdir()
+        (outside_dec / "keep.txt").write_text("keep", encoding="utf-8")
+        (outside_appr / "keep.txt").write_text("keep", encoding="utf-8")
+        linked_dec = self.td_path / "linked-dec"
+        linked_appr = self.td_path / "linked-appr"
+        linked_dec.symlink_to(outside_dec)
+        linked_appr.symlink_to(outside_appr)
+        try:
+            process_proposal_for_chief_decision(
+                proposal_file=prop_file,
+                memory_repo_path=self.td_path,
+                output_decisions_dir=linked_dec,
+                output_approvals_dir=linked_appr,
+            )
+        except SystemExit as exc:
+            outcome = str(exc)
+        else:
+            outcome = "wrote"
+        leaked_dec = sorted(p.name for p in outside_dec.iterdir())
+        leaked_appr = sorted(p.name for p in outside_appr.iterdir())
+        self.assertEqual(
+            (outcome, leaked_dec, leaked_appr, linked_dec.is_symlink(), linked_appr.is_symlink()),
+            ("CHIEF_POLICY_ERROR: refusing to follow a symlink", ["keep.txt"], ["keep.txt"], True, True),
+        )
+
     def test_process_proposal_missing_file(self):
         with self.assertRaises(SystemExit):
             process_proposal_for_chief_decision(self.td_path / "missing.json")
