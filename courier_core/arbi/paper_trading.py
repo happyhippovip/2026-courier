@@ -224,7 +224,12 @@ class PaperTradingEngine:
             sell_exchange=sell_ex,
             order_size_usd=round(effective_size, 2),
             gross_spread_usd=round(gross_usd, 4),
-            fees_usd=round(fees_usd + breakdown.transfer_cost_usd * scale, 4),
+            fees_usd=round(
+                fees_usd
+                + breakdown.transfer_cost_usd * scale
+                + breakdown.rebalance_cost_usd * scale,
+                4,
+            ),
             slippage_usd=round(slip_usd, 4),
             net_pnl_usd=round(net_pnl, 4),
             roi_pct=round(roi, 4),
