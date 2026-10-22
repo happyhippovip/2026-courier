@@ -70,6 +70,7 @@ def derive_goal_cost_summary(
     tasks_map = state_dict.get("tasks", {})
     workers_map = state_dict.get("workers", {})
 
+    plan_invalid = "workflow_plan" in goal and not isinstance(goal.get("workflow_plan"), list)
     workflow_plan = goal.get("workflow_plan", [])
     if not isinstance(workflow_plan, list):
         workflow_plan = []
@@ -130,6 +131,10 @@ def derive_goal_cost_summary(
         })
 
     total_steps = len(workflow_plan)
+    if plan_invalid:
+        steps_payg += 1
+        payg_triggered = True
+        total_steps = 1
     if payg_triggered:
         marginal_cost = "Metered PAYG (Check provider credit consumption)"
         firewall_status = FIREWALL_TRIGGERED
