@@ -74,6 +74,20 @@ class ArtifactStore:
         self.root = root_path
         self.max_bytes = max_bytes
 
+    def _refuse_store_path(self, path: Path) -> None:
+        """Refuse a symlink at the store root or on any component inside it."""
+        try:
+            relative = path.relative_to(self.root)
+        except ValueError:
+            raise ArtifactError(f"{path}: refusing to follow a symlink") from None
+        cursor = self.root
+        if cursor.is_symlink():
+            raise ArtifactError(f"{cursor}: refusing to follow a symlink")
+        for part in relative.parts:
+            cursor = cursor / part
+            if cursor.is_symlink():
+                raise ArtifactError(f"{cursor}: refusing to follow a symlink")
+
     @classmethod
     def from_env(cls):
         return cls(os.environ.get("COURIER_ARTIFACT_DIR", "server/state/artifacts"),
@@ -106,16 +120,18 @@ class ArtifactStore:
                 raise ArtifactError("uploaded bytes do not match the claimed size")
 
         blob = self._blob_path(sha256)
+        artifact_id = artifact_id_for(binding, name, sha256)
+        path = self._record_path(artifact_id)
+        self._refuse_store_path(blob)
+        self._refuse_store_path(path)
         if blob.exists():
             if hashlib.sha256(blob.read_bytes()).hexdigest() != sha256:
                 raise ArtifactError("stored blob is corrupt")
         else:
             _atomic_write(blob, data)
 
-        artifact_id = artifact_id_for(binding, name, sha256)
         record = {"artifact_id": artifact_id, "name": name, "sha256": sha256, "size": len(data),
                   **{f: binding[f] for f in BINDING_FIELDS}}
-        path = self._record_path(artifact_id)
         if path.exists():
             if json.loads(path.read_text(encoding="utf-8")) != record:
                 raise ArtifactError("artifact record conflict")
@@ -125,6 +141,7 @@ class ArtifactStore:
 
     def get_record(self, artifact_id: str) -> dict | None:
         path = self._record_path(artifact_id)
+        self._refuse_store_path(path)
         if not path.is_file():
             return None
         return json.loads(path.read_text(encoding="utf-8"))
@@ -134,6 +151,7 @@ class ArtifactStore:
         if record is None:
             raise ArtifactError("unknown artifact_id")
         blob = self._blob_path(record["sha256"])
+        self._refuse_store_path(blob)
         if not blob.is_file():
             raise ArtifactError("artifact bytes missing")
         return blob.read_bytes()

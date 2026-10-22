@@ -86,6 +86,41 @@ def test_store_does_not_write_through_a_symlinked_root(tmp_path):
     assert list(outside.iterdir()) == []
 
 
+def test_store_does_not_write_through_a_symlinked_records_dir(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    root = tmp_path / "store"
+    root.mkdir()
+    (root / "records").symlink_to(outside, target_is_directory=True)
+    library = ArtifactStore(root)
+    try:
+        library.put(b"X", name="a.txt", binding=BINDING)
+    except ArtifactError as exc:
+        assert "symlink" in str(exc).lower(), str(exc)
+    else:
+        names = sorted(path.name for path in outside.iterdir())
+        raise AssertionError(names)
+    assert list(outside.iterdir()) == []
+
+
+def test_store_does_not_write_through_a_symlinked_blobs_dir(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    root = tmp_path / "store"
+    root.mkdir()
+    (root / "blobs").symlink_to(outside, target_is_directory=True)
+    library = ArtifactStore(root)
+    try:
+        library.put(b"X", name="a.txt", binding=BINDING)
+    except ArtifactError as exc:
+        assert "symlink" in str(exc).lower(), str(exc)
+    else:
+        names = sorted(path.relative_to(outside).as_posix()
+                       for path in outside.rglob("*") if path.is_file())
+        raise AssertionError(names)
+    assert list(outside.rglob("*")) == []
+
+
 def test_bool_claimed_size_is_not_one_byte(tmp_path):
     """True is not a claimed size of one byte."""
     library = store(tmp_path)
