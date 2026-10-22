@@ -75,6 +75,22 @@ def test_stale_lock_stealing(tmp_path):
     release_packet_lock(packet_id, lock_dir=lock_dir)
 
 
+def test_lock_without_a_real_start_time_is_not_stolen(tmp_path):
+    packet_id = "test-packet-unknown-start"
+    lock_dir = tmp_path / "locks"
+    lpath = lock_path(packet_id, lock_dir=lock_dir)
+    lpath.parent.mkdir(parents=True, exist_ok=True)
+    for payload in (
+        {"pid": 999999, "packet_id": packet_id},
+        {"pid": 999999, "packet_id": packet_id, "started_at": True},
+        {"pid": 999999, "packet_id": packet_id, "started_at": "yesterday"},
+    ):
+        lpath.write_text(json.dumps(payload), encoding="utf-8")
+        assert acquire_packet_lock(packet_id, lock_dir=lock_dir, timeout_seconds=300) is False
+        assert json.loads(lpath.read_text(encoding="utf-8")) == payload
+        lpath.unlink()
+
+
 CALM_HOST = lambda: {"memory_percent": 40.0, "swap_percent": 10.0}  # noqa: E731
 
 
@@ -344,3 +360,32 @@ def test_google_agent_task_costgate_enforced(tmp_path):
     assert verdict == "FAILED"
     assert "COST_GATE_DENIED" in evidence_nan.get("blocked_reason", "")
     assert evidence_nan.get("provider_invoked") is False
+
+    # 3. Omitted cost, unknown_cost, and a boolean must not become free spend.
+    def refuse_spawn(*_args, **_kwargs):
+        raise AssertionError("provider spawned without a known cost")
+
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr("scripts.google_builder_worker.AGENT_RUNNER", refuse_spawn)
+    try:
+        for payload in (
+            {"workkey": "WK-MISSING", "instruction": "do something"},
+            {
+                "workkey": "WK-UNKNOWN",
+                "instruction": "do something",
+                "estimated_cost_eur": 0.0,
+                "unknown_cost": True,
+            },
+            {
+                "workkey": "WK-BOOL",
+                "instruction": "do something",
+                "estimated_cost_eur": True,
+            },
+        ):
+            evidence_blocked = {}
+            verdict = run_google_agent_task(payload, tmp_path, evidence_blocked, surface)
+            assert verdict == "FAILED"
+            assert "UNKNOWN_COST" in evidence_blocked.get("blocked_reason", "")
+            assert evidence_blocked.get("provider_invoked") is False
+    finally:
+        monkeypatch.undo()
