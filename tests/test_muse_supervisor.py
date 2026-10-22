@@ -494,4 +494,60 @@ def test_supervisor_acquire_lock_integrates_authority_store(env):
     store.close()
 
 
+def _fresh_supervisor(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_WALL_DIR", str(tmp_path / "wall"))
+    return load_module(f"sup_lease_{tmp_path.name}", SUP_PATH)
+
+
+def test_missing_authority_store_does_not_keep_the_supervisor_lock(tmp_path, monkeypatch):
+    sup = _fresh_supervisor(tmp_path, monkeypatch)
+    original = sup.get_authority_store
+    monkeypatch.setattr(sup, "get_authority_store", lambda: None)
+    with pytest.raises(RuntimeError, match="refusing to run without a writer lease"):
+        sup.acquire_lock()
+
+    monkeypatch.setattr(sup, "get_authority_store", original)
+    lock = sup.acquire_lock()
+    assert lock is not None
+    assert lock.lease is not None
+    lock.close()
+
+
+def test_authority_lease_error_is_not_another_supervisor(tmp_path, monkeypatch):
+    sup = _fresh_supervisor(tmp_path, monkeypatch)
+
+    class BrokenStore:
+        def acquire(self, *_args, **_kwargs):
+            raise RuntimeError("authority.db unreadable")
+
+    monkeypatch.setattr(sup, "get_authority_store", lambda: BrokenStore())
+    with pytest.raises(RuntimeError, match="authority.db unreadable"):
+        sup.acquire_lock()
+
+    monkeypatch.undo()
+    monkeypatch.setenv("COURIER_WALL_DIR", str(tmp_path / "wall"))
+    lock = sup.acquire_lock()
+    assert lock is not None
+    lock.close()
+
+
+def test_authority_lease_conflict_defers_supervisor(tmp_path, monkeypatch):
+    from courier_runtime.lease import LeaseConflict
+
+    sup = _fresh_supervisor(tmp_path, monkeypatch)
+
+    class HeldStore:
+        def acquire(self, *_args, **_kwargs):
+            raise LeaseConflict("supervisor scope is held")
+
+    monkeypatch.setattr(sup, "get_authority_store", lambda: HeldStore())
+    assert sup.acquire_lock() is None
+
+    monkeypatch.undo()
+    monkeypatch.setenv("COURIER_WALL_DIR", str(tmp_path / "wall"))
+    lock = sup.acquire_lock()
+    assert lock is not None
+    lock.close()
+
+
 
