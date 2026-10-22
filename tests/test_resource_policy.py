@@ -94,6 +94,68 @@ def test_task_lease_manager_authority_db_conflict_rejected(repo_dir):
     assert not (repo_dir / "events" / "locks" / "task_conflict_task.lease").exists()
 
 
+def test_task_lease_manager_authority_error_fails_closed(repo_dir, monkeypatch):
+    def _boom(*_args, **_kwargs):
+        raise RuntimeError("authority.db unreadable")
+
+    monkeypatch.setattr("courier_runtime.lease.LeaseStore.acquire", _boom)
+    tlm = TaskLeaseManager(repo_dir)
+    success, reason, data = tlm.acquire_lease("repro-task", "hash", "owner", duration_sec=30)
+    assert success is False
+    assert reason == "TASK_ALREADY_CLAIMED_BY_ANOTHER_BUILDER"
+    assert not (repo_dir / "events" / "locks" / "task_repro-task.lease").exists()
+    assert "fencing_token" not in data
+
+
+def test_task_lease_renew_authority_error_rolls_back_expiry(repo_dir, monkeypatch):
+    tlm = TaskLeaseManager(repo_dir)
+    success, _reason, _data = tlm.acquire_lease("renew-task", "hash", "owner", duration_sec=30)
+    assert success is True
+    lease_path = repo_dir / "events" / "locks" / "task_renew-task.lease"
+    original_expires = json.loads(lease_path.read_text())["expires_at"]
+
+    def _boom(*_args, **_kwargs):
+        raise RuntimeError("authority.db unreadable")
+
+    monkeypatch.setattr("courier_runtime.lease.LeaseStore.acquire", _boom)
+    success, reason, data = tlm.acquire_lease("renew-task", "hash", "owner", duration_sec=120)
+    assert success is False
+    assert reason == "TASK_ALREADY_CLAIMED_BY_ANOTHER_BUILDER"
+    assert data.get("reason") == "AUTHORITY_DB_LEASE_CONFLICT"
+    rolled = json.loads(lease_path.read_text())
+    assert rolled["expires_at"] == original_expires
+    assert lease_path.exists()
+
+
+def test_task_lease_release_authority_error_keeps_file_lease(repo_dir, monkeypatch):
+    from courier_runtime.lease import LeaseStore
+
+    tlm = TaskLeaseManager(repo_dir)
+    success, _reason, _data = tlm.acquire_lease("rel-task", "hash", "owner", duration_sec=30)
+    assert success is True
+    lease_path = repo_dir / "events" / "locks" / "task_rel-task.lease"
+    assert lease_path.exists()
+
+    def _boom(*_args, **_kwargs):
+        raise RuntimeError("authority.db unreadable")
+
+    monkeypatch.setattr("courier_runtime.lease.LeaseStore.release", _boom)
+    assert tlm.release_lease("rel-task", "owner") is False
+    assert lease_path.exists()
+
+    store = LeaseStore(repo_dir / "events" / "locks" / "authority.db")
+    try:
+        lease = store.current("task:rel-task")
+        assert lease is not None
+        assert lease.holder == "owner"
+    finally:
+        store.close()
+
+    blocked, blocked_reason, _blocked_data = tlm.acquire_lease("rel-task", "other-hash", "other-owner", duration_sec=30)
+    assert blocked is False
+    assert blocked_reason == "TASK_ALREADY_CLAIMED_BY_ANOTHER_BUILDER"
+
+
 def test_file_manifest_tracker(repo_dir):
     test_file = repo_dir / "test.txt"
     test_file.write_text("hello world")
