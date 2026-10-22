@@ -288,6 +288,11 @@ class StatisticalQualityAnalyzer:
             flags.append("NEGATIVE_GROSS")
             explanation_parts.append("Gross spread is negative.")
             gross_ok = False
+        elif gross == 0:
+            risk_score += 100
+            flags.append("ZERO_GROSS")
+            explanation_parts.append("Gross spread is zero.")
+            gross_ok = False
         else:
             gross_ok = True
 
