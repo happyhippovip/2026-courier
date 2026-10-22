@@ -123,6 +123,8 @@ class PaperTradingEngine:
         gross = breakdown.gross_spread_usd
         if not isinstance(gross, (int, float)) or not math.isfinite(gross):
             raise ValueError("gross spread is not a number.")
+        if gross < 0:
+            raise ValueError("gross spread is out of range.")
         if not isinstance(partial_fill_pct, (int, float)) or not math.isfinite(partial_fill_pct):
             raise ValueError("fill percent is not a number.")
         if not isinstance(second_leg_fail_rate, (int, float)) or not math.isfinite(second_leg_fail_rate):
