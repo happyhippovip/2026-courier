@@ -277,8 +277,13 @@ def build_worker_job(
     if not is_schema_valid:
         fail(f"Generated worker job failed JSON Schema validation: {schema_err}")
 
+    output_dir = Path(output_dir)
+    if output_dir.is_symlink() or output_dir.parent.is_symlink():
+        fail("refusing to follow a symlink")
     output_dir.mkdir(parents=True, exist_ok=True)
     out_file = output_dir / f"{task_id}-worker-job.json"
+    if out_file.is_symlink():
+        fail("refusing to follow a symlink")
     out_file.write_text(json.dumps(worker_job, indent=2) + "\n", encoding="utf-8")
 
     return worker_job

@@ -98,6 +98,33 @@ def test_build_worker_job_no_schema(tmp_path, valid_command):
     out_file = out_dir / f"t1-worker-job.json"
     assert out_file.exists()
 
+def test_output_dir_does_not_follow_a_symlink(tmp_path, valid_command):
+    cmd_file = tmp_path / "cmd.json"
+    cmd_file.write_text(json.dumps(valid_command), encoding="utf-8")
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = tmp_path / "linked-out"
+    linked.symlink_to(outside)
+    via = tmp_path / "via"
+    via.symlink_to(tmp_path)
+    nested = via / "jobs"
+    errors = []
+    for dest in (linked, nested):
+        try:
+            build_antigravity_worker_job.build_worker_job(
+                cmd_file, dest, schema_path=None, memory_repo_path=None,
+            )
+        except SystemExit as exc:
+            errors.append(str(exc))
+        else:
+            errors.append("wrote")
+    leaked = sorted(p.name for p in outside.iterdir())
+    assert errors == [
+        "WORKER_JOB_BUILDER_ERROR: refusing to follow a symlink",
+        "WORKER_JOB_BUILDER_ERROR: refusing to follow a symlink",
+    ] and leaked == ["keep.txt"] and linked.is_symlink(), (errors, leaked, linked.is_symlink())
+
 @mock.patch("scripts.build_antigravity_worker_job.build_worker_job")
 def test_main_cli(mock_build, tmp_path, capsys):
     cmd_file = tmp_path / "cmd.json"
