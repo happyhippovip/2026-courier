@@ -297,6 +297,80 @@ class TestEvaluateMemoryProposal(unittest.TestCase):
         with self.assertRaises(SystemExit):
             fail("Some message")
 
+    def test_cli_does_not_follow_proposal_or_memory_symlink(self):
+        outside_prop = self.td_path / "outside-prop.json"
+        secret_prop = dict(self.valid_proposal)
+        secret_prop["task_id"] = "task-secret"
+        secret_prop["source_references"] = ["SECRET-PROPOSAL-BODY"]
+        outside_prop.write_text(json.dumps(secret_prop), encoding="utf-8")
+        linked_prop = self.td_path / "linked-prop.json"
+        linked_prop.symlink_to(outside_prop)
+
+        outside_repo = self.td_path / "outside-repo"
+        outside_repo.mkdir()
+        (outside_repo / ".git").mkdir()
+        (outside_repo / ".git" / "HEAD").write_text(
+            "abcdefabcdefabcdefabcdefabcdefabcdefabcd\n", encoding="utf-8",
+        )
+        linked_repo = self.td_path / "linked-repo"
+        linked_repo.symlink_to(outside_repo)
+        repo_prop = dict(self.valid_proposal)
+        repo_prop["memory_base_commit"] = "abcdefabcdefabcdefabcdefabcdefabcdefabcd"
+        repo_prop["task_id"] = "task-repo"
+        repo_file = self.td_path / "repo-prop.json"
+        repo_file.write_text(json.dumps(repo_prop), encoding="utf-8")
+
+        def run(prop, repo, tag):
+            dec = self.td_path / f"dec-{tag}"
+            appr = self.td_path / f"appr-{tag}"
+            original = sys.argv
+            sys.argv = [
+                "prog",
+                "--proposal", str(prop),
+                "--memory-repo", str(repo),
+                "--output-decisions", str(dec),
+                "--output-approvals", str(appr),
+            ]
+            try:
+                main()
+                err = None
+            except SystemExit as exc:
+                err = str(exc)
+            finally:
+                sys.argv = original
+            names = sorted(p.name for p in dec.iterdir()) if dec.exists() else []
+            body = (dec / names[0]).read_text(encoding="utf-8") if names else ""
+            return err, names, body
+
+        err_prop, names_prop, body_prop = run(linked_prop, self.td_path, "prop")
+        err_repo, names_repo, body_repo = run(repo_file, linked_repo, "repo")
+
+        dec_lib = self.td_path / "dec-lib"
+        appr_lib = self.td_path / "appr-lib"
+        try:
+            process_proposal_for_chief_decision(
+                proposal_file=linked_prop,
+                memory_repo_path=self.td_path,
+                output_decisions_dir=dec_lib,
+                output_approvals_dir=appr_lib,
+            )
+            err_lib = None
+        except SystemExit as exc:
+            err_lib = str(exc)
+        names_lib = sorted(p.name for p in dec_lib.iterdir()) if dec_lib.exists() else []
+        body_lib = (dec_lib / names_lib[0]).read_text(encoding="utf-8") if names_lib else ""
+
+        refused = "CHIEF_POLICY_ERROR: refusing to follow a symlink"
+        self.assertEqual(
+            (
+                err_prop, names_prop, "SECRET-PROPOSAL-BODY" in body_prop,
+                err_repo, names_repo, "abcdefabcdefabcdefabcdefabcdefabcdefabcd" in body_repo,
+                err_lib, names_lib, "SECRET-PROPOSAL-BODY" in body_lib,
+                linked_prop.is_symlink(), linked_repo.is_symlink(),
+            ),
+            (refused, [], False, refused, [], False, refused, [], False, True, True),
+        )
+
     def test_main(self):
         prop_file = self.td_path / "proposal.json"
         prop_file.write_text(json.dumps(self.valid_proposal))

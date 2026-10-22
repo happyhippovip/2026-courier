@@ -138,6 +138,9 @@ def evaluate_proposal(
         return "BLOCKED", ["APPROVAL_GATE_REQUIRED"], []
 
     # Check memory base commit matches current HEAD of memory repo
+    memory_repo_path = Path(memory_repo_path)
+    if memory_repo_path.is_symlink() or memory_repo_path.parent.is_symlink():
+        fail("refusing to follow a symlink")
     current_head = get_memory_commit(memory_repo_path)
     if proposal_data.get("memory_base_commit") != current_head:
         return "BLOCKED", ["MEMORY_HEAD_CONFLICT"], []
@@ -214,6 +217,11 @@ def process_proposal_for_chief_decision(
     approval_schema_path: Path | None = None,
     decision_schema_path: Path | None = None,
 ) -> dict:
+    proposal_file = Path(proposal_file)
+    memory_repo_path = Path(memory_repo_path)
+    if (proposal_file.is_symlink() or proposal_file.parent.is_symlink()
+            or memory_repo_path.is_symlink() or memory_repo_path.parent.is_symlink()):
+        fail("refusing to follow a symlink")
     if not proposal_file.exists():
         fail(f"Proposal file not found: {proposal_file}")
 
@@ -298,8 +306,13 @@ def main() -> None:
     parser.add_argument("--output-approvals", default="events/approvals", help="Output directory for generated approvals")
     args = parser.parse_args()
 
-    proposal_path = Path(args.proposal).resolve()
-    memory_repo_path = Path(args.memory_repo).resolve()
+    proposal_path = Path(args.proposal)
+    memory_repo_path = Path(args.memory_repo)
+    if (proposal_path.is_symlink() or proposal_path.parent.is_symlink()
+            or memory_repo_path.is_symlink() or memory_repo_path.parent.is_symlink()):
+        fail("refusing to follow a symlink")
+    proposal_path = proposal_path.resolve()
+    memory_repo_path = memory_repo_path.resolve()
     dec_dir = Path(args.output_decisions)
     appr_dir = Path(args.output_approvals)
     if (dec_dir.is_symlink() or dec_dir.parent.is_symlink()
