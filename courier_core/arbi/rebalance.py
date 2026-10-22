@@ -76,6 +76,14 @@ class DeltaNeutralRebalanceEngine:
             raise ValueError("Bool is not a number.")
         if any(not isinstance(value, (int, float)) or not math.isfinite(value) for value in amounts):
             raise ValueError("inventory is not a number.")
+        balances = (
+            binance_inv.quote_balance,
+            binance_inv.base_balance,
+            kraken_inv.quote_balance,
+            kraken_inv.base_balance,
+        )
+        if any(value < 0 for value in balances):
+            raise ValueError("inventory is out of range.")
         total_quote = binance_inv.quote_balance + kraken_inv.quote_balance
         if total_quote <= 0:
             return RebalanceAssessment(
