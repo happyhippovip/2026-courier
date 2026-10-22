@@ -5,11 +5,9 @@ from unittest.mock import patch, MagicMock
 
 import scripts.pilot_gate_readiness_check as pgrc
 
-def test_check_pilot_gate_readiness_pass(tmp_path, monkeypatch):
-    # Mock repo root to tmp_path
+def test_check_pilot_gate_readiness_files_present_are_not_a_measured_pass(tmp_path, monkeypatch):
     monkeypatch.setattr(pgrc, "__file__", str(tmp_path / "scripts" / "pilot_gate_readiness_check.py"))
-    
-    # Create the required files
+
     ops_dir = tmp_path / "ops" / "ai"
     ops_dir.mkdir(parents=True, exist_ok=True)
     (ops_dir / "PRE_CODEX_HANDOFF.md").touch()
@@ -19,13 +17,18 @@ def test_check_pilot_gate_readiness_pass(tmp_path, monkeypatch):
     with patch("builtins.print") as mock_print:
         exit_code = pgrc.check_pilot_gate_readiness()
 
-    assert exit_code == 0
+    assert exit_code == 1
     mock_print.assert_called_once()
     printed_json = json.loads(mock_print.call_args[0][0])
-    assert printed_json["status"] == "PASS"
+    assert printed_json["status"] == "NOT_MEASURED"
     assert printed_json["prerequisites"]["PRE_CODEX_HANDOFF"] is True
     assert printed_json["prerequisites"]["PROOF_CARD"] is True
     assert printed_json["prerequisites"]["PILOT_DUMMY_TASK"] is True
+    assert printed_json["prerequisites"]["TARGETED_TESTS_GREEN"] is False
+    for metric in printed_json["metrics"].values():
+        assert metric["status"] == "NOT_MEASURED"
+        assert metric["actual"] is None
+        assert metric["measured"] is False
 
 
 def test_check_pilot_gate_readiness_blocked_missing_files(tmp_path, monkeypatch):
@@ -43,6 +46,10 @@ def test_check_pilot_gate_readiness_blocked_missing_files(tmp_path, monkeypatch)
     assert printed_json["prerequisites"]["PRE_CODEX_HANDOFF"] is False
     assert printed_json["prerequisites"]["PROOF_CARD"] is False
     assert printed_json["prerequisites"]["PILOT_DUMMY_TASK"] is False
+    assert printed_json["prerequisites"]["TARGETED_TESTS_GREEN"] is False
+    for metric in printed_json["metrics"].values():
+        assert metric["status"] == "NOT_MEASURED"
+        assert metric["actual"] is None
 
 
 @patch("sys.exit")

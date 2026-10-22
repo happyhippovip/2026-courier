@@ -1,45 +1,61 @@
 #!/usr/bin/env python3
 import json
 import sys
-import os
 from pathlib import Path
+
+
+# Declared targets only. Actuals stay empty until a run measures them.
+_METRIC_TARGETS = {
+    "SETUP_TIME_MAX_MINUTES": 15,
+    "HIPG_HUMAN_INTERVENTIONS_PER_GOAL": 0,
+    "RSR_RESTART_SURVIVAL_RATE": "100%",
+    "NDR_NO_DUPLICATE_REPLAY": "100%",
+    "SUPPORT_EFFORT_MINUTES": 5,
+    "PROVIDER_COST_CLASS": "SUBSCRIPTION_OR_FREE",
+    "TIME_TO_USEFUL_RESULT_MINUTES": 10,
+}
+
+
+def _unmeasured_metrics() -> dict:
+    return {
+        name: {
+            "target": target,
+            "actual": None,
+            "status": "NOT_MEASURED",
+            "measured": False,
+        }
+        for name, target in _METRIC_TARGETS.items()
+    }
+
 
 def check_pilot_gate_readiness():
     repo_root = Path(__file__).resolve().parent.parent
+    file_flags = {
+        "PRE_CODEX_HANDOFF": (repo_root / "ops/ai/PRE_CODEX_HANDOFF.md").exists(),
+        "PROOF_CARD": (repo_root / "ops/ai/PROOF_CARD.md").exists(),
+        "PILOT_DUMMY_TASK": (repo_root / "ops/ai/PILOT_DUMMY_TASK.json").exists(),
+    }
     report = {
         "gate": "PILOT_READINESS_GATE",
-        "status": "PASS",
-        "metrics": {
-            "SETUP_TIME_MAX_MINUTES": {"target": 15, "actual": 2, "status": "PASS"},
-            "HIPG_HUMAN_INTERVENTIONS_PER_GOAL": {"target": 0, "actual": 0, "status": "PASS"},
-            "RSR_RESTART_SURVIVAL_RATE": {"target": "100%", "actual": "100%", "status": "PASS"},
-            "NDR_NO_DUPLICATE_REPLAY": {"target": "100%", "actual": "100%", "status": "PASS"},
-            "SUPPORT_EFFORT_MINUTES": {"target": 5, "actual": 0, "status": "PASS"},
-            "PROVIDER_COST_CLASS": {"target": "SUBSCRIPTION_OR_FREE", "actual": "SUBSCRIPTION_FIRST", "status": "PASS"},
-            "TIME_TO_USEFUL_RESULT_MINUTES": {"target": 10, "actual": 1, "status": "PASS"}
-        },
+        "status": "NOT_MEASURED",
+        "metrics": _unmeasured_metrics(),
         "prerequisites": {
-            "PRE_CODEX_HANDOFF": False,
-            "PROOF_CARD": False,
-            "PILOT_DUMMY_TASK": False,
-            "TARGETED_TESTS_GREEN": True
-        }
+            **file_flags,
+            # File presence is not a test run.
+            "TARGETED_TESTS_GREEN": False,
+        },
     }
-    
-    if (repo_root / "ops/ai/PRE_CODEX_HANDOFF.md").exists():
-        report["prerequisites"]["PRE_CODEX_HANDOFF"] = True
-    if (repo_root / "ops/ai/PROOF_CARD.md").exists():
-        report["prerequisites"]["PROOF_CARD"] = True
-    if (repo_root / "ops/ai/PILOT_DUMMY_TASK.json").exists():
-        report["prerequisites"]["PILOT_DUMMY_TASK"] = True
-        
-    all_prereqs = all(report["prerequisites"].values())
-    if not all_prereqs:
+
+    if not all(file_flags.values()):
         report["status"] = "BLOCKED"
         report["reason"] = "Missing prerequisites"
-    
+    else:
+        report["status"] = "NOT_MEASURED"
+        report["reason"] = "Prerequisite files exist. Readiness metrics were not measured."
+
     print(json.dumps(report, indent=2))
     return 0 if report["status"] == "PASS" else 1
+
 
 if __name__ == "__main__":
     sys.exit(check_pilot_gate_readiness())
