@@ -49,6 +49,8 @@ class L2StreamMockFeeder:
             raise ValueError("Bool is not a number.")
         if not isinstance(count, int):
             raise ValueError("count is not a number.")
+        if count < 0:
+            raise ValueError("count is out of range.")
         for i in range(count):
             self._seq += 1
             # Micro-shift in spread: alternating between Binance and Kraken
