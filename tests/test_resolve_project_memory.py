@@ -130,6 +130,50 @@ def test_main_output_file(tmp_path):
     assert res["memory_repo"] == DEFAULT_MEMORY_REPO_NAME
 
 
+def test_memory_repo_symlink_is_not_read(tmp_path, capsys):
+    real = tmp_path / "real"
+    real.mkdir()
+    (real / "PROJECT_STATE.md").write_text("SECRET-MEMORY-BODY\n", encoding="utf-8")
+    link = tmp_path / "linked-memory"
+    link.symlink_to(real)
+    via = tmp_path / "via"
+    via.symlink_to(tmp_path)
+    nested = via / "real"
+    seen = []
+    for label, path in (("file", link), ("parent", nested)):
+        try:
+            package = build_memory_context_package(path, "")
+        except SystemExit as exc:
+            seen.append((label, str(exc)))
+        else:
+            seen.append((label, json.dumps(package)))
+    with patch.object(sys, "argv", ["resolve_project_memory.py", "--memory-repo", str(link)]):
+        try:
+            main()
+        except SystemExit as exc:
+            seen.append(("main", str(exc)))
+        else:
+            seen.append(("main", capsys.readouterr().out))
+    plain = tmp_path / "plain"
+    plain.mkdir()
+    secret_file = tmp_path / "secret.md"
+    secret_file.write_text("SECRET-FILE-BODY\n", encoding="utf-8")
+    (plain / "PROJECT_STATE.md").symlink_to(secret_file)
+    (plain / "AGENTS.md").write_text("Agents\n", encoding="utf-8")
+    try:
+        package = build_memory_context_package(plain, "")
+    except SystemExit as exc:
+        seen.append(("inner", str(exc)))
+    else:
+        seen.append(("inner", json.dumps(package)))
+    assert "SECRET-MEMORY-BODY" not in json.dumps(seen) and "SECRET-FILE-BODY" not in json.dumps(seen) and seen == [
+        ("file", "MEMORY_RESOLVER_ERROR: refusing to follow a symlink"),
+        ("parent", "MEMORY_RESOLVER_ERROR: refusing to follow a symlink"),
+        ("main", "MEMORY_RESOLVER_ERROR: refusing to follow a symlink"),
+        ("inner", "MEMORY_RESOLVER_ERROR: refusing to follow a symlink"),
+    ] and secret_file.read_text(encoding="utf-8") == "SECRET-FILE-BODY\n", seen
+
+
 def test_output_does_not_follow_a_symlink(tmp_path):
     repo = tmp_path / "memory"
     repo.mkdir()

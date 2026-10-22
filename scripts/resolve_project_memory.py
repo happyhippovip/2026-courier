@@ -157,6 +157,9 @@ def build_memory_context_package(
     requested_files: list[str] | None = None,
 ) -> dict:
     """Constructs a deterministic, validated Memory Context Package."""
+    memory_repo_path = Path(memory_repo_path)
+    if memory_repo_path.is_symlink() or memory_repo_path.parent.is_symlink():
+        fail("refusing to follow a symlink")
     if not memory_repo_path.exists():
         fail(f"Memory repository path does not exist: {memory_repo_path}")
 
@@ -173,6 +176,8 @@ def build_memory_context_package(
 
     for fname in files_to_consult:
         fpath = memory_repo_path / fname
+        if fpath.is_symlink():
+            fail("refusing to follow a symlink")
         if not fpath.exists():
             continue
 
@@ -228,7 +233,10 @@ def main() -> None:
     parser.add_argument("--output", help="Optional output JSON file path")
     args = parser.parse_args()
 
-    repo_path = Path(args.memory_repo).resolve()
+    repo_path = Path(args.memory_repo)
+    if repo_path.is_symlink() or repo_path.parent.is_symlink():
+        fail("refusing to follow a symlink")
+    repo_path = repo_path.resolve()
     package = build_memory_context_package(
         memory_repo_path=repo_path,
         instruction=args.instruction,
