@@ -54,6 +54,8 @@ def build_workflow_tasks_for_channel(
     channels_path: Path = DEFAULT_CHANNELS_CONFIG,
     workflows_path: Path = DEFAULT_WORKFLOWS_CONFIG,
 ) -> list[dict]:
+    if isinstance(priority, bool) or not isinstance(priority, int):
+        raise ValueError("priority must be an int")
     queue_dir = Path(queue_dir)
     channels_path = Path(channels_path)
     workflows_path = Path(workflows_path)

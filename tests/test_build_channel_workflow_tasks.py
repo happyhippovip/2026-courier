@@ -333,6 +333,30 @@ def test_workflows_config_does_not_follow_a_symlink(tmp_path, fake_configs, monk
     ) and cli_secret not in cli_names
 
 
+def test_priority_must_be_an_int(fake_configs):
+    channels_path, workflows_path, _queue = fake_configs
+
+    def run(priority, name):
+        try:
+            tasks = build_workflow_tasks_for_channel(
+                "chan-test-1",
+                name,
+                priority=priority,
+                queue_dir=channels_path.parent / f"queue-{name}",
+                channels_path=channels_path,
+                workflows_path=workflows_path,
+            )
+        except ValueError as exc:
+            return ("err", str(exc))
+        return ("ok", tasks[0]["priority"])
+
+    assert (run(True, "bool-true"), run(1.0, "float-one"), run(0, "int-zero")) == (
+        ("err", "priority must be an int"),
+        ("err", "priority must be an int"),
+        ("ok", 0),
+    )
+
+
 def test_main(monkeypatch, fake_configs, capsys):
     ch, wf, qd = fake_configs
     
