@@ -109,6 +109,10 @@ class L2OrderbookBookkeeper:
             raise ValueError("timestamp is stale.")
         if not isinstance(event.bids_updated, list) or not isinstance(event.asks_updated, list):
             raise ValueError("levels are not a list.")
+        for levels in (event.bids_updated, event.asks_updated):
+            for level in levels:
+                if not isinstance(level, OrderbookLevel):
+                    raise ValueError("level is not a quote.")
 
         self._apply_levels(self.bids, event.bids_updated)
         self._apply_levels(self.asks, event.asks_updated)
