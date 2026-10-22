@@ -104,14 +104,13 @@ def test_mode_b_google_builder_fail_closed(continuation_engine):
 
 
 def test_mode_b_google_builder_with_bridge(tmp_path):
-    # When bridge script physically exists, real hooks are executed
+    # A copied hook recorder is not a model invocation.
     root_dir = tmp_path / "repo"
     ledger_dir = tmp_path / "ledger"
     root_dir.mkdir(parents=True, exist_ok=True)
     scripts_dir = root_dir / "scripts"
     scripts_dir.mkdir(parents=True, exist_ok=True)
 
-    # Copy real bridge script
     real_bridge = Path(__file__).resolve().parent.parent / "scripts" / "run_antigravity_bridge.py"
     if real_bridge.exists():
         (scripts_dir / "run_antigravity_bridge.py").write_text(real_bridge.read_text(encoding="utf-8"), encoding="utf-8")
@@ -125,10 +124,13 @@ def test_mode_b_google_builder_with_bridge(tmp_path):
             "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
         }
         result = engine.execute_unit(packet, mode=ExecutionMode.MODE_B_GOOGLE_BUILDER)
-        assert result["status"] == "PASS"
-        assert result["model_invoked"] is True
-        assert result["model_driven"] is True
-        assert engine.verify_result(result) is True
+        assert result["status"] == "UNAVAILABLE"
+        assert result["model_invoked"] is False
+        assert result["model_driven"] is False
+        assert result["bridge_present"] is True
+        assert "no model result" in result["error"]
+        assert engine.verify_result(result) is False
+        assert not (root_dir / "events" / "processed" / "test-task-b-real-result.json").exists()
 
 
 def test_mode_c_autonomous_schedule(continuation_engine):
@@ -306,7 +308,11 @@ def test_cli_verify_autonomy_isolated(tmp_path, capsys):
     captured = capsys.readouterr()
     assert "sequential_handoff_proven" in captured.out
     assert "WORKKEY_UNIT_1_LEDGER" in captured.out
-    assert "WORKKEY_UNIT_2_BUILDER" in captured.out
+    assert "WORKKEY_UNIT_2_LOCAL" in captured.out
+    checkpoint = json.loads((Path(ledger_dir) / "checkpoints" / "WORKKEY_UNIT_2_LOCAL.checkpoint.json").read_text())
+    assert checkpoint["details"]["status"] == "PASS"
+    assert checkpoint["details"]["model_invoked"] is False
+    assert "unit-2-local" in checkpoint["details"]["stdout"]
 
 
 def test_cli_workkey_failure_writes_no_checkpoint(tmp_path, capsys, monkeypatch):
