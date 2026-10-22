@@ -25,6 +25,7 @@ import argparse
 import datetime
 import hashlib
 import json
+import math
 import os
 import shutil
 import signal
@@ -357,6 +358,22 @@ def lock_path(packet_id: str, lock_dir: Path | None = None) -> Path:
     return target_dir / f".{packet_id}.lock"
 
 
+def _lock_started_at(lock_data: Any) -> float | None:
+    """A lock is stale only when started_at is a finite number.
+
+    Missing and boolean values are not an expiry. True is an int in Python,
+    so float(True) must not become 1.0 and look ancient.
+    """
+    if not isinstance(lock_data, dict):
+        return None
+    started = lock_data.get("started_at")
+    if isinstance(started, bool) or not isinstance(started, (int, float)):
+        return None
+    if not math.isfinite(started):
+        return None
+    return float(started)
+
+
 def acquire_packet_lock(packet_id: str, lock_dir: Path | None = None, timeout_seconds: float = LOCK_TIMEOUT_SECONDS) -> bool:
     """Atomically takes the per-packet lock with stale lock stealing."""
     lpath = lock_path(packet_id, lock_dir)
@@ -386,7 +403,9 @@ def acquire_packet_lock(packet_id: str, lock_dir: Path | None = None, timeout_se
         # Check for stale lock
         try:
             lock_data = json.loads(lpath.read_text(encoding="utf-8"))
-            started_at = float(lock_data.get("started_at", 0))
+            started_at = _lock_started_at(lock_data)
+            if started_at is None:
+                return False
             if time.time() - started_at > timeout_seconds:
                 # Steal stale lock
                 try:
