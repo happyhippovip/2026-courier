@@ -98,6 +98,8 @@ class L2OrderbookBookkeeper:
             raise ValueError("sequence is stale.")
         if self._accepted_sequence and sequence != self.last_sequence + 1:
             raise ValueError("sequence is gapped.")
+        if self._accepted_sequence and event.timestamp_utc < self.last_update_utc:
+            raise ValueError("timestamp is stale.")
 
         self._apply_levels(self.bids, event.bids_updated)
         self._apply_levels(self.asks, event.asks_updated)
