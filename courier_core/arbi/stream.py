@@ -84,7 +84,9 @@ class L2OrderbookBookkeeper:
         self.last_update_utc: str = utc_iso_now()
 
     def apply_delta(self, event: L2DeltaEvent) -> None:
-        if event.exchange != self.exchange or event.pair != self.pair:
+        if event.exchange != self.exchange:
+            raise ValueError("event is for another book.")
+        if event.pair != self.pair:
             return
 
         sequence = event.sequence_id
