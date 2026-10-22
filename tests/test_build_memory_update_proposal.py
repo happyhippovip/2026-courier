@@ -213,6 +213,85 @@ class TestBuildMemoryUpdateProposal(unittest.TestCase):
             ], ["keep.txt"], True),
         )
 
+    def test_memory_repo_does_not_follow_a_symlink(self):
+        result_file = self.td_path / "result-repo.json"
+        result_file.write_text(json.dumps({
+            "task_id": "task-repo",
+            "message_id": "msg-repo",
+            "correlation_id": "corr-repo",
+            "payload": {"summary": "plain", "verified_facts": ["fact"]},
+        }), encoding="utf-8")
+        outside = self.td_path / "outside-repo"
+        outside.mkdir()
+        (outside / ".git").mkdir()
+        secret = "abcdefabcdefabcdefabcdefabcdefabcdefabcd"
+        (outside / ".git" / "HEAD").write_text(secret + "\n", encoding="utf-8")
+        linked = self.td_path / "linked-repo"
+        linked.symlink_to(outside)
+        parent_real = self.td_path / "parent-real"
+        nested = parent_real / "repo"
+        nested.mkdir(parents=True)
+        (nested / ".git").mkdir()
+        parent_secret = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        (nested / ".git" / "HEAD").write_text(parent_secret + "\n", encoding="utf-8")
+        parent_link = self.td_path / "parent-link"
+        parent_link.symlink_to(parent_real)
+        plain = self.td_path / "plain-repo"
+        plain.mkdir()
+        (plain / ".git").mkdir()
+        plain_commit = "1234567890abcdef1234567890abcdef12345678"
+        (plain / ".git" / "HEAD").write_text(plain_commit + "\n", encoding="utf-8")
+
+        def run_main(mem, tag):
+            out = self.td_path / f"out-{tag}"
+            original = sys.argv
+            sys.argv = [
+                "prog", "--result", str(result_file),
+                "--output-dir", str(out), "--memory-repo", str(mem),
+            ]
+            try:
+                try:
+                    main()
+                    err = None
+                except SystemExit as exc:
+                    err = str(exc)
+            finally:
+                sys.argv = original
+            names = sorted(p.name for p in out.iterdir()) if out.exists() else []
+            body = (out / names[0]).read_text(encoding="utf-8") if names else ""
+            return err, names, body
+
+        err_link, names_link, body_link = run_main(linked, "link")
+        err_parent, names_parent, body_parent = run_main(parent_link / "repo", "parent")
+        out_lib = self.td_path / "out-lib"
+        try:
+            build_proposal_from_result(
+                result_file=result_file, memory_repo_path=linked, output_dir=out_lib,
+            )
+            err_lib = None
+        except SystemExit as exc:
+            err_lib = str(exc)
+        names_lib = sorted(p.name for p in out_lib.iterdir()) if out_lib.exists() else []
+        body_lib = (out_lib / names_lib[0]).read_text(encoding="utf-8") if names_lib else ""
+        err_plain, names_plain, body_plain = run_main(plain, "plain")
+        refused = "MEMORY_PROPOSAL_ERROR: refusing to follow a symlink"
+        self.assertEqual(
+            (
+                err_link, secret in body_link, names_link,
+                err_parent, parent_secret in body_parent, names_parent,
+                err_lib, secret in body_lib, names_lib,
+                err_plain, plain_commit in body_plain, names_plain,
+                linked.is_symlink(), parent_link.is_symlink(),
+            ),
+            (
+                refused, False, [],
+                refused, False, [],
+                refused, False, [],
+                None, True, ["task-repo-memory-proposal.json"],
+                True, True,
+            ),
+        )
+
     def test_build_proposal_from_result_no_facts(self):
         result_file = self.td_path / "result2.json"
         result_file.write_text(json.dumps({

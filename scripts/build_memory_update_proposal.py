@@ -153,6 +153,9 @@ def build_proposal_from_result(
     summary = payload.get("summary", "Technical execution completed")
 
     # Resolve dynamic memory commit from 2026-project-memory
+    memory_repo_path = Path(memory_repo_path)
+    if memory_repo_path.is_symlink() or memory_repo_path.parent.is_symlink():
+        fail("refusing to follow a symlink")
     mem_base_commit = get_memory_commit(memory_repo_path)
 
     # Derive target files if not specified
@@ -273,7 +276,10 @@ def main() -> None:
         fail("Missing required --result argument")
 
     result_path = Path(args.result)
-    memory_repo_path = Path(args.memory_repo).resolve()
+    memory_repo_path = Path(args.memory_repo)
+    if memory_repo_path.is_symlink() or memory_repo_path.parent.is_symlink():
+        fail("refusing to follow a symlink")
+    memory_repo_path = memory_repo_path.resolve()
     output_dir = Path(args.output_dir)
 
     proposal = build_proposal_from_result(
