@@ -175,6 +175,16 @@ class StatisticalQualityAnalyzer:
             flags.append("NON_FINITE_ASK")
             explanation_parts.append("Ask price is not a finite number.")
 
+        bid = breakdown.best_bid_price
+        if (
+            isinstance(bid, bool)
+            or not isinstance(bid, (int, float))
+            or not math.isfinite(bid)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_BID")
+            explanation_parts.append("Bid price is not a finite number.")
+
         gross = breakdown.gross_spread_usd
         if (
             isinstance(gross, bool)
