@@ -125,6 +125,11 @@ def test_trend_needs_history_and_rejects_gaps():
     assert HB.trend([10.0, None, 12.0, 14.0]) == "UNKNOWN"
 
 
+def test_bool_samples_are_not_a_flat_trend():
+    assert HB.trend([True, True, True]) == "UNKNOWN"
+    assert HB.trend_blocks_heavy(HB.trend([True, True, True])) is True
+
+
 def test_rising_trend_blocks_new_heavy():
     assert HB.trend_blocks_heavy("RISING") is True
     assert HB.trend_blocks_heavy("FLAT") is False

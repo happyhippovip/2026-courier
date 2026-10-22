@@ -173,7 +173,7 @@ UNKNOWN_TREND = "UNKNOWN"
 
 def trend(samples: list[float | None]) -> str:
     """Least-squares direction over a history. <3 points or any gap: UNKNOWN."""
-    clean = [s for s in samples if isinstance(s, (int, float))]
+    clean = [s for s in samples if isinstance(s, (int, float)) and not isinstance(s, bool)]
     if len(samples) < 3 or len(clean) != len(samples):
         return UNKNOWN_TREND
     n = len(clean)
