@@ -115,6 +115,16 @@ class StatisticalQualityAnalyzer:
             flags.append("NON_FINITE_ROI")
             explanation_parts.append("ROI is not a finite number.")
 
+        size = breakdown.order_size_usd
+        if (
+            isinstance(size, bool)
+            or not isinstance(size, (int, float))
+            or not math.isfinite(size)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_SIZE")
+            explanation_parts.append("Order size is not a finite number.")
+
         gross = breakdown.gross_spread_usd
         if (
             isinstance(gross, bool)
