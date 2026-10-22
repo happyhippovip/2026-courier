@@ -461,3 +461,40 @@ def test_contract_check_does_not_read_a_symlinked_source(tmp_path):
     )
     checked = execute_packet_code_or_test_work(real, repo, _Hooks(), {"authorized_mode": "LOCAL"})
     assert checked["verdict"] == "PASS"
+
+
+def _verify_packet(packet_id, target):
+    return WorkPacket(
+        id=packet_id,
+        owner_id="local",
+        target_sha="abc",
+        state=PacketState.CURRENT,
+        payload={"task_type": "verify_file", "target_file": target, "allowed_scope": ["."]},
+    )
+
+
+def test_verify_file_does_not_read_a_symlink(tmp_path):
+    repo = tmp_path / "repo"
+    (repo / "events" / "evidence").mkdir(parents=True)
+    (repo / "real.txt").write_text("REAL-BODY", encoding="utf-8")
+    (repo / "link.txt").symlink_to(repo / "real.txt")
+    outside = tmp_path / "secret.txt"
+    outside.write_text("SECRET", encoding="utf-8")
+    (repo / "out.txt").symlink_to(outside)
+    seen = []
+    for name, target in (("in", "link.txt"), ("out", "out.txt"), ("real", "real.txt")):
+        packet = _verify_packet(f"pkt-{name}", target)
+        try:
+            result = execute_packet_code_or_test_work(packet, repo, _Hooks(), {"authorized_mode": "LOCAL"})
+        except ValueError as exc:
+            seen.append((name, "raised", str(exc)))
+        else:
+            evidence = json.loads((repo / "events" / "evidence" / f"{packet.id}_evidence.json").read_text())
+            seen.append((name, result["verdict"], evidence.get("file_path"), evidence.get("file_sha256")))
+    assert (
+        seen[0][1] == "raised" and "symlink" in seen[0][2].lower()
+        and seen[1][1] == "raised" and "symlink" in seen[1][2].lower()
+        and seen[2][1] == "PASS"
+        and seen[2][2] == "real.txt"
+    ), seen
+    assert outside.read_text(encoding="utf-8") == "SECRET"

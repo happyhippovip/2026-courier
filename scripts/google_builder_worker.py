@@ -620,7 +620,9 @@ def execute_packet_code_or_test_work(
 
     elif task_type == "verify_file":
         target_path_str = payload_in.get("target_file") or (allowed_scope[0] if allowed_scope else "README.md")
-        target_file = (repo_dir / target_path_str).resolve()
+        target_link = repo_dir / target_path_str
+        _refuse_repo_symlink(repo_dir, target_link)
+        target_file = target_link.resolve()
         if not target_file.exists() or not target_file.is_file():
             if repo_dir != COURIER_DIR and (COURIER_DIR / target_path_str).is_file():
                 target_file = (COURIER_DIR / target_path_str).resolve()
