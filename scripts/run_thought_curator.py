@@ -316,6 +316,7 @@ class ThoughtCurator:
         )
 
         # Save thought record
+        _refuse_symlink(THOUGHTS_DIR)
         thought_file = THOUGHTS_DIR / f"{idea_id}.json"
         save_json(thought_file, context_delta)
 

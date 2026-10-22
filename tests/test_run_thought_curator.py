@@ -127,3 +127,52 @@ def test_memory_file_does_not_follow_a_symlink(tmp_path):
         "loaded",
         ["Plain Decision"],
     )
+
+def test_thoughts_dir_does_not_follow_a_symlink(memory_dir, tmp_path, monkeypatch):
+    curator = ThoughtCurator(repo_dir=tmp_path, memory_dir=memory_dir)
+    outside = tmp_path / "outside-thoughts"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = tmp_path / "linked-thoughts"
+    linked.symlink_to(outside, target_is_directory=True)
+
+    parent_outside = tmp_path / "thoughts-parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = tmp_path / "thoughts-linked-parent"
+    linked_parent.symlink_to(parent_outside, target_is_directory=True)
+
+    def run(folder):
+        monkeypatch.setattr("scripts.run_thought_curator.THOUGHTS_DIR", folder)
+        try:
+            curator.curate_idea("SECRET-IDEA about a checklist")
+        except ValueError as exc:
+            return str(exc)
+        return "wrote"
+
+    err_link = run(linked)
+    leaked = sorted(p.name for p in outside.iterdir())
+    err_parent = run(linked_parent / "thoughts")
+    parent_names = sorted(p.name for p in parent_outside.iterdir())
+    plain = tmp_path / "plain-thoughts"
+    err_plain = run(plain)
+    plain_names = sorted(p.name for p in plain.iterdir()) if plain.exists() else []
+    leaked_body = ""
+    for name in leaked:
+        if name.endswith(".json"):
+            leaked_body = (outside / name).read_text(encoding="utf-8")
+    assert (
+        err_link,
+        "SECRET-IDEA" in leaked_body,
+        err_parent,
+        parent_names,
+        err_plain,
+        any(name.endswith(".json") for name in plain_names),
+    ) == (
+        "refusing to follow a symlink",
+        False,
+        "refusing to follow a symlink",
+        ["keep.txt"],
+        "wrote",
+        True,
+    )
