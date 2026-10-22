@@ -80,6 +80,7 @@ class L2OrderbookBookkeeper:
         self.bids: dict[float, float] = {}  # price -> amount
         self.asks: dict[float, float] = {}  # price -> amount
         self.last_sequence: int = 0
+        self._accepted_sequence = False
         self.last_update_utc: str = utc_iso_now()
 
     def apply_delta(self, event: L2DeltaEvent) -> None:
@@ -93,15 +94,14 @@ class L2OrderbookBookkeeper:
             raise ValueError("sequence is not a number.")
         if sequence < 0:
             raise ValueError("sequence is out of range.")
-        if sequence < self.last_sequence or (
-            sequence == self.last_sequence and self.last_sequence != 0
-        ):
+        if self._accepted_sequence and sequence <= self.last_sequence:
             raise ValueError("sequence is stale.")
 
         self._apply_levels(self.bids, event.bids_updated)
         self._apply_levels(self.asks, event.asks_updated)
 
         self.last_sequence = event.sequence_id
+        self._accepted_sequence = True
         self.last_update_utc = event.timestamp_utc
 
     def _apply_levels(self, book: dict, levels: list[OrderbookLevel]) -> None:
