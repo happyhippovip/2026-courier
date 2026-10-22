@@ -314,3 +314,22 @@ def test_gemini_worker_timeout_kills_process_tree(tmp_path, monkeypatch):
     assert res_data["reason"] == "TIMEOUT"
 
 
+def test_gemini_bool_timeout_does_not_spawn(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    task_file = tmp_path / "task_bool.json"
+    task_file.write_text(json.dumps({
+        "task_id": "gemini-bool",
+        "instruction": "echo",
+        "timeout_seconds": True,
+        "estimated_cost_eur": 0.0,
+    }))
+    mock_process = mock.Mock()
+    mock_process.pid = 1
+    mock_process.communicate.return_value = ("```json\n{\"status\": \"SUCCESS\"}\n```", "")
+    with mock.patch("subprocess.Popen", return_value=mock_process) as popen:
+        result = gemini_worker_adapter.run_worker(str(task_file))
+    popen.assert_not_called()
+    assert result["status"] == "FAILED"
+    assert result.get("blocked") is True
+
+
