@@ -168,6 +168,35 @@ def test_bool_pid_is_not_running(tmp_path, monkeypatch):
     )
 
 
+def test_bool_exit_status_is_not_a_code(tmp_path, monkeypatch):
+    plist = tmp_path / "com.courier.mac_worker.plist"
+    plist.write_text("<plist></plist>")
+    import scripts.mac_worker.status as st
+
+    def run(code):
+        monkeypatch.setattr(
+            st,
+            "query_launchctl",
+            lambda label, code=code: {
+                "loaded": True,
+                "pid": 5,
+                "last_exit_status": code,
+                "raw": "",
+            },
+        )
+        try:
+            res = derive_status(plist_path=plist, here_dir=tmp_path)
+        except ValueError as exc:
+            return ("err", str(exc))
+        return ("ok", res["status"], res["pid"], res["last_exit_status"])
+
+    assert (run(True), run(False), run(0)) == (
+        ("err", "Bool is not a number."),
+        ("err", "Bool is not a number."),
+        ("ok", "RUNNING", 5, 0),
+    )
+
+
 def test_plist_does_not_follow_a_symlink(tmp_path, monkeypatch):
     import scripts.mac_worker.status as st
 

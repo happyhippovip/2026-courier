@@ -118,7 +118,8 @@ def derive_status(plist_path=None, here_dir=None):
     worker_state = query_worker_state(here_dir)
 
     pid = launch_info["pid"]
-    if isinstance(pid, bool):
+    exit_status = launch_info["last_exit_status"]
+    if isinstance(pid, bool) or isinstance(exit_status, bool):
         raise ValueError("Bool is not a number.")
 
     if not plist_exists:
