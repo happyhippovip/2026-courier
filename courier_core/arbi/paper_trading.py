@@ -126,6 +126,8 @@ class PaperTradingEngine:
             raise ValueError("fee is out of range.")
         if breakdown.transfer_cost_usd < 0:
             raise ValueError("transfer cost is out of range.")
+        if breakdown.rebalance_cost_usd < 0:
+            raise ValueError("rebalance cost is out of range.")
         gross = breakdown.gross_spread_usd
         if not isinstance(gross, (int, float)) or not math.isfinite(gross):
             raise ValueError("gross spread is not a number.")
