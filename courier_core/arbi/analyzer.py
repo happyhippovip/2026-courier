@@ -44,7 +44,7 @@ class StatisticalQualityAnalyzer:
 
         bid = book.best_bid
         ask = book.best_ask
-        if bid and ask:
+        if bid is not None and ask is not None:
             if (
                 not isinstance(bid, (int, float))
                 or not isinstance(ask, (int, float))
@@ -89,6 +89,9 @@ class StatisticalQualityAnalyzer:
 
         risk_score = 0
         explanation_parts = []
+        if "NON_POSITIVE_PRICE" in flags:
+            risk_score += 100
+            explanation_parts.append("Orderbook price is not positive.")
 
         # Check status
         if breakdown.status != "ELIGIBLE":
