@@ -82,6 +82,15 @@ def test_agy_timeout_kills_group_and_reaps(tmp_path, monkeypatch):
     assert daemon.group_exists(proc.pid) is False  # group incl. grandchild dead
 
 
+def test_bool_agy_timeout_does_not_spawn(tmp_path, monkeypatch):
+    daemon, _ = load_daemon(tmp_path, monkeypatch)
+    result, instances, _ = run_with_fake_agy(
+        daemon, monkeypatch, tmp_path, "sleep 30", timeout=True)
+    assert instances == []
+    assert result["status"] == "FAILED"
+    assert result.get("blocked") is True
+
+
 def test_agy_fast_success_unaffected(tmp_path, monkeypatch):
     daemon, _ = load_daemon(tmp_path, monkeypatch)
     body = 'printf \'```json\\n{"status": "SUCCESS", "stdout_summary": "ok"}\\n```\\n\''

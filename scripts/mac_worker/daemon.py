@@ -523,6 +523,16 @@ def run_agy(task, config):
             "blocked": True,
         }
 
+    raw_timeout = config.get("AGY_TIMEOUT_SECONDS", 300)
+    if isinstance(raw_timeout, bool) or not isinstance(raw_timeout, (int, float)) or raw_timeout <= 0:
+        return {
+            "status": "FAILED",
+            "reason": "INVALID_TIMEOUT",
+            "execution_mode": "ANTIGRAVITY",
+            "blocked": True,
+        }
+    timeout = min(float(raw_timeout), 3600)
+
     supervisor, decision = admit_surface("antigravity", task, config, needs_visible=False, allow_headless=True)
     if decision.action == "COALESCED":
         return coalesced_result(decision, "ANTIGRAVITY")
@@ -534,7 +544,6 @@ def run_agy(task, config):
         
     wrapper = os.path.join(os.path.dirname(__file__), "limit_wrapper.sh")
     cmd = [wrapper, agy_bin, "-p", prompt, "--sandbox", "--disable-slash-commands"]
-    timeout = min(float(config.get("AGY_TIMEOUT_SECONDS", 300)), 3600)
 
     process = None
     identity = None
