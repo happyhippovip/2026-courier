@@ -605,6 +605,14 @@ class AcademyDirector:
         """Adoption Gate: Strictly verifies eval passes before adopting into verified context."""
         if LESSONS_DIR.is_symlink() or LESSONS_DIR.parent.is_symlink():
             raise ValueError("refusing to follow a symlink")
+        if (
+            not isinstance(lesson_id, str)
+            or lesson_id in ("", ".", "..")
+            or Path(lesson_id).name != lesson_id
+            or "/" in lesson_id
+            or "\\" in lesson_id
+        ):
+            raise ValueError("refusing an unsafe lesson id")
         lesson_file = LESSONS_DIR / f"{lesson_id}.json"
         if lesson_file.is_symlink() or lesson_file.parent.is_symlink():
             raise ValueError("refusing to follow a symlink")

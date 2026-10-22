@@ -348,6 +348,45 @@ def test_evaluate_lesson_id_does_not_escape(academy_env, monkeypatch):
     )
 
 
+def test_adopt_lesson_id_does_not_escape(academy_env, monkeypatch):
+    repo_dir, memory_dir = academy_env
+    lessons = repo_dir / "events" / "academy" / "lessons"
+    evals = repo_dir / "events" / "academy" / "evaluations"
+    adoptions = repo_dir / "events" / "academy" / "adoptions"
+    monkeypatch.setattr("scripts.run_academy.LESSONS_DIR", lessons)
+    monkeypatch.setattr("scripts.run_academy.EVALS_DIR", evals)
+    monkeypatch.setattr("scripts.run_academy.ADOPTIONS_DIR", adoptions)
+    director = AcademyDirector(repo_dir=repo_dir, memory_dir=memory_dir)
+    director.steward = mock.MagicMock()
+    outside = repo_dir.parent / "outside-adopt.json"
+    outside.write_text(json.dumps({
+        "summary": "SECRET-SUMMARY",
+        "title": "secret-title",
+        "topic": "secret-topic",
+    }), encoding="utf-8")
+    lesson_id = "../../../../outside-adopt"
+    eval_file = evals / f"eval-{lesson_id}.json"
+    eval_file.parent.mkdir(parents=True, exist_ok=True)
+    eval_file.write_text(json.dumps({
+        "verdict": "PASS",
+        "evaluation_id": "eval-secret",
+    }), encoding="utf-8")
+    try:
+        record = director.approve_adoption(lesson_id)
+        err = None
+        seen = record.get("lesson_id")
+    except ValueError as exc:
+        err = str(exc)
+        seen = None
+    body = outside.read_text(encoding="utf-8")
+    assert (err, seen, "SECRET-SUMMARY" in body, "ADOPTED" in body) == (
+        "refusing an unsafe lesson id",
+        None,
+        True,
+        False,
+    )
+
+
 def test_queue_or_deliver_lesson_missing(academy_env):
     repo_dir, memory_dir = academy_env
     teacher = AcademyTeacher(repo_dir=repo_dir, memory_dir=memory_dir)
