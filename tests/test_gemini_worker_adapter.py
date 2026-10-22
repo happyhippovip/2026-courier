@@ -12,7 +12,7 @@ from scripts import gemini_worker_adapter
 def test_gemini_worker_adapter_success(tmp_path, monkeypatch):
     task_file = tmp_path / "dummy_task.json"
     with open(task_file, "w") as f:
-        json.dump({"task_id": "gemini-1", "instruction": "do it"}, f)
+        json.dump({"task_id": "gemini-1", "instruction": "do it", "estimated_cost_eur": 0.0}, f)
         
     mock_process = mock.Mock()
     mock_process.pid = 1234
@@ -51,7 +51,7 @@ def test_gemini_worker_rejects_path_unsafe_task_id(tmp_path):
 def test_gemini_worker_negative_mode(tmp_path, monkeypatch):
     task_file = tmp_path / "dummy_task.json"
     with open(task_file, "w") as f:
-        json.dump({"task_id": "gemini-neg", "instruction": "do it"}, f)
+        json.dump({"task_id": "gemini-neg", "instruction": "do it", "estimated_cost_eur": 0.0}, f)
         
     mock_process = mock.Mock()
     mock_process.pid = 9999
@@ -75,7 +75,7 @@ def test_gemini_worker_negative_mode(tmp_path, monkeypatch):
 def test_gemini_worker_out_clean_ticks(tmp_path, monkeypatch):
     task_file = tmp_path / "dummy_task.json"
     with open(task_file, "w") as f:
-        json.dump({"task_id": "gemini-ticks", "instruction": "do it"}, f)
+        json.dump({"task_id": "gemini-ticks", "instruction": "do it", "estimated_cost_eur": 0.0}, f)
         
     mock_process = mock.Mock()
     mock_process.pid = 1111
@@ -94,7 +94,7 @@ def test_gemini_worker_out_clean_ticks(tmp_path, monkeypatch):
 def test_gemini_worker_out_clean_no_ticks(tmp_path, monkeypatch):
     task_file = tmp_path / "dummy_task.json"
     with open(task_file, "w") as f:
-        json.dump({"task_id": "gemini-noticks", "instruction": "do it"}, f)
+        json.dump({"task_id": "gemini-noticks", "instruction": "do it", "estimated_cost_eur": 0.0}, f)
         
     mock_process = mock.Mock()
     mock_process.pid = 2222
@@ -231,7 +231,11 @@ def test_consume_concurrent_writers_preserve_all_records(tmp_path):
 def test_run_worker_with_state_file(tmp_path, monkeypatch):
     task_file = tmp_path / "task.json"
     custom_state = tmp_path / "worker_state.json"
-    task_file.write_text(json.dumps({"task_id": "gemini-custom", "instruction": "echo"}))
+    task_file.write_text(json.dumps({
+        "task_id": "gemini-custom",
+        "instruction": "echo",
+        "estimated_cost_eur": 0.0,
+    }))
     
     mock_process = mock.Mock()
     mock_process.pid = 4321
@@ -277,6 +281,23 @@ def test_gemini_worker_adapter_costgate_enforced(tmp_path):
     assert res_nan.get("blocked") is True
 
 
+def test_gemini_worker_missing_cost_does_not_spawn(tmp_path):
+    """A task that omits estimated_cost_eur must not be treated as free."""
+    cases = (
+        {"task_id": "gemini-missing-cost", "instruction": "echo test"},
+        {"task_id": "gemini-null-cost", "instruction": "echo test", "estimated_cost_eur": None},
+    )
+    for payload in cases:
+        task = tmp_path / f"{payload['task_id']}.json"
+        task.write_text(json.dumps(payload))
+        with mock.patch("subprocess.Popen") as popen:
+            res = gemini_worker_adapter.run_worker(str(task))
+        popen.assert_not_called()
+        assert res["status"] == "FAILED"
+        assert res["blocked"] is True
+        assert res["reason"] == "COST_GATE_DENIED: UNKNOWN_COST"
+
+
 def test_gemini_worker_timeout_kills_process_tree(tmp_path, monkeypatch):
     """Proves hung subprocesses are killed cleanly via process-group containment on timeout."""
     monkeypatch.chdir(tmp_path)
@@ -285,6 +306,7 @@ def test_gemini_worker_timeout_kills_process_tree(tmp_path, monkeypatch):
         "task_id": "gemini-timeout",
         "instruction": "sleep forever",
         "timeout_seconds": 0.05,
+        "estimated_cost_eur": 0.0,
     }))
 
     mock_process = mock.MagicMock()
