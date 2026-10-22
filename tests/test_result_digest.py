@@ -11,6 +11,22 @@ from courier_core.events import Event, EventType
 from courier_core.result_digest import summarize_home, main, ResultDigest
 
 
+def test_summarize_home_refuses_a_symlinked_parent(tmp_path):
+    outside = tmp_path / "outside"
+    home = outside / "courier"
+    home.mkdir(parents=True)
+    db = home / "courier.db"
+    conn = sqlite3.connect(db)
+    conn.execute("CREATE TABLE events (seq INTEGER)")
+    conn.commit()
+    conn.close()
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    digest = summarize_home(link / "courier")
+    assert digest.status == "REFUSED"
+    assert "symlink" in (digest.error_detail or "")
+
+
 def test_summarize_home_refuses_a_symlink(tmp_path):
     outside = tmp_path / "outside"
     outside.mkdir()

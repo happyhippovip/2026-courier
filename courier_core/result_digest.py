@@ -71,7 +71,7 @@ def _compute_digest_sha256(tasks_data: list[dict[str, Any]]) -> str:
 def summarize_home(home: Path | str) -> ResultDigest:
     """Extract and summarize all accepted task results from one Courier home."""
     raw_home = Path(home)
-    if raw_home.is_symlink():
+    if raw_home.is_symlink() or raw_home.parent.is_symlink():
         return ResultDigest(
             status="REFUSED",
             home=str(raw_home),
