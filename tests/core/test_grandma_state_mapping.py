@@ -43,13 +43,53 @@ def test_fertig_when_all_steps_are_reconciled():
         "status": "ACTIVE",
         "workflow_plan": [
             {"task_id": "t1", "status": "RECONCILED"},
-            {"task_id": "t2", "status": "SUCCESS"},
+            {"task_id": "t2", "status": "RECONCILED"},
         ],
         "current_step_index": 1,
     }
     res = derive_user_state(goal)
     assert res["user_state"] == STATE_FERTIG
     assert res["action_required"] is False
+
+
+def test_success_status_is_not_fertig():
+    goal = {
+        "goal_id": "g-success",
+        "status": "ACTIVE",
+        "workflow_plan": [
+            {"task_id": "t1", "status": "RECONCILED"},
+            {"task_id": "t2", "status": "SUCCESS"},
+        ],
+        "current_step_index": 1,
+    }
+    res = derive_user_state(goal)
+    assert res["user_state"] != STATE_FERTIG
+    assert "verifiziert" not in res["user_message"]
+
+
+def test_fresh_worker_on_another_task_is_not_this_step():
+    now = 1000.0
+    goal = {
+        "goal_id": "g-other",
+        "status": "ACTIVE",
+        "workflow_plan": [
+            {"task_id": "task-alpha", "status": "DISPATCHED", "target_agent": "mac"}
+        ],
+        "current_step_index": 0,
+    }
+    state = {
+        "workers": {
+            "mac-1": {
+                "worker_id": "mac-1",
+                "current_task": "task-other",
+                "last_seen": now - 30,
+                "status": "BUSY",
+            }
+        }
+    }
+    res = derive_user_state(goal, state, now=now)
+    assert res["user_state"] == STATE_BRAUCHT_DICH
+    assert "Heartbeat abgelaufen" in res["user_message"]
 
 
 def test_braucht_dich_when_goal_is_blocked():
