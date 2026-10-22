@@ -357,6 +357,8 @@ class AcademyTeacher:
         # Formulate Bounded Delivery Package
         snapshot = self.steward.get_latest_snapshot()
         context_version = snapshot.get("context_version", 1) if snapshot else 1
+        if isinstance(context_version, bool):
+            raise ValueError("Bool is not a number.")
 
         delivery_package = {
             "schema_version": "2.0",

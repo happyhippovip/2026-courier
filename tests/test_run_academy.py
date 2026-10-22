@@ -178,6 +178,37 @@ def test_delivery_does_not_follow_a_lesson_symlink(academy_env, monkeypatch):
     )
 
 
+def test_bool_delivery_version_is_not_a_number(academy_env, monkeypatch):
+    repo_dir, memory_dir = academy_env
+    lessons = repo_dir / "events" / "academy" / "lessons"
+    deliveries = repo_dir / "events" / "academy" / "deliveries"
+    monkeypatch.setattr("scripts.run_academy.LESSONS_DIR", lessons)
+    monkeypatch.setattr("scripts.run_academy.DELIVERIES_DIR", deliveries)
+    (lessons / "lesson-1.json").write_text(json.dumps({
+        "summary": "plain",
+        "topic": "plain-topic",
+        "proposed_method": "keep",
+        "lesson_type": "PROCESS_IMPROVEMENT",
+        "risk": "LOW",
+    }), encoding="utf-8")
+    teacher = AcademyTeacher(repo_dir=repo_dir, memory_dir=memory_dir)
+    teacher.steward = mock.MagicMock()
+
+    def run(version):
+        teacher.steward.get_latest_snapshot.return_value = {"context_version": version}
+        try:
+            package = teacher.queue_or_deliver_lesson("lesson-1", "target-agent")
+        except ValueError as exc:
+            return ("err", str(exc))
+        return ("ok", package.get("context_version"))
+
+    assert (run(True), run(False), run(4)) == (
+        ("err", "Bool is not a number."),
+        ("err", "Bool is not a number."),
+        ("ok", 4),
+    )
+
+
 def test_target_agent_does_not_escape_the_state_dir(academy_env, monkeypatch):
     repo_dir, memory_dir = academy_env
     lessons = repo_dir / "events" / "academy" / "lessons"
