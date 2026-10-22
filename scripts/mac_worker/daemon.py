@@ -28,6 +28,8 @@ STATE_DIR = WORKER_HOME / "state" if WORKER_HOME else BASE_DIR / "state"
 LOGS_DIR = WORKER_HOME / "logs" if WORKER_HOME else BASE_DIR / "logs"
 
 def load_config():
+    if Path(CONFIG_PATH).is_symlink():
+        raise OSError(f"{CONFIG_PATH}: refusing to follow a symlink")
     with open(CONFIG_PATH, "r") as f:
         config = json.load(f)
     
@@ -702,8 +704,16 @@ def run_muse(task, config):
                     raise RuntimeError("Muse child cleanup unproven; no new execution allowed")
     return result
 
+def _refuse_state_symlink(path):
+    candidate = Path(path)
+    if candidate.is_symlink() or candidate.parent.is_symlink():
+        raise OSError(f"{candidate}: refusing to follow a symlink")
+
+
 def acquire_worker_lock():
     """One daemon per state directory: a second one would re-claim or re-send."""
+    _refuse_state_symlink(STATE_DIR)
+    _refuse_state_symlink(LOGS_DIR)
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
     handle = open(STATE_DIR / "worker.lock", "w")
