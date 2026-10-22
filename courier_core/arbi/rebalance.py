@@ -9,6 +9,7 @@ Evaluates:
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Optional
 
@@ -43,11 +44,11 @@ class DeltaNeutralRebalanceEngine:
         fixed_transfer_fee_eur: float = 1.50,
         min_profit_to_rebalance_ratio: float = 3.0,
     ):
-        if any(
-            isinstance(value, bool)
-            for value in (imbalance_threshold_pct, fixed_transfer_fee_eur, min_profit_to_rebalance_ratio)
-        ):
+        settings = (imbalance_threshold_pct, fixed_transfer_fee_eur, min_profit_to_rebalance_ratio)
+        if any(isinstance(value, bool) for value in settings):
             raise ValueError("Bool is not a number.")
+        if any(not isinstance(value, (int, float)) or not math.isfinite(value) for value in settings):
+            raise ValueError("rebalance setting is not a number.")
         self.imbalance_threshold_pct = imbalance_threshold_pct
         self.fixed_transfer_fee_eur = fixed_transfer_fee_eur
         self.min_profit_to_rebalance_ratio = min_profit_to_rebalance_ratio
@@ -67,6 +68,8 @@ class DeltaNeutralRebalanceEngine:
         )
         if any(isinstance(value, bool) for value in amounts):
             raise ValueError("Bool is not a number.")
+        if any(not isinstance(value, (int, float)) or not math.isfinite(value) for value in amounts):
+            raise ValueError("inventory is not a number.")
         total_quote = binance_inv.quote_balance + kraken_inv.quote_balance
         if total_quote <= 0:
             return RebalanceAssessment(
