@@ -704,3 +704,42 @@ def test_tools_config_does_not_follow_a_symlink(tmp_path, monkeypatch):
         False,
     )
     assert "SECRET-TOOLS" in outside.read_text(encoding="utf-8")
+
+def test_manifest_does_not_follow_a_symlink(tmp_path):
+    runtime = tmp_path / "runtime"
+    channels = tmp_path / "channels.json"
+    _channel_file(channels, "FruitKI")
+    workflows = tmp_path / "workflows.json"
+    _workflow_file(workflows, [])
+    tools = tmp_path / "tools.json"
+    mission = runtime / "c1" / "mission-1"
+    mission.mkdir(parents=True)
+    outside = tmp_path / "outside-manifest.json"
+    outside.write_text('{"marker":"SECRET-MANIFEST"}\n', encoding="utf-8")
+    (mission / "manifest.json").symlink_to(outside)
+    try:
+        run_pipeline("c1", "topic", "mission-1", runtime, channels, workflows, tools)
+        err = None
+    except ValueError as exc:
+        err = str(exc)
+    parent_outside = tmp_path / "parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    (parent_outside / "manifest.json").write_text('{"marker":"SECRET-PARENT"}\n', encoding="utf-8")
+    (runtime / "c1" / "mission-2").symlink_to(parent_outside)
+    try:
+        run_pipeline("c1", "topic", "mission-2", runtime, channels, workflows, tools)
+        err2 = None
+    except ValueError as exc:
+        err2 = str(exc)
+    assert (
+        err,
+        "SECRET-MANIFEST" in outside.read_text(encoding="utf-8"),
+        err2,
+        "SECRET-PARENT" in (parent_outside / "manifest.json").read_text(encoding="utf-8"),
+    ) == (
+        "refusing to follow a symlink",
+        True,
+        "refusing to follow a symlink",
+        True,
+    )

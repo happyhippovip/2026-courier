@@ -477,8 +477,12 @@ def run_pipeline(
     if runtime_dir.is_symlink() or runtime_dir.parent.is_symlink():
         raise ValueError("refusing to follow a symlink")
     mission_dir = runtime_dir / channel_id / mission_id
+    if mission_dir.is_symlink() or mission_dir.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     mission_dir.mkdir(parents=True, exist_ok=True)
     manifest_file = mission_dir / "manifest.json"
+    if manifest_file.is_symlink() or manifest_file.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
 
     # Load existing manifest if present for stage dedupe
     existing_manifest = {}
