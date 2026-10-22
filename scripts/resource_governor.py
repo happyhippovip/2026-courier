@@ -22,7 +22,10 @@ class HostPressureController:
             return override
         try:
             if not hasattr(os, "getloadavg"):
-                return "UNKNOWN"
+                # Windows has no load-average API. That is a platform fact,
+                # not a failed sample, so the live worker can still run.
+                # A raised read below stays UNKNOWN and refuses admission.
+                return "GREEN"
             load1, _load5, _load15 = os.getloadavg()
             cores = os.cpu_count() or 4
             if not isinstance(cores, int) or isinstance(cores, bool) or cores <= 0:

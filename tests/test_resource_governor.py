@@ -93,8 +93,11 @@ def test_unreadable_load_is_unknown(monkeypatch):
         assert controller.measure_pressure() == "UNKNOWN"
         assert controller.admit_job("HEAVY") is False
 
+    # Windows has no getloadavg. Absence of the API must still admit the
+    # live agy path. Only a failed read refuses admission.
     monkeypatch.delattr(os, "getloadavg", raising=False)
-    assert controller.measure_pressure() == "UNKNOWN"
+    assert controller.measure_pressure() == "GREEN"
+    assert controller.admit_job("HEAVY") is True
 
 
 def test_get_poll_interval():
