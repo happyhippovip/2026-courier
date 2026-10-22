@@ -87,6 +87,13 @@ def test_run_rejects_bad_params(tmp_path):
         synthetic.run("nope", tmp_path)
 
 
+def test_bool_fault_count_does_not_fail_the_attempt(tmp_path):
+    with pytest.raises(synthetic.SyntheticError, match="fail_transient_n"):
+        synthetic.run({"fail_transient_n": True, "content": "ok"}, tmp_path)
+    with pytest.raises(synthetic.SyntheticError, match="fault_attempts"):
+        synthetic.run({"fault_attempts": [True], "content": "ok"}, tmp_path)
+
+
 # -- execution: fault injection ------------------------------------------------
 
 def test_transient_failure_then_success(tmp_path):
