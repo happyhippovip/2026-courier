@@ -14,6 +14,9 @@ files = [
 
 def replace_save_json(filepath):
     path = Path(filepath)
+    if path.is_symlink() or path.parent.is_symlink():
+        print(f'refusing to follow a symlink: {filepath}')
+        return
     content = path.read_text(encoding='utf-8')
     
     # regex to match save_json definition
