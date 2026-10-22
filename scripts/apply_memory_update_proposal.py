@@ -180,6 +180,11 @@ def apply_memory_update_proposal(
     proposal_schema_path: Path | None = None,
     approval_schema_path: Path | None = None,
 ) -> dict:
+    proposal_file = Path(proposal_file)
+    approval_file = Path(approval_file)
+    if (proposal_file.is_symlink() or proposal_file.parent.is_symlink()
+            or approval_file.is_symlink() or approval_file.parent.is_symlink()):
+        fail("refusing to follow a symlink")
     if not proposal_file.exists():
         fail(f"Proposal file not found: {proposal_file}")
     if not approval_file.exists():
@@ -332,7 +337,9 @@ def main() -> None:
     proposal_path = Path(args.proposal)
     approval_path = Path(args.approval)
     memory_repo_path = Path(args.memory_repo)
-    if memory_repo_path.is_symlink() or memory_repo_path.parent.is_symlink():
+    if (memory_repo_path.is_symlink() or memory_repo_path.parent.is_symlink()
+            or proposal_path.is_symlink() or proposal_path.parent.is_symlink()
+            or approval_path.is_symlink() or approval_path.parent.is_symlink()):
         fail("refusing to follow a symlink")
     proposal_path = proposal_path.resolve()
     approval_path = approval_path.resolve()

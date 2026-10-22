@@ -251,3 +251,79 @@ def test_cli_memory_repo_does_not_follow_a_symlink(mock_get_commit, tmp_path, ba
         err_parent, nested_state.read_text(encoding="utf-8"),
         err_plain, plain_state.read_text(encoding="utf-8"),
     )
+
+
+@patch("scripts.apply_memory_update_proposal.get_memory_commit")
+def test_proposal_and_approval_do_not_follow_a_symlink(mock_get_commit, tmp_path, base_proposal, base_approval, mock_schemas):
+    prop_schema, appr_schema = mock_schemas
+    mock_get_commit.return_value = base_proposal["memory_base_commit"]
+
+    def memory(name):
+        repo = tmp_path / name
+        repo.mkdir()
+        state = repo / "PROJECT_STATE.md"
+        state.write_text("## Overview\nkeep\n", encoding="utf-8")
+        return repo, state
+
+    def run_main(prop, appr, repo):
+        argv = [
+            "prog",
+            "--proposal", str(prop),
+            "--approval", str(appr),
+            "--memory-repo", str(repo),
+            "--proposal-schema", str(prop_schema),
+            "--approval-schema", str(appr_schema),
+        ]
+        with patch.object(sys, "argv", argv):
+            try:
+                main()
+                return None
+            except SystemExit as exc:
+                return str(exc)
+
+    secret = json.loads(json.dumps(base_proposal))
+    secret["proposed_changes"][0]["proposed_text"] = "SECRET-APPLY-BODY"
+    outside_prop = tmp_path / "outside-prop.json"
+    outside_prop.write_text(json.dumps(secret), encoding="utf-8")
+    linked_prop = tmp_path / "linked-prop.json"
+    linked_prop.symlink_to(outside_prop)
+    appr_file = tmp_path / "approval.json"
+    appr_file.write_text(json.dumps(base_approval), encoding="utf-8")
+    repo_prop, state_prop = memory("mem-prop")
+    err_prop = run_main(linked_prop, appr_file, repo_prop)
+
+    real_prop = tmp_path / "proposal.json"
+    real_prop.write_text(json.dumps(base_proposal), encoding="utf-8")
+    outside_appr = tmp_path / "outside-appr.json"
+    outside_appr.write_text(json.dumps(base_approval), encoding="utf-8")
+    linked_appr = tmp_path / "linked-appr.json"
+    linked_appr.symlink_to(outside_appr)
+    repo_appr, state_appr = memory("mem-appr")
+    err_appr = run_main(real_prop, linked_appr, repo_appr)
+
+    repo_lib, state_lib = memory("mem-lib")
+    try:
+        apply_memory_update_proposal(
+            linked_prop, appr_file, repo_lib, dry_run=False,
+            proposal_schema_path=prop_schema, approval_schema_path=appr_schema,
+        )
+        err_lib = None
+    except SystemExit as exc:
+        err_lib = str(exc)
+
+    kept = "## Overview\nkeep\n"
+    refused = "MEMORY_WRITE_HANDLER_ERROR: refusing to follow a symlink"
+    assert (
+        err_prop == refused
+        and state_prop.read_text(encoding="utf-8") == kept
+        and err_appr == refused
+        and state_appr.read_text(encoding="utf-8") == kept
+        and err_lib == refused
+        and state_lib.read_text(encoding="utf-8") == kept
+        and linked_prop.is_symlink()
+        and linked_appr.is_symlink()
+    ), (
+        err_prop, state_prop.read_text(encoding="utf-8"),
+        err_appr, state_appr.read_text(encoding="utf-8"),
+        err_lib, state_lib.read_text(encoding="utf-8"),
+    )
