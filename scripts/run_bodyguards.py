@@ -110,8 +110,13 @@ class BodyguardPoolManager:
     """Manages the 8 Bodyguard reserve slots, temporary roles, and state files."""
 
     def __init__(self, repo_dir: Path = COURIER_DIR):
+        repo_dir = Path(repo_dir)
+        states_dir = repo_dir / "events/agent-states"
+        for path in (repo_dir, states_dir):
+            if path.is_symlink() or path.parent.is_symlink():
+                raise ValueError("refusing to follow a symlink")
         self.repo_dir = repo_dir
-        self.states_dir = repo_dir / "events/agent-states"
+        self.states_dir = states_dir
         self.states_dir.mkdir(parents=True, exist_ok=True)
 
     def initialize_pool(self, force_reset: bool = False) -> list[dict[str, Any]]:
