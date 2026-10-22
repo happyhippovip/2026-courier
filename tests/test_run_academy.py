@@ -890,6 +890,54 @@ def test_bool_context_version_is_not_a_number(academy_env, monkeypatch):
     )
 
 
+def test_ack_dir_does_not_follow_a_symlink(academy_env, monkeypatch):
+    repo_dir, memory_dir = academy_env
+    director = AcademyDirector(repo_dir=repo_dir, memory_dir=memory_dir)
+
+    outside = repo_dir.parent / "outside-ack-dir"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = repo_dir.parent / "linked-ack-dir"
+    linked.symlink_to(outside, target_is_directory=True)
+
+    parent_outside = repo_dir.parent / "ack-parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = repo_dir.parent / "ack-linked-parent"
+    linked_parent.symlink_to(parent_outside, target_is_directory=True)
+
+    def run(folder):
+        monkeypatch.setattr("scripts.run_academy.DELIVERIES_DIR", folder)
+        try:
+            director.record_worker_acknowledgement("agent-1", "lesson-1", 1)
+        except ValueError as exc:
+            return str(exc)
+        return "wrote"
+
+    err_link = run(linked)
+    leaked = sorted(p.name for p in outside.iterdir())
+    err_parent = run(linked_parent / "deliveries")
+    parent_names = sorted(p.name for p in parent_outside.iterdir())
+    plain = repo_dir / "events" / "academy" / "plain-ack"
+    err_plain = run(plain)
+    plain_names = sorted(p.name for p in plain.iterdir()) if plain.exists() else []
+    assert (
+        err_link,
+        leaked,
+        err_parent,
+        parent_names,
+        err_plain,
+        any(name.startswith("ack-") and name.endswith(".json") for name in plain_names),
+    ) == (
+        "refusing to follow a symlink",
+        ["keep.txt"],
+        "refusing to follow a symlink",
+        ["keep.txt"],
+        "wrote",
+        True,
+    )
+
+
 def test_ack_ids_do_not_escape_the_deliveries_dir(academy_env, monkeypatch):
     repo_dir, memory_dir = academy_env
     deliveries = repo_dir / "events" / "academy" / "deliveries"

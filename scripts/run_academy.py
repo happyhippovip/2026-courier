@@ -714,6 +714,8 @@ class AcademyDirector:
             raise ValueError("refusing an unsafe lesson id")
         if isinstance(context_version, bool):
             raise ValueError("Bool is not a number.")
+        if DELIVERIES_DIR.is_symlink() or DELIVERIES_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         ack = {
             "schema_version": "2.0",
