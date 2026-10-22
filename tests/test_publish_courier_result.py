@@ -244,3 +244,32 @@ def test_bool_max_iterations_is_not_published(tmp_path):
     assert err_both == mismatch and names == [] and err_true == mismatch and names_one == [] and err_task == mismatch and names_task == [], (
         err_both, names, err_true, names_one, err_task, names_task,
     )
+
+
+def test_float_max_iterations_is_not_published(tmp_path):
+    mismatch = "invalid Codex courier result: iteration bound mismatch"
+
+    def case(name, task_iterations, result_iterations):
+        task = create_task()
+        task["max_iterations"] = task_iterations
+        task_file = tmp_path / f"{name}-task.json"
+        task_file.write_text(json.dumps(task), encoding="utf-8")
+        processed = tmp_path / name
+        processed.mkdir()
+        output = tmp_path / f"{name}.txt"
+        result = create_result(task)
+        result["max_iterations"] = result_iterations
+        err = run_main(task_file, processed, output, result)
+        names = sorted(p.name for p in processed.iterdir())
+        return err, names
+
+    both = case("both", 1.0, 1.0)
+    result_float = case("result", 1, 1.0)
+    task_float = case("task", 1.0, 1)
+    integer = case("integer", 1, 1)
+    assert (both, result_float, task_float, integer) == (
+        (mismatch, []),
+        (mismatch, []),
+        (mismatch, []),
+        (None, ["msg-123.result.json"]),
+    )

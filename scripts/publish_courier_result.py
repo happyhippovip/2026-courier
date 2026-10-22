@@ -51,8 +51,9 @@ def main() -> None:
         fail("parent or message identity mismatch")
     iterations = result["max_iterations"]
     task_iterations = task["max_iterations"]
-    if (isinstance(iterations, bool) or isinstance(task_iterations, bool)
-            or iterations != task_iterations or iterations != 1):
+    def _is_one(value: object) -> bool:
+        return isinstance(value, int) and not isinstance(value, bool) and value == 1
+    if not _is_one(iterations) or not _is_one(task_iterations):
         fail("iteration bound mismatch")
     expected_result = task.get("payload", {}).get("result_request")
     if expected_result not in {"COURIER_CODEX_ACK", "COURIER_SEQUENTIAL_ACK", "COURIER_AUTOMATIC_ACK"}:
