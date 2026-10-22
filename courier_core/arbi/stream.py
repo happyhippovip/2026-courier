@@ -35,11 +35,15 @@ class L2StreamMockFeeder:
     """Simulates an incoming stream of L2 orderbook deltas for latency and race-condition audits."""
 
     def __init__(self, pair: NormalizedPair, initial_mid: float = 60000.0):
+        if isinstance(initial_mid, bool):
+            raise ValueError("Bool is not a number.")
         self.pair = pair
         self.mid = initial_mid
         self._seq = 0
 
     def generate_events(self, count: int = 10) -> Iterator[L2DeltaEvent]:
+        if isinstance(count, bool):
+            raise ValueError("Bool is not a number.")
         for i in range(count):
             self._seq += 1
             # Micro-shift in spread: alternating between Binance and Kraken

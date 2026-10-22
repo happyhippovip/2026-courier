@@ -80,3 +80,29 @@ def test_bool_level_amount_does_not_change_the_book():
         ("raised", "Bool is not a number.", 2.0),
         ("raised", "Bool is not a number.", 2.0),
     ], seen
+
+
+def test_bool_stream_count_and_mid_are_not_numbers():
+    pair = NormalizedPair("BTC", "EUR")
+    seen = []
+    for count in (True, False):
+        feeder = L2StreamMockFeeder(pair, initial_mid=65000.0)
+        try:
+            events = list(feeder.generate_events(count=count))
+        except ValueError as exc:
+            seen.append(("count", count, "raised", str(exc)))
+        else:
+            seen.append(("count", count, "accepted", len(events)))
+    try:
+        feeder = L2StreamMockFeeder(pair, initial_mid=True)
+        events = list(feeder.generate_events(count=1))
+    except ValueError as exc:
+        seen.append(("mid", "raised", str(exc)))
+    else:
+        price = events[0].bids_updated[0].price if events else None
+        seen.append(("mid", "accepted", price))
+    assert seen == [
+        ("count", True, "raised", "Bool is not a number."),
+        ("count", False, "raised", "Bool is not a number."),
+        ("mid", "raised", "Bool is not a number."),
+    ], seen
