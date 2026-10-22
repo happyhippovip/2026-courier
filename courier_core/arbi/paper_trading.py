@@ -196,7 +196,13 @@ class PaperTradingEngine:
             # Second leg failed! Position stuck on buy venue, unhedged liquidation penalty (-1.5%)
             liquidation_penalty_usd = effective_size * 0.015
             transfer_usd = breakdown.transfer_cost_usd * scale
-            net_pnl = -(breakdown.buy_fee_usd * scale + liquidation_penalty_usd + transfer_usd)
+            rebalance_usd = breakdown.rebalance_cost_usd * scale
+            net_pnl = -(
+                breakdown.buy_fee_usd * scale
+                + liquidation_penalty_usd
+                + transfer_usd
+                + rebalance_usd
+            )
             status = "SECOND_LEG_FAILED"
         else:
             transfer_usd = breakdown.transfer_cost_usd * scale
