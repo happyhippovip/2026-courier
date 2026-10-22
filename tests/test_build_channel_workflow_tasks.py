@@ -109,6 +109,32 @@ def test_build_workflow_success_and_dedupe(fake_configs):
     )
     assert len(tasks2) == 0
 
+
+def test_existing_task_with_unknown_status_is_not_recreated(fake_configs):
+    ch, wf, qd = fake_configs
+    qd.mkdir()
+    script_id = "TASK-TEST-1-TOPIC-X-SCRIPT-WRITING"
+    original = {"task_id": script_id, "attempt_count": 3, "marker": "keep-me"}
+    (qd / f"{script_id}.json").write_text(json.dumps(original), encoding="utf-8")
+
+    tasks = build_workflow_tasks_for_channel(
+        "chan-test-1", "topic-x", queue_dir=qd, channels_path=ch, workflows_path=wf
+    )
+
+    assert [task["task_id"] for task in tasks] == ["TASK-TEST-1-TOPIC-X-VIDEO-RENDERING"]
+    assert tasks[0]["parent_task_id"] == script_id
+    kept = json.loads((qd / f"{script_id}.json").read_text(encoding="utf-8"))
+    assert kept == original
+
+    bool_id = "TASK-TEST-1-TOPIC-Y-SCRIPT-WRITING"
+    bool_record = {"task_id": bool_id, "status": True, "attempt_count": 1}
+    (qd / f"{bool_id}.json").write_text(json.dumps(bool_record), encoding="utf-8")
+    tasks_bool = build_workflow_tasks_for_channel(
+        "chan-test-1", "topic-y", queue_dir=qd, channels_path=ch, workflows_path=wf
+    )
+    assert [task["task_id"] for task in tasks_bool] == ["TASK-TEST-1-TOPIC-Y-VIDEO-RENDERING"]
+    assert json.loads((qd / f"{bool_id}.json").read_text(encoding="utf-8")) == bool_record
+
 def test_main(monkeypatch, fake_configs, capsys):
     ch, wf, qd = fake_configs
     

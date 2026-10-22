@@ -102,14 +102,17 @@ def build_workflow_tasks_for_channel(
         task_id = f"TASK-{chan_slug.upper()}-{topic_slug.upper()}-{step_slug.upper()}"
         task_file = queue_dir / f"{task_id}.json"
 
-        # Deduplication check: Do not recreate task if already existing in queue
+        # An existing task file is the record. Missing, boolean, or unknown
+        # status must not be rewritten into a fresh QUEUED attempt.
         if task_file.exists():
             existing = load_json(task_file)
-            existing_status = existing.get("status")
+            existing_status = existing.get("status") if isinstance(existing, dict) else None
             if existing_status in ("QUEUED", "RUNNING", "COMPLETED", "HUMAN_GATE"):
                 print(f"DEDUPED: Task {task_id} already exists with status '{existing_status}'. Skipping creation.")
-                parent_task_id = task_id
-                continue
+            else:
+                print(f"DEDUPED: Task {task_id} exists with status {existing_status!r}. Not recreating.")
+            parent_task_id = task_id
+            continue
 
         # Formulate clear instruction for the agent
         instruction = f"Execute workflow stage [{step_name}] for channel [{channel['channel_label']}] on platform [{channel['platform']}]. Topic: {topic}."
