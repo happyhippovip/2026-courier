@@ -13,7 +13,9 @@ const PILES = ["needs_you", "working", "done"];
 
 function isEvidence(item) {
   const id = item && typeof item.event_id === "string" ? item.event_id : "";
-  return Boolean(item && item.verified === true && id && id !== "evt:unknown:0" && !id.startsWith("evt:gen:"));
+  // Green needs the journal binding the hub derives from RESULT_ACCEPTED.
+  // A boolean and a free-form event id are not that binding.
+  return Boolean(item && item.verified === true && /^journal:[1-9]\d*:RESULT_ACCEPTED$/.test(id));
 }
 
 function minutesSince(at, observedAt) {
@@ -32,6 +34,8 @@ function stateOf(station) {
   if (station.blocker) return FLOW_STATES.BLOCKED;
   if (station.resource_pause) return FLOW_STATES.WARN;
   if (!station.heartbeat) return FLOW_STATES.UNKNOWN;
+  // The status word alone is not verifier evidence.
+  if (raw === "VERIFIED" || raw === "DONE" || raw === "SUCCESS") return FLOW_STATES.UNKNOWN;
   return FLOW_STATES[raw] || FLOW_STATES.UNKNOWN;
 }
 
