@@ -1,8 +1,18 @@
 import re
 import json
 import os
+from pathlib import Path
 
-with open("server/app.py", "r") as f:
+def _refuse_symlink(path: Path) -> None:
+    if path.is_symlink() or path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+
+_app_path = Path("server/app.py")
+_output_path = Path("static/openapi.json")
+_refuse_symlink(_app_path)
+_refuse_symlink(_output_path)
+
+with open(_app_path, "r") as f:
     app_code = f.read()
 
 openapi = {
@@ -43,7 +53,8 @@ for match in route_pattern.finditer(app_code):
             }
         }
 
-with open("static/openapi.json", "w") as f:
+_refuse_symlink(_output_path)
+with open(_output_path, "w") as f:
     json.dump(openapi, f, indent=2)
 
 print("OpenAPI spec regenerated with", len(openapi["paths"]), "paths.")
