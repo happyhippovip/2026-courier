@@ -102,6 +102,7 @@ class PaperTradingEngine:
             or isinstance(breakdown.slippage_usd, bool)
             or isinstance(breakdown.buy_fee_usd, bool)
             or isinstance(breakdown.sell_fee_usd, bool)
+            or isinstance(breakdown.gross_spread_usd, bool)
         ):
             raise ValueError("Bool is not a number.")
         size = breakdown.order_size_usd
@@ -115,6 +116,9 @@ class PaperTradingEngine:
             for value in (breakdown.buy_fee_usd, breakdown.sell_fee_usd)
         ):
             raise ValueError("fee is not a number.")
+        gross = breakdown.gross_spread_usd
+        if not isinstance(gross, (int, float)) or not math.isfinite(gross):
+            raise ValueError("gross spread is not a number.")
         self._trade_counter += 1
         t_id = f"sim-trade-{self._trade_counter:04d}"
 
