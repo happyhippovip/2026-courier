@@ -125,6 +125,16 @@ class StatisticalQualityAnalyzer:
             flags.append("NON_FINITE_SIZE")
             explanation_parts.append("Order size is not a finite number.")
 
+        cost = breakdown.total_costs_usd
+        if (
+            isinstance(cost, bool)
+            or not isinstance(cost, (int, float))
+            or not math.isfinite(cost)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_COST")
+            explanation_parts.append("Total cost is not a finite number.")
+
         gross = breakdown.gross_spread_usd
         if (
             isinstance(gross, bool)
