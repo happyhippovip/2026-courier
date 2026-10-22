@@ -78,7 +78,10 @@ def create_manifest(
     extra_metadata: dict[str, Any] | None = None,
 ) -> RenderManifest:
     """Create a verified RenderManifest for a finished render directory."""
-    dir_path = Path(render_dir).resolve()
+    dir_path = Path(render_dir)
+    if dir_path.is_symlink():
+        raise OSError(f"{dir_path}: refusing to follow a symlink")
+    dir_path = dir_path.resolve()
     if not dir_path.is_dir():
         raise FileNotFoundError(f"Render directory does not exist: {dir_path}")
 
