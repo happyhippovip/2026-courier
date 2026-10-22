@@ -97,6 +97,8 @@ def derive_goal_cost_summary(
             cost_class is not None and not isinstance(cost_class, str)
         ):
             cost_class = "unknown"
+        elif cost_class == "":
+            cost_class = "unknown"
         elif not cost_class:
             if provider in ("local", "linux", "mac", "windows", "verifier"):
                 cost_class = COST_CLASS_FREE
