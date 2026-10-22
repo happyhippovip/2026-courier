@@ -45,7 +45,13 @@ def canonical_hash(payload: Any) -> str:
     return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
 
 
+def _refuse_symlink(path: Path) -> None:
+    if path.is_symlink() or path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+
+
 def load_json(path: Path, default: Any) -> Any:
+    _refuse_symlink(path)
     if not path.exists():
         return default
     return json.loads(path.read_text(encoding="utf-8"))
@@ -322,7 +328,12 @@ def main() -> None:
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--memory-repo", type=Path, default=Path("/Users/user/Downloads/2026-project-memory"))
     args = parser.parse_args()
+    _refuse_symlink(args.messages)
+    _refuse_symlink(args.ledger)
+    _refuse_symlink(args.output)
     result = run_mesh(read_messages(args.messages), load_json(args.ledger, {}), args.memory_repo)
+    _refuse_symlink(args.ledger)
+    _refuse_symlink(args.output)
     args.ledger.parent.mkdir(parents=True, exist_ok=True)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.ledger.write_text(json.dumps(result["coverage_ledger"], indent=2) + "\n", encoding="utf-8")
