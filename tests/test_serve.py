@@ -74,6 +74,28 @@ def test_home_lock_double_release_safe(tmp_path: Path):
 # Token Management Tests
 # -----------------------------------------------------------------------------
 
+def test_service_refuses_a_symlinked_home_parent(tmp_path: Path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    home = link / "courier"
+    service = None
+    try:
+        service = Service(home, 0)
+    except SystemExit as exc:
+        assert "symlink" in str(exc)
+    else:
+        try:
+            names = sorted(path.relative_to(outside).as_posix() for path in outside.rglob("*"))
+            raise AssertionError(f"started through a parent symlink: {names}")
+        finally:
+            service.server.server_close()
+            service.controller.stop()
+            service.lock.release()
+    assert list(outside.iterdir()) == []
+
+
 def test_service_refuses_a_symlinked_home(tmp_path: Path):
     outside = tmp_path / "outside"
     outside.mkdir()

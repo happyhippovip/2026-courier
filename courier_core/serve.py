@@ -344,7 +344,8 @@ class Service:
     """Controller + HTTP server + process lock, with one stop path."""
 
     def __init__(self, home: Path, port: int, controller: Controller | None = None):
-        if Path(home).is_symlink():
+        home_path = Path(home)
+        if home_path.is_symlink() or home_path.parent.is_symlink():
             raise SystemExit(f"{home}: refusing to follow a symlink")
         self.home = home
         self.lock = HomeLock(home / "run" / "controller.lock")
@@ -409,7 +410,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=args.log_level.upper(), stream=sys.stderr,
                         format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     home = Path(args.home).expanduser()
-    if home.is_symlink():
+    if home.is_symlink() or home.parent.is_symlink():
         raise SystemExit(f"{home}: refusing to follow a symlink")
     home = home.resolve()
     service = Service(home, args.port)
