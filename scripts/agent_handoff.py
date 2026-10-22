@@ -2,8 +2,14 @@ import dataclasses
 import json
 from datetime import datetime
 from enum import Enum
+from pathlib import Path
 from typing import Dict, Any, List, Optional
 import jsonschema
+
+
+def _refuse_symlink(path: Path) -> None:
+    if path.is_symlink() or path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
 
 class HostOS(str, Enum):
     WINDOWS = "WINDOWS"
@@ -85,12 +91,11 @@ class AgentHandoffReceipt:
 
 class HandoffValidator:
     def __init__(self, schemas_dir: str = "courier_core/schemas"):
-        import os
         self.schemas_dir = schemas_dir
 
     def validate(self, receipt: AgentHandoffReceipt):
-        import os
-        path = os.path.join(self.schemas_dir, "agent_handoff_receipt.schema.json")
+        path = Path(self.schemas_dir) / "agent_handoff_receipt.schema.json"
+        _refuse_symlink(path)
         with open(path, "r") as f:
             schema = json.load(f)
         jsonschema.validate(instance=receipt.to_dict(), schema=schema)
