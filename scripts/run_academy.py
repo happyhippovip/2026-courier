@@ -687,6 +687,22 @@ class AcademyDirector:
         context_version: int,
     ) -> dict:
         """Records an agent's acknowledgement of an adopted bounded lesson."""
+        if (
+            not isinstance(worker_agent_id, str)
+            or worker_agent_id in ("", ".", "..")
+            or Path(worker_agent_id).name != worker_agent_id
+            or "/" in worker_agent_id
+            or "\\" in worker_agent_id
+        ):
+            raise ValueError("refusing an unsafe worker id")
+        if (
+            not isinstance(lesson_id, str)
+            or lesson_id in ("", ".", "..")
+            or Path(lesson_id).name != lesson_id
+            or "/" in lesson_id
+            or "\\" in lesson_id
+        ):
+            raise ValueError("refusing an unsafe lesson id")
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         ack = {
             "schema_version": "2.0",

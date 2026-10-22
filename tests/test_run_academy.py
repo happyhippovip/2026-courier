@@ -712,6 +712,38 @@ def test_director_approve_adoption(mock_adoptions_dir, mock_evals_dir, mock_less
     assert dir.economics["measured_minutes_saved"] == 5.0
     dir.steward.refresh_snapshot_after_event.assert_called_once()
     
+def test_ack_ids_do_not_escape_the_deliveries_dir(academy_env, monkeypatch):
+    repo_dir, memory_dir = academy_env
+    deliveries = repo_dir / "events" / "academy" / "deliveries"
+    monkeypatch.setattr("scripts.run_academy.DELIVERIES_DIR", deliveries)
+    director = AcademyDirector(repo_dir=repo_dir, memory_dir=memory_dir)
+
+    def run(worker, lesson):
+        try:
+            director.record_worker_acknowledgement(worker, lesson, 1)
+        except ValueError as exc:
+            return str(exc)
+        return "wrote"
+
+    err_worker = run("../../../../../outside-worker", "lesson-1")
+    worker_file = repo_dir / "outside-worker-lesson-1.json"
+    worker_body = worker_file.read_text(encoding="utf-8") if worker_file.exists() else ""
+    err_lesson = run("worker-1", "../../../../../outside-ack")
+    lesson_file = repo_dir / "outside-ack.json"
+    lesson_body = lesson_file.read_text(encoding="utf-8") if lesson_file.exists() else ""
+    assert (
+        err_worker,
+        "ACKNOWLEDGED" in worker_body,
+        err_lesson,
+        "ACKNOWLEDGED" in lesson_body,
+    ) == (
+        "refusing an unsafe worker id",
+        False,
+        "refusing an unsafe lesson id",
+        False,
+    )
+
+
 @mock.patch("scripts.run_academy.DELIVERIES_DIR")
 def test_director_record_worker_acknowledgement(mock_deliveries_dir, academy_env, monkeypatch):
     repo_dir, memory_dir = academy_env
