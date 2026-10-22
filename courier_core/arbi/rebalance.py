@@ -43,6 +43,11 @@ class DeltaNeutralRebalanceEngine:
         fixed_transfer_fee_eur: float = 1.50,
         min_profit_to_rebalance_ratio: float = 3.0,
     ):
+        if any(
+            isinstance(value, bool)
+            for value in (imbalance_threshold_pct, fixed_transfer_fee_eur, min_profit_to_rebalance_ratio)
+        ):
+            raise ValueError("Bool is not a number.")
         self.imbalance_threshold_pct = imbalance_threshold_pct
         self.fixed_transfer_fee_eur = fixed_transfer_fee_eur
         self.min_profit_to_rebalance_ratio = min_profit_to_rebalance_ratio
