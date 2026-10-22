@@ -552,6 +552,21 @@ def run_google_agent_task(
     return v_res["status"]
 
 
+def _refuse_repo_symlink(repo_dir: Path, path: Path) -> None:
+    """Refuse a symlink at the repo root or on any component inside it."""
+    try:
+        relative = path.relative_to(repo_dir)
+    except ValueError:
+        raise ValueError(f"{path}: refusing to follow a symlink") from None
+    cursor = repo_dir
+    if cursor.is_symlink():
+        raise ValueError(f"{cursor}: refusing to follow a symlink")
+    for part in relative.parts:
+        cursor = cursor / part
+        if cursor.is_symlink():
+            raise ValueError(f"{cursor}: refusing to follow a symlink")
+
+
 def execute_packet_code_or_test_work(
     packet: WorkPacket,
     repo_dir: Path,
@@ -657,8 +672,12 @@ def execute_packet_code_or_test_work(
     hooks.on_tool_action(packet.id, "Persisting evidence artifact and computing digests", 0.8)
 
     ev_dir = (repo_dir / "events/evidence") if repo_dir else EVIDENCE_DIR
-    ev_dir.mkdir(parents=True, exist_ok=True)
     evidence_path = ev_dir / f"{packet.id}_evidence.json"
+    if repo_dir:
+        _refuse_repo_symlink(repo_dir, evidence_path)
+    elif ev_dir.is_symlink() or ev_dir.parent.is_symlink() or evidence_path.is_symlink():
+        raise ValueError(f"{evidence_path}: refusing to follow a symlink")
+    ev_dir.mkdir(parents=True, exist_ok=True)
     evidence_text = json.dumps(evidence_data, indent=2)
 
     # Guard against secrets

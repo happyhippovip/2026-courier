@@ -388,3 +388,47 @@ def test_bool_timeout_does_not_invoke_the_agent(tmp_path):
     runner.assert_not_called()
     assert verdict == "FAILED"
     assert evidence.get("provider_invoked") is False
+
+
+class _Hooks:
+    def on_tool_action(self, *args, **kwargs):
+        return None
+
+
+def _packet(packet_id):
+    return WorkPacket(
+        id=packet_id,
+        owner_id="local",
+        target_sha="abc",
+        state=PacketState.CURRENT,
+        payload={"task_type": "deterministic_transform", "input": "hello"},
+    )
+
+
+def test_evidence_does_not_follow_a_symlinked_directory(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / "events").symlink_to(outside, target_is_directory=True)
+    try:
+        execute_packet_code_or_test_work(_packet("pkt-dir"), repo, _Hooks(), {"authorized_mode": "LOCAL"})
+    except ValueError as exc:
+        assert "symlink" in str(exc).lower(), exc
+    names = sorted(path.relative_to(outside).as_posix() for path in outside.rglob("*"))
+    assert names == [], names
+
+
+def test_evidence_does_not_follow_a_symlinked_file(tmp_path):
+    outside = tmp_path / "outside.json"
+    outside.write_text("keep", encoding="utf-8")
+    repo = tmp_path / "repo"
+    evidence_dir = repo / "events" / "evidence"
+    evidence_dir.mkdir(parents=True)
+    link = evidence_dir / "pkt-file_evidence.json"
+    link.symlink_to(outside)
+    try:
+        execute_packet_code_or_test_work(_packet("pkt-file"), repo, _Hooks(), {"authorized_mode": "LOCAL"})
+    except ValueError as exc:
+        assert "symlink" in str(exc).lower(), exc
+    assert outside.read_text(encoding="utf-8") == "keep"
