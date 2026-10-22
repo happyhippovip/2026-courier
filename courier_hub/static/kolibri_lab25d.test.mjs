@@ -69,6 +69,19 @@ test("duplicate event_id never double-applies", () => {
   assert.equal(lab.snapshot().workkeys["WK-A"].status, "QUEUED");
 });
 
+test("first sighting cannot claim VERIFIED or DONE", () => {
+  const lab = createLab();
+  const verified = lab.applyEvent(ev({ event_id: "v-cold", status: "VERIFIED" }));
+  assert.equal(verified.applied, false);
+  assert.equal(verified.reason, "out-of-order");
+  assert.equal(verified.pulse, undefined);
+  const done = lab.applyEvent(ev({ event_id: "d-cold", status: "DONE" }));
+  assert.equal(done.applied, false);
+  assert.equal(done.reason, "out-of-order");
+  assert.equal(lab.snapshot().counters.pulses, 0);
+  assert.equal(lab.snapshot().workkeys["WK-A"].status, "UNKNOWN");
+});
+
 test("unknown workkey registers as UNKNOWN, fail edges always allowed", () => {
   const lab = createLab();
   const blocked = lab.applyEvent(ev({ event_id: "b1", status: "BLOCKED" }));
