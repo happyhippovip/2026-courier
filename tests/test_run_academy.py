@@ -662,6 +662,45 @@ def test_bool_eval_metric_is_not_a_number(academy_env, monkeypatch):
     )
 
 
+def test_bool_minutes_saved_is_not_a_number(academy_env, monkeypatch):
+    repo_dir, memory_dir = academy_env
+    lessons = repo_dir / "events" / "academy" / "lessons"
+    evals = repo_dir / "events" / "academy" / "evaluations"
+    adoptions = repo_dir / "events" / "academy" / "adoptions"
+    monkeypatch.setattr("scripts.run_academy.LESSONS_DIR", lessons)
+    monkeypatch.setattr("scripts.run_academy.EVALS_DIR", evals)
+    monkeypatch.setattr("scripts.run_academy.ADOPTIONS_DIR", adoptions)
+    director = AcademyDirector(repo_dir=repo_dir, memory_dir=memory_dir)
+    director.steward = mock.MagicMock()
+
+    def run(lesson_id, minutes):
+        (lessons / f"{lesson_id}.json").write_text(json.dumps({
+            "title": "t",
+            "topic": "t",
+            "affected_agents": ["a"],
+        }), encoding="utf-8")
+        (evals / f"eval-{lesson_id}.json").write_text(json.dumps({
+            "verdict": "PASS",
+            "evaluation_id": f"e-{lesson_id}",
+            "metrics": {"measured_minutes_saved": minutes},
+        }), encoding="utf-8")
+        try:
+            director.approve_adoption(lesson_id)
+        except ValueError as exc:
+            return ("err", str(exc), director.economics.get("measured_minutes_saved"))
+        return ("ok", director.economics.get("measured_minutes_saved"))
+
+    assert (
+        run("lesson-true", True),
+        run("lesson-false", False),
+        run("lesson-int", 5),
+    ) == (
+        ("err", "Bool is not a number.", 0.0),
+        ("err", "Bool is not a number.", 0.0),
+        ("ok", 5.0),
+    )
+
+
 def test_adopt_does_not_follow_a_symlink(academy_env, monkeypatch):
     repo_dir, memory_dir = academy_env
     lessons = repo_dir / "events" / "academy" / "lessons"

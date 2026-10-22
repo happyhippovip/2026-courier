@@ -636,6 +636,9 @@ class AcademyDirector:
             raise PermissionError(f"Adoption prohibited: Lesson {lesson_id} has not passed evaluation.")
 
         eval_data = load_json(eval_file)
+        mins_saved = eval_data.get("metrics", {}).get("measured_minutes_saved", 0.0)
+        if isinstance(mins_saved, bool):
+            raise ValueError("Bool is not a number.")
         if eval_data.get("verdict") != "PASS":
             print(f"[DIRECTOR ERROR] Adoption blocked: Evaluation verdict is {eval_data.get('verdict')}.")
             self.update_visual_state(
