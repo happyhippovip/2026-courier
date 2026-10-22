@@ -95,6 +95,16 @@ class StatisticalQualityAnalyzer:
             risk_score += 60
             explanation_parts.append(f"Status not eligible: {breakdown.status} ({breakdown.reason})")
 
+        net = breakdown.net_profit_usd
+        if (
+            isinstance(net, bool)
+            or not isinstance(net, (int, float))
+            or not math.isfinite(net)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_NET")
+            explanation_parts.append("Net profit is not a finite number.")
+
         gross = breakdown.gross_spread_usd
         if (
             isinstance(gross, bool)
