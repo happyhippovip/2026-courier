@@ -163,6 +163,21 @@ def test_fenced_file_writer_prevents_unauthorized_writes(leases, tmp_path):
         writer.open(target_file, "w")
 
 
+def test_lease_store_refuses_a_symlinked_parent(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "home"
+    link.symlink_to(outside, target_is_directory=True)
+    try:
+        store = LeaseStore(str(link / "agents.db"))
+    except OSError as exc:
+        assert "symlink" in str(exc).lower()
+    else:
+        store.close()
+        raise AssertionError(sorted(path.name for path in outside.iterdir()))
+    assert list(outside.iterdir()) == []
+
+
 def test_lease_store_refuses_a_symlink_and_leaves_the_target_empty(tmp_path):
     target = tmp_path / "target.db"
     target.write_bytes(b"")

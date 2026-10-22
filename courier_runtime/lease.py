@@ -92,8 +92,9 @@ def parse_session_holder(holder: str) -> dict | None:
 
 
 def _refuse_symlink(path) -> None:
-    """Refuse a lease database path that is itself a symlink."""
-    if Path(path).is_symlink():
+    """Refuse a lease database path, or a parent directory, that is a symlink."""
+    candidate = Path(path)
+    if candidate.is_symlink() or candidate.parent.is_symlink():
         raise OSError(f"{path}: refusing to follow a symlink")
 
 
