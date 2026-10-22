@@ -139,6 +139,18 @@ def test_cli_create_and_verify(tmp_path, capsys):
     assert "VERIFIED:" in captured_verify.out
 
 
+def test_create_manifest_refuses_a_symlinked_parent(tmp_path):
+    outside = tmp_path / "outside"
+    render = outside / "render"
+    render.mkdir(parents=True)
+    (render / "render.mp4").write_bytes(b"video")
+    link = tmp_path / "home"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(OSError, match="symlink"):
+        create_manifest(link / "render")
+    assert not (render / "manifest.json").exists()
+
+
 def test_create_manifest_refuses_a_symlinked_directory(tmp_path):
     outside = tmp_path / "outside"
     outside.mkdir()

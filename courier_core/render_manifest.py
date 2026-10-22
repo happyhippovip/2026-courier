@@ -79,7 +79,7 @@ def create_manifest(
 ) -> RenderManifest:
     """Create a verified RenderManifest for a finished render directory."""
     dir_path = Path(render_dir)
-    if dir_path.is_symlink():
+    if dir_path.is_symlink() or dir_path.parent.is_symlink():
         raise OSError(f"{dir_path}: refusing to follow a symlink")
     dir_path = dir_path.resolve()
     if not dir_path.is_dir():
