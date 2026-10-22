@@ -123,6 +123,8 @@ class PaperTradingEngine:
             raise ValueError("fill percent is not a number.")
         if not isinstance(second_leg_fail_rate, (int, float)) or not math.isfinite(second_leg_fail_rate):
             raise ValueError("fail rate is not a number.")
+        if not isinstance(simulated_latency_ms, (int, float)) or not math.isfinite(simulated_latency_ms):
+            raise ValueError("latency is not a number.")
         self._trade_counter += 1
         t_id = f"sim-trade-{self._trade_counter:04d}"
 
