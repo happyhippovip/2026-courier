@@ -81,7 +81,9 @@ def derive_goal_cost_summary(
         # Default unassigned / local steps to free
         provider = worker.get("provider") or step.get("target_agent") or "local"
         cost_class = worker.get("cost_class")
-        if not cost_class:
+        if isinstance(cost_class, bool):
+            cost_class = "unknown"
+        elif not cost_class:
             if provider in ("local", "linux", "mac", "windows", "verifier"):
                 cost_class = COST_CLASS_FREE
             else:
