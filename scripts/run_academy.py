@@ -448,7 +448,11 @@ class AcademyDirector:
 
     def review_lesson(self, lesson_id: str) -> dict:
         """Reviews a lesson proposal for deduplication, evidence completeness, and test requirements."""
+        if LESSONS_DIR.is_symlink() or LESSONS_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         lesson_file = LESSONS_DIR / f"{lesson_id}.json"
+        if lesson_file.is_symlink() or lesson_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         if not lesson_file.exists():
             raise FileNotFoundError(f"Lesson not found: {lesson_id}")
         lesson = load_json(lesson_file)

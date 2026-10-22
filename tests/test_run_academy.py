@@ -196,6 +196,47 @@ def test_director_check_attendance(academy_env):
     (repo_dir / "events/agent-states/agent-academy-teacher.json").write_text("{}")
     assert dir.check_attendance()
 
+def test_review_does_not_follow_a_symlink(academy_env, monkeypatch):
+    repo_dir, memory_dir = academy_env
+    lessons = repo_dir / "events" / "academy" / "lessons"
+    monkeypatch.setattr("scripts.run_academy.LESSONS_DIR", lessons)
+    director = AcademyDirector(repo_dir=repo_dir, memory_dir=memory_dir)
+    outside = repo_dir.parent / "outside-lesson.json"
+    outside.write_text(json.dumps({
+        "evidence": "SECRET-LESSON-BODY",
+        "affected_agents": ["a"],
+        "novelty_hash": "1",
+        "status": "DISCOVERED",
+    }), encoding="utf-8")
+    (lessons / "lesson-secret.json").symlink_to(outside)
+
+    outside_dir = repo_dir.parent / "outside-review-lessons"
+    outside_dir.mkdir()
+    (outside_dir / "keep.txt").write_text("keep", encoding="utf-8")
+    (outside_dir / "lesson-dir.json").write_text(outside.read_text(encoding="utf-8"), encoding="utf-8")
+    linked_dir = repo_dir.parent / "linked-review-lessons"
+    linked_dir.symlink_to(outside_dir, target_is_directory=True)
+
+    def run(folder, lesson_id):
+        monkeypatch.setattr("scripts.run_academy.LESSONS_DIR", folder)
+        try:
+            director.review_lesson(lesson_id)
+        except ValueError as exc:
+            return str(exc)
+        return "reviewed"
+
+    err_file = run(lessons, "lesson-secret")
+    file_body = outside.read_text(encoding="utf-8")
+    err_dir = run(linked_dir, "lesson-dir")
+    dir_body = (outside_dir / "lesson-dir.json").read_text(encoding="utf-8")
+    assert (err_file, "APPROVED_FOR_TEST" in file_body, err_dir, "APPROVED_FOR_TEST" in dir_body) == (
+        "refusing to follow a symlink",
+        False,
+        "refusing to follow a symlink",
+        False,
+    )
+
+
 @mock.patch("scripts.run_academy.LESSONS_DIR")
 def test_director_review_lesson(mock_lessons_dir, academy_env, monkeypatch):
     repo_dir, memory_dir = academy_env
