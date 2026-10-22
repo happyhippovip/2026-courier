@@ -133,6 +133,44 @@ def test_chip_verifier_rejects_missing_artifacts(tmp_path):
     assert "Artefakt fehlt" in verdict.reason
 
 
+def test_chip_verifier_rejects_gold_sha_without_file(tmp_path):
+    from courier_hub.mission_chip import EXPECTED_GOLD_SHA256, _chip_verifier
+    from types import SimpleNamespace
+
+    verifier = _chip_verifier("synthetic")
+    result = SimpleNamespace(payload={
+        "artifacts": [{
+            "path": "mission_result.txt",
+            "sha256": EXPECTED_GOLD_SHA256,
+            "size_bytes": 34,
+        }]
+    })
+    verdict = verifier({"task_id": "t-missing"}, result, tmp_path)
+    assert verdict.accepted is False
+    assert "fehlt" in verdict.reason
+
+
+def test_chip_verifier_rejects_path_escape(tmp_path):
+    from courier_hub.mission_chip import EXPECTED_GOLD_BYTES, EXPECTED_GOLD_SHA256, _chip_verifier
+    from types import SimpleNamespace
+
+    home = tmp_path / "home"
+    home.mkdir()
+    outside = tmp_path / "mission_escape.txt"
+    outside.write_bytes(EXPECTED_GOLD_BYTES)
+    verifier = _chip_verifier("synthetic")
+    result = SimpleNamespace(payload={
+        "artifacts": [{
+            "path": "../mission_escape.txt",
+            "sha256": EXPECTED_GOLD_SHA256,
+            "size_bytes": len(EXPECTED_GOLD_BYTES),
+        }]
+    })
+    verdict = verifier({"task_id": "t-escape"}, result, home)
+    assert verdict.accepted is False
+    assert "verlässt" in verdict.reason
+
+
 def test_chip_verifier_rejects_invalid_sha_format(tmp_path):
     from courier_hub.mission_chip import _chip_verifier
     from types import SimpleNamespace
