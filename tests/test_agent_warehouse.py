@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from pathlib import Path
 from scripts.agent_warehouse import AgentCatalog, CapabilitySelector
@@ -38,3 +40,43 @@ def test_capability_selector():
         assert exp_comp.selected_agent_id is not None
     except ValueError:
         pass
+
+
+def test_catalog_does_not_follow_a_symlink(tmp_path):
+    secret = {
+        "schema_version": "0.1-bootstrap",
+        "agents": [{
+            "id": "SECRET-AGENT",
+            "display_name": "Secret",
+            "class": "core",
+            "status": "implemented",
+        }],
+    }
+    outside = tmp_path / "outside-catalog.json"
+    outside.write_text(json.dumps(secret), encoding="utf-8")
+    linked = tmp_path / "catalog.json"
+    linked.symlink_to(outside)
+
+    def run(path):
+        try:
+            catalog = AgentCatalog.load(path)
+            return None, [agent.id for agent in catalog.agents]
+        except ValueError as exc:
+            return str(exc), []
+
+    file_err, file_ids = run(linked)
+    parent_outside = tmp_path / "parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "catalog.json").write_text(json.dumps(secret), encoding="utf-8")
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    parent = tmp_path / "linked-dir"
+    parent.symlink_to(parent_outside)
+    parent_err, parent_ids = run(parent / "catalog.json")
+    names = sorted(path.name for path in parent_outside.iterdir())
+    assert (file_err, file_ids, parent_err, parent_ids, names) == (
+        "refusing to follow a symlink",
+        [],
+        "refusing to follow a symlink",
+        [],
+        ["catalog.json", "keep.txt"],
+    )

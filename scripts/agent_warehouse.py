@@ -28,6 +28,9 @@ class AgentCatalog:
 
     @classmethod
     def load(cls, path: Path) -> 'AgentCatalog':
+        path = Path(path)
+        if path.is_symlink() or path.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
         
