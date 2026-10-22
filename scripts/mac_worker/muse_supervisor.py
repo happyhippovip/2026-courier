@@ -271,7 +271,10 @@ class Supervisor:
         self.launcher = launcher or ProcessLauncher()
         self.clock = clock
         config = read_json(CONFIG_FILE, {})
-        self.gov = governor or CapacityGovernor(int(config.get("target", 4)), clock=clock)
+        raw_target = config.get("target", 4)
+        if isinstance(raw_target, bool) or not isinstance(raw_target, int):
+            raise ValueError("target is not a slot count. Bool is not a number.")
+        self.gov = governor or CapacityGovernor(raw_target, clock=clock)
 
     def _on_exit(self, slot, now):
         code = self.launcher.exit_code(slot["slot_id"])
@@ -432,7 +435,7 @@ def supervise(supervisor=None, interval=5.0, lock=None):
 
 def cmd_build(target=4, workspace=None):
     """WALL-AUFBAUEN: Initialises slot directories, config, and slot records without starting workers."""
-    if target not in ALLOWED_TARGETS and target != 64:
+    if isinstance(target, bool) or (target not in ALLOWED_TARGETS and target != 64):
         print(f"build supports {ALLOWED_TARGETS}")
         return 2
     with control_lock(WALL_DIR):
@@ -504,7 +507,7 @@ def cmd_notaus(launcher=None):
 
 
 def cmd_start(target, allow_64=False, loop=True):
-    if target not in ALLOWED_TARGETS and not (allow_64 and target == 64):
+    if isinstance(target, bool) or (target not in ALLOWED_TARGETS and not (allow_64 and target == 64)):
         print(f"start supports {ALLOWED_TARGETS} (64 needs --allow-64)")
         return 2
     lock = acquire_lock()
