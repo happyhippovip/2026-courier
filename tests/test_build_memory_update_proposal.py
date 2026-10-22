@@ -80,6 +80,39 @@ class TestBuildMemoryUpdateProposal(unittest.TestCase):
             ),
         )
 
+    def test_git_ref_does_not_escape_the_git_dir(self):
+        outside = self.td_path / "outside-ref"
+        outside.write_text(
+            "dddddddddddddddddddddddddddddddddddddddd\n", encoding="utf-8",
+        )
+        repo = self.td_path / "escape-repo"
+        git_dir = repo / ".git"
+        git_dir.mkdir(parents=True)
+        (git_dir / "HEAD").write_text("ref: ../../outside-ref\n", encoding="utf-8")
+
+        plain = self.td_path / "plain-ref-repo"
+        plain_git = plain / ".git"
+        (plain_git / "refs" / "heads").mkdir(parents=True)
+        (plain_git / "HEAD").write_text("ref: refs/heads/main\n", encoding="utf-8")
+        (plain_git / "refs" / "heads" / "main").write_text(
+            "abcdef1234567890abcdef1234567890abcdef12\n", encoding="utf-8",
+        )
+
+        def run(path):
+            try:
+                return ("ok", get_memory_commit(path))
+            except SystemExit as exc:
+                return ("err", str(exc))
+
+        self.assertEqual(
+            (run(repo), outside.read_text(encoding="utf-8"), run(plain)),
+            (
+                ("err", "MEMORY_PROPOSAL_ERROR: refusing a git ref outside .git"),
+                "dddddddddddddddddddddddddddddddddddddddd\n",
+                ("ok", "abcdef1234567890abcdef1234567890abcdef12"),
+            ),
+        )
+
     def test_get_memory_commit_no_git(self):
         commit = get_memory_commit(self.td_path)
         self.assertEqual(commit, "0000000000000000000000000000000000000000")

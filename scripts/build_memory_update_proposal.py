@@ -49,6 +49,13 @@ def get_memory_commit(repo_path: Path) -> str:
     head_content = head_file.read_text(encoding="utf-8").strip()
     if head_content.startswith("ref:"):
         ref_path = head_content[4:].strip()
+        if (
+            not ref_path
+            or ref_path.startswith("/")
+            or ref_path.startswith("\\")
+            or ".." in Path(ref_path).parts
+        ):
+            fail("refusing a git ref outside .git")
         ref_file = git_dir / ref_path
         _refuse_git_symlink(ref_file)
         if ref_file.exists():
