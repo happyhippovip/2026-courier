@@ -300,6 +300,29 @@ def test_lesson_id_does_not_escape_the_lessons_dir(academy_env, monkeypatch):
     )
 
 
+def test_review_lesson_id_does_not_escape(academy_env, monkeypatch):
+    repo_dir, memory_dir = academy_env
+    lessons = repo_dir / "events" / "academy" / "lessons"
+    monkeypatch.setattr("scripts.run_academy.LESSONS_DIR", lessons)
+    director = AcademyDirector(repo_dir=repo_dir, memory_dir=memory_dir)
+    outside = repo_dir.parent / "outside-review.json"
+    outside.write_text(json.dumps({"summary": "SECRET-SUMMARY"}), encoding="utf-8")
+    try:
+        lesson = director.review_lesson("../../../../outside-review")
+        err = None
+        status = lesson.get("status")
+    except ValueError as exc:
+        err = str(exc)
+        status = None
+    body = outside.read_text(encoding="utf-8")
+    assert (err, status, "SECRET-SUMMARY" in body, "REJECTED" in body) == (
+        "refusing an unsafe lesson id",
+        None,
+        True,
+        False,
+    )
+
+
 def test_queue_or_deliver_lesson_missing(academy_env):
     repo_dir, memory_dir = academy_env
     teacher = AcademyTeacher(repo_dir=repo_dir, memory_dir=memory_dir)
