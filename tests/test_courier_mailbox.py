@@ -30,13 +30,16 @@ def test_mailbox_processes_pending_task(tmp_path):
     assert len(out_lines) == 1
     receipt = json.loads(out_lines[0])
     assert receipt["task_id"] == "mission-01"
+    assert receipt["product_completion"] is False
     assert receipt["execution_result"]["overall_status"] == "COMPLETE"
+    assert receipt["execution_result"]["product_ready"] is False
     assert receipt["execution_result"]["verifier_result"]["resolution"] == "verified"
     
     # Check updated inbox
     in_lines = inbox.read_text(encoding="utf-8").strip().splitlines()
     updated = json.loads(in_lines[0])
-    assert updated["status"] == "DONE"
+    assert updated["status"] == "DEMO_ONLY"
+    assert updated["product_ready"] is False
     assert updated["resolution"] == "verified"
 
 
@@ -160,4 +163,46 @@ def test_mailbox_lease_store_failure_fails_closed(tmp_path, monkeypatch):
     assert not outbox.exists()
     in_lines = inbox.read_text(encoding="utf-8").strip().splitlines()
     assert json.loads(in_lines[0])["status"] == "PENDING"
+
+
+def test_mailbox_corrupt_line_leaves_inbox_unchanged(tmp_path):
+    inbox = tmp_path / "inbox.jsonl"
+    outbox = tmp_path / "outbox.jsonl"
+    original = '{"task_id":"keep-me","estimated_cost_eur":0.0,"status":"PENDING"}\nnot-json\n'
+    inbox.write_text(original, encoding="utf-8")
+
+    results = process_inbox(inbox, outbox, home_path=tmp_path / "home")
+    assert results == []
+    assert inbox.read_text(encoding="utf-8") == original
+    assert not outbox.exists()
+
+
+def test_mailbox_product_ready_completion_is_done(tmp_path, monkeypatch):
+    inbox = tmp_path / "inbox.jsonl"
+    outbox = tmp_path / "outbox.jsonl"
+    inbox.write_text(json.dumps({
+        "task_id": "mission-product",
+        "estimated_cost_eur": 0.0,
+        "status": "PENDING",
+    }) + "\n", encoding="utf-8")
+
+    def _product(target_home=None):
+        return {
+            "overall_status": "COMPLETE",
+            "product_ready": True,
+            "mode": "PRODUCT",
+            "verifier_result": {
+                "resolution": "BYTE_LEVEL_GOLD_VERIFIED",
+                "accepted_result_id": "res-1",
+                "artifact_sha256": "a" * 64,
+            },
+        }
+
+    monkeypatch.setattr("scripts.courier_mailbox.run_mission_chip", _product)
+    results = process_inbox(inbox, outbox, home_path=tmp_path / "home")
+    assert len(results) == 1
+    assert results[0]["product_completion"] is True
+    updated = json.loads(inbox.read_text(encoding="utf-8").strip())
+    assert updated["status"] == "DONE"
+    assert updated["resolution"] == "BYTE_LEVEL_GOLD_VERIFIED"
 
