@@ -620,3 +620,87 @@ def test_workflows_config_does_not_follow_a_symlink(tmp_path, monkeypatch):
         False,
     )
     assert "IDEA" in outside.read_text(encoding="utf-8")
+
+def _tools_file(path: Path, marker: str) -> None:
+    save_json(path, {
+        "project_bindings": {
+            "FruitKI": {"project_path": marker, "default_scene": "Main.tscn"}
+        }
+    })
+
+def test_tools_config_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    channels = tmp_path / "channels.json"
+    _channel_file(channels, "FruitKI")
+    workflows = tmp_path / "workflows.json"
+    _workflow_file(workflows, ["ASSET_SELECTION"])
+    outside = tmp_path / "outside-tools.json"
+    _tools_file(outside, "SECRET-TOOLS")
+    tools = tmp_path / "tools.json"
+    tools.symlink_to(outside)
+    try:
+        run_pipeline("c1", "topic", "mission-1", runtime, channels, workflows, tools)
+        err = None
+    except ValueError as exc:
+        err = str(exc)
+    assets = runtime / "c1" / "mission-1" / "asset-selection" / "assets_manifest.json"
+    text = assets.read_text(encoding="utf-8") if assets.exists() else ""
+    parent_outside = tmp_path / "parent-outside"
+    parent_outside.mkdir()
+    _tools_file(parent_outside / "tools.json", "SECRET-PARENT")
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = tmp_path / "linked-parent"
+    linked_parent.symlink_to(parent_outside)
+    try:
+        run_pipeline(
+            "c1",
+            "topic",
+            "mission-2",
+            runtime,
+            channels,
+            workflows,
+            linked_parent / "tools.json",
+        )
+        err2 = None
+    except ValueError as exc:
+        err2 = str(exc)
+    assets2 = runtime / "c1" / "mission-2" / "asset-selection" / "assets_manifest.json"
+    text2 = assets2.read_text(encoding="utf-8") if assets2.exists() else ""
+    cli_outside = tmp_path / "cli-tools.json"
+    _tools_file(cli_outside, "SECRET-CLI")
+    cli_link = tmp_path / "cli-tools-link.json"
+    cli_link.symlink_to(cli_outside)
+    monkeypatch.setattr(sys, "argv", [
+        "run_content_production_pipeline.py",
+        "--channel-id", "c1",
+        "--topic", "topic",
+        "--mission-id", "mission-3",
+        "--runtime-dir", str(runtime),
+        "--config", str(channels),
+        "--workflows-config", str(workflows),
+        "--tools-config", str(cli_link),
+    ])
+    try:
+        main()
+        err3 = None
+    except ValueError as exc:
+        err3 = str(exc)
+    assets3 = runtime / "c1" / "mission-3" / "asset-selection" / "assets_manifest.json"
+    text3 = assets3.read_text(encoding="utf-8") if assets3.exists() else ""
+    assert (
+        err,
+        "SECRET-TOOLS" in text,
+        err2,
+        "SECRET-PARENT" in text2,
+        err3,
+        "SECRET-CLI" in text3,
+    ) == (
+        "refusing to follow a symlink",
+        False,
+        "refusing to follow a symlink",
+        False,
+        "refusing to follow a symlink",
+        False,
+    )
+    assert "SECRET-TOOLS" in outside.read_text(encoding="utf-8")
