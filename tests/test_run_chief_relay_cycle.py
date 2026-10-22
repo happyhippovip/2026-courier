@@ -330,6 +330,99 @@ def test_processed_dir_cli_does_not_follow_a_symlink(tmp_path, monkeypatch, caps
     )
 
 
+def test_memory_repo_cli_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    secret = {
+        "schema_version": "2.0",
+        "type": "COMMAND",
+        "status": "NEW",
+        "source": "chief",
+        "destination": "antigravity",
+        "message_id": "SECRET-MSG",
+        "task_id": "SECRET-TASK",
+    }
+
+    class Dummy:
+        returncode = 0
+        stderr = ""
+        stdout = ""
+
+    def plant(name, link_memory):
+        repo = tmp_path / name
+        incoming = repo / "events" / "incoming"
+        incoming.mkdir(parents=True)
+        (incoming / "cmd.json").write_text(json.dumps(secret), encoding="utf-8")
+        (repo / "events" / "processed").mkdir(parents=True)
+        (repo / "events" / "dispatch").mkdir(parents=True)
+        recorded = []
+
+        def fake_run(cmd, *args, **kwargs):
+            recorded.append(list(cmd))
+            return Dummy()
+
+        monkeypatch.setattr("scripts.run_chief_relay_cycle.subprocess.run", fake_run)
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "prog",
+                "--repo-dir", str(repo),
+                "--incoming-dir", "events/incoming",
+                "--processed-dir", str(repo / "events" / "processed"),
+                "--dispatch-dir", str(repo / "events" / "dispatch"),
+                "--memory-repo", str(link_memory),
+                "--disable-auto-memory",
+            ],
+        )
+        try:
+            main()
+            err = None
+        except SystemExit as exc:
+            err = str(exc)
+        memory_args = []
+        for cmd in recorded:
+            if "--memory-repo" in cmd:
+                memory_args.append(cmd[cmd.index("--memory-repo") + 1])
+        return err, memory_args
+
+    outside = tmp_path / "outside-memory"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = tmp_path / "linked-memory"
+    linked.symlink_to(outside, target_is_directory=True)
+    err_link, mem_link = plant("repo-link", linked)
+
+    parent_outside = tmp_path / "memory-parent-outside"
+    (parent_outside / "memory").mkdir(parents=True)
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = tmp_path / "memory-linked-parent"
+    linked_parent.symlink_to(parent_outside, target_is_directory=True)
+    err_parent, mem_parent = plant("repo-parent", linked_parent / "memory")
+
+    plain = tmp_path / "plain-memory"
+    plain.mkdir()
+    err_plain, mem_plain = plant("repo-plain", plain)
+    refused = "RELAY_CYCLE_ERROR: refusing to follow a symlink"
+    assert (
+        err_link,
+        mem_link,
+        sorted(p.name for p in outside.iterdir()),
+        err_parent,
+        mem_parent,
+        sorted(p.name for p in parent_outside.iterdir()),
+        err_plain,
+        mem_plain,
+    ) == (
+        refused,
+        [],
+        ["keep.txt"],
+        refused,
+        [],
+        ["keep.txt", "memory"],
+        "RELAY_CYCLE_ERROR: Worker job file was not created: "
+        + str((tmp_path / "repo-plain" / "events" / "dispatch").resolve() / "SECRET-TASK-worker-job.json"),
+        [str(plain.resolve())],
+    )
+
+
 @patch("scripts.run_chief_relay_cycle.subprocess.run")
 def test_run_cycle_no_pending(mock_run, tmp_path):
     res = run_cycle(

@@ -332,7 +332,10 @@ def main() -> None:
     proposals_dir = (repo_dir / args.proposals_dir).resolve()
     approvals_dir = (repo_dir / args.approvals_dir).resolve()
     decisions_dir = (repo_dir / args.decisions_dir).resolve()
-    memory_repo = Path(args.memory_repo).resolve() if args.memory_repo else None
+    memory_repo = Path(args.memory_repo) if args.memory_repo else None
+    if memory_repo is not None:
+        _refuse_symlink(memory_repo)
+        memory_repo = memory_repo.resolve()
 
     result = run_cycle(
         repo_dir=repo_dir,
