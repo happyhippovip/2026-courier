@@ -465,6 +465,8 @@ def execute_real_codex_cli(instruction: str, allowed_scope: list[str], task_id: 
 
 def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: bool = False, try_real_cli: bool = False) -> Path:
     """Executes a Codex task through the automated bridge with hooks, dedupe, and path confinement."""
+    if worker_job_path.is_symlink() or worker_job_path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     job = load_json(worker_job_path)
 
     task_id = job.get("task_id", f"task-cdx-{uuid.uuid4().hex[:8]}")

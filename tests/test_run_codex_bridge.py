@@ -382,3 +382,48 @@ def test_execute_codex_task_with_canonical_authority(tmp_path, monkeypatch):
     assert data["status"] == "COMPLETED"
     assert data["payload"]["verdict"] == "PASS"
     assert data["payload"]["zero_cost_policy"] == "ZERO_COST_ONLY"
+
+def test_job_file_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    import scripts.run_codex_bridge as codex_bridge
+    monkeypatch.setattr(codex_bridge, "PROCESSED_DIR", tmp_path / "processed")
+    monkeypatch.setattr(codex_bridge, "EVENTS_DIR", tmp_path / "events")
+    hooks = CodexHookRunner(CodexVisualStateTracker(repo_dir=tmp_path))
+    outside = tmp_path / "outside-job.json"
+    outside.write_text(json.dumps({
+        "task_id": "task-1",
+        "correlation_id": "corr-1",
+        "instruction": "SECRET-JOB",
+    }), encoding="utf-8")
+    job = tmp_path / "job.json"
+    job.symlink_to(outside)
+    try:
+        execute_codex_task(job, hooks)
+        err = None
+    except ValueError as exc:
+        err = str(exc)
+    result = tmp_path / "processed" / "task-1-result.json"
+    body = result.read_text(encoding="utf-8") if result.exists() else ""
+    parent_outside = tmp_path / "parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "job.json").write_text(json.dumps({
+        "task_id": "task-2",
+        "correlation_id": "corr-2",
+        "instruction": "SECRET-PARENT",
+    }), encoding="utf-8")
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = tmp_path / "linked-parent"
+    linked_parent.symlink_to(parent_outside)
+    try:
+        execute_codex_task(linked_parent / "job.json", hooks)
+        err2 = None
+    except ValueError as exc:
+        err2 = str(exc)
+    result2 = tmp_path / "processed" / "task-2-result.json"
+    body2 = result2.read_text(encoding="utf-8") if result2.exists() else ""
+    assert (err, "SECRET-JOB" in body, err2, "SECRET-PARENT" in body2) == (
+        "refusing to follow a symlink",
+        False,
+        "refusing to follow a symlink",
+        False,
+    )
+    assert "SECRET-JOB" in outside.read_text(encoding="utf-8")
