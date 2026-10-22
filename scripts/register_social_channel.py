@@ -58,7 +58,9 @@ def register_channel(
     production_enabled: bool = True,
 ) -> dict:
     config_path = Path(config_path)
-    if config_path.is_symlink() or config_path.parent.is_symlink():
+    workflows_path = Path(workflows_path)
+    if (config_path.is_symlink() or config_path.parent.is_symlink()
+            or workflows_path.is_symlink() or workflows_path.parent.is_symlink()):
         fail("refusing to follow a symlink")
     # 1. Secret Guard on all inputs
     for val in [platform, channel_label, content_project, workflow_id or "", automation_status or ""]:
@@ -150,7 +152,8 @@ def main() -> None:
 
     config_path = Path(args.config)
     workflows_path = Path(args.workflows_config)
-    if config_path.is_symlink() or config_path.parent.is_symlink():
+    if (config_path.is_symlink() or config_path.parent.is_symlink()
+            or workflows_path.is_symlink() or workflows_path.parent.is_symlink()):
         fail("refusing to follow a symlink")
     channel = register_channel(
         platform=args.platform,
