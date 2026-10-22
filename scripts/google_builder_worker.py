@@ -480,7 +480,15 @@ def run_google_agent_task(
         evidence_data["provider_invoked"] = False
         return "FAILED"
 
-    timeout_s = int(payload_in.get("timeout_seconds") or AGENT_PRINT_TIMEOUT_SECONDS)
+    raw_timeout = payload_in.get("timeout_seconds")
+    if raw_timeout is None:
+        timeout_s = AGENT_PRINT_TIMEOUT_SECONDS
+    elif isinstance(raw_timeout, bool) or not isinstance(raw_timeout, (int, float)) or raw_timeout <= 0:
+        evidence_data["error"] = "INVALID_TIMEOUT: timeout_seconds must be a positive number"
+        evidence_data["provider_invoked"] = False
+        return "FAILED"
+    else:
+        timeout_s = int(raw_timeout)
     argv = [
         "agy",
         "--print",

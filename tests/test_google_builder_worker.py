@@ -344,3 +344,20 @@ def test_google_agent_task_costgate_enforced(tmp_path):
     assert verdict == "FAILED"
     assert "COST_GATE_DENIED" in evidence_nan.get("blocked_reason", "")
     assert evidence_nan.get("provider_invoked") is False
+
+
+def test_bool_timeout_does_not_invoke_the_agent(tmp_path):
+    from scripts.google_builder_worker import run_google_agent_task
+
+    evidence = {}
+    payload = {
+        "workkey": "WK-BOOL",
+        "instruction": "do something local",
+        "estimated_cost_eur": 0.0,
+        "timeout_seconds": True,
+    }
+    with mock.patch("scripts.google_builder_worker.AGENT_RUNNER") as runner:
+        verdict = run_google_agent_task(payload, tmp_path, evidence, {"has_agy_cli": True})
+    runner.assert_not_called()
+    assert verdict == "FAILED"
+    assert evidence.get("provider_invoked") is False
