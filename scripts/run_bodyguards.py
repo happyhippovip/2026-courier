@@ -266,7 +266,7 @@ class BodyguardPoolManager:
                 path = self.states_dir / f"{bg['id']}.json"
                 _refuse_symlink(path)
                 current = load_json(path)
-                state_val = "WORKING" if working else current.get("state", "WORKING")
+                state_val = "WORKING" if working is True else current.get("state", "WORKING")
                 updated = {
                     **current,
                     "state": state_val,
