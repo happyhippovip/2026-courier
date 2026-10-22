@@ -168,6 +168,50 @@ def test_bool_pid_is_not_running(tmp_path, monkeypatch):
     )
 
 
+def test_plist_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    import scripts.mac_worker.status as st
+
+    monkeypatch.setattr(
+        st,
+        "query_launchctl",
+        lambda label: {
+            "loaded": False,
+            "pid": None,
+            "last_exit_status": None,
+            "raw": "",
+        },
+    )
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    real = outside / "real.plist"
+    real.write_text("OUTSIDE-PLIST")
+    link = tmp_path / "linked.plist"
+    link.symlink_to(real)
+
+    parent_outside = tmp_path / "parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "agent.plist").write_text("PARENT-PLIST")
+    linked_parent = tmp_path / "linked-parent"
+    linked_parent.symlink_to(parent_outside, target_is_directory=True)
+    parent_plist = linked_parent / "agent.plist"
+
+    plain = tmp_path / "plain.plist"
+    plain.write_text("<plist></plist>")
+
+    def run(path):
+        try:
+            res = derive_status(plist_path=path, here_dir=tmp_path)
+        except ValueError as exc:
+            return ("err", str(exc))
+        return ("ok", res["status"], res["plist_exists"])
+
+    assert (run(link), run(parent_plist), run(plain)) == (
+        ("err", "refusing to follow a symlink"),
+        ("err", "refusing to follow a symlink"),
+        ("ok", "INSTALLED_NOT_LOADED", True),
+    )
+
+
 def test_status_cli_json_output(tmp_path):
     plist = tmp_path / "test.plist"
     cmd = [sys.executable, str(STATUS_PY), "--json", "--plist-path", str(plist)]

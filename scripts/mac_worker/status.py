@@ -109,8 +109,11 @@ def derive_status(plist_path=None, here_dir=None):
         here_dir = Path(__file__).resolve().parent
     if plist_path is None:
         plist_path = Path.home() / "Library" / "LaunchAgents" / f"{LABEL}.plist"
+    plist_path = Path(plist_path)
+    if plist_path.is_symlink() or plist_path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
 
-    plist_exists = Path(plist_path).exists()
+    plist_exists = plist_path.exists()
     launch_info = query_launchctl(LABEL)
     worker_state = query_worker_state(here_dir)
 
