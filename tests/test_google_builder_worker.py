@@ -432,3 +432,32 @@ def test_evidence_does_not_follow_a_symlinked_file(tmp_path):
     except ValueError as exc:
         assert "symlink" in str(exc).lower(), exc
     assert outside.read_text(encoding="utf-8") == "keep"
+
+
+def test_contract_check_does_not_read_a_symlinked_source(tmp_path):
+    repo = tmp_path / "repo"
+    (repo / "events" / "evidence").mkdir(parents=True)
+    (repo / "real.py").write_text("REAL = 1\n", encoding="utf-8")
+    (repo / "link.py").symlink_to(repo / "real.py")
+    packet = WorkPacket(
+        id="pkt-src",
+        owner_id="local",
+        target_sha="abc",
+        state=PacketState.CURRENT,
+        payload={"task_type": "code_contract_check", "allowed_scope": ["link.py"]},
+    )
+    try:
+        result = execute_packet_code_or_test_work(packet, repo, _Hooks(), {"authorized_mode": "LOCAL"})
+    except ValueError as exc:
+        assert "symlink" in str(exc).lower(), exc
+    else:
+        raise AssertionError(result.get("verdict"))
+    real = WorkPacket(
+        id="pkt-real",
+        owner_id="local",
+        target_sha="abc",
+        state=PacketState.CURRENT,
+        payload={"task_type": "code_contract_check", "allowed_scope": ["real.py"]},
+    )
+    checked = execute_packet_code_or_test_work(real, repo, _Hooks(), {"authorized_mode": "LOCAL"})
+    assert checked["verdict"] == "PASS"

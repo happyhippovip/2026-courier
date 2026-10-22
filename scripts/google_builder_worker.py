@@ -654,6 +654,7 @@ def execute_packet_code_or_test_work(
         checked = []
         for s in allowed_scope:
             sp = repo_dir / s
+            _refuse_repo_symlink(repo_dir, sp)
             if sp.is_file() and s.endswith(".py"):
                 compile(sp.read_text(encoding="utf-8"), str(sp), "exec")
                 checked.append(s)
