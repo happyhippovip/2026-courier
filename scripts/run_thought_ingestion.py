@@ -88,6 +88,8 @@ def normalize(envelope: dict[str, Any]) -> dict[str, Any]:
 
 
 def load_recoverable_state(state_path: Path, processed_dir: Path) -> dict[str, Any]:
+    if state_path.is_symlink() or state_path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     state = load_json(state_path, {"ingestions": {}, "source_messages": {}, "coverage_ledger": {}})
     for run_file in sorted(processed_dir.glob("run-*.json")):
         record = load_json(run_file, {})

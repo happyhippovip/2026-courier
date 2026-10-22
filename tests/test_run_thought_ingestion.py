@@ -226,3 +226,39 @@ def test_envelope_file_does_not_follow_a_symlink(tmp_path):
         [],
         True,
     )
+
+
+def test_state_file_does_not_follow_a_symlink(tmp_path):
+    memory = tmp_path / "memory"
+    memory.mkdir()
+    env = _envelope("SECRET-THOUGHT")
+    outside = tmp_path / "outside-state.json"
+    outside.write_text(json.dumps({
+        "ingestions": {env["ingestion_id"]: env["content_hash"]},
+        "source_messages": {},
+        "coverage_ledger": {},
+        "marker": "SECRET-STATE",
+    }), encoding="utf-8")
+    processed = tmp_path / "processed"
+    processed.mkdir()
+    (processed / "ingestion-state.json").symlink_to(outside)
+    inbox = tmp_path / "inbox"
+    inbox.mkdir()
+    (inbox / "one.json").write_text(json.dumps(env), encoding="utf-8")
+    rejected = tmp_path / "rejected"
+    try:
+        result = run_ingestion(inbox, processed, rejected, memory)
+        err = None
+        new_count = result.get("new_ingestions")
+    except ValueError as exc:
+        err = str(exc)
+        new_count = None
+    assert (
+        err,
+        new_count,
+        "SECRET-STATE" in outside.read_text(encoding="utf-8"),
+    ) == (
+        "refusing to follow a symlink",
+        None,
+        True,
+    )
