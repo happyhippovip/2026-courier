@@ -584,6 +584,9 @@ class AcademyDirector:
             "evaluated_at": now_iso,
         }
 
+        if EVALS_DIR.is_symlink() or EVALS_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
+
         save_json(EVALS_DIR / f"{eval_id}.json", eval_record)
 
         lesson["status"] = "EVAL_PASS" if verdict == "PASS" else "EVAL_FAIL"
