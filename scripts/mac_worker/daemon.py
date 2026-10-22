@@ -651,6 +651,16 @@ def run_muse(task, config):
             "execution_mode": "MUSE",
             "blocked": True,
         }
+    # Bool is an int, so reject it before float() and before Popen. True would
+    # become a one-second deadline and still start Muse.
+    raw_timeout = config.get("MUSE_TIMEOUT_SECONDS", 3600)
+    if isinstance(raw_timeout, bool) or not isinstance(raw_timeout, (int, float)) or raw_timeout <= 0:
+        return {
+            "status": "FAILED",
+            "reason": "INVALID_TIMEOUT",
+            "execution_mode": "MUSE",
+            "blocked": True,
+        }
     if muse_adapter.cli_capabilities(config).get("yolo"):
         return {"status": "FAILED", "reason": "YOLO_NOT_ALLOWED", "execution_mode": "MUSE"}
 
@@ -692,7 +702,7 @@ def run_muse(task, config):
                 identity = process_identity(proc.pid)
                 attach_surface(supervisor, decision, proc.pid)
                 atomic_json(child_file, {"state": "RUNNING", "identity": identity, "binding": binding})
-            deadline = time.monotonic() + min(float(config.get("MUSE_TIMEOUT_SECONDS", 3600)), 3600)
+            deadline = time.monotonic() + min(float(raw_timeout), 3600)
             heartbeat_at = time.monotonic() + 30
             while proc.poll() is None:
                 if time.monotonic() >= deadline or out.tell() + err.tell() > 8 * 1024 * 1024:
