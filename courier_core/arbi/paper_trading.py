@@ -106,6 +106,7 @@ class PaperTradingEngine:
             or isinstance(breakdown.sell_fee_usd, bool)
             or isinstance(breakdown.gross_spread_usd, bool)
             or isinstance(breakdown.transfer_cost_usd, bool)
+            or isinstance(breakdown.rebalance_cost_usd, bool)
         ):
             raise ValueError("Bool is not a number.")
         size = breakdown.order_size_usd
@@ -130,7 +131,10 @@ class PaperTradingEngine:
             raise ValueError("transfer cost is not a number.")
         if transfer < 0:
             raise ValueError("transfer cost is out of range.")
-        if breakdown.rebalance_cost_usd < 0:
+        rebalance = breakdown.rebalance_cost_usd
+        if not isinstance(rebalance, (int, float)) or not math.isfinite(rebalance):
+            raise ValueError("rebalance cost is not a number.")
+        if rebalance < 0:
             raise ValueError("rebalance cost is out of range.")
         gross = breakdown.gross_spread_usd
         if not isinstance(gross, (int, float)) or not math.isfinite(gross):
