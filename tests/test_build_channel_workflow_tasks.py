@@ -264,6 +264,75 @@ def test_channels_config_does_not_follow_a_symlink(tmp_path, fake_configs, monke
     )
 
 
+def test_workflows_config_does_not_follow_a_symlink(tmp_path, fake_configs, monkeypatch):
+    channels_path, _workflows, _queue = fake_configs
+    outside = tmp_path / "outside-workflows.json"
+    outside.write_text(json.dumps({
+        "workflows": [{
+            "workflow_id": "wf-test-1",
+            "production_steps": ["SECRET-STEP"],
+        }]
+    }), encoding="utf-8")
+    link = tmp_path / "linked-workflows.json"
+    link.symlink_to(outside)
+
+    parent_outside = tmp_path / "workflows-parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "workflows.json").write_text(outside.read_text(encoding="utf-8"), encoding="utf-8")
+    linked_parent = tmp_path / "workflows-linked-parent"
+    linked_parent.symlink_to(parent_outside, target_is_directory=True)
+
+    def run(workflows, name):
+        queue = tmp_path / name
+        try:
+            build_workflow_tasks_for_channel(
+                "chan-test-1",
+                "topic-x",
+                queue_dir=queue,
+                channels_path=channels_path,
+                workflows_path=workflows,
+            )
+            err = None
+        except ValueError as exc:
+            err = str(exc)
+        names = sorted(p.name for p in queue.iterdir()) if queue.exists() else []
+        return err, names
+
+    lib_link = run(link, "w-link")
+    lib_parent = run(linked_parent / "workflows.json", "w-parent")
+    plain = tmp_path / "plain-workflows.json"
+    plain.write_text(outside.read_text(encoding="utf-8"), encoding="utf-8")
+    plain_result = run(plain, "w-plain")
+
+    cli_queue = tmp_path / "w-cli"
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "prog",
+            "--channel-id", "chan-test-1",
+            "--topic", "cli-topic",
+            "--queue-dir", str(cli_queue),
+            "--config", str(channels_path),
+            "--workflows-config", str(link),
+        ],
+    )
+    try:
+        main()
+        cli_err = None
+    except ValueError as exc:
+        cli_err = str(exc)
+    cli_names = sorted(p.name for p in cli_queue.iterdir()) if cli_queue.exists() else []
+    secret_name = "TASK-TEST-1-TOPIC-X-SECRET-STEP.json"
+    cli_secret = "TASK-TEST-1-CLI-TOPIC-SECRET-STEP.json"
+    assert (lib_link, lib_parent, plain_result, cli_err, cli_names) == (
+        ("refusing to follow a symlink", []),
+        ("refusing to follow a symlink", []),
+        (None, [secret_name]),
+        "refusing to follow a symlink",
+        [],
+    ) and cli_secret not in cli_names
+
+
 def test_main(monkeypatch, fake_configs, capsys):
     ch, wf, qd = fake_configs
     
