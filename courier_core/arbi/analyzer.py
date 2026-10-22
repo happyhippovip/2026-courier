@@ -245,6 +245,10 @@ class StatisticalQualityAnalyzer:
             risk_score += 100
             flags.append("NEGATIVE_BUY_PRICE")
             explanation_parts.append("Buy price is negative.")
+        elif buy_price == 0:
+            risk_score += 100
+            flags.append("ZERO_BUY_PRICE")
+            explanation_parts.append("Buy price is zero.")
 
         sell_price = breakdown.effective_sell_price
         if (
