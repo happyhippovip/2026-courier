@@ -14,6 +14,7 @@ from __future__ import annotations
 import sqlite3
 import time
 from dataclasses import dataclass
+from pathlib import Path
 
 
 class LeaseConflict(Exception):
@@ -90,9 +91,16 @@ def parse_session_holder(holder: str) -> dict | None:
     return None
 
 
+def _refuse_symlink(path) -> None:
+    """Refuse a lease database path that is itself a symlink."""
+    if Path(path).is_symlink():
+        raise OSError(f"{path}: refusing to follow a symlink")
+
+
 class LeaseStore:
     def __init__(self, path, clock=time.time):
         self.clock = clock
+        _refuse_symlink(path)
         self.db = sqlite3.connect(path, isolation_level=None, timeout=10)
         self.db.execute("CREATE TABLE IF NOT EXISTS lease (scope TEXT PRIMARY KEY, holder TEXT, workkey TEXT,"
                         " token INTEGER NOT NULL, expires_at REAL NOT NULL)")

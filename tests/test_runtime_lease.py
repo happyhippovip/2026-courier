@@ -163,6 +163,21 @@ def test_fenced_file_writer_prevents_unauthorized_writes(leases, tmp_path):
         writer.open(target_file, "w")
 
 
+def test_lease_store_refuses_a_symlink_and_leaves_the_target_empty(tmp_path):
+    target = tmp_path / "target.db"
+    target.write_bytes(b"")
+    link = tmp_path / "agents.db"
+    link.symlink_to(target)
+    try:
+        store = LeaseStore(str(link))
+    except OSError as exc:
+        assert "symlink" in str(exc).lower()
+    else:
+        store.close()
+        raise AssertionError(f"opened a symlinked lease db, target size {target.stat().st_size}")
+    assert target.read_bytes() == b""
+
+
 def test_enclosing_parent_scope_authorizes_child_path_write(leases):
     store, _ = leases
     lease = store.acquire("repo://courier_hub/static", "writer-1", "wk-hub", ttl_s=30)
