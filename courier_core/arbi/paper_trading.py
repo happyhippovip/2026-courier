@@ -111,6 +111,8 @@ class PaperTradingEngine:
         slip = breakdown.slippage_usd
         if not isinstance(slip, (int, float)) or not math.isfinite(slip):
             raise ValueError("slippage is not a number.")
+        if slip < 0:
+            raise ValueError("slippage is out of range.")
         if any(
             not isinstance(value, (int, float)) or not math.isfinite(value)
             for value in (breakdown.buy_fee_usd, breakdown.sell_fee_usd)
