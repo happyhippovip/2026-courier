@@ -491,3 +491,19 @@ def test_state_file_does_not_follow_a_symlink(tmp_path):
         "refusing to follow a symlink",
         ["keep.txt"],
     )
+
+def test_bool_progress_is_not_a_number(tmp_path):
+    tracker = CodexVisualStateTracker(repo_dir=tmp_path)
+
+    def stored(progress):
+        try:
+            state = tracker.update_state(state="RUNNING", task="task-1", progress=progress)
+        except ValueError as exc:
+            return str(exc), None
+        return None, state["progress"]
+
+    assert (stored(True), stored(False), stored(0.5)) == (
+        ("Bool is not a number.", None),
+        ("Bool is not a number.", None),
+        (None, 0.5),
+    )

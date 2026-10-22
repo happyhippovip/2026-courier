@@ -171,6 +171,8 @@ class CodexVisualStateTracker:
         blocked: bool = False,
         human_gate: str | None = None,
     ) -> dict:
+        if isinstance(progress, bool):
+            raise ValueError("Bool is not a number.")
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         state_data = {
             "schema_version": "2.0",
