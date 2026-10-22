@@ -88,6 +88,20 @@ class ArbitrageStrategies:
                 status="BLOCKED_INVALID_PRICE",
                 reason="Invalid fee",
             )
+        if price_a_b <= 0 or price_b_c <= 0 or price_c_a <= 0 or capital_usd <= 0:
+            return TriangularArbiOpportunity(
+                exchange=exchange,
+                leg1="USDT -> BTC",
+                leg2="BTC -> ETH",
+                leg3="ETH -> USDT",
+                input_capital_usd=0.0,
+                output_capital_usd=0.0,
+                gross_roi_pct=0.0,
+                net_roi_pct=0.0,
+                total_fees_usd=0.0,
+                status="BLOCKED_INVALID_PRICE",
+                reason="Invalid prices",
+            )
         fee_mult = 1.0 - (taker_fee_pct / 100.0)
 
         # Step 1: Buy B with A
