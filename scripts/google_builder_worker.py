@@ -357,6 +357,18 @@ def lock_path(packet_id: str, lock_dir: Path | None = None) -> Path:
     return target_dir / f".{packet_id}.lock"
 
 
+def _lock_started_at(lock_data):
+    """A missing or boolean start time is not an expired lock."""
+    if not isinstance(lock_data, dict):
+        return None
+    started_at = lock_data.get("started_at")
+    if isinstance(started_at, bool) or not isinstance(started_at, (int, float)):
+        return None
+    if started_at != started_at or started_at in (float("inf"), float("-inf")):
+        return None
+    return float(started_at)
+
+
 def acquire_packet_lock(packet_id: str, lock_dir: Path | None = None, timeout_seconds: float = LOCK_TIMEOUT_SECONDS) -> bool:
     """Atomically takes the per-packet lock with stale lock stealing."""
     lpath = lock_path(packet_id, lock_dir)
@@ -386,28 +398,27 @@ def acquire_packet_lock(packet_id: str, lock_dir: Path | None = None, timeout_se
         # Check for stale lock
         try:
             lock_data = json.loads(lpath.read_text(encoding="utf-8"))
-            started_at = float(lock_data.get("started_at", 0))
-            if time.time() - started_at > timeout_seconds:
-                # Steal stale lock
+            started_at = _lock_started_at(lock_data)
+            if started_at is None or time.time() - started_at <= timeout_seconds:
+                return False
+            try:
+                os.unlink(lpath)
+            except OSError:
+                return False
+            with open(tmp_path, "w", encoding="utf-8") as f:
+                json.dump(lock_payload, f)
+                f.flush()
+                os.fsync(f.fileno())
+            try:
+                os.link(tmp_path, lpath)
+                os.unlink(tmp_path)
+                return True
+            except (FileExistsError, OSError):
                 try:
-                    os.unlink(lpath)
-                except OSError:
-                    return False
-                # Re-attempt
-                with open(tmp_path, "w", encoding="utf-8") as f:
-                    json.dump(lock_payload, f)
-                    f.flush()
-                    os.fsync(f.fileno())
-                try:
-                    os.link(tmp_path, lpath)
                     os.unlink(tmp_path)
-                    return True
-                except (FileExistsError, OSError):
-                    try:
-                        os.unlink(tmp_path)
-                    except OSError:
-                        pass
-                    return False
+                except OSError:
+                    pass
+                return False
         except Exception:
             return False
         return False
