@@ -182,6 +182,29 @@ def test_load_or_create_token_refuses_a_symlink(tmp_path: Path):
     assert link.is_symlink()
 
 
+def test_load_or_create_token_refuses_a_symlinked_parent(tmp_path: Path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    foreign = "f" * 40
+    (outside / "controller.token").write_text(foreign + "\n", encoding="utf-8")
+    home = tmp_path / "home"
+    home.symlink_to(outside, target_is_directory=True)
+    try:
+        token = load_or_create_token(home / "controller.token")
+    except OSError as exc:
+        assert "symlink" in str(exc).lower()
+    else:
+        raise AssertionError(token)
+    assert (outside / "controller.token").read_text(encoding="utf-8") == foreign + "\n"
+    empty = tmp_path / "empty-outside"
+    empty.mkdir()
+    empty_home = tmp_path / "empty-home"
+    empty_home.symlink_to(empty, target_is_directory=True)
+    with pytest.raises(OSError, match="symlink"):
+        load_or_create_token(empty_home / "controller.token")
+    assert not (empty / "controller.token").exists()
+
+
 def test_load_or_create_token_strips_whitespace(tmp_path: Path):
     token_file = tmp_path / "run" / "controller.token"
     token_file.parent.mkdir(parents=True, exist_ok=True)
