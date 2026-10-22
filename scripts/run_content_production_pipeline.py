@@ -46,16 +46,24 @@ SECRET_PATTERNS = [
 ]
 
 
+def _refuse_symlink(path: Path) -> None:
+    if path.is_symlink() or path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+
+
 def load_json(path: Path) -> dict:
+    _refuse_symlink(path)
     return json.loads(path.read_text(encoding="utf-8"))
 
 
 def save_json(path: Path, data: dict) -> None:
+    _refuse_symlink(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 
 def sha256_file(path: Path) -> str:
+    _refuse_symlink(path)
     h = hashlib.sha256()
     h.update(path.read_bytes())
     return h.hexdigest()
