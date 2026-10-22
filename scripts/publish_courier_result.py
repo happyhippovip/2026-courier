@@ -49,7 +49,10 @@ def main() -> None:
         fail("task or correlation mismatch")
     if result["parent_id"] != task["message_id"] or result["message_id"] == task["message_id"]:
         fail("parent or message identity mismatch")
-    if result["max_iterations"] != task["max_iterations"] or result["max_iterations"] != 1:
+    iterations = result["max_iterations"]
+    task_iterations = task["max_iterations"]
+    if (isinstance(iterations, bool) or isinstance(task_iterations, bool)
+            or iterations != task_iterations or iterations != 1):
         fail("iteration bound mismatch")
     expected_result = task.get("payload", {}).get("result_request")
     if expected_result not in {"COURIER_CODEX_ACK", "COURIER_SEQUENTIAL_ACK", "COURIER_AUTOMATIC_ACK"}:

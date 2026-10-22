@@ -207,3 +207,40 @@ def test_publish_does_not_follow_a_symlink(tmp_path):
     assert err == "invalid Codex courier result: refusing to follow a symlink" and leaked == ["keep.txt"] and body == "keep-output" and linked.is_symlink() and out_link.is_symlink(), (
         err, leaked, body, linked.is_symlink(), out_link.is_symlink(),
     )
+
+
+def test_bool_max_iterations_is_not_published(tmp_path):
+    task, task_file, processed_dir, github_output = setup_files(tmp_path)
+    task["max_iterations"] = True
+    task_file.write_text(json.dumps(task), encoding="utf-8")
+    result = create_result(task)
+    result["max_iterations"] = True
+    err_both = run_main(task_file, processed_dir, github_output, result)
+    names = sorted(p.name for p in processed_dir.iterdir())
+
+    task_one = create_task()
+    task_one_file = tmp_path / "task-one.json"
+    task_one_file.write_text(json.dumps(task_one), encoding="utf-8")
+    processed_one = tmp_path / "processed-one"
+    processed_one.mkdir()
+    output_one = tmp_path / "out-one.txt"
+    result_true = create_result(task_one)
+    result_true["max_iterations"] = True
+    err_true = run_main(task_one_file, processed_one, output_one, result_true)
+    names_one = sorted(p.name for p in processed_one.iterdir())
+
+    task_bool = create_task()
+    task_bool["max_iterations"] = True
+    task_bool_file = tmp_path / "task-bool.json"
+    task_bool_file.write_text(json.dumps(task_bool), encoding="utf-8")
+    processed_bool = tmp_path / "processed-bool"
+    processed_bool.mkdir()
+    output_bool = tmp_path / "out-bool.txt"
+    result_one = create_result(task_bool)
+    err_task = run_main(task_bool_file, processed_bool, output_bool, result_one)
+    names_task = sorted(p.name for p in processed_bool.iterdir())
+
+    mismatch = "invalid Codex courier result: iteration bound mismatch"
+    assert err_both == mismatch and names == [] and err_true == mismatch and names_one == [] and err_task == mismatch and names_task == [], (
+        err_both, names, err_true, names_one, err_task, names_task,
+    )
