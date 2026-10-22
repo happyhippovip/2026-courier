@@ -107,6 +107,22 @@ def test_fulfill_refuses_a_symlinked_out_dir(tmp_path, monkeypatch):
     assert book.get(ORDER)["status"] == "PAYMENT_CONFIRMED"
 
 
+def test_resolve_orders_dir_refuses_a_symlinked_home(tmp_path, monkeypatch):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "home"
+    link.symlink_to(outside, target_is_directory=True)
+    monkeypatch.setenv("COURIER_HOME", str(link))
+    monkeypatch.delenv("COURIER_ORDERS_DIR", raising=False)
+    try:
+        OrderBook(resolve_orders_dir()).create_order(ORDER, REPO, _contact())
+    except OrderError as exc:
+        assert "symlink" in str(exc)
+    else:
+        raise AssertionError(sorted(path.relative_to(outside).as_posix() for path in outside.rglob("*")))
+    assert list(outside.iterdir()) == []
+
+
 def test_order_book_refuses_a_symlinked_directory(tmp_path):
     outside = tmp_path / "outside"
     outside.mkdir()
