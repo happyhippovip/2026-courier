@@ -6,6 +6,28 @@ from unittest import mock
 from scripts.courier_mailbox import process_inbox, main
 
 
+def test_mailbox_unreadable_line_is_not_dropped(tmp_path):
+    inbox = tmp_path / "inbox.jsonl"
+    outbox = tmp_path / "outbox.jsonl"
+    home = tmp_path / "courier_home"
+    original = "\n".join([
+        json.dumps({
+            "task_id": "mission-ok",
+            "estimated_cost_eur": 0.0,
+            "status": "PENDING",
+        }),
+        "{not-json",
+        "",
+    ])
+    inbox.write_text(original, encoding="utf-8")
+
+    results = process_inbox(inbox, outbox, home_path=home)
+
+    assert results == []
+    assert inbox.read_text(encoding="utf-8") == original
+    assert not outbox.exists()
+
+
 def test_mailbox_processes_pending_task(tmp_path):
     inbox = tmp_path / "inbox.jsonl"
     outbox = tmp_path / "outbox.jsonl"
