@@ -92,6 +92,8 @@ def load_recoverable_state(state_path: Path, processed_dir: Path) -> dict[str, A
         raise ValueError("refusing to follow a symlink")
     state = load_json(state_path, {"ingestions": {}, "source_messages": {}, "coverage_ledger": {}})
     for run_file in sorted(processed_dir.glob("run-*.json")):
+        if run_file.is_symlink() or run_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         record = load_json(run_file, {})
         for item in record.get("completed_ingestions", []):
             state.setdefault("ingestions", {}).setdefault(item["ingestion_id"], item["content_hash"])
