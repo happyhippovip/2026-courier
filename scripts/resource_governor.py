@@ -21,14 +21,19 @@ class HostPressureController:
         if override:
             return override
         try:
-            if hasattr(os, "getloadavg"):
-                load1, load5, load15 = os.getloadavg()
-                cores = os.cpu_count() or 4
-                norm_load = load1 / cores
-                
-                if norm_load > 2.0: return "RED"
-                if norm_load > 1.5: return "ORANGE"
-                if norm_load > 1.0: return "YELLOW"
+            if not hasattr(os, "getloadavg"):
+                return "UNKNOWN"
+            load1, _load5, _load15 = os.getloadavg()
+            cores = os.cpu_count() or 4
+            if not isinstance(cores, int) or isinstance(cores, bool) or cores <= 0:
+                return "UNKNOWN"
+            norm_load = load1 / cores
+            if norm_load > 2.0:
+                return "RED"
+            if norm_load > 1.5:
+                return "ORANGE"
+            if norm_load > 1.0:
+                return "YELLOW"
             return "GREEN"
         except Exception:
             return "UNKNOWN"
@@ -40,7 +45,12 @@ class HostPressureController:
             return False
 
         current_pressure = self.measure_pressure()
-        
+        # Unreadable or unrecognized pressure is not GREEN. Admitting HEAVY
+        # work because metrics failed would hide host overload.
+        if current_pressure not in ("GREEN", "YELLOW", "ORANGE", "RED"):
+            self.state = "UNKNOWN"
+            return False
+
         if current_pressure == "RED":
             self.trigger_quiesce()
             return False
@@ -66,6 +76,7 @@ class HostPressureController:
         if self.state == "YELLOW": return self.POLL_INTERVAL_BASE * 2
         if self.state == "ORANGE": return self.POLL_INTERVAL_BASE * 4
         if self.state == "RECOVERY": return min(30, self.RECOVERY_WINDOW)
+        if self.state == "UNKNOWN": return self.POLL_INTERVAL_BASE * 4
         return self.POLL_INTERVAL_BASE
         
     def post_run_resource_snapshot(self):
