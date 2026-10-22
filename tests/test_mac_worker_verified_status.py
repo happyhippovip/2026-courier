@@ -136,6 +136,38 @@ def test_derive_status_loaded_stopped(tmp_path, monkeypatch):
     assert res["last_exit_status"] == 1
 
 
+def test_bool_pid_is_not_running(tmp_path, monkeypatch):
+    plist = tmp_path / "com.courier.mac_worker.plist"
+    plist.write_text("<plist></plist>")
+    import scripts.mac_worker.status as st
+
+    def run(pid):
+        monkeypatch.setattr(
+            st,
+            "query_launchctl",
+            lambda label, pid=pid: {
+                "loaded": True,
+                "pid": pid,
+                "last_exit_status": 0,
+                "raw": "",
+            },
+        )
+        try:
+            res = derive_status(plist_path=plist, here_dir=tmp_path)
+        except ValueError as exc:
+            return ("err", str(exc))
+        return ("ok", res["status"], res["pid"])
+
+    true_result = run(True)
+    false_result = run(False)
+    int_result = run(5)
+    assert (true_result, false_result, int_result) == (
+        ("err", "Bool is not a number."),
+        ("err", "Bool is not a number."),
+        ("ok", "RUNNING", 5),
+    )
+
+
 def test_status_cli_json_output(tmp_path):
     plist = tmp_path / "test.plist"
     cmd = [sys.executable, str(STATUS_PY), "--json", "--plist-path", str(plist)]

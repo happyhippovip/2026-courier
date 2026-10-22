@@ -114,11 +114,15 @@ def derive_status(plist_path=None, here_dir=None):
     launch_info = query_launchctl(LABEL)
     worker_state = query_worker_state(here_dir)
 
+    pid = launch_info["pid"]
+    if isinstance(pid, bool):
+        raise ValueError("Bool is not a number.")
+
     if not plist_exists:
         status_label = "NOT_INSTALLED"
     elif not launch_info["loaded"]:
         status_label = "INSTALLED_NOT_LOADED"
-    elif launch_info["pid"] is not None and launch_info["pid"] > 0:
+    elif pid is not None and pid > 0:
         status_label = "RUNNING"
     else:
         status_label = "LOADED_STOPPED"
