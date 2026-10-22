@@ -141,3 +141,45 @@ def test_registry_does_not_follow_a_symlink(tmp_path: Path):
         "outside": written[:80],
         "leaked": leaked,
     }
+
+
+def test_bool_depth_limit_is_not_requested(monkeypatch):
+    urls = []
+
+    def capture(url):
+        urls.append(url)
+        raise AssertionError(url)
+
+    monkeypatch.setattr(MultiExchangeScanner, "_fetch_json", capture)
+    pair = NormalizedPair("BTC", "EUR")
+    venues = (
+        ("binance", MultiExchangeScanner.fetch_binance_depth),
+        ("bybit", MultiExchangeScanner.fetch_bybit_depth),
+        ("okx", MultiExchangeScanner.fetch_okx_depth),
+        ("kraken", MultiExchangeScanner.fetch_kraken_depth),
+    )
+    seen = []
+    for flag in (True, False):
+        for name, fetch in venues:
+            urls.clear()
+            try:
+                fetch(pair, flag)
+            except ValueError as exc:
+                seen.append((name, flag, "raised", str(exc), list(urls)))
+            except AssertionError as exc:
+                seen.append((name, flag, "fetched", str(exc)))
+            else:
+                seen.append((name, flag, "accepted", list(urls)))
+    assert seen == [
+        (name, flag, "raised", "Bool is not a number.", [])
+        for flag in (True, False)
+        for name, _fetch in venues
+    ], seen
+    urls.clear()
+    try:
+        MultiExchangeScanner.fetch_binance_depth(pair, 10)
+    except AssertionError as exc:
+        numeric = str(exc)
+    else:
+        numeric = ""
+    assert numeric.endswith("limit=10"), numeric

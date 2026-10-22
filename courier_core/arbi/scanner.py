@@ -28,6 +28,12 @@ class MultiExchangeScanner:
     MAX_DEPTH = 10
 
     @staticmethod
+    def _depth_count(limit: int) -> int:
+        if isinstance(limit, bool):
+            raise ValueError("Bool is not a number.")
+        return limit
+
+    @staticmethod
     def _fetch_json(url: str) -> dict:
         req = urllib.request.Request(
             url,
@@ -49,6 +55,7 @@ class MultiExchangeScanner:
 
     @classmethod
     def fetch_binance_depth(cls, pair: NormalizedPair, limit: int = 10) -> OrderbookSnapshot:
+        limit = cls._depth_count(limit)
         symbol = SymbolMapper.to_exchange_symbol("binance", pair)
         url = f"https://api.binance.com/api/v3/depth?symbol={symbol}&limit={limit}"
         t0 = time.time()
@@ -68,6 +75,7 @@ class MultiExchangeScanner:
 
     @classmethod
     def fetch_bybit_depth(cls, pair: NormalizedPair, limit: int = 10) -> OrderbookSnapshot:
+        limit = cls._depth_count(limit)
         symbol = SymbolMapper.to_exchange_symbol("bybit", pair)
         url = f"https://api.bybit.com/v5/market/orderbook?category=spot&symbol={symbol}&limit={limit}"
         t0 = time.time()
@@ -90,6 +98,7 @@ class MultiExchangeScanner:
 
     @classmethod
     def fetch_okx_depth(cls, pair: NormalizedPair, limit: int = 10) -> OrderbookSnapshot:
+        limit = cls._depth_count(limit)
         symbol = SymbolMapper.to_exchange_symbol("okx", pair)
         url = f"https://www.okx.com/api/v5/market/books?instId={symbol}&sz={limit}"
         t0 = time.time()
@@ -112,6 +121,7 @@ class MultiExchangeScanner:
 
     @classmethod
     def fetch_kraken_depth(cls, pair: NormalizedPair, count: int = 10) -> OrderbookSnapshot:
+        count = cls._depth_count(count)
         symbol = SymbolMapper.to_exchange_symbol("kraken", pair)
         url = f"https://api.kraken.com/0/public/Depth?pair={symbol}&count={count}"
         t0 = time.time()
