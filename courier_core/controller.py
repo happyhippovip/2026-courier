@@ -161,6 +161,8 @@ class Controller:
 
     # ------------------------------------------------------------------ boot
     def boot(self) -> "Controller":
+        if self.home.is_symlink():
+            raise JournalError(f"{self.home}: refusing to follow a symlink")
         self.home.mkdir(parents=True, exist_ok=True)
         if self.db_path.exists():
             problem = self._inspect_existing()
