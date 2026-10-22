@@ -80,6 +80,32 @@ def test_binance_kraken_two_way_arbitrage():
     assert bd2.net_profit_usd < 0
 
 
+def test_bool_order_size_is_not_one_dollar():
+    pair = NormalizedPair("BTC", "EUR")
+    buy = _mock_book("binance", pair, best_bid=60000.0, best_ask=60050.0, depth=5.0)
+    sell = _mock_book("kraken", pair, best_bid=60300.0, best_ask=60350.0, depth=5.0)
+    seen = []
+    for size in (True, False):
+        try:
+            bd = NetProfitEngine.evaluate_opportunity(pair, buy, sell, order_size_usd=size)
+        except ValueError as exc:
+            seen.append(("raised", str(exc)))
+        except Exception as exc:
+            seen.append((type(exc).__name__, str(exc)))
+        else:
+            seen.append(("accepted", bd.order_size_usd, bd.status, bd.net_profit_usd))
+    try:
+        walked = NetProfitEngine.calculate_effective_price_and_slippage(buy.asks, True, is_buy=True)
+    except ValueError as exc:
+        walked = ("raised", str(exc))
+    seen.append(walked)
+    assert seen == [
+        ("raised", "Bool is not a number."),
+        ("raised", "Bool is not a number."),
+        ("raised", "Bool is not a number."),
+    ], seen
+
+
 def test_net_profit_blocks_when_fees_exceed_spread():
     # Binance ask: 65,000 | OKX bid: 65,050
     # Gross spread = 50 USD on 65,000 = ~0.0769%

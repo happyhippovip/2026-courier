@@ -67,6 +67,8 @@ class NetProfitEngine:
         
         Returns (effective_price, slippage_usd, has_sufficient_depth).
         """
+        if isinstance(target_usd, bool):
+            raise ValueError("Bool is not a number.")
         if not orders:
             return 0.0, 0.0, False
 
@@ -113,6 +115,8 @@ class NetProfitEngine:
         sell_fee_sched: Optional[ExchangeFeeSchedule] = None,
         include_transfer: bool = False,
     ) -> NetProfitBreakdown:
+        if isinstance(order_size_usd, bool):
+            raise ValueError("Bool is not a number.")
         if not buy_book or not sell_book:
             return cls._blocked_breakdown(pair, "UNKNOWN", "UNKNOWN", order_size_usd, "BLOCKED_DATA_UNAVAILABLE", "One or both books missing")
 
