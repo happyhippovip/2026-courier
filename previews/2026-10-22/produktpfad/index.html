@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Courier in 60 Sekunden</title>
+<link rel="stylesheet" href="pfad.css">
+<script type="module" src="pfad.mjs"></script>
+</head>
+<body>
+<header class="top">
+  <strong class="brand">Courier Symphony</strong>
+  <span id="truth" class="truth" data-mode="loading" role="status" aria-live="polite">Lädt…</span>
+</header>
+
+<nav class="steps" aria-label="Fortschritt">
+  <ol>
+    <li data-step="1">Start</li>
+    <li data-step="2">Mission</li>
+    <li data-step="3">Ergebnis</li>
+    <li data-step="4">Nachweis</li>
+    <li data-step="5">Pilot</li>
+  </ol>
+</nav>
+
+<main>
+  <section id="s1" class="panel" aria-labelledby="h1">
+    <h1 id="h1">Eine Aufgabe erledigt – und Sie sehen den Beweis.</h1>
+    <p class="lead">Courier führt eine Aufgabe auf Ihrem Rechner aus. Ein unabhängiger Prüfer kontrolliert das Ergebnis Byte für Byte. Erst dann gilt sie als erledigt.</p>
+    <ul class="facts">
+      <li>Läuft lokal, ohne Internet</li>
+      <li>Kostet in dieser Vorschau 0,00 €</li>
+      <li>Dauert unter einer Minute</li>
+    </ul>
+    <button class="primary" data-go="2">Erste Mission ansehen</button>
+  </section>
+
+  <section id="s2" class="panel" aria-labelledby="h2" hidden>
+    <h2 id="h2">Mission: „Erste grüne Mission“</h2>
+    <p>Courier soll eine Datei <code>mission_result.txt</code> mit festem Inhalt anlegen. Der Prüfer kennt den erwarteten Inhalt vorher.</p>
+    <dl class="kv">
+      <dt>Ausführung</dt><dd>lokal, Test-Adapter (kein externer Dienst)</dd>
+      <dt>Kosten</dt><dd id="m-cost">—</dd>
+      <dt>Versuche</dt><dd>höchstens 3, Annahme genau einmal</dd>
+    </dl>
+    <button class="primary" id="run">Mission starten</button>
+    <ol id="timeline" class="timeline" aria-live="polite"></ol>
+    <button class="primary" data-go="3" id="to3" hidden>Ergebnis ansehen</button>
+  </section>
+
+  <section id="s3" class="panel" aria-labelledby="h3" hidden>
+    <h2 id="h3">Lokales Ergebnis</h2>
+    <p>Diese Datei hat Courier auf dem Rechner erzeugt:</p>
+    <div class="file">
+      <div class="file-name">📄 mission_result.txt <span id="r-size"></span></div>
+      <pre id="r-content">—</pre>
+    </div>
+    <dl class="kv">
+      <dt>Status</dt><dd id="r-status">—</dd>
+      <dt>Dauer</dt><dd id="r-duration">—</dd>
+    </dl>
+    <button class="primary" data-go="4">Warum ist das bewiesen?</button>
+  </section>
+
+  <section id="s4" class="panel" aria-labelledby="h4" hidden>
+    <h2 id="h4">Verständlicher Nachweis</h2>
+    <ol id="checks" class="checks"></ol>
+    <div class="proof">
+      <p><strong>Fingerabdruck (SHA-256) der Datei</strong></p>
+      <code id="p-sha" class="sha">—</code>
+      <p class="hint">Ein Fingerabdruck ändert sich komplett, wenn sich auch nur ein Zeichen ändert.</p>
+      <button id="selfcheck">Selbst nachrechnen (im Browser)</button>
+      <p id="selfcheck-out" class="hint" aria-live="polite"></p>
+    </div>
+    <dl class="kv">
+      <dt>Journal-Eintrag</dt><dd id="p-journal">—</dd>
+      <dt>Angenommenes Ergebnis</dt><dd id="p-result">—</dd>
+    </dl>
+    <p class="actions">
+      <button id="receipt">Quittung herunterladen (JSON)</button>
+      <button class="primary" data-go="5">Pilot anfragen</button>
+    </p>
+  </section>
+
+  <section id="s5" class="panel" aria-labelledby="h5" hidden>
+    <h2 id="h5">Pilot anfragen</h2>
+    <p>Sie möchten Courier mit einer eigenen, wiederkehrenden Aufgabe testen? Schreiben Sie uns kurz, welche Aufgabe das ist.</p>
+    <ol class="next">
+      <li>Sie beschreiben die Aufgabe in zwei, drei Sätzen.</li>
+      <li>Wir melden uns persönlich und klären, ob sie sich für den Pilot eignet.</li>
+      <li>Im Pilot sehen Sie für jede Aufgabe denselben Nachweis wie hier.</li>
+    </ol>
+    <a id="mail" class="primary button" href="mailto:founder@couriersymphony.de">E-Mail an founder@couriersymphony.de</a>
+    <p class="hint">Die E-Mail öffnet sich in Ihrem Mailprogramm. Es wird nichts automatisch gesendet.</p>
+    <button data-go="1">Von vorn</button>
+  </section>
+</main>
+
+<footer class="foot">
+  <span id="source-note"></span>
+  <label>Quelle
+    <select id="mode">
+      <option value="replay">REPLAY · aufgezeichneter echter Lauf</option>
+      <option value="live">LIVE · laufender Hub</option>
+    </select>
+  </label>
+</footer>
+</body>
+</html>

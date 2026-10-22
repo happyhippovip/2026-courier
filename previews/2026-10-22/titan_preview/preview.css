@@ -1,0 +1,34 @@
+:root { color-scheme: dark; }
+body { margin: 0; color: #e5e7eb; font: 14px/1.45 system-ui, sans-serif; background: #05070d; }
+#biosphere { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; opacity: .55; pointer-events: none; }
+.titan-top, .titan-grid, .titan-foot { position: relative; z-index: 1; }
+.titan-top { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; padding: 12px 20px; border-bottom: 1px solid var(--hud-line); }
+.titan-top h1 { font-size: 16px; letter-spacing: .12em; text-transform: uppercase; color: #c084fc; margin: 0; }
+#mode-banner { padding: 4px 10px; border-radius: 6px; font-weight: 600; border: 1px solid var(--neon-gray); }
+#mode-banner[data-mode="demo"] { border-color: var(--neon-magenta); color: var(--neon-magenta); }
+#mode-banner[data-mode="replay"] { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+#mode-banner[data-mode="unknown"] { border-color: var(--neon-gray); color: #9ca3af; }
+.titan-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-left: auto; }
+.titan-controls select, .titan-controls button { background: #0d1526; color: inherit; border: 1px solid var(--hud-line); border-radius: 6px; padding: 6px 10px; min-height: 36px; }
+#filter { display: flex; gap: 10px; border: 1px solid var(--hud-line); border-radius: 6px; padding: 2px 10px; margin: 0; }
+#filter legend { font-size: 11px; color: #9ca3af; }
+.titan-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; padding: 16px 20px; }
+#universe { min-width: 0; }
+#detail { background: rgba(13, 21, 38, .85); border: 1px solid var(--hud-line); border-radius: 14px; padding: 14px; align-self: start; }
+#detail h2 { margin: 0 0 8px; font-size: 15px; }
+#detail dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; margin: 0 0 10px; }
+#detail dt { color: #9ca3af; }
+#detail dd { margin: 0; word-break: break-all; }
+.beam-panel { grid-column: 1 / -1; background: rgba(13, 21, 38, .6); border: 1px solid var(--hud-line); border-radius: 14px; padding: 12px 14px; }
+.beam-panel h2 { font-size: 12px; letter-spacing: .15em; text-transform: uppercase; color: var(--neon-cyan); margin: 0; }
+#beams { width: 100%; height: auto; max-height: 300px; }
+.hint { color: #9ca3af; font-size: 12px; margin: 4px 0; }
+.titan-foot { padding: 8px 20px 24px; color: #9ca3af; font-size: 12px; }
+.universe-planet.titan-hidden { display: none; }
+.universe-planet:focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: 2px; }
+@media (max-width: 860px) {
+  .titan-grid { grid-template-columns: 1fr; padding: 12px 16px; }
+  .titan-top { padding: 10px 16px; }
+  .titan-controls { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) { #biosphere { animation: none !important; } }

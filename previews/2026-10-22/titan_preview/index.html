@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kolibri TITAN Vorschau</title>
+<link rel="stylesheet" href="/courier_hub/static/kolibri.css">
+<link rel="stylesheet" href="/titan/preview.css">
+<script type="module" src="/titan/preview.mjs"></script>
+</head>
+<body>
+<canvas id="biosphere" aria-hidden="true"></canvas>
+<header class="titan-top">
+  <h1>Kolibri · TITAN Vorschau</h1>
+  <div id="mode-banner" role="status" aria-live="polite">Lädt…</div>
+  <nav class="titan-controls" aria-label="Steuerung">
+    <label>Quelle
+      <select id="mode">
+        <option value="replay">REPLAY · echter lokaler Lauf (synthetischer Adapter)</option>
+        <option value="demo">DEMO · Testdaten</option>
+        <option value="live">LIVE · /hub/api/kolibri</option>
+      </select>
+    </label>
+    <fieldset id="filter"><legend>Filter</legend></fieldset>
+    <button type="button" id="motion" aria-pressed="false">Bewegung anhalten</button>
+  </nav>
+</header>
+<main class="titan-grid">
+  <section id="universe" aria-label="Universum"></section>
+  <aside id="detail" aria-live="polite" tabindex="-1"><p class="hint">Planet anklicken (oder Tab + Enter) für Details.</p></aside>
+  <section class="beam-panel" aria-label="Lichtstrahlen">
+    <h2>Lichtstrahlen</h2>
+    <p class="hint">Courier → Agenten (Verdrahtung, kein Puls). Agent → Verifier nur mit Journal-Beweis, ein Puls je Beweis.</p>
+    <canvas id="beams" width="720" height="300" aria-label="Lichtstrahlen zwischen Courier, Agenten und Verifier"></canvas>
+  </section>
+</main>
+<footer class="titan-foot">Lokale Vorschau, keine Produktdatei. Grün nur mit verifizierter Journal-Evidenz; DEMO ist nie grün.</footer>
+</body>
+</html>

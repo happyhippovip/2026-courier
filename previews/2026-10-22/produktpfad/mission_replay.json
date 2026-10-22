@@ -1,0 +1,153 @@
+{
+  "mode": "DEMO / LOKAL DETERMINISTISCH",
+  "product_ready": false,
+  "demo_notice": "Isolierter Prototyp-Lauf. Kein produktiver Multi-Agenten-Betrieb.",
+  "mission_name": "Erste gr\u00fcne Mission",
+  "task_id": "task-1c1e5bf0d6274883b6737aa228082ffb",
+  "overall_status": "COMPLETE",
+  "cost_eur": 0.0,
+  "duration_ms": 25.34,
+  "checks": [
+    {
+      "step": 1,
+      "name": "Eingabe & Budget-Gate",
+      "passed": true,
+      "status": "PASS",
+      "detail": "Task task-1c1e5bf0d62... registriert (Kosten: 0,00 EUR, Status: QUEUED)",
+      "timestamp": 1792647485.236621
+    },
+    {
+      "step": 2,
+      "name": "Deterministische Ausf\u00fchrung",
+      "passed": true,
+      "status": "PASS",
+      "detail": "Artefakt erzeugt, SHA-256: 56b37926915be3c0... (Lease: dsp-7e0c759b8594...)",
+      "timestamp": 1792647485.2410493
+    },
+    {
+      "step": 3,
+      "name": "Unabh\u00e4ngige Verifikation & Journal-Beleg",
+      "passed": true,
+      "status": "PASS",
+      "detail": "Status: COMPLETE | Resolution: verified (festgeschrieben im Journal)",
+      "timestamp": 1792647485.2436645
+    }
+  ],
+  "verifier_result": {
+    "accepted": true,
+    "resolution": "verified",
+    "accepted_result_id": "res-chip-v139-01",
+    "artifact_sha256": "56b37926915be3c04463ad719869bd5e5fdc8e9fdbcc5d066d2513de93ea0a88",
+    "artifact_content": "COURIER-V139-MISSION-CHIP-VERIFIED"
+  },
+  "ledger_receipt": {
+    "events_count": 7,
+    "head_seq": 7,
+    "journal_file": "courier.db",
+    "hash": "3aaba7e2897882b424a9619b863ab883f404d30940083dc40ad588e5c2f1234a"
+  },
+  "events_replay": [
+    {
+      "seq": 1,
+      "type": "CONTROLLER_STARTED",
+      "task_id": null,
+      "attempt": null,
+      "dispatch_id": null,
+      "timestamp": null,
+      "payload": {
+        "build": {
+          "build_id": null,
+          "python": "3.11.15",
+          "source_sha256": "d8d64ae78878fb6c8bdaf6befaf9baf8801ec555e5d31ffa35778ffb4810a03e",
+          "version": "1.0.0.dev0"
+        },
+        "pid": 2038
+      }
+    },
+    {
+      "seq": 2,
+      "type": "TASK_CREATED",
+      "task_id": "task-1c1e5bf0d6274883b6737aa228082ffb",
+      "attempt": null,
+      "dispatch_id": null,
+      "timestamp": null,
+      "payload": {
+        "adapter": "synthetic",
+        "effect_class": "idempotent",
+        "lease_ttl_s": 30,
+        "max_attempts": 3,
+        "params": {
+          "content": "COURIER-V139-MISSION-CHIP-VERIFIED",
+          "estimated_cost_eur": 0.0,
+          "goal": "Deterministische 3-Stufen-Pruefung",
+          "mission_name": "Erste gr\u00fcne Mission",
+          "write": "mission_result.txt"
+        }
+      }
+    },
+    {
+      "seq": 3,
+      "type": "TASK_CLAIMED",
+      "task_id": "task-1c1e5bf0d6274883b6737aa228082ffb",
+      "attempt": 1,
+      "dispatch_id": "dsp-7e0c759b85944b82b39de048a76da041",
+      "timestamp": null,
+      "payload": {
+        "ttl_s": 30
+      }
+    },
+    {
+      "seq": 4,
+      "type": "TASK_STARTED",
+      "task_id": "task-1c1e5bf0d6274883b6737aa228082ffb",
+      "attempt": 1,
+      "dispatch_id": "dsp-7e0c759b85944b82b39de048a76da041",
+      "timestamp": null,
+      "payload": {}
+    },
+    {
+      "seq": 5,
+      "type": "RESULT_READY",
+      "task_id": "task-1c1e5bf0d6274883b6737aa228082ffb",
+      "attempt": 1,
+      "dispatch_id": "dsp-7e0c759b85944b82b39de048a76da041",
+      "timestamp": null,
+      "payload": {
+        "artifacts": [
+          {
+            "path": "mission_result.txt",
+            "sha256": "56b37926915be3c04463ad719869bd5e5fdc8e9fdbcc5d066d2513de93ea0a88",
+            "size_bytes": 34
+          }
+        ],
+        "outcome": "success"
+      }
+    },
+    {
+      "seq": 6,
+      "type": "RESULT_ACCEPTED",
+      "task_id": "task-1c1e5bf0d6274883b6737aa228082ffb",
+      "attempt": 1,
+      "dispatch_id": "dsp-7e0c759b85944b82b39de048a76da041",
+      "timestamp": null,
+      "payload": {
+        "reason": "BYTE_LEVEL_GOLD_VERIFIED: Deterministischer SHA-256 Hash und Byte-Inhalt gegen Gold-Referenz verifiziert",
+        "verifier": {
+          "kind": "adapter",
+          "name": "__main__._chip_verifier.<locals>._verify",
+          "source_sha256": "e030f192934e8599789486e02ceea497edaa9863c91131b9c891e974bb72780a",
+          "version": null
+        }
+      }
+    },
+    {
+      "seq": 7,
+      "type": "TASK_COMPLETE",
+      "task_id": "task-1c1e5bf0d6274883b6737aa228082ffb",
+      "attempt": 1,
+      "dispatch_id": "dsp-7e0c759b85944b82b39de048a76da041",
+      "timestamp": null,
+      "payload": {}
+    }
+  ]
+}

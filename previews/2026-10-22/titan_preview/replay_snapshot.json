@@ -1,0 +1,65 @@
+{
+ "observed_at": "2026-10-22T07:30:00Z",
+ "mode_note": "REPLAY: echter lokaler Controller-Lauf, synthetischer Adapter",
+ "ledger": {
+  "available": true,
+  "active": true,
+  "source": "courier journal (courier.db)",
+  "at": "2026-10-22T07:30:00Z",
+  "observed_at": "2026-10-22T07:30:00Z",
+  "value": "3",
+  "counts": {
+   "needs_you": 0,
+   "working": 1,
+   "done": 2
+  },
+  "done_shown": 2,
+  "items": [
+   {
+    "id": "task-d7014c2abf998990a0e7e0b38b03e6cb",
+    "title": "Synthetic test task",
+    "pile": "working",
+    "source": "courier journal (courier.db)",
+    "at": "2026-10-22T05:24:43.692244Z"
+   },
+   {
+    "id": "task-e16825038144e1b6980a00b1508972ba",
+    "title": "Synthetic test task",
+    "pile": "done",
+    "source": "courier journal (courier.db)",
+    "at": "2026-10-22T05:24:43.690785Z"
+   },
+   {
+    "id": "task-d2426a6d2bbf39e7917c89f57db1651f",
+    "title": "Synthetic test task",
+    "pile": "done",
+    "source": "courier journal (courier.db)",
+    "at": "2026-10-22T05:24:43.680950Z",
+    "verified": true,
+    "event_id": "journal:6:RESULT_ACCEPTED",
+    "evidence": {
+     "journal_entry_id": "journal:6:RESULT_ACCEPTED",
+     "task_id": "task-d2426a6d2bbf39e7917c89f57db1651f",
+     "dispatch_id": "dsp-0e01e8d5dffd4bafba101581bcb1282f",
+     "accepted_result_id": "r1",
+     "attempt": 1,
+     "artifact_sha256": "511cfcf227e13ab2e1e91abacb93048ff7455a308ed1a6b0217ddf8f74396d3e",
+     "resolution": "BYTE_LEVEL_GOLD_VERIFIED",
+     "proof": {
+      "event": "RESULT_ACCEPTED",
+      "seq": 6,
+      "result_id": "r1"
+     }
+    }
+   }
+  ]
+ },
+ "muse_wall": {
+  "available": false,
+  "stations": []
+ },
+ "ledger_bridge": {
+  "available": false,
+  "missions": []
+ }
+}

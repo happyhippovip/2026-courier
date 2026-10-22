@@ -1,0 +1,7 @@
+{
+  "recorded_at": "2026-10-22T05:38:45+00:00",
+  "commit": "d5b19f1df",
+  "branch": "integration/v1",
+  "command": "python -m courier_hub.mission_chip --json --home <tmp>",
+  "replay_sha256": "759067739512540ef1b863696c12940f46b24d64c506fbcf23269cab25c777a9"
+}
