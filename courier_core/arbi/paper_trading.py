@@ -230,7 +230,7 @@ class PaperTradingEngine:
                 + breakdown.rebalance_cost_usd * scale,
                 4,
             ),
-            slippage_usd=round(slip_usd, 4),
+            slippage_usd=round(0.0 if status == "SECOND_LEG_FAILED" else slip_usd, 4),
             net_pnl_usd=round(net_pnl, 4),
             roi_pct=round(roi, 4),
             execution_status=status,
