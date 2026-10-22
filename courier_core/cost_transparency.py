@@ -82,6 +82,10 @@ def derive_goal_cost_summary(
     payg_triggered = False
 
     for idx, step in enumerate(workflow_plan, start=1):
+        if not isinstance(step, dict):
+            steps_payg += 1
+            payg_triggered = True
+            continue
         task_id = step.get("task_id", f"step-{idx}")
         instruction = step.get("instruction", "Task step")
         task = tasks_map.get(task_id, {})
