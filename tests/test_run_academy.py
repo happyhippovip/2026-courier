@@ -342,6 +342,68 @@ def test_director_evaluate_lesson(mock_evals_dir, mock_lessons_dir, academy_env,
     assert res2["verdict"] == "FAIL"
     assert json.loads(l1.read_text())["status"] == "EVAL_FAIL"
 
+def test_adopt_does_not_follow_a_symlink(academy_env, monkeypatch):
+    repo_dir, memory_dir = academy_env
+    lessons = repo_dir / "events" / "academy" / "lessons"
+    evals = repo_dir / "events" / "academy" / "evaluations"
+    adoptions = repo_dir / "events" / "academy" / "adoptions"
+    monkeypatch.setattr("scripts.run_academy.LESSONS_DIR", lessons)
+    monkeypatch.setattr("scripts.run_academy.EVALS_DIR", evals)
+    monkeypatch.setattr("scripts.run_academy.ADOPTIONS_DIR", adoptions)
+    director = AcademyDirector(repo_dir=repo_dir, memory_dir=memory_dir)
+
+    outside_lesson = repo_dir.parent / "outside-adopt-lesson.json"
+    outside_lesson.write_text(json.dumps({
+        "status": "EVAL_PASS",
+        "title": "SECRET-LESSON",
+        "topic": "t",
+        "affected_agents": ["a"],
+    }), encoding="utf-8")
+    (lessons / "lesson-secret.json").symlink_to(outside_lesson)
+    (evals / "eval-lesson-secret.json").write_text(
+        json.dumps({"verdict": "PASS", "evaluation_id": "e-secret"}),
+        encoding="utf-8",
+    )
+
+    (lessons / "lesson-plain.json").write_text(json.dumps({
+        "status": "EVAL_PASS",
+        "title": "plain",
+        "topic": "t",
+        "affected_agents": ["a"],
+    }), encoding="utf-8")
+    outside_eval = repo_dir.parent / "outside-eval.json"
+    outside_eval.write_text(
+        json.dumps({"verdict": "PASS", "evaluation_id": "SECRET-EVAL"}),
+        encoding="utf-8",
+    )
+    (evals / "eval-lesson-plain.json").symlink_to(outside_eval)
+
+    def run(lesson_id):
+        try:
+            director.approve_adoption(lesson_id)
+        except ValueError as exc:
+            return str(exc)
+        return "adopted"
+
+    err_lesson = run("lesson-secret")
+    lesson_body = outside_lesson.read_text(encoding="utf-8")
+    err_eval = run("lesson-plain")
+    plain_body = (lessons / "lesson-plain.json").read_text(encoding="utf-8")
+    assert (
+        err_lesson,
+        "ADOPTED" in lesson_body,
+        err_eval,
+        "ADOPTED" in plain_body,
+        "SECRET-EVAL" in plain_body,
+    ) == (
+        "refusing to follow a symlink",
+        False,
+        "refusing to follow a symlink",
+        False,
+        False,
+    )
+
+
 @mock.patch("scripts.run_academy.LESSONS_DIR")
 @mock.patch("scripts.run_academy.EVALS_DIR")
 @mock.patch("scripts.run_academy.ADOPTIONS_DIR")

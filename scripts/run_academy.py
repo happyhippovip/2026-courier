@@ -558,12 +558,18 @@ class AcademyDirector:
 
     def approve_adoption(self, lesson_id: str) -> dict:
         """Adoption Gate: Strictly verifies eval passes before adopting into verified context."""
+        if LESSONS_DIR.is_symlink() or LESSONS_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         lesson_file = LESSONS_DIR / f"{lesson_id}.json"
+        if lesson_file.is_symlink() or lesson_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
+        eval_file = EVALS_DIR / f"eval-{lesson_id}.json"
+        if eval_file.is_symlink() or eval_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         if not lesson_file.exists():
             raise FileNotFoundError(f"Lesson not found: {lesson_id}")
         lesson = load_json(lesson_file)
 
-        eval_file = EVALS_DIR / f"eval-{lesson_id}.json"
         if not eval_file.exists():
             print(f"[DIRECTOR ERROR] Adoption blocked: No evaluation record exists for {lesson_id}.")
             self.update_visual_state(
