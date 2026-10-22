@@ -117,6 +117,27 @@ def test_verify_manifest_detects_tampered_artifact(tmp_path):
     assert "Artifact sha256 mismatch" in reason
 
 
+def test_verify_manifest_rejects_stale_digest(tmp_path):
+    render_dir = tmp_path / "render_stale_digest"
+    render_dir.mkdir()
+    (render_dir / "render.mp4").write_bytes(b"VIDEO")
+    create_manifest(render_dir, target_filename="render.mp4", duration_seconds=2.0, fps=30)
+    manifest_file = render_dir / "manifest.json"
+    body = json.loads(manifest_file.read_text(encoding="utf-8"))
+    body["duration_seconds"] = 99.0
+    manifest_file.write_text(json.dumps(body), encoding="utf-8")
+
+    valid, reason = verify_manifest(manifest_file)
+    assert valid is False
+    assert reason == "Manifest digest mismatch"
+
+    body.pop("manifest_sha256")
+    manifest_file.write_text(json.dumps(body), encoding="utf-8")
+    valid, reason = verify_manifest(manifest_file)
+    assert valid is False
+    assert reason == "Manifest missing manifest_sha256"
+
+
 def test_cli_create_and_verify(tmp_path, capsys):
     render_dir = tmp_path / "cli_render"
     render_dir.mkdir()

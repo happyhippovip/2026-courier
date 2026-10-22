@@ -19,6 +19,26 @@ from typing import Any
 
 from courier_core.events import canonical_json
 
+_DIGEST_KEYS = (
+    "render_id",
+    "target_file",
+    "target_sha256",
+    "target_size_bytes",
+    "duration_seconds",
+    "fps",
+    "frame_count",
+    "scene",
+    "created_at_utc",
+    "artifacts",
+    "extra_metadata",
+)
+
+
+def _manifest_digest(data: dict[str, Any]) -> str:
+    """Hash the manifest body. ``manifest_sha256`` itself is not an input."""
+    core = {key: data.get(key) for key in _DIGEST_KEYS}
+    return hashlib.sha256(canonical_json(core).encode("utf-8")).hexdigest()
+
 
 @dataclass(frozen=True)
 class RenderArtifact:
@@ -119,7 +139,7 @@ def create_manifest(
         "extra_metadata": extra_metadata or {},
     }
 
-    manifest_hash = hashlib.sha256(canonical_json(core_data).encode("utf-8")).hexdigest()
+    manifest_hash = _manifest_digest(core_data)
 
     manifest = RenderManifest(
         render_id=render_id,
@@ -166,6 +186,14 @@ def verify_manifest(manifest_path_or_dict: Path | str | dict[str, Any], render_d
     dir_path = Path(render_dir).resolve()
     if not dir_path.is_dir():
         return False, f"Render directory does not exist: {dir_path}"
+
+    if not isinstance(data, dict):
+        return False, "Manifest body is not an object"
+    recorded = data.get("manifest_sha256")
+    if not isinstance(recorded, str) or not recorded:
+        return False, "Manifest missing manifest_sha256"
+    if recorded != _manifest_digest(data):
+        return False, "Manifest digest mismatch"
 
     target_name = data.get("target_file")
     if not target_name:
