@@ -158,3 +158,16 @@ def test_mission_chip_cli_pretty_output(tmp_path, capsys):
     assert "ERSTE GRÜNE MISSION" in captured.out
     assert "BYTE_LEVEL_GOLD_VERIFIED" or "verified" in captured.out
 
+
+
+def test_mission_chip_step_status_follows_passed(tmp_path, monkeypatch):
+    """A refused result must not show PASS for the execution step."""
+    from courier_core.controller import Controller
+
+    monkeypatch.setattr(Controller, "result", lambda self, body: (409, {"error": "refused"}))
+    res = run_mission_chip(tmp_path)
+
+    assert res["overall_status"] == "FAILED"
+    for check in res["checks"]:
+        assert check["status"] == ("PASS" if check["passed"] else "FAIL")
+    assert res["checks"][1]["passed"] is False
