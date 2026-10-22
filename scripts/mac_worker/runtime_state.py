@@ -91,7 +91,9 @@ def group_exists(pgid):
             if not out or "Z" in out:
                 return False
         except Exception:
-            return False
+            # killpg already raised EPERM, so the group was present. A failed
+            # ps read does not prove it exited.
+            return True
         return True
 
 
