@@ -8,7 +8,7 @@ Windows service proof.
 from datetime import timedelta
 from pathlib import Path
 
-from courier_core.install_repair import repair
+from courier_core.install_repair import _restore_missing, repair
 from courier_core.install_state import (
     FAILED,
     HEALTHY,
@@ -70,6 +70,39 @@ def _world(state):
         return dict(IDENTITY)
 
     return world, observe, register, start
+
+
+def test_restore_does_not_follow_a_symlink(tmp_path):
+    outside = tmp_path / "outside.txt"
+    outside.write_text("SECRET", encoding="utf-8")
+    package = tmp_path / "package"
+    package.mkdir()
+    (package / "runtime.bin").symlink_to(outside)
+    state = tmp_path / "state"
+    state.mkdir()
+    source_ok = _restore_missing(state, {"runtime_path": "runtime.bin"}, package, None)
+    dest = state / "runtime.bin"
+    source_body = dest.read_text(encoding="utf-8") if dest.exists() else ""
+
+    package_real = tmp_path / "package-real"
+    package_real.mkdir()
+    (package_real / "runtime.bin").write_bytes(b"PACKAGE")
+    state_link = tmp_path / "state-link"
+    state_link.mkdir()
+    (state_link / "nested").mkdir()
+    inside = state_link / "nested" / "copied.bin"
+    dest_link = state_link / "runtime.bin"
+    dest_link.symlink_to(inside)
+    dest_ok = _restore_missing(state_link, {"runtime_path": "runtime.bin"}, package_real, None)
+    leaked = inside.read_bytes() if inside.exists() else b""
+    assert (
+        source_ok is False
+        and source_body == ""
+        and outside.read_text(encoding="utf-8") == "SECRET"
+        and dest_ok is False
+        and leaked == b""
+        and dest_link.is_symlink()
+    ), (source_ok, source_body, dest_ok, leaked, dest_link.is_symlink())
 
 
 def test_damaged_runtime_is_restored_and_healthy_only_after_verification(tmp_path):

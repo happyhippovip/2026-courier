@@ -137,12 +137,12 @@ def _restore_missing(state_dir, document: dict, package_dir, launcher_path: str 
     root = Path(state_dir)
     for raw in targets:
         dest = _destination(root, raw)
-        if _hits_protected(root, dest, protected):
+        if dest.is_symlink() or dest.parent.is_symlink() or _hits_protected(root, dest, protected):
             return False
         if dest.exists():
             continue
         source = package / Path(raw).name
-        if not source.is_file():
+        if source.is_symlink() or source.parent.is_symlink() or not source.is_file():
             return False
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, dest)
