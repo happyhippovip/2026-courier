@@ -47,8 +47,15 @@ def _symlink_queue_dir():
 
 
 def _load_counts():
+    path = _counts_path()
+    # A symlink is not a local count. True would be one prior failure; a
+    # foreign 4 would park the intake on the next error. Leave the link in
+    # place and count from zero. The following save replaces the directory
+    # entry and does not write the link target.
+    if os.path.islink(path) or os.path.islink(os.path.dirname(path)):
+        return {}
     try:
-        with open(_counts_path(), 'r') as f:
+        with open(path, 'r') as f:
             data = json.load(f)
     except (OSError, ValueError):
         return {}

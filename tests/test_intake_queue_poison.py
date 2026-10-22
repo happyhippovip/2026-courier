@@ -158,3 +158,23 @@ def test_pending_symlink_is_not_dispatched(tmp_path, monkeypatch):
     assert calls == [], calls
     assert (outside / "foreign.json").read_text() == "{not json"
     assert [path.name for path in outside.iterdir()] == ["foreign.json"]
+
+
+def test_failure_count_symlink_is_not_four_attempts(tmp_path, monkeypatch):
+    """A symlinked counts file must not contribute four prior failures."""
+    qp = load_qp(monkeypatch, tmp_path)
+    monkeypatch.setattr(qp, "dispatch_intake", lambda path: (_ for _ in ()).throw(ValueError("poison")))
+    outside = tmp_path / "outside-counts.json"
+    body = json.dumps({"poison.json": 4})
+    outside.write_text(body, encoding="utf-8")
+    intakes = tmp_path / "intakes"
+    intakes.mkdir()
+    (intakes / ".failure_counts.json").symlink_to(outside)
+    pending = intakes / "pending"
+    pending.mkdir()
+    (pending / "poison.json").write_text("{not json")
+    qp.process_queue()
+    parked = intakes / "quarantine" / "poison.json"
+    assert not parked.exists(), outside.read_text(encoding="utf-8")
+    assert (pending / "poison.json").is_file()
+    assert outside.read_text(encoding="utf-8") == body
