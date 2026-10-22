@@ -139,8 +139,14 @@ def state_path(task_file: Path) -> Path:
     return task_file.with_name(f"{task_file.stem}.github-worker-state.json")
 
 
+def _refuse_state_symlink(path: Path) -> None:
+    if path.is_symlink() or path.parent.is_symlink():
+        raise ValueError(f"{path}: refusing to follow a symlink")
+
+
 def read_state(task_file: Path) -> dict[str, Any]:
     path = state_path(task_file)
+    _refuse_state_symlink(path)
     for _ in range(100):
         try:
             return json.loads(path.read_text(encoding="utf-8"))
@@ -150,6 +156,7 @@ def read_state(task_file: Path) -> dict[str, Any]:
 
 
 def write_state(task_file: Path, state: dict[str, Any]) -> None:
+    _refuse_state_symlink(state_path(task_file))
     # Atomic publish: a kill between truncate and content commit must never
     # leave a torn state file behind (torn state crashes every future run
     # with JSONDecodeError while resume keeps respawning into the crash).
@@ -321,7 +328,9 @@ def run(task_file_name: str) -> int:
 def _run(task_file: Path, task: dict[str, Any]) -> int:
     validate_task(task)
     prior = {}
-    if state_path(task_file).is_file():
+    state = state_path(task_file)
+    _refuse_state_symlink(state)
+    if state.is_file():
         prior = read_state(task_file)
         if prior.get("dispatch_id") != task["dispatch_id"]:
             raise ValueError("persisted GitHub state belongs to another dispatch")
