@@ -496,7 +496,11 @@ class AcademyDirector:
         candidate_metrics: dict,
     ) -> dict:
         """Compares baseline vs candidate methods with measurable metric criteria."""
+        if LESSONS_DIR.is_symlink() or LESSONS_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         lesson_file = LESSONS_DIR / f"{lesson_id}.json"
+        if lesson_file.is_symlink() or lesson_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         if not lesson_file.exists():
             raise FileNotFoundError(f"Lesson not found: {lesson_id}")
         lesson = load_json(lesson_file)

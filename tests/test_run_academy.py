@@ -261,6 +261,50 @@ def test_director_review_lesson(mock_lessons_dir, academy_env, monkeypatch):
     res2 = dir.review_lesson("lesson-good")
     assert res2["status"] == "APPROVED_FOR_TEST"
 
+def test_evaluate_does_not_follow_a_symlink(academy_env, monkeypatch):
+    repo_dir, memory_dir = academy_env
+    lessons = repo_dir / "events" / "academy" / "lessons"
+    evals = repo_dir / "events" / "academy" / "evaluations"
+    monkeypatch.setattr("scripts.run_academy.LESSONS_DIR", lessons)
+    monkeypatch.setattr("scripts.run_academy.EVALS_DIR", evals)
+    director = AcademyDirector(repo_dir=repo_dir, memory_dir=memory_dir)
+    payload = json.dumps({
+        "evidence": "SECRET-LESSON-BODY",
+        "affected_agents": ["a"],
+        "novelty_hash": "1",
+        "status": "APPROVED_FOR_TEST",
+    })
+    outside = repo_dir.parent / "outside-eval-lesson.json"
+    outside.write_text(payload, encoding="utf-8")
+    (lessons / "lesson-secret.json").symlink_to(outside)
+
+    outside_dir = repo_dir.parent / "outside-eval-lessons"
+    outside_dir.mkdir()
+    (outside_dir / "keep.txt").write_text("keep", encoding="utf-8")
+    (outside_dir / "lesson-dir.json").write_text(payload, encoding="utf-8")
+    linked_dir = repo_dir.parent / "linked-eval-lessons"
+    linked_dir.symlink_to(outside_dir, target_is_directory=True)
+
+    def run(folder, lesson_id):
+        monkeypatch.setattr("scripts.run_academy.LESSONS_DIR", folder)
+        try:
+            director.evaluate_lesson(lesson_id, {}, {})
+        except ValueError as exc:
+            return str(exc)
+        return "evaluated"
+
+    err_file = run(lessons, "lesson-secret")
+    file_body = outside.read_text(encoding="utf-8")
+    err_dir = run(linked_dir, "lesson-dir")
+    dir_body = (outside_dir / "lesson-dir.json").read_text(encoding="utf-8")
+    assert (err_file, "EVAL_PASS" in file_body, err_dir, "EVAL_PASS" in dir_body) == (
+        "refusing to follow a symlink",
+        False,
+        "refusing to follow a symlink",
+        False,
+    )
+
+
 @mock.patch("scripts.run_academy.LESSONS_DIR")
 @mock.patch("scripts.run_academy.EVALS_DIR")
 def test_director_evaluate_lesson(mock_evals_dir, mock_lessons_dir, academy_env, monkeypatch):
