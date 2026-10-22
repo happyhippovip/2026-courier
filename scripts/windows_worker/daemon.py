@@ -106,8 +106,12 @@ setup_logging()
 
 def load_config():
     config_path = APP_DATA_DIR / "config.json"
+    if config_path.is_symlink():
+        raise OSError(f"{config_path}: refusing to follow a symlink")
     if not config_path.exists():
         config_path = Path(__file__).parent / "config.json"
+    if config_path.is_symlink():
+        raise OSError(f"{config_path}: refusing to follow a symlink")
     with open(config_path, "r") as f:
         return json.load(f)
 MAX_RESULT_POST_ATTEMPTS = 5
