@@ -570,6 +570,69 @@ class TestBuildMemoryUpdateProposal(unittest.TestCase):
             ),
         )
 
+    def test_schema_does_not_follow_a_symlink(self):
+        self.maxDiff = None
+        outside = self.td_path / "outside-schema.json"
+        outside.write_text(json.dumps({"required": ["SECRET-SCHEMA-FIELD"]}), encoding="utf-8")
+        link = self.td_path / "linked-schema.json"
+        link.symlink_to(outside)
+
+        parent_outside = self.td_path / "schema-parent-outside"
+        parent_outside.mkdir()
+        (parent_outside / "schema.json").write_text(
+            json.dumps({"required": ["SECRET-PARENT-FIELD"]}),
+            encoding="utf-8",
+        )
+        linked_parent = self.td_path / "schema-linked-parent"
+        linked_parent.symlink_to(parent_outside, target_is_directory=True)
+
+        proposal = self.td_path / "empty-proposal.json"
+        proposal.write_text("{}", encoding="utf-8")
+
+        def run_cli(schema):
+            buf = io.StringIO()
+            original_argv = sys.argv
+            argv = [
+                "build_memory_update_proposal.py",
+                "--validate-proposal",
+                str(proposal),
+            ]
+            if schema is not None:
+                argv.extend(["--schema", str(schema)])
+            sys.argv = argv
+            try:
+                with redirect_stdout(buf):
+                    main()
+            except SystemExit as exc:
+                return ("err", str(exc), buf.getvalue())
+            finally:
+                sys.argv = original_argv
+            return ("ok", buf.getvalue())
+
+        lib_link = validate_proposal_against_schema({}, link)
+        lib_parent = validate_proposal_against_schema({}, linked_parent / "schema.json")
+        cli_link = run_cli(link)
+        cli_parent = run_cli(linked_parent / "schema.json")
+        cli_real = run_cli(None)
+        self.assertEqual(
+            (
+                lib_link,
+                lib_parent,
+                cli_link,
+                cli_parent,
+                "SECRET-SCHEMA-FIELD" in cli_real[1],
+                "SECRET-PARENT-FIELD" in cli_real[1],
+            ),
+            (
+                (False, "refusing to follow a symlink"),
+                (False, "refusing to follow a symlink"),
+                ("err", "MEMORY_PROPOSAL_ERROR: refusing to follow a symlink", ""),
+                ("err", "MEMORY_PROPOSAL_ERROR: refusing to follow a symlink", ""),
+                False,
+                False,
+            ),
+        )
+
     def test_main_cli_errors(self):
         original_argv = sys.argv
 

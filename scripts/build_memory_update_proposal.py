@@ -56,6 +56,8 @@ def get_memory_commit(repo_path: Path) -> str:
 
 def validate_proposal_against_schema(proposal_data: dict, schema_path: Path | None = None) -> tuple[bool, str]:
     """Validates memory update proposal data strictly against schemas/memory_update_proposal.schema.json."""
+    if schema_path is not None and (schema_path.is_symlink() or schema_path.parent.is_symlink()):
+        return False, "refusing to follow a symlink"
     if schema_path is None or not schema_path.exists():
         schema_path = DEFAULT_SCHEMA_PATH
 
@@ -259,7 +261,11 @@ def main() -> None:
     parser.add_argument("--schema", help="Custom path to memory_update_proposal.schema.json")
     args = parser.parse_args()
 
-    schema_path = Path(args.schema).resolve() if args.schema else None
+    schema_path = Path(args.schema) if args.schema else None
+    if schema_path is not None and (schema_path.is_symlink() or schema_path.parent.is_symlink()):
+        fail("refusing to follow a symlink")
+    if schema_path is not None:
+        schema_path = schema_path.resolve()
 
     if args.validate_proposal:
         prop_file = Path(args.validate_proposal)
