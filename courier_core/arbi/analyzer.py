@@ -152,6 +152,10 @@ class StatisticalQualityAnalyzer:
             risk_score += 100
             flags.append("NEGATIVE_SIZE")
             explanation_parts.append("Order size is negative.")
+        elif size == 0:
+            risk_score += 100
+            flags.append("ZERO_SIZE")
+            explanation_parts.append("Order size is zero.")
 
         cost = breakdown.total_costs_usd
         if (
