@@ -34,6 +34,12 @@ class MultiExchangeScanner:
         return limit
 
     @staticmethod
+    def _book_level(price, amount) -> OrderbookLevel:
+        if isinstance(price, bool) or isinstance(amount, bool):
+            raise ValueError("Bool is not a number.")
+        return OrderbookLevel(float(price), float(amount))
+
+    @staticmethod
     def _fetch_json(url: str) -> dict:
         req = urllib.request.Request(
             url,
@@ -62,8 +68,8 @@ class MultiExchangeScanner:
         data = cls._fetch_json(url)
         lat = (time.time() - t0) * 1000.0
 
-        bids = [OrderbookLevel(float(p), float(q)) for p, q in data.get("bids", [])]
-        asks = [OrderbookLevel(float(p), float(q)) for p, q in data.get("asks", [])]
+        bids = [cls._book_level(p, q) for p, q in data.get("bids", [])]
+        asks = [cls._book_level(p, q) for p, q in data.get("asks", [])]
         return OrderbookSnapshot(
             exchange="binance",
             pair=pair,
@@ -85,8 +91,8 @@ class MultiExchangeScanner:
         result = data.get("result", {})
         raw_bids = result.get("b", [])
         raw_asks = result.get("a", [])
-        bids = [OrderbookLevel(float(p), float(q)) for p, q in raw_bids]
-        asks = [OrderbookLevel(float(p), float(q)) for p, q in raw_asks]
+        bids = [cls._book_level(p, q) for p, q in raw_bids]
+        asks = [cls._book_level(p, q) for p, q in raw_asks]
         return OrderbookSnapshot(
             exchange="bybit",
             pair=pair,
@@ -108,8 +114,8 @@ class MultiExchangeScanner:
         book_data = data.get("data", [{}])[0]
         raw_bids = book_data.get("bids", [])
         raw_asks = book_data.get("asks", [])
-        bids = [OrderbookLevel(float(x[0]), float(x[1])) for x in raw_bids]
-        asks = [OrderbookLevel(float(x[0]), float(x[1])) for x in raw_asks]
+        bids = [cls._book_level(x[0], x[1]) for x in raw_bids]
+        asks = [cls._book_level(x[0], x[1]) for x in raw_asks]
         return OrderbookSnapshot(
             exchange="okx",
             pair=pair,
@@ -135,8 +141,8 @@ class MultiExchangeScanner:
         raw_bids = book.get("bids", [])
         raw_asks = book.get("asks", [])
         # Kraken depth format: [price, amount, timestamp]
-        bids = [OrderbookLevel(float(x[0]), float(x[1])) for x in raw_bids]
-        asks = [OrderbookLevel(float(x[0]), float(x[1])) for x in raw_asks]
+        bids = [cls._book_level(x[0], x[1]) for x in raw_bids]
+        asks = [cls._book_level(x[0], x[1]) for x in raw_asks]
         return OrderbookSnapshot(
             exchange="kraken",
             pair=pair,

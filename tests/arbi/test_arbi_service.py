@@ -183,3 +183,28 @@ def test_bool_depth_limit_is_not_requested(monkeypatch):
     else:
         numeric = ""
     assert numeric.endswith("limit=10"), numeric
+
+
+def test_bool_book_level_is_not_a_price(monkeypatch):
+    def payload(_url):
+        return {"bids": [[True, "2.0"]], "asks": [["100.0", False]]}
+
+    monkeypatch.setattr(MultiExchangeScanner, "_fetch_json", payload)
+    pair = NormalizedPair("BTC", "EUR")
+    try:
+        snap = MultiExchangeScanner.fetch_binance_depth(pair, 10)
+    except ValueError as exc:
+        assert "bool" in str(exc).lower(), exc
+    else:
+        level = snap.bids[0]
+        ask = snap.asks[0]
+        raise AssertionError((level.price, level.amount, ask.price, ask.amount))
+
+    def numeric(_url):
+        return {"bids": [["60000.5", "1.25"]], "asks": [["60010", "2"]]}
+
+    monkeypatch.setattr(MultiExchangeScanner, "_fetch_json", numeric)
+    snap = MultiExchangeScanner.fetch_binance_depth(pair, 10)
+    assert (snap.bids[0].price, snap.bids[0].amount, snap.asks[0].price, snap.asks[0].amount) == (
+        60000.5, 1.25, 60010.0, 2.0,
+    )
