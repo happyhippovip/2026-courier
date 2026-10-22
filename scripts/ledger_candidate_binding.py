@@ -80,7 +80,11 @@ def main(argv: list[str] | None = None) -> int:
     binding = build_binding(args.db, args.repo)
     text = json.dumps(binding, indent=2, sort_keys=True) + "\n"
     if args.out:
-        Path(args.out).write_text(text, encoding="utf-8")
+        dest = Path(args.out)
+        if dest.is_symlink() or dest.parent.is_symlink():
+            print(f"{dest}: refusing to follow a symlink", file=sys.stderr)
+            return 2
+        dest.write_text(text, encoding="utf-8")
     else:
         sys.stdout.write(text)
     return 0 if binding["status"] == "CANDIDATE" else 1
