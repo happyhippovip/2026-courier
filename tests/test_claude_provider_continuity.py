@@ -79,6 +79,11 @@ class ClaudeContinuityTests(unittest.TestCase):
     def saved(self):
         return json.loads(self.path.read_text())
 
+    def test_bool_retry_after_is_not_one_second(self):
+        sched = self.scheduler()
+        with self.assertRaises(ValueError):
+            sched.record_provider_failure(self.cp, 429, "quota exhausted", retry_after=True)
+
     def test_quota_checkpoint_is_on_disk_before_resource_release(self):
         sched = self.scheduler()
         checked = []
