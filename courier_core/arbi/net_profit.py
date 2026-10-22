@@ -54,6 +54,16 @@ class NetProfitBreakdown:
     reason: str
 
 
+def _reject_bool_book(book: Optional[OrderbookSnapshot]) -> None:
+    if book is None:
+        return
+    if isinstance(book.latency_ms, bool):
+        raise ValueError("Bool is not a number.")
+    for level in (*book.bids, *book.asks):
+        if isinstance(level.price, bool) or isinstance(level.amount, bool):
+            raise ValueError("Bool is not a number.")
+
+
 class NetProfitEngine:
     """Calculates realistic net yield after fees, depth slippage, and frictions."""
 
@@ -78,6 +88,8 @@ class NetProfitEngine:
         total_spent = 0.0
 
         for level in orders:
+            if isinstance(level.price, bool) or isinstance(level.amount, bool):
+                raise ValueError("Bool is not a number.")
             level_usd = level.price * level.amount
             if remaining_usd <= level_usd:
                 qty_fill = remaining_usd / level.price
@@ -117,6 +129,8 @@ class NetProfitEngine:
     ) -> NetProfitBreakdown:
         if isinstance(order_size_usd, bool):
             raise ValueError("Bool is not a number.")
+        _reject_bool_book(buy_book)
+        _reject_bool_book(sell_book)
         if not buy_book or not sell_book:
             return cls._blocked_breakdown(pair, "UNKNOWN", "UNKNOWN", order_size_usd, "BLOCKED_DATA_UNAVAILABLE", "One or both books missing")
 

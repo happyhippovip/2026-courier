@@ -106,6 +106,27 @@ def test_bool_order_size_is_not_one_dollar():
     ], seen
 
 
+def test_bool_quote_is_not_one_dollar():
+    pair = NormalizedPair("BTC", "EUR")
+    buy = _mock_book("binance", pair, best_bid=60000.0, best_ask=60050.0, depth=5.0)
+    sell = _mock_book("kraken", pair, best_bid=60300.0, best_ask=60350.0, depth=5.0)
+    buy.asks[0] = OrderbookLevel(True, 5.0)
+    sell.bids[0] = OrderbookLevel(True, 5.0)
+    try:
+        breakdown = NetProfitEngine.evaluate_opportunity(pair, buy, sell, order_size_usd=100.0)
+    except ValueError as exc:
+        seen = ("raised", str(exc))
+    else:
+        seen = (
+            "accepted",
+            breakdown.best_ask_price,
+            breakdown.best_bid_price,
+            breakdown.status,
+            breakdown.net_profit_usd,
+        )
+    assert seen == ("raised", "Bool is not a number."), seen
+
+
 def test_net_profit_blocks_when_fees_exceed_spread():
     # Binance ask: 65,000 | OKX bid: 65,050
     # Gross spread = 50 USD on 65,000 = ~0.0769%
