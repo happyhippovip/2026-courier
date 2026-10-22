@@ -70,6 +70,7 @@ def derive_integrity_status(
     if not isinstance(record_sha, str) or not SHA256_RE.match(record_sha):
         return STATUS_MISSING_DATA
 
+    bytes_match = False
     if blob_bytes is not None:
         actual_sha = hashlib.sha256(blob_bytes).hexdigest()
         if actual_sha != record_sha:
@@ -77,6 +78,7 @@ def derive_integrity_status(
         record_size = record.get("size")
         if record_size is not None and len(blob_bytes) != record_size:
             return STATUS_HASH_MISMATCH
+        bytes_match = True
 
     if task:
         expected_sha = task.get("expected_sha256")
@@ -98,7 +100,9 @@ def derive_integrity_status(
         if task.get("source") in ("external", "ci", "github", "adapter_unbound"):
             return STATUS_EXTERNAL_PRODUCED
 
-    return STATUS_VERIFIED_MATCH
+    if bytes_match:
+        return STATUS_VERIFIED_MATCH
+    return STATUS_MISSING_DATA
 
 
 def generate_artifact_receipt(
