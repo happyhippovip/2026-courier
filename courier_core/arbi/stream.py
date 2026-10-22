@@ -82,6 +82,12 @@ class L2OrderbookBookkeeper:
         if event.exchange != self.exchange or event.pair != self.pair:
             return
 
+        sequence = event.sequence_id
+        if isinstance(sequence, bool):
+            raise ValueError("Bool is not a number.")
+        if not isinstance(sequence, int):
+            raise ValueError("sequence is not a number.")
+
         self._apply_levels(self.bids, event.bids_updated)
         self._apply_levels(self.asks, event.asks_updated)
 
