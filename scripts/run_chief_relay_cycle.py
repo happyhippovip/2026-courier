@@ -323,7 +323,9 @@ def main() -> None:
     _refuse_symlink(incoming_dir)
     repo_dir = repo_dir.resolve()
     incoming_dir = incoming_dir.resolve()
-    processed_dir = (repo_dir / args.processed_dir).resolve()
+    processed_dir = repo_dir / args.processed_dir
+    _refuse_symlink(processed_dir)
+    processed_dir = processed_dir.resolve()
     dispatch_dir = repo_dir / args.dispatch_dir
     _refuse_symlink(dispatch_dir)
     dispatch_dir = dispatch_dir.resolve()

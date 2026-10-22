@@ -252,6 +252,84 @@ def test_dispatch_dir_cli_does_not_follow_a_symlink(tmp_path, monkeypatch):
         ["plain-dispatch"],
     )
 
+
+def test_processed_dir_cli_does_not_follow_a_symlink(tmp_path, monkeypatch, capsys):
+    secret = {
+        "schema_version": "2.0",
+        "type": "COMMAND",
+        "status": "NEW",
+        "source": "chief",
+        "destination": "antigravity",
+        "message_id": "SECRET-MSG",
+        "task_id": "SECRET-TASK",
+    }
+    result = {"parent_id": "SECRET-MSG", "body": "SECRET-RESULT"}
+
+    class Dummy:
+        returncode = 0
+        stderr = ""
+        stdout = ""
+
+    def plant(name, link_processed):
+        repo = tmp_path / name
+        incoming = repo / "events" / "incoming"
+        incoming.mkdir(parents=True)
+        (incoming / "cmd.json").write_text(json.dumps(secret), encoding="utf-8")
+        (repo / "events" / "dispatch").mkdir(parents=True)
+        (repo / "memory").mkdir()
+        monkeypatch.setattr("scripts.run_chief_relay_cycle.subprocess.run", lambda *args, **kwargs: Dummy())
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "prog",
+                "--repo-dir", str(repo),
+                "--incoming-dir", "events/incoming",
+                "--processed-dir", str(link_processed),
+                "--dispatch-dir", str(repo / "events" / "dispatch"),
+                "--memory-repo", str(repo / "memory"),
+                "--disable-auto-memory",
+            ],
+        )
+        try:
+            main()
+            err = None
+        except SystemExit as exc:
+            err = str(exc)
+        out = capsys.readouterr().out
+        return err, "IDLE" in out
+
+    outside = tmp_path / "outside-processed"
+    outside.mkdir()
+    (outside / "result.json").write_text(json.dumps(result), encoding="utf-8")
+    linked = tmp_path / "linked-processed"
+    linked.symlink_to(outside, target_is_directory=True)
+    err_link, idle_link = plant("repo-link", linked)
+
+    parent_outside = tmp_path / "processed-parent-outside"
+    (parent_outside / "processed").mkdir(parents=True)
+    (parent_outside / "processed" / "result.json").write_text(json.dumps(result), encoding="utf-8")
+    linked_parent = tmp_path / "processed-linked-parent"
+    linked_parent.symlink_to(parent_outside, target_is_directory=True)
+    err_parent, idle_parent = plant("repo-parent", linked_parent / "processed")
+
+    refused = "RELAY_CYCLE_ERROR: refusing to follow a symlink"
+    assert (
+        err_link,
+        idle_link,
+        "SECRET-RESULT" in (outside / "result.json").read_text(encoding="utf-8"),
+        err_parent,
+        idle_parent,
+        "SECRET-RESULT" in (parent_outside / "processed" / "result.json").read_text(encoding="utf-8"),
+    ) == (
+        refused,
+        False,
+        True,
+        refused,
+        False,
+        True,
+    )
+
+
 @patch("scripts.run_chief_relay_cycle.subprocess.run")
 def test_run_cycle_no_pending(mock_run, tmp_path):
     res = run_cycle(
