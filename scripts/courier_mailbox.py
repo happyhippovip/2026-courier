@@ -81,6 +81,13 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
 
         for task in tasks:
             raw_id = task.get("task_id")
+            if isinstance(raw_id, bool):
+                task["status"] = "BLOCKED"
+                task["resolution"] = "INVALID_TASK_ID"
+                task["reason"] = "Bool is not a task id."
+                task["processed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                updated_lines.append(json.dumps(task))
+                continue
             if isinstance(raw_id, str) and raw_id:
                 task_id = raw_id
             else:

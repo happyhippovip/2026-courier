@@ -141,6 +141,25 @@ def test_mailbox_costgate_blocks_missing_cost(tmp_path):
     assert updated["resolution"] == "UNKNOWN_COST"
 
 
+def test_mailbox_bool_task_id_does_not_execute(tmp_path):
+    inbox = tmp_path / "inbox.jsonl"
+    outbox = tmp_path / "outbox.jsonl"
+    home = tmp_path / "home"
+    task = {
+        "task_id": True,
+        "name": "bool id",
+        "estimated_cost_eur": 0.0,
+        "status": "PENDING",
+    }
+    inbox.write_text(json.dumps(task) + "\n", encoding="utf-8")
+    results = process_inbox(inbox, outbox, home_path=home)
+    assert results == []
+    updated = json.loads(inbox.read_text(encoding="utf-8").strip())
+    assert updated["status"] == "BLOCKED"
+    assert updated["resolution"] == "INVALID_TASK_ID"
+    assert not outbox.exists()
+
+
 def test_mailbox_lease_store_failure_fails_closed(tmp_path, monkeypatch):
     inbox = tmp_path / "inbox.jsonl"
     outbox = tmp_path / "outbox.jsonl"
