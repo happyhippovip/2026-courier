@@ -65,6 +65,43 @@ def test_claim_and_release(continuation_engine):
     assert continuation_engine.release(workkey) is True
 
 
+def test_unreadable_claim_is_not_taken(continuation_engine):
+    workkey = "WK_BAD"
+    path = continuation_engine.claims_dir / f"{workkey}.claim"
+    path.write_text("{not json", encoding="utf-8")
+    assert continuation_engine.claim(workkey, owner="worker-b") is False
+    assert path.read_text(encoding="utf-8") == "{not json"
+    assert continuation_engine.is_claimed(workkey) == {"unreadable": True}
+
+
+def test_claim_without_lease_window_is_not_taken(continuation_engine):
+    workkey = "WK_NOTIME"
+    path = continuation_engine.claims_dir / f"{workkey}.claim"
+    original = {"owner": "worker-a", "ttl_s": 3600}
+    path.write_text(json.dumps(original), encoding="utf-8")
+    assert continuation_engine.claim(workkey, owner="worker-b") is False
+    assert json.loads(path.read_text(encoding="utf-8")) == original
+
+    boolean_stamp = {"owner": "worker-a", "created_at_ts": True, "ttl_s": 3600}
+    path.write_text(json.dumps(boolean_stamp), encoding="utf-8")
+    assert continuation_engine.claim(workkey, owner="worker-b") is False
+    assert json.loads(path.read_text(encoding="utf-8"))["created_at_ts"] is True
+
+
+def test_proven_expired_claim_can_be_taken(continuation_engine):
+    workkey = "WK_OLD"
+    path = continuation_engine.claims_dir / f"{workkey}.claim"
+    stale = {
+        "workkey": workkey,
+        "owner": "worker-a",
+        "created_at_ts": 1,
+        "ttl_s": 1,
+    }
+    path.write_text(json.dumps(stale), encoding="utf-8")
+    assert continuation_engine.claim(workkey, owner="worker-b") is True
+    assert continuation_engine.is_claimed(workkey)["owner"] == "worker-b"
+
+
 def test_mode_a_local_deterministic(continuation_engine):
     packet = {
         "task_id": "test-task-a",

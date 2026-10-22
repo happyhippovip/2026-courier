@@ -18,6 +18,7 @@ import datetime
 import enum
 import hashlib
 import json
+import math
 import os
 import re
 import shlex
@@ -65,6 +66,25 @@ def canonical_json_hash(data: Any) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def _lease_window(data: Any) -> Optional[Tuple[float, float]]:
+    """Return created_at and ttl only when both are finite numbers.
+
+    A missing, boolean, or non-finite field is not an expiry. Callers must
+    leave that claim file in place.
+    """
+    if not isinstance(data, dict):
+        return None
+    created = data.get("created_at_ts")
+    ttl = data.get("ttl_s")
+    if isinstance(created, bool) or not isinstance(created, (int, float)):
+        return None
+    if isinstance(ttl, bool) or not isinstance(ttl, (int, float)) or ttl <= 0:
+        return None
+    if not math.isfinite(created) or not math.isfinite(ttl):
+        return None
+    return float(created), float(ttl)
+
+
 class VerifiedContinuation:
     """Orchestrates verifiable task claims, execution modes, and durable checkpoints."""
 
@@ -87,36 +107,37 @@ class VerifiedContinuation:
         claim_file = self.claims_dir / f"{workkey}.claim"
         now = datetime.datetime.now(datetime.timezone.utc).timestamp()
 
-        # Check existing claim for renew or expiry
+        # Check existing claim for renew or expiry. An unreadable file is
+        # not an expired lease: deleting it would let the next caller take
+        # a workkey that may still be running.
         if claim_file.exists():
             try:
                 data = json.loads(claim_file.read_text(encoding="utf-8"))
-                created_at = data.get("created_at_ts", 0)
-                active_ttl = data.get("ttl_s", ttl_s)
-                if now - created_at < active_ttl:
-                    # Active lease exists
-                    if data.get("owner") == owner:
-                        # Owner renews lease
-                        claim_data = {
-                            "workkey": workkey,
-                            "owner": owner,
-                            "pid": os.getpid(),
-                            "created_at_iso": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                            "created_at_ts": now,
-                            "ttl_s": ttl_s,
-                        }
-                        temp_claim = self.claims_dir / f"{workkey}.claim.{uuid.uuid4().hex[:8]}.tmp"
-                        temp_claim.write_text(json.dumps(claim_data, indent=2), encoding="utf-8")
-                        os.replace(temp_claim, claim_file)
-                        return True
-                    return False
-            except Exception:
-                pass
-            # Expired lease: purge stale claim file
+            except (OSError, ValueError):
+                return False
+            window = _lease_window(data)
+            if window is None:
+                return False
+            created_at, active_ttl = window
+            if now - created_at < active_ttl:
+                if data.get("owner") == owner:
+                    claim_data = {
+                        "workkey": workkey,
+                        "owner": owner,
+                        "pid": os.getpid(),
+                        "created_at_iso": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                        "created_at_ts": now,
+                        "ttl_s": ttl_s,
+                    }
+                    temp_claim = self.claims_dir / f"{workkey}.claim.{uuid.uuid4().hex[:8]}.tmp"
+                    temp_claim.write_text(json.dumps(claim_data, indent=2), encoding="utf-8")
+                    os.replace(temp_claim, claim_file)
+                    return True
+                return False
             try:
                 claim_file.unlink(missing_ok=True)
             except OSError:
-                pass
+                return False
 
         claim_data = {
             "workkey": workkey,
@@ -143,9 +164,12 @@ class VerifiedContinuation:
         if not claim_file.exists():
             return None
         try:
-            return json.loads(claim_file.read_text(encoding="utf-8"))
-        except Exception:
-            return None
+            data = json.loads(claim_file.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return {"unreadable": True}
+        if not isinstance(data, dict):
+            return {"unreadable": True}
+        return data
 
     def release(self, workkey: str, owner: Optional[str] = None) -> bool:
         """Release claim cleanly, checking owner if specified."""
