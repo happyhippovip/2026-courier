@@ -138,6 +138,31 @@ def test_bool_max_iterations_is_not_one(valid_command):
     )
 
 
+def test_float_max_iterations_is_not_one(valid_command):
+    command = json.loads(json.dumps(valid_command))
+    command["max_iterations"] = 1.0
+    command_ok, command_reason = build_antigravity_worker_job.validate_command_for_job(command)
+    job = _valid_job()
+    job["max_iterations"] = 1.0
+    job_ok, job_reason = build_antigravity_worker_job.validate_worker_job_against_schema(job, None)
+    numeric = json.loads(json.dumps(valid_command))
+    numeric["max_iterations"] = 1
+    numeric_ok, numeric_reason = build_antigravity_worker_job.validate_command_for_job(numeric)
+    two = json.loads(json.dumps(valid_command))
+    two["max_iterations"] = 2
+    two_ok, two_reason = build_antigravity_worker_job.validate_command_for_job(two)
+    assert (command_ok, command_reason, job_ok, job_reason, numeric_ok, numeric_reason, two_ok, two_reason) == (
+        False,
+        "max_iterations must be 1, got 1.0",
+        False,
+        "Invalid max_iterations: 1.0 (strictly 1 required)",
+        True,
+        "VALID",
+        False,
+        "max_iterations must be 1, got 2",
+    )
+
+
 def test_memory_repo_cli_does_not_follow_a_symlink(tmp_path, valid_command):
     def run(mem: Path):
         cmd = tmp_path / f"cmd-{mem.name}.json"
