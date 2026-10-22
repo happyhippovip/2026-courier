@@ -53,7 +53,13 @@ def get_bodyguard_invocations():
             raise ValueError("refusing to follow a symlink")
         try:
             data = json.loads(state_file.read_text(encoding="utf-8"))
-            total_invocations += data.get("model_calls_incurred", 0)
+        except Exception:
+            continue
+        count = data.get("model_calls_incurred", 0)
+        if isinstance(count, bool):
+            raise ValueError("Bool is not a number.")
+        try:
+            total_invocations += count
         except Exception:
             pass
     return total_invocations

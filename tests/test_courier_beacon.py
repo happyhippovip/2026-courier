@@ -138,6 +138,35 @@ def test_state_files_do_not_follow_a_symlink(tmp_path):
         and (states / "b.json").is_symlink()
     ), (dir_count, dir_err, file_count, file_err)
 
+
+def test_bool_model_calls_are_not_a_count(tmp_path):
+    def plant(name, value):
+        root = tmp_path / name
+        states = root / "events" / "agent-states"
+        states.mkdir(parents=True)
+        (states / "a.json").write_text(
+            json.dumps({"model_calls_incurred": value}), encoding="utf-8",
+        )
+        old = os.getcwd()
+        try:
+            os.chdir(root)
+            try:
+                return get_bodyguard_invocations(), None
+            except ValueError as exc:
+                return None, str(exc)
+        finally:
+            os.chdir(old)
+
+    true_count, true_err = plant("true-case", True)
+    false_count, false_err = plant("false-case", False)
+    num_count, num_err = plant("num-case", 2)
+    refused = "Bool is not a number."
+    assert (
+        true_err == refused and true_count is None
+        and false_err == refused and false_count is None
+        and num_err is None and num_count == 2
+    ), (true_count, true_err, false_count, false_err, num_count, num_err)
+
 def test_main_already_halted(capsys):
     with patch("scripts.courier_beacon.fetch_metrics", return_value={"system_halted": True, "halt_reason": "Admin request"}), \
          patch("scripts.courier_beacon.time.sleep", side_effect=KeyboardInterrupt):
