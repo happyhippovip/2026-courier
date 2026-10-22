@@ -83,7 +83,13 @@ def _steal_stale_lock(task_file: Path, path: Path) -> bool:
     # present lock always parses; unparseable means a foreign writer — treat
     # as live and defer rather than risk duplicating its work.
     try:
-        started_at = float(json.loads(path.read_text(encoding="utf-8")).get("started_at") or 0)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        raw = payload.get("started_at") if isinstance(payload, dict) else None
+        # Bool is an int. True would become 1.0 and look ancient, so a second
+        # worker would steal a lock whose clock cannot be decided.
+        if isinstance(raw, bool):
+            return False
+        started_at = float(raw or 0)
     except (OSError, ValueError, TypeError, AttributeError):
         return False
     if time.time() - started_at < LOCK_TIMEOUT_SECONDS:

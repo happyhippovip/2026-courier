@@ -114,3 +114,19 @@ def test_stale_lock_is_stolen_and_released(tmp_path: Path, monkeypatch):
     assert adapter.run(str(task_file)) == 0
     assert dispatches == [1]
     assert not adapter.lock_path(task_file).exists()
+
+
+def test_bool_lock_timestamp_is_not_stolen(tmp_path: Path):
+    """True is not a time. A bool started_at must not look ancient and be stolen."""
+    task_file = tmp_path / "task.json"
+    task_file.write_text(json.dumps(packet()), encoding="utf-8")
+    lock = adapter.lock_path(task_file)
+    original = json.dumps({"pid": 999999, "started_at": True})
+    lock.write_text(original, encoding="utf-8")
+    owned = adapter.acquire_packet_lock(task_file)
+    assert owned is False, lock.read_text(encoding="utf-8")
+    assert lock.read_text(encoding="utf-8") == original
+    false_body = json.dumps({"pid": 999999, "started_at": False})
+    lock.write_text(false_body, encoding="utf-8")
+    assert adapter.acquire_packet_lock(task_file) is False
+    assert lock.read_text(encoding="utf-8") == false_body
