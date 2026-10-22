@@ -32,8 +32,18 @@ class ReceiptError(Exception):
     """Base exception for reality check receipt operations."""
 
 
+def _require_count(name: str, value: Any) -> int:
+    """A finding or file count. Bool is an int, so True would become 1."""
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ReceiptError(f"{name} is not a count. Bool is not a number.")
+    return value
+
+
 def compute_reality_score(high: int, medium: int, low: int) -> int:
     """Calculates 0-100 reality score from severity counts."""
+    high = _require_count("high", high)
+    medium = _require_count("medium", medium)
+    low = _require_count("low", low)
     penalty = (high * 15) + (medium * 5) + (low * 1)
     return max(0, min(100, 100 - penalty))
 
@@ -93,6 +103,9 @@ def read_report_data(report_path: Path) -> tuple[dict[str, Any], str, int]:
     summary = data["summary"]
     if not isinstance(summary, dict) or not all(k in summary for k in ("high", "medium", "low")):
         raise ReceiptError("report summary must contain high, medium, and low integer counts")
+    for key in ("high", "medium", "low"):
+        _require_count(f"summary.{key}", summary.get(key))
+    _require_count("files_scanned", data.get("files_scanned"))
 
     report_sha256 = hashlib.sha256(raw_bytes).hexdigest()
     return data, report_sha256, len(raw_bytes)

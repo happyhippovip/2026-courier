@@ -204,3 +204,28 @@ def test_verify_does_not_follow_a_receipt_symlink(report_dir, tmp_path):
     with pytest.raises(ReceiptError, match="symlink"):
         result = verify_proof_card(link, report_dir)
         raise AssertionError(result)
+
+
+def test_bool_finding_count_is_not_one(tmp_path, sample_report_data):
+    """True is not one finding. A bool count must not be signed onto a card."""
+    def write(changes):
+        data = dict(sample_report_data)
+        data["summary"] = dict(sample_report_data["summary"])
+        data.update(changes)
+        if "summary" in changes:
+            data["summary"] = changes["summary"]
+        report = tmp_path / "report.json"
+        report.write_text(json.dumps(data), encoding="utf-8")
+        return report
+
+    report = write({"summary": dict(sample_report_data["summary"], high=True)})
+    with pytest.raises(ReceiptError, match="Bool"):
+        card = create_proof_card(report)
+        raise AssertionError(card["summary"]["high"])
+    for changes in (
+            {"summary": dict(sample_report_data["summary"], medium=True)},
+            {"summary": dict(sample_report_data["summary"], low=True)},
+            {"files_scanned": True},
+    ):
+        with pytest.raises(ReceiptError, match="Bool"):
+            create_proof_card(write(changes))
