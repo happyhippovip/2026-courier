@@ -281,8 +281,11 @@ class Hub:
 
     # -- controller (the only authority) ----------------------------------------
     def _token(self) -> Optional[str]:
+        path = self.home / "run" / "controller.token"
+        if self.home.is_symlink() or path.is_symlink() or path.parent.is_symlink():
+            return None
         try:
-            return (self.home / "run" / "controller.token").read_text(encoding="utf-8").strip() or None
+            return path.read_text(encoding="utf-8").strip() or None
         except OSError:
             return None
 
