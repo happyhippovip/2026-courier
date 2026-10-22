@@ -130,6 +130,9 @@ class AirDropOrganizer:
         self.library_dir = Path(library_dir)
         self.quarantine_dir = Path(quarantine_dir)
         self.db_path = Path(db_path)
+        for path in (self.incoming_dir, self.library_dir, self.quarantine_dir, self.db_path):
+            if path.is_symlink() or path.parent.is_symlink():
+                raise ValueError(f"{path}: refusing to follow a symlink")
 
         self.incoming_dir.mkdir(parents=True, exist_ok=True)
         self.library_dir.mkdir(parents=True, exist_ok=True)
