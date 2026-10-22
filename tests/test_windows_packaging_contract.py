@@ -48,6 +48,14 @@ def test_build_package_script_bundles_policy_and_runtime():
     assert 'Copy-Item "$projectRoot\\events\\policies\\resource_policy.json" -Destination "$OutDir\\events\\policies\\resource_policy.json"' in text
 
 
+def test_build_package_pins_embedded_python_hash():
+    text = BUILD_PS1.read_text(encoding="utf-8")
+    assert "a86a2e28870967745d255cc597d1e4d19ae79e65e927cdc324baa0256202231c" in text
+    assert "Get-FileHash -Algorithm SHA256" in text
+    assert "BUILD REFUSED: embedded Python SHA-256 mismatch" in text
+    assert "exit 1" in text
+
+
 def test_bundled_policy_is_fail_closed():
     from scripts.resource_policy import ResourcePolicyManager
 
