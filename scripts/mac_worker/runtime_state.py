@@ -13,7 +13,15 @@ from pathlib import Path
 CANONICAL_WORKSPACE = "/Users/user/Downloads/2026-courier"
 
 
+def _refuse_symlink(path):
+    """Refuse this path, or the directory that contains it, when it is a symlink."""
+    candidate = Path(path)
+    if candidate.is_symlink() or candidate.parent.is_symlink():
+        raise OSError(f"{path}: refusing to follow a symlink")
+
+
 def read_object(path, default=None):
+    _refuse_symlink(path)
     try:
         value = json.loads(Path(path).read_text())
     except FileNotFoundError:
@@ -33,6 +41,7 @@ def sync_directory(path):
 
 def atomic_json(path, value):
     path = Path(path)
+    _refuse_symlink(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(prefix=path.name + ".", suffix=".tmp", dir=path.parent)
     try:
@@ -51,6 +60,7 @@ def atomic_json(path, value):
 def control_lock(wall):
     """STOP, admission, spawn and claim use the same linearization lock."""
     wall = Path(wall)
+    _refuse_symlink(wall)
     wall.mkdir(parents=True, exist_ok=True)
     with open(wall / "control.lock", "a") as handle:
         fcntl.flock(handle, fcntl.LOCK_EX)
