@@ -222,7 +222,7 @@ def test_windows_host_executes_under_courier_ledger_writer_lease(tmp_path):
         store.acquire(scope, win_host, "wk-other", ttl_s=30)
 
     # 4. Valid write check with current token passes
-    checked = store.check_write(scope, lease.token)
+    checked = store.check_write(scope, lease)
     assert checked.holder == win_host
     assert checked.token == 1
 
@@ -242,7 +242,7 @@ def test_windows_host_executes_under_courier_ledger_writer_lease(tmp_path):
 
     # 8. First worker presenting old token 1 is strictly rejected with StaleLease
     with pytest.raises(StaleLease):
-        store.check_write(scope, lease.token)
+        store.check_write(scope, lease)
 
     store.close()
 

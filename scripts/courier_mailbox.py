@@ -103,7 +103,7 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
                     "execution_result": res,
                     "completed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                 }
-                writer = FencedFileWriter(lease_store, f"mailbox:{inbox_path.name}", lease.token)
+                writer = FencedFileWriter(lease_store, f"mailbox:{inbox_path.name}", lease)
                 with writer.open(outbox_path, "a", encoding="utf-8") as out_f:
                     out_f.write(json.dumps(outbox_entry) + "\n")
                     
@@ -112,7 +112,7 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
             updated_lines.append(json.dumps(task))
 
         # Verify fence before atomic inbox replace
-        lease_store.check_write(scope, lease.token)
+        lease_store.check_write(scope, lease)
         tmp_inbox = inbox_path.with_suffix(".tmp")
         tmp_inbox.write_text("\n".join(updated_lines) + ("\n" if updated_lines else ""), encoding="utf-8")
         tmp_inbox.replace(inbox_path)

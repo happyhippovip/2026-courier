@@ -151,28 +151,34 @@ class LeaseStore:
             raise
         return Lease(c_scope, lease.holder, lease.workkey, lease.token, now + ttl_s)
 
-    def check_write(self, scope, token):
-        """Fence: raise unless token is the current, unexpired token for scope or an enclosing parent scope."""
+    def check_write(self, scope, lease):
+        """Fence: return the live lease that authorizes a write to scope, else raise StaleLease.
+
+        The capability is the whole Lease from acquire/renew, never a bare token: token numbers
+        count per scope, so the same number exists in many scopes. A write passes only when
+        - the target is the lease's scope or a path inside it,
+        - that scope's live row has the same holder, workkey and token, and
+        - no more specific live lease of another holder or workkey covers the target.
+        Expired or released leases do not count. Anything else, including unknown input, is denied."""
         c_scope = canonicalize_scope(scope)
-        lease = self.current(c_scope)
-        if lease is not None:
-            if lease.token != token:
-                raise StaleLease(f"write to {c_scope} with token {token} refused (current token is {lease.token})")
-            return lease
-        # A scope that was ever granted on its own keeps its own token history. Tokens count per
-        # scope, so a stale holder's token can equal a parent's; never fall back to the parent there.
-        if self._row(c_scope) is not None:
-            raise StaleLease(f"write to {c_scope} with token {token} refused (lease expired or released)")
-        # Only a strictly enclosing parent authorizes a child path, never a child its parent.
+        if not isinstance(lease, Lease):
+            raise StaleLease(f"write to {c_scope} refused: a lease is required, not {type(lease).__name__}")
+        auth = canonicalize_scope(lease.scope)
+        if not (c_scope == auth or c_scope.startswith(auth + "/")):
+            raise StaleLease(f"write to {c_scope} refused: outside the lease scope {auth}")
+        own = self.current(auth)
+        if own is None or (own.holder, own.workkey, own.token) != (lease.holder, lease.workkey, lease.token):
+            raise StaleLease(f"write to {c_scope} with token {lease.token} refused: lease on {auth} is not current")
         rows = self.db.execute(
             "SELECT scope, holder, workkey, token, expires_at FROM lease WHERE expires_at > ? AND holder IS NOT NULL",
             (self.clock(),),
         ).fetchall()
         for r in rows:
             live = Lease(*r)
-            if c_scope.startswith(live.scope + "/") and live.token == token:
-                return live
-        raise StaleLease(f"write to {c_scope} with token {token} refused")
+            covers = c_scope == live.scope or c_scope.startswith(live.scope + "/")
+            if covers and len(live.scope) > len(auth) and (live.holder, live.workkey) != (lease.holder, lease.workkey):
+                raise StaleLease(f"write to {c_scope} refused: {live.scope} is held by {live.holder} for {live.workkey}")
+        return own
 
     def release(self, lease):
         c_scope = canonicalize_scope(lease.scope)
@@ -181,14 +187,14 @@ class LeaseStore:
 
 
 class FencedFileWriter:
-    """Ensures that before writing to any path, the lease token is verified against the LeaseStore."""
-    def __init__(self, lease_store: LeaseStore, scope: str, token: int):
+    """Ensures that before writing to any path, the lease is verified against the LeaseStore."""
+    def __init__(self, lease_store: LeaseStore, scope: str, lease: Lease):
         self.store = lease_store
         self.scope = canonicalize_scope(scope)
-        self.token = token
+        self.lease = lease
 
     def check(self):
-        return self.store.check_write(self.scope, self.token)
+        return self.store.check_write(self.scope, self.lease)
 
     def open(self, path, mode="w", *args, **kwargs):
         if any(m in mode for m in ("w", "a", "+", "x")):

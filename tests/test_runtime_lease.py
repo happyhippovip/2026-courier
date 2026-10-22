@@ -1,6 +1,7 @@
 import pytest
+from dataclasses import replace
 
-from courier_runtime.lease import LeaseConflict, LeaseStore, StaleLease
+from courier_runtime.lease import Lease, LeaseConflict, LeaseStore, StaleLease
 
 
 class Clock:
@@ -36,10 +37,10 @@ def test_expired_lease_can_be_taken_over_and_old_holder_is_fenced(leases):
     new = store.acquire("scope", "win:s2", "wk-1", ttl_s=30)
     assert new.token == old.token + 1
     with pytest.raises(StaleLease):
-        store.check_write("scope", old.token)       # a still-running old holder cannot write
+        store.check_write("scope", old)             # a still-running old holder cannot write
     with pytest.raises(StaleLease):
         store.renew(old, ttl_s=30)                  # nor heartbeat its way back
-    assert store.check_write("scope", new.token).holder == "win:s2"
+    assert store.check_write("scope", new).holder == "win:s2"
 
 
 def test_heartbeat_extends_and_same_holder_reacquire_keeps_token(leases):
@@ -59,7 +60,7 @@ def test_same_holder_different_workkey_conflicts_while_lease_is_live(leases):
     first = store.acquire("scope", "mac", "wk-A", ttl_s=30)
     with pytest.raises(LeaseConflict):
         store.acquire("scope", "mac", "wk-B", ttl_s=30)
-    assert store.check_write("scope", first.token).workkey == "wk-A"
+    assert store.check_write("scope", first).workkey == "wk-A"
 
 
 def test_same_holder_new_workkey_after_expiry_gets_new_token_and_fences_old(leases):
@@ -69,7 +70,7 @@ def test_same_holder_new_workkey_after_expiry_gets_new_token_and_fences_old(leas
     new = store.acquire("scope", "mac", "wk-B", ttl_s=30)
     assert new.token == old.token + 1
     with pytest.raises(StaleLease):
-        store.check_write("scope", old.token)
+        store.check_write("scope", old)
 
 
 def test_release_frees_scope_but_token_keeps_increasing(leases):
@@ -145,13 +146,13 @@ def test_fenced_file_writer_prevents_unauthorized_writes(leases, tmp_path):
     target_file = tmp_path / "test.txt"
 
     # Fenced writer with valid token succeeds
-    writer = FencedFileWriter(store, "repo://docs", lease.token)
+    writer = FencedFileWriter(store, "repo://docs", lease)
     with writer.open(target_file, "w") as f:
         f.write("hello guarded world")
     assert target_file.read_text() == "hello guarded world"
 
     # Fenced writer with stale token raises StaleLease
-    stale_writer = FencedFileWriter(store, "repo://docs", lease.token + 99)
+    stale_writer = FencedFileWriter(store, "repo://docs", replace(lease, token=lease.token + 99))
     with pytest.raises(StaleLease):
         stale_writer.open(target_file, "w")
 
@@ -165,7 +166,7 @@ def test_enclosing_parent_scope_authorizes_child_path_write(leases):
     store, _ = leases
     lease = store.acquire("repo://courier_hub/static", "writer-1", "wk-hub", ttl_s=30)
     # Child path write check with parent token passes
-    checked = store.check_write("repo://courier_hub/static/evidence_badge.mjs", lease.token)
+    checked = store.check_write("repo://courier_hub/static/evidence_badge.mjs", lease)
     assert checked.token == lease.token
 
 
@@ -174,7 +175,7 @@ def test_child_scope_token_cannot_write_the_parent(leases):
     child = store.acquire("repo://courier_hub/static/evidence_badge.mjs", "writer-1", "wk-badge", ttl_s=30)
     # Holding one file must not authorize writes to the folder around it.
     with pytest.raises(StaleLease):
-        store.check_write("repo://courier_hub/static", child.token)
+        store.check_write("repo://courier_hub/static", child)
 
 
 def test_stale_child_holder_cannot_borrow_a_parent_token(leases):
@@ -185,4 +186,90 @@ def test_stale_child_holder_cannot_borrow_a_parent_token(leases):
     parent = store.acquire("repo://courier_hub/static", "writer-2", "wk-hub", ttl_s=30)
     assert parent.token == old.token
     with pytest.raises(StaleLease):
-        store.check_write("repo://courier_hub/static/evidence_badge.mjs", old.token)
+        store.check_write("repo://courier_hub/static/evidence_badge.mjs", old)
+
+
+# -- G1 write authorization matrix: a write binds target, lease scope, holder, workkey and token --
+
+def _insert_live(store, scope, holder, workkey, token, expires_at):
+    # Builds a state acquire() itself refuses (overlapping holders), to check the fence on its own.
+    store.db.execute("INSERT INTO lease(scope, holder, workkey, token, expires_at) VALUES(?,?,?,?,?)",
+                     (scope, holder, workkey, token, expires_at))
+
+
+def test_g1_foreign_holder_with_the_same_token_number_is_denied(leases):
+    store, _ = leases
+    x = store.acquire("repo://a", "host-x", "wk-x", ttl_s=30)
+    y = store.acquire("repo://b", "host-y", "wk-y", ttl_s=30)
+    assert x.token == y.token == 1
+    with pytest.raises(StaleLease):
+        store.check_write("repo://a", y)
+    with pytest.raises(StaleLease):
+        store.check_write("repo://a", replace(y, scope="repo://a"))   # forged scope, foreign holder
+
+
+def test_g1_bare_token_number_is_never_a_capability(leases):
+    store, _ = leases
+    x = store.acquire("repo://a", "host-x", "wk-x", ttl_s=30)
+    with pytest.raises(StaleLease):
+        store.check_write("repo://a", x.token)
+    with pytest.raises(StaleLease):
+        store.check_write("repo://a", None)
+
+
+def test_g1_correct_holder_writes_its_scope(leases):
+    store, _ = leases
+    x = store.acquire("repo://a", "host-x", "wk-x", ttl_s=30)
+    assert store.check_write("repo://a", x) == x
+
+
+def test_g1_parent_lease_covers_a_nested_path(leases):
+    store, _ = leases
+    x = store.acquire("repo://a", "host-x", "wk-x", ttl_s=30)
+    assert store.check_write("repo://a/sub/file", x).scope == "repo://a"
+    with pytest.raises(StaleLease):
+        store.check_write("repo://ab/file", x)                       # prefix, not a sub-path
+
+
+def test_g1_active_child_lease_of_another_holder_wins_over_the_parent(leases):
+    store, clock = leases
+    x = store.acquire("repo://a", "host-x", "wk-x", ttl_s=30)
+    _insert_live(store, "repo://a/sub", "host-y", "wk-y", 1, clock.t + 30)
+    with pytest.raises(StaleLease):
+        store.check_write("repo://a/sub/file", x)
+    assert store.check_write("repo://a/other", x).holder == "host-x"
+
+
+def test_g1_expired_or_released_child_does_not_block_the_parent(leases):
+    store, clock = leases
+    expired = store.acquire("repo://a/sub", "host-y", "wk-y", ttl_s=10)
+    released = store.acquire("repo://a/rel", "host-y", "wk-r", ttl_s=60)
+    store.release(released)
+    clock.t += 15
+    x = store.acquire("repo://a", "host-x", "wk-x", ttl_s=30)
+    assert store.check_write("repo://a/sub/file", x).holder == "host-x"
+    assert store.check_write("repo://a/rel/file", x).holder == "host-x"
+    with pytest.raises(StaleLease):
+        store.check_write("repo://a/sub/file", expired)              # the old child holder stays fenced
+
+
+def test_g1_same_holder_with_an_old_token_is_denied(leases):
+    store, clock = leases
+    old = store.acquire("repo://a", "host-x", "wk-x", ttl_s=10)
+    clock.t += 15
+    new = store.acquire("repo://a", "host-x", "wk-x", ttl_s=10)
+    assert new.token == old.token + 1
+    with pytest.raises(StaleLease):
+        store.check_write("repo://a", old)
+    assert store.check_write("repo://a", new) == new
+
+
+def test_g1_no_lease_fails_closed(leases):
+    store, _ = leases
+    ghost = Lease("repo://a", "host-x", "wk-x", 1, 10_000.0)
+    with pytest.raises(StaleLease):
+        store.check_write("repo://a", ghost)                         # never granted
+    x = store.acquire("repo://a", "host-x", "wk-x", ttl_s=30)
+    store.release(x)
+    with pytest.raises(StaleLease):
+        store.check_write("repo://a", x)                             # released
