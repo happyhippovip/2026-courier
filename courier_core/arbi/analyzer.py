@@ -68,6 +68,8 @@ class StatisticalQualityAnalyzer:
             or not math.isfinite(latency)
         ):
             flags.append("NON_FINITE_LATENCY")
+        elif latency < 0:
+            flags.append("NEGATIVE_LATENCY")
         elif latency > 1500.0:
             flags.append("HIGH_NETWORK_LATENCY")
 
@@ -92,6 +94,9 @@ class StatisticalQualityAnalyzer:
         if "NON_POSITIVE_PRICE" in flags:
             risk_score += 100
             explanation_parts.append("Orderbook price is not positive.")
+        if "NEGATIVE_LATENCY" in flags:
+            risk_score += 100
+            explanation_parts.append("Orderbook latency is negative.")
 
         # Check status
         if breakdown.status != "ELIGIBLE":
