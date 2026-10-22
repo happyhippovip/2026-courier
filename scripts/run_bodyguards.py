@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -261,6 +262,8 @@ class BodyguardPoolManager:
         """Update bodyguard execution progress."""
         if isinstance(progress, bool):
             raise ValueError("Bool is not a number.")
+        if not isinstance(progress, (int, float)) or not math.isfinite(progress):
+            raise ValueError("progress is not a number.")
         for bg in BODYGUARD_REGISTRY:
             if bg["callsign"] == callsign.upper():
                 path = self.states_dir / f"{bg['id']}.json"
