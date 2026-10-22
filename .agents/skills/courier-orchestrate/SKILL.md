@@ -35,6 +35,7 @@ Infer one of:
 - HARVEST
 - WINDOW_CUSTODY
 - LANE_ACTIVATION
+- SECURITY_REVIEW
 - GENERAL_ORCHESTRATION
 
 ## Common steps
@@ -118,6 +119,62 @@ Return:
 - exact owned scope
 - collision risks
 - L1 merge gate
+
+
+## SECURITY_REVIEW
+
+A bounded read-only review mode of this **existing** orchestration skill, not a
+new runtime agent, worker lane, scheduler, or permission grant. Inspired by
+[claude-howto's read-only reviewer](https://github.com/luongnv89/claude-howto/blob/main/04-subagents/secure-reviewer.md)
+and [hook guidance](https://github.com/luongnv89/claude-howto/tree/main/06-hooks);
+do not copy or install external scripts.
+
+1. Verify the current `integration/v1` SHA, relevant open PRs, active owner and
+   exact file scope. If an owner already has the finding, mark DUPLICATE and stop.
+2. Stay read-only: use indexed search, known-file reads and available repository
+   APIs. Never edit, commit, start providers, run untrusted code, modify hooks,
+   install plugins, change permissions, start new processes, or spawn a reviewer
+   by default. Follow `.agents/rules/NO_GREP_FAMILY.md`.
+3. Do not open secret values, `.env`, credential stores, private family/personal
+   data, raw command transcripts or unrelated logs. Do not include sensitive
+   source content in the review report. If evidence requires protected data,
+   report NEEDS_AUTHORIZED_REVIEW without accessing it.
+4. Inspect only relevant trust boundaries:
+   - **Authority:** parent/child lease binding, epoch, holder and stale-token
+     rejection at the real side-effect boundary.
+   - **Cost:** absent, non-finite or unknown estimates must block **before**
+     dispatch/adapter execution; zero-cost must be demonstrated, not presumed.
+   - **Evidence:** worker outcome, journal event, input/output fingerprint
+     and verifier must agree; fabricated, missing or foreign FINAL evidence
+     cannot be promoted to VERIFIED.
+   - **Host/recovery:** no duplicate dispatch on resume; respect resource
+     pressure and single-writer ownership.
+5. For provider-native hooks and permission rules, distinguish a *notification*
+   (e.g. `PENDING_POLICY_CHECK`) from an enforced denial. Never call a bridge
+   callback or a passing check an enforced gate without a negative probe that
+   proves the forbidden side effect did not happen. Draft a bounded deterministic
+   negative test for the official owner; do not perform risky live actions.
+6. Permission-friction reductions are restricted to explicitly trusted,
+   project-scoped read-only Markdown paths in the native permission system
+   **after** current path/scope verification. No global blanket allow, no
+   secrets access, no escalation to Write/Bash/network/provider/merge/spend,
+   and no bypass of real human gates. This skill grants no permissions.
+7. Session checkpoint/rewind can aid an individual Claude session; it does
+   **not** replace Courier's durable journal, task identity, owner lease or
+   evidence of actual execution.
+8. Provide only actionable, deduplicated findings. Route any code change or
+   targeted test implementation to its existing L1-L6 owner and retain L1's
+   integration/merge gate. No independent agent promotion.
+
+Output for each nonduplicate finding:
+- CURRENT_HEAD, FILE/FUNCTION, EXISTING_OWNER/PR, SEVERITY
+- EXPECTED_DENIAL_OR_INVARIANT and OBSERVED_EVIDENCE (with source reference)
+- SMALLEST_NEGATIVE_TEST, PROPOSED_MINIMAL_FIX, OWNER_LANE
+- STATUS = PROVEN | SUSPECTED | DUPLICATE | BLOCKED
+- SAFETY = READ_ONLY, COST = 0 EUR (only if actually verified)
+
+Never label a hypothetical negative test as PASS or claim live enforcement
+without observing the real side-effect boundary.
 
 ## Subagents
 
