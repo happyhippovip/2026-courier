@@ -228,6 +228,10 @@ class StatisticalQualityAnalyzer:
             risk_score += 100
             flags.append("NON_FINITE_SLIPPAGE")
             explanation_parts.append("Slippage is not a finite number.")
+        elif slip < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_SLIPPAGE")
+            explanation_parts.append("Slippage is negative.")
         elif gross_ok and slip > (gross * 0.4):
             risk_score += 25
             flags.append("HIGH_SLIPPAGE_DRAG")
