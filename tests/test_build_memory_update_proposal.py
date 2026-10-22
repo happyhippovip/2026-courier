@@ -176,6 +176,43 @@ class TestBuildMemoryUpdateProposal(unittest.TestCase):
         self.assertEqual(proposal["proposed_changes"][1]["status_label"], "EXTERNAL_STATUS")
         self.assertTrue((output_dir / "task-test-1-memory-proposal.json").exists())
 
+    def test_output_dir_symlink_is_not_written(self):
+        result_file = self.td_path / "result-link.json"
+        result_file.write_text(json.dumps({
+            "task_id": "task-link",
+            "message_id": "msg-link",
+            "correlation_id": "corr-link",
+            "payload": {"summary": "Completed testing", "verified_facts": ["fact"]},
+        }), encoding="utf-8")
+        outside = self.td_path / "outside"
+        outside.mkdir()
+        (outside / "keep.txt").write_text("keep", encoding="utf-8")
+        linked = self.td_path / "linked-out"
+        linked.symlink_to(outside)
+        via = self.td_path / "via"
+        via.symlink_to(self.td_path)
+        nested = via / "proposals"
+        errors = []
+        for dest in (linked, nested):
+            try:
+                build_proposal_from_result(
+                    result_file=result_file,
+                    memory_repo_path=self.td_path,
+                    output_dir=dest,
+                )
+            except SystemExit as exc:
+                errors.append(str(exc))
+            else:
+                errors.append("wrote")
+        leaked = sorted(p.name for p in outside.iterdir())
+        self.assertEqual(
+            (errors, leaked, linked.is_symlink()),
+            ([
+                "MEMORY_PROPOSAL_ERROR: refusing to follow a symlink",
+                "MEMORY_PROPOSAL_ERROR: refusing to follow a symlink",
+            ], ["keep.txt"], True),
+        )
+
     def test_build_proposal_from_result_no_facts(self):
         result_file = self.td_path / "result2.json"
         result_file.write_text(json.dumps({
