@@ -126,7 +126,8 @@ class CapacityGovernor:
 
     def evaluate(self, metrics="read"):
         m = self.reader() if metrics == "read" else metrics
-        if (not isinstance(m, dict) or any(not isinstance(m.get(k), (int, float))
+        if (not isinstance(m, dict) or any(
+                isinstance(m.get(k), bool) or not isinstance(m.get(k), (int, float))
                 or not math.isfinite(m[k]) for k in ("swap_mb", "load_1m", "mem_free_pct"))):
             m = None
         if m is None:
