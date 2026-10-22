@@ -101,3 +101,22 @@ def test_stale_marker_without_run_dispatches_exactly_once(tmp_path: Path, monkey
     assert adapter.run(str(task_file)) == 0
     assert gh.dispatches == 1
     assert json.loads(adapter.state_path(task_file).read_text(encoding="utf-8"))["status"] == "WAITING_FOR_WORKER"
+
+
+def test_bool_dispatched_at_does_not_redispatch(tmp_path: Path, monkeypatch):
+    """True is not an ancient clock. A bool marker must not start a second run."""
+    for stamp in (True, False):
+        task_file = tmp_path / f"task-{stamp}.json"
+        task_file.write_text(json.dumps(packet()), encoding="utf-8")
+        adapter.state_path(task_file).write_text(json.dumps({
+            "dispatch_id": "dispatch-9",
+            "status": "DISPATCHING",
+            "dispatched_at": stamp,
+        }), encoding="utf-8")
+        gh = Gh(run_feed=[])
+        monkeypatch.setattr(adapter, "run_cmd", gh)
+        monkeypatch.setattr(adapter, "LOCAL_WAIT_SECONDS", 0)
+        monkeypatch.setattr(adapter, "POLL_SECONDS", 0)
+        monkeypatch.setattr(adapter, "DISPATCH_GRACE_SECONDS", 60)
+        assert adapter.run(str(task_file)) == 0
+        assert gh.dispatches == 0, (stamp, gh.dispatches)

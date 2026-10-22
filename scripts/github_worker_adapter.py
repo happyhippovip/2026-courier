@@ -300,8 +300,13 @@ def await_dispatched_run(task: dict[str, Any], prior: dict[str, Any]) -> bool:
     Returns True when a run for this dispatch_id becomes visible (the caller
     adopts it instead of dispatching again).
     """
+    raw = prior.get("dispatched_at")
+    # Bool is an int. True would become 1.0 and look ancient, so a resume
+    # would start a second external run. An undecidable clock is not stale.
+    if isinstance(raw, bool):
+        return True
     try:
-        deadline = float(prior.get("dispatched_at") or 0) + DISPATCH_GRACE_SECONDS
+        deadline = float(raw or 0) + DISPATCH_GRACE_SECONDS
     except (TypeError, ValueError):
         return False
     while time.time() < deadline:
