@@ -175,3 +175,32 @@ def test_cli_roundtrip(report_dir, tmp_path, capsys):
     report_file.write_text('{"tampered": true}', encoding="utf-8")
     ret = main(["verify", str(receipt_file), str(report_file)])
     assert ret == 2
+
+
+def test_proof_card_does_not_adopt_a_symlinked_report(tmp_path, sample_report_data):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    sample_report_data["repository"] = "foreign-repo"
+    (outside / "report.json").write_text(json.dumps(sample_report_data), encoding="utf-8")
+    link = tmp_path / "report.json"
+    link.symlink_to(outside / "report.json")
+    with pytest.raises(ReceiptError, match="symlink"):
+        card = create_proof_card(link)
+        raise AssertionError(card["repository"])
+    linked_dir = tmp_path / "linked-dir"
+    linked_dir.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ReceiptError, match="symlink"):
+        card = create_proof_card(linked_dir)
+        raise AssertionError(card["repository"])
+    assert (outside / "report.json").read_text(encoding="utf-8").find("foreign-repo") >= 0
+
+
+def test_verify_does_not_follow_a_receipt_symlink(report_dir, tmp_path):
+    card = create_proof_card(report_dir)
+    receipt = tmp_path / "receipt.json"
+    receipt.write_text(json.dumps(card), encoding="utf-8")
+    link = tmp_path / "linked.json"
+    link.symlink_to(receipt)
+    with pytest.raises(ReceiptError, match="symlink"):
+        result = verify_proof_card(link, report_dir)
+        raise AssertionError(result)

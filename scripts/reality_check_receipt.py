@@ -47,7 +47,10 @@ def compute_proof_signature(payload: dict[str, Any]) -> str:
 
 def resolve_report_path(path_str: str | os.PathLike) -> Path:
     """Resolves report.json whether given a direct file or directory."""
-    path = Path(path_str).resolve()
+    path = Path(path_str)
+    if path.is_symlink() or path.parent.is_symlink():
+        raise ReceiptError("symlinks not permitted for report files")
+    path = path.resolve()
     if path.is_dir():
         candidate = path / "report.json"
         if candidate.is_file():
@@ -153,8 +156,10 @@ def verify_proof_card(
     report_path_or_dir: str | os.PathLike,
 ) -> dict[str, Any]:
     """Verifies that a Proof Card receipt matches the given report exactly."""
-    r_path = Path(receipt_path).resolve()
-    if r_path.is_symlink() or not r_path.is_file():
+    r_path = Path(receipt_path)
+    if r_path.is_symlink() or r_path.parent.is_symlink():
+        raise ReceiptError("symlinks not permitted for receipt files")
+    if not r_path.is_file():
         raise ReceiptError("receipt must be an existing regular file (symlinks forbidden)")
 
     size = r_path.stat().st_size
