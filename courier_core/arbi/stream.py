@@ -107,6 +107,8 @@ class L2OrderbookBookkeeper:
             raise ValueError("timestamp is not a time.")
         if self._accepted_sequence and stamp < self.last_update_utc:
             raise ValueError("timestamp is stale.")
+        if not isinstance(event.bids_updated, list) or not isinstance(event.asks_updated, list):
+            raise ValueError("levels are not a list.")
 
         self._apply_levels(self.bids, event.bids_updated)
         self._apply_levels(self.asks, event.asks_updated)
