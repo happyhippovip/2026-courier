@@ -147,6 +147,25 @@ def test_paper_trading_virtual_balance_tracking():
     assert engine.win_rate_pct == 100.0
 
 
+def test_bool_capital_is_not_one_dollar():
+    seen = []
+    for value in (True, False):
+        try:
+            engine = PaperTradingEngine(initial_capital_usd=value, simulated_venues=["binance", "kraken"])
+        except ValueError as exc:
+            seen.append(("raised", str(exc)))
+        else:
+            seen.append((
+                "accepted",
+                engine.initial_capital_usd,
+                {venue: balances["USDT"] for venue, balances in engine.virtual_balances.items()},
+            ))
+    assert seen == [
+        ("raised", "Bool is not a number."),
+        ("raised", "Bool is not a number."),
+    ], seen
+
+
 def test_triangular_arbitrage_cycle():
     # USDT -> BTC (60,000) -> ETH (0.05 BTC = 3,000 USD equivalent) -> USDT (3,100)
     tri = ArbitrageStrategies.evaluate_triangular_arbitrage(

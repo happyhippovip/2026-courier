@@ -38,6 +38,10 @@ class PaperTradingEngine:
     """Simulates multi-exchange arbitrage execution with virtual bankrolls."""
 
     def __init__(self, initial_capital_usd: float = 100.0, simulated_venues: Optional[list[str]] = None):
+        if isinstance(initial_capital_usd, bool):
+            raise ValueError("Bool is not a number.")
+        if not isinstance(initial_capital_usd, (int, float)):
+            raise ValueError("virtual capital is not a number.")
         self.initial_capital_usd = initial_capital_usd
         self.venues = simulated_venues or ["binance", "bybit", "okx"]
         
