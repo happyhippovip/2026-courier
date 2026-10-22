@@ -167,6 +167,34 @@ def test_bool_model_calls_are_not_a_count(tmp_path):
         and num_err is None and num_count == 2
     ), (true_count, true_err, false_count, false_err, num_count, num_err)
 
+def test_float_model_calls_are_not_a_count(tmp_path):
+    def plant(name, value):
+        root = tmp_path / name
+        states = root / "events" / "agent-states"
+        states.mkdir(parents=True)
+        (states / "a.json").write_text(
+            json.dumps({"model_calls_incurred": value}), encoding="utf-8",
+        )
+        old = os.getcwd()
+        try:
+            os.chdir(root)
+            try:
+                return get_bodyguard_invocations(), None
+            except ValueError as exc:
+                return None, str(exc)
+        finally:
+            os.chdir(old)
+
+    one_count, one_err = plant("one-case", 1.0)
+    half_count, half_err = plant("half-case", 1.5)
+    num_count, num_err = plant("int-case", 2)
+    refused = "Count must be an int."
+    assert (
+        one_err == refused and one_count is None
+        and half_err == refused and half_count is None
+        and num_err is None and num_count == 2
+    ), (one_count, one_err, half_count, half_err, num_count, num_err)
+
 def test_main_already_halted(capsys):
     with patch("scripts.courier_beacon.fetch_metrics", return_value={"system_halted": True, "halt_reason": "Admin request"}), \
          patch("scripts.courier_beacon.time.sleep", side_effect=KeyboardInterrupt):

@@ -58,6 +58,8 @@ def get_bodyguard_invocations():
         count = data.get("model_calls_incurred", 0)
         if isinstance(count, bool):
             raise ValueError("Bool is not a number.")
+        if isinstance(count, float):
+            raise ValueError("Count must be an int.")
         try:
             total_invocations += count
         except Exception:
