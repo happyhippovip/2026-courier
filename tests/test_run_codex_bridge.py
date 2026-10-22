@@ -167,6 +167,48 @@ def test_review_result_does_not_follow_a_symlink(tmp_path, monkeypatch):
     assert "SECRET-RESULT" in outside.read_text(encoding="utf-8")
     assert "SECRET-PARENT" in nested.read_text(encoding="utf-8")
 
+def test_decisions_dir_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    import scripts.run_codex_bridge as codex_bridge
+    result = tmp_path / "res.json"
+    result.write_text(json.dumps({
+        "payload": {"verdict": "PASS"},
+        "correlation_id": "corr-1",
+    }), encoding="utf-8")
+    outside = tmp_path / "outside-decisions"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    decisions = tmp_path / "chief-decisions"
+    decisions.symlink_to(outside)
+    monkeypatch.setattr(codex_bridge, "DECISIONS_DIR", decisions)
+    try:
+        run_chief_review_router("task-1", result)
+        err = None
+    except ValueError as exc:
+        err = str(exc)
+    decision = outside / "task-1-chief-decision.json"
+    body = decision.read_text(encoding="utf-8") if decision.exists() else ""
+    parent_outside = tmp_path / "parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = tmp_path / "events"
+    linked_parent.symlink_to(parent_outside)
+    monkeypatch.setattr(codex_bridge, "DECISIONS_DIR", linked_parent / "chief-decisions")
+    try:
+        run_chief_review_router("task-2", result)
+        err2 = None
+    except ValueError as exc:
+        err2 = str(exc)
+    parent_decision = parent_outside / "chief-decisions" / "task-2-chief-decision.json"
+    parent_body = parent_decision.read_text(encoding="utf-8") if parent_decision.exists() else ""
+    names = sorted(path.name for path in parent_outside.iterdir())
+    assert (err, "ACCEPTED" in body, err2, "ACCEPTED" in parent_body, names) == (
+        "refusing to follow a symlink",
+        False,
+        "refusing to follow a symlink",
+        False,
+        ["keep.txt"],
+    )
+
 def test_run_chief_review_router(tmp_path, monkeypatch):
     import scripts.run_codex_bridge as codex_bridge
     monkeypatch.setattr(codex_bridge, "DECISIONS_DIR", tmp_path / "decisions")
