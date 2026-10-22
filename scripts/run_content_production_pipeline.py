@@ -175,6 +175,9 @@ def execute_hook_stage(stage_dir: Path, topic: str) -> Path:
 def execute_script_stage(stage_dir: Path, topic: str, content_project: str) -> Path:
     script_md_file = stage_dir / "script.md"
     script_json_file = stage_dir / "script.json"
+    _refuse_symlink(stage_dir)
+    _refuse_symlink(script_md_file)
+    _refuse_symlink(script_json_file)
 
     title_clean = topic.replace('-', ' ').title()
     script_md = f"""# Script: {title_clean}
