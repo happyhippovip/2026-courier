@@ -163,8 +163,10 @@ export function createBeams(canvas, env = {}) {
     setGraph(graph, mode = "live") {
       const nodes = (graph && graph.nodes ? graph.nodes : []).slice(0, LIMITS.orbs);
       const ids = new Set(nodes.map((n) => n.id));
-      const edges = (graph && graph.edges ? graph.edges : []).filter((e) => ids.has(e.from) && ids.has(e.to)).slice(0, LIMITS.beams);
       const pos = layout(nodes, width(), height());
+      // layout() places only courier, verifier and stations; an edge to any other node has no curve.
+      const placed = (id) => ids.has(id) && pos.has(id);
+      const edges = (graph && graph.edges ? graph.edges : []).filter((e) => placed(e.from) && placed(e.to)).slice(0, LIMITS.beams);
       const curves = new Map(edges.map((e) => [e.id, curve(pos.get(e.from), pos.get(e.to), e.id)]));
       scene = { nodes, edges, mode: mode === "demo" ? "demo" : "live", pos, curves };
       const t = now();

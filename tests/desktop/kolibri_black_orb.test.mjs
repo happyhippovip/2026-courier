@@ -184,3 +184,15 @@ test("beams: DEMO strokes only magenta even for edges added outside insight; gre
   assert.ok(!log2.some((x) => x[0] === "set" && x[2] === GREEN), "unverified green edge is not drawn green");
   beams.destroy(); b2.destroy();
 });
+
+test("beams: an edge to a node the layout does not place is skipped, not thrown", () => {
+  const e = env();
+  const beams = createBeams(fakeCanvas([]), e.opts);
+  const nodes = [{ id: "courier", kind: "courier" }, { id: "verifier", kind: "verifier" },
+    { id: "S1", kind: "station" }, { id: "P1", kind: "project" }];
+  const edges = [{ id: "ok", from: "S1", to: "verifier", event_id: "journal:3:RESULT_ACCEPTED", verified: true },
+    { id: "bad", from: "S1", to: "P1", event_id: "journal:4:RESULT_ACCEPTED", verified: true }];
+  assert.doesNotThrow(() => beams.setGraph({ nodes, edges }, "live"));
+  assert.equal(beams.stats().pulses, 1);
+  beams.destroy();
+});
