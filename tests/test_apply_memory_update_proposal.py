@@ -110,6 +110,33 @@ def test_apply_memory_update_proposal_success(mock_get_commit, tmp_path, base_pr
     assert "New state." in state_file.read_text()
 
 @patch("scripts.apply_memory_update_proposal.get_memory_commit")
+def test_apply_does_not_follow_a_symlink(mock_get_commit, tmp_path, base_proposal, base_approval, mock_schemas):
+    prop_schema, appr_schema = mock_schemas
+    mock_get_commit.return_value = base_proposal["memory_base_commit"]
+    prop_file = tmp_path / "proposal.json"
+    prop_file.write_text(json.dumps(base_proposal), encoding="utf-8")
+    appr_file = tmp_path / "approval.json"
+    appr_file.write_text(json.dumps(base_approval), encoding="utf-8")
+    outside = tmp_path / "outside.md"
+    outside.write_text("## Overview\nkeep\n", encoding="utf-8")
+    memory_repo = tmp_path / "memory"
+    memory_repo.mkdir()
+    state_file = memory_repo / "PROJECT_STATE.md"
+    state_file.symlink_to(outside)
+    try:
+        result = apply_memory_update_proposal(
+            prop_file, appr_file, memory_repo, dry_run=False,
+            proposal_schema_path=prop_schema, approval_schema_path=appr_schema,
+        )
+    except SystemExit as exc:
+        outcome = str(exc)
+    else:
+        outcome = result.get("status")
+    assert outcome == "MEMORY_WRITE_HANDLER_ERROR: refusing to follow a symlink" and outside.read_text(encoding="utf-8") == "## Overview\nkeep\n" and state_file.is_symlink(), (
+        outcome, outside.read_text(encoding="utf-8"), state_file.is_symlink(),
+    )
+
+@patch("scripts.apply_memory_update_proposal.get_memory_commit")
 def test_apply_memory_update_proposal_mismatch(mock_get_commit, tmp_path, base_proposal, base_approval, mock_schemas):
     prop_schema, appr_schema = mock_schemas
     

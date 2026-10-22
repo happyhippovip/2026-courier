@@ -255,6 +255,8 @@ def apply_memory_update_proposal(
 
     for idx, change in enumerate(proposed_changes):
         target_path = memory_repo_path / change["file"]
+        if target_path.is_symlink() or memory_repo_path.is_symlink() or memory_repo_path.parent.is_symlink():
+            fail("refusing to follow a symlink")
         if not target_path.exists():
             fail(f"BLOCKED: Target memory file does not exist: {target_path}")
 
