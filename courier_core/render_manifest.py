@@ -138,6 +138,8 @@ def create_manifest(
 
     # Write manifest.json atomically into render directory
     manifest_file = dir_path / "manifest.json"
+    if manifest_file.is_symlink():
+        raise OSError(f"{manifest_file}: refusing to follow a symlink")
     manifest_file.write_text(canonical_json(manifest.to_dict()), encoding="utf-8")
 
     return manifest

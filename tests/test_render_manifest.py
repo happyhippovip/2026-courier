@@ -137,3 +137,19 @@ def test_cli_create_and_verify(tmp_path, capsys):
     assert ret_verify == 0
     captured_verify = capsys.readouterr()
     assert "VERIFIED:" in captured_verify.out
+
+
+def test_create_manifest_refuses_a_symlinked_manifest(tmp_path):
+    render_dir = tmp_path / "render"
+    render_dir.mkdir()
+    (render_dir / "render.mp4").write_bytes(b"video")
+    outside = tmp_path / "outside.json"
+    outside.write_text("keep", encoding="utf-8")
+    (render_dir / "manifest.json").symlink_to(outside)
+    try:
+        create_manifest(render_dir)
+    except OSError as exc:
+        assert "symlink" in str(exc).lower()
+    else:
+        raise AssertionError(outside.read_text(encoding="utf-8"))
+    assert outside.read_text(encoding="utf-8") == "keep"
