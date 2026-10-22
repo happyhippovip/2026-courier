@@ -391,6 +391,24 @@ def test_resolve_spec_rejects_invalid_ttl():
         S.resolve_spec({**base, "ttl_s": "30"}, "w1", "/tmp/art", 2.0)
 
 
+def test_resolve_spec_rejects_bool_durations():
+    base = {
+        "task_id": "t1",
+        "dispatch_id": "d1",
+        "attempt": 1,
+        "ttl_s": 30.0,
+        "spec": {"adapter": "synthetic", "params": {}, "effect_key": "k"},
+    }
+    with pytest.raises(SpecError, match="ttl_s"):
+        S.resolve_spec({**base, "ttl_s": True}, "w1", "/tmp/art", 2.0)
+    with pytest.raises(SpecError, match="timeout_s"):
+        S.resolve_spec({**base, "spec": {**base["spec"], "timeout_s": True}}, "w1", "/tmp/art", 2.0)
+    with pytest.raises(SpecError, match="timeout_s"):
+        S.resolve_spec({**base, "spec": {**base["spec"], "timeout_s": False}}, "w1", "/tmp/art", 2.0)
+    with pytest.raises(SpecError, match="heartbeat_s"):
+        S.resolve_spec({**base, "heartbeat_s": True}, "w1", "/tmp/art", 2.0)
+
+
 def test_resolve_spec_timeout_bounds():
     base = {
         "task_id": "t1",
