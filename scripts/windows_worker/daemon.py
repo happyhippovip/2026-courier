@@ -23,17 +23,27 @@ HEADERS = {
 class MissingCredentialError(RuntimeError):
     pass
 
+def _refuse_app_symlink(path: Path) -> None:
+    if path.is_symlink() or path.parent.is_symlink():
+        raise OSError(f"{path}: refusing to follow a symlink")
+
+
 def get_app_data_dir():
     pd = os.environ.get("LOCALAPPDATA")
     # Never inside the source tree: off Windows use COURIER_HOME or ~/.courier.
     fallback = Path(os.environ.get("COURIER_HOME") or Path.home() / ".courier")
-    base = (Path(pd) if pd else fallback) / "Courier"
+    root = Path(pd) if pd else fallback
+    _refuse_app_symlink(root)
+    base = root / "Courier"
+    _refuse_app_symlink(base)
     base.mkdir(parents=True, exist_ok=True)
     return base
 
 APP_DATA_DIR = get_app_data_dir()
 STATE_DIR = APP_DATA_DIR / "state"
 LOG_DIR = APP_DATA_DIR / "logs"
+_refuse_app_symlink(STATE_DIR)
+_refuse_app_symlink(LOG_DIR)
 STATE_DIR.mkdir(exist_ok=True)
 LOG_DIR.mkdir(exist_ok=True)
 
