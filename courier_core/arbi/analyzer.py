@@ -96,7 +96,16 @@ class StatisticalQualityAnalyzer:
             explanation_parts.append(f"Status not eligible: {breakdown.status} ({breakdown.reason})")
 
         # Slippage friction check
-        if breakdown.slippage_usd > (breakdown.gross_spread_usd * 0.4):
+        slip = breakdown.slippage_usd
+        if (
+            isinstance(slip, bool)
+            or not isinstance(slip, (int, float))
+            or not math.isfinite(slip)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_SLIPPAGE")
+            explanation_parts.append("Slippage is not a finite number.")
+        elif slip > (breakdown.gross_spread_usd * 0.4):
             risk_score += 25
             flags.append("HIGH_SLIPPAGE_DRAG")
             explanation_parts.append("Orderbook depth slippage consumes over 40% of gross spread.")
