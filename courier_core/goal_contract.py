@@ -314,7 +314,7 @@ class GoalContractStore:
         self.path = Path(path)
 
     def _refuse_symlink(self) -> None:
-        if self.path.is_symlink():
+        if self.path.is_symlink() or self.path.parent.is_symlink():
             raise GoalContractError("record path is a symlink")
 
     def append(self, contract: GoalContract) -> None:
