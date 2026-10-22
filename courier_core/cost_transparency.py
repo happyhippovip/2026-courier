@@ -90,8 +90,20 @@ def derive_goal_cost_summary(
         instruction = step.get("instruction", "Task step")
         task = tasks_map.get(task_id, {})
 
-        worker_id = task.get("worker_id") or step.get("worker_id")
-        worker = workers_map.get(worker_id, {}) if worker_id else {}
+        worker_id = task.get("worker_id")
+        if worker_id is None:
+            worker_id = step.get("worker_id")
+        if worker_id is None:
+            worker = {}
+        elif (
+            isinstance(worker_id, bool)
+            or not isinstance(worker_id, str)
+            or not worker_id.strip()
+            or worker_id not in workers_map
+        ):
+            worker = {"provider": "unknown"}
+        else:
+            worker = workers_map[worker_id]
 
         # Default unassigned / local steps to free
         provider = worker.get("provider")
