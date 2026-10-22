@@ -30,6 +30,7 @@ if (mode === "demo-slice") {
   live.muse_wall.stations[0].state.value = "RUNNING";
   live.muse_wall.stations[1].blocker = { value: "WAITING_AUTHORITY", source: "demo-fixture", at: "2026-10-18T00:00:00Z" };
   live.muse_wall.stations[2].verified = true;
+  live.muse_wall.stations[2].event_id = "journal:12:RESULT_ACCEPTED";
   live.muse_wall.stations[0].done = { value: "DONE", source: "demo-fixture", at: "2026-10-18T00:00:00Z" };
   out.liveHtml = core.renderKolibri(live, { mode: "live" });
   out.detailHtml = core.renderDetail(live, "DEMO-A");

@@ -64,7 +64,9 @@ export function translateSignal(item, options) {
   // Status strings "VERIFIED" or "SUCCESS" alone are NOT evidence.
   // Must have item.verified === true and genuine event_id (not evt:unknown:0 or synthetic generator).
   const hasValidEventId = eventId !== "evt:unknown:0" && !eventId.startsWith("evt:gen:");
-  const isVerifierEvidence = Boolean(item.verified === true && hasValidEventId);
+  // Only an explicit event_id can carry verifier evidence; item.id / task_id name the thing, not an event.
+  const hasOwnEventId = typeof item.event_id === "string" && item.event_id !== "";
+  const isVerifierEvidence = Boolean(item.verified === true && hasOwnEventId && hasValidEventId);
 
   // Priority 1: Blocker or explicit failure
   if (blocker && blocker !== "NONE" && blocker !== "UNKNOWN / NICHT ERREICHBAR") {

@@ -432,7 +432,8 @@ const results = {
   transferred: flow.translateSignal({ status: "TRANSFERRED", task_id: "task-2" }),
   claimed: flow.translateSignal({ status: "CLAIMED", id: "task-3" }),
   verifying: flow.translateSignal({ state: { value: "VERIFYING" }, id: "task-4" }),
-  verified: flow.translateSignal({ verified: true, state: { value: "DONE" }, id: "task-5" }),
+  verified: flow.translateSignal({ verified: true, state: { value: "DONE" }, id: "task-5", event_id: "journal:5:RESULT_ACCEPTED" }),
+  verified_id_only: flow.translateSignal({ verified: true, state: { value: "DONE" }, id: "task-11" }),
   blocked: flow.translateSignal({ blocker: { value: "WAITING_AUTHORITY" }, id: "task-6" }),
   failed: flow.translateSignal({ state: { value: "FAILED" }, id: "task-7" }),
   warn: flow.translateSignal({ status: "WARN", id: "task-8" }),
@@ -453,6 +454,7 @@ process.stdout.write(JSON.stringify(results));
     assert res["claimed"]["state"] == "CLAIMED" and res["claimed"]["color"] == "#14b8a6"
     assert res["verifying"]["state"] == "VERIFYING" and res["verifying"]["color"] == "#d8b46a"
     assert res["verified"]["state"] == "VERIFIED" and res["verified"]["color"] == "#10b981" and res["verified"]["verified"] is True
+    assert res["verified_id_only"]["verified"] is False and res["verified_id_only"]["state"] != "VERIFIED"
     assert res["blocked"]["state"] == "BLOCKED" and res["blocked"]["color"] == "#ef4444"
     assert res["failed"]["state"] == "FAILED" and res["failed"]["color"] == "#ef4444"
     assert res["warn"]["state"] == "WARN" and res["warn"]["color"] == "#f59e0b"

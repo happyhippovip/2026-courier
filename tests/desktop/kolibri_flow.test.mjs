@@ -102,3 +102,12 @@ test('translateSignal maps standard lifecycle states correctly', () => {
   assert.equal(translateSignal({ status: 'ROUTER', event_id: 'evt:ro1' }).state, FLOW_STATES.ROUTER);
   assert.equal(translateSignal({ status: 'INFRA', event_id: 'evt:i1' }).state, FLOW_STATES.INFRA);
 });
+
+test('translateSignal does not accept an item id as verifier evidence', () => {
+  // The id names the station or task; it is not an event the verifier recorded.
+  const res = translateSignal({ id: 'MUSE-07', verified: true, status: 'DONE' }, { peek: true });
+  assert.notEqual(res.state, FLOW_STATES.VERIFIED);
+  assert.equal(res.verified, false);
+  const byTask = translateSignal({ task_id: 'task-42', verified: true }, { peek: true });
+  assert.equal(byTask.verified, false);
+});
