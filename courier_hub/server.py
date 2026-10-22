@@ -323,7 +323,10 @@ class Hub:
 
     def status(self) -> dict:
         checked = utc_now()
-        if not (self.home / "courier.db").exists() and self._token() is None:
+        db = self.home / "courier.db"
+        if self.home.is_symlink() or self.home.parent.is_symlink() or db.is_symlink():
+            return {"controller": "unreadable", "checked_at": checked}
+        if not db.exists() and self._token() is None:
             return {"controller": "not_set_up", "checked_at": checked}
         try:
             code, body = self._call("GET", "/v1/health")

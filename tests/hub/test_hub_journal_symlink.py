@@ -57,3 +57,34 @@ def test_hub_does_not_read_a_symlinked_token(tmp_path):
     found = [file_hub._token(), dir_hub._token()]
     assert found == [None, None], found
     assert outside.read_text(encoding="utf-8") == secret
+
+
+def test_status_does_not_treat_a_symlinked_journal_as_running(tmp_path, monkeypatch):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "courier.db").write_bytes(b"foreign-journal")
+    home = tmp_path / "home"
+    home.mkdir()
+    (home / "courier.db").symlink_to(outside / "courier.db")
+
+    outside_home = tmp_path / "outside-home"
+    outside_home.mkdir()
+    (outside_home / "courier.db").write_bytes(b"foreign-home")
+    linked_home = tmp_path / "linked-home"
+    linked_home.symlink_to(outside_home, target_is_directory=True)
+
+    calls = []
+
+    def fake_call(method, path, body=None):
+        calls.append((method, path))
+        return 200, {"mode": "ok", "head_seq": 9}
+
+    seen = []
+    for label, root in (("file", home), ("home", linked_home)):
+        hub = Hub(root, "http://127.0.0.1:9", actor="desktop:tester", timeout_s=1)
+        monkeypatch.setattr(hub, "_call", fake_call)
+        status = hub.status()
+        seen.append((label, status.get("controller"), list(calls)))
+        calls.clear()
+    assert seen == [("file", "unreadable", []), ("home", "unreadable", [])], seen
+    assert (outside / "courier.db").read_bytes() == b"foreign-journal"
