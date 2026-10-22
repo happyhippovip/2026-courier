@@ -159,14 +159,18 @@ class LeaseStore:
             if lease.token != token:
                 raise StaleLease(f"write to {c_scope} with token {token} refused (current token is {lease.token})")
             return lease
-        # Check if an enclosing scope is held with this token
+        # A scope that was ever granted on its own keeps its own token history. Tokens count per
+        # scope, so a stale holder's token can equal a parent's; never fall back to the parent there.
+        if self._row(c_scope) is not None:
+            raise StaleLease(f"write to {c_scope} with token {token} refused (lease expired or released)")
+        # Only a strictly enclosing parent authorizes a child path, never a child its parent.
         rows = self.db.execute(
             "SELECT scope, holder, workkey, token, expires_at FROM lease WHERE expires_at > ? AND holder IS NOT NULL",
             (self.clock(),),
         ).fetchall()
         for r in rows:
             live = Lease(*r)
-            if scopes_overlap(live.scope, c_scope) and live.token == token:
+            if c_scope.startswith(live.scope + "/") and live.token == token:
                 return live
         raise StaleLease(f"write to {c_scope} with token {token} refused")
 

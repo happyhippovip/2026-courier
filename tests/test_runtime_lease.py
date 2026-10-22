@@ -167,3 +167,22 @@ def test_enclosing_parent_scope_authorizes_child_path_write(leases):
     # Child path write check with parent token passes
     checked = store.check_write("repo://courier_hub/static/evidence_badge.mjs", lease.token)
     assert checked.token == lease.token
+
+
+def test_child_scope_token_cannot_write_the_parent(leases):
+    store, _ = leases
+    child = store.acquire("repo://courier_hub/static/evidence_badge.mjs", "writer-1", "wk-badge", ttl_s=30)
+    # Holding one file must not authorize writes to the folder around it.
+    with pytest.raises(StaleLease):
+        store.check_write("repo://courier_hub/static", child.token)
+
+
+def test_stale_child_holder_cannot_borrow_a_parent_token(leases):
+    store, clock = leases
+    old = store.acquire("repo://courier_hub/static/evidence_badge.mjs", "writer-1", "wk-badge", ttl_s=10)
+    clock.t += 15
+    # Tokens count per scope, so the new parent grant gets the same number as the expired child grant.
+    parent = store.acquire("repo://courier_hub/static", "writer-2", "wk-hub", ttl_s=30)
+    assert parent.token == old.token
+    with pytest.raises(StaleLease):
+        store.check_write("repo://courier_hub/static/evidence_badge.mjs", old.token)
