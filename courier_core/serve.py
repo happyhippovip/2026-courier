@@ -76,6 +76,8 @@ class HomeLock:
         self._fh = None
 
     def acquire(self) -> bool:
+        if self.path.is_symlink():
+            return False
         self.path.parent.mkdir(parents=True, exist_ok=True)
         fh = open(self.path, "a+b")
         try:

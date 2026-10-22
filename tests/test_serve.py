@@ -74,6 +74,18 @@ def test_home_lock_double_release_safe(tmp_path: Path):
 # Token Management Tests
 # -----------------------------------------------------------------------------
 
+def test_home_lock_refuses_a_symlink(tmp_path: Path):
+    target = tmp_path / "outside"
+    target.write_bytes(b"")
+    link = tmp_path / "controller.lock"
+    link.symlink_to(target)
+    lock = HomeLock(link)
+    assert lock.acquire() is False
+    assert lock._fh is None
+    assert target.read_bytes() == b""
+    assert link.is_symlink()
+
+
 def test_load_or_create_token_generates_valid_token(tmp_path: Path):
     token_file = tmp_path / "run" / "controller.token"
     token1 = load_or_create_token(token_file)
