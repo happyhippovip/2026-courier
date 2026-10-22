@@ -251,7 +251,11 @@ class StatisticalQualityAnalyzer:
             explanation_parts.append("Fee is not a finite number.")
         else:
             total_fees = buy_fee + sell_fee
-            if gross_ok and total_fees > (gross * 0.7):
+            if buy_fee < 0 or sell_fee < 0:
+                risk_score += 100
+                flags.append("NEGATIVE_FEE")
+                explanation_parts.append("Fee is negative.")
+            elif gross_ok and total_fees > (gross * 0.7):
                 risk_score += 20
                 flags.append("HIGH_FEE_BURDEN")
                 explanation_parts.append("Exchange fees absorb over 70% of gross opportunity.")
