@@ -116,6 +116,10 @@ class StatisticalQualityAnalyzer:
             risk_score += 100
             flags.append("NEGATIVE_NET")
             explanation_parts.append("Net profit is negative.")
+        elif net == 0:
+            risk_score += 100
+            flags.append("ZERO_NET")
+            explanation_parts.append("Net profit is zero.")
 
         roi = breakdown.net_roi_pct
         if (
