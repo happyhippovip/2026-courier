@@ -103,3 +103,41 @@ def test_empty_cycle_does_not_invent_simulation_numbers(tmp_path: Path, monkeypa
         "measured": measured_sim,
         "standby": standby["pairs_monitored"],
     }
+
+
+def test_registry_does_not_follow_a_symlink(tmp_path: Path):
+    pair = NormalizedPair("BTC", "EUR")
+    books = {
+        "BTC/EUR": {
+            "binance": _mock_snapshot("binance", pair, 100.0, 100.0),
+            "kraken": _mock_snapshot("kraken", pair, 100.0, 100.0),
+        }
+    }
+    outside = tmp_path / "outside.json"
+    outside.write_text("keep", encoding="utf-8")
+    root = tmp_path / "root"
+    registry_dir = root / "registries"
+    registry_dir.mkdir(parents=True)
+    (registry_dir / "arbitrage_research.json").symlink_to(outside)
+
+    outside_dir = tmp_path / "outside-dir"
+    outside_dir.mkdir()
+    (outside_dir / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_root = tmp_path / "linked-root"
+    linked_root.mkdir()
+    (linked_root / "registries").symlink_to(outside_dir)
+
+    errors = []
+    for cycle_root in (root, linked_root):
+        pipeline = ArbitrageResearchPipeline(root=cycle_root, persist=True)
+        try:
+            pipeline.run_cycle(pairs=[pair], books_provider=books)
+        except ValueError as exc:
+            errors.append(str(exc))
+    written = outside.read_text(encoding="utf-8")
+    leaked = sorted(p.name for p in outside_dir.iterdir())
+    assert errors == ["refusing to follow a symlink", "refusing to follow a symlink"] and written == "keep" and leaked == ["keep.txt"], {
+        "errors": errors,
+        "outside": written[:80],
+        "leaked": leaked,
+    }

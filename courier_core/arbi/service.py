@@ -162,6 +162,12 @@ class ArbitrageResearchPipeline:
 
         # 5. Persist to registry (skipped for dry-run audits)
         if self.persist:
-            self.registry_file.parent.mkdir(parents=True, exist_ok=True)
-            self.registry_file.write_text(json.dumps(snapshot_data, indent=2), encoding="utf-8")
+            self._write_registry(snapshot_data)
         return snapshot_data
+
+    def _write_registry(self, snapshot_data: dict) -> None:
+        path = self.registry_file
+        if path.is_symlink() or path.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(snapshot_data, indent=2), encoding="utf-8")
