@@ -49,6 +49,8 @@ class DeltaNeutralRebalanceEngine:
             raise ValueError("Bool is not a number.")
         if any(not isinstance(value, (int, float)) or not math.isfinite(value) for value in settings):
             raise ValueError("rebalance setting is not a number.")
+        if fixed_transfer_fee_eur < 0:
+            raise ValueError("rebalance setting is out of range.")
         self.imbalance_threshold_pct = imbalance_threshold_pct
         self.fixed_transfer_fee_eur = fixed_transfer_fee_eur
         self.min_profit_to_rebalance_ratio = min_profit_to_rebalance_ratio
