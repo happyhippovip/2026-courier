@@ -21,6 +21,21 @@ def test_describe_billing_mode():
     assert describe_billing_mode(None, None) == "Local Deterministic (FREE)"
 
 
+def test_bool_billing_mode_is_not_free():
+    seen = []
+    for flag in (False, True):
+        try:
+            text = describe_billing_mode(flag, "local")
+        except Exception as exc:
+            seen.append((flag, type(exc).__name__, str(exc)))
+        else:
+            seen.append((flag, "accepted", text))
+    assert seen == [
+        (False, "accepted", "Local (UNKNOWN)"),
+        (True, "accepted", "Local (UNKNOWN)"),
+    ], seen
+
+
 def test_derive_goal_cost_summary_empty():
     res = derive_goal_cost_summary(None, None)
     assert res["payg_spend_triggered"] is False
