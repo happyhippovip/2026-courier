@@ -166,7 +166,7 @@ export function renderReceipt(item, opts = {}) {
   const steps = li(r.tried, (s) => `<li>${escapeHtml(s.what)} <span class="when">${escapeHtml(timeAgo(s.at, now))}</span></li>`);
   const decisions = li(r.decisions, (d) => `<li><strong>${escapeHtml(d.who)}</strong> — ${escapeHtml(d.decided)}${d.reason ? `: “${escapeHtml(d.reason)}”` : ''} <span class="when">${escapeHtml(timeAgo(d.at, now))}</span></li>`);
   const later = li(r.changed_later, (s) => `<li>${escapeHtml(s.what)} <span class="when">${escapeHtml(timeAgo(s.at, now))}</span></li>`);
-  const evidence = li(r.evidence, (e) => `<li>${escapeHtml(e.name)}${e.accepted ? ' — checked' : ''}</li>`);
+  const evidence = li(r.evidence, (e) => `<li>${escapeHtml(e.name)}${e.accepted === true ? ' — checked' : ''}</li>`);
   const support = escapeHtml(JSON.stringify(item.support, null, 2));
   return `<h2 class="receipt-title">${escapeHtml(item.card.title)}</h2>
 <dl class="receipt">
