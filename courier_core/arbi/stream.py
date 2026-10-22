@@ -38,6 +38,8 @@ class L2StreamMockFeeder:
     def __init__(self, pair: NormalizedPair, initial_mid: float = 60000.0):
         if isinstance(initial_mid, bool):
             raise ValueError("Bool is not a number.")
+        if not isinstance(initial_mid, (int, float)) or not math.isfinite(initial_mid):
+            raise ValueError("mid is not a number.")
         self.pair = pair
         self.mid = initial_mid
         self._seq = 0
