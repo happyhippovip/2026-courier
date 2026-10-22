@@ -90,7 +90,7 @@ def derive_goal_cost_summary(
         provider = worker.get("provider")
         if provider is None:
             provider = step.get("target_agent") or "local"
-        elif isinstance(provider, bool) or not isinstance(provider, str):
+        elif isinstance(provider, bool) or not isinstance(provider, str) or not provider.strip():
             provider = "unknown"
         cost_class = worker.get("cost_class")
         if provider == "unknown":
