@@ -8,6 +8,7 @@ No external network, 0.00 EUR provider cost, fail-closed CostGate compliance.
 from __future__ import annotations
 
 import hashlib
+import shutil
 import tempfile
 import time
 from pathlib import Path
@@ -52,9 +53,9 @@ def run_mission_chip(target_home: Path | None = None) -> dict[str, Any]:
     
     start_time = time.time()
     checks = []
-    
-    ctrl = Controller(home, verifier=_chip_verifier).boot()
+    ctrl = None
     try:
+        ctrl = Controller(home, verifier=_chip_verifier).boot()
         # -------------------------------------------------------------
         # Stufe 1: Eingabe & Budget-Gate
         # -------------------------------------------------------------
@@ -78,7 +79,7 @@ def run_mission_chip(target_home: Path | None = None) -> dict[str, Any]:
             "step": 1,
             "name": "Eingabe & Budget-Gate",
             "passed": status_code == 201,
-            "status": "PASS",
+            "status": "PASS" if status_code == 201 else "FAIL",
             "detail": f"Task {task_id[:16]}... registriert (Kosten: 0,00 EUR, Status: QUEUED)",
             "timestamp": time.time(),
         })
@@ -112,7 +113,7 @@ def run_mission_chip(target_home: Path | None = None) -> dict[str, Any]:
             "step": 2,
             "name": "Deterministische Ausführung",
             "passed": result_code == 200,
-            "status": "PASS",
+            "status": "PASS" if result_code == 200 else "FAIL",
             "detail": f"Artefakt erzeugt, SHA-256: {artifact_sha[:16]}... (Lease: {dispatch_id[:16]}...)",
             "timestamp": time.time(),
         })
@@ -179,7 +180,10 @@ def run_mission_chip(target_home: Path | None = None) -> dict[str, Any]:
             "events_replay": journal_events,
         }
     finally:
-        ctrl.stop()
+        if ctrl is not None:
+            ctrl.stop()
+        if is_temp:
+            shutil.rmtree(home, ignore_errors=True)
 
 
 def main(argv: list[str] | None = None) -> int:

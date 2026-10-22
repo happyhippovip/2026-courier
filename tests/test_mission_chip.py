@@ -158,3 +158,17 @@ def test_mission_chip_cli_pretty_output(tmp_path, capsys):
     assert "ERSTE GRÜNE MISSION" in captured.out
     assert "BYTE_LEVEL_GOLD_VERIFIED" or "verified" in captured.out
 
+
+def test_ephemeral_mission_chip_home_is_removed(tmp_path, monkeypatch):
+    home = tmp_path / "chip-home"
+    home.mkdir()
+
+    def _mkdtemp(prefix=""):
+        return str(home)
+
+    monkeypatch.setattr("courier_hub.mission_chip.tempfile.mkdtemp", _mkdtemp)
+    res = run_mission_chip()
+    assert res["product_ready"] is False
+    assert res["mode"].startswith("DEMO")
+    assert not home.exists()
+

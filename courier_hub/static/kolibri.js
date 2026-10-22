@@ -1,6 +1,7 @@
 // Page wiring only. What to show lives in kolibri_core.mjs.
 import { POLL_MS, demoSnapshot, renderKolibri, unavailableSnapshot } from "./kolibri_core.mjs";
 import { initParticles } from "./kolibri_particles.mjs";
+import { presentMissionChip } from "./mission_chip_truth.mjs";
 
 initParticles(document.querySelector("#particles"));
 
@@ -92,39 +93,44 @@ window.startKolibriMission = async function() {
     const res = await fetch("/hub/api/mission-chip");
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
+    const shown = presentMissionChip(data);
+    const tone = shown.gold ? "#10b981" : "#f59e0b";
 
-    if (st1) { st1.style.borderColor = "#10b981"; document.getElementById("k-st-status-1").textContent = "✓ OK (0,00 €)"; }
-    if (st2) { st2.style.borderColor = "#10b981"; document.getElementById("k-st-status-2").textContent = "✓ Artefakt erzeugt"; }
-    if (st3) { st3.style.borderColor = "#10b981"; document.getElementById("k-st-status-3").textContent = "✓ BYTE_LEVEL_GOLD_VERIFIED"; }
+    if (st1) { st1.style.borderColor = tone; document.getElementById("k-st-status-1").textContent = shown.stage1; }
+    if (st2) { st2.style.borderColor = tone; document.getElementById("k-st-status-2").textContent = shown.stage2; }
+    if (st3) { st3.style.borderColor = tone; document.getElementById("k-st-status-3").textContent = shown.stage3; }
 
     const receipt = document.getElementById("k-mission-receipt");
     if (receipt) {
       receipt.style.display = "block";
-      document.getElementById("k-r-task").textContent = data.task_id;
-      document.getElementById("k-r-res").textContent = data.verifier_result.resolution + " (BYTE_LEVEL_GOLD_VERIFIED)";
-      document.getElementById("k-r-sha").textContent = data.verifier_result.artifact_sha256;
+      document.getElementById("k-r-task").textContent = data.task_id || "—";
+      document.getElementById("k-r-res").textContent = shown.resolution;
+      document.getElementById("k-r-sha").textContent = (data.verifier_result && data.verifier_result.artifact_sha256) || "—";
       document.getElementById("k-r-events").textContent = (data.events_replay || []).length + " Events im SQLite Journal";
     }
 
-    // Dynamically pulse the Signal Lane stages to verified green
-    const verifiedCard = document.querySelector('[data-lane-stage="VERIFIED"]');
-    if (verifiedCard) {
-      verifiedCard.setAttribute("data-state", "VERIFIED");
-      verifiedCard.style.setProperty("--sig", "#10b981");
-      const agentP = verifiedCard.querySelector(".lane-agent");
-      if (agentP) agentP.textContent = "✓ BYTE_LEVEL_GOLD_VERIFIED";
-      const statusP = verifiedCard.querySelector(".lane-status");
-      if (statusP) statusP.textContent = "VERIFIED";
+    if (shown.laneVerified) {
+      const verifiedCard = document.querySelector('[data-lane-stage="VERIFIED"]');
+      if (verifiedCard) {
+        verifiedCard.setAttribute("data-state", "VERIFIED");
+        verifiedCard.style.setProperty("--sig", "#10b981");
+        const agentP = verifiedCard.querySelector(".lane-agent");
+        if (agentP) agentP.textContent = "✓ BYTE_LEVEL_GOLD_VERIFIED";
+        const statusP = verifiedCard.querySelector(".lane-status");
+        if (statusP) statusP.textContent = "VERIFIED";
+      }
     }
 
-    const doneCard = document.querySelector('[data-lane-stage="DONE"]');
-    if (doneCard) {
-      doneCard.setAttribute("data-state", "DONE");
-      doneCard.style.setProperty("--sig", "#10b981");
-      const agentP = doneCard.querySelector(".lane-agent");
-      if (agentP) agentP.textContent = "✓ MISSION_COMPLETE";
-      const statusP = doneCard.querySelector(".lane-status");
-      if (statusP) statusP.textContent = "DONE";
+    if (shown.laneDone) {
+      const doneCard = document.querySelector('[data-lane-stage="DONE"]');
+      if (doneCard) {
+        doneCard.setAttribute("data-state", "DONE");
+        doneCard.style.setProperty("--sig", "#10b981");
+        const agentP = doneCard.querySelector(".lane-agent");
+        if (agentP) agentP.textContent = "✓ MISSION_COMPLETE";
+        const statusP = doneCard.querySelector(".lane-status");
+        if (statusP) statusP.textContent = "DONE";
+      }
     }
 
     btn.textContent = "Mission erneut starten";
