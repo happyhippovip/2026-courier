@@ -27,6 +27,59 @@ class TestBuildMemoryUpdateProposal(unittest.TestCase):
     def tearDown(self):
         self.td.cleanup()
 
+    def test_git_metadata_does_not_follow_a_symlink(self):
+        outside_git = self.td_path / "outside-git"
+        outside_git.mkdir()
+        (outside_git / "HEAD").write_text(
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n", encoding="utf-8",
+        )
+        linked_repo = self.td_path / "linked-repo"
+        linked_repo.mkdir()
+        (linked_repo / ".git").symlink_to(outside_git, target_is_directory=True)
+
+        head_repo = self.td_path / "head-repo"
+        (head_repo / ".git").mkdir(parents=True)
+        outside_head = self.td_path / "outside-HEAD"
+        outside_head.write_text(
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\n", encoding="utf-8",
+        )
+        (head_repo / ".git" / "HEAD").symlink_to(outside_head)
+
+        packed_repo = self.td_path / "packed-repo"
+        (packed_repo / ".git").mkdir(parents=True)
+        (packed_repo / ".git" / "HEAD").write_text(
+            "ref: refs/heads/main\n", encoding="utf-8",
+        )
+        outside_packed = self.td_path / "outside-packed-refs"
+        outside_packed.write_text(
+            "cccccccccccccccccccccccccccccccccccccccc refs/heads/main\n",
+            encoding="utf-8",
+        )
+        (packed_repo / ".git" / "packed-refs").symlink_to(outside_packed)
+
+        plain_repo = self.td_path / "plain-repo"
+        (plain_repo / ".git").mkdir(parents=True)
+        (plain_repo / ".git" / "HEAD").write_text(
+            "1234567890abcdef1234567890abcdef12345678", encoding="utf-8",
+        )
+
+        def run(repo):
+            try:
+                return ("ok", get_memory_commit(repo))
+            except SystemExit as exc:
+                return ("err", str(exc))
+
+        refused = "MEMORY_PROPOSAL_ERROR: refusing to follow a symlink"
+        self.assertEqual(
+            (run(linked_repo), run(head_repo), run(packed_repo), run(plain_repo)),
+            (
+                ("err", refused),
+                ("err", refused),
+                ("err", refused),
+                ("ok", "1234567890abcdef1234567890abcdef12345678"),
+            ),
+        )
+
     def test_get_memory_commit_no_git(self):
         commit = get_memory_commit(self.td_path)
         self.assertEqual(commit, "0000000000000000000000000000000000000000")

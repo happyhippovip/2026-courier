@@ -29,13 +29,20 @@ def fail(message: str) -> None:
     raise SystemExit(f"MEMORY_PROPOSAL_ERROR: {message}")
 
 
+def _refuse_git_symlink(path: Path) -> None:
+    if path.is_symlink() or path.parent.is_symlink():
+        fail("refusing to follow a symlink")
+
+
 def get_memory_commit(repo_path: Path) -> str:
     """Reads git commit hash directly from .git directory without requiring external git CLI execution."""
     git_dir = repo_path / ".git"
+    _refuse_git_symlink(git_dir)
     if not git_dir.exists():
         return "0000000000000000000000000000000000000000"
 
     head_file = git_dir / "HEAD"
+    _refuse_git_symlink(head_file)
     if not head_file.exists():
         return "0000000000000000000000000000000000000000"
 
@@ -43,9 +50,11 @@ def get_memory_commit(repo_path: Path) -> str:
     if head_content.startswith("ref:"):
         ref_path = head_content[4:].strip()
         ref_file = git_dir / ref_path
+        _refuse_git_symlink(ref_file)
         if ref_file.exists():
             return ref_file.read_text(encoding="utf-8").strip()
         packed_refs_file = git_dir / "packed-refs"
+        _refuse_git_symlink(packed_refs_file)
         if packed_refs_file.exists():
             for line in packed_refs_file.read_text(encoding="utf-8").splitlines():
                 if line.endswith(ref_path):
