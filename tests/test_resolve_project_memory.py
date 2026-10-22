@@ -128,3 +128,34 @@ def test_main_output_file(tmp_path):
     assert out.exists()
     res = json.loads(out.read_text(encoding="utf-8"))
     assert res["memory_repo"] == DEFAULT_MEMORY_REPO_NAME
+
+
+def test_output_does_not_follow_a_symlink(tmp_path):
+    repo = tmp_path / "memory"
+    repo.mkdir()
+    outside = tmp_path / "outside.json"
+    outside.write_text("keep", encoding="utf-8")
+    link = tmp_path / "out.json"
+    link.symlink_to(outside)
+    outside_dir = tmp_path / "outside-dir"
+    outside_dir.mkdir()
+    (outside_dir / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = tmp_path / "linked"
+    linked.symlink_to(outside_dir)
+    errors = []
+    for dest in (link, linked / "out.json"):
+        test_args = ["resolve_project_memory.py", "--memory-repo", str(repo), "--output", str(dest)]
+        with patch.object(sys, "argv", test_args):
+            try:
+                main()
+            except SystemExit as exc:
+                errors.append(str(exc))
+            else:
+                errors.append("wrote")
+    leaked = sorted(p.name for p in outside_dir.iterdir())
+    assert errors == [
+        "MEMORY_RESOLVER_ERROR: refusing to follow a symlink",
+        "MEMORY_RESOLVER_ERROR: refusing to follow a symlink",
+    ] and outside.read_text(encoding="utf-8") == "keep" and leaked == ["keep.txt"] and link.is_symlink(), (
+        errors, outside.read_text(encoding="utf-8")[:80], leaked, link.is_symlink(),
+    )

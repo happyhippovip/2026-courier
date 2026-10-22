@@ -238,6 +238,8 @@ def main() -> None:
     out_json = json.dumps(package, indent=2)
     if args.output:
         out_file = Path(args.output)
+        if out_file.is_symlink() or out_file.parent.is_symlink():
+            fail("refusing to follow a symlink")
         out_file.parent.mkdir(parents=True, exist_ok=True)
         out_file.write_text(out_json + "\n", encoding="utf-8")
         print(f"MEMORY_CONTEXT_PACKAGE_WRITTEN: {out_file}")
