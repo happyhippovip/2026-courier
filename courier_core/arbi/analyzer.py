@@ -9,6 +9,7 @@ Evaluates:
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Optional
 
@@ -41,11 +42,21 @@ class StatisticalQualityAnalyzer:
         if not book.asks:
             flags.append("NO_ASKS_AVAILABLE")
 
-        if book.best_bid and book.best_ask:
-            if book.best_bid >= book.best_ask:
-                flags.append("CROSSED_INTERNAL_ORDERBOOK")
-            if book.best_bid <= 0 or book.best_ask <= 0:
-                flags.append("NON_POSITIVE_PRICE")
+        bid = book.best_bid
+        ask = book.best_ask
+        if bid and ask:
+            if (
+                not isinstance(bid, (int, float))
+                or not isinstance(ask, (int, float))
+                or not math.isfinite(bid)
+                or not math.isfinite(ask)
+            ):
+                flags.append("NON_FINITE_PRICE")
+            else:
+                if bid >= ask:
+                    flags.append("CROSSED_INTERNAL_ORDERBOOK")
+                if bid <= 0 or ask <= 0:
+                    flags.append("NON_POSITIVE_PRICE")
 
         if book.is_stale:
             flags.append("STALE_DATA_TIMESTAMP")
