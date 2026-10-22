@@ -386,7 +386,12 @@ def acquire_packet_lock(packet_id: str, lock_dir: Path | None = None, timeout_se
         # Check for stale lock
         try:
             lock_data = json.loads(lpath.read_text(encoding="utf-8"))
-            started_at = float(lock_data.get("started_at", 0))
+            raw_started = lock_data.get("started_at", 0)
+            # Bool is an int. True would become 1.0 and look ancient, so a
+            # second worker would steal a lock whose clock cannot be decided.
+            if isinstance(raw_started, bool) or not isinstance(raw_started, (int, float)):
+                return False
+            started_at = float(raw_started)
             if time.time() - started_at > timeout_seconds:
                 # Steal stale lock
                 try:

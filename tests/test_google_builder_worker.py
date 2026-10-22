@@ -75,6 +75,33 @@ def test_stale_lock_stealing(tmp_path):
     release_packet_lock(packet_id, lock_dir=lock_dir)
 
 
+def test_bool_lock_timestamp_is_not_stolen(tmp_path):
+    """True is not a time. A bool started_at must not look ancient and be stolen."""
+    packet_id = "test-packet-bool"
+    lock_dir = tmp_path / "locks"
+    lpath = lock_path(packet_id, lock_dir=lock_dir)
+    lpath.parent.mkdir(parents=True, exist_ok=True)
+    original = json.dumps({
+        "pid": 999999,
+        "packet_id": packet_id,
+        "started_at": True,
+        "worker_id": "other-worker",
+    })
+    lpath.write_text(original, encoding="utf-8")
+    owned = acquire_packet_lock(packet_id, lock_dir=lock_dir, timeout_seconds=300)
+    assert owned is False, lpath.read_text(encoding="utf-8")
+    assert lpath.read_text(encoding="utf-8") == original
+    false_body = json.dumps({
+        "pid": 999999,
+        "packet_id": packet_id,
+        "started_at": False,
+        "worker_id": "other-worker",
+    })
+    lpath.write_text(false_body, encoding="utf-8")
+    assert acquire_packet_lock(packet_id, lock_dir=lock_dir, timeout_seconds=300) is False
+    assert lpath.read_text(encoding="utf-8") == false_body
+
+
 CALM_HOST = lambda: {"memory_percent": 40.0, "swap_percent": 10.0}  # noqa: E731
 
 
