@@ -209,6 +209,65 @@ def test_mailbox_non_string_task_id_does_not_execute(tmp_path):
     assert [row["status"] for row in updated] == ["BLOCKED"] * 3
 
 
+def test_failed_chip_is_not_marked_done(tmp_path, monkeypatch):
+    inbox = tmp_path / "inbox.jsonl"
+    outbox = tmp_path / "outbox.jsonl"
+    home = tmp_path / "home"
+    inbox.write_text(json.dumps({
+        "task_id": "mission-fail",
+        "estimated_cost_eur": 0.0,
+        "status": "PENDING",
+    }) + "\n", encoding="utf-8")
+    monkeypatch.setattr("scripts.courier_mailbox.run_mission_chip", lambda **kwargs: {
+        "overall_status": "FAILED",
+        "verifier_result": {"accepted": False, "resolution": None},
+    })
+    results = process_inbox(inbox, outbox, home_path=home)
+    updated = json.loads(inbox.read_text(encoding="utf-8").strip())
+    assert results == []
+    assert not outbox.exists()
+    assert updated["status"] == "FAILED"
+    assert updated["resolution"] == "NOT_VERIFIED"
+
+
+def test_missing_task_id_does_not_run(tmp_path, monkeypatch):
+    inbox = tmp_path / "inbox.jsonl"
+    outbox = tmp_path / "outbox.jsonl"
+    home = tmp_path / "home"
+    calls = {"n": 0}
+
+    def chip(**kwargs):
+        calls["n"] += 1
+        raise AssertionError("blank id must not run")
+
+    monkeypatch.setattr("scripts.courier_mailbox.run_mission_chip", chip)
+    line = json.dumps({"estimated_cost_eur": 0.0, "status": "PENDING"})
+    inbox.write_text(line + "\n" + line + "\n", encoding="utf-8")
+    results = process_inbox(inbox, outbox, home_path=home)
+    rows = [json.loads(item) for item in inbox.read_text(encoding="utf-8").splitlines() if item]
+    assert results == []
+    assert calls["n"] == 0
+    assert not outbox.exists()
+    assert [row["status"] for row in rows] == ["BLOCKED", "BLOCKED"]
+    assert [row["resolution"] for row in rows] == ["INVALID_TASK_ID", "INVALID_TASK_ID"]
+
+
+def test_malformed_inbox_line_is_kept_and_does_not_run(tmp_path, monkeypatch):
+    inbox = tmp_path / "inbox.jsonl"
+    outbox = tmp_path / "outbox.jsonl"
+    home = tmp_path / "home"
+    monkeypatch.setattr(
+        "scripts.courier_mailbox.run_mission_chip",
+        lambda **kwargs: (_ for _ in ()).throw(AssertionError("malformed inbox must not run")),
+    )
+    raw = '{"task_id":"mission-ok","estimated_cost_eur":0.0,"status":"PENDING"}\n{not-json}\n'
+    inbox.write_text(raw, encoding="utf-8")
+    results = process_inbox(inbox, outbox, home_path=home)
+    assert results == []
+    assert inbox.read_text(encoding="utf-8") == raw
+    assert not outbox.exists()
+
+
 def test_mailbox_lease_store_failure_fails_closed(tmp_path, monkeypatch):
     inbox = tmp_path / "inbox.jsonl"
     outbox = tmp_path / "outbox.jsonl"

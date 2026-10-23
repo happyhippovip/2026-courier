@@ -58,11 +58,17 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
         lines = inbox_path.read_text(encoding="utf-8").splitlines()
         tasks = []
         for line in lines:
-            if line.strip():
-                try:
-                    tasks.append(json.loads(line))
-                except Exception:
-                    pass
+            if not line.strip():
+                continue
+            try:
+                item = json.loads(line)
+            except json.JSONDecodeError:
+                print("[MAILBOX] Inbox line is not JSON. Aborting fail-closed.", file=sys.stderr)
+                return []
+            if not isinstance(item, dict):
+                print("[MAILBOX] Inbox line is not an object. Aborting fail-closed.", file=sys.stderr)
+                return []
+            tasks.append(item)
 
         executed = []
         updated_lines = []
@@ -73,22 +79,23 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
                     continue
                 try:
                     prior = json.loads(prior_line)
-                except Exception:
-                    continue
-                prior_id = prior.get("task_id") if isinstance(prior, dict) else None
+                except json.JSONDecodeError:
+                    print("[MAILBOX] Outbox line is not JSON. Aborting fail-closed.", file=sys.stderr)
+                    return []
+                if not isinstance(prior, dict):
+                    print("[MAILBOX] Outbox line is not an object. Aborting fail-closed.", file=sys.stderr)
+                    return []
+                prior_id = prior.get("task_id")
                 if isinstance(prior_id, str) and prior_id and not isinstance(prior_id, bool):
                     seen_ids.add(prior_id)
 
         for task in tasks:
             raw_id = task.get("task_id")
-            if raw_id is None:
-                # A missing id still gets a generated id. Any supplied value
-                # that is not a non-empty string is not an id: a bool, a
-                # number, or an object would otherwise run as a new task.
-                task_id = f"task-{int(time.time()*1000)}"
-            elif isinstance(raw_id, str) and raw_id:
+            if isinstance(raw_id, str) and raw_id:
                 task_id = raw_id
             else:
+                # A missing id is not a fresh task. Generating one would run
+                # every blank line as new work.
                 task["status"] = "BLOCKED"
                 task["resolution"] = "INVALID_TASK_ID"
                 task["reason"] = "Task id must be a non-empty string."
@@ -135,11 +142,25 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
                 
                 # Execute deterministically
                 res = run_mission_chip(target_home=home_path)
-                
+                verifier = res.get("verifier_result") if isinstance(res, dict) else None
+                accepted = (
+                    isinstance(res, dict)
+                    and res.get("overall_status") == "COMPLETE"
+                    and isinstance(verifier, dict)
+                    and verifier.get("accepted") is True
+                    and verifier.get("resolution") == "verified"
+                )
+                if not accepted:
+                    task["status"] = "FAILED"
+                    task["resolution"] = "NOT_VERIFIED"
+                    task["processed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                    updated_lines.append(json.dumps(task))
+                    continue
+
                 task["status"] = "DONE"
-                task["resolution"] = res["verifier_result"]["resolution"]
-                task["accepted_result_id"] = res["verifier_result"]["accepted_result_id"]
-                task["artifact_sha256"] = res["verifier_result"]["artifact_sha256"]
+                task["resolution"] = verifier["resolution"]
+                task["accepted_result_id"] = verifier.get("accepted_result_id")
+                task["artifact_sha256"] = verifier.get("artifact_sha256")
                 task["processed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
                 
                 outbox_entry = {
