@@ -1,0 +1,23 @@
+# F-C1 evidence 2026-10-23T13:12:51Z base=d5b19f1dffe5f5478476bf090c522b38bfc7164e python=Python 3.11.15
+## A: v2 tests against trunk controller (patch without controller.py)
+38 failed, 6 passed in 1.32s
+## B: v2 tests against v1 controller + local_shell local
+FAILED tests/controller/test_ctrl_cost_admission.py::test_the_shipped_adapters_declare_their_cost_class
+FAILED tests/controller/test_ctrl_cost_admission.py::test_metered_adapter_without_a_finite_estimate_is_refused_before_the_journal[params9]
+FAILED tests/controller/test_ctrl_cost_admission.py::test_metered_adapter_without_a_finite_estimate_is_refused_before_the_journal[params10]
+FAILED tests/controller/test_ctrl_cost_admission.py::test_an_explicit_unknown_marker_is_refused_for_every_adapter[marker1-synthetic]
+FAILED tests/controller/test_ctrl_cost_admission.py::test_an_explicit_unknown_marker_is_refused_for_every_adapter[marker1-local_shell]
+FAILED tests/controller/test_ctrl_cost_admission.py::test_an_explicit_unknown_marker_is_refused_for_every_adapter[marker1-provider_exec]
+FAILED tests/controller/test_ctrl_cost_admission.py::test_an_explicit_unknown_marker_is_refused_for_every_adapter[marker2-synthetic]
+FAILED tests/controller/test_ctrl_cost_admission.py::test_an_explicit_unknown_marker_is_refused_for_every_adapter[marker2-local_shell]
+FAILED tests/controller/test_ctrl_cost_admission.py::test_an_explicit_unknown_marker_is_refused_for_every_adapter[marker2-provider_exec]
+FAILED tests/controller/test_ctrl_cost_admission.py::test_an_explicit_unknown_marker_is_refused_for_every_adapter[marker4-synthetic]
+FAILED tests/controller/test_ctrl_cost_admission.py::test_an_explicit_unknown_marker_is_refused_for_every_adapter[marker4-local_shell]
+FAILED tests/controller/test_ctrl_cost_admission.py::test_an_explicit_unknown_marker_is_refused_for_every_adapter[marker4-provider_exec]
+FAILED tests/controller/test_ctrl_cost_admission.py::test_an_explicit_unknown_marker_is_refused_for_every_adapter[marker5-synthetic]
+FAILED tests/controller/test_ctrl_cost_admission.py::test_an_explicit_unknown_marker_is_refused_for_every_adapter[marker5-local_shell]
+FAILED tests/controller/test_ctrl_cost_admission.py::test_an_explicit_unknown_marker_is_refused_for_every_adapter[marker5-provider_exec]
+FAILED tests/controller/test_ctrl_cost_admission.py::test_local_shell_can_run_any_cli_so_it_needs_an_estimate
+16 failed, 28 passed in 0.79s
+## C: v2 complete
+44 passed in 2.70s

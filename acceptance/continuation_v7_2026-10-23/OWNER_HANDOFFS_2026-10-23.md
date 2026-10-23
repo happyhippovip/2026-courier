@@ -1,0 +1,16 @@
+# Owner-Übergaben · 23.10.2026 · Claude Opus (nur Vorschläge, nichts auf fremden Branches)
+Basis für alle Patches: `integration/v1` `d5b19f1dffe5f5478476bf090c522b38bfc7164e`. Alle Dateien liegen auf `claude/ledger-autonomy-acceptance-2026-10-23`.
+
+| # | Owner | Dateien (exakt) | Patch / Dokument | Abnahme-Kriterium | Abhängigkeit |
+|---|---|---|---|---|---|
+| H1 | **L2 Controller** | `courier_core/controller.py`, `courier_core/verification.py`, `tests/controller/test_ctrl_cost_admission.py` (neu), `tests/controller/ctrl_helpers.py`, `tests/controller/test_ctrl_service.py` (1 Zeile), `tests/controller/test_ctrl_golden_contract.py` (1 Zeile), `tests/controller/test_ctrl_moat_hardening.py` (1 Zeile) | `l2_build_2026-10-23/F-C1_L2_controller_cost_admission.diff` (v2) | neue Tests 44/44; ohne Controller-Teil 22+ rot; Regression wie im README | H2 im selben Merge (sonst blockiert jeder Adapter) |
+| H2 | **L4 Adapter** | `adapters/synthetic.py`, `adapters/local_shell.py`, `adapters/local_json_delivery.py`, `adapters/spreadsheet.py`, `adapters/provider_exec.py` — je 2–4 Zeilen `COST_CLASS` | Teil von H1-Patch | `test_the_shipped_adapters_declare_their_cost_class` | mit H1 zusammen |
+| H3 | **#830 (Claude)** | `tests/test_ledger_engine.py` | `l2_build_2026-10-23/F-C1_followup_830_pin_to_regular_test.diff` | mit H1: 47 passed; ohne H1 rot | erst nach H1 |
+| H4 | **Queue (work_queue/queue_feed)** | `courier_core/work_queue.py`, `courier_worker/queue_feed.py`, `tests/test_queue_feed_foreign_lease.py` (neu) | `l2_build_2026-10-23/WQ-1_foreign_expired_lease.diff` | 3/3; 82 Queue/Feed/LedgerTick-Tests inkl. `test_gate2_two_workkeys` | vor Cross-Host-Queue |
+| H5 | **Queue** | wie H4 + CLI | `WQ-1b_LEASE_RECOVERY_DESIGN.md` (Entwurf) | 8 Negativtests im Entwurf | nach H4 |
+| H6 | **scripts: Antigravity-Bridge** | `scripts/run_antigravity_bridge.py:403-427` | — (Hinweis) | Paket enthält `params.estimated_cost_eur: 0.0` **nur** mit Beleg, dass der Job lokal bleibt (heute: kein Provider-Prozess im Skript) | nach H1; heute kein produktiver Aufrufer, der an den Controller postet |
+| H7 | **L3 Host-Loop** | `courier_runtime/host_loop.py`, `courier_runtime/provider_events.py`, 8 Tests in `tests/test_host_loop.py` / `tests/test_provider_events.py` | `final_safety_review_2026-10-23/F-K1_F-K2_hostloop_proposal.diff` | neue Tests 5/5, Gegenprobe greift | Basis `integration/v1` statt #830 (Lock-Helfer in kleines Util) |
+| H8 | **Cursor Mac (#827)** | `scripts/ledger_v1_bridge.py` | Kommentar auf #827 + `abc_integration_2026-10-23/probe_bridge_cost.py` | Spec ohne Kosten / mit `unknown_cost` wird nicht gepostet | bereits übergeben, nicht doppelt |
+| H9 | **Cursor Mac + Cursor Windows** | `scripts/windows_worker/daemon.py`, `tests/test_windows_lock_fail_closed.py` | `abc_integration_2026-10-23/INT_827_829_UNION_PROPOSAL.diff` | 48 passed Daemon/Lock/Lease | ein Writer, bereits übergeben |
+| H10 | **Google (verified_continuation)** | `scripts/verified_continuation.py` | ACR-Abschnitt „Sicherheitsgate“ | abgelaufene Claim-Datei wird nicht ohne Effekt-Abgleich übernommen | bis dahin für autonome Läufe gesperrt |
+| H11 | **Mensch (Dennis)** | — | — | owner_token in 40 öffentlichen Muse-Wall-Slot-Dateien rotieren + entfernen; ACR entscheiden; MERGE-GOs | P0 |
