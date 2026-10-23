@@ -50,6 +50,29 @@ def test_failed_requires_positive_exit_evidence():
     assert classify(session(alive=False, exit_code=None, last=NOW - 9999), NOW)["state"] != FAILED
 
 
+def test_missing_or_untyped_surface_is_not_ok(tmp_path):
+    reg = Registry(str(tmp_path / "owned.json"))
+    snap = collect(
+        reg,
+        {
+            "missing": {"workkey": "w1", "last_progress_at": NOW},
+            "text": {"workkey": "w2", "last_progress_at": NOW, "surface_ok": "yes"},
+            "one": {"workkey": "w3", "last_progress_at": NOW, "surface_ok": 1},
+            "ok": {"workkey": "w4", "last_progress_at": NOW, "surface_ok": True},
+        },
+        host_id="h1",
+        trigger={"kind": "user_request"},
+        clock=lambda: NOW,
+    )
+    by = {s["session_id"]: s for s in snap["sessions"]}
+    assert by["missing"]["surface_ok"] is False
+    assert by["text"]["surface_ok"] is False
+    assert by["one"]["surface_ok"] is False
+    assert by["ok"]["surface_ok"] is True
+    assert classify(session(surface_ok=by["missing"]["surface_ok"]), NOW)["state"] == SURFACE_CORRUPTED
+    assert classify(session(surface_ok=by["ok"]["surface_ok"]), NOW)["state"] == WORKING
+
+
 def test_collect_sees_only_owned_processes(tmp_path):
     reg = Registry(str(tmp_path / "owned.json"))
     mine = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)"])

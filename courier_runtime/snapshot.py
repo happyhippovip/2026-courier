@@ -34,7 +34,9 @@ def collect(registry, sessions, host_id, trigger, clock=time.time):
             "turn": {"complete": bool(s.get("turn_complete")), "owes_work": bool(s.get("owes_work"))},
             "permission": {"pending": s.get("pending_permission"),
                            "os_blocked_operation": bool(s.get("os_blocked_operation"))},
-            "surface_ok": s.get("surface_ok", True),
+            # Only an explicit True means the surface was checked. A missing
+            # or non-boolean value must not look healthy to classify().
+            "surface_ok": s.get("surface_ok") is True,
         })
     return {"snapshot_id": "cs0-" + uuid.uuid4().hex, "schema": 1, "level": 0, "host_id": host_id,
             "taken_at": clock(), "trigger": trigger, "sessions": out,
