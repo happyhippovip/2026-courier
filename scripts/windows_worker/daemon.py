@@ -669,6 +669,7 @@ def loop():
         
         while True:
             try:
+                _require_canonical_lease()
                 if task and task["worker_phase"] == "STARTED":
                     # Interrupted mid-execution: effects may exist, never replay.
                     print(f"[{worker_id}] Task {task['task_id']} was interrupted during execution; releasing to Courier recovery.")

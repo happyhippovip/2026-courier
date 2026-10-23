@@ -80,6 +80,37 @@ def test_dead_holder_lease_is_taken_over(tmp_path, monkeypatch):
         daemon.release_lock(lock_path)
 
 
+def test_lease_lost_during_the_loop_does_not_claim(tmp_path, monkeypatch):
+    """A fencing token that moves after startup is not a reason to take new work."""
+    from dataclasses import replace
+
+    from tests.test_windows_worker_contract import StopLoop
+
+    daemon = load_daemon(tmp_path, monkeypatch)
+    calls = []
+
+    def urlopen(req, data=None, timeout=None):
+        calls.append(req.full_url)
+        return object()
+
+    sleeps = {"n": 0}
+
+    def sleep(_seconds):
+        sleeps["n"] += 1
+        if sleeps["n"] == 1:
+            daemon._worker_lease = replace(daemon._worker_lease, token=daemon._worker_lease.token + 3)
+            return
+        raise StopLoop()
+
+    monkeypatch.setattr(daemon, "read_cpu_load_percent", lambda: None)
+    monkeypatch.setattr(daemon.urllib.request, "urlopen", urlopen)
+    monkeypatch.setattr(daemon.time, "sleep", sleep)
+    with pytest.raises(daemon.CanonicalLeaseLost):
+        daemon.loop()
+    assert sleeps["n"] == 1
+    assert not any(url.endswith("/tasks/claim") for url in calls)
+
+
 def test_foreign_host_dead_pid_is_not_a_local_restart(tmp_path, monkeypatch):
     """A pid that does not exist here does not make another host's lease free."""
     from courier_runtime.lease import format_session_holder
