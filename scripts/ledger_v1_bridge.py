@@ -596,8 +596,28 @@ def _sha_ok(value) -> bool:
     return isinstance(value, str) and len(value) == 40 and all(ch in "0123456789abcdef" for ch in value)
 
 
+def _with_admitted_estimate(spec, params):
+    """The params the controller stores. A top-level estimate is copied in.
+
+    A missing estimate is not replaced with 0. Goal fields and verified inputs
+    stay out of this copy; the caller adds those itself.
+    """
+    copied = dict(params)
+    if isinstance(spec, dict) and "estimated_cost_eur" not in copied and "estimated_cost_eur" in spec:
+        copied["estimated_cost_eur"] = spec["estimated_cost_eur"]
+    return copied
+
+
 def _fingerprint(spec) -> str:
-    payload = {name: spec[name] for name in TASK_FIELDS if name in spec}
+    """Identity of the posted task fields, including the admitted estimate.
+
+    The estimate is part of the receipt. A top-level 0 and the same 0 inside
+    params name one task. Goal fields and inputs are recorded beside this hash.
+    """
+    payload = {name: spec[name] for name in TASK_FIELDS if name in spec} if isinstance(spec, dict) else {}
+    params = payload.get("params")
+    if isinstance(params, dict):
+        payload["params"] = _with_admitted_estimate(spec, params)
     return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
 
 
@@ -706,8 +726,7 @@ def _post_task(transport, args, token, spec, key, inputs=None):
         params["goal_fingerprint"] = goal[1]
     if inputs is not None:
         params["inputs"] = inputs
-    if "estimated_cost_eur" not in params and "estimated_cost_eur" in spec:
-        params["estimated_cost_eur"] = spec["estimated_cost_eur"]
+    params = _with_admitted_estimate(spec, params)
     task["params"] = params
     url = args.controller.rstrip("/") + "/v1/tasks"
     status, raw = _request(

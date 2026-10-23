@@ -12,7 +12,7 @@ from scripts.coordination_ledger import (
 )
 from scripts.coordination_resume import reduce_store
 from scripts.github_coordination import FileCoordinationStore
-from scripts.ledger_v1_bridge import MAX_STATE_BYTES, _load_state, main
+from scripts.ledger_v1_bridge import MAX_STATE_BYTES, _fingerprint, _load_state, main
 
 TOKEN = "controller-token-value-0123456789abcdef"
 AGENT = "GOOGLE_WINDOWS"
@@ -743,6 +743,60 @@ def test_explicit_zero_cost_without_a_route_still_posts(tmp_path):
     code, out, err, log, lines = _run(home, http)
     assert code == 0, err
     assert len(http.posts) == 1
+
+
+def test_params_only_zero_is_posted_and_bound_in_the_fingerprint(tmp_path):
+    http = FakeHTTP()
+    spec = _spec()
+    del spec["estimated_cost_eur"]
+    spec["params"] = {"unit": "a", "estimated_cost_eur": 0.0}
+    home = _home(tmp_path, {"A": spec})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 0, err
+    assert len(http.posts) == 1
+    assert http.posts[0]["params"]["estimated_cost_eur"] == 0.0
+    record = json.loads((home / "ledger_bridge_state.json").read_text(encoding="utf-8"))["missions"]["A"]
+    assert record["spec_fingerprint"] == _fingerprint(spec)
+    assert record["spec_fingerprint"] == _fingerprint(_spec())
+
+
+def test_params_only_positive_cost_is_not_posted(tmp_path):
+    http = FakeHTTP()
+    spec = _spec()
+    del spec["estimated_cost_eur"]
+    spec["params"] = {"unit": "a", "estimated_cost_eur": 99.0}
+    home = _home(tmp_path, {"A": spec})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 2, err
+    assert "SPEND_NOT_ALLOWED_BY_POLICY" in out
+    assert http.posts == []
+
+
+def test_disagreeing_estimates_are_not_posted(tmp_path):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec(params={"unit": "a", "estimated_cost_eur": 99.0})})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 2, err
+    assert "UNKNOWN_COST" in out
+    assert http.posts == []
+
+
+def test_local_shell_without_an_estimate_is_not_dispatched(tmp_path):
+    http = FakeHTTP()
+    spec = _spec(
+        adapter="local_shell",
+        params={"command": ["agy", "--print"], "write": "out.txt", "timeout_s": 30},
+    )
+    del spec["estimated_cost_eur"]
+    home = _home(tmp_path, {"A": spec})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 2, err
+    assert "UNKNOWN_COST" in out
+    assert http.posts == []
 
 
 def test_changed_result_does_not_write_a_second_final(tmp_path):
