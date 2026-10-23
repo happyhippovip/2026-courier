@@ -79,3 +79,8 @@ def test_main_writes_a_local_chunk(tmp_path, monkeypatch):
     assert record["source"] == "docs/note.md"
     assert "hello" in record["content"]
     assert len(lines) == 1
+
+
+def test_windows_source_separator_is_normalized():
+    assert ingest_docs.source_label("docs\\note.md") == "docs/note.md"
+    assert ingest_docs.source_label("docs/note.md") == "docs/note.md"

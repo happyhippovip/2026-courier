@@ -2,6 +2,8 @@
 
 import pytest
 
+pytest.importorskip("fcntl")
+
 from scripts.mac_worker import muse_supervisor as sup
 
 
