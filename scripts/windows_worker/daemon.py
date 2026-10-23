@@ -445,7 +445,10 @@ def acquire_lock(worker_id):
         else:
             import fcntl
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except (OSError, ImportError):
+    except ImportError:
+        os.close(fd)
+        raise
+    except OSError:
         os.close(fd)
         return None
     try:

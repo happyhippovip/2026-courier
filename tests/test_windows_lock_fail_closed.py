@@ -29,6 +29,14 @@ def test_loop_does_not_exit_clean_when_the_lock_cannot_be_created(tmp_path, monk
         daemon.loop()
 
 
+def test_missing_lock_module_is_not_another_instance(tmp_path, monkeypatch):
+    """A Windows host without msvcrt must fail the start, not exit as a duplicate."""
+    daemon = load_daemon(tmp_path, monkeypatch)
+    monkeypatch.setitem(sys.modules, "msvcrt", None)
+    with pytest.raises(ImportError):
+        daemon.acquire_lock("WIN-LOCK")
+
+
 def test_held_lock_means_another_instance(tmp_path, monkeypatch):
     daemon = load_daemon(tmp_path, monkeypatch)
     fake = types.ModuleType("msvcrt")
