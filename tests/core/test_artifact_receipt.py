@@ -177,6 +177,38 @@ def test_missing_bytes_and_missing_verdict_do_not_pass():
     assert unresolved["verification_verdict"] == "FAIL"
 
 
+def test_unreadable_store_and_missing_blob_do_not_pass():
+    """A PASS verdict cannot stand in for bytes the store cannot read."""
+    data = b"Hello, Courier Artifact World!"
+    sha = hashlib.sha256(data).hexdigest()
+    record = {"name": "hello.txt", "size": len(data), "sha256": sha, "artifact_id": "art-" + sha}
+    proof = {"verification": {"verdict": "PASS", "resolution": "verified"}}
+
+    class UnreadableStore:
+        def read_bytes(self, artifact_id):
+            raise OSError("artifact file unreadable")
+
+    unreadable = generate_artifact_receipt(
+        record["artifact_id"],
+        store=UnreadableStore(),
+        record=record,
+        task=proof,
+    )
+    missing_blob = generate_artifact_receipt(
+        record["artifact_id"],
+        record=record,
+        task=proof,
+    )
+    for receipt in (unreadable, missing_blob):
+        assert receipt["integrity_status"] == STATUS_MISSING_DATA
+        assert receipt["is_valid"] is False
+        assert receipt["verification_verdict"] == "FAIL"
+        assert "verified authentic" not in receipt["human_summary"]
+        accepted, why = verify_artifact_receipt(receipt, data)
+        assert accepted is False
+        assert why == "verdict not accepted"
+
+
 def test_generate_artifact_receipt_missing():
     with tempfile.TemporaryDirectory() as tmpdir:
         store = ArtifactStore(tmpdir)

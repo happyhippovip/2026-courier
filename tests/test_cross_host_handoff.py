@@ -190,6 +190,44 @@ def test_sender_restart_does_not_post_the_mac_mission_twice(tmp_path):
     assert TOKEN not in json.dumps(http.posts)
 
 
+def _only_b(tmp_path, spec):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"B": spec})
+    _seed(home, [_mac_ready("B", "b-assign", "2026-10-23T08:00:01Z")])
+    return http, home
+
+
+def test_wrong_actor_is_not_posted(tmp_path):
+    spec = _mac_spec()
+    spec["agent_id"] = AGENT
+    http, home = _only_b(tmp_path, spec)
+    code, out, err = _run(home, http, MAC, MAC_HOST)
+    assert code == 2, err
+    assert "wrong_agent" in out
+    assert http.posts == []
+
+
+def test_wrong_host_is_not_posted(tmp_path):
+    spec = _mac_spec()
+    spec["host_id"] = HOST
+    http, home = _only_b(tmp_path, spec)
+    code, out, err = _run(home, http, MAC, MAC_HOST)
+    assert code == 2, err
+    assert "wrong_host" in out
+    assert http.posts == []
+
+
+def test_string_zero_cost_is_not_posted(tmp_path):
+    spec = _mac_spec()
+    spec["estimated_cost_eur"] = "0"
+    http, home = _only_b(tmp_path, spec)
+    code, out, err = _run(home, http, MAC, MAC_HOST)
+    assert code == 2, err
+    assert "malformed" in err
+    assert '"outcome":"queued"' not in out
+    assert http.posts == []
+
+
 def test_host_id_without_agent_still_blocks_unknown_cost(tmp_path):
     http = FakeHTTP()
     spec_b = _spec(params={"unit": "b"}, host_id=MAC_HOST)
