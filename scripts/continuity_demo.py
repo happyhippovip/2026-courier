@@ -243,6 +243,24 @@ class _Procs:
             handle.close()
 
 
+def _read_json_sharing(path, attempts=40, pause_s=0.05):
+    """Read a JSON file that another process may be replacing.
+
+    Windows returns permission denied for the instant ``os.replace`` swaps
+    ``ledger_tick.json``. A torn or locked read is retried. A file that stays
+    unreadable still raises.
+    """
+    last = None
+    for _ in range(attempts):
+        try:
+            return json.loads(Path(path).read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            last = exc
+            if pause_s:
+                time.sleep(pause_s)
+    raise last
+
+
 def _wait(predicate, timeout, what, procs=None):
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
@@ -369,8 +387,8 @@ def run(out, timeout_s=180.0):
 
         frozen = (home / "coordination_ledger.jsonl").read_bytes()
         tick_path = home / "run" / "ledger_tick.json"
-        before = json.loads(tick_path.read_text(encoding="utf-8")).get("passes", 0)
-        _wait(lambda: json.loads(tick_path.read_text(encoding="utf-8")).get("passes", 0) > before,
+        before = _read_json_sharing(tick_path).get("passes", 0)
+        _wait(lambda: _read_json_sharing(tick_path).get("passes", 0) > before,
               TICK_INTERVAL_S * 3, "one more idle pass", procs)
         replay_noop = (home / "coordination_ledger.jsonl").read_bytes() == frozen and len(created()) == len(UNITS)
         mark(f"one more idle pass after DONE: ledger unchanged={replay_noop}")
