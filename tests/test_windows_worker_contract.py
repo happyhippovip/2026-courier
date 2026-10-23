@@ -261,6 +261,46 @@ def test_windows_device_name_is_not_an_artifact(tmp_path, monkeypatch, bad):
     assert daemon.is_safe_artifact_path("report.txt") is True
 
 
+def test_symlink_artifact_is_not_read_and_never_success(tmp_path, monkeypatch):
+    srv, http, headers = central(tmp_path, monkeypatch, artifacts=("effect.txt",))
+    daemon, executions = load_daemon(tmp_path, monkeypatch), []
+    work = daemon.APP_DATA_DIR / "work"
+    work.mkdir()
+    monkeypatch.chdir(work)
+    outside = tmp_path / "secret.txt"
+    outside.write_text("secret")
+    (work / "effect.txt").symlink_to(outside)
+    read = []
+    real = daemon.Path.read_bytes
+    monkeypatch.setattr(daemon.Path, "read_bytes", lambda self: read.append(str(self)) or real(self))
+    bridge = Bridge(http, headers, max_calls=4)
+    go(daemon, monkeypatch, bridge, executions, tmp_path=tmp_path)
+    [posted] = bridge.posted("/tasks/result")[:1]
+    assert posted["status"] == "FAILED" and posted["artifacts"] == []
+    assert read == []
+    assert srv.load_state()["tasks"]["task-1"]["status"] != "RESULT_RECEIVED"
+
+
+def test_artifact_through_symlinked_directory_is_not_read(tmp_path, monkeypatch):
+    srv, http, headers = central(tmp_path, monkeypatch, artifacts=("out/effect.txt",))
+    daemon, executions = load_daemon(tmp_path, monkeypatch), []
+    work = daemon.APP_DATA_DIR / "work"
+    work.mkdir()
+    monkeypatch.chdir(work)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "effect.txt").write_text("secret")
+    (work / "out").symlink_to(outside, target_is_directory=True)
+    read = []
+    real = daemon.Path.read_bytes
+    monkeypatch.setattr(daemon.Path, "read_bytes", lambda self: read.append(str(self)) or real(self))
+    bridge = Bridge(http, headers, max_calls=4)
+    go(daemon, monkeypatch, bridge, executions, tmp_path=tmp_path)
+    [posted] = bridge.posted("/tasks/result")[:1]
+    assert posted["status"] == "FAILED" and posted["artifacts"] == []
+    assert read == []
+
+
 @pytest.mark.parametrize("bad", ["../outside.txt", "/etc/passwd", "a/../../x.txt", "C:/Windows/System32"])
 def test_unsafe_artifact_is_never_read_and_never_success(tmp_path, monkeypatch, bad):
     srv, http, headers = central(tmp_path, monkeypatch, artifacts=(bad,))

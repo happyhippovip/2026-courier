@@ -20,3 +20,7 @@ Focused Linux pytest after the code change: 63 passed in `test_windows_lock_fail
 ## Continue-01
 
 The first Windows CPU sample is a baseline, not an idle host. Before the change, `is_resource_pressure_high()` was false and `loop()` posted `/tasks/claim`. After it, that sample returns `None` and the loop pauses. `tests/test_windows_resource_probe.py`: 38 passed together with the lock and recovery files. #827 `1715d472e` still does not touch these files. No merge. A fencing token that moves during the loop raises `CanonicalLeaseLost` before the next claim. Windows device names (`CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9`, `LPT1`–`LPT9`, with or without an extension) are not artifact paths.
+
+## Continue-04
+
+A symlink named as an artifact, and a relative artifact path through a symlinked directory, used to be posted as `SUCCESS`. Both now fail before the file is read. A `receipts.jsonl` symlink is `RECEIPT_LINK` and does not claim or release the workkey. Focused pytest: the new cases plus `test_windows_local_queue.py`, `test_windows_worker_contract.py`, `test_windows_lock_fail_closed.py`, and `test_windows_worker_recovery.py` (69 passed before the receipt assertion fix; the receipt case passed after it). #827, #826, and the controller stay untouched. #830 merges cleanly against this branch and was not merged. #826 and #827 still conflict only in `daemon.py` and `tests/test_windows_lock_fail_closed.py`.

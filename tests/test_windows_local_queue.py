@@ -156,6 +156,21 @@ def test_unverified_result_is_not_final(tmp_path):
     assert "RELEASE" not in (tmp_path / "ledger.jsonl").read_text(encoding="utf-8")
 
 
+def test_receipt_log_symlink_is_not_followed(tmp_path):
+    queue = _queue(tmp_path, [_item("A", ["scripts/windows_worker/a.py"])])
+    work = tmp_path / "work"
+    work.mkdir()
+    outside = tmp_path / "outside.log"
+    (work / "receipts.jsonl").symlink_to(outside)
+    receipt = run_once(queue, HOLDER, "win-host", work, _execute, NOW)
+    assert receipt["outcome"] == "blocked" and receipt["reason"] == "RECEIPT_LINK"
+    assert not outside.exists()
+    ledger = tmp_path / "ledger.jsonl"
+    assert not ledger.exists() or "RELEASE" not in ledger.read_text(encoding="utf-8")
+    held = [item for item in queue.items(now=NOW) if item["id"] == "A"][0]
+    assert held["status"] == "READY"
+
+
 def test_ran_phase_survives_and_does_not_execute_again(tmp_path):
     queue = _queue(tmp_path, [_item("A", ["scripts/windows_worker/a.py"])])
     work = tmp_path / "work"

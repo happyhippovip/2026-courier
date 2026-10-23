@@ -161,7 +161,7 @@ def upload_artifact(task, art):
     """Upload one artifact's bytes; returns (OK|REJECTED|UNDELIVERED, record)."""
     require_api_key()
     name = art["path"]
-    if not is_safe_artifact_path(name) or not Path(name).is_file():
+    if not is_safe_artifact_path(name) or artifact_escapes_workspace(name) or not Path(name).is_file():
         return "REJECTED", None
     data = Path(name).read_bytes()
     if hashlib.sha256(data).hexdigest() != art["sha256"]:
@@ -260,6 +260,25 @@ def is_safe_artifact_path(name):
             return False
     return True
 
+
+def artifact_escapes_workspace(name):
+    """A symlink, including a parent directory, is not artifact evidence."""
+    walked = Path()
+    for part in Path(name).parts:
+        walked = walked / part
+        try:
+            if walked.is_symlink():
+                return True
+        except OSError:
+            return True
+    try:
+        resolved = Path(name).resolve()
+        root = Path.cwd().resolve()
+    except OSError:
+        return True
+    return resolved != root and root not in resolved.parents
+
+
 def build_result_payload(task, result, config):
     """Bind the execution outcome to the server-issued dispatch identity."""
     status = result["status"]
@@ -267,7 +286,7 @@ def build_result_payload(task, result, config):
     if status == "SUCCESS":
         for expected in task.get("artifacts", []):
             name = expected.get("path") if isinstance(expected, dict) else expected
-            if not is_safe_artifact_path(name):
+            if not is_safe_artifact_path(name) or artifact_escapes_workspace(name):
                 status = "FAILED"
                 result["stderr"] = result.get("stderr", "") + f"\nUnsafe artifact path: {name}"
                 artifacts = []

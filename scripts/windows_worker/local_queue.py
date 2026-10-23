@@ -19,6 +19,12 @@ class TemporaryFailure(Exception):
 def run_once(queue, holder, host, workspace, execute, now, ttl=60, max_attempts=3):
     workspace = Path(workspace)
     workspace.mkdir(parents=True, exist_ok=True)
+    if _receipt_log_is_linked(workspace):
+        return {
+            "outcome": "blocked",
+            "reason": "RECEIPT_LINK",
+            "receipts": str(workspace / "receipts.jsonl"),
+        }
     if max_attempts < 1:
         raise ValueError("max_attempts must be at least 1")
     held = _held_by(queue, holder, now)
@@ -170,6 +176,16 @@ def _verified(workspace, evidence):
         return False
 
 
+def _receipt_log_is_linked(workspace):
+    return (workspace / "receipts.jsonl").is_symlink() or (workspace / "dead_letter.jsonl").is_symlink()
+
+
+def _open_append(path):
+    if path.is_symlink():
+        raise OSError(f"{path}: refusing to follow a symlink")
+    return path.open("a", encoding="utf-8")
+
+
 def _dead(workspace, item_id, holder, reason, attempts):
     line = json.dumps({
         "item_id": item_id,
@@ -177,7 +193,7 @@ def _dead(workspace, item_id, holder, reason, attempts):
         "reason": reason,
         "attempts": attempts,
     }, sort_keys=True)
-    with (workspace / "dead_letter.jsonl").open("a", encoding="utf-8") as handle:
+    with _open_append(workspace / "dead_letter.jsonl") as handle:
         handle.write(line + "\n")
         handle.flush()
         os.fsync(handle.fileno())
@@ -192,7 +208,7 @@ def _dead(workspace, item_id, holder, reason, attempts):
 
 def _append(workspace, step, fields):
     record = {"step": step, **fields}
-    with (workspace / "receipts.jsonl").open("a", encoding="utf-8") as handle:
+    with _open_append(workspace / "receipts.jsonl") as handle:
         handle.write(json.dumps(record, sort_keys=True) + "\n")
         handle.flush()
         os.fsync(handle.fileno())
