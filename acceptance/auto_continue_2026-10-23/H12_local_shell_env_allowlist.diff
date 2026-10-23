@@ -1,0 +1,140 @@
+diff --git a/adapters/local_shell.py b/adapters/local_shell.py
+index 34a8d6058..85b46b73f 100644
+--- a/adapters/local_shell.py
++++ b/adapters/local_shell.py
+@@ -9,6 +9,10 @@ Execution contract (for the worker host)::
+ ``workdir``), ``timeout_s`` (per-attempt bound; expiry kills and reaps the
+ child, then raises :class:`LocalShellTimeout`, the timeout analog the host
+ treats like a dead task process), and ``env`` (extra environment entries).
++The child does not inherit the worker's environment: it gets the variables in
++``INHERITED_ENV`` (OS essentials, no credentials) plus ``env``. ``env`` may not
++name a credential (it is journaled with the task) nor a path or loader
++variable (``PROTECTED_ENV``).
+ ``workdir`` is the task sandbox the host owns: the child runs with
+ ``cwd=workdir`` so its relative writes land inside the sandbox, and the
+ adapter itself writes nowhere (it only reads the declared evidence file back
+@@ -74,6 +78,36 @@ FORBIDDEN_COMMAND_FLAGS = frozenset({
+ })
+ 
+ 
++# What a command needs from the host to start and find its tools; nothing that
++# authenticates. Everything else in the worker's environment (provider keys,
++# controller token, cloud credentials) stays out of the child.
++INHERITED_ENV = frozenset({
++    "PATH", "PATHEXT", "SYSTEMROOT", "SYSTEMDRIVE", "WINDIR", "COMSPEC", "TEMP", "TMP", "TMPDIR",
++    "HOME", "USERPROFILE", "LANG", "LANGUAGE", "LC_ALL", "LC_CTYPE", "TZ", "PYTHONIOENCODING",
++    "PYTHONUTF8", "NUMBER_OF_PROCESSORS", "PROCESSOR_ARCHITECTURE",
++})
++PROTECTED_ENV = frozenset({
++    "PATH", "PATHEXT", "COMSPEC", "SYSTEMROOT", "PYTHONPATH", "PYTHONHOME", "PYTHONSTARTUP",
++    "LD_PRELOAD", "LD_LIBRARY_PATH", "DYLD_INSERT_LIBRARIES", "DYLD_LIBRARY_PATH", "NODE_OPTIONS",
++    "BASH_ENV", "ENV", "PERL5OPT", "RUBYOPT",
++})
++_CREDENTIAL_WORDS = ("KEY", "TOKEN", "SECRET", "PASSWORD", "PASSWD", "COOKIE", "CREDENTIAL", "AUTH")
++
++
++def _is_credential_name(name: str) -> bool:
++    upper = name.upper()
++    return any(word in upper for word in _CREDENTIAL_WORDS)
++
++
++def _child_env(extra: Mapping[str, str]) -> dict:
++    env = {}
++    for name, value in os.environ.items():
++        if name.upper() in INHERITED_ENV and not _is_credential_name(name):
++            env[name] = value
++    env.update(extra)
++    return env
++
++
+ def _verdict_type():
+     """L2's Verdict when composed, else the identical-shape local fallback."""
+     try:
+@@ -169,6 +203,11 @@ def _params(params: Mapping[str, Any]) -> dict:
+     if not isinstance(out["env"], Mapping) or any(
+             not isinstance(k, str) or not isinstance(v, str) for k, v in out["env"].items()):
+         raise LocalShellError("env must be a mapping of str to str")
++    for name in out["env"]:
++        if _is_credential_name(name):
++            raise LocalShellError(f"env must not carry a credential ({name}); task params are journaled")
++        if name.upper() in PROTECTED_ENV:
++            raise LocalShellError(f"env variable {name} is not allowed (path or loader override)")
+     return out
+ 
+ 
+@@ -201,9 +240,7 @@ def run(params: Mapping[str, Any], workdir: str | os.PathLike, attempt: int = 1)
+         root.mkdir(parents=True, exist_ok=True)
+     except OSError as exc:
+         raise LocalShellError(f"unusable workdir: {exc}") from exc
+-    env = dict(os.environ)
+-    env.pop("COURIER_CONTROLLER_TOKEN", None)
+-    env.update(cfg["env"])
++    env = _child_env(cfg["env"])
+ 
+     popen_kwargs: dict[str, Any] = {
+         "cwd": str(root),
+diff --git a/tests/test_local_shell_env_allowlist.py b/tests/test_local_shell_env_allowlist.py
+new file mode 100644
+index 000000000..a0c11e470
+--- /dev/null
++++ b/tests/test_local_shell_env_allowlist.py
+@@ -0,0 +1,59 @@
++"""H12: a local_shell child gets an allowlisted environment, never the worker's credentials.
++
++The worker host may hold provider keys (it also runs provider_exec). A local_shell
++command is arbitrary argv; inheriting those keys lets it reach a paid provider outside
++CostGate and copies credentials into a process that writes evidence files.
++"""
++import json
++import sys
++
++import pytest
++
++from adapters import local_shell
++from adapters.local_shell import LocalShellError
++
++DUMP = [sys.executable, "-c", "import json, os; open('out.txt', 'w').write(json.dumps(dict(os.environ)))"]
++CREDENTIALS = ["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY", "GOOGLE_API_KEY", "GITHUB_TOKEN",
++               "GH_TOKEN", "AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN", "COURIER_CONTROLLER_TOKEN",
++               "XAI_API_KEY", "MY_SERVICE_PASSWORD", "SESSION_COOKIE"]
++
++
++def _child_env(tmp_path, params_env=None):
++    params = {"command": DUMP, "write": "out.txt"}
++    if params_env is not None:
++        params["env"] = params_env
++    assert local_shell.run(params, tmp_path).outcome == "success"
++    return json.loads((tmp_path / "out.txt").read_text())
++
++
++@pytest.mark.parametrize("name", CREDENTIALS)
++def test_worker_credentials_do_not_reach_the_child(tmp_path, monkeypatch, name):
++    monkeypatch.setenv(name, "sentinel-not-a-real-value")
++    assert name not in _child_env(tmp_path)
++
++
++def test_unlisted_worker_variables_do_not_reach_the_child(tmp_path, monkeypatch):
++    monkeypatch.setenv("COURIER_SOME_INTERNAL_SETTING", "x")
++    assert "COURIER_SOME_INTERNAL_SETTING" not in _child_env(tmp_path)
++
++
++def test_the_child_still_gets_path_and_the_task_env(tmp_path):
++    env = _child_env(tmp_path, {"LOCAL_FLAG": "on"})
++    assert env.get("PATH") and env["LOCAL_FLAG"] == "on"
++
++
++@pytest.mark.parametrize("name", ["OPENAI_API_KEY", "github_token", "Db_Password", "X_SECRET", "AUTH_COOKIE",
++                                  "AWS_ACCESS_KEY_ID", "SOME_CREDENTIALS"])
++def test_a_task_cannot_carry_a_credential_in_its_env(tmp_path, name):
++    # task params are journaled; a credential there would be persisted and shown.
++    with pytest.raises(LocalShellError, match="credential"):
++        local_shell.run({"command": DUMP, "env": {name: "v"}}, tmp_path)
++    with pytest.raises(LocalShellError, match="credential"):
++        local_shell._params({"command": DUMP, "env": {name: "v"}})
++
++
++@pytest.mark.parametrize("name", ["PATH", "PYTHONPATH", "LD_PRELOAD", "DYLD_INSERT_LIBRARIES", "PYTHONSTARTUP",
++                                  "NODE_OPTIONS", "BASH_ENV"])
++def test_a_task_cannot_override_loader_or_path_variables(tmp_path, name):
++    with pytest.raises(LocalShellError, match="not allowed"):
++        local_shell._params({"command": DUMP, "env": {name: "x"}})

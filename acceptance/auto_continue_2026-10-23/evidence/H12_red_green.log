@@ -1,0 +1,9 @@
+== RED (trunk d5b19f1 + new tests)
+26 failed, 2 passed
+== GREEN
+28 passed
+== REGRESSION all tests naming local_shell (17 files)
+235 passed, 1 skipped
+== golden + l3 worker host
+74 passed, 1 skipped
+== MUTATIONS: inherit all env 13 failed; no protected-env check 7 failed (killed)

@@ -1,0 +1,59 @@
+diff --git a/scripts/windows_worker/daemon.py b/scripts/windows_worker/daemon.py
+index baaccc5a3..e91b623db 100644
+--- a/scripts/windows_worker/daemon.py
++++ b/scripts/windows_worker/daemon.py
+@@ -285,13 +285,15 @@ def run_task(task, config):
+             "blocked": True,
+         }
+ 
+-    # Free / included quota defaults to 0.0 EUR
++    # A free or local task without an estimate counts as 0.0 EUR. An included quota does not
++    # (founder decision 23.10): its effective cost is unknown until a provider-verified 0.0 is
++    # given, so without an explicit estimate it stays UNKNOWN_COST and CostGate blocks it.
+     cost_class = task.get("cost_class")
+     if not cost_class and isinstance(task.get("routing_decision"), dict):
+         cost_class = task["routing_decision"].get("COST_CLASS")
+ 
+     cost_val = task.get("estimated_cost_eur")
+-    if cost_val is None and cost_class in ("included_quota", "free", "local"):
++    if cost_val is None and cost_class in ("free", "local"):
+         cost_val = 0.0
+ 
+     cost_res = CostGate.evaluate_spend_request(
+diff --git a/tests/test_windows_costgate_and_writer_lease.py b/tests/test_windows_costgate_and_writer_lease.py
+index 4aa7297af..82b256341 100644
+--- a/tests/test_windows_costgate_and_writer_lease.py
++++ b/tests/test_windows_costgate_and_writer_lease.py
+@@ -49,13 +49,30 @@ def test_windows_costgate_allows_authorized_zero_cost(tmp_path, monkeypatch):
+     assert res1["status"] == "SUCCESS"
+     assert res1.get("blocked") is not True
+ 
+-    # Task 2: included_quota class
+-    task2 = {"task_id": "win-002", "instruction": "Write-Host 'ok'", "cost_class": "included_quota"}
++    # Task 2: included_quota with an explicit 0.0 estimate
++    task2 = {"task_id": "win-002", "instruction": "Write-Host 'ok'", "cost_class": "included_quota",
++             "estimated_cost_eur": 0.0}
+     res2 = daemon.run_task(task2, config)
+     assert res2["status"] == "SUCCESS"
+     assert res2.get("blocked") is not True
+ 
+ 
++@pytest.mark.parametrize("task", [
++    {"cost_class": "included_quota"},
++    {"routing_decision": {"COST_CLASS": "included_quota"}},
++    {"cost_class": "INCLUDED_QUOTA"},
++])
++def test_windows_costgate_blocks_included_quota_without_an_estimate(tmp_path, monkeypatch, task):
++    """Founder decision 23.10: an included quota is not a known cost; without an estimate it is UNKNOWN_COST."""
++    daemon = load_daemon(tmp_path, monkeypatch)
++    started = []
++    monkeypatch.setattr(daemon.subprocess, "Popen", lambda *a, **k: started.append(a))
++    res = daemon.run_task(dict(task, task_id="win-iq", instruction="Write-Host 'ok'"), {"WORKER_ID": "WIN-01"})
++    assert res["status"] == "FAILED" and res["blocked"] is True
++    assert "COST_GATE_DENIED: UNKNOWN_COST" in res["stderr"]
++    assert started == []                                    # blocked before PowerShell starts
++
++
+ def test_windows_costgate_blocks_unknown_or_unapproved_cost(tmp_path, monkeypatch):
+     """Proves CostGate blocks unapproved spend or unknown cost fail-closed."""
+     daemon = load_daemon(tmp_path, monkeypatch)

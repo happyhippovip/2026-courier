@@ -1,0 +1,9 @@
+== RED (WQ-1 only + WQ-1b tests)
+21 failed, 1 passed in 0.60s
+== GREEN (WQ-1b)
+25 passed in 0.47s
+== REGRESSION queue/feed/ledger_tick
+100 passed in 13.65s
+== MUTATIONS: M1 core ATTACHED_ELSEWHERE 4 failed; M2 replay fence 1 failed; M3 reclaimed_away 5 failed; M4 legacy fail-closed 5 failed; M5 probe exception 4 failed (all killed)
+== AFTER REVIEW FIXES (R1,R3-R6,R9): 6 new tests red before, then 31 passed (recovery + WQ-1 feed); regression 106 passed
+== ALSO APPLIES ON #826 head 7686b97f6 (with H12): 102 passed

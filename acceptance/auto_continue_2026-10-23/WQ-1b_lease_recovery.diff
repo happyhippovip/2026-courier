@@ -1,0 +1,772 @@
+diff --git a/courier_core/work_queue.py b/courier_core/work_queue.py
+index 2639b6ff3..65381793c 100644
+--- a/courier_core/work_queue.py
++++ b/courier_core/work_queue.py
+@@ -25,6 +25,8 @@ MAX_TTL_SECONDS = 7 * 24 * 3600
+ _TOKEN = re.compile(r"^[A-Za-z0-9._:-]+$")
+ _HOLDER = re.compile(r"^[A-Za-z0-9._:/-]+$")
+ _MODULE = re.compile(r"^[A-Za-z0-9._-]+$")
++EVENT_TYPES = ("CLAIM", "RENEW", "RELEASE", "SPAWN", "ATTACH", "RECLAIM", "RECONCILE")
++RECONCILABLE = ("COMPLETE_VERIFIED", "FAILED", "CANCELLED")
+ _TIME = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$")
+ 
+ REPO_ROOT = Path(__file__).resolve().parents[1]
+@@ -57,6 +59,10 @@ def release(queue: "WorkQueue", item, holder, result, now=None) -> dict:
+     return queue.release(item, holder, result, now=now)
+ 
+ 
++def reclaim(queue: "WorkQueue", item, actor, reason, now=None) -> dict:
++    return queue.reclaim(item, actor, reason, now=now)
++
++
+ def spawn(queue: "WorkQueue", template, module, now=None) -> dict:
+     return queue.spawn(template, module, now=now)
+ 
+@@ -86,7 +92,10 @@ class WorkQueue:
+         ready.sort(key=lambda item: item["id"])
+         return ready
+ 
+-    def claim(self, item, holder, ttl, host="local", now=None, done_prs=None, open_pr_files=None) -> dict:
++    def claim(self, item, holder, ttl, host="local", now=None, done_prs=None, open_pr_files=None,
++              announce=False) -> dict:
++        """``announce=True`` promises an ATTACH before the mission is handed off, so an expired
++        lease without ATTACH proves nothing was handed off and another holder may take it over."""
+         item_id = _require_token(item, "ITEM")
+         holder = _require_holder(holder)
+         host = _require_token(host, "HOST")
+@@ -107,20 +116,28 @@ class WorkQueue:
+                 raise WorkQueueError("NOT_CLAIMABLE")
+             if not _claimable_status(current, moment) or not _deps_met(current, items, done):
+                 raise WorkQueueError("NOT_CLAIMABLE")
++            if (current.get("attached") or {}).get("holder") not in (None, holder):
++                # Handed off by another holder whose lease expired: its mission may still run.
++                raise WorkQueueError("ATTACHED_ELSEWHERE")
+             occupied = [row for row in items.values() if _held(row, moment)]
+             if _blocked_by_scope(current, occupied, pr_files):
+                 raise WorkQueueError("SCOPE_OVERLAP")
+             expires = _stamp(moment + timedelta(seconds=ttl))
+-            self._append({
++            event = {
+                 "type": "CLAIM",
+                 "item_id": item_id,
+                 "holder": holder,
+                 "host": host,
+                 "expires_at": expires,
+                 "at": _stamp(moment),
+-            })
++            }
++            if announce:
++                event["announce"] = True
++            self._append(event)
+             current["status"] = "CLAIMED"
+             current["lease"] = {"holder": holder, "host": host, "expires_at": expires}
++            if announce:
++                current["lease"]["announce"] = True
+             return _claim_view(current, idempotent=False)
+ 
+     def renew(self, item, holder, ttl, now=None) -> dict:
+@@ -174,6 +191,79 @@ class WorkQueue:
+             })
+             return {"item_id": item_id, "status": "DONE", "result": result, "idempotent": False}
+ 
++    def attach(self, item, holder, ref, now=None) -> dict:
++        """Record that the holder is handing the mission off (before it does so)."""
++        item_id = _require_token(item, "ITEM")
++        holder = _require_holder(holder)
++        ref = _require_holder(ref)
++        moment = _now(now)
++        with self._lock():
++            current = self._effective(moment).get(item_id)
++            if current is None:
++                raise WorkQueueError("UNKNOWN_ITEM")
++            if not _held(current, moment) or current["lease"]["holder"] != holder:
++                raise WorkQueueError("NOT_HOLDER")
++            if _sticky(current):
++                # A sticky lease never expires, so nobody can take it over: nothing to announce
++                # (and replay ignores events on sticky items, so an ATTACH would repeat forever).
++                return {"item_id": item_id, "attached": holder, "idempotent": True}
++            if current.get("attached") == {"holder": holder, "ref": ref}:
++                return {"item_id": item_id, "attached": holder, "idempotent": True}
++            self._append({"type": "ATTACH", "item_id": item_id, "holder": holder, "ref": ref,
++                          "at": _stamp(moment)})
++            return {"item_id": item_id, "attached": holder, "idempotent": False}
++
++    def reclaim(self, item, actor, reason, now=None) -> dict:
++        """A human frees a workkey whose lease expired. Needs a named actor and a reason."""
++        item_id = _require_token(item, "ITEM")
++        actor = _require_holder(actor)
++        reason = _require_text(reason, "REASON")
++        moment = _now(now)
++        with self._lock():
++            current = self._effective(moment).get(item_id)
++            if current is None:
++                raise WorkQueueError("UNKNOWN_ITEM")
++            if _held(current, moment):
++                raise WorkQueueError("LEASE_LIVE")
++            if current["status"] == "READY":
++                expired_holder = (current.get("expired_lease") or {}).get("holder")
++            elif current["status"] == "CLAIMED" and current.get("claim_once") and not _sticky(current):
++                expired_holder = current["lease"]["holder"]      # a one-time child keeps its dead lease
++            else:
++                expired_holder = None
++            if not expired_holder:
++                raise WorkQueueError("NOT_RECLAIMABLE")
++            self._append({"type": "RECLAIM", "item_id": item_id, "actor": actor, "reason": reason,
++                          "expired_holder": expired_holder, "at": _stamp(moment)})
++            return {"item_id": item_id, "status": "READY", "reclaimed_from": expired_holder, "actor": actor}
++
++    def reconcile(self, item, observed, evidence, actor, now=None) -> dict:
++        """Settle an expired, attached workkey from the controller state of its task.
++
++        COMPLETE_VERIFIED marks it DONE (no new task); FAILED or CANCELLED frees it. Anything
++        else (BLOCKED, RUNNING, unknown) is refused: a human decides or the holder returns.
++        """
++        item_id = _require_token(item, "ITEM")
++        if observed not in RECONCILABLE:
++            raise WorkQueueError("NOT_RECONCILABLE")
++        evidence = _require_text(evidence, "EVIDENCE")
++        actor = _require_holder(actor)
++        moment = _now(now)
++        with self._lock():
++            current = self._effective(moment).get(item_id)
++            if current is None:
++                raise WorkQueueError("UNKNOWN_ITEM")
++            if _held(current, moment):
++                raise WorkQueueError("LEASE_LIVE")
++            expired = current.get("expired_lease") or {}
++            attached = current.get("attached") or {}
++            if current["status"] != "READY" or not attached or attached.get("holder") != expired.get("holder"):
++                raise WorkQueueError("NOT_RECONCILABLE")
++            self._append({"type": "RECONCILE", "item_id": item_id, "observed": observed, "evidence": evidence,
++                          "actor": actor, "expired_holder": expired["holder"], "at": _stamp(moment)})
++            status = "DONE" if observed == "COMPLETE_VERIFIED" else "READY"
++            return {"item_id": item_id, "status": status, "observed": observed}
++
+     def spawn(self, template, module, now=None) -> dict:
+         template_id = _require_token(template, "ITEM")
+         module_name = _require_module(module)
+@@ -217,6 +307,9 @@ class WorkQueue:
+             _apply(seeds, event)
+         for item in seeds.values():
+             if item["status"] == "CLAIMED" and not _held(item, moment) and not item.get("claim_once"):
++                # Claimable again, but keep who held it: an expired lease is not proof that the
++                # holder's mission stopped, so a consumer must not treat this as a fresh workkey.
++                item["expired_lease"] = dict(item["lease"]) if isinstance(item.get("lease"), dict) else None
+                 item["status"] = "READY"
+                 item["lease"] = None
+         return seeds
+@@ -323,6 +416,11 @@ def main(argv=None) -> int:
+     rel.add_argument("--holder", required=True)
+     rel.add_argument("--result", required=True)
+ 
++    rcl = sub.add_parser("reclaim")
++    rcl.add_argument("--item", required=True)
++    rcl.add_argument("--actor", required=True)
++    rcl.add_argument("--reason", required=True)
++
+     spawned = sub.add_parser("spawn")
+     spawned.add_argument("--template", required=True)
+     spawned.add_argument("--module", required=True)
+@@ -346,6 +444,8 @@ def main(argv=None) -> int:
+                 args.item, args.holder, args.ttl, host=args.host,
+                 done_prs=args.done_pr, open_pr_files=args.open_pr_file,
+             )
++        elif args.command == "reclaim":
++            claimed = queue.reclaim(args.item, args.actor, args.reason)
+         elif args.command == "renew":
+             claimed = queue.renew(args.item, args.holder, args.ttl)
+         else:
+@@ -472,10 +572,12 @@ def _read_ledger(path: Path) -> list[dict]:
+             event = json.loads(line.decode("utf-8"))
+         except (UnicodeError, ValueError) as exc:
+             raise WorkQueueError("UNREADABLE") from exc
+-        if not isinstance(event, dict) or event.get("type") not in ("CLAIM", "RENEW", "RELEASE", "SPAWN"):
++        if not isinstance(event, dict) or event.get("type") not in EVENT_TYPES:
+             raise WorkQueueError("UNREADABLE")
+         if event["type"] == "SPAWN" and not _valid_spawn_event(event):
+             raise WorkQueueError("UNREADABLE")
++        if event["type"] in ("ATTACH", "RECLAIM", "RECONCILE") and not _valid_recovery_event(event):
++            raise WorkQueueError("UNREADABLE")
+         events.append(event)
+     return events
+ 
+@@ -492,6 +594,18 @@ def _valid_spawn_event(event: dict) -> bool:
+     return _TIME.fullmatch(str(event.get("at") or "")) is not None
+ 
+ 
++def _valid_recovery_event(event: dict) -> bool:
++    if not _event_token(event.get("item_id")) or _TIME.fullmatch(str(event.get("at") or "")) is None:
++        return False
++    if event["type"] == "ATTACH":
++        return _event_holder(event.get("holder")) and _event_holder(event.get("ref"))
++    if not _event_holder(event.get("actor")) or not _event_holder(event.get("expired_holder")):
++        return False
++    if event["type"] == "RECLAIM":
++        return _text(event.get("reason"))
++    return event.get("observed") in RECONCILABLE and _text(event.get("evidence"))
++
++
+ def _child_from_template(parent: dict, item_id: str, module_name: str) -> dict:
+     branch = parent["branch"] + "-" + module_name
+     title = parent["title"]
+@@ -553,8 +667,13 @@ def _apply(items: dict[str, dict], event: dict) -> None:
+             raise WorkQueueError("UNREADABLE")
+         if _TIME.fullmatch(str(event.get("expires_at") or "")) is None:
+             raise WorkQueueError("UNREADABLE")
++        if (item.get("lease") or {}).get("holder") != event["holder"]:
++            item["attached"] = None
++        item["reclaimed"] = None
+         item["status"] = "CLAIMED"
+         item["lease"] = {"holder": event["holder"], "host": event["host"], "expires_at": event["expires_at"]}
++        if event.get("announce") is True:
++            item["lease"]["announce"] = True
+         return
+     if kind == "RENEW":
+         if item["status"] != "CLAIMED" or not isinstance(item.get("lease"), dict):
+@@ -565,6 +684,9 @@ def _apply(items: dict[str, dict], event: dict) -> None:
+             raise WorkQueueError("UNREADABLE")
+         item["lease"]["expires_at"] = event["expires_at"]
+         return
++    if kind in ("ATTACH", "RECLAIM", "RECONCILE"):
++        _apply_recovery(item, event)
++        return
+     if item["status"] != "CLAIMED" or not isinstance(item.get("lease"), dict):
+         return
+     result = event.get("result")
+@@ -578,6 +700,30 @@ def _apply(items: dict[str, dict], event: dict) -> None:
+     item["released_by"] = event["holder"]
+ 
+ 
++def _apply_recovery(item: dict, event: dict) -> None:
++    lease = item.get("lease")
++    if item["status"] != "CLAIMED" or not isinstance(lease, dict):
++        return
++    if event["type"] == "ATTACH":
++        if lease["holder"] == event["holder"]:
++            item["attached"] = {"holder": event["holder"], "ref": event["ref"]}
++        return
++    # RECLAIM / RECONCILE were checked against an expired lease when written; on replay they
++    # end exactly that holder's claim, so a later RENEW or RELEASE from it no longer applies.
++    if lease["holder"] != event["expired_holder"]:
++        return
++    if event["type"] == "RECONCILE" and event["observed"] == "COMPLETE_VERIFIED":
++        item["status"] = "DONE"
++        item["lease"] = None
++        item["result"] = "RECONCILED " + event["evidence"].strip()
++        item["released_by"] = "reconcile:" + event["actor"]
++        return
++    item["status"] = "READY"
++    item["lease"] = None
++    item["attached"] = None
++    item["reclaimed"] = {"from": event["expired_holder"], "actor": event["actor"], "by": event["type"]}
++
++
+ def _read_json(path: Path, cap: int):
+     if path.is_symlink() or not path.is_file():
+         raise WorkQueueError("UNREADABLE")
+@@ -689,6 +835,9 @@ def _public(item: dict) -> dict:
+         "provider_hints": list(item["provider_hints"]),
+         "status": "READY" if item["status"] == "READY" else item["status"],
+         "lease": None if item["lease"] is None else dict(item["lease"]),
++        "expired_lease": item.get("expired_lease"),
++        "attached": None if not item.get("attached") else dict(item["attached"]),
++        "reclaimed": None if not item.get("reclaimed") else dict(item["reclaimed"]),
+         "publish_gate": item.get("publish_gate"),
+         "pull_request": item.get("pull_request"),
+         "template": bool(item.get("template")),
+@@ -739,6 +888,16 @@ def _require_result(value) -> str:
+     return value.strip()
+ 
+ 
++def _require_text(value, code: str) -> str:
++    if not _text(value):
++        raise WorkQueueError(code)
++    return value.strip()
++
++
++def _text(value) -> bool:
++    return isinstance(value, str) and bool(value.strip()) and len(value) <= 200 and not any(ch in value for ch in "\n\r")
++
++
+ def _event_token(value) -> bool:
+     return isinstance(value, str) and _TOKEN.fullmatch(value) is not None and len(value) <= 64
+ 
+diff --git a/courier_worker/queue_feed.py b/courier_worker/queue_feed.py
+index 308fb4c2c..5a42cb9eb 100644
+--- a/courier_worker/queue_feed.py
++++ b/courier_worker/queue_feed.py
+@@ -16,6 +16,19 @@ workkey needed a human relay. ``feed_once`` is that missing link:
+ It is opt-in (``<home>/work_queue_feed.json``), file-only, never talks to the
+ controller, and is idempotent: a repeated pass appends nothing new. It is not
+ a scheduler; LedgerTick calls it once before each bridge pass.
++
++Leases expire, missions may not. A claim is made with ``announce`` and the
++mission is ATTACHed in the shared queue before its ASSIGNED event is written,
++so for another holder's expired lease:
++
++- not attached (announced claim): nothing was handed off, take it over;
++- attached: ask ``probe(item_id, attached)`` for the controller state of that
++  mission. COMPLETE_VERIFIED settles the workkey, FAILED/CANCELLED frees it;
++  anything else, no probe, or an error leaves it (``foreign_expired``);
++- a legacy claim without ``announce`` is never taken over.
++
++A human can always free such a workkey with ``work_queue reclaim``; the old
++holder then does not pick it up again (``reclaimed_away``).
+ """
+ 
+ from __future__ import annotations
+@@ -74,16 +87,29 @@ def has_open_work(home, now=None) -> bool:
+     if any(i.get("status") == "CLAIMED" and (i.get("lease") or {}).get("holder") == holder
+            for i in queue.items(now=now)):
+         return True
+-    return any(i["id"] in specs for i in queue.list_ready(now=now))
++    return any(i["id"] in specs and _may_try(i, holder) for i in queue.list_ready(now=now))
++
++
++def _may_try(item: dict, holder: str) -> bool:
++    """Whether this holder could take the READY item without a probe answer."""
++    if (item.get("reclaimed") or {}).get("from") == holder:
++        return False
++    expired = item.get("expired_lease") or {}
++    if expired.get("holder") in (None, holder):
++        return True
++    return not item.get("attached") and bool(expired.get("announce"))
+ 
+ 
+-def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
++FINAL_STATES = ("COMPLETE_VERIFIED", "FAILED", "CANCELLED")
++
++
++def feed_once(home, agent_id: str, host_id: str, now=None, probe=None) -> dict:
+     home = Path(home)
+     config = _read_json(home / CONFIG_NAME, None)
+     if config is None:
+         return {"outcome": "off"}
+ 
+-    from courier_core.work_queue import WorkQueue
++    from courier_core.work_queue import WorkQueue, WorkQueueError
+     from scripts.coordination_ledger import (
+         AgentID, CoordinationEvent, EventType, HostID, MissionStatus,
+     )
+@@ -97,9 +123,13 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
+     store = FileCoordinationStore(home / "coordination_ledger.jsonl")
+     bridge_state = _read_json(home / "ledger_bridge_state.json", {"missions": {}})
+     missions = bridge_state.get("missions") or {}
+-    report = {"outcome": "idle", "released": [], "claimed": [], "assigned": [], "renewed": []}
++    report = {"outcome": "idle", "released": [], "claimed": [], "assigned": [], "renewed": [],
++              "foreign_expired": [], "reconciled": [], "reclaimed_away": []}
+ 
+     def assign(item_id: str) -> None:
++        # Announce the hand-off in the shared queue first: a crash after this line leaves an
++        # attached workkey that nobody takes over blindly; a crash before it left nothing to run.
++        queue.attach(item_id, holder, f"{agent_id}/{host_id}", now=now)
+         reducer = reduce_store(store)
+         if reducer.get_mission(item_id) is not None:
+             return
+@@ -134,13 +164,59 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
+         report["renewed"].append(item_id)
+ 
+     if not still_held:
+-        for item in queue.list_ready(now=now):
++        ready = queue.list_ready(now=now)
++        # Our own expired, attached work first: its mission may still run and only we may resume it.
++        ready.sort(key=lambda i: ((i.get("expired_lease") or {}).get("holder") != holder, i["id"]))
++        for item in ready:
++            if (item.get("reclaimed") or {}).get("from") == holder:
++                # A human took this workkey away from us; do not quietly pick it up again.
++                report["reclaimed_away"].append(item["id"])
++                continue
++            expired = item.get("expired_lease") or {}
++            if expired.get("holder") not in (None, holder):
++                # Another holder's lease expired, but its mission may still be running in another
++                # home. Taking it over would assign the mission again under a new claim, i.e. a
++                # second controller task. Never replay on expiry alone.
++                decision = _foreign_expired(queue, item, expired, holder, probe, now)
++                if decision == "settled":
++                    report["reconciled"].append(item["id"])
++                    continue
++                if decision == "wait":
++                    report["foreign_expired"].append(item["id"])
++                    continue
++                if decision == "freed":
++                    report["reconciled"].append(item["id"])
+             if item["id"] in specs:
+-                queue.claim(item["id"], holder, ttl, host=host_id, now=now)
++                try:
++                    queue.claim(item["id"], holder, ttl, host=host_id, now=now, announce=True)
++                except WorkQueueError:                   # another home was faster: not ours
++                    report["foreign_expired"].append(item["id"])
++                    continue
+                 report["claimed"].append(item["id"])
+                 assign(item["id"])
+                 break
+ 
+-    if report["released"] or report["claimed"] or report["assigned"]:
++    if report["released"] or report["claimed"] or report["assigned"] or report["reconciled"]:
+         report["outcome"] = "fed"
+     return report
++
++
++def _foreign_expired(queue, item, expired, holder, probe, now) -> str:
++    """``take`` (never handed off), ``freed``/``settled`` (reconciled), or ``wait``."""
++    attached = item.get("attached")
++    if not attached:
++        return "take" if expired.get("announce") else "wait"   # a legacy claim may have assigned
++    if probe is None:
++        return "wait"
++    try:
++        observed = probe(item["id"], dict(attached))
++    except Exception:                                # unreachable or unclear: fail closed
++        return "wait"
++    if observed not in FINAL_STATES:
++        return "wait"
++    from courier_core.work_queue import WorkQueueError
++    try:
++        queue.reconcile(item["id"], observed, f"{attached['holder']} {observed}", holder, now=now)
++    except WorkQueueError:                           # another home reconciled first: look again next pass
++        return "wait"
++    return "settled" if observed == "COMPLETE_VERIFIED" else "freed"
+diff --git a/tests/test_queue_feed_foreign_lease.py b/tests/test_queue_feed_foreign_lease.py
+new file mode 100644
+index 000000000..5b8c879ae
+--- /dev/null
++++ b/tests/test_queue_feed_foreign_lease.py
+@@ -0,0 +1,64 @@
++"""queue_feed must not take over an expired lease of another holder: the mission may still be running."""
++import json
++from datetime import datetime, timedelta, timezone
++
++from courier_core.work_queue import WorkQueue
++from courier_worker.queue_feed import feed_once
++from scripts.coordination_ledger import EventType
++from scripts.coordination_resume import reduce_store
++from scripts.github_coordination import FileCoordinationStore
++
++T0 = datetime(2026, 10, 23, 12, 0, 0, tzinfo=timezone.utc)
++SPEC = {"adapter": "synthetic", "params": {"write": "out.txt", "content": "a"}, "effect_class": "idempotent",
++        "max_attempts": 1, "lease_ttl_s": 10}
++
++
++def _setup(tmp_path, homes, holders):
++    items = tmp_path / "items"
++    items.mkdir()
++    (items / "WKA.json").write_text(json.dumps({
++        "id": "WKA", "title": "a", "lane": "L1", "branch": "lane/L1-wka", "files_scope": ["out/WKA/"],
++        "depends_on": [], "acceptance": ["x"], "provider_hints": [], "status": "READY", "lease": None}))
++    ledger = tmp_path / "queue.jsonl"
++    for home, holder in zip(homes, holders):
++        home.mkdir()
++        (home / "work_queue_feed.json").write_text(json.dumps({
++            "items_dir": str(items), "ledger": str(ledger), "holder": holder, "ttl_s": 60, "specs": {"WKA": SPEC}}))
++    return WorkQueue(items_dir=items, ledger_path=ledger)
++
++
++def _assigned(home):
++    reducer = reduce_store(FileCoordinationStore(home / "coordination_ledger.jsonl"))
++    return [e for e in reducer.events if e.event_type == EventType.ASSIGNED and e.mission_id == "WKA"]
++
++
++def test_same_home_same_holder_reclaims_after_expiry_without_a_second_assignment(tmp_path):
++    home = tmp_path / "home"
++    queue = _setup(tmp_path, [home], ["h1"])
++    assert feed_once(home, "GOOGLE_WINDOWS", "WINDOWS_REMOTE", now=T0)["claimed"] == ["WKA"]
++    later = T0 + timedelta(seconds=120)                     # lease (60 s) expired, mission still running
++    report = feed_once(home, "GOOGLE_WINDOWS", "WINDOWS_REMOTE", now=later)
++    assert len(_assigned(home)) == 1
++
++
++def test_an_expired_lease_of_another_holder_is_not_taken_over(tmp_path):
++    a, b = tmp_path / "homeA", tmp_path / "homeB"
++    queue = _setup(tmp_path, [a, b], ["holder-a", "holder-b"])
++    assert feed_once(a, "GOOGLE_WINDOWS", "WINDOWS_REMOTE", now=T0)["claimed"] == ["WKA"]
++    later = T0 + timedelta(seconds=120)                     # holder-a went quiet, its mission may still run
++    report_b = feed_once(b, "MUSE_MAC", "MAC_LOCAL", now=later)
++    assert report_b["claimed"] == [] and report_b["assigned"] == []
++    assert report_b["foreign_expired"] == ["WKA"]
++    assert len(_assigned(b)) == 0                            # no second mission, so no second controller task
++    view = [i for i in queue.items(now=later) if i["id"] == "WKA"][0]
++    assert view["lease"] is None and view["expired_lease"]["holder"] == "holder-a"
++
++
++def test_the_original_holder_can_still_resume_after_its_lease_expired(tmp_path):
++    a, b = tmp_path / "homeA", tmp_path / "homeB"
++    _setup(tmp_path, [a, b], ["holder-a", "holder-b"])
++    feed_once(a, "GOOGLE_WINDOWS", "WINDOWS_REMOTE", now=T0)
++    later = T0 + timedelta(seconds=120)
++    feed_once(b, "MUSE_MAC", "MAC_LOCAL", now=later)
++    assert feed_once(a, "GOOGLE_WINDOWS", "WINDOWS_REMOTE", now=later)["claimed"] == ["WKA"]
++    assert len(_assigned(a)) == 1
+diff --git a/tests/test_queue_lease_recovery.py b/tests/test_queue_lease_recovery.py
+new file mode 100644
+index 000000000..b489e4c0c
+--- /dev/null
++++ b/tests/test_queue_lease_recovery.py
+@@ -0,0 +1,268 @@
++"""WQ-1b: an expired lease of another holder is recovered only when nothing can still be running for it.
++
++The decision table (ATTACH / reconcile / human RECLAIM) is in
++acceptance/continuation_v7_2026-10-23/WQ-1b_LEASE_RECOVERY_DESIGN.md.
++"""
++import json
++from datetime import datetime, timedelta, timezone
++
++import pytest
++
++from courier_core.work_queue import WorkQueue, WorkQueueError, main
++from courier_worker.queue_feed import feed_once
++from scripts.coordination_ledger import EventType
++from scripts.coordination_resume import reduce_store
++from scripts.github_coordination import FileCoordinationStore
++
++T0 = datetime(2026, 10, 23, 12, 0, 0, tzinfo=timezone.utc)
++LATER = T0 + timedelta(seconds=120)                         # the 60 s lease of holder-a has expired
++SPEC = {"adapter": "synthetic", "params": {"write": "out.txt", "content": "a"}, "effect_class": "idempotent",
++        "max_attempts": 1, "lease_ttl_s": 10}
++
++
++def _setup(tmp_path):
++    items = tmp_path / "items"
++    items.mkdir()
++    (items / "WKA.json").write_text(json.dumps({
++        "id": "WKA", "title": "a", "lane": "L1", "branch": "lane/L1-wka", "files_scope": ["out/WKA/"],
++        "depends_on": [], "acceptance": ["x"], "provider_hints": [], "status": "READY", "lease": None}))
++    ledger = tmp_path / "queue.jsonl"
++    homes = []
++    for name, holder in (("homeA", "holder-a"), ("homeB", "holder-b")):
++        home = tmp_path / name
++        home.mkdir()
++        (home / "work_queue_feed.json").write_text(json.dumps({
++            "items_dir": str(items), "ledger": str(ledger), "holder": holder, "ttl_s": 60, "specs": {"WKA": SPEC}}))
++        homes.append(home)
++    return WorkQueue(items_dir=items, ledger_path=ledger), homes[0], homes[1]
++
++
++def _assigned(home):
++    reducer = reduce_store(FileCoordinationStore(home / "coordination_ledger.jsonl"))
++    return [e for e in reducer.events if e.event_type == EventType.ASSIGNED and e.mission_id == "WKA"]
++
++
++def _view(queue, now=LATER):
++    return [i for i in queue.items(now=now) if i["id"] == "WKA"][0]
++
++
++def _a_posted_and_went_quiet(tmp_path):
++    queue, a, b = _setup(tmp_path)
++    report = feed_once(a, "GOOGLE_WINDOWS", "WINDOWS_REMOTE", now=T0)
++    assert report["claimed"] == ["WKA"] and report["assigned"] == ["WKA"]
++    assert _view(queue, T0)["attached"]["holder"] == "holder-a"     # ATTACH is written before ASSIGNED
++    return queue, a, b
++
++
++def _probe(answer):
++    seen = []
++
++    def probe(item_id, attached):
++        seen.append((item_id, attached["holder"]))
++        if isinstance(answer, Exception):
++            raise answer
++        return answer
++    probe.seen = seen
++    return probe
++
++
++# 1
++def test_running_elsewhere_is_not_taken_over(tmp_path):
++    queue, a, b = _a_posted_and_went_quiet(tmp_path)
++    probe = _probe("RUNNING")
++    report = feed_once(b, "MUSE_MAC", "MAC_LOCAL", now=LATER, probe=probe)
++    assert probe.seen == [("WKA", "holder-a")]
++    assert report["claimed"] == [] and report["foreign_expired"] == ["WKA"]
++    assert _assigned(b) == []
++
++
++# 2
++def test_complete_and_verified_elsewhere_is_settled_without_a_new_task(tmp_path):
++    queue, a, b = _a_posted_and_went_quiet(tmp_path)
++    report = feed_once(b, "MUSE_MAC", "MAC_LOCAL", now=LATER, probe=_probe("COMPLETE_VERIFIED"))
++    assert report["reconciled"] == ["WKA"] and report["claimed"] == []
++    assert _assigned(b) == []
++    view = _view(queue)
++    assert view["status"] == "DONE"
++    with pytest.raises(WorkQueueError, match="NOT_CLAIMABLE"):
++        queue.claim("WKA", "holder-b", 60, now=LATER)
++
++
++# 3
++@pytest.mark.parametrize("final", ["FAILED", "CANCELLED"])
++def test_a_final_failure_elsewhere_frees_the_workkey_once(tmp_path, final):
++    queue, a, b = _a_posted_and_went_quiet(tmp_path)
++    report = feed_once(b, "MUSE_MAC", "MAC_LOCAL", now=LATER, probe=_probe(final))
++    assert report["reconciled"] == ["WKA"] and report["claimed"] == ["WKA"]
++    assert len(_assigned(b)) == 1
++    again = feed_once(b, "MUSE_MAC", "MAC_LOCAL", now=LATER, probe=_probe(final))
++    assert again["claimed"] == [] and len(_assigned(b)) == 1
++
++
++# 4
++def test_blocked_elsewhere_waits_for_a_human(tmp_path):
++    queue, a, b = _a_posted_and_went_quiet(tmp_path)
++    report = feed_once(b, "MUSE_MAC", "MAC_LOCAL", now=LATER, probe=_probe("BLOCKED"))
++    assert report["claimed"] == [] and report["foreign_expired"] == ["WKA"]
++    view = _view(queue)
++    assert view["status"] == "READY" and view["expired_lease"]["holder"] == "holder-a"
++    with pytest.raises(WorkQueueError, match="NOT_RECONCILABLE"):
++        queue.reconcile("WKA", "BLOCKED", "task-x", "holder-b", now=LATER)
++
++
++# 5
++@pytest.mark.parametrize("probe", [None, _probe(OSError("controller unreachable")), _probe(None), _probe("weird")])
++def test_no_answer_is_no_takeover(tmp_path, probe):
++    queue, a, b = _a_posted_and_went_quiet(tmp_path)
++    report = feed_once(b, "MUSE_MAC", "MAC_LOCAL", now=LATER, probe=probe)
++    assert report["claimed"] == [] and report["foreign_expired"] == ["WKA"]
++    assert _assigned(b) == []
++    with pytest.raises(WorkQueueError, match="ATTACHED_ELSEWHERE"):
++        queue.claim("WKA", "holder-b", 60, now=LATER)       # the core refuses too, not only the feed
++
++
++# 6
++def test_a_claim_that_was_never_attached_is_taken_over(tmp_path):
++    queue, a, b = _setup(tmp_path)
++    queue.claim("WKA", "holder-a", 60, host="WINDOWS_REMOTE", now=T0, announce=True)   # died before ATTACH
++    probe = _probe("RUNNING")
++    report = feed_once(b, "MUSE_MAC", "MAC_LOCAL", now=LATER, probe=probe)
++    assert probe.seen == []                                  # nothing was handed off, nothing to ask
++    assert report["claimed"] == ["WKA"] and len(_assigned(b)) == 1
++
++
++def test_a_legacy_claim_without_the_attach_promise_stays_fail_closed(tmp_path):
++    queue, a, b = _setup(tmp_path)
++    queue.claim("WKA", "holder-a", 60, host="WINDOWS_REMOTE", now=T0)    # old writer: may have assigned
++    report = feed_once(b, "MUSE_MAC", "MAC_LOCAL", now=LATER)
++    assert report["claimed"] == [] and report["foreign_expired"] == ["WKA"]
++
++
++# 7
++@pytest.mark.parametrize("actor,reason", [("", "a died"), ("dennis", ""), ("dennis", " "), (None, "x"),
++                                          ("dennis", "x\ny")])
++def test_reclaim_needs_an_actor_and_a_reason(tmp_path, actor, reason):
++    queue, a, b = _a_posted_and_went_quiet(tmp_path)
++    with pytest.raises(WorkQueueError):
++        queue.reclaim("WKA", actor, reason, now=LATER)
++    assert _view(queue)["expired_lease"]["holder"] == "holder-a"
++
++
++def test_reclaim_frees_the_workkey_and_is_recorded(tmp_path):
++    queue, a, b = _a_posted_and_went_quiet(tmp_path)
++    done = queue.reclaim("WKA", "dennis", "home A is gone for good", now=LATER)
++    assert done == {"item_id": "WKA", "status": "READY", "reclaimed_from": "holder-a", "actor": "dennis"}
++    rows = [json.loads(line) for line in queue.ledger_path.read_text().splitlines()]
++    assert rows[-1]["type"] == "RECLAIM" and rows[-1]["actor"] == "dennis"
++    assert rows[-1]["reason"] == "home A is gone for good" and rows[-1]["expired_holder"] == "holder-a"
++    report = feed_once(b, "MUSE_MAC", "MAC_LOCAL", now=LATER)
++    assert report["claimed"] == ["WKA"] and len(_assigned(b)) == 1
++
++
++def test_reclaim_refuses_a_live_lease(tmp_path):
++    queue, a, b = _a_posted_and_went_quiet(tmp_path)
++    with pytest.raises(WorkQueueError, match="LEASE_LIVE"):
++        queue.reclaim("WKA", "dennis", "too early", now=T0 + timedelta(seconds=10))
++
++
++def test_reclaim_from_the_command_line(tmp_path, capsys):
++    queue, a, b = _a_posted_and_went_quiet(tmp_path)
++    base = ["--items", str(queue.items_dir), "--ledger", str(queue.ledger_path)]
++    with pytest.raises(SystemExit):
++        main(base + ["reclaim", "--item", "WKA", "--actor", "dennis"])   # --reason is required
++    capsys.readouterr()
++    assert main(base + ["reclaim", "--item", "WKA", "--actor", "dennis", "--reason", ""]) == 2
++    assert capsys.readouterr().err.strip() == "REASON"
++
++
++# 8
++def test_the_old_holder_does_not_silently_get_the_workkey_back_after_reclaim(tmp_path):
++    queue, a, b = _a_posted_and_went_quiet(tmp_path)
++    queue.reclaim("WKA", "dennis", "home A is gone for good", now=LATER)
++    with pytest.raises(WorkQueueError, match="NOT_HOLDER"):
++        queue.renew("WKA", "holder-a", 60, now=LATER)       # a late renew does not revive the old lease
++    report = feed_once(a, "GOOGLE_WINDOWS", "WINDOWS_REMOTE", now=LATER)
++    assert report["claimed"] == [] and report["reclaimed_away"] == ["WKA"]
++    assert _view(queue)["lease"] is None
++    assert feed_once(b, "MUSE_MAC", "MAC_LOCAL", now=LATER)["claimed"] == ["WKA"]
++
++
++def test_ledger_replay_rejects_a_malformed_recovery_event(tmp_path):
++    queue, a, b = _a_posted_and_went_quiet(tmp_path)
++    with queue.ledger_path.open("a") as fh:
++        fh.write(json.dumps({"type": "RECLAIM", "item_id": "WKA", "actor": "", "reason": "x",
++                             "expired_holder": "holder-a", "at": "2026-10-23T12:02:00Z"}) + "\n")
++    with pytest.raises(WorkQueueError, match="UNREADABLE"):
++        queue.items(now=LATER)
++
++
++def test_a_replayed_reclaim_does_not_end_the_next_holders_lease(tmp_path):
++    queue, a, b = _a_posted_and_went_quiet(tmp_path)
++    queue.reclaim("WKA", "dennis", "home A is gone for good", now=LATER)
++    stale = queue.ledger_path.read_text().splitlines()[-1]
++    assert feed_once(b, "MUSE_MAC", "MAC_LOCAL", now=LATER)["claimed"] == ["WKA"]
++    with queue.ledger_path.open("a") as fh:
++        fh.write(stale + "\n")                              # the same RECLAIM line, written twice
++    assert _view(queue)["lease"]["holder"] == "holder-b"
++
++
++# Review follow-ups (R1, R3-R6, R9)
++def test_attach_on_a_sticky_pull_request_item_does_not_grow_the_ledger(tmp_path):
++    queue, a, b = _setup(tmp_path)
++    seed = json.loads((queue.items_dir / "WKA.json").read_text())
++    seed["pull_request"] = "123"
++    (queue.items_dir / "WKA.json").write_text(json.dumps(seed))
++    queue.claim("WKA", "holder-a", 60, now=T0, announce=True)
++    size = queue.ledger_path.stat().st_size
++    for _ in range(3):
++        queue.attach("WKA", "holder-a", "GOOGLE_WINDOWS/WINDOWS_REMOTE", now=T0)
++    assert queue.ledger_path.stat().st_size == size
++
++
++def test_a_lost_race_is_a_wait_not_a_crash(tmp_path):
++    queue, a, b = _a_posted_and_went_quiet(tmp_path)
++
++    def probe(item_id, attached):
++        queue.reconcile(item_id, "FAILED", "holder-a FAILED", "holder-c", now=LATER)   # another home was faster
++        queue.claim(item_id, "holder-c", 60, now=LATER, announce=True)
++        return "FAILED"
++    report = feed_once(b, "MUSE_MAC", "MAC_LOCAL", now=LATER, probe=probe)
++    assert report["claimed"] == [] and report["foreign_expired"] == ["WKA"] and _assigned(b) == []
++
++
++def test_reclaimed_mark_ends_with_the_next_claim(tmp_path):
++    queue, a, b = _a_posted_and_went_quiet(tmp_path)
++    queue.reclaim("WKA", "dennis", "home A is gone for good", now=LATER)
++    queue.claim("WKA", "holder-a", 60, now=LATER)            # an explicit human/CLI claim gives it back
++    assert _view(queue)["reclaimed"] is None
++
++
++def test_own_expired_attached_work_is_resumed_before_new_work(tmp_path):
++    queue, a, b = _a_posted_and_went_quiet(tmp_path)
++    (queue.items_dir / "WK0.json").write_text(json.dumps({
++        "id": "WK0", "title": "0", "lane": "L1", "branch": "lane/L1-wk0", "files_scope": ["out/WK0/"],
++        "depends_on": [], "acceptance": ["x"], "provider_hints": [], "status": "READY", "lease": None}))
++    config = json.loads((a / "work_queue_feed.json").read_text())
++    config["specs"]["WK0"] = SPEC
++    (a / "work_queue_feed.json").write_text(json.dumps(config))
++    assert feed_once(a, "GOOGLE_WINDOWS", "WINDOWS_REMOTE", now=LATER)["claimed"] == ["WKA"]
++
++
++def test_a_dead_one_time_child_can_be_reclaimed(tmp_path):
++    queue, a, b = _setup(tmp_path)
++    seed = json.loads((queue.items_dir / "WKA.json").read_text())
++    seed.update({"id": "TPL", "template": True, "branch": "lane/L1-tpl"})
++    (queue.items_dir / "TPL.json").write_text(json.dumps(seed))
++    child = queue.spawn("TPL", "m1", now=T0)["item_id"]
++    queue.claim(child, "holder-a", 60, now=T0)
++    assert queue.reclaim(child, "dennis", "holder died", now=LATER)["reclaimed_from"] == "holder-a"
++    assert [i for i in queue.items(now=LATER) if i["id"] == child][0]["status"] == "READY"
++
++
++def test_open_work_ignores_what_this_home_may_not_take(tmp_path):
++    from courier_worker.queue_feed import has_open_work
++    queue, a, b = _a_posted_and_went_quiet(tmp_path)
++    assert has_open_work(b, now=LATER) is False             # attached elsewhere: nothing to do here
++    queue.reclaim("WKA", "dennis", "home A is gone for good", now=LATER)
++    assert has_open_work(a, now=LATER) is False             # reclaimed away from A
++    assert has_open_work(b, now=LATER) is True

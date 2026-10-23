@@ -1,0 +1,6 @@
+== RED (trunk d5b19f1 + changed test file)
+2 failed, 7 passed (included_quota lowercase via cost_class and routing_decision ran PowerShell path)
+== GREEN
+9 passed
+== REGRESSION all tests naming windows_worker + agy costgate + live agy fake
+105 passed, 7 skipped
