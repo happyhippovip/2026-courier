@@ -185,14 +185,14 @@ class LeaseStore:
             raise
         return Lease(c_scope, lease.holder, lease.workkey, lease.token, now + ttl_s)
 
-    def check_write(self, scope, token, holder=None):
-        """Fence: token and, when presented, holder must match.
+    def check_write(self, scope, token, holder=None, workkey=None):
+        """Fence: token and, when presented, holder/workkey must match.
 
         The live exact scope matches, or a strict ancestor (enclosing parent)
         matches. A child lease never authorizes a write to its parent. Bool is
-        not a token or a holder. When holder is omitted, only token and scope
+        not a token or a holder. When holder/workkey are omitted, only token and scope
         are checked so existing callers keep their token fence; production
-        writers pass the holder.
+        writers pass the holder and workkey.
         """
         c_scope = canonicalize_scope(scope)
         if not token_ok(token):
@@ -204,6 +204,8 @@ class LeaseStore:
             if not token_ok(live.token) or live.token != token:
                 return False
             if holder is not None and live.holder != holder:
+                return False
+            if workkey is not None and live.workkey != workkey:
                 return False
             return True
 
@@ -234,14 +236,16 @@ class LeaseStore:
 
 class FencedFileWriter:
     """Ensures that before writing to any path, the lease token and holder are verified."""
-    def __init__(self, lease_store: LeaseStore, scope: str, token: int, holder: str | None = None):
+    def __init__(self, lease_store: LeaseStore, scope: str, token: int, holder: str | None = None, workkey: str | None = None):
         self.store = lease_store
         self.scope = canonicalize_scope(scope)
         self.token = token
         self.holder = holder
+        self.workkey = workkey
 
     def check(self):
-        return self.store.check_write(self.scope, self.token, self.holder)
+        return self.store.check_write(self.scope, self.token, holder=self.holder, workkey=self.workkey)
+
 
     def open(self, path, mode="w", *args, **kwargs):
         if any(m in mode for m in ("w", "a", "+", "x")):

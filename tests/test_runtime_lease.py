@@ -231,3 +231,40 @@ def test_enclosing_parent_scope_authorizes_child_path_write(leases):
     # Child path write check with parent token passes
     checked = store.check_write("repo://courier_hub/static/evidence_badge.mjs", lease.token)
     assert checked.token == lease.token
+
+
+def test_check_write_verifies_holder_and_workkey(leases):
+    store, _ = leases
+    lease = store.acquire("repo://docs", "writer-1", "wk-doc", ttl_s=30)
+
+    # Valid holder and workkey pass
+    checked = store.check_write("repo://docs", lease.token, holder="writer-1", workkey="wk-doc")
+    assert checked.holder == "writer-1"
+    assert checked.workkey == "wk-doc"
+
+    # Mismatched holder raises StaleLease
+    with pytest.raises(StaleLease):
+        store.check_write("repo://docs", lease.token, holder="foreign-writer", workkey="wk-doc")
+
+    # Mismatched workkey raises StaleLease
+    with pytest.raises(StaleLease):
+        store.check_write("repo://docs", lease.token, holder="writer-1", workkey="wrong-workkey")
+
+
+def test_child_scope_lease_does_not_authorize_parent_scope_write(leases):
+    store, _ = leases
+    # Acquire lease strictly on a child file/subdirectory
+    child_lease = store.acquire("repo://courier_hub/static/evidence_badge.mjs", "writer-child", "wk-child", ttl_s=30)
+
+    # Writing to child path succeeds
+    checked = store.check_write("repo://courier_hub/static/evidence_badge.mjs", child_lease.token)
+    assert checked.token == child_lease.token
+
+    # Writing to parent scope MUST be refused (scopes_overlap must NOT elevate child lease to parent)
+    with pytest.raises(StaleLease):
+        store.check_write("repo://courier_hub/static", child_lease.token)
+
+    # Writing to root scope MUST be refused
+    with pytest.raises(StaleLease):
+        store.check_write("repo://courier_hub", child_lease.token)
+

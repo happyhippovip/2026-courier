@@ -314,6 +314,21 @@ def test_gemini_worker_timeout_kills_process_tree(tmp_path, monkeypatch):
     assert res_data["reason"] == "TIMEOUT"
 
 
+def test_gemini_worker_adapter_missing_cost_blocked(tmp_path):
+    """Proves tasks lacking explicit estimated_cost_eur fail closed with UNKNOWN_COST."""
+    task_file = tmp_path / "task_no_cost.json"
+    task_file.write_text(json.dumps({
+        "task_id": "gemini-no-cost",
+        "instruction": "echo test",
+    }))
+
+    res = gemini_worker_adapter.run_worker(str(task_file))
+    assert res["status"] == "FAILED"
+    assert "COST_GATE_DENIED" in res["reason"]
+    assert "UNKNOWN_COST" in res["reason"]
+    assert res.get("blocked") is True
+
+
 def test_gemini_bool_timeout_does_not_spawn(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     task_file = tmp_path / "task_bool.json"
@@ -331,5 +346,6 @@ def test_gemini_bool_timeout_does_not_spawn(tmp_path, monkeypatch):
     popen.assert_not_called()
     assert result["status"] == "FAILED"
     assert result.get("blocked") is True
+
 
 

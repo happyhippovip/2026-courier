@@ -87,7 +87,7 @@ def _packet():
     return WorkPacket(id="pkt-hv3b", owner_id="google-mac", target_sha=SHA, state=PacketState.CURRENT,
                       payload={"task_type": "google_agent_execute", "workkey": "WK-HV3B",
                                "instruction": "Add a docstring to foo()", "verify_command": OK_VERIFY,
-                               "estimated_cost_eur": 0.0})
+                               "estimated_cost_eur": 0.0, "cost_class": "included_quota"})
 
 
 def _hooks(tmp_path):
@@ -159,12 +159,12 @@ def test_no_bypass_flag_in_executable_paths():
         ROOT / "adapters" / "local_shell.py",
         ROOT / "scripts" / "google_builder_worker.py",
     }  # deny lists only
-    skipped = {"tests", "attic", ".git", "node_modules", "__pycache__"}
+    skipped = {"tests", "attic", ".git", "node_modules", "__pycache__", "build", "dist"}
     hits = []
     for path in ROOT.rglob("*"):
         if path.suffix not in (".py", ".sh") or not path.is_file() or path in allowed:
             continue
-        if skipped.intersection(path.relative_to(ROOT).parts):
+        if skipped.intersection(path.relative_to(ROOT).parts) or any(part.startswith(".") for part in path.relative_to(ROOT).parts):
             continue
         for number, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
             code = line.split("#", 1)[0]

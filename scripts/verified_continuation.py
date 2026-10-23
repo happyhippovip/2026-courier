@@ -137,6 +137,17 @@ class VerifiedContinuation:
                     os.replace(temp_claim, claim_file)
                     return True
                 return False
+            # Expired lease: check for verified results or unreconciled partial state before reclaim (H10)
+            verified_result = self.results_dir / f"{workkey}.result"
+            if verified_result.exists():
+                # Task already successfully completed; do not re-execute or overwrite
+                return False
+            partial_result = self.results_dir / f"{workkey}.partial"
+            if partial_result.exists() and os.environ.get("COURIER_AUTONOMOUS") == "1":
+                # In-flight partial mutation exists without verified outcome:
+                # fail-closed to prevent duplicate side effects until human/verifier reconciliation
+                return False
+
             try:
                 claim_file.unlink(missing_ok=True)
             except OSError:

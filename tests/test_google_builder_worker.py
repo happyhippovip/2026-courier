@@ -372,6 +372,18 @@ def test_google_agent_task_costgate_enforced(tmp_path):
     assert "COST_GATE_DENIED" in evidence_nan.get("blocked_reason", "")
     assert evidence_nan.get("provider_invoked") is False
 
+    # 3. Missing estimated_cost_eur -> blocked (UNKNOWN_COST)
+    payload_missing = {
+        "workkey": "WK-MISSING-COST",
+        "instruction": "do something unestimated",
+    }
+    evidence_missing = {}
+    verdict = run_google_agent_task(payload_missing, tmp_path, evidence_missing, surface)
+    assert verdict == "FAILED"
+    assert "COST_GATE_DENIED" in evidence_missing.get("blocked_reason", "")
+    assert "UNKNOWN_COST" in evidence_missing.get("blocked_reason", "")
+    assert evidence_missing.get("provider_invoked") is False
+
 
 def test_bool_timeout_does_not_invoke_the_agent(tmp_path):
     from scripts.google_builder_worker import run_google_agent_task
@@ -410,7 +422,12 @@ def test_evidence_does_not_follow_a_symlinked_directory(tmp_path):
     outside.mkdir()
     repo = tmp_path / "repo"
     repo.mkdir()
-    (repo / "events").symlink_to(outside, target_is_directory=True)
+    try:
+        (repo / "events").symlink_to(outside, target_is_directory=True)
+    except OSError as exc:
+        if getattr(exc, "winerror", None) == 1314:
+            pytest.skip("Creating symlinks on Windows requires developer mode or administrator privilege")
+        raise
     try:
         execute_packet_code_or_test_work(_packet("pkt-dir"), repo, _Hooks(), {"authorized_mode": "LOCAL"})
     except ValueError as exc:
@@ -426,7 +443,12 @@ def test_evidence_does_not_follow_a_symlinked_file(tmp_path):
     evidence_dir = repo / "events" / "evidence"
     evidence_dir.mkdir(parents=True)
     link = evidence_dir / "pkt-file_evidence.json"
-    link.symlink_to(outside)
+    try:
+        link.symlink_to(outside)
+    except OSError as exc:
+        if getattr(exc, "winerror", None) == 1314:
+            pytest.skip("Creating symlinks on Windows requires developer mode or administrator privilege")
+        raise
     try:
         execute_packet_code_or_test_work(_packet("pkt-file"), repo, _Hooks(), {"authorized_mode": "LOCAL"})
     except ValueError as exc:
@@ -438,7 +460,12 @@ def test_contract_check_does_not_read_a_symlinked_source(tmp_path):
     repo = tmp_path / "repo"
     (repo / "events" / "evidence").mkdir(parents=True)
     (repo / "real.py").write_text("REAL = 1\n", encoding="utf-8")
-    (repo / "link.py").symlink_to(repo / "real.py")
+    try:
+        (repo / "link.py").symlink_to(repo / "real.py")
+    except OSError as exc:
+        if getattr(exc, "winerror", None) == 1314:
+            pytest.skip("Creating symlinks on Windows requires developer mode or administrator privilege")
+        raise
     packet = WorkPacket(
         id="pkt-src",
         owner_id="local",
@@ -477,10 +504,15 @@ def test_verify_file_does_not_read_a_symlink(tmp_path):
     repo = tmp_path / "repo"
     (repo / "events" / "evidence").mkdir(parents=True)
     (repo / "real.txt").write_text("REAL-BODY", encoding="utf-8")
-    (repo / "link.txt").symlink_to(repo / "real.txt")
     outside = tmp_path / "secret.txt"
     outside.write_text("SECRET", encoding="utf-8")
-    (repo / "out.txt").symlink_to(outside)
+    try:
+        (repo / "link.txt").symlink_to(repo / "real.txt")
+        (repo / "out.txt").symlink_to(outside)
+    except OSError as exc:
+        if getattr(exc, "winerror", None) == 1314:
+            pytest.skip("Creating symlinks on Windows requires developer mode or administrator privilege")
+        raise
     seen = []
     for name, target in (("in", "link.txt"), ("out", "out.txt"), ("real", "real.txt")):
         packet = _verify_packet(f"pkt-{name}", target)
@@ -498,3 +530,4 @@ def test_verify_file_does_not_read_a_symlink(tmp_path):
         and seen[2][2] == "real.txt"
     ), seen
     assert outside.read_text(encoding="utf-8") == "SECRET"
+
