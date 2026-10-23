@@ -126,6 +126,9 @@ def _feedback(store, state, specs, agent, host, args, transport, token, emit, ho
             emit({"mission_id": mission_id, "outcome": "skipped", "reason": "unmapped"})
             ok = False
             continue
+        owner = mission.get("ownership")
+        if owner not in (None, agent.value):
+            continue
         spec = specs.get(mission_id)
         goal_kind, goal_reason = _goal_binding(spec)
         if goal_kind == "blocked":
@@ -195,6 +198,34 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
         spec = specs.get(mission_id)
         if not _spec_ok(spec):
             emit({"mission_id": mission_id, "outcome": "skipped", "reason": "malformed_spec"})
+            ok = False
+            continue
+        route_reason = _route_refusal(spec, agent, host)
+        if route_reason:
+            emit({"mission_id": mission_id, "outcome": "skipped", "reason": route_reason})
+            ok = False
+            continue
+        if "agent_id" in spec:
+            cost_reason = _handoff_cost_block(spec)
+            if cost_reason:
+                emit({
+                    "mission_id": mission_id,
+                    "outcome": "blocked",
+                    "reason": cost_reason,
+                    "proof": "SYNTHETIC",
+                })
+                ok = False
+                continue
+        if _host_offline(home, host):
+            mission = reducer.get_mission(mission_id)
+            if mission is not None and mission.get("status") != MissionStatus.BLOCKED:
+                _park_goal(store, reducer, mission, agent, host, "target_host_unavailable")
+            emit({
+                "mission_id": mission_id,
+                "outcome": "blocked",
+                "reason": "target_host_unavailable",
+                "proof": "SYNTHETIC",
+            })
             ok = False
             continue
         goal_kind, goal_value = _goal_binding(spec)
@@ -291,7 +322,11 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
             posted_fields["goal_fingerprint"] = goal[1]
         _stamp(home / "ledger_bridge_state.json", state, mapping, "POSTED", None, **posted_fields)
         outcome = "duplicate" if posted.get("duplicate") is True else "queued"
-        emit({"mission_id": mission_id, "outcome": outcome, "task_id": mapping["task_id"]})
+        receipt = {"mission_id": mission_id, "outcome": outcome, "task_id": mapping["task_id"]}
+        if "agent_id" in spec:
+            receipt["proof"] = "SYNTHETIC"
+            receipt["owner"] = agent.value
+        emit(receipt)
     return ok
 
 
@@ -647,7 +682,9 @@ def _load_specs(path: Path):
 def _spec_ok(spec) -> bool:
     if not isinstance(spec, dict):
         return False
-    allowed = set(TASK_FIELDS) | {"source_sha", INPUTS_FIELD, *GOAL_FIELDS}
+    allowed = set(TASK_FIELDS) | {
+        "source_sha", INPUTS_FIELD, "agent_id", "host_id", "estimated_cost_eur", *GOAL_FIELDS,
+    }
     if set(spec) - allowed or any(name not in spec for name in ("adapter", "params", "effect_class", "max_attempts", "lease_ttl_s")):
         return False
     adapter = spec.get("adapter")
@@ -665,6 +702,14 @@ def _spec_ok(spec) -> bool:
         return False
     if "source_sha" in spec and not _sha_ok(spec.get("source_sha")):
         return False
+    if "agent_id" in spec and _authority(AgentID, spec.get("agent_id")) is None:
+        return False
+    if "host_id" in spec and _authority(HostID, spec.get("host_id")) is None:
+        return False
+    if "estimated_cost_eur" in spec:
+        cost = spec.get("estimated_cost_eur")
+        if isinstance(cost, bool) or not isinstance(cost, (int, float)):
+            return False
     if INPUTS_FIELD in spec:
         upstream = spec.get(INPUTS_FIELD)
         if (not isinstance(upstream, list) or not 1 <= len(upstream) <= MAX_INPUTS
@@ -695,6 +740,36 @@ def _goal_binding(spec):
 
 def _goal_token(value) -> bool:
     return isinstance(value, str) and len(value) <= MAX_GOAL_LEN and GOAL_TOKEN.fullmatch(value) is not None
+
+
+def _route_refusal(spec, agent, host):
+    """A declared agent or host that is not this bridge must not be posted here."""
+    if not isinstance(spec, dict):
+        return None
+    if "agent_id" in spec and spec.get("agent_id") != agent.value:
+        return "wrong_agent"
+    if "host_id" in spec and spec.get("host_id") != host.value:
+        return "wrong_host"
+    return None
+
+
+def _handoff_cost_block(spec) -> str | None:
+    """Cross-host work needs an explicit 0 EUR CostGate pass. Unknown cost blocks."""
+    from scripts.resource_policy import CostGate
+
+    decision = CostGate.evaluate_spend_request(
+        "google_antigravity_plus",
+        estimated_cost_eur=spec.get("estimated_cost_eur") if isinstance(spec, dict) else None,
+        requested_action="HANDOFF",
+    )
+    if decision.get("allowed") is True:
+        return None
+    return str(decision.get("reason") or "UNKNOWN_COST")
+
+
+def _host_offline(home: Path, host) -> bool:
+    marker = Path(home) / "hosts" / f"{host.value}.offline"
+    return marker.is_symlink() or marker.is_file()
 
 
 def _park_goal(store, reducer, mission, agent, host, reason) -> bool:
