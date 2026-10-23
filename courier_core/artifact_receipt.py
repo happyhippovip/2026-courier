@@ -240,7 +240,17 @@ def verify_artifact_receipt(
     expected_branch: str | None = None,
     expected_source_sha: str | None = None,
 ) -> tuple[bool, str]:
-    """Verify in-memory or downloaded bytes against a receipt."""
+    """Verify in-memory or downloaded bytes against a receipt.
+
+    Matching bytes are not acceptance. The receipt itself must say PASS,
+    is_valid, and an accepted integrity status.
+    """
+    if receipt.get("verification_verdict") != "PASS":
+        return False, "verdict not accepted"
+    if receipt.get("is_valid") is not True:
+        return False, "receipt not valid"
+    if receipt.get("integrity_status") not in (STATUS_VERIFIED_MATCH, STATUS_EXTERNAL_PRODUCED):
+        return False, "integrity not accepted"
     actual_sha = hashlib.sha256(data).hexdigest()
     if actual_sha != receipt.get("sha256"):
         return False, f"hash mismatch: expected {receipt.get('sha256')}, got {actual_sha}"

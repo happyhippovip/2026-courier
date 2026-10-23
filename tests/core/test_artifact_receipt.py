@@ -191,6 +191,9 @@ def test_verify_artifact_receipt():
     receipt = {
         "sha256": hashlib.sha256(data).hexdigest(),
         "size_bytes": len(data),
+        "verification_verdict": "PASS",
+        "is_valid": True,
+        "integrity_status": "VERIFIED_MATCH",
         "provenance": {
             "branch": "integration/v1",
             "source_sha": "0b55fc11be5f6280f2dd6977682cf142106a81e7",
@@ -216,6 +219,17 @@ def test_verify_artifact_receipt():
     valid_corrupt, msg_corrupt = verify_artifact_receipt(receipt, b"Tampered data")
     assert valid_corrupt is False
     assert "mismatch" in msg_corrupt
+
+    failed = dict(receipt, verification_verdict="FAIL", is_valid=False, integrity_status="MISSING_DATA")
+    rejected, why = verify_artifact_receipt(failed, data)
+    assert rejected is False
+    assert why == "verdict not accepted"
+
+    unsigned = dict(receipt)
+    unsigned.pop("verification_verdict")
+    missing, missing_why = verify_artifact_receipt(unsigned, data)
+    assert missing is False
+    assert missing_why == "verdict not accepted"
 
 
 def test_server_artifact_receipt_endpoint(monkeypatch):
