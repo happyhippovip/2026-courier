@@ -129,6 +129,21 @@ def _feedback(store, state, specs, agent, host, args, transport, token, emit, ho
         owner = mission.get("ownership")
         if owner not in (None, agent.value):
             continue
+        # Accepted work stays open while this host is offline. A later run
+        # finalizes the same task. It must not become DONE on the offline pass.
+        if (
+            _host_offline(home, host)
+            and mapping.get("posted") is True
+            and mapping.get("status") != "FINAL_DONE"
+        ):
+            emit({
+                "mission_id": mission_id,
+                "outcome": "blocked",
+                "reason": "target_host_unavailable",
+                "proof": "SYNTHETIC",
+            })
+            ok = False
+            continue
         spec = specs.get(mission_id)
         goal_kind, goal_reason = _goal_binding(spec)
         if goal_kind == "blocked":
@@ -217,6 +232,18 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
                 ok = False
                 continue
         if _host_offline(home, host):
+            mapping = state["missions"].get(mission_id)
+            if isinstance(mapping, dict) and mapping.get("posted") is True:
+                # The controller already accepted this task. Do not park it and
+                # do not post it again; feedback finalizes it once the host is back.
+                emit({
+                    "mission_id": mission_id,
+                    "outcome": "blocked",
+                    "reason": "target_host_unavailable",
+                    "proof": "SYNTHETIC",
+                })
+                ok = False
+                continue
             mission = reducer.get_mission(mission_id)
             if mission is not None and mission.get("status") != MissionStatus.BLOCKED:
                 _park_goal(store, reducer, mission, agent, host, "target_host_unavailable")
