@@ -1,4 +1,6 @@
 # Courier Symphony — Release-Train-Marathon V1
+
+> **NEUE DRITTE SPUR — DUAL-DISPATCHER HOT STANDBY V2 (23.10.):** Neben Safety Track A und Product Track B existiert ein streng abgegrenzter **Read-only Architektur-/Test-Track C** für [gemeinsame Master-Epoch, atomare Übergabe und serverseitiges Fencing](./COURIER_DUAL_DISPATCHER_HOT_STANDBY_V2_2026-10-23.md). Windows bleibt bis zur technischen Durchsetzung **STANDBY_READ_ONLY**; noch kein echter Failover, keine automatische zweite Master-Instanz. Diese dritte Spur verursacht **keine** zusätzliche Produkt-Writer-Lane.
 **Öffentliche Strategie und koordinierte Umsetzung · 23.10.2026 · Happy Hippo VIP 👑🥊👊😎🚀**
 
 > **STATUS: VORSCHLAG / DOKUMENTATION, KEINE AUSFÜHRUNG.** Dieser Plan startet keine Agenten, registriert keine Workkeys, aktiviert keinen Timer, verteilt keine Leases und autorisiert keinen Merge. Ein offenes Goal ist nicht mit einem dauerhaften Hintergrundprozess gleichzusetzen. Alle Livezustände vor der Ausführung neu prüfen.
