@@ -245,9 +245,10 @@ def windows_daemon(tmp_path, monkeypatch, harness, executions, content=b"ok\n"):
     work = tmp_path / "work"
     work.mkdir(exist_ok=True)
     monkeypatch.chdir(work)
-    monkeypatch.setattr(d, "STATE_DIR", tmp_path / "wstate")
+    state = tmp_path / "wstate"
+    state.mkdir()
+    monkeypatch.setattr(d, "STATE_DIR", state)
     monkeypatch.setattr(d, "load_config", lambda: {"WORKER_ID": "WINDOWS-01"})
-    monkeypatch.setattr(d, "acquire_lock", lambda w: tmp_path / "lock")
     monkeypatch.setattr(d, "is_resource_pressure_high", lambda: False)
     monkeypatch.setattr(d.time, "sleep", lambda s: None)
     monkeypatch.setattr(d.urllib.request, "urlopen", harness)

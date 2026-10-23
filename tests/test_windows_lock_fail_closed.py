@@ -106,6 +106,20 @@ def test_acquire_lock_holds_a_canonical_lease(tmp_path, monkeypatch):
     assert daemon._lock_fd is None
 
 
+def test_lease_store_permission_error_does_not_start(tmp_path, monkeypatch):
+    """CUR-WIN-036: a store that refuses writes is not a running worker."""
+    daemon = load_daemon(tmp_path, monkeypatch)
+
+    def denied():
+        raise PermissionError("access denied")
+
+    monkeypatch.setattr(daemon, "get_authority_store", denied)
+    with pytest.raises(daemon.CanonicalLeaseLost, match="canonical writer lease"):
+        daemon.acquire_lock("WIN-LEASE")
+    assert daemon._lock_fd is None
+    assert daemon._worker_lease is None
+
+
 def test_missing_lease_store_does_not_start(tmp_path, monkeypatch):
     daemon = load_daemon(tmp_path, monkeypatch)
 
@@ -120,6 +134,8 @@ def test_missing_lease_store_does_not_start(tmp_path, monkeypatch):
 
 
 def test_lease_store_without_write_permission_does_not_start(tmp_path, monkeypatch):
+    if os.name == "nt" or not hasattr(os, "geteuid"):
+        pytest.skip("POSIX directory mode is not the Windows write check")
     if os.geteuid() == 0:
         pytest.skip("root ignores the directory mode used for this check")
     daemon = load_daemon(tmp_path, monkeypatch)

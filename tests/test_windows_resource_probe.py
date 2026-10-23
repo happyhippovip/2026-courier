@@ -78,7 +78,6 @@ def test_unknown_pressure_does_not_claim(tmp_path, monkeypatch):
         messages.append(" ".join(str(arg) for arg in args))
 
     monkeypatch.setattr(daemon, "read_cpu_load_percent", lambda: None)
-    monkeypatch.setattr(daemon, "acquire_lock", lambda _worker: tmp_path / "lock")
     monkeypatch.setattr(daemon.urllib.request, "urlopen", urlopen)
     monkeypatch.setattr(daemon.time, "sleep", stop)
     monkeypatch.setattr("builtins.print", capture)

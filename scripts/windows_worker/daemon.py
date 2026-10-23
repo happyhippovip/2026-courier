@@ -566,6 +566,7 @@ def loop():
         sys.exit(0)
     
     try:
+        _require_canonical_lease()
         print(f"[{worker_id}] Windows Worker HTTP Daemon started. PID={os.getpid()}")
         
         backoff = 10
