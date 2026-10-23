@@ -382,3 +382,32 @@ def test_blocked_wake_does_not_stall_the_next_one(tmp_path):
     outcomes = [json.loads(line)["outcome"] for line in log.splitlines()]
     assert outcomes == ["blocked", "queued"]
     assert json.loads(cursor.read_text(encoding="utf-8"))["comment_id"] == 2
+
+
+def test_dry_run_does_not_consume_an_ignored_comment(tmp_path):
+    http = FakeHTTP()
+    code, http, home, out, err, log, cursor = _run(
+        tmp_path, http,
+        {"wk-a": {"depends_on": [{"repo": REPO, "pr": 7}], "task": _task()}},
+        [_comment(1, "stranger", "OWNER", _wake())],
+        extra=["--dry-run"],
+    )
+    assert code == 0 and http.tasks == []
+    assert json.loads(out)["outcome"] == "ignored"
+    assert log == ""
+    assert not cursor.exists()
+
+
+def test_dry_run_of_an_admitted_wake_does_not_post_or_advance(tmp_path):
+    http = FakeHTTP()
+    http.pulls[(REPO, 7)] = _pull()
+    code, http, home, out, err, log, cursor = _run(
+        tmp_path, http,
+        {"wk-a": {"depends_on": [{"repo": REPO, "pr": 7, "sha": SHA}], "task": _task()}},
+        [_comment(1, "octo", "OWNER", _wake())],
+        extra=["--dry-run"],
+    )
+    assert code == 0 and http.tasks == []
+    assert json.loads(out)["outcome"] == "queued"
+    assert log == ""
+    assert not cursor.exists()

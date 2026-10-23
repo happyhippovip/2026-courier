@@ -7,7 +7,8 @@ is never printed.
 A verified wake is posted only when the shared handoff decision allows it.
 A missing, unknown, or positive cost is blocked and is not posted. That
 decision still advances the cursor, so one blocked comment does not stall
-the inbox. Dry-run reports the same block and does not advance. The process
+the inbox. Dry-run reports the decision and does not advance, including
+for a comment that is only ignored. The process
 exits 2 when any wake in the page is blocked. An admitted estimate is copied
 into params and is not a top-level task field. A local_shell command with no
 estimate is not treated as free.
@@ -109,7 +110,8 @@ def main(argv=None, *, http=None, stdout=None, stderr=None) -> int:
         outcome = _classify(comment, args.allow_login, args.repo)
         if outcome is None:
             emit({"comment_id": cid, "outcome": "ignored"})
-            _advance(home, args, cursor, comment)
+            if not args.dry_run:
+                _advance(home, args, cursor, comment)
             continue
         handled += 1
         try:
