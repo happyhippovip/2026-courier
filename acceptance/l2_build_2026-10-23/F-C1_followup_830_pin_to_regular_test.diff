@@ -1,0 +1,25 @@
+diff --git a/tests/test_ledger_engine.py b/tests/test_ledger_engine.py
+index 3efa91d78..fd65d9df4 100644
+--- a/tests/test_ledger_engine.py
++++ b/tests/test_ledger_engine.py
+@@ -275,13 +275,14 @@ def test_zero_human_chain_runs_three_workkeys_to_final_with_proofs(setup):
+ 
+ # -- known gaps outside the engine (owners: controller L2, host loop L3) ----------------------
+ 
+-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="F-C1 gap in courier_core/controller.py (owner L2, controller admission; no open PR fixes it, "
+-                   "LedgerEngine.submit does not cover direct calls): "
+-                   "create_task has no cost gate; remove this xfail when the controller rejects it")
+-def test_gap_direct_controller_create_task_bypasses_the_cost_gate(setup):
++def test_direct_controller_create_task_is_cost_gated_too(setup):
++    """F-C1 closed in the controller: a direct create_task with unknown cost writes nothing."""
++    from courier_core.controller import ApiError
+     _, ctrl, _, _ = setup
+-    status, _ = ctrl.create_task(body(cost=None, unknown_cost=True))
+-    assert status >= 400
++    with pytest.raises(ApiError) as exc:
++        ctrl.create_task(body(cost=None, unknown_cost=True))
++    assert exc.value.code == "cost_blocked"
++    assert [e for e in ctrl.journal.events() if e.type is EventType.TASK_CREATED] == []
+ 
+ 
+ @pytest.mark.xfail(strict=True, raises=AssertionError, reason="F-K1 gap in courier_runtime/provider_events.py + host_loop.py (owner L3): "

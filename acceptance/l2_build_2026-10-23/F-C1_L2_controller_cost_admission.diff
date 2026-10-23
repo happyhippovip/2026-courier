@@ -1,0 +1,398 @@
+diff --git a/adapters/local_json_delivery.py b/adapters/local_json_delivery.py
+index 065a0cce7..388dfa7a3 100644
+--- a/adapters/local_json_delivery.py
++++ b/adapters/local_json_delivery.py
+@@ -29,6 +29,8 @@ from pathlib import Path, PurePosixPath, PureWindowsPath
+ from typing import Any, Mapping
+ 
+ VERIFIER_VERSION = "1"
++# Cost class read by the controller before a task exists (writes a local file, no per-run charge).
++COST_CLASS = "local"
+ SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+ MAX_ARTIFACTS = 16
+ 
+diff --git a/adapters/local_shell.py b/adapters/local_shell.py
+index 34a8d6058..09adf9f8d 100644
+--- a/adapters/local_shell.py
++++ b/adapters/local_shell.py
+@@ -64,6 +64,8 @@ from typing import Any, Mapping, Sequence
+ from adapters.synthetic import SHA256_RE, is_safe_name
+ 
+ VERIFIER_VERSION = "1"
++# Cost class read by the controller before a task exists (runs an allowlisted command on this host, no per-run charge).
++COST_CLASS = "local"
+ 
+ MAX_TIMEOUT_S = 600
+ 
+diff --git a/adapters/provider_exec.py b/adapters/provider_exec.py
+index 96bb1d9ad..96f2e4618 100644
+--- a/adapters/provider_exec.py
++++ b/adapters/provider_exec.py
+@@ -32,6 +32,8 @@ from typing import Any, Mapping
+ from adapters.synthetic import SHA256_RE, is_safe_name
+ 
+ VERIFIER_VERSION = "1"
++# Cost class read by the controller before a task exists (a provider run can charge; the task must state its estimate).
++COST_CLASS = "metered"
+ EVIDENCE_NAME = "provider_output.txt"
+ MAX_EVIDENCE_BYTES = 1024 * 1024  # 1 MiB
+ # Customer-visible agy evidence. No response, usage, conversation id, or path.
+diff --git a/adapters/spreadsheet.py b/adapters/spreadsheet.py
+index a769538b4..e48e5fbf7 100644
+--- a/adapters/spreadsheet.py
++++ b/adapters/spreadsheet.py
+@@ -5,6 +5,8 @@ from courier_runtime.revenue import Lead, PROSPECT
+ from courier_runtime.workbook import read_cells
+ from collections import defaultdict
+ 
++# Cost class read by the controller before a task exists (pure local computation, no per-run charge).
++COST_CLASS = "local"
+ _REF = re.compile(r"^([A-Z]+)([1-9][0-9]*)$")
+ 
+ # Row-balance rejection reasons (parse_leads_with_balance)
+diff --git a/adapters/synthetic.py b/adapters/synthetic.py
+index 036064a80..c23979817 100644
+--- a/adapters/synthetic.py
++++ b/adapters/synthetic.py
+@@ -71,6 +71,8 @@ from pathlib import Path, PurePosixPath, PureWindowsPath
+ from typing import Any, Mapping
+ 
+ VERIFIER_VERSION = "2"  # 2: from_input tasks are checked against their dependency's artifact
++# Cost class read by the controller before a task exists (deterministic local execution, no per-run charge).
++COST_CLASS = "local"
+ 
+ SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+ INPUT_TRANSFORMS = frozenset({"copy", "reverse"})
+diff --git a/courier_core/controller.py b/courier_core/controller.py
+index ec9bb3405..fbf870fc3 100644
+--- a/courier_core/controller.py
++++ b/courier_core/controller.py
+@@ -33,6 +33,7 @@ from __future__ import annotations
+ 
+ import hashlib
+ import logging
++import math
+ import os
+ import queue
+ import sqlite3
+@@ -54,7 +55,7 @@ from courier_core.state_machine import (
+     ACTIVE_LEASE, RESOLVED_VERIFIED, TERMINAL, Decision, TaskState, TaskStatus, TransitionError,
+     decide_after_failure,
+ )
+-from courier_core.verification import ADAPTER_NAME, VerifyFn, adapter_verifier, run_verifier
++from courier_core.verification import ADAPTER_NAME, VerifyFn, adapter_cost_class, adapter_verifier, run_verifier
+ 
+ log = logging.getLogger("courier.controller")
+ 
+@@ -62,6 +63,8 @@ NORMAL = "normal"
+ DEGRADED = "degraded_readonly"
+ 
+ MAX_LEASE_TTL_S = 3600
++# AUTONOMOUS_SPEND_LIMIT_EUR=0: a task may not plan any per-run spend.
++SPEND_LIMIT_EUR = 0.0
+ MAX_TIMEOUT_S = 7 * 24 * 3600
+ MAX_HEARTBEAT_DISPATCHES = 256
+ MAX_ARTIFACTS = 1000
+@@ -78,6 +81,25 @@ RESOLVE_DECISIONS = {"effect_confirmed": EventType.EFFECT_CONFIRMED,
+                      "cancel": EventType.TASK_CANCELLED}
+ 
+ 
++def cost_admission(cost_class: str | None, params: dict) -> str | None:
++    """None if a task may be created, else why not. Decided before TASK_CREATED; UNKNOWN_COST blocks.
++
++    cost_class comes from the adapter's own declaration: "local" (no per-run charge),
++    "metered" (can charge), or None (undeclared or unknown adapter)."""
++    if params.get("unknown_cost") is True or params.get("cost_class") == "unknown":
++        return "the task is marked as unknown cost"
++    if cost_class not in ("local", "metered"):
++        return "the adapter declares no cost class, so its cost is unknown"
++    if "estimated_cost_eur" not in params:
++        return None if cost_class == "local" else "a metered adapter needs params.estimated_cost_eur"
++    cost = params["estimated_cost_eur"]
++    if isinstance(cost, bool) or not isinstance(cost, (int, float)) or not math.isfinite(cost) or cost < 0:
++        return "params.estimated_cost_eur must be a finite number >= 0"
++    if cost > SPEND_LIMIT_EUR:
++        return f"params.estimated_cost_eur {cost} is over the spend limit of {SPEND_LIMIT_EUR} EUR"
++    return None
++
++
+ class ApiError(Exception):
+     def __init__(self, status: int, code: str, message: str = "", **extra: Any):
+         super().__init__(message or code)
+@@ -138,7 +160,8 @@ def _only_fields(body: Any, allowed: set[str]) -> dict:
+ 
+ class Controller:
+     def __init__(self, home: str | os.PathLike, *, verifier: Callable[[str], VerifyFn | None] = adapter_verifier,
+-                 clock: Callable[[], float] = time.monotonic, lock_timeout_s: float = 10.0):
++                 clock: Callable[[], float] = time.monotonic, lock_timeout_s: float = 10.0,
++                 cost_class: Callable[[str], str | None] = adapter_cost_class):
+         self.home = Path(home)
+         self.db_path = self.home / "courier.db"
+         self.mode = "booting"
+@@ -146,6 +169,7 @@ class Controller:
+         self.degraded_reason: str | None = None
+         self.journal: Journal | None = None
+         self._verifier = verifier
++        self._cost_class = cost_class
+         self._clock = clock
+         self._lock_timeout_s = lock_timeout_s
+         self._lock = threading.RLock()
+@@ -344,6 +368,9 @@ class Controller:
+             raise ApiError(400, "invalid_request", "adapter must match [a-z][a-z0-9_]{0,63}")
+         if not isinstance(body.get("params"), dict):
+             raise ApiError(400, "invalid_request", "params must be a JSON object")
++        blocked = cost_admission(self._cost_class(adapter), body["params"])
++        if blocked is not None:
++            raise ApiError(400, "cost_blocked", blocked)
+         if body.get("effect_class") not in EFFECT_CLASSES:
+             raise ApiError(400, "invalid_request", f"effect_class must be one of {sorted(EFFECT_CLASSES)}")
+         _require_int(body, "max_attempts", 1, MAX_ATTEMPTS_LIMIT)
+diff --git a/courier_core/verification.py b/courier_core/verification.py
+index dd3d9a2f0..f802ca9ba 100644
+--- a/courier_core/verification.py
++++ b/courier_core/verification.py
+@@ -67,6 +67,23 @@ def adapter_verifier(adapter: str) -> VerifyFn | None:
+     return verify if callable(verify) else None
+ 
+ 
++COST_CLASSES = frozenset({"local", "metered"})
++
++
++def adapter_cost_class(adapter: str) -> str | None:
++    """adapters.<adapter>.COST_CLASS ("local" or "metered"); None if missing or undeclared."""
++    if not isinstance(adapter, str) or not ADAPTER_NAME.match(adapter):
++        return None
++    try:
++        module = importlib.import_module(f"adapters.{adapter}")
++    except ModuleNotFoundError as exc:
++        if exc.name in ("adapters", f"adapters.{adapter}"):
++            return None
++        raise
++    cost_class = getattr(module, "COST_CLASS", None)
++    return cost_class if cost_class in COST_CLASSES else None
++
++
+ _SOURCE_DIGESTS: dict[tuple[str, int, int], str] = {}
+ 
+ 
+diff --git a/tests/controller/ctrl_helpers.py b/tests/controller/ctrl_helpers.py
+index 4d395b3ac..4b5ab6a88 100644
+--- a/tests/controller/ctrl_helpers.py
++++ b/tests/controller/ctrl_helpers.py
+@@ -8,7 +8,7 @@ import requests
+ 
+ from courier_core.controller import Controller
+ from courier_core.serve import Service
+-from courier_core.verification import Verdict
++from courier_core.verification import Verdict, adapter_cost_class
+ 
+ SHA = hashlib.sha256(b"courier-golden").hexdigest()
+ 
+@@ -51,6 +51,15 @@ def sha_matches(task, result, home):
+     return Verdict(ok, "sha matches" if ok else "sha mismatch", retryable=False)
+ 
+ 
++# Test-only adapters run nothing and charge nothing; declare them as the shipped adapters
++# declare themselves. Any other name falls back to the real declaration (unknown -> refused).
++FIXTURE_COST_CLASSES = {"probe": "local", "a": "local", "idprobe": "local"}
++
++
++def fixture_cost_class(adapter):
++    return FIXTURE_COST_CLASSES.get(adapter) or adapter_cost_class(adapter)
++
++
+ def task_body(**overrides):
+     body = {"adapter": "probe", "params": {"x": 1}, "effect_class": "idempotent", "max_attempts": 3,
+             "lease_ttl_s": 6}
+@@ -66,6 +75,7 @@ def result_body(dispatch_id, result_id="r1", outcome="success", sha=SHA, **extra
+ 
+ 
+ def make_controller(home, clock=None, verifier=None, **kw):
++    kw.setdefault("cost_class", fixture_cost_class)
+     return Controller(Path(home), clock=clock or FakeClock(), verifier=verifier or Verifiers(probe=accept_all),
+                       **kw).boot()
+ 
+@@ -87,7 +97,7 @@ class LiveService:
+ 
+     def __init__(self, home, verifier=None, clock=None):
+         controller = Controller(Path(home), verifier=verifier or Verifiers(probe=accept_all),
+-                                **({"clock": clock} if clock else {}))
++                                cost_class=fixture_cost_class, **({"clock": clock} if clock else {}))
+         self.service = Service(Path(home), 0, controller=controller)
+         self.controller = self.service.controller
+         self.thread = threading.Thread(target=self.service.run, daemon=True)
+diff --git a/tests/controller/test_ctrl_cost_admission.py b/tests/controller/test_ctrl_cost_admission.py
+new file mode 100644
+index 000000000..250687089
+--- /dev/null
++++ b/tests/controller/test_ctrl_cost_admission.py
+@@ -0,0 +1,120 @@
++"""F-C1: the controller decides cost admission before TASK_CREATED.
++
++The adapter module declares its cost class (adapters.<name>.COST_CLASS):
++"local" runs on this host without a per-run charge, "metered" can charge.
++An adapter without a declaration is unknown and never admitted.
++"""
++import pytest
++
++from courier_core.controller import ApiError, Controller
++from courier_core.events import EventType
++from courier_core.verification import adapter_cost_class
++
++
++@pytest.fixture
++def ctrl(tmp_path):
++    c = Controller(tmp_path, verifier=lambda adapter: None).boot()
++    yield c
++    c.stop()
++
++
++def body(adapter="provider_exec", **params):
++    return {"adapter": adapter, "params": params, "effect_class": "non_idempotent",
++            "max_attempts": 1, "lease_ttl_s": 30}
++
++
++def journal_types(ctrl):
++    return [e.type for e in ctrl.journal.events()]
++
++
++def assert_blocked(ctrl, b):
++    before = journal_types(ctrl)
++    with pytest.raises(ApiError) as exc:
++        ctrl.create_task(b)
++    assert exc.value.status == 400 and exc.value.code == "cost_blocked"
++    assert journal_types(ctrl) == before                       # nothing written
++    assert EventType.TASK_CREATED not in journal_types(ctrl)
++    assert ctrl.claim({"worker_id": "w1"}) is None
++
++
++def test_the_shipped_adapters_declare_their_cost_class():
++    assert {name: adapter_cost_class(name) for name in
++            ("synthetic", "local_shell", "local_json_delivery", "spreadsheet", "provider_exec")} == {
++        "synthetic": "local", "local_shell": "local", "local_json_delivery": "local",
++        "spreadsheet": "local", "provider_exec": "metered"}
++    assert adapter_cost_class("some_new_adapter") is None
++    assert adapter_cost_class("../escape") is None
++
++
++@pytest.mark.parametrize("params", [
++    {},
++    {"estimated_cost_eur": None},
++    {"estimated_cost_eur": float("nan")},
++    {"estimated_cost_eur": float("inf")},
++    {"estimated_cost_eur": -1.0},
++    {"estimated_cost_eur": True},
++    {"estimated_cost_eur": False},                              # bool is an int in Python: False would read as 0
++    {"estimated_cost_eur": "0"},
++    {"estimated_cost_eur": [0]},
++])
++def test_metered_adapter_without_a_finite_estimate_is_refused_before_the_journal(ctrl, params):
++    assert_blocked(ctrl, body(**params))
++
++
++@pytest.mark.parametrize("cost", [0.01, 1, 99.0])
++def test_positive_cost_is_over_the_zero_spend_limit(ctrl, cost):
++    assert_blocked(ctrl, body(estimated_cost_eur=cost))
++
++
++@pytest.mark.parametrize("adapter", ["synthetic", "local_shell", "provider_exec"])
++@pytest.mark.parametrize("marker", [{"unknown_cost": True}, {"cost_class": "unknown"}])
++def test_an_explicit_unknown_marker_is_refused_for_every_adapter(ctrl, adapter, marker):
++    assert_blocked(ctrl, body(adapter=adapter, estimated_cost_eur=0.0, **marker))
++
++
++@pytest.mark.parametrize("params", [{}, {"estimated_cost_eur": 0.0}])
++def test_an_undeclared_adapter_is_refused_even_with_a_zero_estimate(ctrl, params):
++    assert_blocked(ctrl, body(adapter="some_new_adapter", **params))
++
++
++def test_invalid_estimate_is_refused_for_a_local_adapter_too(ctrl):
++    assert_blocked(ctrl, body(adapter="synthetic", estimated_cost_eur=float("nan")))
++
++
++def test_metered_adapter_with_an_explicit_zero_is_created(ctrl):
++    status, _ = ctrl.create_task(body(estimated_cost_eur=0.0))
++    assert status == 201 and journal_types(ctrl).count(EventType.TASK_CREATED) == 1
++
++
++@pytest.mark.parametrize("adapter", ["synthetic", "local_shell", "local_json_delivery", "spreadsheet"])
++def test_a_local_adapter_without_an_estimate_is_still_created(ctrl, adapter):
++    assert ctrl.create_task(body(adapter=adapter))[0] == 201
++
++
++def test_replay_of_an_admitted_task_is_a_duplicate_and_writes_nothing(ctrl):
++    b = dict(body(estimated_cost_eur=0.0), idempotency_key="k1")
++    assert ctrl.create_task(b)[0] == 201
++    before = journal_types(ctrl)
++    status, payload = ctrl.create_task(b)
++    assert status == 200 and payload["duplicate"] is True
++    assert journal_types(ctrl) == before
++
++
++def test_a_refused_body_reusing_an_admitted_key_is_refused_and_writes_nothing(ctrl):
++    ok = dict(body(estimated_cost_eur=0.0), idempotency_key="k2")
++    ctrl.create_task(ok)
++    before = journal_types(ctrl)
++    with pytest.raises(ApiError) as exc:
++        ctrl.create_task(dict(body(), idempotency_key="k2"))       # same key, estimate missing
++    assert exc.value.code == "cost_blocked"
++    assert journal_types(ctrl) == before
++
++
++def test_an_injected_cost_class_resolver_decides(tmp_path):
++    c = Controller(tmp_path, verifier=lambda adapter: None, cost_class={"probe": "local"}.get).boot()
++    try:
++        assert c.create_task(body(adapter="probe"))[0] == 201
++        with pytest.raises(ApiError):
++            c.create_task(body(adapter="other"))
++    finally:
++        c.stop()
+diff --git a/tests/controller/test_ctrl_golden_contract.py b/tests/controller/test_ctrl_golden_contract.py
+index 0ab42d5ce..3e4e94651 100644
+--- a/tests/controller/test_ctrl_golden_contract.py
++++ b/tests/controller/test_ctrl_golden_contract.py
+@@ -32,6 +32,8 @@ PROBE_ADAPTER = textwrap.dedent('''
+     import hashlib
+     from courier_core.verification import Verdict
+ 
++    COST_CLASS = "local"
++
+     def verify(task, result, home):
+         expected = hashlib.sha256(task.params.get("content", "courier-golden").encode()).hexdigest()
+         ok = any(a.get("sha256") == expected for a in result.payload["artifacts"])
+diff --git a/tests/controller/test_ctrl_moat_hardening.py b/tests/controller/test_ctrl_moat_hardening.py
+index c690cb27d..8e7b3fa2f 100644
+--- a/tests/controller/test_ctrl_moat_hardening.py
++++ b/tests/controller/test_ctrl_moat_hardening.py
+@@ -398,7 +398,7 @@ def test_real_adapter_verifier_identity_carries_source_hash(tmp_path, monkeypatc
+     package = tmp_path / "pkg" / "adapters"
+     package.mkdir(parents=True)
+     (package / "__init__.py").write_text("")
+-    source = ("from courier_core.verification import Verdict\nVERIFIER_VERSION = '2'\n"
++    source = ("from courier_core.verification import Verdict\nVERIFIER_VERSION = '2'\nCOST_CLASS = 'local'\n"
+               "def verify(task, result, home):\n    return Verdict(True, 'ok')\n")
+     (package / "idprobe.py").write_bytes(source.encode())  # exact bytes: no CRLF translation on Windows
+     monkeypatch.syspath_prepend(str(tmp_path / "pkg"))
+diff --git a/tests/controller/test_ctrl_service.py b/tests/controller/test_ctrl_service.py
+index 73f5258a3..8f24fe17d 100644
+--- a/tests/controller/test_ctrl_service.py
++++ b/tests/controller/test_ctrl_service.py
+@@ -17,7 +17,7 @@ from pathlib import Path
+ import pytest
+ import requests
+ 
+-from ctrl_helpers import LiveService, Verifiers, accept_all, result_body, task_body
++from ctrl_helpers import LiveService, Verifiers, accept_all, fixture_cost_class, result_body, task_body
+ 
+ REPO_ROOT = Path(__file__).resolve().parents[2]
+ 
+@@ -232,7 +232,8 @@ def test_concurrent_duplicate_results_record_one_effect(live, round_):
+ 
+ def test_busy_controller_answers_503_instead_of_hanging(tmp_path):
+     from courier_core.controller import ApiError, Controller
+-    ctl = Controller(tmp_path / "home", verifier=Verifiers(probe=accept_all), lock_timeout_s=0.3).boot()
++    ctl = Controller(tmp_path / "home", verifier=Verifiers(probe=accept_all), lock_timeout_s=0.3,
++                     cost_class=fixture_cost_class).boot()
+     try:
+         held = threading.Event()
+         release = threading.Event()
