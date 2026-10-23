@@ -1,5 +1,9 @@
 """Bool metrics are not a host reading and must not admit slots."""
 
+import pytest
+
+pytest.importorskip("fcntl")
+
 from scripts.mac_worker.muse_supervisor import CapacityGovernor
 
 

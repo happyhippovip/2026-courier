@@ -5,12 +5,14 @@ import json
 import subprocess
 from pathlib import Path
 
+import pytest
+
 from scripts.coordination_ledger import (
     AgentID, CoordinationEvent, EventType, HostID, MissionStatus,
 )
 from scripts.coordination_resume import reduce_store
 from scripts.github_coordination import FileCoordinationStore
-from scripts.ledger_v1_bridge import _load_state, main
+from scripts.ledger_v1_bridge import MAX_STATE_BYTES, _fingerprint, _load_state, main
 
 TOKEN = "controller-token-value-0123456789abcdef"
 AGENT = "GOOGLE_WINDOWS"
@@ -28,12 +30,14 @@ def _event(eid, mid, etype, status, ts, deps=None):
 
 
 def _spec(**overrides):
+    """Synthetic fixture. The 0 EUR estimate is declared; production code does not invent one."""
     body = {
         "adapter": "synthetic",
         "params": {"unit": "a"},
         "effect_class": "idempotent",
         "max_attempts": 1,
         "lease_ttl_s": 30,
+        "estimated_cost_eur": 0.0,
     }
     body.update(overrides)
     return body
@@ -145,7 +149,7 @@ def test_ready_mission_is_claimed_and_posted_once(tmp_path):
     posted = http.posts[0]
     assert posted["idempotency_key"].startswith("ledger:claim-")
     assert posted["adapter"] == "synthetic"
-    assert posted["params"] == {"unit": "a"}
+    assert posted["params"] == {"unit": "a", "estimated_cost_eur": 0.0}
     assert posted["effect_class"] == "idempotent"
     assert posted["max_attempts"] == 1
     assert posted["lease_ttl_s"] == 30
@@ -209,17 +213,18 @@ def test_complete_a_finalizes_and_posts_b_in_the_same_pass(tmp_path):
     ])
     assert _run(home, http)[0] == 0
     assert len(http.posts) == 1
-    assert http.posts[0]["params"] == {"unit": "a"}
+    assert http.posts[0]["params"] == {"unit": "a", "estimated_cost_eur": 0.0}
     task_id = "task-" + hashlib.sha256(http.posts[0]["idempotency_key"].encode()).hexdigest()[:32]
     http.views[task_id]["status"] = "COMPLETE"
     http.views[task_id]["accepted_result_id"] = "result-a"
+    http.views[task_id]["resolution"] = "verified"
     http.views[task_id]["attempt"] = 1
     record = json.loads((home / "ledger_bridge_state.json").read_text(encoding="utf-8"))["missions"]["A"]
     before = len((home / "coordination_ledger.jsonl").read_text(encoding="utf-8").splitlines())
     code, out, err, log, lines = _run(home, http)
     assert code == 0
     assert len(http.posts) == 2
-    assert http.posts[1]["params"] == {"unit": "b"}
+    assert http.posts[1]["params"] == {"unit": "b", "estimated_cost_eur": 0.0}
     assert http.posts[1]["idempotency_key"].startswith("ledger:claim-")
     reducer = reduce_store(FileCoordinationStore(home / "coordination_ledger.jsonl"))
     assert reducer.get_mission("A")["status"] == MissionStatus.DONE
@@ -256,7 +261,7 @@ def test_blocked_a_parks_and_unrelated_c_dispatches(tmp_path):
     code, out, err, log, lines = _run(home, http)
     assert code == 0
     assert len(http.posts) == 1
-    assert http.posts[0]["params"] == {"unit": "c"}
+    assert http.posts[0]["params"] == {"unit": "c", "estimated_cost_eur": 0.0}
     reducer = reduce_store(FileCoordinationStore(home / "coordination_ledger.jsonl"))
     assert reducer.get_mission("A")["status"] == MissionStatus.BLOCKED
     assert reducer.get_mission("A")["blocker"] == "needs a person"
@@ -304,7 +309,7 @@ def test_restart_on_complete_task_writes_one_final_and_no_post(tmp_path):
         json.dumps({"missions": {"A": _mapped()}}), encoding="utf-8")
     http.views["task-a"] = {
         "task_id": "task-a", "status": "COMPLETE", "attempt": 1,
-        "accepted_result_id": "result-a", "last_reason": None,
+        "accepted_result_id": "result-a", "resolution": "verified", "last_reason": None,
     }
     code, out, err, log, lines = _run(home, http)
     assert code == 0 and http.posts == []
@@ -319,6 +324,47 @@ def test_restart_on_complete_task_writes_one_final_and_no_post(tmp_path):
     before = (home / "coordination_ledger.jsonl").read_text(encoding="utf-8")
     assert _run(home, http)[0] == 0
     assert http.posts == []
+    assert (home / "coordination_ledger.jsonl").read_text(encoding="utf-8") == before
+
+
+def test_unreadable_receipt_log_is_not_a_present_receipt(tmp_path):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec(source_sha=SHA)})
+    _seed(home, [_ready("A", "a-assign")])
+    (home / "ledger_bridge_state.json").write_text(
+        json.dumps({"missions": {"A": _mapped()}}), encoding="utf-8")
+    http.views["task-a"] = {
+        "task_id": "task-a", "status": "COMPLETE", "attempt": 1,
+        "accepted_result_id": "result-a", "resolution": "verified", "last_reason": None,
+    }
+    code, out, err, log, lines = _run(home, http)
+    assert code == 0 and "final" in out
+    before = (home / "coordination_ledger.jsonl").read_text(encoding="utf-8")
+    log_path = home / "run" / "ledger_bridge.log"
+    log_path.write_bytes(b"\xff\xfe not a receipt\n")
+    out_lines, err_lines = [], []
+    code = main(
+        ["--home", str(home), "--agent-id", AGENT, "--host-id", HOST,
+         "--controller", "http://127.0.0.1:9"],
+        http=http, stdout=out_lines.append, stderr=err_lines.append,
+    )
+    text = "".join(out_lines)
+    assert code == 2
+    assert "receipt_log_unreadable" in text
+    assert '"outcome":"final"' not in text
+    assert (home / "coordination_ledger.jsonl").read_text(encoding="utf-8") == before
+
+    log_path.write_bytes(b"x" * (MAX_STATE_BYTES + 1))
+    out_lines, err_lines = [], []
+    code = main(
+        ["--home", str(home), "--agent-id", AGENT, "--host-id", HOST,
+         "--controller", "http://127.0.0.1:9"],
+        http=http, stdout=out_lines.append, stderr=err_lines.append,
+    )
+    text = "".join(out_lines)
+    assert code == 2
+    assert "receipt_log_unreadable" in text
+    assert '"outcome":"final"' not in text
     assert (home / "coordination_ledger.jsonl").read_text(encoding="utf-8") == before
 
 
@@ -385,6 +431,7 @@ def test_goal_fields_round_trip_into_evidence_and_replay_is_noop(tmp_path):
     task_id = "task-" + hashlib.sha256(posted["idempotency_key"].encode()).hexdigest()[:32]
     http.views[task_id]["status"] = "COMPLETE"
     http.views[task_id]["accepted_result_id"] = "result-goal"
+    http.views[task_id]["resolution"] = "verified"
     http.views[task_id]["attempt"] = 1
     code, out, err, log, lines = _run(home, http)
     assert code == 0, err
@@ -452,6 +499,7 @@ def test_mission_status_posted_then_final_done_and_replay_is_stable(tmp_path):
     task_id = posted["task_id"]
     http.views[task_id]["status"] = "COMPLETE"
     http.views[task_id]["accepted_result_id"] = "result-a"
+    http.views[task_id]["resolution"] = "verified"
     http.views[task_id]["attempt"] = 1
     assert _run(home, http)[0] == 0
     done = _state(home)["A"]
@@ -618,8 +666,159 @@ def test_complete_without_accepted_result_is_not_final(tmp_path):
     assert "evidence_missing" in out
 
 
+def test_accepted_result_without_resolution_is_not_final(tmp_path):
+    http, home = _complete_view(tmp_path, accepted_result_id="result-a")
+    code, out, err, log, lines = _run(home, http)
+    assert _finals(home) == []
+    assert "evidence_missing" in out
+    assert '"outcome":"final"' not in out
+
+
 def test_accepted_result_with_non_verified_resolution_is_not_final(tmp_path):
     http, home = _complete_view(tmp_path, accepted_result_id="result-a", resolution="effect_confirmed")
     code, out, err, log, lines = _run(home, http)
     assert _finals(home) == []
     assert "human_confirmed" in out
+
+
+def test_positive_cost_without_a_route_is_not_posted(tmp_path):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec(estimated_cost_eur=99.0)})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 2, err
+    assert "SPEND_NOT_ALLOWED_BY_POLICY" in out
+    assert http.posts == []
+
+
+def test_missing_cost_is_not_dispatched(tmp_path):
+    http = FakeHTTP()
+    spec = _spec()
+    del spec["estimated_cost_eur"]
+    home = _home(tmp_path, {"A": spec})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 2, err
+    assert "UNKNOWN_COST" in out
+    assert http.posts == []
+
+
+def test_unknown_cost_flag_is_not_dispatched(tmp_path):
+    http = FakeHTTP()
+    spec = _spec(params={"unit": "a", "unknown_cost": True})
+    home = _home(tmp_path, {"A": spec})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 2, err
+    assert "UNKNOWN_COST" in out
+    assert http.posts == []
+
+
+def test_unknown_cost_class_is_not_dispatched(tmp_path):
+    http = FakeHTTP()
+    spec = _spec(params={"unit": "a", "cost_class": "unknown"})
+    home = _home(tmp_path, {"A": spec})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 2, err
+    assert "UNKNOWN_COST" in out
+    assert http.posts == []
+
+
+@pytest.mark.parametrize("cost", [-1.0, float("nan"), float("inf")])
+def test_invalid_cost_is_not_dispatched(tmp_path, cost):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec(estimated_cost_eur=cost)})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 2, err
+    assert "UNKNOWN_COST" in out
+    assert http.posts == []
+
+
+def test_explicit_zero_cost_without_a_route_still_posts(tmp_path):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec(estimated_cost_eur=0.0)})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 0, err
+    assert len(http.posts) == 1
+
+
+def test_params_only_zero_is_posted_and_bound_in_the_fingerprint(tmp_path):
+    http = FakeHTTP()
+    spec = _spec()
+    del spec["estimated_cost_eur"]
+    spec["params"] = {"unit": "a", "estimated_cost_eur": 0.0}
+    home = _home(tmp_path, {"A": spec})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 0, err
+    assert len(http.posts) == 1
+    assert http.posts[0]["params"]["estimated_cost_eur"] == 0.0
+    record = json.loads((home / "ledger_bridge_state.json").read_text(encoding="utf-8"))["missions"]["A"]
+    assert record["spec_fingerprint"] == _fingerprint(spec)
+    assert record["spec_fingerprint"] == _fingerprint(_spec())
+
+
+def test_params_only_positive_cost_is_not_posted(tmp_path):
+    http = FakeHTTP()
+    spec = _spec()
+    del spec["estimated_cost_eur"]
+    spec["params"] = {"unit": "a", "estimated_cost_eur": 99.0}
+    home = _home(tmp_path, {"A": spec})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 2, err
+    assert "SPEND_NOT_ALLOWED_BY_POLICY" in out
+    assert http.posts == []
+
+
+def test_disagreeing_estimates_are_not_posted(tmp_path):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec(params={"unit": "a", "estimated_cost_eur": 99.0})})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 2, err
+    assert "UNKNOWN_COST" in out
+    assert http.posts == []
+
+
+def test_local_shell_without_an_estimate_is_not_dispatched(tmp_path):
+    http = FakeHTTP()
+    spec = _spec(
+        adapter="local_shell",
+        params={"command": ["agy", "--print"], "write": "out.txt", "timeout_s": 30},
+    )
+    del spec["estimated_cost_eur"]
+    home = _home(tmp_path, {"A": spec})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 2, err
+    assert "UNKNOWN_COST" in out
+    assert http.posts == []
+
+
+def test_changed_result_does_not_write_a_second_final(tmp_path):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec()})
+    _seed(home, [_ready("A", "a-assign")])
+    assert _run(home, http)[0] == 0
+    task_id = next(iter(http.views))
+    http.views[task_id].update({
+        "status": "COMPLETE",
+        "attempt": 1,
+        "accepted_result_id": "result-a",
+        "resolution": "verified",
+    })
+    code, out, err, log, lines = _run(home, http)
+    assert code == 0, err
+    assert len(_finals(home)) == 1
+    http.views[task_id]["accepted_result_id"] = "result-b"
+    code, out, err, log, lines = _run(home, http)
+    assert code == 2
+    assert "result_changed" in out
+    assert len(_finals(home)) == 1
+    state = json.loads((home / "ledger_bridge_state.json").read_text(encoding="utf-8"))
+    assert state["missions"]["A"]["accepted_result_id"] == "result-a"
+    assert state["missions"]["A"]["status"] == "FINAL_DONE"

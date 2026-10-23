@@ -39,6 +39,7 @@ from scripts.coordination_ledger import (
 )
 from scripts.coordination_resume import CLAIMED, claim_mission, discover_resumable, reduce_store
 from scripts.github_coordination import FileCoordinationStore
+from scripts.handoff_spend import handoff_spend_block
 
 MAX_STATE_BYTES = 1024 * 1024
 MAX_LEASE_TTL_S = 3600
@@ -126,6 +127,24 @@ def _feedback(store, state, specs, agent, host, args, transport, token, emit, ho
             emit({"mission_id": mission_id, "outcome": "skipped", "reason": "unmapped"})
             ok = False
             continue
+        owner = mission.get("ownership")
+        if owner not in (None, agent.value):
+            continue
+        # Accepted work stays open while this host is offline. A later run
+        # finalizes the same task. It must not become DONE on the offline pass.
+        if (
+            _host_offline(home, host)
+            and mapping.get("posted") is True
+            and mapping.get("status") != "FINAL_DONE"
+        ):
+            emit({
+                "mission_id": mission_id,
+                "outcome": "blocked",
+                "reason": "target_host_unavailable",
+                "proof": "SYNTHETIC",
+            })
+            ok = False
+            continue
         spec = specs.get(mission_id)
         goal_kind, goal_reason = _goal_binding(spec)
         if goal_kind == "blocked":
@@ -157,7 +176,57 @@ def _feedback(store, state, specs, agent, host, args, transport, token, emit, ho
             emit({"mission_id": mission_id, "outcome": "skipped", "reason": "not_final"})
             ok = False
             continue
+        if (
+            event.event_type == EventType.FINAL
+            and mission.get("status") == MissionStatus.DONE
+            and mapping.get("status") == "FINAL_DONE"
+        ):
+            # One FINAL. A later accepted_result_id must not append a second one.
+            # A missing receipt is rewritten once. An unreadable log still fails closed.
+            if _verified_result_id(view) != mapping.get("accepted_result_id"):
+                emit({"mission_id": mission_id, "outcome": "skipped", "reason": "result_changed"})
+                ok = False
+                continue
+            try:
+                if _receipt_present(home, mission_id, "final"):
+                    continue
+            except ConfigError:
+                emit({
+                    "mission_id": mission_id,
+                    "outcome": "skipped",
+                    "reason": "receipt_log_unreadable",
+                })
+                ok = False
+                continue
+            emit({"mission_id": mission_id, "outcome": "final", "task_id": mapping.get("task_id")})
+            continue
         wrote = _write_new(store, reducer, event)
+        outcome = event.event_type.value.lower()
+        # The ledger line is durable before the log line. A crash in between
+        # must still produce that receipt exactly once on the next invocation.
+        # An unreadable log is not proof the receipt was written.
+        # A rejected event must not stamp FINAL_DONE or emit final.
+        if not wrote:
+            try:
+                if _receipt_present(home, mission_id, outcome):
+                    continue
+            except ConfigError:
+                emit({
+                    "mission_id": mission_id,
+                    "outcome": "skipped",
+                    "reason": "receipt_log_unreadable",
+                })
+                ok = False
+                continue
+            expected = {
+                EventType.FINAL: MissionStatus.DONE,
+                EventType.BLOCKED: MissionStatus.BLOCKED,
+                EventType.ERROR: MissionStatus.ERROR,
+            }.get(event.event_type)
+            if mission.get("status") != expected:
+                emit({"mission_id": mission_id, "outcome": "skipped", "reason": "ledger_rejected"})
+                ok = False
+                continue
         status_name, reason_code = _status_for_outcome(event, view)
         _stamp(
             home / "ledger_bridge_state.json", state, mapping, status_name, reason_code,
@@ -167,11 +236,7 @@ def _feedback(store, state, specs, agent, host, args, transport, token, emit, ho
             spec_fingerprint=mapping.get("spec_fingerprint") or _fingerprint(spec or {}),
             source_sha=_recorded_source(mapping, spec),
         )
-        outcome = event.event_type.value.lower()
-        # The ledger line is durable before the log line. A crash in between
-        # must still produce that receipt exactly once on the next invocation.
-        if wrote or not _receipt_present(home, mission_id, outcome):
-            emit({"mission_id": mission_id, "outcome": outcome, "task_id": mapping.get("task_id")})
+        emit({"mission_id": mission_id, "outcome": outcome, "task_id": mapping.get("task_id")})
     return ok
 
 
@@ -183,6 +248,50 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
         spec = specs.get(mission_id)
         if not _spec_ok(spec):
             emit({"mission_id": mission_id, "outcome": "skipped", "reason": "malformed_spec"})
+            ok = False
+            continue
+        route_reason = _route_refusal(spec, agent, host)
+        if route_reason:
+            emit({"mission_id": mission_id, "outcome": "skipped", "reason": route_reason})
+            ok = False
+            continue
+        mapping = state["missions"].get(mission_id)
+        if not (isinstance(mapping, dict) and mapping.get("posted") is True):
+            # Every new dispatch takes the same decision. A missing estimate is
+            # unknown; it is never filled in as 0. An already posted task is not
+            # dispatched again.
+            cost_reason = handoff_spend_block(spec)
+            if cost_reason:
+                emit({
+                    "mission_id": mission_id,
+                    "outcome": "blocked",
+                    "reason": cost_reason,
+                    "proof": "SYNTHETIC",
+                })
+                ok = False
+                continue
+        if _host_offline(home, host):
+            mapping = state["missions"].get(mission_id)
+            if isinstance(mapping, dict) and mapping.get("posted") is True:
+                # The controller already accepted this task. Do not park it and
+                # do not post it again; feedback finalizes it once the host is back.
+                emit({
+                    "mission_id": mission_id,
+                    "outcome": "blocked",
+                    "reason": "target_host_unavailable",
+                    "proof": "SYNTHETIC",
+                })
+                ok = False
+                continue
+            mission = reducer.get_mission(mission_id)
+            if mission is not None and mission.get("status") != MissionStatus.BLOCKED:
+                _park_goal(store, reducer, mission, agent, host, "target_host_unavailable")
+            emit({
+                "mission_id": mission_id,
+                "outcome": "blocked",
+                "reason": "target_host_unavailable",
+                "proof": "SYNTHETIC",
+            })
             ok = False
             continue
         goal_kind, goal_value = _goal_binding(spec)
@@ -279,7 +388,11 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
             posted_fields["goal_fingerprint"] = goal[1]
         _stamp(home / "ledger_bridge_state.json", state, mapping, "POSTED", None, **posted_fields)
         outcome = "duplicate" if posted.get("duplicate") is True else "queued"
-        emit({"mission_id": mission_id, "outcome": outcome, "task_id": mapping["task_id"]})
+        receipt = {"mission_id": mission_id, "outcome": outcome, "task_id": mapping["task_id"]}
+        if "agent_id" in spec:
+            receipt["proof"] = "SYNTHETIC"
+            receipt["owner"] = agent.value
+        emit(receipt)
     return ok
 
 
@@ -438,10 +551,10 @@ def _result_id(view):
 def _verified_result_id(view):
     """The accepted result of a verified COMPLETE, else None.
 
-    A view without a resolution field predates projection v2 and is read as
-    verified only when it names an accepted result.
+    A missing resolution is not verified. Older views that omitted the field
+    must not finalize.
     """
-    if not isinstance(view, dict) or view.get("resolution", "verified") != "verified":
+    if not isinstance(view, dict) or view.get("resolution") != "verified":
         return None
     value = view.get("accepted_result_id")
     return value if isinstance(value, str) and value else None
@@ -483,8 +596,28 @@ def _sha_ok(value) -> bool:
     return isinstance(value, str) and len(value) == 40 and all(ch in "0123456789abcdef" for ch in value)
 
 
+def _with_admitted_estimate(spec, params):
+    """The params the controller stores. A top-level estimate is copied in.
+
+    A missing estimate is not replaced with 0. Goal fields and verified inputs
+    stay out of this copy; the caller adds those itself.
+    """
+    copied = dict(params)
+    if isinstance(spec, dict) and "estimated_cost_eur" not in copied and "estimated_cost_eur" in spec:
+        copied["estimated_cost_eur"] = spec["estimated_cost_eur"]
+    return copied
+
+
 def _fingerprint(spec) -> str:
-    payload = {name: spec[name] for name in TASK_FIELDS if name in spec}
+    """Identity of the posted task fields, including the admitted estimate.
+
+    The estimate is part of the receipt. A top-level 0 and the same 0 inside
+    params name one task. Goal fields and inputs are recorded beside this hash.
+    """
+    payload = {name: spec[name] for name in TASK_FIELDS if name in spec} if isinstance(spec, dict) else {}
+    params = payload.get("params")
+    if isinstance(params, dict):
+        payload["params"] = _with_admitted_estimate(spec, params)
     return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
 
 
@@ -581,17 +714,20 @@ def _post_task(transport, args, token, spec, key, inputs=None):
     task = {name: spec[name] for name in TASK_FIELDS if name in spec}
     task["idempotency_key"] = key
     # The controller persists adapter, params, and the attempt fields. Goal
-    # identity and verified inputs are copied into that payload and are not part
-    # of the idempotency key.
+    # identity, verified inputs, and the admitted estimate are copied into that
+    # payload. The idempotency key was hashed from the spec before this copy.
+    # The estimate lives in params because create_task rejects any other cost
+    # field, and the ledger engine reads params.estimated_cost_eur. A missing
+    # estimate is not filled in here; the cost gate already refused that spec.
+    params = dict(task["params"])
     kind, goal = _goal_binding(spec)
-    if kind == "ok" or inputs is not None:
-        params = dict(task["params"])
-        if kind == "ok":
-            params["goal_id"] = goal[0]
-            params["goal_fingerprint"] = goal[1]
-        if inputs is not None:
-            params["inputs"] = inputs
-        task["params"] = params
+    if kind == "ok":
+        params["goal_id"] = goal[0]
+        params["goal_fingerprint"] = goal[1]
+    if inputs is not None:
+        params["inputs"] = inputs
+    params = _with_admitted_estimate(spec, params)
+    task["params"] = params
     url = args.controller.rstrip("/") + "/v1/tasks"
     status, raw = _request(
         transport, "POST", url,
@@ -635,7 +771,9 @@ def _load_specs(path: Path):
 def _spec_ok(spec) -> bool:
     if not isinstance(spec, dict):
         return False
-    allowed = set(TASK_FIELDS) | {"source_sha", INPUTS_FIELD, *GOAL_FIELDS}
+    allowed = set(TASK_FIELDS) | {
+        "source_sha", INPUTS_FIELD, "agent_id", "host_id", "estimated_cost_eur", *GOAL_FIELDS,
+    }
     if set(spec) - allowed or any(name not in spec for name in ("adapter", "params", "effect_class", "max_attempts", "lease_ttl_s")):
         return False
     adapter = spec.get("adapter")
@@ -653,6 +791,14 @@ def _spec_ok(spec) -> bool:
         return False
     if "source_sha" in spec and not _sha_ok(spec.get("source_sha")):
         return False
+    if "agent_id" in spec and _authority(AgentID, spec.get("agent_id")) is None:
+        return False
+    if "host_id" in spec and _authority(HostID, spec.get("host_id")) is None:
+        return False
+    if "estimated_cost_eur" in spec:
+        cost = spec.get("estimated_cost_eur")
+        if isinstance(cost, bool) or not isinstance(cost, (int, float)):
+            return False
     if INPUTS_FIELD in spec:
         upstream = spec.get(INPUTS_FIELD)
         if (not isinstance(upstream, list) or not 1 <= len(upstream) <= MAX_INPUTS
@@ -683,6 +829,22 @@ def _goal_binding(spec):
 
 def _goal_token(value) -> bool:
     return isinstance(value, str) and len(value) <= MAX_GOAL_LEN and GOAL_TOKEN.fullmatch(value) is not None
+
+
+def _route_refusal(spec, agent, host):
+    """A declared agent or host that is not this bridge must not be posted here."""
+    if not isinstance(spec, dict):
+        return None
+    if "agent_id" in spec and spec.get("agent_id") != agent.value:
+        return "wrong_agent"
+    if "host_id" in spec and spec.get("host_id") != host.value:
+        return "wrong_host"
+    return None
+
+
+def _host_offline(home: Path, host) -> bool:
+    marker = Path(home) / "hosts" / f"{host.value}.offline"
+    return marker.is_symlink() or marker.is_file()
 
 
 def _park_goal(store, reducer, mission, agent, host, reason) -> bool:
@@ -851,11 +1013,11 @@ def _receipt_present(home, mission_id, outcome) -> bool:
     except OSError:
         return False
     if size > MAX_STATE_BYTES:
-        return True
+        raise ConfigError("receipt log oversize")
     try:
         text = path.read_text(encoding="utf-8")
-    except (OSError, UnicodeError):
-        return True
+    except (OSError, UnicodeError) as exc:
+        raise ConfigError("receipt log unreadable") from exc
     for line in text.splitlines():
         try:
             record = json.loads(line)

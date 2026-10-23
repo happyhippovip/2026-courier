@@ -4,6 +4,8 @@ import json
 
 import pytest
 
+pytest.importorskip("fcntl")
+
 import scripts.mac_worker.muse_supervisor as supervisor
 
 

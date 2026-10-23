@@ -432,6 +432,17 @@ def is_resource_pressure_high():
 _lock_fd = None
 _worker_lease = None
 _lease_store = None
+# Windows byte locks are mandatory and cover the bytes they name. The pid
+# record stays at offset 0. The lock is one byte far past that record.
+_WIN_LOCK_OFFSET = 1 << 20
+
+
+def _windows_lock_api():
+    """msvcrt on Windows, and on a test that installed a stand-in."""
+    if os.name == "nt" or "msvcrt" in sys.modules:
+        import msvcrt
+        return msvcrt
+    return None
 
 
 def get_authority_store():
@@ -482,9 +493,11 @@ def acquire_lock(worker_id):
         flags |= os.O_NOFOLLOW
     fd = os.open(str(lock_file), flags)
     try:
-        if os.name == "nt" or "msvcrt" in sys.modules:
-            import msvcrt
-            msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+        windows_lock = _windows_lock_api()
+        if windows_lock is not None:
+            os.lseek(fd, _WIN_LOCK_OFFSET, os.SEEK_SET)
+            windows_lock.locking(fd, windows_lock.LK_NBLCK, 1)
+            os.lseek(fd, 0, os.SEEK_SET)
         else:
             import fcntl
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -527,10 +540,10 @@ def release_lock(lock_path=None):
         _worker_lease = None
     if _lock_fd is not None:
         try:
-            if os.name == "nt":
-                import msvcrt
-                os.lseek(_lock_fd, 0, os.SEEK_SET)
-                msvcrt.locking(_lock_fd, msvcrt.LK_UNLCK, 1)
+            windows_lock = _windows_lock_api()
+            if windows_lock is not None:
+                os.lseek(_lock_fd, _WIN_LOCK_OFFSET, os.SEEK_SET)
+                windows_lock.locking(_lock_fd, windows_lock.LK_UNLCK, 1)
             else:
                 try:
                     import fcntl
