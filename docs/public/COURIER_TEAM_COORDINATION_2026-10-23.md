@@ -55,6 +55,13 @@ PR #827, #830, #832 und #835 wurden bereits gemergt. Externe, ältere Receipt-Pa
 
 **Update-Regel für Happy Hippo:** Neue öffentliche Commits nur bei einer bedeutsamen Änderung der Teamzuständigkeiten, Arbeitsweise oder belegten Release-Gates. Zwischenstände, temporäre Kontingente und private Prüfergebnisse bleiben im privaten Projekt-Handoff. Bei unverändertem Zustand keinen neuen PR, Sender oder Commit erzeugen.
 
+## Zwei getrennte Windows-V10-Missionen (23.10., Abends)
+
+- **Cursor Windows = Zustell- und Continuation-Owner:** [32 Aufgaben für echte Result-/ACK-/Heartbeat-/StopLoop-Regressionssicherheit](./CURSOR_WINDOWS_DELIVERY_MARATHON_V10_2026-10-23.md). PR #838 letzter gemeldeter Head `eb6393d52`; neue CI im letzten Snapshot noch in Bearbeitung. Keine Änderungen an fremdgeleasten `daemon.py`-Dateien.
+- **Google Antigravity Windows = unabhängiger Verifier:** [35 Aufgaben mit Produktionspfad-Tests statt reiner Mock-Tests](./GOOGLE_WINDOWS_TRUE_PROOF_MARATHON_V10_2026-10-23.md). PR #842 letzter Head `0983d26c`; seine sieben Prüfjobs waren grün, aber einige Tests testen lokale Simulationen statt der echten Controller-/Receipt-Implementierung.
+
+**Warum getrennt?** Cursor soll die echte Windows-Liefer-/Fortsetzungslogik in seinem zuständigen Bereich verbessern; Google soll die unabhängigen negativen Beweise für Journal/Receipt/CostGate/ACK bewerten. Beide nicht dieselben Produktdateien bearbeiten. Keine künstlichen Doppel-Queues, neuen kostenpflichtigen Agenten oder Merges ohne Berechtigung.
+
 ## Arbeitsprinzip: ein Sender je Sitzung
 
 - Ein klarer **Goal + Workkey-Ledger + Checkpoint** ist besser als mehrfach identische Prompt-Queues.
