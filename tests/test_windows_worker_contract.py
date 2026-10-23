@@ -108,8 +108,51 @@ def state_file(daemon):
     return daemon.STATE_DIR / "current_task.json"
 
 
+def _release_open_state(tmp_path):
+    """Close files this process still holds so a simulated restart can move state.
+
+    A real process exit closes the lease database. Windows refuses to delete
+    an open file, so the replacement has to close it first.
+    """
+    import gc
+    import logging
+    import sqlite3
+
+    from courier_runtime.lease import LeaseStore
+
+    root = Path(tmp_path).resolve()
+
+    def under_root(file_name):
+        try:
+            resolved = Path(file_name).resolve()
+        except OSError:
+            return False
+        return resolved == root or root in resolved.parents
+
+    for obj in gc.get_objects():
+        if not isinstance(obj, LeaseStore):
+            continue
+        try:
+            rows = list(obj.db.execute("PRAGMA database_list"))
+        except sqlite3.Error:
+            continue
+        if any(len(row) > 2 and row[2] and under_root(row[2]) for row in rows):
+            try:
+                obj.close()
+            except sqlite3.Error:
+                pass
+    logger = logging.getLogger()
+    for handler in list(logger.handlers):
+        base = getattr(handler, "baseFilename", None)
+        if base and under_root(base):
+            handler.close()
+            logger.removeHandler(handler)
+    gc.collect()
+
+
 def load_daemon_again(tmp_path, monkeypatch):
     import shutil
+    _release_open_state(tmp_path)
     pd = tmp_path / "Courier"
     for d in ("state", "logs"):
         shutil.copytree(pd / d, pd / f"{d}.bak", dirs_exist_ok=True)
