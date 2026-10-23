@@ -9,7 +9,7 @@ from courier_core.controller import Controller
 from courier_core.events import EventType
 from courier_core.verification import Verdict
 from courier_runtime.continuity import BLOCKED, CLAIMED, DONE, FAILED_FINAL
-from courier_runtime.ledger_engine import NOT_PROVEN, CostBlocked, LedgerEngine, cost_admission
+from courier_runtime.ledger_engine import NOT_PROVEN, CostBlocked, LedgerEngine, TaskConflict, cost_admission
 
 GOLD = b"LEDGER-ENGINE"
 GOLD_SHA = hashlib.sha256(GOLD).hexdigest()
@@ -465,16 +465,67 @@ def test_a_verified_task_of_another_workkey_cannot_finish_this_workkey(setup):
     assert kirby_state(engine.campaign_path)["workkeys"]["WK-2"]["state"] == CLAIMED
 
 
-def test_resubmit_after_restart_returns_the_existing_task_even_if_the_body_changed(setup):
+def test_resubmit_after_restart_with_the_same_body_returns_the_existing_task(setup):
+    engine, ctrl, home, _ = setup
+    engine.add_workkeys(["WK-1"])
+    engine.open_slot("S1", "local")
+    workkey, token = engine.next("S1")
+    task_id = engine.submit(workkey, body())
+    assert engine.submit(workkey, body(), slot="S1", token=token) == task_id
+
+
+def test_a_changed_body_under_the_same_workkey_is_a_conflict_and_parks_nothing(setup):
     engine, ctrl, home, _ = setup
     engine.add_workkeys(["WK-1"])
     engine.open_slot("S1", "local")
     workkey, token = engine.next("S1")
     task_id = engine.submit(workkey, body())
     work(ctrl, home)
-    assert engine.submit(workkey, body(cost=None), slot="S1", token=token) == task_id
+    for changed in (body(cost=None), body(note="other input")):
+        with pytest.raises(TaskConflict):
+            engine.submit(workkey, changed, slot="S1", token=token)
+    assert kirby_state(engine.campaign_path)["workkeys"]["WK-1"]["state"] == CLAIMED
+    assert len([e for e in ctrl.journal.events() if e.type is EventType.TASK_CREATED]) == 1
     engine.finish_turn("S1", workkey, token, task_id)
     assert kirby_state(engine.campaign_path)["workkeys"]["WK-1"]["state"] == DONE
+
+
+def test_a_task_with_dependencies_is_refused_before_anything_is_written(setup):
+    # The engine orders work by workkey; a controller dependency would leave the slot NOT_PROVEN forever.
+    engine, ctrl, home, _ = setup
+    engine.add_workkeys(["WK-1"])
+    engine.open_slot("S1", "local")
+    workkey, token = engine.next("S1")
+    with pytest.raises(ValueError, match="depends_on"):
+        engine.submit(workkey, dict(body(), depends_on=["task-x"]))
+    assert [e for e in ctrl.journal.events() if e.type is EventType.TASK_CREATED] == []
+
+
+def test_a_crash_after_the_receipt_and_before_the_save_writes_one_receipt(setup, monkeypatch):
+    from courier_runtime import continuity
+    engine, ctrl, home, _ = setup
+    engine.add_workkeys(["WK-1", "WK-2"])
+    engine.open_slot("S1", "local")
+    workkey, token = engine.next("S1")
+    task_id = engine.submit(workkey, body())
+    work(ctrl, home)
+    save = continuity.Kirby._save
+
+    def killed_after_receipt(self):
+        if self.workkeys["WK-1"].state == DONE:
+            raise SystemExit("process killed before the campaign file was saved")
+        return save(self)
+    monkeypatch.setattr(continuity.Kirby, "_save", killed_after_receipt)
+    with pytest.raises(SystemExit):
+        engine.finish_turn("S1", workkey, token, task_id)
+    monkeypatch.setattr(continuity.Kirby, "_save", save)
+    restarted = LedgerEngine(ctrl, engine.campaign_path, "host-a")
+    assert kirby_state(engine.campaign_path)["workkeys"]["WK-1"]["state"] == CLAIMED
+    restarted.finish_turn("S1", workkey, token, task_id)
+    receipts = (engine.campaign_path.parent / "receipts.jsonl").read_text().splitlines()
+    assert [json.loads(line)["workkey"] for line in receipts] == ["WK-1"]
+    assert kirby_state(engine.campaign_path)["workkeys"]["WK-1"]["state"] == DONE
+    assert restarted.next("S1")[0] == "WK-2"
 
 
 @pytest.mark.parametrize("limit", [float("nan"), float("inf"), -1.0, True, "0"])

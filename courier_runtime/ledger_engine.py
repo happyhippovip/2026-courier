@@ -25,6 +25,7 @@ restart finds the same task and never creates or runs it twice.
 from __future__ import annotations
 
 import hashlib
+import json
 import math
 import os
 import time
@@ -48,6 +49,32 @@ def task_id_for(workkey: str) -> str:
 
 class CostBlocked(Exception):
     """The workkey's task may not be created: its cost is unknown or over the limit."""
+
+
+def _has_receipt(path: Path, workkey: str, proof: str) -> bool:
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except FileNotFoundError:
+        return False
+    for line in lines:
+        try:
+            record = json.loads(line)
+        except ValueError:
+            continue    # a torn last line from a crash is not a receipt
+        if record.get("workkey") == workkey and proof in str(record.get("checkpoint", "")):
+            return True
+    return False
+
+
+def _skip_receipts(log: Callable) -> Callable:
+    def logged(name, record):
+        if name != "receipts.jsonl":
+            log(name, record)
+    return logged
+
+
+class TaskConflict(Exception):
+    """The workkey already has a task created from a different body; a human decides."""
 
 
 def cost_admission(params: Any, spend_limit_eur: float = 0.0) -> str | None:
@@ -156,10 +183,19 @@ class LedgerEngine:
 
         With the claiming slot and token, a blocked workkey is also parked as BLOCKED
         (reason COST_BLOCKED) so the slot moves on to the next workkey instead of stalling.
-        A task that already exists (restart, replay) is returned as it is: the gate decided
-        when it was created, and a changed body must not park work that is running or done."""
+        A task that already exists (restart, replay) is returned when the body is the same: the
+        gate decided when it was created. A changed body raises TaskConflict and parks nothing,
+        because the work may be running or done. ``depends_on`` is refused: the engine orders
+        work by workkey, and a controller dependency would leave the slot unproven forever."""
+        if "depends_on" in task_body:
+            raise ValueError("the ledger engine does not take depends_on; order work by workkey")
         existing = task_id_for(workkey)
         if self._task(existing) is not None:
+            from courier_core.controller import ApiError
+            try:   # the controller answers an identical body with the same task and 409 otherwise
+                self.controller.create_task(dict(task_body, idempotency_key=f"workkey:{workkey}"))
+            except ApiError as exc:
+                raise TaskConflict(f"{workkey}: {exc}") from None
             return existing
         reason = cost_admission(task_body.get("params"), self.spend_limit_eur)
         if reason is not None:
@@ -200,6 +236,10 @@ class LedgerEngine:
                 return "REJECTED_STALE_WRITER"
             if proof is not None:
                 note = f"{checkpoint} | {proof}" if checkpoint else proof
+                if _has_receipt(self.campaign_path.parent / "receipts.jsonl", workkey, proof):
+                    # A crash after the receipt line and before the campaign save: finish the
+                    # state change, but do not write the same DONE receipt twice.
+                    kirby._log = _skip_receipts(kirby._log)
                 return kirby.on_turn_end(slot, "DONE", token, checkpoint=note)
             if task is not None and task.status in (TaskStatus.FAILED, TaskStatus.CANCELLED):
                 return kirby.on_turn_end(slot, "FAILED_FINAL", token, checkpoint=checkpoint,
