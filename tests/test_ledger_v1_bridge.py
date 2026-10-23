@@ -149,7 +149,7 @@ def test_ready_mission_is_claimed_and_posted_once(tmp_path):
     posted = http.posts[0]
     assert posted["idempotency_key"].startswith("ledger:claim-")
     assert posted["adapter"] == "synthetic"
-    assert posted["params"] == {"unit": "a"}
+    assert posted["params"] == {"unit": "a", "estimated_cost_eur": 0.0}
     assert posted["effect_class"] == "idempotent"
     assert posted["max_attempts"] == 1
     assert posted["lease_ttl_s"] == 30
@@ -213,7 +213,7 @@ def test_complete_a_finalizes_and_posts_b_in_the_same_pass(tmp_path):
     ])
     assert _run(home, http)[0] == 0
     assert len(http.posts) == 1
-    assert http.posts[0]["params"] == {"unit": "a"}
+    assert http.posts[0]["params"] == {"unit": "a", "estimated_cost_eur": 0.0}
     task_id = "task-" + hashlib.sha256(http.posts[0]["idempotency_key"].encode()).hexdigest()[:32]
     http.views[task_id]["status"] = "COMPLETE"
     http.views[task_id]["accepted_result_id"] = "result-a"
@@ -224,7 +224,7 @@ def test_complete_a_finalizes_and_posts_b_in_the_same_pass(tmp_path):
     code, out, err, log, lines = _run(home, http)
     assert code == 0
     assert len(http.posts) == 2
-    assert http.posts[1]["params"] == {"unit": "b"}
+    assert http.posts[1]["params"] == {"unit": "b", "estimated_cost_eur": 0.0}
     assert http.posts[1]["idempotency_key"].startswith("ledger:claim-")
     reducer = reduce_store(FileCoordinationStore(home / "coordination_ledger.jsonl"))
     assert reducer.get_mission("A")["status"] == MissionStatus.DONE
@@ -261,7 +261,7 @@ def test_blocked_a_parks_and_unrelated_c_dispatches(tmp_path):
     code, out, err, log, lines = _run(home, http)
     assert code == 0
     assert len(http.posts) == 1
-    assert http.posts[0]["params"] == {"unit": "c"}
+    assert http.posts[0]["params"] == {"unit": "c", "estimated_cost_eur": 0.0}
     reducer = reduce_store(FileCoordinationStore(home / "coordination_ledger.jsonl"))
     assert reducer.get_mission("A")["status"] == MissionStatus.BLOCKED
     assert reducer.get_mission("A")["blocker"] == "needs a person"

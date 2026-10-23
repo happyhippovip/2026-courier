@@ -694,17 +694,21 @@ def _post_task(transport, args, token, spec, key, inputs=None):
     task = {name: spec[name] for name in TASK_FIELDS if name in spec}
     task["idempotency_key"] = key
     # The controller persists adapter, params, and the attempt fields. Goal
-    # identity and verified inputs are copied into that payload and are not part
-    # of the idempotency key.
+    # identity, verified inputs, and the admitted estimate are copied into that
+    # payload. The idempotency key was hashed from the spec before this copy.
+    # The estimate lives in params because create_task rejects any other cost
+    # field, and the ledger engine reads params.estimated_cost_eur. A missing
+    # estimate is not filled in here; the cost gate already refused that spec.
+    params = dict(task["params"])
     kind, goal = _goal_binding(spec)
-    if kind == "ok" or inputs is not None:
-        params = dict(task["params"])
-        if kind == "ok":
-            params["goal_id"] = goal[0]
-            params["goal_fingerprint"] = goal[1]
-        if inputs is not None:
-            params["inputs"] = inputs
-        task["params"] = params
+    if kind == "ok":
+        params["goal_id"] = goal[0]
+        params["goal_fingerprint"] = goal[1]
+    if inputs is not None:
+        params["inputs"] = inputs
+    if "estimated_cost_eur" not in params and "estimated_cost_eur" in spec:
+        params["estimated_cost_eur"] = spec["estimated_cost_eur"]
+    task["params"] = params
     url = args.controller.rstrip("/") + "/v1/tasks"
     status, raw = _request(
         transport, "POST", url,

@@ -137,6 +137,7 @@ def test_verified_merge_queues_one_task(tmp_path):
     assert len(http.tasks) == 1
     assert http.tasks[0]["idempotency_key"].startswith("wake:wk-a:")
     assert "estimated_cost_eur" not in http.tasks[0]
+    assert http.tasks[0]["params"]["estimated_cost_eur"] == 0.0
     assert json.loads(log)["outcome"] == "queued"
     assert json.loads(cursor.read_text(encoding="utf-8"))["comment_id"] == 1
     assert (home / "parked_workkeys.json").exists()
@@ -346,7 +347,7 @@ def test_entry_mark_is_not_hidden_by_task_zero(tmp_path):
     assert json.loads(log)["reason"] == "UNKNOWN_COST"
 
 
-def test_entry_level_zero_cost_queues_without_posting_the_estimate(tmp_path):
+def test_entry_level_zero_cost_is_posted_inside_params(tmp_path):
     task = _task()
     del task["estimated_cost_eur"]
     code, http, home, out, err, log, cursor = _blocked(
@@ -355,6 +356,7 @@ def test_entry_level_zero_cost_queues_without_posting_the_estimate(tmp_path):
     assert code == 0
     assert len(http.tasks) == 1
     assert "estimated_cost_eur" not in http.tasks[0]
+    assert http.tasks[0]["params"]["estimated_cost_eur"] == 0.0
     assert json.loads(log)["outcome"] == "queued"
 
 

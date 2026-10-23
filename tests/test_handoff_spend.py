@@ -38,6 +38,35 @@ def test_positive_cost_is_not_allowed():
 def test_explicit_zero_is_allowed():
     assert handoff_spend_block({"estimated_cost_eur": 0.0}) is None
     assert handoff_spend_block({"estimated_cost_eur": 0}) is None
+    assert handoff_spend_block({"params": {"estimated_cost_eur": 0.0}}) is None
+    assert handoff_spend_block({
+        "estimated_cost_eur": 0.0,
+        "params": {"estimated_cost_eur": 0.0},
+    }) is None
+
+
+def test_disagreeing_estimates_are_unknown():
+    assert handoff_spend_block({
+        "estimated_cost_eur": 0.0,
+        "params": {"estimated_cost_eur": 99.0},
+    }) == "UNKNOWN_COST"
+    assert handoff_spend_block({
+        "estimated_cost_eur": 99.0,
+        "params": {"estimated_cost_eur": 0.0},
+    }) == "UNKNOWN_COST"
+
+
+def test_local_shell_without_an_estimate_is_not_free():
+    packet = {
+        "adapter": "local_shell",
+        "params": {"command": ["agy", "--print"], "write": "out.txt", "timeout_s": 30},
+        "effect_class": "idempotent",
+        "max_attempts": 1,
+        "lease_ttl_s": 30,
+    }
+    assert "estimated_cost_eur" not in packet
+    assert "estimated_cost_eur" not in packet["params"]
+    assert handoff_spend_block(packet) == "UNKNOWN_COST"
 
 
 def test_parked_view_does_not_invent_zero():
