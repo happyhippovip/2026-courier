@@ -374,6 +374,70 @@ def test_idle_after_proven_done_does_not_restore_claimed(setup):
     assert len(receipts) == 1
 
 
+def test_host_tick_after_external_done_does_not_restore_claimed(setup):
+    """main() keeps one Kirby for the life of the process. A tick with no new
+    provider line must adopt a DONE that finish_turn already saved, instead of
+    writing the startup CLAIMED image back over the journal proof."""
+    from courier_runtime.continuity import Kirby
+    from courier_runtime.host_loop import emit_signal, run_once
+
+    engine, ctrl, home, _ = setup
+    engine.add_workkeys(["WK-1"])
+    engine.open_slot("S1", "local")
+    workkey, token = engine.next("S1")
+    task_id = engine.submit(workkey, body())
+    stale = Kirby(engine.campaign_path, "host-a")
+    assert stale.workkeys[workkey].state == CLAIMED
+    work(ctrl, home)
+    assert engine.finish_turn("S1", workkey, token, task_id, checkpoint="step")
+    assert kirby_state(engine.campaign_path)["workkeys"][workkey]["state"] == DONE
+    signals = engine.campaign_path.parent / "signals.log"
+    signals.write_text("", encoding="utf-8")
+    run_once(stale, "S1", signals, {"offset": 0, "last_tick": 0.0, "notified": {}})
+    disk = kirby_state(engine.campaign_path)["workkeys"][workkey]
+    assert disk["state"] == DONE and ":RESULT_ACCEPTED" in disk["checkpoint"]
+    receipts = (engine.campaign_path.parent / "receipts.jsonl").read_text().splitlines()
+    assert len(receipts) == 1
+
+    emit_signal(signals, "TURN_ENDED outcome=DONE checkpoint=replay")
+    run_once(stale, "S1", signals, {"offset": 0, "last_tick": stale.clock(), "notified": {}}, engine=engine)
+    assert kirby_state(engine.campaign_path)["workkeys"][workkey]["state"] == DONE
+    assert len((engine.campaign_path.parent / "receipts.jsonl").read_text().splitlines()) == 1
+
+
+def test_signal_file_done_records_the_journal_proof_once(setup):
+    """The host loop's file tail is the execution path. It records
+    journal:<seq>:RESULT_ACCEPTED only after the controller accepts the bytes,
+    and a second line does not write a second final."""
+    from courier_runtime.continuity import Kirby
+    from courier_runtime.host_loop import emit_signal, run_once
+
+    engine, ctrl, home, _ = setup
+    engine.add_workkeys(["WK-1"])
+    engine.open_slot("S1", "local")
+    workkey, _token = engine.next("S1")
+    task_id = engine.submit(workkey, body())
+    kirby = Kirby(engine.campaign_path, "host-a")
+    signals = engine.campaign_path.parent / "signals.log"
+    state = {"offset": 0, "last_tick": kirby.clock(), "notified": {}}
+    emit_signal(signals, "TURN_ENDED outcome=DONE checkpoint=early")
+    results, _, _ = run_once(kirby, "S1", signals, state, engine=engine)
+    assert results == [NOT_PROVEN]
+    assert kirby_state(engine.campaign_path)["workkeys"][workkey]["state"] == CLAIMED
+    assert "RESULT_ACCEPTED" not in kirby_state(engine.campaign_path)["workkeys"][workkey]["checkpoint"]
+
+    work(ctrl, home)
+    proof = engine.proof(task_id)
+    emit_signal(signals, "TURN_ENDED outcome=DONE checkpoint=step")
+    results, _, _ = run_once(kirby, "S1", signals, state, engine=engine)
+    disk = kirby_state(engine.campaign_path)["workkeys"][workkey]
+    assert results == ["IDLE"] and disk["state"] == DONE and disk["checkpoint"] == f"step | {proof}"
+    emit_signal(signals, "TURN_ENDED outcome=DONE checkpoint=again")
+    run_once(kirby, "S1", signals, state, engine=engine)
+    assert kirby_state(engine.campaign_path)["workkeys"][workkey]["state"] == DONE
+    assert len((engine.campaign_path.parent / "receipts.jsonl").read_text().splitlines()) == 1
+
+
 def test_provider_done_from_the_wrong_owner_does_not_finish(setup):
     from courier_runtime.continuity import Kirby
     from courier_runtime.provider_events import handle

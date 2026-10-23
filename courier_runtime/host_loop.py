@@ -67,6 +67,10 @@ def run_once(kirby, slot, signal_path, state, on_wake_ready=None, engine=None):
     fail-closed: no lines fed, offset reset, tick still runs on cadence.
     """
     results, actions, notices = [], {}, []
+    # main() keeps this Kirby for the process lifetime. Adopt a DONE that
+    # finish_turn saved through its own Kirby before tick or drain writes.
+    if kirby.path.exists():
+        kirby._load()
     size = _file_size(signal_path)
     if size is None:
         pass                                                    # no signal file yet: tick only
