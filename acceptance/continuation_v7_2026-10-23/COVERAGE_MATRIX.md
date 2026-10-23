@@ -6,7 +6,7 @@
 | CLD-103 | PASS | `evidence/F-C1_red_green.log` (gegen v1: 16 failed → v2: 44 passed), `evidence/WQ-1_red_green.log` (2 failed → 3 passed) |
 | CLD-104 | PASS | `test_the_shipped_adapters_declare_their_cost_class`: synthetic/local_json_delivery/spreadsheet = local, local_shell/provider_exec = metered; unknown_cost/cost_class-Varianten: `test_an_explicit_unknown_marker_is_refused_for_every_adapter` (6 Varianten × 3 Adapter) |
 | CLD-105 | PASS | `test_local_shell_can_run_any_cli_so_it_needs_an_estimate` (rot gegen v1) |
-| CLD-106 | siehe Subagent-Inventur (Abschnitt im Schlussbericht) | Controller-Pfad abgedeckt durch F-C1; Pfade außerhalb des Controllers: Inventur |
+| CLD-106 | PASS (Inventur) / 5 Lücken offen | `COST_PATH_INVENTORY_2026-10-23.md`: nur `provider_exec` ist fail-closed; `local_shell` ohne Kostenentscheidung und mit voller Worker-Umgebung (HOCH, bestätigt); 4 Skripte zählen fehlende Angabe als 0.0 |
 | CLD-107 | PASS (Analyse) | `run_antigravity_bridge.build_local_shell_task_packet` hat keinen produktiven Aufrufer, der an den Controller postet (nur 2 Tests, direkt `local_shell.run`); Skript startet keinen Provider-Prozess → heute keine Wirkung; Übergabe H6 |
 | CLD-108/109 | PASS | `l2_build_2026-10-23/WQ-1_*`: zwei Homes, alter Lease, neuer Owner, Doppel-Zuweisung reproduziert; Fix verhindert Übernahme, ursprünglicher Holder setzt fort |
 | CLD-110 | DESIGN | `WQ-1b_LEASE_RECOVERY_DESIGN.md`: ATTACH + Abgleich per GET + Mensch-`reclaim` mit Actor/Grund; 8 Negativtests spezifiziert |
