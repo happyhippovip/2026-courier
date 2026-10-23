@@ -24,22 +24,36 @@ EXPECTED_GOLD_SHA256 = hashlib.sha256(EXPECTED_GOLD_BYTES).hexdigest()
 def _chip_verifier(adapter: str):
     """Deterministic verifier for the first green mission."""
     def _verify(task, result, home):
-        artifacts = result.payload.get("artifacts", [])
-        if not artifacts:
+        artifacts = result.payload.get("artifacts")
+        if not isinstance(artifacts, list) or not artifacts:
             return Verdict(False, "Artefakt fehlt im Ergebnis-Payload")
+        home_root = Path(home).resolve()
         for a in artifacts:
+            if not isinstance(a, dict):
+                return Verdict(False, "Artefakt ist kein Objekt")
             sha = a.get("sha256")
             if not isinstance(sha, str) or len(sha) != 64:
                 return Verdict(False, "Ungültiges SHA-256 Format")
             if sha != EXPECTED_GOLD_SHA256:
                 return Verdict(False, f"SHA-256 stimmt nicht mit Gold-Referenz überein: {sha[:16]} != {EXPECTED_GOLD_SHA256[:16]}")
-            art_path = home / a.get("path", "")
-            if art_path.is_file():
-                content = art_path.read_bytes()
-                if content != EXPECTED_GOLD_BYTES:
-                    return Verdict(False, "Artefakt-Bytes stimmen nicht mit Gold-Referenz überein")
-                if hashlib.sha256(content).hexdigest() != EXPECTED_GOLD_SHA256:
-                    return Verdict(False, "Neu berechnete Prüfsumme der Datei weicht ab")
+            raw_path = a.get("path")
+            if not isinstance(raw_path, str) or not raw_path.strip():
+                return Verdict(False, "Artefaktpfad fehlt")
+            parts = Path(raw_path).parts
+            if Path(raw_path).is_absolute() or ".." in parts:
+                return Verdict(False, "Artefaktpfad verlässt das Home")
+            art_path = (home_root / raw_path).resolve()
+            try:
+                art_path.relative_to(home_root)
+            except ValueError:
+                return Verdict(False, "Artefaktpfad verlässt das Home")
+            if not art_path.is_file():
+                return Verdict(False, "Artefaktdatei fehlt")
+            content = art_path.read_bytes()
+            if content != EXPECTED_GOLD_BYTES:
+                return Verdict(False, "Artefakt-Bytes stimmen nicht mit Gold-Referenz überein")
+            if hashlib.sha256(content).hexdigest() != EXPECTED_GOLD_SHA256:
+                return Verdict(False, "Neu berechnete Prüfsumme der Datei weicht ab")
         return Verdict(True, "BYTE_LEVEL_GOLD_VERIFIED: Deterministischer SHA-256 Hash und Byte-Inhalt gegen Gold-Referenz verifiziert")
     return _verify
 
