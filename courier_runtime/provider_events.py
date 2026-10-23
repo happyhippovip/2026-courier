@@ -18,8 +18,11 @@ remainder of the line and therefore come last)::
 Fail-closed: unknown lines are IGNORED, an unknown/missing outcome
 reconciles as STILL_OPEN and never completes work, and events for an
 unknown slot are IGNORED_NO_SLOT (slots are opened explicitly so the pool
-cap is never bypassed). This module never spawns windows or processes;
-session start stays Kirby's injected ``start_session``.
+cap is never bypassed). A TURN_ENDED outcome=DONE line is not a workkey
+final: without a ledger engine it returns NOT_PROVEN, and with one it
+calls LedgerEngine.finish_turn, which marks DONE only when that workkey's
+task has a journal RESULT_ACCEPTED. This module never spawns windows or
+processes; session start stays Kirby's injected ``start_session``.
 """
 OUTCOMES = ("DONE", "BLOCKED", "STILL_OPEN", "FAILED_FINAL")
 
@@ -51,11 +54,48 @@ def parse_line(line):
     return kind, fields, raw.strip()
 
 
-def handle(kirby, slot, line):
-    """Feed one provider line to Kirby for ``slot``. Returns a result string."""
-    kind, fields, raw = parse_line(line)
-    if kind is None:
-        return "IGNORED"
+def _campaign_lock(kirby):
+    """The lock LedgerEngine.finish_turn already uses. Not a second writer."""
+    from courier_runtime.ledger_engine import _exclusive
+    return _exclusive(kirby.path.with_suffix(kirby.path.suffix + ".lock"))
+
+
+def _reload(kirby):
+    """Replace this Kirby image with the campaign file.
+
+    finish_turn saves a different Kirby under the campaign lock. The caller's
+    object would otherwise keep CLAIMED and the next IDLE or HEARTBEAT would
+    write that stale image over a journal-proven DONE. A missing file is left
+    alone: loading it would wipe workkeys that have not been saved yet.
+    """
+    if kirby.path.exists():
+        kirby._load()
+
+
+def _finish_proven_done(kirby, slot, fields, engine):
+    """DONE with an engine. finish_turn takes the campaign lock itself, so this
+    must not already hold it."""
+    with _campaign_lock(kirby):
+        _reload(kirby)
+        session = kirby.sessions.get(slot)
+        if session is None:
+            return "IGNORED_NO_SLOT"
+        claimed = kirby.workkeys.get(session.workkey)
+        if claimed is None or claimed.owner != session.session_id or claimed.token != session.token:
+            return kirby.wake(slot)
+        if not session.accepting:
+            return "REJECTED_STALE_WRITER"
+        workkey, token = session.workkey, session.token
+        checkpoint = fields.get("checkpoint", "")
+    from courier_runtime.ledger_engine import task_id_for
+    result = engine.finish_turn(slot, workkey, token, task_id_for(workkey), checkpoint=checkpoint)
+    with _campaign_lock(kirby):
+        _reload(kirby)
+    return result
+
+
+def _handle_under_lock(kirby, slot, kind, fields, raw):
+    _reload(kirby)
     session = kirby.sessions.get(slot)
     if session is None:
         return "IGNORED_NO_SLOT"
@@ -77,15 +117,38 @@ def handle(kirby, slot, line):
         claimed = kirby.workkeys.get(session.workkey)
         if claimed is None or claimed.owner != session.session_id or claimed.token != session.token:
             return kirby.wake(slot)                        # nothing claimed: reconcile only
+        if outcome == "DONE":
+            # No engine: a DONE line is not proof and must not finalise.
+            if not session.accepting:
+                return "REJECTED_STALE_WRITER"
+            return "NOT_PROVEN"
         return kirby.on_turn_end(slot, outcome, session.token,
                                  checkpoint=fields.get("checkpoint", ""),
                                  reason=fields.get("reason", ""))
     return "IGNORED"
 
 
-def drive(kirby, slot, lines):
+def handle(kirby, slot, line, engine=None):
+    """Feed one provider line to Kirby for ``slot``. Returns a result string.
+
+    ``engine``, when given, is the LedgerEngine that may finalise a DONE
+    signal. A DONE signal never calls Kirby.on_turn_end directly.
+    """
+    kind, fields, raw = parse_line(line)
+    if kind is None:
+        return "IGNORED"
+    if kind == "TURN_ENDED":
+        outcome = fields.get("outcome")
+        outcome = outcome if outcome in OUTCOMES else "STILL_OPEN"
+        if outcome == "DONE" and engine is not None:
+            return _finish_proven_done(kirby, slot, fields, engine)
+    with _campaign_lock(kirby):
+        return _handle_under_lock(kirby, slot, kind, fields, raw)
+
+
+def drive(kirby, slot, lines, engine=None):
     """Feed an iterable of provider lines. Never prequeues: call per batch of new lines."""
-    return [handle(kirby, slot, line) for line in lines]
+    return [handle(kirby, slot, line, engine=engine) for line in lines]
 
 
 def read_new_lines(path, offset):

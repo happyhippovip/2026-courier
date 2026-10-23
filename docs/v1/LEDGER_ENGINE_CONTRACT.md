@@ -21,14 +21,14 @@ Limits (deliberate):
 - All Kirby access for a campaign must go through one engine (or hold the same lock file); direct `Kirby` writes are not serialised.
 - A human `EFFECT_CONFIRMED` completes a task with `resolution = "effect_confirmed"`; the engine does not count that as proof.
 
-## Writers outside the engine (known, not changed here)
+## Writers outside the engine
 | Path | What it does today | Risk | Owner |
 |---|---|---|---|
 | `courier_core.controller.Controller.create_task` called directly | creates a task with no cost check | unknown cost reaches a worker (F-C1) | L2 (controller admission; open, no PR fixes it — #826 edits `controller.py` for other reasons) |
-| `courier_runtime/host_loop.py` → `provider_events.handle` | a provider line `TURN_ENDED outcome=DONE` calls `Kirby.on_turn_end(DONE)`; the loop keeps one `Kirby` in memory, no lock, no reload | DONE without proof (F-K1); its next save overwrites engine writes (F-K2) | L3 (host loop / continuity) |
+| `courier_runtime/host_loop.py` → `provider_events.handle` | a `TURN_ENDED outcome=DONE` line calls `engine.finish_turn` when the caller passes the existing LedgerEngine, and returns `NOT_PROVEN` with the workkey still claimed when no engine is passed. `main` does not construct a LedgerEngine. Tick, drain, IDLE, and HEARTBEAT reload under the campaign lock before they save | F-K1 and F-K2 are closed on this path. `continuity.py` is unchanged. A direct `Kirby.on_turn_end(..., "DONE")` outside this path is still not journal proof | L3, fixed on this branch |
 | `scripts/ledger_v1_bridge.py` (PR #827) | cost gate only when the spec names `agent_id`, `host_id` or `estimated_cost_eur` | a local mission spec without those keys is dispatched without a cost check | Cursor A→B→C |
 
-`tests/test_ledger_engine.py` pins the first two as `xfail(strict=True)`: when an owner closes the gap the test passes, strict turns that into a failure, and the owner removes the marker.
+`tests/test_ledger_engine.py` still pins the direct `Controller.create_task` gap as `xfail(strict=True)` (F-C1). The host-loop gaps are passing tests: a DONE line without an engine stays claimed, and a stale in-memory CLAIMED image does not overwrite a journal-proven DONE.
 
 ## Fencing across the engine boundary
 A write about a workkey is valid only if all of these hold at the moment of the write, checked under the campaign lock after a fresh load:
@@ -36,7 +36,7 @@ A write about a workkey is valid only if all of these hold at the moment of the 
 2. the caller's token equals the workkey's current token (bumped on every claim);
 3. for FINAL, the controller journal holds the task's `RESULT_ACCEPTED` (task id derived from the workkey).
 
-The capability is the triple (slot, workkey, token), never a bare token. Any writer of the campaign file that does not take the lock file `<campaign>.lock` and reload inside it is outside this guarantee; the host loop must either call the engine or take the same lock and reload per iteration.
+The capability is the triple (slot, workkey, token), never a bare token. Any writer of the campaign file that does not take the lock file `<campaign>.lock` and reload inside it is outside this guarantee. The host loop does both: a DONE line calls `finish_turn`, and every other save in `run_once` and `provider_events.handle` reloads inside that lock.
 
 ## Hand-off between Cursor's A→B→C path and the engine
 | From | To | Contract |
