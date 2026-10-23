@@ -108,8 +108,51 @@ def state_file(daemon):
     return daemon.STATE_DIR / "current_task.json"
 
 
+def _release_open_state(tmp_path):
+    """Close files this process still holds so a simulated restart can move state.
+
+    A real process exit closes the lease database. Windows refuses to delete
+    an open file, so the replacement has to close it first.
+    """
+    import gc
+    import logging
+    import sqlite3
+
+    from courier_runtime.lease import LeaseStore
+
+    root = Path(tmp_path).resolve()
+
+    def under_root(file_name):
+        try:
+            resolved = Path(file_name).resolve()
+        except OSError:
+            return False
+        return resolved == root or root in resolved.parents
+
+    for obj in gc.get_objects():
+        if not isinstance(obj, LeaseStore):
+            continue
+        try:
+            rows = list(obj.db.execute("PRAGMA database_list"))
+        except sqlite3.Error:
+            continue
+        if any(len(row) > 2 and row[2] and under_root(row[2]) for row in rows):
+            try:
+                obj.close()
+            except sqlite3.Error:
+                pass
+    logger = logging.getLogger()
+    for handler in list(logger.handlers):
+        base = getattr(handler, "baseFilename", None)
+        if base and under_root(base):
+            handler.close()
+            logger.removeHandler(handler)
+    gc.collect()
+
+
 def load_daemon_again(tmp_path, monkeypatch):
     import shutil
+    _release_open_state(tmp_path)
     pd = tmp_path / "Courier"
     for d in ("state", "logs"):
         shutil.copytree(pd / d, pd / f"{d}.bak", dirs_exist_ok=True)
@@ -130,8 +173,6 @@ def go(daemon, monkeypatch, bridge, executions, effect=None, status="SUCCESS", t
 
     monkeypatch.setattr(daemon.urllib.request, "urlopen", bridge)
     monkeypatch.setattr(daemon, "run_task", execute)
-    # Don't fail the loop on lock acquisition
-    monkeypatch.setattr(daemon, "acquire_lock", lambda w: tmp_path / "mock.lock")
     with pytest.raises(StopLoop):
         daemon.loop()
 
@@ -211,6 +252,53 @@ def test_crash_after_rejection_still_releases_on_restart(tmp_path, monkeypatch):
     assert executions == []
     assert srv.load_state()["tasks"]["task-1"]["status"] == "HUMAN_REQUIRED"
     assert srv.load_state()["workers"]["WIN-01"]["current_task"] is None
+
+
+@pytest.mark.parametrize("bad", ["con", "CON.txt", "aux", "NUL", "COM1", "lpt9.txt", "out/prn"])
+def test_windows_device_name_is_not_an_artifact(tmp_path, monkeypatch, bad):
+    daemon = load_daemon(tmp_path, monkeypatch)
+    assert daemon.is_safe_artifact_path(bad) is False
+    assert daemon.is_safe_artifact_path("report.txt") is True
+
+
+def test_symlink_artifact_is_not_read_and_never_success(tmp_path, monkeypatch):
+    srv, http, headers = central(tmp_path, monkeypatch, artifacts=("effect.txt",))
+    daemon, executions = load_daemon(tmp_path, monkeypatch), []
+    work = daemon.APP_DATA_DIR / "work"
+    work.mkdir()
+    monkeypatch.chdir(work)
+    outside = tmp_path / "secret.txt"
+    outside.write_text("secret")
+    (work / "effect.txt").symlink_to(outside)
+    read = []
+    real = daemon.Path.read_bytes
+    monkeypatch.setattr(daemon.Path, "read_bytes", lambda self: read.append(str(self)) or real(self))
+    bridge = Bridge(http, headers, max_calls=4)
+    go(daemon, monkeypatch, bridge, executions, tmp_path=tmp_path)
+    [posted] = bridge.posted("/tasks/result")[:1]
+    assert posted["status"] == "FAILED" and posted["artifacts"] == []
+    assert read == []
+    assert srv.load_state()["tasks"]["task-1"]["status"] != "RESULT_RECEIVED"
+
+
+def test_artifact_through_symlinked_directory_is_not_read(tmp_path, monkeypatch):
+    srv, http, headers = central(tmp_path, monkeypatch, artifacts=("out/effect.txt",))
+    daemon, executions = load_daemon(tmp_path, monkeypatch), []
+    work = daemon.APP_DATA_DIR / "work"
+    work.mkdir()
+    monkeypatch.chdir(work)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "effect.txt").write_text("secret")
+    (work / "out").symlink_to(outside, target_is_directory=True)
+    read = []
+    real = daemon.Path.read_bytes
+    monkeypatch.setattr(daemon.Path, "read_bytes", lambda self: read.append(str(self)) or real(self))
+    bridge = Bridge(http, headers, max_calls=4)
+    go(daemon, monkeypatch, bridge, executions, tmp_path=tmp_path)
+    [posted] = bridge.posted("/tasks/result")[:1]
+    assert posted["status"] == "FAILED" and posted["artifacts"] == []
+    assert read == []
 
 
 @pytest.mark.parametrize("bad", ["../outside.txt", "/etc/passwd", "a/../../x.txt", "C:/Windows/System32"])
