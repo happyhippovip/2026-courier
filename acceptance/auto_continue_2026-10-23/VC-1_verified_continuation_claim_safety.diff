@@ -1,0 +1,215 @@
+diff --git a/scripts/verified_continuation.py b/scripts/verified_continuation.py
+index bf976262d..2a9f09c7f 100644
+--- a/scripts/verified_continuation.py
++++ b/scripts/verified_continuation.py
+@@ -82,42 +82,15 @@ class VerifiedContinuation:
+     # 1. Atomic Claim Management
+     # -------------------------------------------------------------------------
+     def claim(self, workkey: str, owner: str = "google-antigravity", ttl_s: int = 3600) -> bool:
+-        """Atomically claim a workkey using O_EXCL file creation and lease verification."""
++        """Atomically claim a workkey using O_EXCL file creation.
++
++        Only the process that holds a claim may renew it (same owner and pid). An expired or
++        unreadable claim is not proof that its unit stopped, so it is never taken over here:
++        a human frees it with :meth:`reclaim`.
++        """
+         validate_workkey(workkey)
+         claim_file = self.claims_dir / f"{workkey}.claim"
+         now = datetime.datetime.now(datetime.timezone.utc).timestamp()
+-
+-        # Check existing claim for renew or expiry
+-        if claim_file.exists():
+-            try:
+-                data = json.loads(claim_file.read_text(encoding="utf-8"))
+-                created_at = data.get("created_at_ts", 0)
+-                active_ttl = data.get("ttl_s", ttl_s)
+-                if now - created_at < active_ttl:
+-                    # Active lease exists
+-                    if data.get("owner") == owner:
+-                        # Owner renews lease
+-                        claim_data = {
+-                            "workkey": workkey,
+-                            "owner": owner,
+-                            "pid": os.getpid(),
+-                            "created_at_iso": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+-                            "created_at_ts": now,
+-                            "ttl_s": ttl_s,
+-                        }
+-                        temp_claim = self.claims_dir / f"{workkey}.claim.{uuid.uuid4().hex[:8]}.tmp"
+-                        temp_claim.write_text(json.dumps(claim_data, indent=2), encoding="utf-8")
+-                        os.replace(temp_claim, claim_file)
+-                        return True
+-                    return False
+-            except Exception:
+-                pass
+-            # Expired lease: purge stale claim file
+-            try:
+-                claim_file.unlink(missing_ok=True)
+-            except OSError:
+-                pass
+-
+         claim_data = {
+             "workkey": workkey,
+             "owner": owner,
+@@ -126,6 +99,16 @@ class VerifiedContinuation:
+             "created_at_ts": now,
+             "ttl_s": ttl_s,
+         }
++
++        if claim_file.exists():
++            data = _read_claim(claim_file)
++            if data is None or data["owner"] != owner or data["pid"] != os.getpid():
++                return False
++            temp_claim = self.claims_dir / f"{workkey}.claim.{uuid.uuid4().hex[:8]}.tmp"
++            temp_claim.write_text(json.dumps(claim_data, indent=2), encoding="utf-8")
++            os.replace(temp_claim, claim_file)
++            return True
++
+         content = json.dumps(claim_data, indent=2).encode("utf-8")
+         try:
+             fd = os.open(str(claim_file), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+@@ -137,6 +120,26 @@ class VerifiedContinuation:
+         except OSError:
+             return False
+ 
++    def reclaim(self, workkey: str, actor: str, reason: str) -> dict:
++        """A human frees an expired or unreadable claim; the old claim is kept with the decision."""
++        validate_workkey(workkey)
++        for name, value in (("actor", actor), ("reason", reason)):
++            if not isinstance(value, str) or not value.strip() or len(value) > 200 or any(c in value for c in "\r\n"):
++                raise ValueError(f"reclaim needs a one-line {name}")
++        claim_file = self.claims_dir / f"{workkey}.claim"
++        if not claim_file.exists():
++            raise ValueError("no claim to reclaim")
++        previous = _read_claim(claim_file)
++        now = datetime.datetime.now(datetime.timezone.utc)
++        if previous is not None and now.timestamp() - previous["created_at_ts"] < previous["ttl_s"]:
++            raise ValueError("the lease is live; only its holder may release it")
++        record = {"workkey": workkey, "actor": actor.strip(), "reason": reason.strip(),
++                  "at": now.isoformat(), "previous": previous}
++        aside = self.claims_dir / f"{workkey}.claim.reclaimed-{now.strftime('%Y%m%dT%H%M%S%fZ')}"
++        aside.write_text(json.dumps(record, indent=2), encoding="utf-8")
++        claim_file.unlink()
++        return record
++
+     def is_claimed(self, workkey: str) -> Optional[dict]:
+         validate_workkey(workkey)
+         claim_file = self.claims_dir / f"{workkey}.claim"
+@@ -496,6 +499,22 @@ class VerifiedContinuation:
+         }
+ 
+ 
++def _read_claim(path: Path) -> Optional[dict]:
++    """The claim as a dict with owner, pid, created_at_ts and ttl_s, or None if unreadable."""
++    try:
++        data = json.loads(path.read_text(encoding="utf-8"))
++    except (OSError, ValueError):
++        return None
++    if not isinstance(data, dict) or not isinstance(data.get("owner"), str):
++        return None
++    if isinstance(data.get("pid"), bool) or not isinstance(data.get("pid"), int):
++        return None
++    for key in ("created_at_ts", "ttl_s"):
++        if isinstance(data.get(key), bool) or not isinstance(data.get(key), (int, float)):
++            return None
++    return data
++
++
+ def main(argv: Optional[List[str]] = None) -> int:
+     parser = argparse.ArgumentParser(description="Verified Continuation Runner for Courier Symphony")
+     parser.add_argument("--verify-autonomy", action="store_true", help="Run full two-unit sequential acceptance test")
+diff --git a/tests/test_verified_continuation_claim_safety.py b/tests/test_verified_continuation_claim_safety.py
+new file mode 100644
+index 000000000..74624cbe4
+--- /dev/null
++++ b/tests/test_verified_continuation_claim_safety.py
+@@ -0,0 +1,89 @@
++"""VC-1: an expired or unreadable claim is not proof that its unit stopped, so it is never taken over silently.
++
++Before: ``claim`` unlinked any expired or unparsable claim file and claimed the workkey, and
++any process using the same owner string (the default ``google-antigravity``) could "renew" a
++live lease held by another process. Both run the unit twice.
++"""
++import json
++import os
++import time
++
++import pytest
++
++from scripts.verified_continuation import VerifiedContinuation
++
++
++@pytest.fixture
++def engine(tmp_path):
++    (tmp_path / "repo").mkdir()
++    return VerifiedContinuation(root_dir=tmp_path / "repo", ledger_dir=tmp_path / "ledger")
++
++
++def _plant(engine, workkey, owner, pid, age_s, ttl_s=60):
++    path = engine.claims_dir / f"{workkey}.claim"
++    path.write_text(json.dumps({"workkey": workkey, "owner": owner, "pid": pid,
++                                "created_at_ts": time.time() - age_s, "ttl_s": ttl_s}))
++    return path
++
++
++def test_an_expired_claim_of_another_owner_is_not_taken_over(engine):
++    path = _plant(engine, "WK1", "worker-a", 999999, age_s=3600)
++    before = path.read_bytes()
++    assert engine.claim("WK1", owner="worker-b") is False
++    assert path.read_bytes() == before
++
++
++def test_an_expired_claim_of_the_same_owner_in_another_process_is_not_taken_over(engine):
++    path = _plant(engine, "WK1", "google-antigravity", os.getpid() + 1, age_s=3600)
++    assert engine.claim("WK1") is False
++    assert json.loads(path.read_text())["pid"] == os.getpid() + 1
++
++
++def test_a_live_lease_of_another_process_with_the_same_owner_is_not_renewed(engine):
++    path = _plant(engine, "WK1", "google-antigravity", os.getpid() + 1, age_s=1)
++    assert engine.claim("WK1") is False
++    assert json.loads(path.read_text())["pid"] == os.getpid() + 1
++
++
++@pytest.mark.parametrize("content", ["{not json", "[]", '{"owner": "x"}', ""])
++def test_an_unreadable_claim_is_not_taken_over(engine, content):
++    path = engine.claims_dir / "WK1.claim"
++    path.write_text(content)
++    assert engine.claim("WK1", owner="worker-b") is False
++    assert path.read_text() == content
++
++
++def test_the_holding_process_may_still_renew(engine):
++    assert engine.claim("WK1", owner="worker-a") is True
++    assert engine.claim("WK1", owner="worker-a") is True
++
++
++@pytest.mark.parametrize("actor,reason", [("", "x"), ("dennis", ""), (None, "x"), ("dennis", "  ")])
++def test_reclaim_needs_an_actor_and_a_reason(engine, actor, reason):
++    _plant(engine, "WK1", "worker-a", 999999, age_s=3600)
++    with pytest.raises(ValueError):
++        engine.reclaim("WK1", actor, reason)
++
++
++def test_reclaim_refuses_a_live_lease(engine):
++    _plant(engine, "WK1", "worker-a", 999999, age_s=1)
++    with pytest.raises(ValueError, match="live"):
++        engine.reclaim("WK1", "dennis", "too early")
++
++
++def test_reclaim_moves_the_expired_claim_aside_with_a_record(engine):
++    _plant(engine, "WK1", "worker-a", 999999, age_s=3600)
++    record = engine.reclaim("WK1", "dennis", "worker-a is gone")
++    assert record["actor"] == "dennis" and record["reason"] == "worker-a is gone"
++    assert record["previous"]["owner"] == "worker-a"
++    assert not (engine.claims_dir / "WK1.claim").exists()
++    kept = list(engine.claims_dir.glob("WK1.claim.reclaimed-*"))
++    assert len(kept) == 1 and json.loads(kept[0].read_text())["previous"]["owner"] == "worker-a"
++    assert engine.claim("WK1", owner="worker-b") is True
++
++
++def test_reclaim_also_frees_an_unreadable_claim(engine):
++    (engine.claims_dir / "WK1.claim").write_text("{not json")
++    record = engine.reclaim("WK1", "dennis", "corrupt file after crash")
++    assert record["previous"] is None
++    assert engine.claim("WK1", owner="worker-b") is True

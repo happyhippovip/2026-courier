@@ -9,6 +9,7 @@ Status-Wörter: VERIFIED heißt, ich habe es selbst ausgeführt (Befehl und Erge
 | **WQ-1b** sichere Lease-Rückgewinnung | Queue (work_queue/queue_feed, L1/L3) | `courier_core/work_queue.py`, `courier_worker/queue_feed.py`, `tests/test_queue_lease_recovery.py` (neu), enthält WQ-1 (`tests/test_queue_feed_foreign_lease.py`) | `WQ-1b_lease_recovery.diff` (ersetzt WQ-1-Diff, enthält ihn) | `16b5ed56…f99e6` | VERIFIED 21 rot / 1 grün → 31 grün | VERIFIED 106 Queue/Feed/LedgerTick grün; auf #826-Head `7686b97f6` 102 grün |
 | **H12** local_shell ohne Worker-Credentials | L4 Adapter | `adapters/local_shell.py`, `tests/test_local_shell_env_allowlist.py` (neu) | `H12_local_shell_env_allowlist.diff` | `fea9f5cc…cc43c` | VERIFIED 26 rot / 2 grün → 28 grün | VERIFIED 235 grün / 1 skip (alle 17 Testdateien mit `local_shell`), golden + L3 74 grün / 1 skip |
 | **WIN-COST-1** `included_quota` ≠ 0 € | Cursor Windows (`windows_worker/daemon.py`) | `scripts/windows_worker/daemon.py`, `tests/test_windows_costgate_and_writer_lease.py` | `WIN-COST-1_included_quota_unknown.diff` | `cf9097a2…0d5f` | VERIFIED 2 rot → 9 grün | VERIFIED 105 grün / 7 skip |
+| **VC-1** verified_continuation: keine stille Übernahme | Google (`verified_continuation.py`); #797/#826 (Cursor) berühren dieselbe Datei | `scripts/verified_continuation.py`, `tests/test_verified_continuation_claim_safety.py` (neu); auf #826 zusätzlich 1 gepinnter Test | `VC-1_verified_continuation_claim_safety.diff` (Trunk) **oder** `VC-1_on_826_verified_continuation.diff` (auf #826-Head `7686b97f6`) | `ba4a0667…92c3c` / `9b9541d4…47d46` | VERIFIED Trunk 14 rot → 30 grün; auf #797/#826 jeweils 10 rot → 35 grün | 2 Mutanten getötet |
 | ~~MAC-COST~~ 0.0-Default `mac_worker/daemon.py:504` | Cursor Mac | — | **nicht erstellt** | — | bereits in #826 behoben (`estimate = task.get("estimated_cost_eur")`, kein 0.0-Default) | Doppelarbeit vermieden |
 
 ## WQ-1b — was der Patch tut
@@ -37,11 +38,21 @@ Status-Wörter: VERIFIED heißt, ich habe es selbst ausgeführt (Befehl und Erge
 ## WIN-COST-1 — was der Patch tut
 Ein Windows-Task mit `cost_class`/`routing_decision.COST_CLASS = "included_quota"` ohne `estimated_cost_eur` lief bisher als 0,00 € und startete PowerShell. Das widerspricht der Gründerentscheidung 1 vom 23.10. Er ist jetzt UNKNOWN_COST, und PowerShell startet nicht. `free`/`local` bleiben unverändert. Ein expliziter 0,0-Wert mit `included_quota` läuft weiter. Der bestehende Test wurde entsprechend angepasst.
 
+## VC-1 — was der Patch tut
+- **Befund (VERIFIED):** `claim` löschte bisher jede abgelaufene Claim-Datei und übernahm den Workkey, ohne zu prüfen, ob die Einheit noch läuft. Außerdem darf jeder Prozess mit demselben Owner-String einen fremden, noch laufenden Lease „verlängern“. Der Default-Owner `google-antigravity` ist für alle Prozesse gleich. Beides führt zur Doppelausführung.
+- #797 und #826 (Cursor) beheben nur den Fall „unlesbare Datei“. Die beiden Lücken oben bleiben dort offen (10 rot).
+- **Fix:**
+  - Verlängern darf nur der haltende Prozess (gleicher Owner **und** gleiche PID).
+  - Ein abgelaufener oder unlesbarer Claim wird nie still übernommen.
+  - Neuer Ausweg `reclaim(workkey, actor, reason)`: nur bei abgelaufenem oder unlesbarem Claim. Er legt den alten Claim samt Entscheidung als `<wk>.claim.reclaimed-<ts>` ab.
+- **Bewusste Verhaltensänderung:** #826 pinnt mit `test_expired_numeric_claim_can_be_reclaimed`, dass Ablauf die Übernahme erlaubt. Die Delta-Variante ändert diesen Test (erst `reclaim`, dann `claim`). Das braucht die Zustimmung des Owners.
+
 ## Konflikte mit offenen PRs (VERIFIED per GitHub-Dateilisten)
 | Datei | offene PRs | Lage |
 |---|---|---|
 | `courier_core/work_queue.py` | #826 (Symlink-Härtung) | WQ-1b passt auf #826 (3-way), 102 Tests grün |
 | `adapters/local_shell.py` | #826 (`timeout_s` bool) | H12 passt auf #826, grün |
+| `scripts/verified_continuation.py` | #826, #797, #781 | VC-1 als Trunk- und als #826-Delta; #797-Inhalt ist in #826 enthalten (gleicher Fix) |
 | `scripts/windows_worker/daemon.py` | #827, #829, #788 | keine dieser PRs ändert die Kostenzeilen; WIN-COST-1 ist ein eigener Hunk |
 
 ## Nächste Schritte

@@ -1,0 +1,9 @@
+== RED trunk d5b19f1 + tests/test_verified_continuation_claim_safety.py
+14 failed, 1 passed
+== GREEN trunk patch (VC-1_verified_continuation_claim_safety.diff)
+30 passed (15 new + 15 existing tests/test_verified_continuation.py)
+== MUTATIONS: renew without pid check 2 failed; reclaim without live check 1 failed (killed)
+== RED on PR #797 head bb05eee91 and PR #826 head 7686b97f6 (both already fix 'unreadable claim')
+10 failed, 5 passed each: expired foreign takeover, same-owner other-process renew, reclaim missing
+== GREEN on #826 (VC-1_on_826_verified_continuation.diff)
+35 passed; pinned test test_expired_numeric_claim_can_be_reclaimed changed on purpose: expiry -> refuse, human reclaim -> claim
