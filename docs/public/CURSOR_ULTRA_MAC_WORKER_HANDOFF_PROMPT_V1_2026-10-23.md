@@ -1,4 +1,6 @@
 # Cursor Ultra Mac — Cloud Worker / Distinct Workkey Handoff V1
+
+> **LATEST VERIFIED CHECKPOINT (23 October 2026):** See [Goal/Scheduler/Windows-CI Handoff V3](./GOAL_STOP_SCHEDULER_WINDOWS_CI_HANDOFF_V3_2026-10-23.md). The Windows CI mismatch `QUEUED` vs. `DISPATCHED` on trunk `81bbf224b0ae` belongs to the authorized Windows Worker/Controller owners; a Cursor Mac verifier without their lease must not modify those files.
 **Public copy-paste prompt | 23 October 2026 | Courier Symphony**
 
 > **ROLE: CURSOR ULTRA MAC CLOUD WORKER, NOT THE CURSOR PROJECT COORDINATOR AND NOT GOOGLE ANTIGRAVITY MAC.** Paste only into an **actually assigned, active** worker with a distinct authorized Workkey. **Do not paste into the completed A→B lane** `abc-quiescent-2026-10-23-1942.md` to force another turn.
