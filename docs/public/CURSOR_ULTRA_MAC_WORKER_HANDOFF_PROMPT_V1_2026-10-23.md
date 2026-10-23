@@ -1,5 +1,7 @@
 # Cursor Ultra Mac — Cloud Worker / Distinct Workkey Handoff V1
 
+> **RELEASE-TRAIN-HINWEIS:** [Strategie V1](./COURIER_RELEASE_TRAIN_STRATEGY_V1_2026-10-23.md) · [rollengetrenntes Prompt-Pack](./COURIER_RELEASE_TRAIN_PROMPT_PACK_V1_2026-10-23.md). Ein Cloud Worker ist nur der **ausführende Owner seines eigenen berechtigten Workkeys**, nicht der Release-Train-Koordinator. QUIESCENT ohne eigenen READY-Workkey/Lease bleibt korrekt.
+
 > **LATEST VERIFIED CHECKPOINT (23 October 2026):** See [Goal/Scheduler/Windows-CI Handoff V3](./GOAL_STOP_SCHEDULER_WINDOWS_CI_HANDOFF_V3_2026-10-23.md). The Windows CI mismatch `QUEUED` vs. `DISPATCHED` on trunk `81bbf224b0ae` belongs to the authorized Windows Worker/Controller owners; a Cursor Mac verifier without their lease must not modify those files.
 **Public copy-paste prompt | 23 October 2026 | Courier Symphony**
 
