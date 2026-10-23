@@ -61,7 +61,7 @@ def run_with_fake_agy(daemon, monkeypatch, tmp_path, body, timeout=2):
     monkeypatch.setenv("PATH", str(bindir) + os.pathsep + os.environ.get("PATH", ""))
     instances = []
     monkeypatch.setattr(daemon, "subprocess", recording_popen_ns(instances))
-    task = {"task_id": "task-agy-1", "instruction": "do work"}
+    task = {"task_id": "task-agy-1", "instruction": "do work", "estimated_cost_eur": 0.0}
     started = time.monotonic()
     result = daemon.run_agy(task, {"AGY_TIMEOUT_SECONDS": timeout})
     elapsed = time.monotonic() - started
@@ -80,6 +80,15 @@ def test_agy_timeout_kills_group_and_reaps(tmp_path, monkeypatch):
     proc = instances[0]
     assert proc.poll() is not None  # direct child reaped: no zombie
     assert daemon.group_exists(proc.pid) is False  # group incl. grandchild dead
+
+
+def test_bool_agy_timeout_does_not_spawn(tmp_path, monkeypatch):
+    daemon, _ = load_daemon(tmp_path, monkeypatch)
+    result, instances, _ = run_with_fake_agy(
+        daemon, monkeypatch, tmp_path, "sleep 30", timeout=True)
+    assert instances == []
+    assert result["status"] == "FAILED"
+    assert result.get("blocked") is True
 
 
 def test_agy_fast_success_unaffected(tmp_path, monkeypatch):

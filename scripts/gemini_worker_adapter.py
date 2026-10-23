@@ -111,8 +111,16 @@ def run_worker(task_path, negative_test=False, state_file="central_state.json"):
         }
 
     # We remove --dangerously-skip-permissions. A harmless task doesn't use tools and shouldn't prompt.
+    raw_timeout = task.get("timeout_seconds", 60)
+    if isinstance(raw_timeout, bool) or not isinstance(raw_timeout, (int, float)) or raw_timeout <= 0:
+        return {
+            "status": "FAILED",
+            "reason": "INVALID_TIMEOUT",
+            "error": "timeout_seconds must be a positive number. Bool is not a duration.",
+            "blocked": True,
+        }
     dispatch_ref = str(uuid.uuid4())
-    timeout_s = float(task.get("timeout_seconds", 60))
+    timeout_s = float(raw_timeout)
 
     popen_kwargs = {"stdout": subprocess.PIPE, "stderr": subprocess.PIPE, "text": True}
     if os.name == "nt":

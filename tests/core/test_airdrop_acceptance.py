@@ -294,3 +294,69 @@ def test_10_restart_after_aborted_organization_process(airdrop_env):
     rows = conn.execute("SELECT * FROM in_flight").fetchall()
     conn.close()
     assert len(rows) == 0
+
+
+def test_symlink_is_not_copied_into_the_library(tmp_path):
+    outside = tmp_path / "outside.txt"
+    outside.write_text("SECRET", encoding="utf-8")
+    incoming = tmp_path / "incoming"
+    library = tmp_path / "library"
+    quarantine = tmp_path / "quarantine"
+    incoming.mkdir()
+    link = incoming / "note.txt"
+    link.symlink_to(outside)
+    organizer = AirDropOrganizer(incoming, library, quarantine, tmp_path / "state" / "airdrop.db")
+    try:
+        result = organizer.organize_file(link)
+    except ValueError as exc:
+        seen = ("raised", str(exc))
+    else:
+        copied = sorted(path.relative_to(library).as_posix() for path in library.rglob("*") if path.is_file())
+        body = (library / copied[0]).read_text(encoding="utf-8") if copied else ""
+        seen = ("accepted", result.status.value, copied, body)
+    names = sorted(path.relative_to(library).as_posix() for path in library.rglob("*") if path.is_file())
+    assert seen[0] == "raised" and "symlink" in seen[1].lower() and names == [] and outside.read_text(encoding="utf-8") == "SECRET", seen
+
+
+def test_library_and_ledger_symlinks_are_not_destinations(tmp_path):
+    outside_lib = tmp_path / "outside-lib"
+    outside_lib.mkdir()
+    (outside_lib / "keep.txt").write_text("keep", encoding="utf-8")
+    library = tmp_path / "library"
+    library.symlink_to(outside_lib, target_is_directory=True)
+    incoming = tmp_path / "incoming"
+    incoming.mkdir()
+    (incoming / "note.txt").write_text("HELLO", encoding="utf-8")
+    try:
+        organizer = AirDropOrganizer(incoming, library, tmp_path / "quarantine", tmp_path / "state" / "airdrop.db")
+        result = organizer.organize_file(incoming / "note.txt")
+    except ValueError as exc:
+        library_seen = ("raised", str(exc))
+    except Exception as exc:
+        library_seen = (type(exc).__name__, str(exc))
+    else:
+        library_seen = ("accepted", result.status.value, sorted(p.name for p in outside_lib.rglob("*")))
+
+    outside_db = tmp_path / "outside.db"
+    outside_db.write_text("keep", encoding="utf-8")
+    db_link = tmp_path / "ledger.db"
+    db_link.symlink_to(outside_db)
+    real_incoming = tmp_path / "incoming-real"
+    real_incoming.mkdir()
+    (real_incoming / "photo.txt").write_text("PHOTO", encoding="utf-8")
+    try:
+        organizer = AirDropOrganizer(real_incoming, tmp_path / "library-real", tmp_path / "quarantine-real", db_link)
+        result = organizer.organize_file(real_incoming / "photo.txt")
+    except ValueError as exc:
+        db_seen = ("raised", str(exc))
+    except Exception as exc:
+        db_seen = (type(exc).__name__, str(exc))
+    else:
+        db_seen = ("accepted", result.status.value, outside_db.read_bytes()[:40])
+    names = sorted(p.relative_to(outside_lib).as_posix() for p in outside_lib.rglob("*"))
+    assert (
+        library_seen[0] == "raised" and "symlink" in library_seen[1].lower()
+        and db_seen[0] == "raised" and "symlink" in db_seen[1].lower()
+        and names == ["keep.txt"]
+        and outside_db.read_text(encoding="utf-8") == "keep"
+    ), (library_seen, db_seen, names, outside_db.read_bytes()[:40])

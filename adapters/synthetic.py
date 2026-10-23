@@ -146,21 +146,23 @@ def _params(params: Mapping[str, Any]) -> dict:
             raise SyntheticError(f"from_input must be one of {sorted(INPUT_TRANSFORMS)}")
         if out["content"] != "":
             raise SyntheticError("content and from_input are exclusive")
-    if not isinstance(out["sleep_s"], (int, float)) or not (out["sleep_s"] >= 0):
+    if isinstance(out["sleep_s"], bool) or not isinstance(out["sleep_s"], (int, float)) or not (out["sleep_s"] >= 0):
         raise SyntheticError("sleep_s must be a non-negative number")
     if not isinstance(out["write"], str) or not is_safe_name(out["write"]):
         raise SyntheticError("write must be a safe workspace-relative file name")
     if not isinstance(out["content"], str):
         raise SyntheticError("content must be a string")
     if out["crash_after_s"] is not None and (
-            not isinstance(out["crash_after_s"], (int, float)) or not (out["crash_after_s"] >= 0)):
+            isinstance(out["crash_after_s"], bool)
+            or not isinstance(out["crash_after_s"], (int, float))
+            or not (out["crash_after_s"] >= 0)):
         raise SyntheticError("crash_after_s must be null or a non-negative number")
     if not isinstance(out["hang"], bool):
         raise SyntheticError("hang must be a boolean")
-    if not isinstance(out["fail_transient_n"], int) or out["fail_transient_n"] < 0:
+    if isinstance(out["fail_transient_n"], bool) or not isinstance(out["fail_transient_n"], int) or out["fail_transient_n"] < 0:
         raise SyntheticError("fail_transient_n must be a non-negative int")
     if (not isinstance(out["fault_attempts"], list) or not out["fault_attempts"]
-            or any(not isinstance(a, int) or a < 1 for a in out["fault_attempts"])):
+            or any(isinstance(a, bool) or not isinstance(a, int) or a < 1 for a in out["fault_attempts"])):
         raise SyntheticError("fault_attempts must be a non-empty list of attempts >= 1")
     return out
 
@@ -214,7 +216,7 @@ def run(params: Mapping[str, Any], workdir: str | os.PathLike, attempt: int = 1,
     """
     cfg = _params(params)
     root = Path(workdir)
-    if not isinstance(attempt, int) or attempt < 1:
+    if isinstance(attempt, bool) or not isinstance(attempt, int) or attempt < 1:
         raise SyntheticError("attempt must be an int >= 1")
     faulted = attempt in cfg["fault_attempts"]
     if faulted and cfg["crash_after_s"] is not None:

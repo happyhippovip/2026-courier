@@ -126,7 +126,8 @@ class CapacityGovernor:
 
     def evaluate(self, metrics="read"):
         m = self.reader() if metrics == "read" else metrics
-        if (not isinstance(m, dict) or any(not isinstance(m.get(k), (int, float))
+        if (not isinstance(m, dict) or any(
+                isinstance(m.get(k), bool) or not isinstance(m.get(k), (int, float))
                 or not math.isfinite(m[k]) for k in ("swap_mb", "load_1m", "mem_free_pct"))):
             m = None
         if m is None:
@@ -204,10 +205,10 @@ class ProcessLauncher:
         proc = self.children.get(slot_id)
         if proc is not None and str(proc.pid) == str(pid):
             return proc.poll() is None
-        if not pid:
+        if isinstance(pid, bool) or not isinstance(pid, int) or pid <= 0:
             return False
         try:
-            os.kill(int(pid), 0)
+            os.kill(pid, 0)
             return True
         except (OSError, ValueError):
             return False
@@ -226,7 +227,9 @@ class ProcessLauncher:
         if proc is None:
             class Recovered:
                 def __init__(self, value):
-                    self.pid = int(value)
+                    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+                        raise ValueError("pid is not a process id. Bool is not a number.")
+                    self.pid = value
                     self.returncode = None
                     self._recovered = True
                 def poll(self):
@@ -268,7 +271,10 @@ class Supervisor:
         self.launcher = launcher or ProcessLauncher()
         self.clock = clock
         config = read_json(CONFIG_FILE, {})
-        self.gov = governor or CapacityGovernor(int(config.get("target", 4)), clock=clock)
+        raw_target = config.get("target", 4)
+        if isinstance(raw_target, bool) or not isinstance(raw_target, int):
+            raise ValueError("target is not a slot count. Bool is not a number.")
+        self.gov = governor or CapacityGovernor(raw_target, clock=clock)
 
     def _on_exit(self, slot, now):
         code = self.launcher.exit_code(slot["slot_id"])
@@ -381,6 +387,11 @@ class SupervisorLock:
 
 
 def acquire_lock():
+    if WALL_DIR.is_symlink() or WALL_DIR.parent.is_symlink():
+        raise OSError(f"{WALL_DIR}: refusing to follow a symlink")
+    lock_path = Path(LOCK_FILE)
+    if lock_path.is_symlink() or lock_path.parent.is_symlink():
+        raise OSError(f"{lock_path}: refusing to follow a symlink")
     WALL_DIR.mkdir(parents=True, exist_ok=True)
     try:
         handle = open(LOCK_FILE, "w")
@@ -424,7 +435,7 @@ def supervise(supervisor=None, interval=5.0, lock=None):
 
 def cmd_build(target=4, workspace=None):
     """WALL-AUFBAUEN: Initialises slot directories, config, and slot records without starting workers."""
-    if target not in ALLOWED_TARGETS and target != 64:
+    if isinstance(target, bool) or (target not in ALLOWED_TARGETS and target != 64):
         print(f"build supports {ALLOWED_TARGETS}")
         return 2
     with control_lock(WALL_DIR):
@@ -496,7 +507,7 @@ def cmd_notaus(launcher=None):
 
 
 def cmd_start(target, allow_64=False, loop=True):
-    if target not in ALLOWED_TARGETS and not (allow_64 and target == 64):
+    if isinstance(target, bool) or (target not in ALLOWED_TARGETS and not (allow_64 and target == 64)):
         print(f"start supports {ALLOWED_TARGETS} (64 needs --allow-64)")
         return 2
     lock = acquire_lock()

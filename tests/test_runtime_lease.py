@@ -23,10 +23,12 @@ def leases(tmp_path):
 
 def test_one_active_write_lease_per_scope(leases):
     store, _ = leases
-    store.acquire("repo:integration/v1", "mac:s1", "wk-1", ttl_s=30)
+    first = store.acquire("repo:integration/v1", "mac:s1", "wk-1", ttl_s=30)
     with pytest.raises(LeaseConflict):
         store.acquire("repo:integration/v1", "win:s2", "wk-2", ttl_s=30)
-    assert store.acquire("repo:other", "win:s2", "wk-2", ttl_s=30).token == 1
+    other = store.acquire("repo:other", "win:s2", "wk-2", ttl_s=30)
+    assert other.token != first.token
+    assert other.token > first.token
 
 
 def test_expired_lease_can_be_taken_over_and_old_holder_is_fenced(leases):
@@ -159,6 +161,68 @@ def test_fenced_file_writer_prevents_unauthorized_writes(leases, tmp_path):
     clock.t += 15
     with pytest.raises(StaleLease):
         writer.open(target_file, "w")
+
+
+def test_lease_store_refuses_a_symlinked_parent(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "home"
+    link.symlink_to(outside, target_is_directory=True)
+    try:
+        store = LeaseStore(str(link / "agents.db"))
+    except OSError as exc:
+        assert "symlink" in str(exc).lower()
+    else:
+        store.close()
+        raise AssertionError(sorted(path.name for path in outside.iterdir()))
+    assert list(outside.iterdir()) == []
+
+
+def test_lease_store_refuses_a_symlink_and_leaves_the_target_empty(tmp_path):
+    target = tmp_path / "target.db"
+    target.write_bytes(b"")
+    link = tmp_path / "agents.db"
+    link.symlink_to(target)
+    try:
+        store = LeaseStore(str(link))
+    except OSError as exc:
+        assert "symlink" in str(exc).lower()
+    else:
+        store.close()
+        raise AssertionError(f"opened a symlinked lease db, target size {target.stat().st_size}")
+    assert target.read_bytes() == b""
+
+
+def test_fenced_writer_refuses_a_symlinked_parent(leases, tmp_path):
+    from courier_runtime.lease import FencedFileWriter
+
+    store, _ = leases
+    lease = store.acquire("repo://docs", "writer-1", "wk-doc", ttl_s=10)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "linked"
+    link.symlink_to(outside, target_is_directory=True)
+    writer = FencedFileWriter(store, "repo://docs", lease.token, "writer-1")
+    with pytest.raises(OSError, match="symlink"):
+        with writer.open(link / "report.txt", "w") as handle:
+            handle.write("nope")
+    assert list(outside.iterdir()) == []
+
+
+def test_fenced_writer_refuses_a_symlink_and_leaves_the_target(leases, tmp_path):
+    from courier_runtime.lease import FencedFileWriter
+
+    store, _ = leases
+    lease = store.acquire("repo://docs", "writer-1", "wk-doc", ttl_s=10)
+    secret = tmp_path / "secret.txt"
+    secret.write_text("keep", encoding="utf-8")
+    link = tmp_path / "report.txt"
+    link.symlink_to(secret)
+    writer = FencedFileWriter(store, "repo://docs", lease.token, "writer-1")
+    with pytest.raises(OSError, match="symlink"):
+        with writer.open(link, "w") as handle:
+            handle.write("replaced")
+    assert secret.read_text(encoding="utf-8") == "keep"
 
 
 def test_enclosing_parent_scope_authorizes_child_path_write(leases):

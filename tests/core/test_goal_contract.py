@@ -218,6 +218,32 @@ def test_store_round_trip_and_fail_closed(tmp_path):
     assert fresh.read_bytes() == b"y" * MAX_FILE_BYTES
 
 
+def test_store_refuses_a_symlinked_parent(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "home"
+    link.symlink_to(outside, target_is_directory=True)
+    store = GoalContractStore(link / "goals.jsonl")
+    confirmed = _contract().confirm("person:ada", "2026-10-08T00:00:00Z")
+    with pytest.raises(GoalContractError, match="symlink"):
+        store.append(confirmed)
+    assert list(outside.iterdir()) == []
+
+
+def test_store_refuses_a_symlink(tmp_path):
+    target = tmp_path / "outside.jsonl"
+    target.write_text("keep\n", encoding="utf-8")
+    link = tmp_path / "goals.jsonl"
+    link.symlink_to(target)
+    store = GoalContractStore(link)
+    confirmed = _contract().confirm("person:ada", "2026-10-08T00:00:00Z")
+    with pytest.raises(GoalContractError, match="symlink"):
+        store.append(confirmed)
+    assert target.read_text(encoding="utf-8") == "keep\n"
+    with pytest.raises(GoalContractError, match="symlink"):
+        store.read()
+
+
 def _draft_goal(**overrides):
     goal = {
         "goal_id": "goal-1",

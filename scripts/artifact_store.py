@@ -66,8 +66,27 @@ def _atomic_write(path: Path, data: bytes) -> None:
 
 class ArtifactStore:
     def __init__(self, root, max_bytes: int = DEFAULT_MAX_BYTES):
-        self.root = Path(root)
-        self.max_bytes = int(max_bytes)
+        if isinstance(max_bytes, bool) or not isinstance(max_bytes, int) or max_bytes < 1:
+            raise ArtifactError("max_bytes is not a byte count. Bool is not a number.")
+        root_path = Path(root)
+        if root_path.is_symlink() or root_path.parent.is_symlink():
+            raise ArtifactError(f"{root_path}: refusing to follow a symlink")
+        self.root = root_path
+        self.max_bytes = max_bytes
+
+    def _refuse_store_path(self, path: Path) -> None:
+        """Refuse a symlink at the store root or on any component inside it."""
+        try:
+            relative = path.relative_to(self.root)
+        except ValueError:
+            raise ArtifactError(f"{path}: refusing to follow a symlink") from None
+        cursor = self.root
+        if cursor.is_symlink():
+            raise ArtifactError(f"{cursor}: refusing to follow a symlink")
+        for part in relative.parts:
+            cursor = cursor / part
+            if cursor.is_symlink():
+                raise ArtifactError(f"{cursor}: refusing to follow a symlink")
 
     @classmethod
     def from_env(cls):
@@ -94,20 +113,25 @@ class ArtifactStore:
         sha256 = hashlib.sha256(data).hexdigest()
         if claimed_sha256 is not None and claimed_sha256 != sha256:
             raise ArtifactError("uploaded bytes do not match the claimed sha256")
-        if claimed_size is not None and claimed_size != len(data):
-            raise ArtifactError("uploaded bytes do not match the claimed size")
+        if claimed_size is not None:
+            if isinstance(claimed_size, bool) or not isinstance(claimed_size, int) or claimed_size < 0:
+                raise ArtifactError("claimed size is not a byte count. Bool is not a number.")
+            if claimed_size != len(data):
+                raise ArtifactError("uploaded bytes do not match the claimed size")
 
         blob = self._blob_path(sha256)
+        artifact_id = artifact_id_for(binding, name, sha256)
+        path = self._record_path(artifact_id)
+        self._refuse_store_path(blob)
+        self._refuse_store_path(path)
         if blob.exists():
             if hashlib.sha256(blob.read_bytes()).hexdigest() != sha256:
                 raise ArtifactError("stored blob is corrupt")
         else:
             _atomic_write(blob, data)
 
-        artifact_id = artifact_id_for(binding, name, sha256)
         record = {"artifact_id": artifact_id, "name": name, "sha256": sha256, "size": len(data),
                   **{f: binding[f] for f in BINDING_FIELDS}}
-        path = self._record_path(artifact_id)
         if path.exists():
             if json.loads(path.read_text(encoding="utf-8")) != record:
                 raise ArtifactError("artifact record conflict")
@@ -117,6 +141,7 @@ class ArtifactStore:
 
     def get_record(self, artifact_id: str) -> dict | None:
         path = self._record_path(artifact_id)
+        self._refuse_store_path(path)
         if not path.is_file():
             return None
         return json.loads(path.read_text(encoding="utf-8"))
@@ -126,6 +151,7 @@ class ArtifactStore:
         if record is None:
             raise ArtifactError("unknown artifact_id")
         blob = self._blob_path(record["sha256"])
+        self._refuse_store_path(blob)
         if not blob.is_file():
             raise ArtifactError("artifact bytes missing")
         return blob.read_bytes()

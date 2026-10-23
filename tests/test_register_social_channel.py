@@ -132,3 +132,137 @@ def test_register_channel_bad_workflow_json(tmp_path):
         workflows_path=workflows_path
     )
     assert result["workflow_id"] == "fruitki-youtube"
+
+
+def test_config_does_not_follow_a_symlink(tmp_path):
+    workflows = tmp_path / "workflows.json"
+    workflows.write_text(json.dumps({"workflows": [{"workflow_id": "fruitki-youtube"}]}), encoding="utf-8")
+    kept = '{"channels":[],"marker":"keep"}\n'
+
+    def library(config):
+        try:
+            rsc.register_channel(
+                platform="YOUTUBE",
+                channel_label="Fruit Channel",
+                content_project="FruitKI",
+                config_path=config,
+                workflows_path=workflows,
+            )
+            return None
+        except SystemExit as exc:
+            return str(exc)
+
+    def cli(config):
+        argv = [
+            "prog", "--platform", "YOUTUBE", "--label", "Fruit Channel",
+            "--project", "FruitKI", "--config", str(config),
+            "--workflows-config", str(workflows),
+        ]
+        with patch("sys.argv", argv):
+            try:
+                rsc.main()
+                return None
+            except SystemExit as exc:
+                return str(exc)
+
+    outside = tmp_path / "outside-channels.json"
+    outside.write_text(kept, encoding="utf-8")
+    linked = tmp_path / "linked-channels.json"
+    linked.symlink_to(outside)
+    parent_real = tmp_path / "parent-real"
+    parent_real.mkdir()
+    nested = parent_real / "channels.json"
+    nested.write_text(kept, encoding="utf-8")
+    parent_link = tmp_path / "parent-link"
+    parent_link.symlink_to(parent_real)
+    plain = tmp_path / "plain-channels.json"
+
+    err_lib = library(linked)
+    err_cli = cli(linked)
+    err_parent = library(parent_link / "channels.json")
+    err_plain = library(plain)
+    plain_body = plain.read_text(encoding="utf-8") if plain.exists() else ""
+    refused = "CHANNEL_REGISTRATION_ERROR: refusing to follow a symlink"
+    assert (
+        err_lib == refused and outside.read_text(encoding="utf-8") == kept
+        and err_cli == refused and outside.read_text(encoding="utf-8") == kept
+        and err_parent == refused and nested.read_text(encoding="utf-8") == kept
+        and err_plain is None and "chan-yt-fruit-channel" in plain_body
+        and linked.is_symlink() and parent_link.is_symlink()
+    ), (
+        err_lib, outside.read_text(encoding="utf-8"),
+        err_cli, err_parent, nested.read_text(encoding="utf-8"),
+        err_plain, plain_body,
+    )
+
+
+def test_workflows_config_does_not_follow_a_symlink(tmp_path):
+    outside = tmp_path / "outside-workflows.json"
+    outside.write_text(
+        json.dumps({"workflows": [{"workflow_id": "other-only"}]}),
+        encoding="utf-8",
+    )
+    linked = tmp_path / "linked-workflows.json"
+    linked.symlink_to(outside)
+    parent_real = tmp_path / "parent-real"
+    parent_real.mkdir()
+    (parent_real / "workflows.json").write_text(
+        json.dumps({"workflows": [{"workflow_id": "other-only"}]}),
+        encoding="utf-8",
+    )
+    parent_link = tmp_path / "parent-link"
+    parent_link.symlink_to(parent_real)
+    real_wf = tmp_path / "real-workflows.json"
+    real_wf.write_text(
+        json.dumps({"workflows": [{"workflow_id": "fruitki-youtube"}]}),
+        encoding="utf-8",
+    )
+
+    def library(wf, cfg):
+        try:
+            rsc.register_channel(
+                platform="YOUTUBE",
+                channel_label="Fruit Channel",
+                content_project="FruitKI",
+                workflow_id="fruitki-youtube",
+                config_path=cfg,
+                workflows_path=wf,
+            )
+            return None
+        except SystemExit as exc:
+            return str(exc)
+
+    def cli(wf, cfg):
+        argv = [
+            "prog", "--platform", "YOUTUBE", "--label", "Fruit Channel",
+            "--project", "FruitKI", "--workflow", "fruitki-youtube",
+            "--config", str(cfg), "--workflows-config", str(wf),
+        ]
+        with patch("sys.argv", argv):
+            try:
+                rsc.main()
+                return None
+            except SystemExit as exc:
+                return str(exc)
+
+    cfg_link = tmp_path / "cfg-link.json"
+    cfg_parent = tmp_path / "cfg-parent.json"
+    cfg_cli = tmp_path / "cfg-cli.json"
+    cfg_real = tmp_path / "cfg-real.json"
+    err_link = library(linked, cfg_link)
+    err_parent = library(parent_link / "workflows.json", cfg_parent)
+    err_cli = cli(linked, cfg_cli)
+    err_real = library(real_wf, cfg_real)
+    real_body = cfg_real.read_text(encoding="utf-8") if cfg_real.exists() else ""
+    refused = "CHANNEL_REGISTRATION_ERROR: refusing to follow a symlink"
+    assert (
+        err_link == refused and not cfg_link.exists()
+        and err_parent == refused and not cfg_parent.exists()
+        and err_cli == refused and not cfg_cli.exists()
+        and err_real is None and "chan-yt-fruit-channel" in real_body
+        and linked.is_symlink() and parent_link.is_symlink()
+        and outside.read_text(encoding="utf-8").find("other-only") >= 0
+    ), (
+        err_link, cfg_link.exists(), err_parent, cfg_parent.exists(),
+        err_cli, cfg_cli.exists(), err_real, "chan-yt-fruit-channel" in real_body,
+    )

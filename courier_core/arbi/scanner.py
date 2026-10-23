@@ -7,6 +7,7 @@ Zero API cost, zero credentials required.
 from __future__ import annotations
 
 import json
+import math
 import time
 import urllib.error
 import urllib.request
@@ -26,6 +27,36 @@ class MultiExchangeScanner:
 
     TIMEOUT_SEC = 4.0
     MAX_DEPTH = 10
+
+    @staticmethod
+    def _depth_count(limit: int) -> int:
+        if isinstance(limit, bool):
+            raise ValueError("Bool is not a number.")
+        return limit
+
+    @staticmethod
+    def _finite_level_number(value, label: str) -> float:
+        if isinstance(value, bool):
+            raise ValueError("Bool is not a number.")
+        if isinstance(value, (int, float)):
+            number = float(value)
+        elif isinstance(value, str):
+            try:
+                number = float(value)
+            except ValueError:
+                raise ValueError(f"{label} is not a number.") from None
+        else:
+            raise ValueError(f"{label} is not a number.")
+        if not math.isfinite(number):
+            raise ValueError(f"{label} is not a number.")
+        return number
+
+    @staticmethod
+    def _book_level(price, amount) -> OrderbookLevel:
+        return OrderbookLevel(
+            MultiExchangeScanner._finite_level_number(price, "price"),
+            MultiExchangeScanner._finite_level_number(amount, "amount"),
+        )
 
     @staticmethod
     def _fetch_json(url: str) -> dict:
@@ -49,14 +80,15 @@ class MultiExchangeScanner:
 
     @classmethod
     def fetch_binance_depth(cls, pair: NormalizedPair, limit: int = 10) -> OrderbookSnapshot:
+        limit = cls._depth_count(limit)
         symbol = SymbolMapper.to_exchange_symbol("binance", pair)
         url = f"https://api.binance.com/api/v3/depth?symbol={symbol}&limit={limit}"
         t0 = time.time()
         data = cls._fetch_json(url)
         lat = (time.time() - t0) * 1000.0
 
-        bids = [OrderbookLevel(float(p), float(q)) for p, q in data.get("bids", [])]
-        asks = [OrderbookLevel(float(p), float(q)) for p, q in data.get("asks", [])]
+        bids = [cls._book_level(p, q) for p, q in data.get("bids", [])]
+        asks = [cls._book_level(p, q) for p, q in data.get("asks", [])]
         return OrderbookSnapshot(
             exchange="binance",
             pair=pair,
@@ -68,6 +100,7 @@ class MultiExchangeScanner:
 
     @classmethod
     def fetch_bybit_depth(cls, pair: NormalizedPair, limit: int = 10) -> OrderbookSnapshot:
+        limit = cls._depth_count(limit)
         symbol = SymbolMapper.to_exchange_symbol("bybit", pair)
         url = f"https://api.bybit.com/v5/market/orderbook?category=spot&symbol={symbol}&limit={limit}"
         t0 = time.time()
@@ -77,8 +110,8 @@ class MultiExchangeScanner:
         result = data.get("result", {})
         raw_bids = result.get("b", [])
         raw_asks = result.get("a", [])
-        bids = [OrderbookLevel(float(p), float(q)) for p, q in raw_bids]
-        asks = [OrderbookLevel(float(p), float(q)) for p, q in raw_asks]
+        bids = [cls._book_level(p, q) for p, q in raw_bids]
+        asks = [cls._book_level(p, q) for p, q in raw_asks]
         return OrderbookSnapshot(
             exchange="bybit",
             pair=pair,
@@ -90,6 +123,7 @@ class MultiExchangeScanner:
 
     @classmethod
     def fetch_okx_depth(cls, pair: NormalizedPair, limit: int = 10) -> OrderbookSnapshot:
+        limit = cls._depth_count(limit)
         symbol = SymbolMapper.to_exchange_symbol("okx", pair)
         url = f"https://www.okx.com/api/v5/market/books?instId={symbol}&sz={limit}"
         t0 = time.time()
@@ -99,8 +133,8 @@ class MultiExchangeScanner:
         book_data = data.get("data", [{}])[0]
         raw_bids = book_data.get("bids", [])
         raw_asks = book_data.get("asks", [])
-        bids = [OrderbookLevel(float(x[0]), float(x[1])) for x in raw_bids]
-        asks = [OrderbookLevel(float(x[0]), float(x[1])) for x in raw_asks]
+        bids = [cls._book_level(x[0], x[1]) for x in raw_bids]
+        asks = [cls._book_level(x[0], x[1]) for x in raw_asks]
         return OrderbookSnapshot(
             exchange="okx",
             pair=pair,
@@ -112,6 +146,7 @@ class MultiExchangeScanner:
 
     @classmethod
     def fetch_kraken_depth(cls, pair: NormalizedPair, count: int = 10) -> OrderbookSnapshot:
+        count = cls._depth_count(count)
         symbol = SymbolMapper.to_exchange_symbol("kraken", pair)
         url = f"https://api.kraken.com/0/public/Depth?pair={symbol}&count={count}"
         t0 = time.time()
@@ -125,8 +160,8 @@ class MultiExchangeScanner:
         raw_bids = book.get("bids", [])
         raw_asks = book.get("asks", [])
         # Kraken depth format: [price, amount, timestamp]
-        bids = [OrderbookLevel(float(x[0]), float(x[1])) for x in raw_bids]
-        asks = [OrderbookLevel(float(x[0]), float(x[1])) for x in raw_asks]
+        bids = [cls._book_level(x[0], x[1]) for x in raw_bids]
+        asks = [cls._book_level(x[0], x[1]) for x in raw_asks]
         return OrderbookSnapshot(
             exchange="kraken",
             pair=pair,

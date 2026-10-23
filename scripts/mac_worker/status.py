@@ -78,6 +78,9 @@ def query_worker_state(here_dir):
     state_dir = Path(here_dir) / "state"
     task_file = state_dir / "current_task.json"
     ckpt_file = state_dir / "checkpoint.json"
+    for path in (state_dir, task_file, ckpt_file):
+        if path.is_symlink() or path.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
 
     task_data = {}
     if task_file.exists():
@@ -106,16 +109,24 @@ def derive_status(plist_path=None, here_dir=None):
         here_dir = Path(__file__).resolve().parent
     if plist_path is None:
         plist_path = Path.home() / "Library" / "LaunchAgents" / f"{LABEL}.plist"
+    plist_path = Path(plist_path)
+    if plist_path.is_symlink() or plist_path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
 
-    plist_exists = Path(plist_path).exists()
+    plist_exists = plist_path.exists()
     launch_info = query_launchctl(LABEL)
     worker_state = query_worker_state(here_dir)
+
+    pid = launch_info["pid"]
+    exit_status = launch_info["last_exit_status"]
+    if isinstance(pid, bool) or isinstance(exit_status, bool):
+        raise ValueError("Bool is not a number.")
 
     if not plist_exists:
         status_label = "NOT_INSTALLED"
     elif not launch_info["loaded"]:
         status_label = "INSTALLED_NOT_LOADED"
-    elif launch_info["pid"] is not None and launch_info["pid"] > 0:
+    elif pid is not None and pid > 0:
         status_label = "RUNNING"
     else:
         status_label = "LOADED_STOPPED"

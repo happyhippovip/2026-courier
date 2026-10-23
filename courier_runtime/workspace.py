@@ -71,7 +71,7 @@ class Workspace:
             self.evidence.append(ev)
             if not passed:
                 return {"state": "FAILED", "host": host.device_id, "step": index, "reasons": [f"exit {code}"]}
-            self.leases.check_write(scope, lease.token)                 # fenced: only the lease holder accepts
+            self.leases.check_write(scope, lease.token, lease.holder)  # fenced: token and holder
             self.log.append(AcceptedFact(workkey, index, f"{step.name} produced {step.output}",
                                          (f"evidence:{ev.artifact_sha256}",), "controller", self.clock()))
         self.leases.release(lease)

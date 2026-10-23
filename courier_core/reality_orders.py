@@ -89,6 +89,7 @@ class OrderBook:
 
     def __init__(self, directory: str | os.PathLike, *, on_receipt_durable: Callable[[], None] | None = None):
         self.root = Path(directory)
+        _refuse_directory_symlink(self.root)
         self.receipts_path = self.root / "receipts.jsonl"
         self.state_path = self.root / "orders.json"
         self._on_receipt_durable = on_receipt_durable
@@ -178,7 +179,13 @@ class OrderBook:
             raise OrderError("order is not paid")
         if order["status"] in {REFUNDED, FAILED, DELIVERED}:
             raise OrderError(f"{order['status']} cannot be fulfilled")
-        report_path = Path(out_dir) / f"{order['order_id']}-report.md"
+        known_price_cents(order.get("price_cents"))
+        out = Path(out_dir)
+        if out.is_symlink():
+            raise OrderError("report directory must not be a symlink")
+        report_path = out / f"{order['order_id']}-report.md"
+        if report_path.is_symlink():
+            raise OrderError("report path must not be a symlink")
         if order["status"] == PAYMENT_CONFIRMED:
             self.mark_running(order_id)
             order = self._require(order_id)
@@ -246,9 +253,9 @@ class OrderBook:
         return {
             "currency": CURRENCY,
             "verified_count": len(verified),
-            "verified_cents": sum(order["price_cents"] for order in verified),
+            "verified_cents": _sum_cents(verified),
             "pending_count": len(pending),
-            "pending_cents": sum(order["price_cents"] for order in pending),
+            "pending_cents": _sum_cents(pending),
         }
 
     def _move(self, order_id: str, status: str, evidence_ref: str | None, *, allow_payment: bool) -> dict[str, Any]:
@@ -357,6 +364,8 @@ class OrderBook:
         self._replace(self.state_path, (text + "\n").encode("utf-8"))
 
     def _replace(self, path: Path, payload: bytes) -> None:
+        if path.is_symlink():
+            raise OrderError("refusing to follow a symlink")
         self.root.mkdir(parents=True, exist_ok=True)
         fd, tmp_name = tempfile.mkstemp(dir=self.root, prefix=path.name + ".")
         tmp = Path(tmp_name)
@@ -440,6 +449,8 @@ def _log_bytes(receipts: list[dict[str, Any]]) -> bytes:
 
 
 def _read_receipts(path: Path) -> list[dict[str, Any]]:
+    if path.is_symlink():
+        raise OrderError("refusing to follow a symlink")
     if not path.exists():
         return []
     raw = path.read_bytes()
@@ -467,6 +478,8 @@ def _read_receipts(path: Path) -> list[dict[str, Any]]:
 
 
 def _read_state(path: Path) -> dict[str, Any] | None:
+    if path.is_symlink():
+        raise OrderError("refusing to follow a symlink")
     if not path.exists():
         return None
     try:
@@ -615,6 +628,12 @@ def courier_state_dir() -> Path:
     return Path.home() / ".courier"
 
 
+def _refuse_directory_symlink(path: Path) -> None:
+    """An order-book directory, or the directory that would contain it, is not a symlink."""
+    if path.is_symlink() or path.parent.is_symlink():
+        raise OrderError("data dir must not be a symlink")
+
+
 def resolve_orders_dir(explicit: str | None = None) -> Path:
     """--data-dir, else COURIER_ORDERS_DIR, else <courier state>/reality-orders."""
     if explicit:
@@ -624,6 +643,7 @@ def resolve_orders_dir(explicit: str | None = None) -> Path:
     else:
         chosen = courier_state_dir() / "reality-orders"
     chosen = Path(os.path.abspath(chosen))
+    _refuse_directory_symlink(chosen)
     if _inside_git_checkout(chosen):
         raise OrderError("data dir must not sit inside a git checkout")
     return chosen
@@ -640,10 +660,23 @@ def _inside_git_checkout(path: Path) -> bool:
         current = parent
 
 
+def known_price_cents(value) -> int:
+    """A price is a non-negative int. Bool is not a cost. Missing stays blocked."""
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise OrderError("UNKNOWN_COST")
+    return value
+
+
+def _sum_cents(orders) -> int:
+    total = 0
+    for order in orders:
+        total += known_price_cents(order.get("price_cents"))
+    return total
+
+
 def _eur(cents: int) -> str:
-    sign = "-" if cents < 0 else ""
-    amount = abs(int(cents))
-    return f"{sign}{amount // 100}.{amount % 100:02d} EUR"
+    amount = known_price_cents(cents)
+    return f"{amount // 100}.{amount % 100:02d} EUR"
 
 
 def _new_order_id() -> str:

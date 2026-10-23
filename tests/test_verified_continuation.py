@@ -380,3 +380,66 @@ def test_h10_expired_lease_reconcile_and_prevent_double_work(continuation_engine
     claim_info = continuation_engine.is_claimed(workkey)
     assert claim_info["owner"] == "worker-new"
 
+
+def test_unreadable_claim_is_not_stolen(continuation_engine):
+    workkey = "UNREADABLE_CLAIM"
+    claim_file = continuation_engine.claims_dir / f"{workkey}.claim"
+    original = b"not-json\n"
+    claim_file.write_bytes(original)
+    assert continuation_engine.claim(workkey, owner="worker-b") is False
+    assert claim_file.read_bytes() == original
+    seen = continuation_engine.is_claimed(workkey)
+    assert seen is not None
+    assert seen.get("owner") != "worker-b"
+
+
+def test_claim_without_expiry_is_not_stolen(continuation_engine):
+    workkey = "NO_EXPIRY_CLAIM"
+    claim_file = continuation_engine.claims_dir / f"{workkey}.claim"
+    original = json.dumps({"workkey": workkey, "owner": "worker-a", "ttl_s": 3600})
+    claim_file.write_text(original, encoding="utf-8")
+    assert continuation_engine.claim(workkey, owner="worker-b") is False
+    assert claim_file.read_text(encoding="utf-8") == original
+    assert continuation_engine.is_claimed(workkey)["owner"] == "worker-a"
+
+
+def test_bool_claim_timestamp_is_not_stolen(continuation_engine):
+    workkey = "BOOL_TS_CLAIM"
+    claim_file = continuation_engine.claims_dir / f"{workkey}.claim"
+    original = json.dumps(
+        {"workkey": workkey, "owner": "worker-a", "created_at_ts": True, "ttl_s": 3600}
+    )
+    claim_file.write_text(original, encoding="utf-8")
+    assert continuation_engine.claim(workkey, owner="worker-b") is False
+    data = json.loads(claim_file.read_text(encoding="utf-8"))
+    assert data["owner"] == "worker-a"
+    assert data["created_at_ts"] is True
+
+
+def test_symlink_claim_is_not_adopted(continuation_engine, tmp_path):
+    workkey = "LINK_CLAIM"
+    outside = tmp_path / "outside-claim.txt"
+    outside.write_text("keep", encoding="utf-8")
+    claim_file = continuation_engine.claims_dir / f"{workkey}.claim"
+    try:
+        claim_file.symlink_to(outside)
+    except OSError as exc:
+        if getattr(exc, "winerror", None) == 1314:
+            pytest.skip("Creating symlinks on Windows requires developer mode or administrator privilege")
+        raise
+    assert continuation_engine.claim(workkey, owner="worker-b") is False
+    assert claim_file.is_symlink()
+    assert outside.read_text(encoding="utf-8") == "keep"
+    assert continuation_engine.is_claimed(workkey).get("unreadable") is True
+
+
+def test_expired_numeric_claim_can_be_reclaimed(continuation_engine):
+    workkey = "EXPIRED_CLAIM"
+    claim_file = continuation_engine.claims_dir / f"{workkey}.claim"
+    claim_file.write_text(
+        json.dumps({"workkey": workkey, "owner": "worker-a", "created_at_ts": 0, "ttl_s": 1}),
+        encoding="utf-8",
+    )
+    assert continuation_engine.claim(workkey, owner="worker-b") is True
+    assert continuation_engine.is_claimed(workkey)["owner"] == "worker-b"
+

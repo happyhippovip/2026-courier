@@ -49,7 +49,11 @@ def main() -> None:
         fail("task or correlation mismatch")
     if result["parent_id"] != task["message_id"] or result["message_id"] == task["message_id"]:
         fail("parent or message identity mismatch")
-    if result["max_iterations"] != task["max_iterations"] or result["max_iterations"] != 1:
+    iterations = result["max_iterations"]
+    task_iterations = task["max_iterations"]
+    def _is_one(value: object) -> bool:
+        return isinstance(value, int) and not isinstance(value, bool) and value == 1
+    if not _is_one(iterations) or not _is_one(task_iterations):
         fail("iteration bound mismatch")
     expected_result = task.get("payload", {}).get("result_request")
     if expected_result not in {"COURIER_CODEX_ACK", "COURIER_SEQUENTIAL_ACK", "COURIER_AUTOMATIC_ACK"}:
@@ -62,6 +66,10 @@ def main() -> None:
         fail("unsafe result message_id")
 
     processed_dir = Path(args.processed_dir)
+    output_path = Path(args.github_output)
+    if (processed_dir.is_symlink() or processed_dir.parent.is_symlink()
+            or output_path.is_symlink() or output_path.parent.is_symlink()):
+        fail("refusing to follow a symlink")
     for candidate in processed_dir.glob("*.json"):
         try:
             existing = json.loads(candidate.read_text(encoding="utf-8"))
@@ -71,10 +79,12 @@ def main() -> None:
             fail("duplicate terminal result")
 
     target = processed_dir / f"{task['message_id']}.result.json"
+    if target.is_symlink() or target.parent.is_symlink():
+        fail("refusing to follow a symlink")
     if target.exists():
         fail("terminal result path already exists")
     target.write_text(json.dumps(result, sort_keys=True, indent=2) + "\n", encoding="utf-8")
-    with Path(args.github_output).open("a", encoding="utf-8") as output:
+    with output_path.open("a", encoding="utf-8") as output:
         output.write(f"result_path={target.as_posix()}\n")
 
 

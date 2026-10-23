@@ -138,7 +138,8 @@ def validate_worker_job_against_schema(job_data: dict, schema_path: Path | None 
     if job_data.get("human_gate_policy") != "STOP_ON_HUMAN_GATE_ONLY":
         return False, f"Invalid human_gate_policy: {job_data.get('human_gate_policy')} (strictly 'STOP_ON_HUMAN_GATE_ONLY' required)"
 
-    if job_data.get("max_iterations") != 1:
+    iterations = job_data.get("max_iterations")
+    if isinstance(iterations, bool) or not isinstance(iterations, int) or iterations != 1:
         return False, f"Invalid max_iterations: {job_data.get('max_iterations')} (strictly 1 required)"
 
     if job_data.get("expected_output") != "ANTIGRAVITY_RESULT":
@@ -180,7 +181,8 @@ def validate_command_for_job(cmd_data: dict) -> tuple[bool, str]:
     if cmd_data.get("source") != "chief" or cmd_data.get("destination") != "antigravity":
         return False, f"Invalid route: {cmd_data.get('source')} -> {cmd_data.get('destination')}"
 
-    if cmd_data.get("max_iterations") != 1:
+    iterations = cmd_data.get("max_iterations")
+    if isinstance(iterations, bool) or not isinstance(iterations, int) or iterations != 1:
         return False, f"max_iterations must be 1, got {cmd_data.get('max_iterations')}"
 
     payload = cmd_data.get("payload")
@@ -277,8 +279,13 @@ def build_worker_job(
     if not is_schema_valid:
         fail(f"Generated worker job failed JSON Schema validation: {schema_err}")
 
+    output_dir = Path(output_dir)
+    if output_dir.is_symlink() or output_dir.parent.is_symlink():
+        fail("refusing to follow a symlink")
     output_dir.mkdir(parents=True, exist_ok=True)
     out_file = output_dir / f"{task_id}-worker-job.json"
+    if out_file.is_symlink():
+        fail("refusing to follow a symlink")
     out_file.write_text(json.dumps(worker_job, indent=2) + "\n", encoding="utf-8")
 
     return worker_job
@@ -314,7 +321,11 @@ def main() -> None:
 
     command_path = Path(args.command)
     output_dir = Path(args.output_dir)
-    mem_repo_path = Path(args.memory_repo).resolve() if args.memory_repo else None
+    mem_repo_path = Path(args.memory_repo) if args.memory_repo else None
+    if mem_repo_path is not None and (mem_repo_path.is_symlink() or mem_repo_path.parent.is_symlink()):
+        fail("refusing to follow a symlink")
+    if mem_repo_path is not None:
+        mem_repo_path = mem_repo_path.resolve()
 
     job = build_worker_job(command_path, output_dir, schema_path, mem_repo_path)
     print(f"WORKER_JOB_CREATED: id={job['job_id']}, task={job['task_id']}, src_msg={job['source_command_message_id']}")

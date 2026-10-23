@@ -313,7 +313,12 @@ class GoalContractStore:
     def __init__(self, path: str | Path):
         self.path = Path(path)
 
+    def _refuse_symlink(self) -> None:
+        if self.path.is_symlink() or self.path.parent.is_symlink():
+            raise GoalContractError("record path is a symlink")
+
     def append(self, contract: GoalContract) -> None:
+        self._refuse_symlink()
         if not isinstance(contract, GoalContract):
             raise GoalContractError("not a goal contract")
         if not contract.human_confirmed:
@@ -329,6 +334,7 @@ class GoalContractStore:
             handle.write(line)
 
     def read(self) -> tuple[GoalContract, ...]:
+        self._refuse_symlink()
         if not self.path.exists():
             return ()
         raw = self._read_bounded()
@@ -346,6 +352,7 @@ class GoalContractStore:
         return tuple(_parse_envelope(line) for line in lines)
 
     def _size(self) -> int:
+        self._refuse_symlink()
         if not self.path.exists():
             return 0
         size = self.path.stat().st_size
@@ -354,6 +361,7 @@ class GoalContractStore:
         return size
 
     def _read_bounded(self) -> bytes:
+        self._refuse_symlink()
         with self.path.open("rb") as handle:
             data = handle.read(MAX_FILE_BYTES + 1)
         if len(data) > MAX_FILE_BYTES:

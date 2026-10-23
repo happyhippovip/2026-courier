@@ -18,6 +18,7 @@ import datetime
 import enum
 import hashlib
 import json
+import math
 import os
 import re
 import shlex
@@ -65,6 +66,26 @@ def canonical_json_hash(data: Any) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def _claim_is_active(data: Any, now: float, fallback_ttl: Any) -> Optional[bool]:
+    """True when a claim is still inside a known lease window.
+
+    None means the expiry cannot be decided. False means the window is known
+    and already over. A missing, bool, or non-finite timestamp is None: bool
+    is an int, and a missing timestamp is not an ancient lease.
+    """
+    if not isinstance(data, dict):
+        return None
+    created = data.get("created_at_ts")
+    ttl = data.get("ttl_s", fallback_ttl)
+    if isinstance(created, bool) or isinstance(ttl, bool):
+        return None
+    if not isinstance(created, (int, float)) or not isinstance(ttl, (int, float)):
+        return None
+    if not math.isfinite(created) or not math.isfinite(ttl) or ttl < 0:
+        return None
+    return (now - created) < ttl
+
+
 class VerifiedContinuation:
     """Orchestrates verifiable task claims, execution modes, and durable checkpoints."""
 
@@ -87,31 +108,35 @@ class VerifiedContinuation:
         claim_file = self.claims_dir / f"{workkey}.claim"
         now = datetime.datetime.now(datetime.timezone.utc).timestamp()
 
-        # Check existing claim for renew or expiry
+        # A symlink is not a local claim. Do not read or replace it.
+        if claim_file.is_symlink():
+            return False
+
+        # Check existing claim for renew or expiry. Unreadable or undecidable
+        # records stay in place: they are not expired leases.
         if claim_file.exists():
             try:
                 data = json.loads(claim_file.read_text(encoding="utf-8"))
-                created_at = data.get("created_at_ts", 0)
-                active_ttl = data.get("ttl_s", ttl_s)
-                if now - created_at < active_ttl:
-                    # Active lease exists
-                    if data.get("owner") == owner:
-                        # Owner renews lease
-                        claim_data = {
-                            "workkey": workkey,
-                            "owner": owner,
-                            "pid": os.getpid(),
-                            "created_at_iso": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                            "created_at_ts": now,
-                            "ttl_s": ttl_s,
-                        }
-                        temp_claim = self.claims_dir / f"{workkey}.claim.{uuid.uuid4().hex[:8]}.tmp"
-                        temp_claim.write_text(json.dumps(claim_data, indent=2), encoding="utf-8")
-                        os.replace(temp_claim, claim_file)
-                        return True
-                    return False
-            except Exception:
-                pass
+            except (OSError, UnicodeError, json.JSONDecodeError, TypeError, ValueError):
+                return False
+            active = _claim_is_active(data, now, ttl_s)
+            if active is None:
+                return False
+            if active:
+                if data.get("owner") == owner:
+                    claim_data = {
+                        "workkey": workkey,
+                        "owner": owner,
+                        "pid": os.getpid(),
+                        "created_at_iso": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                        "created_at_ts": now,
+                        "ttl_s": ttl_s,
+                    }
+                    temp_claim = self.claims_dir / f"{workkey}.claim.{uuid.uuid4().hex[:8]}.tmp"
+                    temp_claim.write_text(json.dumps(claim_data, indent=2), encoding="utf-8")
+                    os.replace(temp_claim, claim_file)
+                    return True
+                return False
             # Expired lease: check for verified results or unreconciled partial state before reclaim (H10)
             verified_result = self.results_dir / f"{workkey}.result"
             if verified_result.exists():
@@ -122,11 +147,11 @@ class VerifiedContinuation:
                 # In-flight partial mutation exists without verified outcome:
                 # fail-closed to prevent duplicate side effects until human/verifier reconciliation
                 return False
-            # Safe to purge stale claim file
+
             try:
                 claim_file.unlink(missing_ok=True)
             except OSError:
-                pass
+                return False
 
         claim_data = {
             "workkey": workkey,
@@ -150,12 +175,17 @@ class VerifiedContinuation:
     def is_claimed(self, workkey: str) -> Optional[dict]:
         validate_workkey(workkey)
         claim_file = self.claims_dir / f"{workkey}.claim"
+        if claim_file.is_symlink():
+            return {"workkey": workkey, "unreadable": True}
         if not claim_file.exists():
             return None
         try:
-            return json.loads(claim_file.read_text(encoding="utf-8"))
-        except Exception:
-            return None
+            data = json.loads(claim_file.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError, TypeError, ValueError):
+            return {"workkey": workkey, "unreadable": True}
+        if not isinstance(data, dict):
+            return {"workkey": workkey, "unreadable": True}
+        return data
 
     def release(self, workkey: str, owner: Optional[str] = None) -> bool:
         """Release claim cleanly, checking owner if specified."""

@@ -83,6 +83,19 @@ def test_install_service_contract_rejects_system_startup_task():
     assert not failures, "install_service.ps1 contract failed:\n- " + "\n- ".join(failures)
 
 
+def test_failed_register_restores_the_previous_task():
+    """A re-run must save the live task before removing it, and put it back if register fails."""
+    text = _script_text()
+    export_at = text.find("Export-ScheduledTask")
+    unregister_at = text.find("Unregister-ScheduledTask")
+    register_at = text.find("Register-ScheduledTask")
+    restore_at = text.find("Register-ScheduledTask -Xml $previousXml")
+    exit_at = text.find("exit 1", register_at if register_at >= 0 else 0)
+    assert export_at >= 0, "existing task is not saved before it is removed"
+    assert export_at < unregister_at < register_at
+    assert register_at < restore_at < exit_at, "failed register does not restore the previous task before exit"
+
+
 def _powershell(args, check=False):
     completed = subprocess.run(
         ["powershell", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", *args],

@@ -386,7 +386,12 @@ def acquire_packet_lock(packet_id: str, lock_dir: Path | None = None, timeout_se
         # Check for stale lock
         try:
             lock_data = json.loads(lpath.read_text(encoding="utf-8"))
-            started_at = float(lock_data.get("started_at", 0))
+            raw_started = lock_data.get("started_at", 0)
+            # Bool is an int. True would become 1.0 and look ancient, so a
+            # second worker would steal a lock whose clock cannot be decided.
+            if isinstance(raw_started, bool) or not isinstance(raw_started, (int, float)):
+                return False
+            started_at = float(raw_started)
             if time.time() - started_at > timeout_seconds:
                 # Steal stale lock
                 try:
@@ -480,7 +485,15 @@ def run_google_agent_task(
         evidence_data["provider_invoked"] = False
         return "FAILED"
 
-    timeout_s = int(payload_in.get("timeout_seconds") or AGENT_PRINT_TIMEOUT_SECONDS)
+    raw_timeout = payload_in.get("timeout_seconds")
+    if raw_timeout is None:
+        timeout_s = AGENT_PRINT_TIMEOUT_SECONDS
+    elif isinstance(raw_timeout, bool) or not isinstance(raw_timeout, (int, float)) or raw_timeout <= 0:
+        evidence_data["error"] = "INVALID_TIMEOUT: timeout_seconds must be a positive number"
+        evidence_data["provider_invoked"] = False
+        return "FAILED"
+    else:
+        timeout_s = int(raw_timeout)
     argv = [
         "agy",
         "--print",
@@ -539,6 +552,21 @@ def run_google_agent_task(
     return v_res["status"]
 
 
+def _refuse_repo_symlink(repo_dir: Path, path: Path) -> None:
+    """Refuse a symlink at the repo root or on any component inside it."""
+    try:
+        relative = path.relative_to(repo_dir)
+    except ValueError:
+        raise ValueError(f"{path}: refusing to follow a symlink") from None
+    cursor = repo_dir
+    if cursor.is_symlink():
+        raise ValueError(f"{cursor}: refusing to follow a symlink")
+    for part in relative.parts:
+        cursor = cursor / part
+        if cursor.is_symlink():
+            raise ValueError(f"{cursor}: refusing to follow a symlink")
+
+
 def execute_packet_code_or_test_work(
     packet: WorkPacket,
     repo_dir: Path,
@@ -592,7 +620,9 @@ def execute_packet_code_or_test_work(
 
     elif task_type == "verify_file":
         target_path_str = payload_in.get("target_file") or (allowed_scope[0] if allowed_scope else "README.md")
-        target_file = (repo_dir / target_path_str).resolve()
+        target_link = repo_dir / target_path_str
+        _refuse_repo_symlink(repo_dir, target_link)
+        target_file = target_link.resolve()
         if not target_file.exists() or not target_file.is_file():
             if repo_dir != COURIER_DIR and (COURIER_DIR / target_path_str).is_file():
                 target_file = (COURIER_DIR / target_path_str).resolve()
@@ -626,6 +656,7 @@ def execute_packet_code_or_test_work(
         checked = []
         for s in allowed_scope:
             sp = repo_dir / s
+            _refuse_repo_symlink(repo_dir, sp)
             if sp.is_file() and s.endswith(".py"):
                 compile(sp.read_text(encoding="utf-8"), str(sp), "exec")
                 checked.append(s)
@@ -644,8 +675,12 @@ def execute_packet_code_or_test_work(
     hooks.on_tool_action(packet.id, "Persisting evidence artifact and computing digests", 0.8)
 
     ev_dir = (repo_dir / "events/evidence") if repo_dir else EVIDENCE_DIR
-    ev_dir.mkdir(parents=True, exist_ok=True)
     evidence_path = ev_dir / f"{packet.id}_evidence.json"
+    if repo_dir:
+        _refuse_repo_symlink(repo_dir, evidence_path)
+    elif ev_dir.is_symlink() or ev_dir.parent.is_symlink() or evidence_path.is_symlink():
+        raise ValueError(f"{evidence_path}: refusing to follow a symlink")
+    ev_dir.mkdir(parents=True, exist_ok=True)
     evidence_text = json.dumps(evidence_data, indent=2)
 
     # Guard against secrets

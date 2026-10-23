@@ -208,8 +208,11 @@ def write_request(home: str, spec: Any) -> str:
 
 def read_report(home: str, dispatch_id: str) -> Optional[dict]:
     """The runner's structured outcome, or None if absent or malformed."""
+    path = Path(report_path(home, dispatch_id))
+    if path.is_symlink() or path.parent.is_symlink():
+        return None
     try:
-        with open(report_path(home, dispatch_id), encoding="utf-8") as fh:
+        with open(path, encoding="utf-8") as fh:
             report = json.load(fh)
     except (OSError, ValueError):
         return None

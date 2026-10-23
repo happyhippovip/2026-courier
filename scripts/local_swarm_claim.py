@@ -5,8 +5,14 @@ ROOT=Path(__file__).resolve().parents[1]
 BANK=ROOT/"ops"/"ai"/"AUTO_SWARM_TASKBANK_2026-09-28.json"
 STATE=ROOT/".courier_swarm"; CLAIMS=STATE/"claims"; DONE=STATE/"done"; BLOCKED=STATE/"blocked"; LOCKS=STATE/"locks"; STOP=STATE/"STOP"
 def ensure():
+    for p in (STATE,CLAIMS,DONE,BLOCKED,LOCKS,STOP):
+        if p.is_symlink() or p.parent.is_symlink():
+            raise SystemExit("refusing to follow a symlink")
     for p in (STATE,CLAIMS,DONE,BLOCKED,LOCKS): p.mkdir(parents=True,exist_ok=True)
-def bank(): return json.loads(BANK.read_text(encoding="utf-8"))["tasks"]
+def bank():
+    if BANK.is_symlink() or BANK.parent.is_symlink():
+        raise SystemExit("refusing to follow a symlink")
+    return json.loads(BANK.read_text(encoding="utf-8"))["tasks"]
 def emit(x): print(json.dumps(x,ensure_ascii=False,indent=2))
 def claim(pool):
     ensure()

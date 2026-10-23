@@ -2,6 +2,7 @@ import dataclasses
 import json
 from datetime import datetime
 from enum import Enum
+from pathlib import Path
 import jsonschema
 from typing import Dict, Any, List, Optional, Union
 
@@ -79,9 +80,19 @@ class ThoughtSchemaValidator:
         self.schemas = {}
 
     def _load_schema(self, schema_name: str) -> dict:
+        if (
+            not isinstance(schema_name, str)
+            or schema_name in ("", ".", "..")
+            or Path(schema_name).name != schema_name
+            or "/" in schema_name
+            or "\\" in schema_name
+        ):
+            raise ValueError("refusing an unsafe schema name")
         import os
         if schema_name not in self.schemas:
-            path = os.path.join(self.schemas_dir, schema_name)
+            path = Path(os.path.join(self.schemas_dir, schema_name))
+            if path.is_symlink() or path.parent.is_symlink():
+                raise ValueError("refusing to follow a symlink")
             with open(path, "r") as f:
                 self.schemas[schema_name] = json.load(f)
         return self.schemas[schema_name]

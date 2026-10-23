@@ -4,6 +4,15 @@ One invocation, no loop and no sleep. GitHub is read outbound. The controller
 is local (127.0.0.1). The token is read from <home>/run/controller.token and
 is never printed.
 
+A verified wake is posted only when the shared handoff decision allows it.
+A missing, unknown, or positive cost is blocked and is not posted. That
+decision still advances the cursor, so one blocked comment does not stall
+the inbox. Dry-run reports the decision and does not advance, including
+for a comment that is only ignored. The process
+exits 2 when any wake in the page is blocked. An admitted estimate is copied
+into params and is not a top-level task field. A local_shell command with no
+estimate is not treated as free.
+
     python scripts/github_wake_inbox.py --repo owner/name --inbox-issue N \
         --courier-home DIR --allow-login owner
 """
@@ -19,6 +28,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
+
+from scripts.handoff_spend import gate_estimate, handoff_spend_block, spend_body_from_parked
 
 MAX_PAGE = 50
 MAX_WAKES = 5
@@ -89,6 +100,7 @@ def main(argv=None, *, http=None, stdout=None, stderr=None) -> int:
         say_err(_redact("github comment page unavailable", secrets))
         return 1
     handled = 0
+    blocked = False
     for comment in comments:
         if handled >= args.max_wakes:
             break
@@ -98,7 +110,8 @@ def main(argv=None, *, http=None, stdout=None, stderr=None) -> int:
         outcome = _classify(comment, args.allow_login, args.repo)
         if outcome is None:
             emit({"comment_id": cid, "outcome": "ignored"})
-            _advance(home, args, cursor, comment)
+            if not args.dry_run:
+                _advance(home, args, cursor, comment)
             continue
         handled += 1
         try:
@@ -110,9 +123,11 @@ def main(argv=None, *, http=None, stdout=None, stderr=None) -> int:
             say_err(_redact("github verification unavailable", secrets))
             return 1
         emit(record)
+        if record.get("outcome") == "blocked":
+            blocked = True
         if not args.dry_run:
             _advance(home, args, cursor, comment)
-    return 0
+    return EXIT_MALFORMED if blocked else 0
 
 
 def _decide(wake, parked, args, transport, token, github_token):
@@ -123,6 +138,14 @@ def _decide(wake, parked, args, transport, token, github_token):
         return {"wake_id": wake["wake_id"], "workkey": wake["workkey"], "outcome": "ignored"}
     if not _dependencies_satisfied(transport, args, entry["depends_on"], github_token):
         return {"wake_id": wake["wake_id"], "workkey": wake["workkey"], "outcome": "not_satisfied"}
+    reason = handoff_spend_block(spend_body_from_parked(entry))
+    if reason:
+        return {
+            "wake_id": wake["wake_id"],
+            "workkey": wake["workkey"],
+            "outcome": "blocked",
+            "reason": reason,
+        }
     if args.dry_run:
         return {"wake_id": wake["wake_id"], "workkey": wake["workkey"], "outcome": "queued"}
     if not token:
@@ -235,6 +258,16 @@ def _checks_ok(transport, args, repo, sha, github_token):
 def _post_task(transport, args, token, workkey, entry):
     task = {name: entry["task"][name] for name in TASK_FIELDS if name in entry["task"]}
     task["idempotency_key"] = _idempotency(workkey, entry["depends_on"])
+    # create_task rejects a top-level cost field. The admitted estimate has to
+    # travel inside params, which is where the ledger engine reads it. A missing
+    # estimate never reaches this function.
+    params = task.get("params")
+    if isinstance(params, dict) and "estimated_cost_eur" not in params:
+        estimate = gate_estimate(spend_body_from_parked(entry))
+        if estimate is not None:
+            params = dict(params)
+            params["estimated_cost_eur"] = estimate
+            task["params"] = params
     url = args.controller.rstrip("/") + "/v1/tasks"
     try:
         status, raw = transport(

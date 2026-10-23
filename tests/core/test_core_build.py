@@ -49,6 +49,8 @@ def test_source_sha256_handles_oserror(monkeypatch):
     source_sha256.cache_clear()
     class BrokenPath:
         name = "broken.py"
+        def is_symlink(self):
+            return False
         def read_bytes(self):
             raise OSError("permission denied")
 

@@ -212,3 +212,6 @@ report*.xml
 # Archives
 *.zip
 
+# Built Windows installer. Produced only on a Windows host with Inno Setup.
+scripts/windows_worker/CourierSetup-v1.exe
+

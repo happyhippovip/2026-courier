@@ -34,6 +34,11 @@ def test_format_size():
     assert format_size("not-a-number") == "unknown"
 
 
+def test_format_size_bool_is_unknown():
+    assert format_size(True) == "unknown"
+    assert format_size(False) == "unknown"
+
+
 def test_format_fingerprint():
     full_sha = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     assert format_fingerprint(full_sha) == "e3b0c442...7852b855"
@@ -51,23 +56,45 @@ def test_derive_integrity_status():
     assert derive_integrity_status(None) == STATUS_MISSING_DATA
     assert derive_integrity_status({}) == STATUS_MISSING_DATA
 
-    # Matching blob
-    assert derive_integrity_status(record, blob_bytes=data) == STATUS_VERIFIED_MATCH
+    proof = {"verification": {"verdict": "PASS", "resolution": "verified"}}
+
+    # Matching bytes without a verdict and resolution are not verified.
+    assert derive_integrity_status(record, blob_bytes=data) == STATUS_MISSING_DATA
+    assert derive_integrity_status(record, task=proof, blob_bytes=data) == STATUS_VERIFIED_MATCH
 
     # Mismatched blob bytes
     assert derive_integrity_status(record, blob_bytes=b"corrupt") == STATUS_HASH_MISMATCH
 
-    # Expected sha in task matching
+    # Expected sha matches the record only together with bytes and a resolution.
     task_match = {"expected_sha256": sha}
-    assert derive_integrity_status(record, task=task_match) == STATUS_VERIFIED_MATCH
+    assert derive_integrity_status(record, task=task_match) == STATUS_MISSING_DATA
+    assert derive_integrity_status(record, task=task_match, blob_bytes=data) == STATUS_MISSING_DATA
+    task_match_proved = {"expected_sha256": sha, **proof}
+    assert derive_integrity_status(record, task=task_match_proved, blob_bytes=data) == STATUS_VERIFIED_MATCH
 
     # Expected sha in task mismatching
     task_mismatch = {"expected_sha256": "0" * 64}
     assert derive_integrity_status(record, task=task_mismatch) == STATUS_HASH_MISMATCH
 
-    # External task source
+    # External task source still needs the bytes and an accepted resolution.
     task_ext = {"source": "external"}
-    assert derive_integrity_status(record, task=task_ext) == STATUS_EXTERNAL_PRODUCED
+    assert derive_integrity_status(record, task=task_ext) == STATUS_MISSING_DATA
+    assert derive_integrity_status(record, task=task_ext, blob_bytes=data) == STATUS_MISSING_DATA
+    task_ext_proved = {"source": "external", **proof}
+    assert derive_integrity_status(record, task=task_ext_proved, blob_bytes=data) == STATUS_EXTERNAL_PRODUCED
+
+    # A stored hash, a claimed PASS, a missing resolution, or a FAIL on matching
+    # bytes is not a verified proof and is not relabeled as a hash mismatch.
+    assert derive_integrity_status(record) == STATUS_MISSING_DATA
+    assert derive_integrity_status(record, task={}) == STATUS_MISSING_DATA
+    assert derive_integrity_status(record, task={"verification": {"verdict": "PASS"}}) == STATUS_MISSING_DATA
+    assert derive_integrity_status(record, task={"verification": {}}) == STATUS_MISSING_DATA
+    assert derive_integrity_status(
+        record,
+        task={"verification": {"verdict": "FAIL", "resolution": "verified"}},
+        blob_bytes=data,
+    ) == STATUS_MISSING_DATA
+    assert derive_integrity_status(record, blob_bytes="not-bytes") == STATUS_MISSING_DATA
 
 
 def test_generate_artifact_receipt_with_store():
@@ -91,12 +118,95 @@ def test_generate_artifact_receipt_with_store():
         assert receipt["size_bytes"] == len(data)
         assert receipt["sha256"] == sha
         assert receipt["sha256_fingerprint"] == f"{sha[:8]}...{sha[-8:]}"
-        assert receipt["integrity_status"] == STATUS_VERIFIED_MATCH
-        assert receipt["is_valid"] is True
+        assert receipt["integrity_status"] == STATUS_MISSING_DATA
+        assert receipt["is_valid"] is False
+        assert receipt["verification_verdict"] == "FAIL"
         assert receipt["provenance"]["task_id"] == "task-1"
         assert receipt["provenance"]["worker_id"] == "worker-1"
         assert receipt["file_access"]["download_url"] == f"/artifacts/{artifact_id}"
-        assert "verified authentic" in receipt["human_summary"]
+        assert "verified authentic" not in receipt["human_summary"]
+
+        accepted = generate_artifact_receipt(
+            artifact_id,
+            store=store,
+            task={"verification": {"verdict": "PASS", "resolution": "verified"}},
+        )
+        assert accepted["integrity_status"] == STATUS_VERIFIED_MATCH
+        assert accepted["is_valid"] is True
+        assert accepted["verification_verdict"] == "PASS"
+        assert "verified authentic" in accepted["human_summary"]
+
+
+def test_hash_mismatch_does_not_publish_pass():
+    data = b"Hello, Courier Artifact World!"
+    sha = hashlib.sha256(data).hexdigest()
+    record = {"name": "hello.txt", "size": len(data), "sha256": sha}
+    receipt = generate_artifact_receipt(
+        "art-" + sha,
+        record=record,
+        blob_bytes=b"corrupt",
+        task={"verification": {"verdict": "PASS"}},
+    )
+    assert receipt["integrity_status"] == STATUS_HASH_MISMATCH
+    assert receipt["is_valid"] is False
+    assert receipt["verification_verdict"] == "FAIL"
+
+
+def test_missing_bytes_and_missing_verdict_do_not_pass():
+    data = b"Hello, Courier Artifact World!"
+    sha = hashlib.sha256(data).hexdigest()
+    record = {"name": "hello.txt", "size": len(data), "sha256": sha}
+
+    missing_blob = generate_artifact_receipt(
+        "art-" + sha,
+        record=record,
+        task={"verification": {"verdict": "PASS"}},
+    )
+    unresolved = generate_artifact_receipt(
+        "art-" + sha,
+        record=record,
+        blob_bytes=data,
+        task={"verification": {}},
+    )
+
+    assert missing_blob["integrity_status"] == STATUS_MISSING_DATA
+    assert missing_blob["is_valid"] is False
+    assert missing_blob["verification_verdict"] == "FAIL"
+    assert unresolved["integrity_status"] == STATUS_MISSING_DATA
+    assert unresolved["is_valid"] is False
+    assert unresolved["verification_verdict"] == "FAIL"
+
+
+def test_unreadable_store_and_missing_blob_do_not_pass():
+    """A PASS verdict cannot stand in for bytes the store cannot read."""
+    data = b"Hello, Courier Artifact World!"
+    sha = hashlib.sha256(data).hexdigest()
+    record = {"name": "hello.txt", "size": len(data), "sha256": sha, "artifact_id": "art-" + sha}
+    proof = {"verification": {"verdict": "PASS", "resolution": "verified"}}
+
+    class UnreadableStore:
+        def read_bytes(self, artifact_id):
+            raise OSError("artifact file unreadable")
+
+    unreadable = generate_artifact_receipt(
+        record["artifact_id"],
+        store=UnreadableStore(),
+        record=record,
+        task=proof,
+    )
+    missing_blob = generate_artifact_receipt(
+        record["artifact_id"],
+        record=record,
+        task=proof,
+    )
+    for receipt in (unreadable, missing_blob):
+        assert receipt["integrity_status"] == STATUS_MISSING_DATA
+        assert receipt["is_valid"] is False
+        assert receipt["verification_verdict"] == "FAIL"
+        assert "verified authentic" not in receipt["human_summary"]
+        accepted, why = verify_artifact_receipt(receipt, data)
+        assert accepted is False
+        assert why == "verdict not accepted"
 
 
 def test_generate_artifact_receipt_missing():
@@ -113,6 +223,9 @@ def test_verify_artifact_receipt():
     receipt = {
         "sha256": hashlib.sha256(data).hexdigest(),
         "size_bytes": len(data),
+        "verification_verdict": "PASS",
+        "is_valid": True,
+        "integrity_status": "VERIFIED_MATCH",
         "provenance": {
             "branch": "integration/v1",
             "source_sha": "0b55fc11be5f6280f2dd6977682cf142106a81e7",
@@ -138,6 +251,17 @@ def test_verify_artifact_receipt():
     valid_corrupt, msg_corrupt = verify_artifact_receipt(receipt, b"Tampered data")
     assert valid_corrupt is False
     assert "mismatch" in msg_corrupt
+
+    failed = dict(receipt, verification_verdict="FAIL", is_valid=False, integrity_status="MISSING_DATA")
+    rejected, why = verify_artifact_receipt(failed, data)
+    assert rejected is False
+    assert why == "verdict not accepted"
+
+    unsigned = dict(receipt)
+    unsigned.pop("verification_verdict")
+    missing, missing_why = verify_artifact_receipt(unsigned, data)
+    assert missing is False
+    assert missing_why == "verdict not accepted"
 
 
 def test_server_artifact_receipt_endpoint(monkeypatch):
@@ -166,7 +290,7 @@ def test_server_artifact_receipt_endpoint(monkeypatch):
             return {
                 "task_id": tid,
                 "goal_id": "goal-100",
-                "verification": {"verdict": "PASS"},
+                "verification": {"verdict": "PASS", "resolution": "verified"},
             }
 
         app = Flask(__name__)

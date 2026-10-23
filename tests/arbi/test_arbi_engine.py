@@ -80,6 +80,81 @@ def test_binance_kraken_two_way_arbitrage():
     assert bd2.net_profit_usd < 0
 
 
+def test_bool_order_size_is_not_one_dollar():
+    pair = NormalizedPair("BTC", "EUR")
+    buy = _mock_book("binance", pair, best_bid=60000.0, best_ask=60050.0, depth=5.0)
+    sell = _mock_book("kraken", pair, best_bid=60300.0, best_ask=60350.0, depth=5.0)
+    seen = []
+    for size in (True, False):
+        try:
+            bd = NetProfitEngine.evaluate_opportunity(pair, buy, sell, order_size_usd=size)
+        except ValueError as exc:
+            seen.append(("raised", str(exc)))
+        except Exception as exc:
+            seen.append((type(exc).__name__, str(exc)))
+        else:
+            seen.append(("accepted", bd.order_size_usd, bd.status, bd.net_profit_usd))
+    try:
+        walked = NetProfitEngine.calculate_effective_price_and_slippage(buy.asks, True, is_buy=True)
+    except ValueError as exc:
+        walked = ("raised", str(exc))
+    seen.append(walked)
+    assert seen == [
+        ("raised", "Bool is not a number."),
+        ("raised", "Bool is not a number."),
+        ("raised", "Bool is not a number."),
+    ], seen
+
+
+def test_bool_quote_is_not_one_dollar():
+    pair = NormalizedPair("BTC", "EUR")
+    buy = _mock_book("binance", pair, best_bid=60000.0, best_ask=60050.0, depth=5.0)
+    sell = _mock_book("kraken", pair, best_bid=60300.0, best_ask=60350.0, depth=5.0)
+    buy.asks[0] = OrderbookLevel(True, 5.0)
+    sell.bids[0] = OrderbookLevel(True, 5.0)
+    try:
+        breakdown = NetProfitEngine.evaluate_opportunity(pair, buy, sell, order_size_usd=100.0)
+    except ValueError as exc:
+        seen = ("raised", str(exc))
+    else:
+        seen = (
+            "accepted",
+            breakdown.best_ask_price,
+            breakdown.best_bid_price,
+            breakdown.status,
+            breakdown.net_profit_usd,
+        )
+    assert seen == ("raised", "Bool is not a number."), seen
+
+
+def test_bool_fee_is_not_one_percent():
+    pair = NormalizedPair("BTC", "USDT")
+    buy = _mock_book("binance", pair, best_bid=64950.0, best_ask=65000.0, depth=10.0)
+    sell = _mock_book("bybit", pair, best_bid=65500.0, best_ask=65550.0, depth=10.0)
+    seen = []
+    schedules = (
+        ("taker", ExchangeFeeSchedule("binance", 0.1, True)),
+        ("maker", ExchangeFeeSchedule("binance", True, 0.1)),
+        ("withdraw", ExchangeFeeSchedule("binance", 0.1, 0.1, withdrawal_fee_usd=True)),
+        ("zero", ExchangeFeeSchedule("binance", 0.1, False)),
+    )
+    for name, sched in schedules:
+        try:
+            breakdown = NetProfitEngine.evaluate_opportunity(
+                pair, buy, sell, order_size_usd=100.0, buy_fee_sched=sched, include_transfer=(name == "withdraw"),
+            )
+        except ValueError as exc:
+            seen.append((name, "raised", str(exc)))
+        else:
+            seen.append((name, "accepted", breakdown.buy_fee_usd, breakdown.transfer_cost_usd, breakdown.status))
+    assert seen == [
+        ("taker", "raised", "Bool is not a number."),
+        ("maker", "raised", "Bool is not a number."),
+        ("withdraw", "raised", "Bool is not a number."),
+        ("zero", "raised", "Bool is not a number."),
+    ], seen
+
+
 def test_net_profit_blocks_when_fees_exceed_spread():
     # Binance ask: 65,000 | OKX bid: 65,050
     # Gross spread = 50 USD on 65,000 = ~0.0769%
@@ -147,6 +222,70 @@ def test_paper_trading_virtual_balance_tracking():
     assert engine.win_rate_pct == 100.0
 
 
+def test_bool_capital_is_not_one_dollar():
+    seen = []
+    for value in (True, False):
+        try:
+            engine = PaperTradingEngine(initial_capital_usd=value, simulated_venues=["binance", "kraken"])
+        except ValueError as exc:
+            seen.append(("raised", str(exc)))
+        else:
+            seen.append((
+                "accepted",
+                engine.initial_capital_usd,
+                {venue: balances["USDT"] for venue, balances in engine.virtual_balances.items()},
+            ))
+    assert seen == [
+        ("raised", "Bool is not a number."),
+        ("raised", "Bool is not a number."),
+    ], seen
+
+
+def test_bool_fill_rate_is_not_a_fraction():
+    pair = NormalizedPair("BTC", "USDT")
+    breakdown = NetProfitBreakdown(
+        pair=pair,
+        buy_exchange="binance",
+        sell_exchange="kraken",
+        order_size_usd=20.0,
+        best_ask_price=100.0,
+        best_bid_price=101.0,
+        effective_buy_price=100.0,
+        effective_sell_price=101.0,
+        gross_spread_pct=1.0,
+        gross_spread_usd=1.0,
+        buy_fee_usd=0.1,
+        sell_fee_usd=0.1,
+        slippage_usd=0.0,
+        transfer_cost_usd=0.0,
+        rebalance_cost_usd=0.0,
+        total_costs_usd=0.2,
+        net_profit_usd=0.8,
+        net_roi_pct=4.0,
+        status="ELIGIBLE",
+        reason="test",
+    )
+    engine = PaperTradingEngine(initial_capital_usd=100.0, simulated_venues=["binance", "kraken"])
+    try:
+        rec = engine.execute_paper_arbitrage(
+            breakdown,
+            simulated_latency_ms=True,
+            second_leg_fail_rate=True,
+            partial_fill_pct=True,
+        )
+    except ValueError as exc:
+        seen = ("raised", str(exc), len(engine.trade_history))
+    else:
+        seen = (
+            "accepted",
+            rec.execution_status,
+            rec.order_size_usd,
+            rec.simulated_latency_ms,
+            len(engine.trade_history),
+        )
+    assert seen == ("raised", "Bool is not a number.", 0), seen
+
+
 def test_triangular_arbitrage_cycle():
     # USDT -> BTC (60,000) -> ETH (0.05 BTC = 3,000 USD equivalent) -> USDT (3,100)
     tri = ArbitrageStrategies.evaluate_triangular_arbitrage(
@@ -160,6 +299,36 @@ def test_triangular_arbitrage_cycle():
     assert tri.status == "ELIGIBLE"
     assert tri.output_capital_usd > 100.0
     assert tri.net_roi_pct > 0.0
+
+
+def test_bool_triangular_inputs_are_not_numbers():
+    seen = []
+    for kwargs in ({"capital_usd": True}, {"capital_usd": False}, {"taker_fee_pct": True}):
+        try:
+            tri = ArbitrageStrategies.evaluate_triangular_arbitrage(
+                exchange="binance",
+                price_a_b=60000.0,
+                price_b_c=0.05,
+                price_c_a=3100.0,
+                **kwargs,
+            )
+        except ValueError as exc:
+            seen.append(("raised", str(exc)))
+        except Exception as exc:
+            seen.append((type(exc).__name__, str(exc)))
+        else:
+            seen.append((
+                "accepted",
+                tri.input_capital_usd,
+                tri.total_fees_usd,
+                tri.status,
+                tri.output_capital_usd,
+            ))
+    assert seen == [
+        ("raised", "Bool is not a number."),
+        ("raised", "Bool is not a number."),
+        ("raised", "Bool is not a number."),
+    ], seen
 
 
 def test_statistical_quality_scoring_blocks_crossed_book():

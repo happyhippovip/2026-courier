@@ -313,15 +313,28 @@ class AutonomousLevel6Loop:
                 import psutil
                 ctime = psutil.Process(pid).create_time()
                 holder = format_session_holder("mac", pid, ctime, workflow_id)
-                lease = store.acquire(scope=f"workflow:{workflow_id}", holder=holder, workkey=workflow_id, ttl_s=3600)
+                scope = f"workflow:{workflow_id}"
+                lease = store.acquire(scope=scope, holder=holder, workkey=workflow_id, ttl_s=3600)
+                verified = store.check_write(scope, lease.token, holder)
+                if (
+                    verified.holder != holder
+                    or verified.token != lease.token
+                    or isinstance(lease.token, bool)
+                    or not isinstance(lease.token, int)
+                    or lease.token < 1
+                ):
+                    raise WorkflowLockedError(f"Workflow {workflow_id} fencing token was not verified")
                 lock_data["fencing_token"] = lease.token
             except LeaseConflict as exc:
                 raise WorkflowLockedError(f"Workflow {workflow_id} is locked in authority.db: {exc}")
             finally:
                 store.close()
-        except Exception as e:
-            if isinstance(e, WorkflowLockedError):
-                raise
+        except WorkflowLockedError:
+            raise
+        except Exception as exc:
+            raise WorkflowLockedError(
+                f"Workflow {workflow_id} authority fence failed closed: {type(exc).__name__}"
+            ) from exc
 
     def _release_authority_workflow_lock(self, workflow_id: str) -> None:
         try:

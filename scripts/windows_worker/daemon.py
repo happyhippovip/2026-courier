@@ -9,11 +9,11 @@ if str(_SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_DIR))
 from integration_contract import canonical_result_id
 
-# No fallback key exists. The key comes from COURIER_API_KEY or, failing that,
-# from config.json where bootstrap.ps1 stores it; the server URL from
-# COURIER_SERVER (COURIER_SERVER_URL accepted), then config.json, then the default.
-DEFAULT_SERVER = "http://192.168.178.162:8080"
-API_URL = (os.environ.get("COURIER_SERVER") or os.environ.get("COURIER_SERVER_URL") or DEFAULT_SERVER).rstrip("/")
+# No fallback key and no fallback address. The key comes from COURIER_API_KEY
+# or, failing that, from config.json where bootstrap.ps1 stores it. The server
+# comes from COURIER_SERVER (COURIER_SERVER_URL accepted), then config.json.
+# A missing server must not become a private LAN address.
+API_URL = (os.environ.get("COURIER_SERVER") or os.environ.get("COURIER_SERVER_URL") or "").strip().rstrip("/")
 API_KEY = os.environ.get("COURIER_API_KEY", "").strip()
 HEADERS = {
     "Authorization": f"Bearer {API_KEY}",
@@ -23,24 +23,47 @@ HEADERS = {
 class MissingCredentialError(RuntimeError):
     pass
 
+class MissingServerError(RuntimeError):
+    """The process must stop. There is no default server address."""
+
+
+class CanonicalLeaseLost(RuntimeError):
+    """The process must stop. A stale or missing writer lease is not a retry."""
+
+
+def _refuse_app_symlink(path: Path) -> None:
+    if path.is_symlink() or path.parent.is_symlink():
+        raise OSError(f"{path}: refusing to follow a symlink")
+
 def get_app_data_dir():
     pd = os.environ.get("LOCALAPPDATA")
     # Never inside the source tree: off Windows use COURIER_HOME or ~/.courier.
     fallback = Path(os.environ.get("COURIER_HOME") or Path.home() / ".courier")
-    base = (Path(pd) if pd else fallback) / "Courier"
+    root = Path(pd) if pd else fallback
+    _refuse_app_symlink(root)
+    base = root / "Courier"
+    _refuse_app_symlink(base)
     base.mkdir(parents=True, exist_ok=True)
     return base
 
 APP_DATA_DIR = get_app_data_dir()
 STATE_DIR = APP_DATA_DIR / "state"
 LOG_DIR = APP_DATA_DIR / "logs"
+_refuse_app_symlink(STATE_DIR)
+_refuse_app_symlink(LOG_DIR)
 STATE_DIR.mkdir(exist_ok=True)
 LOG_DIR.mkdir(exist_ok=True)
 
 
 def read_controller_token():
-    """The installer writes the key here. It does not belong in config.json."""
+    """The installer writes the key here. It does not belong in config.json.
+
+    A symlink is not a local token. Returning it would adopt whatever file
+    the link names. An unreadable path stays an empty credential.
+    """
     path = APP_DATA_DIR / "run" / "controller.token"
+    if path.is_symlink() or path.parent.is_symlink():
+        return ""
     try:
         return path.read_text(encoding="utf-8").strip()
     except OSError:
@@ -64,6 +87,14 @@ def require_api_key():
     """Fail closed before any network call when no API key is configured."""
     if not API_KEY:
         raise MissingCredentialError("COURIER_API_KEY is not set (environment, controller.token, or config.json); refusing to contact the Courier server.")
+
+
+def require_server():
+    """Fail closed before any network call when no server URL is configured."""
+    if not API_URL or "://" not in API_URL:
+        raise MissingServerError(
+            "COURIER_SERVER is not set (environment or config.json); refusing to contact a default address."
+        )
 
 
 def setup_logging():
@@ -90,8 +121,12 @@ setup_logging()
 
 def load_config():
     config_path = APP_DATA_DIR / "config.json"
+    if config_path.is_symlink():
+        raise OSError(f"{config_path}: refusing to follow a symlink")
     if not config_path.exists():
         config_path = Path(__file__).parent / "config.json"
+    if config_path.is_symlink():
+        raise OSError(f"{config_path}: refusing to follow a symlink")
     with open(config_path, "r") as f:
         return json.load(f)
 MAX_RESULT_POST_ATTEMPTS = 5
@@ -126,7 +161,7 @@ def upload_artifact(task, art):
     """Upload one artifact's bytes; returns (OK|REJECTED|UNDELIVERED, record)."""
     require_api_key()
     name = art["path"]
-    if not is_safe_artifact_path(name) or not Path(name).is_file():
+    if not is_safe_artifact_path(name) or artifact_escapes_workspace(name) or not Path(name).is_file():
         return "REJECTED", None
     data = Path(name).read_bytes()
     if hashlib.sha256(data).hexdigest() != art["sha256"]:
@@ -202,16 +237,47 @@ def persist_task(path, task):
         os.fsync(f.fileno())
     os.replace(tmp_path, path)
 
+def _reserved_windows_device(part):
+    """CON, PRN, AUX, NUL, COM1-9 and LPT1-9, including CON.txt."""
+    if not isinstance(part, str) or not part or part in (".", ".."):
+        return False
+    head = part.split(".", 1)[0].rstrip(" .").upper()
+    if head in {"CON", "PRN", "AUX", "NUL"}:
+        return True
+    return len(head) == 4 and head[:3] in {"COM", "LPT"} and head[3] in "123456789"
+
+
 def is_safe_artifact_path(name):
     """Artifacts are workspace-relative (the daemon's cwd, which PowerShell
-    inherits). Reject absolute, drive-qualified, UNC and '..' paths under both
-    Windows and POSIX rules, matching the integration contract."""
+    inherits). Reject absolute, drive-qualified, UNC, '..' and Windows device
+    names under both Windows and POSIX rules."""
     if not isinstance(name, str) or not name:
         return False
     for pure in (PureWindowsPath(name), PurePosixPath(name)):
         if pure.is_absolute() or pure.drive or pure.root or ".." in pure.parts:
             return False
+        if any(_reserved_windows_device(part) for part in pure.parts):
+            return False
     return True
+
+
+def artifact_escapes_workspace(name):
+    """A symlink, including a parent directory, is not artifact evidence."""
+    walked = Path()
+    for part in Path(name).parts:
+        walked = walked / part
+        try:
+            if walked.is_symlink():
+                return True
+        except OSError:
+            return True
+    try:
+        resolved = Path(name).resolve()
+        root = Path.cwd().resolve()
+    except OSError:
+        return True
+    return resolved != root and root not in resolved.parents
+
 
 def build_result_payload(task, result, config):
     """Bind the execution outcome to the server-issued dispatch identity."""
@@ -220,7 +286,7 @@ def build_result_payload(task, result, config):
     if status == "SUCCESS":
         for expected in task.get("artifacts", []):
             name = expected.get("path") if isinstance(expected, dict) else expected
-            if not is_safe_artifact_path(name):
+            if not is_safe_artifact_path(name) or artifact_escapes_workspace(name):
                 status = "FAILED"
                 result["stderr"] = result.get("stderr", "") + f"\nUnsafe artifact path: {name}"
                 artifacts = []
@@ -366,7 +432,11 @@ _last_sys_times = None
 
 
 def read_cpu_load_percent():
-    """CPU load on Windows. None means the probe failed. A host without the Windows API returns 0.0."""
+    """CPU load on Windows. None means the probe failed or has no baseline yet.
+
+    A host without the Windows API returns 0.0. The first Windows sample only
+    stores a baseline, so it is not an idle reading and must not open a claim.
+    """
     global _last_sys_times
     try:
         import ctypes
@@ -388,7 +458,7 @@ def read_cpu_load_percent():
 
         if _last_sys_times is None:
             _last_sys_times = (i, t)
-            return 0.0
+            return None
 
         i_prev, t_prev = _last_sys_times
         _last_sys_times = (i, t)
@@ -412,18 +482,71 @@ def is_resource_pressure_high():
 _lock_fd = None
 _worker_lease = None
 _lease_store = None
+# Windows byte locks are mandatory and cover the bytes they name. The pid
+# record stays at offset 0. The lock is one byte far past that record.
+_WIN_LOCK_OFFSET = 1 << 20
+
+
+def _windows_lock_api():
+    """msvcrt on Windows, and on a test that installed a stand-in."""
+    if os.name == "nt" or "msvcrt" in sys.modules:
+        import msvcrt
+        return msvcrt
+    return None
 
 
 def get_authority_store():
+    """Open the canonical lease database. A failure is raised, never cached as optional."""
     global _lease_store
     if _lease_store is None:
-        try:
-            from courier_runtime.lease import LeaseStore
-            auth_db = STATE_DIR / "authority.db"
-            _lease_store = LeaseStore(str(auth_db))
-        except Exception:
-            _lease_store = None
+        from courier_runtime.lease import LeaseStore
+        auth_db = STATE_DIR / "authority.db"
+        _lease_store = LeaseStore(str(auth_db))
     return _lease_store
+
+
+def _session_device(worker_id):
+    """Bind a lease to this machine. Another host's pid is not a local restart."""
+    import socket
+    host = socket.gethostname().replace(":", "_")
+    return f"{worker_id}@{host}"
+
+
+def _holder_process_is_gone(holder, worker_id):
+    """True only when this machine's own lease names a process that is gone."""
+    from courier_runtime.lease import parse_session_holder
+    parsed = parse_session_holder(holder)
+    if not parsed or parsed["device"] != _session_device(worker_id):
+        return False
+    import psutil
+    try:
+        proc = psutil.Process(parsed["pid"])
+    except psutil.NoSuchProcess:
+        return True
+    if not proc.is_running():
+        return True
+    return abs(proc.create_time() - parsed["create_time"]) > 0.05
+
+
+_WORKER_ID_CHARS = frozenset("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.-")
+
+
+def _lock_file_for(worker_id):
+    """A lock name stays inside the temp directory and is not a symlink."""
+    if (
+        not isinstance(worker_id, str)
+        or not worker_id
+        or ".." in worker_id
+        or any(ch not in _WORKER_ID_CHARS for ch in worker_id)
+    ):
+        raise ValueError(f"invalid worker id: {worker_id!r}")
+    lock_file = Path(tempfile.gettempdir()) / f"courier_worker_{worker_id}.lock"
+    if lock_file.is_symlink():
+        raise OSError(f"{lock_file}: refusing to follow a symlink")
+    if lock_file.parent != Path(tempfile.gettempdir()):
+        raise ValueError(f"invalid worker id: {worker_id!r}")
+    return lock_file
+
 
 
 def acquire_lock(worker_id):
@@ -436,16 +559,24 @@ def acquire_lock(worker_id):
     if _lock_fd is not None:
         return None
     import psutil
-    lock_file = Path(tempfile.gettempdir()) / f"courier_worker_{worker_id}.lock"
-    fd = os.open(str(lock_file), os.O_CREAT | os.O_RDWR)
+    lock_file = _lock_file_for(worker_id)
+    flags = os.O_CREAT | os.O_RDWR
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    fd = os.open(str(lock_file), flags)
     try:
-        if os.name == "nt" or "msvcrt" in sys.modules:
-            import msvcrt
-            msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+        windows_lock = _windows_lock_api()
+        if windows_lock is not None:
+            os.lseek(fd, _WIN_LOCK_OFFSET, os.SEEK_SET)
+            windows_lock.locking(fd, windows_lock.LK_NBLCK, 1)
+            os.lseek(fd, 0, os.SEEK_SET)
         else:
             import fcntl
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except (OSError, ImportError):
+    except ImportError:
+        os.close(fd)
+        raise
+    except OSError:
         os.close(fd)
         return None
     try:
@@ -458,25 +589,54 @@ def acquire_lock(worker_id):
 
     _lock_fd = fd
 
-    # Acquire canonical Courier writer lease in LeaseStore
-    store = get_authority_store()
-    if store is not None:
+    # The file lock is not a canonical lease. Without a live LeaseStore grant
+    # the worker must not start, and the file lock must not stay behind.
+    scope = f"worker:{worker_id}"
+    try:
+        store = get_authority_store()
+        from courier_runtime.lease import LeaseConflict, format_session_holder
+        holder = format_session_holder(
+            _session_device(worker_id), os.getpid(), psutil.Process(os.getpid()).create_time(), str(uuid.uuid4())
+        )
         try:
-            from courier_runtime.lease import format_session_holder
-            holder = format_session_holder(worker_id, os.getpid(), psutil.Process(os.getpid()).create_time(), str(uuid.uuid4()))
-            _worker_lease = store.acquire(f"worker:{worker_id}", holder, "daemon_loop", ttl_s=3600)
-        except Exception:
-            release_lock(lock_file)
-            return None
+            _worker_lease = store.acquire(scope, holder, "daemon_loop", ttl_s=3600)
+        except LeaseConflict:
+            current = store.current(scope)
+            if current is not None and not _holder_process_is_gone(current.holder, worker_id):
+                raise
+            if current is not None:
+                store.release(current)
+            _worker_lease = store.acquire(scope, holder, "daemon_loop", ttl_s=3600)
+    except Exception as exc:
+        release_lock(lock_file)
+        raise CanonicalLeaseLost(
+            f"Courier cannot start without a canonical writer lease: {exc}"
+        ) from exc
 
     return lock_file
 
 
+def _require_canonical_lease():
+    """Refuse work when the start lease is missing or its fencing token moved."""
+    if _worker_lease is None:
+        raise CanonicalLeaseLost("Courier cannot run without a canonical writer lease")
+    store = get_authority_store()
+    try:
+        store.check_write(_worker_lease.scope, _worker_lease.token)
+    except Exception as exc:
+        raise CanonicalLeaseLost(
+            f"Courier cannot run without a canonical writer lease: {exc}"
+        ) from exc
+
+
 def release_lock(lock_path=None):
     global _lock_fd, _worker_lease
+    missing_store = False
     if _worker_lease is not None:
         store = get_authority_store()
-        if store is not None:
+        if store is None:
+            missing_store = True
+        else:
             try:
                 store.release(_worker_lease)
             except Exception:
@@ -484,10 +644,10 @@ def release_lock(lock_path=None):
         _worker_lease = None
     if _lock_fd is not None:
         try:
-            if os.name == "nt":
-                import msvcrt
-                os.lseek(_lock_fd, 0, os.SEEK_SET)
-                msvcrt.locking(_lock_fd, msvcrt.LK_UNLCK, 1)
+            windows_lock = _windows_lock_api()
+            if windows_lock is not None:
+                os.lseek(_lock_fd, _WIN_LOCK_OFFSET, os.SEEK_SET)
+                windows_lock.locking(_lock_fd, windows_lock.LK_UNLCK, 1)
             else:
                 try:
                     import fcntl
@@ -506,6 +666,8 @@ def release_lock(lock_path=None):
             os.remove(lock_path)
         except OSError:
             pass
+    if missing_store:
+        raise CanonicalLeaseLost("Courier cannot release a lease without a LeaseStore")
 
 
 
@@ -513,6 +675,7 @@ def loop():
     config = load_config()
     apply_config_credentials(config)
     require_api_key()
+    require_server()
     worker_id = config["WORKER_ID"]
     
     lock_path = acquire_lock(worker_id)
@@ -521,6 +684,7 @@ def loop():
         sys.exit(0)
     
     try:
+        _require_canonical_lease()
         print(f"[{worker_id}] Windows Worker HTTP Daemon started. PID={os.getpid()}")
         
         backoff = 10
@@ -536,6 +700,7 @@ def loop():
         
         while True:
             try:
+                _require_canonical_lease()
                 if task and task["worker_phase"] == "STARTED":
                     # Interrupted mid-execution: effects may exist, never replay.
                     print(f"[{worker_id}] Task {task['task_id']} was interrupted during execution; releasing to Courier recovery.")
@@ -582,6 +747,7 @@ def loop():
                 if task and task["worker_phase"] == "CLAIMED":
                     task["worker_phase"] = "STARTED"
                     persist_task(state_file, task)
+                    _require_canonical_lease()
                     result = run_task(task, config)
                     task["result_payload"] = build_result_payload(task, result, config)
                     task["worker_phase"] = "RESULT_READY"
@@ -609,6 +775,8 @@ def loop():
                         task = None
                 backoff = 10
                     
+            except CanonicalLeaseLost:
+                raise
             except Exception as e:
                 print(f"[{worker_id}] Loop error: {e}. Backing off {backoff}s.")
                 time.sleep(backoff)
@@ -620,9 +788,32 @@ def loop():
     finally:
         release_lock(lock_path)
 
-if __name__ == "__main__":
+def main():
+    """Start the worker and return a stable process exit code.
+
+    0 is only a live second instance. A missing credential is 2. A missing
+    or stale canonical lease is 3. Any other start failure is 1.
+    """
     try:
         loop()
     except MissingCredentialError as e:
         print(f"FATAL: {e}", file=sys.stderr)
-        sys.exit(2)
+        return 2
+    except MissingServerError as e:
+        print(f"FATAL: {e}", file=sys.stderr)
+        return 4
+    except CanonicalLeaseLost as e:
+        print(f"FATAL: {e}", file=sys.stderr)
+        return 3
+    except SystemExit as e:
+        if isinstance(e.code, int):
+            return e.code
+        return 1
+    except Exception as e:
+        print(f"FATAL: {e}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

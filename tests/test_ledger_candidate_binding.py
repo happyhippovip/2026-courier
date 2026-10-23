@@ -89,6 +89,29 @@ def test_dirty_worktree_is_not_bindable(tmp_path, clean_repo):
     assert binding["status"] == "NOT_BINDABLE"
 
 
+def test_out_does_not_follow_a_symlink(tmp_path, clean_repo):
+    db = tmp_path / "courier.db"
+    _fill(db, golden_path())
+    outside = tmp_path / "outside.json"
+    outside.write_text("keep", encoding="utf-8")
+    link = tmp_path / "binding.json"
+    link.symlink_to(outside)
+    outside_dir = tmp_path / "outside-dir"
+    outside_dir.mkdir()
+    (outside_dir / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_dir = tmp_path / "linked-dir"
+    linked_dir.symlink_to(outside_dir)
+    file_code = lcb.main(["--db", str(db), "--repo", str(clean_repo), "--out", str(link)])
+    dir_code = lcb.main(["--db", str(db), "--repo", str(clean_repo), "--out", str(linked_dir / "binding.json")])
+    leaked = sorted(p.name for p in outside_dir.iterdir())
+    assert file_code == 2 and dir_code == 2 and outside.read_text(encoding="utf-8") == "keep" and leaked == ["keep.txt"] and link.is_symlink(), (
+        file_code, dir_code, outside.read_text(encoding="utf-8")[:80], leaked, link.is_symlink(),
+    )
+    real = tmp_path / "real.json"
+    real_code = lcb.main(["--db", str(db), "--repo", str(clean_repo), "--out", str(real)])
+    assert real_code != 2 and real.is_file() and "schema" in real.read_text(encoding="utf-8")
+
+
 def test_status_is_never_pass(tmp_path, clean_repo):
     db = tmp_path / "courier.db"
     _fill(db, mixed_history())

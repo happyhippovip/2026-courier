@@ -23,7 +23,7 @@ class AutomationContext:
 
     def enqueue_wake(self, wake: Wakeup):
         """Handle incoming wakeups safely coalescing them."""
-        if wake.is_cancel:
+        if wake.is_cancel is True:
             self.cancel_requested = True
             if self.state in (AutoState.IDLE, AutoState.PENDING, AutoState.RESOURCE_PAUSE):
                 self.state = AutoState.IDLE

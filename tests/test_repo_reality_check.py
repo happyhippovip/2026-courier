@@ -67,6 +67,45 @@ def test_cli_writes_json_and_markdown(repo, tmp_path):
     assert (out / "report.md").read_text().startswith("# Repo Reality Check")
 
 
+def test_out_dir_does_not_follow_a_symlink(repo, tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    link = tmp_path / "out-link"
+    link.symlink_to(outside)
+    linked_parent = tmp_path / "linked-parent"
+    linked_parent.symlink_to(outside)
+    nested = linked_parent / "reports"
+    file_code = main([str(repo), str(link)])
+    dir_code = main([str(repo), str(nested)])
+    leaked = sorted(p.name for p in outside.iterdir())
+    assert file_code == 2 and dir_code == 2 and leaked == ["keep.txt"] and link.is_symlink(), (
+        file_code, dir_code, leaked, link.is_symlink(),
+    )
+
+
+def test_checkout_symlink_is_not_scanned(repo, tmp_path):
+    link = tmp_path / "linked-checkout"
+    link.symlink_to(repo)
+    via = tmp_path / "via"
+    via.symlink_to(tmp_path)
+    nested = via / repo.name
+    seen = []
+    for label, path in (("file", link), ("parent", nested)):
+        try:
+            result = check(path)
+        except ValueError as exc:
+            seen.append((label, "raised", str(exc)))
+        else:
+            seen.append((label, "scanned", sorted({f["rule"] for f in result["findings"]})))
+    out = tmp_path / "should-not-exist"
+    code = main([str(link), str(out)])
+    assert seen == [
+        ("file", "raised", f"{link}: refusing to follow a symlink"),
+        ("parent", "raised", f"{nested}: refusing to follow a symlink"),
+    ] and code == 2 and not out.exists(), (seen, code, out.exists())
+
+
 def test_report_names_the_checked_commit(repo):
     git(repo, "-c", "user.email=t@example.invalid", "-c", "user.name=t", "commit", "-qm", "init")
     result = check(repo)

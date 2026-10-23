@@ -39,6 +39,25 @@ def report_dir(tmp_path, sample_report_data):
     return tmp_path
 
 
+def test_make_does_not_write_through_an_output_symlink(tmp_path, sample_report_data):
+    """The receipt must not replace a symlinked output or a symlinked directory."""
+    report = tmp_path / "report.json"
+    report.write_text(json.dumps(sample_report_data), encoding="utf-8")
+    outside = tmp_path / "outside.json"
+    outside.write_text("keep", encoding="utf-8")
+    link = tmp_path / "card.json"
+    link.symlink_to(outside)
+    code = main(["make", str(report), "--out", str(link)])
+    text = outside.read_text(encoding="utf-8")
+    outside_dir = tmp_path / "outside-dir"
+    outside_dir.mkdir()
+    linked_dir = tmp_path / "linked-dir"
+    linked_dir.symlink_to(outside_dir, target_is_directory=True)
+    code_dir = main(["make", str(report), "--out", str(linked_dir / "card.json")])
+    names = sorted(path.name for path in outside_dir.iterdir())
+    assert text == "keep" and code != 0 and names == [] and code_dir != 0, (code, text[:80], code_dir, names)
+
+
 def test_score_calculation():
     # 1 high (15), 2 medium (10), 1 low (1) -> 100 - 26 = 74
     assert compute_reality_score(1, 2, 1) == 74
@@ -175,3 +194,57 @@ def test_cli_roundtrip(report_dir, tmp_path, capsys):
     report_file.write_text('{"tampered": true}', encoding="utf-8")
     ret = main(["verify", str(receipt_file), str(report_file)])
     assert ret == 2
+
+
+def test_proof_card_does_not_adopt_a_symlinked_report(tmp_path, sample_report_data):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    sample_report_data["repository"] = "foreign-repo"
+    (outside / "report.json").write_text(json.dumps(sample_report_data), encoding="utf-8")
+    link = tmp_path / "report.json"
+    link.symlink_to(outside / "report.json")
+    with pytest.raises(ReceiptError, match="symlink"):
+        card = create_proof_card(link)
+        raise AssertionError(card["repository"])
+    linked_dir = tmp_path / "linked-dir"
+    linked_dir.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ReceiptError, match="symlink"):
+        card = create_proof_card(linked_dir)
+        raise AssertionError(card["repository"])
+    assert (outside / "report.json").read_text(encoding="utf-8").find("foreign-repo") >= 0
+
+
+def test_verify_does_not_follow_a_receipt_symlink(report_dir, tmp_path):
+    card = create_proof_card(report_dir)
+    receipt = tmp_path / "receipt.json"
+    receipt.write_text(json.dumps(card), encoding="utf-8")
+    link = tmp_path / "linked.json"
+    link.symlink_to(receipt)
+    with pytest.raises(ReceiptError, match="symlink"):
+        result = verify_proof_card(link, report_dir)
+        raise AssertionError(result)
+
+
+def test_bool_finding_count_is_not_one(tmp_path, sample_report_data):
+    """True is not one finding. A bool count must not be signed onto a card."""
+    def write(changes):
+        data = dict(sample_report_data)
+        data["summary"] = dict(sample_report_data["summary"])
+        data.update(changes)
+        if "summary" in changes:
+            data["summary"] = changes["summary"]
+        report = tmp_path / "report.json"
+        report.write_text(json.dumps(data), encoding="utf-8")
+        return report
+
+    report = write({"summary": dict(sample_report_data["summary"], high=True)})
+    with pytest.raises(ReceiptError, match="Bool"):
+        card = create_proof_card(report)
+        raise AssertionError(card["summary"]["high"])
+    for changes in (
+            {"summary": dict(sample_report_data["summary"], medium=True)},
+            {"summary": dict(sample_report_data["summary"], low=True)},
+            {"files_scanned": True},
+    ):
+        with pytest.raises(ReceiptError, match="Bool"):
+            create_proof_card(write(changes))

@@ -38,9 +38,24 @@ def _counts_path():
     return os.path.join("intakes", ".failure_counts.json")
 
 
+def _symlink_queue_dir():
+    """A symlink at the queue root or one of the directories inside it."""
+    for path in ("intakes", "intakes/pending", "intakes/processed", "intakes/quarantine"):
+        if os.path.islink(path):
+            return path
+    return None
+
+
 def _load_counts():
+    path = _counts_path()
+    # A symlink is not a local count. True would be one prior failure; a
+    # foreign 4 would park the intake on the next error. Leave the link in
+    # place and count from zero. The following save replaces the directory
+    # entry and does not write the link target.
+    if os.path.islink(path) or os.path.islink(os.path.dirname(path)):
+        return {}
     try:
-        with open(_counts_path(), 'r') as f:
+        with open(path, 'r') as f:
             data = json.load(f)
     except (OSError, ValueError):
         return {}
@@ -70,11 +85,24 @@ def _record_failure(intake_file, error):
     """Count one failed attempt; quarantine at the bound. Returns attempts."""
     counts = _load_counts()
     key = os.path.basename(intake_file)
-    attempts = int(counts.get(key, 0) or 0) + 1
+    raw = counts.get(key, 0)
+    # Bool is an int. True would become one prior failure and the poison
+    # intake would keep being retried. An undecidable count is parked now.
+    if isinstance(raw, bool) or not isinstance(raw, int) or raw < 0:
+        attempts = POISON_QUARANTINE_AFTER
+    else:
+        attempts = raw + 1
     if attempts >= POISON_QUARANTINE_AFTER:
+        linked = _symlink_queue_dir()
+        if linked:
+            print(f"Refusing to follow a symlink: {linked}", file=sys.stderr)
+            return attempts
         try:
             os.makedirs("intakes/quarantine", exist_ok=True)
             dest = os.path.join("intakes/quarantine", key)
+            if os.path.islink(dest):
+                print(f"Refusing to follow a symlink: {dest}", file=sys.stderr)
+                return attempts
             shutil.move(intake_file, dest)
             with open(dest + ".reason.json", 'w') as f:
                 json.dump({"file": key, "failures": attempts,
@@ -91,6 +119,10 @@ def _record_failure(intake_file, error):
 
 
 def process_queue():
+    linked = _symlink_queue_dir()
+    if linked:
+        print(f"Refusing to follow a symlink: {linked}", file=sys.stderr)
+        return
     os.makedirs("intakes/pending", exist_ok=True)
     os.makedirs("intakes/processed", exist_ok=True)
 

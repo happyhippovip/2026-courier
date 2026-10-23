@@ -43,3 +43,63 @@ def test_rebalance_skew_blocks_when_profit_insufficient():
     assert assessment.is_rebalance_needed is True
     assert assessment.rebalance_safe is False
     assert assessment.status == "REBALANCE_BLOCKED_INSUFFICIENT_PROFIT"
+
+
+def test_bool_rebalance_settings_are_not_numbers():
+    mild_binance = InventoryStatus(venue="binance", quote_balance=500.0, base_balance=0.0)
+    mild_kraken = InventoryStatus(venue="kraken", quote_balance=600.0, base_balance=0.0)
+    skewed_binance = InventoryStatus(venue="binance", quote_balance=800.0, base_balance=0.0)
+    skewed_kraken = InventoryStatus(venue="kraken", quote_balance=200.0, base_balance=0.0)
+    seen = []
+    cases = (
+        ("threshold", DeltaNeutralRebalanceEngine, {"imbalance_threshold_pct": True}, mild_binance, mild_kraken, 25.0),
+        ("fee", DeltaNeutralRebalanceEngine, {"fixed_transfer_fee_eur": True}, skewed_binance, skewed_kraken, 25.0),
+        ("ratio", DeltaNeutralRebalanceEngine, {"min_profit_to_rebalance_ratio": True}, skewed_binance, skewed_kraken, 2.0),
+    )
+    for name, factory, kwargs, left, right, pnl in cases:
+        try:
+            engine = factory(**kwargs)
+            assessment = engine.evaluate_inventory_balance(left, right, accumulated_pnl_eur=pnl)
+        except ValueError as exc:
+            seen.append((name, "raised", str(exc)))
+        else:
+            seen.append((
+                name,
+                "accepted",
+                assessment.status,
+                assessment.is_rebalance_needed,
+                assessment.rebalance_safe,
+                assessment.transfer_amount_quote,
+                assessment.estimated_network_fee,
+            ))
+    assert seen == [
+        ("threshold", "raised", "Bool is not a number."),
+        ("fee", "raised", "Bool is not a number."),
+        ("ratio", "raised", "Bool is not a number."),
+    ], seen
+
+
+def test_bool_inventory_is_not_one_euro():
+    engine = DeltaNeutralRebalanceEngine()
+    seen = []
+    for quote in (True, False):
+        try:
+            assessment = engine.evaluate_inventory_balance(
+                InventoryStatus(venue="binance", quote_balance=quote, base_balance=0.0),
+                InventoryStatus(venue="kraken", quote_balance=100.0, base_balance=0.0),
+                accumulated_pnl_eur=25.0,
+            )
+        except ValueError as exc:
+            seen.append((quote, "raised", str(exc)))
+        else:
+            seen.append((
+                quote,
+                "accepted",
+                assessment.status,
+                assessment.transfer_amount_quote,
+                assessment.source_venue,
+            ))
+    assert seen == [
+        (True, "raised", "Bool is not a number."),
+        (False, "raised", "Bool is not a number."),
+    ], seen

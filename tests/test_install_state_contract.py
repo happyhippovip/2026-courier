@@ -21,6 +21,7 @@ from courier_core.install_state import (
     REFUSED_RUNNING_WORKER,
     Evidence,
     InstallJournal,
+    JournalUnreadable,
     SecretRejected,
     derive_state,
     reject_secrets,
@@ -268,6 +269,50 @@ def test_stale_controller_confirmation_is_not_healthy(tmp_path):
     assert not_newer["state"] != HEALTHY
     assert not_newer["reason_code"] == CONTROLLER_STALE
     _assert_schema(stale)
+
+
+def test_begin_refuses_a_symlinked_state_parent(tmp_path):
+    outside = tmp_path / "outside"
+    state = outside / "state"
+    state.mkdir(parents=True)
+    link = tmp_path / "home"
+    link.symlink_to(outside, target_is_directory=True)
+    try:
+        journal = InstallJournal(link / "state")
+        journal.begin("1.0.0", datetime(2026, 10, 22, tzinfo=timezone.utc))
+    except JournalUnreadable as exc:
+        assert "symlink" in str(exc)
+    else:
+        raise AssertionError(sorted(path.name for path in state.iterdir()))
+    assert list(state.iterdir()) == []
+
+
+def test_begin_refuses_a_symlinked_state_dir(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "state"
+    link.symlink_to(outside, target_is_directory=True)
+    try:
+        journal = InstallJournal(link)
+        journal.begin("1.0.0", datetime(2026, 10, 22, tzinfo=timezone.utc))
+    except JournalUnreadable as exc:
+        assert "symlink" in str(exc)
+    else:
+        raise AssertionError(sorted(path.name for path in outside.iterdir()))
+    assert list(outside.iterdir()) == []
+
+
+def test_load_refuses_a_symlinked_journal(tmp_path):
+    outside = tmp_path / "outside.json"
+    outside.write_text('{"phase": "installed"}\n', encoding="utf-8")
+    state = tmp_path / "state"
+    state.mkdir()
+    link = state / "install_journal.json"
+    link.symlink_to(outside)
+    with pytest.raises(JournalUnreadable, match="symlink"):
+        InstallJournal(state).load()
+    assert outside.read_text(encoding="utf-8") == '{"phase": "installed"}\n'
+    assert link.is_symlink()
 
 
 def test_privileged_scheduler_is_not_healthy(tmp_path):

@@ -161,6 +161,8 @@ class Controller:
 
     # ------------------------------------------------------------------ boot
     def boot(self) -> "Controller":
+        if self.home.is_symlink():
+            raise JournalError(f"{self.home}: refusing to follow a symlink")
         self.home.mkdir(parents=True, exist_ok=True)
         if self.db_path.exists():
             problem = self._inspect_existing()
@@ -659,6 +661,12 @@ class Controller:
                 # it in VERIFYING until the next controller restart.
                 self._verify_queue.put(task_id)
             raise
+        except Exception:
+            # A journal or verifier-host error is not a decision. The result
+            # stays VERIFYING and the id goes back so this process can resume
+            # it. A restart would requeue from the journal; this matches that.
+            self._verify_queue.put(task_id)
+            raise
 
     def _verify_task(self, task_id: str) -> bool:
         with self._locked():
@@ -713,6 +721,10 @@ class Controller:
                     continue
                 except Exception:  # noqa: BLE001
                     log.exception("verification failed")
+                    # The id was put back. Wait before the next take so a
+                    # repeated error does not spin the verifier thread.
+                    if self._stopping.wait(0.5):
+                        break
 
         for target, name in ((ticker, "courier-lease-ticker"), (verifier, "courier-verifier")):
             thread = threading.Thread(target=target, name=name, daemon=True)

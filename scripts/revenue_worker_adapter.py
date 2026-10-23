@@ -16,6 +16,8 @@ for d in [STATE_DIR, LOGS_DIR]:
 def write_log(msg):
     print(msg)
     log_file = LOGS_DIR / "revenue_worker.log"
+    _refuse_symlink(LOGS_DIR)
+    _refuse_symlink(log_file)
     if log_file.exists() and log_file.stat().st_size > 5 * 1024 * 1024:
         backup = log_file.with_name(log_file.name + ".1")
         if backup.exists():
@@ -24,7 +26,13 @@ def write_log(msg):
     with open(log_file, "a") as f:
         f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
 
+def _refuse_symlink(path: Path) -> None:
+    if path.is_symlink() or path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+
+
 def get_config():
+    _refuse_symlink(CONFIG_PATH)
     if CONFIG_PATH.exists():
         with open(CONFIG_PATH, "r") as f:
             config = json.load(f)
@@ -33,6 +41,7 @@ def get_config():
             "WORKER_ID": f"REVENUE-MAC-{uuid.uuid4().hex[:6].upper()}",
             "POLL_INTERVAL_SECONDS": 5
         }
+        _refuse_symlink(CONFIG_PATH)
         with open(CONFIG_PATH, "w") as f:
             json.dump(config, f, indent=2)
             
@@ -107,9 +116,19 @@ def main():
                 task = claim_resp
                 task_id = task["task_id"]
                 attempt_id = task.get("attempt_id", task_id)
+                if (
+                    not isinstance(task_id, str)
+                    or task_id in ("", ".", "..")
+                    or "/" in task_id
+                    or "\\" in task_id
+                    or ".." in Path(task_id).parts
+                ):
+                    raise SystemExit("refusing an unsafe task id")
                 write_log(f"Claimed task {task_id}")
                 
                 work_dir = STATE_DIR / task_id
+                _refuse_symlink(STATE_DIR)
+                _refuse_symlink(work_dir)
                 if work_dir.exists():
                     shutil.rmtree(work_dir)
                 work_dir.mkdir(parents=True)

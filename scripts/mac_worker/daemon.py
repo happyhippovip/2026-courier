@@ -28,6 +28,8 @@ STATE_DIR = WORKER_HOME / "state" if WORKER_HOME else BASE_DIR / "state"
 LOGS_DIR = WORKER_HOME / "logs" if WORKER_HOME else BASE_DIR / "logs"
 
 def load_config():
+    if Path(CONFIG_PATH).is_symlink():
+        raise OSError(f"{CONFIG_PATH}: refusing to follow a symlink")
     with open(CONFIG_PATH, "r") as f:
         config = json.load(f)
     
@@ -373,8 +375,17 @@ def run_native(task, config):
     # Bounded execution: every native child runs in its own process group so a
     # timeout or daemon interruption (WorkerShutdown) reaps the whole subtree
     # instead of orphaning it. Like run_agy/run_muse, kill via cleanup_group,
-    # which is PID-reuse safe.
-    timeout = min(float(config.get("NATIVE_TIMEOUT_SECONDS", 120)), 600)
+    # which is PID-reuse safe. Bool is an int, so reject it before float():
+    # True would become a one-second deadline and still start the child.
+    raw_timeout = config.get("NATIVE_TIMEOUT_SECONDS", 120)
+    if isinstance(raw_timeout, bool) or not isinstance(raw_timeout, (int, float)) or raw_timeout <= 0:
+        return {
+            "status": "FAILED",
+            "reason": "INVALID_TIMEOUT",
+            "execution_mode": "NATIVE",
+            "blocked": True,
+        }
+    timeout = min(float(raw_timeout), 600)
     if action == "echo":
         # Never a shell: the canary routes arbitrary instruction text here,
         # so separators, substitutions and redirects must be literal output,
@@ -489,7 +500,12 @@ def cost_gate(resource_id, *args, **kwargs):
     """Ask CostGate before a provider starts. Any import or policy error denies."""
     try:
         from scripts.resource_policy import CostGate
-        estimated_cost_eur = args[0] if args else kwargs.get("estimated_cost_eur", 0.0)
+        if args:
+            estimated_cost_eur = args[0]
+        elif "estimated_cost_eur" in kwargs:
+            estimated_cost_eur = kwargs["estimated_cost_eur"]
+        else:
+            estimated_cost_eur = None
         return CostGate.evaluate_spend_request(
             resource_id, estimated_cost_eur=estimated_cost_eur, repo_dir=BASE_DIR
         )
@@ -501,8 +517,8 @@ def run_agy(task, config):
     write_log(f"Running AI task {task['task_id']} via agy")
     instruction = task.get('instruction', task.get('description', ''))
 
-    estimate = task.get("estimated_cost_eur", 0.0)
-    if task.get("unknown_cost") is True:
+    estimate = task.get("estimated_cost_eur")
+    if task.get("unknown_cost") is True or isinstance(estimate, bool):
         estimate = None
     try:
         gate = cost_gate(AGY_RESOURCE_ID, estimate)
@@ -516,6 +532,16 @@ def run_agy(task, config):
             "blocked": True,
         }
 
+    raw_timeout = config.get("AGY_TIMEOUT_SECONDS", 300)
+    if isinstance(raw_timeout, bool) or not isinstance(raw_timeout, (int, float)) or raw_timeout <= 0:
+        return {
+            "status": "FAILED",
+            "reason": "INVALID_TIMEOUT",
+            "execution_mode": "ANTIGRAVITY",
+            "blocked": True,
+        }
+    timeout = min(float(raw_timeout), 3600)
+
     supervisor, decision = admit_surface("antigravity", task, config, needs_visible=False, allow_headless=True)
     if decision.action == "COALESCED":
         return coalesced_result(decision, "ANTIGRAVITY")
@@ -527,7 +553,6 @@ def run_agy(task, config):
         
     wrapper = os.path.join(os.path.dirname(__file__), "limit_wrapper.sh")
     cmd = [wrapper, agy_bin, "-p", prompt, "--sandbox", "--disable-slash-commands"]
-    timeout = min(float(config.get("AGY_TIMEOUT_SECONDS", 300)), 3600)
 
     process = None
     identity = None
@@ -612,8 +637,8 @@ def run_muse(task, config):
     import muse_adapter
     write_log(f"Running MUSE task {task['task_id']}")
     
-    estimate = task.get("estimated_cost_eur", 0.0)
-    if task.get("unknown_cost") is True:
+    estimate = task.get("estimated_cost_eur")
+    if task.get("unknown_cost") is True or isinstance(estimate, bool):
         estimate = None
     try:
         gate = cost_gate(MUSE_RESOURCE_ID, estimate)
@@ -623,6 +648,16 @@ def run_muse(task, config):
         return {
             "status": "FAILED",
             "reason": f"COST_GATE_{gate.get('reason') or 'DENIED'}",
+            "execution_mode": "MUSE",
+            "blocked": True,
+        }
+    # Bool is an int, so reject it before float() and before Popen. True would
+    # become a one-second deadline and still start Muse.
+    raw_timeout = config.get("MUSE_TIMEOUT_SECONDS", 3600)
+    if isinstance(raw_timeout, bool) or not isinstance(raw_timeout, (int, float)) or raw_timeout <= 0:
+        return {
+            "status": "FAILED",
+            "reason": "INVALID_TIMEOUT",
             "execution_mode": "MUSE",
             "blocked": True,
         }
@@ -667,7 +702,7 @@ def run_muse(task, config):
                 identity = process_identity(proc.pid)
                 attach_surface(supervisor, decision, proc.pid)
                 atomic_json(child_file, {"state": "RUNNING", "identity": identity, "binding": binding})
-            deadline = time.monotonic() + min(float(config.get("MUSE_TIMEOUT_SECONDS", 3600)), 3600)
+            deadline = time.monotonic() + min(float(raw_timeout), 3600)
             heartbeat_at = time.monotonic() + 30
             while proc.poll() is None:
                 if time.monotonic() >= deadline or out.tell() + err.tell() > 8 * 1024 * 1024:
@@ -697,8 +732,16 @@ def run_muse(task, config):
                     raise RuntimeError("Muse child cleanup unproven; no new execution allowed")
     return result
 
+def _refuse_state_symlink(path):
+    candidate = Path(path)
+    if candidate.is_symlink() or candidate.parent.is_symlink():
+        raise OSError(f"{candidate}: refusing to follow a symlink")
+
+
 def acquire_worker_lock():
     """One daemon per state directory: a second one would re-claim or re-send."""
+    _refuse_state_symlink(STATE_DIR)
+    _refuse_state_symlink(LOGS_DIR)
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
     handle = open(STATE_DIR / "worker.lock", "w")

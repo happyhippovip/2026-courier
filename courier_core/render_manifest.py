@@ -68,6 +68,23 @@ def _file_sha256(path: Path) -> str:
     return h.hexdigest()
 
 
+def _contained(root: Path, rel: object) -> Path | None:
+    """A file lexically inside root. A symlink or `..` is not contained."""
+    if not isinstance(rel, str) or not rel:
+        return None
+    path = Path(rel)
+    if path.is_absolute() or ".." in path.parts:
+        return None
+    candidate = root.joinpath(*path.parts)
+    try:
+        candidate.relative_to(root)
+    except ValueError:
+        return None
+    if candidate.is_symlink():
+        return None
+    return candidate
+
+
 def create_manifest(
     render_dir: Path | str,
     target_filename: str = "render.mp4",
@@ -78,11 +95,18 @@ def create_manifest(
     extra_metadata: dict[str, Any] | None = None,
 ) -> RenderManifest:
     """Create a verified RenderManifest for a finished render directory."""
-    dir_path = Path(render_dir).resolve()
+    if isinstance(duration_seconds, bool) or isinstance(fps, bool) or isinstance(frame_count, bool):
+        raise ValueError("Bool is not a duration or a frame count")
+    dir_path = Path(render_dir)
+    if dir_path.is_symlink() or dir_path.parent.is_symlink():
+        raise OSError(f"{dir_path}: refusing to follow a symlink")
+    dir_path = dir_path.resolve()
     if not dir_path.is_dir():
         raise FileNotFoundError(f"Render directory does not exist: {dir_path}")
 
-    target_path = dir_path / target_filename
+    target_path = _contained(dir_path, target_filename)
+    if target_path is None:
+        raise OSError(f"{dir_path / str(target_filename)}: refusing to follow a symlink")
     if not target_path.is_file():
         raise FileNotFoundError(f"Target render file does not exist: {target_path}")
 
@@ -94,6 +118,8 @@ def create_manifest(
     # Collect all files in directory (excluding manifest.json itself)
     artifacts: list[dict[str, Any]] = []
     for item in sorted(dir_path.rglob("*")):
+        if item.is_symlink():
+            raise OSError(f"{item}: refusing to follow a symlink")
         if item.is_file() and item.name != "manifest.json":
             rel = str(item.relative_to(dir_path))
             artifacts.append({
@@ -138,6 +164,8 @@ def create_manifest(
 
     # Write manifest.json atomically into render directory
     manifest_file = dir_path / "manifest.json"
+    if manifest_file.is_symlink():
+        raise OSError(f"{manifest_file}: refusing to follow a symlink")
     manifest_file.write_text(canonical_json(manifest.to_dict()), encoding="utf-8")
 
     return manifest
@@ -149,7 +177,9 @@ def verify_manifest(manifest_path_or_dict: Path | str | dict[str, Any], render_d
     Returns (is_valid, reason).
     """
     if isinstance(manifest_path_or_dict, (Path, str)):
-        manifest_file = Path(manifest_path_or_dict).resolve()
+        manifest_file = Path(manifest_path_or_dict)
+        if manifest_file.is_symlink() or manifest_file.parent.is_symlink():
+            return False, f"{manifest_file}: refusing to follow a symlink"
         if not manifest_file.is_file():
             return False, f"Manifest file does not exist: {manifest_file}"
         try:
@@ -163,20 +193,27 @@ def verify_manifest(manifest_path_or_dict: Path | str | dict[str, Any], render_d
         if render_dir is None:
             return False, "render_dir must be specified when verifying raw manifest dictionary"
 
-    dir_path = Path(render_dir).resolve()
+    dir_path = Path(render_dir)
+    if dir_path.is_symlink() or dir_path.parent.is_symlink():
+        return False, f"{dir_path}: refusing to follow a symlink"
     if not dir_path.is_dir():
         return False, f"Render directory does not exist: {dir_path}"
 
     target_name = data.get("target_file")
-    if not target_name:
-        return False, "Manifest missing target_file"
-
-    target_path = dir_path / target_name
+    target_path = _contained(dir_path, target_name)
+    if target_path is None:
+        return False, "Manifest target escapes the render directory or is a symlink"
     if not target_path.is_file():
         return False, f"Target file does not exist: {target_path}"
 
     if _file_sha256(target_path) != data.get("target_sha256"):
         return False, "Target file sha256 mismatch"
+
+    if isinstance(data.get("target_size_bytes"), bool):
+        return False, "Target size is not a byte count"
+    if (isinstance(data.get("duration_seconds"), bool) or isinstance(data.get("fps"), bool)
+            or isinstance(data.get("frame_count"), bool)):
+        return False, "Bool is not a duration or a frame count"
 
     if target_path.stat().st_size != data.get("target_size_bytes"):
         return False, "Target file size mismatch"
@@ -191,8 +228,11 @@ def verify_manifest(manifest_path_or_dict: Path | str | dict[str, Any], render_d
         expected_size = art.get("size_bytes")
         if not rel or not expected_sha or expected_size is None:
             return False, f"Malformed artifact entry: {art}"
-
-        art_file = dir_path / rel
+        if isinstance(expected_size, bool):
+            return False, f"Artifact size is not a byte count: {rel}"
+        art_file = _contained(dir_path, rel)
+        if art_file is None:
+            return False, f"Artifact path escapes the render directory or is a symlink: {rel}"
         if not art_file.is_file():
             return False, f"Artifact file missing: {art_file}"
 

@@ -32,8 +32,18 @@ class ReceiptError(Exception):
     """Base exception for reality check receipt operations."""
 
 
+def _require_count(name: str, value: Any) -> int:
+    """A finding or file count. Bool is an int, so True would become 1."""
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ReceiptError(f"{name} is not a count. Bool is not a number.")
+    return value
+
+
 def compute_reality_score(high: int, medium: int, low: int) -> int:
     """Calculates 0-100 reality score from severity counts."""
+    high = _require_count("high", high)
+    medium = _require_count("medium", medium)
+    low = _require_count("low", low)
     penalty = (high * 15) + (medium * 5) + (low * 1)
     return max(0, min(100, 100 - penalty))
 
@@ -47,7 +57,10 @@ def compute_proof_signature(payload: dict[str, Any]) -> str:
 
 def resolve_report_path(path_str: str | os.PathLike) -> Path:
     """Resolves report.json whether given a direct file or directory."""
-    path = Path(path_str).resolve()
+    path = Path(path_str)
+    if path.is_symlink() or path.parent.is_symlink():
+        raise ReceiptError("symlinks not permitted for report files")
+    path = path.resolve()
     if path.is_dir():
         candidate = path / "report.json"
         if candidate.is_file():
@@ -90,6 +103,9 @@ def read_report_data(report_path: Path) -> tuple[dict[str, Any], str, int]:
     summary = data["summary"]
     if not isinstance(summary, dict) or not all(k in summary for k in ("high", "medium", "low")):
         raise ReceiptError("report summary must contain high, medium, and low integer counts")
+    for key in ("high", "medium", "low"):
+        _require_count(f"summary.{key}", summary.get(key))
+    _require_count("files_scanned", data.get("files_scanned"))
 
     report_sha256 = hashlib.sha256(raw_bytes).hexdigest()
     return data, report_sha256, len(raw_bytes)
@@ -153,8 +169,10 @@ def verify_proof_card(
     report_path_or_dir: str | os.PathLike,
 ) -> dict[str, Any]:
     """Verifies that a Proof Card receipt matches the given report exactly."""
-    r_path = Path(receipt_path).resolve()
-    if r_path.is_symlink() or not r_path.is_file():
+    r_path = Path(receipt_path)
+    if r_path.is_symlink() or r_path.parent.is_symlink():
+        raise ReceiptError("symlinks not permitted for receipt files")
+    if not r_path.is_file():
         raise ReceiptError("receipt must be an existing regular file (symlinks forbidden)")
 
     size = r_path.stat().st_size
@@ -278,6 +296,9 @@ def main(argv: list[str] | None = None) -> int:
             out_str = json.dumps(card, indent=2)
             if args.out:
                 out_path = Path(args.out)
+                if out_path.is_symlink() or out_path.parent.is_symlink():
+                    print(f"ERROR: {out_path}: refusing to follow a symlink", file=sys.stderr)
+                    return 1
                 out_path.parent.mkdir(parents=True, exist_ok=True)
                 out_path.write_text(out_str, encoding="utf-8")
                 print(f"WROTE: {out_path} ({card['receipt_id']})")

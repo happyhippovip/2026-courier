@@ -31,7 +31,7 @@ VALID_INTEGRITY_STATUSES = {
 
 def format_size(size_bytes: int | float | None) -> str:
     """Formats byte counts into a readable string (e.g. 42.5 KB)."""
-    if size_bytes is None:
+    if isinstance(size_bytes, bool) or size_bytes is None:
         return "unknown"
     try:
         size = float(size_bytes)
@@ -57,6 +57,16 @@ def format_fingerprint(sha256_hex: str | None) -> str:
     return f"{sha256_hex[:8]}...{sha256_hex[-8:]}"
 
 
+def _accepted_proof(task: Mapping[str, Any] | None) -> bool:
+    """Verdict PASS and resolution verified. The caller still has to hash the bytes."""
+    if not isinstance(task, Mapping):
+        return False
+    verification = task.get("verification")
+    if not isinstance(verification, dict):
+        return False
+    return verification.get("verdict") == "PASS" and verification.get("resolution") == "verified"
+
+
 def derive_integrity_status(
     record: Mapping[str, Any] | None,
     task: Mapping[str, Any] | None = None,
@@ -70,34 +80,29 @@ def derive_integrity_status(
     if not isinstance(record_sha, str) or not SHA256_RE.match(record_sha):
         return STATUS_MISSING_DATA
 
+    bytes_match = False
     if blob_bytes is not None:
+        if isinstance(blob_bytes, str) or not isinstance(blob_bytes, (bytes, bytearray)):
+            return STATUS_MISSING_DATA
         actual_sha = hashlib.sha256(blob_bytes).hexdigest()
         if actual_sha != record_sha:
             return STATUS_HASH_MISMATCH
         record_size = record.get("size")
-        if record_size is not None and len(blob_bytes) != record_size:
+        if isinstance(record_size, bool) or (record_size is not None and len(blob_bytes) != record_size):
             return STATUS_HASH_MISMATCH
+        bytes_match = True
 
     if task:
         expected_sha = task.get("expected_sha256")
-        if expected_sha and isinstance(expected_sha, str):
-            if expected_sha != record_sha:
-                return STATUS_HASH_MISMATCH
-            return STATUS_VERIFIED_MATCH
+        if isinstance(expected_sha, str) and expected_sha and expected_sha != record_sha:
+            return STATUS_HASH_MISMATCH
 
-        # Check verification verdict if present
-        verification = task.get("verification")
-        if isinstance(verification, dict):
-            verdict = verification.get("verdict")
-            if verdict == "PASS":
-                return STATUS_VERIFIED_MATCH
-            elif verdict == "FAIL":
-                return STATUS_HASH_MISMATCH
-
-        # Check if task specifies external origin
-        if task.get("source") in ("external", "ci", "github", "adapter_unbound"):
-            return STATUS_EXTERNAL_PRODUCED
-
+    # VERIFIED requires the hashed bytes and an accepted resolution.
+    # A FAIL verdict is not rewritten into a hash mismatch when the bytes match.
+    if not bytes_match or not _accepted_proof(task):
+        return STATUS_MISSING_DATA
+    if isinstance(task, Mapping) and task.get("source") in ("external", "ci", "github", "adapter_unbound"):
+        return STATUS_EXTERNAL_PRODUCED
     return STATUS_VERIFIED_MATCH
 
 
@@ -178,16 +183,26 @@ def generate_artifact_receipt(
             local_path = None
 
     task_dict = task or {}
-    verdict = "PASS" if is_valid else "FAIL"
-    if isinstance(task_dict.get("verification"), dict):
-        verdict = task_dict["verification"].get("verdict", verdict)
+    verification = task_dict.get("verification")
+    claimed = verification.get("verdict") if isinstance(verification, dict) else None
+    resolution = verification.get("resolution") if isinstance(verification, dict) else None
+    accepted = bool(is_valid and _accepted_proof(task_dict))
+    if not accepted:
+        verdict = "FAIL"
+        is_valid = False
+    else:
+        verdict = "PASS"
 
-    if integrity_status == STATUS_VERIFIED_MATCH:
+    if accepted and integrity_status == STATUS_VERIFIED_MATCH:
         human_summary = f"Artifact '{name}' ({size_fmt}) verified authentic (SHA-256: {fingerprint})."
-    elif integrity_status == STATUS_EXTERNAL_PRODUCED:
+    elif accepted and integrity_status == STATUS_EXTERNAL_PRODUCED:
         human_summary = f"Artifact '{name}' ({size_fmt}) received from external build (SHA-256: {fingerprint})."
+    elif claimed == "FAIL":
+        human_summary = f"WARNING: Artifact '{name}' was not accepted (verification verdict FAIL)."
     elif integrity_status == STATUS_HASH_MISMATCH:
         human_summary = f"WARNING: Artifact '{name}' failed integrity check (hash mismatch against expected digest)."
+    elif resolution != "verified":
+        human_summary = f"WARNING: Artifact '{name}' has no verified resolution."
     else:
         human_summary = f"WARNING: Artifact '{name}' record is missing or corrupt."
 
@@ -225,7 +240,17 @@ def verify_artifact_receipt(
     expected_branch: str | None = None,
     expected_source_sha: str | None = None,
 ) -> tuple[bool, str]:
-    """Verify in-memory or downloaded bytes against a receipt."""
+    """Verify in-memory or downloaded bytes against a receipt.
+
+    Matching bytes are not acceptance. The receipt itself must say PASS,
+    is_valid, and an accepted integrity status.
+    """
+    if receipt.get("verification_verdict") != "PASS":
+        return False, "verdict not accepted"
+    if receipt.get("is_valid") is not True:
+        return False, "receipt not valid"
+    if receipt.get("integrity_status") not in (STATUS_VERIFIED_MATCH, STATUS_EXTERNAL_PRODUCED):
+        return False, "integrity not accepted"
     actual_sha = hashlib.sha256(data).hexdigest()
     if actual_sha != receipt.get("sha256"):
         return False, f"hash mismatch: expected {receipt.get('sha256')}, got {actual_sha}"

@@ -162,3 +162,31 @@ def test_load_non_existent_task(tmp_path):
 def test_from_row_column_count_mismatch():
     with pytest.raises(ValueError, match="Column count mismatch"):
         _from_row((1, 2))
+
+
+def test_rebuild_does_not_follow_a_symlink(tmp_path):
+    with Journal(tmp_path / "courier.db") as journal:
+        outside = tmp_path / "outside"
+        outside.mkdir()
+        linked = tmp_path / "linked"
+        linked.symlink_to(outside, target_is_directory=True)
+        keep = tmp_path / "keep.db"
+        keep.write_text("keep", encoding="utf-8")
+        link = tmp_path / "link.db"
+        link.symlink_to(keep)
+        seen = []
+        for label, dest in (("dir", linked / "proj.db"), ("file", link)):
+            try:
+                rebuild(journal, dest)
+            except ValueError as exc:
+                seen.append((label, "raised", str(exc)))
+            else:
+                seen.append((label, "wrote"))
+        names = sorted(path.name for path in outside.iterdir())
+        assert (
+            seen[0] == ("dir", "raised", f"{linked / 'proj.db'}: refusing to follow a symlink")
+            and seen[1][0] == "file" and seen[1][1] == "raised" and "symlink" in seen[1][2].lower()
+            and names == []
+            and link.is_symlink()
+            and keep.read_text(encoding="utf-8") == "keep"
+        ), (seen, names, link.is_symlink(), keep.read_text(encoding="utf-8"))

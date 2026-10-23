@@ -9,6 +9,7 @@ Safety Invariants:
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass
 from typing import Callable, Iterator, Optional
 
@@ -35,11 +36,23 @@ class L2StreamMockFeeder:
     """Simulates an incoming stream of L2 orderbook deltas for latency and race-condition audits."""
 
     def __init__(self, pair: NormalizedPair, initial_mid: float = 60000.0):
+        if isinstance(initial_mid, bool):
+            raise ValueError("Bool is not a number.")
+        if not isinstance(initial_mid, (int, float)) or not math.isfinite(initial_mid):
+            raise ValueError("mid is not a number.")
+        if initial_mid <= 0:
+            raise ValueError("mid is out of range.")
         self.pair = pair
         self.mid = initial_mid
         self._seq = 0
 
     def generate_events(self, count: int = 10) -> Iterator[L2DeltaEvent]:
+        if isinstance(count, bool):
+            raise ValueError("Bool is not a number.")
+        if not isinstance(count, int):
+            raise ValueError("count is not a number.")
+        if count < 0:
+            raise ValueError("count is out of range.")
         for i in range(count):
             self._seq += 1
             # Micro-shift in spread: alternating between Binance and Kraken
@@ -67,26 +80,68 @@ class L2OrderbookBookkeeper:
         self.bids: dict[float, float] = {}  # price -> amount
         self.asks: dict[float, float] = {}  # price -> amount
         self.last_sequence: int = 0
+        self._accepted_sequence = False
         self.last_update_utc: str = utc_iso_now()
 
     def apply_delta(self, event: L2DeltaEvent) -> None:
-        if event.exchange != self.exchange or event.pair != self.pair:
-            return
+        if event.exchange != self.exchange:
+            raise ValueError("event is for another book.")
+        if event.pair != self.pair:
+            raise ValueError("event is for another book.")
 
-        for level in event.bids_updated:
-            if level.amount <= 0:
-                self.bids.pop(level.price, None)
-            else:
-                self.bids[level.price] = level.amount
+        sequence = event.sequence_id
+        if isinstance(sequence, bool):
+            raise ValueError("Bool is not a number.")
+        if not isinstance(sequence, int):
+            raise ValueError("sequence is not a number.")
+        if sequence < 0:
+            raise ValueError("sequence is out of range.")
+        if self._accepted_sequence and sequence <= self.last_sequence:
+            raise ValueError("sequence is stale.")
+        if self._accepted_sequence and sequence != self.last_sequence + 1:
+            raise ValueError("sequence is gapped.")
+        stamp = event.timestamp_utc
+        if isinstance(stamp, bool):
+            raise ValueError("Bool is not a number.")
+        if not isinstance(stamp, str) or not stamp.strip():
+            raise ValueError("timestamp is not a time.")
+        if self._accepted_sequence and stamp < self.last_update_utc:
+            raise ValueError("timestamp is stale.")
+        if not isinstance(event.bids_updated, list) or not isinstance(event.asks_updated, list):
+            raise ValueError("levels are not a list.")
+        for levels in (event.bids_updated, event.asks_updated):
+            for level in levels:
+                if not isinstance(level, OrderbookLevel):
+                    raise ValueError("level is not a quote.")
+        self._reject_bad_levels(event.bids_updated)
+        self._reject_bad_levels(event.asks_updated)
 
-        for level in event.asks_updated:
-            if level.amount <= 0:
-                self.asks.pop(level.price, None)
-            else:
-                self.asks[level.price] = level.amount
+        self._apply_levels(self.bids, event.bids_updated)
+        self._apply_levels(self.asks, event.asks_updated)
 
         self.last_sequence = event.sequence_id
+        self._accepted_sequence = True
         self.last_update_utc = event.timestamp_utc
+
+    def _reject_bad_levels(self, levels: list[OrderbookLevel]) -> None:
+        for level in levels:
+            if isinstance(level.price, bool) or isinstance(level.amount, bool):
+                raise ValueError("Bool is not a number.")
+            if not isinstance(level.price, (int, float)) or not math.isfinite(level.price):
+                raise ValueError("price is not a number.")
+            if level.price <= 0:
+                raise ValueError("price is out of range.")
+            if not isinstance(level.amount, (int, float)) or not math.isfinite(level.amount):
+                raise ValueError("amount is not a number.")
+            if level.amount < 0:
+                raise ValueError("amount is out of range.")
+
+    def _apply_levels(self, book: dict, levels: list[OrderbookLevel]) -> None:
+        for level in levels:
+            if level.amount <= 0:
+                book.pop(level.price, None)
+            else:
+                book[level.price] = level.amount
 
     def to_snapshot(self) -> OrderbookSnapshot:
         # Sort bids descending, asks ascending

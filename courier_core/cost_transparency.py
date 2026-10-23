@@ -20,7 +20,17 @@ FIREWALL_TRIGGERED = "PAYG_TRIGGERED"
 
 def describe_billing_mode(cost_class: str, provider: str) -> str:
     """Format human-readable provider and billing mode description."""
+    if isinstance(cost_class, bool) or (
+        cost_class is not None and not isinstance(cost_class, str)
+    ):
+        cost_class = "unknown"
+    elif cost_class == "":
+        cost_class = "unknown"
     norm_class = (cost_class or COST_CLASS_FREE).lower()
+    if isinstance(provider, bool) or (provider is not None and not isinstance(provider, str)):
+        provider = "unknown"
+    elif isinstance(provider, str) and not provider.strip():
+        provider = "unknown"
     norm_provider = (provider or "local").title()
 
     if norm_class == COST_CLASS_FREE:
@@ -60,6 +70,7 @@ def derive_goal_cost_summary(
     tasks_map = state_dict.get("tasks", {})
     workers_map = state_dict.get("workers", {})
 
+    plan_invalid = "workflow_plan" in goal and not isinstance(goal.get("workflow_plan"), list)
     workflow_plan = goal.get("workflow_plan", [])
     if not isinstance(workflow_plan, list):
         workflow_plan = []
@@ -71,17 +82,59 @@ def derive_goal_cost_summary(
     payg_triggered = False
 
     for idx, step in enumerate(workflow_plan, start=1):
+        if not isinstance(step, dict):
+            steps_payg += 1
+            payg_triggered = True
+            continue
         task_id = step.get("task_id", f"step-{idx}")
         instruction = step.get("instruction", "Task step")
         task = tasks_map.get(task_id, {})
 
-        worker_id = task.get("worker_id") or step.get("worker_id")
-        worker = workers_map.get(worker_id, {}) if worker_id else {}
+        worker_id = task.get("worker_id")
+        if worker_id is None:
+            worker_id = step.get("worker_id")
+        if worker_id is None:
+            worker = {}
+        elif (
+            isinstance(worker_id, bool)
+            or not isinstance(worker_id, str)
+            or not worker_id.strip()
+            or worker_id not in workers_map
+        ):
+            worker = {"provider": "unknown"}
+        else:
+            worker = workers_map[worker_id]
 
         # Default unassigned / local steps to free
-        provider = worker.get("provider") or step.get("target_agent") or "local"
+        provider = worker.get("provider")
+        loaded = isinstance(worker_id, str) and worker_id in workers_map
+        if provider is None and not loaded:
+            target = step.get("target_agent")
+            if target is None:
+                provider = "local"
+            elif isinstance(target, bool) or not isinstance(target, str) or not target.strip():
+                provider = "unknown"
+            else:
+                provider = target
+        elif (
+            provider is None
+            or isinstance(provider, bool)
+            or not isinstance(provider, str)
+            or not provider.strip()
+        ):
+            provider = "unknown"
         cost_class = worker.get("cost_class")
-        if not cost_class:
+        if cost_class is None:
+            cost_class = step.get("cost_class")
+        if provider == "unknown":
+            cost_class = "unknown"
+        elif isinstance(cost_class, bool) or (
+            cost_class is not None and not isinstance(cost_class, str)
+        ):
+            cost_class = "unknown"
+        elif cost_class == "":
+            cost_class = "unknown"
+        elif not cost_class:
             if provider in ("local", "linux", "mac", "windows", "verifier"):
                 cost_class = COST_CLASS_FREE
             else:
@@ -108,6 +161,10 @@ def derive_goal_cost_summary(
         })
 
     total_steps = len(workflow_plan)
+    if plan_invalid:
+        steps_payg += 1
+        payg_triggered = True
+        total_steps = 1
     if payg_triggered:
         marginal_cost = "Metered PAYG (Check provider credit consumption)"
         firewall_status = FIREWALL_TRIGGERED
