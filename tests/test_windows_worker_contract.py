@@ -173,6 +173,9 @@ def go(daemon, monkeypatch, bridge, executions, effect=None, status="SUCCESS", t
 
     monkeypatch.setattr(daemon.urllib.request, "urlopen", bridge)
     monkeypatch.setattr(daemon, "run_task", execute)
+    # Host CPU load is not part of these phase tests. On a busy Windows runner
+    # a true probe consumes the call budget before the result ack is posted.
+    monkeypatch.setattr(daemon, "is_resource_pressure_high", lambda: False)
     with pytest.raises(StopLoop):
         daemon.loop()
 
