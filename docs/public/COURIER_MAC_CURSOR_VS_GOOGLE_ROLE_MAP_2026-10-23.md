@@ -1,4 +1,6 @@
 # Courier Symphony — Mac Agent Role Map: Cursor Ultra vs. Google Antigravity
+
+> **LATEST VERIFIED CHECKPOINT (23 October 2026):** [Goal-run completion, native scheduler state and Windows CI handoff V3](./GOAL_STOP_SCHEDULER_WINDOWS_CI_HANDOFF_V3_2026-10-23.md). The previously green `e9d7f1f29c26` snapshot below is historic. PR #835 is merged into newer `81bbf224b0ae`, with [Windows CI #40008119253](https://github.com/happyhippovip/2026-courier/actions/runs/40008119253) failing. The Google Antigravity Mac's reported 30-minute timer must not be interpreted as a Cursor Project subscription.
 **Public coordination reference | 23 October 2026 | Happy Hippo VIP / Courier Symphony**
 
 This page distinguishes tools, sessions and responsibilities. It does **not** link accounts or grant access. It intentionally contains no private account identities, credentials, local personal paths, or private project-memory contents.
