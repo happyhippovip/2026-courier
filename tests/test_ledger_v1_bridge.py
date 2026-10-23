@@ -677,6 +677,25 @@ def test_accepted_result_with_non_verified_resolution_is_not_final(tmp_path):
     assert "human_confirmed" in out
 
 
+def test_positive_cost_without_a_route_is_not_posted(tmp_path):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec(estimated_cost_eur=99.0)})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 2, err
+    assert "SPEND_NOT_ALLOWED_BY_POLICY" in out
+    assert http.posts == []
+
+
+def test_explicit_zero_cost_without_a_route_still_posts(tmp_path):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec(estimated_cost_eur=0.0)})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 0, err
+    assert len(http.posts) == 1
+
+
 def test_changed_result_does_not_write_a_second_final(tmp_path):
     http = FakeHTTP()
     home = _home(tmp_path, {"A": _spec()})

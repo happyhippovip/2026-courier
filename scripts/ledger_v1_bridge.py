@@ -254,7 +254,7 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
             emit({"mission_id": mission_id, "outcome": "skipped", "reason": route_reason})
             ok = False
             continue
-        if "agent_id" in spec or "host_id" in spec:
+        if "agent_id" in spec or "host_id" in spec or "estimated_cost_eur" in spec:
             cost_reason = _handoff_cost_block(spec)
             if cost_reason:
                 emit({
