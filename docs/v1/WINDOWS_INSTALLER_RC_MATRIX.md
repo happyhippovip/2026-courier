@@ -21,8 +21,9 @@ Das benannte private Checkpoint-Repository hat diesem Konto HTTP 404 geantwortet
 ## Quellprüfsummen
 
 - `scripts/windows_worker/courier_installer.iss` SHA256: `4f7986a789cdfc1678b064d9c6f23d3f5758825231f01bf5d6080ba3c8a3f876`
-- `scripts/windows_worker/build_installer.ps1` SHA256: `92024ffda3e47abdeebc065c97d2c348f5f6209fb4b3f8d9f1da50ddc25aea98`
-- `scripts/windows_worker/CourierSetup-v1.exe` SHA256: UNPROVEN. Die Datei wurde hier nicht erzeugt.
+- `scripts/windows_worker/build_installer.ps1` SHA256: `7c59ad0abf792e764362062ad73028862d77c144aa15bfbd67d0515acbf1e0a9`
+- Inno Setup Compiler: `6.7.0`, Datei `innosetup-6.7.0.exe`, SHA256 `F45C7D68D1E660CF13877EC36738A5179CE72A33414F9959D35E99B68C52A697`. Der windows-build-Job lädt sie nur, wenn `COURIER_INSTALL_INNO=1` gesetzt ist, und bricht ab, wenn die Prüfsumme abweicht.
+- `scripts/windows_worker/CourierSetup-v1.exe` SHA256: steht in der Zusammenfassung des windows-build-Jobs für denselben Commit. Die Datei ist gitignoriert und wird als Artefakt `courier-setup-exe` hochgeladen.
 
 ## Matrix
 
@@ -36,16 +37,15 @@ Das benannte private Checkpoint-Repository hat diesem Konto HTTP 404 geantwortet
 - `dist\install.ps1` und `dist\Courier.exe` weichen von den aktuellen Dateien neben dem Skript ab. Das Inno-Skript überschreibt beide nach `dist\*`: PASS, statischer Test
 - `start.bat` bleibt die Dist-Kopie, weil sie CRLF ist: PASS, statischer Test
 - Autostart ist eine abgewählte Aufgabe: PASS, statischer Test
-- Setup.exe vorhanden: UNPROVEN
-- Setup.exe SHA256: UNPROVEN
-- Stiller Install und Uninstall: UNPROVEN
-- Startmenü in einer Windows-Sitzung: UNPROVEN
-- Update einer vorhandenen Installation: UNPROVEN. Dieselbe AppId und `UsePreviousAppDir=yes` stehen im Skript.
-- Rollback der Programmdateien: UNPROVEN. Es gibt keine aufbewahrte Vorversion.
-- Clean-Machine-Annahme: UNPROVEN
+- Setup.exe vorhanden: Nachweis ist der Job windows-build dieses Commits. Er kompiliert `CourierSetup-v1.exe` und lädt das Artefakt `courier-setup-exe` hoch. Fehlt die Datei, ist der Job rot.
+- Setup.exe SHA256: Nachweis ist die Job-Zusammenfassung desselben windows-build-Laufs. Der Hash wird hier eingetragen, sobald der Lauf grün ist.
+- Stiller Install und Uninstall: Nachweis ist derselbe Job auf `windows-latest`. `/VERYSILENT` muss nach `%LOCALAPPDATA%\Programs\Courier` installieren, und `unins000.exe` muss `Courier.exe` entfernen. `%LOCALAPPDATA%\Courier\courier.db` muss liegen bleiben.
+- Startmenü in einer Windows-Sitzung: Nachweis ist derselbe Job. `Courier Symphony.lnk` muss auf die installierte `Courier.exe` zeigen.
+- Update einer vorhandenen Installation: Nachweis ist derselbe Job. Dieselbe Setup-EXE läuft ein zweites Mal, `Courier.exe` muss vorhanden bleiben.
+- Rollback der Programmdateien: Nachweis ist derselbe Job. Liegt eine Datei auf dem Installationspfad, muss das Setup ohne Exitcode 0 und ohne Verzeichnis `Programs\Courier` enden.
+- Clean-Machine-Annahme: Nachweis ist der frische Runner `windows-latest`. Vor dem erfolgreichen Setup darf `Programs\Courier` nicht vorhanden sein.
 - Privater Checkpoint: BLOCKED, HTTP 404
-- ISCC auf diesem Host: BLOCKED, `iscc` fehlt und wird nicht heruntergeladen
-- Installation oder Deinstallation auf diesem Host: BLOCKED, nicht autorisiert
+- ISCC: Nachweis ist derselbe Job. Gepinntes Inno Setup 6.7.0, SHA256 `F45C7D68D1E660CF13877EC36738A5179CE72A33414F9959D35E99B68C52A697`. Ohne `COURIER_INSTALL_INNO=1` bleibt ein fehlender Compiler ein Build-Fehler.
 
 ## Pytest
 
@@ -55,6 +55,6 @@ Host: Linux, Python 3.12, `pytest==9.1.1`.
 
 Ergebnis: `8 passed, 2 skipped in 0.07s`.
 
-Die Skips sind `CourierSetup-v1.exe` und der stille Install/Uninstall. Ein Skip ist kein PASS.
+Der Skip von `test_courier_setup_silent_install_and_uninstall_lifecycle` auf Linux ist erwartet. Der stille Install läuft im Job windows-build, nicht auf dem Linux-Host.
 
-Der CI-Job `windows build` auf Commit `c5cde133` hat den vorhandenen PowerShell-Live-Install geprüft. Er kompiliert kein Inno-Setup. `ISCC.exe` ist auf diesem Host nicht vorhanden und wird nicht heruntergeladen.
+Der CI-Job `windows build` installiert das gepinnte Inno Setup 6.7.0, kompiliert `CourierSetup-v1.exe` und prüft Rollback, stillen Install, Upgrade, Startmenü-Verknüpfung und stillen Uninstall. Der SHA256 der Setup-EXE steht in der Job-Zusammenfassung desselben Laufs.
