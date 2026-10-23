@@ -320,3 +320,11 @@ It still refuses to invent work when nothing new exists.
 
 That distinction is mandatory:
 **self-refilling does not mean fake-infinite work.**
+
+## 7. Admission gate
+
+`scripts/continuation_gate.py` decides whether one continuation may start. It does not send a prompt, start an agent, or register a scheduler.
+
+The fingerprint is `head|workkey|sha`. The same fingerprint is admitted once. A second pending copy is a duplicate. After proof, the same fingerprint is unchanged and starts no job. A new workkey or a new sha may be admitted once. An aborted session without proof is not replayed. A second sender does not take a live lease, and nobody takes a stale lease. Unknown or missing cost is rejected and is not stored as 0. Quota unknown or quota zero pauses. A `KILL` file stops admission. Admission also stops at five follow-ups or at 3600 seconds from the first admission in that generation.
+
+The Windows logon task starts `Courier.exe`. It is the product worker, not this gate.

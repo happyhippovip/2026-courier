@@ -14,6 +14,8 @@ def test_completed_fingerprint_is_not_requeued():
     assert "fingerprint is already completed" in text
     assert "A completed workkey does not send the same prompt again." in text
     assert "do not queue it again while that copy is pending" in text
+    assert "scripts/continuation_gate.py" in text
+    assert "Unknown or missing cost is rejected and is not stored as 0." in text
 
 
 def test_one_new_unit_can_still_be_queued():
