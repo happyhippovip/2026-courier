@@ -107,6 +107,27 @@ def test_gw23_01_cross_host_lease_fencing_and_foreign_immunity(lease_env):
     assert valid.holder == "win-02:pid200:3.0:successor"
 
 
+def test_gw23_05_forged_token_release_rejected(lease_env):
+    """GW23-05: Verify that presenting an invalid/forged token cannot release a live lease."""
+    store, _ = lease_env
+    live = store.acquire(
+        scope="worker:host-win-02",
+        holder="win-02:pid500:1.0:primary",
+        workkey="workkey:GW23-C",
+        ttl_s=60,
+    )
+    forged = replace(live, token=live.token + 99)
+    store.release(forged)
+
+    current = store.current("worker:host-win-02")
+    assert current is not None
+    assert current.holder == live.holder
+    assert current.token == live.token
+    assert store.check_write("worker:host-win-02", live.token).holder == live.holder
+    with pytest.raises(StaleLease):
+        store.check_write("worker:host-win-02", forged.token)
+
+
 # ==============================================================================
 # GW23-02: Cross-Host Receipt Tamper Detection & Integrity
 # ==============================================================================
