@@ -48,6 +48,13 @@ def test_unopenable_lease_store_does_not_run_on_the_file_lock(tmp_path, monkeypa
     assert daemon._worker_lease is None
 
 
+def test_loop_does_not_exit_clean_when_the_lease_store_is_unreadable(tmp_path, monkeypatch):
+    daemon = load_daemon(tmp_path, monkeypatch)
+    (daemon.STATE_DIR / "authority.db").write_bytes(b"this is not a sqlite database")
+    with pytest.raises(RuntimeError, match="canonical writer lease"):
+        daemon.loop()
+
+
 def test_foreign_lease_does_not_start_the_daemon(tmp_path, monkeypatch):
     daemon = load_daemon(tmp_path, monkeypatch)
     store = daemon.get_authority_store()
