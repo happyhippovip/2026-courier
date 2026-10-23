@@ -218,6 +218,28 @@ def test_file_lock_without_canonical_lease_exits_3(tmp_path, monkeypatch):
     assert not lock_file.exists()
 
 
+def test_missing_server_does_not_use_a_lan_default(tmp_path, monkeypatch):
+    """CUR-WIN-084: no configured server must not fall back to a private LAN."""
+    monkeypatch.delenv("COURIER_SERVER", raising=False)
+    monkeypatch.delenv("COURIER_SERVER_URL", raising=False)
+    daemon = load_daemon(tmp_path, monkeypatch)
+    source = daemon.Path(daemon.__file__).read_text(encoding="utf-8")
+    assert "192.168.178.162" not in source
+    cfg = {"WORKER_ID": "WIN-01", "COURIER_API_KEY": "dummy-test-key-not-real"}
+    (daemon.APP_DATA_DIR / "config.json").write_text(__import__("json").dumps(cfg))
+    daemon.API_URL = ""
+    calls = []
+    monkeypatch.setattr(daemon.urllib.request, "urlopen", lambda *a, **k: calls.append(a))
+    assert daemon.main() == 4
+    assert calls == []
+
+
+def test_configured_server_is_used(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_SERVER", "http://courier.invalid")
+    daemon = load_daemon(tmp_path, monkeypatch)
+    assert daemon.API_URL == "http://courier.invalid"
+
+
 def test_missing_credential_exits_2(tmp_path, monkeypatch):
     daemon = load_daemon(tmp_path, monkeypatch)
     cfg = {"COURIER_SERVER": "http://courier.invalid", "WORKER_ID": "WIN-01", "COURIER_API_KEY": ""}

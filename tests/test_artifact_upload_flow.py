@@ -238,6 +238,7 @@ class Harness:
 def windows_daemon(tmp_path, monkeypatch, harness, executions, content=b"ok\n"):
     import importlib.util
     monkeypatch.setenv("COURIER_API_KEY", "test-secret")
+    monkeypatch.setenv("COURIER_SERVER", "http://courier.invalid")
     monkeypatch.setenv("COURIER_ARTIFACT_UPLOAD", "1")
     spec = importlib.util.spec_from_file_location("win_daemon_upload", ROOT / "scripts/windows_worker/daemon.py")
     d = importlib.util.module_from_spec(spec)

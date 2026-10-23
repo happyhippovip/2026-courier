@@ -21,6 +21,7 @@ Push of `29d5eb2b9` to `origin/cursor/windows-lock-import-be3a` completed. No me
 | 1 | Any other unexpected start error. |
 | 2 | `COURIER_API_KEY` is missing. No network call. |
 | 3 | Canonical lease missing, unreadable, stale, or refused. |
+| 4 | `COURIER_SERVER` is missing. No private LAN address is used. |
 
 A file lock without a canonical lease is exit 3. It is not exit 0.
 
@@ -93,4 +94,4 @@ Deduplicated from what is still open. Do not restart 031–080.
 1. CUR-WIN-081 — Read CI for `29d5eb2b9` on PR #829. Fix only failures in the files this branch owns.
 2. CUR-WIN-082 — On an authorized Windows host that already has Inno Setup 6, build `CourierSetup-v1.exe` and record its real SHA256. Until then this stays BLOCKED.
 3. CUR-WIN-083 — Silent install, uninstall, rollback, and clean-machine acceptance on an explicitly authorized test machine.
-4. CUR-WIN-084 — `daemon.py` still falls back to `http://192.168.178.162:8080` when no server is configured. A missing server must fail closed.
+4. CUR-WIN-084 — Done in the commit after this checkpoint's behavior SHA. A missing `COURIER_SERVER` exits 4 and does not use `192.168.178.162`. CI for that commit is separate from run `39934137170`.

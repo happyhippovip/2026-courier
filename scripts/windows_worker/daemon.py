@@ -9,11 +9,11 @@ if str(_SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_DIR))
 from integration_contract import canonical_result_id
 
-# No fallback key exists. The key comes from COURIER_API_KEY or, failing that,
-# from config.json where bootstrap.ps1 stores it; the server URL from
-# COURIER_SERVER (COURIER_SERVER_URL accepted), then config.json, then the default.
-DEFAULT_SERVER = "http://192.168.178.162:8080"
-API_URL = (os.environ.get("COURIER_SERVER") or os.environ.get("COURIER_SERVER_URL") or DEFAULT_SERVER).rstrip("/")
+# No fallback key and no fallback address. The key comes from COURIER_API_KEY
+# or, failing that, from config.json where bootstrap.ps1 stores it. The server
+# comes from COURIER_SERVER (COURIER_SERVER_URL accepted), then config.json.
+# A missing server must not become a private LAN address.
+API_URL = (os.environ.get("COURIER_SERVER") or os.environ.get("COURIER_SERVER_URL") or "").strip().rstrip("/")
 API_KEY = os.environ.get("COURIER_API_KEY", "").strip()
 HEADERS = {
     "Authorization": f"Bearer {API_KEY}",
@@ -22,6 +22,10 @@ HEADERS = {
 
 class MissingCredentialError(RuntimeError):
     pass
+
+
+class MissingServerError(RuntimeError):
+    """The process must stop. There is no default server address."""
 
 
 class CanonicalLeaseLost(RuntimeError):
@@ -68,6 +72,14 @@ def require_api_key():
     """Fail closed before any network call when no API key is configured."""
     if not API_KEY:
         raise MissingCredentialError("COURIER_API_KEY is not set (environment, controller.token, or config.json); refusing to contact the Courier server.")
+
+
+def require_server():
+    """Fail closed before any network call when no server URL is configured."""
+    if not API_URL or "://" not in API_URL:
+        raise MissingServerError(
+            "COURIER_SERVER is not set (environment or config.json); refusing to contact a default address."
+        )
 
 
 def setup_logging():
@@ -558,6 +570,7 @@ def loop():
     config = load_config()
     apply_config_credentials(config)
     require_api_key()
+    require_server()
     worker_id = config["WORKER_ID"]
     
     lock_path = acquire_lock(worker_id)
@@ -680,6 +693,9 @@ def main():
     except MissingCredentialError as e:
         print(f"FATAL: {e}", file=sys.stderr)
         return 2
+    except MissingServerError as e:
+        print(f"FATAL: {e}", file=sys.stderr)
+        return 4
     except CanonicalLeaseLost as e:
         print(f"FATAL: {e}", file=sys.stderr)
         return 3
