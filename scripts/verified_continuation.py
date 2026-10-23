@@ -66,6 +66,11 @@ def canonical_json_hash(data: Any) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+# Identity of this process life for claim renewal. A pid is reused (containers, Windows),
+# so a restarted process with the same pid must not count as the holder of a dead claim.
+_PROCESS_NONCE = uuid.uuid4().hex
+
+
 def _claim_is_active(data: Any, now: float, fallback_ttl: Any) -> Optional[bool]:
     """True when a claim is still inside a known lease window.
 
@@ -103,7 +108,13 @@ class VerifiedContinuation:
     # 1. Atomic Claim Management
     # -------------------------------------------------------------------------
     def claim(self, workkey: str, owner: str = "google-antigravity", ttl_s: int = 3600) -> bool:
-        """Atomically claim a workkey using O_EXCL file creation and lease verification."""
+        """Atomically claim a workkey using O_EXCL file creation and lease verification.
+
+        Only the process that holds a claim may renew it (same owner and the same process
+        nonce; the default owner string is shared by every process and a pid is reused). An expired claim is not proof that its
+        unit stopped (it may not have written a partial yet), so it is never taken over
+        here: a human frees it with :meth:`reclaim`.
+        """
         validate_workkey(workkey)
         claim_file = self.claims_dir / f"{workkey}.claim"
         now = datetime.datetime.now(datetime.timezone.utc).timestamp()
@@ -119,44 +130,29 @@ class VerifiedContinuation:
                 data = json.loads(claim_file.read_text(encoding="utf-8"))
             except (OSError, UnicodeError, json.JSONDecodeError, TypeError, ValueError):
                 return False
-            active = _claim_is_active(data, now, ttl_s)
-            if active is None:
+            if _claim_is_active(data, now, ttl_s) is None:
                 return False
-            if active:
-                if data.get("owner") == owner:
-                    claim_data = {
-                        "workkey": workkey,
-                        "owner": owner,
-                        "pid": os.getpid(),
-                        "created_at_iso": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                        "created_at_ts": now,
-                        "ttl_s": ttl_s,
-                    }
-                    temp_claim = self.claims_dir / f"{workkey}.claim.{uuid.uuid4().hex[:8]}.tmp"
-                    temp_claim.write_text(json.dumps(claim_data, indent=2), encoding="utf-8")
-                    os.replace(temp_claim, claim_file)
-                    return True
-                return False
-            # Expired lease: check for verified results or unreconciled partial state before reclaim (H10)
-            verified_result = self.results_dir / f"{workkey}.result"
-            if verified_result.exists():
-                # Task already successfully completed; do not re-execute or overwrite
-                return False
-            partial_result = self.results_dir / f"{workkey}.partial"
-            if partial_result.exists() and os.environ.get("COURIER_AUTONOMOUS") == "1":
-                # In-flight partial mutation exists without verified outcome:
-                # fail-closed to prevent duplicate side effects until human/verifier reconciliation
-                return False
-
-            try:
-                claim_file.unlink(missing_ok=True)
-            except OSError:
-                return False
+            if data.get("owner") == owner and data.get("holder_nonce") == _PROCESS_NONCE:
+                claim_data = {
+                    "workkey": workkey,
+                    "owner": owner,
+                    "pid": os.getpid(),
+                    "holder_nonce": _PROCESS_NONCE,
+                    "created_at_iso": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                    "created_at_ts": now,
+                    "ttl_s": ttl_s,
+                }
+                temp_claim = self.claims_dir / f"{workkey}.claim.{uuid.uuid4().hex[:8]}.tmp"
+                temp_claim.write_text(json.dumps(claim_data, indent=2), encoding="utf-8")
+                os.replace(temp_claim, claim_file)
+                return True
+            return False
 
         claim_data = {
             "workkey": workkey,
             "owner": owner,
             "pid": os.getpid(),
+            "holder_nonce": _PROCESS_NONCE,
             "created_at_iso": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "created_at_ts": now,
             "ttl_s": ttl_s,
@@ -171,6 +167,48 @@ class VerifiedContinuation:
             return False
         except OSError:
             return False
+
+    def reclaim(self, workkey: str, actor: str, reason: str) -> dict:
+        """A human frees an expired or unreadable claim; the old claim is kept with the decision.
+
+        Refused while the lease is live and when a verified result exists (H10: the unit is
+        done, running it again would repeat its effect). A partial result stays the human's
+        call: the reason should say how it was reconciled.
+        """
+        validate_workkey(workkey)
+        for name, value in (("actor", actor), ("reason", reason)):
+            if not isinstance(value, str) or not value.strip() or len(value) > 200 or any(c in value for c in "\r\n"):
+                raise ValueError(f"reclaim needs a one-line {name}")
+        claim_file = self.claims_dir / f"{workkey}.claim"
+        if claim_file.is_symlink() or not claim_file.exists():
+            raise ValueError("no local claim to reclaim")
+        if ((self.results_dir / f"{workkey}.result").exists()
+                or (self.checkpoints_dir / f"{workkey}.checkpoint.json").exists()):
+            raise ValueError("a verified result or checkpoint exists; the unit is done")
+        try:
+            previous = json.loads(claim_file.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError, TypeError, ValueError):
+            previous = None
+        now = datetime.datetime.now(datetime.timezone.utc)
+        if _claim_is_active(previous, now.timestamp(), None) is True:
+            raise ValueError("the lease is live; only its holder may release it")
+        record = {"workkey": workkey, "actor": actor.strip(), "reason": reason.strip(),
+                  "at": now.isoformat(), "previous": previous if isinstance(previous, dict) else None}
+        aside = self.claims_dir / f"{workkey}.claim.reclaimed-{now.strftime('%Y%m%dT%H%M%S%fZ')}"
+        # Move first (atomic), then re-check what was moved: a renewal that landed between the
+        # read above and the move is put back instead of being taken away from its holder.
+        os.replace(claim_file, aside)
+        try:
+            moved = json.loads(aside.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError, TypeError, ValueError):
+            moved = None
+        if _claim_is_active(moved, datetime.datetime.now(datetime.timezone.utc).timestamp(), None) is True:
+            if not claim_file.exists():
+                os.replace(aside, claim_file)
+            raise ValueError("the lease was renewed meanwhile; only its holder may release it")
+        record["previous"] = moved if isinstance(moved, dict) else None
+        aside.write_text(json.dumps(record, indent=2), encoding="utf-8")
+        return record
 
     def is_claimed(self, workkey: str) -> Optional[dict]:
         validate_workkey(workkey)
@@ -542,6 +580,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--workkey", type=str, help="Single workkey to execute")
     parser.add_argument("--mode", type=str, default="MODE_A_LOCAL_DETERMINISTIC", choices=[m.value for m in ExecutionMode])
     parser.add_argument("--ledger-dir", type=str, default=None, help="Custom ledger directory for isolated testing")
+    parser.add_argument("--reclaim", type=str, help="Free an expired or unreadable claim (human decision)")
+    parser.add_argument("--actor", type=str, help="Who decides the reclaim")
+    parser.add_argument("--reason", type=str, help="Why the claim may be freed")
     args = parser.parse_args(argv)
 
     ledger_path = Path(args.ledger_dir) if args.ledger_dir else None
@@ -568,10 +609,25 @@ def main(argv: Optional[List[str]] = None) -> int:
         print(json.dumps(report, indent=2))
         return 0
 
+    if args.reclaim:
+        try:
+            record = engine.reclaim(args.reclaim, args.actor, args.reason)
+        except ValueError as exc:
+            print(f"[CONTINUATION] Reclaim refused for {args.reclaim}: {exc}")
+            return 2
+        print(f"[CONTINUATION] Reclaimed {args.reclaim} by {record['actor']}.")
+        return 0
+
     if args.workkey:
         claimed = engine.claim(args.workkey)
         if not claimed:
-            print(f"[CONTINUATION] Could not claim {args.workkey}. Active lease exists.")
+            held = engine.is_claimed(args.workkey) or {}
+            now = datetime.datetime.now(datetime.timezone.utc).timestamp()
+            if _claim_is_active(held, now, None) is True:
+                print(f"[CONTINUATION] Could not claim {args.workkey}. Active lease exists.")
+            else:
+                print(f"[CONTINUATION] Could not claim {args.workkey}: the claim is expired or unreadable, "
+                      f"its unit may still run. A human frees it with --reclaim {args.workkey} --actor --reason.")
             return 1
         print(f"[CONTINUATION] Claimed {args.workkey}.")
         unit = {"task_id": f"task-{args.workkey}", "workkey": args.workkey, "instruction": f"Run {args.workkey}"}
