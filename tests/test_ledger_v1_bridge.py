@@ -675,3 +675,28 @@ def test_accepted_result_with_non_verified_resolution_is_not_final(tmp_path):
     code, out, err, log, lines = _run(home, http)
     assert _finals(home) == []
     assert "human_confirmed" in out
+
+
+def test_changed_result_does_not_write_a_second_final(tmp_path):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec()})
+    _seed(home, [_ready("A", "a-assign")])
+    assert _run(home, http)[0] == 0
+    task_id = next(iter(http.views))
+    http.views[task_id].update({
+        "status": "COMPLETE",
+        "attempt": 1,
+        "accepted_result_id": "result-a",
+        "resolution": "verified",
+    })
+    code, out, err, log, lines = _run(home, http)
+    assert code == 0, err
+    assert len(_finals(home)) == 1
+    http.views[task_id]["accepted_result_id"] = "result-b"
+    code, out, err, log, lines = _run(home, http)
+    assert code == 2
+    assert "result_changed" in out
+    assert len(_finals(home)) == 1
+    state = json.loads((home / "ledger_bridge_state.json").read_text(encoding="utf-8"))
+    assert state["missions"]["A"]["accepted_result_id"] == "result-a"
+    assert state["missions"]["A"]["status"] == "FINAL_DONE"

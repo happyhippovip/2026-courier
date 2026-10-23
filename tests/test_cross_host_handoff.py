@@ -188,3 +188,20 @@ def test_sender_restart_does_not_post_the_mac_mission_twice(tmp_path):
     assert _run(home, http, AGENT, HOST)[0] == 0
     assert len(http.posts) == 1
     assert TOKEN not in json.dumps(http.posts)
+
+
+def test_host_id_without_agent_still_blocks_unknown_cost(tmp_path):
+    http = FakeHTTP()
+    spec_b = _spec(params={"unit": "b"}, host_id=MAC_HOST)
+    home = _home(tmp_path, {"A": _spec(), "B": spec_b})
+    _seed(home, [
+        _ready("A", "a-assign", "2026-10-23T08:00:00Z"),
+        _mac_ready("B", "b-assign", "2026-10-23T08:00:01Z", deps=["A"]),
+    ])
+    assert _run(home, http, AGENT, HOST)[0] == 0
+    _finish_a(http)
+    assert _run(home, http, AGENT, HOST)[0] == 0
+    code, out, err = _run(home, http, MAC, MAC_HOST)
+    assert code == 2, err
+    assert "UNKNOWN_COST" in out
+    assert len(http.posts) == 1

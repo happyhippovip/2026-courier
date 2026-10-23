@@ -175,20 +175,36 @@ def _feedback(store, state, specs, agent, host, args, transport, token, emit, ho
             emit({"mission_id": mission_id, "outcome": "skipped", "reason": "not_final"})
             ok = False
             continue
+        if (
+            event.event_type == EventType.FINAL
+            and mission.get("status") == MissionStatus.DONE
+            and mapping.get("status") == "FINAL_DONE"
+        ):
+            # One FINAL. A later accepted_result_id must not append a second one.
+            # A missing receipt is rewritten once. An unreadable log still fails closed.
+            if _verified_result_id(view) != mapping.get("accepted_result_id"):
+                emit({"mission_id": mission_id, "outcome": "skipped", "reason": "result_changed"})
+                ok = False
+                continue
+            try:
+                if _receipt_present(home, mission_id, "final"):
+                    continue
+            except ConfigError:
+                emit({
+                    "mission_id": mission_id,
+                    "outcome": "skipped",
+                    "reason": "receipt_log_unreadable",
+                })
+                ok = False
+                continue
+            emit({"mission_id": mission_id, "outcome": "final", "task_id": mapping.get("task_id")})
+            continue
         wrote = _write_new(store, reducer, event)
-        status_name, reason_code = _status_for_outcome(event, view)
-        _stamp(
-            home / "ledger_bridge_state.json", state, mapping, status_name, reason_code,
-            accepted_result_id=_result_id(view),
-            attempt=view.get("attempt"),
-            evidence_ref=event.evidence_ref,
-            spec_fingerprint=mapping.get("spec_fingerprint") or _fingerprint(spec or {}),
-            source_sha=_recorded_source(mapping, spec),
-        )
         outcome = event.event_type.value.lower()
         # The ledger line is durable before the log line. A crash in between
         # must still produce that receipt exactly once on the next invocation.
         # An unreadable log is not proof the receipt was written.
+        # A rejected event must not stamp FINAL_DONE or emit final.
         if not wrote:
             try:
                 if _receipt_present(home, mission_id, outcome):
@@ -201,6 +217,24 @@ def _feedback(store, state, specs, agent, host, args, transport, token, emit, ho
                 })
                 ok = False
                 continue
+            expected = {
+                EventType.FINAL: MissionStatus.DONE,
+                EventType.BLOCKED: MissionStatus.BLOCKED,
+                EventType.ERROR: MissionStatus.ERROR,
+            }.get(event.event_type)
+            if mission.get("status") != expected:
+                emit({"mission_id": mission_id, "outcome": "skipped", "reason": "ledger_rejected"})
+                ok = False
+                continue
+        status_name, reason_code = _status_for_outcome(event, view)
+        _stamp(
+            home / "ledger_bridge_state.json", state, mapping, status_name, reason_code,
+            accepted_result_id=_result_id(view),
+            attempt=view.get("attempt"),
+            evidence_ref=event.evidence_ref,
+            spec_fingerprint=mapping.get("spec_fingerprint") or _fingerprint(spec or {}),
+            source_sha=_recorded_source(mapping, spec),
+        )
         emit({"mission_id": mission_id, "outcome": outcome, "task_id": mapping.get("task_id")})
     return ok
 
@@ -220,7 +254,7 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
             emit({"mission_id": mission_id, "outcome": "skipped", "reason": route_reason})
             ok = False
             continue
-        if "agent_id" in spec:
+        if "agent_id" in spec or "host_id" in spec:
             cost_reason = _handoff_cost_block(spec)
             if cost_reason:
                 emit({
