@@ -63,14 +63,12 @@ def run_once(kirby, slot, signal_path, state, on_wake_ready=None, engine=None):
     after recording the notice and invokes ``on_wake_ready(slot, workkey, token)``.
     ``engine``, when given, is the LedgerEngine a DONE line must pass through.
     Without it a DONE line is NOT_PROVEN and does not finalise the workkey.
+    Tick and drain reload the campaign file under the same exclusive lock
+    finish_turn uses, so another host cannot be overwritten by a stale image.
     Returns (results, actions, notices). Missing/truncated signal file is
     fail-closed: no lines fed, offset reset, tick still runs on cadence.
     """
     results, actions, notices = [], {}, []
-    # main() keeps this Kirby for the process lifetime. Adopt a DONE that
-    # finish_turn saved through its own Kirby before tick or drain writes.
-    if kirby.path.exists():
-        kirby._load()
     size = _file_size(signal_path)
     if size is None:
         pass                                                    # no signal file yet: tick only
@@ -80,15 +78,24 @@ def run_once(kirby, slot, signal_path, state, on_wake_ready=None, engine=None):
         lines, state["offset"] = read_new_lines(signal_path, state["offset"])
         if lines:
             results = drive(kirby, slot, lines, engine=engine)  # only new lines; never prequeued
-    if kirby.clock() - state.get("last_tick", 0.0) >= HEALTH_TICK_S:
-        actions = kirby.tick()                                  # fast fallback + 15-min snapshot cadence
-        state["last_tick"] = kirby.clock()
-    notices = _notice(kirby, slot, state)
-    if on_wake_ready is not None:
-        workkey = drain_pending(kirby, slot)
-        if workkey is not None:
-            session = kirby.sessions.get(slot)
-            on_wake_ready(slot, workkey, session.token if session else 0)
+    # Same lock LedgerEngine.finish_turn holds. Reload inside it so a tick
+    # cannot snapshot CLAIMED over a DONE another host published. Do not hold
+    # the lock across drive(): finish_turn takes it and it is not re-entrant.
+    # This does not construct a LedgerEngine.
+    from courier_runtime.ledger_engine import _exclusive
+    lock_path = kirby.path.with_suffix(kirby.path.suffix + ".lock")
+    with _exclusive(lock_path):
+        if kirby.path.exists():
+            kirby._load()
+        if kirby.clock() - state.get("last_tick", 0.0) >= HEALTH_TICK_S:
+            actions = kirby.tick()                              # fast fallback + 15-min snapshot cadence
+            state["last_tick"] = kirby.clock()
+        notices = _notice(kirby, slot, state)
+        if on_wake_ready is not None:
+            workkey = drain_pending(kirby, slot)
+            if workkey is not None:
+                session = kirby.sessions.get(slot)
+                on_wake_ready(slot, workkey, session.token if session else 0)
     return results, actions, notices
 
 

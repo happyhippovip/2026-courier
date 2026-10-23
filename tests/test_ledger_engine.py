@@ -210,6 +210,15 @@ def _claim_in_process(path, slot, out):
     out.put((slot, got[0] if got else None))
 
 
+def _tick_in_process(path, signals, out):
+    """A second host's loop tick. It must wait for the campaign lock, then adopt disk."""
+    from courier_runtime.continuity import Kirby
+    from courier_runtime.host_loop import run_once
+    kirby = Kirby(path, "host-b")
+    run_once(kirby, "S1", signals, {"offset": 0, "last_tick": 0.0, "notified": {}})
+    out.put(json.loads(path.read_text(encoding="utf-8"))["workkeys"]["WK-1"]["state"])
+
+
 def test_two_processes_never_claim_the_same_workkey(tmp_path):
     path = tmp_path / "campaign" / "kirby.json"
     seed = LedgerEngine(None, path, "host-a")
@@ -231,6 +240,37 @@ def test_two_processes_never_claim_the_same_workkey(tmp_path):
     owners = {k: v["owner"] for k, v in state["workkeys"].items()}
     holders = {s["workkey"]: s["session_id"] for s in state["sessions"].values() if s["workkey"]}
     assert owners == holders                                                   # file agrees with every winner
+
+
+def test_host_tick_on_another_host_waits_and_keeps_done(tmp_path):
+    """A second host's tick shares the campaign lock. It must not snapshot a
+    CLAIMED image over a DONE the lock holder has already published."""
+    from courier_runtime.ledger_engine import LedgerEngine, _exclusive
+
+    path = tmp_path / "campaign" / "kirby.json"
+    seed = LedgerEngine(None, path, "host-a")
+    seed.add_workkeys(["WK-1"])
+    seed.open_slot("S1", "local")
+    seed.next("S1")
+    signals = tmp_path / "campaign" / "signals.log"
+    signals.write_text("", encoding="utf-8")
+    ctx = multiprocessing.get_context("spawn")
+    out = ctx.Queue()
+    with _exclusive(seed.lock_path):
+        proc = ctx.Process(target=_tick_in_process, args=(path, signals, out))
+        proc.start()
+        proc.join(3)
+        assert proc.is_alive()
+        saved = json.loads(path.read_text(encoding="utf-8"))
+        saved["workkeys"]["WK-1"]["state"] = DONE
+        saved["workkeys"]["WK-1"]["owner"] = ""
+        saved["workkeys"]["WK-1"]["checkpoint"] = "step | journal:7:RESULT_ACCEPTED"
+        path.write_text(json.dumps(saved), encoding="utf-8")
+    proc.join(30)
+    assert proc.exitcode == 0
+    assert out.get(timeout=5) == DONE
+    assert kirby_state(path)["workkeys"]["WK-1"]["state"] == DONE
+    assert kirby_state(path)["workkeys"]["WK-1"]["checkpoint"].endswith(":RESULT_ACCEPTED")
 
 
 def test_a_held_campaign_lock_makes_another_process_wait(tmp_path):
