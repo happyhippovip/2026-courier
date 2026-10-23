@@ -193,7 +193,7 @@ jobs:
         run: |
           & scripts\windows_worker\build_installer.ps1 -VerifyInstall
           $hash = (Get-FileHash scripts\windows_worker\CourierSetup-v1.exe -Algorithm SHA256).Hash
-          "CourierSetup-v1.exe SHA256 $hash (built from $env:GITHUB_SHA with Inno Setup 6.7.0)" | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY
+          "CourierSetup-v1.exe SHA256 $hash (built from $env:GITHUB_SHA)" | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY
 
       - name: Upload the setup built from this commit
         uses: actions/upload-artifact@v4
