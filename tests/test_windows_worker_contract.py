@@ -173,6 +173,7 @@ def go(daemon, monkeypatch, bridge, executions, effect=None, status="SUCCESS", t
 
     monkeypatch.setattr(daemon.urllib.request, "urlopen", bridge)
     monkeypatch.setattr(daemon, "run_task", execute)
+    monkeypatch.setattr(daemon, "is_resource_pressure_high", lambda: False)
     with pytest.raises(StopLoop):
         daemon.loop()
 
