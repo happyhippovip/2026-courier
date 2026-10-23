@@ -55,12 +55,14 @@ def drain_pending(kirby, slot):
     return kirby.deliver(slot)
 
 
-def run_once(kirby, slot, signal_path, state, on_wake_ready=None):
+def run_once(kirby, slot, signal_path, state, on_wake_ready=None, engine=None):
     """One loop iteration. ``state`` = {"offset": int, "last_tick": float,
     "notified": {slot: [session_id, workkey, token]}}; mutated in place.
 
     If ``on_wake_ready`` is provided, drains the single pending wake for ``slot``
     after recording the notice and invokes ``on_wake_ready(slot, workkey, token)``.
+    ``engine``, when given, is the LedgerEngine a DONE line must pass through.
+    Without it a DONE line is NOT_PROVEN and does not finalise the workkey.
     Returns (results, actions, notices). Missing/truncated signal file is
     fail-closed: no lines fed, offset reset, tick still runs on cadence.
     """
@@ -73,7 +75,7 @@ def run_once(kirby, slot, signal_path, state, on_wake_ready=None):
             state["offset"] = 0                                 # file rotated/truncated: reread
         lines, state["offset"] = read_new_lines(signal_path, state["offset"])
         if lines:
-            results = drive(kirby, slot, lines)                 # only new lines; never prequeued
+            results = drive(kirby, slot, lines, engine=engine)  # only new lines; never prequeued
     if kirby.clock() - state.get("last_tick", 0.0) >= HEALTH_TICK_S:
         actions = kirby.tick()                                  # fast fallback + 15-min snapshot cadence
         state["last_tick"] = kirby.clock()

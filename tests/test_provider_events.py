@@ -47,16 +47,16 @@ def kirby(tmp_path, **kw):
     return k, clock, world, provider_events
 
 
-def test_20_turn_ended_lines_complete_campaign_without_manual_continue(tmp_path):
+def test_turn_ended_done_lines_do_not_complete_without_journal_proof(tmp_path):
     k, _, _, ev = kirby(tmp_path)
     k.add_workkeys([f"W{i:02d}" for i in range(20)])
     k.open_slot("antigravity-1", "antigravity")
     assert ev.drive(k, "antigravity-1", ["IDLE"]) == [WAKE_PENDING]
-    for _ in range(20):
-        assert k.deliver("antigravity-1") is not None
-        ev.drive(k, "antigravity-1", ["TURN_ENDED outcome=DONE checkpoint=step-done"])
-    assert all(w.state == DONE for w in k.workkeys.values())
-    assert k.counters["manual_continue"] == 0 and k.user_state() == "DONE"
+    assert k.deliver("antigravity-1") is not None
+    done = ["TURN_ENDED outcome=DONE checkpoint=step-done"] * 20
+    assert ev.drive(k, "antigravity-1", done) == ["NOT_PROVEN"] * 20
+    assert all(w.state != DONE for w in k.workkeys.values())
+    assert k.counters["completions"] == 0 and k.counters["manual_continue"] == 0
 
 
 def test_blocked_turn_parks_workkey_and_campaign_continues(tmp_path):
@@ -69,8 +69,8 @@ def test_blocked_turn_parks_workkey_and_campaign_continues(tmp_path):
     assert ev.drive(k, "s1", ["TURN_ENDED outcome=BLOCKED reason=missing credential"]) == [WAKE_PENDING]
     assert k.workkeys["needs-credential"].state == BLOCKED
     assert k.deliver("s1") == "W2"                       # session moved on
-    ev.drive(k, "s1", ["TURN_ENDED outcome=DONE"])
-    assert k.workkeys["W2"].state == DONE
+    assert ev.drive(k, "s1", ["TURN_ENDED outcome=DONE"]) == ["NOT_PROVEN"]
+    assert k.workkeys["W2"].state != DONE
 
 
 def test_100_idle_lines_while_working_coalesce_to_single_execution(tmp_path):
@@ -122,14 +122,15 @@ def test_unproven_rotation_is_reported_as_blocked_not_rotated(tmp_path):
     assert k.workkeys["W1"].state != DONE
 
 
-def test_turn_ended_without_claim_reconciles_and_wakes_next_work(tmp_path):
+def test_turn_ended_done_while_claimed_is_not_proven(tmp_path):
     k, _, _, ev = kirby(tmp_path)
     k.add_workkeys(["W1"])
     k.open_slot("s1", "muse")
     ev.drive(k, "s1", ["IDLE"])
-    assert ev.drive(k, "s1", ["TURN_ENDED outcome=DONE"]) == ["IDLE"]          # claim held: completed, nothing left
-    assert k.workkeys["W1"].state == DONE and k.counters["completions"] == 1
-    assert ev.drive(k, "s1", ["TURN_ENDED outcome=DONE"]) == ["IDLE"]          # nothing claimed: reconcile only
+    assert ev.drive(k, "s1", ["TURN_ENDED outcome=DONE"]) == ["NOT_PROVEN"]
+    assert k.workkeys["W1"].state != DONE and k.counters["completions"] == 0
+    assert ev.drive(k, "s1", ["TURN_ENDED outcome=DONE"]) == ["NOT_PROVEN"]
+    assert k.counters["completions"] == 0
 
 
 def test_ingress_to_unknown_slot_is_ignored(tmp_path):
@@ -203,19 +204,18 @@ def test_invalid_utf8_terminal_record_cannot_complete_work(tmp_path):
     assert k.workkeys["W1"].state != DONE and offset == p.stat().st_size
 
 
-def test_replayed_done_line_never_double_completes(tmp_path):
-    # Log rotation / offset reset may re-feed an identical DONE line; the
-    # stale-writer guard must reconcile instead of completing twice.
+def test_replayed_done_line_never_completes_without_proof(tmp_path):
+    # Log rotation / offset reset may re-feed an identical DONE line. Neither
+    # copy may complete the workkey: a provider signal is not journal proof.
     k, _, _, ev = kirby(tmp_path)
     k.add_workkeys(["W1"])
     k.open_slot("s1", "muse")
     ev.handle(k, "s1", "IDLE")
     assert k.deliver("s1") == "W1"
     line = "TURN_ENDED outcome=DONE checkpoint=step1"
-    ev.drive(k, "s1", [line])
-    assert k.workkeys["W1"].state == DONE
-    assert k.counters["completions"] == 1
-    ev.drive(k, "s1", [line])
-    assert k.workkeys["W1"].state == DONE
-    assert k.counters["completions"] == 1
-    assert k.sessions["s1"].workkey == ""
+    assert ev.drive(k, "s1", [line]) == ["NOT_PROVEN"]
+    assert k.workkeys["W1"].state != DONE
+    assert k.counters["completions"] == 0
+    assert ev.drive(k, "s1", [line]) == ["NOT_PROVEN"]
+    assert k.counters["completions"] == 0
+    assert k.sessions["s1"].workkey == "W1"

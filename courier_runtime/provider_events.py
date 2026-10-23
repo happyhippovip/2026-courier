@@ -18,8 +18,11 @@ remainder of the line and therefore come last)::
 Fail-closed: unknown lines are IGNORED, an unknown/missing outcome
 reconciles as STILL_OPEN and never completes work, and events for an
 unknown slot are IGNORED_NO_SLOT (slots are opened explicitly so the pool
-cap is never bypassed). This module never spawns windows or processes;
-session start stays Kirby's injected ``start_session``.
+cap is never bypassed). A TURN_ENDED outcome=DONE line is not a workkey
+final: without a ledger engine it returns NOT_PROVEN, and with one it
+calls LedgerEngine.finish_turn, which marks DONE only when that workkey's
+task has a journal RESULT_ACCEPTED. This module never spawns windows or
+processes; session start stays Kirby's injected ``start_session``.
 """
 OUTCOMES = ("DONE", "BLOCKED", "STILL_OPEN", "FAILED_FINAL")
 
@@ -51,8 +54,12 @@ def parse_line(line):
     return kind, fields, raw.strip()
 
 
-def handle(kirby, slot, line):
-    """Feed one provider line to Kirby for ``slot``. Returns a result string."""
+def handle(kirby, slot, line, engine=None):
+    """Feed one provider line to Kirby for ``slot``. Returns a result string.
+
+    ``engine``, when given, is the LedgerEngine that may finalise a DONE
+    signal. A DONE signal never calls Kirby.on_turn_end directly.
+    """
     kind, fields, raw = parse_line(line)
     if kind is None:
         return "IGNORED"
@@ -77,15 +84,26 @@ def handle(kirby, slot, line):
         claimed = kirby.workkeys.get(session.workkey)
         if claimed is None or claimed.owner != session.session_id or claimed.token != session.token:
             return kirby.wake(slot)                        # nothing claimed: reconcile only
+        if outcome == "DONE":
+            # A fenced session stays rejected. A live one is not final until
+            # finish_turn sees RESULT_ACCEPTED for this workkey's own task.
+            if not session.accepting:
+                return "REJECTED_STALE_WRITER"
+            if engine is None:
+                return "NOT_PROVEN"
+            from courier_runtime.ledger_engine import task_id_for
+            return engine.finish_turn(slot, session.workkey, session.token,
+                                      task_id_for(session.workkey),
+                                      checkpoint=fields.get("checkpoint", ""))
         return kirby.on_turn_end(slot, outcome, session.token,
                                  checkpoint=fields.get("checkpoint", ""),
                                  reason=fields.get("reason", ""))
     return "IGNORED"
 
 
-def drive(kirby, slot, lines):
+def drive(kirby, slot, lines, engine=None):
     """Feed an iterable of provider lines. Never prequeues: call per batch of new lines."""
-    return [handle(kirby, slot, line) for line in lines]
+    return [handle(kirby, slot, line, engine=engine) for line in lines]
 
 
 def read_new_lines(path, offset):

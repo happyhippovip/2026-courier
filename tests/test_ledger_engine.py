@@ -284,10 +284,7 @@ def test_gap_direct_controller_create_task_bypasses_the_cost_gate(setup):
     assert status >= 400
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="F-K1 gap in courier_runtime/provider_events.py + host_loop.py (owner L3): "
-                   "a provider TURN_ENDED outcome=DONE line marks the workkey DONE without journal proof; "
-                   "remove this xfail when that path goes through LedgerEngine.finish_turn")
-def test_gap_host_loop_provider_signal_marks_done_without_proof(tmp_path):
+def test_provider_done_signal_does_not_mark_done_without_proof(tmp_path):
     from courier_runtime.continuity import Kirby
     from courier_runtime.provider_events import handle
     kirby = Kirby(tmp_path / "kirby.json", "host-a")
@@ -295,8 +292,76 @@ def test_gap_host_loop_provider_signal_marks_done_without_proof(tmp_path):
     kirby.open_slot("S1", "local")
     kirby.wake("S1")
     kirby.deliver("S1")
-    handle(kirby, "S1", "TURN_ENDED outcome=DONE checkpoint=trust me")
+    assert handle(kirby, "S1", "TURN_ENDED outcome=DONE checkpoint=trust me") == NOT_PROVEN
     assert kirby.workkeys["WK-1"].state != DONE
+
+
+def test_provider_done_finalizes_only_through_finish_turn_proof(setup):
+    """A DONE signal reaches DONE only via LedgerEngine.finish_turn and RESULT_ACCEPTED."""
+    from courier_runtime.continuity import Kirby
+    from courier_runtime.host_loop import emit_signal, run_once
+    from courier_runtime.provider_events import handle
+
+    engine, ctrl, home, _ = setup
+    engine.add_workkeys(["WK-1", "WK-2"])
+    engine.open_slot("S1", "local")
+    engine.open_slot("S2", "local")
+    wk1, _ = engine.next("S1")
+    tid1 = engine.submit(wk1, body())
+    engine.next("S2")
+    kirby = Kirby(engine.campaign_path, "host-a")
+    signals = engine.campaign_path.parent / "signals.log"
+
+    assert [e for e in ctrl.journal.events(task_id=tid1) if e.type is EventType.RESULT_ACCEPTED] == []
+    assert handle(kirby, "S1", "TURN_ENDED outcome=DONE checkpoint=trust me", engine=engine) == NOT_PROVEN
+    assert kirby_state(engine.campaign_path)["workkeys"]["WK-1"]["state"] == CLAIMED
+    assert "RESULT_ACCEPTED" not in kirby_state(engine.campaign_path)["workkeys"]["WK-1"]["checkpoint"]
+    assert handle(kirby, "S2", "TURN_ENDED outcome=DONE checkpoint=borrow", engine=engine) == NOT_PROVEN
+
+    work(ctrl, home)  # verifies WK-1 only; WK-2 has no task
+    proof = engine.proof(tid1)
+    assert proof.startswith("journal:") and proof.endswith(":RESULT_ACCEPTED")
+    assert handle(kirby, "S2", "TURN_ENDED outcome=DONE checkpoint=borrow", engine=engine) == NOT_PROVEN
+    assert handle(kirby, "S1", "TURN_ENDED outcome=DONE checkpoint=step", engine=engine) == "IDLE"
+    done = kirby_state(engine.campaign_path)["workkeys"]["WK-1"]
+    assert done["state"] == DONE and done["checkpoint"] == f"step | {proof}"
+    assert kirby_state(engine.campaign_path)["workkeys"]["WK-2"]["state"] == CLAIMED
+    receipts = (engine.campaign_path.parent / "receipts.jsonl").read_text().splitlines()
+    assert [json.loads(line)["workkey"] for line in receipts] == ["WK-1"]
+
+    # The in-memory session still looks like the owner. Disk does not, so a replay cannot finalise twice.
+    assert handle(kirby, "S1", "TURN_ENDED outcome=DONE checkpoint=step", engine=engine) == "REJECTED_STALE_WRITER"
+    assert len((engine.campaign_path.parent / "receipts.jsonl").read_text().splitlines()) == 1
+
+    restarted_kirby = Kirby(engine.campaign_path, "host-a")
+    restarted = LedgerEngine(ctrl, engine.campaign_path, "host-a")
+    handle(restarted_kirby, "S1", "TURN_ENDED outcome=DONE checkpoint=again", engine=restarted)
+    assert kirby_state(engine.campaign_path)["workkeys"]["WK-1"]["state"] == DONE
+    assert [json.loads(line)["workkey"] for line in (engine.campaign_path.parent / "receipts.jsonl").read_text().splitlines()] == ["WK-1"]
+
+    emit_signal(signals, "TURN_ENDED outcome=DONE checkpoint=file")
+    loop_kirby = Kirby(engine.campaign_path, "host-a")
+    results, _, notices = run_once(loop_kirby, "S2", signals, {"offset": 0, "last_tick": loop_kirby.clock(), "notified": {}}, engine=restarted)
+    assert results == [NOT_PROVEN] and notices == []
+    assert kirby_state(engine.campaign_path)["workkeys"]["WK-2"]["state"] == CLAIMED
+
+
+def test_provider_done_from_the_wrong_owner_does_not_finish(setup):
+    from courier_runtime.continuity import Kirby
+    from courier_runtime.provider_events import handle
+
+    engine, ctrl, home, _ = setup
+    engine.add_workkeys(["WK-1"])
+    engine.open_slot("S1", "local")
+    workkey, _ = engine.next("S1")
+    task_id = engine.submit(workkey, body())
+    work(ctrl, home)
+    assert engine.proof(task_id).endswith(":RESULT_ACCEPTED")
+    foreign = Kirby(engine.campaign_path, "host-a")
+    foreign.workkeys[workkey].owner = "not-the-session"
+    assert handle(foreign, "S1", "TURN_ENDED outcome=DONE checkpoint=stolen", engine=engine) == "COALESCED"
+    assert kirby_state(engine.campaign_path)["workkeys"][workkey]["state"] == CLAIMED
+    assert not (engine.campaign_path.parent / "receipts.jsonl").exists()
 
 
 # -- restart, verify and replay negatives ------------------------------------------------------
