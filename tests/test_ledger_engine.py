@@ -219,6 +219,16 @@ def _tick_in_process(path, signals, out):
     out.put(json.loads(path.read_text(encoding="utf-8"))["workkeys"]["WK-1"]["state"])
 
 
+def _heartbeat_in_process(path, signals, out):
+    """A second host's heartbeat. It must not write until it holds the campaign lock."""
+    from courier_runtime.continuity import Kirby
+    from courier_runtime.host_loop import run_once
+    kirby = Kirby(path, "host-b")
+    run_once(kirby, "S1", signals, {"offset": 0, "last_tick": kirby.clock(), "notified": {}})
+    disk = json.loads(path.read_text(encoding="utf-8"))["workkeys"]["WK-1"]
+    out.put((disk["state"], disk["checkpoint"]))
+
+
 def test_two_processes_never_claim_the_same_workkey(tmp_path):
     path = tmp_path / "campaign" / "kirby.json"
     seed = LedgerEngine(None, path, "host-a")
@@ -271,6 +281,42 @@ def test_host_tick_on_another_host_waits_and_keeps_done(tmp_path):
     assert out.get(timeout=5) == DONE
     assert kirby_state(path)["workkeys"]["WK-1"]["state"] == DONE
     assert kirby_state(path)["workkeys"]["WK-1"]["checkpoint"].endswith(":RESULT_ACCEPTED")
+
+
+def test_host_heartbeat_waits_for_the_lock_before_it_writes(tmp_path):
+    """A heartbeat must not land while another host holds the campaign lock.
+    After that host publishes DONE, the heartbeat keeps the journal checkpoint."""
+    from courier_runtime.ledger_engine import LedgerEngine, _exclusive
+
+    path = tmp_path / "campaign" / "kirby.json"
+    seed = LedgerEngine(None, path, "host-a")
+    seed.add_workkeys(["WK-1"])
+    seed.open_slot("S1", "local")
+    seed.next("S1")
+    signals = tmp_path / "campaign" / "signals.log"
+    signals.write_text("HEARTBEAT progress=1 checkpoint=from-host-b\n", encoding="utf-8")
+    ctx = multiprocessing.get_context("spawn")
+    out = ctx.Queue()
+    with _exclusive(seed.lock_path):
+        proc = ctx.Process(target=_heartbeat_in_process, args=(path, signals, out))
+        proc.start()
+        proc.join(3)
+        assert proc.is_alive()
+        saved = json.loads(path.read_text(encoding="utf-8"))
+        assert saved["workkeys"]["WK-1"]["checkpoint"] != "from-host-b"
+        assert saved["workkeys"]["WK-1"]["state"] == CLAIMED
+        saved["workkeys"]["WK-1"]["state"] = DONE
+        saved["workkeys"]["WK-1"]["owner"] = ""
+        saved["workkeys"]["WK-1"]["checkpoint"] = "step | journal:7:RESULT_ACCEPTED"
+        for session in saved["sessions"].values():
+            if session.get("workkey") == "WK-1":
+                session["workkey"] = ""
+                session["state"] = "IDLE"
+        path.write_text(json.dumps(saved), encoding="utf-8")
+    proc.join(30)
+    assert proc.exitcode == 0
+    state, checkpoint = out.get(timeout=5)
+    assert state == DONE and checkpoint.endswith(":RESULT_ACCEPTED")
 
 
 def test_a_held_campaign_lock_makes_another_process_wait(tmp_path):
