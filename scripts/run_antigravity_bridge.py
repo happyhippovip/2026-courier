@@ -419,6 +419,8 @@ def build_local_shell_task_packet(job_path: Path | str, write_filename: str = "r
             ],
             "write": write_filename,
             "timeout_s": timeout_s,
+            "estimated_cost_eur": 0.0,
+            "cost_class": "included_quota",
         },
         "effect_class": "idempotent",
         "lease_ttl_s": lease_ttl_s,
