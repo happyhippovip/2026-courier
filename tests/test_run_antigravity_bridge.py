@@ -248,4 +248,59 @@ def test_local_shell_execution_writes_evidence_file(tmp_path, monkeypatch):
     assert evidence_data["payload"]["verdict"] == "PASS"
 
 
+def test_bridge_costgate_blocks_missing_or_non_finite_cost():
+    from scripts.resource_policy import CostGate
+
+    # Missing / None cost estimate fails closed with UNKNOWN_COST (GW-13 / GW-14)
+    res_none = CostGate.evaluate_spend_request("google_antigravity_plus", estimated_cost_eur=None)
+    assert res_none["allowed"] is False
+    assert res_none["reason"] == "UNKNOWN_COST"
+    assert res_none["requires_human_gate"] is True
+
+    # NaN / Inf cost estimate fails closed with UNKNOWN_COST
+    res_nan = CostGate.evaluate_spend_request("google_antigravity_plus", estimated_cost_eur=float("nan"))
+    assert res_nan["allowed"] is False
+    assert res_nan["reason"] == "UNKNOWN_COST"
+
+    res_inf = CostGate.evaluate_spend_request("google_antigravity_plus", estimated_cost_eur=float("inf"))
+    assert res_inf["allowed"] is False
+    assert res_inf["reason"] == "UNKNOWN_COST"
+
+    # String representation is not parsed as float or zero
+    res_str = CostGate.evaluate_spend_request("google_antigravity_plus", estimated_cost_eur="0.0")  # type: ignore[arg-type]
+    assert res_str["allowed"] is False
+    assert res_str["reason"] == "UNKNOWN_COST"
+
+    # Bool trap (False is not treated as 0.0 EUR)
+    res_bool = CostGate.evaluate_spend_request("google_antigravity_plus", estimated_cost_eur=False)  # type: ignore[arg-type]
+    assert res_bool["allowed"] is False
+    assert res_bool["reason"] == "UNKNOWN_COST"
+
+
+def test_bridge_costgate_blocks_positive_spend_without_approval():
+    from scripts.resource_policy import CostGate
+
+    # Any positive spend request is blocked without human gate
+    res = CostGate.evaluate_spend_request("google_antigravity_plus", estimated_cost_eur=0.01)
+    assert res["allowed"] is False
+    assert res["reason"] == "SPEND_NOT_ALLOWED_BY_POLICY"
+    assert res["requires_human_gate"] is True
+
+
+def test_bridge_packet_cost_declaration_passes_gate(tmp_path):
+    from scripts.run_antigravity_bridge import build_local_shell_task_packet
+    from scripts.resource_policy import CostGate
+
+    job_file = tmp_path / "job.json"
+    job_file.write_text(json.dumps({"task_id": "test-cost-pass"}))
+
+    packet = build_local_shell_task_packet(job_file)
+    estimated_cost = packet["params"].get("estimated_cost_eur")
+    assert estimated_cost == 0.0
+
+    res = CostGate.evaluate_spend_request("google_antigravity_plus", estimated_cost_eur=estimated_cost)
+    assert res["allowed"] is True
+
+
+
 
