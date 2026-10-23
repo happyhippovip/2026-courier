@@ -3,6 +3,7 @@ import hashlib
 import json
 import re
 import sys
+import threading
 import time
 import subprocess
 import os
@@ -13,6 +14,22 @@ from datetime import datetime
 # never as a run ID. (M05-Q1: take-latest `gh run list --limit 1` could
 # attach a foreign run under concurrent dispatches.)
 UNBOUND_EXECUTION_REF = "DISPATCHED_UNBOUND"
+
+# Windows LockFile is per process. A second thread that calls msvcrt.locking
+# while this process already holds the byte raises EDEADLK or EACCES and the
+# central-state update is dropped. Threads in this process queue here first.
+_STATE_THREAD_LOCKS = {}
+_STATE_THREAD_LOCKS_GUARD = threading.Lock()
+
+
+def _state_thread_lock(state_file):
+    with _STATE_THREAD_LOCKS_GUARD:
+        lock = _STATE_THREAD_LOCKS.get(state_file)
+        if lock is None:
+            lock = threading.Lock()
+            _STATE_THREAD_LOCKS[state_file] = lock
+        return lock
+
 
 # Bounded wait for GitHub to register the dispatched run.
 BIND_ATTEMPTS = 3
@@ -38,27 +55,30 @@ def _central_state_locked(state_file):
     follows a slow external call. Blocking acquire: a crashed holder's OS
     lock dies with it, and dispatches are rare enough that waiting beats
     dropping a record. Same fcntl/msvcrt pattern as the worker home lock.
+    Threads in this process take _state_thread_lock first: the Windows
+    byte lock is per process and otherwise rejects the second thread.
     """
     lock_path = state_file + ".lock"
-    fd = os.open(lock_path, os.O_RDWR | os.O_CREAT, 0o600)
-    try:
-        if os.name == "nt":
-            import msvcrt
-            msvcrt.locking(fd, msvcrt.LK_LOCK, 1)
-        else:
-            import fcntl
-            fcntl.flock(fd, fcntl.LOCK_EX)
-        yield
-    finally:
+    with _state_thread_lock(state_file):
+        fd = os.open(lock_path, os.O_RDWR | os.O_CREAT, 0o600)
         try:
             if os.name == "nt":
                 import msvcrt
-                msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)
+                msvcrt.locking(fd, msvcrt.LK_LOCK, 1)
             else:
                 import fcntl
-                fcntl.flock(fd, fcntl.LOCK_UN)
+                fcntl.flock(fd, fcntl.LOCK_EX)
+            yield
         finally:
-            os.close(fd)
+            try:
+                if os.name == "nt":
+                    import msvcrt
+                    msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(fd, fcntl.LOCK_UN)
+            finally:
+                os.close(fd)
 
 
 def _load_or_exit(state_file):
