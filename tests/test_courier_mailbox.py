@@ -169,6 +169,87 @@ def test_mailbox_costgate_blocks_missing_cost(tmp_path):
     assert updated["resolution"] == "UNKNOWN_COST"
 
 
+def test_mailbox_unknown_mark_beside_zero_does_not_run(tmp_path, monkeypatch):
+    """A zero next to an unknown mark is not an explicit free task."""
+    calls = {"n": 0}
+
+    def chip(**kwargs):
+        calls["n"] += 1
+        raise AssertionError("unknown cost must not run")
+
+    monkeypatch.setattr("scripts.courier_mailbox.run_mission_chip", chip)
+    bodies = [
+        {"task_id": "mission-unknown", "estimated_cost_eur": 0.0, "unknown_cost": True},
+        {"task_id": "mission-class", "estimated_cost_eur": 0.0, "cost_class": "unknown"},
+        {"task_id": "mission-params-mark", "estimated_cost_eur": 0.0, "params": {"unknown_cost": True}},
+        {
+            "task_id": "mission-params-class",
+            "params": {"estimated_cost_eur": 0.0, "cost_class": "unknown"},
+        },
+        {
+            "task_id": "mission-disagree",
+            "estimated_cost_eur": 0.0,
+            "params": {"estimated_cost_eur": 99.0},
+        },
+        {"task_id": "mission-negative", "estimated_cost_eur": -1.0},
+    ]
+    inbox = tmp_path / "inbox.jsonl"
+    outbox = tmp_path / "outbox.jsonl"
+    home = tmp_path / "home"
+    inbox.write_text(
+        "\n".join(json.dumps(dict(body, status="PENDING")) for body in bodies) + "\n",
+        encoding="utf-8",
+    )
+    results = process_inbox(inbox, outbox, home_path=home)
+    rows = [json.loads(line) for line in inbox.read_text(encoding="utf-8").splitlines() if line]
+    assert results == []
+    assert calls["n"] == 0
+    assert not outbox.exists()
+    assert [row["status"] for row in rows] == ["BLOCKED_COSTGATE"] * len(bodies)
+    assert [row["resolution"] for row in rows] == ["UNKNOWN_COST"] * len(bodies)
+    assert [row["reason"] for row in rows] == ["UNKNOWN_COST"] * len(bodies)
+
+
+def test_mailbox_explicit_zero_still_runs(tmp_path, monkeypatch):
+    calls = {"n": 0}
+
+    def chip(**kwargs):
+        calls["n"] += 1
+        return {
+            "overall_status": "COMPLETE",
+            "verifier_result": {
+                "accepted": True,
+                "resolution": "verified",
+                "accepted_result_id": "r-zero",
+            },
+        }
+
+    monkeypatch.setattr("scripts.courier_mailbox.run_mission_chip", chip)
+    lines = [
+        {
+            "task_id": "top-zero",
+            "estimated_cost_eur": 0.0,
+            "unknown_cost": False,
+            "status": "PENDING",
+        },
+        {
+            "task_id": "params-zero",
+            "status": "PENDING",
+            "params": {"estimated_cost_eur": 0.0},
+        },
+    ]
+    inbox = tmp_path / "inbox.jsonl"
+    outbox = tmp_path / "outbox.jsonl"
+    home = tmp_path / "home"
+    inbox.write_text("\n".join(json.dumps(line) for line in lines) + "\n", encoding="utf-8")
+    results = process_inbox(inbox, outbox, home_path=home)
+    rows = [json.loads(line) for line in inbox.read_text(encoding="utf-8").splitlines() if line]
+    assert calls["n"] == 2
+    assert len(results) == 2
+    assert [row["status"] for row in rows] == ["DONE", "DONE"]
+    assert [row["resolution"] for row in rows] == ["verified", "verified"]
+
+
 def test_mailbox_bool_task_id_does_not_execute(tmp_path):
     inbox = tmp_path / "inbox.jsonl"
     outbox = tmp_path / "outbox.jsonl"
