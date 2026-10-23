@@ -70,35 +70,49 @@ def derive_integrity_status(
     if not isinstance(record_sha, str) or not SHA256_RE.match(record_sha):
         return STATUS_MISSING_DATA
 
+    bytes_match = False
     if blob_bytes is not None:
+        if isinstance(blob_bytes, str) or not isinstance(blob_bytes, (bytes, bytearray)):
+            return STATUS_MISSING_DATA
         actual_sha = hashlib.sha256(blob_bytes).hexdigest()
         if actual_sha != record_sha:
             return STATUS_HASH_MISMATCH
         record_size = record.get("size")
         if record_size is not None and len(blob_bytes) != record_size:
             return STATUS_HASH_MISMATCH
+        bytes_match = True
 
     if task:
         expected_sha = task.get("expected_sha256")
-        if expected_sha and isinstance(expected_sha, str):
-            if expected_sha != record_sha:
-                return STATUS_HASH_MISMATCH
-            return STATUS_VERIFIED_MATCH
+        if isinstance(expected_sha, str) and expected_sha and expected_sha != record_sha:
+            return STATUS_HASH_MISMATCH
 
-        # Check verification verdict if present
+        # A verdict is a proof only after the artifact bytes were hashed.
         verification = task.get("verification")
         if isinstance(verification, dict):
+            if "verdict" not in verification:
+                return STATUS_MISSING_DATA
             verdict = verification.get("verdict")
-            if verdict == "PASS":
-                return STATUS_VERIFIED_MATCH
-            elif verdict == "FAIL":
+            if verdict == "FAIL":
                 return STATUS_HASH_MISMATCH
+            if verdict == "PASS" and bytes_match:
+                return STATUS_VERIFIED_MATCH
+            return STATUS_MISSING_DATA
 
-        # Check if task specifies external origin
+        if isinstance(expected_sha, str) and expected_sha:
+            if bytes_match:
+                return STATUS_VERIFIED_MATCH
+            return STATUS_MISSING_DATA
+
+        # External origin still needs the bytes that match the recorded hash.
         if task.get("source") in ("external", "ci", "github", "adapter_unbound"):
-            return STATUS_EXTERNAL_PRODUCED
+            if bytes_match:
+                return STATUS_EXTERNAL_PRODUCED
+            return STATUS_MISSING_DATA
 
-    return STATUS_VERIFIED_MATCH
+    if bytes_match:
+        return STATUS_VERIFIED_MATCH
+    return STATUS_MISSING_DATA
 
 
 def generate_artifact_receipt(
@@ -178,9 +192,15 @@ def generate_artifact_receipt(
             local_path = None
 
     task_dict = task or {}
-    verdict = "PASS" if is_valid else "FAIL"
-    if isinstance(task_dict.get("verification"), dict):
-        verdict = task_dict["verification"].get("verdict", verdict)
+    verification = task_dict.get("verification")
+    claimed = verification.get("verdict") if isinstance(verification, dict) else None
+    # A task label cannot publish PASS over a missing artifact, a bad hash,
+    # an invalid proof, or a verification object that has no verdict.
+    if not is_valid or claimed not in (None, "PASS"):
+        verdict = "FAIL"
+        is_valid = False
+    else:
+        verdict = "PASS"
 
     if integrity_status == STATUS_VERIFIED_MATCH:
         human_summary = f"Artifact '{name}' ({size_fmt}) verified authentic (SHA-256: {fingerprint})."
