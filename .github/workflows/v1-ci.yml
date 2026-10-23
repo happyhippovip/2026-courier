@@ -5,7 +5,10 @@ name: Courier v1 CI
 # merges must carry exact-SHA evidence) and on PRs into integration/v1.
 on:
   push:
-    branches: ["integration/v1"]
+    # The A→B→C stack is not a PR into integration/v1, so trunk pull_request
+    # CI never sees it. This push runs the same Ubuntu and Windows pytest
+    # without retargeting the PR. Remove the lane branch after L1 merges it.
+    branches: ["integration/v1", "cursor/ab-master-9ba8", "cursor/ab-receipt-verdict-f7a0"]
     paths-ignore:
       - "**/*.md"
       - "docs/**"
