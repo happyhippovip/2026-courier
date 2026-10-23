@@ -23,7 +23,6 @@ HEADERS = {
 class MissingCredentialError(RuntimeError):
     pass
 
-
 class MissingServerError(RuntimeError):
     """The process must stop. There is no default server address."""
 
@@ -31,24 +30,40 @@ class MissingServerError(RuntimeError):
 class CanonicalLeaseLost(RuntimeError):
     """The process must stop. A stale or missing writer lease is not a retry."""
 
+
+def _refuse_app_symlink(path: Path) -> None:
+    if path.is_symlink() or path.parent.is_symlink():
+        raise OSError(f"{path}: refusing to follow a symlink")
+
 def get_app_data_dir():
     pd = os.environ.get("LOCALAPPDATA")
     # Never inside the source tree: off Windows use COURIER_HOME or ~/.courier.
     fallback = Path(os.environ.get("COURIER_HOME") or Path.home() / ".courier")
-    base = (Path(pd) if pd else fallback) / "Courier"
+    root = Path(pd) if pd else fallback
+    _refuse_app_symlink(root)
+    base = root / "Courier"
+    _refuse_app_symlink(base)
     base.mkdir(parents=True, exist_ok=True)
     return base
 
 APP_DATA_DIR = get_app_data_dir()
 STATE_DIR = APP_DATA_DIR / "state"
 LOG_DIR = APP_DATA_DIR / "logs"
+_refuse_app_symlink(STATE_DIR)
+_refuse_app_symlink(LOG_DIR)
 STATE_DIR.mkdir(exist_ok=True)
 LOG_DIR.mkdir(exist_ok=True)
 
 
 def read_controller_token():
-    """The installer writes the key here. It does not belong in config.json."""
+    """The installer writes the key here. It does not belong in config.json.
+
+    A symlink is not a local token. Returning it would adopt whatever file
+    the link names. An unreadable path stays an empty credential.
+    """
     path = APP_DATA_DIR / "run" / "controller.token"
+    if path.is_symlink() or path.parent.is_symlink():
+        return ""
     try:
         return path.read_text(encoding="utf-8").strip()
     except OSError:
@@ -106,8 +121,12 @@ setup_logging()
 
 def load_config():
     config_path = APP_DATA_DIR / "config.json"
+    if config_path.is_symlink():
+        raise OSError(f"{config_path}: refusing to follow a symlink")
     if not config_path.exists():
         config_path = Path(__file__).parent / "config.json"
+    if config_path.is_symlink():
+        raise OSError(f"{config_path}: refusing to follow a symlink")
     with open(config_path, "r") as f:
         return json.load(f)
 MAX_RESULT_POST_ATTEMPTS = 5
@@ -428,6 +447,17 @@ def is_resource_pressure_high():
 _lock_fd = None
 _worker_lease = None
 _lease_store = None
+# Windows byte locks are mandatory and cover the bytes they name. The pid
+# record stays at offset 0. The lock is one byte far past that record.
+_WIN_LOCK_OFFSET = 1 << 20
+
+
+def _windows_lock_api():
+    """msvcrt on Windows, and on a test that installed a stand-in."""
+    if os.name == "nt" or "msvcrt" in sys.modules:
+        import msvcrt
+        return msvcrt
+    return None
 
 
 def get_authority_store():
@@ -456,6 +486,27 @@ def _holder_process_is_gone(holder):
     return abs(proc.create_time() - parsed["create_time"]) > 0.05
 
 
+_WORKER_ID_CHARS = frozenset("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.-")
+
+
+def _lock_file_for(worker_id):
+    """A lock name stays inside the temp directory and is not a symlink."""
+    if (
+        not isinstance(worker_id, str)
+        or not worker_id
+        or ".." in worker_id
+        or any(ch not in _WORKER_ID_CHARS for ch in worker_id)
+    ):
+        raise ValueError(f"invalid worker id: {worker_id!r}")
+    lock_file = Path(tempfile.gettempdir()) / f"courier_worker_{worker_id}.lock"
+    if lock_file.is_symlink():
+        raise OSError(f"{lock_file}: refusing to follow a symlink")
+    if lock_file.parent != Path(tempfile.gettempdir()):
+        raise ValueError(f"invalid worker id: {worker_id!r}")
+    return lock_file
+
+
+
 def acquire_lock(worker_id):
     """Return the lock path, or None when another worker already holds it.
 
@@ -466,12 +517,17 @@ def acquire_lock(worker_id):
     if _lock_fd is not None:
         return None
     import psutil
-    lock_file = Path(tempfile.gettempdir()) / f"courier_worker_{worker_id}.lock"
-    fd = os.open(str(lock_file), os.O_CREAT | os.O_RDWR)
+    lock_file = _lock_file_for(worker_id)
+    flags = os.O_CREAT | os.O_RDWR
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    fd = os.open(str(lock_file), flags)
     try:
-        if os.name == "nt" or "msvcrt" in sys.modules:
-            import msvcrt
-            msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+        windows_lock = _windows_lock_api()
+        if windows_lock is not None:
+            os.lseek(fd, _WIN_LOCK_OFFSET, os.SEEK_SET)
+            windows_lock.locking(fd, windows_lock.LK_NBLCK, 1)
+            os.lseek(fd, 0, os.SEEK_SET)
         else:
             import fcntl
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -531,9 +587,12 @@ def _require_canonical_lease():
 
 def release_lock(lock_path=None):
     global _lock_fd, _worker_lease
+    missing_store = False
     if _worker_lease is not None:
         store = get_authority_store()
-        if store is not None:
+        if store is None:
+            missing_store = True
+        else:
             try:
                 store.release(_worker_lease)
             except Exception:
@@ -541,10 +600,10 @@ def release_lock(lock_path=None):
         _worker_lease = None
     if _lock_fd is not None:
         try:
-            if os.name == "nt":
-                import msvcrt
-                os.lseek(_lock_fd, 0, os.SEEK_SET)
-                msvcrt.locking(_lock_fd, msvcrt.LK_UNLCK, 1)
+            windows_lock = _windows_lock_api()
+            if windows_lock is not None:
+                os.lseek(_lock_fd, _WIN_LOCK_OFFSET, os.SEEK_SET)
+                windows_lock.locking(_lock_fd, windows_lock.LK_UNLCK, 1)
             else:
                 try:
                     import fcntl
@@ -563,6 +622,8 @@ def release_lock(lock_path=None):
             os.remove(lock_path)
         except OSError:
             pass
+    if missing_store:
+        raise CanonicalLeaseLost("Courier cannot release a lease without a LeaseStore")
 
 
 

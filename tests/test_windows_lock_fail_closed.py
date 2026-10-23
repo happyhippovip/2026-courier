@@ -120,6 +120,22 @@ def test_lease_store_permission_error_does_not_start(tmp_path, monkeypatch):
     assert daemon._worker_lease is None
 
 
+def test_none_lease_store_is_not_a_successful_lock(tmp_path, monkeypatch):
+    """A missing LeaseStore connection is not a held lock and not a clean start."""
+    daemon = load_daemon(tmp_path, monkeypatch)
+    monkeypatch.setattr(daemon.tempfile, "gettempdir", lambda: str(tmp_path))
+    monkeypatch.setattr(daemon, "get_authority_store", lambda: None)
+    fake = types.ModuleType("msvcrt")
+    fake.LK_NBLCK = 1
+    fake.LK_UNLCK = 2
+    fake.locking = lambda _fd, _mode, _length: None
+    monkeypatch.setitem(sys.modules, "msvcrt", fake)
+    with pytest.raises(daemon.CanonicalLeaseLost, match="canonical writer lease"):
+        daemon.acquire_lock("WIN-NONE")
+    assert daemon._lock_fd is None
+    assert daemon._worker_lease is None
+
+
 def test_missing_lease_store_does_not_start(tmp_path, monkeypatch):
     daemon = load_daemon(tmp_path, monkeypatch)
 
@@ -181,6 +197,68 @@ def test_stale_fencing_token_blocks_work(tmp_path, monkeypatch):
     finally:
         daemon._worker_lease = original
         daemon.release_lock(lock_path)
+
+
+def test_lock_symlink_is_not_truncated(tmp_path, monkeypatch):
+    daemon = load_daemon(tmp_path, monkeypatch)
+    monkeypatch.setattr(daemon.tempfile, "gettempdir", lambda: str(tmp_path))
+    outside = tmp_path / "outside.txt"
+    outside.write_text("keep", encoding="utf-8")
+    lock = tmp_path / "courier_worker_WIN-01.lock"
+    lock.symlink_to(outside)
+    try:
+        daemon.acquire_lock("WIN-01")
+    except OSError as exc:
+        assert "symlink" in str(exc)
+    assert outside.read_text(encoding="utf-8") == "keep"
+
+
+def test_lock_worker_id_cannot_escape_the_temp_dir(tmp_path, monkeypatch):
+    daemon = load_daemon(tmp_path, monkeypatch)
+    temp = tmp_path / "temp"
+    temp.mkdir()
+    monkeypatch.setattr(daemon.tempfile, "gettempdir", lambda: str(temp))
+    (temp / "courier_worker_..").mkdir()
+    worker_id = "../../../escaped"
+    victim = tmp_path / "escaped.lock"
+    victim.write_text("keep", encoding="utf-8")
+    try:
+        daemon.acquire_lock(worker_id)
+    except (OSError, ValueError) as exc:
+        assert "worker" in str(exc).lower()
+    assert victim.read_text(encoding="utf-8") == "keep"
+
+
+def test_windows_lock_does_not_cover_the_pid_record(tmp_path, monkeypatch):
+    """The mandatory Windows lock sits past the pid bytes, then releases there."""
+    daemon = load_daemon(tmp_path, monkeypatch)
+    monkeypatch.setattr(daemon.tempfile, "gettempdir", lambda: str(tmp_path))
+    seen = []
+    fake = types.ModuleType("msvcrt")
+    fake.LK_NBLCK = 1
+    fake.LK_UNLCK = 2
+
+    def locking(fd, mode, length):
+        seen.append((os.lseek(fd, 0, os.SEEK_CUR), mode, length))
+
+    fake.locking = locking
+    monkeypatch.setitem(sys.modules, "msvcrt", fake)
+    path = daemon.acquire_lock("WIN-01")
+    assert path is not None
+    assert seen[0] == (daemon._WIN_LOCK_OFFSET, fake.LK_NBLCK, 1)
+    record = path.read_bytes()
+    assert record.startswith(b"{")
+    assert b'"pid"' in record
+    daemon.release_lock(path)
+    assert seen[1] == (daemon._WIN_LOCK_OFFSET, fake.LK_UNLCK, 1)
+
+
+def test_lock_worker_id_rejects_a_windows_separator(tmp_path, monkeypatch):
+    """A backslash is a path separator on Windows and must not name a lock."""
+    daemon = load_daemon(tmp_path, monkeypatch)
+    monkeypatch.setattr(daemon.tempfile, "gettempdir", lambda: str(tmp_path))
+    with pytest.raises(ValueError, match="worker"):
+        daemon.acquire_lock("WIN-01\\..\\outside")
 
 
 def test_held_lock_means_another_instance(tmp_path, monkeypatch):

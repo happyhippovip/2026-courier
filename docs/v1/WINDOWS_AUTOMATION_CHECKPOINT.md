@@ -89,6 +89,14 @@ The daemon can keep running only while its canonical lease checks succeed. Lease
 
 Not activated in this session: Windows service install, Task Scheduler, logon autostart, a Cursor cloud agent, or any paid runner. GitHub Actions on the existing pull-request workflows is the only resume path, and it runs only when a push or PR event arrives. No process was left running after these tests.
 
+## #827 union on this branch
+
+Checked 23 Oct 2026, Europe/Berlin. HEADs before this commit: #827 `e678b36e3`, #829 `1bcaf9299`, union basis `5bc42fbbe`. A merge of those two heads conflicts only in `scripts/windows_worker/daemon.py` and `tests/test_windows_lock_fail_closed.py`.
+
+This commit keeps both behaviors. #829 still refuses to start when the LeaseStore is missing, stale, or held by a live writer. #827's symlink refusal, lock-path checks, and the Windows lock offset stay. `get_authority_store()` returning `None` raises `CanonicalLeaseLost` and is not a successful lock. The bridge cost gate on #827 was not edited.
+
+Red before the test change: `acquire_lock` with `get_authority_store` stubbed to `None` raised `CanonicalLeaseLost` (`NoneType` has no `acquire`) where the old #827 test expected a lock path. Green after, on this tree: 71 passed in `test_windows_lock_fail_closed.py`, `test_windows_appdata_symlink.py`, `test_windows_daemon_token.py`, `test_windows_worker_recovery.py`, `test_windows_local_queue.py`, `test_windows_costgate_and_writer_lease.py`, and `test_windows_worker_contract.py`.
+
 ## Next queue
 
 Deduplicated from what is still open. Do not restart 031–080.
