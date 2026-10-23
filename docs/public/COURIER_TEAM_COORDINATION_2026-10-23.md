@@ -25,15 +25,35 @@ Die **L1-Integrationsinstanz** ist allein für die Promotion nach `integration/v
 
 ## Relevant für den GitHub-Snapshot vom 23. Oktober 2026
 
-Diese Pull Requests waren beim letzten öffentlichen Check **offen**; ihre konkreten Git-SHAs und CI-Ergebnisse sind zum Handlungszeitpunkt erneut zu prüfen:
+**Update vom 23.10.2026:** #835 wurde inzwischen gemergt. Die nachfolgenden Pull Requests waren beim letzten Check weiter **offen**; Git-SHAs und CI zur Laufzeit erneut prüfen:
 
-- [#835 — H10 Claim Safety und Process Nonce](https://github.com/happyhippovip/2026-courier/pull/835).
 - [#836 — Provider DONE darf Workkey nicht FINAL machen](https://github.com/happyhippovip/2026-courier/pull/836).
 - [#837 — A→B→C Journal Proof](https://github.com/happyhippovip/2026-courier/pull/837).
 - [#838 — exakt eine Fortsetzungsnachricht, keine Queue-Duplikate](https://github.com/happyhippovip/2026-courier/pull/838).
 - [#840 — Vorschlag für wiederverwendbaren Safe-Autonomy-Modus](https://github.com/happyhippovip/2026-courier/pull/840).
 
-PR #827 wurde bereits gemergt. Externe, ältere Receipt-Patches gegen frühere HEADs dürfen deshalb nicht blind angewandt werden: zuerst Diff- und Konfliktvergleich, dann isolierte Neuprüfung. PR #834 wurde gemergt. Status weiterer PRs immer aktuell prüfen.
+PR #827, #830, #832 und #835 wurden bereits gemergt. Externe, ältere Receipt-Patches gegen frühere HEADs dürfen deshalb nicht blind angewandt werden: zuerst Diff- und Konfliktvergleich, dann isolierte Neuprüfung. PR #834 wurde gemergt. Status weiterer PRs immer aktuell prüfen.
+
+## Übergabe Codex ↔ GrokBot Ultra ↔ Claude (23./24.10.2026)
+
+**GrokBot Ultra:** Ein unabhängiger Audit wurde wegen einer erreichten Nutzungsgrenze **unterbrochen**, nicht fachlich abgeschlossen. Isolierte Prüfdateien sind nicht automatisch auf anderen Geräten/Konten vorhanden. Der Dispatcher führt den Zustand als `PARTIAL / QUOTA_STOP`; keine erfundenen PASS- oder Merge-Freigaben.
+
+| Rolle | Eindeutige nächste Aufgabe | Evidenz |
+| --- | --- | --- |
+| **Codex — unabhängige Abnahme** | Prüft auf aktuellem `integration/v1` nur noch unbelegte Receipt-, Accepted-Attempt-, CostGate- und FINAL-Invarianten; unterscheidet #815-Dateibyte-Fix vom separaten roten CI-Fall; vergleicht bereits gemergte #827/#830/#832 | Exakte SHAs, gezielte Tests, Exitcodes, reproduzierbare Befunde und Owner-Handoffs |
+| **GrokBot Ultra — Master-Dispatcher** | Codex registrieren, bisherigen Grok-Audit deduplizieren, klare Owner/Leases und offene P0-Gates koordinieren; keine fremde Implementierung übernehmen | Privater Koordinationscheckpoint, ein Workkey pro neuer Aufgabe, kein Doppelsender |
+| **Claude Opus — spätere Übergabe ab ca. 03:00 Europe/Berlin am 24.10.** | Nach tatsächlicher Verfügbarkeit die kanonische Ledger-/Queue-/Controller-Architektur mit neuesten Commits prüfen, Admission-/F-C1-Grenzen untersuchen, eigene gesicherte L2-Arbeiten fortführen | Testgestützte eigene Änderungen nur mit gültiger Writer-Lease, ansonsten isolierte Patches und Handoff |
+
+**03:00 ist die vom Team erwartete Übergabezeit, keine hier angelegte Automation und keine Startgarantie.** Kein unautorisierter Cron, Cloud-Start oder zusätzliche Abrechnung.
+
+### Prüf- und Release-Gates
+
+- [#815](https://github.com/happyhippovip/2026-courier/pull/815): Der Datei-/Bytes-Fix ist bereits vorhanden; die letzte geprüfte v1-CI war rot. Ein unabhängiger Audit meldete bestandene gezielte Datei-/Bytes-Tests, nicht die Behebung des separaten CI-Problems.
+- [#830](https://github.com/happyhippovip/2026-courier/pull/830): Eine frühere Architekturwarnung betrifft das Risiko eines zweiten Dispatchers/Claim-Stores. Trotz erfolgtem Merge bleibt die **Single-Truth-Integration** auf aktuellem Stand nachzuweisen.
+- [#832](https://github.com/happyhippovip/2026-courier/pull/832): Die `local_shell`-Kostendeklaration ist durch die zuständigen Prüfer unabhängig gegen tatsächliche unbekannte Kosten und Admission-Bypass zu untersuchen.
+- Private Agenten-Arbeitsdateien, Nutzungswerte, Token, Computer-/Laufwerkspfade und operative Checkpoints bleiben privat.
+
+**Update-Regel für Happy Hippo:** Neue öffentliche Commits nur bei einer bedeutsamen Änderung der Teamzuständigkeiten, Arbeitsweise oder belegten Release-Gates. Zwischenstände, temporäre Kontingente und private Prüfergebnisse bleiben im privaten Projekt-Handoff. Bei unverändertem Zustand keinen neuen PR, Sender oder Commit erzeugen.
 
 ## Arbeitsprinzip: ein Sender je Sitzung
 
