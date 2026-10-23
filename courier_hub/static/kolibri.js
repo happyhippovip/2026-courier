@@ -1,6 +1,10 @@
 // Page wiring only. What to show lives in kolibri_core.mjs.
 import { POLL_MS, demoSnapshot, renderKolibri, unavailableSnapshot } from "./kolibri_core.mjs";
 import { initParticles } from "./kolibri_particles.mjs";
+import { paintBiosphere, BIOSPHERE_CSS } from "./kolibri_biosphere.mjs";
+import { createBeams } from "./kolibri_beams.mjs";
+import { deriveInsights } from "./kolibri_insight.mjs";
+import { escapeHtml } from "./kolibri_core.mjs";
 
 initParticles(document.querySelector("#particles"));
 
@@ -11,6 +15,60 @@ const MODE = new URLSearchParams(window.location.search).get("mode") === "demo" 
 let selected = null;
 let universePaused = false;
 
+// Overlay wiring (L5): biosphere background + beams orbs + insight HUD.
+// Modules are isolated V101 drafts; this only mounts them. Overlays never
+// break the main view: every overlay step is guarded by updateOverlays.
+if (!document.getElementById("biosphere-css")) {
+  const bioStyle = document.createElement("style");
+  bioStyle.id = "biosphere-css";
+  bioStyle.textContent = BIOSPHERE_CSS;
+  document.head.appendChild(bioStyle);
+}
+const bioCanvas = document.querySelector("#biosphere");
+function paintBio() {
+  if (bioCanvas) paintBiosphere(bioCanvas, { width: window.innerWidth, height: window.innerHeight, dpr: window.devicePixelRatio || 1 });
+}
+paintBio();
+let bioTimer = null;
+window.addEventListener("resize", () => { clearTimeout(bioTimer); bioTimer = setTimeout(paintBio, 200); });
+
+const beamsCanvas = document.querySelector("#beams");
+const beams = beamsCanvas ? createBeams(beamsCanvas) : null;
+
+function factHtml(label, value) {
+  return `<div class="fact"><b>${escapeHtml(label)}</b>${escapeHtml(value)}</div>`;
+}
+function renderInsights(insights) {
+  const q = insights.queue || {};
+  const qv = (pile) => (q[pile] && q[pile].value !== undefined ? String(q[pile].value) : "UNKNOWN");
+  const blockers = (insights.blockers || []).slice(0, 5).map((b) => `${b.target}: ${b.value}`).join("; ") || "keine";
+  const missing = (insights.missingEvidence || []).slice(0, 5).map((m) => `${m.target} (${m.reason})`).join("; ") || "keine";
+  const verifier = insights.verifier || {};
+  const vState = verifier.state === "VERIFIED" && (verifier.event_ids || []).length ? "VERIFIED" : verifier.state || "UNKNOWN";
+  return `<h2 style="font-size:13px;text-transform:uppercase;letter-spacing:.12em;">Einsichten</h2><div class="facts">`
+    + factHtml("Warteschlange needs_you/working/done", `${qv("needs_you")} / ${qv("working")} / ${qv("done")}`)
+    + factHtml("Blocker", blockers)
+    + factHtml("Fehlende Nachweise", missing)
+    + factHtml("Verifier", vState)
+    + `</div>`;
+}
+function updateOverlays(snapshot) {
+  try {
+    const snap = snapshot && typeof snapshot === "object" ? snapshot : {};
+    const insights = deriveInsights({ ...snap, mode: MODE }, snap.observed_at || stamp());
+    if (beams && beamsCanvas) {
+      const rect = beamsCanvas.getBoundingClientRect();
+      beamsCanvas.width = Math.max(300, Math.floor(rect.width) || 800);
+      beamsCanvas.height = 320;
+      beams.setGraph(insights.graph, MODE);
+    }
+    const hud = document.querySelector("#insight-hud");
+    if (hud) hud.innerHTML = renderInsights(insights);
+  } catch (err) {
+    /* overlays never break the main view */
+  }
+}
+
 function stamp() {
   return new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
 }
@@ -19,6 +77,7 @@ let timer = null;
 
 function paint(snapshot) {
   view.innerHTML = renderKolibri(snapshot, { mode: MODE, selected, paused: universePaused });
+  updateOverlays(snapshot);
 }
 
 async function refresh() {
@@ -58,6 +117,11 @@ document.querySelector("#refresh")?.addEventListener("click", () => refresh());
 document.addEventListener("keydown", (event) => {
   if (event.key === "r" && !event.ctrlKey && !event.metaKey && document.activeElement?.tagName !== "TEXTAREA" && document.activeElement?.tagName !== "INPUT") {
     refresh();
+  }
+  const focused = document.activeElement;
+  if ((event.key === "Enter" || event.key === " ") && focused && focused.closest && focused.closest("[data-workkey]") && !/^(BUTTON|A|INPUT|TEXTAREA|SELECT)$/.test(focused.tagName || "")) {
+    event.preventDefault();
+    focused.click();
   }
 });
 
