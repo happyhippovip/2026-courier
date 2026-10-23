@@ -267,8 +267,11 @@ or
 ANTIGRAVITY_IDLE_AT_HEAD
 ```
 
-This token may be queued 65x or 100x **only in one serial Antigravity session**.
-If the provider starts queued items concurrently, do not use mass enqueue; use a single recurring/agent skill instead.
+Queue this token once. If that copy is already queued, or its fingerprint is already completed for the current head, do not queue another copy. A completed workkey does not send the same prompt again. If no honest unit exists, stop without a continue menu. Do not ask whether to continue, which safe check to run, or whether to resend a finished order.
+
+Human gates stay single decisions, not a repeated 1/2/3 menu: new spend, secrets and login, irreversible account changes, an unauthorized merge, a security-critical change, and a legally relevant publication. No approval is invented.
+
+If the provider would start queued copies concurrently, do not add copies. Keep the one existing sender. Do not install another scheduler.
 
 ## 4. One-hour owner-away routine
 
@@ -284,8 +287,9 @@ If not available:
 
 ### Antigravity
 - bootstrap once if ledger does not exist;
-- enqueue the repeatable NEXT SELF-REFILLING UNIT token as deeply as the UI supports serially (e.g. 65 or 100);
-- one session only.
+- queue the NEXT SELF-REFILLING UNIT token once;
+- do not queue it again while that copy is pending or its fingerprint is already completed;
+- one session only. The Muse `/loop` above remains the other sender and is not replaced.
 
 ### Claude/Opus
 - sequential writer relay prompts only on the official writer branch;
