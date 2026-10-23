@@ -36,7 +36,8 @@ def _hooks(tmp_path):
 
 def _packet(pid="pkt-g", state=PacketState.CURRENT, **payload):
     base = {"task_type": "google_agent_execute", "workkey": "WK-TEST-1",
-            "instruction": "Add a docstring to foo()", "verify_command": OK_VERIFY}
+            "instruction": "Add a docstring to foo()", "verify_command": OK_VERIFY,
+            "estimated_cost_eur": 0.0, "cost_class": "included_quota"}
     base.update(payload)
     return WorkPacket(id=pid, owner_id="google-mac", target_sha=SHA, state=state, payload=base)
 

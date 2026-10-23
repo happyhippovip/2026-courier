@@ -8,6 +8,7 @@ do not edit that file. They build the evidence the verifier reads.
 import hashlib
 import os
 from pathlib import Path
+import pytest
 
 from adapters import provider_exec
 from courier_core.events import Event, EventType
@@ -154,8 +155,13 @@ def test_rejects_traversal_and_symlink_escape(tmp_path):
     outside = tmp_path / "outside-output.txt"
     outside.write_bytes(b"outside-muse")
     evidence = linked / EVIDENCE
-    evidence.parent.mkdir(parents=True)
-    os.symlink(outside, evidence)
+    evidence.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        os.symlink(outside, evidence)
+    except OSError as e:
+        if getattr(e, "winerror", None) == 1314:
+            pytest.skip("Windows SeCreateSymbolicLinkPrivilege (WinError 1314) not held by process")
+        raise
     _put(linked, f"workspace/{OUTPUT}", b"unit-ok")
     payload = {
         "outcome": "success",
