@@ -1,0 +1,87 @@
+diff --git a/courier_worker/adapter_runner.py b/courier_worker/adapter_runner.py
+index 62fa3635d..3f834fd7a 100644
+--- a/courier_worker/adapter_runner.py
++++ b/courier_worker/adapter_runner.py
+@@ -166,8 +166,20 @@ def main(argv: list) -> int:
+             return 2
+     elif adapter == "local_shell":
+         from adapters import local_shell
++        from courier_core.controller import cost_admission
++        from courier_core.verification import adapter_cost_class
+ 
+         try:
++            local_shell._params(params)
++            # The controller checked the cost when the task was created; check again before
++            # the command starts, so a task journaled before that gate existed cannot run.
++            # (provider_exec has its own gate before its process starts.)
++            blocked = cost_admission(adapter_cost_class("local_shell"), params)
++            if blocked is not None:
++                _write_report(report, {"outcome": "failure", "reason": f"cost_blocked: {blocked}"[:500],
++                                       "retryable": False})
++                print(f"adapter_runner: cost blocked: {blocked}", file=sys.stderr)
++                return 0
+             result = local_shell.run(params, workdir, attempt)
+         except local_shell.LocalShellTimeout as exc:
+             _write_report(report, {"outcome": "failure", "reason": str(exc)[:500], "retryable": True})
+diff --git a/tests/test_adapter_runner_cost_recheck.py b/tests/test_adapter_runner_cost_recheck.py
+new file mode 100644
+index 000000000..07d1836f9
+--- /dev/null
++++ b/tests/test_adapter_runner_cost_recheck.py
+@@ -0,0 +1,34 @@
++"""F-C1b: a local_shell request without a known cost does not start, even if it reached the runner."""
++import json
++import sys
++
++import pytest
++
++from courier_worker import adapter_runner
++
++
++def _request(tmp_path, **params):
++    marker = tmp_path / "started"
++    argv = [sys.executable, "-c", f"open({str(marker)!r}, 'w').write('x'); open('out.txt', 'w').write('x')"]
++    req = tmp_path / "req.json"
++    req.write_text(json.dumps({"adapter": "local_shell", "workdir": str(tmp_path / "wd"),
++                               "report": str(tmp_path / "report.json"), "attempt": 1,
++                               "params": dict({"command": argv, "write": "out.txt"}, **params)}))
++    return req, marker
++
++
++@pytest.mark.parametrize("params", [{}, {"estimated_cost_eur": None}, {"estimated_cost_eur": float("nan")},
++                                    {"estimated_cost_eur": 0.5}, {"estimated_cost_eur": 0.0, "unknown_cost": True},
++                                    {"estimated_cost_eur": True}])
++def test_unknown_or_paid_cost_never_starts_the_command(tmp_path, params):
++    req, marker = _request(tmp_path, **params)
++    assert adapter_runner.main([str(req)]) == 0
++    report = json.loads((tmp_path / "report.json").read_text())
++    assert report["outcome"] == "failure" and report["reason"].startswith("cost_blocked")
++    assert report["retryable"] is False and not marker.exists()
++
++
++def test_an_explicit_zero_runs(tmp_path):
++    req, marker = _request(tmp_path, estimated_cost_eur=0.0)
++    assert adapter_runner.main([str(req)]) == 0
++    assert json.loads((tmp_path / "report.json").read_text())["outcome"] == "success" and marker.exists()
+diff --git a/tests/test_l3_worker_host.py b/tests/test_l3_worker_host.py
+index ff5d68e95..6a9dfd622 100644
+--- a/tests/test_l3_worker_host.py
++++ b/tests/test_l3_worker_host.py
+@@ -567,7 +567,7 @@ def test_local_shell_claim_executes_and_delivers(tmp_path, stub):
+     write_token(tmp_path)
+     STUB.claims.append(claim_body(
+         spec_over={"adapter": "local_shell"},
+-        params={"command": _local_shell_write_argv(), "write": "out.txt", "timeout_s": 30},
++        params={"command": _local_shell_write_argv(), "write": "out.txt", "estimated_cost_eur": 0.0, "timeout_s": 30},
+     ))
+     loop = S.WorkerLoop(str(tmp_path), stub, "w1", 0.2)
+     assert loop.iterate(threading.Event()) == "delivered"
+@@ -583,7 +583,7 @@ def test_runner_executes_local_shell_request(tmp_path):
+     request = tmp_path / "req.json"
+     request.write_text(json.dumps({
+         "adapter": "local_shell",
+-        "params": {"command": _local_shell_write_argv("runner-ok"), "write": "out.txt"},
++        "params": {"command": _local_shell_write_argv("runner-ok"), "write": "out.txt", "estimated_cost_eur": 0.0},
+         "attempt": 1,
+         "workdir": str(workdir),
+         "report": str(report),

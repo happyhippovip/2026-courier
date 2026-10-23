@@ -50,3 +50,42 @@ Mehrprozess-Probes mit echten Locks gegen WQ-1b v2:
 - Die Crash-Punkte in `queue_feed` sind durch Probes belegt, aber nicht als reguläre Tests; Owner ist die Queue.
 - `verified_continuation` Mode A führt `packet["command"]` ohne Gate aus. Das ist latent, denn die CLI setzt keinen Befehl; Owner ist L1-Triage.
 - F-C1 prüft nur bei `TASK_CREATED`. Alte Journal-Tasks werden nicht erneut geprüft (SUSPECTED); Owner sind L2/L3.
+
+---
+
+# Teil 2 · nach Merge von #826/#829/#830/#831/#832 (Trunk `e9d7f1f29`)
+
+**#830 wurde von Dennis gemergt** (`011b8456b`). Die Check-ins für #830 sind damit erledigt.
+
+## Integrationspakete auf dem neuen Trunk (VERIFIED)
+| Reihenfolge | Patch | SHA256 | Owner | Hängt ab von |
+|---|---|---|---|---|
+| 1 | `../l2_build_2026-10-23/F-C1_L2_controller_cost_admission.diff` + `../l2_build_2026-10-23/F-C1_followup_830_pin_to_regular_test.diff` | `6e695c34…` / `08dcfe78…` | L2 (+L4 `COST_CLASS`) | — (Folgepatch ist jetzt nötig, weil #830 im Trunk ist) |
+| 2 | `F-C1b_runner_cost_recheck.diff` | `c9fddfcd…` | L3 (`adapter_runner`) | 1 |
+| 3 | `GUARD-1_provider_cli_guard.diff` (neue Datei `courier_core/provider_cli_guard.py`) | `c9a67787…` | L2 (neu) | — |
+| 4 | `H12_v3_local_shell.diff` (**ersetzt** v1/v2) | `f17e1bf7…` | L4 | 3 |
+| 5 | `WIN-COST-1_v3_windows.diff` (**ersetzt** v1/v2) | `3f5910e5…` | Cursor Windows | 3 |
+| 6 | `WQ-1b_v2_lease_recovery.diff` | `8451444a…` | Queue | — |
+| 7 | `VC-1_v2_on_e9d7f1f.diff` (**ersetzt** VC-1 v1, baut auf #831/H10 auf) | `c0c6150b…` | Google | — |
+| 8 | `../auto_continue_2026-10-23/CDX-COST-1_codex_bridge_costgate.diff` | `dfbb21b9…` | Codex-Bridge | — |
+| 9 | `PE-1_provider_exec_overflow.diff` | `b021cf95…` | L3 | — |
+| — | `POL-1_included_quota_policy.diff` | `71087dd1…` | **Entscheidung Dennis** | — (betrifft auf e9d7f1f **60** Tests, `evidence/POL-1_affected_tests_e9d7f1f.log`) |
+
+**Gesamtprobe:** Trunk `e9d7f1f29` + Pakete 1–9 lassen sich konfliktfrei anwenden. Ergebnis: **4194 passed, 16 skipped, 5 xfailed, 0 failed** (rc=0, 8:40 min, `evidence/COMBINED_full_suite_e9d7f1f.log`). Abgewählt ist nur der vorbestehende Linux-Fehler `test_stop_kills_the_child_process`. Die Einzel-Matrix auf `e9d7f1f` steht in `evidence/A03_matrix_on_e9d7f1f.log`.
+
+## Neu in Teil 2
+- **GUARD-1** (ein gemeinsamer Tripwire für `local_shell` und den Windows-Worker). Das unabhängige Review v8b hatte für H12 v2 und WIN v2 13 Befunde gemeldet, davon 8 P1; sie sind alle in GUARD-1/H12 v3/WIN v3 eingearbeitet:
+  - Erkennung **an Befehlsposition**: Programm, Wrapper mit Optionswerten (`timeout 30s`, `sudo -u bob`, `xargs -a f`, `env -S`), Paket-Runner (`npx -y @google/gemini-cli`, `codex@latest`, `uv run`, `npm exec`, `pnpm dlx`, `bun x`), Inline-Skripte (`sh -ec`, `bash -xc`, `python -Ic`, `node -p`, `cmd /ccodex`, `powershell "codex exec"`, `iex`, `Start-Process`).
+  - PowerShell `-EncodedCommand`/`-enc` wird abgewiesen.
+  - Keine Fehlalarme mehr bei `git commit -m 'fix codex bridge'`, `Write-Host "agy done"`, Pfaden wie `C:\src\claude\` oder `/opt/claude-tools/run.sh`.
+  - 115 Tests; 3 Mutanten getötet.
+- **Env-Regeln** über Namenssegmente statt Teilstrings: `GIT_AUTHOR_*`, `KEYBOARD_*` und `PWD` sind erlaubt. Login-Zeiger (`CODEX_HOME`, `CLAUDE_CONFIG_DIR`, `GIT_ASKPASS`, `GIT_SSH_COMMAND`, `NETRC`, `SSH_AUTH_SOCK` …) und URLs mit `user:pass@` werden entfernt. Proxy-, CA- und Windows-Lesevariablen werden geerbt.
+- **H12 v3:** Das leere Home liegt außerhalb des Workdirs (temporär) und wird nach dem Lauf gelöscht, damit keine Caches als Evidence landen. Ergebnis: 59 grün, Regression 434 grün.
+- **WIN-COST-1 v3:** Das PowerShell-Kind bekommt ein eigenes leeres `USERPROFILE`/`APPDATA`/`LOCALAPPDATA`. `$env:LOCALAPPDATA\Courier\…` führt damit nicht mehr zum Token; ein absoluter Pfad bleibt für denselben OS-Benutzer lesbar, das ist eine bekannte Grenze. Fehlt der Guard, startet PowerShell nicht (fail-closed). Ergebnis: 22 grün, Regression 189.
+- **VC-1 v2:** #831 (H10) blockiert die Übernahme nur bei `.result` bzw. (autonom) bei `.partial`. Eine laufende Einheit ohne `.partial` wurde weiter übernommen, ebenso die Verlängerung durch einen fremden Prozess mit demselben Owner. v2: Abgelaufen heißt immer erst `reclaim`; `reclaim` verweigert, wenn bereits ein verifiziertes Ergebnis existiert. Der #831-Test „Case C“ wird bewusst angepasst. Ergebnis: 37 grün.
+- **F-C1b:** `adapter_runner` prüft die Kosten vor dem Start von `local_shell` erneut. Das gilt auch für Tasks, die vor F-C1 ins Journal kamen. Ergebnis: 6 rot → 7 grün, Regression 195.
+- **WQ-1b v2 + Crash-Punkt-Tests:** FINAL_DONE→release, release→nächster Claim, Claim→ASSIGNED (je genau einmal).
+
+## Bekannte Grenzen (bewusst, dokumentiert)
+- **Tripwire:** umbenannte oder verlinkte Binaries, Shell-Variablen, String-Konkatenation, Skriptdateien, `make`/npm-Skripte und Keychain-Logins werden nicht erkannt. Die tragenden Schichten sind die Kostenklasse `metered`, das leere Home und eine Umgebung ohne Zugangsdaten.
+- **Windows-Label `free`/`local`:** bleibt 0 €, solange der Server-Dispatch (`server/app.py`, geschützt) keine Schätzung mitliefert.

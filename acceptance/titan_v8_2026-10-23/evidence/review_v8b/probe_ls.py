@@ -1,0 +1,65 @@
+import sys
+sys.path.insert(0, ".")
+from adapters import local_shell as ls
+cases = {
+ "timeout 30s codex": ["timeout","30s","codex","exec","x"],
+ "timeout -k 5 30 codex": ["timeout","-k","5","30","codex"],
+ "sudo -u bob codex": ["sudo","-u","bob","codex"],
+ "xargs -a f codex": ["xargs","-a","f","codex"],
+ "env -S 'codex exec'": ["env","-S","codex exec"],
+ "uv run codex": ["uv","run","codex"],
+ "npm exec codex": ["npm","exec","--","codex"],
+ "pnpm dlx codex": ["pnpm","dlx","codex"],
+ "bun x codex": ["bun","x","codex"],
+ "npx codex@latest": ["npx","codex@latest","exec"],
+ "npx -y @google/gemini-cli": ["npx","-y","@google/gemini-cli","-p","hi"],
+ "npx @openai/codex": ["npx","@openai/codex"],
+ "npx @anthropic-ai/claude-code": ["npx","@anthropic-ai/claude-code"],
+ "npm i -g @google/gemini-cli": ["npm","i","-g","@google/gemini-cli"],
+ "sh -ec codex": ["sh","-ec","codex exec hi"],
+ "bash -xc codex": ["bash","-xc","codex"],
+ "bash -c quoted": ["bash","-c","'co''dex' exec"],
+ "bash -c var": ["bash","-c","c=cod; ${c}ex exec"],
+ "powershell positional": ["powershell","codex exec hi"],
+ "powershell -enc": ["powershell","-enc","YwBvAGQAZQB4AA=="],
+ "powershell -EncodedCommand": ["powershell","-EncodedCommand","YwBvAGQAZQB4AA=="],
+ "pwsh -c backtick": ["pwsh","-c","co`dex exec"],
+ "pwsh -c &": ["pwsh","-c","& codex exec"],
+ "pwsh -c iex": ["pwsh","-c","iex ('co'+'dex')"],
+ "cmd /c": ["cmd.exe","/c","codex"],
+ "cmd /C upper": ["CMD.EXE","/C","codex"],
+ "cmd /ccodex": ["cmd","/ccodex"],
+ "cmd /s /c": ["cmd","/s","/c","\"codex exec\""],
+ ".\\codex.exe": [".\\codex.exe"],
+ "C:\\x\\CODEX.CMD": ["C:\\x\\CODEX.CMD"],
+ "python3.12 -c": ["python3.12","-c","import os; os.system('codex')"],
+ "py -3 -c": ["py","-3","-c","import subprocess; subprocess.run(['gemini'])"],
+ "python -Ic": ["python","-Ic","import os;os.system('codex')"],
+ "node -p": ["node","-p","require('child_process').execSync('codex')"],
+ "perl -E": ["perl","-E","system 'codex'"],
+ "renamed /tmp/cx": ["/tmp/cx","exec"],
+ "codex-cli": ["codex-cli"],
+ "opencode/qwen": ["opencode","run"],
+ "git -c alias": ["git","-c","alias.x=!codex","x"],
+ "make": ["make","run-codex"],
+ # FP
+ "FP bash -c /opt/claude/run.sh": ["bash","-c","/opt/claude/run.sh"],
+ "FP bash -c /opt/claude-tools": ["bash","-c","/opt/claude-tools/run.sh"],
+ "FP git commit direct": ["git","commit","-m","fix codex bridge"],
+ "FP bash -c git commit": ["bash","-c","git commit -m 'fix codex bridge'"],
+ "FP python -c literal": ["python","-c","print('gemini')"],
+ "FP pwsh Write-Host": ["pwsh","-c","Write-Host \"agy done\""],
+ "FP python -c argv codex.txt": ["python","-c","import sys;print(sys.argv)","codex.txt"],
+ "FP python script -c": ["python","tool.py","-c","codex"],
+ "FP pytest -k codex": ["python","-m","pytest","-k","codex"],
+ "FP direct /opt/claude/run.sh": ["/opt/claude/run.sh"],
+ "FP node -e claude.json": ["node","-e","require('./claude.json')"],
+ "FP bash -c cat claude_notes": ["bash","-c","cat docs/claude_notes.md"],
+ "FP sh -c 'ls copilot/'": ["sh","-c","ls src/copilot/"],
+}
+for k,v in cases.items():
+    try: print(f"{k!r:40} -> {ls._provider_in_argv(v)}")
+    except Exception as e: print(k, "EXC", e)
+for n in ["GIT_AUTHOR_NAME","GIT_AUTHOR_EMAIL","KEYBOARD_LAYOUT","CODEX_HOME","CLAUDE_CONFIG_DIR","GIT_CONFIG_GLOBAL","DBUS_SESSION_BUS_ADDRESS","GIT_ASKPASS","XDG_STATE_HOME","PIP_INDEX_URL","HTTPS_PROXY","Path","home","NODE_PATH","PYTHONUSERBASE","GIT_SSH_COMMAND","GIT_EXEC_PATH","npm_config_userconfig","PSModulePath"]:
+    try: ls._params({"command":["x"],"env":{n:"v"}}); print("env ok", n)
+    except ls.LocalShellError as e: print("env REFUSED", n, e)
