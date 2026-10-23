@@ -1,4 +1,5 @@
 """A lock that cannot be created is a failed start, not a second instance."""
+import os
 import sys
 import types
 
@@ -103,6 +104,67 @@ def test_acquire_lock_holds_a_canonical_lease(tmp_path, monkeypatch):
         daemon.release_lock(lock_path)
     assert daemon._worker_lease is None
     assert daemon._lock_fd is None
+
+
+def test_missing_lease_store_does_not_start(tmp_path, monkeypatch):
+    daemon = load_daemon(tmp_path, monkeypatch)
+
+    def missing():
+        raise ImportError("courier_runtime.lease is not available")
+
+    monkeypatch.setattr(daemon, "get_authority_store", missing)
+    with pytest.raises(RuntimeError, match="canonical writer lease"):
+        daemon.acquire_lock("WIN-LEASE")
+    assert daemon._lock_fd is None
+    assert daemon._worker_lease is None
+
+
+def test_lease_store_without_write_permission_does_not_start(tmp_path, monkeypatch):
+    if os.geteuid() == 0:
+        pytest.skip("root ignores the directory mode used for this check")
+    daemon = load_daemon(tmp_path, monkeypatch)
+    database = daemon.STATE_DIR / "authority.db"
+    if database.exists():
+        database.unlink()
+    daemon.STATE_DIR.chmod(0o555)
+    try:
+        with pytest.raises(RuntimeError, match="canonical writer lease"):
+            daemon.acquire_lock("WIN-LEASE")
+    finally:
+        daemon.STATE_DIR.chmod(0o755)
+    assert daemon._lock_fd is None
+    assert daemon._worker_lease is None
+
+
+def test_expired_canonical_lease_is_replaced(tmp_path, monkeypatch):
+    daemon = load_daemon(tmp_path, monkeypatch)
+    store = daemon.get_authority_store()
+    store.db.execute(
+        "INSERT INTO lease(scope, holder, workkey, token, expires_at) VALUES(?,?,?,?,?)",
+        ("worker:WIN-LEASE", "old-host:1:1.0000:expired", "daemon_loop", 4, 1.0),
+    )
+    lock_path = daemon.acquire_lock("WIN-LEASE")
+    try:
+        assert daemon._worker_lease is not None
+        assert daemon._worker_lease.token == 5
+        assert daemon._worker_lease.holder != "old-host:1:1.0000:expired"
+    finally:
+        daemon.release_lock(lock_path)
+
+
+def test_stale_fencing_token_blocks_work(tmp_path, monkeypatch):
+    from dataclasses import replace
+
+    daemon = load_daemon(tmp_path, monkeypatch)
+    lock_path = daemon.acquire_lock("WIN-LEASE")
+    original = daemon._worker_lease
+    try:
+        daemon._worker_lease = replace(original, token=original.token + 9)
+        with pytest.raises(daemon.CanonicalLeaseLost, match="canonical writer lease"):
+            daemon._require_canonical_lease()
+    finally:
+        daemon._worker_lease = original
+        daemon.release_lock(lock_path)
 
 
 def test_held_lock_means_another_instance(tmp_path, monkeypatch):

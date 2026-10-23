@@ -23,6 +23,10 @@ HEADERS = {
 class MissingCredentialError(RuntimeError):
     pass
 
+
+class CanonicalLeaseLost(RuntimeError):
+    """The process must stop. A stale or missing writer lease is not a retry."""
+
 def get_app_data_dir():
     pd = os.environ.get("LOCALAPPDATA")
     # Never inside the source tree: off Windows use COURIER_HOME or ~/.courier.
@@ -498,6 +502,19 @@ def acquire_lock(worker_id):
     return lock_file
 
 
+def _require_canonical_lease():
+    """Refuse work when the start lease is missing or its fencing token moved."""
+    if _worker_lease is None:
+        raise CanonicalLeaseLost("Courier cannot run without a canonical writer lease")
+    store = get_authority_store()
+    try:
+        store.check_write(_worker_lease.scope, _worker_lease.token)
+    except Exception as exc:
+        raise CanonicalLeaseLost(
+            f"Courier cannot run without a canonical writer lease: {exc}"
+        ) from exc
+
+
 def release_lock(lock_path=None):
     global _lock_fd, _worker_lease
     if _worker_lease is not None:
@@ -608,6 +625,7 @@ def loop():
                 if task and task["worker_phase"] == "CLAIMED":
                     task["worker_phase"] = "STARTED"
                     persist_task(state_file, task)
+                    _require_canonical_lease()
                     result = run_task(task, config)
                     task["result_payload"] = build_result_payload(task, result, config)
                     task["worker_phase"] = "RESULT_READY"
@@ -635,6 +653,8 @@ def loop():
                         task = None
                 backoff = 10
                     
+            except CanonicalLeaseLost:
+                raise
             except Exception as e:
                 print(f"[{worker_id}] Loop error: {e}. Backing off {backoff}s.")
                 time.sleep(backoff)
@@ -652,3 +672,6 @@ if __name__ == "__main__":
     except MissingCredentialError as e:
         print(f"FATAL: {e}", file=sys.stderr)
         sys.exit(2)
+    except CanonicalLeaseLost as e:
+        print(f"FATAL: {e}", file=sys.stderr)
+        sys.exit(3)
