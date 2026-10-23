@@ -198,6 +198,8 @@ def test_build_local_shell_task_packet_format(tmp_path):
     assert packet["effect_class"] == "idempotent"
     assert packet["lease_ttl_s"] == 60
     assert packet["max_attempts"] == 1
+    assert packet["params"]["estimated_cost_eur"] == 0.0
+    assert packet["params"]["cost_class"] == "included_quota"
 
     # Validate against local_shell adapter's strict validator
     validated = _params(packet["params"])
