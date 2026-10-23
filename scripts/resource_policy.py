@@ -326,7 +326,10 @@ class TaskLeaseManager:
             except LeaseConflict:
                 return False
             finally:
-                store.close()
+                try:
+                    store.close()
+                except Exception:
+                    pass
         except Exception:
             return False
 
