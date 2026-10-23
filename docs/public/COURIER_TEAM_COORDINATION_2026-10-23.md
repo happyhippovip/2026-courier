@@ -89,6 +89,12 @@ Der Windows-GrokBot übernimmt ab sofort eine **lokale Stellvertreter- und Hando
 
 Die [ausführliche Windows-Relay-Regel](./WINDOWS_GROKBOT_RELAY_DISPATCHER_V1_2026-10-23.md) beschreibt private lokale Dateien für Status, Owner-Handoffs und Workkey-Sicht sowie die getrennte Zuständigkeit von Google Windows (Verifier), Cursor Windows (autorisierter Produkt-Owner), L2/Claude (CostGate/Architektur) und Mac-Master (Deduplizierung). Der Windows-Relay soll seine vorhandenen Google-Windows-Prüfbelege und CI-Watches berücksichtigen und einen **privaten** Handoff an den Mac-Dispatcher vorbereiten, statt weitere echte Laufzeitagenten zu starten.
 
+## Ledger-Abschluss: gemeinsamer Vier-Stunden-Vertrag (23./24.10.2026)
+
+Der [Ledger-Closeout- und 4-Stunden-Vertrag](./LEDGER_CLOSURE_4H_ENGINEERING_CONTRACT_2026-10-23.md) trennt die vier Windows-Lanes und definiert acht explizite Ledger-Abnahme-Gates. **F-C1** (Controller-Admission ohne Pflicht-Kostenprüfung), die aktuell abgewiesene `depends_on`-Kette in `LedgerEngine.submit` und die tatsächliche Integration des L2-Abhängigkeits-PR #528 bleiben offen. Weder grüne synthetische Tests noch ein offener PR berechtigen zu `LEDGER_DONE=VERIFIED`.
+
+Auftrag bis spätestens **24.10.2026, 03:35 Europe/Berlin**: GrokBot Windows koordiniert; Google Windows oben wacht CI; Cursor Windows arbeitet nur im gültigen Writer-Scope; Google Windows unten prüft unabhängig echte Negativtests. Es gelten ein schwerer Job pro Host, kein zweiter Dispatcher, keine automatischen Merge-/Kostenfreigaben und nur eine tatsächlich aktive Schedule-Routine pro identischem Zweck.
+
 ## Arbeitsprinzip: ein Sender je Sitzung
 
 - Ein klarer **Goal + Workkey-Ledger + Checkpoint** ist besser als mehrfach identische Prompt-Queues.
