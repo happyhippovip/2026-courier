@@ -1,4 +1,6 @@
 # Courier Symphony — Goal Stop, Checkpoint, Scheduler & Windows-CI Handoff V3
+
+> **FORTSETZUNG ALS RELEASE TRAIN V1:** Der bestätigte Windows-CI-Befund aus diesem Checkpoint ist die rote Phase-2-Abnahmefrage in der [fünfstufigen Strategie](./COURIER_RELEASE_TRAIN_STRATEGY_V1_2026-10-23.md). Die [fünf Master-Prompts](./COURIER_RELEASE_TRAIN_PROMPT_PACK_V1_2026-10-23.md) trennen Grok-Koordination, Windows-Fix, unabhängige Abnahme, L1-Merge und Cursor-Produktfortsetzung. **Nicht** erneut als Mac-Worker-CONTINUE ausführen.
 **Public coordination checkpoint | 23 October 2026 | documentation only**
 
 > **This is a verified public GitHub knowledge checkpoint**, not a runtime snapshot of a personal Mac/Windows device. Publishing this page does not install a schedule, restart an agent, create a Workkey, grant a Writer-Lease, or make a red test green. Keep private operational data and any secrets in the existing authorized private project-memory repository.
