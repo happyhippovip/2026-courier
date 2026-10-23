@@ -164,11 +164,8 @@ def main(argv=None) -> int:
         verdict["fd_delta"] = steady_fd[-1] - steady_fd[0] if steady_fd else 0
         verdict["fd_within_envelope"] = verdict["fd_delta"] <= ENVELOPES["fd_delta_max"]
     verdict["probes_within_envelope"] = all(p["within_envelope"] for p in probes)
-    verdict["pass"] = all([
-        verdict.get("obj_within_envelope", True),
-        verdict.get("fd_within_envelope", True),
-        verdict["probes_within_envelope"],
-    ])
+    from scripts.soak.envelope import envelope_pass
+    verdict["pass"] = envelope_pass(verdict)
     summary = {"envelopes": ENVELOPES, "args": vars(args),
                "first_sample": first_sample,
                "last_sample": last_sample,
