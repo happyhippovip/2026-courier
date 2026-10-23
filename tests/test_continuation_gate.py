@@ -196,6 +196,31 @@ def test_returning_to_a_head_does_not_replay_pending_work(tmp_path):
     assert replay["executions"] == 0
 
 
+def test_attempt_changes_the_fingerprint(tmp_path):
+    assert _open(tmp_path, "CWQ-19", sha="same", attempt="1")["outcome"] == "admit"
+    assert _open(tmp_path, "CWQ-19", sha="same", attempt="1", now=NOW + 1)["outcome"] == "duplicate"
+    second = _open(tmp_path, "CWQ-19", sha="same", attempt="2", now=NOW + 2)
+    assert second["outcome"] == "admit"
+    assert second["fingerprint"].endswith("|2")
+
+
+def test_corrupt_checkpoint_does_not_admit(tmp_path):
+    (tmp_path / "checkpoint.json").write_text("{", encoding="utf-8")
+    blocked = _open(tmp_path, "CWQ-17")
+    assert blocked["outcome"] == "blocked"
+    assert blocked["reason"] == "CHECKPOINT"
+    assert blocked["executions"] == 0
+    assert (tmp_path / "checkpoint.json").read_text(encoding="utf-8") == "{"
+
+
+def test_leftover_temp_file_is_not_the_checkpoint(tmp_path):
+    assert _open(tmp_path, "CWQ-18")["outcome"] == "admit"
+    (tmp_path / "checkpoint.json.tmp").write_text("not-json", encoding="utf-8")
+    again = _open(tmp_path, "CWQ-18", now=NOW + 1)
+    assert again["outcome"] == "duplicate"
+    assert again["executions"] == 0
+
+
 def test_empty_proof_does_not_complete(tmp_path):
     assert _open(tmp_path, "CWQ-108B")["outcome"] == "admit"
     refused = complete(

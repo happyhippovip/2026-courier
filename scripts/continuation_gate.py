@@ -1,6 +1,6 @@
 """One continuation per fingerprint. This module sends no prompt.
 
-A fingerprint is head|workkey|sha. Unknown cost is never stored as 0.
+A fingerprint is head|workkey|sha|attempt. Unknown cost is never stored as 0.
 A stale sender lease is not taken over. The product logon task is not this gate.
 """
 import json
@@ -14,11 +14,11 @@ MAX_FOLLOWUPS = 5
 _UNKNOWN_CLASSES = {"unknown", "unknown_cost"}
 
 
-def fingerprint(head, workkey, sha):
-    for part in (head, workkey, sha):
+def fingerprint(head, workkey, sha, attempt="1"):
+    for part in (head, workkey, sha, attempt):
         if not isinstance(part, str) or part == "" or "|" in part or "\n" in part:
             raise ValueError("fingerprint part is invalid")
-    return head + "|" + workkey + "|" + sha
+    return head + "|" + workkey + "|" + sha + "|" + attempt
 
 
 def evaluate(
@@ -27,6 +27,7 @@ def evaluate(
     head,
     workkey,
     sha,
+    attempt="1",
     sender,
     now,
     session="completed",
@@ -50,7 +51,7 @@ def evaluate(
         return _decision("blocked", None, reason="SESSION")
     if not isinstance(sender, str) or sender == "" or not _epoch(now) or not _ttl(ttl):
         return _decision("blocked", None, reason="SENDER")
-    mark = fingerprint(head, workkey, sha)
+    mark = fingerprint(head, workkey, sha, attempt)
     acquired, lock = _acquire_mutex(root)
     if not acquired:
         return _decision("blocked", mark, reason="BUSY")
@@ -60,10 +61,10 @@ def evaluate(
         _release_mutex(lock)
 
 
-def complete(root, *, sender, now, head, workkey, sha, proof, ttl=60):
+def complete(root, *, sender, now, head, workkey, sha, proof, attempt="1", ttl=60):
     """Record one proven fingerprint. An empty proof does not complete it."""
     root = Path(root)
-    mark = fingerprint(head, workkey, sha)
+    mark = fingerprint(head, workkey, sha, attempt)
     if not _proof(proof):
         return _decision("blocked", mark, reason="PROOF")
     if not isinstance(sender, str) or sender == "" or not _epoch(now):
