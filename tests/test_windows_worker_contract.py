@@ -173,6 +173,11 @@ def go(daemon, monkeypatch, bridge, executions, effect=None, status="SUCCESS", t
 
     monkeypatch.setattr(daemon.urllib.request, "urlopen", bridge)
     monkeypatch.setattr(daemon, "run_task", execute)
+    # A busy Windows runner can report CPU above the pause threshold. That
+    # burns the small call budget before the result reaches the server, so
+    # the task stays DISPATCHED and current_task.json is still on disk.
+    # These tests are about delivery, not about the pressure probe.
+    monkeypatch.setattr(daemon, "is_resource_pressure_high", lambda: False)
     with pytest.raises(StopLoop):
         daemon.loop()
 
