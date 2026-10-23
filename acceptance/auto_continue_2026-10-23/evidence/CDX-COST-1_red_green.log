@@ -1,0 +1,8 @@
+== RED trunk d5b19f1 + tests/test_run_codex_bridge_costgate.py
+9 failed, 2 passed (real CLI started without estimate / with NaN / bool / string / 0.5 / unknown flags / policy error)
+== GREEN
+11 passed
+== REGRESSION codex bridge + autonomous loop + bodyguard + fix_save_json
+73 passed
+== ON PR HEADS (git apply --3way clean)
+#826 7686b97f6: 30 passed; #810: 20 passed

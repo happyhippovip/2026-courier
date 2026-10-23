@@ -1,0 +1,4 @@
+== COMBINED TREE: integration/v1 d5b19f1 + F-C1 v2 (6e695c34) + WQ-1b + H12 + WIN-COST-1 + VC-1 (trunk) + CDX-COST-1, all applied cleanly
+cmd: python -m pytest -q -p no:cacheprovider -x --deselect tests/test_windows_exe_build.py::test_stop_kills_the_child_process tests   (deselected test fails identically on unchanged trunk on Linux, see l2_build README)
+rc=0
+3420 passed, 13 skipped, 1 deselected, 5 warnings, 6 subtests passed in 451.07s (0:07:31)

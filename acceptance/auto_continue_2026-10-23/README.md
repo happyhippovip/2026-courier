@@ -10,6 +10,7 @@ Status-Wörter: VERIFIED heißt, ich habe es selbst ausgeführt (Befehl und Erge
 | **H12** local_shell ohne Worker-Credentials | L4 Adapter | `adapters/local_shell.py`, `tests/test_local_shell_env_allowlist.py` (neu) | `H12_local_shell_env_allowlist.diff` | `fea9f5cc…cc43c` | VERIFIED 26 rot / 2 grün → 28 grün | VERIFIED 235 grün / 1 skip (alle 17 Testdateien mit `local_shell`), golden + L3 74 grün / 1 skip |
 | **WIN-COST-1** `included_quota` ≠ 0 € | Cursor Windows (`windows_worker/daemon.py`) | `scripts/windows_worker/daemon.py`, `tests/test_windows_costgate_and_writer_lease.py` | `WIN-COST-1_included_quota_unknown.diff` | `cf9097a2…0d5f` | VERIFIED 2 rot → 9 grün | VERIFIED 105 grün / 7 skip |
 | **VC-1** verified_continuation: keine stille Übernahme | Google (`verified_continuation.py`); #797/#826 (Cursor) berühren dieselbe Datei | `scripts/verified_continuation.py`, `tests/test_verified_continuation_claim_safety.py` (neu); auf #826 zusätzlich 1 gepinnter Test | `VC-1_verified_continuation_claim_safety.diff` (Trunk) **oder** `VC-1_on_826_verified_continuation.diff` (auf #826-Head `7686b97f6`) | `ba4a0667…92c3c` / `9b9541d4…47d46` | VERIFIED Trunk 14 rot → 30 grün; auf #797/#826 jeweils 10 rot → 35 grün | 2 Mutanten getötet |
+| **CDX-COST-1** Codex-Bridge: CostGate vor echtem CLI-Start | scripts / Codex-Bridge (#810/#826 berühren dieselbe Datei, ohne CostGate) | `scripts/run_codex_bridge.py`, `tests/test_run_codex_bridge_costgate.py` (neu) | `CDX-COST-1_codex_bridge_costgate.diff` | `dfbb21b9…f5e5b2` | VERIFIED 9 rot / 2 grün → 11 grün | VERIFIED 73 grün; passt auf #826 (30 grün) und #810 (20 grün) |
 | ~~MAC-COST~~ 0.0-Default `mac_worker/daemon.py:504` | Cursor Mac | — | **nicht erstellt** | — | bereits in #826 behoben (`estimate = task.get("estimated_cost_eur")`, kein 0.0-Default) | Doppelarbeit vermieden |
 
 ## WQ-1b — was der Patch tut
@@ -47,13 +48,21 @@ Ein Windows-Task mit `cost_class`/`routing_decision.COST_CLASS = "included_quota
   - Neuer Ausweg `reclaim(workkey, actor, reason)`: nur bei abgelaufenem oder unlesbarem Claim. Er legt den alten Claim samt Entscheidung als `<wk>.claim.reclaimed-<ts>` ab.
 - **Bewusste Verhaltensänderung:** #826 pinnt mit `test_expired_numeric_claim_can_be_reclaimed`, dass Ablauf die Übernahme erlaubt. Die Delta-Variante ändert diesen Test (erst `reclaim`, dann `claim`). Das braucht die Zustimmung des Owners.
 
+## CDX-COST-1 — was der Patch tut
+- **Befund (VERIFIED):** `execute_codex_task(..., try_real_cli=True)` startete die echte Codex-CLI (ChatGPT-Plus-Kontingent) ohne CostGate. `zero_cost_policy: ZERO_COST_ONLY` wurde nur ins Ergebnis geschrieben, nicht geprüft.
+- **Fix:** `codex_cost_gate(job)` läuft vor dem Prozessstart. Durchgelassen wird nur ein explizites `estimated_cost_eur: 0.0` über `CostGate.evaluate_spend_request("chatgpt_plus_codex", …)`. Blockiert werden `unknown_cost`, `cost_class: unknown` und Fehler der Policy. Das Ergebnis ist dann ein FAILED-Envelope `COST_GATE_DENIED`. Der deterministische Pfad ohne CLI bleibt unverändert.
+
 ## Konflikte mit offenen PRs (VERIFIED per GitHub-Dateilisten)
 | Datei | offene PRs | Lage |
 |---|---|---|
 | `courier_core/work_queue.py` | #826 (Symlink-Härtung) | WQ-1b passt auf #826 (3-way), 102 Tests grün |
 | `adapters/local_shell.py` | #826 (`timeout_s` bool) | H12 passt auf #826, grün |
 | `scripts/verified_continuation.py` | #826, #797, #781 | VC-1 als Trunk- und als #826-Delta; #797-Inhalt ist in #826 enthalten (gleicher Fix) |
+| `scripts/run_codex_bridge.py` | #826, #810 | CDX-COST-1 per 3-way sauber auf beide angewendet, grün |
 | `scripts/windows_worker/daemon.py` | #827, #829, #788 | keine dieser PRs ändert die Kostenzeilen; WIN-COST-1 ist ein eigener Hunk |
+
+## Gesamtprobe (VERIFIED)
+Alle 6 eigenen Patches liegen zusammen auf dem Trunk: F-C1 v2, WQ-1b, H12, WIN-COST-1, VC-1 (Trunk) und CDX-COST-1. Sie lassen sich konfliktfrei anwenden. Die volle Suite ergibt **3420 passed, 13 skipped, 0 failed** (rc=0, 7:31 min). Abgewählt ist nur der vorbestehende Linux-Fehler `test_windows_exe_build.py::test_stop_kills_the_child_process`, der auf dem unveränderten Trunk genauso scheitert. Siehe `evidence/COMBINED_full_suite.log`.
 
 ## Nächste Schritte
 - Owner wenden die Patches an. Merges brauchen ein MERGE-GO.
