@@ -415,15 +415,29 @@ _lease_store = None
 
 
 def get_authority_store():
+    """Open the canonical lease database. A failure is raised, never cached as optional."""
     global _lease_store
     if _lease_store is None:
-        try:
-            from courier_runtime.lease import LeaseStore
-            auth_db = STATE_DIR / "authority.db"
-            _lease_store = LeaseStore(str(auth_db))
-        except Exception:
-            _lease_store = None
+        from courier_runtime.lease import LeaseStore
+        auth_db = STATE_DIR / "authority.db"
+        _lease_store = LeaseStore(str(auth_db))
     return _lease_store
+
+
+def _holder_process_is_gone(holder):
+    """True only when the lease names a local process that is not still that process."""
+    from courier_runtime.lease import parse_session_holder
+    parsed = parse_session_holder(holder)
+    if not parsed:
+        return False
+    import psutil
+    try:
+        proc = psutil.Process(parsed["pid"])
+    except psutil.NoSuchProcess:
+        return True
+    if not proc.is_running():
+        return True
+    return abs(proc.create_time() - parsed["create_time"]) > 0.05
 
 
 def acquire_lock(worker_id):
@@ -461,16 +475,25 @@ def acquire_lock(worker_id):
 
     _lock_fd = fd
 
-    # Acquire canonical Courier writer lease in LeaseStore
-    store = get_authority_store()
-    if store is not None:
+    # The file lock is not a canonical lease. Without a live LeaseStore grant
+    # the worker must not start, and the file lock must not stay behind.
+    scope = f"worker:{worker_id}"
+    try:
+        store = get_authority_store()
+        from courier_runtime.lease import LeaseConflict, format_session_holder
+        holder = format_session_holder(worker_id, os.getpid(), psutil.Process(os.getpid()).create_time(), str(uuid.uuid4()))
         try:
-            from courier_runtime.lease import format_session_holder
-            holder = format_session_holder(worker_id, os.getpid(), psutil.Process(os.getpid()).create_time(), str(uuid.uuid4()))
-            _worker_lease = store.acquire(f"worker:{worker_id}", holder, "daemon_loop", ttl_s=3600)
-        except Exception:
-            release_lock(lock_file)
-            return None
+            _worker_lease = store.acquire(scope, holder, "daemon_loop", ttl_s=3600)
+        except LeaseConflict:
+            current = store.current(scope)
+            if current is not None and not _holder_process_is_gone(current.holder):
+                raise
+            if current is not None:
+                store.release(current)
+            _worker_lease = store.acquire(scope, holder, "daemon_loop", ttl_s=3600)
+    except Exception as exc:
+        release_lock(lock_file)
+        raise RuntimeError(f"Courier cannot start without a canonical writer lease: {exc}") from exc
 
     return lock_file
 
