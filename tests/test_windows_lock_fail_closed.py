@@ -70,7 +70,7 @@ def test_dead_holder_lease_is_taken_over(tmp_path, monkeypatch):
 
     daemon = load_daemon(tmp_path, monkeypatch)
     store = daemon.get_authority_store()
-    dead = format_session_holder("WIN-LEASE", 2**30, 1.0, "dead-session")
+    dead = format_session_holder(daemon._session_device("WIN-LEASE"), 2**30, 1.0, "dead-session")
     store.acquire("worker:WIN-LEASE", dead, "daemon_loop", ttl_s=3600)
     lock_path = daemon.acquire_lock("WIN-LEASE")
     try:
@@ -80,13 +80,28 @@ def test_dead_holder_lease_is_taken_over(tmp_path, monkeypatch):
         daemon.release_lock(lock_path)
 
 
+def test_foreign_host_dead_pid_is_not_a_local_restart(tmp_path, monkeypatch):
+    """A pid that does not exist here does not make another host's lease free."""
+    from courier_runtime.lease import format_session_holder
+
+    daemon = load_daemon(tmp_path, monkeypatch)
+    remote = format_session_holder("OTHER-HOST@remote", 2**30, 1.0, "remote-session")
+    daemon.get_authority_store().acquire("worker:WIN-LEASE", remote, "daemon_loop", ttl_s=3600)
+    with pytest.raises(daemon.CanonicalLeaseLost, match="canonical writer lease"):
+        daemon.acquire_lock("WIN-LEASE")
+    assert daemon._lock_fd is None
+    assert daemon._worker_lease is None
+    current = daemon.get_authority_store().current("worker:WIN-LEASE")
+    assert current is not None and current.holder == remote
+
+
 def test_live_holder_blocks_a_second_start(tmp_path, monkeypatch):
     import psutil
     from courier_runtime.lease import format_session_holder
 
     daemon = load_daemon(tmp_path, monkeypatch)
     proc = psutil.Process()
-    live = format_session_holder("WIN-LEASE", proc.pid, proc.create_time(), "still-here")
+    live = format_session_holder(daemon._session_device("WIN-LEASE"), proc.pid, proc.create_time(), "still-here")
     daemon.get_authority_store().acquire("worker:WIN-LEASE", live, "other-work", ttl_s=3600)
     with pytest.raises(RuntimeError, match="canonical writer lease"):
         daemon.acquire_lock("WIN-LEASE")

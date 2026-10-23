@@ -7,8 +7,11 @@ A delivered result must not run again. Nothing here calls a provider.
 import json
 import logging
 
+import pytest
+
 from tests.test_windows_worker_contract import (
     Bridge,
+    StopLoop,
     central,
     go,
     load_daemon,
@@ -79,6 +82,48 @@ def test_claimed_workkey_resumes_once(tmp_path, monkeypatch):
     assert not state_file(daemon).exists()
     assert srv.load_state()["tasks"]["task-1"]["status"] == "RESULT_RECEIVED"
     assert "Found unfinished task task-1 in phase CLAIMED" in evidence.read_text(encoding="utf-8")
+
+
+def test_execution_does_not_start_while_the_file_is_still_claimed(tmp_path, monkeypatch):
+    """The crash window after CLAIMED and before STARTED must not run the task."""
+    _srv, http, headers = central(tmp_path, monkeypatch)
+    daemon, executions = load_daemon(tmp_path, monkeypatch), []
+    monkeypatch.chdir(daemon.APP_DATA_DIR)
+    phases = []
+
+    def execute(task, config):
+        phases.append(json.loads(state_file(daemon).read_text(encoding="utf-8"))["worker_phase"])
+        executions.append(task["task_id"])
+        return {"status": "SUCCESS", "stdout": "", "stderr": "", "run_id": "win-native"}
+
+    monkeypatch.setattr(daemon, "run_task", execute)
+    with pytest.raises(StopLoop):
+        monkeypatch.setattr(daemon.urllib.request, "urlopen", Bridge(http, headers, max_calls=4))
+        daemon.loop()
+    assert phases == ["STARTED"]
+    assert executions == ["task-1"]
+
+
+def test_rejection_persists_release_pending_before_the_worker_is_freed(tmp_path, monkeypatch):
+    """A restart in the window after RESULT_READY sees RELEASE_PENDING, not a second run."""
+    srv, http, headers = central(tmp_path, monkeypatch)
+    daemon, executions = load_daemon(tmp_path, monkeypatch), []
+    monkeypatch.chdir(daemon.APP_DATA_DIR)
+    seen = []
+    real_register = daemon.register_worker
+
+    def wrapped(worker_id, release_task=False):
+        if release_task and state_file(daemon).exists():
+            seen.append(json.loads(state_file(daemon).read_text(encoding="utf-8"))["worker_phase"])
+        return real_register(worker_id, release_task=release_task)
+
+    monkeypatch.setattr(daemon, "register_worker", wrapped)
+    go(daemon, monkeypatch, Bridge(http, headers, faults=[400], max_calls=8), executions,
+       effect=daemon.APP_DATA_DIR / "effect.txt", tmp_path=tmp_path)
+    assert executions == ["task-1"]
+    assert seen == ["RELEASE_PENDING"]
+    assert srv.load_state()["tasks"]["task-1"]["status"] == "HUMAN_REQUIRED"
+    assert not state_file(daemon).exists()
 
 
 def test_crash_after_started_does_not_rerun(tmp_path, monkeypatch):

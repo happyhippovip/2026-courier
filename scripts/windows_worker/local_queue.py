@@ -56,6 +56,8 @@ def run_once(queue, holder, host, workspace, execute, now, ttl=60, max_attempts=
         if attempts >= max_attempts:
             return _dead(workspace, item_id, holder, "ATTEMPTS_EXHAUSTED", attempts)
         while True:
+            if kill_switch_engaged(workspace):
+                return _receipt(workspace, {"outcome": "killed", "item_id": item_id})
             try:
                 produced = execute(item_id, workspace)
             except TemporaryFailure:

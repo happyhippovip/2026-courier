@@ -470,11 +470,18 @@ def get_authority_store():
     return _lease_store
 
 
-def _holder_process_is_gone(holder):
-    """True only when the lease names a local process that is not still that process."""
+def _session_device(worker_id):
+    """Bind a lease to this machine. Another host's pid is not a local restart."""
+    import socket
+    host = socket.gethostname().replace(":", "_")
+    return f"{worker_id}@{host}"
+
+
+def _holder_process_is_gone(holder, worker_id):
+    """True only when this machine's own lease names a process that is gone."""
     from courier_runtime.lease import parse_session_holder
     parsed = parse_session_holder(holder)
-    if not parsed:
+    if not parsed or parsed["device"] != _session_device(worker_id):
         return False
     import psutil
     try:
@@ -553,12 +560,14 @@ def acquire_lock(worker_id):
     try:
         store = get_authority_store()
         from courier_runtime.lease import LeaseConflict, format_session_holder
-        holder = format_session_holder(worker_id, os.getpid(), psutil.Process(os.getpid()).create_time(), str(uuid.uuid4()))
+        holder = format_session_holder(
+            _session_device(worker_id), os.getpid(), psutil.Process(os.getpid()).create_time(), str(uuid.uuid4())
+        )
         try:
             _worker_lease = store.acquire(scope, holder, "daemon_loop", ttl_s=3600)
         except LeaseConflict:
             current = store.current(scope)
-            if current is not None and not _holder_process_is_gone(current.holder):
+            if current is not None and not _holder_process_is_gone(current.holder, worker_id):
                 raise
             if current is not None:
                 store.release(current)

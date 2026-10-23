@@ -99,8 +99,4 @@ Red before the test change: `acquire_lock` with `get_authority_store` stubbed to
 
 ## Next queue
 
-Deduplicated from what is still open. Do not restart 031–080.
-
-1. CUR-WIN-085 — Read CI for the push that contains `c916cf2da` and `a0bafa1cf`. Fix only failures in files this branch owns.
-2. CUR-WIN-082 — On an authorized Windows host that already has Inno Setup 6, build `CourierSetup-v1.exe` and record its real SHA256. Until then this stays BLOCKED.
-3. CUR-WIN-083 — Silent install, uninstall, rollback, and clean-machine acceptance on an explicitly authorized test machine.
+CUR-WIN-082, CUR-WIN-083 and CUR-WIN-085 are closed. Do not restart them. The continuity notes are `docs/v1/WINDOWS_CONTINUITY_V10_CHECKPOINT.md` and `docs/v1/WINDOWS_L1_RELEASE_HANDOFF.md`.

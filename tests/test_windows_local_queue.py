@@ -1,6 +1,7 @@
 """Windows-local queue over the canonical work queue. No provider, no network."""
 import json
 from datetime import datetime, timezone
+from pathlib import Path
 
 import pytest
 
@@ -182,6 +183,67 @@ def test_remainder_stays_ready_after_a_new_queue_object(tmp_path):
     assert [item["id"] for item in reopened.list_ready(now=NOW)] == ["B"]
     second = run_once(reopened, HOLDER, "win-host", tmp_path / "work", _execute, NOW)
     assert second["item_id"] == "B" and second["next"] == []
+
+
+def test_two_homes_cannot_both_dispatch_wq1(tmp_path):
+    """WQ-1 stays with the home that claimed it. The other home does not run it."""
+    queue = _queue(tmp_path, [_item("WQ-1", ["scripts/windows_worker/a.py"])])
+    calls = []
+
+    def execute(item_id, workspace):
+        calls.append((item_id, Path(workspace).name))
+        if Path(workspace).name == "home-a":
+            raise SystemExit("home-a stopped after the claim")
+        return _execute(item_id, workspace)
+
+    try:
+        run_once(queue, "home-a", "host-a", tmp_path / "home-a", execute, NOW)
+    except SystemExit:
+        pass
+    other = run_once(queue, "home-b", "host-b", tmp_path / "home-b", execute, NOW)
+    assert calls == [("WQ-1", "home-a")]
+    assert other["outcome"] == "idle"
+    held = [item for item in queue.items(now=NOW) if item["id"] == "WQ-1"][0]
+    assert held["status"] == "CLAIMED" and held["lease"]["holder"] == "home-a"
+
+
+def test_kill_switch_stops_a_retry_without_a_second_run(tmp_path):
+    queue = _queue(tmp_path, [_item("A", ["scripts/windows_worker/a.py"])])
+    calls = []
+
+    def execute(item_id, workspace):
+        calls.append(item_id)
+        (workspace / "KILL").write_text("stop\n", encoding="utf-8")
+        raise TemporaryFailure("disk busy")
+
+    receipt = run_once(queue, HOLDER, "win-host", tmp_path / "work", execute, NOW, max_attempts=3)
+    assert calls == ["A"]
+    assert receipt["outcome"] == "killed" and receipt["item_id"] == "A"
+    assert "RELEASE" not in (tmp_path / "ledger.jsonl").read_text(encoding="utf-8")
+    held = [item for item in queue.items(now=NOW) if item["id"] == "A"][0]
+    assert held["status"] == "CLAIMED"
+
+
+def test_dead_letter_is_not_executed_or_released_again(tmp_path):
+    queue = _queue(tmp_path, [_item("A", ["scripts/windows_worker/a.py"])])
+    calls = []
+
+    def execute(item_id, workspace):
+        calls.append(item_id)
+        raise TemporaryFailure("disk busy")
+
+    work = tmp_path / "work"
+    first = run_once(queue, HOLDER, "win-host", work, execute, NOW, max_attempts=2)
+    assert first["outcome"] == "dead_letter"
+    second = run_once(queue, HOLDER, "win-host", work, execute, NOW, max_attempts=2)
+    assert second["outcome"] == "dead_letter" and second["reason"] == "ATTEMPTS_EXHAUSTED"
+    assert calls == ["A", "A"]
+    text = (tmp_path / "ledger.jsonl").read_text(encoding="utf-8")
+    assert "RELEASE" not in text
+    again = queue.release("A", HOLDER, "BLOCKED", now=NOW)
+    repeat = queue.release("A", HOLDER, "BLOCKED", now=NOW)
+    assert again["status"] == "DONE" and again["idempotent"] is False
+    assert repeat["status"] == "DONE" and repeat["idempotent"] is True
 
 
 def test_a_second_holder_does_not_take_the_claimed_workkey(tmp_path):
