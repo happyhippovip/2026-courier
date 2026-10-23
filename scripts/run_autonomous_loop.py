@@ -105,6 +105,19 @@ class WorkflowLockedError(Exception):
     """Raised when a workflow lock file cannot be acquired."""
 
 
+_REUSABLE_VERDICTS = ("PASS", "ACCEPTED")
+
+
+def cached_result_is_reusable(cached_res) -> bool:
+    """True only for an explicit pass. A missing verdict is not verified."""
+    if not isinstance(cached_res, dict):
+        return False
+    payload = cached_res.get("payload")
+    if not isinstance(payload, dict):
+        return False
+    return payload.get("verdict") in _REUSABLE_VERDICTS
+
+
 class AutonomousLevel6Loop:
     """Orchestrates an autonomous multi-turn Level 6 loop across Antigravity and Codex bridges."""
 
@@ -708,7 +721,7 @@ class AutonomousLevel6Loop:
 
                 # 3. Deduplication Check & Single-Owner Lease Enforcement
                 cached_res = self.dedupe_engine.get_cached_result(task_hash)
-                if cached_res and not payload_override and cached_res.get("payload", {}).get("verdict") not in ("PAUSED_PROVIDER_LIMIT", "FAILED"):
+                if cached_res and not payload_override and cached_result_is_reusable(cached_res):
                     print(f"[DEDUPE] Identical task input hash ({task_hash[:12]}...) found. Reusing verified result without executing model.")
                     result_file = self.repo_dir / f"events/processed/{task_id}-result.json"
                     save_json(result_file, cached_res)
