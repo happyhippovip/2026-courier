@@ -353,3 +353,30 @@ def test_cli_workkey_success_still_checkpoints(tmp_path, monkeypatch):
     cp_path = ledger_dir / "checkpoints" / "OKKEY.checkpoint.json"
     assert cp_path.exists()
     assert json.loads(cp_path.read_text(encoding="utf-8"))["status"] == "PASS"
+
+
+def test_h10_expired_lease_reconcile_and_prevent_double_work(continuation_engine, monkeypatch):
+    """H10: Expired claims must not be silently reclaimed if already verified or unreconciled."""
+    workkey = "H10_RECON_KEY"
+
+    # 1. Claim with 0s TTL (already expired)
+    assert continuation_engine.claim(workkey, owner="worker-orig", ttl_s=0) is True
+
+    # 2. Case A: If already verified, reclaim returns False
+    result_file = continuation_engine.results_dir / f"{workkey}.result"
+    result_file.write_text(json.dumps({"status": "PASS", "result": "done"}), encoding="utf-8")
+    assert continuation_engine.claim(workkey, owner="worker-new") is False
+
+    # 3. Case B: If partial exists and COURIER_AUTONOMOUS=1, fail closed
+    result_file.unlink()
+    partial_file = continuation_engine.results_dir / f"{workkey}.partial"
+    partial_file.write_text(json.dumps({"status": "IN_FLIGHT"}), encoding="utf-8")
+    monkeypatch.setenv("COURIER_AUTONOMOUS", "1")
+    assert continuation_engine.claim(workkey, owner="worker-new") is False
+
+    # 4. Case C: Once reconciled / clean, new claim succeeds
+    partial_file.unlink()
+    assert continuation_engine.claim(workkey, owner="worker-new") is True
+    claim_info = continuation_engine.is_claimed(workkey)
+    assert claim_info["owner"] == "worker-new"
+
