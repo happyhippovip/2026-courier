@@ -167,7 +167,12 @@ def test_lease_store_refuses_a_symlinked_parent(tmp_path):
     outside = tmp_path / "outside"
     outside.mkdir()
     link = tmp_path / "home"
-    link.symlink_to(outside, target_is_directory=True)
+    try:
+        link.symlink_to(outside, target_is_directory=True)
+    except OSError as exc:
+        if getattr(exc, "winerror", None) == 1314:
+            pytest.skip("Creating symlinks on Windows requires developer mode or administrator privilege")
+        raise
     try:
         store = LeaseStore(str(link / "agents.db"))
     except OSError as exc:
@@ -182,7 +187,12 @@ def test_lease_store_refuses_a_symlink_and_leaves_the_target_empty(tmp_path):
     target = tmp_path / "target.db"
     target.write_bytes(b"")
     link = tmp_path / "agents.db"
-    link.symlink_to(target)
+    try:
+        link.symlink_to(target)
+    except OSError as exc:
+        if getattr(exc, "winerror", None) == 1314:
+            pytest.skip("Creating symlinks on Windows requires developer mode or administrator privilege")
+        raise
     try:
         store = LeaseStore(str(link))
     except OSError as exc:
@@ -201,7 +211,12 @@ def test_fenced_writer_refuses_a_symlinked_parent(leases, tmp_path):
     outside = tmp_path / "outside"
     outside.mkdir()
     link = tmp_path / "linked"
-    link.symlink_to(outside, target_is_directory=True)
+    try:
+        link.symlink_to(outside, target_is_directory=True)
+    except OSError as exc:
+        if getattr(exc, "winerror", None) == 1314:
+            pytest.skip("Creating symlinks on Windows requires developer mode or administrator privilege")
+        raise
     writer = FencedFileWriter(store, "repo://docs", lease.token, "writer-1")
     with pytest.raises(OSError, match="symlink"):
         with writer.open(link / "report.txt", "w") as handle:
@@ -217,7 +232,12 @@ def test_fenced_writer_refuses_a_symlink_and_leaves_the_target(leases, tmp_path)
     secret = tmp_path / "secret.txt"
     secret.write_text("keep", encoding="utf-8")
     link = tmp_path / "report.txt"
-    link.symlink_to(secret)
+    try:
+        link.symlink_to(secret)
+    except OSError as exc:
+        if getattr(exc, "winerror", None) == 1314:
+            pytest.skip("Creating symlinks on Windows requires developer mode or administrator privilege")
+        raise
     writer = FencedFileWriter(store, "repo://docs", lease.token, "writer-1")
     with pytest.raises(OSError, match="symlink"):
         with writer.open(link, "w") as handle:
