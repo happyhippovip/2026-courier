@@ -1,0 +1,279 @@
+diff --git a/adapters/local_shell.py b/adapters/local_shell.py
+index 34a8d6058..488ee5796 100644
+--- a/adapters/local_shell.py
++++ b/adapters/local_shell.py
+@@ -9,6 +9,10 @@ Execution contract (for the worker host)::
+ ``workdir``), ``timeout_s`` (per-attempt bound; expiry kills and reaps the
+ child, then raises :class:`LocalShellTimeout`, the timeout analog the host
+ treats like a dead task process), and ``env`` (extra environment entries).
++The child does not inherit the worker's environment: it gets the variables in
++``INHERITED_ENV`` (OS essentials, no credentials) plus ``env``. ``env`` may not
++name a credential (it is journaled with the task) nor a path or loader
++variable (``PROTECTED_ENV``).
+ ``workdir`` is the task sandbox the host owns: the child runs with
+ ``cwd=workdir`` so its relative writes land inside the sandbox, and the
+ adapter itself writes nowhere (it only reads the declared evidence file back
+@@ -54,6 +58,7 @@ from __future__ import annotations
+ 
+ import hashlib
+ import os
++import re
+ import signal
+ import subprocess
+ import sys
+@@ -74,6 +79,100 @@ FORBIDDEN_COMMAND_FLAGS = frozenset({
+ })
+ 
+ 
++# What a command needs from the host to start and find its tools; nothing that
++# authenticates. Everything else in the worker's environment (provider keys,
++# controller token, cloud credentials) stays out of the child.
++INHERITED_ENV = frozenset({
++    "PATH", "PATHEXT", "SYSTEMROOT", "SYSTEMDRIVE", "WINDIR", "COMSPEC", "TEMP", "TMP", "TMPDIR",
++    "HOME", "USERPROFILE", "LANG", "LANGUAGE", "LC_ALL", "LC_CTYPE", "TZ", "PYTHONIOENCODING",
++    "PYTHONUTF8", "NUMBER_OF_PROCESSORS", "PROCESSOR_ARCHITECTURE",
++})
++PROTECTED_ENV = frozenset({
++    "HOME", "USERPROFILE", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME", "APPDATA", "LOCALAPPDATA",
++    "PATH", "PATHEXT", "COMSPEC", "SYSTEMROOT", "PYTHONPATH", "PYTHONHOME", "PYTHONSTARTUP",
++    "LD_PRELOAD", "LD_LIBRARY_PATH", "DYLD_INSERT_LIBRARIES", "DYLD_LIBRARY_PATH", "NODE_OPTIONS",
++    "BASH_ENV", "ENV", "PERL5OPT", "RUBYOPT",
++})
++_CREDENTIAL_WORDS = ("KEY", "TOKEN", "SECRET", "PASSWORD", "PASSWD", "COOKIE", "CREDENTIAL", "AUTH")
++
++
++# Provider CLIs that spend a (possibly included, never verified) quota. local_shell is a
++# metered adapter, and a task's own 0.0 estimate is not proof that a provider run is free,
++# so these are refused outright: the command itself, after a wrapper (env, npx, timeout ...),
++# or named as a word in an inline script (sh -c, cmd /c, powershell -Command, python -c ...).
++# This is a tripwire, not a sandbox: the child also gets its own empty home folder.
++PROVIDER_CLIS = frozenset({
++    "codex", "claude", "claude-code", "gemini", "agy", "antigravity", "grok", "cursor-agent",
++    "openai", "aider", "chatgpt", "copilot",
++})
++_WRAPPERS = frozenset({"env", "npx", "bunx", "pnpx", "uvx", "pipx", "timeout", "nice", "nohup", "xargs",
++                       "sudo", "doas", "stdbuf", "time", "exec", "start", "call"})
++_INLINE_FLAGS = frozenset({"-c", "-lc", "-ic", "/c", "/k", "-command", "-e", "--eval", "-encodedcommand", "-r"})
++_SHELLS_AND_INTERPRETERS = frozenset({"sh", "bash", "zsh", "dash", "ksh", "fish", "cmd", "powershell", "pwsh",
++                                      "python", "python3", "py", "node", "deno", "bun", "perl", "ruby", "php"})
++_PROVIDER_WORD = re.compile(r"(?<![A-Za-z0-9_.-])(?:@[a-z0-9-]+/)?(" + "|".join(
++    sorted((re.escape(n) for n in PROVIDER_CLIS), key=len, reverse=True)) + r")(?:\.(?:exe|cmd|bat|ps1))?(?![A-Za-z0-9_-])",
++    re.IGNORECASE)
++
++
++def _program(token: str) -> str:
++    name = token.replace("\\", "/").rsplit("/", 1)[-1].lower()
++    for ext in (".exe", ".cmd", ".bat", ".ps1"):
++        if name.endswith(ext):
++            return name[: -len(ext)]
++    return name
++
++
++def _provider_in_argv(command: Sequence[str]) -> str | None:
++    """The provider CLI an argv would start, or None."""
++    i = 0
++    while i < len(command):
++        prog = _program(command[i])
++        if prog in PROVIDER_CLIS:
++            return prog
++        if prog.startswith("python") or prog in _SHELLS_AND_INTERPRETERS:
++            for j in range(i + 1, len(command) - 1):
++                if command[j].lower() in _INLINE_FLAGS:
++                    match = _PROVIDER_WORD.search(" ".join(command[j + 1:]))
++                    return match.group(1).lower() if match else None
++            return None
++        if prog in _WRAPPERS:
++            i += 1
++            while i < len(command) and (command[i].startswith("-") or "=" in command[i] or command[i].isdigit()):
++                i += 1
++            if i < len(command):
++                package = command[i].lower()
++                if package.startswith("@") and "/" in package:   # npx @scope/name
++                    match = _PROVIDER_WORD.search(package)
++                    if match:
++                        return match.group(1).lower()
++            continue
++        return None
++    return None
++
++
++def _is_credential_name(name: str) -> bool:
++    upper = name.upper()
++    return any(word in upper for word in _CREDENTIAL_WORDS)
++
++
++HOME_ENV = ("HOME", "USERPROFILE", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME", "APPDATA", "LOCALAPPDATA")
++
++
++def _child_env(extra: Mapping[str, str], home: Path | None = None) -> dict:
++    env = {}
++    for name, value in os.environ.items():
++        if name.upper() in INHERITED_ENV and not _is_credential_name(name) and name.upper() not in HOME_ENV:
++            env[name] = value
++    if home is not None:
++        # An empty home of its own: CLI logins in the worker's home (~/.codex, ~/.claude,
++        # ~/.gemini, %APPDATA%) are not found by the child.
++        for name in HOME_ENV:
++            env[name] = str(home)
++    env.update(extra)
++    return env
++
++
+ def _verdict_type():
+     """L2's Verdict when composed, else the identical-shape local fallback."""
+     try:
+@@ -155,6 +254,9 @@ def _params(params: Mapping[str, Any]) -> dict:
+             or not command or any(not isinstance(a, str) or not a for a in command)):
+         raise LocalShellError("command must be a non-empty argv list of non-empty strings")
+     _reject_unspawnable_argv(command)
++    provider = _provider_in_argv(command)
++    if provider is not None:
++        raise LocalShellError(f"command starts the provider CLI {provider!r}; use provider_exec, which gates its cost")
+     out = {
+         "command": list(command),
+         "write": params.get("write", "out.txt"),
+@@ -169,6 +271,11 @@ def _params(params: Mapping[str, Any]) -> dict:
+     if not isinstance(out["env"], Mapping) or any(
+             not isinstance(k, str) or not isinstance(v, str) for k, v in out["env"].items()):
+         raise LocalShellError("env must be a mapping of str to str")
++    for name in out["env"]:
++        if _is_credential_name(name):
++            raise LocalShellError(f"env must not carry a credential ({name}); task params are journaled")
++        if name.upper() in PROTECTED_ENV:
++            raise LocalShellError(f"env variable {name} is not allowed (path or loader override)")
+     return out
+ 
+ 
+@@ -201,9 +308,12 @@ def run(params: Mapping[str, Any], workdir: str | os.PathLike, attempt: int = 1)
+         root.mkdir(parents=True, exist_ok=True)
+     except OSError as exc:
+         raise LocalShellError(f"unusable workdir: {exc}") from exc
+-    env = dict(os.environ)
+-    env.pop("COURIER_CONTROLLER_TOKEN", None)
+-    env.update(cfg["env"])
++    home = root / ".courier_home"
++    try:
++        home.mkdir(exist_ok=True)
++    except OSError as exc:
++        raise LocalShellError(f"unusable workdir: {exc}") from exc
++    env = _child_env(cfg["env"], home)
+ 
+     popen_kwargs: dict[str, Any] = {
+         "cwd": str(root),
+diff --git a/tests/test_local_shell_env_allowlist.py b/tests/test_local_shell_env_allowlist.py
+new file mode 100644
+index 000000000..5d48bc3c8
+--- /dev/null
++++ b/tests/test_local_shell_env_allowlist.py
+@@ -0,0 +1,111 @@
++"""H12: a local_shell child gets an allowlisted environment, never the worker's credentials.
++
++The worker host may hold provider keys (it also runs provider_exec). A local_shell
++command is arbitrary argv; inheriting those keys lets it reach a paid provider outside
++CostGate and copies credentials into a process that writes evidence files.
++"""
++import json
++import sys
++
++import pytest
++
++from adapters import local_shell
++from adapters.local_shell import LocalShellError
++
++DUMP = [sys.executable, "-c", "import json, os; open('out.txt', 'w').write(json.dumps(dict(os.environ)))"]
++CREDENTIALS = ["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY", "GOOGLE_API_KEY", "GITHUB_TOKEN",
++               "GH_TOKEN", "AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN", "COURIER_CONTROLLER_TOKEN",
++               "XAI_API_KEY", "MY_SERVICE_PASSWORD", "SESSION_COOKIE"]
++
++
++def _child_env(tmp_path, params_env=None):
++    params = {"command": DUMP, "write": "out.txt"}
++    if params_env is not None:
++        params["env"] = params_env
++    assert local_shell.run(params, tmp_path).outcome == "success"
++    return json.loads((tmp_path / "out.txt").read_text())
++
++
++@pytest.mark.parametrize("name", CREDENTIALS)
++def test_worker_credentials_do_not_reach_the_child(tmp_path, monkeypatch, name):
++    monkeypatch.setenv(name, "sentinel-not-a-real-value")
++    assert name not in _child_env(tmp_path)
++
++
++def test_unlisted_worker_variables_do_not_reach_the_child(tmp_path, monkeypatch):
++    monkeypatch.setenv("COURIER_SOME_INTERNAL_SETTING", "x")
++    assert "COURIER_SOME_INTERNAL_SETTING" not in _child_env(tmp_path)
++
++
++def test_the_child_still_gets_path_and_the_task_env(tmp_path):
++    env = _child_env(tmp_path, {"LOCAL_FLAG": "on"})
++    assert env.get("PATH") and env["LOCAL_FLAG"] == "on"
++
++
++@pytest.mark.parametrize("name", ["OPENAI_API_KEY", "github_token", "Db_Password", "X_SECRET", "AUTH_COOKIE",
++                                  "AWS_ACCESS_KEY_ID", "SOME_CREDENTIALS"])
++def test_a_task_cannot_carry_a_credential_in_its_env(tmp_path, name):
++    # task params are journaled; a credential there would be persisted and shown.
++    with pytest.raises(LocalShellError, match="credential"):
++        local_shell.run({"command": DUMP, "env": {name: "v"}}, tmp_path)
++    with pytest.raises(LocalShellError, match="credential"):
++        local_shell._params({"command": DUMP, "env": {name: "v"}})
++
++
++@pytest.mark.parametrize("name", ["PATH", "PYTHONPATH", "LD_PRELOAD", "DYLD_INSERT_LIBRARIES", "PYTHONSTARTUP",
++                                  "NODE_OPTIONS", "BASH_ENV"])
++def test_a_task_cannot_override_loader_or_path_variables(tmp_path, name):
++    with pytest.raises(LocalShellError, match="not allowed"):
++        local_shell._params({"command": DUMP, "env": {name: "x"}})
++
++
++# V8 red team: a self-declared 0.0 estimate must not start a provider CLI through local_shell.
++PY = sys.executable
++
++
++@pytest.mark.parametrize("argv", [
++    ["codex", "exec", "hi"],
++    ["/usr/local/bin/claude", "-p", "hi"],
++    ["C:\\Tools\\gemini.cmd", "-p", "x"],
++    ["agy.exe", "run"],
++    ["/usr/bin/env", "claude", "-p", "hi"],
++    ["env", "FOO=1", "-i", "codex", "exec"],
++    ["npx", "@openai/codex", "exec"],
++    ["npx", "-y", "@anthropic-ai/claude-code", "-p", "x"],
++    ["timeout", "5", "grok", "ask"],
++    ["sh", "-c", "agy -p hi"],
++    ["bash", "-lc", "cd /tmp && claude -p hi"],
++    ["cmd", "/c", "codex exec x"],
++    ["powershell", "-NoProfile", "-Command", "gemini -p x"],
++    [PY, "-c", "import subprocess; subprocess.run(['gemini', '-p', 'x'])"],
++    ["node", "-e", "require('child_process').execSync('codex exec x')"],
++    ["cursor-agent", "-p", "x"],
++])
++def test_a_provider_cli_is_refused_before_anything_starts(tmp_path, argv):
++    with pytest.raises(LocalShellError, match="provider CLI"):
++        local_shell._params({"command": argv, "estimated_cost_eur": 0.0})
++    with pytest.raises(LocalShellError, match="provider CLI"):
++        local_shell.run({"command": argv, "write": "out.txt"}, tmp_path)
++    assert list(tmp_path.iterdir()) == []
++
++
++@pytest.mark.parametrize("argv", [
++    [PY, "-c", "open('out.txt', 'w').write('shell-made')"],
++    [PY, "/repo/scripts/run_antigravity_bridge.py", "--job-file", "j.json"],
++    ["grep", "-r", "claude", "docs"],
++    ["git", "log", "--author", "codex-bot"],
++    [PY, "-c", "print('geminid'); x = 'claudette'"],
++])
++def test_ordinary_commands_that_only_mention_a_provider_still_pass(argv):
++    assert local_shell._params({"command": argv})["command"] == argv
++
++
++def test_the_child_does_not_see_the_workers_home(tmp_path, monkeypatch):
++    # CLI logins live in the home folder (~/.codex, ~/.claude, ~/.gemini, %APPDATA%).
++    monkeypatch.setenv("HOME", "/home/worker-sentinel")
++    monkeypatch.setenv("USERPROFILE", "C:\\Users\\worker-sentinel")
++    env = _child_env(tmp_path)
++    for name in ("HOME", "USERPROFILE", "XDG_CONFIG_HOME", "APPDATA", "LOCALAPPDATA"):
++        assert "worker-sentinel" not in env.get(name, ""), name
++        assert env.get(name), name
++    assert (tmp_path / ".courier_home").is_dir()

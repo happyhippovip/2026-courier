@@ -1,0 +1,145 @@
+diff --git a/events/policies/resource_policy.json b/events/policies/resource_policy.json
+index 373d45e17..7f369fddb 100644
+--- a/events/policies/resource_policy.json
++++ b/events/policies/resource_policy.json
+@@ -15,7 +15,8 @@
+         "architecture_builds",
+         "3d_media_pipelines",
+         "planning_and_synthesis"
+-      ]
++      ],
++      "billing_mode": "INCLUDED_QUOTA"
+     },
+     "chatgpt_plus_codex": {
+       "provider": "openai",
+@@ -29,7 +30,8 @@
+         "diff_inspections",
+         "security_gates",
+         "commit_verification"
+-      ]
++      ],
++      "billing_mode": "INCLUDED_QUOTA"
+     },
+     "windows_native": {
+       "provider": "windows",
+@@ -40,7 +42,8 @@
+         "powershell",
+         "windows_native",
+         "file_operations"
+-      ]
++      ],
++      "billing_mode": "LOCAL"
+     }
+   },
+   "planned_resources": {
+diff --git a/scripts/resource_policy.py b/scripts/resource_policy.py
+index 0b204915b..c77a5e3b9 100644
+--- a/scripts/resource_policy.py
++++ b/scripts/resource_policy.py
+@@ -105,6 +105,23 @@ class ResourcePolicyManager:
+         return resource_id in active and active[resource_id].get("status") == "ACTIVE_PAID"
+ 
+ 
++def _unpriced_reason(entry) -> str | None:
++    """None when the policy entry proves a run costs 0 EUR, else the blocking reason."""
++    if not isinstance(entry, dict) or entry.get("status") != "ACTIVE_PAID":
++        return "RESOURCE_NOT_ACTIVE"
++    mode = entry.get("billing_mode")
++    if mode == "LOCAL":
++        return None
++    if mode != "INCLUDED_QUOTA":
++        return "BILLING_MODE_UNKNOWN"
++    cost = entry.get("effective_cost_eur")
++    known_zero = (not isinstance(cost, bool) and isinstance(cost, (int, float)) and math.isfinite(cost)
++                  and cost == 0)
++    if not known_zero or entry.get("cost_source") != "PROVIDER_VERIFIED":
++        return "INCLUDED_QUOTA_UNVERIFIED"
++    return None
++
++
+ class CostGate:
+     """Provider-neutral cost and resource tier enforcement gate."""
+ 
+@@ -156,6 +173,17 @@ class CostGate:
+                 "message": "Cost estimate missing or invalid; unknown cost is blocked.",
+                 "requires_human_gate": True,
+             }
++        # An included quota is not a known cost (founder decision 23.10): the caller's 0.0 counts
++        # only for a resource the policy itself prices at 0 EUR per run.
++        unpriced = _unpriced_reason(active[resource_id])
++        if unpriced is not None:
++            return {
++                "allowed": False,
++                "reason": unpriced,
++                "message": f"Resource {resource_id} has no verified per-run cost of 0 EUR in the policy; "
++                           "a caller's 0.0 estimate is not enough.",
++                "requires_human_gate": True,
++            }
+         # Check unapproved extra spending / capacity upgrades
+         if estimated_cost_eur > 0.0 or "upgrade" in requested_action.lower() or "purchase" in requested_action.lower():
+             return {
+diff --git a/tests/test_costgate_included_quota.py b/tests/test_costgate_included_quota.py
+new file mode 100644
+index 000000000..168e3b849
+--- /dev/null
++++ b/tests/test_costgate_included_quota.py
+@@ -0,0 +1,59 @@
++"""POL-1: an included quota is not a known cost (founder decision 23.10).
++
++CostGate admitted every resource in ``active_paid_resources`` on a caller-supplied 0.0,
++so a ChatGPT Plus or Antigravity Plus run passed as free on the caller's word alone.
++A resource now passes only when the policy says what it costs per run:
++``billing_mode: LOCAL`` (no provider), or ``INCLUDED_QUOTA`` with
++``effective_cost_eur: 0`` and ``cost_source: PROVIDER_VERIFIED``.
++"""
++import json
++
++import pytest
++
++from scripts.resource_policy import CostGate
++
++
++def _policy(tmp_path, **resources):
++    path = tmp_path / "events" / "policies" / "resource_policy.json"
++    path.parent.mkdir(parents=True)
++    path.write_text(json.dumps({"active_paid_resources": resources, "planned_resources": {},
++                                "unauthorized_resources": {}}))
++    return tmp_path
++
++
++def _entry(**extra):
++    return dict({"provider": "openai", "tier": "plus", "status": "ACTIVE_PAID"}, **extra)
++
++
++@pytest.mark.parametrize("entry", [
++    _entry(),                                                                   # no billing mode: unknown
++    _entry(billing_mode="INCLUDED_QUOTA"),                                      # quota, cost not verified
++    _entry(billing_mode="INCLUDED_QUOTA", effective_cost_eur=0, cost_source="SELF_REPORTED"),
++    _entry(billing_mode="INCLUDED_QUOTA", effective_cost_eur=0.5, cost_source="PROVIDER_VERIFIED"),
++    _entry(billing_mode="INCLUDED_QUOTA", cost_source="PROVIDER_VERIFIED"),
++    _entry(billing_mode="INCLUDED_QUOTA", effective_cost_eur=True, cost_source="PROVIDER_VERIFIED"),
++    _entry(billing_mode="INCLUDED_QUOTA", effective_cost_eur=float("nan"), cost_source="PROVIDER_VERIFIED"),
++    _entry(billing_mode="PAYG"),
++    _entry(billing_mode="LOCAL", status="PAUSED"),
++])
++def test_a_caller_zero_is_not_enough(tmp_path, entry):
++    repo = _policy(tmp_path, res=entry)
++    verdict = CostGate.evaluate_spend_request("res", estimated_cost_eur=0.0, repo_dir=repo)
++    assert verdict["allowed"] is False and verdict["requires_human_gate"] is True
++
++
++@pytest.mark.parametrize("entry", [
++    _entry(billing_mode="LOCAL", provider="windows"),
++    _entry(billing_mode="INCLUDED_QUOTA", effective_cost_eur=0, cost_source="PROVIDER_VERIFIED"),
++])
++def test_a_resource_with_a_known_zero_cost_passes_with_an_explicit_zero(tmp_path, entry):
++    repo = _policy(tmp_path, res=entry)
++    assert CostGate.evaluate_spend_request("res", estimated_cost_eur=0.0, repo_dir=repo)["allowed"] is True
++    assert CostGate.evaluate_spend_request("res", estimated_cost_eur=None, repo_dir=repo)["allowed"] is False
++
++
++def test_the_shipped_policy_blocks_the_unverified_subscriptions_and_keeps_windows_native():
++    gate = CostGate.evaluate_spend_request
++    assert gate("chatgpt_plus_codex", estimated_cost_eur=0.0)["reason"] == "INCLUDED_QUOTA_UNVERIFIED"
++    assert gate("google_antigravity_plus", estimated_cost_eur=0.0)["reason"] == "INCLUDED_QUOTA_UNVERIFIED"
++    assert gate("windows_native", estimated_cost_eur=0.0)["allowed"] is True

@@ -1,0 +1,33 @@
+diff --git a/courier_worker/adapters/provider_exec.py b/courier_worker/adapters/provider_exec.py
+index af976a8ec..497d0f333 100644
+--- a/courier_worker/adapters/provider_exec.py
++++ b/courier_worker/adapters/provider_exec.py
+@@ -235,7 +235,11 @@ def evaluate_cost_gate(spec: Mapping, config: Mapping | None) -> dict:
+         }
+ 
+     import math
+-    if math.isnan(estimated_cost) or math.isinf(estimated_cost) or estimated_cost < 0.0:
++    try:
++        finite = math.isfinite(estimated_cost)
++    except OverflowError:       # an int too large for a float: not a usable estimate
++        finite = False
++    if not finite or estimated_cost < 0.0:
+         return {
+             "allowed": False,
+             "outcome": "BLOCKED",
+diff --git a/tests/test_provider_exec_cost_overflow.py b/tests/test_provider_exec_cost_overflow.py
+new file mode 100644
+index 000000000..75e47d40a
+--- /dev/null
++++ b/tests/test_provider_exec_cost_overflow.py
+@@ -0,0 +1,10 @@
++"""PE-1: an estimate too large for a float blocks instead of crashing the worker before the gate answers."""
++import pytest
++
++from courier_worker.adapters.provider_exec import evaluate_cost_gate
++
++
++@pytest.mark.parametrize("estimate", [10**400, -(10**400)])
++def test_an_overflowing_estimate_is_blocked_not_raised(estimate):
++    verdict = evaluate_cost_gate({"provider": "agy", "estimated_cost_eur": estimate}, None)
++    assert verdict["allowed"] is False and verdict["reason_code"] == "INVALID_COST_ESTIMATE"

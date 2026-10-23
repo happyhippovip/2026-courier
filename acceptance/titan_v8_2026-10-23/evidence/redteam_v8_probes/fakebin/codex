@@ -1,0 +1,4 @@
+#!/bin/sh
+echo "STUB codex launched argv=$*" > out.txt
+echo "STUB_RAN codex HOME_SET=${HOME:+yes}" 
+exit 0

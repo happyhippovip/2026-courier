@@ -1,0 +1,30 @@
+v1 | CDX-COST-1_codex_bridge_costgate.diff | 20 passed in 0.47s
+v1 | VC-1_verified_continuation_claim_safety.diff | 30 passed in 0.60s
+v1 | WQ-1b_lease_recovery.diff | 75 passed in 5.36s
+v1 | F-C1_L2_controller_cost_admission.diff | 150 passed in 70.50s (0:01:10)
+v1 | WIN-COST-1_included_quota_unknown.diff | 9 passed in 0.46s
+v1 | H12_local_shell_env_allowlist.diff | 53 passed in 1.31s
+ab-master-9ba8 | CDX-COST-1_codex_bridge_costgate.diff | 30 passed in 0.48s
+ab-master-9ba8 | VC-1_verified_continuation_claim_safety.diff | APPLY_FAIL
+ab-master-9ba8 | WQ-1b_lease_recovery.diff | 77 passed in 1.60s
+ab-master-9ba8 | F-C1_L2_controller_cost_admission.diff | 150 passed in 68.16s (0:01:08)
+ab-master-9ba8 | WIN-COST-1_included_quota_unknown.diff | 9 passed in 0.44s
+ab-master-9ba8 | H12_local_shell_env_allowlist.diff | 54 passed in 1.30s
+ab-receipt-verdict-f7a0 | CDX-COST-1_codex_bridge_costgate.diff | 30 passed in 0.41s
+ab-receipt-verdict-f7a0 | VC-1_verified_continuation_claim_safety.diff | APPLY_FAIL
+ab-receipt-verdict-f7a0 | WQ-1b_lease_recovery.diff | 77 passed in 1.75s
+ab-receipt-verdict-f7a0 | F-C1_L2_controller_cost_admission.diff | 150 passed in 69.64s (0:01:09)
+ab-receipt-verdict-f7a0 | WIN-COST-1_included_quota_unknown.diff | 9 passed in 0.49s
+ab-receipt-verdict-f7a0 | H12_local_shell_env_allowlist.diff | 54 passed in 1.39s
+windows-lock-import-be3a | CDX-COST-1_codex_bridge_costgate.diff | 20 passed in 0.42s
+windows-lock-import-be3a | VC-1_verified_continuation_claim_safety.diff | 30 passed in 0.48s
+windows-lock-import-be3a | WQ-1b_lease_recovery.diff | 75 passed in 1.63s
+windows-lock-import-be3a | F-C1_L2_controller_cost_admission.diff | 150 passed in 71.93s (0:01:11)
+windows-lock-import-be3a | WIN-COST-1_included_quota_unknown.diff | 9 passed in 0.51s
+windows-lock-import-be3a | H12_local_shell_env_allowlist.diff | 53 passed in 1.36s
+ledger-engine-v1 | CDX-COST-1_codex_bridge_costgate.diff | 20 passed in 0.37s
+ledger-engine-v1 | VC-1_verified_continuation_claim_safety.diff | 30 passed in 0.50s
+ledger-engine-v1 | WQ-1b_lease_recovery.diff | 75 passed in 1.45s
+ledger-engine-v1 | F-C1_L2_controller_cost_admission.diff | 150 passed in 70.14s (0:01:10)
+ledger-engine-v1 | WIN-COST-1_included_quota_unknown.diff | 9 passed in 0.42s
+ledger-engine-v1 | H12_local_shell_env_allowlist.diff | 53 passed in 1.38s

@@ -1,0 +1,4 @@
+#!/bin/sh
+echo "STUB grok launched argv=$*" > out.txt
+echo "STUB_RAN grok HOME_SET=${HOME:+yes}" 
+exit 0

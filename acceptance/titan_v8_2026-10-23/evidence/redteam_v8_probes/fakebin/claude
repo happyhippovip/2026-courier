@@ -1,0 +1,4 @@
+#!/bin/sh
+echo "STUB claude launched argv=$*" > out.txt
+echo "STUB_RAN claude HOME_SET=${HOME:+yes}" 
+exit 0

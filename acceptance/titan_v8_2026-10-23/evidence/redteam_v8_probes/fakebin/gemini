@@ -1,0 +1,4 @@
+#!/bin/sh
+echo "STUB gemini launched argv=$*" > out.txt
+echo "STUB_RAN gemini HOME_SET=${HOME:+yes}" 
+exit 0

@@ -1,0 +1,4 @@
+#!/bin/sh
+echo "STUB agy launched argv=$*" > out.txt
+echo "STUB_RAN agy HOME_SET=${HOME:+yes}" 
+exit 0

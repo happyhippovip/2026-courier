@@ -1,0 +1,181 @@
+diff --git a/scripts/windows_worker/daemon.py b/scripts/windows_worker/daemon.py
+index baaccc5a3..c3a1f7b74 100644
+--- a/scripts/windows_worker/daemon.py
++++ b/scripts/windows_worker/daemon.py
+@@ -1,4 +1,5 @@
+ import json, time, os, sys, shutil, subprocess, hashlib, uuid
++import re
+ from pathlib import Path, PurePosixPath, PureWindowsPath
+ import urllib.request
+ import urllib.error
+@@ -267,6 +268,24 @@ def kill_process_tree(pid):
+     else:
+         os.kill(pid, 9)  # non-Windows test/dev path; no tree kill available here.
+ 
++_PROVIDER_CLIS = ("cursor-agent", "claude-code", "antigravity", "chatgpt", "copilot", "gemini", "openai",
++                  "claude", "codex", "aider", "grok", "agy")
++_PROVIDER_WORD = re.compile(r"(?<![A-Za-z0-9_.-])(?:@[a-z0-9-]+/)?(" + "|".join(_PROVIDER_CLIS)
++                            + r")(?:\.(?:exe|cmd|bat|ps1))?(?![A-Za-z0-9_-])", re.IGNORECASE)
++_CREDENTIAL_WORDS = ("KEY", "TOKEN", "SECRET", "PASSWORD", "PASSWD", "COOKIE", "CREDENTIAL", "AUTH")
++
++
++def _provider_cli_in(instruction):
++    match = _PROVIDER_WORD.search(str(instruction or ""))
++    return match.group(1).lower() if match else None
++
++
++def _child_env():
++    """The worker's environment without anything that authenticates (server key, provider keys)."""
++    return {name: value for name, value in os.environ.items()
++            if not any(word in name.upper() for word in _CREDENTIAL_WORDS)}
++
++
+ def run_task(task, config):
+     print(f"[{config['WORKER_ID']}] Running task {task['task_id']}...")
+ 
+@@ -285,13 +304,16 @@ def run_task(task, config):
+             "blocked": True,
+         }
+ 
+-    # Free / included quota defaults to 0.0 EUR
++    # The server's routing label "free"/"local" (windows_native is local execution) counts as
++    # 0.0 EUR without an estimate; the provider-CLI check below keeps that from reaching a
++    # provider. An included quota does not (founder decision 23.10): its effective cost is
++    # unknown until a provider-verified 0.0 is given, so it stays UNKNOWN_COST.
+     cost_class = task.get("cost_class")
+     if not cost_class and isinstance(task.get("routing_decision"), dict):
+         cost_class = task["routing_decision"].get("COST_CLASS")
+ 
+     cost_val = task.get("estimated_cost_eur")
+-    if cost_val is None and cost_class in ("included_quota", "free", "local"):
++    if cost_val is None and cost_class in ("free", "local"):
+         cost_val = 0.0
+ 
+     cost_res = CostGate.evaluate_spend_request(
+@@ -313,6 +335,21 @@ def run_task(task, config):
+         }
+ 
+     instruction = task.get("instruction", "")
++    provider = _provider_cli_in(instruction)
++    if provider is not None:
++        # PowerShell runs whatever the text says; a provider CLI here would spend a quota
++        # outside provider_exec's cost gate.
++        return {
++            "status": "FAILED",
++            "stdout": "",
++            "stderr": f"COST_GATE_DENIED: PROVIDER_CLI - instruction starts {provider}; use provider_exec.",
++            "goal_id": task.get("goal_id"),
++            "task_id": task["task_id"],
++            "worker_id": config["WORKER_ID"],
++            "provider": "windows_native",
++            "run_id": "blocked-by-costgate",
++            "blocked": True,
++        }
+ 
+     out_clean = ""
+     stderr = ""
+@@ -325,7 +362,8 @@ def run_task(task, config):
+     encoded_instruction = base64.b64encode(utf8_instruction.encode("utf-16le")).decode("utf-8")
+     cmd = ["powershell", "-EncodedCommand", encoded_instruction]
+     try:
+-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace")
++        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8",
++                                   errors="replace", env=_child_env())
+         run_id = str(process.pid)
+         try:
+             stdout, stderr_out = process.communicate(timeout=600)
+diff --git a/tests/test_windows_costgate_and_writer_lease.py b/tests/test_windows_costgate_and_writer_lease.py
+index 4aa7297af..58f8df40f 100644
+--- a/tests/test_windows_costgate_and_writer_lease.py
++++ b/tests/test_windows_costgate_and_writer_lease.py
+@@ -49,13 +49,30 @@ def test_windows_costgate_allows_authorized_zero_cost(tmp_path, monkeypatch):
+     assert res1["status"] == "SUCCESS"
+     assert res1.get("blocked") is not True
+ 
+-    # Task 2: included_quota class
+-    task2 = {"task_id": "win-002", "instruction": "Write-Host 'ok'", "cost_class": "included_quota"}
++    # Task 2: included_quota with an explicit 0.0 estimate
++    task2 = {"task_id": "win-002", "instruction": "Write-Host 'ok'", "cost_class": "included_quota",
++             "estimated_cost_eur": 0.0}
+     res2 = daemon.run_task(task2, config)
+     assert res2["status"] == "SUCCESS"
+     assert res2.get("blocked") is not True
+ 
+ 
++@pytest.mark.parametrize("task", [
++    {"cost_class": "included_quota"},
++    {"routing_decision": {"COST_CLASS": "included_quota"}},
++    {"cost_class": "INCLUDED_QUOTA"},
++])
++def test_windows_costgate_blocks_included_quota_without_an_estimate(tmp_path, monkeypatch, task):
++    """Founder decision 23.10: an included quota is not a known cost; without an estimate it is UNKNOWN_COST."""
++    daemon = load_daemon(tmp_path, monkeypatch)
++    started = []
++    monkeypatch.setattr(daemon.subprocess, "Popen", lambda *a, **k: started.append(a))
++    res = daemon.run_task(dict(task, task_id="win-iq", instruction="Write-Host 'ok'"), {"WORKER_ID": "WIN-01"})
++    assert res["status"] == "FAILED" and res["blocked"] is True
++    assert "COST_GATE_DENIED: UNKNOWN_COST" in res["stderr"]
++    assert started == []                                    # blocked before PowerShell starts
++
++
+ def test_windows_costgate_blocks_unknown_or_unapproved_cost(tmp_path, monkeypatch):
+     """Proves CostGate blocks unapproved spend or unknown cost fail-closed."""
+     daemon = load_daemon(tmp_path, monkeypatch)
+@@ -280,3 +297,57 @@ def test_daemon_acquire_lock_integrates_canonical_lease_store(tmp_path, monkeypa
+     store = LeaseStore(str(auth_db))
+     assert store.current("worker:worker-test-auth") is None
+     store.close()
++
++
++# -- V8 red team: a task's own label is not a cost; the PowerShell child gets no credentials --
++
++def _capture_popen(daemon, monkeypatch):
++    calls = []
++
++    class DummyProc:
++        pid = 4321
++        returncode = 0
++
++        def communicate(self, timeout=None):
++            return ("ok", "")
++
++    def popen(cmd, **kwargs):
++        calls.append(kwargs)
++        return DummyProc()
++    monkeypatch.setattr(daemon.subprocess, "Popen", popen)
++    return calls
++
++
++@pytest.mark.parametrize("instruction", ["codex exec 'fix it'", "& 'C:\\Tools\\claude.exe' -p hi",
++                                         "agy -p hi | Out-File o.txt", "npx @openai/codex exec x",
++                                         "Start-Process gemini -ArgumentList '-p','x'"])
++def test_windows_refuses_an_instruction_that_starts_a_provider_cli(tmp_path, monkeypatch, instruction):
++    daemon = load_daemon(tmp_path, monkeypatch)
++    calls = _capture_popen(daemon, monkeypatch)
++    res = daemon.run_task({"task_id": "win-p", "instruction": instruction, "estimated_cost_eur": 0.0},
++                          {"WORKER_ID": "WIN-01"})
++    assert res["status"] == "FAILED" and res["blocked"] is True and "PROVIDER_CLI" in res["stderr"]
++    assert calls == []
++
++
++def test_windows_instruction_that_only_mentions_a_word_still_runs(tmp_path, monkeypatch):
++    daemon = load_daemon(tmp_path, monkeypatch)
++    calls = _capture_popen(daemon, monkeypatch)
++    res = daemon.run_task({"task_id": "win-w", "instruction": "Write-Host 'claudette and geminid'",
++                           "estimated_cost_eur": 0.0}, {"WORKER_ID": "WIN-01"})
++    assert res["status"] == "SUCCESS" and len(calls) == 1
++
++
++def test_windows_powershell_child_gets_no_credentials(tmp_path, monkeypatch):
++    daemon = load_daemon(tmp_path, monkeypatch)
++    for name in ("COURIER_API_KEY", "COURIER_CONTROLLER_TOKEN", "OPENAI_API_KEY", "ANTHROPIC_API_KEY",
++                 "GITHUB_TOKEN", "AWS_SECRET_ACCESS_KEY"):
++        monkeypatch.setenv(name, "sentinel-not-a-real-value")
++    monkeypatch.setenv("SYSTEMROOT", "C:\\Windows")
++    calls = _capture_popen(daemon, monkeypatch)
++    res = daemon.run_task({"task_id": "win-e", "instruction": "Write-Host 'ok'", "estimated_cost_eur": 0.0},
++                          {"WORKER_ID": "WIN-01"})
++    assert res["status"] == "SUCCESS"
++    env = calls[0]["env"]
++    assert "sentinel-not-a-real-value" not in env.values()
++    assert env.get("SYSTEMROOT") == "C:\\Windows" and env.get("PATH")

@@ -1,0 +1,4 @@
+codex_exec: bridge=rejected run=refused stub_started=False
+env_claude: bridge=rejected run=refused stub_started=False
+python_c: bridge=rejected run=refused stub_started=False
+sh_c_agy: bridge=rejected run=refused stub_started=False

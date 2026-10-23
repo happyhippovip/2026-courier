@@ -1,0 +1,15 @@
+== probe1_feed_storm.py
+skew=±0s crash_p=0.0: iters=20 dupASSIGNED_iters=0 escaped_exc=0 sim_crashes=0 CLAIM_events=569
+skew=±0s crash_p=0.05: iters=20 dupASSIGNED_iters=0 escaped_exc=0 sim_crashes=186 CLAIM_events=561
+skew=±2s crash_p=0.05: iters=20 dupASSIGNED_iters=0 escaped_exc=0 sim_crashes=146 CLAIM_events=526
+== probe3_crash_inject.py
+kill@claim_attach A_restarts=True probe=None: iters=20 fails=0 
+kill@attach_assigned A_restarts=False probe=None: iters=20 fails=0 
+kill@attach_assigned A_restarts=False probe=RUNNING: iters=20 fails=0 
+kill@attach_assigned A_restarts=True probe=None: iters=20 fails=0 
+== probe4_stale_fencing.py
+stale ops before_new_claim: iters=20 fails=0 
+stale ops after_new_claim: iters=20 fails=0 
+dup RECLAIM, old holder regained: iters=20 fails=0 []
+== probe5_replay_determinism.py
+replay determinism: iters=20 fails=0 snapshots_checked=645 ledger_events=6208 

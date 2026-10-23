@@ -1,0 +1,4 @@
+free_no_estimate: powershell_launched=True result=('SUCCESS', '') env_passed=False
+routing_local_no_estimate: powershell_launched=True result=('SUCCESS', '') env_passed=False
+no_class_no_estimate: powershell_launched=False result=('FAILED', 'COST_GATE_DENIED: UNKNOWN_COST - Cost es') env_passed=-
+explicit_zero: powershell_launched=True result=('SUCCESS', '') env_passed=False
