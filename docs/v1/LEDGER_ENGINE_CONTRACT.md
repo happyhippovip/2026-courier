@@ -24,7 +24,7 @@ Limits (deliberate):
 ## Writers outside the engine (known, not changed here)
 | Path | What it does today | Risk | Owner |
 |---|---|---|---|
-| `courier_core.controller.Controller.create_task` called directly | creates a task with no cost check | unknown cost reaches a worker (F-C1) | L2 (controller, open PR #826) |
+| `courier_core.controller.Controller.create_task` called directly | creates a task with no cost check | unknown cost reaches a worker (F-C1) | L2 (controller admission; open, no PR fixes it — #826 edits `controller.py` for other reasons) |
 | `courier_runtime/host_loop.py` → `provider_events.handle` | a provider line `TURN_ENDED outcome=DONE` calls `Kirby.on_turn_end(DONE)`; the loop keeps one `Kirby` in memory, no lock, no reload | DONE without proof (F-K1); its next save overwrites engine writes (F-K2) | L3 (host loop / continuity) |
 | `scripts/ledger_v1_bridge.py` (PR #827) | cost gate only when the spec names `agent_id`, `host_id` or `estimated_cost_eur` | a local mission spec without those keys is dispatched without a cost check | Cursor A→B→C |
 

@@ -275,7 +275,8 @@ def test_zero_human_chain_runs_three_workkeys_to_final_with_proofs(setup):
 
 # -- known gaps outside the engine (owners: controller L2, host loop L3) ----------------------
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="F-C1 gap in courier_core/controller.py (owner L2, open PR #826): "
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason="F-C1 gap in courier_core/controller.py (owner L2, controller admission; no open PR fixes it, "
+                   "LedgerEngine.submit does not cover direct calls): "
                    "create_task has no cost gate; remove this xfail when the controller rejects it")
 def test_gap_direct_controller_create_task_bypasses_the_cost_gate(setup):
     _, ctrl, _, _ = setup
