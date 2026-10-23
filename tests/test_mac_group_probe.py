@@ -3,6 +3,10 @@
 import os
 import subprocess
 
+import pytest
+
+pytest.importorskip("fcntl")
+
 from scripts.mac_worker.muse_supervisor import ProcessLauncher
 from scripts.mac_worker.runtime_state import group_exists
 import scripts.mac_worker.muse_supervisor as supervisor
