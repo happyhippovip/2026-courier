@@ -556,6 +556,47 @@ def test_main_records_journal_proof_only_for_the_existing_engine(setup):
     assert len((engine.campaign_path.parent / "receipts.jsonl").read_text().splitlines()) == 1
 
 
+def test_main_chain_keeps_each_journal_outcome_across_replay(setup):
+    """Three workkeys through the process entry. A proven step records its own
+    RESULT_ACCEPTED, tampered bytes become FAILED_FINAL with no receipt, and a
+    replay of the whole signal file does not add another final."""
+    import courier_runtime.host_loop as host_loop
+    from courier_runtime.host_loop import emit_signal
+
+    engine, ctrl, home, _ = setup
+    engine.add_workkeys(["A", "B", "C"])
+    engine.open_slot("S1", "local")
+    signals = engine.campaign_path.parent / "signals.log"
+    argv = ["--state", str(engine.campaign_path), "--slot", "S1", "--signals", str(signals),
+            "--host", "host-a", "--once"]
+    seen = []
+    for _ in range(6):
+        claimed = engine.next("S1")
+        if claimed is None:
+            break
+        workkey, _token = claimed
+        task_id = engine.submit(workkey, body())
+        emit_signal(signals, f"TURN_ENDED outcome=DONE checkpoint={workkey}-early")
+        assert host_loop.main(argv, engine=engine) == 0
+        assert kirby_state(engine.campaign_path)["workkeys"][workkey]["state"] == CLAIMED
+        if workkey == "B":
+            work(ctrl, home, payload=b"tampered")
+        else:
+            work(ctrl, home)
+        emit_signal(signals, f"TURN_ENDED outcome=DONE checkpoint={workkey}-ok")
+        assert host_loop.main(argv, engine=engine) == 0
+        seen.append((workkey, kirby_state(engine.campaign_path)["workkeys"][workkey]["state"], engine.proof(task_id)))
+    assert host_loop.main(argv, engine=engine) == 0
+    receipts = [json.loads(line)["workkey"] for line in (engine.campaign_path.parent / "receipts.jsonl").read_text().splitlines()]
+    accepted = [e for e in ctrl.journal.events() if e.type is EventType.RESULT_ACCEPTED]
+    assert [row[0] for row in seen] == ["A", "B", "C"]
+    assert seen[0][1] == DONE and seen[0][2].endswith(":RESULT_ACCEPTED")
+    assert seen[1] == ("B", FAILED_FINAL, None)
+    assert seen[2][1] == DONE and seen[2][2].endswith(":RESULT_ACCEPTED")
+    assert receipts == ["A", "C"]
+    assert len(accepted) == 2
+
+
 def test_provider_done_from_the_wrong_owner_does_not_finish(setup):
     from courier_runtime.continuity import Kirby
     from courier_runtime.provider_events import handle
