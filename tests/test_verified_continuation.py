@@ -374,8 +374,11 @@ def test_h10_expired_lease_reconcile_and_prevent_double_work(continuation_engine
     monkeypatch.setenv("COURIER_AUTONOMOUS", "1")
     assert continuation_engine.claim(workkey, owner="worker-new") is False
 
-    # 4. Case C: Once reconciled / clean, new claim succeeds
+    # 4. Case C: Once reconciled / clean, a human reclaims (VC-1: expiry alone is not proof
+    #    that worker-orig stopped), then the new claim succeeds
     partial_file.unlink()
+    assert continuation_engine.claim(workkey, owner="worker-new") is False
+    continuation_engine.reclaim(workkey, "dennis", "worker-orig is gone, no partial left")
     assert continuation_engine.claim(workkey, owner="worker-new") is True
     claim_info = continuation_engine.is_claimed(workkey)
     assert claim_info["owner"] == "worker-new"
@@ -440,6 +443,9 @@ def test_expired_numeric_claim_can_be_reclaimed(continuation_engine):
         json.dumps({"workkey": workkey, "owner": "worker-a", "created_at_ts": 0, "ttl_s": 1}),
         encoding="utf-8",
     )
+    # Expiry alone is not proof that worker-a's unit stopped (VC-1): a human reclaims first.
+    assert continuation_engine.claim(workkey, owner="worker-b") is False
+    continuation_engine.reclaim(workkey, "dennis", "worker-a is gone")
     assert continuation_engine.claim(workkey, owner="worker-b") is True
     assert continuation_engine.is_claimed(workkey)["owner"] == "worker-b"
 
