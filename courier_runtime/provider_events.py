@@ -54,6 +54,18 @@ def parse_line(line):
     return kind, fields, raw.strip()
 
 
+def _reload(kirby):
+    """Replace this Kirby image with the campaign file.
+
+    finish_turn saves a different Kirby under the campaign lock. The caller's
+    object would otherwise keep CLAIMED and the next IDLE or HEARTBEAT would
+    write that stale image over a journal-proven DONE. A missing file is left
+    alone: loading it would wipe workkeys that have not been saved yet.
+    """
+    if kirby.path.exists():
+        kirby._load()
+
+
 def handle(kirby, slot, line, engine=None):
     """Feed one provider line to Kirby for ``slot``. Returns a result string.
 
@@ -63,6 +75,7 @@ def handle(kirby, slot, line, engine=None):
     kind, fields, raw = parse_line(line)
     if kind is None:
         return "IGNORED"
+    _reload(kirby)
     session = kirby.sessions.get(slot)
     if session is None:
         return "IGNORED_NO_SLOT"
@@ -92,9 +105,11 @@ def handle(kirby, slot, line, engine=None):
             if engine is None:
                 return "NOT_PROVEN"
             from courier_runtime.ledger_engine import task_id_for
-            return engine.finish_turn(slot, session.workkey, session.token,
-                                      task_id_for(session.workkey),
-                                      checkpoint=fields.get("checkpoint", ""))
+            result = engine.finish_turn(slot, session.workkey, session.token,
+                                        task_id_for(session.workkey),
+                                        checkpoint=fields.get("checkpoint", ""))
+            _reload(kirby)
+            return result
         return kirby.on_turn_end(slot, outcome, session.token,
                                  checkpoint=fields.get("checkpoint", ""),
                                  reason=fields.get("reason", ""))

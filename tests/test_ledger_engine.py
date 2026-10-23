@@ -329,8 +329,8 @@ def test_provider_done_finalizes_only_through_finish_turn_proof(setup):
     receipts = (engine.campaign_path.parent / "receipts.jsonl").read_text().splitlines()
     assert [json.loads(line)["workkey"] for line in receipts] == ["WK-1"]
 
-    # The in-memory session still looks like the owner. Disk does not, so a replay cannot finalise twice.
-    assert handle(kirby, "S1", "TURN_ENDED outcome=DONE checkpoint=step", engine=engine) == "REJECTED_STALE_WRITER"
+    # The caller's Kirby reloads the saved DONE. A replay does not claim the workkey again.
+    assert handle(kirby, "S1", "TURN_ENDED outcome=DONE checkpoint=step", engine=engine) == "IDLE"
     assert len((engine.campaign_path.parent / "receipts.jsonl").read_text().splitlines()) == 1
 
     restarted_kirby = Kirby(engine.campaign_path, "host-a")
@@ -346,6 +346,34 @@ def test_provider_done_finalizes_only_through_finish_turn_proof(setup):
     assert kirby_state(engine.campaign_path)["workkeys"]["WK-2"]["state"] == CLAIMED
 
 
+def test_idle_after_proven_done_does_not_restore_claimed(setup):
+    """The caller's Kirby is a different object from the one finish_turn saves.
+
+    A later IDLE or HEARTBEAT must not write that stale CLAIMED image over the
+    journal-proven DONE. One receipt stays one receipt.
+    """
+    from courier_runtime.continuity import Kirby
+    from courier_runtime.provider_events import handle
+
+    engine, ctrl, home, _ = setup
+    engine.add_workkeys(["WK-1"])
+    engine.open_slot("S1", "local")
+    workkey, _token = engine.next("S1")
+    engine.submit(workkey, body())
+    work(ctrl, home)
+    kirby = Kirby(engine.campaign_path, "host-a")
+    assert handle(kirby, "S1", "TURN_ENDED outcome=DONE checkpoint=step", engine=engine) == "IDLE"
+    assert kirby_state(engine.campaign_path)["workkeys"]["WK-1"]["state"] == DONE
+    handle(kirby, "S1", "IDLE")
+    assert kirby_state(engine.campaign_path)["workkeys"]["WK-1"]["state"] == DONE
+    handle(kirby, "S1", "HEARTBEAT progress=1 checkpoint=later")
+    disk = kirby_state(engine.campaign_path)["workkeys"]["WK-1"]
+    assert disk["state"] == DONE
+    assert ":RESULT_ACCEPTED" in disk["checkpoint"]
+    receipts = (engine.campaign_path.parent / "receipts.jsonl").read_text().splitlines()
+    assert len(receipts) == 1
+
+
 def test_provider_done_from_the_wrong_owner_does_not_finish(setup):
     from courier_runtime.continuity import Kirby
     from courier_runtime.provider_events import handle
@@ -359,6 +387,7 @@ def test_provider_done_from_the_wrong_owner_does_not_finish(setup):
     assert engine.proof(task_id).endswith(":RESULT_ACCEPTED")
     foreign = Kirby(engine.campaign_path, "host-a")
     foreign.workkeys[workkey].owner = "not-the-session"
+    foreign._save()  # the fence is the campaign file; an unsaved memory image is reloaded away
     assert handle(foreign, "S1", "TURN_ENDED outcome=DONE checkpoint=stolen", engine=engine) == "COALESCED"
     assert kirby_state(engine.campaign_path)["workkeys"][workkey]["state"] == CLAIMED
     assert not (engine.campaign_path.parent / "receipts.jsonl").exists()
