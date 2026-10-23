@@ -2,6 +2,8 @@
 **Public workflow specification · 23 October 2026 · Happy Hippo VIP × Courier Symphony**
 
 > **Status: documentation only.** This page does **not** enable an automation, launch an agent, authorize edits, create a lease or guarantee uninterrupted operation.
+>
+> **23 October runtime correction:** The user's existing Mac session reported an active Goal and an existing 30-minute wake-up timer but **no separate `/schedule` command in that conversation**. Do not start a second timer or Goal. Use the revised [Google Mac Auto-Resume Prompt V2](./GOOGLE_MAC_AUTO_RESUME_PROMPT_V2_2026-10-23.md), which is the copy-paste command for this scenario.
 
 ## Purpose
 
@@ -10,7 +12,7 @@ Give the existing Google Antigravity Mac engineering verifier a repeatable, low-
 Google Antigravity documents the following features:
 
 - `/goal`: long-running evidence-based task completion within the current session;
-- `/schedule`: one-shot and recurring wake-ups **scoped to the current conversation**;
+- `/schedule`: may be documented in other versions or contexts, but is **not available as a separate command in the pictured session**; the existing timer is the relevant wake-up mechanism;
 - subagents: independent focused analysis;
 - workspace rules and agent skills: reusable instructions;
 - JSON lifecycle hooks: carefully scoped execution policy enforcement;
@@ -38,7 +40,7 @@ These features are capability descriptions, not proof of availability or active 
 3. **Use two lightweight read-only subagents at most on this Mac:** e.g., receipt/ledger proof and cross-host claims. Avoid concurrent heavyweight pytest runs.
 4. **Produce actual evidence:** commit SHA, test name, exit code, synthetic vs real-provider provenance, remaining blocker and owner.
 5. **Checkpoint:** after significant work, store evidence in a previously approved private destination; do not include secrets or personal information.
-6. **Schedule narrowly:** if the installed app supports it and a suitable session remains active, `/schedule` may perform a periodic new-event check; do not start a duplicate goal when one already runs.
+6. **Use the existing single wake-up mechanism:** when a timer/watch is already active, neither duplicate it nor try an unsupported `/schedule` command. Only compare new PR/CI evidence on wake-up.
 7. **Stop:** stop at the specified expiry, invalid lease, resource pressure, quota exhaustion or uncertain cost. Never claim unattended operation without a verified scheduler.
 
 ## Resource and safety contract
@@ -57,7 +59,7 @@ The Mac is resource-constrained, so avoid spawning many agents or parallel test 
 
 ## Important difference: Antigravity schedules versus persistent sidecars
 
-`/schedule` wakes the agent in its **current conversation**; it does not promise work across an app restart. Persistent sidecars use their own manifest and lifecycle and require a separate configuration, security review and authorization. **Do not create or activate sidecars as an implied extension of a prompt.**
+A session-local timer or schedule does **not** promise work across an app restart. Do not claim `/schedule` is available in this exact session if its UI says otherwise. Persistent sidecars use their own manifest and lifecycle and require a separate configuration, security review and authorization. **Do not create or activate sidecars as an implied extension of a prompt.**
 
 Legacy Antigravity IDE Workflows were sunset on **19 October 2026** according to the current documentation. Prefer agent skills for reusable procedures rather than creating new legacy workflow files. Existing workflows can be migrated with `/migrate-workflows` after reviewing the specific effects.
 
