@@ -2,6 +2,8 @@
 
 import pytest
 
+pytest.importorskip("fcntl")
+
 from scripts.mac_worker.runtime_state import atomic_json, control_lock, read_object
 
 
