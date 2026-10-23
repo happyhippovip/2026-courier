@@ -95,7 +95,11 @@ def test_lease_lost_during_the_loop_does_not_claim(tmp_path, monkeypatch):
 
     sleeps = {"n": 0}
 
-    def sleep(_seconds):
+    def sleep(seconds):
+        # Patching daemon.time.sleep replaces the process-wide time.sleep.
+        # Another test's server thread sleeps 0.2s and must not move this lease.
+        if seconds != 60 or daemon._worker_lease is None:
+            return
         sleeps["n"] += 1
         if sleeps["n"] == 1:
             daemon._worker_lease = replace(daemon._worker_lease, token=daemon._worker_lease.token + 3)
@@ -105,6 +109,8 @@ def test_lease_lost_during_the_loop_does_not_claim(tmp_path, monkeypatch):
     monkeypatch.setattr(daemon, "read_cpu_load_percent", lambda: None)
     monkeypatch.setattr(daemon.urllib.request, "urlopen", urlopen)
     monkeypatch.setattr(daemon.time, "sleep", sleep)
+    sleep(0.2)
+    assert sleeps["n"] == 0 and daemon._worker_lease is None
     with pytest.raises(daemon.CanonicalLeaseLost):
         daemon.loop()
     assert sleeps["n"] == 1
