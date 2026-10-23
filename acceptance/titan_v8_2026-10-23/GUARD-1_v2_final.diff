@@ -1,0 +1,565 @@
+diff --git a/courier_core/provider_cli_guard.py b/courier_core/provider_cli_guard.py
+new file mode 100644
+index 000000000..112f039ba
+--- /dev/null
++++ b/courier_core/provider_cli_guard.py
+@@ -0,0 +1,343 @@
++"""Tripwire: would this command start a provider CLI, and which environment may a child see?
++
++A provider CLI (codex, claude, gemini, agy, ...) spends a subscription quota whose per-run cost is
++not verified (founder decision 23.10), so it runs only through ``provider_exec`` and its cost gate.
++``local_shell`` and the Windows worker's PowerShell instructions use this module to refuse such a
++command before anything starts.
++
++It looks for a provider program where a program runs: the command itself, the command behind a
++wrapper (env, sudo, timeout, npx, uv run, ...), the commands of an inline script (sh -c, cmd /c,
++powershell -Command, iex) and string literals that start a program in inline code (python -c,
++node -e). A provider word anywhere else (a commit message, a path, an argument) is not a hit.
++
++This is a tripwire, not a sandbox. Renamed or linked binaries, shell variables, string
++concatenation and script files are not seen; the other layers are the metered cost class, an
++empty home folder and a child environment without credentials or login pointers.
++"""
++
++from __future__ import annotations
++
++import re
++from typing import Sequence
++
++PROVIDER_CLIS = frozenset({
++    "codex", "claude", "gemini", "agy", "antigravity", "grok", "cursor-agent", "openai", "aider",
++    "chatgpt", "copilot", "opencode", "qwen", "amp", "goose",
++})
++_SUFFIXES = ("-cli", "-code", "-ai")
++_EXTENSIONS = (".exe", ".cmd", ".bat", ".ps1", ".com")
++
++# wrapper -> options that take a value (the value is not the program)
++_WRAPPERS = {
++    "env": {"-u", "--unset", "-C", "--chdir"},
++    "sudo": {"-u", "-g", "-C", "-h", "-p", "-U", "-r", "-t", "-D", "--user", "--group"},
++    "doas": {"-u", "-C"},
++    "timeout": {"-k", "-s", "--kill-after", "--signal"},
++    "nice": {"-n", "--adjustment"},
++    "ionice": {"-c", "-n", "-p"},
++    "nohup": set(), "setsid": set(), "stdbuf": set(), "time": set(), "exec": set(), "command": set(),
++    "chronic": set(), "unbuffer": set(), "caffeinate": set(), "call": set(),
++    "start": {"/d"},
++    "wsl": {"-d", "--distribution", "-u", "--user", "--cd"},
++    "xargs": {"-a", "-I", "-i", "-n", "-P", "-d", "-E", "-L", "-s", "--arg-file", "--max-args", "--max-procs"},
++    "start-process": {"-argumentlist", "-workingdirectory", "-verb", "-windowstyle", "-redirectstandardoutput",
++                      "-redirectstandarderror", "-redirectstandardinput", "-credential"},
++    "saps": {"-argumentlist", "-workingdirectory", "-verb", "-windowstyle"},
++}
++_PACKAGE_RUNNERS = {"npx", "bunx", "pnpx", "uvx"}
++_TWO_WORD_RUNNERS = {("uv", "run"), ("uv", "tool"), ("pipx", "run"), ("npm", "exec"), ("npm", "x"),
++                     ("pnpm", "dlx"), ("pnpm", "exec"), ("yarn", "dlx"), ("yarn", "exec"), ("bun", "x")}
++_SHELLS = {"sh", "bash", "zsh", "dash", "ksh", "fish", "busybox"}
++_INTERPRETER_INLINE = {"node": {"-e", "-p", "--eval", "--print"}, "deno": {"eval"}, "bun": {"-e", "--eval"},
++                       "perl": {"-e", "-E"}, "ruby": {"-e"}, "php": {"-r"}}
++_PS_VALUE_OPTIONS = {"-executionpolicy", "-ep", "-ex", "-workingdirectory", "-wd", "-configurationname",
++                     "-outputformat", "-of", "-inputformat", "-if", "-windowstyle", "-w", "-version", "-v"}
++_MAX_INPUT = 64 * 1024        # longer commands are refused instead of scanned (no worker stall)
++_NAMES = "|".join(sorted((re.escape(n) for n in PROVIDER_CLIS), key=len, reverse=True))
++_CODE_LITERAL = re.compile(r"""["']\s*(?:[^"'\s]*[/\\])?(""" + _NAMES + r""")(?:\.(?:exe|cmd|bat|ps1))?(?=[\s"'])""",
++                           re.IGNORECASE)
++_MAX_DEPTH = 6
++
++
++def _program(token: str) -> str:
++    """Normalised program or package name: basename, lower case, no extension, no @version."""
++    name = token.strip().strip("'\"").replace("\\", "/")
++    scoped = name.startswith("@") and "/" in name
++    name = name.rsplit("/", 1)[-1].lower()
++    if "@" in name[1:] or (scoped and "@" in name):
++        name = name.split("@", 1)[0] or name
++    for ext in _EXTENSIONS:
++        if name.endswith(ext):
++            return name[: -len(ext)]
++    return name
++
++
++def _is_provider(name: str) -> bool:
++    if name in PROVIDER_CLIS:
++        return True
++    return any(name.endswith(s) and name[: -len(s)] in PROVIDER_CLIS for s in _SUFFIXES)
++
++
++def _after_options(argv: Sequence[str], i: int, with_value: set) -> int:
++    """Index of the first non-option token from i (skipping VAR=value and option values)."""
++    while i < len(argv):
++        token = argv[i]
++        lowered = token.lower()
++        if token == "--":
++            return i + 1
++        if token.startswith("-") and len(token) > 1:
++            i += 2 if (token in with_value or lowered in with_value) and "=" not in token else 1
++            continue
++        if "=" in token and not token.startswith(("/", ".", "$")):
++            i += 1
++            continue
++        return i
++    return i
++
++
++def _short_cluster_with(token: str, letter: str) -> bool:
++    return token.startswith("-") and not token.startswith("--") and token[1:].isalpha() and letter in token[1:]
++
++
++def provider_in_argv(argv: Sequence[str], _depth: int = 0) -> str | None:
++    """The provider CLI an argv would start (or a reason it cannot be checked), else None."""
++    if _depth > _MAX_DEPTH:
++        return "too deeply nested command"
++    argv = [str(a) for a in argv]
++    if sum(len(a) for a in argv) > _MAX_INPUT:
++        return "command too long to check"
++    i = _after_options(argv, 0, set())               # leading VAR=value assignments
++    while i < len(argv):
++        token = argv[i]
++        prog = _program(token)
++        if prog in (".", "&", "") or token.startswith("/") and argv[0].lower() in ("start", "start.exe") and i > 0:
++            i += 1                                    # call operators, start's "" title and /b /min ...
++            continue
++        if token.startswith("$") and (token.endswith("=") or (i + 1 < len(argv) and argv[i + 1] == "=")):
++            i += 1 if token.endswith("=") else 2      # PowerShell assignment: $out = <command>
++            continue
++        if token.startswith("$") and "=" in token:
++            argv[i] = token.split("=", 1)[1]
++            continue
++        if _is_provider(prog):
++            return prog
++        nxt = argv[i + 1].lower() if i + 1 < len(argv) else ""
++        if prog == "gh" and nxt == "copilot":
++            return "copilot"
++        if prog in _WRAPPERS:
++            if prog == "env":
++                for j, arg in enumerate(argv[i + 1:], start=i + 1):
++                    if arg in ("-S", "--split-string") and j + 1 < len(argv):
++                        return provider_in_script(argv[j + 1], _depth + 1)
++                    if arg.startswith("--split-string="):
++                        return provider_in_script(arg.split("=", 1)[1], _depth + 1)
++                    if arg.startswith("-S") and len(arg) > 2:
++                        return provider_in_script(arg[2:], _depth + 1)
++            if prog in ("start-process", "saps"):
++                for j, arg in enumerate(argv[i + 1:-1], start=i + 1):
++                    if arg.lower() == "-filepath":
++                        return provider_in_argv(argv[j + 1:j + 2], _depth + 1)
++            i = _after_options(argv, i + 1, _WRAPPERS[prog])
++            if prog == "timeout" and i < len(argv) and re.fullmatch(r"[0-9.]+[smhd]?", argv[i]):
++                i += 1                                # the duration
++            continue
++        if prog in _PACKAGE_RUNNERS or (prog, nxt) in _TWO_WORD_RUNNERS:
++            start = i + 1 if prog in _PACKAGE_RUNNERS else i + 2
++            for j, arg in enumerate(argv[start:-1], start=start):
++                if arg in ("-p", "--package") and _is_provider(_program(argv[j + 1])):
++                    return _program(argv[j + 1])
++                if arg in ("-c", "--call"):
++                    return provider_in_script(argv[j + 1], _depth + 1)
++            for arg in argv[start:]:
++                if arg.startswith("--package=") and _is_provider(_program(arg.split("=", 1)[1])):
++                    return _program(arg.split("=", 1)[1])
++            i = _after_options(argv, start, {"-p", "--package", "--from", "--with", "-w"})
++            continue
++        if prog in _SHELLS:
++            for j, arg in enumerate(argv[i + 1:-1], start=i + 1):
++                if _short_cluster_with(arg, "c"):
++                    return provider_in_script(argv[j + 1], _depth + 1)
++            return None                               # a script file: not inspected
++        if prog == "cmd":
++            for j, arg in enumerate(argv[i + 1:], start=i + 1):
++                if arg.lower().startswith(("/c", "/k")):
++                    return provider_in_script(" ".join([arg[2:], *argv[j + 1:]]), _depth + 1)
++            return None
++        if prog in ("powershell", "pwsh"):
++            return _powershell(argv[i + 1:], _depth)
++        if prog.startswith("python") or prog == "py":
++            for j, arg in enumerate(argv[i + 1:-1], start=i + 1):
++                if _short_cluster_with(arg, "c"):
++                    return _in_code(argv[j + 1])
++            return None
++        if prog in _INTERPRETER_INLINE:
++            for j, arg in enumerate(argv[i + 1:-1], start=i + 1):
++                if arg in _INTERPRETER_INLINE[prog]:
++                    return _in_code(argv[j + 1])
++            return None
++        if prog in ("iex", "invoke-expression"):
++            return provider_in_script(" ".join(a.strip("'\"") for a in argv[i + 1:]), _depth + 1)
++        return None
++    return None
++
++
++def _powershell(args: Sequence[str], depth: int) -> str | None:
++    i = 0
++    while i < len(args):
++        lowered = args[i].lower()
++        if lowered in ("-e", "-ec") or lowered.startswith("-enc"):
++            return "powershell encoded command"      # cannot be read, so it is not run
++        if lowered in ("-c", "-command", "-commandwithargs", "-cwa"):
++            return provider_in_script(" ".join(args[i + 1:]), depth + 1)
++        if lowered in ("-f", "-file"):
++            return None                               # a script file: not inspected
++        if lowered.startswith("-"):
++            i += 2 if lowered in _PS_VALUE_OPTIONS else 1
++            continue
++        if lowered.endswith(".ps1"):
++            return None
++        return provider_in_script(" ".join(args[i:]), depth + 1)
++    return None
++
++
++def _in_code(code: str) -> str | None:
++    match = _CODE_LITERAL.search(code)
++    return match.group(1).lower() if match else None
++
++
++class _TooDeep(Exception):
++    pass
++
++
++def _segments(text: str, depth: int = 0) -> list[list[str]]:
++    """Simple commands of a shell/cmd/PowerShell script as token lists.
++
++    Separators (; | & && || newline ( ) { } and backticks) split commands only outside
++    quotes. Command substitution $(...) and `...` runs even inside double quotes, so its
++    content becomes a command of its own.
++    """
++    if depth > _MAX_DEPTH:
++        raise _TooDeep()
++    commands, tokens, word = [], [], []
++    quote = None
++    i, n = 0, len(text)
++
++    def end_word():
++        if word:
++            tokens.append("".join(word))
++            word.clear()
++
++    def end_command():
++        end_word()
++        if tokens:
++            commands.append(list(tokens))
++            tokens.clear()
++
++    while i < n:
++        ch = text[i]
++        if quote is None and ch in "'\"":
++            quote = ch
++            i += 1
++            continue
++        if quote is not None and ch == quote:
++            quote = None
++            i += 1
++            continue
++        if quote != "'" and text.startswith("$(", i):
++            depth, k = 1, i + 2
++            while k < n and depth:
++                depth += {"(": 1, ")": -1}.get(text[k], 0)
++                k += 1
++            commands.extend(_segments(text[i + 2:k - 1], depth + 1))
++            word.append("$()")
++            i = k
++            continue
++        if quote is None and ch == "`" and not text.startswith("`", i + 1):
++            k = text.find("`", i + 1)
++            k = n if k < 0 else k
++            commands.extend(_segments(text[i + 1:k], depth + 1))
++            i = k + 1
++            continue
++        if quote is None:
++            if text.startswith(("&&", "||"), i):
++                end_command()
++                i += 2
++                continue
++            if ch in ";\n\r|&(){}":
++                end_command()
++                i += 1
++                continue
++            if ch.isspace():
++                end_word()
++                i += 1
++                continue
++        word.append(ch)
++        i += 1
++    end_command()
++    return commands
++
++
++def provider_in_script(text: str, _depth: int = 0) -> str | None:
++    """The provider CLI a shell, cmd or PowerShell script would start, else None."""
++    if _depth > _MAX_DEPTH:
++        return "too deeply nested command"
++    text = str(text or "")
++    if len(text) > _MAX_INPUT:
++        return "command too long to check"
++    try:
++        commands = _segments(text)
++    except _TooDeep:
++        return "too deeply nested command"
++    for tokens in commands:
++        hit = provider_in_argv(tokens, _depth + 1)
++        if hit is not None:
++            return hit
++    return None
++
++
++# ---- environment -----------------------------------------------------------------------------
++_CREDENTIAL_SEGMENTS = frozenset({
++    "KEY", "KEYS", "APIKEY", "TOKEN", "TOKENS", "SECRET", "SECRETS", "PASSWORD", "PASSWD", "PASS", "PWD",
++    "COOKIE", "COOKIES", "CREDENTIAL", "CREDENTIALS", "AUTH", "DSN", "PAT", "PRIVATE", "PASSPHRASE",
++    "PRIVATEKEY", "BEARER", "JWT", "SESSIONID",
++})
++_GLUED = ("APIKEY", "TOKEN", "SECRET", "PASSWORD", "PASSWD", "PASSPHRASE", "PRIVATEKEY", "SESSIONID")
++_LOGIN_PREFIXES = ("CODEX_", "CLAUDE_", "ANTHROPIC_", "OPENAI_", "GEMINI_", "GOOGLE_", "XAI_", "GROK_", "CURSOR_",
++                   "AGY_", "ANTIGRAVITY_", "COPILOT_", "AIDER_", "OPENCODE_", "QWEN_", "AWS_", "AZURE_", "GCP_",
++                   "CLOUDSDK_", "GH_", "GITHUB_", "COURIER_")
++_LOGIN_NAMES = frozenset({
++    "GIT_ASKPASS", "SSH_ASKPASS", "GIT_SSH", "GIT_SSH_COMMAND", "NETRC", "DBUS_SESSION_BUS_ADDRESS",
++    "GIT_CONFIG", "GIT_CONFIG_GLOBAL", "GIT_CONFIG_SYSTEM", "GIT_CONFIG_PARAMETERS", "XDG_STATE_HOME",
++    "XDG_RUNTIME_DIR", "GNUPGHOME", "SSH_AUTH_SOCK", "KUBECONFIG", "DOCKER_CONFIG", "NODE_PATH", "NPM_CONFIG_USERCONFIG",
++    "PIP_CONFIG_FILE",
++})
++_USERINFO = re.compile(r"[a-z][a-z0-9+.-]*://[^/\s@]*@", re.IGNORECASE)
++
++
++def is_credential_name(name: str) -> bool:
++    """A variable whose name says it holds a secret (judged by name segments, not substrings)."""
++    upper = str(name).upper()
++    if upper in ("PWD", "OLDPWD"):
++        return False
++    for segment in re.split(r"[_.\-]+", upper):
++        if segment in _CREDENTIAL_SEGMENTS:
++            return True
++        if any(segment.endswith(g) and len(segment) > len(g) for g in _GLUED):
++            return True
++    return False
++
++
++def is_login_pointer(name: str) -> bool:
++    """A variable that points a child at a login, credential helper or provider configuration."""
++    upper = str(name).upper()
++    return upper in _LOGIN_NAMES or upper.startswith(_LOGIN_PREFIXES)
++
++
++def has_userinfo(value: str) -> bool:
++    """A URL value with userinfo (``user:password@`` or ``token@``) in it (proxy, database, git)."""
++    return bool(_USERINFO.search(str(value)))
++
++
++def may_inherit(name: str, value: str) -> bool:
++    """Whether a worker variable may be passed to an untrusted child at all."""
++    return not (is_credential_name(name) or is_login_pointer(name) or has_userinfo(value))
+diff --git a/tests/test_provider_cli_guard.py b/tests/test_provider_cli_guard.py
+new file mode 100644
+index 000000000..7c4d6358a
+--- /dev/null
++++ b/tests/test_provider_cli_guard.py
+@@ -0,0 +1,210 @@
++"""GUARD-1: shared tripwire against starting a provider CLI from local_shell or a PowerShell instruction.
++
++A provider CLI spends a quota whose cost is not verified (founder decision 23.10), so it must go
++through provider_exec and its cost gate. This is a tripwire, not a sandbox: renamed binaries, shell
++variables or string concatenation are accepted limits; the other layers are the metered cost class,
++an empty home folder and an environment without credentials.
++"""
++import sys
++
++import pytest
++
++from courier_core import provider_cli_guard as guard
++
++PY = sys.executable
++
++PROVIDER_ARGV = [
++    ["codex", "exec", "hi"],
++    ["/usr/local/bin/claude", "-p", "hi"],
++    ["C:\\Tools\\gemini.cmd", "-p", "x"],
++    [".\\codex.exe", "exec"],
++    ["C:\\x\\CODEX.CMD"],
++    ["agy.exe", "run"],
++    ["/usr/bin/env", "claude", "-p", "hi"],
++    ["env", "FOO=1", "-i", "codex", "exec"],
++    ["env", "-S", "codex exec"],
++    ["env", "--split-string=claude -p x"],
++    ["timeout", "30s", "codex"],
++    ["timeout", "-k", "5", "30", "codex"],
++    ["sudo", "-u", "bob", "codex"],
++    ["xargs", "-a", "f", "codex"],
++    ["nice", "-n", "5", "gemini"],
++    ["npx", "@openai/codex", "exec"],
++    ["npx", "-y", "@anthropic-ai/claude-code", "-p", "x"],
++    ["npx", "-y", "@google/gemini-cli"],
++    ["npx", "--yes", "@github/copilot-cli"],
++    ["npx", "codex@latest", "exec"],
++    ["npx", "-p", "@google/gemini-cli", "gemini"],
++    ["uv", "run", "codex"],
++    ["uvx", "aider"],
++    ["npm", "exec", "--", "codex"],
++    ["pnpm", "dlx", "@openai/codex"],
++    ["yarn", "dlx", "@google/gemini-cli"],
++    ["bun", "x", "claude"],
++    ["sh", "-c", "agy -p hi"],
++    ["sh", "-ec", "agy -p hi"],
++    ["bash", "-xc", "codex exec"],
++    ["bash", "-lc", "cd /tmp && claude -p hi"],
++    ["bash", "-c", "FOO=1 timeout 5 codex exec | tee o"],
++    ["cmd", "/c", "codex exec x"],
++    ["cmd.exe", "/S", "/C", "gemini -p x"],
++    ["cmd", "/ccodex exec"],
++    ["powershell", "-NoProfile", "-Command", "gemini -p x"],
++    ["powershell", "codex exec"],
++    ["pwsh", "-c", "& codex exec"],
++    ["powershell", "-EncodedCommand", "YwBvAGQAZQB4AA=="],
++    ["pwsh", "-enc", "YwBvAGQAZQB4AA=="],
++    ["powershell", "-Command", "Start-Process gemini -ArgumentList '-p','x'"],
++    ["powershell", "-Command", "iex 'codex exec x'"],
++    [PY, "-c", "import subprocess; subprocess.run(['gemini', '-p', 'x'])"],
++    [PY, "-Ic", "import os; os.system('codex exec x')"],
++    ["python3.12", "-c", "import subprocess; subprocess.run('claude -p x', shell=True)"],
++    ["py", "-3", "-c", "import subprocess; subprocess.run(['agy'])"],
++    ["node", "-e", "require('child_process').execSync('codex exec x')"],
++    ["node", "-p", "require('child_process').execSync('gemini')"],
++    ["perl", "-E", "system('claude -p x')"],
++    ["cursor-agent", "-p", "x"],
++    ["opencode", "run"],
++]
++
++
++@pytest.mark.parametrize("argv", PROVIDER_ARGV)
++def test_a_provider_cli_is_found(argv):
++    assert guard.provider_in_argv(argv) is not None
++
++
++ORDINARY_ARGV = [
++    [PY, "-c", "open('out.txt', 'w').write('shell-made')"],
++    [PY, "/repo/scripts/run_antigravity_bridge.py", "--job-file", "j.json"],
++    ["grep", "-r", "claude", "docs"],
++    ["git", "log", "--author", "codex-bot"],
++    ["git", "commit", "-m", "fix codex bridge"],
++    ["bash", "-c", "git commit -m 'fix codex bridge'"],
++    ["bash", "-c", "ls src/copilot/ && echo agy done"],
++    ["bash", "-c", "/opt/claude-tools/run.sh"],
++    ["sh", "-c", "cat codex.txt"],
++    [PY, "-c", "print('fix gemini adapter'); x = 'claudette'"],
++    ["timeout", "5", "grep", "codex", "file"],
++    ["sudo", "-u", "bob", "ls", "claude"],
++    ["/opt/claude-tools/run.sh"],
++    ["npx", "prettier", "--check", "codex.md"],
++    ["powershell", "-Command", "Write-Host 'agy done'; Get-ChildItem C:\\src\\claude\\"],
++    ["cmd", "/c", "echo codex"],
++]
++
++
++@pytest.mark.parametrize("argv", ORDINARY_ARGV)
++def test_ordinary_commands_that_only_mention_a_provider_pass(argv):
++    assert guard.provider_in_argv(argv) is None
++
++
++@pytest.mark.parametrize("script", [
++    "codex exec 'fix it'", "& 'C:\\Tools\\claude.exe' -p hi", "agy -p hi | Out-File o.txt",
++    "npx @openai/codex exec x", "Start-Process gemini -ArgumentList '-p','x'",
++    "Write-Host x; codex exec", "if ($true) { claude -p x }", "powershell -enc YwBvAGQAZQB4AA==",
++    "cmd /c codex exec", ". C:\\bin\\gemini.ps1",
++])
++def test_a_provider_cli_in_a_powershell_instruction_is_found(script):
++    assert guard.provider_in_script(script) is not None
++
++
++@pytest.mark.parametrize("script", [
++    "Write-Host 'claudette and geminid'", "git commit -m 'fix codex bridge'", "Write-Host \"agy done\"",
++    "Get-ChildItem C:\\src\\claude\\", "Copy-Item codex.txt out.txt", "echo ok",
++])
++def test_ordinary_powershell_instructions_pass(script):
++    assert guard.provider_in_script(script) is None
++
++
++@pytest.mark.parametrize("name", ["OPENAI_API_KEY", "GITHUB_TOKEN", "github_token", "Db_Password", "X_SECRET",
++                                  "AUTH_COOKIE", "SSH_AUTH_SOCK", "MYSQL_PWD", "AWS_SECRET_ACCESS_KEY", "APIKEY",
++                                  "SOME_CREDENTIALS", "SENTRY_DSN", "GH_PAT", "COURIER_API_KEY", "MY_ACCESSTOKEN"])
++def test_credential_names(name):
++    assert guard.is_credential_name(name)
++
++
++@pytest.mark.parametrize("name", ["GIT_AUTHOR_NAME", "GIT_AUTHOR_EMAIL", "KEYBOARD_LAYOUT", "PWD", "OLDPWD", "PATH",
++                                  "HOME", "AUTHOR", "MONKEY_PATCH", "TOKENIZERS_PARALLELISM"])
++def test_not_credential_names(name):
++    assert not guard.is_credential_name(name)
++
++
++@pytest.mark.parametrize("value,secret", [("http://u:p@proxy:8080", True), ("https://user:@h", True),
++                                          ("postgres://a:b@db/x", True), ("http://proxy:8080", False),
++                                          ("C:\\Windows", False), ("user@example.com", False)])
++def test_values_with_userinfo(value, secret):
++    assert guard.has_userinfo(value) is secret
++
++
++def test_provider_config_names_are_login_pointers():
++    for name in ("CODEX_HOME", "CLAUDE_CONFIG_DIR", "GEMINI_CLI_HOME", "GIT_ASKPASS", "GIT_SSH_COMMAND", "NETRC",
++                 "DBUS_SESSION_BUS_ADDRESS", "GIT_CONFIG_GLOBAL", "ANTHROPIC_BASE_URL"):
++        assert guard.is_login_pointer(name), name
++    for name in ("PATH", "TEMP", "LANG", "GIT_AUTHOR_NAME"):
++        assert not guard.is_login_pointer(name), name
++
++
++# Review v8c
++@pytest.mark.parametrize("script", [
++    'python -c "import os; os.system(\'claude -p hi\')"',
++    'python -c "import subprocess; subprocess.run([\'codex\', \'exec\'])"',
++    'node -e "require(\'child_process\').execSync(\'codex exec\')"',
++    "$out = claude -p hi",
++    "$out=codex exec",
++    'start "" codex',
++    "start /b codex exec",
++    "wsl codex exec",
++    "wsl -d Ubuntu -- claude -p x",
++    "gh copilot suggest x",
++    'echo "$(codex exec)"',
++    "echo `claude -p x`",
++])
++def test_review_v8c_bypasses_are_found(script):
++    assert guard.provider_in_script(script) is not None
++
++
++@pytest.mark.parametrize("script", [
++    'git commit -m "fix codex adapter; claude docs"',
++    'echo "a; claude"',
++    'grep -r "codex\\|claude" src',
++    'git commit -m "(goose) fix"',
++    "echo $(date) codex",
++    "Write-Host 'a; claude'",
++    'cmd /c "git commit -m a"',
++])
++def test_review_v8c_quoted_separators_are_not_commands(script):
++    assert guard.provider_in_script(script) is None
++
++
++@pytest.mark.parametrize("argv", [
++    ["bash", "-c", "git commit -m 'x; claude'"],
++    ["powershell", "-Command", "Write-Host 'a; claude'"],
++])
++def test_review_v8c_quoted_separators_in_argv(argv):
++    assert guard.provider_in_argv(argv) is None
++
++
++def test_overlong_input_is_refused_quickly():
++    import time
++    started = time.monotonic()
++    assert guard.provider_in_script("A" * 2_000_000) is not None          # fail closed, not a stall
++    assert guard.provider_in_argv(["sh", "-c", "x" * 2_000_000]) is not None
++    assert time.monotonic() - started < 2
++
++
++@pytest.mark.parametrize("value", ["https://ghp_x@github.com/o/r", "http://:p@h", "git+https://tok@host/x"])
++def test_token_only_userinfo(value):
++    assert guard.has_userinfo(value)
++
++
++@pytest.mark.parametrize("name", ["GPG_PASSPHRASE", "SSH_PRIVATEKEY", "API_BEARER", "MY_JWT", "APP_SESSIONID"])
++def test_more_credential_names(name):
++    assert guard.is_credential_name(name)
++
++
++@pytest.mark.parametrize("text", ["(" * 5000 + "x", ")" * 5000, 'a"b', "'''", "$(" * 3000, "`" * 1001, "\x00", "",
++                                  "echo $(echo $(echo $(echo $(echo $(echo $(echo $(echo hi)))))))"])
++def test_odd_input_never_raises(text):
++    guard.provider_in_script(text)
++    guard.provider_in_argv(["sh", "-c", text])
++    guard.provider_in_argv([text])

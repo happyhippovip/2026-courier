@@ -89,3 +89,42 @@ Mehrprozess-Probes mit echten Locks gegen WQ-1b v2:
 ## Bekannte Grenzen (bewusst, dokumentiert)
 - **Tripwire:** umbenannte oder verlinkte Binaries, Shell-Variablen, String-Konkatenation, Skriptdateien, `make`/npm-Skripte und Keychain-Logins werden nicht erkannt. Die tragenden Schichten sind die Kostenklasse `metered`, das leere Home und eine Umgebung ohne Zugangsdaten.
 - **Windows-Label `free`/`local`:** bleibt 0 €, solange der Server-Dispatch (`server/app.py`, geschützt) keine Schätzung mitliefert.
+
+---
+
+# Teil 3 · finale Integrationspakete nach Review v8c (Trunk `e9d7f1f29`)
+
+**Gültig sind die Dateien mit `_final` bzw. `v3`.** Frühere Versionen bleiben als Historie erhalten.
+
+| Reihenfolge | Patch | SHA256 | Owner |
+|---|---|---|---|
+| 1 | `../l2_build_2026-10-23/F-C1_L2_controller_cost_admission.diff` + `../l2_build_2026-10-23/F-C1_followup_830_pin_to_regular_test.diff` | `6e695c34…` / `08dcfe78…` | L2 |
+| 2 | `F-C1b_runner_cost_recheck.diff` | `c9fddfcd…` | L3 |
+| 3 | `GUARD-1_v2_final.diff` | `fbd0f982…` | L2 (neue Datei) |
+| 4 | `H12_v3_final.diff` | `11301d22…` | L4 |
+| 5 | `WIN-COST-1_v3_final.diff` | `db6d966d…` | Cursor Windows |
+| 6 | `WQ-1b_v2_lease_recovery.diff` | `8451444a…` | Queue |
+| 7 | `VC-1_v3_on_e9d7f1f.diff` | `a8bdc737…` | Google |
+| 8 | `../auto_continue_2026-10-23/CDX-COST-1_codex_bridge_costgate.diff` | `dfbb21b9…` | Codex-Bridge |
+| 9 | `PE-1_provider_exec_overflow.diff` | `b021cf95…` | L3 |
+
+**Gesamtprobe final (VERIFIED):** Trunk + 1–9 → **4239 passed, 16 skipped, 5 xfailed, 0 failed** (rc=0, `evidence/COMBINED_full_suite_e9d7f1f_final.log`).
+
+Review v8c: 3 P1 und 7 P2 gefunden. Alle P1 und die P2 zu Bypass, Fehlalarmen, Laufzeit, Userinfo, Secret-Namen und Aufräumen sind behoben. Offen bleiben zwei P2: das Race zwischen `reclaim` und Renewal (nur entschärft) und die git-Identität im leeren Home (dokumentiert).
+- **VC-1 v3:**
+  - Erneuern nur mit Prozess-Nonce statt PID, denn PIDs werden in Containern und unter Windows wiederverwendet.
+  - `reclaim` verweigert auch bei vorhandenem `checkpoint.json`. Das bisher geprüfte `.result` schreibt niemand.
+  - `reclaim` verschiebt erst atomar und prüft dann. Eine zwischenzeitliche Erneuerung wird zurückgelegt; das Race-Fenster ist damit nur entschärft, nicht geschlossen.
+  - Neu ist CLI `--reclaim WK --actor --reason`. Die Meldung unterscheidet abgelaufen und aktiv.
+  - Ergebnis: 41 grün.
+- **GUARD-1 v2:**
+  - Eigener Scanner, der Anführungszeichen beachtet. `git commit -m "a; claude"` gilt nicht als Befehl, `$(…)` und Backticks schon, auch in doppelten Anführungszeichen.
+  - Inline-Code von `python`/`node` wird auch im Daemon-Pfad erkannt, ebenso `$out = claude`, `start "" codex`, `wsl codex` und `gh copilot`.
+  - Eingaben über 64 KB werden fail-closed abgelehnt; zuvor war der Tokenizer quadratisch langsam.
+  - Tiefe Verschachtelung löst keine Ausnahme aus. Userinfo nur mit Token wird erkannt (`https://ghp_x@…`), dazu weitere Secret-Namen (PASSPHRASE, BEARER, JWT …).
+  - Ergebnis: 154 grün.
+- **H12 v3 / WIN v3:**
+  - Fehler bei `mkdtemp` werden zu `LocalShellError`.
+  - Das Aufräumen entfernt schreibgeschützte Dateien (Windows) und nutzt unter Python 3.12 `onexc`.
+  - Ergebnis: 61 + 340 grün.
+- **Dokumentierte Grenze:** Im leeren Home fehlt die git-Identität aus `~/.gitconfig`. Ein `local_shell`-Task, der committen soll, übergibt `GIT_AUTHOR_*`/`GIT_COMMITTER_*` in `params.env` (erlaubt).

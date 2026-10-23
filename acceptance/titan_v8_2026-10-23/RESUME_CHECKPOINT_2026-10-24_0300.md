@@ -8,14 +8,14 @@
 | Trunk `integration/v1` | `e9d7f1f29` (#826, #829, #830, #831, #832, #828, #833, #834 gemergt) |
 | PR #830 | **gemergt** (`011b8456b`), kein Watch mehr nötig |
 | Acceptance-Branch | `claude/ledger-autonomy-acceptance-2026-10-23`, Ordner `acceptance/titan_v8_2026-10-23/` (README Teil 1 + Teil 2) |
-| Memory | `happyhippovip/2026-project-memory`, Handoff-Abschnitt 18 |
-| Gesamtprobe | Trunk + 9 Pakete: 4194 passed, 0 failed |
+| Memory | `happyhippovip/2026-project-memory`, Handoff-Abschnitt 18 (Abschluss) |
+| Gesamtprobe | Trunk + 9 finale Pakete (README Teil 3): 4239 passed, 0 failed |
 | Uncommittete Änderungen | keine im Repo; alle Patches liegen als Diff auf dem Branch |
 
 ## Restqueue (in dieser Reihenfolge, nur ohne fremde Lease)
 1. Trunk-Head prüfen. Falls er sich bewegt hat: `evidence/matrix2.sh` gegen den neuen Head laufen lassen und Konflikte im eigenen Patch nachziehen.
 2. Kombinierte Volllauf-Probe wiederholen, falls sich der Trunk bewegt hat (Reihenfolge laut README Teil 2).
-3. Ein unabhängiges Review von GUARD-1 und VC-1 v2 ist noch nicht gelaufen.
+3. Review v8c ist eingearbeitet. Offen ist nur ein Kurzreview der finalen VC-1 v3 (Nonce, atomares reclaim) und von GUARD-1 v2 (neuer Scanner).
 4. Wenn Dennis über POL-1 entschieden hat: Test-Policy-Fixture für die 60 betroffenen Tests als Vorschlag bauen.
 5. Abschluss: Evidence-Matrix aktualisieren, Memory-Abschnitt schreiben, ein Bericht.
 
