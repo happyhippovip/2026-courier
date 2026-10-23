@@ -1,4 +1,5 @@
 """A lock that cannot be created is a failed start, not a second instance."""
+import os
 import sys
 import types
 
@@ -57,6 +58,31 @@ def test_lock_worker_id_cannot_escape_the_temp_dir(tmp_path, monkeypatch):
     except (OSError, ValueError) as exc:
         assert "worker" in str(exc).lower()
     assert victim.read_text(encoding="utf-8") == "keep"
+
+
+def test_windows_lock_does_not_cover_the_pid_record(tmp_path, monkeypatch):
+    """The mandatory Windows lock sits past the pid bytes, then releases there."""
+    daemon = load_daemon(tmp_path, monkeypatch)
+    monkeypatch.setattr(daemon.tempfile, "gettempdir", lambda: str(tmp_path))
+    monkeypatch.setattr(daemon, "get_authority_store", lambda: None)
+    seen = []
+    fake = types.ModuleType("msvcrt")
+    fake.LK_NBLCK = 1
+    fake.LK_UNLCK = 2
+
+    def locking(fd, mode, length):
+        seen.append((os.lseek(fd, 0, os.SEEK_CUR), mode, length))
+
+    fake.locking = locking
+    monkeypatch.setitem(sys.modules, "msvcrt", fake)
+    path = daemon.acquire_lock("WIN-01")
+    assert path is not None
+    assert seen[0] == (daemon._WIN_LOCK_OFFSET, fake.LK_NBLCK, 1)
+    record = path.read_bytes()
+    assert record.startswith(b"{")
+    assert b'"pid"' in record
+    daemon.release_lock(path)
+    assert seen[1] == (daemon._WIN_LOCK_OFFSET, fake.LK_UNLCK, 1)
 
 
 def test_held_lock_means_another_instance(tmp_path, monkeypatch):
