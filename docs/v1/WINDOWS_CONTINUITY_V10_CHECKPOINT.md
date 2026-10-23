@@ -16,3 +16,7 @@ Recorded 23 Oct 2026, Europe/Berlin, on `cursor/windows-lock-import-be3a`. No me
 | WIN-CONT-010 | L1 handoff: `docs/v1/WINDOWS_L1_RELEASE_HANDOFF.md`. |
 
 Focused Linux pytest after the code change: 63 passed in `test_windows_lock_fail_closed.py`, `test_windows_local_queue.py`, `test_windows_worker_recovery.py`, `test_windows_worker_contract.py`, `test_windows_resource_probe.py`. That run is not the Windows CI result.
+
+## Continue-01
+
+The first Windows CPU sample is a baseline, not an idle host. Before the change, `is_resource_pressure_high()` was false and `loop()` posted `/tasks/claim`. After it, that sample returns `None` and the loop pauses. `tests/test_windows_resource_probe.py`: 38 passed together with the lock and recovery files. #827 `1715d472e` still does not touch these files. No merge.

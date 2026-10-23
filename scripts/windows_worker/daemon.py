@@ -401,7 +401,11 @@ _last_sys_times = None
 
 
 def read_cpu_load_percent():
-    """CPU load on Windows. None means the probe failed. A host without the Windows API returns 0.0."""
+    """CPU load on Windows. None means the probe failed or has no baseline yet.
+
+    A host without the Windows API returns 0.0. The first Windows sample only
+    stores a baseline, so it is not an idle reading and must not open a claim.
+    """
     global _last_sys_times
     try:
         import ctypes
@@ -423,7 +427,7 @@ def read_cpu_load_percent():
 
         if _last_sys_times is None:
             _last_sys_times = (i, t)
-            return 0.0
+            return None
 
         i_prev, t_prev = _last_sys_times
         _last_sys_times = (i, t)
