@@ -57,6 +57,16 @@ def format_fingerprint(sha256_hex: str | None) -> str:
     return f"{sha256_hex[:8]}...{sha256_hex[-8:]}"
 
 
+def _accepted_proof(task: Mapping[str, Any] | None) -> bool:
+    """Verdict PASS and resolution verified. The caller still has to hash the bytes."""
+    if not isinstance(task, Mapping):
+        return False
+    verification = task.get("verification")
+    if not isinstance(verification, dict):
+        return False
+    return verification.get("verdict") == "PASS" and verification.get("resolution") == "verified"
+
+
 def derive_integrity_status(
     record: Mapping[str, Any] | None,
     task: Mapping[str, Any] | None = None,
@@ -78,7 +88,7 @@ def derive_integrity_status(
         if actual_sha != record_sha:
             return STATUS_HASH_MISMATCH
         record_size = record.get("size")
-        if record_size is not None and len(blob_bytes) != record_size:
+        if isinstance(record_size, bool) or (record_size is not None and len(blob_bytes) != record_size):
             return STATUS_HASH_MISMATCH
         bytes_match = True
 
@@ -87,32 +97,13 @@ def derive_integrity_status(
         if isinstance(expected_sha, str) and expected_sha and expected_sha != record_sha:
             return STATUS_HASH_MISMATCH
 
-        # A verdict is a proof only after the artifact bytes were hashed.
-        verification = task.get("verification")
-        if isinstance(verification, dict):
-            if "verdict" not in verification:
-                return STATUS_MISSING_DATA
-            verdict = verification.get("verdict")
-            if verdict == "FAIL":
-                return STATUS_HASH_MISMATCH
-            if verdict == "PASS" and bytes_match:
-                return STATUS_VERIFIED_MATCH
-            return STATUS_MISSING_DATA
-
-        if isinstance(expected_sha, str) and expected_sha:
-            if bytes_match:
-                return STATUS_VERIFIED_MATCH
-            return STATUS_MISSING_DATA
-
-        # External origin still needs the bytes that match the recorded hash.
-        if task.get("source") in ("external", "ci", "github", "adapter_unbound"):
-            if bytes_match:
-                return STATUS_EXTERNAL_PRODUCED
-            return STATUS_MISSING_DATA
-
-    if bytes_match:
-        return STATUS_VERIFIED_MATCH
-    return STATUS_MISSING_DATA
+    # VERIFIED requires the hashed bytes and an accepted resolution.
+    # A FAIL verdict is not rewritten into a hash mismatch when the bytes match.
+    if not bytes_match or not _accepted_proof(task):
+        return STATUS_MISSING_DATA
+    if isinstance(task, Mapping) and task.get("source") in ("external", "ci", "github", "adapter_unbound"):
+        return STATUS_EXTERNAL_PRODUCED
+    return STATUS_VERIFIED_MATCH
 
 
 def generate_artifact_receipt(
@@ -194,20 +185,24 @@ def generate_artifact_receipt(
     task_dict = task or {}
     verification = task_dict.get("verification")
     claimed = verification.get("verdict") if isinstance(verification, dict) else None
-    # A task label cannot publish PASS over a missing artifact, a bad hash,
-    # an invalid proof, or a verification object that has no verdict.
-    if not is_valid or claimed not in (None, "PASS"):
+    resolution = verification.get("resolution") if isinstance(verification, dict) else None
+    accepted = bool(is_valid and _accepted_proof(task_dict))
+    if not accepted:
         verdict = "FAIL"
         is_valid = False
     else:
         verdict = "PASS"
 
-    if integrity_status == STATUS_VERIFIED_MATCH:
+    if accepted and integrity_status == STATUS_VERIFIED_MATCH:
         human_summary = f"Artifact '{name}' ({size_fmt}) verified authentic (SHA-256: {fingerprint})."
-    elif integrity_status == STATUS_EXTERNAL_PRODUCED:
+    elif accepted and integrity_status == STATUS_EXTERNAL_PRODUCED:
         human_summary = f"Artifact '{name}' ({size_fmt}) received from external build (SHA-256: {fingerprint})."
+    elif claimed == "FAIL":
+        human_summary = f"WARNING: Artifact '{name}' was not accepted (verification verdict FAIL)."
     elif integrity_status == STATUS_HASH_MISMATCH:
         human_summary = f"WARNING: Artifact '{name}' failed integrity check (hash mismatch against expected digest)."
+    elif resolution != "verified":
+        human_summary = f"WARNING: Artifact '{name}' has no verified resolution."
     else:
         human_summary = f"WARNING: Artifact '{name}' record is missing or corrupt."
 

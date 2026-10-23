@@ -260,6 +260,34 @@ def _artifacts(tmp_path, count):
     return out
 
 
+def test_c_receives_only_bs_verified_bytes(tmp_path):
+    """C is the next handoff. It waits while B is open and refuses B's bytes when they change."""
+    spec = {"inputs_from": ["B"]}
+    mission = {"depends_on": ["B"]}
+    waiting = {"missions": {"B": {"task_id": "task-b", "status": "POSTED", "accepted_result_id": "r-b"}}}
+    assert bridge._resolve_inputs(waiting, spec, mission, _fake(None), _Args, "t", tmp_path) == (
+        None, "input_not_final", False,
+    )
+
+    path = "artifacts/d/from-b.txt"
+    target = tmp_path / path
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(b"from-b")
+    digest = hashlib.sha256(b"from-b").hexdigest()
+    ready = {"missions": {"B": {"task_id": "task-b", "status": "FINAL_DONE", "accepted_result_id": "r-b"}}}
+    result = {"task_id": "task-b", "result_id": "r-b", "artifacts": [{"path": path, "sha256": digest}]}
+    inputs, why, fatal = bridge._resolve_inputs(ready, spec, mission, _fake(result), _Args, "t", tmp_path)
+    assert why is None and fatal is False
+    assert inputs == [{
+        "mission_id": "B", "task_id": "task-b", "result_id": "r-b", "path": path, "sha256": digest,
+    }]
+
+    target.write_bytes(b"tampered")
+    assert bridge._resolve_inputs(ready, spec, mission, _fake(result), _Args, "t", tmp_path) == (
+        None, "input_digest_mismatch", True,
+    )
+
+
 def test_resolve_inputs_waits_for_upstream(tmp_path):
     spec = {"inputs_from": ["A"]}
     mission = {"depends_on": ["A"]}

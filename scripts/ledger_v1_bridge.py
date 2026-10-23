@@ -438,10 +438,10 @@ def _result_id(view):
 def _verified_result_id(view):
     """The accepted result of a verified COMPLETE, else None.
 
-    A view without a resolution field predates projection v2 and is read as
-    verified only when it names an accepted result.
+    A missing resolution is not verified. Older views that omitted the field
+    must not finalize.
     """
-    if not isinstance(view, dict) or view.get("resolution", "verified") != "verified":
+    if not isinstance(view, dict) or view.get("resolution") != "verified":
         return None
     value = view.get("accepted_result_id")
     return value if isinstance(value, str) and value else None

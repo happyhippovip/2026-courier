@@ -213,6 +213,7 @@ def test_complete_a_finalizes_and_posts_b_in_the_same_pass(tmp_path):
     task_id = "task-" + hashlib.sha256(http.posts[0]["idempotency_key"].encode()).hexdigest()[:32]
     http.views[task_id]["status"] = "COMPLETE"
     http.views[task_id]["accepted_result_id"] = "result-a"
+    http.views[task_id]["resolution"] = "verified"
     http.views[task_id]["attempt"] = 1
     record = json.loads((home / "ledger_bridge_state.json").read_text(encoding="utf-8"))["missions"]["A"]
     before = len((home / "coordination_ledger.jsonl").read_text(encoding="utf-8").splitlines())
@@ -304,7 +305,7 @@ def test_restart_on_complete_task_writes_one_final_and_no_post(tmp_path):
         json.dumps({"missions": {"A": _mapped()}}), encoding="utf-8")
     http.views["task-a"] = {
         "task_id": "task-a", "status": "COMPLETE", "attempt": 1,
-        "accepted_result_id": "result-a", "last_reason": None,
+        "accepted_result_id": "result-a", "resolution": "verified", "last_reason": None,
     }
     code, out, err, log, lines = _run(home, http)
     assert code == 0 and http.posts == []
@@ -385,6 +386,7 @@ def test_goal_fields_round_trip_into_evidence_and_replay_is_noop(tmp_path):
     task_id = "task-" + hashlib.sha256(posted["idempotency_key"].encode()).hexdigest()[:32]
     http.views[task_id]["status"] = "COMPLETE"
     http.views[task_id]["accepted_result_id"] = "result-goal"
+    http.views[task_id]["resolution"] = "verified"
     http.views[task_id]["attempt"] = 1
     code, out, err, log, lines = _run(home, http)
     assert code == 0, err
@@ -452,6 +454,7 @@ def test_mission_status_posted_then_final_done_and_replay_is_stable(tmp_path):
     task_id = posted["task_id"]
     http.views[task_id]["status"] = "COMPLETE"
     http.views[task_id]["accepted_result_id"] = "result-a"
+    http.views[task_id]["resolution"] = "verified"
     http.views[task_id]["attempt"] = 1
     assert _run(home, http)[0] == 0
     done = _state(home)["A"]
@@ -616,6 +619,14 @@ def test_complete_without_accepted_result_is_not_final(tmp_path):
     assert _finals(home) == []
     assert code == 2  # the bridge's not-ok exit code
     assert "evidence_missing" in out
+
+
+def test_accepted_result_without_resolution_is_not_final(tmp_path):
+    http, home = _complete_view(tmp_path, accepted_result_id="result-a")
+    code, out, err, log, lines = _run(home, http)
+    assert _finals(home) == []
+    assert "evidence_missing" in out
+    assert '"outcome":"final"' not in out
 
 
 def test_accepted_result_with_non_verified_resolution_is_not_final(tmp_path):

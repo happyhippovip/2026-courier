@@ -56,32 +56,44 @@ def test_derive_integrity_status():
     assert derive_integrity_status(None) == STATUS_MISSING_DATA
     assert derive_integrity_status({}) == STATUS_MISSING_DATA
 
-    # Matching blob
-    assert derive_integrity_status(record, blob_bytes=data) == STATUS_VERIFIED_MATCH
+    proof = {"verification": {"verdict": "PASS", "resolution": "verified"}}
+
+    # Matching bytes without a verdict and resolution are not verified.
+    assert derive_integrity_status(record, blob_bytes=data) == STATUS_MISSING_DATA
+    assert derive_integrity_status(record, task=proof, blob_bytes=data) == STATUS_VERIFIED_MATCH
 
     # Mismatched blob bytes
     assert derive_integrity_status(record, blob_bytes=b"corrupt") == STATUS_HASH_MISMATCH
 
-    # Expected sha matches the record only after the bytes are hashed.
+    # Expected sha matches the record only together with bytes and a resolution.
     task_match = {"expected_sha256": sha}
     assert derive_integrity_status(record, task=task_match) == STATUS_MISSING_DATA
-    assert derive_integrity_status(record, task=task_match, blob_bytes=data) == STATUS_VERIFIED_MATCH
+    assert derive_integrity_status(record, task=task_match, blob_bytes=data) == STATUS_MISSING_DATA
+    task_match_proved = {"expected_sha256": sha, **proof}
+    assert derive_integrity_status(record, task=task_match_proved, blob_bytes=data) == STATUS_VERIFIED_MATCH
 
     # Expected sha in task mismatching
     task_mismatch = {"expected_sha256": "0" * 64}
     assert derive_integrity_status(record, task=task_mismatch) == STATUS_HASH_MISMATCH
 
-    # External task source still requires the matching bytes.
+    # External task source still needs the bytes and an accepted resolution.
     task_ext = {"source": "external"}
     assert derive_integrity_status(record, task=task_ext) == STATUS_MISSING_DATA
-    assert derive_integrity_status(record, task=task_ext, blob_bytes=data) == STATUS_EXTERNAL_PRODUCED
+    assert derive_integrity_status(record, task=task_ext, blob_bytes=data) == STATUS_MISSING_DATA
+    task_ext_proved = {"source": "external", **proof}
+    assert derive_integrity_status(record, task=task_ext_proved, blob_bytes=data) == STATUS_EXTERNAL_PRODUCED
 
-    # A stored hash alone, a claimed PASS, or a verification without a verdict
-    # is not a resolved proof.
+    # A stored hash, a claimed PASS, a missing resolution, or a FAIL on matching
+    # bytes is not a verified proof and is not relabeled as a hash mismatch.
     assert derive_integrity_status(record) == STATUS_MISSING_DATA
     assert derive_integrity_status(record, task={}) == STATUS_MISSING_DATA
     assert derive_integrity_status(record, task={"verification": {"verdict": "PASS"}}) == STATUS_MISSING_DATA
     assert derive_integrity_status(record, task={"verification": {}}) == STATUS_MISSING_DATA
+    assert derive_integrity_status(
+        record,
+        task={"verification": {"verdict": "FAIL", "resolution": "verified"}},
+        blob_bytes=data,
+    ) == STATUS_MISSING_DATA
     assert derive_integrity_status(record, blob_bytes="not-bytes") == STATUS_MISSING_DATA
 
 
@@ -106,12 +118,23 @@ def test_generate_artifact_receipt_with_store():
         assert receipt["size_bytes"] == len(data)
         assert receipt["sha256"] == sha
         assert receipt["sha256_fingerprint"] == f"{sha[:8]}...{sha[-8:]}"
-        assert receipt["integrity_status"] == STATUS_VERIFIED_MATCH
-        assert receipt["is_valid"] is True
+        assert receipt["integrity_status"] == STATUS_MISSING_DATA
+        assert receipt["is_valid"] is False
+        assert receipt["verification_verdict"] == "FAIL"
         assert receipt["provenance"]["task_id"] == "task-1"
         assert receipt["provenance"]["worker_id"] == "worker-1"
         assert receipt["file_access"]["download_url"] == f"/artifacts/{artifact_id}"
-        assert "verified authentic" in receipt["human_summary"]
+        assert "verified authentic" not in receipt["human_summary"]
+
+        accepted = generate_artifact_receipt(
+            artifact_id,
+            store=store,
+            task={"verification": {"verdict": "PASS", "resolution": "verified"}},
+        )
+        assert accepted["integrity_status"] == STATUS_VERIFIED_MATCH
+        assert accepted["is_valid"] is True
+        assert accepted["verification_verdict"] == "PASS"
+        assert "verified authentic" in accepted["human_summary"]
 
 
 def test_hash_mismatch_does_not_publish_pass():
@@ -221,7 +244,7 @@ def test_server_artifact_receipt_endpoint(monkeypatch):
             return {
                 "task_id": tid,
                 "goal_id": "goal-100",
-                "verification": {"verdict": "PASS"},
+                "verification": {"verdict": "PASS", "resolution": "verified"},
             }
 
         app = Flask(__name__)
