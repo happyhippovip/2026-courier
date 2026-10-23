@@ -10,7 +10,7 @@ from scripts.coordination_ledger import (
 )
 from scripts.coordination_resume import reduce_store
 from scripts.github_coordination import FileCoordinationStore
-from scripts.ledger_v1_bridge import _load_state, main
+from scripts.ledger_v1_bridge import MAX_STATE_BYTES, _load_state, main
 
 TOKEN = "controller-token-value-0123456789abcdef"
 AGENT = "GOOGLE_WINDOWS"
@@ -320,6 +320,47 @@ def test_restart_on_complete_task_writes_one_final_and_no_post(tmp_path):
     before = (home / "coordination_ledger.jsonl").read_text(encoding="utf-8")
     assert _run(home, http)[0] == 0
     assert http.posts == []
+    assert (home / "coordination_ledger.jsonl").read_text(encoding="utf-8") == before
+
+
+def test_unreadable_receipt_log_is_not_a_present_receipt(tmp_path):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec(source_sha=SHA)})
+    _seed(home, [_ready("A", "a-assign")])
+    (home / "ledger_bridge_state.json").write_text(
+        json.dumps({"missions": {"A": _mapped()}}), encoding="utf-8")
+    http.views["task-a"] = {
+        "task_id": "task-a", "status": "COMPLETE", "attempt": 1,
+        "accepted_result_id": "result-a", "resolution": "verified", "last_reason": None,
+    }
+    code, out, err, log, lines = _run(home, http)
+    assert code == 0 and "final" in out
+    before = (home / "coordination_ledger.jsonl").read_text(encoding="utf-8")
+    log_path = home / "run" / "ledger_bridge.log"
+    log_path.write_bytes(b"\xff\xfe not a receipt\n")
+    out_lines, err_lines = [], []
+    code = main(
+        ["--home", str(home), "--agent-id", AGENT, "--host-id", HOST,
+         "--controller", "http://127.0.0.1:9"],
+        http=http, stdout=out_lines.append, stderr=err_lines.append,
+    )
+    text = "".join(out_lines)
+    assert code == 2
+    assert "receipt_log_unreadable" in text
+    assert '"outcome":"final"' not in text
+    assert (home / "coordination_ledger.jsonl").read_text(encoding="utf-8") == before
+
+    log_path.write_bytes(b"x" * (MAX_STATE_BYTES + 1))
+    out_lines, err_lines = [], []
+    code = main(
+        ["--home", str(home), "--agent-id", AGENT, "--host-id", HOST,
+         "--controller", "http://127.0.0.1:9"],
+        http=http, stdout=out_lines.append, stderr=err_lines.append,
+    )
+    text = "".join(out_lines)
+    assert code == 2
+    assert "receipt_log_unreadable" in text
+    assert '"outcome":"final"' not in text
     assert (home / "coordination_ledger.jsonl").read_text(encoding="utf-8") == before
 
 

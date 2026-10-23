@@ -170,8 +170,20 @@ def _feedback(store, state, specs, agent, host, args, transport, token, emit, ho
         outcome = event.event_type.value.lower()
         # The ledger line is durable before the log line. A crash in between
         # must still produce that receipt exactly once on the next invocation.
-        if wrote or not _receipt_present(home, mission_id, outcome):
-            emit({"mission_id": mission_id, "outcome": outcome, "task_id": mapping.get("task_id")})
+        # An unreadable log is not proof the receipt was written.
+        if not wrote:
+            try:
+                if _receipt_present(home, mission_id, outcome):
+                    continue
+            except ConfigError:
+                emit({
+                    "mission_id": mission_id,
+                    "outcome": "skipped",
+                    "reason": "receipt_log_unreadable",
+                })
+                ok = False
+                continue
+        emit({"mission_id": mission_id, "outcome": outcome, "task_id": mapping.get("task_id")})
     return ok
 
 
@@ -851,11 +863,11 @@ def _receipt_present(home, mission_id, outcome) -> bool:
     except OSError:
         return False
     if size > MAX_STATE_BYTES:
-        return True
+        raise ConfigError("receipt log oversize")
     try:
         text = path.read_text(encoding="utf-8")
-    except (OSError, UnicodeError):
-        return True
+    except (OSError, UnicodeError) as exc:
+        raise ConfigError("receipt log unreadable") from exc
     for line in text.splitlines():
         try:
             record = json.loads(line)
