@@ -119,3 +119,22 @@ def test_evaluate_result_and_decide_pass_no_next(tmp_path):
     )
     # Passed value gate, but no next task
     assert decision.decision == "COMPLETE"
+
+
+def test_evaluate_result_missing_verdict_does_not_complete(tmp_path):
+    chief = ChiefCommander(repo_dir=tmp_path)
+    result_file = tmp_path / "result.json"
+    result_file.write_text(json.dumps({
+        "payload": {"data": "something new"},
+        "source": "antigravity",
+    }), encoding="utf-8")
+
+    decision = chief.evaluate_result_and_decide(
+        task_id="t1",
+        correlation_id="c1",
+        workflow_id="wf1",
+        result_file=result_file,
+    )
+    assert decision.decision == "WAIT_FOR_HUMAN"
+    assert decision.decision != "COMPLETE"
+    assert decision.next_task is None
