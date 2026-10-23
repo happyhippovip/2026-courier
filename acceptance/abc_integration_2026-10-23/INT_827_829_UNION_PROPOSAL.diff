@@ -1,0 +1,473 @@
+diff --git a/scripts/windows_worker/daemon.py b/scripts/windows_worker/daemon.py
+index 493abf86a..f9f5a8a95 100644
+--- a/scripts/windows_worker/daemon.py
++++ b/scripts/windows_worker/daemon.py
+@@ -9,11 +9,11 @@ if str(_SCRIPTS_DIR) not in sys.path:
+     sys.path.insert(0, str(_SCRIPTS_DIR))
+ from integration_contract import canonical_result_id
+ 
+-# No fallback key exists. The key comes from COURIER_API_KEY or, failing that,
+-# from config.json where bootstrap.ps1 stores it; the server URL from
+-# COURIER_SERVER (COURIER_SERVER_URL accepted), then config.json, then the default.
+-DEFAULT_SERVER = "http://192.168.178.162:8080"
+-API_URL = (os.environ.get("COURIER_SERVER") or os.environ.get("COURIER_SERVER_URL") or DEFAULT_SERVER).rstrip("/")
++# No fallback key and no fallback address. The key comes from COURIER_API_KEY
++# or, failing that, from config.json where bootstrap.ps1 stores it. The server
++# comes from COURIER_SERVER (COURIER_SERVER_URL accepted), then config.json.
++# A missing server must not become a private LAN address.
++API_URL = (os.environ.get("COURIER_SERVER") or os.environ.get("COURIER_SERVER_URL") or "").strip().rstrip("/")
+ API_KEY = os.environ.get("COURIER_API_KEY", "").strip()
+ HEADERS = {
+     "Authorization": f"Bearer {API_KEY}",
+@@ -28,6 +28,14 @@ def _refuse_app_symlink(path: Path) -> None:
+         raise OSError(f"{path}: refusing to follow a symlink")
+ 
+ 
++
++class MissingServerError(RuntimeError):
++    """The process must stop. There is no default server address."""
++
++
++class CanonicalLeaseLost(RuntimeError):
++    """The process must stop. A stale or missing writer lease is not a retry."""
++
+ def get_app_data_dir():
+     pd = os.environ.get("LOCALAPPDATA")
+     # Never inside the source tree: off Windows use COURIER_HOME or ~/.courier.
+@@ -82,6 +90,14 @@ def require_api_key():
+         raise MissingCredentialError("COURIER_API_KEY is not set (environment, controller.token, or config.json); refusing to contact the Courier server.")
+ 
+ 
++def require_server():
++    """Fail closed before any network call when no server URL is configured."""
++    if not API_URL or "://" not in API_URL:
++        raise MissingServerError(
++            "COURIER_SERVER is not set (environment or config.json); refusing to contact a default address."
++        )
++
++
+ def setup_logging():
+     import logging
+     from logging.handlers import RotatingFileHandler
+@@ -446,14 +462,12 @@ def _windows_lock_api():
+ 
+ 
+ def get_authority_store():
++    """Open the canonical lease database. A failure is raised, never cached as optional."""
+     global _lease_store
+     if _lease_store is None:
+-        try:
+-            from courier_runtime.lease import LeaseStore
+-            auth_db = STATE_DIR / "authority.db"
+-            _lease_store = LeaseStore(str(auth_db))
+-        except Exception:
+-            _lease_store = None
++        from courier_runtime.lease import LeaseStore
++        auth_db = STATE_DIR / "authority.db"
++        _lease_store = LeaseStore(str(auth_db))
+     return _lease_store
+ 
+ 
+@@ -477,6 +491,22 @@ def _lock_file_for(worker_id):
+     return lock_file
+ 
+ 
++def _holder_process_is_gone(holder):
++    """True only when the lease names a local process that is not still that process."""
++    from courier_runtime.lease import parse_session_holder
++    parsed = parse_session_holder(holder)
++    if not parsed:
++        return False
++    import psutil
++    try:
++        proc = psutil.Process(parsed["pid"])
++    except psutil.NoSuchProcess:
++        return True
++    if not proc.is_running():
++        return True
++    return abs(proc.create_time() - parsed["create_time"]) > 0.05
++
++
+ def acquire_lock(worker_id):
+     """Return the lock path, or None when another worker already holds it.
+ 
+@@ -501,7 +531,10 @@ def acquire_lock(worker_id):
+         else:
+             import fcntl
+             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+-    except (OSError, ImportError):
++    except ImportError:
++        os.close(fd)
++        raise
++    except OSError:
+         os.close(fd)
+         return None
+     try:
+@@ -514,20 +547,44 @@ def acquire_lock(worker_id):
+ 
+     _lock_fd = fd
+ 
+-    # Acquire canonical Courier writer lease in LeaseStore
+-    store = get_authority_store()
+-    if store is not None:
++    # The file lock is not a canonical lease. Without a live LeaseStore grant
++    # the worker must not start, and the file lock must not stay behind.
++    scope = f"worker:{worker_id}"
++    try:
++        store = get_authority_store()
++        from courier_runtime.lease import LeaseConflict, format_session_holder
++        holder = format_session_holder(worker_id, os.getpid(), psutil.Process(os.getpid()).create_time(), str(uuid.uuid4()))
+         try:
+-            from courier_runtime.lease import format_session_holder
+-            holder = format_session_holder(worker_id, os.getpid(), psutil.Process(os.getpid()).create_time(), str(uuid.uuid4()))
+-            _worker_lease = store.acquire(f"worker:{worker_id}", holder, "daemon_loop", ttl_s=3600)
+-        except Exception:
+-            release_lock(lock_file)
+-            return None
++            _worker_lease = store.acquire(scope, holder, "daemon_loop", ttl_s=3600)
++        except LeaseConflict:
++            current = store.current(scope)
++            if current is not None and not _holder_process_is_gone(current.holder):
++                raise
++            if current is not None:
++                store.release(current)
++            _worker_lease = store.acquire(scope, holder, "daemon_loop", ttl_s=3600)
++    except Exception as exc:
++        release_lock(lock_file)
++        raise CanonicalLeaseLost(
++            f"Courier cannot start without a canonical writer lease: {exc}"
++        ) from exc
+ 
+     return lock_file
+ 
+ 
++def _require_canonical_lease():
++    """Refuse work when the start lease is missing or its fencing token moved."""
++    if _worker_lease is None:
++        raise CanonicalLeaseLost("Courier cannot run without a canonical writer lease")
++    store = get_authority_store()
++    try:
++        store.check_write(_worker_lease.scope, _worker_lease.token)
++    except Exception as exc:
++        raise CanonicalLeaseLost(
++            f"Courier cannot run without a canonical writer lease: {exc}"
++        ) from exc
++
++
+ def release_lock(lock_path=None):
+     global _lock_fd, _worker_lease
+     if _worker_lease is not None:
+@@ -569,6 +626,7 @@ def loop():
+     config = load_config()
+     apply_config_credentials(config)
+     require_api_key()
++    require_server()
+     worker_id = config["WORKER_ID"]
+     
+     lock_path = acquire_lock(worker_id)
+@@ -577,6 +635,7 @@ def loop():
+         sys.exit(0)
+     
+     try:
++        _require_canonical_lease()
+         print(f"[{worker_id}] Windows Worker HTTP Daemon started. PID={os.getpid()}")
+         
+         backoff = 10
+@@ -638,6 +697,7 @@ def loop():
+                 if task and task["worker_phase"] == "CLAIMED":
+                     task["worker_phase"] = "STARTED"
+                     persist_task(state_file, task)
++                    _require_canonical_lease()
+                     result = run_task(task, config)
+                     task["result_payload"] = build_result_payload(task, result, config)
+                     task["worker_phase"] = "RESULT_READY"
+@@ -665,6 +725,8 @@ def loop():
+                         task = None
+                 backoff = 10
+                     
++            except CanonicalLeaseLost:
++                raise
+             except Exception as e:
+                 print(f"[{worker_id}] Loop error: {e}. Backing off {backoff}s.")
+                 time.sleep(backoff)
+@@ -676,9 +738,32 @@ def loop():
+     finally:
+         release_lock(lock_path)
+ 
+-if __name__ == "__main__":
++def main():
++    """Start the worker and return a stable process exit code.
++
++    0 is only a live second instance. A missing credential is 2. A missing
++    or stale canonical lease is 3. Any other start failure is 1.
++    """
+     try:
+         loop()
+     except MissingCredentialError as e:
+         print(f"FATAL: {e}", file=sys.stderr)
+-        sys.exit(2)
++        return 2
++    except MissingServerError as e:
++        print(f"FATAL: {e}", file=sys.stderr)
++        return 4
++    except CanonicalLeaseLost as e:
++        print(f"FATAL: {e}", file=sys.stderr)
++        return 3
++    except SystemExit as e:
++        if isinstance(e.code, int):
++            return e.code
++        return 1
++    except Exception as e:
++        print(f"FATAL: {e}", file=sys.stderr)
++        return 1
++    return 0
++
++
++if __name__ == "__main__":
++    sys.exit(main())
+diff --git a/tests/test_windows_lock_fail_closed.py b/tests/test_windows_lock_fail_closed.py
+index 2a3cbcdb7..26e7eea62 100644
+--- a/tests/test_windows_lock_fail_closed.py
++++ b/tests/test_windows_lock_fail_closed.py
+@@ -64,7 +64,6 @@ def test_windows_lock_does_not_cover_the_pid_record(tmp_path, monkeypatch):
+     """The mandatory Windows lock sits past the pid bytes, then releases there."""
+     daemon = load_daemon(tmp_path, monkeypatch)
+     monkeypatch.setattr(daemon.tempfile, "gettempdir", lambda: str(tmp_path))
+-    monkeypatch.setattr(daemon, "get_authority_store", lambda: None)
+     seen = []
+     fake = types.ModuleType("msvcrt")
+     fake.LK_NBLCK = 1
+@@ -85,6 +84,159 @@ def test_windows_lock_does_not_cover_the_pid_record(tmp_path, monkeypatch):
+     assert seen[1] == (daemon._WIN_LOCK_OFFSET, fake.LK_UNLCK, 1)
+ 
+ 
++def test_missing_lock_module_is_not_another_instance(tmp_path, monkeypatch):
++    """A Windows host without msvcrt must fail the start, not exit as a duplicate."""
++    daemon = load_daemon(tmp_path, monkeypatch)
++    monkeypatch.setitem(sys.modules, "msvcrt", None)
++    with pytest.raises(ImportError):
++        daemon.acquire_lock("WIN-LOCK")
++
++
++def test_unopenable_lease_store_does_not_run_on_the_file_lock(tmp_path, monkeypatch):
++    """A file lock without a canonical lease must not start the worker."""
++    daemon = load_daemon(tmp_path, monkeypatch)
++    database = daemon.STATE_DIR / "authority.db"
++    database.write_bytes(b"this is not a sqlite database")
++    with pytest.raises(RuntimeError, match="canonical writer lease"):
++        daemon.acquire_lock("WIN-LEASE")
++    assert daemon._lock_fd is None
++    assert daemon._worker_lease is None
++
++
++def test_loop_does_not_exit_clean_when_the_lease_store_is_unreadable(tmp_path, monkeypatch):
++    daemon = load_daemon(tmp_path, monkeypatch)
++    (daemon.STATE_DIR / "authority.db").write_bytes(b"this is not a sqlite database")
++    with pytest.raises(RuntimeError, match="canonical writer lease"):
++        daemon.loop()
++
++
++def test_foreign_lease_does_not_start_the_daemon(tmp_path, monkeypatch):
++    daemon = load_daemon(tmp_path, monkeypatch)
++    store = daemon.get_authority_store()
++    store.acquire("worker:WIN-LEASE", "other-host", "other-work", ttl_s=3600)
++    with pytest.raises(RuntimeError, match="canonical writer lease"):
++        daemon.acquire_lock("WIN-LEASE")
++    assert daemon._lock_fd is None
++
++
++def test_dead_holder_lease_is_taken_over(tmp_path, monkeypatch):
++    from courier_runtime.lease import format_session_holder
++
++    daemon = load_daemon(tmp_path, monkeypatch)
++    store = daemon.get_authority_store()
++    dead = format_session_holder("WIN-LEASE", 2**30, 1.0, "dead-session")
++    store.acquire("worker:WIN-LEASE", dead, "daemon_loop", ttl_s=3600)
++    lock_path = daemon.acquire_lock("WIN-LEASE")
++    try:
++        assert daemon._worker_lease is not None
++        assert daemon._worker_lease.holder != dead
++    finally:
++        daemon.release_lock(lock_path)
++
++
++def test_live_holder_blocks_a_second_start(tmp_path, monkeypatch):
++    import psutil
++    from courier_runtime.lease import format_session_holder
++
++    daemon = load_daemon(tmp_path, monkeypatch)
++    proc = psutil.Process()
++    live = format_session_holder("WIN-LEASE", proc.pid, proc.create_time(), "still-here")
++    daemon.get_authority_store().acquire("worker:WIN-LEASE", live, "other-work", ttl_s=3600)
++    with pytest.raises(RuntimeError, match="canonical writer lease"):
++        daemon.acquire_lock("WIN-LEASE")
++    assert daemon._lock_fd is None
++
++
++def test_acquire_lock_holds_a_canonical_lease(tmp_path, monkeypatch):
++    daemon = load_daemon(tmp_path, monkeypatch)
++    lock_path = daemon.acquire_lock("WIN-LEASE")
++    try:
++        assert lock_path is not None
++        assert daemon._worker_lease is not None
++        assert daemon._worker_lease.workkey == "daemon_loop"
++    finally:
++        daemon.release_lock(lock_path)
++    assert daemon._worker_lease is None
++    assert daemon._lock_fd is None
++
++
++def test_lease_store_permission_error_does_not_start(tmp_path, monkeypatch):
++    """CUR-WIN-036: a store that refuses writes is not a running worker."""
++    daemon = load_daemon(tmp_path, monkeypatch)
++
++    def denied():
++        raise PermissionError("access denied")
++
++    monkeypatch.setattr(daemon, "get_authority_store", denied)
++    with pytest.raises(daemon.CanonicalLeaseLost, match="canonical writer lease"):
++        daemon.acquire_lock("WIN-LEASE")
++    assert daemon._lock_fd is None
++    assert daemon._worker_lease is None
++
++
++def test_missing_lease_store_does_not_start(tmp_path, monkeypatch):
++    daemon = load_daemon(tmp_path, monkeypatch)
++
++    def missing():
++        raise ImportError("courier_runtime.lease is not available")
++
++    monkeypatch.setattr(daemon, "get_authority_store", missing)
++    with pytest.raises(RuntimeError, match="canonical writer lease"):
++        daemon.acquire_lock("WIN-LEASE")
++    assert daemon._lock_fd is None
++    assert daemon._worker_lease is None
++
++
++def test_lease_store_without_write_permission_does_not_start(tmp_path, monkeypatch):
++    if os.name == "nt" or not hasattr(os, "geteuid"):
++        pytest.skip("POSIX directory mode is not the Windows write check")
++    if os.geteuid() == 0:
++        pytest.skip("root ignores the directory mode used for this check")
++    daemon = load_daemon(tmp_path, monkeypatch)
++    database = daemon.STATE_DIR / "authority.db"
++    if database.exists():
++        database.unlink()
++    daemon.STATE_DIR.chmod(0o555)
++    try:
++        with pytest.raises(RuntimeError, match="canonical writer lease"):
++            daemon.acquire_lock("WIN-LEASE")
++    finally:
++        daemon.STATE_DIR.chmod(0o755)
++    assert daemon._lock_fd is None
++    assert daemon._worker_lease is None
++
++
++def test_expired_canonical_lease_is_replaced(tmp_path, monkeypatch):
++    daemon = load_daemon(tmp_path, monkeypatch)
++    store = daemon.get_authority_store()
++    store.db.execute(
++        "INSERT INTO lease(scope, holder, workkey, token, expires_at) VALUES(?,?,?,?,?)",
++        ("worker:WIN-LEASE", "old-host:1:1.0000:expired", "daemon_loop", 4, 1.0),
++    )
++    lock_path = daemon.acquire_lock("WIN-LEASE")
++    try:
++        assert daemon._worker_lease is not None
++        assert daemon._worker_lease.token == 5
++        assert daemon._worker_lease.holder != "old-host:1:1.0000:expired"
++    finally:
++        daemon.release_lock(lock_path)
++
++
++def test_stale_fencing_token_blocks_work(tmp_path, monkeypatch):
++    from dataclasses import replace
++
++    daemon = load_daemon(tmp_path, monkeypatch)
++    lock_path = daemon.acquire_lock("WIN-LEASE")
++    original = daemon._worker_lease
++    try:
++        daemon._worker_lease = replace(original, token=original.token + 9)
++        with pytest.raises(daemon.CanonicalLeaseLost, match="canonical writer lease"):
++            daemon._require_canonical_lease()
++    finally:
++        daemon._worker_lease = original
++        daemon.release_lock(lock_path)
++
++
+ def test_held_lock_means_another_instance(tmp_path, monkeypatch):
+     daemon = load_daemon(tmp_path, monkeypatch)
+     fake = types.ModuleType("msvcrt")
+@@ -96,3 +248,73 @@ def test_held_lock_means_another_instance(tmp_path, monkeypatch):
+     fake.locking = locking
+     monkeypatch.setitem(sys.modules, "msvcrt", fake)
+     assert daemon.acquire_lock("WIN-01") is None
++
++
++def _busy_msvcrt(monkeypatch):
++    fake = types.ModuleType("msvcrt")
++    fake.LK_NBLCK = 1
++
++    def locking(_fd, _mode, _length):
++        raise OSError("locked")
++
++    fake.locking = locking
++    monkeypatch.setitem(sys.modules, "msvcrt", fake)
++
++
++def test_file_lock_without_canonical_lease_exits_3(tmp_path, monkeypatch):
++    """CUR-WIN-039/044: the local file lock is not a running worker."""
++    daemon = load_daemon(tmp_path, monkeypatch)
++    (daemon.STATE_DIR / "authority.db").write_bytes(b"not a sqlite database")
++    assert daemon.main() == 3
++    assert daemon._lock_fd is None
++    assert daemon._worker_lease is None
++    lock_file = daemon.Path(daemon.tempfile.gettempdir()) / "courier_worker_WIN-01.lock"
++    assert not lock_file.exists()
++
++
++def test_missing_server_does_not_use_a_lan_default(tmp_path, monkeypatch):
++    """CUR-WIN-084: no configured server must not fall back to a private LAN."""
++    monkeypatch.delenv("COURIER_SERVER", raising=False)
++    monkeypatch.delenv("COURIER_SERVER_URL", raising=False)
++    daemon = load_daemon(tmp_path, monkeypatch)
++    source = daemon.Path(daemon.__file__).read_text(encoding="utf-8")
++    assert "192.168.178.162" not in source
++    cfg = {"WORKER_ID": "WIN-01", "COURIER_API_KEY": "dummy-test-key-not-real"}
++    (daemon.APP_DATA_DIR / "config.json").write_text(__import__("json").dumps(cfg))
++    daemon.API_URL = ""
++    calls = []
++    monkeypatch.setattr(daemon.urllib.request, "urlopen", lambda *a, **k: calls.append(a))
++    assert daemon.main() == 4
++    assert calls == []
++
++
++def test_configured_server_is_used(tmp_path, monkeypatch):
++    monkeypatch.setenv("COURIER_SERVER", "http://courier.invalid")
++    daemon = load_daemon(tmp_path, monkeypatch)
++    assert daemon.API_URL == "http://courier.invalid"
++
++
++def test_missing_credential_exits_2(tmp_path, monkeypatch):
++    daemon = load_daemon(tmp_path, monkeypatch)
++    cfg = {"COURIER_SERVER": "http://courier.invalid", "WORKER_ID": "WIN-01", "COURIER_API_KEY": ""}
++    (daemon.APP_DATA_DIR / "config.json").write_text(__import__("json").dumps(cfg))
++    daemon.API_KEY = ""
++    monkeypatch.setenv("COURIER_API_KEY", "")
++    assert daemon.main() == 2
++
++
++def test_unexpected_start_error_exits_1(tmp_path, monkeypatch):
++    daemon = load_daemon(tmp_path, monkeypatch)
++
++    def boom():
++        raise RuntimeError("config unreadable")
++
++    monkeypatch.setattr(daemon, "load_config", boom)
++    assert daemon.main() == 1
++
++
++def test_held_file_lock_exits_0_without_starting_work(tmp_path, monkeypatch):
++    daemon = load_daemon(tmp_path, monkeypatch)
++    _busy_msvcrt(monkeypatch)
++    assert daemon.main() == 0
++    assert daemon._worker_lease is None
