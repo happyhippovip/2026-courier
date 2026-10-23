@@ -1,5 +1,7 @@
 # Courier Symphony — Mac Agent Role Map: Cursor Ultra vs. Google Antigravity
 
+> **MAC↔WINDOWS GROK DISPATCHER (23.10.):** Das Master-/Backup-Protokoll betrifft den **Grok-Koordinator**, nicht Cursor Ultra Mac und nicht Google Antigravity Mac. [Hot-Standby V2 mit CAS-/Fencing-Abnahmetests](./COURIER_DUAL_DISPATCHER_HOT_STANDBY_V2_2026-10-23.md) trennt Windows-`PREPARED` von `MASTER_ACTIVE`. Kein gemeinsamer echter Autoritätsstore, kein Nachweis automatischer Übernahme, keine zweite Produkt-Writer-Lane.
+
 > **RELEASE-TRAIN V1:** [Sicherheits-/Produktspur und fünf Phasen](./COURIER_RELEASE_TRAIN_STRATEGY_V1_2026-10-23.md) sowie [spezifische Prompts pro App/Owner](./COURIER_RELEASE_TRAIN_PROMPT_PACK_V1_2026-10-23.md). Mac Google behält sein bestehendes Goal/30-Minuten-Timer-Setup, Cursor Projects prüft seine eigenen Listening-Subscriptions; keine gegenseitige Übernahme, kein zweiter Sender.
 
 > **LATEST VERIFIED CHECKPOINT (23 October 2026):** [Goal-run completion, native scheduler state and Windows CI handoff V3](./GOAL_STOP_SCHEDULER_WINDOWS_CI_HANDOFF_V3_2026-10-23.md). The previously green `e9d7f1f29c26` snapshot below is historic. PR #835 is merged into newer `81bbf224b0ae`, with [Windows CI #40008119253](https://github.com/happyhippovip/2026-courier/actions/runs/40008119253) failing. The Google Antigravity Mac's reported 30-minute timer must not be interpreted as a Cursor Project subscription.
