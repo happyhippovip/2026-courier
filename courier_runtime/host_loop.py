@@ -151,7 +151,10 @@ def _notice(kirby, slot, state):
     return [record]
 
 
-def main(argv=None):
+def main(argv=None, engine=None):
+    """Tail provider signals. ``engine``, when given, is the caller's existing
+    LedgerEngine. This function does not construct one; without it a DONE line
+    stays NOT_PROVEN."""
     ap = argparse.ArgumentParser(description="Tail provider signals into Kirby.")
     ap.add_argument("--state", required=True, help="Kirby state file (kirby.json)")
     ap.add_argument("--slot", required=True)
@@ -165,7 +168,7 @@ def main(argv=None):
     kirby = Kirby(args.state, args.host)
     state = {"offset": 0, "last_tick": 0.0, "notified": {}}
     while True:
-        run_once(kirby, args.slot, args.signals, state)
+        run_once(kirby, args.slot, args.signals, state, engine=engine)
         if args.once:
             return 0
         time.sleep(args.interval)

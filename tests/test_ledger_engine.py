@@ -524,6 +524,38 @@ def test_signal_file_done_records_the_journal_proof_once(setup):
     assert len((engine.campaign_path.parent / "receipts.jsonl").read_text().splitlines()) == 1
 
 
+def test_main_records_journal_proof_only_for_the_existing_engine(setup):
+    """The process entry is main(). It must not build a LedgerEngine. With the
+    caller's existing engine, one DONE line records the journal proof once.
+    Without that engine the same line leaves the workkey claimed."""
+    import inspect
+
+    from courier_runtime import host_loop
+    from courier_runtime.host_loop import emit_signal
+
+    assert "LedgerEngine(" not in inspect.getsource(host_loop.main)
+    engine, ctrl, home, _ = setup
+    engine.add_workkeys(["WK-1"])
+    engine.open_slot("S1", "local")
+    workkey, _token = engine.next("S1")
+    task_id = engine.submit(workkey, body())
+    signals = engine.campaign_path.parent / "signals.log"
+    emit_signal(signals, "TURN_ENDED outcome=DONE checkpoint=step")
+    argv = ["--state", str(engine.campaign_path), "--slot", "S1", "--signals", str(signals),
+            "--host", "host-a", "--once"]
+    assert host_loop.main(argv) == 0
+    assert kirby_state(engine.campaign_path)["workkeys"][workkey]["state"] == CLAIMED
+    assert not (engine.campaign_path.parent / "receipts.jsonl").exists()
+
+    work(ctrl, home)
+    proof = engine.proof(task_id)
+    assert host_loop.main(argv, engine=engine) == 0
+    disk = kirby_state(engine.campaign_path)["workkeys"][workkey]
+    assert disk["state"] == DONE and disk["checkpoint"] == f"step | {proof}"
+    assert host_loop.main(argv, engine=engine) == 0
+    assert len((engine.campaign_path.parent / "receipts.jsonl").read_text().splitlines()) == 1
+
+
 def test_provider_done_from_the_wrong_owner_does_not_finish(setup):
     from courier_runtime.continuity import Kirby
     from courier_runtime.provider_events import handle
