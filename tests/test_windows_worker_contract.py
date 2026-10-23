@@ -130,8 +130,6 @@ def go(daemon, monkeypatch, bridge, executions, effect=None, status="SUCCESS", t
 
     monkeypatch.setattr(daemon.urllib.request, "urlopen", bridge)
     monkeypatch.setattr(daemon, "run_task", execute)
-    # Don't fail the loop on lock acquisition
-    monkeypatch.setattr(daemon, "acquire_lock", lambda w: tmp_path / "mock.lock")
     with pytest.raises(StopLoop):
         daemon.loop()
 
