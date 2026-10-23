@@ -42,6 +42,7 @@ def _task():
         "effect_class": "idempotent",
         "max_attempts": 1,
         "lease_ttl_s": 30,
+        "estimated_cost_eur": 0.0,
     }
 
 
@@ -135,6 +136,7 @@ def test_verified_merge_queues_one_task(tmp_path):
     assert code == 0
     assert len(http.tasks) == 1
     assert http.tasks[0]["idempotency_key"].startswith("wake:wk-a:")
+    assert "estimated_cost_eur" not in http.tasks[0]
     assert json.loads(log)["outcome"] == "queued"
     assert json.loads(cursor.read_text(encoding="utf-8"))["comment_id"] == 1
     assert (home / "parked_workkeys.json").exists()
@@ -267,3 +269,114 @@ def test_token_never_appears_in_stdout_stderr_or_log(tmp_path, monkeypatch):
     blob = out + err + log + cursor.read_text(encoding="utf-8")
     assert TOKEN not in blob
     assert "Bearer" not in out + err + log
+
+
+def _blocked(tmp_path, task, *, entry_extra=None, extra=None, second=None):
+    http = FakeHTTP()
+    http.pulls[(REPO, 7)] = _pull()
+    parked = {"wk-a": {"depends_on": [{"repo": REPO, "pr": 7, "sha": SHA}], "task": task}}
+    if entry_extra:
+        parked["wk-a"].update(entry_extra)
+    comments = [_comment(1, "octo", "OWNER", _wake())]
+    if second is not None:
+        parked["wk-b"] = {"depends_on": [{"repo": REPO, "pr": 7, "sha": SHA}], "task": second}
+        comments.append(
+            _comment(2, "octo", "OWNER", _wake(wake_id="w-b", workkey="wk-b"), updated="2026-10-08T04:01:00Z")
+        )
+    return _run(tmp_path, http, parked, comments, extra=extra)
+
+
+def test_missing_cost_is_blocked_and_not_posted(tmp_path):
+    task = _task()
+    del task["estimated_cost_eur"]
+    code, http, home, out, err, log, cursor = _blocked(tmp_path, task)
+    assert code == 2
+    assert http.tasks == []
+    record = json.loads(log)
+    assert record["outcome"] == "blocked"
+    assert record["reason"] == "UNKNOWN_COST"
+    assert json.loads(cursor.read_text(encoding="utf-8"))["comment_id"] == 1
+
+
+def test_unknown_cost_flag_is_blocked_and_not_posted(tmp_path):
+    task = _task()
+    task["unknown_cost"] = True
+    code, http, home, out, err, log, cursor = _blocked(tmp_path, task)
+    assert code == 2 and http.tasks == []
+    assert json.loads(log)["reason"] == "UNKNOWN_COST"
+
+
+def test_unknown_cost_class_is_blocked_and_not_posted(tmp_path):
+    task = _task()
+    task["cost_class"] = "unknown"
+    code, http, home, out, err, log, cursor = _blocked(tmp_path, task)
+    assert code == 2 and http.tasks == []
+    assert json.loads(log)["reason"] == "UNKNOWN_COST"
+
+
+def test_negative_cost_is_blocked_and_not_posted(tmp_path):
+    task = _task()
+    task["estimated_cost_eur"] = -1.0
+    code, http, home, out, err, log, cursor = _blocked(tmp_path, task)
+    assert code == 2 and http.tasks == []
+    assert json.loads(log)["reason"] == "UNKNOWN_COST"
+
+
+def test_positive_cost_is_blocked_and_not_posted(tmp_path):
+    task = _task()
+    task["estimated_cost_eur"] = 99.0
+    code, http, home, out, err, log, cursor = _blocked(tmp_path, task)
+    assert code == 2 and http.tasks == []
+    assert json.loads(log)["reason"] == "SPEND_NOT_ALLOWED_BY_POLICY"
+
+
+def test_params_unknown_cost_is_blocked_and_not_posted(tmp_path):
+    task = _task()
+    task["params"] = {"unit": "a", "unknown_cost": True}
+    code, http, home, out, err, log, cursor = _blocked(tmp_path, task)
+    assert code == 2 and http.tasks == []
+    assert json.loads(log)["reason"] == "UNKNOWN_COST"
+
+
+def test_entry_mark_is_not_hidden_by_task_zero(tmp_path):
+    code, http, home, out, err, log, cursor = _blocked(
+        tmp_path, _task(), entry_extra={"unknown_cost": True},
+    )
+    assert code == 2 and http.tasks == []
+    assert json.loads(log)["reason"] == "UNKNOWN_COST"
+
+
+def test_entry_level_zero_cost_queues_without_posting_the_estimate(tmp_path):
+    task = _task()
+    del task["estimated_cost_eur"]
+    code, http, home, out, err, log, cursor = _blocked(
+        tmp_path, task, entry_extra={"estimated_cost_eur": 0.0},
+    )
+    assert code == 0
+    assert len(http.tasks) == 1
+    assert "estimated_cost_eur" not in http.tasks[0]
+    assert json.loads(log)["outcome"] == "queued"
+
+
+def test_dry_run_blocked_cost_is_not_queued(tmp_path):
+    task = _task()
+    del task["estimated_cost_eur"]
+    code, http, home, out, err, log, cursor = _blocked(tmp_path, task, extra=["--dry-run"])
+    assert code == 2
+    assert http.tasks == []
+    assert json.loads(out)["outcome"] == "blocked"
+    assert "queued" not in out
+    assert log == ""
+    assert not cursor.exists()
+
+
+def test_blocked_wake_does_not_stall_the_next_one(tmp_path):
+    missing = _task()
+    del missing["estimated_cost_eur"]
+    code, http, home, out, err, log, cursor = _blocked(tmp_path, missing, second=_task())
+    assert code == 2
+    assert len(http.tasks) == 1
+    assert http.tasks[0]["idempotency_key"].startswith("wake:wk-b:")
+    outcomes = [json.loads(line)["outcome"] for line in log.splitlines()]
+    assert outcomes == ["blocked", "queued"]
+    assert json.loads(cursor.read_text(encoding="utf-8"))["comment_id"] == 2

@@ -39,6 +39,7 @@ from scripts.coordination_ledger import (
 )
 from scripts.coordination_resume import CLAIMED, claim_mission, discover_resumable, reduce_store
 from scripts.github_coordination import FileCoordinationStore
+from scripts.handoff_spend import handoff_spend_block
 
 MAX_STATE_BYTES = 1024 * 1024
 MAX_LEASE_TTL_S = 3600
@@ -259,7 +260,7 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
             # Every new dispatch takes the same decision. A missing estimate is
             # unknown; it is never filled in as 0. An already posted task is not
             # dispatched again.
-            cost_reason = _handoff_cost_block(spec)
+            cost_reason = handoff_spend_block(spec)
             if cost_reason:
                 emit({
                     "mission_id": mission_id,
@@ -816,36 +817,6 @@ def _route_refusal(spec, agent, host):
     if "host_id" in spec and spec.get("host_id") != host.value:
         return "wrong_host"
     return None
-
-
-def _marked_unknown_cost(spec) -> bool:
-    """True when the spec says the cost is unknown, even if a number is also present."""
-    if not isinstance(spec, dict):
-        return True
-    marked = spec.get("unknown_cost") is True or spec.get("cost_class") == "unknown"
-    params = spec.get("params")
-    if isinstance(params, dict):
-        marked = marked or params.get("unknown_cost") is True or params.get("cost_class") == "unknown"
-    return marked
-
-
-def _handoff_cost_block(spec) -> str | None:
-    """One decision for every dispatch. Explicit 0 EUR passes only when CostGate allows it.
-
-    A missing estimate stays missing. It is not replaced with 0.
-    """
-    from scripts.resource_policy import CostGate
-
-    if not isinstance(spec, dict) or _marked_unknown_cost(spec):
-        return "UNKNOWN_COST"
-    decision = CostGate.evaluate_spend_request(
-        "google_antigravity_plus",
-        estimated_cost_eur=spec.get("estimated_cost_eur"),
-        requested_action="HANDOFF",
-    )
-    if decision.get("allowed") is True:
-        return None
-    return str(decision.get("reason") or "UNKNOWN_COST")
 
 
 def _host_offline(home: Path, host) -> bool:

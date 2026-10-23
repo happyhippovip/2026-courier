@@ -4,6 +4,12 @@ One invocation, no loop and no sleep. GitHub is read outbound. The controller
 is local (127.0.0.1). The token is read from <home>/run/controller.token and
 is never printed.
 
+A verified wake is posted only when the shared handoff decision allows it.
+A missing, unknown, or positive cost is blocked and is not posted. That
+decision still advances the cursor, so one blocked comment does not stall
+the inbox. Dry-run reports the same block and does not advance. The process
+exits 2 when any wake in the page is blocked.
+
     python scripts/github_wake_inbox.py --repo owner/name --inbox-issue N \
         --courier-home DIR --allow-login owner
 """
@@ -19,6 +25,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
+
+from scripts.handoff_spend import handoff_spend_block, spend_body_from_parked
 
 MAX_PAGE = 50
 MAX_WAKES = 5
@@ -89,6 +97,7 @@ def main(argv=None, *, http=None, stdout=None, stderr=None) -> int:
         say_err(_redact("github comment page unavailable", secrets))
         return 1
     handled = 0
+    blocked = False
     for comment in comments:
         if handled >= args.max_wakes:
             break
@@ -110,9 +119,11 @@ def main(argv=None, *, http=None, stdout=None, stderr=None) -> int:
             say_err(_redact("github verification unavailable", secrets))
             return 1
         emit(record)
+        if record.get("outcome") == "blocked":
+            blocked = True
         if not args.dry_run:
             _advance(home, args, cursor, comment)
-    return 0
+    return EXIT_MALFORMED if blocked else 0
 
 
 def _decide(wake, parked, args, transport, token, github_token):
@@ -123,6 +134,14 @@ def _decide(wake, parked, args, transport, token, github_token):
         return {"wake_id": wake["wake_id"], "workkey": wake["workkey"], "outcome": "ignored"}
     if not _dependencies_satisfied(transport, args, entry["depends_on"], github_token):
         return {"wake_id": wake["wake_id"], "workkey": wake["workkey"], "outcome": "not_satisfied"}
+    reason = handoff_spend_block(spend_body_from_parked(entry))
+    if reason:
+        return {
+            "wake_id": wake["wake_id"],
+            "workkey": wake["workkey"],
+            "outcome": "blocked",
+            "reason": reason,
+        }
     if args.dry_run:
         return {"wake_id": wake["wake_id"], "workkey": wake["workkey"], "outcome": "queued"}
     if not token:
