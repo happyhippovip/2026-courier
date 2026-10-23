@@ -208,6 +208,36 @@ def test_unknown_workkey_is_ignored(tmp_path):
     assert json.loads(log)["workkey"] == "missing"
 
 
+def test_cursor_without_comment_id_does_not_replay(tmp_path):
+    http = FakeHTTP()
+    http.pulls[(REPO, 7)] = _pull()
+    home = _home(
+        tmp_path,
+        {"wk-a": {"depends_on": [{"repo": REPO, "pr": 7, "sha": SHA}], "task": _task()}},
+    )
+    (home / "run" / "github_wake.cursor").write_text(
+        json.dumps({"updated_at": "2026-10-08T04:00:00Z"}) + "\n",
+        encoding="utf-8",
+    )
+    http.comments = [_comment(1, "octo", "OWNER", _wake())]
+    err = []
+    code = main(
+        [
+            "--repo", REPO,
+            "--inbox-issue", "15",
+            "--courier-home", str(home),
+            "--controller", "http://127.0.0.1:9",
+            "--allow-login", "octo",
+        ],
+        http=http,
+        stdout=lambda _line: None,
+        stderr=err.append,
+    )
+    assert code == 2
+    assert http.tasks == []
+    assert "malformed local wake state" in "".join(err)
+
+
 def test_controller_down_exits_75_and_keeps_cursor(tmp_path):
     http = FakeHTTP()
     http.down = True

@@ -349,7 +349,11 @@ def _load_cursor(path: Path):
     data = _read_json(path)
     if not isinstance(data, dict):
         raise Malformed()
-    cid = data.get("comment_id", 0)
+    # A cursor file that exists without comment_id is not "start at zero".
+    # Zero would replay every later comment as a new wake.
+    if "comment_id" not in data:
+        raise Malformed()
+    cid = data["comment_id"]
     if isinstance(cid, bool) or not isinstance(cid, int) or cid < 0:
         raise Malformed()
     updated = data.get("updated_at")
