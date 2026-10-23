@@ -231,6 +231,7 @@ def test_string_zero_cost_is_not_posted(tmp_path):
 def test_host_id_without_agent_still_blocks_unknown_cost(tmp_path):
     http = FakeHTTP()
     spec_b = _spec(params={"unit": "b"}, host_id=MAC_HOST)
+    del spec_b["estimated_cost_eur"]
     home = _home(tmp_path, {"A": _spec(), "B": spec_b})
     _seed(home, [
         _ready("A", "a-assign", "2026-10-23T08:00:00Z"),

@@ -5,6 +5,8 @@ import json
 import subprocess
 from pathlib import Path
 
+import pytest
+
 from scripts.coordination_ledger import (
     AgentID, CoordinationEvent, EventType, HostID, MissionStatus,
 )
@@ -28,12 +30,14 @@ def _event(eid, mid, etype, status, ts, deps=None):
 
 
 def _spec(**overrides):
+    """Synthetic fixture. The 0 EUR estimate is declared; production code does not invent one."""
     body = {
         "adapter": "synthetic",
         "params": {"unit": "a"},
         "effect_class": "idempotent",
         "max_attempts": 1,
         "lease_ttl_s": 30,
+        "estimated_cost_eur": 0.0,
     }
     body.update(overrides)
     return body
@@ -684,6 +688,51 @@ def test_positive_cost_without_a_route_is_not_posted(tmp_path):
     code, out, err, log, lines = _run(home, http)
     assert code == 2, err
     assert "SPEND_NOT_ALLOWED_BY_POLICY" in out
+    assert http.posts == []
+
+
+def test_missing_cost_is_not_dispatched(tmp_path):
+    http = FakeHTTP()
+    spec = _spec()
+    del spec["estimated_cost_eur"]
+    home = _home(tmp_path, {"A": spec})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 2, err
+    assert "UNKNOWN_COST" in out
+    assert http.posts == []
+
+
+def test_unknown_cost_flag_is_not_dispatched(tmp_path):
+    http = FakeHTTP()
+    spec = _spec(params={"unit": "a", "unknown_cost": True})
+    home = _home(tmp_path, {"A": spec})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 2, err
+    assert "UNKNOWN_COST" in out
+    assert http.posts == []
+
+
+def test_unknown_cost_class_is_not_dispatched(tmp_path):
+    http = FakeHTTP()
+    spec = _spec(params={"unit": "a", "cost_class": "unknown"})
+    home = _home(tmp_path, {"A": spec})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 2, err
+    assert "UNKNOWN_COST" in out
+    assert http.posts == []
+
+
+@pytest.mark.parametrize("cost", [-1.0, float("nan"), float("inf")])
+def test_invalid_cost_is_not_dispatched(tmp_path, cost):
+    http = FakeHTTP()
+    home = _home(tmp_path, {"A": _spec(estimated_cost_eur=cost)})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 2, err
+    assert "UNKNOWN_COST" in out
     assert http.posts == []
 
 

@@ -62,6 +62,7 @@ def _spec(unit):
         "max_attempts": 1,
         "lease_ttl_s": 30,
         "source_sha": SHA,
+        "estimated_cost_eur": 0.0,
     }
 
 

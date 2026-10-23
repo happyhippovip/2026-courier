@@ -254,7 +254,11 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
             emit({"mission_id": mission_id, "outcome": "skipped", "reason": route_reason})
             ok = False
             continue
-        if "agent_id" in spec or "host_id" in spec or "estimated_cost_eur" in spec:
+        mapping = state["missions"].get(mission_id)
+        if not (isinstance(mapping, dict) and mapping.get("posted") is True):
+            # Every new dispatch takes the same decision. A missing estimate is
+            # unknown; it is never filled in as 0. An already posted task is not
+            # dispatched again.
             cost_reason = _handoff_cost_block(spec)
             if cost_reason:
                 emit({
@@ -814,13 +818,29 @@ def _route_refusal(spec, agent, host):
     return None
 
 
+def _marked_unknown_cost(spec) -> bool:
+    """True when the spec says the cost is unknown, even if a number is also present."""
+    if not isinstance(spec, dict):
+        return True
+    marked = spec.get("unknown_cost") is True or spec.get("cost_class") == "unknown"
+    params = spec.get("params")
+    if isinstance(params, dict):
+        marked = marked or params.get("unknown_cost") is True or params.get("cost_class") == "unknown"
+    return marked
+
+
 def _handoff_cost_block(spec) -> str | None:
-    """Cross-host work needs an explicit 0 EUR CostGate pass. Unknown cost blocks."""
+    """One decision for every dispatch. Explicit 0 EUR passes only when CostGate allows it.
+
+    A missing estimate stays missing. It is not replaced with 0.
+    """
     from scripts.resource_policy import CostGate
 
+    if not isinstance(spec, dict) or _marked_unknown_cost(spec):
+        return "UNKNOWN_COST"
     decision = CostGate.evaluate_spend_request(
         "google_antigravity_plus",
-        estimated_cost_eur=spec.get("estimated_cost_eur") if isinstance(spec, dict) else None,
+        estimated_cost_eur=spec.get("estimated_cost_eur"),
         requested_action="HANDOFF",
     )
     if decision.get("allowed") is True:

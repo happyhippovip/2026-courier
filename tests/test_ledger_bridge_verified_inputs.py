@@ -51,6 +51,7 @@ def _spec(unit, inputs_from=None):
         "effect_class": "idempotent",
         "max_attempts": 1,
         "lease_ttl_s": 30,
+        "estimated_cost_eur": 0.0,
     }
     if inputs_from is not None:
         spec["inputs_from"] = inputs_from
