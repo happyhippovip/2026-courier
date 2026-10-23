@@ -1,0 +1,46 @@
+diff --git a/courier_core/controller.py b/courier_core/controller.py
+index ec9bb3405..8ebd55091 100644
+--- a/courier_core/controller.py
++++ b/courier_core/controller.py
+@@ -33,6 +33,7 @@ from __future__ import annotations
+ 
+ import hashlib
+ import logging
++import math
+ import os
+ import queue
+ import sqlite3
+@@ -78,6 +79,23 @@ RESOLVE_DECISIONS = {"effect_confirmed": EventType.EFFECT_CONFIRMED,
+                      "cancel": EventType.TASK_CANCELLED}
+ 
+ 
++# Adapters that run on this host without a per-run charge. Any other adapter, including
++# one this build does not know, must state a finite estimate before a task exists.
++ZERO_COST_ADAPTERS = frozenset({"synthetic", "local_shell", "local_json_delivery", "spreadsheet"})
++
++
++def cost_admission(adapter: str, params: dict) -> str | None:
++    """None if the task may be created, else why not. UNKNOWN_COST blocks before the journal."""
++    if params.get("unknown_cost") is True or params.get("cost_class") == "unknown":
++        return "task is marked as unknown cost"
++    if adapter in ZERO_COST_ADAPTERS and "estimated_cost_eur" not in params:
++        return None
++    cost = params.get("estimated_cost_eur")
++    if isinstance(cost, bool) or not isinstance(cost, (int, float)) or not math.isfinite(cost) or cost < 0:
++        return f"adapter {adapter!r} needs a finite, non-negative params.estimated_cost_eur"
++    return None
++
++
+ class ApiError(Exception):
+     def __init__(self, status: int, code: str, message: str = "", **extra: Any):
+         super().__init__(message or code)
+@@ -344,6 +362,9 @@ class Controller:
+             raise ApiError(400, "invalid_request", "adapter must match [a-z][a-z0-9_]{0,63}")
+         if not isinstance(body.get("params"), dict):
+             raise ApiError(400, "invalid_request", "params must be a JSON object")
++        blocked = cost_admission(adapter, body["params"])
++        if blocked is not None:
++            raise ApiError(400, "cost_blocked", blocked)
+         if body.get("effect_class") not in EFFECT_CLASSES:
+             raise ApiError(400, "invalid_request", f"effect_class must be one of {sorted(EFFECT_CLASSES)}")
+         _require_int(body, "max_attempts", 1, MAX_ATTEMPTS_LIMIT)

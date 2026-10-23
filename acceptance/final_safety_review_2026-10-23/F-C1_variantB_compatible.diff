@@ -1,0 +1,124 @@
+diff --git a/courier_core/controller.py b/courier_core/controller.py
+index ec9bb3405..be64a1e61 100644
+--- a/courier_core/controller.py
++++ b/courier_core/controller.py
+@@ -33,6 +33,7 @@ from __future__ import annotations
+ 
+ import hashlib
+ import logging
++import math
+ import os
+ import queue
+ import sqlite3
+@@ -78,6 +79,24 @@ RESOLVE_DECISIONS = {"effect_confirmed": EventType.EFFECT_CONFIRMED,
+                      "cancel": EventType.TASK_CANCELLED}
+ 
+ 
++# Adapters that can charge per run. They must state a finite estimate before a task exists.
++PAID_ADAPTERS = frozenset({"provider_exec"})
++
++
++def cost_admission(adapter: str, params: dict) -> str | None:
++    """None if the task may be created, else why not. UNKNOWN_COST blocks before the journal.
++
++    An explicit unknown marker or an invalid estimate blocks for every adapter."""
++    if params.get("unknown_cost") is True or params.get("cost_class") == "unknown":
++        return "task is marked as unknown cost"
++    if adapter not in PAID_ADAPTERS and "estimated_cost_eur" not in params:
++        return None
++    cost = params.get("estimated_cost_eur")
++    if isinstance(cost, bool) or not isinstance(cost, (int, float)) or not math.isfinite(cost) or cost < 0:
++        return f"adapter {adapter!r} needs a finite, non-negative params.estimated_cost_eur"
++    return None
++
++
+ class ApiError(Exception):
+     def __init__(self, status: int, code: str, message: str = "", **extra: Any):
+         super().__init__(message or code)
+@@ -344,6 +363,9 @@ class Controller:
+             raise ApiError(400, "invalid_request", "adapter must match [a-z][a-z0-9_]{0,63}")
+         if not isinstance(body.get("params"), dict):
+             raise ApiError(400, "invalid_request", "params must be a JSON object")
++        blocked = cost_admission(adapter, body["params"])
++        if blocked is not None:
++            raise ApiError(400, "cost_blocked", blocked)
+         if body.get("effect_class") not in EFFECT_CLASSES:
+             raise ApiError(400, "invalid_request", f"effect_class must be one of {sorted(EFFECT_CLASSES)}")
+         _require_int(body, "max_attempts", 1, MAX_ATTEMPTS_LIMIT)
+diff --git a/tests/controller/test_ctrl_cost_admission.py b/tests/controller/test_ctrl_cost_admission.py
+new file mode 100644
+index 000000000..b440efe75
+--- /dev/null
++++ b/tests/controller/test_ctrl_cost_admission.py
+@@ -0,0 +1,71 @@
++"""F-C1: the controller decides cost admission before any journal write (proposal for L2)."""
++import pytest
++
++from courier_core.controller import ApiError, Controller
++from courier_core.events import EventType
++
++
++@pytest.fixture
++def ctrl(tmp_path):
++    c = Controller(tmp_path, verifier=lambda adapter: None).boot()
++    yield c
++    c.stop()
++
++
++def body(adapter="provider_exec", **params):
++    return {"adapter": adapter, "params": params, "effect_class": "non_idempotent",
++            "max_attempts": 1, "lease_ttl_s": 30}
++
++
++def created(ctrl):
++    return [e for e in ctrl.journal.events() if e.type is EventType.TASK_CREATED]
++
++
++@pytest.mark.parametrize("params", [
++    {},
++    {"estimated_cost_eur": None},
++    {"estimated_cost_eur": float("nan")},
++    {"estimated_cost_eur": float("inf")},
++    {"estimated_cost_eur": -1.0},
++    {"estimated_cost_eur": True},
++    {"estimated_cost_eur": "0"},
++])
++def test_paid_adapter_without_a_finite_estimate_is_refused_before_the_journal(ctrl, params):
++    with pytest.raises(ApiError) as exc:
++        ctrl.create_task(body(**params))
++    assert exc.value.status == 400 and exc.value.code == "cost_blocked"
++    assert created(ctrl) == []
++    assert ctrl.claim({"worker_id": "w1"}) is None
++
++
++@pytest.mark.parametrize("adapter", ["synthetic", "local_shell", "provider_exec"])
++@pytest.mark.parametrize("marker", [{"unknown_cost": True}, {"cost_class": "unknown"}])
++def test_an_explicit_unknown_marker_is_refused_for_every_adapter(ctrl, adapter, marker):
++    with pytest.raises(ApiError) as exc:
++        ctrl.create_task(body(adapter=adapter, estimated_cost_eur=0.0, **marker))
++    assert exc.value.code == "cost_blocked"
++    assert created(ctrl) == []
++
++
++def test_paid_adapter_with_an_explicit_estimate_is_created(ctrl):
++    status, _ = ctrl.create_task(body(estimated_cost_eur=0.0))
++    assert status == 201 and len(created(ctrl)) == 1
++
++
++def test_zero_cost_adapter_without_an_estimate_is_still_created(ctrl):
++    status, _ = ctrl.create_task(body(adapter="synthetic"))
++    assert status == 201
++
++
++def test_any_adapter_with_an_invalid_estimate_is_refused(ctrl):
++    with pytest.raises(ApiError) as exc:
++        ctrl.create_task(body(adapter="some_new_adapter", estimated_cost_eur=float("nan")))
++    assert exc.value.code == "cost_blocked"
++    assert ctrl.create_task(body(adapter="some_new_adapter"))[0] == 201
++
++
++def test_replay_of_an_admitted_task_is_a_duplicate_not_a_second_decision(ctrl):
++    b = dict(body(estimated_cost_eur=0.0), idempotency_key="k1")
++    assert ctrl.create_task(b)[0] == 201
++    assert ctrl.create_task(b)[0] == 200
++    assert len(created(ctrl)) == 1

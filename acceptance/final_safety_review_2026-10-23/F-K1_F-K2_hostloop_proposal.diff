@@ -1,0 +1,189 @@
+diff --git a/courier_runtime/host_loop.py b/courier_runtime/host_loop.py
+index 1e75ed5a5..efc558442 100644
+--- a/courier_runtime/host_loop.py
++++ b/courier_runtime/host_loop.py
+@@ -16,7 +16,10 @@ import json
+ import os
+ import time
+ 
++from pathlib import Path
++
+ from courier_runtime.continuity import HEALTH_TICK_S
++from courier_runtime.ledger_engine import _exclusive
+ from courier_runtime.provider_events import drive, read_new_lines
+ 
+ NOTICES = "wakeups.jsonl"
+@@ -55,7 +58,7 @@ def drain_pending(kirby, slot):
+     return kirby.deliver(slot)
+ 
+ 
+-def run_once(kirby, slot, signal_path, state, on_wake_ready=None):
++def run_once(kirby, slot, signal_path, state, on_wake_ready=None, prove=None):
+     """One loop iteration. ``state`` = {"offset": int, "last_tick": float,
+     "notified": {slot: [session_id, workkey, token]}}; mutated in place.
+ 
+@@ -73,7 +76,7 @@ def run_once(kirby, slot, signal_path, state, on_wake_ready=None):
+             state["offset"] = 0                                 # file rotated/truncated: reread
+         lines, state["offset"] = read_new_lines(signal_path, state["offset"])
+         if lines:
+-            results = drive(kirby, slot, lines)                 # only new lines; never prequeued
++            results = drive(kirby, slot, lines, prove=prove)    # only new lines; never prequeued
+     if kirby.clock() - state.get("last_tick", 0.0) >= HEALTH_TICK_S:
+         actions = kirby.tick()                                  # fast fallback + 15-min snapshot cadence
+         state["last_tick"] = kirby.clock()
+@@ -146,13 +149,20 @@ def main(argv=None):
+     ap.add_argument("--host", default="host")
+     ap.add_argument("--interval", type=float, default=30.0)
+     ap.add_argument("--once", action="store_true")
++    ap.add_argument("--rounds", type=int, default=0, help="stop after N rounds (0 = run until stopped)")
+     args = ap.parse_args(argv)
+ 
+     from courier_runtime.continuity import Kirby
+-    kirby = Kirby(args.state, args.host)
++    lock = Path(args.state + ".lock")
+     state = {"offset": 0, "last_tick": 0.0, "notified": {}}
++    rounds = 0
+     while True:
+-        run_once(kirby, args.slot, args.signals, state)
+-        if args.once:
++        # Same lock as LedgerEngine, and a fresh Kirby inside it: another writer's claim or
++        # FINAL is read, never overwritten by a copy held in memory since the last round.
++        # No prover here, so a provider DONE line stays NOT_PROVEN until the journal is wired in.
++        with _exclusive(lock):
++            run_once(Kirby(args.state, args.host), args.slot, args.signals, state)
++        rounds += 1
++        if args.once or (args.rounds and rounds >= args.rounds):
+             return 0
+         time.sleep(args.interval)
+diff --git a/courier_runtime/provider_events.py b/courier_runtime/provider_events.py
+index a63f9fafb..1860c9ea2 100644
+--- a/courier_runtime/provider_events.py
++++ b/courier_runtime/provider_events.py
+@@ -51,8 +51,14 @@ def parse_line(line):
+     return kind, fields, raw.strip()
+ 
+ 
+-def handle(kirby, slot, line):
+-    """Feed one provider line to Kirby for ``slot``. Returns a result string."""
++def handle(kirby, slot, line, prove=None):
++    """Feed one provider line to Kirby for ``slot``. Returns a result string.
++
++    ``TURN_ENDED outcome=DONE`` is the provider's claim, not a fact. The workkey becomes
++    DONE only when ``prove(workkey)`` returns a journal proof id
++    (``journal:<seq>:RESULT_ACCEPTED``, e.g. from LedgerEngine.proof). Without a prover, or
++    without proof, the checkpoint is kept, the workkey stays claimed and the result is
++    NOT_PROVEN."""
+     kind, fields, raw = parse_line(line)
+     if kind is None:
+         return "IGNORED"
+@@ -77,15 +83,21 @@ def handle(kirby, slot, line):
+         claimed = kirby.workkeys.get(session.workkey)
+         if claimed is None or claimed.owner != session.session_id or claimed.token != session.token:
+             return kirby.wake(slot)                        # nothing claimed: reconcile only
+-        return kirby.on_turn_end(slot, outcome, session.token,
+-                                 checkpoint=fields.get("checkpoint", ""),
++        checkpoint = fields.get("checkpoint", "")
++        if outcome == "DONE":
++            proof = prove(session.workkey) if prove is not None else None
++            if not proof:
++                kirby.heartbeat(slot, progress=False, checkpoint=checkpoint or None)
++                return "NOT_PROVEN"
++            checkpoint = f"{checkpoint} | {proof}" if checkpoint else proof
++        return kirby.on_turn_end(slot, outcome, session.token, checkpoint=checkpoint,
+                                  reason=fields.get("reason", ""))
+     return "IGNORED"
+ 
+ 
+-def drive(kirby, slot, lines):
++def drive(kirby, slot, lines, prove=None):
+     """Feed an iterable of provider lines. Never prequeues: call per batch of new lines."""
+-    return [handle(kirby, slot, line) for line in lines]
++    return [handle(kirby, slot, line, prove=prove) for line in lines]
+ 
+ 
+ def read_new_lines(path, offset):
+diff --git a/tests/test_host_loop_proof.py b/tests/test_host_loop_proof.py
+new file mode 100644
+index 000000000..a6ea1817d
+--- /dev/null
++++ b/tests/test_host_loop_proof.py
+@@ -0,0 +1,79 @@
++"""F-K1/F-K2 proposal for L3: a provider DONE line is a claim; DONE needs journal proof."""
++import json
++
++from courier_runtime.continuity import CLAIMED, DONE, Kirby
++from courier_runtime.provider_events import handle
++
++
++def campaign(tmp_path):
++    k = Kirby(tmp_path / "kirby.json", "host-a")
++    k.add_workkeys(["WK-1", "WK-2"])
++    k.open_slot("S1", "local")
++    k.wake("S1")
++    k.deliver("S1")
++    return k
++
++
++def test_done_line_without_a_prover_does_not_complete(tmp_path):
++    k = campaign(tmp_path)
++    assert handle(k, "S1", "TURN_ENDED outcome=DONE checkpoint=trust me") == "NOT_PROVEN"
++    assert k.workkeys["WK-1"].state == CLAIMED
++    assert k.workkeys["WK-1"].checkpoint == "trust me"
++    assert not (tmp_path / "receipts.jsonl").exists()
++
++
++def test_done_line_with_a_prover_that_finds_no_proof_does_not_complete(tmp_path):
++    k = campaign(tmp_path)
++    assert handle(k, "S1", "TURN_ENDED outcome=DONE", prove=lambda workkey: None) == "NOT_PROVEN"
++    assert k.workkeys["WK-1"].state == CLAIMED
++
++
++def test_done_line_with_journal_proof_completes_and_records_the_proof(tmp_path):
++    k = campaign(tmp_path)
++    seen = []
++
++    def prove(workkey):
++        seen.append(workkey)
++        return "journal:9:RESULT_ACCEPTED"
++    handle(k, "S1", "TURN_ENDED outcome=DONE checkpoint=cp", prove=prove)
++    assert seen == ["WK-1"]
++    assert k.workkeys["WK-1"].state == DONE
++    assert k.workkeys["WK-1"].checkpoint == "cp | journal:9:RESULT_ACCEPTED"
++    receipt = json.loads((tmp_path / "receipts.jsonl").read_text().splitlines()[-1])
++    assert "journal:9:RESULT_ACCEPTED" in receipt["checkpoint"]
++
++
++def test_blocked_and_failed_lines_still_park_without_proof(tmp_path):
++    k = campaign(tmp_path)
++    handle(k, "S1", "TURN_ENDED outcome=BLOCKED reason=needs a human")
++    assert k.workkeys["WK-1"].state == "BLOCKED"
++
++
++def test_host_loop_main_rereads_the_campaign_under_the_engine_lock_each_round(tmp_path, monkeypatch):
++    from courier_runtime import host_loop
++    from courier_runtime.ledger_engine import LedgerEngine
++    state = tmp_path / "campaign" / "kirby.json"
++    engine = LedgerEngine(None, state, "host-a")
++    engine.add_workkeys(["WK-1"])
++    engine.open_slot("S1", "local")
++    signals = tmp_path / "signals.log"
++    signals.write_text("")
++    rounds = []
++
++    def fake_run_once(kirby, slot, signal_path, st, **kw):
++        rounds.append(kirby)
++        return [], {}, []
++    monkeypatch.setattr(host_loop, "run_once", fake_run_once)
++    # Between two rounds (outside the loop's lock) the engine claims WK-1, as another process would.
++    monkeypatch.setattr(host_loop.time, "sleep", lambda s: engine.next("S1"))
++    calls = {"n": 0}
++    real_exclusive = host_loop._exclusive
++
++    def counting_exclusive(path):
++        calls["n"] += 1
++        return real_exclusive(path)
++    monkeypatch.setattr(host_loop, "_exclusive", counting_exclusive)
++    host_loop.main(["--state", str(state), "--slot", "S1", "--signals", str(signals), "--rounds", "2"])
++    assert calls["n"] == 2                       # one lock per round
++    assert rounds[0] is not rounds[1]            # a fresh Kirby per round
++    assert rounds[1].workkeys["WK-1"].state == CLAIMED   # sees the engine's write instead of overwriting it
