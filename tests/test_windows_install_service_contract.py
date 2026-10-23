@@ -87,12 +87,15 @@ def _powershell(args, check=False):
     completed = subprocess.run(
         ["powershell", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", *args],
         capture_output=True,
-        text=True,
+        encoding="oem",
+        errors="replace",
         timeout=60,
         check=False,
     )
+    stdout = completed.stdout or ""
+    stderr = completed.stderr or ""
     if check and completed.returncode != 0:
-        raise AssertionError(completed.stdout + completed.stderr)
+        raise AssertionError(stdout + stderr)
     return completed
 
 
@@ -169,6 +172,6 @@ def test_native_install_service_failure_does_not_print_registered():
         "-TaskName", task_name,
         "-InstallDir", r"C:\CourierInstallServiceContract",
     ])
-    combined = (completed.stdout + completed.stderr).lower()
+    combined = ((completed.stdout or "") + (completed.stderr or "")).lower()
     assert completed.returncode != 0
     assert "registered" not in combined
