@@ -1,5 +1,7 @@
 # Cursor Ultra Mac — Project Coordinator / Goal-Event Continuation V1
 
+> **MASTER-AUTORITÄT NICHT VERWECHSELN:** [Dual-Dispatcher-Hot-Standby V2](./COURIER_DUAL_DISPATCHER_HOT_STANDBY_V2_2026-10-23.md) ist ein separates **Grok Mac↔Windows**-Koordinationsthema. Cursor Projects darf weder Grok Master-Epochs vergeben noch Windows Standby als aktiven Master deklarieren. Der private Grok→Cursor-Relay-Zugriff der Cursor-Cloud-Lane ist noch `ACCESS_BLOCKED`; eine PR-Subscription ist kein privater Handoff-Trigger.
+
 > **NEUE TAKTIK (23.10.2026):** [Courier Release-Train V1 – fünf gated Phasen und zwei Spuren](./COURIER_RELEASE_TRAIN_STRATEGY_V1_2026-10-23.md) und [fünf rollengetrennte Kopier-Prompts](./COURIER_RELEASE_TRAIN_PROMPT_PACK_V1_2026-10-23.md). Der Cursor-Project-Koordinator übernimmt **nur Phase 5** bzw. konfliktfreie Produktspur-B-Planung; er ist weder der Windows-Fix-Writer noch der L1-Merge-Owner. Ein Goal/Listening-Abo liefert keinen Workkey und keinen automatischen Dauerlauf.
 
 > **LATEST VERIFIED CHECKPOINT (23 October 2026):** [Goal/Scheduler/Windows-CI Handoff V3](./GOAL_STOP_SCHEDULER_WINDOWS_CI_HANDOFF_V3_2026-10-23.md). On the newer `integration/v1` HEAD `81bbf224b0ae`, PR #835 is merged and Windows pytest in [CI #40008119253](https://github.com/happyhippovip/2026-courier/actions/runs/40008119253) fails; the older green SHA below is historical. Check V3 before assigning any new work. A completed Goal turn is not proof of an active Cloud worker or scheduled restart.
