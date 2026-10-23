@@ -257,7 +257,12 @@ def test_lock_symlink_is_not_truncated(tmp_path, monkeypatch):
     outside = tmp_path / "outside.txt"
     outside.write_text("keep", encoding="utf-8")
     lock = tmp_path / "courier_worker_WIN-01.lock"
-    lock.symlink_to(outside)
+    try:
+        lock.symlink_to(outside)
+    except OSError as exc:
+        if getattr(exc, "winerror", None) == 1314:
+            pytest.skip("Creating symlinks on Windows requires developer mode or administrator privilege")
+        raise
     try:
         daemon.acquire_lock("WIN-01")
     except OSError as exc:

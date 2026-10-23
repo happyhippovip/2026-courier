@@ -4,6 +4,12 @@ import sys
 import os
 from pathlib import Path
 
+def _present(path: Path) -> bool:
+    if path.is_symlink() or path.parent.is_symlink():
+        return False
+    return path.exists()
+
+
 def check_pilot_gate_readiness():
     repo_root = Path(__file__).resolve().parent.parent
     report = {
@@ -26,11 +32,11 @@ def check_pilot_gate_readiness():
         }
     }
     
-    if (repo_root / "ops/ai/PRE_CODEX_HANDOFF.md").exists():
+    if _present(repo_root / "ops/ai/PRE_CODEX_HANDOFF.md"):
         report["prerequisites"]["PRE_CODEX_HANDOFF"] = True
-    if (repo_root / "ops/ai/PROOF_CARD.md").exists():
+    if _present(repo_root / "ops/ai/PROOF_CARD.md"):
         report["prerequisites"]["PROOF_CARD"] = True
-    if (repo_root / "ops/ai/PILOT_DUMMY_TASK.json").exists():
+    if _present(repo_root / "ops/ai/PILOT_DUMMY_TASK.json"):
         report["prerequisites"]["PILOT_DUMMY_TASK"] = True
         
     all_prereqs = all(report["prerequisites"].values())

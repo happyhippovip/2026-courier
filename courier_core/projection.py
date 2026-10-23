@@ -177,6 +177,8 @@ def fold(events: Iterable[Event]) -> dict[str, TaskState]:
 def rebuild(journal, out_path: str | os.PathLike) -> Path:
     """Replay every journal event into a fresh projection database at out_path."""
     out = Path(out_path)
+    if out.is_symlink() or out.parent.is_symlink():
+        raise ValueError(f"{out}: refusing to follow a symlink")
     for suffix in ("", "-wal", "-shm"):
         Path(str(out) + suffix).unlink(missing_ok=True)
     conn = sqlite3.connect(str(out), isolation_level=None)

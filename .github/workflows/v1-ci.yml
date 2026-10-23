@@ -5,7 +5,10 @@ name: Courier v1 CI
 # merges must carry exact-SHA evidence) and on PRs into integration/v1.
 on:
   push:
-    branches: ["integration/v1"]
+    # The A→B→C stack is not a PR into integration/v1, so trunk pull_request
+    # CI never sees it. This push runs the same Ubuntu and Windows pytest
+    # without retargeting the PR. Remove the lane branch after L1 merges it.
+    branches: ["integration/v1", "cursor/ab-master-9ba8", "cursor/ab-receipt-verdict-f7a0"]
     paths-ignore:
       - "**/*.md"
       - "docs/**"
@@ -115,10 +118,12 @@ jobs:
     # test always skips there, and a skipped launcher build looks the same as a
     # green one. This job installs PyInstaller, parses every PowerShell script,
     # runs a live install -> start -> stop-by-PID -> uninstall, and fails if any
-    # of these Windows tests is skipped.
-    name: windows build (launcher, hub exe, PowerShell)
+    # of these Windows tests is skipped. It then installs pinned Inno Setup
+    # 6.7.0, compiles CourierSetup-v1.exe, and runs rollback, silent install,
+    # upgrade, and uninstall on this fresh runner.
+    name: windows build (launcher, hub exe, PowerShell, setup)
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -181,6 +186,23 @@ jobs:
         with:
           name: courier-launcher-exe
           path: scripts/windows_worker/Courier.exe
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Compile CourierSetup-v1.exe and verify silent install
+        shell: pwsh
+        env:
+          COURIER_INSTALL_INNO: "1"
+        run: |
+          & scripts\windows_worker\build_installer.ps1 -VerifyInstall
+          $hash = (Get-FileHash scripts\windows_worker\CourierSetup-v1.exe -Algorithm SHA256).Hash
+          "CourierSetup-v1.exe SHA256 $hash (built from $env:GITHUB_SHA)" | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY
+
+      - name: Upload the setup built from this commit
+        uses: actions/upload-artifact@v4
+        with:
+          name: courier-setup-exe
+          path: scripts/windows_worker/CourierSetup-v1.exe
           if-no-files-found: error
           retention-days: 30
 

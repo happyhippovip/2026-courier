@@ -60,6 +60,7 @@ def _spec(unit):
         "effect_class": "idempotent",
         "max_attempts": 1,
         "lease_ttl_s": 30,
+        "estimated_cost_eur": 0.0,
         "goal_id": GOAL_ID,
         "goal_fingerprint": GOAL_FP,
     }

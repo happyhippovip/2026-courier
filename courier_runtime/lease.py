@@ -14,6 +14,7 @@ from __future__ import annotations
 import sqlite3
 import time
 from dataclasses import dataclass
+from pathlib import Path
 
 
 class LeaseConflict(Exception):
@@ -57,6 +58,23 @@ def scopes_overlap(scope_a: str, scope_b: str) -> bool:
     return False
 
 
+def is_strict_ancestor(ancestor: str, descendant: str) -> bool:
+    """True when ancestor strictly encloses descendant. A child is not an ancestor of its parent."""
+    parent = canonicalize_scope(ancestor)
+    child = canonicalize_scope(descendant)
+    return child.startswith(parent + "/")
+
+
+def token_ok(token) -> bool:
+    """A fencing token is a positive int. Bool is not a token."""
+    return isinstance(token, int) and not isinstance(token, bool) and token >= 1
+
+
+def holder_ok(holder) -> bool:
+    """A holder is a non-empty string. Bool is not a holder."""
+    return isinstance(holder, str) and bool(holder) and "\x00" not in holder
+
+
 def format_session_holder(device: str, pid: int, create_time: float, session_id: str) -> str:
     """Format structured session holder binding."""
     return f"{device}:{pid}:{create_time:.4f}:{session_id}"
@@ -73,9 +91,17 @@ def parse_session_holder(holder: str) -> dict | None:
     return None
 
 
+def _refuse_symlink(path) -> None:
+    """Refuse a lease database path, or a parent directory, that is a symlink."""
+    candidate = Path(path)
+    if candidate.is_symlink() or candidate.parent.is_symlink():
+        raise OSError(f"{path}: refusing to follow a symlink")
+
+
 class LeaseStore:
     def __init__(self, path, clock=time.time):
         self.clock = clock
+        _refuse_symlink(path)
         self.db = sqlite3.connect(path, isolation_level=None, timeout=10)
         self.db.execute("CREATE TABLE IF NOT EXISTS lease (scope TEXT PRIMARY KEY, holder TEXT, workkey TEXT,"
                         " token INTEGER NOT NULL, expires_at REAL NOT NULL)")
@@ -124,7 +150,15 @@ class LeaseStore:
             if live:
                 token = row.token
             else:
-                token = (row.token if row else 0) + 1
+                # One monotonic sequence for every scope, so scope A's token
+                # can never equal scope B's token.
+                max_token = self.db.execute("SELECT COALESCE(MAX(token), 0) FROM lease").fetchone()[0]
+                previous = row.token if row else 0
+                if isinstance(max_token, bool) or not isinstance(max_token, int):
+                    max_token = 0
+                if isinstance(previous, bool) or not isinstance(previous, int):
+                    previous = 0
+                token = max(max_token, previous) + 1
             self.db.execute("INSERT INTO lease(scope, holder, workkey, token, expires_at) VALUES(?,?,?,?,?)"
                             " ON CONFLICT(scope) DO UPDATE SET holder=excluded.holder, workkey=excluded.workkey,"
                             " token=excluded.token, expires_at=excluded.expires_at",
@@ -151,22 +185,44 @@ class LeaseStore:
             raise
         return Lease(c_scope, lease.holder, lease.workkey, lease.token, now + ttl_s)
 
-    def check_write(self, scope, token):
-        """Fence: raise unless token is the current, unexpired token for scope or an enclosing parent scope."""
+    def check_write(self, scope, token, holder=None):
+        """Fence: token and, when presented, holder must match.
+
+        The live exact scope matches, or a strict ancestor (enclosing parent)
+        matches. A child lease never authorizes a write to its parent. Bool is
+        not a token or a holder. When holder is omitted, only token and scope
+        are checked so existing callers keep their token fence; production
+        writers pass the holder.
+        """
         c_scope = canonicalize_scope(scope)
+        if not token_ok(token):
+            raise StaleLease(f"write to {c_scope} refused: token is not a fencing token")
+        if holder is not None and not holder_ok(holder):
+            raise StaleLease(f"write to {c_scope} refused: holder is not a lease holder")
+
+        def _matches(live: Lease) -> bool:
+            if not token_ok(live.token) or live.token != token:
+                return False
+            if holder is not None and live.holder != holder:
+                return False
+            return True
+
         lease = self.current(c_scope)
         if lease is not None:
-            if lease.token != token:
-                raise StaleLease(f"write to {c_scope} with token {token} refused (current token is {lease.token})")
+            if not _matches(lease):
+                raise StaleLease(
+                    f"write to {c_scope} with token {token} refused (current token is {lease.token})"
+                )
             return lease
-        # Check if an enclosing scope is held with this token
         rows = self.db.execute(
             "SELECT scope, holder, workkey, token, expires_at FROM lease WHERE expires_at > ? AND holder IS NOT NULL",
             (self.clock(),),
         ).fetchall()
         for r in rows:
             live = Lease(*r)
-            if scopes_overlap(live.scope, c_scope) and live.token == token:
+            # Only an enclosing parent may cover a child path. Overlap is not enough:
+            # the child scope must not authorize the parent.
+            if is_strict_ancestor(live.scope, c_scope) and _matches(live):
                 return live
         raise StaleLease(f"write to {c_scope} with token {token} refused")
 
@@ -177,17 +233,21 @@ class LeaseStore:
 
 
 class FencedFileWriter:
-    """Ensures that before writing to any path, the lease token is verified against the LeaseStore."""
-    def __init__(self, lease_store: LeaseStore, scope: str, token: int):
+    """Ensures that before writing to any path, the lease token and holder are verified."""
+    def __init__(self, lease_store: LeaseStore, scope: str, token: int, holder: str | None = None):
         self.store = lease_store
         self.scope = canonicalize_scope(scope)
         self.token = token
+        self.holder = holder
 
     def check(self):
-        return self.store.check_write(self.scope, self.token)
+        return self.store.check_write(self.scope, self.token, self.holder)
 
     def open(self, path, mode="w", *args, **kwargs):
         if any(m in mode for m in ("w", "a", "+", "x")):
             self.check()
+            candidate = Path(path)
+            if candidate.is_symlink() or candidate.parent.is_symlink():
+                raise OSError(f"{path}: refusing to follow a symlink")
         return open(path, mode, *args, **kwargs)
 

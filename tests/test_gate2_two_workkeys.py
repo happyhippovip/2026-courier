@@ -53,6 +53,7 @@ def _spec(unit):
             "params": {"sleep_s": 0, "write": "out.txt", "content": unit, "hang": False,
                        "fail_transient_n": 0, "fault_attempts": [1]},
             "effect_class": "idempotent", "max_attempts": 2, "lease_ttl_s": 10,
+            "estimated_cost_eur": 0.0,
             "goal_id": GOAL_ID, "goal_fingerprint": GOAL_FP}
 
 

@@ -1,3 +1,4 @@
+import hashlib
 import pytest
 import os
 import sys
@@ -24,6 +25,29 @@ def test_verify_artifact_mismatch(tmp_path):
     f.write_text("hello2")
     expected = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
     assert verify_artifact(str(f), expected) == False
+
+def test_verify_artifact_does_not_hash_a_symlink(tmp_path, monkeypatch):
+    outside = tmp_path / "outside.bin"
+    outside.write_bytes(b"pwned-bytes")
+    digest = hashlib.sha256(b"pwned-bytes").hexdigest()
+    work = tmp_path / "work"
+    work.mkdir()
+    link = work / "note.txt"
+    link.symlink_to(outside)
+    monkeypatch.chdir(work)
+    matched = verify_artifact("note.txt", digest)
+    zeros = verify_artifact("note.txt", "0" * 64)
+    real = work / "plain.txt"
+    real.write_bytes(b"pwned-bytes")
+    real_ok = verify_artifact("plain.txt", digest)
+    verdict = verify_artifacts(
+        {"target_agent": "linux", "artifacts": ["note.txt"]},
+        {"artifacts": [{"path": "note.txt", "sha256": digest}]},
+    )
+    assert matched is False and zeros is False and real_ok is True and verdict == "FAIL" and link.is_symlink(), (
+        matched, zeros, real_ok, verdict, outside.read_bytes(), link.is_symlink(),
+    )
+
 
 def test_verify_artifact_exception(tmp_path):
     f = tmp_path / "test.txt"

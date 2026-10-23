@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 import json
 import sys
+from pathlib import Path
 
 def verify_task():
+    task_path = Path("ops/ai/PILOT_DUMMY_TASK.json")
+    if task_path.is_symlink() or task_path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     try:
-        with open("ops/ai/PILOT_DUMMY_TASK.json", "r") as f:
+        with open(task_path, "r") as f:
             goal = json.load(f)
             
         if "workflow_plan" not in goal or not goal["workflow_plan"]:

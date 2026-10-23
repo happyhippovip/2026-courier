@@ -16,7 +16,11 @@ def build_product_shell(dry_run=True):
     # Gate check: Fails closed unless positive pilot signal is durably confirmed
     pilot_gate_file = repo_root / "ops/ai/PILOT_READINESS_DECLARATION.md"
     pilot_unlocked = False
-    
+
+    if pilot_gate_file.is_symlink() or pilot_gate_file.parent.is_symlink():
+        print("refusing to follow a symlink")
+        return 1
+
     if pilot_gate_file.exists():
         content = pilot_gate_file.read_text(encoding="utf-8")
         if "PRODUCT_SHELL_UNLOCKED=YES" in content:

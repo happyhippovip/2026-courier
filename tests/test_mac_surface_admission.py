@@ -29,7 +29,9 @@ def test_coalesced_agy_task_is_not_a_success(tmp_path, monkeypatch):
     daemon = load_daemon(tmp_path, monkeypatch)
     monkeypatch.setattr(daemon, "admit_surface",
                         lambda *a, **k: (None, Decision("COALESCED", "mac-s1", "same intent", "k", 3)))
-    result = daemon.run_agy({"task_id": "T1", "instruction": "x"}, {"WORKER_ID": "mac-1"})
+    result = daemon.run_agy(
+        {"task_id": "T1", "instruction": "x", "estimated_cost_eur": 0.0}, {"WORKER_ID": "mac-1"},
+    )
     assert result["status"] == "FAILED" and result["reason"] == "COALESCED_INTO_RUNNING_WORK"
 
 

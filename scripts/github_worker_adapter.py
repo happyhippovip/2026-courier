@@ -83,7 +83,13 @@ def _steal_stale_lock(task_file: Path, path: Path) -> bool:
     # present lock always parses; unparseable means a foreign writer — treat
     # as live and defer rather than risk duplicating its work.
     try:
-        started_at = float(json.loads(path.read_text(encoding="utf-8")).get("started_at") or 0)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        raw = payload.get("started_at") if isinstance(payload, dict) else None
+        # Bool is an int. True would become 1.0 and look ancient, so a second
+        # worker would steal a lock whose clock cannot be decided.
+        if isinstance(raw, bool):
+            return False
+        started_at = float(raw or 0)
     except (OSError, ValueError, TypeError, AttributeError):
         return False
     if time.time() - started_at < LOCK_TIMEOUT_SECONDS:
@@ -133,8 +139,14 @@ def state_path(task_file: Path) -> Path:
     return task_file.with_name(f"{task_file.stem}.github-worker-state.json")
 
 
+def _refuse_state_symlink(path: Path) -> None:
+    if path.is_symlink() or path.parent.is_symlink():
+        raise ValueError(f"{path}: refusing to follow a symlink")
+
+
 def read_state(task_file: Path) -> dict[str, Any]:
     path = state_path(task_file)
+    _refuse_state_symlink(path)
     for _ in range(100):
         try:
             return json.loads(path.read_text(encoding="utf-8"))
@@ -144,6 +156,7 @@ def read_state(task_file: Path) -> dict[str, Any]:
 
 
 def write_state(task_file: Path, state: dict[str, Any]) -> None:
+    _refuse_state_symlink(state_path(task_file))
     # Atomic publish: a kill between truncate and content commit must never
     # leave a torn state file behind (torn state crashes every future run
     # with JSONDecodeError while resume keeps respawning into the crash).
@@ -287,8 +300,13 @@ def await_dispatched_run(task: dict[str, Any], prior: dict[str, Any]) -> bool:
     Returns True when a run for this dispatch_id becomes visible (the caller
     adopts it instead of dispatching again).
     """
+    raw = prior.get("dispatched_at")
+    # Bool is an int. True would become 1.0 and look ancient, so a resume
+    # would start a second external run. An undecidable clock is not stale.
+    if isinstance(raw, bool):
+        return True
     try:
-        deadline = float(prior.get("dispatched_at") or 0) + DISPATCH_GRACE_SECONDS
+        deadline = float(raw or 0) + DISPATCH_GRACE_SECONDS
     except (TypeError, ValueError):
         return False
     while time.time() < deadline:
@@ -315,7 +333,9 @@ def run(task_file_name: str) -> int:
 def _run(task_file: Path, task: dict[str, Any]) -> int:
     validate_task(task)
     prior = {}
-    if state_path(task_file).is_file():
+    state = state_path(task_file)
+    _refuse_state_symlink(state)
+    if state.is_file():
         prior = read_state(task_file)
         if prior.get("dispatch_id") != task["dispatch_id"]:
             raise ValueError("persisted GitHub state belongs to another dispatch")

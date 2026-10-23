@@ -9,6 +9,7 @@ Evaluates:
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Optional
 
@@ -43,6 +44,17 @@ class DeltaNeutralRebalanceEngine:
         fixed_transfer_fee_eur: float = 1.50,
         min_profit_to_rebalance_ratio: float = 3.0,
     ):
+        settings = (imbalance_threshold_pct, fixed_transfer_fee_eur, min_profit_to_rebalance_ratio)
+        if any(isinstance(value, bool) for value in settings):
+            raise ValueError("Bool is not a number.")
+        if any(not isinstance(value, (int, float)) or not math.isfinite(value) for value in settings):
+            raise ValueError("rebalance setting is not a number.")
+        if (
+            imbalance_threshold_pct < 0
+            or fixed_transfer_fee_eur < 0
+            or min_profit_to_rebalance_ratio < 0
+        ):
+            raise ValueError("rebalance setting is out of range.")
         self.imbalance_threshold_pct = imbalance_threshold_pct
         self.fixed_transfer_fee_eur = fixed_transfer_fee_eur
         self.min_profit_to_rebalance_ratio = min_profit_to_rebalance_ratio
@@ -53,6 +65,25 @@ class DeltaNeutralRebalanceEngine:
         kraken_inv: InventoryStatus,
         accumulated_pnl_eur: float,
     ) -> RebalanceAssessment:
+        amounts = (
+            binance_inv.quote_balance,
+            binance_inv.base_balance,
+            kraken_inv.quote_balance,
+            kraken_inv.base_balance,
+            accumulated_pnl_eur,
+        )
+        if any(isinstance(value, bool) for value in amounts):
+            raise ValueError("Bool is not a number.")
+        if any(not isinstance(value, (int, float)) or not math.isfinite(value) for value in amounts):
+            raise ValueError("inventory is not a number.")
+        balances = (
+            binance_inv.quote_balance,
+            binance_inv.base_balance,
+            kraken_inv.quote_balance,
+            kraken_inv.base_balance,
+        )
+        if any(value < 0 for value in balances):
+            raise ValueError("inventory is out of range.")
         total_quote = binance_inv.quote_balance + kraken_inv.quote_balance
         if total_quote <= 0:
             return RebalanceAssessment(

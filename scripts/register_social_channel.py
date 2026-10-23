@@ -57,6 +57,11 @@ def register_channel(
     automation_status: str = "NEW_CHANNEL_PENDING",
     production_enabled: bool = True,
 ) -> dict:
+    config_path = Path(config_path)
+    workflows_path = Path(workflows_path)
+    if (config_path.is_symlink() or config_path.parent.is_symlink()
+            or workflows_path.is_symlink() or workflows_path.parent.is_symlink()):
+        fail("refusing to follow a symlink")
     # 1. Secret Guard on all inputs
     for val in [platform, channel_label, content_project, workflow_id or "", automation_status or ""]:
         check_secrets(str(val))
@@ -145,13 +150,18 @@ def main() -> None:
     parser.add_argument("--workflows-config", default=str(DEFAULT_WORKFLOWS_CONFIG), help="Path to content_workflows.json")
     args = parser.parse_args()
 
+    config_path = Path(args.config)
+    workflows_path = Path(args.workflows_config)
+    if (config_path.is_symlink() or config_path.parent.is_symlink()
+            or workflows_path.is_symlink() or workflows_path.parent.is_symlink()):
+        fail("refusing to follow a symlink")
     channel = register_channel(
         platform=args.platform,
         channel_label=args.label,
         content_project=args.project,
         workflow_id=args.workflow,
-        config_path=Path(args.config).resolve(),
-        workflows_path=Path(args.workflows_config).resolve(),
+        config_path=config_path.resolve(),
+        workflows_path=workflows_path.resolve(),
     )
     print(json.dumps(channel, indent=2))
 

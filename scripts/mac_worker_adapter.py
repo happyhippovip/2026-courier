@@ -1,16 +1,38 @@
 import json, sys, os, time, shutil
 from pathlib import Path
 
+def _refuse_task_id(task_id: object) -> None:
+    if (
+        not isinstance(task_id, str)
+        or task_id in ("", ".", "..")
+        or Path(task_id).name != task_id
+        or "/" in task_id
+        or "\\" in task_id
+    ):
+        raise ValueError("refusing an unsafe task id")
+
+
 def run(task_file):
-    with open(task_file, 'r') as f:
+    task_path = Path(task_file)
+    if task_path.is_symlink() or task_path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+    with open(task_path, 'r') as f:
         task = json.load(f)
+    _refuse_task_id(task.get("task_id"))
         
     print(f"[Mac Transport] Routing task {task['task_id']} to Mac Worker DualTransport...")
     
     base_dir = Path("scripts/mac_worker")
     inbox = base_dir / "inbox"
     outbox = base_dir / "outbox"
-    
+    if (
+        inbox.is_symlink()
+        or inbox.parent.is_symlink()
+        or outbox.is_symlink()
+        or outbox.parent.is_symlink()
+    ):
+        raise ValueError("refusing to follow a symlink")
+
     inbox.mkdir(parents=True, exist_ok=True)
     outbox.mkdir(parents=True, exist_ok=True)
     
@@ -23,6 +45,9 @@ def run(task_file):
     print(f"[Mac Transport] Task {task['task_id']} dropped in {target_inbox_file}. Waiting for result...")
     
     target_outbox_file = outbox / f"{task['task_id']}_result.json"
+    incoming_dir = Path("results/incoming")
+    if incoming_dir.is_symlink() or incoming_dir.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     timeout = 300
     start = time.time()
     

@@ -35,16 +35,28 @@ def get_temporary_role(worker_id):
     return "TECHNICAL_WORKER"
 
 def execute_task(task, worker_id, role):
+    # Build a temporary file for the task
+    task_id = task["task_id"]
+    if (
+        not isinstance(task_id, str)
+        or task_id in ("", ".", "..")
+        or Path(task_id).name != task_id
+        or "/" in task_id
+        or "\\" in task_id
+    ):
+        raise SystemExit("refusing an unsafe task id")
+    task_file = Path(f"events/agent-states/{task_id}.json")
+    if task_file.is_symlink() or task_file.parent.is_symlink():
+        raise SystemExit("refusing to follow a symlink")
+
     print(f"[{worker_id}] Executing task {task['task_id']} with role {role}")
-    
+
     # Select adapter based on role
     if role in ("TECHNICAL_WORKER", "DIAGNOSTIC_WORKER", "QA_WORKER"):
         adapter = "scripts/run_codex_bridge.py"
     else:
         adapter = "scripts/run_antigravity_bridge.py"
-        
-    # Build a temporary file for the task
-    task_file = Path(f"events/agent-states/{task['task_id']}.json")
+
     task_file.parent.mkdir(parents=True, exist_ok=True)
     task_file.write_text(json.dumps(task), encoding="utf-8")
     

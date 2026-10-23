@@ -6,6 +6,7 @@ and verifier identity composition.
 
 from __future__ import annotations
 
+import hashlib
 import sys
 import types
 from dataclasses import FrozenInstanceError
@@ -178,6 +179,23 @@ class TestVerifierIdentityAndSourceDigest:
 
     def test_source_sha256_missing_or_unreadable(self):
         assert _source_sha256("nonexistent_mod_123") is None
+
+    def test_verifier_identity_does_not_hash_a_symlink(self, tmp_path, monkeypatch):
+        outside = tmp_path / "outside.py"
+        outside.write_text("SECRET = 1\n", encoding="utf-8")
+        link = tmp_path / "link.py"
+        link.symlink_to(outside)
+        fake_mod = types.ModuleType("adapters.zz_symlink_probe")
+        fake_mod.__file__ = str(link)
+
+        def fake_verify(task, result, home):
+            return Verdict(accepted=True)
+
+        fake_verify.__module__ = "adapters.zz_symlink_probe"
+        monkeypatch.setitem(sys.modules, "adapters.zz_symlink_probe", fake_mod)
+        ident = verifier_identity(fake_verify)
+        foreign = hashlib.sha256(b"SECRET = 1\n").hexdigest()
+        assert ident["source_sha256"] is None, (ident["source_sha256"], foreign)
 
 
 class TestRunVerifier:

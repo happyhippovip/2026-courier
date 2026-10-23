@@ -95,6 +95,11 @@ def test_run_rejects_bad_params(tmp_path):
         local_shell.run("nope", tmp_path)
 
 
+def test_run_rejects_bool_timeout(tmp_path):
+    with pytest.raises(LocalShellError, match="timeout_s"):
+        local_shell.run({"command": write_argv(), "timeout_s": True}, tmp_path)
+
+
 def test_run_rejects_bad_attempt(tmp_path):
     with pytest.raises(LocalShellError):
         local_shell.run({"command": write_argv()}, tmp_path, attempt=0)

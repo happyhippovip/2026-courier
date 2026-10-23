@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import os
+from pathlib import Path
 
 def check_readiness():
     print("Checking Pilot Readiness...")
@@ -13,6 +14,9 @@ def check_readiness():
     ]
     
     for f in expected_files:
+        path = Path(f)
+        if path.is_symlink() or path.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         if not os.path.exists(f):
             print(f"FAILED: Missing {f}")
             sys.exit(1)

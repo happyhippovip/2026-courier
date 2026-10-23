@@ -78,7 +78,7 @@ def run_mission_chip(target_home: Path | None = None) -> dict[str, Any]:
             "step": 1,
             "name": "Eingabe & Budget-Gate",
             "passed": status_code == 201,
-            "status": "PASS",
+            "status": "PASS" if status_code == 201 else "FAIL",
             "detail": f"Task {task_id[:16]}... registriert (Kosten: 0,00 EUR, Status: QUEUED)",
             "timestamp": time.time(),
         })
@@ -112,7 +112,7 @@ def run_mission_chip(target_home: Path | None = None) -> dict[str, Any]:
             "step": 2,
             "name": "Deterministische Ausführung",
             "passed": result_code == 200,
-            "status": "PASS",
+            "status": "PASS" if result_code == 200 else "FAIL",
             "detail": f"Artefakt erzeugt, SHA-256: {artifact_sha[:16]}... (Lease: {dispatch_id[:16]}...)",
             "timestamp": time.time(),
         })

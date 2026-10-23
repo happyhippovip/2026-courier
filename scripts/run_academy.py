@@ -209,6 +209,8 @@ class AcademyTeacher:
         """Discovers and formulates a compact machine-readable Lesson Proposal with deduplication."""
         if lesson_type not in ALLOWED_LESSON_TYPES:
             raise ValueError(f"Invalid lesson_type '{lesson_type}'. Allowed: {ALLOWED_LESSON_TYPES}")
+        if LESSONS_DIR.is_symlink() or LESSONS_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
 
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         source_date = source_date or now_iso.split("T")[0]
@@ -297,10 +299,31 @@ class AcademyTeacher:
         target_task_id: str | None = None,
     ) -> dict:
         """Determines whether an agent is idle or actively executing, delivering or safely deferring lesson."""
+        if LESSONS_DIR.is_symlink() or LESSONS_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
+        if (
+            not isinstance(lesson_id, str)
+            or lesson_id in ("", ".", "..")
+            or Path(lesson_id).name != lesson_id
+            or "/" in lesson_id
+            or "\\" in lesson_id
+        ):
+            raise ValueError("refusing an unsafe lesson id")
         lesson_file = LESSONS_DIR / f"{lesson_id}.json"
+        if lesson_file.is_symlink() or lesson_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         if not lesson_file.exists():
             raise FileNotFoundError(f"Lesson file not found: {lesson_id}")
         lesson = load_json(lesson_file)
+
+        if (
+            not isinstance(target_agent, str)
+            or target_agent in ("", ".", "..")
+            or Path(target_agent).name != target_agent
+            or "/" in target_agent
+            or "\\" in target_agent
+        ):
+            raise ValueError("refusing an unsafe target agent")
 
         # Inspect target agent's current state
         agent_state_file = self.repo_dir / f"events/agent-states/{target_agent}.json"
@@ -311,6 +334,9 @@ class AcademyTeacher:
 
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         delivery_id = f"deliv-{uuid.uuid4().hex[:8]}"
+
+        if DELIVERIES_DIR.is_symlink() or DELIVERIES_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
 
         if is_busy and not is_urgent:
             # Safe Deferral: Queue until task completion boundary
@@ -331,6 +357,8 @@ class AcademyTeacher:
         # Formulate Bounded Delivery Package
         snapshot = self.steward.get_latest_snapshot()
         context_version = snapshot.get("context_version", 1) if snapshot else 1
+        if isinstance(context_version, bool):
+            raise ValueError("Bool is not a number.")
 
         delivery_package = {
             "schema_version": "2.0",
@@ -368,6 +396,8 @@ class AcademyDirector:
         self.steward = UpdateSteward(repo_dir=repo_dir, memory_dir=memory_dir)
 
     def _load_or_init_economics(self) -> dict:
+        if self.economics_file.is_symlink() or self.economics_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         if self.economics_file.exists():
             try:
                 return json.loads(self.economics_file.read_text(encoding="utf-8"))
@@ -446,7 +476,19 @@ class AcademyDirector:
 
     def review_lesson(self, lesson_id: str) -> dict:
         """Reviews a lesson proposal for deduplication, evidence completeness, and test requirements."""
+        if LESSONS_DIR.is_symlink() or LESSONS_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
+        if (
+            not isinstance(lesson_id, str)
+            or lesson_id in ("", ".", "..")
+            or Path(lesson_id).name != lesson_id
+            or "/" in lesson_id
+            or "\\" in lesson_id
+        ):
+            raise ValueError("refusing an unsafe lesson id")
         lesson_file = LESSONS_DIR / f"{lesson_id}.json"
+        if lesson_file.is_symlink() or lesson_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         if not lesson_file.exists():
             raise FileNotFoundError(f"Lesson not found: {lesson_id}")
         lesson = load_json(lesson_file)
@@ -490,10 +532,27 @@ class AcademyDirector:
         candidate_metrics: dict,
     ) -> dict:
         """Compares baseline vs candidate methods with measurable metric criteria."""
+        if LESSONS_DIR.is_symlink() or LESSONS_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
+        if (
+            not isinstance(lesson_id, str)
+            or lesson_id in ("", ".", "..")
+            or Path(lesson_id).name != lesson_id
+            or "/" in lesson_id
+            or "\\" in lesson_id
+        ):
+            raise ValueError("refusing an unsafe lesson id")
         lesson_file = LESSONS_DIR / f"{lesson_id}.json"
+        if lesson_file.is_symlink() or lesson_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         if not lesson_file.exists():
             raise FileNotFoundError(f"Lesson not found: {lesson_id}")
         lesson = load_json(lesson_file)
+
+        for metrics in (baseline_metrics, candidate_metrics):
+            for key in ("runtime_seconds", "error_count", "test_pass_rate"):
+                if isinstance(metrics.get(key), bool):
+                    raise ValueError("Bool is not a number.")
 
         eval_id = f"eval-{lesson_id}"
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -529,6 +588,9 @@ class AcademyDirector:
             "evaluated_at": now_iso,
         }
 
+        if EVALS_DIR.is_symlink() or EVALS_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
+
         save_json(EVALS_DIR / f"{eval_id}.json", eval_record)
 
         lesson["status"] = "EVAL_PASS" if verdict == "PASS" else "EVAL_FAIL"
@@ -548,12 +610,26 @@ class AcademyDirector:
 
     def approve_adoption(self, lesson_id: str) -> dict:
         """Adoption Gate: Strictly verifies eval passes before adopting into verified context."""
+        if LESSONS_DIR.is_symlink() or LESSONS_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
+        if (
+            not isinstance(lesson_id, str)
+            or lesson_id in ("", ".", "..")
+            or Path(lesson_id).name != lesson_id
+            or "/" in lesson_id
+            or "\\" in lesson_id
+        ):
+            raise ValueError("refusing an unsafe lesson id")
         lesson_file = LESSONS_DIR / f"{lesson_id}.json"
+        if lesson_file.is_symlink() or lesson_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
+        eval_file = EVALS_DIR / f"eval-{lesson_id}.json"
+        if eval_file.is_symlink() or eval_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         if not lesson_file.exists():
             raise FileNotFoundError(f"Lesson not found: {lesson_id}")
         lesson = load_json(lesson_file)
 
-        eval_file = EVALS_DIR / f"eval-{lesson_id}.json"
         if not eval_file.exists():
             print(f"[DIRECTOR ERROR] Adoption blocked: No evaluation record exists for {lesson_id}.")
             self.update_visual_state(
@@ -564,6 +640,9 @@ class AcademyDirector:
             raise PermissionError(f"Adoption prohibited: Lesson {lesson_id} has not passed evaluation.")
 
         eval_data = load_json(eval_file)
+        mins_saved = eval_data.get("metrics", {}).get("measured_minutes_saved", 0.0)
+        if isinstance(mins_saved, bool):
+            raise ValueError("Bool is not a number.")
         if eval_data.get("verdict") != "PASS":
             print(f"[DIRECTOR ERROR] Adoption blocked: Evaluation verdict is {eval_data.get('verdict')}.")
             self.update_visual_state(
@@ -572,6 +651,9 @@ class AcademyDirector:
                 last_action=f"Adoption blocked for {lesson_id}: Evaluation verdict is FAIL",
             )
             raise ValueError(f"Adoption blocked: Evaluation for {lesson_id} failed.")
+
+        if ADOPTIONS_DIR.is_symlink() or ADOPTIONS_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
 
         # Adoption Approval
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -596,6 +678,8 @@ class AcademyDirector:
         self.economics["total_lessons_adopted"] = self.economics.get("total_lessons_adopted", 0) + 1
         self.economics["measured_minutes_saved"] = round(self.economics.get("measured_minutes_saved", 0.0) + mins_saved, 2)
         self.economics["updated_at"] = now_iso
+        if self.economics_file.is_symlink() or self.economics_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         save_json(self.economics_file, self.economics)
 
         # Trigger Context Snapshot Refresh via Update Steward
@@ -618,6 +702,26 @@ class AcademyDirector:
         context_version: int,
     ) -> dict:
         """Records an agent's acknowledgement of an adopted bounded lesson."""
+        if (
+            not isinstance(worker_agent_id, str)
+            or worker_agent_id in ("", ".", "..")
+            or Path(worker_agent_id).name != worker_agent_id
+            or "/" in worker_agent_id
+            or "\\" in worker_agent_id
+        ):
+            raise ValueError("refusing an unsafe worker id")
+        if (
+            not isinstance(lesson_id, str)
+            or lesson_id in ("", ".", "..")
+            or Path(lesson_id).name != lesson_id
+            or "/" in lesson_id
+            or "\\" in lesson_id
+        ):
+            raise ValueError("refusing an unsafe lesson id")
+        if isinstance(context_version, bool):
+            raise ValueError("Bool is not a number.")
+        if DELIVERIES_DIR.is_symlink() or DELIVERIES_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         ack = {
             "schema_version": "2.0",

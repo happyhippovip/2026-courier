@@ -75,6 +75,33 @@ def test_stale_lock_stealing(tmp_path):
     release_packet_lock(packet_id, lock_dir=lock_dir)
 
 
+def test_bool_lock_timestamp_is_not_stolen(tmp_path):
+    """True is not a time. A bool started_at must not look ancient and be stolen."""
+    packet_id = "test-packet-bool"
+    lock_dir = tmp_path / "locks"
+    lpath = lock_path(packet_id, lock_dir=lock_dir)
+    lpath.parent.mkdir(parents=True, exist_ok=True)
+    original = json.dumps({
+        "pid": 999999,
+        "packet_id": packet_id,
+        "started_at": True,
+        "worker_id": "other-worker",
+    })
+    lpath.write_text(original, encoding="utf-8")
+    owned = acquire_packet_lock(packet_id, lock_dir=lock_dir, timeout_seconds=300)
+    assert owned is False, lpath.read_text(encoding="utf-8")
+    assert lpath.read_text(encoding="utf-8") == original
+    false_body = json.dumps({
+        "pid": 999999,
+        "packet_id": packet_id,
+        "started_at": False,
+        "worker_id": "other-worker",
+    })
+    lpath.write_text(false_body, encoding="utf-8")
+    assert acquire_packet_lock(packet_id, lock_dir=lock_dir, timeout_seconds=300) is False
+    assert lpath.read_text(encoding="utf-8") == false_body
+
+
 CALM_HOST = lambda: {"memory_percent": 40.0, "swap_percent": 10.0}  # noqa: E731
 
 
@@ -344,3 +371,130 @@ def test_google_agent_task_costgate_enforced(tmp_path):
     assert verdict == "FAILED"
     assert "COST_GATE_DENIED" in evidence_nan.get("blocked_reason", "")
     assert evidence_nan.get("provider_invoked") is False
+
+
+def test_bool_timeout_does_not_invoke_the_agent(tmp_path):
+    from scripts.google_builder_worker import run_google_agent_task
+
+    evidence = {}
+    payload = {
+        "workkey": "WK-BOOL",
+        "instruction": "do something local",
+        "estimated_cost_eur": 0.0,
+        "timeout_seconds": True,
+    }
+    with mock.patch("scripts.google_builder_worker.AGENT_RUNNER") as runner:
+        verdict = run_google_agent_task(payload, tmp_path, evidence, {"has_agy_cli": True})
+    runner.assert_not_called()
+    assert verdict == "FAILED"
+    assert evidence.get("provider_invoked") is False
+
+
+class _Hooks:
+    def on_tool_action(self, *args, **kwargs):
+        return None
+
+
+def _packet(packet_id):
+    return WorkPacket(
+        id=packet_id,
+        owner_id="local",
+        target_sha="abc",
+        state=PacketState.CURRENT,
+        payload={"task_type": "deterministic_transform", "input": "hello"},
+    )
+
+
+def test_evidence_does_not_follow_a_symlinked_directory(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / "events").symlink_to(outside, target_is_directory=True)
+    try:
+        execute_packet_code_or_test_work(_packet("pkt-dir"), repo, _Hooks(), {"authorized_mode": "LOCAL"})
+    except ValueError as exc:
+        assert "symlink" in str(exc).lower(), exc
+    names = sorted(path.relative_to(outside).as_posix() for path in outside.rglob("*"))
+    assert names == [], names
+
+
+def test_evidence_does_not_follow_a_symlinked_file(tmp_path):
+    outside = tmp_path / "outside.json"
+    outside.write_text("keep", encoding="utf-8")
+    repo = tmp_path / "repo"
+    evidence_dir = repo / "events" / "evidence"
+    evidence_dir.mkdir(parents=True)
+    link = evidence_dir / "pkt-file_evidence.json"
+    link.symlink_to(outside)
+    try:
+        execute_packet_code_or_test_work(_packet("pkt-file"), repo, _Hooks(), {"authorized_mode": "LOCAL"})
+    except ValueError as exc:
+        assert "symlink" in str(exc).lower(), exc
+    assert outside.read_text(encoding="utf-8") == "keep"
+
+
+def test_contract_check_does_not_read_a_symlinked_source(tmp_path):
+    repo = tmp_path / "repo"
+    (repo / "events" / "evidence").mkdir(parents=True)
+    (repo / "real.py").write_text("REAL = 1\n", encoding="utf-8")
+    (repo / "link.py").symlink_to(repo / "real.py")
+    packet = WorkPacket(
+        id="pkt-src",
+        owner_id="local",
+        target_sha="abc",
+        state=PacketState.CURRENT,
+        payload={"task_type": "code_contract_check", "allowed_scope": ["link.py"]},
+    )
+    try:
+        result = execute_packet_code_or_test_work(packet, repo, _Hooks(), {"authorized_mode": "LOCAL"})
+    except ValueError as exc:
+        assert "symlink" in str(exc).lower(), exc
+    else:
+        raise AssertionError(result.get("verdict"))
+    real = WorkPacket(
+        id="pkt-real",
+        owner_id="local",
+        target_sha="abc",
+        state=PacketState.CURRENT,
+        payload={"task_type": "code_contract_check", "allowed_scope": ["real.py"]},
+    )
+    checked = execute_packet_code_or_test_work(real, repo, _Hooks(), {"authorized_mode": "LOCAL"})
+    assert checked["verdict"] == "PASS"
+
+
+def _verify_packet(packet_id, target):
+    return WorkPacket(
+        id=packet_id,
+        owner_id="local",
+        target_sha="abc",
+        state=PacketState.CURRENT,
+        payload={"task_type": "verify_file", "target_file": target, "allowed_scope": ["."]},
+    )
+
+
+def test_verify_file_does_not_read_a_symlink(tmp_path):
+    repo = tmp_path / "repo"
+    (repo / "events" / "evidence").mkdir(parents=True)
+    (repo / "real.txt").write_text("REAL-BODY", encoding="utf-8")
+    (repo / "link.txt").symlink_to(repo / "real.txt")
+    outside = tmp_path / "secret.txt"
+    outside.write_text("SECRET", encoding="utf-8")
+    (repo / "out.txt").symlink_to(outside)
+    seen = []
+    for name, target in (("in", "link.txt"), ("out", "out.txt"), ("real", "real.txt")):
+        packet = _verify_packet(f"pkt-{name}", target)
+        try:
+            result = execute_packet_code_or_test_work(packet, repo, _Hooks(), {"authorized_mode": "LOCAL"})
+        except ValueError as exc:
+            seen.append((name, "raised", str(exc)))
+        else:
+            evidence = json.loads((repo / "events" / "evidence" / f"{packet.id}_evidence.json").read_text())
+            seen.append((name, result["verdict"], evidence.get("file_path"), evidence.get("file_sha256")))
+    assert (
+        seen[0][1] == "raised" and "symlink" in seen[0][2].lower()
+        and seen[1][1] == "raised" and "symlink" in seen[1][2].lower()
+        and seen[2][1] == "PASS"
+        and seen[2][2] == "real.txt"
+    ), seen
+    assert outside.read_text(encoding="utf-8") == "SECRET"

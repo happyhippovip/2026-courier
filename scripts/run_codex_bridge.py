@@ -122,6 +122,17 @@ def save_json(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 
+def _refuse_task_id(task_id: object) -> None:
+    if (
+        not isinstance(task_id, str)
+        or task_id in ("", ".", "..")
+        or Path(task_id).name != task_id
+        or "/" in task_id
+        or "\\" in task_id
+    ):
+        raise ValueError("refusing an unsafe task id")
+
+
 def payload_hash(payload: object) -> str:
     return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
 
@@ -160,6 +171,8 @@ class CodexVisualStateTracker:
         blocked: bool = False,
         human_gate: str | None = None,
     ) -> dict:
+        if isinstance(progress, bool):
+            raise ValueError("Bool is not a number.")
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         state_data = {
             "schema_version": "2.0",
@@ -178,6 +191,8 @@ class CodexVisualStateTracker:
             "human_gate": human_gate,
             "updated_at": now_iso,
         }
+        if self.state_file.is_symlink() or self.state_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         save_json(self.state_file, state_data)
         return state_data
 
@@ -220,6 +235,7 @@ class CodexHookRunner:
         message_id: str | None = None,
     ) -> Path:
         print(f"[CODEX_HOOK: ON_COMPLETION] Task {task_id} completed successfully. Writing RESULT_READY...")
+        _refuse_task_id(task_id)
         if not message_id:
             message_id = f"msg-res-cdx-{uuid.uuid4().hex[:12]}"
 
@@ -247,6 +263,8 @@ class CodexHookRunner:
         if check_secrets_in_text(res_text) > 0:
             raise ValueError(f"Secret detected in Codex result payload for task {task_id}. Rejection triggered.")
 
+        if PROCESSED_DIR.is_symlink() or PROCESSED_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
         result_file = PROCESSED_DIR / f"{task_id}-result.json"
         save_json(result_file, result_envelope)
@@ -266,6 +284,7 @@ class CodexHookRunner:
 
     def on_task_failure(self, task_id: str, correlation_id: str, parent_id: str | None, error_message: str) -> Path:
         print(f"[CODEX_HOOK: ON_FAILURE] Task {task_id} failed: {error_message}")
+        _refuse_task_id(task_id)
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         payload = {"verdict": "FAILED", "error": error_message}
         p_hash = payload_hash(payload)
@@ -286,6 +305,8 @@ class CodexHookRunner:
             "max_iterations": 1,
         }
 
+        if PROCESSED_DIR.is_symlink() or PROCESSED_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
         result_file = PROCESSED_DIR / f"{task_id}-result.json"
         save_json(result_file, result_envelope)
@@ -302,7 +323,12 @@ class CodexHookRunner:
         return result_file
 
     def on_task_stop(self, task_id: str) -> bool:
+        _refuse_task_id(task_id)
+        if PROCESSED_DIR.is_symlink() or PROCESSED_DIR.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         result_file = PROCESSED_DIR / f"{task_id}-result.json"
+        if result_file.is_symlink() or result_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         exists = result_file.exists()
         print(f"[CODEX_HOOK: ON_STOP] Result file verified for {task_id}: {exists}")
         return exists
@@ -443,6 +469,8 @@ def execute_real_codex_cli(instruction: str, allowed_scope: list[str], task_id: 
 
 def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: bool = False, try_real_cli: bool = False) -> Path:
     """Executes a Codex task through the automated bridge with hooks, dedupe, and path confinement."""
+    if worker_job_path.is_symlink() or worker_job_path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     job = load_json(worker_job_path)
 
     task_id = job.get("task_id", f"task-cdx-{uuid.uuid4().hex[:8]}")
@@ -540,7 +568,10 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
         if parent_task_id:
             payload["parent_task_id"] = parent_task_id
 
-        payload["context_version_seen"] = job.get("context_version")
+        context_version = job.get("context_version")
+        if isinstance(context_version, bool):
+            raise ValueError("Bool is not a number.")
+        payload["context_version_seen"] = context_version
         payload["context_snapshot_hash_seen"] = job.get("context_snapshot_hash")
 
         hooks.on_tool_action(task_id, "Formatting structured Codex result payload", 0.9)
@@ -568,6 +599,11 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
 
 def run_chief_review_router(task_id: str, result_file: Path) -> dict:
     """Evaluates Chief Review Router for the given Codex task result."""
+    _refuse_task_id(task_id)
+    if result_file.is_symlink() or result_file.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+    if DECISIONS_DIR.is_symlink() or DECISIONS_DIR.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     DECISIONS_DIR.mkdir(parents=True, exist_ok=True)
     decision_file = DECISIONS_DIR / f"{task_id}-chief-decision.json"
 

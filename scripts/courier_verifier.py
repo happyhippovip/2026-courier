@@ -19,6 +19,10 @@ def log(msg):
     print(f"[Verifier] {msg}", flush=True)
 
 def verify_artifact(path, expected_hash):
+    candidate = Path(path)
+    if candidate.is_symlink() or candidate.parent.is_symlink():
+        log(f"Artifact symlink refused: {path}")
+        return False
     if not os.path.exists(path):
         log(f"Artifact missing: {path}")
         return False

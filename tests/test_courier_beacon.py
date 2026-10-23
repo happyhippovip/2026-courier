@@ -99,6 +99,102 @@ def test_get_bodyguard_invocations_success(tmp_path):
     finally:
         os.chdir(old_cwd)
 
+
+def test_state_files_do_not_follow_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "a.json").write_text(json.dumps({"model_calls_incurred": 9}), encoding="utf-8")
+    dir_root = tmp_path / "dir-case"
+    (dir_root / "events").mkdir(parents=True)
+    (dir_root / "events" / "agent-states").symlink_to(outside)
+
+    file_outside = tmp_path / "file-outside.json"
+    file_outside.write_text(json.dumps({"model_calls_incurred": 4}), encoding="utf-8")
+    file_root = tmp_path / "file-case"
+    states = file_root / "events" / "agent-states"
+    states.mkdir(parents=True)
+    (states / "b.json").symlink_to(file_outside)
+    (states / "ok.json").write_text(json.dumps({"model_calls_incurred": 2}), encoding="utf-8")
+
+    def run(root):
+        old = os.getcwd()
+        try:
+            os.chdir(root)
+            try:
+                return get_bodyguard_invocations(), None
+            except ValueError as exc:
+                return None, str(exc)
+        finally:
+            os.chdir(old)
+
+    dir_count, dir_err = run(dir_root)
+    file_count, file_err = run(file_root)
+    refused = "refusing to follow a symlink"
+    assert (
+        dir_err == refused and dir_count is None
+        and file_err == refused and file_count is None
+        and json.loads((outside / "a.json").read_text())["model_calls_incurred"] == 9
+        and (dir_root / "events" / "agent-states").is_symlink()
+        and (states / "b.json").is_symlink()
+    ), (dir_count, dir_err, file_count, file_err)
+
+
+def test_bool_model_calls_are_not_a_count(tmp_path):
+    def plant(name, value):
+        root = tmp_path / name
+        states = root / "events" / "agent-states"
+        states.mkdir(parents=True)
+        (states / "a.json").write_text(
+            json.dumps({"model_calls_incurred": value}), encoding="utf-8",
+        )
+        old = os.getcwd()
+        try:
+            os.chdir(root)
+            try:
+                return get_bodyguard_invocations(), None
+            except ValueError as exc:
+                return None, str(exc)
+        finally:
+            os.chdir(old)
+
+    true_count, true_err = plant("true-case", True)
+    false_count, false_err = plant("false-case", False)
+    num_count, num_err = plant("num-case", 2)
+    refused = "Bool is not a number."
+    assert (
+        true_err == refused and true_count is None
+        and false_err == refused and false_count is None
+        and num_err is None and num_count == 2
+    ), (true_count, true_err, false_count, false_err, num_count, num_err)
+
+def test_float_model_calls_are_not_a_count(tmp_path):
+    def plant(name, value):
+        root = tmp_path / name
+        states = root / "events" / "agent-states"
+        states.mkdir(parents=True)
+        (states / "a.json").write_text(
+            json.dumps({"model_calls_incurred": value}), encoding="utf-8",
+        )
+        old = os.getcwd()
+        try:
+            os.chdir(root)
+            try:
+                return get_bodyguard_invocations(), None
+            except ValueError as exc:
+                return None, str(exc)
+        finally:
+            os.chdir(old)
+
+    one_count, one_err = plant("one-case", 1.0)
+    half_count, half_err = plant("half-case", 1.5)
+    num_count, num_err = plant("int-case", 2)
+    refused = "Count must be an int."
+    assert (
+        one_err == refused and one_count is None
+        and half_err == refused and half_count is None
+        and num_err is None and num_count == 2
+    ), (one_count, one_err, half_count, half_err, num_count, num_err)
+
 def test_main_already_halted(capsys):
     with patch("scripts.courier_beacon.fetch_metrics", return_value={"system_halted": True, "halt_reason": "Admin request"}), \
          patch("scripts.courier_beacon.time.sleep", side_effect=KeyboardInterrupt):

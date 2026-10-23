@@ -8,6 +8,7 @@ from scripts.run_chief_relay_cycle import (
     is_command_pending,
     discover_pending_command,
     run_cycle,
+    main,
 )
 
 def test_fail():
@@ -87,6 +88,662 @@ def test_discover_pending_command_found(tmp_path):
     
     found = discover_pending_command(incoming, processed)
     assert found == cmd_file
+
+def test_command_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    secret = {
+        "schema_version": "2.0",
+        "type": "COMMAND",
+        "status": "NEW",
+        "source": "chief",
+        "destination": "antigravity",
+        "message_id": "SECRET-MSG",
+        "task_id": "SECRET-TASK",
+    }
+    outside = tmp_path / "outside-cmd.json"
+    outside.write_text(json.dumps(secret), encoding="utf-8")
+    incoming = tmp_path / "incoming"
+    incoming.mkdir()
+    link = incoming / "cmd.json"
+    link.symlink_to(outside)
+    processed = tmp_path / "processed"
+    processed.mkdir()
+
+    outside_dir = tmp_path / "outside-incoming"
+    outside_dir.mkdir()
+    (outside_dir / "cmd.json").write_text(json.dumps(secret), encoding="utf-8")
+    linked_incoming = tmp_path / "linked-incoming"
+    linked_incoming.symlink_to(outside_dir, target_is_directory=True)
+
+    plain_incoming = tmp_path / "plain-incoming"
+    plain_incoming.mkdir()
+    plain = plain_incoming / "cmd.json"
+    plain.write_text(json.dumps(secret), encoding="utf-8")
+
+    def pending(path, folder):
+        try:
+            return ("ok", is_command_pending(path, folder))
+        except SystemExit as exc:
+            return ("err", str(exc))
+
+    def discover(folder):
+        try:
+            found = discover_pending_command(folder, processed)
+        except SystemExit as exc:
+            return ("err", str(exc))
+        if found is None:
+            return ("ok", None, None)
+        data = json.loads(found.read_text(encoding="utf-8"))
+        return ("ok", found.name, data.get("message_id"))
+
+    refused = "RELAY_CYCLE_ERROR: refusing to follow a symlink"
+    file_result = pending(link, processed)
+    dir_result = discover(linked_incoming)
+    plain_result = pending(plain, processed)
+
+    repo = tmp_path / "repo"
+    (repo / "events").mkdir(parents=True)
+    (repo / "events" / "incoming").symlink_to(outside_dir, target_is_directory=True)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "prog",
+            "--repo-dir", str(repo),
+            "--incoming-dir", "events/incoming",
+            "--disable-auto-memory",
+        ],
+    )
+    try:
+        main()
+        cli_err = None
+    except SystemExit as exc:
+        cli_err = str(exc)
+
+    assert (file_result, dir_result, plain_result, cli_err) == (
+        ("err", refused),
+        ("err", refused),
+        ("ok", True),
+        refused,
+    )
+
+def test_dispatch_dir_cli_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    secret = {
+        "schema_version": "2.0",
+        "type": "COMMAND",
+        "status": "NEW",
+        "source": "chief",
+        "destination": "antigravity",
+        "message_id": "SECRET-MSG",
+        "task_id": "SECRET-TASK",
+    }
+
+    class Dummy:
+        returncode = 0
+        stderr = ""
+        stdout = ""
+
+    def plant(name, link_dispatch):
+        repo = tmp_path / name
+        incoming = repo / "events" / "incoming"
+        incoming.mkdir(parents=True)
+        (incoming / "cmd.json").write_text(json.dumps(secret), encoding="utf-8")
+        recorded = []
+
+        def fake_run(cmd, *args, **kwargs):
+            recorded.append(list(cmd))
+            return Dummy()
+
+        monkeypatch.setattr("scripts.run_chief_relay_cycle.subprocess.run", fake_run)
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "prog",
+                "--repo-dir", str(repo),
+                "--incoming-dir", "events/incoming",
+                "--dispatch-dir", str(link_dispatch),
+                "--disable-auto-memory",
+            ],
+        )
+        try:
+            main()
+            err = None
+        except SystemExit as exc:
+            err = str(exc)
+        output_dirs = []
+        for cmd in recorded:
+            if "--output-dir" in cmd:
+                output_dirs.append(cmd[cmd.index("--output-dir") + 1])
+        return err, output_dirs
+
+    outside = tmp_path / "outside-dispatch"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = tmp_path / "linked-dispatch"
+    linked.symlink_to(outside, target_is_directory=True)
+    err_link, outs_link = plant("repo-link", linked)
+
+    parent_outside = tmp_path / "dispatch-parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = tmp_path / "dispatch-linked-parent"
+    linked_parent.symlink_to(parent_outside, target_is_directory=True)
+    err_parent, outs_parent = plant("repo-parent", linked_parent / "dispatch")
+
+    plain = tmp_path / "plain-dispatch"
+    err_plain, outs_plain = plant("repo-plain", plain)
+    refused = "RELAY_CYCLE_ERROR: refusing to follow a symlink"
+    assert (
+        err_link,
+        outs_link,
+        sorted(p.name for p in outside.iterdir()),
+        err_parent,
+        outs_parent,
+        sorted(p.name for p in parent_outside.iterdir()),
+        err_plain,
+        [Path(path).name for path in outs_plain],
+    ) == (
+        refused,
+        [],
+        ["keep.txt"],
+        refused,
+        [],
+        ["keep.txt"],
+        "RELAY_CYCLE_ERROR: Worker job file was not created: "
+        + str((plain.resolve() / "SECRET-TASK-worker-job.json")),
+        ["plain-dispatch"],
+    )
+
+
+def test_processed_dir_cli_does_not_follow_a_symlink(tmp_path, monkeypatch, capsys):
+    secret = {
+        "schema_version": "2.0",
+        "type": "COMMAND",
+        "status": "NEW",
+        "source": "chief",
+        "destination": "antigravity",
+        "message_id": "SECRET-MSG",
+        "task_id": "SECRET-TASK",
+    }
+    result = {"parent_id": "SECRET-MSG", "body": "SECRET-RESULT"}
+
+    class Dummy:
+        returncode = 0
+        stderr = ""
+        stdout = ""
+
+    def plant(name, link_processed):
+        repo = tmp_path / name
+        incoming = repo / "events" / "incoming"
+        incoming.mkdir(parents=True)
+        (incoming / "cmd.json").write_text(json.dumps(secret), encoding="utf-8")
+        (repo / "events" / "dispatch").mkdir(parents=True)
+        (repo / "memory").mkdir()
+        monkeypatch.setattr("scripts.run_chief_relay_cycle.subprocess.run", lambda *args, **kwargs: Dummy())
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "prog",
+                "--repo-dir", str(repo),
+                "--incoming-dir", "events/incoming",
+                "--processed-dir", str(link_processed),
+                "--dispatch-dir", str(repo / "events" / "dispatch"),
+                "--memory-repo", str(repo / "memory"),
+                "--disable-auto-memory",
+            ],
+        )
+        try:
+            main()
+            err = None
+        except SystemExit as exc:
+            err = str(exc)
+        out = capsys.readouterr().out
+        return err, "IDLE" in out
+
+    outside = tmp_path / "outside-processed"
+    outside.mkdir()
+    (outside / "result.json").write_text(json.dumps(result), encoding="utf-8")
+    linked = tmp_path / "linked-processed"
+    linked.symlink_to(outside, target_is_directory=True)
+    err_link, idle_link = plant("repo-link", linked)
+
+    parent_outside = tmp_path / "processed-parent-outside"
+    (parent_outside / "processed").mkdir(parents=True)
+    (parent_outside / "processed" / "result.json").write_text(json.dumps(result), encoding="utf-8")
+    linked_parent = tmp_path / "processed-linked-parent"
+    linked_parent.symlink_to(parent_outside, target_is_directory=True)
+    err_parent, idle_parent = plant("repo-parent", linked_parent / "processed")
+
+    refused = "RELAY_CYCLE_ERROR: refusing to follow a symlink"
+    assert (
+        err_link,
+        idle_link,
+        "SECRET-RESULT" in (outside / "result.json").read_text(encoding="utf-8"),
+        err_parent,
+        idle_parent,
+        "SECRET-RESULT" in (parent_outside / "processed" / "result.json").read_text(encoding="utf-8"),
+    ) == (
+        refused,
+        False,
+        True,
+        refused,
+        False,
+        True,
+    )
+
+
+def test_memory_repo_cli_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    secret = {
+        "schema_version": "2.0",
+        "type": "COMMAND",
+        "status": "NEW",
+        "source": "chief",
+        "destination": "antigravity",
+        "message_id": "SECRET-MSG",
+        "task_id": "SECRET-TASK",
+    }
+
+    class Dummy:
+        returncode = 0
+        stderr = ""
+        stdout = ""
+
+    def plant(name, link_memory):
+        repo = tmp_path / name
+        incoming = repo / "events" / "incoming"
+        incoming.mkdir(parents=True)
+        (incoming / "cmd.json").write_text(json.dumps(secret), encoding="utf-8")
+        (repo / "events" / "processed").mkdir(parents=True)
+        (repo / "events" / "dispatch").mkdir(parents=True)
+        recorded = []
+
+        def fake_run(cmd, *args, **kwargs):
+            recorded.append(list(cmd))
+            return Dummy()
+
+        monkeypatch.setattr("scripts.run_chief_relay_cycle.subprocess.run", fake_run)
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "prog",
+                "--repo-dir", str(repo),
+                "--incoming-dir", "events/incoming",
+                "--processed-dir", str(repo / "events" / "processed"),
+                "--dispatch-dir", str(repo / "events" / "dispatch"),
+                "--memory-repo", str(link_memory),
+                "--disable-auto-memory",
+            ],
+        )
+        try:
+            main()
+            err = None
+        except SystemExit as exc:
+            err = str(exc)
+        memory_args = []
+        for cmd in recorded:
+            if "--memory-repo" in cmd:
+                memory_args.append(cmd[cmd.index("--memory-repo") + 1])
+        return err, memory_args
+
+    outside = tmp_path / "outside-memory"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = tmp_path / "linked-memory"
+    linked.symlink_to(outside, target_is_directory=True)
+    err_link, mem_link = plant("repo-link", linked)
+
+    parent_outside = tmp_path / "memory-parent-outside"
+    (parent_outside / "memory").mkdir(parents=True)
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = tmp_path / "memory-linked-parent"
+    linked_parent.symlink_to(parent_outside, target_is_directory=True)
+    err_parent, mem_parent = plant("repo-parent", linked_parent / "memory")
+
+    plain = tmp_path / "plain-memory"
+    plain.mkdir()
+    err_plain, mem_plain = plant("repo-plain", plain)
+    refused = "RELAY_CYCLE_ERROR: refusing to follow a symlink"
+    assert (
+        err_link,
+        mem_link,
+        sorted(p.name for p in outside.iterdir()),
+        err_parent,
+        mem_parent,
+        sorted(p.name for p in parent_outside.iterdir()),
+        err_plain,
+        mem_plain,
+    ) == (
+        refused,
+        [],
+        ["keep.txt"],
+        refused,
+        [],
+        ["keep.txt", "memory"],
+        "RELAY_CYCLE_ERROR: Worker job file was not created: "
+        + str((tmp_path / "repo-plain" / "events" / "dispatch").resolve() / "SECRET-TASK-worker-job.json"),
+        [str(plain.resolve())],
+    )
+
+
+def test_proposals_dir_cli_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    secret = {
+        "schema_version": "2.0",
+        "type": "COMMAND",
+        "status": "NEW",
+        "source": "chief",
+        "destination": "antigravity",
+        "message_id": "SECRET-MSG",
+        "task_id": "SECRET-TASK",
+    }
+
+    class Dummy:
+        returncode = 0
+        stderr = ""
+        stdout = ""
+
+    def plant(name, link_proposals):
+        repo = tmp_path / name
+        incoming = repo / "events" / "incoming"
+        incoming.mkdir(parents=True)
+        (incoming / "cmd.json").write_text(json.dumps(secret), encoding="utf-8")
+        processed = repo / "events" / "processed"
+        dispatch = repo / "events" / "dispatch"
+        processed.mkdir(parents=True)
+        dispatch.mkdir(parents=True)
+        memory = repo / "memory"
+        memory.mkdir()
+        recorded = []
+
+        def fake_run(cmd, *args, **kwargs):
+            recorded.append(list(cmd))
+            text = " ".join(str(part) for part in cmd)
+            if "build_antigravity_worker_job.py" in text and "--command" in text:
+                (dispatch / "SECRET-TASK-worker-job.json").write_text("{}", encoding="utf-8")
+            if "consume_chief_command.py" in text:
+                (processed / "SECRET-TASK-result.json").write_text("{}", encoding="utf-8")
+            return Dummy()
+
+        monkeypatch.setattr("scripts.run_chief_relay_cycle.subprocess.run", fake_run)
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "prog",
+                "--repo-dir", str(repo),
+                "--incoming-dir", "events/incoming",
+                "--processed-dir", str(processed),
+                "--dispatch-dir", str(dispatch),
+                "--proposals-dir", str(link_proposals),
+                "--memory-repo", str(memory),
+            ],
+        )
+        try:
+            main()
+            err = None
+        except SystemExit as exc:
+            err = str(exc)
+        output_dirs = []
+        for cmd in recorded:
+            if any("build_memory_update_proposal.py" in str(part) for part in cmd) and "--output-dir" in cmd:
+                output_dirs.append(cmd[cmd.index("--output-dir") + 1])
+        return err, output_dirs
+
+    outside = tmp_path / "outside-proposals"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = tmp_path / "linked-proposals"
+    linked.symlink_to(outside, target_is_directory=True)
+    err_link, outs_link = plant("repo-link", linked)
+
+    parent_outside = tmp_path / "proposals-parent-outside"
+    (parent_outside / "proposals").mkdir(parents=True)
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = tmp_path / "proposals-linked-parent"
+    linked_parent.symlink_to(parent_outside, target_is_directory=True)
+    err_parent, outs_parent = plant("repo-parent", linked_parent / "proposals")
+
+    plain = tmp_path / "plain-proposals"
+    plain.mkdir()
+    err_plain, outs_plain = plant("repo-plain", plain)
+    refused = "RELAY_CYCLE_ERROR: refusing to follow a symlink"
+    missing = "RELAY_CYCLE_ERROR: Proposal file was not created: "
+    assert (
+        err_link,
+        outs_link,
+        sorted(p.name for p in outside.iterdir()),
+        err_parent,
+        outs_parent,
+        sorted(p.name for p in parent_outside.iterdir()),
+        err_plain,
+        outs_plain,
+    ) == (
+        refused,
+        [],
+        ["keep.txt"],
+        refused,
+        [],
+        ["keep.txt", "proposals"],
+        missing + str(plain.resolve() / "SECRET-TASK-memory-proposal.json"),
+        [str(plain.resolve())],
+    )
+
+
+def test_decisions_dir_cli_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    secret = {
+        "schema_version": "2.0",
+        "type": "COMMAND",
+        "status": "NEW",
+        "source": "chief",
+        "destination": "antigravity",
+        "message_id": "SECRET-MSG",
+        "task_id": "SECRET-TASK",
+    }
+
+    class Dummy:
+        returncode = 0
+        stderr = ""
+        stdout = ""
+
+    def plant(name, link_decisions):
+        repo = tmp_path / name
+        incoming = repo / "events" / "incoming"
+        incoming.mkdir(parents=True)
+        (incoming / "cmd.json").write_text(json.dumps(secret), encoding="utf-8")
+        processed = repo / "events" / "processed"
+        dispatch = repo / "events" / "dispatch"
+        proposals = repo / "events" / "proposals"
+        processed.mkdir(parents=True)
+        dispatch.mkdir(parents=True)
+        proposals.mkdir(parents=True)
+        memory = repo / "memory"
+        memory.mkdir()
+        recorded = []
+
+        def fake_run(cmd, *args, **kwargs):
+            recorded.append(list(cmd))
+            text = " ".join(str(part) for part in cmd)
+            if "build_antigravity_worker_job.py" in text and "--command" in text:
+                (dispatch / "SECRET-TASK-worker-job.json").write_text("{}", encoding="utf-8")
+            if "consume_chief_command.py" in text:
+                (processed / "SECRET-TASK-result.json").write_text("{}", encoding="utf-8")
+            if "build_memory_update_proposal.py" in text:
+                (proposals / "SECRET-TASK-memory-proposal.json").write_text("{}", encoding="utf-8")
+            return Dummy()
+
+        monkeypatch.setattr("scripts.run_chief_relay_cycle.subprocess.run", fake_run)
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "prog",
+                "--repo-dir", str(repo),
+                "--incoming-dir", "events/incoming",
+                "--processed-dir", str(processed),
+                "--dispatch-dir", str(dispatch),
+                "--proposals-dir", str(proposals),
+                "--decisions-dir", str(link_decisions),
+                "--memory-repo", str(memory),
+            ],
+        )
+        try:
+            main()
+            err = None
+        except SystemExit as exc:
+            err = str(exc)
+        decision_dirs = []
+        for cmd in recorded:
+            if any("evaluate_memory_proposal_for_auto_approval.py" in str(part) for part in cmd) and "--output-decisions" in cmd:
+                decision_dirs.append(cmd[cmd.index("--output-decisions") + 1])
+        return err, decision_dirs
+
+    outside = tmp_path / "outside-decisions"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = tmp_path / "linked-decisions"
+    linked.symlink_to(outside, target_is_directory=True)
+    err_link, dirs_link = plant("repo-link", linked)
+
+    parent_outside = tmp_path / "decisions-parent-outside"
+    (parent_outside / "decisions").mkdir(parents=True)
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = tmp_path / "decisions-linked-parent"
+    linked_parent.symlink_to(parent_outside, target_is_directory=True)
+    err_parent, dirs_parent = plant("repo-parent", linked_parent / "decisions")
+
+    plain = tmp_path / "plain-decisions"
+    plain.mkdir()
+    err_plain, dirs_plain = plant("repo-plain", plain)
+    refused = "RELAY_CYCLE_ERROR: refusing to follow a symlink"
+    missing = "RELAY_CYCLE_ERROR: Decision file was not created: "
+    assert (
+        err_link,
+        dirs_link,
+        sorted(p.name for p in outside.iterdir()),
+        err_parent,
+        dirs_parent,
+        sorted(p.name for p in parent_outside.iterdir()),
+        err_plain,
+        dirs_plain,
+    ) == (
+        refused,
+        [],
+        ["keep.txt"],
+        refused,
+        [],
+        ["decisions", "keep.txt"],
+        missing + str(plain.resolve() / "SECRET-TASK-chief-decision.json"),
+        [str(plain.resolve())],
+    )
+
+
+def test_approvals_dir_cli_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    secret = {
+        "schema_version": "2.0",
+        "type": "COMMAND",
+        "status": "NEW",
+        "source": "chief",
+        "destination": "antigravity",
+        "message_id": "SECRET-MSG",
+        "task_id": "SECRET-TASK",
+    }
+
+    class Dummy:
+        returncode = 0
+        stderr = ""
+        stdout = ""
+
+    def plant(name, link_approvals):
+        repo = tmp_path / name
+        incoming = repo / "events" / "incoming"
+        incoming.mkdir(parents=True)
+        (incoming / "cmd.json").write_text(json.dumps(secret), encoding="utf-8")
+        processed = repo / "events" / "processed"
+        dispatch = repo / "events" / "dispatch"
+        proposals = repo / "events" / "proposals"
+        decisions = repo / "events" / "decisions"
+        for folder in (processed, dispatch, proposals, decisions):
+            folder.mkdir(parents=True)
+        memory = repo / "memory"
+        memory.mkdir()
+        recorded = []
+
+        def fake_run(cmd, *args, **kwargs):
+            recorded.append(list(cmd))
+            text = " ".join(str(part) for part in cmd)
+            if "build_antigravity_worker_job.py" in text and "--command" in text:
+                (dispatch / "SECRET-TASK-worker-job.json").write_text("{}", encoding="utf-8")
+            if "consume_chief_command.py" in text:
+                (processed / "SECRET-TASK-result.json").write_text("{}", encoding="utf-8")
+            if "build_memory_update_proposal.py" in text:
+                (proposals / "SECRET-TASK-memory-proposal.json").write_text("{}", encoding="utf-8")
+            if "evaluate_memory_proposal_for_auto_approval.py" in text:
+                (decisions / "SECRET-TASK-chief-decision.json").write_text(
+                    json.dumps({"decision": "AUTO_APPROVE", "reason_codes": []}),
+                    encoding="utf-8",
+                )
+            return Dummy()
+
+        monkeypatch.setattr("scripts.run_chief_relay_cycle.subprocess.run", fake_run)
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "prog",
+                "--repo-dir", str(repo),
+                "--incoming-dir", "events/incoming",
+                "--processed-dir", str(processed),
+                "--dispatch-dir", str(dispatch),
+                "--proposals-dir", str(proposals),
+                "--decisions-dir", str(decisions),
+                "--approvals-dir", str(link_approvals),
+                "--memory-repo", str(memory),
+            ],
+        )
+        try:
+            main()
+            err = None
+        except SystemExit as exc:
+            err = str(exc)
+        approval_dirs = []
+        for cmd in recorded:
+            if any("evaluate_memory_proposal_for_auto_approval.py" in str(part) for part in cmd) and "--output-approvals" in cmd:
+                approval_dirs.append(cmd[cmd.index("--output-approvals") + 1])
+        return err, approval_dirs
+
+    outside = tmp_path / "outside-approvals"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = tmp_path / "linked-approvals"
+    linked.symlink_to(outside, target_is_directory=True)
+    err_link, dirs_link = plant("repo-link", linked)
+
+    parent_outside = tmp_path / "approvals-parent-outside"
+    (parent_outside / "approvals").mkdir(parents=True)
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = tmp_path / "approvals-linked-parent"
+    linked_parent.symlink_to(parent_outside, target_is_directory=True)
+    err_parent, dirs_parent = plant("repo-parent", linked_parent / "approvals")
+
+    plain = tmp_path / "plain-approvals"
+    plain.mkdir()
+    err_plain, dirs_plain = plant("repo-plain", plain)
+    refused = "RELAY_CYCLE_ERROR: refusing to follow a symlink"
+    missing = "RELAY_CYCLE_ERROR: Auto-approval file was not created: "
+    assert (
+        err_link,
+        dirs_link,
+        sorted(p.name for p in outside.iterdir()),
+        err_parent,
+        dirs_parent,
+        sorted(p.name for p in parent_outside.iterdir()),
+        err_plain,
+        dirs_plain,
+    ) == (
+        refused,
+        [],
+        ["keep.txt"],
+        refused,
+        [],
+        ["approvals", "keep.txt"],
+        missing + str(plain.resolve() / "SECRET-TASK-auto-approval.json"),
+        [str(plain.resolve())],
+    )
+
 
 @patch("scripts.run_chief_relay_cycle.subprocess.run")
 def test_run_cycle_no_pending(mock_run, tmp_path):

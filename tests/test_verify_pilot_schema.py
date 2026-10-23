@@ -70,3 +70,60 @@ def test_verify_pilot_schema_missing_workflow():
     with patch("builtins.open", mock_open(read_data=mock_json)):
         with pytest.raises(AssertionError, match="workflow_plan required"):
             runpy.run_path(str(Path(repo_root) / "scripts" / "verify_pilot_schema.py"), run_name="__main__")
+
+
+def test_pilot_schema_does_not_follow_a_symlink(tmp_path, monkeypatch, capsys):
+    import json
+    script = Path(__file__).resolve().parent.parent / "scripts" / "verify_pilot_schema.py"
+    task = {
+        "goal_id": "SECRET-PILOT",
+        "workflow_plan": [{
+            "task_id": "task_1",
+            "goal_id": "SECRET-PILOT",
+            "target_capability": "windows",
+            "instruction": "outside",
+        }],
+    }
+
+    def run(root):
+        monkeypatch.chdir(root)
+        try:
+            runpy.run_path(str(script), run_name="__main__")
+            err = None
+        except ValueError as exc:
+            err = str(exc)
+        return err, capsys.readouterr().out
+
+    file_root = tmp_path / "file-case"
+    ai = file_root / "ops" / "ai"
+    ai.mkdir(parents=True)
+    outside = tmp_path / "outside-task.json"
+    outside.write_text(json.dumps(task), encoding="utf-8")
+    (ai / "PILOT_DUMMY_TASK.json").symlink_to(outside)
+    file_err, file_out = run(file_root)
+
+    parent_root = tmp_path / "parent-case"
+    parent_root.mkdir()
+    outside_dir = tmp_path / "outside-ai"
+    outside_dir.mkdir()
+    (outside_dir / "PILOT_DUMMY_TASK.json").write_text(json.dumps(task), encoding="utf-8")
+    (outside_dir / "keep.txt").write_text("keep", encoding="utf-8")
+    (parent_root / "ops").mkdir()
+    (parent_root / "ops" / "ai").symlink_to(outside_dir)
+    parent_err, parent_out = run(parent_root)
+    names = sorted(path.name for path in outside_dir.iterdir())
+    assert (
+        file_err,
+        "PILOT_DUMMY_SCHEMA_VERIFIED=PASS" in file_out,
+        parent_err,
+        "PILOT_DUMMY_SCHEMA_VERIFIED=PASS" in parent_out,
+        "SECRET-PILOT" in outside.read_text(encoding="utf-8"),
+        names,
+    ) == (
+        "refusing to follow a symlink",
+        False,
+        "refusing to follow a symlink",
+        False,
+        True,
+        ["PILOT_DUMMY_TASK.json", "keep.txt"],
+    )

@@ -104,3 +104,26 @@ def save_json(path: Path, data: dict) -> None:
     new_content = target.read_text(encoding="utf-8")
     # Should not be replaced
     assert "temp.unlink()" not in new_content
+
+
+def test_replace_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    setup_dummy_files(tmp_path)
+    original = """
+def save_json(path: Path, data: dict) -> None:
+    temp = path.with_suffix(".tmp")
+    temp.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    temp.replace(path)
+"""
+    outside = tmp_path / "outside.py"
+    outside.write_text(original, encoding="utf-8")
+    target = tmp_path / "resource_policy.py"
+    target.unlink()
+    target.symlink_to(outside)
+
+    import runpy
+    runpy.run_path(str(Path(__file__).resolve().parents[1] / "scripts" / "fix_save_json.py"))
+
+    assert outside.read_text(encoding="utf-8") == original and target.is_symlink() and "temp.unlink()" not in outside.read_text(encoding="utf-8"), (
+        outside.read_text(encoding="utf-8"), target.is_symlink(),
+    )

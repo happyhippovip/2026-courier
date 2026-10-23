@@ -225,6 +225,72 @@ class EightBodyguardsTests(unittest.TestCase):
         res = self.manager.release_bodyguard("ALPHA")
         self.assertEqual(res["state"], "STANDBY")
 
+    def test_state_dir_does_not_follow_a_symlink(self):
+        self.maxDiff = None
+        root = Path(self.temp.name) / "symlink-cases"
+        root.mkdir()
+
+        def run(repo):
+            try:
+                BodyguardPoolManager(repo).initialize_pool(force_reset=True)
+            except ValueError as exc:
+                return str(exc)
+            return None
+
+        outside_repo = root / "outside-repo"
+        outside_repo.mkdir()
+        (outside_repo / "keep.txt").write_text("keep", encoding="utf-8")
+        linked_repo = root / "linked-repo"
+        linked_repo.symlink_to(outside_repo, target_is_directory=True)
+        err_repo = run(linked_repo)
+        repo_states = outside_repo / "events" / "agent-states"
+        repo_names = sorted(p.name for p in repo_states.iterdir()) if repo_states.exists() else []
+
+        outside_states = root / "outside-states"
+        outside_states.mkdir()
+        (outside_states / "keep.txt").write_text("keep", encoding="utf-8")
+        real_repo = root / "real-repo"
+        (real_repo / "events").mkdir(parents=True)
+        (real_repo / "events" / "agent-states").symlink_to(
+            outside_states, target_is_directory=True,
+        )
+        err_states = run(real_repo)
+        state_names = sorted(p.name for p in outside_states.iterdir())
+
+        parent_outside = root / "parent-outside"
+        parent_outside.mkdir()
+        (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+        linked_parent = root / "linked-parent"
+        linked_parent.symlink_to(parent_outside, target_is_directory=True)
+        err_parent = run(linked_parent / "child-repo")
+        parent_names = sorted(p.name for p in parent_outside.iterdir())
+
+        plain = root / "plain-repo"
+        err_plain = run(plain)
+        plain_names = sorted(p.name for p in (plain / "events" / "agent-states").iterdir())
+        self.assertEqual(
+            (
+                err_repo,
+                repo_names,
+                err_states,
+                state_names,
+                err_parent,
+                parent_names,
+                err_plain,
+                "agent-bodyguard-alpha.json" in plain_names,
+            ),
+            (
+                "refusing to follow a symlink",
+                [],
+                "refusing to follow a symlink",
+                ["keep.txt"],
+                "refusing to follow a symlink",
+                ["keep.txt"],
+                None,
+                True,
+            ),
+        )
+
     def test_main_cli(self):
         from unittest.mock import patch
         from scripts.run_bodyguards import main
@@ -252,3 +318,41 @@ class EightBodyguardsTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+def test_state_file_does_not_follow_a_symlink(tmp_path):
+    repo = tmp_path / "repo"
+    manager = BodyguardPoolManager(repo)
+    outside = tmp_path / "outside-alpha.json"
+    outside.write_text(json.dumps({
+        "id": "agent-bodyguard-alpha",
+        "callsign": "ALPHA",
+        "state": "STANDBY",
+        "marker": "SECRET-STATE",
+    }), encoding="utf-8")
+    (manager.states_dir / "agent-bodyguard-alpha.json").symlink_to(outside)
+    try:
+        states = manager.get_all_bodyguards()
+        err = None
+        marker = next((item.get("marker") for item in states if item.get("callsign") == "ALPHA"), None)
+    except ValueError as exc:
+        err = str(exc)
+        marker = None
+    assert (err, marker) == ("refusing to follow a symlink", None)
+    assert "SECRET-STATE" in outside.read_text(encoding="utf-8")
+
+def test_bool_progress_is_not_a_number(tmp_path):
+    manager = BodyguardPoolManager(tmp_path / "repo")
+    manager.initialize_pool(force_reset=True)
+
+    def stored(progress):
+        try:
+            state = manager.update_progress("ALPHA", progress, "step")
+        except ValueError as exc:
+            return str(exc), None
+        return None, state["progress"]
+
+    assert (stored(True), stored(False), stored(0.4)) == (
+        ("Bool is not a number.", None),
+        ("Bool is not a number.", None),
+        (None, 0.4),
+    )

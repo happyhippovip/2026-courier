@@ -133,6 +133,9 @@
   .stage-box.passed {
     border-color: #10b981;
   }
+  .stage-box.failed {
+    border-color: #f87171;
+  }
   .stage-box.active {
     border-color: #38bdf8;
     box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
@@ -154,6 +157,9 @@
   }
   .stage-box.passed .stage-status {
     color: #34d399;
+  }
+  .stage-box.failed .stage-status {
+    color: #fca5a5;
   }
   .panel-heading {
     font-size: 1rem;
@@ -290,7 +296,7 @@
   <div class="chip-card" id="details-card" style="display: none;">
     <div class="panel-heading">
       <span>Echte Journal-Ereignisse (Live-Stream)</span>
-      <span id="status-pill" style="font-size: 0.8rem; padding: 2px 8px; border-radius: 4px; background: #065f46; color: #34d399;">COMPLETE</span>
+      <span id="status-pill" style="font-size: 0.8rem; padding: 2px 8px; border-radius: 4px; background: #334155; color: #e2e8f0;">OFFEN</span>
     </div>
     
     <div class="event-log" id="event-log"></div>
@@ -323,7 +329,9 @@
   </div>
 </div>
 
-<script>
+<script type="module">
+import { chipStageView } from "/mission_chip_status.mjs";
+
 let lastMissionData = null;
 let currentEventIdx = 0;
 let playInterval = null;
@@ -354,24 +362,24 @@ async function startMission() {
     if (!res.ok) throw new Error('API Fehler: ' + res.status);
     const data = await res.json();
     lastMissionData = data;
-    
-    // Stufe 1 pass
-    document.getElementById('stage-1').className = 'stage-box passed';
-    document.getElementById('st-status-1').textContent = '✓ Bestanden (0,00 €)';
-    
-    // Stufe 2 pass
-    document.getElementById('stage-2').className = 'stage-box passed';
-    document.getElementById('st-status-2').textContent = '✓ Artefakt erzeugt';
-    
-    // Stufe 3 pass
-    document.getElementById('stage-3').className = 'stage-box passed';
-    document.getElementById('st-status-3').textContent = '✓ Verifiziert & im Ledger';
+    const view = chipStageView(data);
+    for (const stage of view.stages) {
+      document.getElementById('stage-' + stage.step).className = stage.className;
+      document.getElementById('st-status-' + stage.step).textContent = stage.label;
+    }
+    const pill = document.getElementById('status-pill');
+    pill.textContent = view.pill;
+    pill.style.background = view.complete ? '#065f46' : '#7f1d1d';
+    pill.style.color = view.complete ? '#34d399' : '#fecaca';
 
     // Anzeige
     document.getElementById('details-card').style.display = 'block';
-    document.getElementById('r-task-id').textContent = data.task_id;
-    document.getElementById('r-resolution').textContent = data.verifier_result.resolution;
-    document.getElementById('r-sha').textContent = data.verifier_result.artifact_sha256;
+    document.getElementById('r-task-id').textContent = data.task_id || '—';
+    const resolution = data.verifier_result && data.verifier_result.resolution;
+    const resolutionNode = document.getElementById('r-resolution');
+    resolutionNode.textContent = resolution || '—';
+    resolutionNode.style.color = view.complete ? '#34d399' : '#fecaca';
+    document.getElementById('r-sha').textContent = (data.verifier_result && data.verifier_result.artifact_sha256) || '—';
     document.getElementById('r-ledger').textContent = data.ledger_receipt.head_seq + ' Events in ' + data.ledger_receipt.journal_file;
 
     // Events und Slider initialisieren
@@ -413,6 +421,8 @@ function renderEvents(events, activeCount) {
 }
 
 function updateStageHighlights(events, activeCount) {
+  if (!lastMissionData || lastMissionData.overall_status !== "COMPLETE") return;
+  if (!lastMissionData.verifier_result || lastMissionData.verifier_result.accepted !== true) return;
   if (activeCount <= 0 || !events.length) return;
   const currentEvent = events[activeCount - 1];
   const type = currentEvent.type;
@@ -467,6 +477,12 @@ function togglePlay() {
     }, 450);
   }
 }
+
+window.startMission = startMission;
+window.seekEvent = seekEvent;
+window.stepEvent = stepEvent;
+window.togglePlay = togglePlay;
+window.downloadReceiptJson = downloadReceiptJson;
 </script>
 </body>
 </html>

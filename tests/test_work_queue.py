@@ -330,6 +330,35 @@ def test_external_claim_ignores_the_clock(tmp_path):
     assert caught.value.code == "DUPLICATE_CLAIM"
 
 
+def test_ledger_under_symlinked_parent_is_not_opened(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "ledger.jsonl").write_bytes(b"")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    queue = WorkQueue(DEFAULT_ITEMS, link / "ledger.jsonl", DEFAULT_SCHEMA)
+    try:
+        queue.items(now=NOW)
+    except WorkQueueError as exc:
+        assert exc.code == "UNREADABLE"
+    else:
+        raise AssertionError(sorted(path.name for path in outside.iterdir()))
+    assert sorted(path.name for path in outside.iterdir()) == ["ledger.jsonl"]
+
+
+def test_lock_symlink_is_not_opened(tmp_path):
+    target = tmp_path / "outside"
+    target.write_bytes(b"")
+    ledger = tmp_path / "ledger.jsonl"
+    lock = tmp_path / "ledger.jsonl.lock"
+    lock.symlink_to(target)
+    queue = WorkQueue(DEFAULT_ITEMS, ledger, DEFAULT_SCHEMA)
+    with pytest.raises(WorkQueueError) as caught:
+        queue.items(now=NOW)
+    assert caught.value.code == "UNREADABLE"
+    assert target.read_bytes() == b""
+
+
 def test_cli_next_empty(tmp_path, capsys):
     home = tmp_path / "items"
     _write_items(home, [_item("A", ["courier_core/a.py"], status="DONE")])

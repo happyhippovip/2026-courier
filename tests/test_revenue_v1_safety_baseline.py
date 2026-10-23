@@ -113,6 +113,50 @@ class TestRevenueSafetyBaseline(unittest.TestCase):
         self.assertIn("NO_FILES_INSPECTED", report_md)
         self.assertNotIn("No safety violations detected", report_md)
 
+    @patch("revenue_v1_safety_baseline.clone_and_extract")
+    def test_worker_does_not_follow_a_symlink(self, mock_clone):
+        task = {
+            "target_owner": "a",
+            "target_repo": "b",
+            "target_sha": "c",
+            "task_id": "t1",
+            "attempt_id": "a1",
+            "idempotency_key": "k1",
+            "customer_reference": "cr1",
+        }
+        outside = self.td_path / "outside"
+        outside.mkdir()
+        (outside / "keep.txt").write_text("keep", encoding="utf-8")
+        linked = self.td_path / "linked-work"
+        linked.symlink_to(outside)
+        parent_real = self.td_path / "parent-real"
+        nested_real = parent_real / "job"
+        nested_real.mkdir(parents=True)
+        (nested_real / "keep.txt").write_text("keep", encoding="utf-8")
+        parent_link = self.td_path / "parent-link"
+        parent_link.symlink_to(parent_real)
+        plain = self.td_path / "plain-work"
+        plain.mkdir()
+
+        def run(dest):
+            try:
+                rvsb.worker(task, dest)
+                return None
+            except SystemExit as exc:
+                return str(exc)
+
+        err_link = run(linked)
+        err_parent = run(parent_link / "job")
+        err_plain = run(plain)
+        leaked = sorted(p.name for p in outside.iterdir())
+        leaked_parent = sorted(p.name for p in nested_real.iterdir())
+        plain_names = sorted(p.name for p in plain.iterdir())
+        refused = "revenue workforce rejected: refusing to follow a symlink"
+        self.assertEqual(
+            (err_link, leaked, err_parent, leaked_parent, err_plain, "report.json" in plain_names, linked.is_symlink(), parent_link.is_symlink(), mock_clone.called),
+            (refused, ["keep.txt"], refused, ["keep.txt"], None, True, True, True, True),
+        )
+
     def test_analyze_workflows_reads_yaml_extension(self):
         wf_dir = self.td_path / ".github" / "workflows"
         wf_dir.mkdir(parents=True)

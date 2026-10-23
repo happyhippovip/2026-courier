@@ -1,3 +1,4 @@
+import math
 import os
 import json
 import runpy
@@ -58,3 +59,90 @@ def test_main_execution(tmp_path):
     assert list((tmp_path / "events" / "invoices").glob("*.json")), "invoice should be written under tmp_path"
     assert result.returncode == 0
     assert "Generated Invoice: " in result.stdout
+
+
+def test_invoice_dir_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    outside = tmp_path / "outside-invoices"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = tmp_path / "linked-invoices"
+    linked.symlink_to(outside)
+    monkeypatch.setattr(InvoiceGenerator, "INVOICE_DIR", linked)
+    try:
+        InvoiceGenerator.generate_invoice(
+            {"prospect_alias": "P-SAFE", "price_eur": 1.0},
+            "a@b.c",
+            "SECRET-INVOICE",
+        )
+        err = None
+    except ValueError as exc:
+        err = str(exc)
+    names = sorted(path.name for path in outside.iterdir())
+    bodies = [path.read_text(encoding="utf-8") for path in outside.glob("*.json")]
+    assert (err, any("SECRET-INVOICE" in body for body in bodies), names) == (
+        "refusing to follow a symlink",
+        False,
+        ["keep.txt"],
+    )
+
+
+def test_text_false_price_is_not_an_amount(tmp_path, monkeypatch):
+    monkeypatch.setattr(InvoiceGenerator, "INVOICE_DIR", tmp_path / "invoices")
+
+    def run(price):
+        try:
+            doc = InvoiceGenerator.generate_invoice(
+                {"prospect_alias": "P-PRICE", "price_eur": price},
+                "a@b.c",
+                "Name",
+            )
+        except ValueError as exc:
+            return ("raised", str(exc), None)
+        saved = json.loads((tmp_path / "invoices" / f"{doc['invoice_id']}.json").read_text(encoding="utf-8"))
+        return ("wrote", doc["amount_eur"], saved["amount_eur"])
+
+    text_false = run("false")
+    text_zero = run("0")
+    bool_true = run(True)
+    bool_false = run(False)
+    nan = run(float("nan"))
+    finite = run(500.0)
+    assert (
+        text_false[0],
+        text_false[1],
+        text_false[2],
+        text_zero[0],
+        text_zero[1],
+        text_zero[2],
+        bool_true[0],
+        bool_true[1],
+        bool_true[2],
+        bool_false[0],
+        bool_false[1],
+        bool_false[2],
+        nan[0],
+        nan[1],
+        isinstance(nan[2], float) and math.isnan(nan[2]),
+        finite[0],
+        finite[1],
+        finite[2],
+    ) == (
+        "raised",
+        "price is not a number.",
+        None,
+        "raised",
+        "price is not a number.",
+        None,
+        "raised",
+        "price is not a number.",
+        None,
+        "raised",
+        "price is not a number.",
+        None,
+        "raised",
+        "price is not a number.",
+        False,
+        "wrote",
+        500.0,
+        500.0,
+    )

@@ -80,3 +80,99 @@ def test_curate_idea_qa_routing(memory_dir, tmp_path):
     assert res["classification"] == "NEW"
     assert res["target_agent_recommendation"] == "codex"
     assert "codex" in res["affected_agents"]
+
+def test_memory_file_does_not_follow_a_symlink(tmp_path):
+    outside = tmp_path / "outside-decisions.md"
+    outside.write_text("## D-9 — SECRET-DECISION\nsecret body\n", encoding="utf-8")
+    memory = tmp_path / "memory"
+    memory.mkdir()
+    (memory / "DECISIONS.md").symlink_to(outside)
+
+    parent_outside = tmp_path / "memory-parent"
+    parent_outside.mkdir()
+    (parent_outside / "DECISIONS.md").write_text("## D-8 — SECRET-PARENT\nsecret body\n", encoding="utf-8")
+    linked_parent = tmp_path / "linked-memory"
+    linked_parent.symlink_to(parent_outside, target_is_directory=True)
+
+    plain = tmp_path / "plain-memory"
+    plain.mkdir()
+    (plain / "DECISIONS.md").write_text("## D-1 — Plain Decision\nbody\n", encoding="utf-8")
+
+    def start(folder):
+        try:
+            curator = ThoughtCurator(repo_dir=tmp_path / "repo", memory_dir=folder)
+        except ValueError as exc:
+            return str(exc), None
+        return "loaded", [item["title"] for item in curator.memory_index["decisions"]]
+
+    err_file, titles_file = start(memory)
+    err_parent, titles_parent = start(linked_parent)
+    err_plain, titles_plain = start(plain)
+    assert (
+        err_file,
+        titles_file,
+        "SECRET-DECISION" in outside.read_text(encoding="utf-8"),
+        err_parent,
+        titles_parent,
+        "SECRET-PARENT" in (parent_outside / "DECISIONS.md").read_text(encoding="utf-8"),
+        err_plain,
+        titles_plain,
+    ) == (
+        "refusing to follow a symlink",
+        None,
+        True,
+        "refusing to follow a symlink",
+        None,
+        True,
+        "loaded",
+        ["Plain Decision"],
+    )
+
+def test_thoughts_dir_does_not_follow_a_symlink(memory_dir, tmp_path, monkeypatch):
+    curator = ThoughtCurator(repo_dir=tmp_path, memory_dir=memory_dir)
+    outside = tmp_path / "outside-thoughts"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = tmp_path / "linked-thoughts"
+    linked.symlink_to(outside, target_is_directory=True)
+
+    parent_outside = tmp_path / "thoughts-parent-outside"
+    parent_outside.mkdir()
+    (parent_outside / "keep.txt").write_text("keep", encoding="utf-8")
+    linked_parent = tmp_path / "thoughts-linked-parent"
+    linked_parent.symlink_to(parent_outside, target_is_directory=True)
+
+    def run(folder):
+        monkeypatch.setattr("scripts.run_thought_curator.THOUGHTS_DIR", folder)
+        try:
+            curator.curate_idea("SECRET-IDEA about a checklist")
+        except ValueError as exc:
+            return str(exc)
+        return "wrote"
+
+    err_link = run(linked)
+    leaked = sorted(p.name for p in outside.iterdir())
+    err_parent = run(linked_parent / "thoughts")
+    parent_names = sorted(p.name for p in parent_outside.iterdir())
+    plain = tmp_path / "plain-thoughts"
+    err_plain = run(plain)
+    plain_names = sorted(p.name for p in plain.iterdir()) if plain.exists() else []
+    leaked_body = ""
+    for name in leaked:
+        if name.endswith(".json"):
+            leaked_body = (outside / name).read_text(encoding="utf-8")
+    assert (
+        err_link,
+        "SECRET-IDEA" in leaked_body,
+        err_parent,
+        parent_names,
+        err_plain,
+        any(name.endswith(".json") for name in plain_names),
+    ) == (
+        "refusing to follow a symlink",
+        False,
+        "refusing to follow a symlink",
+        ["keep.txt"],
+        "wrote",
+        True,
+    )
