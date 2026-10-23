@@ -486,8 +486,21 @@ def _previous_marker(existing: dict | None, version: str) -> dict | None:
 
 
 def _worker_attributable(existing: dict | None, running_worker: Mapping[str, Any] | None) -> bool:
-    if not running_worker or not running_worker.get("alive"):
+    """True when no worker was reported, or a worker was confirmed dead.
+
+    A report that names a process without ``alive is True`` is not proof
+    that the machine is idle. Boolean ``True`` is the only live signal;
+    anything else refuses the install.
+    """
+    if running_worker is None:
         return True
+    if not isinstance(running_worker, Mapping):
+        return False
+    alive = running_worker.get("alive", None)
+    if alive is False:
+        return True
+    if alive is not True:
+        return False
     return _same_identity((existing or {}).get("process_identity"), running_worker)
 
 
