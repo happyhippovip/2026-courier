@@ -23,7 +23,7 @@ Das benannte private Checkpoint-Repository hat diesem Konto HTTP 404 geantwortet
 - `scripts/windows_worker/courier_installer.iss` SHA256: `4f7986a789cdfc1678b064d9c6f23d3f5758825231f01bf5d6080ba3c8a3f876`
 - `scripts/windows_worker/build_installer.ps1` SHA256: `7c59ad0abf792e764362062ad73028862d77c144aa15bfbd67d0515acbf1e0a9`
 - Inno Setup Fallback, falls `ISCC.exe` fehlt und `COURIER_INSTALL_INNO=1` gesetzt ist: `6.7.0`, Datei `innosetup-6.7.0.exe`, SHA256 `F45C7D68D1E660CF13877EC36738A5179CE72A33414F9959D35E99B68C52A697`. Eine abweichende Prüfsumme bricht den Build ab.
-- `scripts/windows_worker/CourierSetup-v1.exe` SHA256: `853312F1CDFCC469A25547343B58B418C696317F22DB50165B7D0C4EE77425E8`, Größe 10586698 Bytes. Artefakt `courier-setup-exe` aus Lauf `39947845096`. Die Datei ist gitignoriert.
+- `scripts/windows_worker/CourierSetup-v1.exe` SHA256 des Laufs `39949700821`: `26B46078381C7215676D8FD5C789CFC66748E7CD6E0DC8B86CB788645E5069A4`. Merge-Commit `637d57aa40c2d99c578a1a305100c29e15a64aa8`, Head `cbf43949b`. Die Datei ist gitignoriert. Der Hash wechselt, wenn der Job `Courier.exe` neu baut. Maßgeblich für einen späteren Commit ist die Job-Zusammenfassung seines eigenen windows-build-Laufs.
 
 ## Matrix
 
@@ -37,8 +37,8 @@ Das benannte private Checkpoint-Repository hat diesem Konto HTTP 404 geantwortet
 - `dist\install.ps1` und `dist\Courier.exe` weichen von den aktuellen Dateien neben dem Skript ab. Das Inno-Skript überschreibt beide nach `dist\*`: PASS, statischer Test
 - `start.bat` bleibt die Dist-Kopie, weil sie CRLF ist: PASS, statischer Test
 - Autostart ist eine abgewählte Aufgabe: PASS, statischer Test
-- Setup.exe vorhanden: PASS. Lauf [39947845096](https://github.com/happyhippovip/2026-courier/actions/runs/39947845096), Job `windows build`, Merge-Commit `4ec48dcdea8b87bb721f66b6a4c33053e790ebdb` für Head `a072dc3db`. Artefakt `courier-setup-exe`.
-- Setup.exe SHA256: PASS. `853312F1CDFCC469A25547343B58B418C696317F22DB50165B7D0C4EE77425E8`, 10586698 Bytes, derselbe Lauf.
+- Setup.exe vorhanden: PASS. Lauf [39949700821](https://github.com/happyhippovip/2026-courier/actions/runs/39949700821), Job `windows build`, Merge-Commit `637d57aa40c2d99c578a1a305100c29e15a64aa8` für Head `cbf43949b`. Artefakt `courier-setup-exe`. Der vorherige Lauf [39947845096](https://github.com/happyhippovip/2026-courier/actions/runs/39947845096) war ebenfalls grün.
+- Setup.exe SHA256: PASS für Lauf `39949700821`. `26B46078381C7215676D8FD5C789CFC66748E7CD6E0DC8B86CB788645E5069A4`. Der Lauf `39947845096` hatte `853312F1CDFCC469A25547343B58B418C696317F22DB50165B7D0C4EE77425E8`, 10586698 Bytes. Der Unterschied kommt vom neu gebauten `Courier.exe`.
 - Stiller Install und Uninstall: PASS. Derselbe Job, `windows-latest`. Log: `Silent installation and Start menu shortcut verified` und `Silent uninstallation verified successfully`. `%LOCALAPPDATA%\Courier\courier.db` blieb liegen.
 - Startmenü in einer Windows-Sitzung: PASS. Derselbe Job. `Courier Symphony.lnk` zeigte auf die installierte `Courier.exe`.
 - Update einer vorhandenen Installation: PASS. Derselbe Job. Log: `Silent upgrade verified`.
@@ -57,4 +57,4 @@ Ergebnis: `8 passed, 2 skipped in 0.07s`.
 
 Der Skip von `test_courier_setup_silent_install_and_uninstall_lifecycle` auf Linux ist erwartet. Der stille Install läuft im Job windows-build, nicht auf dem Linux-Host.
 
-Der CI-Job `windows build` auf Head `a072dc3db` (Merge `4ec48dcdea8b87bb721f66b6a4c33053e790ebdb`, Lauf `39947845096`) hat mit dem vorinstallierten Inno Setup 6.7.1 kompiliert. `CourierSetup-v1.exe` SHA256 `853312F1CDFCC469A25547343B58B418C696317F22DB50165B7D0C4EE77425E8`. Rollback, stiller Install, Upgrade, Startmenü-Verknüpfung und stiller Uninstall sind in dem Lauf grün. Der Customer-Reality-Lauf `39947845130` ist ebenfalls grün.
+Der CI-Job `windows build` auf Head `cbf43949b` (Merge `637d57aa40c2d99c578a1a305100c29e15a64aa8`, Lauf `39949700821`) hat mit dem vorinstallierten Inno Setup 6.7.1 kompiliert. `CourierSetup-v1.exe` SHA256 `26B46078381C7215676D8FD5C789CFC66748E7CD6E0DC8B86CB788645E5069A4`. Rollback, stiller Install, Upgrade, Startmenü-Verknüpfung und stiller Uninstall sind in dem Lauf grün. Der Customer-Reality-Lauf `39947845130` zum vorherigen Head ist ebenfalls grün.
