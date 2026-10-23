@@ -6,8 +6,9 @@ same post again. A crash after that ack, before the local state file is
 removed, must not run the provider a second time and must not turn the
 accepted result into a rejection.
 
-LeaseStore.release must ignore a foreign holder and an expired holder whose
-token has already been replaced.
+LeaseStore.release must ignore a foreign holder, a live holder presenting
+the wrong fencing token, and an expired holder whose token has already
+been replaced.
 
 Host-loop DONE without journal proof is not repeated here. That negative
 set is on PR #836, head ad50f362a3d80501d2f3d3630d389be5ab5e0745.
@@ -56,6 +57,25 @@ def test_foreign_release_does_not_clear_a_live_lease(leases):
     assert current.holder == live.holder
     assert current.token == live.token
     assert store.check_write("worker:win-01", live.token).holder == live.holder
+
+
+def test_wrong_token_does_not_release_the_live_lease(leases):
+    store, _ = leases
+    live = store.acquire("worker:win-01", "win-01:10:1.0000:owner", "daemon_loop", ttl_s=30)
+    forged = replace(live, token=live.token + 1)
+    store.release(forged)
+    current = store.current("worker:win-01")
+    assert current is not None
+    assert current.holder == live.holder
+    assert current.token == live.token
+    assert current.workkey == live.workkey
+    assert store.check_write(
+        "worker:win-01", live.token, holder=live.holder, workkey=live.workkey
+    ).token == live.token
+    with pytest.raises(StaleLease):
+        store.check_write(
+            "worker:win-01", forged.token, holder=live.holder, workkey=live.workkey
+        )
 
 
 def test_expired_holder_cannot_release_the_successor_lease(leases):
