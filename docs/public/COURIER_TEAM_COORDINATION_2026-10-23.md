@@ -62,6 +62,27 @@ PR #827, #830, #832 und #835 wurden bereits gemergt. Externe, ältere Receipt-Pa
 
 **Warum getrennt?** Cursor soll die echte Windows-Liefer-/Fortsetzungslogik in seinem zuständigen Bereich verbessern; Google soll die unabhängigen negativen Beweise für Journal/Receipt/CostGate/ACK bewerten. Beide nicht dieselben Produktdateien bearbeiten. Keine künstlichen Doppel-Queues, neuen kostenpflichtigen Agenten oder Merges ohne Berechtigung.
 
+## Nachtmarathon V12 — echte Wiederaufnahme statt Prompt-Stürme
+
+**Einzelfallrollen, Stand 23. Oktober 2026:**
+
+- **GrokBot Windows Recovery:** Getrennter, ressourcenschonender Datenrettungs-Prüfer. Nur lesende Backup-/Archiv-/Checksum-Inventur und Risikoanalyse; keine destruktive Reparatur und kein Zugriff auf Originaldatenträger ohne explizite Freigabe.
+- **GrokBot Mac Architecture/Coordinator:** Read-only Koordination zwischen Mac- und Windows-Recovery, L3 und Integrationsowner; private Checkpoints und deduplizierte Workkeys; keine fremden Writer-Rechte.
+- **Cursor Windows:** Produktzustellung `DISPATCHED`/RESULT_ACK, Crash/Retry, Pressure Heartbeats; nur im eigenen Writer-Scope.
+- **Google Windows:** unabhängige Regressionen gegen echte Controller-/Journal-/Receipt-Pfade; nicht dieselbe Implementierung.
+- **Cursor Mac:** A→B→C, aktuelle Integrations- und Verifier-Verträge, eigene autorisierte Implementierungen.
+- **Google Mac:** unabhängige A→B→C-/Ledger-Negativtests, bereits aktive Goal-/Timer-Instanzen deduplizieren.
+
+**Native Mechanismen (erst Zustand und Kosten prüfen):**
+
+1. [Grok Bot skills and routines](https://docs.x.ai/grok-bot/skills-routines-and-automations): Eine bereits autorisierte Routine pro Bot und Zweck, mit dem richtigen Eigentümer, Prüffrequenz, Stopdatum und Quota-/Kosten-Gate; kein künstliches Verbrennen von Kontingent.
+2. [Google Antigravity Scheduled Tasks](https://antigravity.google/blog/google-io-2026-feature-deep-dive): Echte geplante Tasks im App-Projekt sind von einem bloßen Goal-Text verschieden. `/schedule` kann je Oberfläche gesprächsgebunden sein. Nie zugleich mehrere Sender für dieselbe Arbeit starten.
+3. [Cursor /goal und /loop](https://cursor.com/docs/agent/overview): Langfristige Ziele und kontrollierte Wiederaufnahme; [Cursor Cloud Automations](https://cursor.com/docs/cloud-agent/automations) als kostenrelevanten gesonderten Pfad behandeln.
+
+**Erst wenn ein tatsächlich aktiver Trigger mit nächster Ausführung bestätigt wurde, gilt ein Wiederanlauf als eingerichtet.** Ein offenes Goal, eine offene GitHub-PR oder ein langer Prompt garantiert keine nächtliche Arbeit. Nach einer echten Aufgabe: Verifikation → privater Checkpoint → deduplizierter nächster Workkey. Bei fehlender neuer Arbeit bewusst `QUIESCENT_SAFE`.
+
+**Grenze des aktuellen Nachtauftrags:** 24. Oktober 2026, 20:00 Uhr Europe/Berlin. Keine selbstständige Verlängerung, keine neuen Ausgaben, keine zweiten Writer, keine unautorisierte Veröffentlichung. Belege, Kontingente und Recovery-Dateien gehören nicht in diese öffentliche Dokumentation.
+
 ## Arbeitsprinzip: ein Sender je Sitzung
 
 - Ein klarer **Goal + Workkey-Ledger + Checkpoint** ist besser als mehrfach identische Prompt-Queues.
