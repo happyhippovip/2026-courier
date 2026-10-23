@@ -19,4 +19,4 @@ Focused Linux pytest after the code change: 63 passed in `test_windows_lock_fail
 
 ## Continue-01
 
-The first Windows CPU sample is a baseline, not an idle host. Before the change, `is_resource_pressure_high()` was false and `loop()` posted `/tasks/claim`. After it, that sample returns `None` and the loop pauses. `tests/test_windows_resource_probe.py`: 38 passed together with the lock and recovery files. #827 `1715d472e` still does not touch these files. No merge.
+The first Windows CPU sample is a baseline, not an idle host. Before the change, `is_resource_pressure_high()` was false and `loop()` posted `/tasks/claim`. After it, that sample returns `None` and the loop pauses. `tests/test_windows_resource_probe.py`: 38 passed together with the lock and recovery files. #827 `1715d472e` still does not touch these files. No merge. A fencing token that moves during the loop raises `CanonicalLeaseLost` before the next claim.
