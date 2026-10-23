@@ -178,3 +178,51 @@ def test_held_lock_means_another_instance(tmp_path, monkeypatch):
     fake.locking = locking
     monkeypatch.setitem(sys.modules, "msvcrt", fake)
     assert daemon.acquire_lock("WIN-01") is None
+
+
+def _busy_msvcrt(monkeypatch):
+    fake = types.ModuleType("msvcrt")
+    fake.LK_NBLCK = 1
+
+    def locking(_fd, _mode, _length):
+        raise OSError("locked")
+
+    fake.locking = locking
+    monkeypatch.setitem(sys.modules, "msvcrt", fake)
+
+
+def test_file_lock_without_canonical_lease_exits_3(tmp_path, monkeypatch):
+    """CUR-WIN-039/044: the local file lock is not a running worker."""
+    daemon = load_daemon(tmp_path, monkeypatch)
+    (daemon.STATE_DIR / "authority.db").write_bytes(b"not a sqlite database")
+    assert daemon.main() == 3
+    assert daemon._lock_fd is None
+    assert daemon._worker_lease is None
+    lock_file = daemon.Path(daemon.tempfile.gettempdir()) / "courier_worker_WIN-01.lock"
+    assert not lock_file.exists()
+
+
+def test_missing_credential_exits_2(tmp_path, monkeypatch):
+    daemon = load_daemon(tmp_path, monkeypatch)
+    cfg = {"COURIER_SERVER": "http://courier.invalid", "WORKER_ID": "WIN-01", "COURIER_API_KEY": ""}
+    (daemon.APP_DATA_DIR / "config.json").write_text(__import__("json").dumps(cfg))
+    daemon.API_KEY = ""
+    monkeypatch.setenv("COURIER_API_KEY", "")
+    assert daemon.main() == 2
+
+
+def test_unexpected_start_error_exits_1(tmp_path, monkeypatch):
+    daemon = load_daemon(tmp_path, monkeypatch)
+
+    def boom():
+        raise RuntimeError("config unreadable")
+
+    monkeypatch.setattr(daemon, "load_config", boom)
+    assert daemon.main() == 1
+
+
+def test_held_file_lock_exits_0_without_starting_work(tmp_path, monkeypatch):
+    daemon = load_daemon(tmp_path, monkeypatch)
+    _busy_msvcrt(monkeypatch)
+    assert daemon.main() == 0
+    assert daemon._worker_lease is None

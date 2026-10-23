@@ -497,7 +497,9 @@ def acquire_lock(worker_id):
             _worker_lease = store.acquire(scope, holder, "daemon_loop", ttl_s=3600)
     except Exception as exc:
         release_lock(lock_file)
-        raise RuntimeError(f"Courier cannot start without a canonical writer lease: {exc}") from exc
+        raise CanonicalLeaseLost(
+            f"Courier cannot start without a canonical writer lease: {exc}"
+        ) from exc
 
     return lock_file
 
@@ -666,12 +668,29 @@ def loop():
     finally:
         release_lock(lock_path)
 
-if __name__ == "__main__":
+def main():
+    """Start the worker and return a stable process exit code.
+
+    0 is only a live second instance. A missing credential is 2. A missing
+    or stale canonical lease is 3. Any other start failure is 1.
+    """
     try:
         loop()
     except MissingCredentialError as e:
         print(f"FATAL: {e}", file=sys.stderr)
-        sys.exit(2)
+        return 2
     except CanonicalLeaseLost as e:
         print(f"FATAL: {e}", file=sys.stderr)
-        sys.exit(3)
+        return 3
+    except SystemExit as e:
+        if isinstance(e.code, int):
+            return e.code
+        return 1
+    except Exception as e:
+        print(f"FATAL: {e}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
