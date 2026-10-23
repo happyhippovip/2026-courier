@@ -364,7 +364,7 @@ class TestRevenueSafetyBaseline(unittest.TestCase):
     def test_verify_success(self, mock_ind):
         ident = {"kind": "independent_verifier", "name": "n", "version": "1.0.0", "source_sha256": "s"}
         mock_ind.return_value = {"verdict": "PASS", "accepted": True, "reasons": [], "verifier": ident}
-        verified = rvsb.verify({"t": 1}, {"report_json_sha256": "h1", "other": "val"}, self.td_path)
+        verified = rvsb.verify({"t": 1}, {"report_json_sha256": "h1", "other": "val", "worker_status": "PASS"}, self.td_path)
         self.assertEqual(verified["verifier_id"], rvsb.VERIFIER_ID)
         self.assertEqual(verified["verifier_status"], "PASS")
         self.assertEqual(verified["independent_verdict"], "PASS")
