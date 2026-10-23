@@ -20,7 +20,7 @@ Das benannte private Checkpoint-Repository hat diesem Konto HTTP 404 geantwortet
 
 ## Quellprüfsummen
 
-- `scripts/windows_worker/courier_installer.iss` SHA256: `ac70272e5cd46cdfe1f93e8483d71fc01752f6cfa8471aaaa97e753dd48cab36`
+- `scripts/windows_worker/courier_installer.iss` SHA256: `4f7986a789cdfc1678b064d9c6f23d3f5758825231f01bf5d6080ba3c8a3f876`
 - `scripts/windows_worker/build_installer.ps1` SHA256: `92024ffda3e47abdeebc065c97d2c348f5f6209fb4b3f8d9f1da50ddc25aea98`
 - `scripts/windows_worker/CourierSetup-v1.exe` SHA256: UNPROVEN. Die Datei wurde hier nicht erzeugt.
 
@@ -32,6 +32,9 @@ Das benannte private Checkpoint-Repository hat diesem Konto HTTP 404 geantwortet
 - Startmenü-Verknüpfung zeigt auf `{app}\Courier.exe`: PASS, statischer Test
 - Stiller Lauf startet das Programm nicht (`skipifsilent`): PASS, nur als Skriptzeile
 - Secret-Dateinamen unter `scripts/windows_worker/dist`: PASS, keine Treffer
+- Credential-Marker im Dist-Inhalt: PASS, kein freistehendes `sk-`, kein Private-Key-Block, kein Token-Präfix. Das Teilwort in `task-` zählt nicht.
+- `dist\install.ps1` und `dist\Courier.exe` weichen von den aktuellen Dateien neben dem Skript ab. Das Inno-Skript überschreibt beide nach `dist\*`: PASS, statischer Test
+- `start.bat` bleibt die Dist-Kopie, weil sie CRLF ist: PASS, statischer Test
 - Autostart ist eine abgewählte Aufgabe: PASS, statischer Test
 - Setup.exe vorhanden: UNPROVEN
 - Setup.exe SHA256: UNPROVEN
@@ -50,6 +53,8 @@ Host: Linux, Python 3.12, `pytest==9.1.1`.
 
 `python3.12 -m pytest -q tests/test_windows_installer_package.py`
 
-Ergebnis: `6 passed, 2 skipped in 0.06s`.
+Ergebnis: `8 passed, 2 skipped in 0.07s`.
 
-Die zwei Skips sind `CourierSetup-v1.exe` und der stille Install/Uninstall. Ein Skip ist kein PASS.
+Die Skips sind `CourierSetup-v1.exe` und der stille Install/Uninstall. Ein Skip ist kein PASS.
+
+Der CI-Job `windows build` auf Commit `c5cde133` hat den vorhandenen PowerShell-Live-Install geprüft. Er kompiliert kein Inno-Setup. `ISCC.exe` ist auf diesem Host nicht vorhanden und wird nicht heruntergeladen.

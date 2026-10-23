@@ -104,6 +104,46 @@ def test_dist_filenames_are_not_secrets():
     assert offenders == []
 
 
+def _bare_marker(data, marker):
+    start = 0
+    while True:
+        found = data.find(marker, start)
+        if found < 0:
+            return False
+        previous = data[found - 1:found]
+        if not previous.isalnum():
+            return True
+        start = found + len(marker)
+
+
+def test_dist_bytes_have_no_credential_markers():
+    markers = (b"BEGIN PRIVATE KEY", b"BEGIN RSA PRIVATE KEY", b"AKIA", b"ghp_", b"github_pat_", b"xoxb-", b"xoxp-", b"sk-")
+    offenders = []
+    for path in DIST_DIR.rglob("*"):
+        if not path.is_file() or path.stat().st_size > 2_000_000:
+            continue
+        data = path.read_bytes()
+        for marker in markers:
+            if _bare_marker(data, marker):
+                offenders.append(f"{path}:{marker.decode()}")
+                break
+    assert offenders == []
+
+
+def test_stale_dist_files_are_overwritten_by_current_sources():
+    content = _read(ISS_PATH)
+    files = _section(content, "Files")
+    dist_at = files.index('Source: "dist\\*"')
+    for name in ("install.ps1", "Courier.exe"):
+        source = WINDOWS_WORKER_DIR / name
+        packaged = DIST_DIR / name
+        assert source.read_bytes() != packaged.read_bytes()
+        entry = f'Source: "{name}"'
+        assert entry in files
+        assert files.index(entry) > dist_at
+    assert 'Source: "start.bat"' not in files
+
+
 def test_release_matrix_records_source_hashes_and_blocks():
     text = _read(MATRIX_PATH)
     assert _sha256(ISS_PATH) in text

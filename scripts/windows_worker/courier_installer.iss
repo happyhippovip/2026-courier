@@ -43,7 +43,12 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "startupicon"; Description: "Start Courier Symphony automatically on Windows login"; GroupDescription: "Automation:"; Flags: unchecked
 
 [Files]
+; dist\install.ps1 and dist\Courier.exe are older than the copies beside this
+; script. These two entries overwrite them. start.bat stays the dist copy
+; because that copy is CRLF.
 Source: "dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "config.json,*.env,*.pem,*.key,*token*,*credential*,id_rsa*"
+Source: "install.ps1"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Courier.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{userprograms}\{#MyAppName}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
