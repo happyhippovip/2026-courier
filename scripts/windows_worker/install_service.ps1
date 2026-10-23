@@ -42,7 +42,13 @@ try {
 } catch {
     $existing = $null
 }
+$previousXml = $null
 if ($null -ne $existing) {
+    $previousXml = Export-ScheduledTask -TaskName $TaskName -ErrorAction Stop
+    if ([string]::IsNullOrWhiteSpace($previousXml)) {
+        Write-Host "Cannot read the existing scheduled task $TaskName. Leaving it in place."
+        exit 1
+    }
     Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction Stop
 }
 
@@ -55,6 +61,14 @@ $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero) 
 try {
     Register-ScheduledTask -TaskName $TaskName -Trigger $trigger -Action $action -Principal $principal -Settings $settings -ErrorAction Stop | Out-Null
 } catch {
+    if ($null -ne $previousXml) {
+        try {
+            Register-ScheduledTask -Xml $previousXml -TaskName $TaskName -ErrorAction Stop | Out-Null
+        } catch {
+            Write-Host "Failed to restore scheduled task ${TaskName}: $($_.Exception.Message)"
+            exit 1
+        }
+    }
     Write-Host "Failed to register scheduled task ${TaskName}: $($_.Exception.Message)"
     exit 1
 }

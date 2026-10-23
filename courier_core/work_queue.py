@@ -9,6 +9,7 @@ and does not read ``courier_worker``.
 from __future__ import annotations
 
 import argparse
+import errno
 import json
 import os
 import re
@@ -224,7 +225,7 @@ class WorkQueue:
     def _append(self, event: dict) -> None:
         line = json.dumps(event, sort_keys=True, separators=(",", ":")).encode("utf-8") + b"\n"
         path = self.ledger_path
-        if path.is_symlink():
+        if path.is_symlink() or path.parent.is_symlink():
             raise WorkQueueError("UNREADABLE")
         existing = path.stat().st_size if path.exists() else 0
         if existing + len(line) > MAX_LEDGER_BYTES:
@@ -240,8 +241,18 @@ class WorkQueue:
     @contextmanager
     def _lock(self):
         lock_path = self.ledger_path.with_suffix(self.ledger_path.suffix + ".lock")
+        if lock_path.is_symlink() or lock_path.parent.is_symlink():
+            raise WorkQueueError("UNREADABLE")
         lock_path.parent.mkdir(parents=True, exist_ok=True)
-        fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
+        flags = os.O_CREAT | os.O_RDWR
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+        try:
+            fd = os.open(lock_path, flags, 0o600)
+        except OSError as exc:
+            if exc.errno == errno.ELOOP:
+                raise WorkQueueError("UNREADABLE") from exc
+            raise
         try:
             # No first byte is written: Windows locks a range past the end of
             # file, and its byte locks are mandatory, so a write here could
@@ -448,9 +459,11 @@ def _matches(value, rules) -> bool:
 
 
 def _read_ledger(path: Path) -> list[dict]:
+    if path.is_symlink() or path.parent.is_symlink():
+        raise WorkQueueError("UNREADABLE")
     if not path.exists():
         return []
-    if path.is_symlink() or not path.is_file():
+    if not path.is_file():
         raise WorkQueueError("UNREADABLE")
     try:
         size = path.stat().st_size

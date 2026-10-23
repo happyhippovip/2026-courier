@@ -29,23 +29,39 @@ def fail(message: str) -> None:
     raise SystemExit(f"MEMORY_PROPOSAL_ERROR: {message}")
 
 
+def _refuse_git_symlink(path: Path) -> None:
+    if path.is_symlink() or path.parent.is_symlink():
+        fail("refusing to follow a symlink")
+
+
 def get_memory_commit(repo_path: Path) -> str:
     """Reads git commit hash directly from .git directory without requiring external git CLI execution."""
     git_dir = repo_path / ".git"
+    _refuse_git_symlink(git_dir)
     if not git_dir.exists():
         return "0000000000000000000000000000000000000000"
 
     head_file = git_dir / "HEAD"
+    _refuse_git_symlink(head_file)
     if not head_file.exists():
         return "0000000000000000000000000000000000000000"
 
     head_content = head_file.read_text(encoding="utf-8").strip()
     if head_content.startswith("ref:"):
         ref_path = head_content[4:].strip()
+        if (
+            not ref_path
+            or ref_path.startswith("/")
+            or ref_path.startswith("\\")
+            or ".." in Path(ref_path).parts
+        ):
+            fail("refusing a git ref outside .git")
         ref_file = git_dir / ref_path
+        _refuse_git_symlink(ref_file)
         if ref_file.exists():
             return ref_file.read_text(encoding="utf-8").strip()
         packed_refs_file = git_dir / "packed-refs"
+        _refuse_git_symlink(packed_refs_file)
         if packed_refs_file.exists():
             for line in packed_refs_file.read_text(encoding="utf-8").splitlines():
                 if line.endswith(ref_path):
@@ -56,6 +72,8 @@ def get_memory_commit(repo_path: Path) -> str:
 
 def validate_proposal_against_schema(proposal_data: dict, schema_path: Path | None = None) -> tuple[bool, str]:
     """Validates memory update proposal data strictly against schemas/memory_update_proposal.schema.json."""
+    if schema_path is not None and (schema_path.is_symlink() or schema_path.parent.is_symlink()):
+        return False, "refusing to follow a symlink"
     if schema_path is None or not schema_path.exists():
         schema_path = DEFAULT_SCHEMA_PATH
 
@@ -133,6 +151,9 @@ def build_proposal_from_result(
     target_files: list[str] | None = None,
     custom_reason: str | None = None,
 ) -> dict:
+    result_file = Path(result_file)
+    if result_file.is_symlink() or result_file.parent.is_symlink():
+        fail("refusing to follow a symlink")
     if not result_file.exists():
         fail(f"Result file not found: {result_file}")
 
@@ -153,6 +174,9 @@ def build_proposal_from_result(
     summary = payload.get("summary", "Technical execution completed")
 
     # Resolve dynamic memory commit from 2026-project-memory
+    memory_repo_path = Path(memory_repo_path)
+    if memory_repo_path.is_symlink() or memory_repo_path.parent.is_symlink():
+        fail("refusing to follow a symlink")
     mem_base_commit = get_memory_commit(memory_repo_path)
 
     # Derive target files if not specified
@@ -232,8 +256,13 @@ def build_proposal_from_result(
     if not is_valid:
         fail(f"Generated proposal failed schema validation: {err}")
 
+    output_dir = Path(output_dir)
+    if output_dir.is_symlink() or output_dir.parent.is_symlink():
+        fail("refusing to follow a symlink")
     output_dir.mkdir(parents=True, exist_ok=True)
     out_file = output_dir / f"{task_id}-memory-proposal.json"
+    if out_file.is_symlink():
+        fail("refusing to follow a symlink")
     out_file.write_text(json.dumps(proposal, indent=2) + "\n", encoding="utf-8")
 
     return proposal
@@ -248,10 +277,16 @@ def main() -> None:
     parser.add_argument("--schema", help="Custom path to memory_update_proposal.schema.json")
     args = parser.parse_args()
 
-    schema_path = Path(args.schema).resolve() if args.schema else None
+    schema_path = Path(args.schema) if args.schema else None
+    if schema_path is not None and (schema_path.is_symlink() or schema_path.parent.is_symlink()):
+        fail("refusing to follow a symlink")
+    if schema_path is not None:
+        schema_path = schema_path.resolve()
 
     if args.validate_proposal:
         prop_file = Path(args.validate_proposal)
+        if prop_file.is_symlink() or prop_file.parent.is_symlink():
+            fail("refusing to follow a symlink")
         if not prop_file.exists():
             fail(f"Proposal file not found: {prop_file}")
         try:
@@ -268,7 +303,10 @@ def main() -> None:
         fail("Missing required --result argument")
 
     result_path = Path(args.result)
-    memory_repo_path = Path(args.memory_repo).resolve()
+    memory_repo_path = Path(args.memory_repo)
+    if memory_repo_path.is_symlink() or memory_repo_path.parent.is_symlink():
+        fail("refusing to follow a symlink")
+    memory_repo_path = memory_repo_path.resolve()
     output_dir = Path(args.output_dir)
 
     proposal = build_proposal_from_result(

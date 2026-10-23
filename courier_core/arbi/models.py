@@ -8,6 +8,7 @@ Absolute invariants:
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Optional
@@ -111,8 +112,18 @@ class OrderbookSnapshot:
 
     @property
     def spread_bps(self) -> Optional[float]:
-        if self.best_bid and self.best_ask and self.best_ask > 0:
-            return ((self.best_ask - self.best_bid) / self.best_ask) * 10000.0
+        bid = self.best_bid
+        ask = self.best_ask
+        if (
+            isinstance(bid, (int, float))
+            and isinstance(ask, (int, float))
+            and math.isfinite(bid)
+            and math.isfinite(ask)
+            and bid
+            and ask
+            and ask > 0
+        ):
+            return ((ask - bid) / ask) * 10000.0
         return None
 
 

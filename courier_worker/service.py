@@ -182,15 +182,20 @@ def resolve_spec(claim: dict, worker_id: str, artifacts_root: str, heartbeat_s: 
         raise SpecError("claim carries no dispatch_id")
     if isinstance(attempt, bool) or not isinstance(attempt, int) or attempt < 1:
         raise SpecError("claim carries no valid attempt")
-    if not isinstance(ttl_s, (int, float)) or ttl_s < 1:
+    if isinstance(ttl_s, bool) or not isinstance(ttl_s, (int, float)) or ttl_s < 1:
         raise SpecError("claim carries no valid ttl_s")
     adapter, params, effect_key = adapter_bridge.validate_request(spec)
     bound = adapter_bridge.request_input(spec)
     home = home or os.path.dirname(os.path.abspath(artifacts_root))
-    timeout_s = spec.get("timeout_s") or DEFAULT_TIMEOUT_S
+    raw_timeout = spec.get("timeout_s")
+    if isinstance(raw_timeout, bool):
+        raise SpecError("claim spec timeout_s is out of bounds")
+    timeout_s = raw_timeout if raw_timeout is not None else DEFAULT_TIMEOUT_S
     if not isinstance(timeout_s, (int, float)) or not 0 < timeout_s <= MAX_TIMEOUT_S:
         raise SpecError("claim spec timeout_s is out of bounds")
     claim_heartbeat = claim.get("heartbeat_s")
+    if isinstance(claim_heartbeat, bool):
+        raise SpecError("claim heartbeat_s is not a duration")
     if isinstance(claim_heartbeat, (int, float)) and claim_heartbeat > 0:
         heartbeat_s = min(heartbeat_s, float(claim_heartbeat))
     result_id = "r-" + dispatch_id

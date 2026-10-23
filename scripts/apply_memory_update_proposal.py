@@ -180,6 +180,11 @@ def apply_memory_update_proposal(
     proposal_schema_path: Path | None = None,
     approval_schema_path: Path | None = None,
 ) -> dict:
+    proposal_file = Path(proposal_file)
+    approval_file = Path(approval_file)
+    if (proposal_file.is_symlink() or proposal_file.parent.is_symlink()
+            or approval_file.is_symlink() or approval_file.parent.is_symlink()):
+        fail("refusing to follow a symlink")
     if not proposal_file.exists():
         fail(f"Proposal file not found: {proposal_file}")
     if not approval_file.exists():
@@ -255,6 +260,8 @@ def apply_memory_update_proposal(
 
     for idx, change in enumerate(proposed_changes):
         target_path = memory_repo_path / change["file"]
+        if target_path.is_symlink() or memory_repo_path.is_symlink() or memory_repo_path.parent.is_symlink():
+            fail("refusing to follow a symlink")
         if not target_path.exists():
             fail(f"BLOCKED: Target memory file does not exist: {target_path}")
 
@@ -327,9 +334,16 @@ def main() -> None:
     parser.add_argument("--approval-schema", help="Custom approval schema path")
     args = parser.parse_args()
 
-    proposal_path = Path(args.proposal).resolve()
-    approval_path = Path(args.approval).resolve()
-    memory_repo_path = Path(args.memory_repo).resolve()
+    proposal_path = Path(args.proposal)
+    approval_path = Path(args.approval)
+    memory_repo_path = Path(args.memory_repo)
+    if (memory_repo_path.is_symlink() or memory_repo_path.parent.is_symlink()
+            or proposal_path.is_symlink() or proposal_path.parent.is_symlink()
+            or approval_path.is_symlink() or approval_path.parent.is_symlink()):
+        fail("refusing to follow a symlink")
+    proposal_path = proposal_path.resolve()
+    approval_path = approval_path.resolve()
+    memory_repo_path = memory_repo_path.resolve()
     prop_schema = Path(args.proposal_schema).resolve() if args.proposal_schema else None
     appr_schema = Path(args.approval_schema).resolve() if args.approval_schema else None
 

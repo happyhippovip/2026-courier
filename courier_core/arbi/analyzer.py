@@ -9,6 +9,7 @@ Evaluates:
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Optional
 
@@ -41,16 +42,35 @@ class StatisticalQualityAnalyzer:
         if not book.asks:
             flags.append("NO_ASKS_AVAILABLE")
 
-        if book.best_bid and book.best_ask:
-            if book.best_bid >= book.best_ask:
-                flags.append("CROSSED_INTERNAL_ORDERBOOK")
-            if book.best_bid <= 0 or book.best_ask <= 0:
-                flags.append("NON_POSITIVE_PRICE")
+        bid = book.best_bid
+        ask = book.best_ask
+        if bid is not None and ask is not None:
+            if (
+                not isinstance(bid, (int, float))
+                or not isinstance(ask, (int, float))
+                or not math.isfinite(bid)
+                or not math.isfinite(ask)
+            ):
+                flags.append("NON_FINITE_PRICE")
+            else:
+                if bid >= ask:
+                    flags.append("CROSSED_INTERNAL_ORDERBOOK")
+                if bid <= 0 or ask <= 0:
+                    flags.append("NON_POSITIVE_PRICE")
 
-        if book.is_stale:
+        if book.is_stale is True:
             flags.append("STALE_DATA_TIMESTAMP")
 
-        if book.latency_ms > 1500.0:
+        latency = book.latency_ms
+        if (
+            isinstance(latency, bool)
+            or not isinstance(latency, (int, float))
+            or not math.isfinite(latency)
+        ):
+            flags.append("NON_FINITE_LATENCY")
+        elif latency < 0:
+            flags.append("NEGATIVE_LATENCY")
+        elif latency > 1500.0:
             flags.append("HIGH_NETWORK_LATENCY")
 
         return flags
@@ -71,24 +91,268 @@ class StatisticalQualityAnalyzer:
 
         risk_score = 0
         explanation_parts = []
+        if "NON_POSITIVE_PRICE" in flags:
+            risk_score += 100
+            explanation_parts.append("Orderbook price is not positive.")
+        if "NEGATIVE_LATENCY" in flags:
+            risk_score += 100
+            explanation_parts.append("Orderbook latency is negative.")
 
         # Check status
         if breakdown.status != "ELIGIBLE":
             risk_score += 60
             explanation_parts.append(f"Status not eligible: {breakdown.status} ({breakdown.reason})")
 
+        net = breakdown.net_profit_usd
+        if (
+            isinstance(net, bool)
+            or not isinstance(net, (int, float))
+            or not math.isfinite(net)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_NET")
+            explanation_parts.append("Net profit is not a finite number.")
+        elif net < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_NET")
+            explanation_parts.append("Net profit is negative.")
+        elif net == 0:
+            risk_score += 100
+            flags.append("ZERO_NET")
+            explanation_parts.append("Net profit is zero.")
+
+        roi = breakdown.net_roi_pct
+        if (
+            isinstance(roi, bool)
+            or not isinstance(roi, (int, float))
+            or not math.isfinite(roi)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_ROI")
+            explanation_parts.append("ROI is not a finite number.")
+        elif roi < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_ROI")
+            explanation_parts.append("ROI is negative.")
+        elif roi == 0:
+            risk_score += 100
+            flags.append("ZERO_ROI")
+            explanation_parts.append("ROI is zero.")
+
+        size = breakdown.order_size_usd
+        if (
+            isinstance(size, bool)
+            or not isinstance(size, (int, float))
+            or not math.isfinite(size)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_SIZE")
+            explanation_parts.append("Order size is not a finite number.")
+        elif size < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_SIZE")
+            explanation_parts.append("Order size is negative.")
+        elif size == 0:
+            risk_score += 100
+            flags.append("ZERO_SIZE")
+            explanation_parts.append("Order size is zero.")
+
+        cost = breakdown.total_costs_usd
+        if (
+            isinstance(cost, bool)
+            or not isinstance(cost, (int, float))
+            or not math.isfinite(cost)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_COST")
+            explanation_parts.append("Total cost is not a finite number.")
+        elif cost < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_COST")
+            explanation_parts.append("Total cost is negative.")
+
+        spread_pct = breakdown.gross_spread_pct
+        if (
+            isinstance(spread_pct, bool)
+            or not isinstance(spread_pct, (int, float))
+            or not math.isfinite(spread_pct)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_SPREAD_PCT")
+            explanation_parts.append("Gross spread percent is not a finite number.")
+        elif spread_pct < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_SPREAD_PCT")
+            explanation_parts.append("Gross spread percent is negative.")
+        elif spread_pct == 0:
+            risk_score += 100
+            flags.append("ZERO_SPREAD_PCT")
+            explanation_parts.append("Gross spread percent is zero.")
+
+        transfer = breakdown.transfer_cost_usd
+        if (
+            isinstance(transfer, bool)
+            or not isinstance(transfer, (int, float))
+            or not math.isfinite(transfer)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_TRANSFER")
+            explanation_parts.append("Transfer cost is not a finite number.")
+        elif transfer < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_TRANSFER")
+            explanation_parts.append("Transfer cost is negative.")
+
+        rebalance = breakdown.rebalance_cost_usd
+        if (
+            isinstance(rebalance, bool)
+            or not isinstance(rebalance, (int, float))
+            or not math.isfinite(rebalance)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_REBALANCE")
+            explanation_parts.append("Rebalance cost is not a finite number.")
+        elif rebalance < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_REBALANCE")
+            explanation_parts.append("Rebalance cost is negative.")
+
+        ask = breakdown.best_ask_price
+        if (
+            isinstance(ask, bool)
+            or not isinstance(ask, (int, float))
+            or not math.isfinite(ask)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_ASK")
+            explanation_parts.append("Ask price is not a finite number.")
+        elif ask < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_ASK")
+            explanation_parts.append("Ask price is negative.")
+        elif ask == 0:
+            risk_score += 100
+            flags.append("ZERO_ASK")
+            explanation_parts.append("Ask price is zero.")
+
+        bid = breakdown.best_bid_price
+        if (
+            isinstance(bid, bool)
+            or not isinstance(bid, (int, float))
+            or not math.isfinite(bid)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_BID")
+            explanation_parts.append("Bid price is not a finite number.")
+        elif bid < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_BID")
+            explanation_parts.append("Bid price is negative.")
+        elif bid == 0:
+            risk_score += 100
+            flags.append("ZERO_BID")
+            explanation_parts.append("Bid price is zero.")
+
+        buy_price = breakdown.effective_buy_price
+        if (
+            isinstance(buy_price, bool)
+            or not isinstance(buy_price, (int, float))
+            or not math.isfinite(buy_price)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_BUY_PRICE")
+            explanation_parts.append("Buy price is not a finite number.")
+        elif buy_price < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_BUY_PRICE")
+            explanation_parts.append("Buy price is negative.")
+        elif buy_price == 0:
+            risk_score += 100
+            flags.append("ZERO_BUY_PRICE")
+            explanation_parts.append("Buy price is zero.")
+
+        sell_price = breakdown.effective_sell_price
+        if (
+            isinstance(sell_price, bool)
+            or not isinstance(sell_price, (int, float))
+            or not math.isfinite(sell_price)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_SELL_PRICE")
+            explanation_parts.append("Sell price is not a finite number.")
+        elif sell_price < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_SELL_PRICE")
+            explanation_parts.append("Sell price is negative.")
+        elif sell_price == 0:
+            risk_score += 100
+            flags.append("ZERO_SELL_PRICE")
+            explanation_parts.append("Sell price is zero.")
+
+        gross = breakdown.gross_spread_usd
+        if (
+            isinstance(gross, bool)
+            or not isinstance(gross, (int, float))
+            or not math.isfinite(gross)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_GROSS")
+            explanation_parts.append("Gross spread is not a finite number.")
+            gross_ok = False
+        elif gross < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_GROSS")
+            explanation_parts.append("Gross spread is negative.")
+            gross_ok = False
+        elif gross == 0:
+            risk_score += 100
+            flags.append("ZERO_GROSS")
+            explanation_parts.append("Gross spread is zero.")
+            gross_ok = False
+        else:
+            gross_ok = True
+
         # Slippage friction check
-        if breakdown.slippage_usd > (breakdown.gross_spread_usd * 0.4):
+        slip = breakdown.slippage_usd
+        if (
+            isinstance(slip, bool)
+            or not isinstance(slip, (int, float))
+            or not math.isfinite(slip)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_SLIPPAGE")
+            explanation_parts.append("Slippage is not a finite number.")
+        elif slip < 0:
+            risk_score += 100
+            flags.append("NEGATIVE_SLIPPAGE")
+            explanation_parts.append("Slippage is negative.")
+        elif gross_ok and slip > (gross * 0.4):
             risk_score += 25
             flags.append("HIGH_SLIPPAGE_DRAG")
             explanation_parts.append("Orderbook depth slippage consumes over 40% of gross spread.")
 
         # Fee ratio check
-        total_fees = breakdown.buy_fee_usd + breakdown.sell_fee_usd
-        if total_fees > (breakdown.gross_spread_usd * 0.7):
-            risk_score += 20
-            flags.append("HIGH_FEE_BURDEN")
-            explanation_parts.append("Exchange fees absorb over 70% of gross opportunity.")
+        buy_fee = breakdown.buy_fee_usd
+        sell_fee = breakdown.sell_fee_usd
+        if any(
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or not math.isfinite(value)
+            for value in (buy_fee, sell_fee)
+        ):
+            risk_score += 100
+            flags.append("NON_FINITE_FEE")
+            explanation_parts.append("Fee is not a finite number.")
+        else:
+            total_fees = buy_fee + sell_fee
+            if buy_fee < 0 or sell_fee < 0:
+                risk_score += 100
+                flags.append("NEGATIVE_FEE")
+                explanation_parts.append("Fee is negative.")
+            elif gross_ok and total_fees > (gross * 0.7):
+                risk_score += 20
+                flags.append("HIGH_FEE_BURDEN")
+                explanation_parts.append("Exchange fees absorb over 70% of gross opportunity.")
 
         # Data health flags penalty
         if flags:

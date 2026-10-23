@@ -2,8 +2,15 @@ import json
 import time
 from pathlib import Path
 
+
+def _refuse_symlink(path: Path) -> None:
+    if path.is_symlink() or path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+
+
 def transmit_p01():
     spec_path = Path("events/revenue-opportunities/market_intelligence/FINAL_P01_FOLLOWUP_SPEC.json")
+    _refuse_symlink(spec_path)
     with open(spec_path, "r") as f:
         spec = json.load(f)
     
@@ -12,6 +19,7 @@ def transmit_p01():
         spec["current_status"] = "TRANSMITTED_BY_CHIEF"
         spec["transmitted_at"] = time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime())
         
+        _refuse_symlink(spec_path)
         with open(spec_path, "w") as f:
             json.dump(spec, f, indent=2)
             

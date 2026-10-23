@@ -74,6 +74,9 @@ def _source_sha256(module_name: str) -> str | None:
     path = getattr(sys.modules.get(module_name), "__file__", None)
     if not path:
         return None
+    file_path = Path(path)
+    if file_path.is_symlink() or file_path.parent.is_symlink():
+        return None
     try:
         with open(path, "rb") as handle:
             stat = os.fstat(handle.fileno())

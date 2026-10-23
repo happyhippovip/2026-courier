@@ -172,3 +172,104 @@ def test_main_registration_exception(monkeypatch, capsys):
         
     out, _ = capsys.readouterr()
     assert "Failed to register" in out
+
+
+def test_task_file_does_not_follow_a_symlink(tmp_path, monkeypatch):
+    from pathlib import Path
+    monkeypatch.chdir(tmp_path)
+    seen = []
+
+    class DummyProc:
+        returncode = 0
+        stdout = ""
+        stderr = ""
+
+    def mock_run(cmd, *args, **kwargs):
+        path = Path(cmd[3])
+        seen.append(path.read_text(encoding="utf-8") if path.exists() else "")
+        return DummyProc()
+
+    monkeypatch.setattr("scripts.bodyguard_daemon.subprocess.run", mock_run)
+    task = {
+        "task_id": "t-secret",
+        "goal_id": "g",
+        "attempt_id": "a",
+        "dispatch_id": "d",
+        "marker": "SECRET-TASK-BODY",
+    }
+
+    def run():
+        try:
+            execute_task(task, "w", "TECHNICAL_WORKER")
+            return None
+        except SystemExit as exc:
+            return str(exc)
+
+    outside = tmp_path / "outside.json"
+    outside.write_text("keep", encoding="utf-8")
+    states = tmp_path / "events" / "agent-states"
+    states.mkdir(parents=True)
+    link = states / "t-secret.json"
+    link.symlink_to(outside)
+    err_file = run()
+    body_file = outside.read_text(encoding="utf-8")
+    file_still_linked = link.is_symlink()
+    seen_file = list(seen)
+    seen.clear()
+
+    outside_dir = tmp_path / "outside-dir"
+    outside_dir.mkdir()
+    (outside_dir / "keep.txt").write_text("keep", encoding="utf-8")
+    import shutil
+    shutil.rmtree(tmp_path / "events")
+    (tmp_path / "events").mkdir()
+    (tmp_path / "events" / "agent-states").symlink_to(outside_dir)
+    err_dir = run()
+    leaked_dir = sorted(p.name for p in outside_dir.iterdir())
+    seen_dir = list(seen)
+
+    assert (
+        err_file == "refusing to follow a symlink" and body_file == "keep" and seen_file == [] and file_still_linked
+        and err_dir == "refusing to follow a symlink" and leaked_dir == ["keep.txt"] and seen_dir == []
+        and (tmp_path / "events" / "agent-states").is_symlink()
+    ), (err_file, body_file, seen_file, err_dir, leaked_dir, seen_dir)
+
+
+def test_task_id_does_not_escape_the_state_dir(tmp_path, monkeypatch):
+    from pathlib import Path
+    monkeypatch.chdir(tmp_path)
+    seen = []
+
+    class DummyProc:
+        returncode = 0
+        stdout = ""
+        stderr = ""
+
+    def mock_run(cmd, *args, **kwargs):
+        path = Path(cmd[3])
+        seen.append(str(path))
+        seen.append(path.read_text(encoding="utf-8") if path.exists() else "")
+        return DummyProc()
+
+    monkeypatch.setattr("scripts.bodyguard_daemon.subprocess.run", mock_run)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("keep", encoding="utf-8")
+    task = {
+        "task_id": "../../outside/SECRET-TASK",
+        "goal_id": "g",
+        "attempt_id": "a",
+        "dispatch_id": "d",
+        "marker": "SECRET-TASK-BODY",
+    }
+    try:
+        execute_task(task, "w", "TECHNICAL_WORKER")
+        err = None
+    except SystemExit as exc:
+        err = str(exc)
+    leaked_names = sorted(p.name for p in outside.iterdir())
+    assert (err, leaked_names, seen) == (
+        "refusing an unsafe task id",
+        ["keep.txt"],
+        [],
+    )

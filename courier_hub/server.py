@@ -134,6 +134,8 @@ class Hub:
     # -- canonical truth (read-only) -------------------------------------------
     def _open(self) -> Journal:
         db = self.home / "courier.db"
+        if self.home.is_symlink() or self.home.parent.is_symlink() or db.is_symlink():
+            raise TruthUnavailable("unreadable")
         if not db.exists():
             raise TruthUnavailable("not_set_up")
         try:
@@ -279,8 +281,11 @@ class Hub:
 
     # -- controller (the only authority) ----------------------------------------
     def _token(self) -> Optional[str]:
+        path = self.home / "run" / "controller.token"
+        if self.home.is_symlink() or path.is_symlink() or path.parent.is_symlink():
+            return None
         try:
-            return (self.home / "run" / "controller.token").read_text(encoding="utf-8").strip() or None
+            return path.read_text(encoding="utf-8").strip() or None
         except OSError:
             return None
 
@@ -318,7 +323,10 @@ class Hub:
 
     def status(self) -> dict:
         checked = utc_now()
-        if not (self.home / "courier.db").exists() and self._token() is None:
+        db = self.home / "courier.db"
+        if self.home.is_symlink() or self.home.parent.is_symlink() or db.is_symlink():
+            return {"controller": "unreadable", "checked_at": checked}
+        if not db.exists() and self._token() is None:
             return {"controller": "not_set_up", "checked_at": checked}
         try:
             code, body = self._call("GET", "/v1/health")
@@ -525,7 +533,7 @@ class Handler(BaseHTTPRequestHandler):
         if "/" in name or "\\" in name or name.startswith("."):
             return self._send(404, {"error": "not_found"})
         file = STATIC_DIR / name
-        if not file.is_file():
+        if STATIC_DIR.is_symlink() or file.is_symlink() or not file.is_file():
             return self._send(404, {"error": "not_found"})
         return self._send(200, raw=file.read_bytes(),
                           content_type=STATIC_TYPES.get(file.suffix, "application/octet-stream"))

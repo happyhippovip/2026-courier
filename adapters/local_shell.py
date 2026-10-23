@@ -163,7 +163,7 @@ def _params(params: Mapping[str, Any]) -> dict:
     }
     if not isinstance(out["write"], str) or not is_safe_name(out["write"]):
         raise LocalShellError("write must be a safe workspace-relative file name")
-    if (not isinstance(out["timeout_s"], (int, float))
+    if (isinstance(out["timeout_s"], bool) or not isinstance(out["timeout_s"], (int, float))
             or not (0 < out["timeout_s"] <= MAX_TIMEOUT_S)):
         raise LocalShellError(f"timeout_s must be a number in (0, {MAX_TIMEOUT_S}]")
     if not isinstance(out["env"], Mapping) or any(

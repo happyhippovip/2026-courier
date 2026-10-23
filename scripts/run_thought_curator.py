@@ -50,6 +50,11 @@ THOUGHTS_DIR = EVENTS_DIR / "thoughts"
 STATES_DIR.mkdir(parents=True, exist_ok=True)
 THOUGHTS_DIR.mkdir(parents=True, exist_ok=True)
 
+
+def _refuse_symlink(path: Path) -> None:
+    if path.is_symlink() or path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+
 # Add scripts directory to path
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
@@ -88,6 +93,7 @@ class ThoughtCurator:
 
         # 1. Index DECISIONS.md
         decisions_file = self.memory_dir / "DECISIONS.md"
+        _refuse_symlink(decisions_file)
         if decisions_file.exists():
             try:
                 content = decisions_file.read_text(encoding="utf-8")
@@ -103,6 +109,7 @@ class ThoughtCurator:
 
         # 2. Index IDEA_ARCHIVE.md
         ideas_file = self.memory_dir / "IDEA_ARCHIVE.md"
+        _refuse_symlink(ideas_file)
         if ideas_file.exists():
             try:
                 content = ideas_file.read_text(encoding="utf-8")
@@ -116,6 +123,7 @@ class ThoughtCurator:
 
         # 3. Index PROJECT_STATE.md (Actual parsing of verified milestones & principles)
         state_file = self.memory_dir / "PROJECT_STATE.md"
+        _refuse_symlink(state_file)
         if state_file.exists():
             try:
                 content = state_file.read_text(encoding="utf-8")
@@ -308,6 +316,7 @@ class ThoughtCurator:
         )
 
         # Save thought record
+        _refuse_symlink(THOUGHTS_DIR)
         thought_file = THOUGHTS_DIR / f"{idea_id}.json"
         save_json(thought_file, context_delta)
 

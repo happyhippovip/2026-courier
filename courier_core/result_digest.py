@@ -40,7 +40,7 @@ class AcceptedTaskSummary:
 
 @dataclass(frozen=True)
 class ResultDigest:
-    status: str  # "OK", "EMPTY", "NOT_FOUND", "CORRUPT"
+    status: str  # "OK", "EMPTY", "NOT_FOUND", "CORRUPT", "REFUSED"
     home: str
     total_accepted: int = 0
     total_artifacts: int = 0
@@ -70,7 +70,14 @@ def _compute_digest_sha256(tasks_data: list[dict[str, Any]]) -> str:
 
 def summarize_home(home: Path | str) -> ResultDigest:
     """Extract and summarize all accepted task results from one Courier home."""
-    home_path = Path(home).resolve()
+    raw_home = Path(home)
+    if raw_home.is_symlink() or raw_home.parent.is_symlink():
+        return ResultDigest(
+            status="REFUSED",
+            home=str(raw_home),
+            error_detail=f"{raw_home}: refusing to follow a symlink",
+        )
+    home_path = raw_home.resolve()
     db_path = home_path / "courier.db"
 
     if not home_path.exists() or not db_path.exists():

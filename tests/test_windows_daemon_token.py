@@ -49,6 +49,49 @@ def test_environment_key_wins_over_the_token(tmp_path, monkeypatch):
     assert daemon.API_KEY == "from-env"
 
 
+def test_token_symlink_is_not_adopted(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_API_KEY", "")
+    daemon = load_daemon(tmp_path, monkeypatch)
+    outside = tmp_path / "foreign-token.txt"
+    outside.write_text("foreign-token\n", encoding="utf-8")
+    token = daemon.APP_DATA_DIR / "run" / "controller.token"
+    token.parent.mkdir(parents=True, exist_ok=True)
+    token.symlink_to(outside)
+    assert daemon.read_controller_token() == ""
+    assert outside.read_text(encoding="utf-8") == "foreign-token\n"
+
+
+def test_token_under_symlinked_run_dir_is_not_adopted(tmp_path, monkeypatch):
+    monkeypatch.setenv("COURIER_API_KEY", "")
+    daemon = load_daemon(tmp_path, monkeypatch)
+    target = tmp_path / "target"
+    target.mkdir()
+    (target / "controller.token").write_text("foreign-token\n", encoding="utf-8")
+    run = daemon.APP_DATA_DIR / "run"
+    run.symlink_to(target, target_is_directory=True)
+    assert daemon.read_controller_token() == ""
+    assert (target / "controller.token").read_text(encoding="utf-8") == "foreign-token\n"
+
+
+def test_config_symlink_is_not_adopted(tmp_path, monkeypatch):
+    daemon = load_daemon(tmp_path, monkeypatch)
+    outside = tmp_path / "foreign-config.json"
+    outside.write_text(
+        '{"COURIER_API_KEY": "foreign-key", "COURIER_SERVER": "http://evil.invalid"}\n',
+        encoding="utf-8",
+    )
+    config = daemon.APP_DATA_DIR / "config.json"
+    config.unlink()
+    config.symlink_to(outside)
+    loaded = None
+    try:
+        loaded = daemon.load_config()
+    except OSError as exc:
+        assert "symlink" in str(exc)
+    assert loaded is None
+    assert outside.read_text(encoding="utf-8").startswith('{"COURIER_API_KEY": "foreign-key"')
+
+
 def test_missing_key_still_fails_closed(tmp_path, monkeypatch):
     monkeypatch.setenv("COURIER_API_KEY", "")
     daemon = load_daemon(tmp_path, monkeypatch)

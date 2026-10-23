@@ -4,6 +4,7 @@
 import concurrent.futures
 import hashlib
 import json
+import multiprocessing
 import os
 import shutil
 import tempfile
@@ -86,7 +87,8 @@ class TestMission093And095And097HardenedPolicy(unittest.TestCase):
         task_id = "TASK-CONCURRENCY-NEW-001"
         task_hash = "hash_new_123"
 
-        with concurrent.futures.ProcessPoolExecutor(max_workers=2) as executor:
+        ctx = multiprocessing.get_context("spawn")
+        with concurrent.futures.ProcessPoolExecutor(max_workers=2, mp_context=ctx) as executor:
             fut1 = executor.submit(_concurrency_worker, str(self.test_dir), task_id, task_hash, "builder-process-alpha")
             fut2 = executor.submit(_concurrency_worker, str(self.test_dir), task_id, task_hash, "builder-process-beta")
             res1 = fut1.result()
@@ -122,7 +124,8 @@ class TestMission093And095And097HardenedPolicy(unittest.TestCase):
             json.dump(expired_seed, f)
 
         # Two competing processes race to reclaim the expired lease
-        with concurrent.futures.ProcessPoolExecutor(max_workers=2) as executor:
+        ctx = multiprocessing.get_context("spawn")
+        with concurrent.futures.ProcessPoolExecutor(max_workers=2, mp_context=ctx) as executor:
             fut1 = executor.submit(_concurrency_worker, str(self.test_dir), task_id, task_hash, "reclaimer-alpha")
             fut2 = executor.submit(_concurrency_worker, str(self.test_dir), task_id, task_hash, "reclaimer-beta")
             res1 = fut1.result()

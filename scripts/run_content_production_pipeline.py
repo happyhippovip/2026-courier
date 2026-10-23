@@ -46,16 +46,24 @@ SECRET_PATTERNS = [
 ]
 
 
+def _refuse_symlink(path: Path) -> None:
+    if path.is_symlink() or path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+
+
 def load_json(path: Path) -> dict:
+    _refuse_symlink(path)
     return json.loads(path.read_text(encoding="utf-8"))
 
 
 def save_json(path: Path, data: dict) -> None:
+    _refuse_symlink(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 
 def sha256_file(path: Path) -> str:
+    _refuse_symlink(path)
     h = hashlib.sha256()
     h.update(path.read_bytes())
     return h.hexdigest()
@@ -65,6 +73,17 @@ def slugify(text: str) -> str:
     s = text.lower().strip()
     s = re.sub(r"[^a-z0-9]+", "-", s)
     return s.strip("-")[:32]
+
+
+def _refuse_id(value: object, label: str) -> None:
+    if (
+        not isinstance(value, str)
+        or value in ("", ".", "..")
+        or Path(value).name != value
+        or "/" in value
+        or "\\" in value
+    ):
+        raise ValueError(f"refusing an unsafe {label}")
 
 
 def check_secrets_in_text(text: str) -> int:
@@ -156,6 +175,9 @@ def execute_hook_stage(stage_dir: Path, topic: str) -> Path:
 def execute_script_stage(stage_dir: Path, topic: str, content_project: str) -> Path:
     script_md_file = stage_dir / "script.md"
     script_json_file = stage_dir / "script.json"
+    _refuse_symlink(stage_dir)
+    _refuse_symlink(script_md_file)
+    _refuse_symlink(script_json_file)
 
     title_clean = topic.replace('-', ' ').title()
     script_md = f"""# Script: {title_clean}
@@ -434,6 +456,12 @@ def run_pipeline(
     local_tools_path: Path = DEFAULT_LOCAL_TOOLS_CONFIG,
     force_rerun: bool = False,
 ) -> dict:
+    if channels_path.is_symlink() or channels_path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+    if workflows_path.is_symlink() or workflows_path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+    if local_tools_path.is_symlink() or local_tools_path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     if not channels_path.exists():
         raise FileNotFoundError(f"Channels config not found: {channels_path}")
     if not workflows_path.exists():
@@ -455,9 +483,17 @@ def run_pipeline(
     if not mission_id:
         mission_id = f"prod-{slugify(channel_id.replace('chan-', ''))}-{slugify(topic)}"
 
+    _refuse_id(channel_id, "channel id")
+    _refuse_id(mission_id, "mission id")
+    if runtime_dir.is_symlink() or runtime_dir.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     mission_dir = runtime_dir / channel_id / mission_id
+    if mission_dir.is_symlink() or mission_dir.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     mission_dir.mkdir(parents=True, exist_ok=True)
     manifest_file = mission_dir / "manifest.json"
+    if manifest_file.is_symlink() or manifest_file.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
 
     # Load existing manifest if present for stage dedupe
     existing_manifest = {}
@@ -619,14 +655,26 @@ def main() -> None:
     parser.add_argument("--force", action="store_true", help="Force rerun all stages")
     args = parser.parse_args()
 
+    runtime_dir = Path(args.runtime_dir)
+    if runtime_dir.is_symlink() or runtime_dir.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+    channels_path = Path(args.config)
+    if channels_path.is_symlink() or channels_path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+    workflows_path = Path(args.workflows_config)
+    if workflows_path.is_symlink() or workflows_path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+    tools_path = Path(args.tools_config)
+    if tools_path.is_symlink() or tools_path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     manifest = run_pipeline(
         channel_id=args.channel_id,
         topic=args.topic,
         mission_id=args.mission_id,
-        runtime_dir=Path(args.runtime_dir).resolve(),
-        channels_path=Path(args.config).resolve(),
-        workflows_path=Path(args.workflows_config).resolve(),
-        local_tools_path=Path(args.tools_config).resolve(),
+        runtime_dir=runtime_dir.resolve(),
+        channels_path=channels_path.resolve(),
+        workflows_path=workflows_path.resolve(),
+        local_tools_path=tools_path.resolve(),
         force_rerun=args.force,
     )
     print(json.dumps(manifest, indent=2))

@@ -54,6 +54,24 @@ class NetProfitBreakdown:
     reason: str
 
 
+def _reject_bool_fee(sched: ExchangeFeeSchedule) -> None:
+    if any(
+        isinstance(value, bool)
+        for value in (sched.maker_fee_pct, sched.taker_fee_pct, sched.withdrawal_fee_usd)
+    ):
+        raise ValueError("Bool is not a number.")
+
+
+def _reject_bool_book(book: Optional[OrderbookSnapshot]) -> None:
+    if book is None:
+        return
+    if isinstance(book.latency_ms, bool):
+        raise ValueError("Bool is not a number.")
+    for level in (*book.bids, *book.asks):
+        if isinstance(level.price, bool) or isinstance(level.amount, bool):
+            raise ValueError("Bool is not a number.")
+
+
 class NetProfitEngine:
     """Calculates realistic net yield after fees, depth slippage, and frictions."""
 
@@ -67,6 +85,8 @@ class NetProfitEngine:
         
         Returns (effective_price, slippage_usd, has_sufficient_depth).
         """
+        if isinstance(target_usd, bool):
+            raise ValueError("Bool is not a number.")
         if not orders:
             return 0.0, 0.0, False
 
@@ -76,6 +96,8 @@ class NetProfitEngine:
         total_spent = 0.0
 
         for level in orders:
+            if isinstance(level.price, bool) or isinstance(level.amount, bool):
+                raise ValueError("Bool is not a number.")
             level_usd = level.price * level.amount
             if remaining_usd <= level_usd:
                 qty_fill = remaining_usd / level.price
@@ -113,6 +135,10 @@ class NetProfitEngine:
         sell_fee_sched: Optional[ExchangeFeeSchedule] = None,
         include_transfer: bool = False,
     ) -> NetProfitBreakdown:
+        if isinstance(order_size_usd, bool):
+            raise ValueError("Bool is not a number.")
+        _reject_bool_book(buy_book)
+        _reject_bool_book(sell_book)
         if not buy_book or not sell_book:
             return cls._blocked_breakdown(pair, "UNKNOWN", "UNKNOWN", order_size_usd, "BLOCKED_DATA_UNAVAILABLE", "One or both books missing")
 
@@ -137,6 +163,8 @@ class NetProfitEngine:
         # Fees
         b_fees = buy_fee_sched or DEFAULT_FEE_SCHEDULES.get(buy_book.exchange, ExchangeFeeSchedule(buy_book.exchange, 0.1, 0.1))
         s_fees = sell_fee_sched or DEFAULT_FEE_SCHEDULES.get(sell_book.exchange, ExchangeFeeSchedule(sell_book.exchange, 0.1, 0.1))
+        _reject_bool_fee(b_fees)
+        _reject_bool_fee(s_fees)
 
         buy_fee_usd = order_size_usd * (b_fees.taker_fee_pct / 100.0)
         sell_fee_usd = order_size_usd * (s_fees.taker_fee_pct / 100.0)

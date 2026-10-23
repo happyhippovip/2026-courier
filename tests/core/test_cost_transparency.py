@@ -21,6 +21,21 @@ def test_describe_billing_mode():
     assert describe_billing_mode(None, None) == "Local Deterministic (FREE)"
 
 
+def test_bool_billing_mode_is_not_free():
+    seen = []
+    for flag in (False, True):
+        try:
+            text = describe_billing_mode(flag, "local")
+        except Exception as exc:
+            seen.append((flag, type(exc).__name__, str(exc)))
+        else:
+            seen.append((flag, "accepted", text))
+    assert seen == [
+        (False, "accepted", "Local (UNKNOWN)"),
+        (True, "accepted", "Local (UNKNOWN)"),
+    ], seen
+
+
 def test_derive_goal_cost_summary_empty():
     res = derive_goal_cost_summary(None, None)
     assert res["payg_spend_triggered"] is False
@@ -187,3 +202,29 @@ def test_unknown_provider_without_cost_class_is_not_zero_spend():
     s = derive_goal_cost_summary(goal, {"tasks": {}, "workers": {}})
     assert s["budget_firewall_status"] != "INTACT"
     assert "Zero-Spend" not in s["human_summary"]
+
+
+def test_bool_cost_class_is_not_free():
+    goal = {
+        "goal_id": "g",
+        "workflow_plan": [{"task_id": "task-1", "instruction": "local", "target_agent": "local"}],
+    }
+    seen = []
+    for flag in (False, True):
+        state = {
+            "tasks": {"task-1": {"worker_id": "w"}},
+            "workers": {"w": {"provider": "local", "cost_class": flag}},
+        }
+        res = derive_goal_cost_summary(goal, state)
+        seen.append((
+            flag,
+            res["steps_free"],
+            res["steps_payg"],
+            res["payg_spend_triggered"],
+            res["estimated_marginal_cost"],
+            res["provider_usage_breakdown"][0]["cost_class"],
+        ))
+    assert seen == [
+        (False, 0, 1, True, "Metered PAYG (Check provider credit consumption)", "unknown"),
+        (True, 0, 1, True, "Metered PAYG (Check provider credit consumption)", "unknown"),
+    ], seen

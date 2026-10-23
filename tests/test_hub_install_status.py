@@ -8,7 +8,7 @@ import pytest
 
 from courier_core.install_state import Evidence, InstallJournal
 from courier_hub import model
-from courier_hub.cli import install_status_text
+from courier_hub.cli import evidence_from_mapping, install_status_text
 
 T0 = datetime(2026, 10, 8, 4, 0, tzinfo=timezone.utc)
 IDENTITY = {"pid": 4242, "start_time": "2026-10-08T04:00:05+00:00", "executable": "Courier.exe"}
@@ -43,6 +43,40 @@ def _completed(tmp_path, *, version="1.0.0", finished=10):
     done = journal.complete(_at(finished), process_identity=IDENTITY)
     assert done.ok, done.reason
     return done
+
+
+def test_string_false_evidence_is_not_healthy(tmp_path):
+    _completed(tmp_path)
+    raw = {
+        "config_present": "false",
+        "runtime_present": "false",
+        "scheduler_registered": "false",
+        "process_alive": "false",
+        "scheduler_principal": "alice",
+        "current_user": "alice",
+        "process_identity": dict(IDENTITY),
+        "controller_worker_id": "worker-alice",
+        "controller_confirmed_at": _at(30).isoformat(),
+    }
+    evidence = evidence_from_mapping(raw)
+    card = model.host_installation(tmp_path, evidence, _at(40), host_id="host-a")
+    flags = (
+        evidence.config_present,
+        evidence.runtime_present,
+        evidence.scheduler_registered,
+        evidence.process_alive,
+    )
+    assert flags == (False, False, False, False) and card["contract_state"] == "REPAIR_REQUIRED", (
+        flags, card["bucket"], card["tone"], card["contract_state"], card.get("reason"),
+    )
+    real = evidence_from_mapping({**raw, "config_present": False, "runtime_present": False,
+                                  "scheduler_registered": False, "process_alive": False})
+    real_card = model.host_installation(tmp_path, real, _at(40), host_id="host-a")
+    assert real_card["contract_state"] == "REPAIR_REQUIRED"
+    healthy = evidence_from_mapping({**raw, "config_present": True, "runtime_present": True,
+                                     "scheduler_registered": True, "process_alive": True})
+    healthy_card = model.host_installation(tmp_path, healthy, _at(40), host_id="host-a")
+    assert healthy_card["contract_state"] == "HEALTHY" and healthy_card["bucket"] == "working"
 
 
 def test_healthy_only_with_controller_confirmation(tmp_path):

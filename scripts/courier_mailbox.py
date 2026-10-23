@@ -20,6 +20,7 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 from courier_hub.mission_chip import run_mission_chip
+from scripts.handoff_spend import handoff_spend_block
 
 
 def _get_resource_pause_file() -> Path:
@@ -37,6 +38,10 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
 
     if not inbox_path.exists():
         return []
+    for candidate in (inbox_path, outbox_path, home_path):
+        if candidate is not None and candidate.is_symlink():
+            print("[MAILBOX] Refusing to follow a symlink. Aborting fail-closed.", file=sys.stderr)
+            return []
 
     try:
         from courier_runtime.lease import LeaseConflict, LeaseStore, FencedFileWriter
@@ -54,34 +59,74 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
         lines = inbox_path.read_text(encoding="utf-8").splitlines()
         tasks = []
         for line in lines:
-            if line.strip():
-                try:
-                    tasks.append(json.loads(line))
-                except Exception:
-                    pass
+            if not line.strip():
+                continue
+            try:
+                item = json.loads(line)
+            except json.JSONDecodeError:
+                print("[MAILBOX] Inbox line is not JSON. Aborting fail-closed.", file=sys.stderr)
+                return []
+            if not isinstance(item, dict):
+                print("[MAILBOX] Inbox line is not an object. Aborting fail-closed.", file=sys.stderr)
+                return []
+            tasks.append(item)
 
         executed = []
         updated_lines = []
+        seen_ids: set[str] = set()
+        if outbox_path.exists() and not outbox_path.is_symlink():
+            for prior_line in outbox_path.read_text(encoding="utf-8").splitlines():
+                if not prior_line.strip():
+                    continue
+                try:
+                    prior = json.loads(prior_line)
+                except json.JSONDecodeError:
+                    print("[MAILBOX] Outbox line is not JSON. Aborting fail-closed.", file=sys.stderr)
+                    return []
+                if not isinstance(prior, dict):
+                    print("[MAILBOX] Outbox line is not an object. Aborting fail-closed.", file=sys.stderr)
+                    return []
+                prior_id = prior.get("task_id")
+                if isinstance(prior_id, str) and prior_id and not isinstance(prior_id, bool):
+                    seen_ids.add(prior_id)
 
         for task in tasks:
-            task_id = task.get("task_id", f"task-{int(time.time()*1000)}")
+            raw_id = task.get("task_id")
+            if isinstance(raw_id, str) and raw_id:
+                task_id = raw_id
+            else:
+                # A missing id is not a fresh task. Generating one would run
+                # every blank line as new work.
+                task["status"] = "BLOCKED"
+                task["resolution"] = "INVALID_TASK_ID"
+                task["reason"] = "Task id must be a non-empty string."
+                task["processed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                updated_lines.append(json.dumps(task))
+                continue
             status = task.get("status", "PENDING")
 
-            if status == "PENDING":
-                # P0 CostGate Check: fail closed on missing, non-numeric, or positive cost
-                if "estimated_cost_eur" not in task:
-                    task["status"] = "BLOCKED_COSTGATE"
-                    task["resolution"] = "UNKNOWN_COST"
-                    task["reason"] = "Task has no explicit estimated_cost_eur."
+            if isinstance(raw_id, str) and raw_id and raw_id in seen_ids:
+                if status == "PENDING":
+                    task["status"] = "DUPLICATE"
+                    task["resolution"] = "IDEMPOTENT_REPLAY"
+                    task["reason"] = "The same task_id was already accepted."
                     task["processed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-                    updated_lines.append(json.dumps(task))
-                    continue
+                updated_lines.append(json.dumps(task))
+                continue
+            if isinstance(raw_id, str) and raw_id:
+                seen_ids.add(raw_id)
 
-                est_cost = task["estimated_cost_eur"]
-                import math
-                if isinstance(est_cost, bool) or not isinstance(est_cost, (int, float)) or est_cost < 0.0 or est_cost > 0.0 or math.isnan(est_cost) or math.isinf(est_cost):
+            if status == "PENDING":
+                # One spend decision. An unknown mark blocks beside an explicit zero.
+                reason = handoff_spend_block(task)
+                if reason:
                     task["status"] = "BLOCKED_COSTGATE"
-                    task["resolution"] = "COSTGATE_REJECTED" if (isinstance(est_cost, (int, float)) and est_cost > 0.0) else "UNKNOWN_COST"
+                    task["resolution"] = (
+                        "COSTGATE_REJECTED"
+                        if reason == "SPEND_NOT_ALLOWED_BY_POLICY"
+                        else "UNKNOWN_COST"
+                    )
+                    task["reason"] = reason
                     task["processed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
                     updated_lines.append(json.dumps(task))
                     continue
@@ -90,11 +135,25 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
                 
                 # Execute deterministically
                 res = run_mission_chip(target_home=home_path)
-                
+                verifier = res.get("verifier_result") if isinstance(res, dict) else None
+                accepted = (
+                    isinstance(res, dict)
+                    and res.get("overall_status") == "COMPLETE"
+                    and isinstance(verifier, dict)
+                    and verifier.get("accepted") is True
+                    and verifier.get("resolution") == "verified"
+                )
+                if not accepted:
+                    task["status"] = "FAILED"
+                    task["resolution"] = "NOT_VERIFIED"
+                    task["processed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                    updated_lines.append(json.dumps(task))
+                    continue
+
                 task["status"] = "DONE"
-                task["resolution"] = res["verifier_result"]["resolution"]
-                task["accepted_result_id"] = res["verifier_result"]["accepted_result_id"]
-                task["artifact_sha256"] = res["verifier_result"]["artifact_sha256"]
+                task["resolution"] = verifier["resolution"]
+                task["accepted_result_id"] = verifier.get("accepted_result_id")
+                task["artifact_sha256"] = verifier.get("artifact_sha256")
                 task["processed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
                 
                 outbox_entry = {
@@ -103,7 +162,7 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
                     "execution_result": res,
                     "completed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                 }
-                writer = FencedFileWriter(lease_store, f"mailbox:{inbox_path.name}", lease.token)
+                writer = FencedFileWriter(lease_store, f"mailbox:{inbox_path.name}", lease.token, lease.holder)
                 with writer.open(outbox_path, "a", encoding="utf-8") as out_f:
                     out_f.write(json.dumps(outbox_entry) + "\n")
                     
@@ -112,7 +171,7 @@ def process_inbox(inbox_path: Path, outbox_path: Path, home_path: Path | None = 
             updated_lines.append(json.dumps(task))
 
         # Verify fence before atomic inbox replace
-        lease_store.check_write(scope, lease.token)
+        lease_store.check_write(scope, lease.token, lease.holder)
         tmp_inbox = inbox_path.with_suffix(".tmp")
         tmp_inbox.write_text("\n".join(updated_lines) + ("\n" if updated_lines else ""), encoding="utf-8")
         tmp_inbox.replace(inbox_path)

@@ -32,6 +32,28 @@ def test_swap_and_disk():
     assert sum(1 for sev, _ in f if sev == "high") == 2
 
 
+def test_json_does_not_follow_a_symlink(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr("scripts.host_health.snapshot", lambda: snap())
+    outside = tmp_path / "outside.json"
+    outside.write_text("keep", encoding="utf-8")
+    link = tmp_path / "health.json"
+    link.symlink_to(outside)
+    outside_dir = tmp_path / "outside-dir"
+    outside_dir.mkdir()
+    (outside_dir / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = tmp_path / "linked"
+    linked.symlink_to(outside_dir)
+    file_code = main(["--json", str(link)])
+    dir_code = main(["--json", str(linked / "health.json")])
+    leaked = sorted(p.name for p in outside_dir.iterdir())
+    assert file_code == 2 and dir_code == 2 and outside.read_text(encoding="utf-8") == "keep" and leaked == ["keep.txt"] and link.is_symlink(), (
+        file_code, dir_code, outside.read_text(encoding="utf-8")[:80], leaked, link.is_symlink(),
+    )
+    capsys.readouterr()
+    real = tmp_path / "real.json"
+    assert main(["--json", str(real)]) == 0 and "snapshot" in real.read_text(encoding="utf-8")
+
+
 def test_live_snapshot_runs_read_only(capsys):
     s = snapshot()
     assert s["ram_total_gb"] > 0 and isinstance(s["groups"], list)

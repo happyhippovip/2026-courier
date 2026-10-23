@@ -280,6 +280,9 @@ def render_report_de(owner: str, repo: str, sha: str, analysis: dict) -> str:
     return md
 
 def worker(task: dict, work_dir: Path) -> dict:
+    work_dir = Path(work_dir)
+    if work_dir.is_symlink() or work_dir.parent.is_symlink():
+        fail("refusing to follow a symlink")
     owner = task["target_owner"]
     repo = task["target_repo"]
     sha = task["target_sha"]

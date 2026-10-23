@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -74,6 +75,7 @@ def iso_now() -> str:
 
 
 def load_json(path: Path) -> dict[str, Any]:
+    _refuse_symlink(path)
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
@@ -81,10 +83,17 @@ def load_json(path: Path) -> dict[str, Any]:
 
 
 def save_json(path: Path, value: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
     temp = path.with_suffix(".tmp")
+    _refuse_symlink(path)
+    _refuse_symlink(temp)
+    path.parent.mkdir(parents=True, exist_ok=True)
     temp.write_text(json.dumps(value, indent=2, sort_keys=True), encoding="utf-8")
     temp.replace(path)
+
+
+def _refuse_symlink(path: Path) -> None:
+    if path.is_symlink() or path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
 
 
 def generate_bodyguard_speech(state: str, callsign: str, role: str | None = None) -> str:
@@ -110,8 +119,13 @@ class BodyguardPoolManager:
     """Manages the 8 Bodyguard reserve slots, temporary roles, and state files."""
 
     def __init__(self, repo_dir: Path = COURIER_DIR):
+        repo_dir = Path(repo_dir)
+        states_dir = repo_dir / "events/agent-states"
+        for path in (repo_dir, states_dir):
+            if path.is_symlink() or path.parent.is_symlink():
+                raise ValueError("refusing to follow a symlink")
         self.repo_dir = repo_dir
-        self.states_dir = repo_dir / "events/agent-states"
+        self.states_dir = states_dir
         self.states_dir.mkdir(parents=True, exist_ok=True)
 
     def initialize_pool(self, force_reset: bool = False) -> list[dict[str, Any]]:
@@ -119,6 +133,7 @@ class BodyguardPoolManager:
         states = []
         for bg in BODYGUARD_REGISTRY:
             path = self.states_dir / f"{bg['id']}.json"
+            _refuse_symlink(path)
             if force_reset or not path.exists():
                 state = {
                     "schema_version": "2.0",
@@ -154,6 +169,7 @@ class BodyguardPoolManager:
         states = []
         for bg in BODYGUARD_REGISTRY:
             path = self.states_dir / f"{bg['id']}.json"
+            _refuse_symlink(path)
             if path.exists():
                 states.append(load_json(path))
             else:
@@ -198,6 +214,7 @@ class BodyguardPoolManager:
 
         target_callsign = bg_to_assign["callsign"]
         path = self.states_dir / f"{bg_to_assign['id']}.json"
+        _refuse_symlink(path)
 
         # Check required capabilities
         reqs = required_capabilities or []
@@ -246,11 +263,18 @@ class BodyguardPoolManager:
         working: bool = True,
     ) -> dict[str, Any]:
         """Update bodyguard execution progress."""
+        if isinstance(progress, bool):
+            raise ValueError("Bool is not a number.")
+        if not isinstance(progress, (int, float)) or not math.isfinite(progress):
+            raise ValueError("progress is not a number.")
+        if progress < 0 or progress > 1:
+            raise ValueError("progress is out of range.")
         for bg in BODYGUARD_REGISTRY:
             if bg["callsign"] == callsign.upper():
                 path = self.states_dir / f"{bg['id']}.json"
+                _refuse_symlink(path)
                 current = load_json(path)
-                state_val = "WORKING" if working else current.get("state", "WORKING")
+                state_val = "WORKING" if working is True else current.get("state", "WORKING")
                 updated = {
                     **current,
                     "state": state_val,
@@ -272,6 +296,7 @@ class BodyguardPoolManager:
         for bg in BODYGUARD_REGISTRY:
             if bg["callsign"] == callsign.upper():
                 path = self.states_dir / f"{bg['id']}.json"
+                _refuse_symlink(path)
                 current = load_json(path)
                 # First step: RETURNING
                 returning_state = {

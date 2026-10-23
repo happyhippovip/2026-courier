@@ -379,7 +379,7 @@ class CourierScheduler:
                 if progress(incoming) != progress(current):
                     raise ValueError("changed progress requires expected_checkpoint")
             if retry_after is not None:
-                if not isinstance(retry_after, (int, float)) or not 0 <= retry_after < float("inf"):
+                if isinstance(retry_after, bool) or not isinstance(retry_after, (int, float)) or not 0 <= retry_after < float("inf"):
                     raise ValueError("invalid trusted retry_after")
                 reset_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=retry_after)
             self.breaker.record_failure(self.primary_provider, capability, error_code, message, reset_time)

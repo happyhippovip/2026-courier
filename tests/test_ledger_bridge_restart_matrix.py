@@ -62,6 +62,7 @@ def _spec(unit):
         "max_attempts": 1,
         "lease_ttl_s": 30,
         "source_sha": SHA,
+        "estimated_cost_eur": 0.0,
     }
 
 
@@ -171,7 +172,7 @@ def _log(home):
 def _complete(http, unit, result_id):
     posted = next(item for item in http.posts if item["params"]["unit"] == unit)
     http.views[_task_id(posted["idempotency_key"])].update(
-        status="COMPLETE", accepted_result_id=result_id, attempt=1,
+        status="COMPLETE", accepted_result_id=result_id, attempt=1, resolution="verified",
     )
 
 

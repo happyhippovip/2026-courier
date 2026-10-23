@@ -99,7 +99,7 @@ def run_worker(task_path, negative_test=False, state_file="central_state.json"):
     from scripts.resource_policy import CostGate
     cost_res = CostGate.evaluate_spend_request(
         "google_antigravity_plus",
-        estimated_cost_eur=task.get("estimated_cost_eur", 0.0),
+        estimated_cost_eur=task.get("estimated_cost_eur"),
         requested_action=task.get("requested_action", "EXECUTE_TASK"),
     )
     if not cost_res.get("allowed"):
@@ -111,8 +111,16 @@ def run_worker(task_path, negative_test=False, state_file="central_state.json"):
         }
 
     # We remove --dangerously-skip-permissions. A harmless task doesn't use tools and shouldn't prompt.
+    raw_timeout = task.get("timeout_seconds", 60)
+    if isinstance(raw_timeout, bool) or not isinstance(raw_timeout, (int, float)) or raw_timeout <= 0:
+        return {
+            "status": "FAILED",
+            "reason": "INVALID_TIMEOUT",
+            "error": "timeout_seconds must be a positive number. Bool is not a duration.",
+            "blocked": True,
+        }
     dispatch_ref = str(uuid.uuid4())
-    timeout_s = float(task.get("timeout_seconds", 60))
+    timeout_s = float(raw_timeout)
 
     popen_kwargs = {"stdout": subprocess.PIPE, "stderr": subprocess.PIPE, "text": True}
     if os.name == "nt":
@@ -203,11 +211,11 @@ if __name__ == "__main__":
     if mode == "positive":
         task_id = "task-gemini-002"
         with open('dummy_task_2.json', 'w') as f:
-            json.dump({"task_id": task_id, "instruction": "Respond with {'status': 'SUCCESS'}"}, f)
+            json.dump({"task_id": task_id, "instruction": "Respond with {'status': 'SUCCESS'}", "estimated_cost_eur": 0.0}, f)
         run_worker('dummy_task_2.json', negative_test=False)
         
     elif mode == "negative":
         task_id = "task-gemini-003-invalid"
         with open('dummy_task_3.json', 'w') as f:
-            json.dump({"task_id": task_id, "instruction": "Respond with garbage"}, f)
+            json.dump({"task_id": task_id, "instruction": "Respond with garbage", "estimated_cost_eur": 0.0}, f)
         run_worker('dummy_task_3.json', negative_test=True)

@@ -115,6 +115,37 @@ def test_pytest_summary_counts(tmp_path):
     assert str(blob) not in text
 
 
+def test_pytest_json_does_not_follow_a_symlink(tmp_path):
+    repo = _repo(tmp_path)
+    _write(repo, "README.md", "# Demo\n")
+    outside = tmp_path / "outside.json"
+    outside.write_text(
+        json.dumps({"summary": {"passed": 999, "failed": 0, "skipped": 0}}),
+        encoding="utf-8",
+    )
+    link = tmp_path / "pytest.json"
+    link.symlink_to(outside)
+    outside_dir = tmp_path / "outside-dir"
+    outside_dir.mkdir()
+    (outside_dir / "pytest.json").write_text(
+        json.dumps({"summary": {"passed": 888, "failed": 0, "skipped": 0}}),
+        encoding="utf-8",
+    )
+    linked_dir = tmp_path / "linked-dir"
+    linked_dir.symlink_to(outside_dir, target_is_directory=True)
+    file_data = analyze(repo, link)
+    dir_data = analyze(repo, linked_dir / "pytest.json")
+    text = build_report(repo, link)
+    assert (
+        file_data["pytest"]["status"] == "unreadable"
+        and file_data["pytest"]["passed"] is None
+        and dir_data["pytest"]["status"] == "unreadable"
+        and dir_data["pytest"]["passed"] is None
+        and "999" not in text
+        and "888" not in text
+    ), (file_data["pytest"], dir_data["pytest"])
+
+
 def test_pytest_counts_tests_array_without_summary(tmp_path):
     repo = _repo(tmp_path)
     secret = "ghp_" + "C" * 36
@@ -491,6 +522,43 @@ def test_cli_out_stdout_and_missing_repo(tmp_path, capsys):
     assert captured.out.startswith("# Repo Reality Check\n")
     assert main([str(tmp_path / "missing")]) == 2
     assert "not a directory" in capsys.readouterr().err
+
+
+def test_out_does_not_follow_a_symlink(tmp_path):
+    repo = _repo(tmp_path)
+    _write(repo, "README.md", "# Demo\n")
+    outside = tmp_path / "outside.md"
+    outside.write_text("keep", encoding="utf-8")
+    link = tmp_path / "report.md"
+    link.symlink_to(outside)
+    code = main([str(repo), "--out", str(link)])
+    text = outside.read_text(encoding="utf-8")
+    outside_dir = tmp_path / "outside-dir"
+    outside_dir.mkdir()
+    linked_dir = tmp_path / "linked-dir"
+    linked_dir.symlink_to(outside_dir, target_is_directory=True)
+    code_dir = main([str(repo), "--out", str(linked_dir / "report.md")])
+    names = sorted(path.name for path in outside_dir.iterdir())
+    assert text == "keep" and code != 0 and names == [] and code_dir != 0, (code, text[:80], code_dir, names)
+
+
+def test_repo_argument_does_not_follow_a_symlink(tmp_path, capsys):
+    real = tmp_path / "real"
+    real.mkdir()
+    (real / "secret.py").write_text("SECRET = 1\n", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(real, target_is_directory=True)
+    code = main([str(link)])
+    captured = capsys.readouterr()
+    real_code = main([str(real)])
+    real_out = capsys.readouterr().out
+    assert (
+        code == 2
+        and "symlink" in captured.err.lower()
+        and "secret.py" not in captured.out
+        and real_code == 0
+        and "secret.py" in real_out
+    ), (code, captured.err, captured.out[:300], real_code, "secret.py" in real_out)
 
 
 def test_module_entrypoint(tmp_path):

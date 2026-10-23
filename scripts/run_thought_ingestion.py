@@ -88,8 +88,12 @@ def normalize(envelope: dict[str, Any]) -> dict[str, Any]:
 
 
 def load_recoverable_state(state_path: Path, processed_dir: Path) -> dict[str, Any]:
+    if state_path.is_symlink() or state_path.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     state = load_json(state_path, {"ingestions": {}, "source_messages": {}, "coverage_ledger": {}})
     for run_file in sorted(processed_dir.glob("run-*.json")):
+        if run_file.is_symlink() or run_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         record = load_json(run_file, {})
         for item in record.get("completed_ingestions", []):
             state.setdefault("ingestions", {}).setdefault(item["ingestion_id"], item["content_hash"])
@@ -108,6 +112,8 @@ def _run_ingestion(inbox: Path, processed: Path, rejected: Path, memory_repo: Pa
     batch_ids: dict[str, str] = {}
     batch_sources: dict[str, str] = {}
     for input_file in sorted(inbox.glob("*.json")):
+        if input_file.is_symlink() or input_file.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
         try:
             raw = load_json(input_file, None)
         except json.JSONDecodeError:
@@ -178,6 +184,12 @@ def _run_ingestion(inbox: Path, processed: Path, rejected: Path, memory_repo: Pa
 
 def run_ingestion(inbox: Path, processed: Path, rejected: Path, memory_repo: Path) -> dict[str, Any]:
     """Serialize local runners. A live/stale lock fails closed rather than risking duplicate proposals."""
+    if inbox.is_symlink() or inbox.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+    if processed.is_symlink() or processed.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
+    if rejected.is_symlink() or rejected.parent.is_symlink():
+        raise ValueError("refusing to follow a symlink")
     processed.mkdir(parents=True, exist_ok=True)
     lock = processed / ".ingestion.lock"
     try:

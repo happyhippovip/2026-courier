@@ -55,7 +55,7 @@ class ArbitrageResearchPipeline:
         If books_provider is provided, uses deterministic offline orderbooks.
         Otherwise queries public unauthenticated endpoints.
         """
-        target_pairs = pairs or self.DEFAULT_PAIRS
+        target_pairs = self.DEFAULT_PAIRS if pairs is None else pairs
         evaluated_opportunities: list[NetProfitBreakdown] = []
         pairs_summary: list[dict] = []
 
@@ -99,7 +99,7 @@ class ArbitrageResearchPipeline:
 
             pairs_summary.append({
                 "pair": pair.canonical,
-                "venues": [v.capitalize() for v in venues_present] if venues_present else ["Binance", "Kraken"],
+                "venues": [v.capitalize() for v in venues_present],
                 "spread_bps": round(max(0.0, best_spread_bps), 1),
                 "status": "active" if venues_present else "standby",
             })
@@ -114,8 +114,10 @@ class ArbitrageResearchPipeline:
 
         realized_pnl = self.paper_engine.total_realized_pnl_usd
         sim_loss = sum(abs(t.net_pnl_usd) for t in self.paper_engine.trade_history if t.net_pnl_usd < 0)
-        win_rate = self.paper_engine.win_rate_pct if self.paper_engine.trade_history else 91.4
+        win_rate = self.paper_engine.win_rate_pct
         runs = len(self.paper_engine.trade_history)
+        capital = self.paper_engine.initial_capital_usd
+        roi = (realized_pnl / capital * 100.0) if capital else 0.0
 
         best_strategy = "Cross-Exchange Spot (Binance ↔ Kraken)"
 
@@ -135,15 +137,15 @@ class ArbitrageResearchPipeline:
             "title": "👑 COURIER AI ARBITRAGE · BINANCE ↔ KRAKEN",
             "pairs_monitored": pairs_summary,
             "simulation": {
-                "net_simulated_profit_eur": round(realized_pnl if realized_pnl > 0 else 184.20, 2),
-                "simulated_loss_eur": round(sim_loss if sim_loss > 0 else 18.50, 2),
-                "net_roi_pct": round((realized_pnl / self.paper_engine.initial_capital_usd * 100.0) if realized_pnl > 0 else 3.82, 2),
-                "gross_opportunity_eur": round(gross_opp_total if gross_opp_total > 0 else 245.80, 2),
-                "estimated_fees_eur": round(fees_total if fees_total > 0 else 31.40, 2),
-                "estimated_slippage_eur": round(slip_total if slip_total > 0 else 11.70, 2),
-                "opportunities_detected": len(evaluated_opportunities) if evaluated_opportunities else 42,
-                "opportunities_executable": len(eligible_opps) if eligible_opps else 29,
-                "simulation_runs": runs if runs > 0 else 1850,
+                "net_simulated_profit_eur": round(realized_pnl, 2),
+                "simulated_loss_eur": round(sim_loss, 2),
+                "net_roi_pct": round(roi, 2),
+                "gross_opportunity_eur": round(gross_opp_total, 2),
+                "estimated_fees_eur": round(fees_total, 2),
+                "estimated_slippage_eur": round(slip_total, 2),
+                "opportunities_detected": len(evaluated_opportunities),
+                "opportunities_executable": len(eligible_opps),
+                "simulation_runs": runs,
                 "success_rate_pct": round(win_rate, 1),
                 "best_simulated_strategy": best_strategy,
                 "rebalance_status": rebal_assessment.status,
@@ -160,6 +162,12 @@ class ArbitrageResearchPipeline:
 
         # 5. Persist to registry (skipped for dry-run audits)
         if self.persist:
-            self.registry_file.parent.mkdir(parents=True, exist_ok=True)
-            self.registry_file.write_text(json.dumps(snapshot_data, indent=2), encoding="utf-8")
+            self._write_registry(snapshot_data)
         return snapshot_data
+
+    def _write_registry(self, snapshot_data: dict) -> None:
+        path = self.registry_file
+        if path.is_symlink() or path.parent.is_symlink():
+            raise ValueError("refusing to follow a symlink")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(snapshot_data, indent=2), encoding="utf-8")

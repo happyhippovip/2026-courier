@@ -128,3 +128,78 @@ def test_main_output_file(tmp_path):
     assert out.exists()
     res = json.loads(out.read_text(encoding="utf-8"))
     assert res["memory_repo"] == DEFAULT_MEMORY_REPO_NAME
+
+
+def test_memory_repo_symlink_is_not_read(tmp_path, capsys):
+    real = tmp_path / "real"
+    real.mkdir()
+    (real / "PROJECT_STATE.md").write_text("SECRET-MEMORY-BODY\n", encoding="utf-8")
+    link = tmp_path / "linked-memory"
+    link.symlink_to(real)
+    via = tmp_path / "via"
+    via.symlink_to(tmp_path)
+    nested = via / "real"
+    seen = []
+    for label, path in (("file", link), ("parent", nested)):
+        try:
+            package = build_memory_context_package(path, "")
+        except SystemExit as exc:
+            seen.append((label, str(exc)))
+        else:
+            seen.append((label, json.dumps(package)))
+    with patch.object(sys, "argv", ["resolve_project_memory.py", "--memory-repo", str(link)]):
+        try:
+            main()
+        except SystemExit as exc:
+            seen.append(("main", str(exc)))
+        else:
+            seen.append(("main", capsys.readouterr().out))
+    plain = tmp_path / "plain"
+    plain.mkdir()
+    secret_file = tmp_path / "secret.md"
+    secret_file.write_text("SECRET-FILE-BODY\n", encoding="utf-8")
+    (plain / "PROJECT_STATE.md").symlink_to(secret_file)
+    (plain / "AGENTS.md").write_text("Agents\n", encoding="utf-8")
+    try:
+        package = build_memory_context_package(plain, "")
+    except SystemExit as exc:
+        seen.append(("inner", str(exc)))
+    else:
+        seen.append(("inner", json.dumps(package)))
+    assert "SECRET-MEMORY-BODY" not in json.dumps(seen) and "SECRET-FILE-BODY" not in json.dumps(seen) and seen == [
+        ("file", "MEMORY_RESOLVER_ERROR: refusing to follow a symlink"),
+        ("parent", "MEMORY_RESOLVER_ERROR: refusing to follow a symlink"),
+        ("main", "MEMORY_RESOLVER_ERROR: refusing to follow a symlink"),
+        ("inner", "MEMORY_RESOLVER_ERROR: refusing to follow a symlink"),
+    ] and secret_file.read_text(encoding="utf-8") == "SECRET-FILE-BODY\n", seen
+
+
+def test_output_does_not_follow_a_symlink(tmp_path):
+    repo = tmp_path / "memory"
+    repo.mkdir()
+    outside = tmp_path / "outside.json"
+    outside.write_text("keep", encoding="utf-8")
+    link = tmp_path / "out.json"
+    link.symlink_to(outside)
+    outside_dir = tmp_path / "outside-dir"
+    outside_dir.mkdir()
+    (outside_dir / "keep.txt").write_text("keep", encoding="utf-8")
+    linked = tmp_path / "linked"
+    linked.symlink_to(outside_dir)
+    errors = []
+    for dest in (link, linked / "out.json"):
+        test_args = ["resolve_project_memory.py", "--memory-repo", str(repo), "--output", str(dest)]
+        with patch.object(sys, "argv", test_args):
+            try:
+                main()
+            except SystemExit as exc:
+                errors.append(str(exc))
+            else:
+                errors.append("wrote")
+    leaked = sorted(p.name for p in outside_dir.iterdir())
+    assert errors == [
+        "MEMORY_RESOLVER_ERROR: refusing to follow a symlink",
+        "MEMORY_RESOLVER_ERROR: refusing to follow a symlink",
+    ] and outside.read_text(encoding="utf-8") == "keep" and leaked == ["keep.txt"] and link.is_symlink(), (
+        errors, outside.read_text(encoding="utf-8")[:80], leaked, link.is_symlink(),
+    )

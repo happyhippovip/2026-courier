@@ -46,6 +46,8 @@ def read_cells(path):
             cells[ref] = shared[int(v.text)]
         elif kind == "inlineStr" and is_ is not None:
             cells[ref] = "".join(t.text or "" for t in is_.iter(_q("t")))
+        elif kind == "b":
+            raise ValueError(f"{ref}: Bool is not a number.")
         elif v is not None:
             cells[ref] = float(v.text) if "." in v.text else int(v.text)
     return cells
@@ -60,8 +62,12 @@ def plan(path, changes):
             raise ValueError(f"bad cell reference {ref!r}")
         if isinstance(current.get(ref), str) and current[ref].startswith("="):
             raise ValueError(f"{ref} holds a formula; editing formulas is out of scope")
-        if not isinstance(value, (int, float, str)) or (isinstance(value, str) and value.startswith("=")):
-            raise ValueError(f"{ref}: only plain numbers and text can be written")
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, (int, float, str))
+            or (isinstance(value, str) and value.startswith("="))
+        ):
+            raise ValueError(f"{ref}: only plain numbers and text can be written. Bool is not a number.")
         out.append((ref, current.get(ref), value))
     return out
 

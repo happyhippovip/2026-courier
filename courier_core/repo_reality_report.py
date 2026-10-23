@@ -203,6 +203,8 @@ def build_report(
 def analyze(repo_path: Path | str, pytest_json: Path | str | None = None) -> dict:
     """Scan ``repo_path`` and return a JSON-ready summary. Paths are relative."""
     root = Path(repo_path)
+    if root.is_symlink() or root.parent.is_symlink():
+        raise ValueError(f"{root}: refusing to follow a symlink")
     files, capped = _walk(root)
     languages: dict[str, list[int]] = {}
     test_rows: list[dict] = []
@@ -590,6 +592,9 @@ def main(argv: list[str] | None = None) -> int:
             return 2
     elif args.repo_path:
         repo = Path(args.repo_path)
+        if repo.is_symlink() or repo.parent.is_symlink():
+            print(f"{repo}: refusing to follow a symlink", file=sys.stderr)
+            return 2
         if not repo.is_dir():
             print("repo path is not a directory", file=sys.stderr)
             return 2
@@ -598,7 +603,11 @@ def main(argv: list[str] | None = None) -> int:
         print("pass a local directory or --github owner/repo[@ref]", file=sys.stderr)
         return 2
     if args.out:
-        Path(args.out).write_text(report, encoding="utf-8")
+        out_path = Path(args.out)
+        if out_path.is_symlink() or out_path.parent.is_symlink():
+            print(f"{out_path}: refusing to follow a symlink", file=sys.stderr)
+            return 2
+        out_path.write_text(report, encoding="utf-8")
         return 0
     sys.stdout.write(report)
     return 0
@@ -1114,7 +1123,7 @@ def _parse_pytest(path: Path | None) -> dict:
     if path is None:
         return {"status": "not_supplied", **empty}
     try:
-        if not path.is_file():
+        if path.is_symlink() or path.parent.is_symlink() or not path.is_file():
             return {"status": "unreadable", **empty}
         text = path.read_text(encoding="utf-8")
     except OSError:

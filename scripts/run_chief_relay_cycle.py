@@ -31,7 +31,14 @@ def fail(message: str) -> None:
     raise SystemExit(f"RELAY_CYCLE_ERROR: {message}")
 
 
+def _refuse_symlink(path: Path) -> None:
+    if path.is_symlink() or path.parent.is_symlink():
+        fail("refusing to follow a symlink")
+
+
 def is_command_pending(cmd_file: Path, processed_dir: Path) -> bool:
+    _refuse_symlink(cmd_file)
+    _refuse_symlink(processed_dir)
     try:
         data = json.loads(cmd_file.read_text(encoding="utf-8"))
     except Exception:
@@ -62,6 +69,8 @@ def is_command_pending(cmd_file: Path, processed_dir: Path) -> bool:
 
 
 def discover_pending_command(incoming_dir: Path, processed_dir: Path) -> Path | None:
+    _refuse_symlink(incoming_dir)
+    _refuse_symlink(processed_dir)
     if not incoming_dir.exists():
         return None
 
@@ -309,14 +318,30 @@ def main() -> None:
     parser.add_argument("--push", action="store_true", help="Commit and push result after processing")
     args = parser.parse_args()
 
-    repo_dir = Path(args.repo_dir).resolve()
-    incoming_dir = (repo_dir / args.incoming_dir).resolve()
-    processed_dir = (repo_dir / args.processed_dir).resolve()
-    dispatch_dir = (repo_dir / args.dispatch_dir).resolve()
-    proposals_dir = (repo_dir / args.proposals_dir).resolve()
-    approvals_dir = (repo_dir / args.approvals_dir).resolve()
-    decisions_dir = (repo_dir / args.decisions_dir).resolve()
-    memory_repo = Path(args.memory_repo).resolve() if args.memory_repo else None
+    repo_dir = Path(args.repo_dir)
+    incoming_dir = repo_dir / args.incoming_dir
+    _refuse_symlink(incoming_dir)
+    repo_dir = repo_dir.resolve()
+    incoming_dir = incoming_dir.resolve()
+    processed_dir = repo_dir / args.processed_dir
+    _refuse_symlink(processed_dir)
+    processed_dir = processed_dir.resolve()
+    dispatch_dir = repo_dir / args.dispatch_dir
+    _refuse_symlink(dispatch_dir)
+    dispatch_dir = dispatch_dir.resolve()
+    proposals_dir = repo_dir / args.proposals_dir
+    _refuse_symlink(proposals_dir)
+    proposals_dir = proposals_dir.resolve()
+    approvals_dir = repo_dir / args.approvals_dir
+    _refuse_symlink(approvals_dir)
+    approvals_dir = approvals_dir.resolve()
+    decisions_dir = repo_dir / args.decisions_dir
+    _refuse_symlink(decisions_dir)
+    decisions_dir = decisions_dir.resolve()
+    memory_repo = Path(args.memory_repo) if args.memory_repo else None
+    if memory_repo is not None:
+        _refuse_symlink(memory_repo)
+        memory_repo = memory_repo.resolve()
 
     result = run_cycle(
         repo_dir=repo_dir,
