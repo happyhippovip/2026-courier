@@ -1,0 +1,120 @@
+diff --git a/courier_core/work_queue.py b/courier_core/work_queue.py
+index 2639b6ff3..7cde7720d 100644
+--- a/courier_core/work_queue.py
++++ b/courier_core/work_queue.py
+@@ -217,6 +217,9 @@ class WorkQueue:
+             _apply(seeds, event)
+         for item in seeds.values():
+             if item["status"] == "CLAIMED" and not _held(item, moment) and not item.get("claim_once"):
++                # Claimable again, but keep who held it: an expired lease is not proof that the
++                # holder's mission stopped, so a consumer must not treat this as a fresh workkey.
++                item["expired_lease"] = dict(item["lease"]) if isinstance(item.get("lease"), dict) else None
+                 item["status"] = "READY"
+                 item["lease"] = None
+         return seeds
+@@ -689,6 +692,7 @@ def _public(item: dict) -> dict:
+         "provider_hints": list(item["provider_hints"]),
+         "status": "READY" if item["status"] == "READY" else item["status"],
+         "lease": None if item["lease"] is None else dict(item["lease"]),
++        "expired_lease": item.get("expired_lease"),
+         "publish_gate": item.get("publish_gate"),
+         "pull_request": item.get("pull_request"),
+         "template": bool(item.get("template")),
+diff --git a/courier_worker/queue_feed.py b/courier_worker/queue_feed.py
+index 308fb4c2c..4bcdc0083 100644
+--- a/courier_worker/queue_feed.py
++++ b/courier_worker/queue_feed.py
+@@ -97,7 +97,8 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
+     store = FileCoordinationStore(home / "coordination_ledger.jsonl")
+     bridge_state = _read_json(home / "ledger_bridge_state.json", {"missions": {}})
+     missions = bridge_state.get("missions") or {}
+-    report = {"outcome": "idle", "released": [], "claimed": [], "assigned": [], "renewed": []}
++    report = {"outcome": "idle", "released": [], "claimed": [], "assigned": [], "renewed": [],
++              "foreign_expired": []}
+ 
+     def assign(item_id: str) -> None:
+         reducer = reduce_store(store)
+@@ -135,6 +136,13 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
+ 
+     if not still_held:
+         for item in queue.list_ready(now=now):
++            expired = item.get("expired_lease") or {}
++            if expired.get("holder") not in (None, holder):
++                # Another holder's lease expired, but its mission may still be running in another
++                # home. Taking it over would assign the mission again under a new claim, i.e. a
++                # second controller task. Leave it for reconciliation; never replay on expiry.
++                report["foreign_expired"].append(item["id"])
++                continue
+             if item["id"] in specs:
+                 queue.claim(item["id"], holder, ttl, host=host_id, now=now)
+                 report["claimed"].append(item["id"])
+diff --git a/tests/test_queue_feed_foreign_lease.py b/tests/test_queue_feed_foreign_lease.py
+new file mode 100644
+index 000000000..5b8c879ae
+--- /dev/null
++++ b/tests/test_queue_feed_foreign_lease.py
+@@ -0,0 +1,64 @@
++"""queue_feed must not take over an expired lease of another holder: the mission may still be running."""
++import json
++from datetime import datetime, timedelta, timezone
++
++from courier_core.work_queue import WorkQueue
++from courier_worker.queue_feed import feed_once
++from scripts.coordination_ledger import EventType
++from scripts.coordination_resume import reduce_store
++from scripts.github_coordination import FileCoordinationStore
++
++T0 = datetime(2026, 10, 23, 12, 0, 0, tzinfo=timezone.utc)
++SPEC = {"adapter": "synthetic", "params": {"write": "out.txt", "content": "a"}, "effect_class": "idempotent",
++        "max_attempts": 1, "lease_ttl_s": 10}
++
++
++def _setup(tmp_path, homes, holders):
++    items = tmp_path / "items"
++    items.mkdir()
++    (items / "WKA.json").write_text(json.dumps({
++        "id": "WKA", "title": "a", "lane": "L1", "branch": "lane/L1-wka", "files_scope": ["out/WKA/"],
++        "depends_on": [], "acceptance": ["x"], "provider_hints": [], "status": "READY", "lease": None}))
++    ledger = tmp_path / "queue.jsonl"
++    for home, holder in zip(homes, holders):
++        home.mkdir()
++        (home / "work_queue_feed.json").write_text(json.dumps({
++            "items_dir": str(items), "ledger": str(ledger), "holder": holder, "ttl_s": 60, "specs": {"WKA": SPEC}}))
++    return WorkQueue(items_dir=items, ledger_path=ledger)
++
++
++def _assigned(home):
++    reducer = reduce_store(FileCoordinationStore(home / "coordination_ledger.jsonl"))
++    return [e for e in reducer.events if e.event_type == EventType.ASSIGNED and e.mission_id == "WKA"]
++
++
++def test_same_home_same_holder_reclaims_after_expiry_without_a_second_assignment(tmp_path):
++    home = tmp_path / "home"
++    queue = _setup(tmp_path, [home], ["h1"])
++    assert feed_once(home, "GOOGLE_WINDOWS", "WINDOWS_REMOTE", now=T0)["claimed"] == ["WKA"]
++    later = T0 + timedelta(seconds=120)                     # lease (60 s) expired, mission still running
++    report = feed_once(home, "GOOGLE_WINDOWS", "WINDOWS_REMOTE", now=later)
++    assert len(_assigned(home)) == 1
++
++
++def test_an_expired_lease_of_another_holder_is_not_taken_over(tmp_path):
++    a, b = tmp_path / "homeA", tmp_path / "homeB"
++    queue = _setup(tmp_path, [a, b], ["holder-a", "holder-b"])
++    assert feed_once(a, "GOOGLE_WINDOWS", "WINDOWS_REMOTE", now=T0)["claimed"] == ["WKA"]
++    later = T0 + timedelta(seconds=120)                     # holder-a went quiet, its mission may still run
++    report_b = feed_once(b, "MUSE_MAC", "MAC_LOCAL", now=later)
++    assert report_b["claimed"] == [] and report_b["assigned"] == []
++    assert report_b["foreign_expired"] == ["WKA"]
++    assert len(_assigned(b)) == 0                            # no second mission, so no second controller task
++    view = [i for i in queue.items(now=later) if i["id"] == "WKA"][0]
++    assert view["lease"] is None and view["expired_lease"]["holder"] == "holder-a"
++
++
++def test_the_original_holder_can_still_resume_after_its_lease_expired(tmp_path):
++    a, b = tmp_path / "homeA", tmp_path / "homeB"
++    _setup(tmp_path, [a, b], ["holder-a", "holder-b"])
++    feed_once(a, "GOOGLE_WINDOWS", "WINDOWS_REMOTE", now=T0)
++    later = T0 + timedelta(seconds=120)
++    feed_once(b, "MUSE_MAC", "MAC_LOCAL", now=later)
++    assert feed_once(a, "GOOGLE_WINDOWS", "WINDOWS_REMOTE", now=later)["claimed"] == ["WKA"]
++    assert len(_assigned(a)) == 1

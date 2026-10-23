@@ -12,15 +12,17 @@ index 065a0cce7..388dfa7a3 100644
  MAX_ARTIFACTS = 16
  
 diff --git a/adapters/local_shell.py b/adapters/local_shell.py
-index 34a8d6058..09adf9f8d 100644
+index 34a8d6058..71c1c1082 100644
 --- a/adapters/local_shell.py
 +++ b/adapters/local_shell.py
-@@ -64,6 +64,8 @@ from typing import Any, Mapping, Sequence
+@@ -64,6 +64,10 @@ from typing import Any, Mapping, Sequence
  from adapters.synthetic import SHA256_RE, is_safe_name
  
  VERIFIER_VERSION = "1"
-+# Cost class read by the controller before a task exists (runs an allowlisted command on this host, no per-run charge).
-+COST_CLASS = "local"
++# Cost class read by the controller before a task exists. "metered": the argv is free-form (any
++# CLI, including a paid provider CLI or an HTTP client with a key in env), so a task must state
++# its estimate; only the adapter name is allowlisted, not the command.
++COST_CLASS = "metered"
  
  MAX_TIMEOUT_S = 600
  
@@ -64,7 +66,7 @@ index 036064a80..c23979817 100644
  SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
  INPUT_TRANSFORMS = frozenset({"copy", "reverse"})
 diff --git a/courier_core/controller.py b/courier_core/controller.py
-index ec9bb3405..fbf870fc3 100644
+index ec9bb3405..dbb4add02 100644
 --- a/courier_core/controller.py
 +++ b/courier_core/controller.py
 @@ -33,6 +33,7 @@ from __future__ import annotations
@@ -93,7 +95,7 @@ index ec9bb3405..fbf870fc3 100644
  MAX_TIMEOUT_S = 7 * 24 * 3600
  MAX_HEARTBEAT_DISPATCHES = 256
  MAX_ARTIFACTS = 1000
-@@ -78,6 +81,25 @@ RESOLVE_DECISIONS = {"effect_confirmed": EventType.EFFECT_CONFIRMED,
+@@ -78,6 +81,32 @@ RESOLVE_DECISIONS = {"effect_confirmed": EventType.EFFECT_CONFIRMED,
                       "cancel": EventType.TASK_CANCELLED}
  
  
@@ -102,14 +104,21 @@ index ec9bb3405..fbf870fc3 100644
 +
 +    cost_class comes from the adapter's own declaration: "local" (no per-run charge),
 +    "metered" (can charge), or None (undeclared or unknown adapter)."""
-+    if params.get("unknown_cost") is True or params.get("cost_class") == "unknown":
++    marker = params.get("cost_class")
++    if params.get("unknown_cost") not in (None, False):
 +        return "the task is marked as unknown cost"
++    if marker is not None and (not isinstance(marker, str) or marker.strip().lower() == "unknown"):
++        return "params.cost_class is unknown or not a string"
 +    if cost_class not in ("local", "metered"):
 +        return "the adapter declares no cost class, so its cost is unknown"
 +    if "estimated_cost_eur" not in params:
 +        return None if cost_class == "local" else "a metered adapter needs params.estimated_cost_eur"
 +    cost = params["estimated_cost_eur"]
-+    if isinstance(cost, bool) or not isinstance(cost, (int, float)) or not math.isfinite(cost) or cost < 0:
++    try:
++        finite = not isinstance(cost, bool) and isinstance(cost, (int, float)) and math.isfinite(cost)
++    except OverflowError:                       # an int too large for a float, e.g. 10**400 from JSON
++        finite = False
++    if not finite or cost < 0:
 +        return "params.estimated_cost_eur must be a finite number >= 0"
 +    if cost > SPEND_LIMIT_EUR:
 +        return f"params.estimated_cost_eur {cost} is over the spend limit of {SPEND_LIMIT_EUR} EUR"
@@ -119,7 +128,7 @@ index ec9bb3405..fbf870fc3 100644
  class ApiError(Exception):
      def __init__(self, status: int, code: str, message: str = "", **extra: Any):
          super().__init__(message or code)
-@@ -138,7 +160,8 @@ def _only_fields(body: Any, allowed: set[str]) -> dict:
+@@ -138,7 +167,8 @@ def _only_fields(body: Any, allowed: set[str]) -> dict:
  
  class Controller:
      def __init__(self, home: str | os.PathLike, *, verifier: Callable[[str], VerifyFn | None] = adapter_verifier,
@@ -129,7 +138,7 @@ index ec9bb3405..fbf870fc3 100644
          self.home = Path(home)
          self.db_path = self.home / "courier.db"
          self.mode = "booting"
-@@ -146,6 +169,7 @@ class Controller:
+@@ -146,6 +176,7 @@ class Controller:
          self.degraded_reason: str | None = None
          self.journal: Journal | None = None
          self._verifier = verifier
@@ -137,7 +146,7 @@ index ec9bb3405..fbf870fc3 100644
          self._clock = clock
          self._lock_timeout_s = lock_timeout_s
          self._lock = threading.RLock()
-@@ -344,6 +368,9 @@ class Controller:
+@@ -344,6 +375,9 @@ class Controller:
              raise ApiError(400, "invalid_request", "adapter must match [a-z][a-z0-9_]{0,63}")
          if not isinstance(body.get("params"), dict):
              raise ApiError(400, "invalid_request", "params must be a JSON object")
@@ -223,10 +232,10 @@ index 4d395b3ac..4b5ab6a88 100644
          self.thread = threading.Thread(target=self.service.run, daemon=True)
 diff --git a/tests/controller/test_ctrl_cost_admission.py b/tests/controller/test_ctrl_cost_admission.py
 new file mode 100644
-index 000000000..250687089
+index 000000000..8e29628e3
 --- /dev/null
 +++ b/tests/controller/test_ctrl_cost_admission.py
-@@ -0,0 +1,120 @@
+@@ -0,0 +1,130 @@
 +"""F-C1: the controller decides cost admission before TASK_CREATED.
 +
 +The adapter module declares its cost class (adapters.<name>.COST_CLASS):
@@ -269,7 +278,7 @@ index 000000000..250687089
 +def test_the_shipped_adapters_declare_their_cost_class():
 +    assert {name: adapter_cost_class(name) for name in
 +            ("synthetic", "local_shell", "local_json_delivery", "spreadsheet", "provider_exec")} == {
-+        "synthetic": "local", "local_shell": "local", "local_json_delivery": "local",
++        "synthetic": "local", "local_shell": "metered", "local_json_delivery": "local",
 +        "spreadsheet": "local", "provider_exec": "metered"}
 +    assert adapter_cost_class("some_new_adapter") is None
 +    assert adapter_cost_class("../escape") is None
@@ -285,6 +294,8 @@ index 000000000..250687089
 +    {"estimated_cost_eur": False},                              # bool is an int in Python: False would read as 0
 +    {"estimated_cost_eur": "0"},
 +    {"estimated_cost_eur": [0]},
++    {"estimated_cost_eur": 10**400},                           # valid JSON int; float() overflows
++    {"estimated_cost_eur": -(10**400)},
 +])
 +def test_metered_adapter_without_a_finite_estimate_is_refused_before_the_journal(ctrl, params):
 +    assert_blocked(ctrl, body(**params))
@@ -296,7 +307,8 @@ index 000000000..250687089
 +
 +
 +@pytest.mark.parametrize("adapter", ["synthetic", "local_shell", "provider_exec"])
-+@pytest.mark.parametrize("marker", [{"unknown_cost": True}, {"cost_class": "unknown"}])
++@pytest.mark.parametrize("marker", [{"unknown_cost": True}, {"unknown_cost": "true"}, {"unknown_cost": 1},
++                                    {"cost_class": "unknown"}, {"cost_class": "Unknown"}, {"cost_class": 7}])
 +def test_an_explicit_unknown_marker_is_refused_for_every_adapter(ctrl, adapter, marker):
 +    assert_blocked(ctrl, body(adapter=adapter, estimated_cost_eur=0.0, **marker))
 +
@@ -315,9 +327,16 @@ index 000000000..250687089
 +    assert status == 201 and journal_types(ctrl).count(EventType.TASK_CREATED) == 1
 +
 +
-+@pytest.mark.parametrize("adapter", ["synthetic", "local_shell", "local_json_delivery", "spreadsheet"])
++@pytest.mark.parametrize("adapter", ["synthetic", "local_json_delivery", "spreadsheet"])
 +def test_a_local_adapter_without_an_estimate_is_still_created(ctrl, adapter):
 +    assert ctrl.create_task(body(adapter=adapter))[0] == 201
++
++
++def test_local_shell_can_run_any_cli_so_it_needs_an_estimate(ctrl):
++    """The adapter name is allowlisted, the argv is not: a paid provider CLI is one argv away."""
++    paid_cli = {"command": ["claude", "-p", "hi"], "write": "o.txt"}
++    assert_blocked(ctrl, body(adapter="local_shell", **paid_cli))
++    assert ctrl.create_task(body(adapter="local_shell", estimated_cost_eur=0.0, **paid_cli))[0] == 201
 +
 +
 +def test_replay_of_an_admitted_task_is_a_duplicate_and_writes_nothing(ctrl):
