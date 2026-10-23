@@ -6,7 +6,7 @@ Recorded for branch `cursor/windows-lock-import-be3a` after CUR-WIN-031 through 
 
 | Branch | HEAD | Base | PR |
 | --- | --- | --- | --- |
-| `cursor/windows-lock-import-be3a` | `29d5eb2b93572bae74724c9fee2857c7756977bb` | `integration/v1` `d5b19f1df` | [#829](https://github.com/happyhippovip/2026-courier/pull/829) |
+| `cursor/windows-lock-import-be3a` | behavior `29d5eb2b93572bae74724c9fee2857c7756977bb`; this file is the tip commit after it | `integration/v1` `d5b19f1df` | [#829](https://github.com/happyhippovip/2026-courier/pull/829) |
 | `cursor/windows-installer-rc-be3a` | `9eef04817d98d1f761a81e7c8d9adb27d93089c3` | `integration/v1` | [#828](https://github.com/happyhippovip/2026-courier/pull/828) |
 
 Push of `29d5eb2b9` to `origin/cursor/windows-lock-import-be3a` completed. No merge. No force-push.
@@ -37,7 +37,7 @@ These are Linux process tests with local files. They are not a Windows installat
 
 - PR #828 at `9eef04817`: Courier v1 CI run `39925994076` completed success, including `windows build`. That job does not compile Inno Setup. Customer-reality run `39925994221` completed success. Recorded 10:38–10:52 Europe/Berlin on 23 Oct 2026.
 - PR #829 at `93be116c2`: Courier v1 CI run `39931810700` failed. Ubuntu and Windows pytest raised `CanonicalLeaseLost` in the upload and contract loops, and Windows raised `AttributeError: os.geteuid`. Commit `29d5eb2b9` is the fix.
-- PR #829 at `29d5eb2b9`: Courier v1 CI run `39933956045` was pending and the customer-reality run `39933956064` was queued at 11:43 Europe/Berlin. Result is not PASS until those runs finish on this SHA.
+- PR #829 behavior SHA `29d5eb2b9`: Courier v1 CI run `39933956045` was pending and customer-reality run `39933956064` was queued at 11:43 Europe/Berlin. The checkpoint commit after it starts a new run. Neither run is PASS until it finishes on that exact SHA.
 
 ## Files changed on the lock branch
 
