@@ -95,6 +95,12 @@ Der [Ledger-Closeout- und 4-Stunden-Vertrag](./LEDGER_CLOSURE_4H_ENGINEERING_CON
 
 Auftrag bis spätestens **24.10.2026, 03:35 Europe/Berlin**: GrokBot Windows koordiniert; Google Windows oben wacht CI; Cursor Windows arbeitet nur im gültigen Writer-Scope; Google Windows unten prüft unabhängig echte Negativtests. Es gelten ein schwerer Job pro Host, kein zweiter Dispatcher, keine automatischen Merge-/Kostenfreigaben und nur eine tatsächlich aktive Schedule-Routine pro identischem Zweck.
 
+## GrokBot-Windows als jederzeit bereiter Ersatz-Master — aber ohne Split-Brain
+
+Der [Windows-GrokBot-Master-Failover-Standby-Vertrag](./GROKBOT_WINDOWS_MASTER_FAILOVER_STANDBY_V1_2026-10-23.md) definiert `STANDBY_READ_ONLY`, `PREPARED`, `AWAIT_TRANSFER` und `MASTER_ACTIVE`. Der bestehende Mac/Ultra-Master bleibt Master, bis die autoritative Lease samt Fencing-Nachweis exklusiv und nach gültiger Transferfreigabe gewechselt hat. **Ein inaktiver Chat, Kontingentende oder verpasster Scheduler ist kein ausreichender Übernahmenachweis.** Der Windows-GrokBot darf bereits jetzt Berichte konsolidieren, einen trockenen Failover-Test mit Wegwerfdaten machen und die Master-Übernahme dokumentiert vorbereiten; die produktive Übernahme bleibt getrennt.
+
+Der Windows-CI-Wächter nutzt, falls tatsächlich aktiv, seine eigene bestehende Scheduler-ID; unten arbeiten Cursor Windows (nur mit Writer-Lease) und Google Windows (unabhängig lesend) in getrennten Scopes. Keine zweite kanonische Queue, kein neuer Kostenpfad und kein automatischer Merge.
+
 ## Arbeitsprinzip: ein Sender je Sitzung
 
 - Ein klarer **Goal + Workkey-Ledger + Checkpoint** ist besser als mehrfach identische Prompt-Queues.
