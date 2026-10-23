@@ -254,6 +254,13 @@ def test_crash_after_rejection_still_releases_on_restart(tmp_path, monkeypatch):
     assert srv.load_state()["workers"]["WIN-01"]["current_task"] is None
 
 
+@pytest.mark.parametrize("bad", ["con", "CON.txt", "aux", "NUL", "COM1", "lpt9.txt", "out/prn"])
+def test_windows_device_name_is_not_an_artifact(tmp_path, monkeypatch, bad):
+    daemon = load_daemon(tmp_path, monkeypatch)
+    assert daemon.is_safe_artifact_path(bad) is False
+    assert daemon.is_safe_artifact_path("report.txt") is True
+
+
 @pytest.mark.parametrize("bad", ["../outside.txt", "/etc/passwd", "a/../../x.txt", "C:/Windows/System32"])
 def test_unsafe_artifact_is_never_read_and_never_success(tmp_path, monkeypatch, bad):
     srv, http, headers = central(tmp_path, monkeypatch, artifacts=(bad,))

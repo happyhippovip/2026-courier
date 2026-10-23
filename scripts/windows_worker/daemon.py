@@ -237,14 +237,26 @@ def persist_task(path, task):
         os.fsync(f.fileno())
     os.replace(tmp_path, path)
 
+def _reserved_windows_device(part):
+    """CON, PRN, AUX, NUL, COM1-9 and LPT1-9, including CON.txt."""
+    if not isinstance(part, str) or not part or part in (".", ".."):
+        return False
+    head = part.split(".", 1)[0].rstrip(" .").upper()
+    if head in {"CON", "PRN", "AUX", "NUL"}:
+        return True
+    return len(head) == 4 and head[:3] in {"COM", "LPT"} and head[3] in "123456789"
+
+
 def is_safe_artifact_path(name):
     """Artifacts are workspace-relative (the daemon's cwd, which PowerShell
-    inherits). Reject absolute, drive-qualified, UNC and '..' paths under both
-    Windows and POSIX rules, matching the integration contract."""
+    inherits). Reject absolute, drive-qualified, UNC, '..' and Windows device
+    names under both Windows and POSIX rules."""
     if not isinstance(name, str) or not name:
         return False
     for pure in (PureWindowsPath(name), PurePosixPath(name)):
         if pure.is_absolute() or pure.drive or pure.root or ".." in pure.parts:
+            return False
+        if any(_reserved_windows_device(part) for part in pure.parts):
             return False
     return True
 
