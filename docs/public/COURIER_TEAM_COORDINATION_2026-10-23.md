@@ -83,6 +83,12 @@ PR #827, #830, #832 und #835 wurden bereits gemergt. Externe, ältere Receipt-Pa
 
 **Grenze des aktuellen Nachtauftrags:** 24. Oktober 2026, 20:00 Uhr Europe/Berlin. Keine selbstständige Verlängerung, keine neuen Ausgaben, keine zweiten Writer, keine unautorisierte Veröffentlichung. Belege, Kontingente und Recovery-Dateien gehören nicht in diese öffentliche Dokumentation.
 
+## Windows GrokBot: lokaler Relay-Dispatcher (23.10., Nacht)
+
+Der Windows-GrokBot übernimmt ab sofort eine **lokale Stellvertreter- und Handoff-Rolle** für die Windows-Flotte, ohne eine zweite kanonische Dispatcher-/Claim-Instanz zu betreiben. Der bestehende **GrokBot Ultra Master-Dispatcher** bleibt alleinige Instanz für die übergreifende Workkey- und Freigabekoordination. Der Windows-GrokBot überträgt nicht eigenmächtig Writer-Leases und versendet keine privaten Informationen über unbestätigte Kanäle.
+
+Die [ausführliche Windows-Relay-Regel](./WINDOWS_GROKBOT_RELAY_DISPATCHER_V1_2026-10-23.md) beschreibt private lokale Dateien für Status, Owner-Handoffs und Workkey-Sicht sowie die getrennte Zuständigkeit von Google Windows (Verifier), Cursor Windows (autorisierter Produkt-Owner), L2/Claude (CostGate/Architektur) und Mac-Master (Deduplizierung). Der Windows-Relay soll seine vorhandenen Google-Windows-Prüfbelege und CI-Watches berücksichtigen und einen **privaten** Handoff an den Mac-Dispatcher vorbereiten, statt weitere echte Laufzeitagenten zu starten.
+
 ## Arbeitsprinzip: ein Sender je Sitzung
 
 - Ein klarer **Goal + Workkey-Ledger + Checkpoint** ist besser als mehrfach identische Prompt-Queues.
