@@ -38,7 +38,7 @@ These are Linux process tests with local files. They are not a Windows installat
 
 - PR #828 at `9eef04817`: Courier v1 CI run `39925994076` completed success, including `windows build`. That job does not compile Inno Setup. Customer-reality run `39925994221` completed success. Recorded 10:38–10:52 Europe/Berlin on 23 Oct 2026.
 - PR #829 at `93be116c2`: Courier v1 CI run `39931810700` failed. Ubuntu and Windows pytest raised `CanonicalLeaseLost` in the upload and contract loops, and Windows raised `AttributeError: os.geteuid`. Commit `29d5eb2b9` is the fix.
-- PR #829 behavior SHA `29d5eb2b9`: Courier v1 CI run `39933956045` was pending and customer-reality run `39933956064` was queued at 11:43 Europe/Berlin. The checkpoint commit after it starts a new run. Neither run is PASS until it finishes on that exact SHA.
+- PR #829 tip `3b3b3c860`, Courier v1 CI run `39934137170`: Ubuntu pytest succeeded. Windows pytest failed while replacing `authority.db` (`WinError 32`, file still open in-process). That is a test restart, not a second writer. The following commit closes the store before the simulated restart. Windows build on that run was still going when the fix was committed. Customer-reality run `39934137018` succeeded at 11:45 Europe/Berlin and is not the pytest suite.
 
 ## Files changed on the lock branch
 
@@ -62,6 +62,8 @@ These are Linux process tests with local files. They are not a Windows installat
 - `8623c2cd3` CUR-WIN-039..050 stable exit codes and crash recovery
 - `6e1be09af` CUR-WIN-051..060 local queue releases one verified workkey
 - `29d5eb2b9` CUR-WIN-069 start the loop only with a canonical lease
+- `c916cf2da` CUR-WIN-084 refuse to start without a server URL
+- `a0bafa1cf` CUR-WIN-081 close the lease database before a simulated restart
 
 ## Lease
 
@@ -91,7 +93,6 @@ Not activated in this session: Windows service install, Task Scheduler, logon au
 
 Deduplicated from what is still open. Do not restart 031–080.
 
-1. CUR-WIN-081 — Read CI for `29d5eb2b9` on PR #829. Fix only failures in the files this branch owns.
+1. CUR-WIN-085 — Read CI for the push that contains `c916cf2da` and `a0bafa1cf`. Fix only failures in files this branch owns.
 2. CUR-WIN-082 — On an authorized Windows host that already has Inno Setup 6, build `CourierSetup-v1.exe` and record its real SHA256. Until then this stays BLOCKED.
 3. CUR-WIN-083 — Silent install, uninstall, rollback, and clean-machine acceptance on an explicitly authorized test machine.
-4. CUR-WIN-084 — Done in the commit after this checkpoint's behavior SHA. A missing `COURIER_SERVER` exits 4 and does not use `192.168.178.162`. CI for that commit is separate from run `39934137170`.
