@@ -182,7 +182,7 @@ def test_success_is_bound_and_accepted(tmp_path, monkeypatch):
     daemon, executions = load_daemon(tmp_path, monkeypatch), []
     monkeypatch.chdir(daemon.APP_DATA_DIR)  # worker runs from some cwd, artifacts relative to it
     effect = daemon.APP_DATA_DIR / "effect.txt"
-    go(daemon, monkeypatch, Bridge(http, headers, max_calls=4), executions, effect=effect, tmp_path=tmp_path)
+    go(daemon, monkeypatch, Bridge(http, headers, max_calls=6), executions, effect=effect, tmp_path=tmp_path)
     
     task = srv.load_state()["tasks"]["task-1"]
     assert task["status"] == "RESULT_RECEIVED"
@@ -269,7 +269,12 @@ def test_symlink_artifact_is_not_read_and_never_success(tmp_path, monkeypatch):
     monkeypatch.chdir(work)
     outside = tmp_path / "secret.txt"
     outside.write_text("secret")
-    (work / "effect.txt").symlink_to(outside)
+    try:
+        (work / "effect.txt").symlink_to(outside)
+    except OSError as exc:
+        if getattr(exc, "winerror", None) == 1314:
+            pytest.skip("Creating symlinks on Windows requires developer mode or administrator privilege")
+        raise
     read = []
     real = daemon.Path.read_bytes
     monkeypatch.setattr(daemon.Path, "read_bytes", lambda self: read.append(str(self)) or real(self))
@@ -290,7 +295,12 @@ def test_artifact_through_symlinked_directory_is_not_read(tmp_path, monkeypatch)
     outside = tmp_path / "outside"
     outside.mkdir()
     (outside / "effect.txt").write_text("secret")
-    (work / "out").symlink_to(outside, target_is_directory=True)
+    try:
+        (work / "out").symlink_to(outside, target_is_directory=True)
+    except OSError as exc:
+        if getattr(exc, "winerror", None) == 1314:
+            pytest.skip("Creating symlinks on Windows requires developer mode or administrator privilege")
+        raise
     read = []
     real = daemon.Path.read_bytes
     monkeypatch.setattr(daemon.Path, "read_bytes", lambda self: read.append(str(self)) or real(self))
