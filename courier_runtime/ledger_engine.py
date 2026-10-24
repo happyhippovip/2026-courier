@@ -73,6 +73,10 @@ def _skip_receipts(log: Callable) -> Callable:
     return logged
 
 
+class SingleWriterError(Exception):
+    """A second writer attempted to mutate the campaign without the active writer token."""
+
+
 class TaskConflict(Exception):
     """The workkey already has a task created from a different body; a human decides."""
 
@@ -136,21 +140,42 @@ def _owns(kirby: Kirby, slot: str, workkey: str, token: int) -> bool:
 
 class LedgerEngine:
     def __init__(self, controller, campaign_path: str | os.PathLike, host: str,
-                 kirby_factory: Callable[[Path, str], Kirby] | None = None, spend_limit_eur: float = 0.0):
+                 kirby_factory: Callable[[Path, str], Kirby] | None = None, spend_limit_eur: float = 0.0,
+                 writer_id: str | None = None):
         self.controller = controller
         self.campaign_path = Path(campaign_path)
         self.lock_path = self.campaign_path.with_suffix(self.campaign_path.suffix + ".lock")
+        self.writer_path = Path(str(self.campaign_path) + ".writer")
         self.host = host
+        self.writer_id = host if writer_id is None else writer_id
         if (isinstance(spend_limit_eur, bool) or not isinstance(spend_limit_eur, (int, float))
                 or not math.isfinite(spend_limit_eur) or spend_limit_eur < 0):
             raise ValueError("spend_limit_eur must be a finite number >= 0")
         self.spend_limit_eur = spend_limit_eur
         self._kirby_factory = kirby_factory or (lambda path, h: Kirby(path, h))
 
+    def _require_writer(self) -> None:
+        """Claim or keep the campaign writer token. A different writer_id is rejected."""
+        path = self.writer_path
+        if path.is_file():
+            owner = path.read_text(encoding="utf-8").splitlines()
+            current = owner[0].strip() if owner else ""
+            if current != self.writer_id:
+                raise SingleWriterError("SECOND_WRITER_REJECTED")
+            return
+        path.parent.mkdir(parents=True, exist_ok=True)
+        fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        try:
+            os.write(fd, (self.writer_id + "\n").encode("utf-8"))
+            os.fsync(fd)
+        finally:
+            os.close(fd)
+
     @contextmanager
     def _campaign(self):
         """Exclusive, fresh view of the campaign file; Kirby saves inside the lock."""
         with _exclusive(self.lock_path):
+            self._require_writer()
             yield self._kirby_factory(self.campaign_path, self.host)
 
     # ---- queue ---------------------------------------------------------------
