@@ -1,0 +1,57 @@
+diff --git a/courier_runtime/host_loop.py b/courier_runtime/host_loop.py
+index 45dd6a4aa..4952310a3 100644
+--- a/courier_runtime/host_loop.py
++++ b/courier_runtime/host_loop.py
+@@ -91,11 +91,16 @@ def run_once(kirby, slot, signal_path, state, on_wake_ready=None, engine=None):
+             actions = kirby.tick()                              # fast fallback + 15-min snapshot cadence
+             state["last_tick"] = kirby.clock()
+         notices = _notice(kirby, slot, state)
++        ready = None
+         if on_wake_ready is not None:
+             workkey = drain_pending(kirby, slot)
+             if workkey is not None:
+                 session = kirby.sessions.get(slot)
+-                on_wake_ready(slot, workkey, session.token if session else 0)
++                ready = (slot, workkey, session.token if session else 0)
++    # Outside the lock: the callback may call the LedgerEngine, which takes the
++    # same (non re-entrant) campaign lock.
++    if ready is not None:
++        on_wake_ready(*ready)
+     return results, actions, notices
+ 
+ 
+diff --git a/tests/test_host_loop.py b/tests/test_host_loop.py
+index 86ddc30a3..91daf735f 100644
+--- a/tests/test_host_loop.py
++++ b/tests/test_host_loop.py
+@@ -239,3 +239,30 @@ def test_provider_circuit_single_probe_fencing():
+     cb.record_success("conn-primary", "code")
+     assert router.find_fallback("code", {}) == "conn-primary"
+ 
++
++
++def test_wake_callback_may_use_the_ledger_engine_without_deadlock(tmp_path):
++    import threading
++    from courier_runtime.continuity import Kirby
++    from courier_runtime.ledger_engine import LedgerEngine
++    from courier_runtime import host_loop
++    camp = tmp_path / "kirby.json"
++    engine = LedgerEngine(None, camp, "host-a")
++    engine.add_workkeys(["WK-1"])
++    engine.open_slot("S1", "local")
++    kirby = Kirby(camp, "host-a")
++    kirby._load()
++    kirby.wake("S1")
++    signals = tmp_path / "signals.log"
++    signals.write_text("")
++    seen = []
++
++    def on_wake_ready(slot, workkey, token):
++        engine.next(slot)                                  # takes the campaign lock
++        seen.append(workkey)
++    worker = threading.Thread(target=host_loop.run_once, daemon=True,
++                              args=(kirby, "S1", signals, {"offset": 0, "last_tick": 0.0, "notified": {}}),
++                              kwargs={"on_wake_ready": on_wake_ready})
++    worker.start()
++    worker.join(5)
++    assert not worker.is_alive() and seen == ["WK-1"]
