@@ -71,6 +71,8 @@ from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Mapping
 
 VERIFIER_VERSION = "2"  # 2: from_input tasks are checked against their dependency's artifact
+# Cost class read by the controller before a task exists (deterministic local execution, no per-run charge).
+COST_CLASS = "local"
 
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 INPUT_TRANSFORMS = frozenset({"copy", "reverse"})

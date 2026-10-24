@@ -5,6 +5,8 @@ from courier_runtime.revenue import Lead, PROSPECT
 from courier_runtime.workbook import read_cells
 from collections import defaultdict
 
+# Cost class read by the controller before a task exists (pure local computation, no per-run charge).
+COST_CLASS = "local"
 _REF = re.compile(r"^([A-Z]+)([1-9][0-9]*)$")
 
 # Row-balance rejection reasons (parse_leads_with_balance)
