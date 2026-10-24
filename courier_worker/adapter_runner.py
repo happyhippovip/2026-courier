@@ -166,8 +166,20 @@ def main(argv: list) -> int:
             return 2
     elif adapter == "local_shell":
         from adapters import local_shell
+        from courier_core.controller import cost_admission
+        from courier_core.verification import adapter_cost_class
 
         try:
+            local_shell._params(params)
+            # The controller checked the cost when the task was created; check again before
+            # the command starts, so a task journaled before that gate existed cannot run.
+            # (provider_exec has its own gate before its process starts.)
+            blocked = cost_admission(adapter_cost_class("local_shell"), params)
+            if blocked is not None:
+                _write_report(report, {"outcome": "failure", "reason": f"cost_blocked: {blocked}"[:500],
+                                       "retryable": False})
+                print(f"adapter_runner: cost blocked: {blocked}", file=sys.stderr)
+                return 0
             result = local_shell.run(params, workdir, attempt)
         except local_shell.LocalShellTimeout as exc:
             _write_report(report, {"outcome": "failure", "reason": str(exc)[:500], "retryable": True})
