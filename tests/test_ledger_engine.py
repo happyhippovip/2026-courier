@@ -9,7 +9,9 @@ from courier_core.controller import ApiError, Controller
 from courier_core.events import EventType
 from courier_core.verification import Verdict
 from courier_runtime.continuity import BLOCKED, CLAIMED, DONE, FAILED_FINAL
-from courier_runtime.ledger_engine import NOT_PROVEN, CostBlocked, LedgerEngine, TaskConflict, cost_admission
+from courier_runtime.ledger_engine import (
+    NOT_PROVEN, CostBlocked, LedgerEngine, SingleWriterError, TaskConflict, cost_admission,
+)
 
 GOLD = b"LEDGER-ENGINE"
 GOLD_SHA = hashlib.sha256(GOLD).hexdigest()
@@ -282,6 +284,28 @@ def test_zero_human_chain_runs_three_workkeys_to_final_with_proofs(setup):
 
 
 # -- known gaps outside the engine (owners: controller L2, host loop L3) ----------------------
+
+def test_b2_second_writer_rejected(setup):
+    """A second LedgerEngine with a different writer id cannot change the campaign."""
+    engine1, ctrl, _, _ = setup
+    campaign_path = engine1.campaign_path
+    engine1.add_workkeys(["WK-B2-1"])
+    engine1.open_slot("S-1", "local")
+    workkey, _token = engine1.next("S-1")
+    assert workkey == "WK-B2-1"
+    before = campaign_path.read_bytes()
+    engine2 = LedgerEngine(ctrl, campaign_path, "mac-writer-2", writer_id="writer-2")
+    with pytest.raises(SingleWriterError):
+        engine2.add_workkeys(["WK-B2-INTRUDER"])
+    with pytest.raises(SingleWriterError):
+        engine2.open_slot("S-2", "local")
+    with pytest.raises(SingleWriterError):
+        engine2.next("S-1")
+    assert campaign_path.read_bytes() == before
+    state = json.loads(campaign_path.read_text(encoding="utf-8"))
+    assert "WK-B2-INTRUDER" not in state["workkeys"]
+    assert "S-2" not in state["sessions"]
+
 
 def test_b1_missing_cost_blocks(setup):
     """A task with no finite zero estimate is refused before TASK_CREATED, including local adapters."""
