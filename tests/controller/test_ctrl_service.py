@@ -232,7 +232,8 @@ def test_concurrent_duplicate_results_record_one_effect(live, round_):
 
 def test_busy_controller_answers_503_instead_of_hanging(tmp_path):
     from courier_core.controller import ApiError, Controller
-    ctl = Controller(tmp_path / "home", verifier=Verifiers(probe=accept_all), lock_timeout_s=0.3).boot()
+    ctl = Controller(tmp_path / "home", verifier=Verifiers(probe=accept_all), lock_timeout_s=0.3,
+                     cost_class=lambda adapter: "local").boot()
     try:
         held = threading.Event()
         release = threading.Event()

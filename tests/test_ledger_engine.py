@@ -5,7 +5,7 @@ import multiprocessing
 
 import pytest
 
-from courier_core.controller import Controller
+from courier_core.controller import ApiError, Controller
 from courier_core.events import EventType
 from courier_core.verification import Verdict
 from courier_runtime.continuity import BLOCKED, CLAIMED, DONE, FAILED_FINAL
@@ -275,13 +275,33 @@ def test_zero_human_chain_runs_three_workkeys_to_final_with_proofs(setup):
 
 # -- known gaps outside the engine (owners: controller L2, host loop L3) ----------------------
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="F-C1 gap in courier_core/controller.py (owner L2, controller admission; no open PR fixes it, "
-                   "LedgerEngine.submit does not cover direct calls): "
-                   "create_task has no cost gate; remove this xfail when the controller rejects it")
+def test_b1_missing_cost_blocks(setup):
+    """A task with no finite zero estimate is refused before TASK_CREATED, including local adapters."""
+    _, ctrl, _, _ = setup
+    missing = {
+        "adapter": "synthetic",
+        "params": {},
+        "effect_class": "idempotent",
+        "max_attempts": 1,
+        "lease_ttl_s": 10,
+    }
+    with pytest.raises(ApiError) as exc:
+        ctrl.create_task(missing)
+    assert exc.value.status == 400
+    assert exc.value.code == "cost_blocked"
+    assert "UNKNOWN_COST" in exc.value.message
+    assert [e for e in ctrl.journal.events() if e.type is EventType.TASK_CREATED] == []
+    status, payload = ctrl.create_task(body())
+    assert status == 201 and payload["duplicate"] is False
+
+
 def test_gap_direct_controller_create_task_bypasses_the_cost_gate(setup):
     _, ctrl, _, _ = setup
-    status, _ = ctrl.create_task(body(cost=None, unknown_cost=True))
-    assert status >= 400
+    with pytest.raises(ApiError) as exc:
+        ctrl.create_task(body(cost=None, unknown_cost=True))
+    assert exc.value.status == 400
+    assert exc.value.code == "cost_blocked"
+    assert [e for e in ctrl.journal.events() if e.type is EventType.TASK_CREATED] == []
 
 
 @pytest.mark.xfail(strict=True, raises=AssertionError, reason="F-K1 gap in courier_runtime/provider_events.py + host_loop.py (owner L3): "

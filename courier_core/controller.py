@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import math
 import os
 import queue
 import sqlite3
@@ -54,7 +55,7 @@ from courier_core.state_machine import (
     ACTIVE_LEASE, RESOLVED_VERIFIED, TERMINAL, Decision, TaskState, TaskStatus, TransitionError,
     decide_after_failure,
 )
-from courier_core.verification import ADAPTER_NAME, VerifyFn, adapter_verifier, run_verifier
+from courier_core.verification import ADAPTER_NAME, VerifyFn, adapter_cost_class, adapter_verifier, run_verifier
 
 log = logging.getLogger("courier.controller")
 
@@ -62,6 +63,8 @@ NORMAL = "normal"
 DEGRADED = "degraded_readonly"
 
 MAX_LEASE_TTL_S = 3600
+# AUTONOMOUS_SPEND_LIMIT_EUR=0: a task may not plan any per-run spend.
+SPEND_LIMIT_EUR = 0.0
 MAX_TIMEOUT_S = 7 * 24 * 3600
 MAX_HEARTBEAT_DISPATCHES = 256
 MAX_ARTIFACTS = 1000
@@ -76,6 +79,33 @@ MAX_REASON_CHARS = 2000
 RESOLVE_DECISIONS = {"effect_confirmed": EventType.EFFECT_CONFIRMED,
                      "retry_authorized": EventType.RETRY_AUTHORIZED,
                      "cancel": EventType.TASK_CANCELLED}
+
+
+def cost_admission(cost_class: str | None, params: dict) -> str | None:
+    """None if a task may be created, else why not. Decided before TASK_CREATED.
+
+    Every task, including a local adapter, must declare finite params.estimated_cost_eur == 0.0.
+    A missing estimate is unknown cost and is blocked.
+    """
+    marker = params.get("cost_class")
+    if params.get("unknown_cost") not in (None, False):
+        return "the task is marked as unknown cost"
+    if marker is not None and (not isinstance(marker, str) or marker.strip().lower() == "unknown"):
+        return "params.cost_class is unknown or not a string"
+    if cost_class not in ("local", "metered"):
+        return "the adapter declares no cost class, so its cost is unknown"
+    if "estimated_cost_eur" not in params:
+        return "params.estimated_cost_eur is required (UNKNOWN_COST=BLOCK)"
+    cost = params["estimated_cost_eur"]
+    try:
+        finite = not isinstance(cost, bool) and isinstance(cost, (int, float)) and math.isfinite(cost)
+    except OverflowError:
+        finite = False
+    if not finite or cost < 0:
+        return "params.estimated_cost_eur must be a finite number >= 0"
+    if cost > SPEND_LIMIT_EUR:
+        return f"params.estimated_cost_eur {cost} is over the spend limit of {SPEND_LIMIT_EUR} EUR"
+    return None
 
 
 class ApiError(Exception):
@@ -138,7 +168,8 @@ def _only_fields(body: Any, allowed: set[str]) -> dict:
 
 class Controller:
     def __init__(self, home: str | os.PathLike, *, verifier: Callable[[str], VerifyFn | None] = adapter_verifier,
-                 clock: Callable[[], float] = time.monotonic, lock_timeout_s: float = 10.0):
+                 clock: Callable[[], float] = time.monotonic, lock_timeout_s: float = 10.0,
+                 cost_class: Callable[[str], str | None] = adapter_cost_class):
         self.home = Path(home)
         self.db_path = self.home / "courier.db"
         self.mode = "booting"
@@ -146,6 +177,7 @@ class Controller:
         self.degraded_reason: str | None = None
         self.journal: Journal | None = None
         self._verifier = verifier
+        self._cost_class = cost_class
         self._clock = clock
         self._lock_timeout_s = lock_timeout_s
         self._lock = threading.RLock()
@@ -346,6 +378,9 @@ class Controller:
             raise ApiError(400, "invalid_request", "adapter must match [a-z][a-z0-9_]{0,63}")
         if not isinstance(body.get("params"), dict):
             raise ApiError(400, "invalid_request", "params must be a JSON object")
+        blocked = cost_admission(self._cost_class(adapter), body["params"])
+        if blocked is not None:
+            raise ApiError(400, "cost_blocked", blocked)
         if body.get("effect_class") not in EFFECT_CLASSES:
             raise ApiError(400, "invalid_request", f"effect_class must be one of {sorted(EFFECT_CLASSES)}")
         _require_int(body, "max_attempts", 1, MAX_ATTEMPTS_LIMIT)

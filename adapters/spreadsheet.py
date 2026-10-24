@@ -1,3 +1,5 @@
+COST_CLASS = "local"
+
 import hashlib
 import json
 import re

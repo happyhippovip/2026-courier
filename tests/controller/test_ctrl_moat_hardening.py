@@ -405,7 +405,7 @@ def test_real_adapter_verifier_identity_carries_source_hash(tmp_path, monkeypatc
     for name in [n for n in sys.modules if n == "adapters" or n.startswith("adapters.")]:
         monkeypatch.delitem(sys.modules, name)
     from courier_core.controller import Controller
-    ctl = Controller(tmp_path / "home", clock=FakeClock()).boot()
+    ctl = Controller(tmp_path / "home", clock=FakeClock(), cost_class=lambda adapter: "local").boot()
     try:
         _, body = ctl.create_task(task_body(adapter="idprobe"))
         run_attempt(ctl)
