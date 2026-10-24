@@ -64,6 +64,10 @@ from typing import Any, Mapping, Sequence
 from adapters.synthetic import SHA256_RE, is_safe_name
 
 VERIFIER_VERSION = "1"
+# Cost class read by the controller before a task exists. "metered": the argv is free-form (any
+# CLI, including a paid provider CLI or an HTTP client with a key in env), so a task must state
+# its estimate; only the adapter name is allowlisted, not the command.
+COST_CLASS = "metered"
 
 MAX_TIMEOUT_S = 600
 

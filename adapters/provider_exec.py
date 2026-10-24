@@ -32,6 +32,8 @@ from typing import Any, Mapping
 from adapters.synthetic import SHA256_RE, is_safe_name
 
 VERIFIER_VERSION = "1"
+# Cost class read by the controller before a task exists (a provider run can charge; the task must state its estimate).
+COST_CLASS = "metered"
 EVIDENCE_NAME = "provider_output.txt"
 MAX_EVIDENCE_BYTES = 1024 * 1024  # 1 MiB
 # Customer-visible agy evidence. No response, usage, conversation id, or path.
