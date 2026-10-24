@@ -1,0 +1,71 @@
+diff --git a/courier_runtime/ledger_engine.py b/courier_runtime/ledger_engine.py
+index 1e775982e..1fbc18b5d 100644
+--- a/courier_runtime/ledger_engine.py
++++ b/courier_runtime/ledger_engine.py
+@@ -198,14 +198,21 @@ class LedgerEngine:
+                 raise TaskConflict(f"{workkey}: {exc}") from None
+             return existing
+         reason = cost_admission(task_body.get("params"), self.spend_limit_eur)
+-        if reason is not None:
+-            if slot is not None and token is not None:
+-                with self._campaign() as kirby:
+-                    if _owns(kirby, slot, workkey, token):
+-                        kirby.on_turn_end(slot, "BLOCKED", token, reason=f"{COST_BLOCKED}: {reason}")
+-            raise CostBlocked(f"{workkey}: {reason}")
+-        body = dict(task_body, idempotency_key=f"workkey:{workkey}")
+-        return self.controller.create_task(body)[1]["task_id"]
++        if reason is None:
++            from courier_core.controller import ApiError
++            body = dict(task_body, idempotency_key=f"workkey:{workkey}")
++            try:
++                return self.controller.create_task(body)[1]["task_id"]
++            except ApiError as exc:
++                if exc.code != "cost_blocked":
++                    raise
++                # The controller's own gate (adapter cost class) refused: same outcome as ours.
++                reason = f"controller cost_blocked: {exc}"
++        if slot is not None and token is not None:
++            with self._campaign() as kirby:
++                if _owns(kirby, slot, workkey, token):
++                    kirby.on_turn_end(slot, "BLOCKED", token, reason=f"{COST_BLOCKED}: {reason}")
++        raise CostBlocked(f"{workkey}: {reason}")
+ 
+     # ---- verify -> final -> next ---------------------------------------------
+     def _task(self, task_id: str):
+diff --git a/docs/v1/LEDGER_ENGINE_CONTRACT.md b/docs/v1/LEDGER_ENGINE_CONTRACT.md
+index 9e0be6700..f7ca8f950 100644
+--- a/docs/v1/LEDGER_ENGINE_CONTRACT.md
++++ b/docs/v1/LEDGER_ENGINE_CONTRACT.md
+@@ -7,7 +7,7 @@ It changes neither: `courier_core/controller.py` and `courier_runtime/continuity
+ |---|---|---|
+ | QUEUE | `engine.add_workkeys([...])`, `engine.open_slot(slot, provider)` | Written under the campaign file lock |
+ | CLAIM | `engine.next(slot)` → `(workkey, token)` or `None` | One owner per workkey across processes (ownership is per slot: two processes sharing a slot name resume the same workkey and are fenced by token at FINAL); a slot that still owns a workkey gets it back |
+-| COST GATE | `engine.submit(workkey, task_body, slot=None, token=None)` → `task_id` | `params.estimated_cost_eur` must be a finite number ≤ spend limit (default 0 EUR). Missing, NaN, bool, string, negative, `unknown_cost: true` or `cost_class: "unknown"` raise `CostBlocked` before any journal write. A task that already exists for the workkey (restart, replay) is returned unchanged when the body is the same, without the gate; a different body raises `TaskConflict` (the controller's 409) and parks nothing. A body with `depends_on` is refused (`ValueError`): the engine orders work by workkey With `slot`/`token` the workkey is also parked BLOCKED (`COST_BLOCKED: …`) so the slot moves on |
++| COST GATE | `engine.submit(workkey, task_body, slot=None, token=None)` → `task_id` | `params.estimated_cost_eur` must be a finite number ≤ spend limit (default 0 EUR). Missing, NaN, bool, string, negative, `unknown_cost: true` or `cost_class: "unknown"` raise `CostBlocked` before any journal write. A task that already exists for the workkey (restart, replay) is returned unchanged when the body is the same, without the gate; a different body raises `TaskConflict` (the controller's 409) and parks nothing. A body with `depends_on` is refused (`ValueError`): the engine orders work by workkey A controller refusal `400 cost_blocked` (its own gate also needs the adapter's `COST_CLASS`) is handled the same way. With `slot`/`token` the workkey is also parked BLOCKED (`COST_BLOCKED: …`) so the slot moves on |
+ | RUN / VERIFY | the worker uses the controller API (`claim`, `start`, `heartbeat`, `result`) unchanged | Controller fencing, lease expiry and verifier rules apply |
+ | FINAL | `engine.finish_turn(slot, workkey, token, task_id, checkpoint)` | DONE only if the task is COMPLETE, `resolution == "verified"` and the journal holds its `RESULT_ACCEPTED`; the proof `journal:<seq>:RESULT_ACCEPTED` goes into checkpoint and receipt; after a crash between the receipt line and the campaign save, the repeated `finish_turn` completes the state change without a second receipt. FAILED/CANCELLED → `FAILED_FINAL`, BLOCKED → `BLOCKED`, anything else → `NOT_PROVEN` (workkey stays claimed). A `task_id` that is not this workkey's → `REJECTED_FOREIGN_TASK`. Stale token → `REJECTED_STALE_WRITER` |
+ | NEXT | `finish_turn` wakes the slot; `engine.next(slot)` returns the next workkey | Order: priority, then key |
+diff --git a/tests/test_ledger_engine.py b/tests/test_ledger_engine.py
+index 98d8d6b37..f3b1dd144 100644
+--- a/tests/test_ledger_engine.py
++++ b/tests/test_ledger_engine.py
+@@ -533,3 +533,19 @@ def test_a_crash_after_the_receipt_and_before_the_save_writes_one_receipt(setup,
+ def test_spend_limit_must_be_a_finite_non_negative_number(tmp_path, limit):
+     with pytest.raises(ValueError):
+         LedgerEngine(None, tmp_path / "kirby.json", "host-a", spend_limit_eur=limit)
++
++
++def test_a_controller_cost_refusal_parks_the_workkey_like_the_engine_gate(setup):
++    # The engine gate reads params only; the controller gate (F-C1) also needs the adapter's
++    # COST_CLASS. When the controller refuses, the slot must move on instead of re-serving it.
++    engine, ctrl, home, _ = setup
++    engine.add_workkeys(["WK-1", "WK-2"])
++    engine.open_slot("S1", "local")
++    workkey, token = engine.next("S1")
++    undeclared = dict(body(), adapter="adapter_without_cost_class")
++    with pytest.raises(CostBlocked, match="cost_blocked"):
++        engine.submit(workkey, undeclared, slot="S1", token=token)
++    state = kirby_state(engine.campaign_path)["workkeys"]["WK-1"]
++    assert state["state"] == BLOCKED and state["blocked_reason"].startswith("COST_BLOCKED")
++    assert [e for e in ctrl.journal.events() if e.type is EventType.TASK_CREATED] == []
++    assert engine.next("S1")[0] == "WK-2"
