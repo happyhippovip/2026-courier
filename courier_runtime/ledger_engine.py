@@ -198,14 +198,21 @@ class LedgerEngine:
                 raise TaskConflict(f"{workkey}: {exc}") from None
             return existing
         reason = cost_admission(task_body.get("params"), self.spend_limit_eur)
-        if reason is not None:
-            if slot is not None and token is not None:
-                with self._campaign() as kirby:
-                    if _owns(kirby, slot, workkey, token):
-                        kirby.on_turn_end(slot, "BLOCKED", token, reason=f"{COST_BLOCKED}: {reason}")
-            raise CostBlocked(f"{workkey}: {reason}")
-        body = dict(task_body, idempotency_key=f"workkey:{workkey}")
-        return self.controller.create_task(body)[1]["task_id"]
+        if reason is None:
+            from courier_core.controller import ApiError
+            body = dict(task_body, idempotency_key=f"workkey:{workkey}")
+            try:
+                return self.controller.create_task(body)[1]["task_id"]
+            except ApiError as exc:
+                if exc.code != "cost_blocked":
+                    raise
+                # The controller's own gate (adapter cost class) refused: same outcome as ours.
+                reason = f"controller cost_blocked: {exc}"
+        if slot is not None and token is not None:
+            with self._campaign() as kirby:
+                if _owns(kirby, slot, workkey, token):
+                    kirby.on_turn_end(slot, "BLOCKED", token, reason=f"{COST_BLOCKED}: {reason}")
+        raise CostBlocked(f"{workkey}: {reason}")
 
     # ---- verify -> final -> next ---------------------------------------------
     def _task(self, task_id: str):

@@ -533,3 +533,19 @@ def test_a_crash_after_the_receipt_and_before_the_save_writes_one_receipt(setup,
 def test_spend_limit_must_be_a_finite_non_negative_number(tmp_path, limit):
     with pytest.raises(ValueError):
         LedgerEngine(None, tmp_path / "kirby.json", "host-a", spend_limit_eur=limit)
+
+
+def test_a_controller_cost_refusal_parks_the_workkey_like_the_engine_gate(setup):
+    # The engine gate reads params only; the controller gate (F-C1) also needs the adapter's
+    # COST_CLASS. When the controller refuses, the slot must move on instead of re-serving it.
+    engine, ctrl, home, _ = setup
+    engine.add_workkeys(["WK-1", "WK-2"])
+    engine.open_slot("S1", "local")
+    workkey, token = engine.next("S1")
+    undeclared = dict(body(), adapter="adapter_without_cost_class")
+    with pytest.raises(CostBlocked, match="cost_blocked"):
+        engine.submit(workkey, undeclared, slot="S1", token=token)
+    state = kirby_state(engine.campaign_path)["workkeys"]["WK-1"]
+    assert state["state"] == BLOCKED and state["blocked_reason"].startswith("COST_BLOCKED")
+    assert [e for e in ctrl.journal.events() if e.type is EventType.TASK_CREATED] == []
+    assert engine.next("S1")[0] == "WK-2"
