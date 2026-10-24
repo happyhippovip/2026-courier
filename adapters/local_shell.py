@@ -9,6 +9,12 @@ Execution contract (for the worker host)::
 ``workdir``), ``timeout_s`` (per-attempt bound; expiry kills and reaps the
 child, then raises :class:`LocalShellTimeout`, the timeout analog the host
 treats like a dead task process), and ``env`` (extra environment entries).
+The child does not inherit the worker's environment: it gets the variables in
+``INHERITED_ENV`` (OS essentials, no credentials), an empty home folder of its
+own, plus ``env``. ``env`` may not name a credential (it is journaled with the
+task), a login pointer, nor a path or loader variable (``PROTECTED_ENV``). A
+command that would start a provider CLI is refused
+(``courier_core.provider_cli_guard``): provider runs go through provider_exec.
 ``workdir`` is the task sandbox the host owns: the child runs with
 ``cwd=workdir`` so its relative writes land inside the sandbox, and the
 adapter itself writes nowhere (it only reads the declared evidence file back
@@ -54,14 +60,17 @@ from __future__ import annotations
 
 import hashlib
 import os
+import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from adapters.synthetic import SHA256_RE, is_safe_name
+from courier_core import provider_cli_guard as guard
 
 VERIFIER_VERSION = "1"
 
@@ -72,6 +81,43 @@ FORBIDDEN_COMMAND_FLAGS = frozenset({
     "--skip-permissions",
     "--no-sandbox",
 })
+
+
+# What a command needs from the host to start and find its tools; nothing that
+# authenticates. Everything else in the worker's environment (provider keys, controller
+# token, cloud credentials, login pointers) stays out of the child.
+INHERITED_ENV = frozenset({
+    "PATH", "PATHEXT", "SYSTEMROOT", "SYSTEMDRIVE", "WINDIR", "COMSPEC", "TEMP", "TMP", "TMPDIR",
+    "LANG", "LANGUAGE", "LC_ALL", "LC_CTYPE", "TZ", "PYTHONIOENCODING", "PYTHONUTF8",
+    "NUMBER_OF_PROCESSORS", "PROCESSOR_ARCHITECTURE", "OS", "USERNAME", "COMPUTERNAME",
+    "PROGRAMFILES", "PROGRAMFILES(X86)", "PROGRAMW6432", "PROGRAMDATA", "ALLUSERSPROFILE",
+    "COMMONPROGRAMFILES", "COMMONPROGRAMFILES(X86)", "PSMODULEPATH",
+    "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE", "NODE_EXTRA_CA_CERTS",
+    "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "ALL_PROXY", "VIRTUAL_ENV",
+})
+HOME_ENV = ("HOME", "USERPROFILE", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME", "APPDATA", "LOCALAPPDATA")
+PROTECTED_ENV = frozenset({
+    *HOME_ENV,
+    "PATH", "PATHEXT", "COMSPEC", "SYSTEMROOT", "PYTHONPATH", "PYTHONHOME", "PYTHONSTARTUP",
+    "LD_PRELOAD", "LD_LIBRARY_PATH", "DYLD_INSERT_LIBRARIES", "DYLD_LIBRARY_PATH", "NODE_OPTIONS",
+    "BASH_ENV", "ENV", "PERL5OPT", "RUBYOPT",
+})
+
+
+def _child_env(extra: Mapping[str, str], home: Path) -> dict:
+    """Allowlisted worker variables without secrets, an empty home of its own, then ``extra``.
+
+    CLI logins live in the worker's home (~/.codex, ~/.claude, ~/.gemini, %APPDATA%), so the
+    child gets a fresh one and does not find them. Proxy URLs with ``user:pass@`` are dropped.
+    """
+    env = {}
+    for name, value in os.environ.items():
+        if name.upper() in INHERITED_ENV and guard.may_inherit(name, value):
+            env[name] = value
+    for name in HOME_ENV:
+        env[name] = str(home)
+    env.update(extra)
+    return env
 
 
 def _verdict_type():
@@ -155,6 +201,9 @@ def _params(params: Mapping[str, Any]) -> dict:
             or not command or any(not isinstance(a, str) or not a for a in command)):
         raise LocalShellError("command must be a non-empty argv list of non-empty strings")
     _reject_unspawnable_argv(command)
+    provider = guard.provider_in_argv(command)
+    if provider is not None:
+        raise LocalShellError(f"command starts the provider CLI {provider!r}; use provider_exec, which gates its cost")
     out = {
         "command": list(command),
         "write": params.get("write", "out.txt"),
@@ -169,6 +218,13 @@ def _params(params: Mapping[str, Any]) -> dict:
     if not isinstance(out["env"], Mapping) or any(
             not isinstance(k, str) or not isinstance(v, str) for k, v in out["env"].items()):
         raise LocalShellError("env must be a mapping of str to str")
+    for name, value in out["env"].items():
+        if guard.is_credential_name(name) or guard.has_userinfo(value):
+            raise LocalShellError(f"env must not carry a credential ({name}); task params are journaled")
+        if guard.is_login_pointer(name):
+            raise LocalShellError(f"env variable {name} is not allowed (login or provider configuration)")
+        if name.upper() in PROTECTED_ENV:
+            raise LocalShellError(f"env variable {name} is not allowed (path or loader override)")
     return out
 
 
@@ -201,10 +257,32 @@ def run(params: Mapping[str, Any], workdir: str | os.PathLike, attempt: int = 1)
         root.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
         raise LocalShellError(f"unusable workdir: {exc}") from exc
-    env = dict(os.environ)
-    env.pop("COURIER_CONTROLLER_TOKEN", None)
-    env.update(cfg["env"])
+    # The empty home lives outside the workdir, so caches written there never become evidence.
+    try:
+        home = Path(tempfile.mkdtemp(prefix="courier-home-"))
+    except OSError as exc:
+        raise LocalShellError(f"no temporary home for the child: {exc}") from exc
+    try:
+        return _run_in(cfg, root, _child_env(cfg["env"], home))
+    finally:
+        _remove_tree(home)
 
+
+def _remove_tree(path: Path) -> None:
+    """Best-effort removal; Windows refuses to delete read-only files until the bit is cleared."""
+    def clear_and_retry(func, target, _exc):
+        try:
+            os.chmod(target, 0o700)
+            func(target)
+        except OSError:
+            pass
+    if sys.version_info >= (3, 12):
+        shutil.rmtree(path, onexc=clear_and_retry)
+    else:
+        shutil.rmtree(path, onerror=clear_and_retry)
+
+
+def _run_in(cfg: dict, root: Path, env: dict) -> RunResult:
     popen_kwargs: dict[str, Any] = {
         "cwd": str(root),
         "env": env,
