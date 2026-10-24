@@ -1,0 +1,48 @@
+diff --git a/tests/adapters/test_ai_ranking_route_refused.py b/tests/adapters/test_ai_ranking_route_refused.py
+new file mode 100644
+index 000000000..dd909cf7f
+--- /dev/null
++++ b/tests/adapters/test_ai_ranking_route_refused.py
+@@ -0,0 +1,42 @@
++"""V40: a refused delivery task is not a successful ranking.
++
++With the controller cost gate (F-C1, PR #846) the ``telegram_delivery`` task that
++``evaluate_and_route`` posts is refused (400 ``cost_blocked``: no cost class, and no
++verifier exists for it either). The worker does not look at that response and still
++reports its own task as success, so the article is silently lost.
++"""
++from unittest.mock import MagicMock, patch
++
++import pytest
++
++from courier_adapters.ai_ranking_worker import evaluate_and_route
++
++
++def _hub(route_status):
++    def post(url, **kwargs):
++        res = MagicMock()
++        if "/v1/claim" in url:
++            res.ok, res.status_code = True, 200
++            res.json.return_value = {"task": {"task_id": "t", "dispatch_id": "d1", "spec": {
++                "adapter": "ai_ranking_worker",
++                "params": {"title": "Bitcoin high", "content_text": "btc", "article_id": "a1"}}}}
++        elif "/v1/tasks" in url:
++            res.ok, res.status_code = route_status < 400, route_status
++            res.json.return_value = {"error": "cost_blocked"} if route_status >= 400 else {"task_id": "x"}
++        else:
++            res.ok, res.status_code = True, 200
++        return res
++    return post
++
++
++@pytest.mark.xfail(strict=True, raises=AssertionError,
++                   reason="ai_ranking_worker ignores the POST /v1/tasks response (owner: intake/L4)")
++@patch("time.sleep", side_effect=InterruptedError)
++def test_a_refused_delivery_task_does_not_report_the_ranking_as_success(_sleep):
++    with patch("requests.post", side_effect=_hub(400)) as post:
++        try:
++            evaluate_and_route("http://hub", "tok", "w1")
++        except InterruptedError:
++            pass
++    result = next(c for c in post.call_args_list if "/v1/result" in c[0][0])[1]["json"]
++    assert result["outcome"] != "success"
