@@ -16,6 +16,19 @@ workkey needed a human relay. ``feed_once`` is that missing link:
 It is opt-in (``<home>/work_queue_feed.json``), file-only, never talks to the
 controller, and is idempotent: a repeated pass appends nothing new. It is not
 a scheduler; LedgerTick calls it once before each bridge pass.
+
+Leases expire, missions may not. A claim is made with ``announce`` and the
+mission is ATTACHed in the shared queue before its ASSIGNED event is written,
+so for another holder's expired lease:
+
+- not attached (announced claim): nothing was handed off, take it over;
+- attached: ask ``probe(item_id, attached)`` for the controller state of that
+  mission. COMPLETE_VERIFIED settles the workkey, FAILED/CANCELLED frees it;
+  anything else, no probe, or an error leaves it (``foreign_expired``);
+- a legacy claim without ``announce`` is never taken over.
+
+A human can always free such a workkey with ``work_queue reclaim``; the old
+holder then does not pick it up again (``reclaimed_away``).
 """
 
 from __future__ import annotations
@@ -74,16 +87,29 @@ def has_open_work(home, now=None) -> bool:
     if any(i.get("status") == "CLAIMED" and (i.get("lease") or {}).get("holder") == holder
            for i in queue.items(now=now)):
         return True
-    return any(i["id"] in specs for i in queue.list_ready(now=now))
+    return any(i["id"] in specs and _may_try(i, holder) for i in queue.list_ready(now=now))
 
 
-def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
+def _may_try(item: dict, holder: str) -> bool:
+    """Whether this holder could take the READY item without a probe answer."""
+    if (item.get("reclaimed") or {}).get("from") == holder:
+        return False
+    expired = item.get("expired_lease") or {}
+    if expired.get("holder") in (None, holder):
+        return True
+    return not item.get("attached") and bool(expired.get("announce"))
+
+
+FINAL_STATES = ("COMPLETE_VERIFIED", "FAILED", "CANCELLED")
+
+
+def feed_once(home, agent_id: str, host_id: str, now=None, probe=None) -> dict:
     home = Path(home)
     config = _read_json(home / CONFIG_NAME, None)
     if config is None:
         return {"outcome": "off"}
 
-    from courier_core.work_queue import WorkQueue
+    from courier_core.work_queue import WorkQueue, WorkQueueError
     from scripts.coordination_ledger import (
         AgentID, CoordinationEvent, EventType, HostID, MissionStatus,
     )
@@ -97,9 +123,13 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
     store = FileCoordinationStore(home / "coordination_ledger.jsonl")
     bridge_state = _read_json(home / "ledger_bridge_state.json", {"missions": {}})
     missions = bridge_state.get("missions") or {}
-    report = {"outcome": "idle", "released": [], "claimed": [], "assigned": [], "renewed": []}
+    report = {"outcome": "idle", "released": [], "claimed": [], "assigned": [], "renewed": [],
+              "foreign_expired": [], "reconciled": [], "reclaimed_away": [], "parked": [], "lost": []}
 
     def assign(item_id: str) -> None:
+        # Announce the hand-off in the shared queue first: a crash after this line leaves an
+        # attached workkey that nobody takes over blindly; a crash before it left nothing to run.
+        queue.attach(item_id, holder, f"{agent_id}/{host_id}", now=now)
         reducer = reduce_store(store)
         if reducer.get_mission(item_id) is not None:
             return
@@ -123,24 +153,86 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
     for item in held:
         item_id = item["id"]
         mapping = missions.get(item_id) or {}
-        if mapping.get("status") == "FINAL_DONE":
-            queue.release(item_id, holder, f"FINAL_DONE {mapping.get('task_id', '')}".strip(), now=now)
-            report["released"].append(item_id)
+        try:
+            if mapping.get("status") == "FINAL_DONE":
+                queue.release(item_id, holder, f"FINAL_DONE {mapping.get('task_id', '')}".strip(), now=now)
+                report["released"].append(item_id)
+                continue
+            if mapping.get("status") in ("ERROR", "BLOCKED"):
+                # The mission ended without a verified FINAL. Renewing forever would hold this
+                # holder on it; park it for a human (work_queue reclaim) and take other work.
+                reason = f"{mapping['status']} {mapping.get('reason') or ''} {mapping.get('task_id') or ''}"
+                queue.park(item_id, holder, " ".join(reason.split())[:200], now=now)
+                report["parked"].append(item_id)
+                continue
+            if item_id in specs:
+                assign(item_id)
+            queue.renew(item_id, holder, ttl, now=now)
+        except WorkQueueError:
+            # The lease ran out between listing and writing and another holder took it.
+            report["lost"].append(item_id)
             continue
         still_held.append(item_id)
-        if item_id in specs:
-            assign(item_id)
-        queue.renew(item_id, holder, ttl, now=now)
         report["renewed"].append(item_id)
 
     if not still_held:
-        for item in queue.list_ready(now=now):
+        ready = queue.list_ready(now=now)
+        # Our own expired, attached work first: its mission may still run and only we may resume it.
+        ready.sort(key=lambda i: ((i.get("expired_lease") or {}).get("holder") != holder, i["id"]))
+        for item in ready:
+            if (item.get("reclaimed") or {}).get("from") == holder:
+                # A human took this workkey away from us; do not quietly pick it up again.
+                report["reclaimed_away"].append(item["id"])
+                continue
+            expired = item.get("expired_lease") or {}
+            if expired.get("holder") not in (None, holder):
+                # Another holder's lease expired, but its mission may still be running in another
+                # home. Taking it over would assign the mission again under a new claim, i.e. a
+                # second controller task. Never replay on expiry alone.
+                decision = _foreign_expired(queue, item, expired, holder, probe, now)
+                if decision == "settled":
+                    report["reconciled"].append(item["id"])
+                    continue
+                if decision == "wait":
+                    report["foreign_expired"].append(item["id"])
+                    continue
+                if decision == "freed":
+                    report["reconciled"].append(item["id"])
             if item["id"] in specs:
-                queue.claim(item["id"], holder, ttl, host=host_id, now=now)
+                try:
+                    queue.claim(item["id"], holder, ttl, host=host_id, now=now, announce=True)
+                except WorkQueueError:                   # another home was faster: not ours
+                    report["foreign_expired"].append(item["id"])
+                    continue
                 report["claimed"].append(item["id"])
-                assign(item["id"])
+                try:
+                    assign(item["id"])
+                except WorkQueueError:                   # lost before ATTACH: nothing was handed off
+                    report["claimed"].remove(item["id"])
+                    report["lost"].append(item["id"])
                 break
 
-    if report["released"] or report["claimed"] or report["assigned"]:
+    if report["released"] or report["claimed"] or report["assigned"] or report["reconciled"] or report["parked"]:
         report["outcome"] = "fed"
     return report
+
+
+def _foreign_expired(queue, item, expired, holder, probe, now) -> str:
+    """``take`` (never handed off), ``freed``/``settled`` (reconciled), or ``wait``."""
+    attached = item.get("attached")
+    if not attached:
+        return "take" if expired.get("announce") else "wait"   # a legacy claim may have assigned
+    if probe is None:
+        return "wait"
+    try:
+        observed = probe(item["id"], dict(attached))
+    except Exception:                                # unreachable or unclear: fail closed
+        return "wait"
+    if observed not in FINAL_STATES:
+        return "wait"
+    from courier_core.work_queue import WorkQueueError
+    try:
+        queue.reconcile(item["id"], observed, f"{attached['holder']} {observed}", holder, now=now)
+    except WorkQueueError:                           # another home reconciled first: look again next pass
+        return "wait"
+    return "settled" if observed == "COMPLETE_VERIFIED" else "freed"
