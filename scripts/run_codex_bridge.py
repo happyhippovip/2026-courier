@@ -467,6 +467,21 @@ def execute_real_codex_cli(instruction: str, allowed_scope: list[str], task_id: 
         }
 
 
+CODEX_RESOURCE_ID = "chatgpt_plus_codex"
+
+
+def codex_cost_gate(job: dict) -> dict:
+    """CostGate before the real Codex CLI starts. An included quota is not a known cost:
+    only an explicit, finite 0.0 estimate passes; anything else (or a policy error) denies."""
+    if job.get("unknown_cost") not in (None, False) or str(job.get("cost_class", "")).strip().lower() == "unknown":
+        return {"allowed": False, "reason": "UNKNOWN_COST"}
+    try:
+        from scripts.resource_policy import CostGate
+        return CostGate.evaluate_spend_request(CODEX_RESOURCE_ID, estimated_cost_eur=job.get("estimated_cost_eur"))
+    except Exception as exc:  # fail closed: no gate answer, no provider run
+        return {"allowed": False, "reason": "UNAVAILABLE_" + type(exc).__name__}
+
+
 def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: bool = False, try_real_cli: bool = False) -> Path:
     """Executes a Codex task through the automated bridge with hooks, dedupe, and path confinement."""
     if worker_job_path.is_symlink() or worker_job_path.parent.is_symlink():
@@ -514,6 +529,10 @@ def execute_codex_task(worker_job_path: Path, hooks: CodexHookRunner, force: boo
 
         payload = {}
         if try_real_cli and CODEX_CLI_PATH.exists():
+            gate = codex_cost_gate(job)
+            if not gate.get("allowed"):
+                return hooks.on_task_failure(task_id, correlation_id, parent_id,
+                                             f"COST_GATE_DENIED: {gate.get('reason')}")
             hooks.on_tool_action(task_id, "Invoking real Codex CLI process (/Applications/ChatGPT.app/Contents/Resources/codex)", 0.6)
             success, real_res = execute_real_codex_cli(instruction, allowed_scope, task_id)
             payload = real_res
