@@ -567,7 +567,7 @@ def test_local_shell_claim_executes_and_delivers(tmp_path, stub):
     write_token(tmp_path)
     STUB.claims.append(claim_body(
         spec_over={"adapter": "local_shell"},
-        params={"command": _local_shell_write_argv(), "write": "out.txt", "timeout_s": 30},
+        params={"command": _local_shell_write_argv(), "write": "out.txt", "estimated_cost_eur": 0.0, "timeout_s": 30},
     ))
     loop = S.WorkerLoop(str(tmp_path), stub, "w1", 0.2)
     assert loop.iterate(threading.Event()) == "delivered"
@@ -583,7 +583,7 @@ def test_runner_executes_local_shell_request(tmp_path):
     request = tmp_path / "req.json"
     request.write_text(json.dumps({
         "adapter": "local_shell",
-        "params": {"command": _local_shell_write_argv("runner-ok"), "write": "out.txt"},
+        "params": {"command": _local_shell_write_argv("runner-ok"), "write": "out.txt", "estimated_cost_eur": 0.0},
         "attempt": 1,
         "workdir": str(workdir),
         "report": str(report),
