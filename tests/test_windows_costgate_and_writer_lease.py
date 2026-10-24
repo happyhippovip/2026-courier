@@ -49,11 +49,28 @@ def test_windows_costgate_allows_authorized_zero_cost(tmp_path, monkeypatch):
     assert res1["status"] == "SUCCESS"
     assert res1.get("blocked") is not True
 
-    # Task 2: included_quota class
-    task2 = {"task_id": "win-002", "instruction": "Write-Host 'ok'", "cost_class": "included_quota"}
+    # Task 2: included_quota with an explicit 0.0 estimate
+    task2 = {"task_id": "win-002", "instruction": "Write-Host 'ok'", "cost_class": "included_quota",
+             "estimated_cost_eur": 0.0}
     res2 = daemon.run_task(task2, config)
     assert res2["status"] == "SUCCESS"
     assert res2.get("blocked") is not True
+
+
+@pytest.mark.parametrize("task", [
+    {"cost_class": "included_quota"},
+    {"routing_decision": {"COST_CLASS": "included_quota"}},
+    {"cost_class": "INCLUDED_QUOTA"},
+])
+def test_windows_costgate_blocks_included_quota_without_an_estimate(tmp_path, monkeypatch, task):
+    """Founder decision 23.10: an included quota is not a known cost; without an estimate it is UNKNOWN_COST."""
+    daemon = load_daemon(tmp_path, monkeypatch)
+    started = []
+    monkeypatch.setattr(daemon.subprocess, "Popen", lambda *a, **k: started.append(a))
+    res = daemon.run_task(dict(task, task_id="win-iq", instruction="Write-Host 'ok'"), {"WORKER_ID": "WIN-01"})
+    assert res["status"] == "FAILED" and res["blocked"] is True
+    assert "COST_GATE_DENIED: UNKNOWN_COST" in res["stderr"]
+    assert started == []                                    # blocked before PowerShell starts
 
 
 def test_windows_costgate_blocks_unknown_or_unapproved_cost(tmp_path, monkeypatch):
@@ -280,3 +297,83 @@ def test_daemon_acquire_lock_integrates_canonical_lease_store(tmp_path, monkeypa
     store = LeaseStore(str(auth_db))
     assert store.current("worker:worker-test-auth") is None
     store.close()
+
+
+# -- V8 red team: a task's own label is not a cost; the PowerShell child gets no credentials --
+
+def _capture_popen(daemon, monkeypatch):
+    calls = []
+
+    class DummyProc:
+        pid = 4321
+        returncode = 0
+
+        def communicate(self, timeout=None):
+            return ("ok", "")
+
+    def popen(cmd, **kwargs):
+        calls.append(kwargs)
+        return DummyProc()
+    monkeypatch.setattr(daemon.subprocess, "Popen", popen)
+    return calls
+
+
+@pytest.mark.parametrize("instruction", ["codex exec 'fix it'", "& 'C:\\Tools\\claude.exe' -p hi",
+                                         "Write-Host x; npx -y @google/gemini-cli", "timeout 30s codex",
+                                         "agy -p hi | Out-File o.txt", "npx @openai/codex exec x",
+                                         "Start-Process gemini -ArgumentList '-p','x'"])
+def test_windows_refuses_an_instruction_that_starts_a_provider_cli(tmp_path, monkeypatch, instruction):
+    daemon = load_daemon(tmp_path, monkeypatch)
+    calls = _capture_popen(daemon, monkeypatch)
+    res = daemon.run_task({"task_id": "win-p", "instruction": instruction, "estimated_cost_eur": 0.0},
+                          {"WORKER_ID": "WIN-01"})
+    assert res["status"] == "FAILED" and res["blocked"] is True and "PROVIDER_CLI" in res["stderr"]
+    assert calls == []
+
+
+@pytest.mark.parametrize("instruction", ["git commit -m 'fix codex bridge'", "Write-Host \"agy done\"",
+                                         "Get-ChildItem C:\\src\\claude\\"])
+def test_windows_instruction_that_names_a_provider_as_an_argument_runs(tmp_path, monkeypatch, instruction):
+    daemon = load_daemon(tmp_path, monkeypatch)
+    calls = _capture_popen(daemon, monkeypatch)
+    res = daemon.run_task({"task_id": "win-a", "instruction": instruction, "estimated_cost_eur": 0.0},
+                          {"WORKER_ID": "WIN-01"})
+    assert res["status"] == "SUCCESS" and len(calls) == 1
+
+
+def test_windows_powershell_child_has_its_own_empty_profile(tmp_path, monkeypatch):
+    daemon = load_daemon(tmp_path, monkeypatch)
+    monkeypatch.setenv("USERPROFILE", "C:\\Users\\worker-sentinel")
+    monkeypatch.setenv("CODEX_HOME", "C:\\Users\\worker-sentinel\\.codex")
+    monkeypatch.setenv("HTTPS_PROXY", "http://u:p@proxy:8080")
+    calls = _capture_popen(daemon, monkeypatch)
+    daemon.run_task({"task_id": "win-h", "instruction": "Write-Host ok", "estimated_cost_eur": 0.0},
+                    {"WORKER_ID": "WIN-01"})
+    env = calls[0]["env"]
+    assert "worker-sentinel" not in " ".join(env.values())
+    assert env["USERPROFILE"] == env["LOCALAPPDATA"] == env["APPDATA"]
+    assert not Path(env["USERPROFILE"]).exists()              # removed after the run
+    assert "CODEX_HOME" not in env and "HTTPS_PROXY" not in env
+
+
+def test_windows_instruction_that_only_mentions_a_word_still_runs(tmp_path, monkeypatch):
+    daemon = load_daemon(tmp_path, monkeypatch)
+    calls = _capture_popen(daemon, monkeypatch)
+    res = daemon.run_task({"task_id": "win-w", "instruction": "Write-Host 'claudette and geminid'",
+                           "estimated_cost_eur": 0.0}, {"WORKER_ID": "WIN-01"})
+    assert res["status"] == "SUCCESS" and len(calls) == 1
+
+
+def test_windows_powershell_child_gets_no_credentials(tmp_path, monkeypatch):
+    daemon = load_daemon(tmp_path, monkeypatch)
+    for name in ("COURIER_API_KEY", "COURIER_CONTROLLER_TOKEN", "OPENAI_API_KEY", "ANTHROPIC_API_KEY",
+                 "GITHUB_TOKEN", "AWS_SECRET_ACCESS_KEY"):
+        monkeypatch.setenv(name, "sentinel-not-a-real-value")
+    monkeypatch.setenv("SYSTEMROOT", "C:\\Windows")
+    calls = _capture_popen(daemon, monkeypatch)
+    res = daemon.run_task({"task_id": "win-e", "instruction": "Write-Host 'ok'", "estimated_cost_eur": 0.0},
+                          {"WORKER_ID": "WIN-01"})
+    assert res["status"] == "SUCCESS"
+    env = calls[0]["env"]
+    assert "sentinel-not-a-real-value" not in env.values()
+    assert env.get("SYSTEMROOT") == "C:\\Windows" and env.get("PATH")

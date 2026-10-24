@@ -333,6 +333,44 @@ def kill_process_tree(pid):
     else:
         os.kill(pid, 9)  # non-Windows test/dev path; no tree kill available here.
 
+_HOME_ENV = ("HOME", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME")
+
+
+def _provider_cli_in(instruction):
+    """The provider CLI the instruction would start at a command position, else None."""
+    try:
+        from courier_core.provider_cli_guard import provider_in_script
+    except ImportError:
+        return "provider guard unavailable"      # fail closed: no check, no PowerShell
+    return provider_in_script(str(instruction or ""))
+
+
+def _child_env(home):
+    """The worker's environment without credentials, login pointers or ``user:pass@`` URLs, and
+    with an empty home of its own: the server key, provider keys and CLI logins in the worker's
+    profile (%USERPROFILE%\\.codex, %LOCALAPPDATA%) are not reachable through the environment."""
+    from courier_core.provider_cli_guard import may_inherit
+    env = {name: value for name, value in os.environ.items()
+           if may_inherit(name, value) and name.upper() not in _HOME_ENV}
+    for name in _HOME_ENV:
+        env[name] = str(home)
+    return env
+
+
+def _remove_tree(path):
+    """Best-effort removal; Windows refuses to delete read-only files until the bit is cleared."""
+    def clear_and_retry(func, target, _exc):
+        try:
+            os.chmod(target, 0o700)
+            func(target)
+        except OSError:
+            pass
+    if sys.version_info >= (3, 12):
+        shutil.rmtree(path, onexc=clear_and_retry)
+    else:
+        shutil.rmtree(path, onerror=clear_and_retry)
+
+
 def run_task(task, config):
     print(f"[{config['WORKER_ID']}] Running task {task['task_id']}...")
 
@@ -351,13 +389,16 @@ def run_task(task, config):
             "blocked": True,
         }
 
-    # Free / included quota defaults to 0.0 EUR
+    # The server's routing label "free"/"local" (windows_native is local execution) counts as
+    # 0.0 EUR without an estimate; the provider-CLI check below keeps that from reaching a
+    # provider. An included quota does not (founder decision 23.10): its effective cost is
+    # unknown until a provider-verified 0.0 is given, so it stays UNKNOWN_COST.
     cost_class = task.get("cost_class")
     if not cost_class and isinstance(task.get("routing_decision"), dict):
         cost_class = task["routing_decision"].get("COST_CLASS")
 
     cost_val = task.get("estimated_cost_eur")
-    if cost_val is None and cost_class in ("included_quota", "free", "local"):
+    if cost_val is None and cost_class in ("free", "local"):
         cost_val = 0.0
 
     cost_res = CostGate.evaluate_spend_request(
@@ -379,6 +420,21 @@ def run_task(task, config):
         }
 
     instruction = task.get("instruction", "")
+    provider = _provider_cli_in(instruction)
+    if provider is not None:
+        # PowerShell runs whatever the text says; a provider CLI here would spend a quota
+        # outside provider_exec's cost gate.
+        return {
+            "status": "FAILED",
+            "stdout": "",
+            "stderr": f"COST_GATE_DENIED: PROVIDER_CLI - instruction starts {provider}; use provider_exec.",
+            "goal_id": task.get("goal_id"),
+            "task_id": task["task_id"],
+            "worker_id": config["WORKER_ID"],
+            "provider": "windows_native",
+            "run_id": "blocked-by-costgate",
+            "blocked": True,
+        }
 
     out_clean = ""
     stderr = ""
@@ -390,8 +446,10 @@ def run_task(task, config):
     utf8_instruction = f"[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;\n{instruction}"
     encoded_instruction = base64.b64encode(utf8_instruction.encode("utf-16le")).decode("utf-8")
     cmd = ["powershell", "-EncodedCommand", encoded_instruction]
+    home = tempfile.mkdtemp(prefix="courier-home-")
     try:
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace")
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8",
+                                   errors="replace", env=_child_env(home))
         run_id = str(process.pid)
         try:
             stdout, stderr_out = process.communicate(timeout=600)
@@ -413,7 +471,9 @@ def run_task(task, config):
     except Exception as e:
         status = "FAILED"
         stderr = str(e)
-            
+    finally:
+        _remove_tree(home)
+
     res_json = {
         "status": status,
         "stdout": out_clean,
