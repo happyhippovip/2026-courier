@@ -101,6 +101,12 @@ Der [Windows-GrokBot-Master-Failover-Standby-Vertrag](./GROKBOT_WINDOWS_MASTER_F
 
 Der Windows-CI-Wächter nutzt, falls tatsächlich aktiv, seine eigene bestehende Scheduler-ID; unten arbeiten Cursor Windows (nur mit Writer-Lease) und Google Windows (unabhängig lesend) in getrennten Scopes. Keine zweite kanonische Queue, kein neuer Kostenpfad und kein automatischer Merge.
 
+## ECC ADAPT — einheitliche Prüftiefe und Fortsetzungs-Prompts (24.10.2026)
+
+Auf ausdrücklichen Wunsch des Nutzers und gemäß dem **von ihm gemeldeten** GrokBot-Master-Votum `ADAPT` gilt für neu formulierte Courier-Missionen die [öffentliche ECC-ADAPT-Regel mit sicherem Fortsetzungs-Prompt](./COURIER_ECC_ADAPT_SAFE_CONTINUATION_V1_2026-10-24.md). Nur Ideen aus dem MIT-lizenzierten [ECC-Projekt](https://github.com/affaan-m/ECC) werden selektiv angepasst; **kein ECC-Code, kein Katalog, keine Hooks und keine zusätzlichen Agenten** werden installiert.
+
+Verbindliche Leitlinie für diesen Dokumentationsvorschlag: aktueller HEAD und Scope → reproduzierbarer Rotlauf → eigener minimaler Fix nur mit gültiger Lease → Grünlauf → unabhängiger Produktpfad-Beleg → deduplizierter nächster Workkey. Nicht nachweisbare Arbeitszeit oder Kontingentauslastung sind kein Erfolgskriterium. Der GrokBot-Master bleibt kanonischer Dispatcher; getrennte GR88-/Windows-/Cursor-/Google-/Codex-Rollen behalten ihren eigenen beschränkten Scope. Die private Grok-Entscheidungsdatei wurde hier nicht eingesehen; der öffentliche Text beansprucht keine externe Bestätigung ihres Inhalts über das vom Nutzer gemeldete `ADAPT` hinaus. **Docs-only, PR offen, kein Merge-GO.**
+
 ## Arbeitsprinzip: ein Sender je Sitzung
 
 - Ein klarer **Goal + Workkey-Ledger + Checkpoint** ist besser als mehrfach identische Prompt-Queues.
