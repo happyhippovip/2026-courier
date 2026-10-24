@@ -235,7 +235,11 @@ def evaluate_cost_gate(spec: Mapping, config: Mapping | None) -> dict:
         }
 
     import math
-    if math.isnan(estimated_cost) or math.isinf(estimated_cost) or estimated_cost < 0.0:
+    try:
+        finite = math.isfinite(estimated_cost)
+    except OverflowError:       # an int too large for a float: not a usable estimate
+        finite = False
+    if not finite or estimated_cost < 0.0:
         return {
             "allowed": False,
             "outcome": "BLOCKED",
