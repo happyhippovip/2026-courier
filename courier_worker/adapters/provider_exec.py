@@ -256,8 +256,9 @@ def evaluate_cost_gate(spec: Mapping, config: Mapping | None) -> dict:
                     "reason_code": eval_res.get("reason", "SPEND_NOT_ALLOWED_BY_POLICY"),
                     "message": eval_res.get("message", "CostGate rejected spending request."),
                 }
-        except ImportError:
-            # If CostGate cannot be consulted and estimated_cost > 0, fail closed
+        except Exception:
+            # Import errors and a CostGate that raises are the same outcome:
+            # the spend was not approved, so the task does not start.
             return {
                 "allowed": False,
                 "outcome": "BLOCKED",

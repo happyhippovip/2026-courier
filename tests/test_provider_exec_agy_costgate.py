@@ -1,18 +1,8 @@
-"""P0 tripwire: agy provider path must become cost-gated (owner decision pending).
+"""P0 tripwire: provider cost evidence and CostGate errors fail closed.
 
-Finding (V76/1, HEAD 5afbffb48, proven by pure-function probe): an agy spec
-carries no cost evidence (``_validate_agy`` sets none; ``AGY_PARAM_KEYS``
-rejects cost keys with UNKNOWN_KEY), so ``evaluate_cost_gate()`` allows it
-without ever consulting CostGate. UNKNOWN_COST=BLOCK requires this to block
-until the deployment declares agy cost explicitly.
-
-Scope stays #714-owned (DRAFT/CONFLICTING): this file changes no product
-code and touches no foreign test file. The xfail tests below flip to XPASS
-the moment the owner lands the decision (option A: fail-closed default;
-option B: explicit included-quota contract — option B keeps test 1 xfailed
-by design and must update it).
-
-Pure functions only: no subprocess, no spawn, zero cost.
+An agy spec without cost evidence stays blocked. A positive estimate whose
+CostGate call raises does not escape as an uncaught error; the gate returns
+BLOCKED. Pure functions only: no subprocess, no spawn, zero cost.
 """
 import pytest
 
@@ -34,6 +24,17 @@ def test_agy_without_cost_evidence_is_blocked():
     spec = _agy_spec()
     verdict = evaluate_cost_gate(spec, None)
     assert verdict["allowed"] is False
+
+
+def test_positive_cost_is_blocked_when_costgate_raises(monkeypatch):
+    def _boom(*_args, **_kwargs):
+        raise RuntimeError("policy unreadable")
+
+    monkeypatch.setattr("scripts.resource_policy.CostGate.evaluate_spend_request", staticmethod(_boom))
+    verdict = evaluate_cost_gate({"provider": "muse", "estimated_cost_eur": 1.0}, None)
+    assert verdict["allowed"] is False
+    assert verdict["outcome"] == "BLOCKED"
+    assert verdict["reason_code"] == "COSTGATE_UNAVAILABLE_FOR_SPEND"
 
 
 def test_agy_accepts_declared_cost_evidence():
