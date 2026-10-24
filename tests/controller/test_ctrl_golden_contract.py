@@ -32,6 +32,8 @@ PROBE_ADAPTER = textwrap.dedent('''
     import hashlib
     from courier_core.verification import Verdict
 
+    COST_CLASS = "local"
+
     def verify(task, result, home):
         expected = hashlib.sha256(task.params.get("content", "courier-golden").encode()).hexdigest()
         ok = any(a.get("sha256") == expected for a in result.payload["artifacts"])

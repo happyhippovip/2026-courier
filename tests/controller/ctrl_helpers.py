@@ -8,7 +8,7 @@ import requests
 
 from courier_core.controller import Controller
 from courier_core.serve import Service
-from courier_core.verification import Verdict
+from courier_core.verification import Verdict, adapter_cost_class
 
 SHA = hashlib.sha256(b"courier-golden").hexdigest()
 
@@ -51,6 +51,15 @@ def sha_matches(task, result, home):
     return Verdict(ok, "sha matches" if ok else "sha mismatch", retryable=False)
 
 
+# Test-only adapters run nothing and charge nothing; declare them as the shipped adapters
+# declare themselves. Any other name falls back to the real declaration (unknown -> refused).
+FIXTURE_COST_CLASSES = {"probe": "local", "a": "local", "idprobe": "local"}
+
+
+def fixture_cost_class(adapter):
+    return FIXTURE_COST_CLASSES.get(adapter) or adapter_cost_class(adapter)
+
+
 def task_body(**overrides):
     body = {"adapter": "probe", "params": {"x": 1}, "effect_class": "idempotent", "max_attempts": 3,
             "lease_ttl_s": 6}
@@ -66,6 +75,7 @@ def result_body(dispatch_id, result_id="r1", outcome="success", sha=SHA, **extra
 
 
 def make_controller(home, clock=None, verifier=None, **kw):
+    kw.setdefault("cost_class", fixture_cost_class)
     return Controller(Path(home), clock=clock or FakeClock(), verifier=verifier or Verifiers(probe=accept_all),
                       **kw).boot()
 
@@ -87,7 +97,7 @@ class LiveService:
 
     def __init__(self, home, verifier=None, clock=None):
         controller = Controller(Path(home), verifier=verifier or Verifiers(probe=accept_all),
-                                **({"clock": clock} if clock else {}))
+                                cost_class=fixture_cost_class, **({"clock": clock} if clock else {}))
         self.service = Service(Path(home), 0, controller=controller)
         self.controller = self.service.controller
         self.thread = threading.Thread(target=self.service.run, daemon=True)

@@ -29,6 +29,8 @@ from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Mapping
 
 VERIFIER_VERSION = "1"
+# Cost class read by the controller before a task exists (writes a local file, no per-run charge).
+COST_CLASS = "local"
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 MAX_ARTIFACTS = 16
 
