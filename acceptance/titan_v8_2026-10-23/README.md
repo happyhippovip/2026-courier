@@ -128,3 +128,30 @@ Review v8c: 3 P1 und 7 P2 gefunden. Alle P1 und die P2 zu Bypass, Fehlalarmen, L
   - Das Aufräumen entfernt schreibgeschützte Dateien (Windows) und nutzt unter Python 3.12 `onexc`.
   - Ergebnis: 61 + 340 grün.
 - **Dokumentierte Grenze:** Im leeren Home fehlt die git-Identität aus `~/.gitconfig`. Ein `local_shell`-Task, der committen soll, übergibt `GIT_AUTHOR_*`/`GIT_COMMITTER_*` in `params.env` (erlaubt).
+
+---
+
+# Teil 4 · Wiederaufnahme 24.10. 03:00 (Trunk `81bbf224b`)
+
+- **VC-1 v3 wurde als #835 gemergt**. Der Inhalt ist byte-gleich mit `VC-1_v3_on_e9d7f1f.diff` (VERIFIED per `diff`) und ist damit erledigt.
+- **Kurzreview v8d des Scanners: 5 P1, 2 P2, alle behoben → `GUARD-1_v3_final.diff`** (`1394fcc6…`, **ersetzt** GUARD-1 v2):
+  - Der Scanner kennt jetzt die Dialekte `sh` (Escape `\`, `$(…)`, Backticks), `ps` (Escape Backtick, verdoppelte Quotes, Here-Strings `@"…"@`/`@'…'@`) und `cmd` (Escape `^`, keine einfachen Quotes). Aufrufer übergeben den Dialekt (`sh -c`, `cmd /c`, `powershell`, `iex`).
+  - Die Klammersuche bei `$(…)` beachtet Quotes. Ein nicht geschlossenes `$(`, ein Backtick oder ein Here-String wird fail-closed abgewiesen.
+  - Kontrollwörter `if/then/do/else/while/for` (sh und cmd) werden übersprungen.
+  - Der Tiefenzähler-Fehler ist behoben; 2000-fach verschachtelt ergibt fail-closed statt `RecursionError`.
+  - Ergebnis: 181 Tests grün; Fuzz mit 20 000 Eingaben ergab 0 Ausnahmen, Probe des Reviewers erneut gelaufen.
+- **Gesamtprobe (VERIFIED):** Trunk `81bbf224b` + Pakete 1–6, 8, 9 aus Teil 3 (VC-1 ist im Trunk), dabei GUARD-1 v3 statt v2 → **4269 passed, 16 skipped, 5 xfailed, 0 failed** (`evidence/COMBINED_full_suite_81bbf22.log`).
+  - Die zusätzlichen Warnungen sind `PytestUnhandledThreadExceptionWarning` in `test_windows_resource_probe.py`, einer Datei, die kein Patch berührt. Isoliert ist die Datei auf Trunk und Kombination warnungsfrei.
+
+**Gültige Paketliste:**
+1. F-C1 + Pin-Folgepatch
+2. F-C1b
+3. **GUARD-1 v3**
+4. H12 v3 (`H12_v3_final.diff`)
+5. WIN-COST-1 v3 (`WIN-COST-1_v3_final.diff`)
+6. WQ-1b v2
+7. ~~VC-1~~ (gemergt #835)
+8. CDX-COST-1
+9. PE-1
+
+POL-1 bleibt bei Dennis.
