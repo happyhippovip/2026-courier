@@ -1,0 +1,44 @@
+== CDX-COST-1_codex_bridge_costgate.diff
+scripts/run_codex_bridge.py
+tests/test_run_codex_bridge_costgate.py
+== F-C1_L2_controller_cost_admission.diff
+adapters/local_json_delivery.py
+adapters/local_shell.py
+adapters/provider_exec.py
+adapters/spreadsheet.py
+adapters/synthetic.py
+courier_core/controller.py
+courier_core/verification.py
+tests/controller/ctrl_helpers.py
+tests/controller/test_ctrl_cost_admission.py
+tests/controller/test_ctrl_golden_contract.py
+tests/controller/test_ctrl_moat_hardening.py
+tests/controller/test_ctrl_service.py
+== F-C1_followup_830_pin_to_regular_test.diff
+tests/test_ledger_engine.py
+== F-C1b_runner_cost_recheck.diff
+courier_worker/adapter_runner.py
+tests/test_adapter_runner_cost_recheck.py
+tests/test_l3_worker_host.py
+== GUARD-1_v3_final.diff
+courier_core/provider_cli_guard.py
+tests/test_provider_cli_guard.py
+== H12_v3_final.diff
+adapters/local_shell.py
+tests/test_local_shell_env_allowlist.py
+== PE-1_provider_exec_overflow.diff
+courier_worker/adapters/provider_exec.py
+tests/test_provider_exec_cost_overflow.py
+== POL-1_included_quota_policy.diff
+events/policies/resource_policy.json
+scripts/resource_policy.py
+tests/test_costgate_included_quota.py
+== WIN-COST-1_v3_final.diff
+scripts/windows_worker/daemon.py
+tests/test_windows_costgate_and_writer_lease.py
+== WQ-1b_v2_lease_recovery.diff
+courier_core/work_queue.py
+courier_worker/queue_feed.py
+tests/test_queue_feed_crash_points.py
+tests/test_queue_feed_foreign_lease.py
+tests/test_queue_lease_recovery.py

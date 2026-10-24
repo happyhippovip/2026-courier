@@ -1,0 +1,13 @@
+F-C1_L2_controller_cost_admission | deps=[] | 1 failed, 199 passed, 1 xfailed in 78.95s (0:01:18)
+F-C1_followup_830_pin_to_regular_test | deps=[F-C1_L2_controller_cost_admission] | 50 passed, 1 xfailed in 5.08s
+F-C1_followup_830_pin_to_regular_test | deps=[] | 1 failed, 49 passed, 1 xfailed in 5.08s
+F-C1b_runner_cost_recheck | deps=[F-C1_L2_controller_cost_admission] | 113 passed, 1 skipped in 37.86s
+F-C1b_runner_cost_recheck | deps=[] | 7 failed in 0.40s
+GUARD-1_v3_final | deps=[] | 181 passed in 0.42s
+H12_v3_final | deps=[GUARD-1_v3_final] | 87 passed in 2.16s
+H12_v3_final | deps=[] | 1 error in 0.27s
+WIN-COST-1_v3_final | deps=[GUARD-1_v3_final] | 68 passed in 9.08s
+WIN-COST-1_v3_final | deps=[] | 7 failed, 15 passed in 0.74s
+WQ-1b_v2_lease_recovery | deps=[] | 89 passed in 14.55s
+CDX-COST-1_codex_bridge_costgate | deps=[] | 43 passed in 1.05s
+PE-1_provider_exec_overflow | deps=[] | 23 passed in 10.15s

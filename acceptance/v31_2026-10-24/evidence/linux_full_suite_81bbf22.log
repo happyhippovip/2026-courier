@@ -1,0 +1,375 @@
+........................................................................ [  1%]
+........................................................................ [  3%]
+........................................................................ [  5%]
+........................................................................ [  6%]
+........................................................................ [  8%]
+....................................s................................... [ 10%]
+........................................................................ [ 11%]
+........................................................................ [ 13%]
+........................................................................ [ 15%]
+........................................................................ [ 16%]
+........................................................................ [ 18%]
+.......................................................................s [ 20%]
+........................................................................ [ 21%]
+........................................................................ [ 23%]
+........................................................................ [ 25%]
+........................................................................ [ 26%]
+........................................................................ [ 28%]
+..................................................................... [ 30%]
+................................................................xxxx. [ 31%]
+........................................................................ [ 33%]
+........................................................................ [ 35%]
+........................................................................ [ 36%]
+........................................................................ [ 38%]
+........................................................................ [ 40%]
+........................................................................ [ 41%]
+........................................................................ [ 43%]
+........................................................................ [ 45%]
+........................................................................ [ 46%]
+........................................................................ [ 48%]
+...................................s.................................... [ 50%]
+...........................x............................................ [ 51%]
+........................................................................ [ 53%]
+........................................................................ [ 55%]
+........................................................................ [ 56%]
+........................................................................ [ 58%]
+........................................................................ [ 60%]
+........................................................................ [ 61%]
+........................................................................ [ 63%]
+........................................................................ [ 65%]
+........................................................................ [ 67%]
+........................................................................ [ 68%]
+........................................................................ [ 70%]
+........................................................................ [ 72%]
+........................................................................ [ 73%]
+........................................................................ [ 75%]
+........................................................................ [ 77%]
+........................................................................ [ 78%]
+........................................................................ [ 80%]
+........................................................................ [ 82%]
+........................................................................ [ 83%]
+........................................................................ [ 85%]
+........................................................................ [ 87%]
+........................................................................ [ 88%]
+........................................................................ [ 90%]
+........................................................................ [ 92%]
+........................................................................ [ 93%]
+..............................sss.....................................s. [ 95%]
+.......ss........sss...ss.............................s................. [ 97%]
+........................................................................ [ 98%]
+...............................................                          [100%]
+=============================== warnings summary ===============================
+tests/test_provider_hibernation_mac03.py::test_naive_reset_timestamp_does_not_crash_scheduler_path
+  /tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_provider_hibernation_mac03.py:98: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    naive = datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
+
+tests/test_windows_resource_probe.py::test_first_windows_sample_does_not_claim
+  /tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/venv/lib/python3.12/site-packages/_pytest/threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-825 (process_request_thread)
+  
+  Traceback (most recent call last):
+    File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+      self.run()
+    File "/usr/lib/python3.12/threading.py", line 1010, in run
+      self._target(*self._args, **self._kwargs)
+    File "/usr/lib/python3.12/socketserver.py", line 692, in process_request_thread
+      self.finish_request(request, client_address)
+    File "/usr/lib/python3.12/socketserver.py", line 362, in finish_request
+      self.RequestHandlerClass(request, client_address, self)
+    File "/usr/lib/python3.12/socketserver.py", line 761, in __init__
+      self.handle()
+    File "/usr/lib/python3.12/http/server.py", line 436, in handle
+      self.handle_one_request()
+    File "/usr/lib/python3.12/http/server.py", line 424, in handle_one_request
+      method()
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_l3_worker_host.py", line 478, in do_GET
+      time.sleep(0.2)
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_windows_resource_probe.py", line 101, in stop
+      raise StopLoop()
+  tests.test_windows_worker_contract.StopLoop
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_windows_resource_probe.py::test_first_windows_sample_does_not_claim
+  /tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/venv/lib/python3.12/site-packages/_pytest/threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-893 (process_request_thread)
+  
+  Traceback (most recent call last):
+    File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+      self.run()
+    File "/usr/lib/python3.12/threading.py", line 1010, in run
+      self._target(*self._args, **self._kwargs)
+    File "/usr/lib/python3.12/socketserver.py", line 692, in process_request_thread
+      self.finish_request(request, client_address)
+    File "/usr/lib/python3.12/socketserver.py", line 362, in finish_request
+      self.RequestHandlerClass(request, client_address, self)
+    File "/usr/lib/python3.12/socketserver.py", line 761, in __init__
+      self.handle()
+    File "/usr/lib/python3.12/http/server.py", line 436, in handle
+      self.handle_one_request()
+    File "/usr/lib/python3.12/http/server.py", line 424, in handle_one_request
+      method()
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_l3_worker_host.py", line 478, in do_GET
+      time.sleep(0.2)
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_windows_resource_probe.py", line 101, in stop
+      raise StopLoop()
+  tests.test_windows_worker_contract.StopLoop
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_windows_resource_probe.py::test_first_windows_sample_does_not_claim
+  /tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/venv/lib/python3.12/site-packages/_pytest/threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-841 (process_request_thread)
+  
+  Traceback (most recent call last):
+    File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+      self.run()
+    File "/usr/lib/python3.12/threading.py", line 1010, in run
+      self._target(*self._args, **self._kwargs)
+    File "/usr/lib/python3.12/socketserver.py", line 692, in process_request_thread
+      self.finish_request(request, client_address)
+    File "/usr/lib/python3.12/socketserver.py", line 362, in finish_request
+      self.RequestHandlerClass(request, client_address, self)
+    File "/usr/lib/python3.12/socketserver.py", line 761, in __init__
+      self.handle()
+    File "/usr/lib/python3.12/http/server.py", line 436, in handle
+      self.handle_one_request()
+    File "/usr/lib/python3.12/http/server.py", line 424, in handle_one_request
+      method()
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_l3_worker_host.py", line 478, in do_GET
+      time.sleep(0.2)
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_windows_resource_probe.py", line 101, in stop
+      raise StopLoop()
+  tests.test_windows_worker_contract.StopLoop
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_windows_resource_probe.py::test_first_windows_sample_does_not_claim
+  /tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/venv/lib/python3.12/site-packages/_pytest/threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-798 (process_request_thread)
+  
+  Traceback (most recent call last):
+    File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+      self.run()
+    File "/usr/lib/python3.12/threading.py", line 1010, in run
+      self._target(*self._args, **self._kwargs)
+    File "/usr/lib/python3.12/socketserver.py", line 692, in process_request_thread
+      self.finish_request(request, client_address)
+    File "/usr/lib/python3.12/socketserver.py", line 362, in finish_request
+      self.RequestHandlerClass(request, client_address, self)
+    File "/usr/lib/python3.12/socketserver.py", line 761, in __init__
+      self.handle()
+    File "/usr/lib/python3.12/http/server.py", line 436, in handle
+      self.handle_one_request()
+    File "/usr/lib/python3.12/http/server.py", line 424, in handle_one_request
+      method()
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_l3_worker_host.py", line 478, in do_GET
+      time.sleep(0.2)
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_windows_resource_probe.py", line 101, in stop
+      raise StopLoop()
+  tests.test_windows_worker_contract.StopLoop
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_windows_resource_probe.py::test_first_windows_sample_does_not_claim
+  /tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/venv/lib/python3.12/site-packages/_pytest/threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-831 (process_request_thread)
+  
+  Traceback (most recent call last):
+    File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+      self.run()
+    File "/usr/lib/python3.12/threading.py", line 1010, in run
+      self._target(*self._args, **self._kwargs)
+    File "/usr/lib/python3.12/socketserver.py", line 692, in process_request_thread
+      self.finish_request(request, client_address)
+    File "/usr/lib/python3.12/socketserver.py", line 362, in finish_request
+      self.RequestHandlerClass(request, client_address, self)
+    File "/usr/lib/python3.12/socketserver.py", line 761, in __init__
+      self.handle()
+    File "/usr/lib/python3.12/http/server.py", line 436, in handle
+      self.handle_one_request()
+    File "/usr/lib/python3.12/http/server.py", line 424, in handle_one_request
+      method()
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_l3_worker_host.py", line 478, in do_GET
+      time.sleep(0.2)
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_windows_resource_probe.py", line 101, in stop
+      raise StopLoop()
+  tests.test_windows_worker_contract.StopLoop
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_windows_resource_probe.py::test_first_windows_sample_does_not_claim
+  /tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/venv/lib/python3.12/site-packages/_pytest/threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-836 (process_request_thread)
+  
+  Traceback (most recent call last):
+    File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+      self.run()
+    File "/usr/lib/python3.12/threading.py", line 1010, in run
+      self._target(*self._args, **self._kwargs)
+    File "/usr/lib/python3.12/socketserver.py", line 692, in process_request_thread
+      self.finish_request(request, client_address)
+    File "/usr/lib/python3.12/socketserver.py", line 362, in finish_request
+      self.RequestHandlerClass(request, client_address, self)
+    File "/usr/lib/python3.12/socketserver.py", line 761, in __init__
+      self.handle()
+    File "/usr/lib/python3.12/http/server.py", line 436, in handle
+      self.handle_one_request()
+    File "/usr/lib/python3.12/http/server.py", line 424, in handle_one_request
+      method()
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_l3_worker_host.py", line 478, in do_GET
+      time.sleep(0.2)
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_windows_resource_probe.py", line 101, in stop
+      raise StopLoop()
+  tests.test_windows_worker_contract.StopLoop
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_windows_resource_probe.py::test_first_windows_sample_does_not_claim
+  /tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/venv/lib/python3.12/site-packages/_pytest/threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-883 (process_request_thread)
+  
+  Traceback (most recent call last):
+    File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+      self.run()
+    File "/usr/lib/python3.12/threading.py", line 1010, in run
+      self._target(*self._args, **self._kwargs)
+    File "/usr/lib/python3.12/socketserver.py", line 692, in process_request_thread
+      self.finish_request(request, client_address)
+    File "/usr/lib/python3.12/socketserver.py", line 362, in finish_request
+      self.RequestHandlerClass(request, client_address, self)
+    File "/usr/lib/python3.12/socketserver.py", line 761, in __init__
+      self.handle()
+    File "/usr/lib/python3.12/http/server.py", line 436, in handle
+      self.handle_one_request()
+    File "/usr/lib/python3.12/http/server.py", line 424, in handle_one_request
+      method()
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_l3_worker_host.py", line 478, in do_GET
+      time.sleep(0.2)
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_windows_resource_probe.py", line 101, in stop
+      raise StopLoop()
+  tests.test_windows_worker_contract.StopLoop
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_windows_resource_probe.py::test_first_windows_sample_does_not_claim
+  /tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/venv/lib/python3.12/site-packages/_pytest/threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-820 (process_request_thread)
+  
+  Traceback (most recent call last):
+    File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+      self.run()
+    File "/usr/lib/python3.12/threading.py", line 1010, in run
+      self._target(*self._args, **self._kwargs)
+    File "/usr/lib/python3.12/socketserver.py", line 692, in process_request_thread
+      self.finish_request(request, client_address)
+    File "/usr/lib/python3.12/socketserver.py", line 362, in finish_request
+      self.RequestHandlerClass(request, client_address, self)
+    File "/usr/lib/python3.12/socketserver.py", line 761, in __init__
+      self.handle()
+    File "/usr/lib/python3.12/http/server.py", line 436, in handle
+      self.handle_one_request()
+    File "/usr/lib/python3.12/http/server.py", line 424, in handle_one_request
+      method()
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_l3_worker_host.py", line 478, in do_GET
+      time.sleep(0.2)
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_windows_resource_probe.py", line 101, in stop
+      raise StopLoop()
+  tests.test_windows_worker_contract.StopLoop
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_windows_resource_probe.py::test_first_windows_sample_does_not_claim
+  /tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/venv/lib/python3.12/site-packages/_pytest/threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-888 (process_request_thread)
+  
+  Traceback (most recent call last):
+    File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+      self.run()
+    File "/usr/lib/python3.12/threading.py", line 1010, in run
+      self._target(*self._args, **self._kwargs)
+    File "/usr/lib/python3.12/socketserver.py", line 692, in process_request_thread
+      self.finish_request(request, client_address)
+    File "/usr/lib/python3.12/socketserver.py", line 362, in finish_request
+      self.RequestHandlerClass(request, client_address, self)
+    File "/usr/lib/python3.12/socketserver.py", line 761, in __init__
+      self.handle()
+    File "/usr/lib/python3.12/http/server.py", line 436, in handle
+      self.handle_one_request()
+    File "/usr/lib/python3.12/http/server.py", line 424, in handle_one_request
+      method()
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_l3_worker_host.py", line 478, in do_GET
+      time.sleep(0.2)
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_windows_resource_probe.py", line 101, in stop
+      raise StopLoop()
+  tests.test_windows_worker_contract.StopLoop
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_windows_resource_probe.py::test_first_windows_sample_does_not_claim
+  /tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/venv/lib/python3.12/site-packages/_pytest/threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-803 (process_request_thread)
+  
+  Traceback (most recent call last):
+    File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+      self.run()
+    File "/usr/lib/python3.12/threading.py", line 1010, in run
+      self._target(*self._args, **self._kwargs)
+    File "/usr/lib/python3.12/socketserver.py", line 692, in process_request_thread
+      self.finish_request(request, client_address)
+    File "/usr/lib/python3.12/socketserver.py", line 362, in finish_request
+      self.RequestHandlerClass(request, client_address, self)
+    File "/usr/lib/python3.12/socketserver.py", line 761, in __init__
+      self.handle()
+    File "/usr/lib/python3.12/http/server.py", line 436, in handle
+      self.handle_one_request()
+    File "/usr/lib/python3.12/http/server.py", line 424, in handle_one_request
+      method()
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_l3_worker_host.py", line 478, in do_GET
+      time.sleep(0.2)
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_windows_resource_probe.py", line 101, in stop
+      raise StopLoop()
+  tests.test_windows_worker_contract.StopLoop
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+tests/test_windows_resource_probe.py::test_first_windows_sample_does_not_claim
+  /tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/venv/lib/python3.12/site-packages/_pytest/threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-898 (process_request_thread)
+  
+  Traceback (most recent call last):
+    File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+      self.run()
+    File "/usr/lib/python3.12/threading.py", line 1010, in run
+      self._target(*self._args, **self._kwargs)
+    File "/usr/lib/python3.12/socketserver.py", line 692, in process_request_thread
+      self.finish_request(request, client_address)
+    File "/usr/lib/python3.12/socketserver.py", line 362, in finish_request
+      self.RequestHandlerClass(request, client_address, self)
+    File "/usr/lib/python3.12/socketserver.py", line 761, in __init__
+      self.handle()
+    File "/usr/lib/python3.12/http/server.py", line 436, in handle
+      self.handle_one_request()
+    File "/usr/lib/python3.12/http/server.py", line 424, in handle_one_request
+      method()
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_l3_worker_host.py", line 478, in do_GET
+      time.sleep(0.2)
+    File "/tmp/claude-0/-home-user-2026-courier/4510bb24-32c0-5203-8ebf-43dd2db70f44/scratchpad/allwt/tests/test_windows_resource_probe.py", line 101, in stop
+      raise StopLoop()
+  tests.test_windows_worker_contract.StopLoop
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+4269 passed, 16 skipped, 1 deselected, 5 xfailed, 12 warnings, 6 subtests passed in 456.21s (0:07:36)

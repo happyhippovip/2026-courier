@@ -1,0 +1,8 @@
+#836 cursor/provider-done-not-final-be3a: tests/test_ledger_engine.py
+#824 claude/determined-hypatia-uvybo5: tests/test_l3_worker_host.py
+#810 cursor/bridge-missing-verdict-4598: scripts/run_codex_bridge.py
+#799 cursor/lease-renew-rollback-4598: scripts/resource_policy.py
+#798 cursor/policy-lease-authority-error-4598: scripts/resource_policy.py
+#788 cursor/daemon-lease-required-4598: scripts/windows_worker/daemon.py
+#785 cursor/costgate-error-fail-closed-4598: courier_worker/adapters/provider_exec.py
+#779 cursor/authority-lease-fail-closed-4598: scripts/resource_policy.py
