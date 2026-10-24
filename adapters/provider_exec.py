@@ -31,6 +31,8 @@ from typing import Any, Mapping
 
 from adapters.synthetic import SHA256_RE, is_safe_name
 
+COST_CLASS = "metered"
+
 VERIFIER_VERSION = "1"
 EVIDENCE_NAME = "provider_output.txt"
 MAX_EVIDENCE_BYTES = 1024 * 1024  # 1 MiB

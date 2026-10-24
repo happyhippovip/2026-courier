@@ -97,7 +97,8 @@ def test_claim_returns_lease_and_spec(ctl):
     assert lease["task_id"] == body["task_id"] and lease["attempt"] == 1
     assert lease["dispatch_id"].startswith("dsp-") and lease["ttl_s"] == 6
     assert lease["heartbeat_s"] == heartbeat_interval(6) <= 6 / 3
-    assert lease["spec"] == {"adapter": "probe", "params": {"x": 1}, "effect_class": "idempotent", "timeout_s": 30,
+    assert lease["spec"] == {"adapter": "probe", "params": {"x": 1, "estimated_cost_eur": 0.0},
+                             "effect_class": "idempotent", "timeout_s": 30,
                              "effect_key": effect_key(body["task_id"])}
     assert ctl.claim({"worker_id": "w2"}) is None
 
