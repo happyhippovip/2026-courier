@@ -41,6 +41,12 @@ from courier_worker.host import (
 PY = sys.executable
 
 
+@pytest.fixture(autouse=True)
+def _ignore_machine_thermal(monkeypatch):
+    """Unit tests that want a pause inject their own probe. A hot CPU must not fail them."""
+    monkeypatch.setenv("COURIER_WORKER_IGNORE_THERMAL", "1")
+
+
 def _spec(tmp_path, **over) -> ExecutionSpec:
     kw = dict(
         task_id="t1",
