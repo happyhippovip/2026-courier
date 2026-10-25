@@ -1,9 +1,20 @@
 """A failed Windows CPU probe pauses claims. It is not treated as idle."""
 import ctypes
+import threading
+import time
 
 import pytest
 
 from tests.test_windows_worker_contract import StopLoop, load_daemon
+
+_REAL_SLEEP = time.sleep
+
+
+def _stop_this_test(_seconds):
+    """Stop the daemon loop only. Other threads still use the real sleep."""
+    if threading.current_thread() is threading.main_thread():
+        raise StopLoop()
+    _REAL_SLEEP(_seconds)
 
 
 def test_host_without_windows_api_is_not_a_failed_probe(tmp_path, monkeypatch):
@@ -97,14 +108,11 @@ def test_first_windows_sample_does_not_claim(tmp_path, monkeypatch):
 
     messages = []
 
-    def stop(_seconds):
-        raise StopLoop()
-
     def capture(*args, **_kwargs):
         messages.append(" ".join(str(arg) for arg in args))
 
     monkeypatch.setattr(daemon.urllib.request, "urlopen", urlopen)
-    monkeypatch.setattr(daemon.time, "sleep", stop)
+    monkeypatch.setattr(daemon.time, "sleep", _stop_this_test)
     monkeypatch.setattr("builtins.print", capture)
     with pytest.raises(StopLoop):
         daemon.loop()
@@ -120,9 +128,6 @@ def test_unknown_pressure_does_not_claim(tmp_path, monkeypatch):
         calls.append(req.full_url)
         return object()
 
-    def stop(_seconds):
-        raise StopLoop()
-
     messages = []
 
     def capture(*args, **_kwargs):
@@ -130,7 +135,7 @@ def test_unknown_pressure_does_not_claim(tmp_path, monkeypatch):
 
     monkeypatch.setattr(daemon, "read_cpu_load_percent", lambda: None)
     monkeypatch.setattr(daemon.urllib.request, "urlopen", urlopen)
-    monkeypatch.setattr(daemon.time, "sleep", stop)
+    monkeypatch.setattr(daemon.time, "sleep", _stop_this_test)
     monkeypatch.setattr("builtins.print", capture)
     with pytest.raises(StopLoop):
         daemon.loop()
