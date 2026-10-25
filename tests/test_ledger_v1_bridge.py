@@ -822,3 +822,38 @@ def test_changed_result_does_not_write_a_second_final(tmp_path):
     state = json.loads((home / "ledger_bridge_state.json").read_text(encoding="utf-8"))
     assert state["missions"]["A"]["accepted_result_id"] == "result-a"
     assert state["missions"]["A"]["status"] == "FINAL_DONE"
+
+
+class _RejectPost(FakeHTTP):
+    """Controller answers the task POST with a terminal rejection. No task is created."""
+
+    def __init__(self, status, body):
+        super().__init__()
+        self._status = status
+        self._body = body
+
+    def __call__(self, method, url, headers, body, timeout):
+        if method == "POST" and url.endswith("/v1/tasks"):
+            self.posts.append(json.loads(body.decode("utf-8")))
+            return self._status, self._body
+        return super().__call__(method, url, headers, body, timeout)
+
+
+def test_controller_reject_stamps_blocked_and_does_not_repost(tmp_path):
+    """A claimed mission the controller refuses is BLOCKED, not posted again next pass."""
+    http = _RejectPost(400, b'{"code":"cost_blocked"}')
+    home = _home(tmp_path, {"A": _spec()})
+    _seed(home, [_ready("A", "a-assign")])
+    code, out, err, log, lines = _run(home, http)
+    assert code == 2, err
+    assert len(http.posts) == 1
+    state = json.loads((home / "ledger_bridge_state.json").read_text(encoding="utf-8"))
+    mission = state["missions"]["A"]
+    assert mission["posted"] is False
+    assert mission["status"] == "BLOCKED"
+    assert mission["reason"] == "COST_BLOCKED"
+    assert any('"BLOCKED"' in line for line in lines)
+    code2, out2, err2, log2, lines2 = _run(home, http)
+    assert code2 == 0, err2
+    assert len(http.posts) == 1
+    assert "rejected" in out
