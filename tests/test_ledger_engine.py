@@ -113,7 +113,7 @@ def test_verified_task_makes_the_workkey_done_with_its_journal_proof(setup):
     engine.finish_turn("S1", workkey, token, task_id, checkpoint="cp")
     state = kirby_state(engine.campaign_path)["workkeys"]["WK-1"]
     proof = engine.proof(task_id)
-    assert state["state"] == DONE and proof.startswith("journal:") and proof.endswith(":RESULT_ACCEPTED")
+    assert state["state"] == DONE and proof.startswith("journal:") and ":RESULT_ACCEPTED" in proof
     assert state["checkpoint"] == f"cp | {proof}"
     receipt = json.loads((engine.campaign_path.parent / "receipts.jsonl").read_text().splitlines()[-1])
     assert proof in receipt["checkpoint"]
@@ -328,6 +328,71 @@ def test_gap_direct_controller_create_task_bypasses_the_cost_gate(setup):
     assert [e for e in ctrl.journal.events() if e.type is EventType.TASK_CREATED] == []
 
 
+def byte_verifier(task, result, home):
+    arts = result.payload.get("artifacts") or []
+    if len(arts) != 1:
+        return Verdict(False, "one artifact")
+    data = (home / arts[0]["path"]).read_bytes()
+    ok = hashlib.sha256(data).hexdigest() == arts[0].get("sha256")
+    return Verdict(ok, "bytes match" if ok else "bytes differ")
+
+
+def _hop_engine(tmp_path):
+    clock = Clock()
+    home = tmp_path / "home"
+    ctrl = Controller(home, verifier=lambda adapter: byte_verifier, clock=clock).boot()
+    engine = LedgerEngine(ctrl, tmp_path / "campaign" / "kirby.json", "host-a")
+    return engine, ctrl, home
+
+
+def _run_hop(engine, ctrl, home, slot, payload, **extra):
+    workkey, token = engine.next(slot)
+    task_id = engine.submit(workkey, body(**extra))
+    work(ctrl, home, payload=payload)
+    return workkey, token, task_id, hashlib.sha256(payload).hexdigest()
+
+
+def test_b4_abc_bytes_sha256_per_hop(tmp_path):
+    """Each hop's journal proof names the sha256 of the bytes that were verified."""
+    engine, ctrl, home = _hop_engine(tmp_path)
+    try:
+        payload = b"courier-symphony-abc-verified-bytes-2026-10-25"
+        expected = hashlib.sha256(payload).hexdigest()
+        engine.add_workkeys(["WK-A", "WK-B", "WK-C"])
+        engine.open_slot("slot-abc", "local")
+        for index, workkey_name in enumerate(("WK-A", "WK-B", "WK-C")):
+            workkey, token, task_id, digest = _run_hop(engine, ctrl, home, "slot-abc", payload)
+            assert workkey == workkey_name and digest == expected
+            proof = engine.proof(task_id)
+            assert proof is not None and "RESULT_ACCEPTED" in proof and f"sha256:{expected}" in proof
+            assert engine.finish_turn("slot-abc", workkey, token, task_id, checkpoint=f"hop-{index + 1}") != NOT_PROVEN
+            with engine._campaign() as kirby:
+                assert kirby.workkeys[workkey].state == DONE
+                assert f"sha256:{expected}" in kirby.workkeys[workkey].checkpoint
+    finally:
+        ctrl.stop()
+
+
+def test_b4_tampered_hop_bytes_rejected(tmp_path):
+    """A hop that names an upstream but carries different bytes is not DONE."""
+    engine, ctrl, home = _hop_engine(tmp_path)
+    try:
+        authentic = b"authentic-hop-a-bytes"
+        tampered = b"tampered-hop-b-bytes"
+        engine.add_workkeys(["WK-A", "WK-B"])
+        engine.open_slot("slot-abc", "local")
+        workkey_a, token_a, task_a, sha_a = _run_hop(engine, ctrl, home, "slot-abc", authentic)
+        assert engine.finish_turn("slot-abc", workkey_a, token_a, task_a, checkpoint="hop-a") != NOT_PROVEN
+        workkey_b, token_b, task_b, sha_b = _run_hop(
+            engine, ctrl, home, "slot-abc", tampered, inputs_from=["WK-A"])
+        assert sha_b != sha_a
+        assert engine.finish_turn("slot-abc", workkey_b, token_b, task_b, checkpoint="hop-b") == NOT_PROVEN
+        with engine._campaign() as kirby:
+            assert kirby.workkeys["WK-B"].state != DONE
+    finally:
+        ctrl.stop()
+
+
 def test_b3_done_requires_result_accepted(setup):
     """DONE follows a real RESULT_ACCEPTED journal row, not a provider's own DONE line."""
     engine, ctrl, home, _ = setup
@@ -345,7 +410,8 @@ def test_b3_done_requires_result_accepted(setup):
     assert accepted and accepted[0].seq >= 1
     assert engine.finish_turn("S1", workkey, token, task_id) != "NOT_PROVEN"
     proof = engine.proof(task_id)
-    assert proof == f"journal:{accepted[0].seq}:RESULT_ACCEPTED"
+    assert proof.startswith(f"journal:{accepted[0].seq}:RESULT_ACCEPTED")
+    assert f"sha256:{GOLD_SHA}" in proof
     assert engine._kirby_factory(engine.campaign_path, "host-a").workkeys["WK-1"].state == DONE
 
 

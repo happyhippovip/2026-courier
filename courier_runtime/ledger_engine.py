@@ -238,17 +238,53 @@ class LedgerEngine:
         with self.controller._locked():
             return self.controller.journal.task(task_id)
 
+    def _artifact_sha256(self, task_id: str, result_id: str) -> str | None:
+        """Caller holds the controller lock. Digest of the accepted RESULT_READY artifacts."""
+        digests = []
+        for event in self.controller.journal.events(task_id=task_id):
+            if event.type is not EventType.RESULT_READY or event.result_id != result_id:
+                continue
+            for art in (event.payload or {}).get("artifacts") or []:
+                digest = art.get("sha256") if isinstance(art, dict) else None
+                if isinstance(digest, str) and digest:
+                    digests.append(digest)
+        if not digests:
+            return None
+        if len(digests) == 1:
+            return digests[0]
+        return hashlib.sha256(",".join(digests).encode("utf-8")).hexdigest()
+
     def proof(self, task_id: str) -> str | None:
-        """journal:<seq>:RESULT_ACCEPTED for a verified COMPLETE task, else None."""
+        """journal:<seq>:RESULT_ACCEPTED or that plus |sha256:<hex> for a verified task."""
         with self.controller._locked():
             task = self.controller.journal.task(task_id)
             if task is None or task.status is not TaskStatus.COMPLETE or task.resolution != RESOLVED_VERIFIED:
                 return None
+            accepted_seq = None
             for event in self.controller.journal.events(task_id=task_id):
                 if (event.type is EventType.RESULT_ACCEPTED and event.result_id == task.accepted_result_id
                         and event.dispatch_id == task.dispatch_id):
-                    return f"journal:{event.seq}:RESULT_ACCEPTED"
-        return None
+                    accepted_seq = event.seq
+                    break
+            if accepted_seq is None:
+                return None
+            digest = self._artifact_sha256(task_id, task.accepted_result_id)
+            params = task.params if isinstance(getattr(task, "params", None), dict) else {}
+            upstreams = params.get("inputs_from")
+            if isinstance(upstreams, list) and upstreams:
+                for upstream in upstreams:
+                    upstream_id = task_id_for(str(upstream))
+                    upstream_task = self.controller.journal.task(upstream_id)
+                    if (upstream_task is None or upstream_task.status is not TaskStatus.COMPLETE
+                            or upstream_task.resolution != RESOLVED_VERIFIED):
+                        return None
+                    upstream_digest = self._artifact_sha256(upstream_id, upstream_task.accepted_result_id)
+                    if upstream_digest is None or digest is None or upstream_digest != digest:
+                        return None
+            base = f"journal:{accepted_seq}:RESULT_ACCEPTED"
+            if digest is None:
+                return base
+            return f"{base}|sha256:{digest}"
 
     def finish_turn(self, slot: str, workkey: str, token: int, task_id: str, checkpoint: str = "") -> str:
         """Report a provider turn. DONE only with journal proof; the result decides, not the provider."""
