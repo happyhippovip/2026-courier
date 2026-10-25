@@ -46,3 +46,10 @@ Orchestration rules:
 Customers never operate prompts, agents, lanes, branches, model settings, or developer recovery procedures.
 
 When in doubt: choose the action that shortens the locked route without weakening correctness, replay, process safety, customer simplicity, or clean-machine acceptance.
+
+## Cursor Cloud specific instructions
+
+- Python 3.12 is already installed as `python3`, and Node is already installed for `node --test`. Courier has no database and no process that must stay up across boots. The environment install links `python` to `python3`, runs `python3 -m pip install --user -e ".[test]"`, and links `pytest`, `courier-core`, `courier-hub`, `courier-worker`, and `courier-listclean` into `/usr/local/bin`. A user-site install places those console scripts in `~/.local/bin`.
+- From the repository root, run `python -m pytest -q --timeout=180 tests`. The suite takes about seven minutes and must leave the worktree clean. Desktop logic: `node --test tests/desktop/*.test.mjs`. Safety ratchet: `python scripts/check_local_safety.py . --baseline acceptance/local_safety_baseline.json`.
+- Product check: `python -m courier_hub.demo` starts the controller, a worker, and the hub, submits three synthetic tasks (checked, needs a person, still working), and prints a hub URL on `127.0.0.1`. Stop that process with Ctrl+C. The hub HTTP server does not need a display. Leave `courier-hub --with-overlay` for a machine with a GUI.
+- Run the default tests without API keys. Keep provider credentials out of the environment.
