@@ -106,6 +106,34 @@ def _pr_evidence(home: Path, now=None):
     return done, files
 
 
+def _config_admission(config):
+    """Return (done_prs, open_pr_files) from config['admission'], or None.
+
+    A missing admission block is None so the verified pr_evidence file still
+    applies. A present block that is not two lists is False and fails closed.
+    Lists in the block are passed through as written, including PR 281: the
+    caller stated that dependency. The pr_evidence path still refuses 281.
+    """
+    if not isinstance(config, dict) or "admission" not in config:
+        return None
+    adm = config.get("admission")
+    if isinstance(adm, dict):
+        raw_done = adm.get("done_prs")
+        raw_files = adm.get("open_pr_files")
+        if isinstance(raw_done, list) and isinstance(raw_files, list):
+            return [str(item) for item in raw_done], [str(item) for item in raw_files]
+    return False
+
+
+def _feed_evidence(home: Path, config, now=None):
+    parsed = _config_admission(config)
+    if parsed is False:
+        return None
+    if parsed is not None:
+        return parsed
+    return _pr_evidence(home, now)
+
+
 def _result_proven(mapping: dict) -> bool:
     if mapping.get("status") != "FINAL_DONE":
         return False
@@ -130,7 +158,7 @@ def has_open_work(home, now=None) -> bool:
     if any(i.get("status") == "CLAIMED" and (i.get("lease") or {}).get("holder") == holder
            for i in queue.items(now=now)):
         return True
-    evidence = _pr_evidence(home, now)
+    evidence = _feed_evidence(home, config, now)
     if evidence is None:
         return False
     done_prs, open_pr_files = evidence
@@ -154,7 +182,7 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
     holder = config["holder"]
     ttl = int(config.get("ttl_s", DEFAULT_TTL_S))
     specs = config.get("specs") or {}
-    evidence = _pr_evidence(home, now)
+    evidence = _feed_evidence(home, config, now)
     if evidence is None:
         return {"outcome": "blocked", "released": [], "claimed": [], "assigned": [],
                 "renewed": [], "blocked": ["PR_EVIDENCE"]}
