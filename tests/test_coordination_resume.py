@@ -7,6 +7,8 @@ from shared truth only and safely claims/resumes it with zero duplicate writers.
 import json
 import subprocess
 import sys
+
+import pytest
 from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -107,6 +109,42 @@ def test_stale_checkpoint_does_not_regress_resume_point(tmp_path):
                              head="old", next="older step"))
     [cp] = discover_resumable(reduce_store(store), AgentID.GOOGLE_WINDOWS)
     assert cp.head == "new" and cp.next_action == "newer step" and cp.latest_event_id == "2"
+
+
+def test_file_coordination_store_write_event_is_locked_and_fenced(tmp_path):
+    """One id is one event. A second writer waits for the file lock, and a different body is refused."""
+    import fcntl
+    import os
+    import threading
+
+    store = FileCoordinationStore(tmp_path / "l.jsonl")
+    first = _event("1", "m", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z")
+    assert store.write_event(first) is True
+    assert store.write_event(first) is True
+    assert len(store.read_events()) == 1
+    changed = _event("1", "m", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z", head="other")
+    with pytest.raises(ValueError, match="Conflicting event with same ID: 1"):
+        store.write_event(changed)
+
+    lock_path = tmp_path / "l.jsonl.lock"
+    fd = os.open(lock_path, os.O_RDWR)
+    fcntl.flock(fd, fcntl.LOCK_EX)
+    started, done = threading.Event(), threading.Event()
+
+    def other():
+        started.set()
+        store.write_event(_event("2", "m", EventType.PARTIAL, MissionStatus.WORKING, "2026-10-07T12:05:00Z"))
+        done.set()
+
+    thread = threading.Thread(target=other)
+    thread.start()
+    assert started.wait(2)
+    assert done.wait(0.3) is False
+    fcntl.flock(fd, fcntl.LOCK_UN)
+    os.close(fd)
+    thread.join(2)
+    assert done.is_set()
+    assert [event.event_id for event in store.read_events()] == ["1", "2"]
 
 
 def test_duplicate_events_in_shared_truth_have_no_duplicate_effect(tmp_path):

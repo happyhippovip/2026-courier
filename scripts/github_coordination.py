@@ -113,9 +113,20 @@ class FileCoordinationStore:
         return events
 
     def write_event(self, event: CoordinationEvent) -> bool:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.path, "a", encoding="utf-8") as handle:
-            handle.write(json.dumps(event.to_dict(), sort_keys=True) + "\n")
-            handle.flush()
-            os.fsync(handle.fileno())
+        """Append one event. The same id and body is a no-op. A different body for that id is refused."""
+        from courier_runtime.ledger_engine import _exclusive
+
+        lock_path = self.path.with_suffix(self.path.suffix + ".lock")
+        with _exclusive(lock_path):
+            for prior in self.read_events():
+                if prior.event_id != event.event_id:
+                    continue
+                if prior.to_dict() == event.to_dict():
+                    return True
+                raise ValueError(f"Conflicting event with same ID: {event.event_id}")
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.path, "a", encoding="utf-8") as handle:
+                handle.write(json.dumps(event.to_dict(), sort_keys=True) + "\n")
+                handle.flush()
+                os.fsync(handle.fileno())
         return True
