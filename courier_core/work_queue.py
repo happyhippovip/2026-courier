@@ -175,6 +175,31 @@ class WorkQueue:
             })
             return {"item_id": item_id, "status": "DONE", "result": result, "idempotent": False}
 
+    def park(self, item, holder, reason, now=None) -> dict:
+        """Park a held workkey as BLOCKED. A repeat with the same reason is idempotent."""
+        item_id = _require_token(item, "ITEM")
+        holder = _require_holder(holder)
+        reason = _require_result(reason)
+        moment = _now(now)
+        with self._lock():
+            items = self._effective(moment)
+            current = items.get(item_id)
+            if current is None:
+                raise WorkQueueError("UNKNOWN_ITEM")
+            if (current["status"] == "BLOCKED" and current.get("blocked_reason") == reason
+                    and current.get("parked_by") == holder):
+                return {"item_id": item_id, "status": "BLOCKED", "reason": reason, "idempotent": True}
+            if not _held(current, moment) or current["lease"]["holder"] != holder:
+                raise WorkQueueError("NOT_HOLDER")
+            self._append({
+                "type": "PARK",
+                "item_id": item_id,
+                "holder": holder,
+                "reason": reason,
+                "at": _stamp(moment),
+            })
+            return {"item_id": item_id, "status": "BLOCKED", "reason": reason, "idempotent": False}
+
     def spawn(self, template, module, now=None) -> dict:
         template_id = _require_token(template, "ITEM")
         module_name = _require_module(module)
@@ -485,7 +510,7 @@ def _read_ledger(path: Path) -> list[dict]:
             event = json.loads(line.decode("utf-8"))
         except (UnicodeError, ValueError) as exc:
             raise WorkQueueError("UNREADABLE") from exc
-        if not isinstance(event, dict) or event.get("type") not in ("CLAIM", "RENEW", "RELEASE", "SPAWN"):
+        if not isinstance(event, dict) or event.get("type") not in ("CLAIM", "RENEW", "RELEASE", "SPAWN", "PARK"):
             raise WorkQueueError("UNREADABLE")
         if event["type"] == "SPAWN" and not _valid_spawn_event(event):
             raise WorkQueueError("UNREADABLE")
@@ -577,6 +602,19 @@ def _apply(items: dict[str, dict], event: dict) -> None:
         if _TIME.fullmatch(str(event.get("expires_at") or "")) is None:
             raise WorkQueueError("UNREADABLE")
         item["lease"]["expires_at"] = event["expires_at"]
+        return
+    if kind == "PARK":
+        if item["status"] != "CLAIMED" or not isinstance(item.get("lease"), dict):
+            return
+        if item["lease"]["holder"] != event.get("holder"):
+            return
+        reason = event.get("reason")
+        if not isinstance(reason, str) or not reason.strip() or len(reason) > 200 or any(ch in reason for ch in "\n\r"):
+            raise WorkQueueError("UNREADABLE")
+        item["status"] = "BLOCKED"
+        item["lease"] = None
+        item["blocked_reason"] = reason.strip()
+        item["parked_by"] = event["holder"]
         return
     if item["status"] != "CLAIMED" or not isinstance(item.get("lease"), dict):
         return
@@ -707,6 +745,8 @@ def _public(item: dict) -> dict:
         "template": bool(item.get("template")),
         "claim_once": bool(item.get("claim_once")),
     }
+    if item.get("blocked_reason"):
+        view["blocked_reason"] = item["blocked_reason"]
     return view
 
 

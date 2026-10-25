@@ -191,7 +191,7 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
     store = FileCoordinationStore(home / "coordination_ledger.jsonl")
     bridge_state = _read_json(home / "ledger_bridge_state.json", {"missions": {}})
     missions = bridge_state.get("missions") or {}
-    report = {"outcome": "idle", "released": [], "claimed": [], "assigned": [], "renewed": []}
+    report = {"outcome": "idle", "released": [], "claimed": [], "assigned": [], "renewed": [], "parked": []}
 
     def assign(item_id: str) -> None:
         reducer = reduce_store(store)
@@ -226,13 +226,25 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
             still_held.append(item_id)
             queue.renew(item_id, holder, ttl, now=now)
             continue
+        rejected_without_status = (
+            mapping.get("posted") is False
+            and mapping.get("status") is None
+            and mapping.get("claim_event_id") is not None
+        )
+        if mapping.get("status") in ("ERROR", "BLOCKED") or mapping.get("rejected") is True or rejected_without_status:
+            stat = mapping.get("status") or "BLOCKED"
+            reason_code = mapping.get("reason") or ("COST_BLOCKED" if mapping.get("rejected") else "REJECTED_NO_STATUS")
+            reason = " ".join(f"{stat} {reason_code} {mapping.get('task_id') or ''}".split())[:200]
+            queue.park(item_id, holder, reason, now=now)
+            report["parked"].append(item_id)
+            continue
         still_held.append(item_id)
         if item_id in specs:
             assign(item_id)
         queue.renew(item_id, holder, ttl, now=now)
         report["renewed"].append(item_id)
 
-    if not still_held:
+    if not still_held and not report["parked"]:
         for item in queue.list_ready(now=now, done_prs=done_prs, open_pr_files=open_pr_files):
             if item["id"] in specs:
                 queue.claim(item["id"], holder, ttl, host=host_id, now=now,
@@ -243,6 +255,6 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
 
     if report["released"] or report["claimed"] or report["assigned"]:
         report["outcome"] = "fed"
-    elif report.get("blocked"):
+    elif report.get("blocked") or report["parked"]:
         report["outcome"] = "blocked"
     return report
