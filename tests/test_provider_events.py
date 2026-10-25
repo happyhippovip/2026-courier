@@ -54,7 +54,7 @@ def test_20_turn_ended_lines_complete_campaign_without_manual_continue(tmp_path)
     assert ev.drive(k, "antigravity-1", ["IDLE"]) == [WAKE_PENDING]
     for _ in range(20):
         assert k.deliver("antigravity-1") is not None
-        ev.drive(k, "antigravity-1", ["TURN_ENDED outcome=DONE checkpoint=step-done"])
+        ev.drive(k, "antigravity-1", ["TURN_ENDED outcome=DONE checkpoint=step-done | journal:1:RESULT_ACCEPTED"])
     assert all(w.state == DONE for w in k.workkeys.values())
     assert k.counters["manual_continue"] == 0 and k.user_state() == "DONE"
 
@@ -69,7 +69,7 @@ def test_blocked_turn_parks_workkey_and_campaign_continues(tmp_path):
     assert ev.drive(k, "s1", ["TURN_ENDED outcome=BLOCKED reason=missing credential"]) == [WAKE_PENDING]
     assert k.workkeys["needs-credential"].state == BLOCKED
     assert k.deliver("s1") == "W2"                       # session moved on
-    ev.drive(k, "s1", ["TURN_ENDED outcome=DONE"])
+    ev.drive(k, "s1", ["TURN_ENDED outcome=DONE checkpoint=journal:1:RESULT_ACCEPTED"])
     assert k.workkeys["W2"].state == DONE
 
 
@@ -127,7 +127,7 @@ def test_turn_ended_without_claim_reconciles_and_wakes_next_work(tmp_path):
     k.add_workkeys(["W1"])
     k.open_slot("s1", "muse")
     ev.drive(k, "s1", ["IDLE"])
-    assert ev.drive(k, "s1", ["TURN_ENDED outcome=DONE"]) == ["IDLE"]          # claim held: completed, nothing left
+    assert ev.drive(k, "s1", ["TURN_ENDED outcome=DONE checkpoint=journal:1:RESULT_ACCEPTED"]) == ["IDLE"]
     assert k.workkeys["W1"].state == DONE and k.counters["completions"] == 1
     assert ev.drive(k, "s1", ["TURN_ENDED outcome=DONE"]) == ["IDLE"]          # nothing claimed: reconcile only
 
@@ -211,7 +211,7 @@ def test_replayed_done_line_never_double_completes(tmp_path):
     k.open_slot("s1", "muse")
     ev.handle(k, "s1", "IDLE")
     assert k.deliver("s1") == "W1"
-    line = "TURN_ENDED outcome=DONE checkpoint=step1"
+    line = "TURN_ENDED outcome=DONE checkpoint=step1 | journal:1:RESULT_ACCEPTED"
     ev.drive(k, "s1", [line])
     assert k.workkeys["W1"].state == DONE
     assert k.counters["completions"] == 1

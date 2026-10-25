@@ -26,6 +26,7 @@ ever by proven ownership (courier_runtime.ownership), never by name.
 import dataclasses
 import json
 import os
+import re
 import tempfile
 import time
 from dataclasses import dataclass
@@ -37,6 +38,7 @@ OPEN, CLAIMED, DONE, BLOCKED, FAILED_FINAL = "OPEN", "CLAIMED", "DONE", "BLOCKED
 WORKING, IDLE, WAKE_PENDING, WAITING_FOR_USER = "WORKING", "IDLE", "WAKE_PENDING", "WAITING_FOR_USER"
 RECOVERING, RETIRED = "RECOVERING", "RETIRED"
 LIVE = {WORKING, IDLE, WAKE_PENDING, WAITING_FOR_USER, RECOVERING}
+_JOURNAL_ACCEPTED = re.compile(r"journal:([1-9]\d*):RESULT_ACCEPTED")
 
 # Explicit provider failure signals that mean "this session's context/backlog is
 # saturated". No fixed prompt-count limit is assumed.
@@ -221,6 +223,8 @@ class Kirby:
         w = self.workkeys.get(s.workkey)
         if w is None or w.owner != s.session_id or w.token != token or not s.accepting:
             return "REJECTED_STALE_WRITER"
+        if outcome == "DONE" and (not isinstance(checkpoint, str) or _JOURNAL_ACCEPTED.search(checkpoint) is None):
+            return "NOT_PROVEN"
         w.checkpoint = checkpoint or w.checkpoint
         if outcome == "DONE":
             w.state, w.owner = DONE, ""

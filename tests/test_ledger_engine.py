@@ -328,9 +328,27 @@ def test_gap_direct_controller_create_task_bypasses_the_cost_gate(setup):
     assert [e for e in ctrl.journal.events() if e.type is EventType.TASK_CREATED] == []
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="F-K1 gap in courier_runtime/provider_events.py + host_loop.py (owner L3): "
-                   "a provider TURN_ENDED outcome=DONE line marks the workkey DONE without journal proof; "
-                   "remove this xfail when that path goes through LedgerEngine.finish_turn")
+def test_b3_done_requires_result_accepted(setup):
+    """DONE follows a real RESULT_ACCEPTED journal row, not a provider's own DONE line."""
+    engine, ctrl, home, _ = setup
+    engine.add_workkeys(["WK-1"])
+    engine.open_slot("S1", "local")
+    workkey, token = engine.next("S1")
+    task_id = engine.submit(workkey, body())
+    from courier_runtime.provider_events import handle
+    assert handle(engine._kirby_factory(engine.campaign_path, "host-a"), "S1",
+                  "TURN_ENDED outcome=DONE checkpoint=trust me") == "NOT_PROVEN"
+    fresh = engine._kirby_factory(engine.campaign_path, "host-a")
+    assert fresh.workkeys["WK-1"].state != DONE
+    work(ctrl, home)
+    accepted = [e for e in ctrl.journal.events(task_id=task_id) if e.type is EventType.RESULT_ACCEPTED]
+    assert accepted and accepted[0].seq >= 1
+    assert engine.finish_turn("S1", workkey, token, task_id) != "NOT_PROVEN"
+    proof = engine.proof(task_id)
+    assert proof == f"journal:{accepted[0].seq}:RESULT_ACCEPTED"
+    assert engine._kirby_factory(engine.campaign_path, "host-a").workkeys["WK-1"].state == DONE
+
+
 def test_gap_host_loop_provider_signal_marks_done_without_proof(tmp_path):
     from courier_runtime.continuity import Kirby
     from courier_runtime.provider_events import handle
@@ -339,7 +357,7 @@ def test_gap_host_loop_provider_signal_marks_done_without_proof(tmp_path):
     kirby.open_slot("S1", "local")
     kirby.wake("S1")
     kirby.deliver("S1")
-    handle(kirby, "S1", "TURN_ENDED outcome=DONE checkpoint=trust me")
+    assert handle(kirby, "S1", "TURN_ENDED outcome=DONE checkpoint=trust me") == "NOT_PROVEN"
     assert kirby.workkeys["WK-1"].state != DONE
 
 

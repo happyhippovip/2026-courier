@@ -44,7 +44,8 @@ def kirby(tmp_path, **kw):
 
 def run_turn(k, slot, outcome="DONE", checkpoint="", reason=""):
     key = k.deliver(slot)
-    return key, k.on_turn_end(slot, outcome, k.sessions[slot].token, checkpoint or f"ckpt-{key}", reason)
+    proven = checkpoint or f"ckpt-{key} | journal:1:RESULT_ACCEPTED"
+    return key, k.on_turn_end(slot, outcome, k.sessions[slot].token, proven, reason)
 
 
 def test_25_sequential_workkeys_without_any_manual_continue(tmp_path):
