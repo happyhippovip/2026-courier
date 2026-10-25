@@ -51,7 +51,7 @@ def parse_line(line):
     return kind, fields, raw.strip()
 
 
-def handle(kirby, slot, line):
+def handle(kirby, slot, line, *, engine=None):
     """Feed one provider line to Kirby for ``slot``. Returns a result string."""
     kind, fields, raw = parse_line(line)
     if kind is None:
@@ -77,15 +77,20 @@ def handle(kirby, slot, line):
         claimed = kirby.workkeys.get(session.workkey)
         if claimed is None or claimed.owner != session.session_id or claimed.token != session.token:
             return kirby.wake(slot)                        # nothing claimed: reconcile only
+        if outcome == "DONE" and engine is not None:
+            from courier_runtime.ledger_engine import task_id_for
+            return engine.finish_turn(
+                slot, claimed.key, session.token, task_id_for(claimed.key),
+                checkpoint=fields.get("checkpoint", ""))
         return kirby.on_turn_end(slot, outcome, session.token,
                                  checkpoint=fields.get("checkpoint", ""),
                                  reason=fields.get("reason", ""))
     return "IGNORED"
 
 
-def drive(kirby, slot, lines):
+def drive(kirby, slot, lines, *, engine=None):
     """Feed an iterable of provider lines. Never prequeues: call per batch of new lines."""
-    return [handle(kirby, slot, line) for line in lines]
+    return [handle(kirby, slot, line, engine=engine) for line in lines]
 
 
 def read_new_lines(path, offset):
