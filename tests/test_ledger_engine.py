@@ -373,6 +373,47 @@ def test_b4_abc_bytes_sha256_per_hop(tmp_path):
         ctrl.stop()
 
 
+def test_b5_replay_rejected(tmp_path):
+    """A finished order id never runs a second time."""
+    engine, ctrl, home = _hop_engine(tmp_path)
+    try:
+        payload = b"replay-protected-payload"
+        digest = hashlib.sha256(payload).hexdigest()
+        task_body = body()
+        engine.add_workkeys(["WK-REPLAY"])
+        engine.open_slot("slot-1", "local")
+        workkey, token = engine.next("slot-1")
+        assert workkey == "WK-REPLAY"
+        task_id = engine.submit("WK-REPLAY", task_body, slot="slot-1", token=token)
+        claimed = work(ctrl, home, payload=payload)
+        assert claimed["task_id"] == task_id
+        assert engine.finish_turn("slot-1", "WK-REPLAY", token, task_id, checkpoint="done-1") != NOT_PROVEN
+        proof = engine.proof(task_id)
+        assert proof is not None and f"sha256:{digest}" in proof
+
+        engine.add_workkeys(["WK-REPLAY"])
+        assert engine.next("slot-1") is None
+
+        assert engine.submit("WK-REPLAY", task_body) == task_id
+        created = [e for e in ctrl.journal.events(task_id=task_id) if e.type is EventType.TASK_CREATED]
+        assert len(created) == 1
+
+        with pytest.raises(TaskConflict):
+            engine.submit("WK-REPLAY", body(content="mutated"))
+
+        assert ctrl.claim({"worker_id": "w2"}) is None
+        assert engine.finish_turn("slot-1", "WK-REPLAY", token, task_id, checkpoint="replay") == "REJECTED_STALE_WRITER"
+        receipts = [
+            json.loads(line)
+            for line in (engine.campaign_path.parent / "receipts.jsonl").read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        done = [row for row in receipts if row.get("workkey") == "WK-REPLAY" and row.get("outcome") == DONE]
+        assert len(done) == 1 and f"sha256:{digest}" in done[0]["checkpoint"]
+    finally:
+        ctrl.stop()
+
+
 def test_b4_tampered_hop_bytes_rejected(tmp_path):
     """A hop that names an upstream but carries different bytes is not DONE."""
     engine, ctrl, home = _hop_engine(tmp_path)
