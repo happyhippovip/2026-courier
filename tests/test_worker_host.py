@@ -175,6 +175,11 @@ def test_pressure_probe_never_raises():
     assert result is None or isinstance(result, str)
 
 
+def test_pressure_probe_skips_thermal_in_worker_test_mode(monkeypatch):
+    monkeypatch.setenv("COURIER_WORKER_IGNORE_THERMAL", "1")
+    assert default_pressure_probe() is None
+
+
 # -- artifacts, tails and crash reports ---------------------------------------
 
 
