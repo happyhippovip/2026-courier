@@ -1,16 +1,15 @@
-import hashlib
-import os
 import pytest
 from scripts.artifact_store import ArtifactStore, ArtifactError
 
 BINDING = {"goal_id": "g", "task_id": "t", "attempt_id": "t:attempt:1",
            "dispatch_id": "dispatch-1", "worker_id": "WINDOWS-01"}
 
-def test_from_env(monkeypatch):
-    monkeypatch.setenv("COURIER_ARTIFACT_DIR", "/tmp/mock-dir")
+def test_from_env(monkeypatch, tmp_path):
+    root = tmp_path / "mock-dir"
+    monkeypatch.setenv("COURIER_ARTIFACT_DIR", str(root))
     monkeypatch.setenv("COURIER_ARTIFACT_MAX_BYTES", "42")
     store = ArtifactStore.from_env()
-    assert str(store.root) == os.path.normpath("/tmp/mock-dir")
+    assert store.root == root
     assert store.max_bytes == 42
 
 def test_put_corrupted_blob(tmp_path):

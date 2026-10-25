@@ -35,6 +35,7 @@ def sha(data: bytes) -> str:
 
 
 def synthetic_task(**params):
+    params.setdefault("estimated_cost_eur", 0.0)
     return {"adapter": "synthetic", "params": params, "effect_class": "idempotent", "max_attempts": 1,
             "lease_ttl_s": 30, "timeout_s": 60}
 
