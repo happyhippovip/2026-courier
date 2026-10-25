@@ -22,11 +22,15 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 CONFIG_NAME = "work_queue_feed.json"
+EVIDENCE_NAME = "pr_evidence.json"
 DEFAULT_TTL_S = 3600
+EVIDENCE_MAX_AGE = timedelta(hours=24)
+# PR #281 is open. It must never be treated as a finished dependency.
+NEVER_DONE_PRS = frozenset({"281"})
 
 
 def _read_json(path: Path, default):
@@ -60,6 +64,58 @@ def _utc(now=None) -> str:
     return moment.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def _moment(now):
+    if isinstance(now, datetime):
+        return now if now.tzinfo else now.replace(tzinfo=timezone.utc)
+    return datetime.now(timezone.utc)
+
+
+def _pr_evidence(home: Path, now=None):
+    """Return (done_prs, open_pr_files) or None when a present file is not fresh.
+
+    A missing file is empty evidence, so local workkeys with no PR dependency
+    still move. A present file that is unverified, unreadable, or older than
+    24 hours blocks the pass.
+    """
+    path = home / EVIDENCE_NAME
+    if not path.exists():
+        return [], []
+    data = _read_json(path, None)
+    if not isinstance(data, dict) or data.get("verified") is not True:
+        return None
+    as_of = data.get("as_of")
+    if not isinstance(as_of, str):
+        return None
+    try:
+        stamp = datetime.fromisoformat(as_of.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if stamp.tzinfo is None:
+        stamp = stamp.replace(tzinfo=timezone.utc)
+    if _moment(now) - stamp > EVIDENCE_MAX_AGE:
+        return None
+    done = []
+    for value in data.get("done_prs") or []:
+        token = str(value).strip()
+        if token and token not in NEVER_DONE_PRS:
+            done.append(token)
+    files = []
+    for value in data.get("open_pr_files") or []:
+        if isinstance(value, str) and value.strip():
+            files.append(value)
+    return done, files
+
+
+def _result_proven(mapping: dict) -> bool:
+    if mapping.get("status") != "FINAL_DONE":
+        return False
+    result = mapping.get("accepted_result_id")
+    if not isinstance(result, str):
+        return False
+    token = result.strip()
+    return bool(token) and token.lower() != "none"
+
+
 def has_open_work(home, now=None) -> bool:
     """True when the opt-in queue has a held or a READY workkey with a task spec."""
     home = Path(home)
@@ -74,7 +130,12 @@ def has_open_work(home, now=None) -> bool:
     if any(i.get("status") == "CLAIMED" and (i.get("lease") or {}).get("holder") == holder
            for i in queue.items(now=now)):
         return True
-    return any(i["id"] in specs for i in queue.list_ready(now=now))
+    evidence = _pr_evidence(home, now)
+    if evidence is None:
+        return False
+    done_prs, open_pr_files = evidence
+    return any(i["id"] in specs for i in queue.list_ready(
+        now=now, done_prs=done_prs, open_pr_files=open_pr_files))
 
 
 def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
@@ -93,6 +154,11 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
     holder = config["holder"]
     ttl = int(config.get("ttl_s", DEFAULT_TTL_S))
     specs = config.get("specs") or {}
+    evidence = _pr_evidence(home, now)
+    if evidence is None:
+        return {"outcome": "blocked", "released": [], "claimed": [], "assigned": [],
+                "renewed": [], "blocked": ["PR_EVIDENCE"]}
+    done_prs, open_pr_files = evidence
     queue = WorkQueue(items_dir=config["items_dir"], ledger_path=config["ledger"])
     store = FileCoordinationStore(home / "coordination_ledger.jsonl")
     bridge_state = _read_json(home / "ledger_bridge_state.json", {"missions": {}})
@@ -123,9 +189,14 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
     for item in held:
         item_id = item["id"]
         mapping = missions.get(item_id) or {}
-        if mapping.get("status") == "FINAL_DONE":
+        if _result_proven(mapping):
             queue.release(item_id, holder, f"FINAL_DONE {mapping.get('task_id', '')}".strip(), now=now)
             report["released"].append(item_id)
+            continue
+        if mapping.get("status") == "FINAL_DONE":
+            report.setdefault("blocked", []).append(item_id)
+            still_held.append(item_id)
+            queue.renew(item_id, holder, ttl, now=now)
             continue
         still_held.append(item_id)
         if item_id in specs:
@@ -134,13 +205,16 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
         report["renewed"].append(item_id)
 
     if not still_held:
-        for item in queue.list_ready(now=now):
+        for item in queue.list_ready(now=now, done_prs=done_prs, open_pr_files=open_pr_files):
             if item["id"] in specs:
-                queue.claim(item["id"], holder, ttl, host=host_id, now=now)
+                queue.claim(item["id"], holder, ttl, host=host_id, now=now,
+                            done_prs=done_prs, open_pr_files=open_pr_files)
                 report["claimed"].append(item["id"])
                 assign(item["id"])
                 break
 
     if report["released"] or report["claimed"] or report["assigned"]:
         report["outcome"] = "fed"
+    elif report.get("blocked"):
+        report["outcome"] = "blocked"
     return report
