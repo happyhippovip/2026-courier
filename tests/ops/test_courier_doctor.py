@@ -96,6 +96,38 @@ def _home(tmp_path, monkeypatch):
     return home
 
 
+def test_check_ledger_refuses_a_symlink(tmp_path, monkeypatch):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    db = outside / "courier.db"
+    conn = sqlite3.connect(db)
+    conn.execute("CREATE TABLE events (seq INTEGER PRIMARY KEY, type TEXT)")
+    conn.execute("INSERT INTO events (type) VALUES ('SECRET')")
+    conn.commit()
+    conn.close()
+    link = tmp_path / "home"
+    link.symlink_to(outside, target_is_directory=True)
+    monkeypatch.setenv("COURIER_HOME", str(link))
+    passed, msg = check_ledger()
+    assert not passed
+    assert "symlink" in msg
+    assert "SECRET" not in msg
+    assert "events recorded" not in msg
+
+    real = tmp_path / "real"
+    real.mkdir()
+    monkeypatch.setenv("COURIER_HOME", str(real))
+    (real / "courier.db").symlink_to(db)
+    passed, msg = check_ledger()
+    assert not passed
+    assert "symlink" in msg
+    assert "events recorded" not in msg
+    (real / "courier.db").unlink()
+    passed, msg = check_ledger()
+    assert not passed
+    assert "Missing" in msg
+
+
 def test_check_ledger_missing(tmp_path, monkeypatch):
     home = _home(tmp_path, monkeypatch)
     passed, msg = check_ledger()
