@@ -130,6 +130,26 @@ def test_file_coordination_store_refuses_a_symlink(tmp_path):
     assert real.read_text(encoding="utf-8") == ""
 
 
+def test_file_coordination_store_refuses_a_file_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    mid = outside / "mid"
+    mid.mkdir(parents=True)
+    secret = mid / "l.jsonl"
+    secret.write_text('{"note":"SECRET"}\n', encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(OSError, match="symlink"):
+        FileCoordinationStore(link / "mid" / "l.jsonl").read_events()
+    assert secret.read_text(encoding="utf-8") == '{"note":"SECRET"}\n'
+    assert not (mid / "l.jsonl.lock").exists()
+
+    real = tmp_path / "real.jsonl"
+    store = FileCoordinationStore(real)
+    store.write_event(_event("1", "m", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z"))
+    assert store.read_events()[0].event_id == "1"
+    assert "SECRET" not in real.read_text(encoding="utf-8")
+
+
 def test_stale_checkpoint_does_not_regress_resume_point(tmp_path):
     store = FileCoordinationStore(tmp_path / "l.jsonl")
     store.write_event(_event("1", "m", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z"))

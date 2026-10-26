@@ -101,7 +101,9 @@ class FileCoordinationStore:
     def _refuse_link(self) -> None:
         path = self.path
         lock_path = path.with_suffix(path.suffix + ".lock")
-        if path.is_symlink() or path.parent.is_symlink() or lock_path.is_symlink():
+        if (path.is_symlink() or path.parent.is_symlink() or path.parent.parent.is_symlink()
+                or lock_path.is_symlink() or lock_path.parent.is_symlink()
+                or lock_path.parent.parent.is_symlink()):
             raise OSError(f"{path}: refusing to follow a symlink")
 
     def read_events(self) -> List[CoordinationEvent]:
