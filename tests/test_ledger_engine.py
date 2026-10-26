@@ -304,9 +304,6 @@ def test_gap_direct_controller_create_task_bypasses_the_cost_gate(setup):
     assert [e for e in ctrl.journal.events() if e.type is EventType.TASK_CREATED] == []
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="F-K1 gap in courier_runtime/provider_events.py + host_loop.py (owner L3): "
-                   "a provider TURN_ENDED outcome=DONE line marks the workkey DONE without journal proof; "
-                   "remove this xfail when that path goes through LedgerEngine.finish_turn")
 def test_gap_host_loop_provider_signal_marks_done_without_proof(tmp_path):
     from courier_runtime.continuity import Kirby
     from courier_runtime.provider_events import handle

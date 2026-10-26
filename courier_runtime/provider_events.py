@@ -82,6 +82,11 @@ def handle(kirby, slot, line, *, engine=None):
             return engine.finish_turn(
                 slot, claimed.key, session.token, task_id_for(claimed.key),
                 checkpoint=fields.get("checkpoint", ""))
+        if outcome == "DONE" and session.accepting:
+            checkpoint = fields.get("checkpoint")
+            if checkpoint:
+                kirby.heartbeat(slot, progress=False, checkpoint=checkpoint)
+            return "NOT_PROVEN"
         return kirby.on_turn_end(slot, outcome, session.token,
                                  checkpoint=fields.get("checkpoint", ""),
                                  reason=fields.get("reason", ""))
