@@ -696,8 +696,14 @@ def acquire_home_lock(home: str):
     :func:`release_home_lock`). A second live host for the same home gets
     :class:`HostBusy`, never a shared home.
     """
-    _run_dir(home).mkdir(parents=True, exist_ok=True)
-    path = _run_dir(home) / "worker.lock"
+    root = Path(home)
+    run = _run_dir(home)
+    if root.is_symlink() or run.is_symlink():
+        raise ContainmentError(f"{home}: refusing to follow a symlink")
+    run.mkdir(parents=True, exist_ok=True)
+    path = run / "worker.lock"
+    if path.is_symlink():
+        raise ContainmentError(f"{path}: refusing to follow a symlink")
     fd = os.open(str(path), os.O_RDWR | os.O_CREAT, 0o600)
     try:
         if os.name == "nt":

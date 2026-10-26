@@ -320,6 +320,27 @@ def test_home_lock_single_owner(tmp_path):
     release_home_lock(fd2)
 
 
+def test_home_lock_refuses_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    home = tmp_path / "home"
+    home.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        acquire_home_lock(str(home))
+    assert not (outside / "run").exists()
+
+    real = tmp_path / "real"
+    real.mkdir()
+    lock = real / "run"
+    lock.mkdir()
+    target = tmp_path / "elsewhere.lock"
+    target.write_bytes(b"")
+    (lock / "worker.lock").symlink_to(target)
+    with pytest.raises(ContainmentError, match="symlink"):
+        acquire_home_lock(str(real))
+    assert target.read_bytes() == b""
+
+
 # -- outbox --------------------------------------------------------------------
 
 
