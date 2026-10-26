@@ -167,6 +167,27 @@ def test_read_new_lines_refuses_a_symlink(tmp_path):
     assert (planted / "provider.log").read_text(encoding="utf-8") == "IDLE\n"
 
 
+def test_read_new_lines_refuses_a_path_two_levels_under_a_symlink(tmp_path):
+    from courier_runtime.provider_events import read_new_lines
+
+    outside = tmp_path / "outside"
+    (outside / "mid").mkdir(parents=True)
+    (outside / "mid" / "provider.log").write_text("TURN_ENDED outcome=DONE\n", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    try:
+        read_new_lines(link / "mid" / "provider.log", 0)
+    except OSError as exc:
+        assert "symlink" in str(exc)
+    else:
+        raise AssertionError("read a provider log through a linked directory")
+    assert (outside / "mid" / "provider.log").read_text(encoding="utf-8") == "TURN_ENDED outcome=DONE\n"
+
+    real = tmp_path / "provider.log"
+    real.write_text("IDLE\n", encoding="utf-8")
+    assert read_new_lines(real, 0)[0] == ["IDLE"]
+
+
 def test_read_new_lines_is_incremental(tmp_path):
     from courier_runtime import provider_events
 

@@ -109,7 +109,7 @@ def read_new_lines(path, offset):
     than poisoning all later signals or decoding into a valid terminal event.
     """
     raw = Path(path)
-    if raw.is_symlink() or raw.parent.is_symlink():
+    if raw.is_symlink() or raw.parent.is_symlink() or raw.parent.parent.is_symlink():
         raise OSError(f"{raw}: refusing to follow a symlink")
     with open(path, "rb") as f:
         f.seek(offset)
