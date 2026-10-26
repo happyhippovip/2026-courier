@@ -338,6 +338,25 @@ def test_ledger_sidecar_symlink_is_not_opened(tmp_path):
     assert db.read_bytes() == b""
 
 
+def test_organizer_refuses_a_library_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    incoming = tmp_path / "incoming"
+    incoming.mkdir()
+    with pytest.raises(ValueError, match="symlink"):
+        AirDropOrganizer(incoming, link / "mid" / "library", tmp_path / "quarantine", tmp_path / "state" / "airdrop.db")
+    assert not (outside / "mid").exists()
+    assert (outside / "SECRET").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real-library"
+    AirDropOrganizer(incoming, real, tmp_path / "quarantine", tmp_path / "state" / "airdrop.db")
+    assert real.is_dir()
+    assert (tmp_path / "state" / "airdrop.db").is_file()
+
+
 def test_library_and_ledger_symlinks_are_not_destinations(tmp_path):
     outside_lib = tmp_path / "outside-lib"
     outside_lib.mkdir()
