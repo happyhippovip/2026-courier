@@ -235,7 +235,11 @@ def evaluate_cost_gate(spec: Mapping, config: Mapping | None) -> dict:
         }
 
     import math
-    if math.isnan(estimated_cost) or math.isinf(estimated_cost) or estimated_cost < 0.0:
+    try:
+        invalid_cost = math.isnan(estimated_cost) or math.isinf(estimated_cost) or estimated_cost < 0.0
+    except OverflowError:
+        invalid_cost = True
+    if invalid_cost:
         return {
             "allowed": False,
             "outcome": "BLOCKED",

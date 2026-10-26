@@ -81,10 +81,15 @@ def cost_admission(params: Any, spend_limit_eur: float = 0.0) -> str | None:
     """Return None if the task may be created, else the reason it is blocked."""
     if not isinstance(params, dict):
         return "UNKNOWN_COST: params missing"
-    if params.get("unknown_cost") is True or params.get("cost_class") == "unknown":
+    marker = params.get("cost_class")
+    if params.get("unknown_cost") is True or (isinstance(marker, str) and marker.strip().lower() == "unknown"):
         return "UNKNOWN_COST: marked unknown"
     cost = params.get("estimated_cost_eur")
-    if isinstance(cost, bool) or not isinstance(cost, (int, float)) or not math.isfinite(cost):
+    try:
+        finite = not isinstance(cost, bool) and isinstance(cost, (int, float)) and math.isfinite(cost)
+    except OverflowError:
+        finite = False
+    if not finite:
         return "UNKNOWN_COST: no finite estimated_cost_eur"
     if cost < 0:
         return "INVALID_COST: negative estimate"
@@ -141,8 +146,13 @@ class LedgerEngine:
         self.campaign_path = Path(campaign_path)
         self.lock_path = self.campaign_path.with_suffix(self.campaign_path.suffix + ".lock")
         self.host = host
-        if (isinstance(spend_limit_eur, bool) or not isinstance(spend_limit_eur, (int, float))
-                or not math.isfinite(spend_limit_eur) or spend_limit_eur < 0):
+        try:
+            finite_limit = (not isinstance(spend_limit_eur, bool)
+                            and isinstance(spend_limit_eur, (int, float))
+                            and math.isfinite(spend_limit_eur))
+        except OverflowError:
+            finite_limit = False
+        if not finite_limit or spend_limit_eur < 0:
             raise ValueError("spend_limit_eur must be a finite number >= 0")
         self.spend_limit_eur = spend_limit_eur
         self._kirby_factory = kirby_factory or (lambda path, h: Kirby(path, h))

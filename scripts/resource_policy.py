@@ -148,8 +148,13 @@ class CostGate:
             }
 
         # UNKNOWN_COST=BLOCK: only a finite, explicit 0.0 passes.
-        if (isinstance(estimated_cost_eur, bool) or not isinstance(estimated_cost_eur, (int, float))
-                or not math.isfinite(estimated_cost_eur) or estimated_cost_eur < 0.0):
+        try:
+            finite_cost = (not isinstance(estimated_cost_eur, bool)
+                           and isinstance(estimated_cost_eur, (int, float))
+                           and math.isfinite(estimated_cost_eur))
+        except OverflowError:
+            finite_cost = False
+        if not finite_cost or estimated_cost_eur < 0.0:
             return {
                 "allowed": False,
                 "reason": "UNKNOWN_COST",

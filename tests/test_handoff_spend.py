@@ -25,7 +25,7 @@ def test_unknown_marks_block_beside_an_explicit_zero():
     }) == "UNKNOWN_COST"
 
 
-@pytest.mark.parametrize("cost", [-1.0, float("nan"), float("inf"), True, "0"])
+@pytest.mark.parametrize("cost", [-1.0, float("nan"), float("inf"), True, "0", 10**400])
 def test_invalid_cost_is_unknown(cost):
     assert handoff_spend_block({"estimated_cost_eur": cost}) == "UNKNOWN_COST"
 
