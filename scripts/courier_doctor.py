@@ -122,8 +122,8 @@ def export_diagnostics(out_path):
     db_path = app_data / "courier.db"
     log_dir = app_data / "logs"
     config_path = app_data / "config.json"
-    if (app_data.is_symlink() or app_data.parent.is_symlink()
-            or out.is_symlink() or out.parent.is_symlink()
+    if (app_data.is_symlink() or app_data.parent.is_symlink() or app_data.parent.parent.is_symlink()
+            or out.is_symlink() or out.parent.is_symlink() or out.parent.parent.is_symlink()
             or token_file.is_symlink() or (app_data / "run").is_symlink()
             or db_path.is_symlink() or config_path.is_symlink() or log_dir.is_symlink()):
         raise OSError(f"{app_data}: refusing to follow a symlink")

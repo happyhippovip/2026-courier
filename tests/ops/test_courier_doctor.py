@@ -263,4 +263,30 @@ def test_export_diagnostics_refuses_a_symlink(tmp_path, monkeypatch):
     exported = tmp_path / "real-bundle.zip"
     export_diagnostics(exported)
     assert exported.is_file()
-        
+
+
+def test_export_diagnostics_refuses_a_home_two_levels_under_a_symlink(tmp_path, monkeypatch):
+    outside = tmp_path / "outside"
+    home = outside / "mid" / "home"
+    home.mkdir(parents=True)
+    (home / "courier.db").write_bytes(b"SECRET")
+    (home / "config.json").write_text('{"COURIER_API_KEY":"SECRET"}', encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    monkeypatch.setenv("COURIER_HOME", str(link / "mid" / "home"))
+    monkeypatch.delenv("COURIER_API_KEY", raising=False)
+    bundle = tmp_path / "bundle.zip"
+    with pytest.raises(OSError, match="symlink"):
+        export_diagnostics(bundle)
+    assert not bundle.exists()
+    assert (home / "courier.db").read_bytes() == b"SECRET"
+
+    real = tmp_path / "real"
+    real.mkdir()
+    (real / "config.json").write_text('{"name":"LIVE"}', encoding="utf-8")
+    monkeypatch.setenv("COURIER_HOME", str(real))
+    exported = tmp_path / "real-bundle.zip"
+    export_diagnostics(exported)
+    assert exported.is_file()
+    assert b"SECRET" not in exported.read_bytes()
+ 
