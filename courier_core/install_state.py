@@ -219,7 +219,8 @@ class InstallJournal:
 
     def __init__(self, state_dir: str | os.PathLike):
         self.state_dir = Path(state_dir)
-        if self.state_dir.is_symlink() or self.state_dir.parent.is_symlink():
+        if (self.state_dir.is_symlink() or self.state_dir.parent.is_symlink()
+                or self.state_dir.parent.parent.is_symlink()):
             raise JournalUnreadable(f"{self.state_dir}: refusing to follow a symlink")
         self.path = self.state_dir / JOURNAL_NAME
 
