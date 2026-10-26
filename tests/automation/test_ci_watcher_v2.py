@@ -293,9 +293,9 @@ def test_persisted_schedule_beyond_window_costs_no_call_and_no_sleep(tmp_path):
     clock = Clock()
     key = w.idempotency_key("WK", SHA)
     w.write_state(w.state_path(tmp_path, key), {"key": key, "sha": SHA, "workkey": "WK", "status": "WATCHING", "attempts": 4,
-                                               "next_poll_at": clock.t + 500, "dispatch": "DISPATCHED"})
+                                               "next_poll_at": clock.t + 50, "dispatch": "DISPATCHED"})  # <= max_interval, > window
     gh = Gh(DONE)
-    r = go(tmp_path, gh, clock, window=60)
+    r = go(tmp_path, gh, clock, window=30)
     assert r["status"] == w.WAITING and gh.commands == [] and clock.sleeps == []
 
 
@@ -389,6 +389,52 @@ def test_sigkill_mid_poll_then_real_restart_resumes_and_never_dispatches_twice(t
 
 
 # ---------------------------------------------------------------- CLI
+def test_dispatch_timeout_is_ambiguous_and_never_retried(tmp_path):
+    """Review finding W3 (ci_watcher_v2.py gh_dispatch): a timed-out `gh workflow run` may have been accepted."""
+    def timing_out(command):
+        raise subprocess.TimeoutExpired(command, 120)
+
+    with pytest.raises(w.AmbiguousDispatch):
+        go(tmp_path, Gh(BUSY), dispatch=w.gh_dispatch("ci.yml", "main", run_cmd=timing_out))
+    assert state_of(tmp_path)["dispatch"] == "DISPATCHING"
+    later = []
+    result = go(tmp_path, Gh(BUSY), dispatch=lambda: later.append(1), window=1)
+    assert later == [] and result["status"] == w.WAITING
+
+
+@pytest.mark.parametrize("field,value", [("next_poll_at", "soon"), ("dispatched_at", [1]), ("next_poll_at", True),
+                                         ("runs", "x"), ("dispatch", "MAYBE"), ("status", "DONE")])
+def test_badly_typed_state_fields_are_unreadable_not_a_crash(tmp_path, field, value):
+    """Review finding W4 (read_state): wrong types used to raise TypeError deep inside the loop."""
+    go(tmp_path, Gh(BUSY), window=1)
+    path = w.state_path(tmp_path, w.idempotency_key("WK", SHA))
+    state = json.loads(path.read_text())
+    state[field] = value
+    path.write_text(json.dumps(state))
+    gh = Gh(DONE)
+    assert go(tmp_path, gh)["status"] == w.STATE_UNREADABLE and gh.commands == []
+
+
+def test_next_poll_far_in_the_future_is_clamped_to_max_interval(tmp_path):
+    """Review finding W5: a stale/corrupt next_poll_at (clock jumped back) must not park the watcher forever."""
+    clock = Clock()
+    go(tmp_path, Gh(BUSY), clock=clock, window=1)
+    path = w.state_path(tmp_path, w.idempotency_key("WK", SHA))
+    state = json.loads(path.read_text())
+    state["next_poll_at"] = clock.t + 10_000_000
+    path.write_text(json.dumps(state))
+    gh = Gh(DONE)
+    result = go(tmp_path, gh, clock=clock, window=300, max_interval=60)
+    assert result["status"] == w.COMPLETED and len(gh.lists) == 1 and max(clock.sleeps) <= 60
+
+
+def test_cli_rejects_negative_or_nonsense_numbers(tmp_path):
+    base = ["--workkey", "WK", "--sha", SHA, "--state-dir", str(tmp_path)]
+    for bad in (["--window", "-1"], ["--base", "-5"], ["--factor", "0.5"], ["--max-interval", "-1"], ["--max-attempts", "-3"]):
+        assert w.main(base + bad) == 2, bad
+    assert list(tmp_path.iterdir()) == []
+
+
 def test_cli_usage_errors_exit_2_and_make_no_call(tmp_path, capsys):
     assert w.main([]) == 2
     assert w.main(["--workkey", "WK", "--sha", "nope", "--state-dir", str(tmp_path)]) == 2

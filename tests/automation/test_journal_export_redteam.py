@@ -14,7 +14,7 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "core"))  # read-only fixture builders
-from core_builders import golden_path  # noqa: E402
+from core_builders import Attempt, created, golden_path  # noqa: E402
 from tools.automation import journal_export as je  # noqa: E402
 from courier_core.journal import Journal
 
@@ -203,6 +203,23 @@ def test_sidecar_appearing_during_an_immutable_read_triggers_a_normal_readonly_r
     assert "immutable=1" not in uris[-1] and len(uris) >= 2
 
 
+def test_sidecar_appearing_between_mode_choice_and_open_is_also_caught(tmp_path, monkeypatch):
+    """Review finding R7: the baseline signature must predate the choice of the open mode."""
+    db = make_journal(tmp_path / "courier.db")
+    uris, original, state = [], je._readonly_uri, {"first": True}
+
+    def choose_then_writer_appears(path, ok=True):
+        uri = original(path, ok)
+        uris.append(uri)
+        if state.pop("first", False):
+            (tmp_path / "courier.db-wal").write_bytes(b"")  # appears right after "no sidecar" was decided
+        return uri
+
+    monkeypatch.setattr(je, "_readonly_uri", choose_then_writer_appears)
+    code, out, _ = export(db)
+    assert code == 0 and "immutable=1" in uris[0] and "immutable=1" not in uris[-1] and len(uris) >= 2
+
+
 # --- invalid UTF-8 ---------------------------------------------------------------------------------
 
 @pytest.mark.parametrize("column", ["task_id", "ts_utc", "type", "event_id", "dispatch_id"])
@@ -276,23 +293,28 @@ def test_truncated_tail_of_the_chain_is_visible_through_head_seq(tmp_path):
 # --- huge journal ----------------------------------------------------------------------------------------
 
 def test_large_journal_streams_in_constant_memory_and_is_deterministic(tmp_path):
+    """Review finding R8: few tasks, many events, so memory O(tasks) is tiny and any O(events) buffer shows."""
     db = tmp_path / "courier.db"
     journal = Journal(db).open()
     journal.conn.execute("PRAGMA synchronous=OFF")
-    for n in range(2000):
-        for event in golden_path(task_id=f"big{n}"):
+    for task in range(5):
+        attempt = Attempt(task_id=f"p{task}")
+        for event in (created(task_id=f"p{task}"), attempt.claimed(), attempt.started()):
             journal.append(event)
+        for step in range(3000):
+            journal.append(attempt.progress(f"step {step}"))
     journal.close()
     out1, out2 = tmp_path / "one.jsonl", tmp_path / "two.jsonl"
     tracemalloc.start()
     code = je.main([str(db), "--out", str(out1)], stdout=io.StringIO(), stderr=io.StringIO())
     _, peak = tracemalloc.get_traced_memory()
     tracemalloc.stop()
-    assert code == 0 and out1.stat().st_size > 4_000_000
-    assert peak < 3_000_000, f"peak {peak} bytes: output must be streamed, not built in memory"
+    size = out1.stat().st_size
+    assert code == 0 and size > 4_000_000
+    assert peak < size / 8, f"peak {peak} bytes for {size} bytes of output: must be streamed, not built in memory"
     assert je.main([str(db), "--out", str(out2)], stdout=io.StringIO(), stderr=io.StringIO()) == 0
     assert sha(out1) == sha(out2)
-    assert len(out1.read_text().splitlines()) == 2000 * len(golden_path()) + 1
+    assert len(out1.read_text().splitlines()) == 5 * 3003 + 1
 
 
 # --- paths, pipes, interruption -------------------------------------------------------------------------

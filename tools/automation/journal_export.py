@@ -82,6 +82,7 @@ def resolve_journal(path: str | os.PathLike) -> Path:
 
 def open_readonly(path: str | os.PathLike, immutable_ok: bool = True) -> Journal:
     path = resolve_journal(path)
+    signature = _signature(path)  # taken BEFORE the open mode is chosen, so a writer that appears later is seen
     uri = _readonly_uri(path, immutable_ok)
     try:
         conn = sqlite3.connect(uri, uri=True, isolation_level=None, timeout=30)
@@ -94,6 +95,7 @@ def open_readonly(path: str | os.PathLike, immutable_ok: bool = True) -> Journal
     journal = Journal(path, readonly=True)
     journal._conn = conn  # hand the existing verifier a connection that cannot write
     journal.immutable_open = "immutable=1" in uri
+    journal.signature_before = signature
     return journal
 
 
@@ -161,7 +163,7 @@ def export_stream(path: str | os.PathLike, only_transitions: bool = False,
     for immutable_ok in (True, False):
         journal = open_readonly(path, immutable_ok)
         real = Path(journal.path)
-        before = _signature(real)
+        before = journal.signature_before
         try:
             report = journal.verify_chain()
             if not report.ok and not allow_partial:

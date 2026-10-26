@@ -65,6 +65,11 @@ class GhQueryError(RuntimeError):
         self.rate_limited = rate_limited
 
 
+class AmbiguousDispatch(RuntimeError):
+    """The dispatch command may or may not have reached GitHub (e.g. it timed out).
+    The DISPATCHING marker is kept, so the key is never dispatched a second time."""
+
+
 @dataclass(frozen=True)
 class Backoff:
     base: float = 5.0
@@ -118,6 +123,13 @@ def read_state(path: Path) -> Optional[dict]:
     except ValueError as exc:
         raise ValueError(f"state file is not valid JSON: {exc}") from exc
     if not isinstance(state, dict) or not isinstance(state.get("attempts", 0), int) or isinstance(state.get("attempts"), bool):
+        raise ValueError("state file has an unexpected shape")
+    for field in ("next_poll_at", "dispatched_at"):
+        value = state.get(field)
+        if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float)) or value != value):
+            raise ValueError(f"state file field {field} is not a number")
+    if not isinstance(state.get("runs", []), list) or state.get("dispatch", "NONE") not in ("NONE", "DISPATCHING", "DISPATCHED") \
+            or state.get("status", WATCHING) not in (WATCHING, COMPLETED, EXHAUSTED, UNCONFIRMED):
         raise ValueError("state file has an unexpected shape")
     return state
 
@@ -216,6 +228,8 @@ def watch(workkey: str, sha: str, state_dir, *, backoff: Backoff = Backoff(),
             write_state(path, state)
             try:
                 dispatch()
+            except AmbiguousDispatch:  # may have been sent: keep the marker, report, never retry on our own
+                raise
             except Exception:  # clean failure: nothing was dispatched, the key stays free
                 state["dispatch"], state["dispatched_at"] = "NONE", None
                 write_state(path, state)
@@ -234,6 +248,8 @@ def watch(workkey: str, sha: str, state_dir, *, backoff: Backoff = Backoff(),
             due = state.get("next_poll_at")
             now = clock()
             wait = max(0.0, (due - now) if due is not None else 0.0)
+            if backoff.max_interval > 0:  # a clock that jumped back (or a bad state) must not park the watcher
+                wait = min(wait, backoff.max_interval)
             if deadline is not None and now + wait > deadline:
                 # The next poll lies beyond this call. If the schedule was made in this call, spend one
                 # last poll exactly at the window edge (so a run that finishes inside the window is
@@ -283,7 +299,10 @@ def gh_dispatch(workflow: str, ref: str, repo: Optional[str] = None, run_cmd: Ca
         command = ["gh", "workflow", "run", workflow, "--ref", ref]
         if repo:
             command += ["--repo", repo]
-        code, out, err = run_cmd(command)
+        try:
+            code, out, err = run_cmd(command)
+        except subprocess.TimeoutExpired as exc:  # outcome unknown: GitHub may have accepted the request
+            raise AmbiguousDispatch(f"gh workflow run timed out after {exc.timeout}s; dispatch state unknown") from exc
         if code != 0:
             raise RuntimeError(f"gh workflow run failed ({code}): {(err or out).strip()[:300]}")
     return _dispatch
@@ -308,6 +327,9 @@ def main(argv: list[str] | None = None) -> int:
         return 2 if exc.code else 0
     if bool(args.dispatch_workflow) != bool(args.ref):
         print("--dispatch-workflow and --ref belong together", file=sys.stderr)
+        return 2
+    if args.window < 0 or args.base < 0 or args.factor < 1 or args.max_interval < 0 or args.max_attempts < 0:
+        print("--window/--base/--max-interval/--max-attempts must be >= 0 and --factor >= 1", file=sys.stderr)
         return 2
     backoff = Backoff(base=args.base, factor=args.factor, max_interval=args.max_interval,
                       max_attempts=args.max_attempts, window=args.window)
