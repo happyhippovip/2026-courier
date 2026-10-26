@@ -100,6 +100,36 @@ def test_fresh_process_reconstructs_and_resumes(tmp_path):
     assert reduce_store(FileCoordinationStore(ledger)).get_mission("WK-42")["ownership"] == "GOOGLE_WINDOWS"
 
 
+def test_file_coordination_store_refuses_a_symlink(tmp_path):
+    outside = tmp_path / "outside.jsonl"
+    outside.write_text('{"adopted": true}\n', encoding="utf-8")
+    link = tmp_path / "l.jsonl"
+    link.symlink_to(outside)
+    store = FileCoordinationStore(link)
+    with pytest.raises(OSError, match="symlink"):
+        store.read_events()
+    with pytest.raises(OSError, match="symlink"):
+        store.write_event(_event("1", "m", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z"))
+    assert outside.read_text(encoding="utf-8") == '{"adopted": true}\n'
+
+    planted = tmp_path / "planted"
+    planted.mkdir()
+    home = tmp_path / "home"
+    home.symlink_to(planted, target_is_directory=True)
+    with pytest.raises(OSError, match="symlink"):
+        FileCoordinationStore(home / "l.jsonl").read_events()
+    assert list(planted.iterdir()) == []
+
+    real = tmp_path / "real.jsonl"
+    real.write_text("", encoding="utf-8")
+    lock = tmp_path / "real.jsonl.lock"
+    lock.symlink_to(outside)
+    with pytest.raises(OSError, match="symlink"):
+        FileCoordinationStore(real).write_event(
+            _event("1", "m", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z"))
+    assert real.read_text(encoding="utf-8") == ""
+
+
 def test_stale_checkpoint_does_not_regress_resume_point(tmp_path):
     store = FileCoordinationStore(tmp_path / "l.jsonl")
     store.write_event(_event("1", "m", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z"))

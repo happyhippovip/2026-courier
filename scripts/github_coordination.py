@@ -98,7 +98,14 @@ class FileCoordinationStore:
     def __init__(self, path):
         self.path = Path(path)
 
+    def _refuse_link(self) -> None:
+        path = self.path
+        lock_path = path.with_suffix(path.suffix + ".lock")
+        if path.is_symlink() or path.parent.is_symlink() or lock_path.is_symlink():
+            raise OSError(f"{path}: refusing to follow a symlink")
+
     def read_events(self) -> List[CoordinationEvent]:
+        self._refuse_link()
         if not self.path.exists():
             return []
         events: List[CoordinationEvent] = []
@@ -116,6 +123,7 @@ class FileCoordinationStore:
         """Append one event. The same id and body is a no-op. A different body for that id is refused."""
         from courier_runtime.ledger_engine import _exclusive
 
+        self._refuse_link()
         lock_path = self.path.with_suffix(self.path.suffix + ".lock")
         with _exclusive(lock_path):
             for prior in self.read_events():
