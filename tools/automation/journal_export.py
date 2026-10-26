@@ -13,7 +13,8 @@ never writes to the journal database or its -wal file. What it DOES touch, hones
   WAL database on a writable medium, create empty `-wal`/`-shm` files beside the journal
   (that is what a `mode=ro` reader of a WAL database does; the database file's bytes and
   mtime stay unchanged). Nothing is ever deleted.
-* The export itself (`--out`, written atomically via a temp file next to it).
+* The export itself (`--out`, written atomically via a temp file next to it: data fsync, rename, then a best-effort fsync of the
+  output directory on POSIX so the rename survives a power cut; Windows skips the directory step).
 
 Open mode: always `mode=ro`, so the reader works on a consistent snapshot even while the
 controller appends. `immutable=1` (no locking, no snapshot) is used ONLY when the medium is
@@ -292,6 +293,23 @@ def _same_file_as_journal(out: Path, journal: Path) -> bool:
     return False
 
 
+def _fsync_dir(directory: Path) -> None:
+    """fsync the output directory after os.replace so a power cut cannot bring the old export back. Best effort:
+    some filesystems refuse it; skipped on Windows. A failure here never changes the exit code (the file is complete)."""
+    if os.name == "nt":
+        return
+    try:
+        fd = os.open(directory, os.O_RDONLY)
+    except OSError:
+        return
+    try:
+        os.fsync(fd)
+    except OSError:
+        pass
+    finally:
+        os.close(fd)
+
+
 def main(argv: list[str] | None = None, stdout=None, stderr=None) -> int:
     stdout = stdout or sys.stdout
     stderr = stderr or sys.stderr
@@ -333,6 +351,7 @@ def main(argv: list[str] | None = None, stdout=None, stderr=None) -> int:
                     os.fsync(handle.fileno())
                 os.replace(tmp, out)
                 tmp = None
+                _fsync_dir(out.resolve().parent)  # make the rename itself durable (POSIX, best effort)
             else:
                 sink = getattr(stdout, "buffer", None)
                 for line in stream:
