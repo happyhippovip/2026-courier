@@ -9,13 +9,34 @@ from pathlib import Path
 
 from courier_core.events import Event, EventType
 from courier_core.journal import Journal
-from courier_hub.kolibri_data import PAUSE, REST_TEXT, UNAVAILABLE, build_snapshot, read_github, station_key
+from courier_hub.kolibri_data import PAUSE, REST_TEXT, UNAVAILABLE, build_snapshot, read_github, read_ledger_bridge, station_key
 from courier_hub.server import Hub, HubServer
 
 REPO = Path(__file__).resolve().parents[2]
 WALL = REPO / "scripts" / "windows_muse_wall" / "runtime" / "slots"
 MUSE_LABEL = "scripts/windows_muse_wall/runtime/slots"
 OFFLINE = lambda _path: None  # no token and no fabricated GitHub body
+
+
+def test_read_ledger_bridge_refuses_a_symlink(tmp_path):
+    outside = tmp_path / "outside.json"
+    outside.write_text(json.dumps({"missions": {"A": {"status": "SECRET"}}}), encoding="utf-8")
+    home = tmp_path / "home"
+    home.mkdir()
+    (home / "ledger_bridge_state.json").symlink_to(outside)
+    block = read_ledger_bridge(home, tmp_path, "2026-10-26T04:40:00Z")
+    assert block["missions"] == []
+    assert "SECRET" not in json.dumps(block)
+    assert "SECRET" in outside.read_text(encoding="utf-8")
+
+    (home / "ledger_bridge_state.json").unlink()
+    (home / "ledger_bridge_state.json").write_text(
+        json.dumps({"missions": {"A": {"status": "WORKING", "updated_at": "2026-10-26T04:40:00Z"}}}),
+        encoding="utf-8",
+    )
+    live = read_ledger_bridge(home, tmp_path, "2026-10-26T04:40:00Z")
+    assert live["missions"][0]["id"] == "A"
+    assert live["missions"][0]["status"] == "WORKING"
 
 
 def _render(snapshot: dict) -> tuple[str, int]:
