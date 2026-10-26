@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from test_ci_watcher_v2 import BUSY, DONE, SHA, Clock, Gh, go, run, state_of  # noqa: E402
 from tools.automation import ci_watcher_v2 as w  # noqa: E402
 
-POSIX_ONLY = pytest.mark.skipif(sys.platform == "win32", reason="directory fsync is a POSIX operation")
+POSIX_ONLY = pytest.mark.skipif(sys.platform == "win32", reason="SKIPPED, NOT PASSED: directory fsync is a POSIX operation")
 NAN, INF = float("nan"), float("inf")
 
 

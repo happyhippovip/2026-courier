@@ -263,7 +263,7 @@ def test_export_works_on_a_read_only_directory_and_file(tmp_path):
     os.chmod(tmp_path, 0o555)
     try:
         if os.access(tmp_path, os.W_OK):
-            pytest.skip("running with privileges that ignore directory permissions")
+            pytest.skip("SKIPPED, NOT PASSED: running with privileges that ignore directory permissions")
         assert export(db)[0] == 0
     finally:
         os.chmod(tmp_path, 0o755)
@@ -327,7 +327,7 @@ def test_database_is_opened_mode_ro_and_immutable_only_on_a_read_only_medium(tmp
     os.chmod(tmp_path, 0o555)
     try:
         if os.access(tmp_path, os.W_OK):
-            pytest.skip("running with privileges that ignore directory permissions")
+            pytest.skip("SKIPPED, NOT PASSED: running with privileges that ignore directory permissions")
         assert "mode=ro" in je._readonly_uri(db) and "immutable=1" in je._readonly_uri(db)
     finally:
         os.chmod(tmp_path, 0o755)

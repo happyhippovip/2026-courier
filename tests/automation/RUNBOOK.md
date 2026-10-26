@@ -10,8 +10,10 @@ No network, no model calls, no secrets. The watcher tests use a stub `gh`; a rea
     python3 tests/automation/ci_call_counts.py                                            # call-count harness, JSON, exit 0
     python3 -m pytest -p no:cacheprovider -q tests/automation/test_journal_export_round3.py tests/automation/test_journal_export_round4.py   # exporter last rounds
     python3 -m pytest -p no:cacheprovider -q tests/automation/test_ci_watcher_v2_round3.py                                              # watcher last round
-Read the exit code (`echo $?`, or `${PIPESTATUS[0]}` behind a pipe), not only the last line. Skips print as `SKIPPED, NOT PASSED: ...` with `-rs`
-(chmod tests as root/Windows; directory-fsync tests on Windows; the adapter test needs flask).
+Read the exit code (`echo $?`, or `${PIPESTATUS[0]}` behind a pipe), not only the last line. Every skip in this suite carries the reason prefix
+`SKIPPED, NOT PASSED: ...` (enforced by `test_round5_k0.py::test_r3_2_every_skip_reason_starts_with_the_common_prefix`); with `-rs` they are listed.
+A skipped test proved nothing on that machine. Typical skips: chmod tests as root/Windows (the read-only-medium path is then covered by the forced-medium
+tests `test_n_e5_*`), directory-fsync tests on Windows, the adapter test needs flask.
 
 ## Edge-case coverage (where each class is tested; `file::test`)
 | Class | Exporter (`test_journal_export*.py`) | Watcher (`test_ci_watcher_v2*.py`) |

@@ -30,7 +30,7 @@ def link_or_skip(kind, target, name):
     try:
         (os.symlink if kind == "sym" else os.link)(target, name)
     except (OSError, NotImplementedError) as exc:
-        pytest.skip(f"cannot create {kind}link here: {exc}")
+        pytest.skip(f"SKIPPED, NOT PASSED: cannot create {kind}link here: {exc}")
 
 
 def live_writer(directory):
@@ -135,7 +135,7 @@ def test_uncommitted_writer_transaction_is_neither_blocking_nor_exported(tmp_pat
     assert code == 0 and json.loads(out.splitlines()[0])["event_count"] == len(golden_path())
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="copying a database file that a live writer holds open is POSIX-only")
+@pytest.mark.skipif(sys.platform == "win32", reason="SKIPPED, NOT PASSED: copying a database file that a live writer holds open is POSIX-only")
 def test_orphan_wal_without_shm_after_killed_writer(tmp_path):
     src = tmp_path / "src"
     src.mkdir()
@@ -226,7 +226,7 @@ def test_database_cut_inside_the_unused_tail_still_exports_intact_chain(tmp_path
     assert export(cut) == export(full)
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="reading the -wal file of a live writer is POSIX-only here")
+@pytest.mark.skipif(sys.platform == "win32", reason="SKIPPED, NOT PASSED: reading the -wal file of a live writer is POSIX-only here")
 def test_truncated_wal_never_crashes_and_never_invents_events(tmp_path):
     src = tmp_path / "src"
     src.mkdir()
@@ -288,7 +288,7 @@ def test_large_journal_streams_in_constant_memory_and_is_deterministic(tmp_path)
 @pytest.mark.parametrize("name", ["a b.db", "x#y.db", "q?z.db", "p%20q.db", "u\u00fc\u00e9.db", "-dash.db", "a'b.db"])
 def test_unusual_file_names(tmp_path, name):
     if sys.platform == "win32" and "?" in name:
-        pytest.skip("'?' is not a legal Windows file name character")
+        pytest.skip("SKIPPED, NOT PASSED: '?' is not a legal Windows file name character")
     db = make_journal(tmp_path / name)
     code, out, _ = export(db)
     assert code == 0 and json.loads(out.splitlines()[0])["event_count"] == len(golden_path())
