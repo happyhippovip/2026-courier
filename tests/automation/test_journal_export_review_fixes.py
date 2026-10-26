@@ -22,6 +22,10 @@ from test_journal_export import export, make_journal, snapshot, tamper, without_
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 POSIX_ONLY = pytest.mark.skipif(sys.platform == "win32", reason="POSIX file permissions / process behaviour")
+CHMOD_INEFFECTIVE = sys.platform == "win32" or (hasattr(os, "geteuid") and os.geteuid() == 0)
+NEEDS_EFFECTIVE_CHMOD = pytest.mark.skipif(
+    CHMOD_INEFFECTIVE, reason="SKIPPED, NOT PASSED: chmod 555 does not make a directory read-only for root/Windows; the same "
+                              "read-only-medium code path is exercised there by test_journal_export_round3.py::test_n_e5_* (forced medium)")
 
 WRITER = textwrap.dedent("""
     import itertools, sys
@@ -106,13 +110,12 @@ def test_ex3_the_second_pass_refuses_a_snapshot_that_differs_from_the_verified_o
         journal.close()
 
 
-@POSIX_ONLY
+@NEEDS_EFFECTIVE_CHMOD
 def test_ex3_immutable_read_on_a_read_only_medium_detects_a_change_and_exits_7(tmp_path):
     db = make_journal(tmp_path / "courier.db")
     os.chmod(tmp_path, 0o555)
     try:
-        if os.access(tmp_path, os.W_OK):
-            pytest.skip("running with privileges that ignore directory permissions")
+        assert not os.access(tmp_path, os.W_OK), "chmod 555 had no effect on this filesystem: not skipping silently"
         stream, code, close = je.export_stream(db)
         try:
             next(stream)  # header: pass 1 is done, pass 2 has not started
@@ -126,15 +129,14 @@ def test_ex3_immutable_read_on_a_read_only_medium_detects_a_change_and_exits_7(t
         os.chmod(tmp_path, 0o755)
 
 
-@POSIX_ONLY
+@NEEDS_EFFECTIVE_CHMOD
 def test_ex3_changed_journal_with_out_never_replaces_the_previous_export(tmp_path):
     db = make_journal(tmp_path / "courier.db")
     target = tmp_path / "export.jsonl"
     target.write_text("previous export\n")
     os.chmod(tmp_path, 0o555)  # no tmp file possible here: use a second directory for --out
     try:
-        if os.access(tmp_path, os.W_OK):
-            pytest.skip("running with privileges that ignore directory permissions")
+        assert not os.access(tmp_path, os.W_OK), "chmod 555 had no effect on this filesystem: not skipping silently"
         outdir = tmp_path.parent / (tmp_path.name + "_out")
         outdir.mkdir()
         out = outdir / "export.jsonl"
@@ -153,14 +155,13 @@ def test_ex3_changed_journal_with_out_never_replaces_the_previous_export(tmp_pat
 
 # ------------------------------------------------------------------ EX-4
 
-@POSIX_ONLY
+@NEEDS_EFFECTIVE_CHMOD
 def test_ex4_read_only_directory_exports_cleanly_and_creates_nothing(tmp_path):
     db = make_journal(tmp_path / "courier.db")
     before = snapshot(tmp_path)
     os.chmod(tmp_path, 0o555)
     try:
-        if os.access(tmp_path, os.W_OK):
-            pytest.skip("running with privileges that ignore directory permissions")
+        assert not os.access(tmp_path, os.W_OK), "chmod 555 had no effect on this filesystem: not skipping silently"
         code, out, err = export(db)
     finally:
         os.chmod(tmp_path, 0o755)
@@ -168,13 +169,12 @@ def test_ex4_read_only_directory_exports_cleanly_and_creates_nothing(tmp_path):
     assert snapshot(tmp_path) == before  # not even sidecars
 
 
-@POSIX_ONLY
+@NEEDS_EFFECTIVE_CHMOD
 def test_ex4_read_only_directory_with_a_changed_file_has_its_own_exit_code_not_a_traceback(tmp_path):
     db = make_journal(tmp_path / "courier.db")
     os.chmod(tmp_path, 0o555)
     try:
-        if os.access(tmp_path, os.W_OK):
-            pytest.skip("running with privileges that ignore directory permissions")
+        assert not os.access(tmp_path, os.W_OK), "chmod 555 had no effect on this filesystem: not skipping silently"
         stream, _, close = je.export_stream(db)
         os.utime(db, ns=(3_000_000_000, 3_000_000_000))
         with pytest.raises(je.ExportError) as caught:
