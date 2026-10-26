@@ -21,7 +21,7 @@ from courier_core.journal import Journal
 from test_journal_export import export, make_journal, snapshot, tamper, without_sidecars  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-POSIX_ONLY = pytest.mark.skipif(sys.platform == "win32", reason="POSIX file permissions / process behaviour")
+POSIX_ONLY = pytest.mark.skipif(sys.platform == "win32", reason="SKIPPED, NOT PASSED: POSIX file permissions / process behaviour")
 CHMOD_INEFFECTIVE = sys.platform == "win32" or (hasattr(os, "geteuid") and os.geteuid() == 0)
 NEEDS_EFFECTIVE_CHMOD = pytest.mark.skipif(
     CHMOD_INEFFECTIVE, reason="SKIPPED, NOT PASSED: chmod 555 does not make a directory read-only for root/Windows; the same "

@@ -19,7 +19,7 @@ import ci_call_counts as scen  # noqa: E402
 from test_ci_watcher_v2 import BUSY, DONE, REPO_ROOT, SHA, Clock, Gh, go, iso, run, state_of  # noqa: E402
 from tools.automation import ci_watcher_v2 as w  # noqa: E402
 
-POSIX_ONLY = pytest.mark.skipif(sys.platform == "win32", reason="needs an executable `gh` script on PATH / POSIX processes")
+POSIX_ONLY = pytest.mark.skipif(sys.platform == "win32", reason="SKIPPED, NOT PASSED: needs an executable `gh` script on PATH / POSIX processes")
 
 FAKE_GH = '''#!/usr/bin/env python3
 import json, os, sys

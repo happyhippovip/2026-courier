@@ -129,6 +129,8 @@ def normalize_head_hash(value: str | None) -> str | None:
     """Lower-case 64-hex head hash, or ExportError(2) for anything else (None stays None)."""
     if value is None:
         return None
+    if not isinstance(value, str):  # library callers: int/bytes/... are a usage error, not an AttributeError/TypeError
+        raise ExportError(EXIT_USAGE, f"--expect-head-hash must be a string of 64 hex digits, got {type(value).__name__}")
     text = value.strip().lower()
     if len(text) != 64 or not text.isascii() or any(ch not in "0123456789abcdef" for ch in text):
         raise ExportError(EXIT_USAGE, f"--expect-head-hash must be 64 hex digits (the head_hash of an earlier export), got {value[:80]!r}")

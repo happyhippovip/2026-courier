@@ -325,7 +325,7 @@ def test_state_file_is_a_small_dotfile_written_atomically(tmp_path):
     assert path.stat().st_size < 4096 and json.loads(path.read_text())["key"] == f"WK@{SHA}"
 
 
-@pytest.mark.skipif(w.fcntl is None, reason="no flock on this platform")
+@pytest.mark.skipif(w.fcntl is None, reason="SKIPPED, NOT PASSED: no flock on this platform")
 def test_second_process_for_the_same_key_is_refused_without_calls(tmp_path):
     lock = w._Lock(w.state_path(tmp_path, w.idempotency_key("WK", SHA)).with_name(
         w.state_path(tmp_path, w.idempotency_key("WK", SHA)).name[:-5] + ".lock"))
@@ -361,7 +361,7 @@ sys.exit(1)
 
 
 @pytest.mark.skipif(sys.platform == "win32" or not hasattr(signal, "SIGKILL"),
-                    reason="SIGKILL and an executable `gh` script on PATH are POSIX-only; restart is covered in-process")
+                    reason="SKIPPED, NOT PASSED: SIGKILL and an executable `gh` script on PATH are POSIX-only; restart is covered in-process")
 def test_sigkill_mid_poll_then_real_restart_resumes_and_never_dispatches_twice(tmp_path):
     bindir = tmp_path / "bin"
     bindir.mkdir()
