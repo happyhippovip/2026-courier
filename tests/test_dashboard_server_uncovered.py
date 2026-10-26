@@ -276,6 +276,24 @@ def test_emergency_latch_refuses_a_symlink(mock_dirs):
     assert d_server.get_status_payload()["status"] == "EMERGENCY"
 
 
+def test_emergency_latch_refuses_a_dir_two_levels_under_a_symlink(mock_dirs):
+    outside = mock_dirs["tmp_path"] / "outside"
+    (outside / "mid").mkdir(parents=True)
+    (outside / "mid" / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = mock_dirs["tmp_path"] / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with patch("dashboard.server.EVENTS_DIR", link / "mid" / "events"):
+        assert d_server.latch_emergency() is False
+    assert not (outside / "mid" / "events").exists()
+    assert (outside / "mid" / "SECRET").read_text(encoding="utf-8") == "SECRET"
+
+    real = mock_dirs["tmp_path"] / "real-latch"
+    real.mkdir()
+    with patch("dashboard.server.EVENTS_DIR", real):
+        assert d_server.latch_emergency() is True
+    assert (real / "EMERGENCY_LATCH").read_text(encoding="utf-8") == "EMERGENCY_MODE=ON\n"
+
+
 def test_static_get_refuses_a_symlink(tmp_path):
     import socketserver
     import threading

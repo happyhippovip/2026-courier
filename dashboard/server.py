@@ -208,8 +208,9 @@ def get_ledger_value_payload() -> dict:
 
 def latch_emergency() -> bool:
     latch_file = EVENTS_DIR / "EMERGENCY_LATCH"
-    if (EVENTS_DIR.is_symlink() or EVENTS_DIR.parent.is_symlink()
-            or latch_file.is_symlink() or latch_file.parent.is_symlink()):
+    if (EVENTS_DIR.is_symlink() or EVENTS_DIR.parent.is_symlink() or EVENTS_DIR.parent.parent.is_symlink()
+            or latch_file.is_symlink() or latch_file.parent.is_symlink()
+            or latch_file.parent.parent.is_symlink()):
         return False
     EVENTS_DIR.mkdir(parents=True, exist_ok=True)
     latch_file.write_text("EMERGENCY_MODE=ON\n", encoding="utf-8")
