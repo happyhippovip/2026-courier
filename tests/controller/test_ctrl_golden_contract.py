@@ -32,6 +32,8 @@ PROBE_ADAPTER = textwrap.dedent('''
     import hashlib
     from courier_core.verification import Verdict
 
+    COST_CLASS = "local"
+
     def verify(task, result, home):
         expected = hashlib.sha256(task.params.get("content", "courier-golden").encode()).hexdigest()
         ok = any(a.get("sha256") == expected for a in result.payload["artifacts"])
@@ -62,7 +64,9 @@ class ControllerOnly(Courier):
         return proc
 
     def make_probe_task(self, **kw):
-        body = {"adapter": "l2probe", "params": synthetic_params(), "effect_class": kw.pop("effect_class", "idempotent"),
+        params = synthetic_params()
+        params.setdefault("estimated_cost_eur", 0.0)
+        body = {"adapter": "l2probe", "params": params, "effect_class": kw.pop("effect_class", "idempotent"),
                 "max_attempts": kw.pop("max_attempts", 3), "lease_ttl_s": kw.pop("lease_ttl_s", 6)}
         response = self.api.post("/v1/tasks", body)
         assert response.status_code in (200, 201), response.text

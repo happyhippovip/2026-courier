@@ -67,6 +67,23 @@ def adapter_verifier(adapter: str) -> VerifyFn | None:
     return verify if callable(verify) else None
 
 
+COST_CLASSES = frozenset({"local", "metered"})
+
+
+def adapter_cost_class(adapter: str) -> str | None:
+    """adapters.<adapter>.COST_CLASS ("local" or "metered"); None if missing or undeclared."""
+    if not isinstance(adapter, str) or not ADAPTER_NAME.match(adapter):
+        return None
+    try:
+        module = importlib.import_module(f"adapters.{adapter}")
+    except ModuleNotFoundError as exc:
+        if exc.name in ("adapters", f"adapters.{adapter}"):
+            return None
+        raise
+    cost_class = getattr(module, "COST_CLASS", None)
+    return cost_class if cost_class in COST_CLASSES else None
+
+
 _SOURCE_DIGESTS: dict[tuple[str, int, int], str] = {}
 
 

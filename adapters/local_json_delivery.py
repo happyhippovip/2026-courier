@@ -28,6 +28,8 @@ from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Mapping
 
+COST_CLASS = "local"
+
 VERIFIER_VERSION = "1"
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 MAX_ARTIFACTS = 16

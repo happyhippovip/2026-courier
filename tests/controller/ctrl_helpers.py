@@ -52,8 +52,12 @@ def sha_matches(task, result, home):
 
 
 def task_body(**overrides):
-    body = {"adapter": "probe", "params": {"x": 1}, "effect_class": "idempotent", "max_attempts": 3,
-            "lease_ttl_s": 6}
+    params = {"x": 1, "estimated_cost_eur": 0.0}
+    if isinstance(overrides.get("params"), dict):
+        params.update(overrides.pop("params"))
+        params.setdefault("estimated_cost_eur", 0.0)
+    body = {"adapter": "probe", "params": params, "effect_class": "idempotent",
+            "max_attempts": 3, "lease_ttl_s": 6}
     body.update(overrides)
     return body
 
@@ -66,6 +70,7 @@ def result_body(dispatch_id, result_id="r1", outcome="success", sha=SHA, **extra
 
 
 def make_controller(home, clock=None, verifier=None, **kw):
+    kw.setdefault("cost_class", lambda adapter: "local")
     return Controller(Path(home), clock=clock or FakeClock(), verifier=verifier or Verifiers(probe=accept_all),
                       **kw).boot()
 
@@ -87,6 +92,7 @@ class LiveService:
 
     def __init__(self, home, verifier=None, clock=None):
         controller = Controller(Path(home), verifier=verifier or Verifiers(probe=accept_all),
+                                cost_class=lambda adapter: "local",
                                 **({"clock": clock} if clock else {}))
         self.service = Service(Path(home), 0, controller=controller)
         self.controller = self.service.controller

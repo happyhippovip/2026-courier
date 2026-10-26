@@ -63,6 +63,8 @@ from typing import Any, Mapping, Sequence
 
 from adapters.synthetic import SHA256_RE, is_safe_name
 
+COST_CLASS = "local"
+
 VERIFIER_VERSION = "1"
 
 MAX_TIMEOUT_S = 600
