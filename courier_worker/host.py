@@ -467,7 +467,7 @@ def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
     root = Path(run_dir)
     stdout_path = os.path.join(run_dir, f"{tag}.out")
     stderr_path = os.path.join(run_dir, f"{tag}.err")
-    if (root.is_symlink() or root.parent.is_symlink()
+    if (root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink()
             or os.path.islink(stdout_path) or os.path.islink(stderr_path)):
         raise ContainmentError(f"{run_dir}: refusing to follow a symlink")
     stdout_f = open(stdout_path, "wb")

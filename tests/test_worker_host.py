@@ -274,6 +274,25 @@ def test_spawn_refuses_a_symlink(tmp_path):
     assert (run / "job.out").read_bytes().strip() == b"ok"
 
 
+def test_spawn_refuses_a_dir_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    run = outside / "mid" / "run"
+    run.mkdir(parents=True)
+    (run / "secret.txt").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        H._spawn_contained([sys.executable, "-c", "pass"], str(link / "mid" / "run"), "job")
+    assert not (run / "job.out").exists()
+    assert (run / "secret.txt").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real"
+    real.mkdir()
+    contained = H._spawn_contained([sys.executable, "-c", "print('ok')"], str(real), "job")
+    assert contained.proc.wait(timeout=10) == 0
+    assert (real / "job.out").read_bytes().strip() == b"ok"
+
+
 def test_collect_artifacts_refuses_a_symlink(tmp_path):
     root = tmp_path / "arts"
     root.mkdir()
