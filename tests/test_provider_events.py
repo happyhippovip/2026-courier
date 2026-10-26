@@ -138,6 +138,35 @@ def test_ingress_to_unknown_slot_is_ignored(tmp_path):
     assert ev.drive(k, "nope", ["IDLE", "TURN_ENDED outcome=DONE"]) == ["IGNORED_NO_SLOT"] * 2
 
 
+def test_read_new_lines_refuses_a_symlink(tmp_path):
+    from courier_runtime.provider_events import read_new_lines
+
+    outside = tmp_path / "outside.log"
+    outside.write_text("TURN_ENDED outcome=DONE\n", encoding="utf-8")
+    link = tmp_path / "provider.log"
+    link.symlink_to(outside)
+    try:
+        read_new_lines(link, 0)
+    except OSError as exc:
+        assert "symlink" in str(exc)
+    else:
+        raise AssertionError("read through a symlink")
+    assert outside.read_text(encoding="utf-8") == "TURN_ENDED outcome=DONE\n"
+
+    planted = tmp_path / "planted"
+    planted.mkdir()
+    (planted / "provider.log").write_text("IDLE\n", encoding="utf-8")
+    home = tmp_path / "home"
+    home.symlink_to(planted, target_is_directory=True)
+    try:
+        read_new_lines(home / "provider.log", 0)
+    except OSError as exc:
+        assert "symlink" in str(exc)
+    else:
+        raise AssertionError("read through a linked directory")
+    assert (planted / "provider.log").read_text(encoding="utf-8") == "IDLE\n"
+
+
 def test_read_new_lines_is_incremental(tmp_path):
     from courier_runtime import provider_events
 

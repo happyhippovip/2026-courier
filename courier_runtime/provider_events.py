@@ -21,6 +21,8 @@ unknown slot are IGNORED_NO_SLOT (slots are opened explicitly so the pool
 cap is never bypassed). This module never spawns windows or processes;
 session start stays Kirby's injected ``start_session``.
 """
+from pathlib import Path
+
 OUTCOMES = ("DONE", "BLOCKED", "STILL_OPEN", "FAILED_FINAL")
 
 _REMAINDER_KEYS = ("checkpoint=", "reason=")
@@ -106,6 +108,9 @@ def read_new_lines(path, offset):
     DONE record. A malformed complete record is ignored as a whole rather
     than poisoning all later signals or decoding into a valid terminal event.
     """
+    raw = Path(path)
+    if raw.is_symlink() or raw.parent.is_symlink():
+        raise OSError(f"{raw}: refusing to follow a symlink")
     with open(path, "rb") as f:
         f.seek(offset)
         data = f.read()
