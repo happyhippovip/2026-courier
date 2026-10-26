@@ -274,6 +274,35 @@ def test_claim_path_sanitizes_separators(tmp_path):
 # -- orphan gate ---------------------------------------------------------------
 
 
+def test_claim_record_refuses_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    home = tmp_path / "home"
+    home.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        run_orphan_gate(str(home))
+    assert not (outside / "run").exists()
+
+    real = tmp_path / "real"
+    linked = tmp_path / "linked-claims"
+    linked.mkdir()
+    (real / "run").mkdir(parents=True)
+    (real / "run" / "claims").symlink_to(linked, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        H._write_claim_record(str(real), _spec(tmp_path), type("Run", (), {"pid": 1, "group_id": lambda self: 1})())
+    assert list(linked.iterdir()) == []
+
+    plain = tmp_path / "plain"
+    claims = plain / "run" / "claims"
+    claims.mkdir(parents=True)
+    planted = tmp_path / "secret.json"
+    planted.write_text('{"owner_pid":1,"child_pid":1}', encoding="utf-8")
+    (claims / "dispatch-d1.json").symlink_to(planted)
+    with pytest.raises(ContainmentError, match="symlink"):
+        run_orphan_gate(str(plain))
+    assert planted.read_text(encoding="utf-8").startswith("{")
+
+
 def test_orphan_gate_without_claims_dir(tmp_path):
     assert run_orphan_gate(str(tmp_path / "home")) == 0
 

@@ -601,8 +601,17 @@ def _owner_alive(owner_pid: int, owner_create_time: Optional[float] = None) -> b
     return abs(created - recorded) <= OWNER_CREATE_TIME_TOLERANCE_S
 
 
+def _refuse_claim_link(home: str) -> Path:
+    root = Path(home)
+    run_dir = _run_dir(home)
+    claims = _claims_dir(home)
+    if root.is_symlink() or run_dir.is_symlink() or claims.is_symlink():
+        raise ContainmentError(f"{home}: refusing to follow a symlink")
+    return claims
+
+
 def _write_claim_record(home: str, spec: ExecutionSpec, run: ContainedRun) -> Path:
-    _claims_dir(home).mkdir(parents=True, exist_ok=True)
+    _refuse_claim_link(home).mkdir(parents=True, exist_ok=True)
     try:
         owner_create_time = psutil.Process().create_time()
     except psutil.Error:
@@ -612,6 +621,8 @@ def _write_claim_record(home: str, spec: ExecutionSpec, run: ContainedRun) -> Pa
               "owner_create_time": owner_create_time, "child_pid": run.pid,
               "pgid": run.group_id()}
     path = _claim_path(home, spec.dispatch_id)
+    if path.is_symlink():
+        raise ContainmentError(f"{path}: refusing to follow a symlink")
     fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".claim-", suffix=".tmp")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as fh:
@@ -630,11 +641,13 @@ def _write_claim_record(home: str, spec: ExecutionSpec, run: ContainedRun) -> Pa
 
 def run_orphan_gate(home: str) -> int:
     """Reap trees of dead owners. Returns the number of records handled."""
-    claims = _claims_dir(home)
+    claims = _refuse_claim_link(home)
     if not claims.is_dir():
         return 0
     handled = 0
     for path in sorted(claims.glob(CLAIM_RECORD_GLOB)):
+        if path.is_symlink():
+            raise ContainmentError(f"{path}: refusing to follow a symlink")
         try:
             record = json.loads(path.read_text(encoding="utf-8"))
             owner_pid = int(record.get("owner_pid", 0) or 0)
