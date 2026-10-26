@@ -83,6 +83,28 @@ def test_a_symlinked_record_is_not_read(tmp_path):
     assert SECRET in target.read_text(encoding="utf-8")
 
 
+def test_a_home_two_levels_under_a_symlink_is_not_read(tmp_path):
+    outside = tmp_path / "outside"
+    home = outside / "mid" / "home"
+    home.mkdir(parents=True)
+    planted = home / "ledger_bridge_state.json"
+    planted.write_text(json.dumps({"missions": {}, "secret": SECRET}), encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    card = automation_card(link / "mid" / "home", T0)
+    _assert_public(card, tmp_path)
+    assert card["state"] == "ATTENTION"
+    assert card["reason_code"] == "UNREADABLE"
+    assert SECRET in planted.read_text(encoding="utf-8")
+
+    real = tmp_path / "real"
+    real.mkdir()
+    _write(real, {"missions": {}}, age_seconds=30)
+    real_card = automation_card(real, T0)
+    _assert_public(real_card, tmp_path)
+    assert real_card["state"] == "IDLE"
+
+
 def test_missing_file_is_not_configured(tmp_path):
     card = automation_card(tmp_path, T0)
     _assert_public(card, tmp_path)

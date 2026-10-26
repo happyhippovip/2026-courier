@@ -47,7 +47,8 @@ def automation_card(home, now: datetime) -> dict:
     moment = now if now.tzinfo is not None else now.replace(tzinfo=timezone.utc)
     root = Path(home)
     path = root / STATE_NAME
-    if root.is_symlink() or path.is_symlink() or path.parent.is_symlink():
+    if (root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink()
+            or path.is_symlink() or path.parent.is_symlink()):
         return _attention("UNREADABLE", _UNREADABLE, age=None)
     if not path.is_file():
         if path.exists():
