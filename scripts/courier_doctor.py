@@ -48,8 +48,8 @@ def load_config():
 def check_ledger():
     home = get_app_data_dir()
     db_path = home / "courier.db"
-    if (home.is_symlink() or home.parent.is_symlink()
-            or db_path.is_symlink() or db_path.parent.is_symlink()):
+    if (home.is_symlink() or home.parent.is_symlink() or home.parent.parent.is_symlink()
+            or db_path.is_symlink() or db_path.parent.is_symlink() or db_path.parent.parent.is_symlink()):
         return False, f"{db_path}: refusing to follow a symlink"
     if not db_path.exists():
         return False, f"Missing ledger at {db_path}"

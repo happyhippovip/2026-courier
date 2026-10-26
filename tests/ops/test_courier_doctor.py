@@ -128,6 +128,37 @@ def test_check_ledger_refuses_a_symlink(tmp_path, monkeypatch):
     assert "Missing" in msg
 
 
+def test_check_ledger_refuses_a_home_two_levels_under_a_symlink(tmp_path, monkeypatch):
+    outside = tmp_path / "outside"
+    home = outside / "mid" / "home"
+    home.mkdir(parents=True)
+    conn = sqlite3.connect(home / "courier.db")
+    conn.execute("CREATE TABLE events (seq INTEGER PRIMARY KEY, type TEXT)")
+    conn.execute("INSERT INTO events (type) VALUES ('SECRET')")
+    conn.commit()
+    conn.close()
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    monkeypatch.setenv("COURIER_HOME", str(link / "mid" / "home"))
+    passed, msg = check_ledger()
+    assert not passed
+    assert "symlink" in msg
+    assert "SECRET" not in msg
+    assert "events recorded" not in msg
+
+    real = tmp_path / "real"
+    real.mkdir()
+    monkeypatch.setenv("COURIER_HOME", str(real))
+    conn = sqlite3.connect(real / "courier.db")
+    conn.execute("CREATE TABLE events (seq INTEGER PRIMARY KEY, type TEXT)")
+    conn.execute("INSERT INTO events (type) VALUES ('START')")
+    conn.commit()
+    conn.close()
+    passed, msg = check_ledger()
+    assert passed
+    assert msg == "Ledger exists. 1 events recorded."
+
+
 def test_check_ledger_missing(tmp_path, monkeypatch):
     home = _home(tmp_path, monkeypatch)
     passed, msg = check_ledger()
