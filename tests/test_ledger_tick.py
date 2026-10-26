@@ -301,6 +301,28 @@ def test_status_refuses_a_symlink(tmp_path):
     assert (planted / "secret.txt").read_text(encoding="utf-8") == "SECRET"
 
 
+def test_status_refuses_a_home_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    tick = LedgerTick(str(link / "mid" / "home"), "http://127.0.0.1:9", "GOOGLE_WINDOWS",
+                      "WINDOWS_REMOTE", runner=FakeRunner([0]), clock=FakeClock(),
+                      log=lambda _line: None)
+    assert tick._record("ran", 0) == ledger_tick.RAN
+    assert tick.status_write_failures == 1
+    assert not (outside / "mid").exists()
+    assert (outside / "SECRET").read_text(encoding="utf-8") == "SECRET"
+
+    ok = tmp_path / "ok"
+    written = LedgerTick(str(ok), "http://127.0.0.1:9", "GOOGLE_WINDOWS", "WINDOWS_REMOTE",
+                         runner=FakeRunner([0]), clock=FakeClock(), log=lambda _line: None)
+    assert written._record("ran", 0) == ledger_tick.RAN
+    assert written.status_write_failures == 0
+    assert (ok / "run" / "ledger_tick.json").is_file()
+
+
 def test_status_file_records_each_started_pass(tmp_path):
     import json
     clock = FakeClock()
