@@ -84,7 +84,7 @@ def categorize_file(filename: str) -> FileCategory:
 
 def inspect_file(file_path: Path, claimed_source: Optional[str] = None) -> FileIdentity:
     """Stream hash and inspect file with O(1) memory."""
-    if file_path.is_symlink() or file_path.parent.is_symlink():
+    if file_path.is_symlink() or file_path.parent.is_symlink() or file_path.parent.parent.is_symlink():
         raise ValueError(f"{file_path}: refusing to follow a symlink")
     if not file_path.exists():
         raise FileNotFoundError(f"File not found: {file_path}")
