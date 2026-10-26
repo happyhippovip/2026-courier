@@ -208,6 +208,25 @@ def test_collect_artifacts_hashes_files(tmp_path):
     assert all(isinstance(a, ArtifactRef) for a in found)
 
 
+def test_prune_stdio_refuses_a_symlinked_run_dir(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    for index in range(9):
+        (outside / f"task-{index}.out").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "run"
+    link.symlink_to(outside, target_is_directory=True)
+    assert H._prune_run_stdio(str(link)) == 0
+    assert len(list(outside.glob("task-*.out"))) == 9
+    assert (outside / "task-0.out").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real"
+    real.mkdir()
+    for index in range(9):
+        (real / f"task-{index}.out").write_text("log", encoding="utf-8")
+    assert H._prune_run_stdio(str(real)) == 1
+    assert len(list(real.glob("task-*.out"))) == 8
+
+
 def test_spawn_refuses_a_symlink(tmp_path):
     outside = tmp_path / "outside"
     outside.mkdir()

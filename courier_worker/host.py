@@ -520,6 +520,9 @@ def _prune_run_stdio(run_dir: str) -> int:
     files are only recent-run debugging aid, so the oldest pairs go.
     Never raises: pruning must not kill a run.
     """
+    root = Path(run_dir)
+    if root.is_symlink() or root.parent.is_symlink():
+        return 0
     try:
         entries = os.listdir(run_dir)
     except OSError:
