@@ -80,6 +80,7 @@ def kirby_state(path):
     ([], True),
     ({"estimated_cost_eur": "nan"}, True),
     ({"estimated_cost_eur": 10**9}, True),
+    ({"estimated_cost_eur": 10**400}, True),
     ({"estimated_cost_eur": -0.0}, False),
     ({"estimated_cost_eur": 0.0, "unknown_cost": False}, False),
     ({"estimated_cost_eur": 0.0, "unknown_cost": "yes"}, False),
@@ -94,6 +95,11 @@ def test_unknown_cost_blocks_before_the_task_exists(setup):
         engine.submit("WK-1", body(cost=None))
     assert [e for e in ctrl.journal.events() if e.type is EventType.TASK_CREATED] == []
     assert ctrl.claim({"worker_id": "w1"}) is None
+
+
+def test_a_spend_limit_too_large_to_convert_is_rejected():
+    with pytest.raises(ValueError, match="finite"):
+        LedgerEngine(object(), "camp.json", "host", spend_limit_eur=10**400)
 
 
 def test_a_raised_limit_admits_up_to_the_limit_only():

@@ -266,6 +266,10 @@ def test_bridge_costgate_blocks_missing_or_non_finite_cost():
     assert res_inf["allowed"] is False
     assert res_inf["reason"] == "UNKNOWN_COST"
 
+    res_huge = CostGate.evaluate_spend_request("google_antigravity_plus", estimated_cost_eur=10**400)
+    assert res_huge["allowed"] is False
+    assert res_huge["reason"] == "UNKNOWN_COST"
+
     # String representation is not parsed as float or zero
     res_str = CostGate.evaluate_spend_request("google_antigravity_plus", estimated_cost_eur="0.0")  # type: ignore[arg-type]
     assert res_str["allowed"] is False

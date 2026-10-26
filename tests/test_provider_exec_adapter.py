@@ -400,7 +400,7 @@ def test_cost_gate_blocks_unknown_cost_and_unapproved_spend(tmp_path, monkeypatc
     assert not argv_log2.exists()
 
     # 3. invalid costs (NaN, Inf, negative) must fail-closed before launch
-    for bad_cost in (float("nan"), float("inf"), float("-inf"), -0.01):
+    for bad_cost in (float("nan"), float("inf"), float("-inf"), -0.01, 10**400):
         res, _, log_path = _run(tmp_path, monkeypatch, params={"estimated_cost_eur": bad_cost})
         assert res.outcome == "BLOCKED"
         assert res.reason_code == "INVALID_COST_ESTIMATE"
