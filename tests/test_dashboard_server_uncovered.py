@@ -232,3 +232,26 @@ def test_status_refuses_a_symlink(mock_dirs):
         offers = d_server.get_commercial_offers_payload()
     assert offers["offers"] == []
     assert "SECRET" not in json.dumps(offers)
+
+
+def test_emergency_latch_refuses_a_symlink(mock_dirs):
+    outside = mock_dirs["tmp_path"] / "outside-latch"
+    outside.write_text("SECRET", encoding="utf-8")
+    events = mock_dirs["events_dir"]
+    (events / "EMERGENCY_LATCH").symlink_to(outside)
+    assert d_server.latch_emergency() is False
+    assert outside.read_text(encoding="utf-8") == "SECRET"
+    assert d_server.get_status_payload()["status"] == "ONLINE"
+
+    (events / "EMERGENCY_LATCH").unlink()
+    real = mock_dirs["tmp_path"] / "real-events"
+    real.mkdir()
+    linked = mock_dirs["tmp_path"] / "linked-latch"
+    linked.symlink_to(real, target_is_directory=True)
+    with patch("dashboard.server.EVENTS_DIR", linked):
+        assert d_server.latch_emergency() is False
+    assert not (real / "EMERGENCY_LATCH").exists()
+
+    assert d_server.latch_emergency() is True
+    assert (events / "EMERGENCY_LATCH").read_text(encoding="utf-8") == "EMERGENCY_MODE=ON\n"
+    assert d_server.get_status_payload()["status"] == "EMERGENCY"

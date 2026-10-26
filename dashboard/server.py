@@ -206,6 +206,16 @@ def get_ledger_value_payload() -> dict:
     }
 
 
+def latch_emergency() -> bool:
+    latch_file = EVENTS_DIR / "EMERGENCY_LATCH"
+    if (EVENTS_DIR.is_symlink() or EVENTS_DIR.parent.is_symlink()
+            or latch_file.is_symlink() or latch_file.parent.is_symlink()):
+        return False
+    EVENTS_DIR.mkdir(parents=True, exist_ok=True)
+    latch_file.write_text("EMERGENCY_MODE=ON\n", encoding="utf-8")
+    return True
+
+
 class CommandCenterHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path in ("/api/status", "/api/health"):
@@ -242,11 +252,13 @@ class CommandCenterHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_POST(self) -> None:
         if self.path == "/api/emergency":
-            # Latch EMERGENCY MODE by creating a file indicator
-            EVENTS_DIR.mkdir(parents=True, exist_ok=True)
-            latch_file = EVENTS_DIR / "EMERGENCY_LATCH"
-            latch_file.write_text("EMERGENCY_MODE=ON\n")
-            
+            if not latch_emergency():
+                self.send_response(403)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "REFUSED"}).encode("utf-8"))
+                return
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Access-Control-Allow-Origin", "*")
