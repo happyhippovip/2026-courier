@@ -208,6 +208,132 @@ def test_collect_artifacts_hashes_files(tmp_path):
     assert all(isinstance(a, ArtifactRef) for a in found)
 
 
+def test_prune_stdio_refuses_a_symlinked_run_dir(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    for index in range(9):
+        (outside / f"task-{index}.out").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "run"
+    link.symlink_to(outside, target_is_directory=True)
+    assert H._prune_run_stdio(str(link)) == 0
+    assert len(list(outside.glob("task-*.out"))) == 9
+    assert (outside / "task-0.out").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real"
+    real.mkdir()
+    for index in range(9):
+        (real / f"task-{index}.out").write_text("log", encoding="utf-8")
+    assert H._prune_run_stdio(str(real)) == 1
+    assert len(list(real.glob("task-*.out"))) == 8
+
+
+def test_prune_stdio_refuses_a_dir_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    run = outside / "mid" / "run"
+    run.mkdir(parents=True)
+    for index in range(9):
+        (run / f"task-{index}.out").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    assert H._prune_run_stdio(str(link / "mid" / "run")) == 0
+    assert len(list(run.glob("task-*.out"))) == 9
+    assert (run / "task-0.out").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real"
+    real.mkdir()
+    for index in range(9):
+        (real / f"task-{index}.out").write_text("log", encoding="utf-8")
+    assert H._prune_run_stdio(str(real)) == 1
+    assert len(list(real.glob("task-*.out"))) == 8
+
+
+def test_spawn_refuses_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "secret.txt").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "run"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        H._spawn_contained([sys.executable, "-c", "pass"], str(link), "job")
+    assert not (outside / "job.out").exists()
+    assert (outside / "secret.txt").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real"
+    real.mkdir()
+    planted = tmp_path / "secret.out"
+    planted.write_bytes(b"SECRET")
+    (real / "job.out").symlink_to(planted)
+    with pytest.raises(ContainmentError, match="symlink"):
+        H._spawn_contained([sys.executable, "-c", "pass"], str(real), "job")
+    assert planted.read_bytes() == b"SECRET"
+
+    run = tmp_path / "plain"
+    run.mkdir()
+    contained = H._spawn_contained([sys.executable, "-c", "print('ok')"], str(run), "job")
+    assert contained.proc.wait(timeout=10) == 0
+    assert (run / "job.out").read_bytes().strip() == b"ok"
+
+
+def test_spawn_refuses_a_dir_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    run = outside / "mid" / "run"
+    run.mkdir(parents=True)
+    (run / "secret.txt").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        H._spawn_contained([sys.executable, "-c", "pass"], str(link / "mid" / "run"), "job")
+    assert not (run / "job.out").exists()
+    assert (run / "secret.txt").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real"
+    real.mkdir()
+    contained = H._spawn_contained([sys.executable, "-c", "print('ok')"], str(real), "job")
+    assert contained.proc.wait(timeout=10) == 0
+    assert (real / "job.out").read_bytes().strip() == b"ok"
+
+
+def test_collect_artifacts_refuses_a_symlink(tmp_path):
+    root = tmp_path / "arts"
+    root.mkdir()
+    outside = tmp_path / "outside.txt"
+    outside.write_bytes(b"secret")
+    (root / "local.txt").write_bytes(b"ok")
+    (root / "link.txt").symlink_to(outside)
+    with pytest.raises(ContainmentError, match="symlink"):
+        collect_artifacts(str(root))
+    assert outside.read_bytes() == b"secret"
+
+
+def test_collect_artifacts_refuses_a_symlinked_directory(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "secret.txt").write_bytes(b"secret")
+    link = tmp_path / "arts"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        collect_artifacts(str(link))
+    assert (outside / "secret.txt").read_bytes() == b"secret"
+
+
+def test_collect_artifacts_refuses_a_dir_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    arts = outside / "mid" / "arts"
+    arts.mkdir(parents=True)
+    (arts / "secret.txt").write_bytes(b"secret")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        collect_artifacts(str(link / "mid" / "arts"))
+    assert (arts / "secret.txt").read_bytes() == b"secret"
+
+    real = tmp_path / "real"
+    real.mkdir()
+    (real / "ok.txt").write_bytes(b"ok")
+    found = collect_artifacts(str(real))
+    assert [item.path for item in found] == ["ok.txt"]
+
+
 def test_collect_artifacts_count_bound(tmp_path):
     root = tmp_path / "many"
     root.mkdir()
@@ -225,6 +351,80 @@ def test_tail_respects_limit(tmp_path):
     path = tmp_path / "s.out"
     path.write_bytes(b"0123456789")
     assert H._tail(str(path), limit=4) == "6789"
+
+
+def test_write_crash_report_refuses_a_symlink(tmp_path):
+    spec = _spec(tmp_path)
+    err = tmp_path / "s.err"
+    err.write_bytes(b"boom")
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    art = tmp_path / "arts"
+    art.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        write_crash_report(str(art), spec, Outcome.CRASH, 3, 1.0, str(err))
+    assert not (outside / "crash.json").exists()
+
+    real = tmp_path / "real-arts"
+    real.mkdir()
+    planted = tmp_path / "secret.txt"
+    planted.write_bytes(b"secret")
+    (real / "crash.json").symlink_to(planted)
+    with pytest.raises(ContainmentError, match="symlink"):
+        write_crash_report(str(real), spec, Outcome.CRASH, 3, 1.0, str(err))
+    assert planted.read_bytes() == b"secret"
+
+    plain = tmp_path / "plain-arts"
+    plain.mkdir()
+    linked_err = tmp_path / "linked.err"
+    linked_err.symlink_to(planted)
+    with pytest.raises(ContainmentError, match="symlink"):
+        write_crash_report(str(plain), spec, Outcome.CRASH, 3, 1.0, str(linked_err))
+    assert not (plain / "crash.json").exists()
+
+
+def test_write_crash_report_refuses_a_dir_two_levels_under_a_symlink(tmp_path):
+    spec = _spec(tmp_path)
+    err = tmp_path / "s.err"
+    err.write_bytes(b"boom")
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        write_crash_report(str(link / "mid" / "arts"), spec, Outcome.CRASH, 3, 1.0, str(err))
+    assert not (outside / "mid").exists()
+    assert (outside / "SECRET").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real-arts"
+    out = write_crash_report(str(real), spec, Outcome.CRASH, 3, 1.0, str(err))
+    assert os.path.isfile(out)
+    assert "SECRET" not in open(out, encoding="utf-8").read()
+
+
+def test_write_crash_report_refuses_stderr_two_levels_under_a_symlink(tmp_path):
+    spec = _spec(tmp_path)
+    outside = tmp_path / "outside"
+    mid = outside / "mid"
+    mid.mkdir(parents=True)
+    secret = mid / "boom.err"
+    secret.write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    real = tmp_path / "real-arts"
+    real.mkdir()
+    with pytest.raises(ContainmentError, match="symlink"):
+        write_crash_report(str(real), spec, Outcome.CRASH, 3, 1.0, str(link / "mid" / "boom.err"))
+    assert secret.read_text(encoding="utf-8") == "SECRET"
+    assert not (real / "crash.json").exists()
+
+    plain = tmp_path / "plain.err"
+    plain.write_bytes(b"boom")
+    out = write_crash_report(str(real), spec, Outcome.CRASH, 3, 1.0, str(plain))
+    report = json.loads(open(out, encoding="utf-8").read())
+    assert report["stderr_tail"] == "boom"
+    assert "SECRET" not in report["stderr_tail"]
 
 
 def test_write_crash_report_shape(tmp_path):
@@ -249,6 +449,53 @@ def test_claim_path_sanitizes_separators(tmp_path):
 
 
 # -- orphan gate ---------------------------------------------------------------
+
+
+def test_claim_record_refuses_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    home = tmp_path / "home"
+    home.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        run_orphan_gate(str(home))
+    assert not (outside / "run").exists()
+
+    real = tmp_path / "real"
+    linked = tmp_path / "linked-claims"
+    linked.mkdir()
+    (real / "run").mkdir(parents=True)
+    (real / "run" / "claims").symlink_to(linked, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        H._write_claim_record(str(real), _spec(tmp_path), type("Run", (), {"pid": 1, "group_id": lambda self: 1})())
+    assert list(linked.iterdir()) == []
+
+    plain = tmp_path / "plain"
+    claims = plain / "run" / "claims"
+    claims.mkdir(parents=True)
+    planted = tmp_path / "secret.json"
+    planted.write_text('{"owner_pid":1,"child_pid":1}', encoding="utf-8")
+    (claims / "dispatch-d1.json").symlink_to(planted)
+    with pytest.raises(ContainmentError, match="symlink"):
+        run_orphan_gate(str(plain))
+    assert planted.read_text(encoding="utf-8").startswith("{")
+
+
+def test_claim_record_refuses_a_home_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    run = type("Run", (), {"pid": 1, "group_id": lambda self: 1})()
+    with pytest.raises(ContainmentError, match="symlink"):
+        H._write_claim_record(str(link / "mid" / "home"), _spec(tmp_path), run)
+    assert not (outside / "mid").exists()
+    assert (outside / "SECRET").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real"
+    path = H._write_claim_record(str(real), _spec(tmp_path), run)
+    assert path.is_file()
+    assert "SECRET" not in path.read_text(encoding="utf-8")
 
 
 def test_orphan_gate_without_claims_dir(tmp_path):
@@ -297,7 +544,94 @@ def test_home_lock_single_owner(tmp_path):
     release_home_lock(fd2)
 
 
+def test_home_lock_refuses_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    home = tmp_path / "home"
+    home.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        acquire_home_lock(str(home))
+    assert not (outside / "run").exists()
+
+    real = tmp_path / "real"
+    real.mkdir()
+    lock = real / "run"
+    lock.mkdir()
+    target = tmp_path / "elsewhere.lock"
+    target.write_bytes(b"")
+    (lock / "worker.lock").symlink_to(target)
+    with pytest.raises(ContainmentError, match="symlink"):
+        acquire_home_lock(str(real))
+    assert target.read_bytes() == b""
+
+
+def test_home_lock_refuses_a_home_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        acquire_home_lock(str(link / "mid" / "home"))
+    assert not (outside / "mid").exists()
+    assert (outside / "SECRET").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real"
+    fd = acquire_home_lock(str(real))
+    try:
+        assert (real / "run" / "worker.lock").is_file()
+    finally:
+        release_home_lock(fd)
+
+
 # -- outbox --------------------------------------------------------------------
+
+
+def test_outbox_refuses_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    home = tmp_path / "home"
+    home.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        outbox_write(str(home), {"dispatch_id": "d1", "result": 1})
+    assert not (outside / "outbox").exists()
+
+    real = tmp_path / "real"
+    real.mkdir()
+    linked = tmp_path / "linked-out"
+    linked.mkdir()
+    (real / "outbox").symlink_to(linked, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        outbox_write(str(real), {"dispatch_id": "d1", "result": 1})
+    assert list(linked.iterdir()) == []
+
+    plain = tmp_path / "plain"
+    outbox_write(str(plain), {"dispatch_id": "d1", "result": 1})
+    planted = tmp_path / "secret.json"
+    planted.write_text('{"dispatch_id":"d1","stolen":true}', encoding="utf-8")
+    item = plain / "outbox" / "d1.json"
+    item.unlink()
+    item.symlink_to(planted)
+    with pytest.raises(ContainmentError, match="symlink"):
+        outbox_read_all(str(plain))
+    assert "stolen" in planted.read_text(encoding="utf-8")
+
+
+def test_outbox_refuses_a_home_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        outbox_write(str(link / "mid" / "home"), {"dispatch_id": "d1", "result": 1})
+    assert not (outside / "mid").exists()
+    assert (outside / "SECRET").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real"
+    path = outbox_write(str(real), {"dispatch_id": "d1", "result": 1})
+    assert path.is_file()
+    assert "SECRET" not in path.read_text(encoding="utf-8")
 
 
 def test_outbox_roundtrip_and_remove(tmp_path):

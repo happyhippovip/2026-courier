@@ -464,8 +464,12 @@ class ContainedRun:
 
 def _spawn_contained(argv: list, run_dir: str, tag: str) -> ContainedRun:
     """Spawn argv contained. EMFILE/ENFILE becomes ResourcePaused, once."""
+    root = Path(run_dir)
     stdout_path = os.path.join(run_dir, f"{tag}.out")
     stderr_path = os.path.join(run_dir, f"{tag}.err")
+    if (root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink()
+            or os.path.islink(stdout_path) or os.path.islink(stderr_path)):
+        raise ContainmentError(f"{run_dir}: refusing to follow a symlink")
     stdout_f = open(stdout_path, "wb")
     try:
         stderr_f = open(stderr_path, "wb")
@@ -516,6 +520,9 @@ def _prune_run_stdio(run_dir: str) -> int:
     files are only recent-run debugging aid, so the oldest pairs go.
     Never raises: pruning must not kill a run.
     """
+    root = Path(run_dir)
+    if root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink():
+        return 0
     try:
         entries = os.listdir(run_dir)
     except OSError:
@@ -601,8 +608,18 @@ def _owner_alive(owner_pid: int, owner_create_time: Optional[float] = None) -> b
     return abs(created - recorded) <= OWNER_CREATE_TIME_TOLERANCE_S
 
 
+def _refuse_claim_link(home: str) -> Path:
+    root = Path(home)
+    run_dir = _run_dir(home)
+    claims = _claims_dir(home)
+    if (root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink()
+            or run_dir.is_symlink() or claims.is_symlink()):
+        raise ContainmentError(f"{home}: refusing to follow a symlink")
+    return claims
+
+
 def _write_claim_record(home: str, spec: ExecutionSpec, run: ContainedRun) -> Path:
-    _claims_dir(home).mkdir(parents=True, exist_ok=True)
+    _refuse_claim_link(home).mkdir(parents=True, exist_ok=True)
     try:
         owner_create_time = psutil.Process().create_time()
     except psutil.Error:
@@ -612,6 +629,8 @@ def _write_claim_record(home: str, spec: ExecutionSpec, run: ContainedRun) -> Pa
               "owner_create_time": owner_create_time, "child_pid": run.pid,
               "pgid": run.group_id()}
     path = _claim_path(home, spec.dispatch_id)
+    if path.is_symlink():
+        raise ContainmentError(f"{path}: refusing to follow a symlink")
     fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".claim-", suffix=".tmp")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as fh:
@@ -630,11 +649,13 @@ def _write_claim_record(home: str, spec: ExecutionSpec, run: ContainedRun) -> Pa
 
 def run_orphan_gate(home: str) -> int:
     """Reap trees of dead owners. Returns the number of records handled."""
-    claims = _claims_dir(home)
+    claims = _refuse_claim_link(home)
     if not claims.is_dir():
         return 0
     handled = 0
     for path in sorted(claims.glob(CLAIM_RECORD_GLOB)):
+        if path.is_symlink():
+            raise ContainmentError(f"{path}: refusing to follow a symlink")
         try:
             record = json.loads(path.read_text(encoding="utf-8"))
             owner_pid = int(record.get("owner_pid", 0) or 0)
@@ -696,8 +717,15 @@ def acquire_home_lock(home: str):
     :func:`release_home_lock`). A second live host for the same home gets
     :class:`HostBusy`, never a shared home.
     """
-    _run_dir(home).mkdir(parents=True, exist_ok=True)
-    path = _run_dir(home) / "worker.lock"
+    root = Path(home)
+    run = _run_dir(home)
+    if (root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink()
+            or run.is_symlink()):
+        raise ContainmentError(f"{home}: refusing to follow a symlink")
+    run.mkdir(parents=True, exist_ok=True)
+    path = run / "worker.lock"
+    if path.is_symlink():
+        raise ContainmentError(f"{path}: refusing to follow a symlink")
     fd = os.open(str(path), os.O_RDWR | os.O_CREAT, 0o600)
     try:
         if os.name == "nt":
@@ -756,6 +784,8 @@ def _sha256_file(path: str) -> str:
 def collect_artifacts(artifact_dir: str) -> tuple:
     """Hash every file under artifact_dir, bounded in count and bytes."""
     root = Path(artifact_dir)
+    if root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink():
+        raise ContainmentError("artifact directory is a symlink")
     if not root.is_dir():
         return ()
     found = []
@@ -763,6 +793,8 @@ def collect_artifacts(artifact_dir: str) -> tuple:
     for dirpath, _dirnames, filenames in os.walk(artifact_dir):
         for name in sorted(filenames):
             full = os.path.join(dirpath, name)
+            if os.path.islink(full):
+                raise ContainmentError("artifact path is a symlink")
             try:
                 size = os.path.getsize(full)
             except OSError:
@@ -791,12 +823,20 @@ def _tail(path: str, limit: int = MAX_STDIO_TAIL) -> str:
 def write_crash_report(artifact_dir: str, spec: ExecutionSpec, outcome: str,
                        returncode: Optional[int], duration_s: float, stderr_path: str) -> str:
     """Persist the abnormal end as evidence; the report itself is an artifact."""
+    root = Path(artifact_dir)
+    err = Path(stderr_path)
+    if root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink():
+        raise ContainmentError(f"{artifact_dir}: refusing to follow a symlink")
+    if err.is_symlink() or err.parent.is_symlink() or err.parent.parent.is_symlink():
+        raise ContainmentError(f"{stderr_path}: refusing to follow a symlink")
     os.makedirs(artifact_dir, exist_ok=True)
     report = {"dispatch_id": spec.dispatch_id, "task_id": spec.task_id, "attempt": spec.attempt,
               "worker_id": spec.worker_id, "outcome": outcome, "returncode": returncode,
               "duration_s": round(duration_s, 3),
               "stderr_tail": _tail(stderr_path)[-8000:]}
     path = os.path.join(artifact_dir, CRASH_REPORT_NAME)
+    if os.path.islink(path):
+        raise ContainmentError(f"{path}: refusing to follow a symlink")
     fd, tmp = tempfile.mkstemp(dir=artifact_dir, prefix=".crash-", suffix=".tmp")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as fh:
@@ -825,14 +865,25 @@ def _outbox_dir(home: str) -> Path:
     return Path(home) / "outbox"
 
 
-def outbox_write(home: str, payload: dict) -> Path:
+def _refuse_outbox_link(home: str) -> Path:
+    root = Path(home)
     outbox = _outbox_dir(home)
+    if (root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink()
+            or outbox.is_symlink()):
+        raise ContainmentError(f"{home}: refusing to follow a symlink")
+    return outbox
+
+
+def outbox_write(home: str, payload: dict) -> Path:
+    outbox = _refuse_outbox_link(home)
     outbox.mkdir(parents=True, exist_ok=True)
     existing = list(outbox.glob("*.json"))
     if len(existing) >= OUTBOX_CAP and not any(
             p.name == f"{payload['dispatch_id']}.json" for p in existing):
         raise OutboxFull(f"outbox holds {len(existing)} results; controller must drain it")
     path = outbox / f"{payload['dispatch_id']}.json"
+    if path.is_symlink():
+        raise ContainmentError(f"{path}: refusing to follow a symlink")
     fd, tmp = tempfile.mkstemp(dir=str(outbox), prefix=".outbox-", suffix=".tmp")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as fh:
@@ -850,11 +901,13 @@ def outbox_write(home: str, payload: dict) -> Path:
 
 
 def outbox_read_all(home: str) -> list:
-    outbox = _outbox_dir(home)
+    outbox = _refuse_outbox_link(home)
     if not outbox.is_dir():
         return []
     payloads = []
     for path in sorted(outbox.glob("*.json")):
+        if path.is_symlink():
+            raise ContainmentError(f"{path}: refusing to follow a symlink")
         try:
             payloads.append((path, json.loads(path.read_text(encoding="utf-8"))))
         except (OSError, ValueError):
