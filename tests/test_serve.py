@@ -255,6 +255,36 @@ def test_load_or_create_token_replaces_short_corrupt_token(tmp_path: Path):
     assert token != "too_short"
 
 
+def test_load_or_create_token_refuses_a_file_two_levels_under_a_symlink(tmp_path: Path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    mid = link / "mid"
+    mid.mkdir()
+    secret = "s" * 40
+    (outside / "mid" / "controller.token").write_text(secret + "\n", encoding="utf-8")
+    try:
+        token = load_or_create_token(mid / "controller.token")
+    except OSError as exc:
+        assert "symlink" in str(exc).lower()
+    else:
+        raise AssertionError(token)
+    assert (outside / "mid" / "controller.token").read_text(encoding="utf-8") == secret + "\n"
+    empty = tmp_path / "empty-outside"
+    empty.mkdir()
+    empty_link = tmp_path / "empty-link"
+    empty_link.symlink_to(empty, target_is_directory=True)
+    (empty_link / "mid").mkdir()
+    with pytest.raises(OSError, match="symlink"):
+        load_or_create_token(empty_link / "mid" / "controller.token")
+    assert not (empty / "mid" / "controller.token").exists()
+    real = tmp_path / "real" / "controller.token"
+    created = load_or_create_token(real)
+    assert len(created) >= 32
+    assert real.read_text(encoding="utf-8").strip() == created
+
+
 def test_load_or_create_token_refuses_a_symlink(tmp_path: Path):
     target = tmp_path / "outside"
     secret = "k" * 40
