@@ -74,6 +74,60 @@ def test_home_lock_double_release_safe(tmp_path: Path):
 # Token Management Tests
 # -----------------------------------------------------------------------------
 
+def test_service_refuses_a_home_two_levels_under_a_symlink(tmp_path: Path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    mid = link / "mid"
+    mid.mkdir()
+    home = mid / "courier"
+    service = None
+    try:
+        service = Service(home, 0)
+    except SystemExit as exc:
+        assert "symlink" in str(exc)
+    else:
+        try:
+            names = sorted(path.relative_to(outside).as_posix() for path in outside.rglob("*"))
+            raise AssertionError(f"started two levels under a symlink: {names}")
+        finally:
+            service.server.server_close()
+            service.controller.stop()
+            service.lock.release()
+    assert sorted(path.name for path in outside.iterdir()) == ["mid"]
+    assert not (outside / "mid" / "courier").exists()
+    real = tmp_path / "real"
+    started = Service(real, 0)
+    try:
+        assert started.port > 0
+        token = (real / "run" / "controller.token").read_text(encoding="utf-8").strip()
+        assert len(token) >= 32
+    finally:
+        started.server.server_close()
+        started.controller.stop()
+        started.lock.release()
+
+
+def test_main_refuses_a_home_two_levels_under_a_symlink(tmp_path, monkeypatch):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    mid = link / "mid"
+    mid.mkdir()
+    home = mid / "courier"
+
+    def boom(home, port, controller=None):
+        raise AssertionError(f"service started at {home}")
+
+    monkeypatch.setattr("courier_core.serve.Service", boom)
+    with pytest.raises(SystemExit, match="symlink"):
+        main(["--home", str(home), "--port", "0"])
+    assert sorted(path.name for path in outside.iterdir()) == ["mid"]
+    assert not (outside / "mid" / "courier").exists()
+
+
 def test_service_refuses_a_symlinked_home_parent(tmp_path: Path):
     outside = tmp_path / "outside"
     outside.mkdir()
@@ -132,6 +186,27 @@ def test_main_refuses_a_symlinked_home(tmp_path, monkeypatch):
     assert list(outside.iterdir()) == []
 
 
+def test_home_lock_refuses_a_lock_two_levels_under_a_symlink(tmp_path: Path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    mid = link / "mid"
+    mid.mkdir()
+    lock = HomeLock(mid / "controller.lock")
+    owned = lock.acquire()
+    try:
+        assert owned is False
+    finally:
+        lock.release()
+    assert sorted(path.name for path in outside.iterdir()) == ["mid"]
+    assert not (outside / "mid" / "controller.lock").exists()
+    real = HomeLock(tmp_path / "real" / "controller.lock")
+    assert real.acquire() is True
+    assert (tmp_path / "real" / "controller.lock").is_file()
+    real.release()
+
+
 def test_home_lock_refuses_a_symlink(tmp_path: Path):
     target = tmp_path / "outside"
     target.write_bytes(b"")
@@ -178,6 +253,36 @@ def test_load_or_create_token_replaces_short_corrupt_token(tmp_path: Path):
     token = load_or_create_token(token_file)
     assert len(token) >= 32
     assert token != "too_short"
+
+
+def test_load_or_create_token_refuses_a_file_two_levels_under_a_symlink(tmp_path: Path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    mid = link / "mid"
+    mid.mkdir()
+    secret = "s" * 40
+    (outside / "mid" / "controller.token").write_text(secret + "\n", encoding="utf-8")
+    try:
+        token = load_or_create_token(mid / "controller.token")
+    except OSError as exc:
+        assert "symlink" in str(exc).lower()
+    else:
+        raise AssertionError(token)
+    assert (outside / "mid" / "controller.token").read_text(encoding="utf-8") == secret + "\n"
+    empty = tmp_path / "empty-outside"
+    empty.mkdir()
+    empty_link = tmp_path / "empty-link"
+    empty_link.symlink_to(empty, target_is_directory=True)
+    (empty_link / "mid").mkdir()
+    with pytest.raises(OSError, match="symlink"):
+        load_or_create_token(empty_link / "mid" / "controller.token")
+    assert not (empty / "mid" / "controller.token").exists()
+    real = tmp_path / "real" / "controller.token"
+    created = load_or_create_token(real)
+    assert len(created) >= 32
+    assert real.read_text(encoding="utf-8").strip() == created
 
 
 def test_load_or_create_token_refuses_a_symlink(tmp_path: Path):
