@@ -84,7 +84,7 @@ def categorize_file(filename: str) -> FileCategory:
 
 def inspect_file(file_path: Path, claimed_source: Optional[str] = None) -> FileIdentity:
     """Stream hash and inspect file with O(1) memory."""
-    if file_path.is_symlink() or file_path.parent.is_symlink():
+    if file_path.is_symlink() or file_path.parent.is_symlink() or file_path.parent.parent.is_symlink():
         raise ValueError(f"{file_path}: refusing to follow a symlink")
     if not file_path.exists():
         raise FileNotFoundError(f"File not found: {file_path}")
@@ -131,8 +131,12 @@ class AirDropOrganizer:
         self.quarantine_dir = Path(quarantine_dir)
         self.db_path = Path(db_path)
         for path in (self.incoming_dir, self.library_dir, self.quarantine_dir, self.db_path):
-            if path.is_symlink() or path.parent.is_symlink():
+            if path.is_symlink() or path.parent.is_symlink() or path.parent.parent.is_symlink():
                 raise ValueError(f"{path}: refusing to follow a symlink")
+        for suffix in ("-wal", "-shm", "-journal"):
+            sidecar = Path(str(self.db_path) + suffix)
+            if sidecar.is_symlink():
+                raise ValueError(f"{sidecar}: refusing to follow a symlink")
 
         self.incoming_dir.mkdir(parents=True, exist_ok=True)
         self.library_dir.mkdir(parents=True, exist_ok=True)

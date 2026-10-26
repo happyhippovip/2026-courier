@@ -13,6 +13,7 @@ Validates the 10 requirements of the Apple Device AirDrop Acceptance Challenge:
 10. Restart & recovery after aborted organization run (in_flight ledger recovery).
 """
 
+import hashlib
 import os
 import shutil
 import sqlite3
@@ -316,6 +317,63 @@ def test_symlink_is_not_copied_into_the_library(tmp_path):
         seen = ("accepted", result.status.value, copied, body)
     names = sorted(path.relative_to(library).as_posix() for path in library.rglob("*") if path.is_file())
     assert seen[0] == "raised" and "symlink" in seen[1].lower() and names == [] and outside.read_text(encoding="utf-8") == "SECRET", seen
+
+
+def test_ledger_sidecar_symlink_is_not_opened(tmp_path):
+    db = tmp_path / "airdrop.db"
+    db.write_bytes(b"")
+    planted = tmp_path / "elsewhere.wal"
+    planted.write_bytes(b"secret")
+    wal = tmp_path / "airdrop.db-wal"
+    wal.symlink_to(planted)
+    incoming = tmp_path / "incoming"
+    incoming.mkdir()
+    try:
+        AirDropOrganizer(incoming, tmp_path / "library", tmp_path / "quarantine", db)
+    except ValueError as exc:
+        seen = ("raised", str(exc))
+    else:
+        seen = ("opened",)
+    assert seen[0] == "raised" and "symlink" in seen[1].lower(), seen
+    assert planted.read_bytes() == b"secret"
+    assert db.read_bytes() == b""
+
+
+def test_organizer_refuses_a_library_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    incoming = tmp_path / "incoming"
+    incoming.mkdir()
+    with pytest.raises(ValueError, match="symlink"):
+        AirDropOrganizer(incoming, link / "mid" / "library", tmp_path / "quarantine", tmp_path / "state" / "airdrop.db")
+    assert not (outside / "mid").exists()
+    assert (outside / "SECRET").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real-library"
+    AirDropOrganizer(incoming, real, tmp_path / "quarantine", tmp_path / "state" / "airdrop.db")
+    assert real.is_dir()
+    assert (tmp_path / "state" / "airdrop.db").is_file()
+
+
+def test_inspect_file_refuses_a_path_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    mid = outside / "mid"
+    mid.mkdir(parents=True)
+    secret = mid / "note.txt"
+    secret.write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ValueError, match="symlink"):
+        inspect_file(link / "mid" / "note.txt")
+    assert secret.read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real.txt"
+    real.write_text("SECRET", encoding="utf-8")
+    identity = inspect_file(real)
+    assert identity.sha256 == hashlib.sha256(b"SECRET").hexdigest()
 
 
 def test_library_and_ledger_symlinks_are_not_destinations(tmp_path):
