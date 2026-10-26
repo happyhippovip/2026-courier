@@ -204,3 +204,31 @@ def test_main_startup():
         mock_tcp.return_value.__enter__.return_value = mock_instance
         d_server.main()
         mock_instance.serve_forever.assert_called_once()
+
+
+def test_status_refuses_a_symlink(mock_dirs):
+    outside = mock_dirs["tmp_path"] / "outside"
+    outside.mkdir()
+    (outside / "central_motto.json").write_text(json.dumps({"motto": "SECRET"}), encoding="utf-8")
+    events = mock_dirs["events_dir"]
+    (events / "runtime-state").mkdir()
+    (events / "runtime-state" / "central_motto.json").symlink_to(outside / "central_motto.json")
+    payload = d_server.get_status_payload()
+    assert "SECRET" not in json.dumps(payload)
+    assert payload["central_motto"].startswith("WIR ")
+
+    (events / "runtime-state" / "central_motto.json").unlink()
+    (events / "runtime-state" / "central_motto.json").write_text(
+        json.dumps({"motto": "LIVE MOTTO"}), encoding="utf-8")
+    assert d_server.get_status_payload()["central_motto"] == "LIVE MOTTO"
+
+    real_events = mock_dirs["tmp_path"] / "real-events"
+    (real_events / "revenue-opportunities").mkdir(parents=True)
+    (real_events / "revenue-opportunities" / "canonical_revenue_ledger.json").write_text(
+        json.dumps({"opportunities": {"A": {"title": "SECRET"}}}), encoding="utf-8")
+    linked = mock_dirs["tmp_path"] / "linked-events"
+    linked.symlink_to(real_events, target_is_directory=True)
+    with patch("dashboard.server.EVENTS_DIR", linked):
+        offers = d_server.get_commercial_offers_payload()
+    assert offers["offers"] == []
+    assert "SECRET" not in json.dumps(offers)
