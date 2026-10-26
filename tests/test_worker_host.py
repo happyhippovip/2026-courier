@@ -403,6 +403,30 @@ def test_write_crash_report_refuses_a_dir_two_levels_under_a_symlink(tmp_path):
     assert "SECRET" not in open(out, encoding="utf-8").read()
 
 
+def test_write_crash_report_refuses_stderr_two_levels_under_a_symlink(tmp_path):
+    spec = _spec(tmp_path)
+    outside = tmp_path / "outside"
+    mid = outside / "mid"
+    mid.mkdir(parents=True)
+    secret = mid / "boom.err"
+    secret.write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    real = tmp_path / "real-arts"
+    real.mkdir()
+    with pytest.raises(ContainmentError, match="symlink"):
+        write_crash_report(str(real), spec, Outcome.CRASH, 3, 1.0, str(link / "mid" / "boom.err"))
+    assert secret.read_text(encoding="utf-8") == "SECRET"
+    assert not (real / "crash.json").exists()
+
+    plain = tmp_path / "plain.err"
+    plain.write_bytes(b"boom")
+    out = write_crash_report(str(real), spec, Outcome.CRASH, 3, 1.0, str(plain))
+    report = json.loads(open(out, encoding="utf-8").read())
+    assert report["stderr_tail"] == "boom"
+    assert "SECRET" not in report["stderr_tail"]
+
+
 def test_write_crash_report_shape(tmp_path):
     spec = _spec(tmp_path)
     art = tmp_path / "arts"

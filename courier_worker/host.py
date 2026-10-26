@@ -827,7 +827,7 @@ def write_crash_report(artifact_dir: str, spec: ExecutionSpec, outcome: str,
     err = Path(stderr_path)
     if root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink():
         raise ContainmentError(f"{artifact_dir}: refusing to follow a symlink")
-    if err.is_symlink() or err.parent.is_symlink():
+    if err.is_symlink() or err.parent.is_symlink() or err.parent.parent.is_symlink():
         raise ContainmentError(f"{stderr_path}: refusing to follow a symlink")
     os.makedirs(artifact_dir, exist_ok=True)
     report = {"dispatch_id": spec.dispatch_id, "task_id": spec.task_id, "attempt": spec.attempt,
