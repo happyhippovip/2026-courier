@@ -756,6 +756,8 @@ def _sha256_file(path: str) -> str:
 def collect_artifacts(artifact_dir: str) -> tuple:
     """Hash every file under artifact_dir, bounded in count and bytes."""
     root = Path(artifact_dir)
+    if root.is_symlink():
+        raise ContainmentError("artifact directory is a symlink")
     if not root.is_dir():
         return ()
     found = []

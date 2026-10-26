@@ -220,6 +220,17 @@ def test_collect_artifacts_refuses_a_symlink(tmp_path):
     assert outside.read_bytes() == b"secret"
 
 
+def test_collect_artifacts_refuses_a_symlinked_directory(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "secret.txt").write_bytes(b"secret")
+    link = tmp_path / "arts"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        collect_artifacts(str(link))
+    assert (outside / "secret.txt").read_bytes() == b"secret"
+
+
 def test_collect_artifacts_count_bound(tmp_path):
     root = tmp_path / "many"
     root.mkdir()
