@@ -99,6 +99,30 @@ def test_read_ledger_bridge_refuses_a_symlink(tmp_path):
     assert live["missions"][0]["status"] == "WORKING"
 
 
+def test_read_ledger_bridge_refuses_a_file_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    mid = outside / "mid"
+    mid.mkdir(parents=True)
+    secret = mid / "ledger_bridge_state.json"
+    secret.write_text(json.dumps({"missions": {"A": {"status": "SECRET"}}}), encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    block = read_ledger_bridge(link / "mid", tmp_path, "2026-10-26T04:40:00Z")
+    assert block["missions"] == []
+    assert "SECRET" not in json.dumps(block)
+    assert "SECRET" in secret.read_text(encoding="utf-8")
+
+    real = tmp_path / "real"
+    real.mkdir()
+    (real / "ledger_bridge_state.json").write_text(
+        json.dumps({"missions": {"A": {"status": "WORKING", "updated_at": "2026-10-26T04:40:00Z"}}}),
+        encoding="utf-8",
+    )
+    live = read_ledger_bridge(real, tmp_path, "2026-10-26T04:40:00Z")
+    assert live["missions"][0]["id"] == "A"
+    assert live["missions"][0]["status"] == "WORKING"
+
+
 def _render(snapshot: dict) -> tuple[str, int]:
     script = r"""
 import { pathToFileURL } from "node:url";

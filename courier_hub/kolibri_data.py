@@ -401,7 +401,8 @@ def read_ledger(view: Optional[dict], observed_at: str) -> dict:
 def read_ledger_bridge(home: Optional[Path], root: Path, observed_at: str) -> dict:
     source = "ledger_bridge_state.json"
     path = (home / "ledger_bridge_state.json") if home is not None else None
-    if (path is None or path.is_symlink() or path.parent.is_symlink() or not path.is_file()):
+    if (path is None or path.is_symlink() or path.parent.is_symlink()
+            or path.parent.parent.is_symlink() or not path.is_file()):
         block = _unavailable(source, observed_at)
         block["missions"] = []
         return block
