@@ -316,6 +316,24 @@ def test_collect_artifacts_refuses_a_symlinked_directory(tmp_path):
     assert (outside / "secret.txt").read_bytes() == b"secret"
 
 
+def test_collect_artifacts_refuses_a_dir_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    arts = outside / "mid" / "arts"
+    arts.mkdir(parents=True)
+    (arts / "secret.txt").write_bytes(b"secret")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        collect_artifacts(str(link / "mid" / "arts"))
+    assert (arts / "secret.txt").read_bytes() == b"secret"
+
+    real = tmp_path / "real"
+    real.mkdir()
+    (real / "ok.txt").write_bytes(b"ok")
+    found = collect_artifacts(str(real))
+    assert [item.path for item in found] == ["ok.txt"]
+
+
 def test_collect_artifacts_count_bound(tmp_path):
     root = tmp_path / "many"
     root.mkdir()
