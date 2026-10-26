@@ -142,9 +142,14 @@ def default_handlers(surface_supervisor=None):
 
 def submit(mailbox_root, host, job_id, action, params=None):
     """Courier side (cloud or any device): put one job into a computer's inbox."""
-    inbox = Path(mailbox_root) / host / "inbox"
-    inbox.mkdir(parents=True, exist_ok=True)
+    root = Path(mailbox_root)
+    inbox = root / host / "inbox"
     path = inbox / f"{job_id}.json"
+    if (root.is_symlink() or root.parent.is_symlink()
+            or inbox.is_symlink() or inbox.parent.is_symlink()
+            or path.is_symlink()):
+        raise OSError(f"{path}: refusing to follow a symlink")
+    inbox.mkdir(parents=True, exist_ok=True)
     if not path.exists():                                  # same job id twice = one job
         path.write_text(json.dumps({"action": action, "params": params or {}}, indent=1), encoding="utf-8")
     return path

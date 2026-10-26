@@ -58,6 +58,39 @@ def test_local_grants_refuse_a_symlink(tmp_path):
     assert LocalGrants.load(home / "home_grants.json").max_access == "control"
 
 
+def test_submit_refuses_a_symlinked_mailbox(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "mailbox"
+    link.symlink_to(outside, target_is_directory=True)
+    try:
+        submit(link, "pc-1", "j1", "host_health", {"secret": "SECRET"})
+    except OSError as exc:
+        seen = str(exc)
+    else:
+        seen = "written"
+    assert "symlink" in seen.lower(), seen
+    assert not (outside / "pc-1").exists()
+
+    secret = tmp_path / "secret.json"
+    secret.write_text("SECRET", encoding="utf-8")
+    real = tmp_path / "real"
+    inbox = real / "pc-1" / "inbox"
+    inbox.mkdir(parents=True)
+    (inbox / "j2.json").symlink_to(secret)
+    try:
+        submit(real, "pc-1", "j2", "host_health")
+    except OSError as exc:
+        seen = str(exc)
+    else:
+        seen = "written"
+    assert "symlink" in seen.lower(), seen
+    assert secret.read_text(encoding="utf-8") == "SECRET"
+
+    path = submit(real, "pc-1", "j1", "host_health")
+    assert json.loads(path.read_text(encoding="utf-8"))["action"] == "host_health"
+
+
 def test_run_once_refuses_a_symlinked_mailbox(tmp_path):
     outside = tmp_path / "outside"
     inbox = outside / "pc-1" / "inbox"
