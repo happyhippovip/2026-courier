@@ -172,6 +172,31 @@ def _lock_record(pid):
             "owner": "courier", "recorded_at": 0.0}
 
 
+def test_single_instance_refuses_a_symlink(tmp_path):
+    import os
+
+    from courier_runtime.home_agent import _single_instance
+
+    outside = tmp_path / "outside.lock"
+    outside.write_text(json.dumps({"pid": 1, "secret": "SECRET"}), encoding="utf-8")
+    home = tmp_path / "home"
+    home.mkdir()
+    lock = home / "home_agent.lock"
+    lock.symlink_to(outside)
+    assert _single_instance(lock) is False
+    assert "SECRET" in outside.read_text(encoding="utf-8")
+
+    lock.unlink()
+    linked = tmp_path / "linked"
+    linked.symlink_to(home, target_is_directory=True)
+    assert _single_instance(linked / "home_agent.lock") is False
+    assert not (home / "home_agent.lock").exists()
+
+    assert _single_instance(home / "home_agent.lock") is True
+    taken = json.loads((home / "home_agent.lock").read_text(encoding="utf-8"))
+    assert taken["pid"] == os.getpid() and taken["workkey"] == "home-agent"
+
+
 def test_single_instance_denied_lock_is_not_taken_over(tmp_path, monkeypatch):
     """Access denial is not proof of exit: an unreadable lock holder may
     still be alive (e.g. another user), so the lock must stay untouched."""
