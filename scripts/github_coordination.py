@@ -98,7 +98,16 @@ class FileCoordinationStore:
     def __init__(self, path):
         self.path = Path(path)
 
+    def _refuse_link(self) -> None:
+        path = self.path
+        lock_path = path.with_suffix(path.suffix + ".lock")
+        if (path.is_symlink() or path.parent.is_symlink() or path.parent.parent.is_symlink()
+                or lock_path.is_symlink() or lock_path.parent.is_symlink()
+                or lock_path.parent.parent.is_symlink()):
+            raise OSError(f"{path}: refusing to follow a symlink")
+
     def read_events(self) -> List[CoordinationEvent]:
+        self._refuse_link()
         if not self.path.exists():
             return []
         events: List[CoordinationEvent] = []
@@ -113,9 +122,21 @@ class FileCoordinationStore:
         return events
 
     def write_event(self, event: CoordinationEvent) -> bool:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.path, "a", encoding="utf-8") as handle:
-            handle.write(json.dumps(event.to_dict(), sort_keys=True) + "\n")
-            handle.flush()
-            os.fsync(handle.fileno())
+        """Append one event. The same id and body is a no-op. A different body for that id is refused."""
+        from courier_runtime.ledger_engine import _exclusive
+
+        self._refuse_link()
+        lock_path = self.path.with_suffix(self.path.suffix + ".lock")
+        with _exclusive(lock_path):
+            for prior in self.read_events():
+                if prior.event_id != event.event_id:
+                    continue
+                if prior.to_dict() == event.to_dict():
+                    return True
+                raise ValueError(f"Conflicting event with same ID: {event.event_id}")
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.path, "a", encoding="utf-8") as handle:
+                handle.write(json.dumps(event.to_dict(), sort_keys=True) + "\n")
+                handle.flush()
+                os.fsync(handle.fileno())
         return True

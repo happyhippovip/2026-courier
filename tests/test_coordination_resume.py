@@ -7,6 +7,8 @@ from shared truth only and safely claims/resumes it with zero duplicate writers.
 import json
 import subprocess
 import sys
+
+import pytest
 from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -98,6 +100,56 @@ def test_fresh_process_reconstructs_and_resumes(tmp_path):
     assert reduce_store(FileCoordinationStore(ledger)).get_mission("WK-42")["ownership"] == "GOOGLE_WINDOWS"
 
 
+def test_file_coordination_store_refuses_a_symlink(tmp_path):
+    outside = tmp_path / "outside.jsonl"
+    outside.write_text('{"adopted": true}\n', encoding="utf-8")
+    link = tmp_path / "l.jsonl"
+    link.symlink_to(outside)
+    store = FileCoordinationStore(link)
+    with pytest.raises(OSError, match="symlink"):
+        store.read_events()
+    with pytest.raises(OSError, match="symlink"):
+        store.write_event(_event("1", "m", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z"))
+    assert outside.read_text(encoding="utf-8") == '{"adopted": true}\n'
+
+    planted = tmp_path / "planted"
+    planted.mkdir()
+    home = tmp_path / "home"
+    home.symlink_to(planted, target_is_directory=True)
+    with pytest.raises(OSError, match="symlink"):
+        FileCoordinationStore(home / "l.jsonl").read_events()
+    assert list(planted.iterdir()) == []
+
+    real = tmp_path / "real.jsonl"
+    real.write_text("", encoding="utf-8")
+    lock = tmp_path / "real.jsonl.lock"
+    lock.symlink_to(outside)
+    with pytest.raises(OSError, match="symlink"):
+        FileCoordinationStore(real).write_event(
+            _event("1", "m", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z"))
+    assert real.read_text(encoding="utf-8") == ""
+
+
+def test_file_coordination_store_refuses_a_file_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    mid = outside / "mid"
+    mid.mkdir(parents=True)
+    secret = mid / "l.jsonl"
+    secret.write_text('{"note":"SECRET"}\n', encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(OSError, match="symlink"):
+        FileCoordinationStore(link / "mid" / "l.jsonl").read_events()
+    assert secret.read_text(encoding="utf-8") == '{"note":"SECRET"}\n'
+    assert not (mid / "l.jsonl.lock").exists()
+
+    real = tmp_path / "real.jsonl"
+    store = FileCoordinationStore(real)
+    store.write_event(_event("1", "m", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z"))
+    assert store.read_events()[0].event_id == "1"
+    assert "SECRET" not in real.read_text(encoding="utf-8")
+
+
 def test_stale_checkpoint_does_not_regress_resume_point(tmp_path):
     store = FileCoordinationStore(tmp_path / "l.jsonl")
     store.write_event(_event("1", "m", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z"))
@@ -107,6 +159,42 @@ def test_stale_checkpoint_does_not_regress_resume_point(tmp_path):
                              head="old", next="older step"))
     [cp] = discover_resumable(reduce_store(store), AgentID.GOOGLE_WINDOWS)
     assert cp.head == "new" and cp.next_action == "newer step" and cp.latest_event_id == "2"
+
+
+def test_file_coordination_store_write_event_is_locked_and_fenced(tmp_path):
+    """One id is one event. A second writer waits for the file lock, and a different body is refused."""
+    fcntl = pytest.importorskip("fcntl")
+    import os
+    import threading
+
+    store = FileCoordinationStore(tmp_path / "l.jsonl")
+    first = _event("1", "m", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z")
+    assert store.write_event(first) is True
+    assert store.write_event(first) is True
+    assert len(store.read_events()) == 1
+    changed = _event("1", "m", EventType.ASSIGNED, MissionStatus.WORKING, "2026-10-07T12:00:00Z", head="other")
+    with pytest.raises(ValueError, match="Conflicting event with same ID: 1"):
+        store.write_event(changed)
+
+    lock_path = tmp_path / "l.jsonl.lock"
+    fd = os.open(lock_path, os.O_RDWR)
+    fcntl.flock(fd, fcntl.LOCK_EX)
+    started, done = threading.Event(), threading.Event()
+
+    def other():
+        started.set()
+        store.write_event(_event("2", "m", EventType.PARTIAL, MissionStatus.WORKING, "2026-10-07T12:05:00Z"))
+        done.set()
+
+    thread = threading.Thread(target=other)
+    thread.start()
+    assert started.wait(2)
+    assert done.wait(0.3) is False
+    fcntl.flock(fd, fcntl.LOCK_UN)
+    os.close(fd)
+    thread.join(2)
+    assert done.is_set()
+    assert [event.event_id for event in store.read_events()] == ["1", "2"]
 
 
 def test_duplicate_events_in_shared_truth_have_no_duplicate_effect(tmp_path):
