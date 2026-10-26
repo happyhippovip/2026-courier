@@ -7,19 +7,41 @@ timestamps only, no export time, no randomness), so exporting the same journal
 twice yields byte-identical output.
 
 It is not a second database, a scheduler or a model call: it opens the file
-read-only, makes no network call and writes nothing but the export itself.
+read-only (SQLite `mode=ro`, `PRAGMA query_only=ON`), makes no network call and
+never writes to the journal database or its -wal file. What it DOES touch, honestly:
+* SQLite itself may create or update the `-shm` (shared-memory index) and, for an idle
+  WAL database on a writable medium, create empty `-wal`/`-shm` files beside the journal
+  (that is what a `mode=ro` reader of a WAL database does; the database file's bytes and
+  mtime stay unchanged). Nothing is ever deleted.
+* The export itself (`--out`, written atomically via a temp file next to it).
+
+Open mode: always `mode=ro`, so the reader works on a consistent snapshot even while the
+controller appends. `immutable=1` (no locking, no snapshot) is used ONLY when the medium is
+read-only (directory not writable or read-only mount) and no -wal/-shm/-journal exists:
+then no writer can exist. If the file or its sidecars change while such an immutable read is
+running, the export fails with exit 7 instead of returning torn data.
 
     python -m tools.automation.journal_export <courier.db> [--out FILE]
                                           [--only-transitions] [--allow-partial]
+                                          [--expect-head-hash HEX]
 
-Exit codes: 0 exported · 2 usage · 3 journal missing/unreadable ·
-4 hash chain broken (no export; with --allow-partial the verified prefix is
-exported and the exit code stays 4) · 5 event stream does not fold through the
-state machine · 6 output could not be written. Exit 2 is also used when --out
-would overwrite the journal or one of its -wal/-shm/-journal files (checked after
-resolving symlinks and hard links). Text that is not valid UTF-8 counts as a damaged
-chain (exit 4). Memory use is O(tasks), not O(events): output is streamed after a
-first pass has verified the chain and checked the state-machine fold.
+Exit codes: 0 exported · 2 usage (also: --out would overwrite the journal or its files) ·
+3 journal missing/unreadable (also: an open that SQLite refuses, e.g. a database that needs
+a writable directory) · 4 hash chain broken or stored text not valid UTF-8 (no export; with
+--allow-partial the verified prefix is exported and the exit code stays 4) · 5 event stream
+does not fold through the state machine · 6 output could not be written · 7 journal changed
+while it was being read (the run is not trustworthy; run again; with --out nothing replaces
+the old file; on stdout lines already written must be discarded) · 8 head differs from
+--expect-head-hash (journal shorter, newer or replaced).
+
+Completeness: a hash chain proves that what is there is intact, NOT that nothing was cut off
+at the end (a deleted last event, a truncated WAL). The header carries head_seq/head_hash and
+`head_checked`: false unless the caller supplied --expect-head-hash. Compare the header with a
+head you know from another source before treating an export as complete.
+
+Memory use is O(tasks), not O(events): output is streamed after a first pass has verified the
+chain and checked the state-machine fold, and a second pass in the same read snapshot checks
+that exactly the verified events were emitted.
 """
 
 from __future__ import annotations
@@ -38,7 +60,9 @@ from courier_core.journal import Journal, JournalError
 from courier_core.state_machine import apply as apply_state
 
 FORMAT = "courier-journal-status-export/1"
-EXIT_OK, EXIT_USAGE, EXIT_UNREADABLE, EXIT_BAD_CHAIN, EXIT_BAD_FOLD, EXIT_WRITE = 0, 2, 3, 4, 5, 6
+(EXIT_OK, EXIT_USAGE, EXIT_UNREADABLE, EXIT_BAD_CHAIN, EXIT_BAD_FOLD, EXIT_WRITE, EXIT_CHANGED,
+ EXIT_HEAD_MISMATCH) = 0, 2, 3, 4, 5, 6, 7, 8
+SIDECARS = ("-wal", "-shm", "-journal")
 
 
 class ExportError(Exception):
@@ -47,14 +71,29 @@ class ExportError(Exception):
         self.code = code
 
 
+def _sidecars_exist(path: Path) -> bool:
+    return any(Path(f"{path}{suffix}").exists() for suffix in SIDECARS)
+
+
+def medium_is_read_only(path: Path) -> bool:
+    """True when nothing can be created beside the journal: directory not writable, or a read-only mount.
+    (Not detectable on every platform: then False, i.e. the safe default mode=ro is used.)"""
+    parent = Path(path).parent
+    try:
+        if not os.access(parent, os.W_OK):
+            return True
+        flags = os.statvfs(parent).f_flag
+        return bool(flags & getattr(os, "ST_RDONLY", 1))
+    except (AttributeError, OSError):
+        return False
+
+
 def _readonly_uri(path: Path, immutable_ok: bool = True) -> str:
-    """Always `mode=ro`. An idle WAL database (no -wal/-shm/-journal beside it) is
-    additionally opened `immutable=1`, because even a mode=ro reader would create the
-    -wal/-shm files there. When those files exist (a live writer or an unclean stop),
-    plain mode=ro is used so committed WAL content is part of the snapshot."""
+    """Always `mode=ro` (a snapshot reader that tolerates a live writer). `immutable=1` only on a
+    read-only medium with no -wal/-shm/-journal: nothing can then write, and SQLite could not create
+    the sidecars a WAL reader needs."""
     base = Path(os.path.abspath(path)).as_uri()
-    sidecars = (Path(f"{path}-wal"), Path(f"{path}-shm"), Path(f"{path}-journal"))
-    if immutable_ok and not any(p.exists() for p in sidecars):
+    if immutable_ok and medium_is_read_only(path) and not _sidecars_exist(path):
         return f"{base}?mode=ro&immutable=1"
     return f"{base}?mode=ro"
 
@@ -62,7 +101,7 @@ def _readonly_uri(path: Path, immutable_ok: bool = True) -> str:
 def _signature(path: Path):
     """What an immutable open assumes never changes: the file itself and the absence of sidecars."""
     stat = path.stat()
-    return (stat.st_size, stat.st_mtime_ns, tuple(Path(f"{path}{s}").exists() for s in ("-wal", "-shm", "-journal")))
+    return (stat.st_size, stat.st_mtime_ns, tuple(Path(f"{path}{s}").exists() for s in SIDECARS))
 
 
 def _classify(path, exc: Exception) -> ExportError:
@@ -82,7 +121,7 @@ def resolve_journal(path: str | os.PathLike) -> Path:
 
 def open_readonly(path: str | os.PathLike, immutable_ok: bool = True) -> Journal:
     path = resolve_journal(path)
-    signature = _signature(path)  # taken BEFORE the open mode is chosen, so a writer that appears later is seen
+    signature = _signature(path)  # taken BEFORE the open mode is chosen, so a change afterwards is seen
     uri = _readonly_uri(path, immutable_ok)
     try:
         conn = sqlite3.connect(uri, uri=True, isolation_level=None, timeout=30)
@@ -131,11 +170,17 @@ def _dumps(value: dict) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"))
 
 
-def _walk(journal: Journal, count: int, only_transitions: bool) -> Iterator[str]:
-    """One pass over the verified prefix; memory is O(tasks), never O(events)."""
+def _walk(journal: Journal, count: int, only_transitions: bool, head_hash: str | None = None) -> Iterator[str]:
+    """One pass over the verified prefix; memory is O(tasks), never O(events).
+
+    At the end the pass proves it saw exactly the verified events (row count and, when the chain is
+    intact, the head hash): a snapshot that silently differs from the verified one is exit 7."""
     statuses: dict[str, object] = {}
+    rows, last_hash = 0, None
     try:
         for event, payload_text in _rows(journal, count):
+            rows += 1
+            last_hash = event.hash
             before = after = None
             if event.type not in SYSTEM_EVENTS:
                 state = statuses.get(event.task_id)
@@ -150,53 +195,59 @@ def _walk(journal: Journal, count: int, only_transitions: bool) -> Iterator[str]
         raise ExportError(EXIT_BAD_FOLD, f"event stream does not fold: {exc}") from exc
     except sqlite3.Error as exc:
         raise _classify("journal", exc) from exc
+    if rows != count or (head_hash is not None and count and last_hash != head_hash):
+        raise ExportError(EXIT_CHANGED, f"journal changed while it was being exported: verified {count} events, "
+                                        f"read {rows} (head hash {'equal' if last_hash == head_hash else 'differs'})")
 
 
-def export_stream(path: str | os.PathLike, only_transitions: bool = False,
-                  allow_partial: bool = False) -> tuple[Iterator[str], int, Callable[[], None]]:
+def export_stream(path: str | os.PathLike, only_transitions: bool = False, allow_partial: bool = False,
+                  expect_head_hash: str | None = None) -> tuple[Iterator[str], int, Callable[[], None]]:
     """Verify, then return (line iterator, exit code, close function).
 
-    Everything that can fail (open, chain check, state-machine fold) happens BEFORE the first
-    line is handed out, so a refused export never produces output. The returned iterator reads a
-    second time inside the same read snapshot, one event at a time (constant memory)."""
-    journal = None
-    for immutable_ok in (True, False):
-        journal = open_readonly(path, immutable_ok)
-        real = Path(journal.path)
-        before = journal.signature_before
-        try:
-            report = journal.verify_chain()
-            if not report.ok and not allow_partial:
-                raise ExportError(EXIT_BAD_CHAIN, f"{path}: hash chain broken at seq {report.first_bad_seq}: {report.reason}")
-            for _ in _walk(journal, report.count, only_transitions):  # pass 1: fold check, no output
-                pass
-        except sqlite3.Error as exc:
-            journal.close()
-            raise _classify(path, exc) from exc
-        except BaseException:
-            journal.close()
-            raise
-        # An immutable open assumed nobody writes. If the file or its sidecars changed meanwhile
-        # (a writer started), discard the result and read again through a normal read-only open.
-        if journal.immutable_open and _signature(real) != before:
-            journal.close()
-            continue
-        break
+    Everything that can fail (open, chain check, state-machine fold, expected head) happens BEFORE the
+    first line is handed out, so a refused export never produces output. The returned iterator reads a
+    second time inside the same read snapshot, one event at a time (constant memory), and raises
+    ExportError(7) at its end if what it read is not what pass 1 verified."""
+    journal = open_readonly(path)
+    real = Path(journal.path)
+    try:
+        report = journal.verify_chain()
+        if not report.ok and not allow_partial:
+            raise ExportError(EXIT_BAD_CHAIN, f"{path}: hash chain broken at seq {report.first_bad_seq}: {report.reason}")
+        head_hash = report.head_hash if report.ok else None
+        for _ in _walk(journal, report.count, only_transitions, head_hash):  # pass 1: fold check, no output
+            pass
+        if journal.immutable_open and _signature(real) != journal.signature_before:
+            raise ExportError(EXIT_CHANGED, f"{path}: file changed during an immutable (read-only medium) read")
+        if expect_head_hash is not None and report.ok and report.head_hash != expect_head_hash:
+            raise ExportError(EXIT_HEAD_MISMATCH, f"{path}: head hash {report.head_hash} differs from expected "
+                                                  f"{expect_head_hash} (journal shorter, newer or replaced)")
+        if expect_head_hash is not None and not report.ok:
+            raise ExportError(EXIT_BAD_CHAIN, f"{path}: head cannot be checked on a broken chain")
+    except sqlite3.Error as exc:
+        journal.close()
+        raise _classify(path, exc) from exc
+    except BaseException:
+        journal.close()
+        raise
     header = {"chain_ok": report.ok, "event_count": report.count, "first_bad_seq": report.first_bad_seq,
-              "format": FORMAT, "head_hash": report.head_hash, "head_seq": report.head_seq,
-              "only_transitions": only_transitions, "partial": not report.ok, "record": "header"}
+              "format": FORMAT, "head_checked": expect_head_hash is not None, "head_hash": report.head_hash,
+              "head_seq": report.head_seq, "only_transitions": only_transitions, "partial": not report.ok,
+              "record": "header"}
 
     def lines() -> Iterator[str]:
         yield _dumps(header)
-        yield from _walk(journal, report.count, only_transitions)  # pass 2: emit
+        yield from _walk(journal, report.count, only_transitions, head_hash)  # pass 2: emit
+        if journal.immutable_open and _signature(real) != journal.signature_before:
+            raise ExportError(EXIT_CHANGED, f"{path}: file changed during an immutable (read-only medium) read")
 
     return lines(), (EXIT_OK if report.ok else EXIT_BAD_CHAIN), journal.close
 
 
-def export_lines(path: str | os.PathLike, only_transitions: bool = False,
-                 allow_partial: bool = False) -> tuple[list[str], int]:
+def export_lines(path: str | os.PathLike, only_transitions: bool = False, allow_partial: bool = False,
+                 expect_head_hash: str | None = None) -> tuple[list[str], int]:
     """Convenience for tests and small journals: the whole export in memory."""
-    stream, code, close = export_stream(path, only_transitions, allow_partial)
+    stream, code, close = export_stream(path, only_transitions, allow_partial, expect_head_hash)
     try:
         return list(stream), code
     finally:
@@ -204,7 +255,7 @@ def export_lines(path: str | os.PathLike, only_transitions: bool = False,
 
 
 def _same_file_as_journal(out: Path, journal: Path) -> bool:
-    guarded = [journal] + [Path(f"{journal}{s}") for s in ("-wal", "-shm", "-journal")]
+    guarded = [journal] + [Path(f"{journal}{s}") for s in SIDECARS]
     out_real = Path(os.path.realpath(out))
     for item in guarded:
         if out_real == Path(os.path.realpath(item)):
@@ -226,6 +277,8 @@ def main(argv: list[str] | None = None, stdout=None, stderr=None) -> int:
     parser.add_argument("--only-transitions", action="store_true", help="skip events that do not change a task status")
     parser.add_argument("--allow-partial", action="store_true",
                         help="on a broken chain export the verified prefix (exit code stays 4)")
+    parser.add_argument("--expect-head-hash", metavar="HEX",
+                        help="head hash known from another source; a different head is exit 8 (detects a cut-off tail)")
     try:
         args = parser.parse_args(argv)
     except SystemExit as exc:
@@ -234,7 +287,8 @@ def main(argv: list[str] | None = None, stdout=None, stderr=None) -> int:
         real = resolve_journal(args.journal)
         if args.out and _same_file_as_journal(Path(args.out), real):
             raise ExportError(EXIT_USAGE, f"--out {args.out} is the journal (or one of its files); refusing to overwrite it")
-        stream, code, close = export_stream(args.journal, args.only_transitions, args.allow_partial)
+        stream, code, close = export_stream(args.journal, args.only_transitions, args.allow_partial,
+                                            args.expect_head_hash)
     except ExportError as exc:
         print(f"JOURNAL_EXPORT_ERROR code={exc.code} {exc}", file=stderr)
         return exc.code
@@ -263,7 +317,7 @@ def main(argv: list[str] | None = None, stdout=None, stderr=None) -> int:
         except OSError as exc:
             print(f"JOURNAL_EXPORT_ERROR code={EXIT_WRITE} cannot write export: {exc}", file=stderr)
             return EXIT_WRITE
-        except ExportError as exc:  # state-machine/read problem found while emitting
+        except ExportError as exc:  # state-machine/read problem or a changed journal found while emitting
             print(f"JOURNAL_EXPORT_ERROR code={exc.code} {exc}", file=stderr)
             return exc.code
     finally:

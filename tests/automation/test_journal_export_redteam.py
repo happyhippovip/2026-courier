@@ -18,7 +18,7 @@ from core_builders import Attempt, created, golden_path  # noqa: E402
 from tools.automation import journal_export as je  # noqa: E402
 from courier_core.journal import Journal
 
-from test_journal_export import export, make_journal, snapshot, tamper  # noqa: E402
+from test_journal_export import export, make_journal, snapshot, tamper, without_sidecars  # noqa: E402
 
 
 def sha(path):
@@ -74,9 +74,9 @@ def test_symlinked_idle_journal_stays_unchanged(tmp_path):
     (tmp_path / "b").mkdir()
     real = make_journal(tmp_path / "a" / "courier.db")
     link_or_skip("sym", real, tmp_path / "b" / "courier.db")
-    before = {d: snapshot(tmp_path / d) for d in ("a",)}
+    before = snapshot(tmp_path / "a")["courier.db"]
     assert export(tmp_path / "b" / "courier.db")[0] == 0
-    assert snapshot(tmp_path / "a") == before["a"] and os.listdir(tmp_path / "b") == ["courier.db"]
+    assert snapshot(tmp_path / "a")["courier.db"] == before and os.listdir(tmp_path / "b") == ["courier.db"]
 
 
 # --- --out must never be the journal -----------------------------------------------------------
@@ -112,13 +112,16 @@ def test_out_relative_path_equal_to_journal_is_refused(tmp_path, monkeypatch):
 def test_wal_database_with_live_writer_exports_committed_events_and_creates_nothing(tmp_path):
     writer = live_writer(tmp_path)
     try:
-        before = {n: v for n, v in snapshot(tmp_path).items() if n.endswith(("-wal", "-shm"))}
+        before = snapshot(tmp_path)
         code, out, _ = export(tmp_path / "courier.db")
-        after = {n: v for n, v in snapshot(tmp_path).items() if n.endswith(("-wal", "-shm"))}
+        after = snapshot(tmp_path)
     finally:
         writer.close()
     assert code == 0 and json.loads(out.splitlines()[0])["event_count"] == len(golden_path())
     assert set(before) == set(after)
+    # contents, not only names (review T-3); -shm is SQLite's reader-updated index (review EX-1)
+    for name in ("courier.db", "courier.db-wal"):
+        assert before[name] == after[name], f"{name} changed (size, mtime or sha256)"
 
 
 def test_uncommitted_writer_transaction_is_neither_blocking_nor_exported(tmp_path):
@@ -183,43 +186,6 @@ def test_concurrent_writer_every_export_is_a_consistent_snapshot(tmp_path):
     assert not errors and seen == sorted(seen)  # snapshots only ever grow
 
 
-def test_sidecar_appearing_during_an_immutable_read_triggers_a_normal_readonly_reread(tmp_path, monkeypatch):
-    db = make_journal(tmp_path / "courier.db")
-    uris, original = [], je._readonly_uri
-    monkeypatch.setattr(je, "_readonly_uri", lambda p, ok=True: uris.append(original(p, ok)) or uris[-1])
-    verify = Journal.verify_chain
-    state = {"first": True}
-
-    def verify_then_writer_appears(self):
-        report = verify(self)
-        if state.pop("first", False):
-            (tmp_path / "courier.db-wal").write_bytes(b"")  # a writer starts after we chose immutable
-        return report
-
-    monkeypatch.setattr(Journal, "verify_chain", verify_then_writer_appears)
-    code, out, _ = export(db)
-    assert code == 0 and json.loads(out.splitlines()[0])["event_count"] == len(golden_path())
-    assert "immutable=1" in uris[0] and all("mode=ro" in u for u in uris)
-    assert "immutable=1" not in uris[-1] and len(uris) >= 2
-
-
-def test_sidecar_appearing_between_mode_choice_and_open_is_also_caught(tmp_path, monkeypatch):
-    """Review finding R7: the baseline signature must predate the choice of the open mode."""
-    db = make_journal(tmp_path / "courier.db")
-    uris, original, state = [], je._readonly_uri, {"first": True}
-
-    def choose_then_writer_appears(path, ok=True):
-        uri = original(path, ok)
-        uris.append(uri)
-        if state.pop("first", False):
-            (tmp_path / "courier.db-wal").write_bytes(b"")  # appears right after "no sidecar" was decided
-        return uri
-
-    monkeypatch.setattr(je, "_readonly_uri", choose_then_writer_appears)
-    code, out, _ = export(db)
-    assert code == 0 and "immutable=1" in uris[0] and "immutable=1" not in uris[-1] and len(uris) >= 2
-
-
 # --- invalid UTF-8 ---------------------------------------------------------------------------------
 
 @pytest.mark.parametrize("column", ["task_id", "ts_utc", "type", "event_id", "dispatch_id"])
@@ -246,10 +212,10 @@ def test_truncated_database_file_is_a_clean_exit_3_and_creates_nothing(tmp_path,
     target = tmp_path / "cut" / "courier.db"
     target.parent.mkdir()
     target.write_bytes(full[:int(len(full) * fraction)])
-    before = snapshot(target.parent)
+    before = snapshot(target.parent)["courier.db"]
     code, out, err = export(target)
     assert (code, out) == (3, "") and "Traceback" not in err
-    assert snapshot(target.parent) == before
+    assert snapshot(target.parent)["courier.db"] == before and without_sidecars(target.parent) == ["courier.db"]
 
 
 def test_database_cut_inside_the_unused_tail_still_exports_intact_chain(tmp_path):
@@ -343,10 +309,10 @@ class ClosedPipe:
 
 def test_broken_pipe_on_stdout_is_exit_6_and_journal_untouched(tmp_path):
     db = make_journal(tmp_path / "courier.db")
-    before = snapshot(tmp_path)
+    before = snapshot(tmp_path)["courier.db"]
     err = io.StringIO()
     assert je.main([str(db)], stdout=ClosedPipe(), stderr=err) == 6
-    assert "cannot write export" in err.getvalue() and snapshot(tmp_path) == before
+    assert "cannot write export" in err.getvalue() and snapshot(tmp_path)["courier.db"] == before
 
 
 def test_fold_error_gives_exit_5_and_no_partial_stdout(tmp_path, monkeypatch):
@@ -382,4 +348,4 @@ def test_interrupt_while_writing_leaves_no_tmp_file_and_no_half_output(tmp_path,
     with pytest.raises(KeyboardInterrupt):
         export(db, "--out", str(target))
     assert target.read_text() == "previous export\n"
-    assert sorted(p.name for p in tmp_path.iterdir()) == ["courier.db", "export.jsonl"]
+    assert without_sidecars(tmp_path) == ["courier.db", "export.jsonl"]

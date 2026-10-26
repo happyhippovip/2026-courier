@@ -7,6 +7,7 @@ import stat
 import subprocess
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -56,9 +57,14 @@ class Gh:
         return [c for c in self.commands if c[1:3] == ["run", "list"]]
 
 
-def run(status="in_progress", conclusion=None, sha=SHA, rid=1):
+def iso(epoch):
+    return datetime.fromtimestamp(epoch, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def run(status="in_progress", conclusion=None, sha=SHA, rid=1, created=1_800_000_001.0, event="workflow_dispatch"):
+    """`created` defaults to one second after the Clock() start: a run created by a dispatch made at the start."""
     return {"databaseId": rid, "status": status, "conclusion": conclusion, "headSha": sha, "displayTitle": "t",
-            "workflowName": "ci", "url": f"https://x/{rid}"}
+            "workflowName": "ci", "url": f"https://x/{rid}", "createdAt": iso(created), "event": event}
 
 
 DONE = [run("completed", "success")]
@@ -94,12 +100,14 @@ def test_poll_times_follow_the_schedule_and_the_last_poll_sits_on_the_window_edg
     assert r["status"] == w.WAITING and r["polls_this_call"] == 5
 
 
-def test_completion_stops_polling_at_once(tmp_path):
+def test_completion_stops_polling_after_the_stability_confirmation(tmp_path):
+    """Observer mode (CW-2): the first fully finished look is confirmed by exactly one more identical poll."""
     clock = Clock()
     gh = Gh(BUSY, BUSY, DONE, clock=clock)
     r = go(tmp_path, gh, clock)
     assert r["status"] == w.COMPLETED and r["outcome"] == "SUCCESS" and r["exit_code"] == 0
-    assert len(gh.lists) == 3 and clock.sleeps == [5, 10]
+    assert len(gh.lists) == 4 and clock.sleeps == [5, 10, 20]
+    assert go(tmp_path, gh, clock)["status"] == w.COMPLETED and len(gh.lists) == 4  # terminal: no more calls
 
 
 def test_max_attempts_bounds_calls_then_zero_calls(tmp_path):
@@ -138,7 +146,7 @@ def test_only_a_mixed_reply_counts_our_sha_and_waits_for_all_its_runs(tmp_path):
             [run("completed", "success", rid=1), run("completed", "failure", rid=2)], clock=clock)
     r = go(tmp_path, gh, clock)
     assert r["status"] == w.COMPLETED and r["outcome"] == "FINISHED_NOT_SUCCESS" and r["exit_code"] == 1
-    assert [x["databaseId"] for x in r["runs"]] == [1, 2] and len(gh.lists) == 2
+    assert [x["databaseId"] for x in r["runs"]] == [1, 2] and len(gh.lists) == 3  # last reply repeats = confirmation
 
 
 def test_no_run_yet_is_not_completion(tmp_path):
@@ -169,8 +177,8 @@ def test_invalid_input_is_rejected_before_any_call(tmp_path):
 def test_errors_do_not_crash_are_recorded_and_retried(tmp_path, reply, rate):
     clock = Clock()
     gh = Gh(reply, DONE, clock=clock)
-    r = go(tmp_path, gh, clock)
-    assert r["status"] == w.COMPLETED and len(gh.lists) == 2
+    r = go(tmp_path, gh, clock, window=300)
+    assert r["status"] == w.COMPLETED and len(gh.lists) == 3  # error, finished, confirmation
     wait_between = clock.sleeps[0]
     assert (wait_between >= 60) if rate else (wait_between == 5)
 
@@ -342,9 +350,11 @@ if sys.argv[1:3] == ["workflow", "run"]:
 if sys.argv[1:3] == ["run", "list"]:
     sha = sys.argv[sys.argv.index("--commit") + 1]
     done = os.path.exists(os.environ["FAKE_GH_DONE"])
+    import datetime
     print(json.dumps([{"databaseId": 7, "status": "completed" if done else "in_progress",
                        "conclusion": "success" if done else None, "headSha": sha, "displayTitle": "t",
-                       "workflowName": "ci", "url": "u"}]))
+                       "workflowName": "ci", "url": "u", "event": "workflow_dispatch",
+                       "createdAt": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}]))
     sys.exit(0)
 sys.exit(1)
 """
@@ -362,7 +372,7 @@ def test_sigkill_mid_poll_then_real_restart_resumes_and_never_dispatches_twice(t
     env = {**os.environ, "PATH": f"{bindir}{os.pathsep}{os.environ['PATH']}", "FAKE_GH_LOG": str(log),
            "FAKE_GH_DONE": str(done), "PYTHONDONTWRITEBYTECODE": "1"}
     cmd = [sys.executable, "-m", "tools.automation.ci_watcher_v2", "--workkey", "WK", "--sha", SHA, "--state-dir",
-           str(state_dir), "--window", "60", "--base", "0.4", "--factor", "1", "--max-interval", "0.4",
+           str(state_dir), "--window", "60", "--base", "1", "--factor", "1", "--max-interval", "1",
            "--dispatch-workflow", "ci.yml", "--ref", "main"]
     proc = subprocess.Popen(cmd, cwd=REPO_ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     deadline = time.time() + 30
@@ -425,7 +435,7 @@ def test_next_poll_far_in_the_future_is_clamped_to_max_interval(tmp_path):
     path.write_text(json.dumps(state))
     gh = Gh(DONE)
     result = go(tmp_path, gh, clock=clock, window=300, max_interval=60)
-    assert result["status"] == w.COMPLETED and len(gh.lists) == 1 and max(clock.sleeps) <= 60
+    assert result["status"] == w.COMPLETED and len(gh.lists) == 2 and max(clock.sleeps) <= 60
 
 
 @pytest.mark.parametrize("exc", [subprocess.TimeoutExpired(["gh"], 120), FileNotFoundError("gh")])
@@ -460,7 +470,7 @@ OLD_EXPECTED = {  # (gh_total, run_list) of the unchanged scripts/github_worker_
     "S7_long_window_1800s_run_completes_at_1500s": (305, 302)}
 NEW_EXPECTED = {
     "S1_fresh_dispatch_completes_at_50s": (6, 5), "S2_one_60s_window_run_never_completes": (6, 5),
-    "S3_resume_waiting_state_in_progress": (5, 5), "S4_completed_run_consumer_fails_then_rerun": (1, 1),
+    "S3_resume_waiting_state_in_progress": (5, 5), "S4_completed_run_consumer_fails_then_rerun": (2, 2),
     "S5_already_posted": (0, 0), "S6_dispatching_marker_run_appears_late": (8, 8),
     "S7_long_window_1800s_run_completes_at_1500s": (30, 29)}
 
@@ -473,7 +483,15 @@ def test_call_counts_old_polling_baseline_vs_new_watcher_s1_to_s7():
     for name in OLD_EXPECTED:
         assert new[name]["gh_calls"]["run_list"] <= old[name]["gh_calls"]["run_list"], name
         assert new[name]["gh_total"] <= old[name]["gh_total"], name
-    assert sum(v["gh_total"] for v in new.values()) < sum(v["gh_total"] for v in old.values()) / 4
+    # Review T-2: S4 and S6 do not measure the same thing in old and new (flagged in the JSON); the claim is made
+    # over the comparable scenarios and must also hold WITHOUT the long S7 window.
+    assert {n for n, v in new.items() if v["not_comparable"]} == set(scen.NOT_COMPARABLE) == {n for n, v in old.items() if v["not_comparable"]}
+    assert all(v["not_comparable_reason"] for v in new.values() if v["not_comparable"])
+    summary = scen.summarize(list(old.values()), list(new.values()))
+    assert (summary["comparable"]["old"], summary["comparable"]["new"]) == (348, 47)
+    assert (summary["comparable_without_S7"]["old"], summary["comparable_without_S7"]["new"]) == (43, 17)
+    assert summary["comparable"]["new"] < summary["comparable"]["old"] / 4
+    assert summary["comparable_without_S7"]["new"] < summary["comparable_without_S7"]["old"] / 2
     assert {limit for v in old.values() for limit in v["list_limits"]} == {100}
     assert {limit for v in new.values() for limit in v["list_limits"]} == {20}
     assert new["S1_fresh_dispatch_completes_at_50s"]["final_state"] == "COMPLETED"  # seen at the window edge, +10 s

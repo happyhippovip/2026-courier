@@ -37,6 +37,13 @@ def snapshot(directory):
     return out
 
 
+SIDECAR_SUFFIXES = ("-wal", "-shm", "-journal")
+
+
+def without_sidecars(directory):
+    return sorted(p.name for p in Path(directory).iterdir() if not p.name.endswith(SIDECAR_SUFFIXES))
+
+
 def export(path, *flags):
     out, err = io.StringIO(), io.StringIO()
     code = je.main([str(path), *flags], stdout=out, stderr=err)
@@ -233,13 +240,20 @@ def test_unwritable_out_path_exits_6_after_a_good_read(tmp_path):
 
 # ------------------------------------------------------------ read-only proof
 
-def test_export_changes_nothing_on_an_idle_journal_and_creates_no_sidecars(tmp_path):
+def test_export_leaves_the_database_file_of_an_idle_journal_byte_identical(tmp_path):
+    """Writable medium: SQLite's own mode=ro reader may create EMPTY -wal/-shm beside an idle WAL journal
+    (review EX-3: the alternative, immutable=1, is unsafe beside a starting writer). The database file
+    itself is never touched, and no other file appears."""
     db = make_journal(tmp_path / "courier.db")
-    assert sorted(p.name for p in tmp_path.iterdir()) == ["courier.db"]
-    before = snapshot(tmp_path)
+    before = snapshot(tmp_path)["courier.db"]
     for _ in range(3):
         assert export(db)[0] == 0
-    assert snapshot(tmp_path) == before  # same names, sizes, mtimes (ns) and sha256
+    assert snapshot(tmp_path)["courier.db"] == before  # size, mtime (ns), sha256
+    assert without_sidecars(tmp_path) == ["courier.db"]
+    for sidecar in tmp_path.glob("courier.db-*"):
+        assert sidecar.name in ("courier.db-wal", "courier.db-shm")
+    wal = tmp_path / "courier.db-wal"
+    assert not wal.exists() or wal.stat().st_size == 0
 
 
 def test_export_works_on_a_read_only_directory_and_file(tmp_path):
@@ -258,6 +272,8 @@ def test_export_works_on_a_read_only_directory_and_file(tmp_path):
 
 
 def test_export_beside_a_live_writer_leaves_database_and_wal_untouched_and_adds_no_files(tmp_path):
+    """Contents are compared, not only names (review T-3). The -shm file is SQLite's shared-memory index;
+    a reader legitimately updates it (read marks), so it is the one file that is allowed to change (EX-1)."""
     db = tmp_path / "courier.db"
     writer = Journal(db).open()  # live controller: WAL + SHM exist and hold committed events
     try:
@@ -273,7 +289,7 @@ def test_export_beside_a_live_writer_leaves_database_and_wal_untouched_and_adds_
     assert code == 0 and len(lines_of(text)) == 7  # committed WAL events are included
     assert sorted(after) == names_before, "export must not create or remove files"
     for name in ("courier.db", "courier.db-wal"):
-        assert after[name] == before[name], f"{name} changed"
+        assert after[name] == before[name], f"{name} changed (size, mtime or sha256)"
 
 
 def test_export_does_not_use_the_network(tmp_path, monkeypatch):
@@ -295,9 +311,8 @@ def test_module_imports_no_network_clock_or_model_libraries():
     assert "INSERT" not in source and "UPDATE" not in source and "DELETE" not in source
 
 
-def test_control_a_plain_mode_ro_open_would_have_created_sidecars(tmp_path):
-    """Why the exporter opens idle journals immutable: SQLite's own mode=ro reader
-    creates -wal/-shm beside a WAL database (this is the behaviour being avoided)."""
+def test_control_a_plain_mode_ro_open_creates_sidecars_on_an_idle_wal_journal(tmp_path):
+    """Documents SQLite's own behaviour that the exporter inherits on a writable medium."""
     db = make_journal(tmp_path / "courier.db")
     conn = sqlite3.connect(f"{db.as_uri()}?mode=ro", uri=True)
     conn.execute("SELECT count(*) FROM events").fetchone()
@@ -305,8 +320,20 @@ def test_control_a_plain_mode_ro_open_would_have_created_sidecars(tmp_path):
     assert sorted(p.name for p in tmp_path.iterdir()) == ["courier.db", "courier.db-shm", "courier.db-wal"]
 
 
-def test_database_is_always_opened_with_sqlite_mode_ro(tmp_path):
+def test_database_is_opened_mode_ro_and_immutable_only_on_a_read_only_medium(tmp_path):
     db = make_journal(tmp_path / "courier.db")
-    assert "mode=ro" in je._readonly_uri(db) and "immutable=1" in je._readonly_uri(db)
+    uri = je._readonly_uri(db)
+    assert uri.endswith("?mode=ro") and "immutable" not in uri  # writable directory: snapshot reader
+    os.chmod(tmp_path, 0o555)
+    try:
+        if os.access(tmp_path, os.W_OK):
+            pytest.skip("running with privileges that ignore directory permissions")
+        assert "mode=ro" in je._readonly_uri(db) and "immutable=1" in je._readonly_uri(db)
+    finally:
+        os.chmod(tmp_path, 0o755)
     (tmp_path / "courier.db-wal").write_bytes(b"")
-    assert je._readonly_uri(db).endswith("?mode=ro")
+    os.chmod(tmp_path, 0o555)
+    try:
+        assert je._readonly_uri(db).endswith("?mode=ro")  # sidecars present: never immutable
+    finally:
+        os.chmod(tmp_path, 0o755)
