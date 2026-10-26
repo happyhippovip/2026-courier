@@ -208,6 +208,33 @@ def test_collect_artifacts_hashes_files(tmp_path):
     assert all(isinstance(a, ArtifactRef) for a in found)
 
 
+def test_spawn_refuses_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "secret.txt").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "run"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        H._spawn_contained([sys.executable, "-c", "pass"], str(link), "job")
+    assert not (outside / "job.out").exists()
+    assert (outside / "secret.txt").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real"
+    real.mkdir()
+    planted = tmp_path / "secret.out"
+    planted.write_bytes(b"SECRET")
+    (real / "job.out").symlink_to(planted)
+    with pytest.raises(ContainmentError, match="symlink"):
+        H._spawn_contained([sys.executable, "-c", "pass"], str(real), "job")
+    assert planted.read_bytes() == b"SECRET"
+
+    run = tmp_path / "plain"
+    run.mkdir()
+    contained = H._spawn_contained([sys.executable, "-c", "print('ok')"], str(run), "job")
+    assert contained.proc.wait(timeout=10) == 0
+    assert (run / "job.out").read_bytes().strip() == b"ok"
+
+
 def test_collect_artifacts_refuses_a_symlink(tmp_path):
     root = tmp_path / "arts"
     root.mkdir()
