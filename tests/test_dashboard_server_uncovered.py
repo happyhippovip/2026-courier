@@ -204,3 +204,216 @@ def test_main_startup():
         mock_tcp.return_value.__enter__.return_value = mock_instance
         d_server.main()
         mock_instance.serve_forever.assert_called_once()
+
+
+def test_status_refuses_a_symlink(mock_dirs):
+    outside = mock_dirs["tmp_path"] / "outside"
+    outside.mkdir()
+    (outside / "central_motto.json").write_text(json.dumps({"motto": "SECRET"}), encoding="utf-8")
+    events = mock_dirs["events_dir"]
+    (events / "runtime-state").mkdir()
+    (events / "runtime-state" / "central_motto.json").symlink_to(outside / "central_motto.json")
+    payload = d_server.get_status_payload()
+    assert "SECRET" not in json.dumps(payload)
+    assert payload["central_motto"].startswith("WIR ")
+
+    (events / "runtime-state" / "central_motto.json").unlink()
+    (events / "runtime-state" / "central_motto.json").write_text(
+        json.dumps({"motto": "LIVE MOTTO"}), encoding="utf-8")
+    assert d_server.get_status_payload()["central_motto"] == "LIVE MOTTO"
+
+    real_events = mock_dirs["tmp_path"] / "real-events"
+    (real_events / "revenue-opportunities").mkdir(parents=True)
+    (real_events / "revenue-opportunities" / "canonical_revenue_ledger.json").write_text(
+        json.dumps({"opportunities": {"A": {"title": "SECRET"}}}), encoding="utf-8")
+    linked = mock_dirs["tmp_path"] / "linked-events"
+    linked.symlink_to(real_events, target_is_directory=True)
+    with patch("dashboard.server.EVENTS_DIR", linked):
+        offers = d_server.get_commercial_offers_payload()
+    assert offers["offers"] == []
+    assert "SECRET" not in json.dumps(offers)
+
+
+def test_ledger_value_refuses_a_dir_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    processed = outside / "mid" / "events" / "processed"
+    processed.mkdir(parents=True)
+    secret = processed / "result-secret.json"
+    secret.write_text('{"note":"SECRET"}', encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with patch("dashboard.server.EVENTS_DIR", link / "mid" / "events"):
+        payload = d_server.get_ledger_value_payload()
+    assert payload["metrics"]["evidence_files_available"]["value"] == 0
+    assert payload["evidence"] == []
+    assert "SECRET" not in json.dumps(payload)
+    assert secret.read_text(encoding="utf-8") == '{"note":"SECRET"}'
+
+    real = tmp_path / "real-events"
+    (real / "processed").mkdir(parents=True)
+    (real / "processed" / "result-ok.json").write_text("{}", encoding="utf-8")
+    with patch("dashboard.server.EVENTS_DIR", real):
+        live = d_server.get_ledger_value_payload()
+    assert live["metrics"]["evidence_files_available"]["value"] == 1
+    assert "SECRET" not in json.dumps(live)
+
+
+def test_status_ignores_a_latch_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    events = outside / "mid" / "events"
+    events.mkdir(parents=True)
+    (events / "EMERGENCY_LATCH").write_text("EMERGENCY_MODE=ON\nSECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with patch("dashboard.server.EVENTS_DIR", link / "mid" / "events"):
+        payload = d_server.get_status_payload()
+    assert payload["status"] == "ONLINE"
+    assert "SECRET" not in json.dumps(payload)
+
+    real = tmp_path / "real-status"
+    real.mkdir()
+    (real / "EMERGENCY_LATCH").write_text("EMERGENCY_MODE=ON\n", encoding="utf-8")
+    with patch("dashboard.server.EVENTS_DIR", real):
+        live = d_server.get_status_payload()
+    assert live["status"] == "EMERGENCY"
+    assert "SECRET" not in json.dumps(live)
+
+
+def test_plain_text_refuses_a_file_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    nested = outside / "a" / "b"
+    nested.mkdir(parents=True)
+    secret = nested / "note.txt"
+    secret.write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    assert d_server._plain_text(link / "a" / "b" / "note.txt", link / "a" / "b") is None
+    assert d_server._plain_text(link / "a" / "note.txt", tmp_path) is None
+    assert secret.read_text(encoding="utf-8") == "SECRET"
+
+    real_dir = tmp_path / "real"
+    real_dir.mkdir()
+    real = real_dir / "note.txt"
+    real.write_text("HELLO", encoding="utf-8")
+    assert d_server._plain_text(real, real_dir) == "HELLO"
+
+
+def test_emergency_latch_refuses_a_symlink(mock_dirs):
+    outside = mock_dirs["tmp_path"] / "outside-latch"
+    outside.write_text("SECRET", encoding="utf-8")
+    events = mock_dirs["events_dir"]
+    (events / "EMERGENCY_LATCH").symlink_to(outside)
+    assert d_server.latch_emergency() is False
+    assert outside.read_text(encoding="utf-8") == "SECRET"
+    assert d_server.get_status_payload()["status"] == "ONLINE"
+
+    (events / "EMERGENCY_LATCH").unlink()
+    real = mock_dirs["tmp_path"] / "real-events"
+    real.mkdir()
+    linked = mock_dirs["tmp_path"] / "linked-latch"
+    linked.symlink_to(real, target_is_directory=True)
+    with patch("dashboard.server.EVENTS_DIR", linked):
+        assert d_server.latch_emergency() is False
+    assert not (real / "EMERGENCY_LATCH").exists()
+
+    assert d_server.latch_emergency() is True
+    assert (events / "EMERGENCY_LATCH").read_text(encoding="utf-8") == "EMERGENCY_MODE=ON\n"
+    assert d_server.get_status_payload()["status"] == "EMERGENCY"
+
+
+def test_emergency_latch_refuses_a_dir_two_levels_under_a_symlink(mock_dirs):
+    outside = mock_dirs["tmp_path"] / "outside"
+    (outside / "mid").mkdir(parents=True)
+    (outside / "mid" / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = mock_dirs["tmp_path"] / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with patch("dashboard.server.EVENTS_DIR", link / "mid" / "events"):
+        assert d_server.latch_emergency() is False
+    assert not (outside / "mid" / "events").exists()
+    assert (outside / "mid" / "SECRET").read_text(encoding="utf-8") == "SECRET"
+
+    real = mock_dirs["tmp_path"] / "real-latch"
+    real.mkdir()
+    with patch("dashboard.server.EVENTS_DIR", real):
+        assert d_server.latch_emergency() is True
+    assert (real / "EMERGENCY_LATCH").read_text(encoding="utf-8") == "EMERGENCY_MODE=ON\n"
+
+
+def test_static_get_refuses_a_symlink(tmp_path):
+    import socketserver
+    import threading
+    import urllib.error
+    import urllib.request
+    from functools import partial
+
+    outside = tmp_path / "secret.html"
+    outside.write_text("SECRET", encoding="utf-8")
+    root = tmp_path / "dash"
+    root.mkdir()
+    (root / "page.html").symlink_to(outside)
+    (root / "ok.html").write_text("LIVE", encoding="utf-8")
+    handler = partial(d_server.CommandCenterHandler, directory=str(root))
+    httpd = socketserver.TCPServer(("127.0.0.1", 0), handler)
+    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    thread.start()
+    try:
+        port = httpd.server_address[1]
+        try:
+            with urllib.request.urlopen(f"http://127.0.0.1:{port}/page.html") as resp:
+                body, code = resp.read(), resp.status
+        except urllib.error.HTTPError as exc:
+            body, code = exc.read(), exc.code
+        assert code == 404
+        assert b"SECRET" not in body
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/ok.html") as resp:
+            assert resp.read() == b"LIVE"
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
+
+
+def test_static_get_refuses_a_dir_two_levels_under_a_symlink(tmp_path):
+    import socketserver
+    import threading
+    import urllib.error
+    import urllib.request
+    from functools import partial
+
+    outside = tmp_path / "outside"
+    dash = outside / "mid" / "dash"
+    dash.mkdir(parents=True)
+    (dash / "page.html").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    handler = partial(d_server.CommandCenterHandler, directory=str(link / "mid" / "dash"))
+    httpd = socketserver.TCPServer(("127.0.0.1", 0), handler)
+    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    thread.start()
+    try:
+        port = httpd.server_address[1]
+        try:
+            with urllib.request.urlopen(f"http://127.0.0.1:{port}/page.html") as resp:
+                body, code = resp.read(), resp.status
+        except urllib.error.HTTPError as exc:
+            body, code = exc.read(), exc.code
+        assert code == 404
+        assert b"SECRET" not in body
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
+    assert (dash / "page.html").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real-dash"
+    real.mkdir()
+    (real / "ok.html").write_text("LIVE", encoding="utf-8")
+    live = partial(d_server.CommandCenterHandler, directory=str(real))
+    live_httpd = socketserver.TCPServer(("127.0.0.1", 0), live)
+    live_thread = threading.Thread(target=live_httpd.serve_forever, daemon=True)
+    live_thread.start()
+    try:
+        port = live_httpd.server_address[1]
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/ok.html") as resp:
+            assert resp.read() == b"LIVE"
+    finally:
+        live_httpd.shutdown()
+        live_httpd.server_close()
