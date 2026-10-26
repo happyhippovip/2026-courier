@@ -139,7 +139,10 @@ def list_runs(sha: str, run_cmd: Callable, repo: Optional[str] = None) -> list[d
     command = ["gh", "run", "list", "--commit", sha, "--limit", str(LIST_LIMIT), "--json", FIELDS]
     if repo:
         command += ["--repo", repo]
-    code, out, err = run_cmd(command)
+    try:
+        code, out, err = run_cmd(command)
+    except (subprocess.TimeoutExpired, OSError) as exc:  # a read-only query: safe to count as a failed poll
+        raise GhQueryError(f"gh run list could not run: {type(exc).__name__}: {str(exc)[:200]}") from exc
     if code != 0:
         text = (err or out or "").strip()[:300]
         low = text.lower()

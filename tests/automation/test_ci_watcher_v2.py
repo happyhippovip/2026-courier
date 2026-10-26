@@ -428,6 +428,16 @@ def test_next_poll_far_in_the_future_is_clamped_to_max_interval(tmp_path):
     assert result["status"] == w.COMPLETED and len(gh.lists) == 1 and max(clock.sleeps) <= 60
 
 
+@pytest.mark.parametrize("exc", [subprocess.TimeoutExpired(["gh"], 120), FileNotFoundError("gh")])
+def test_query_timeout_or_missing_gh_is_a_counted_failed_poll_not_a_traceback(tmp_path, exc):
+    """Review finding W8 (list_runs): used to escape as a raw exception."""
+    def broken(command):
+        raise exc
+
+    result = go(tmp_path, broken, window=1)
+    assert result["status"] == w.WAITING and result["attempts"] == 1 and "could not run" in result["last_error"]
+
+
 def test_cli_rejects_negative_or_nonsense_numbers(tmp_path):
     base = ["--workkey", "WK", "--sha", SHA, "--state-dir", str(tmp_path)]
     for bad in (["--window", "-1"], ["--base", "-5"], ["--factor", "0.5"], ["--max-interval", "-1"], ["--max-attempts", "-3"]):
