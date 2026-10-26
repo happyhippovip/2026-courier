@@ -15,6 +15,7 @@ import argparse
 import json
 import os
 import time
+from pathlib import Path
 
 from courier_runtime.continuity import HEALTH_TICK_S
 from courier_runtime.provider_events import drive, read_new_lines
@@ -29,11 +30,16 @@ def _file_size(path):
         return None
 
 
+def _refuse_link(path) -> None:
+    raw = Path(path)
+    if raw.is_symlink() or raw.parent.is_symlink():
+        raise OSError(f"{raw}: refusing to follow a symlink")
+
+
 def emit_signal(signal_path, line):
     """Provider lanes append one protocol line (see provider_events). Atomic
     append + fsync; unknown lines stay fail-closed downstream (IGNORED)."""
-    from pathlib import Path
-
+    _refuse_link(signal_path)
     p = Path(signal_path)
     p.parent.mkdir(parents=True, exist_ok=True)
     with open(p, "a", encoding="utf-8") as f:
@@ -102,6 +108,7 @@ def run_once(kirby, slot, signal_path, state, on_wake_ready=None, engine=None):
 
 def _tail_triple(notices_path):
     """Last notice (session_id, workkey, token) in the file, or None."""
+    _refuse_link(notices_path)
     try:
         with open(notices_path, "rb") as handle:
             handle.seek(0, os.SEEK_END)
@@ -147,7 +154,9 @@ def _notice(kirby, slot, state):
     state.setdefault("notified", {})[slot] = triple
     record = {"at": kirby.clock(), "slot": slot, "session_id": session.session_id,
               "workkey": session.workkey, "token": session.token}
-    with open(kirby.path.parent / NOTICES, "a", encoding="utf-8") as f:
+    notices_path = kirby.path.parent / NOTICES
+    _refuse_link(notices_path)
+    with open(notices_path, "a", encoding="utf-8") as f:
         f.write(json.dumps(record, sort_keys=True) + "\n")
     return [record]
 

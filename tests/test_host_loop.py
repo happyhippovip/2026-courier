@@ -7,7 +7,34 @@ ever opens a window or spawns a process (world.started only grows when a
 rotation/recovery legitimately starts exactly one successor).
 """
 from courier_runtime.continuity import DONE, WAKE_PENDING, Kirby
-from courier_runtime.host_loop import drain_pending, emit_signal, run_once
+from courier_runtime.host_loop import drain_pending, emit_signal, run_once, _tail_triple
+
+
+def test_emit_signal_refuses_a_symlink(tmp_path):
+    outside = tmp_path / "outside.txt"
+    outside.write_text("KEEP\n", encoding="utf-8")
+    link = tmp_path / "signals.txt"
+    link.symlink_to(outside)
+    try:
+        emit_signal(link, "IDLE")
+    except OSError as exc:
+        assert "symlink" in str(exc)
+    else:
+        raise AssertionError("appended through a symlink")
+    assert outside.read_text(encoding="utf-8") == "KEEP\n"
+
+    planted = tmp_path / "planted"
+    planted.mkdir()
+    (planted / "wakeups.jsonl").write_text('{"stolen":true}\n', encoding="utf-8")
+    home = tmp_path / "home"
+    home.symlink_to(planted, target_is_directory=True)
+    try:
+        _tail_triple(home / "wakeups.jsonl")
+    except OSError as exc:
+        assert "symlink" in str(exc)
+    else:
+        raise AssertionError("read a notice through a symlink")
+    assert (planted / "wakeups.jsonl").read_text(encoding="utf-8") == '{"stolen":true}\n'
 
 
 class Clock:
