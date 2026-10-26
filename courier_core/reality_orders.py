@@ -630,7 +630,7 @@ def courier_state_dir() -> Path:
 
 def _refuse_directory_symlink(path: Path) -> None:
     """An order-book directory, or the directory that would contain it, is not a symlink."""
-    if path.is_symlink() or path.parent.is_symlink():
+    if path.is_symlink() or path.parent.is_symlink() or path.parent.parent.is_symlink():
         raise OrderError("data dir must not be a symlink")
 
 

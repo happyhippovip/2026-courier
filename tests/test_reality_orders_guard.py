@@ -123,6 +123,33 @@ def test_resolve_orders_dir_refuses_a_symlinked_home(tmp_path, monkeypatch):
     assert list(outside.iterdir()) == []
 
 
+def test_order_book_refuses_a_directory_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    mid = link / "mid"
+    mid.mkdir()
+    orders = mid / "orders"
+    try:
+        book = OrderBook(orders)
+        book.create_order(ORDER, REPO, _contact())
+    except OrderError as exc:
+        assert "symlink" in str(exc)
+    else:
+        raise AssertionError(
+            f"wrote through a nested symlink: {sorted(path.name for path in (outside / 'mid').iterdir())}"
+        )
+    assert sorted(path.name for path in outside.iterdir()) == ["mid"]
+    assert not (outside / "mid" / "orders").exists()
+    with pytest.raises(OrderError, match="symlink"):
+        resolve_orders_dir(str(orders))
+    real = OrderBook(tmp_path / "real")
+    created = real.create_order(ORDER, REPO, _contact())
+    assert created["status"] == NEW
+    assert (tmp_path / "real" / "orders.json").is_file()
+
+
 def test_order_book_refuses_a_symlinked_directory(tmp_path):
     outside = tmp_path / "outside"
     outside.mkdir()
