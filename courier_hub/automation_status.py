@@ -45,7 +45,10 @@ class _Bad(Exception):
 def automation_card(home, now: datetime) -> dict:
     """One customer card. ``now`` may be naive; a naive value is read as UTC."""
     moment = now if now.tzinfo is not None else now.replace(tzinfo=timezone.utc)
-    path = Path(home) / STATE_NAME
+    root = Path(home)
+    path = root / STATE_NAME
+    if root.is_symlink() or path.is_symlink() or path.parent.is_symlink():
+        return _attention("UNREADABLE", _UNREADABLE, age=None)
     if not path.is_file():
         if path.exists():
             return _attention("UNREADABLE", _UNREADABLE, age=None)

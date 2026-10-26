@@ -59,6 +59,30 @@ def _assert_public(blob, home):
     assert "BLOCKED" not in text
 
 
+def test_a_symlinked_record_is_not_read(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    planted = outside / "ledger_bridge_state.json"
+    planted.write_text(json.dumps({"missions": {}, "secret": SECRET}), encoding="utf-8")
+    home = tmp_path / "home"
+    home.symlink_to(outside, target_is_directory=True)
+    card = automation_card(home, T0)
+    _assert_public(card, tmp_path)
+    assert card["state"] == "ATTENTION"
+    assert card["reason_code"] == "UNREADABLE"
+
+    real = tmp_path / "real"
+    real.mkdir()
+    target = tmp_path / "secret-state.json"
+    target.write_text(json.dumps({"missions": {}, "note": SECRET}), encoding="utf-8")
+    (real / "ledger_bridge_state.json").symlink_to(target)
+    card = automation_card(real, T0)
+    _assert_public(card, tmp_path)
+    assert card["state"] == "ATTENTION"
+    assert card["reason_code"] == "UNREADABLE"
+    assert SECRET in target.read_text(encoding="utf-8")
+
+
 def test_missing_file_is_not_configured(tmp_path):
     card = automation_card(tmp_path, T0)
     _assert_public(card, tmp_path)
