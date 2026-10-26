@@ -396,6 +396,16 @@ def test_legacy_derives_result_as_done_and_posted_as_running(tmp_path):
     assert claimed["in_flight"] == 1
 
 
+def test_legacy_placeholder_stays_running_and_padding_is_still_done(tmp_path):
+    for token in ("none", "NONE", " none ", " "):
+        _write(tmp_path, {"missions": {"A": _mission(accepted_result_id=token)}}, age_seconds=12)
+        card = automation_card(tmp_path, T0)
+        assert card["state"] == "RUNNING", token
+        assert card["in_flight"] == 1
+    _write(tmp_path, {"missions": {"A": _mission(accepted_result_id=" result-a ")}}, age_seconds=12)
+    assert automation_card(tmp_path, T0)["state"] == "IDLE"
+
+
 def test_updated_at_ages_posted_work_and_a_future_time_is_attention(tmp_path):
     _write(
         tmp_path,

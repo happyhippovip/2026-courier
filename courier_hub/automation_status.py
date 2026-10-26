@@ -5,8 +5,9 @@ by the ledger-to-V1 bridge. A mission may carry ``status`` (``POSTED``,
 ``FINAL_DONE``, ``BLOCKED``, ``ERROR``), ``reason`` (null or one of
 ``CONTROLLER_BLOCKED``, ``FAILED``, ``CANCELLED``, ``GOAL_PAIR``,
 ``GOAL_TOKEN``), and ``updated_at`` (ISO-8601 UTC ending in Z). Files written
-before those fields existed are derived: a result is ``FINAL_DONE``, and a
-mission with no result is ``POSTED``. This module does not read the
+before those fields existed are derived: a real accepted result is
+``FINAL_DONE``. A blank id or the placeholder ``none`` is not a result, so
+that mission stays ``POSTED``. This module does not read the
 coordination ledger, the controller, or a token.
 
 Any ``ERROR`` is attention. Otherwise any ``BLOCKED`` is blocked. Otherwise
@@ -154,9 +155,10 @@ def _status_of(mapping):
 
 
 def _derive_status(mapping):
-    """A result is finished. No result stays posted, including a claim not yet posted."""
+    """A real result is finished. A placeholder or a blank id stays posted."""
     result = mapping.get("accepted_result_id")
-    if isinstance(result, str) and result:
+    token = result.strip() if isinstance(result, str) else ""
+    if token and token.lower() != "none":
         return "FINAL_DONE", None
     return "POSTED", None
 
