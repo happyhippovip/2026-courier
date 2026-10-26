@@ -835,14 +835,24 @@ def _outbox_dir(home: str) -> Path:
     return Path(home) / "outbox"
 
 
-def outbox_write(home: str, payload: dict) -> Path:
+def _refuse_outbox_link(home: str) -> Path:
+    root = Path(home)
     outbox = _outbox_dir(home)
+    if root.is_symlink() or outbox.is_symlink():
+        raise ContainmentError(f"{home}: refusing to follow a symlink")
+    return outbox
+
+
+def outbox_write(home: str, payload: dict) -> Path:
+    outbox = _refuse_outbox_link(home)
     outbox.mkdir(parents=True, exist_ok=True)
     existing = list(outbox.glob("*.json"))
     if len(existing) >= OUTBOX_CAP and not any(
             p.name == f"{payload['dispatch_id']}.json" for p in existing):
         raise OutboxFull(f"outbox holds {len(existing)} results; controller must drain it")
     path = outbox / f"{payload['dispatch_id']}.json"
+    if path.is_symlink():
+        raise ContainmentError(f"{path}: refusing to follow a symlink")
     fd, tmp = tempfile.mkstemp(dir=str(outbox), prefix=".outbox-", suffix=".tmp")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as fh:
@@ -860,11 +870,13 @@ def outbox_write(home: str, payload: dict) -> Path:
 
 
 def outbox_read_all(home: str) -> list:
-    outbox = _outbox_dir(home)
+    outbox = _refuse_outbox_link(home)
     if not outbox.is_dir():
         return []
     payloads = []
     for path in sorted(outbox.glob("*.json")):
+        if path.is_symlink():
+            raise ContainmentError(f"{path}: refusing to follow a symlink")
         try:
             payloads.append((path, json.loads(path.read_text(encoding="utf-8"))))
         except (OSError, ValueError):

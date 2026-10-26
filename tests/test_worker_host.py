@@ -344,6 +344,36 @@ def test_home_lock_refuses_a_symlink(tmp_path):
 # -- outbox --------------------------------------------------------------------
 
 
+def test_outbox_refuses_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    home = tmp_path / "home"
+    home.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        outbox_write(str(home), {"dispatch_id": "d1", "result": 1})
+    assert not (outside / "outbox").exists()
+
+    real = tmp_path / "real"
+    real.mkdir()
+    linked = tmp_path / "linked-out"
+    linked.mkdir()
+    (real / "outbox").symlink_to(linked, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        outbox_write(str(real), {"dispatch_id": "d1", "result": 1})
+    assert list(linked.iterdir()) == []
+
+    plain = tmp_path / "plain"
+    outbox_write(str(plain), {"dispatch_id": "d1", "result": 1})
+    planted = tmp_path / "secret.json"
+    planted.write_text('{"dispatch_id":"d1","stolen":true}', encoding="utf-8")
+    item = plain / "outbox" / "d1.json"
+    item.unlink()
+    item.symlink_to(planted)
+    with pytest.raises(ContainmentError, match="symlink"):
+        outbox_read_all(str(plain))
+    assert "stolen" in planted.read_text(encoding="utf-8")
+
+
 def test_outbox_roundtrip_and_remove(tmp_path):
     home = str(tmp_path / "home")
     payload = {"dispatch_id": "d1", "result": 1}
