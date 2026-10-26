@@ -383,6 +383,22 @@ def test_items_under_a_symlinked_home_are_not_opened(tmp_path):
     assert caught.value.code == "UNREADABLE"
 
 
+def test_items_two_levels_under_a_symlink_are_not_opened(tmp_path):
+    outside = tmp_path / "outside"
+    _write_items(outside / "mid" / "items", [_item("SECRET", ["courier_core/a.py"])])
+    link = tmp_path / "home"
+    link.symlink_to(outside, target_is_directory=True)
+    queue = WorkQueue(link / "mid" / "items", tmp_path / "ledger.jsonl")
+    with pytest.raises(WorkQueueError) as caught:
+        queue.items(now=NOW)
+    assert caught.value.code == "UNREADABLE"
+    assert "SECRET" in (outside / "mid" / "items" / "SECRET.json").read_text(encoding="utf-8")
+
+    real = tmp_path / "real-items"
+    _write_items(real, [_item("LIVE", ["courier_core/a.py"])])
+    assert [item["id"] for item in WorkQueue(real, tmp_path / "live-two.jsonl").items(now=NOW)] == ["LIVE"]
+
+
 def test_ledger_under_symlinked_parent_is_not_opened(tmp_path):
     outside = tmp_path / "outside"
     outside.mkdir()
