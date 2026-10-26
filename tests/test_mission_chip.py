@@ -105,6 +105,33 @@ def test_chip_verifier_refuses_a_symlinked_artifact(tmp_path):
     assert outside.read_bytes() == b"SECRET"
 
 
+def test_chip_verifier_refuses_an_artifact_two_levels_under_a_symlink(tmp_path):
+    from courier_hub.mission_chip import EXPECTED_GOLD_BYTES, EXPECTED_GOLD_SHA256, _chip_verifier
+    from types import SimpleNamespace
+
+    outside = tmp_path / "outside"
+    linked_home = outside / "mid" / "home"
+    linked_home.mkdir(parents=True)
+    secret = linked_home / "mission_result.txt"
+    secret.write_bytes(b"SECRET")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    verifier = _chip_verifier("synthetic")
+    result = SimpleNamespace(payload={
+        "artifacts": [{"path": "mission_result.txt", "sha256": EXPECTED_GOLD_SHA256, "size_bytes": 34}]
+    })
+    verdict = verifier({"task_id": "t-two"}, result, link / "mid" / "home")
+    assert verdict.accepted is False
+    assert "Verknuepfung" in verdict.reason
+    assert secret.read_bytes() == b"SECRET"
+
+    home = tmp_path / "real"
+    home.mkdir()
+    (home / "mission_result.txt").write_bytes(EXPECTED_GOLD_BYTES)
+    accepted = verifier({"task_id": "t-ok"}, result, home)
+    assert accepted.accepted is True
+
+
 def test_chip_verifier_rejects_tampered_hash(tmp_path):
     from courier_hub.mission_chip import _chip_verifier
     from types import SimpleNamespace
