@@ -34,6 +34,30 @@ def test_no_free_commands_ever(tmp_path):
     assert why_refused({"action": "host_health", "argv": ["rm", "-rf", "/"]}, g) == "jobs may not carry commands"
 
 
+def test_local_grants_refuse_a_symlink(tmp_path):
+    outside = tmp_path / "outside.json"
+    outside.write_text(json.dumps({
+        "max_access": "control",
+        "allowed_actions": ["reclaim_idle_surfaces"],
+    }), encoding="utf-8")
+    home = tmp_path / "home"
+    home.mkdir()
+    (home / "home_grants.json").symlink_to(outside)
+    linked_file = LocalGrants.load(home / "home_grants.json")
+    assert linked_file == LocalGrants()
+    assert "control" in outside.read_text(encoding="utf-8")
+
+    (home / "home_grants.json").unlink()
+    (home / "home_grants.json").write_text(json.dumps({
+        "max_access": "control",
+        "allowed_actions": ["reclaim_idle_surfaces"],
+    }), encoding="utf-8")
+    linked_home = tmp_path / "linked-home"
+    linked_home.symlink_to(home, target_is_directory=True)
+    assert LocalGrants.load(linked_home / "home_grants.json").max_access == "read"
+    assert LocalGrants.load(home / "home_grants.json").max_access == "control"
+
+
 def test_local_grants_allow_more_and_pause_stops_all(tmp_path):
     gpath = tmp_path / "home_grants.json"
     gpath.write_text(json.dumps({"max_access": "write", "allowed_actions": ["host_health", "git_pull_repo"],
