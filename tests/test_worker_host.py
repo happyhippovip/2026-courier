@@ -250,6 +250,36 @@ def test_tail_respects_limit(tmp_path):
     assert H._tail(str(path), limit=4) == "6789"
 
 
+def test_write_crash_report_refuses_a_symlink(tmp_path):
+    spec = _spec(tmp_path)
+    err = tmp_path / "s.err"
+    err.write_bytes(b"boom")
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    art = tmp_path / "arts"
+    art.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        write_crash_report(str(art), spec, Outcome.CRASH, 3, 1.0, str(err))
+    assert not (outside / "crash.json").exists()
+
+    real = tmp_path / "real-arts"
+    real.mkdir()
+    planted = tmp_path / "secret.txt"
+    planted.write_bytes(b"secret")
+    (real / "crash.json").symlink_to(planted)
+    with pytest.raises(ContainmentError, match="symlink"):
+        write_crash_report(str(real), spec, Outcome.CRASH, 3, 1.0, str(err))
+    assert planted.read_bytes() == b"secret"
+
+    plain = tmp_path / "plain-arts"
+    plain.mkdir()
+    linked_err = tmp_path / "linked.err"
+    linked_err.symlink_to(planted)
+    with pytest.raises(ContainmentError, match="symlink"):
+        write_crash_report(str(plain), spec, Outcome.CRASH, 3, 1.0, str(linked_err))
+    assert not (plain / "crash.json").exists()
+
+
 def test_write_crash_report_shape(tmp_path):
     spec = _spec(tmp_path)
     art = tmp_path / "arts"

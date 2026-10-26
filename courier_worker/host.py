@@ -814,12 +814,20 @@ def _tail(path: str, limit: int = MAX_STDIO_TAIL) -> str:
 def write_crash_report(artifact_dir: str, spec: ExecutionSpec, outcome: str,
                        returncode: Optional[int], duration_s: float, stderr_path: str) -> str:
     """Persist the abnormal end as evidence; the report itself is an artifact."""
+    root = Path(artifact_dir)
+    err = Path(stderr_path)
+    if root.is_symlink() or root.parent.is_symlink():
+        raise ContainmentError(f"{artifact_dir}: refusing to follow a symlink")
+    if err.is_symlink() or err.parent.is_symlink():
+        raise ContainmentError(f"{stderr_path}: refusing to follow a symlink")
     os.makedirs(artifact_dir, exist_ok=True)
     report = {"dispatch_id": spec.dispatch_id, "task_id": spec.task_id, "attempt": spec.attempt,
               "worker_id": spec.worker_id, "outcome": outcome, "returncode": returncode,
               "duration_s": round(duration_s, 3),
               "stderr_tail": _tail(stderr_path)[-8000:]}
     path = os.path.join(artifact_dir, CRASH_REPORT_NAME)
+    if os.path.islink(path):
+        raise ContainmentError(f"{path}: refusing to follow a symlink")
     fd, tmp = tempfile.mkstemp(dir=artifact_dir, prefix=".crash-", suffix=".tmp")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as fh:
