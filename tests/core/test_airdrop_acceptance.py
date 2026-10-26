@@ -318,6 +318,26 @@ def test_symlink_is_not_copied_into_the_library(tmp_path):
     assert seen[0] == "raised" and "symlink" in seen[1].lower() and names == [] and outside.read_text(encoding="utf-8") == "SECRET", seen
 
 
+def test_ledger_sidecar_symlink_is_not_opened(tmp_path):
+    db = tmp_path / "airdrop.db"
+    db.write_bytes(b"")
+    planted = tmp_path / "elsewhere.wal"
+    planted.write_bytes(b"secret")
+    wal = tmp_path / "airdrop.db-wal"
+    wal.symlink_to(planted)
+    incoming = tmp_path / "incoming"
+    incoming.mkdir()
+    try:
+        AirDropOrganizer(incoming, tmp_path / "library", tmp_path / "quarantine", db)
+    except ValueError as exc:
+        seen = ("raised", str(exc))
+    else:
+        seen = ("opened",)
+    assert seen[0] == "raised" and "symlink" in seen[1].lower(), seen
+    assert planted.read_bytes() == b"secret"
+    assert db.read_bytes() == b""
+
+
 def test_library_and_ledger_symlinks_are_not_destinations(tmp_path):
     outside_lib = tmp_path / "outside-lib"
     outside_lib.mkdir()
