@@ -521,7 +521,7 @@ def _prune_run_stdio(run_dir: str) -> int:
     Never raises: pruning must not kill a run.
     """
     root = Path(run_dir)
-    if root.is_symlink() or root.parent.is_symlink():
+    if root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink():
         return 0
     try:
         entries = os.listdir(run_dir)

@@ -227,6 +227,26 @@ def test_prune_stdio_refuses_a_symlinked_run_dir(tmp_path):
     assert len(list(real.glob("task-*.out"))) == 8
 
 
+def test_prune_stdio_refuses_a_dir_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    run = outside / "mid" / "run"
+    run.mkdir(parents=True)
+    for index in range(9):
+        (run / f"task-{index}.out").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    assert H._prune_run_stdio(str(link / "mid" / "run")) == 0
+    assert len(list(run.glob("task-*.out"))) == 9
+    assert (run / "task-0.out").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real"
+    real.mkdir()
+    for index in range(9):
+        (real / f"task-{index}.out").write_text("log", encoding="utf-8")
+    assert H._prune_run_stdio(str(real)) == 1
+    assert len(list(real.glob("task-*.out"))) == 8
+
+
 def test_spawn_refuses_a_symlink(tmp_path):
     outside = tmp_path / "outside"
     outside.mkdir()
