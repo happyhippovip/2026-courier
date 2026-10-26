@@ -631,7 +631,7 @@ def _apply(items: dict[str, dict], event: dict) -> None:
 
 
 def _read_json(path: Path, cap: int):
-    if path.is_symlink() or path.parent.is_symlink() or not path.is_file():
+    if path.is_symlink() or path.parent.is_symlink() or path.parent.parent.is_symlink() or not path.is_file():
         raise WorkQueueError("UNREADABLE")
     try:
         raw = path.read_bytes()
