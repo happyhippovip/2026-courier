@@ -51,6 +51,37 @@ def test_read_muse_wall_refuses_a_symlink(tmp_path):
     assert live["stations"][0]["state"]["value"] == "RUNNING"
 
 
+def test_read_muse_wall_refuses_a_wall_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    wall = outside / "mid" / "wall"
+    (wall / "01").mkdir(parents=True)
+    secret = {"slot_id": "SECRET", "state": "SECRET", "process": 1, "updated_at": datetime.now(timezone.utc).timestamp()}
+    secret_path = wall / "01" / "state.json"
+    secret_path.write_text(json.dumps(secret), encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    root = tmp_path / "repo"
+    root.mkdir()
+    merged = {"available": False}
+    block = read_muse_wall(root, link / "mid" / "wall", "wall", "2026-10-26T04:47:00Z", merged)
+    assert block["available"] is False
+    assert block["stations"] == []
+    assert "SECRET" not in json.dumps(block)
+    assert "SECRET" in secret_path.read_text(encoding="utf-8")
+
+    real = tmp_path / "real-wall"
+    (real / "01").mkdir(parents=True)
+    now = datetime.now(timezone.utc)
+    (real / "01" / "state.json").write_text(
+        json.dumps({"slot_id": "LIVE-01", "state": "RUNNING", "process": 1, "updated_at": now.timestamp()}),
+        encoding="utf-8",
+    )
+    live = read_muse_wall(root, real, "wall", now.strftime("%Y-%m-%dT%H:%M:%SZ"), merged)
+    assert live["stations"][0]["id"] == "LIVE-01"
+    assert live["stations"][0]["state"]["value"] == "RUNNING"
+    assert "SECRET" not in json.dumps(live)
+
+
 def test_read_postfach_refuses_a_symlink(tmp_path, monkeypatch):
     monkeypatch.delenv("COURIER_POSTFACH_DIR", raising=False)
     outside = tmp_path / "secret.json"

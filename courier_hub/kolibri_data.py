@@ -274,13 +274,13 @@ def _live_heartbeat(data: dict, observed_at: str) -> bool:
 
 
 def read_muse_wall(root: Path, wall: Optional[Path], label: str, observed_at: str, merged: dict) -> dict:
-    if wall is None or wall.is_symlink() or wall.parent.is_symlink() or not wall.is_dir():
+    if wall is None or wall.is_symlink() or wall.parent.is_symlink() or wall.parent.parent.is_symlink() or not wall.is_dir():
         block = _unavailable(label, observed_at)
         block["stations"] = []
         return block
     stations = []
     for path in sorted(wall.glob("*/state.json")):
-        if path.is_symlink() or path.parent.is_symlink():
+        if path.is_symlink() or path.parent.is_symlink() or path.parent.parent.is_symlink():
             continue
         rel = _display_path(path, root)
         slot_id = path.parent.name
