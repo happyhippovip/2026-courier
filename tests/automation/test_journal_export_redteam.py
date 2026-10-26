@@ -25,6 +25,14 @@ def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def link_or_skip(kind, target, name):
+    """Symlinks/hard links may be forbidden (Windows without privilege): skip instead of failing."""
+    try:
+        (os.symlink if kind == "sym" else os.link)(target, name)
+    except (OSError, NotImplementedError) as exc:
+        pytest.skip(f"cannot create {kind}link here: {exc}")
+
+
 def live_writer(directory):
     """A journal with an open writer: committed events sit in the -wal file."""
     writer = Journal(Path(directory) / "courier.db").open()
@@ -41,7 +49,7 @@ def test_symlink_to_live_wal_database_reads_the_wal_of_the_real_file(tmp_path):
     (tmp_path / "link").mkdir()
     writer = live_writer(tmp_path / "real")
     try:
-        os.symlink(tmp_path / "real" / "courier.db", tmp_path / "link" / "courier.db")
+        link_or_skip("sym", tmp_path / "real" / "courier.db", tmp_path / "link" / "courier.db")
         direct = export(tmp_path / "real" / "courier.db")
         via_link = export(tmp_path / "link" / "courier.db")
     finally:
@@ -53,10 +61,10 @@ def test_symlink_to_live_wal_database_reads_the_wal_of_the_real_file(tmp_path):
 
 def test_symlink_chain_and_dangling_symlink(tmp_path):
     real = make_journal(tmp_path / "real.db")
-    os.symlink(real, tmp_path / "l1.db")
-    os.symlink(tmp_path / "l1.db", tmp_path / "l2.db")
+    link_or_skip("sym", real, tmp_path / "l1.db")
+    link_or_skip("sym", tmp_path / "l1.db", tmp_path / "l2.db")
     assert export(tmp_path / "l2.db") == export(real)
-    os.symlink(tmp_path / "nowhere.db", tmp_path / "dangling.db")
+    link_or_skip("sym", tmp_path / "nowhere.db", tmp_path / "dangling.db")
     code, out, err = export(tmp_path / "dangling.db")
     assert (code, out) == (3, "") and "no journal file" in err
 
@@ -65,7 +73,7 @@ def test_symlinked_idle_journal_stays_unchanged(tmp_path):
     (tmp_path / "a").mkdir()
     (tmp_path / "b").mkdir()
     real = make_journal(tmp_path / "a" / "courier.db")
-    os.symlink(real, tmp_path / "b" / "courier.db")
+    link_or_skip("sym", real, tmp_path / "b" / "courier.db")
     before = {d: snapshot(tmp_path / d) for d in ("a",)}
     assert export(tmp_path / "b" / "courier.db")[0] == 0
     assert snapshot(tmp_path / "a") == before["a"] and os.listdir(tmp_path / "b") == ["courier.db"]
@@ -83,8 +91,8 @@ def test_out_equal_to_journal_is_refused_and_journal_untouched(tmp_path):
 
 def test_out_through_symlink_hardlink_or_sidecar_name_is_refused(tmp_path):
     db = make_journal(tmp_path / "courier.db")
-    os.symlink(db, tmp_path / "alias.jsonl")
-    os.link(db, tmp_path / "hard.jsonl")
+    link_or_skip("sym", db, tmp_path / "alias.jsonl")
+    link_or_skip("hard", db, tmp_path / "hard.jsonl")
     before = snapshot(tmp_path)
     for target in ("alias.jsonl", "hard.jsonl", "courier.db-wal", "courier.db-shm", "courier.db-journal"):
         assert export(db, "--out", str(tmp_path / target))[0] == 2, target
@@ -124,6 +132,7 @@ def test_uncommitted_writer_transaction_is_neither_blocking_nor_exported(tmp_pat
     assert code == 0 and json.loads(out.splitlines()[0])["event_count"] == len(golden_path())
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="copying a database file that a live writer holds open is POSIX-only")
 def test_orphan_wal_without_shm_after_killed_writer(tmp_path):
     src = tmp_path / "src"
     src.mkdir()
@@ -234,6 +243,7 @@ def test_database_cut_inside_the_unused_tail_still_exports_intact_chain(tmp_path
     assert export(cut) == export(full)
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="reading the -wal file of a live writer is POSIX-only here")
 def test_truncated_wal_never_crashes_and_never_invents_events(tmp_path):
     src = tmp_path / "src"
     src.mkdir()
@@ -289,6 +299,8 @@ def test_large_journal_streams_in_constant_memory_and_is_deterministic(tmp_path)
 
 @pytest.mark.parametrize("name", ["a b.db", "x#y.db", "q?z.db", "p%20q.db", "u\u00fc\u00e9.db", "-dash.db", "a'b.db"])
 def test_unusual_file_names(tmp_path, name):
+    if sys.platform == "win32" and "?" in name:
+        pytest.skip("'?' is not a legal Windows file name character")
     db = make_journal(tmp_path / name)
     code, out, _ = export(db)
     assert code == 0 and json.loads(out.splitlines()[0])["event_count"] == len(golden_path())

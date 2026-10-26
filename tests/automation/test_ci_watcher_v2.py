@@ -350,6 +350,8 @@ sys.exit(1)
 """
 
 
+@pytest.mark.skipif(sys.platform == "win32" or not hasattr(signal, "SIGKILL"),
+                    reason="SIGKILL and an executable `gh` script on PATH are POSIX-only; restart is covered in-process")
 def test_sigkill_mid_poll_then_real_restart_resumes_and_never_dispatches_twice(tmp_path):
     bindir = tmp_path / "bin"
     bindir.mkdir()
