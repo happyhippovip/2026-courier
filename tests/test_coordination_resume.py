@@ -163,7 +163,7 @@ def test_stale_checkpoint_does_not_regress_resume_point(tmp_path):
 
 def test_file_coordination_store_write_event_is_locked_and_fenced(tmp_path):
     """One id is one event. A second writer waits for the file lock, and a different body is refused."""
-    import fcntl
+    fcntl = pytest.importorskip("fcntl")
     import os
     import threading
 
