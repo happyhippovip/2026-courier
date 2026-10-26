@@ -30,8 +30,8 @@ REPO = Path(__file__).resolve().parents[1]
 def _spawn(args, home, log_name, new_group=False):
     home_path = Path(home)
     log_path = home_path / log_name
-    if (home_path.is_symlink() or home_path.parent.is_symlink()
-            or log_path.is_symlink() or log_path.parent.is_symlink()):
+    if (home_path.is_symlink() or home_path.parent.is_symlink() or home_path.parent.parent.is_symlink()
+            or log_path.is_symlink() or log_path.parent.is_symlink() or log_path.parent.parent.is_symlink()):
         raise SystemExit(f"{log_path}: refusing to follow a symlink")
     env = dict(os.environ, COURIER_HOME=str(home),
                PYTHONPATH=os.pathsep.join([str(REPO), os.environ.get("PYTHONPATH", "")]))
@@ -77,9 +77,9 @@ def _kill_tree(proc):
 
 def _controller_token(home: Path) -> str:
     path = home / "run" / "controller.token"
-    if (home.is_symlink() or home.parent.is_symlink()
+    if (home.is_symlink() or home.parent.is_symlink() or home.parent.parent.is_symlink()
             or (home / "run").is_symlink()
-            or path.is_symlink() or path.parent.is_symlink()):
+            or path.is_symlink() or path.parent.is_symlink() or path.parent.parent.is_symlink()):
         raise SystemExit(f"{path}: refusing to follow a symlink")
     if not path.is_file():
         return ""
@@ -92,7 +92,7 @@ def main(argv=None) -> int:
     parser.add_argument("--hub-port", type=int, default=8780)
     args = parser.parse_args(argv)
     home = Path(args.home or tempfile.mkdtemp(prefix="courier-demo-"))
-    if home.is_symlink() or home.parent.is_symlink():
+    if home.is_symlink() or home.parent.is_symlink() or home.parent.parent.is_symlink():
         raise SystemExit(f"{home}: refusing to follow a symlink")
     home.mkdir(parents=True, exist_ok=True)
     procs = []

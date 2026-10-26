@@ -28,3 +28,23 @@ def test_demo_refuses_a_symlinked_home(tmp_path):
         _spawn(["courier_core.serve"], real, "controller.log")
     assert "symlink" in str(caught.value).lower()
     assert log_target.read_bytes() == b"SECRET"
+
+
+def test_demo_refuses_a_home_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    mid = outside / "mid"
+    mid.mkdir(parents=True)
+    (mid / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(SystemExit) as caught:
+        main(["--home", str(link / "mid" / "home"), "--hub-port", "0"])
+    assert "symlink" in str(caught.value).lower()
+    assert not (outside / "mid" / "home").exists()
+    assert (mid / "SECRET").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real"
+    (real / "run").mkdir(parents=True)
+    secret = "SECRET-TOKEN-VALUE-THAT-IS-LONG-ENOUGH"
+    (real / "run" / "controller.token").write_text(secret + "\n", encoding="utf-8")
+    assert _controller_token(real) == secret
