@@ -271,6 +271,29 @@ def test_stale_controller_confirmation_is_not_healthy(tmp_path):
     _assert_schema(stale)
 
 
+def test_begin_refuses_a_state_dir_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    mid = link / "mid"
+    mid.mkdir()
+    try:
+        journal = InstallJournal(mid / "state")
+        journal.begin("1.0.0", datetime(2026, 10, 22, tzinfo=timezone.utc))
+    except JournalUnreadable as exc:
+        assert "symlink" in str(exc)
+    else:
+        raise AssertionError(sorted(path.name for path in (outside / "mid").iterdir()))
+    assert sorted(path.name for path in outside.iterdir()) == ["mid"]
+    assert not (outside / "mid" / "state").exists()
+    real = InstallJournal(tmp_path / "real")
+    begun = real.begin("1.0.0", datetime(2026, 10, 22, tzinfo=timezone.utc))
+    assert begun.ok, begun.reason
+    assert (tmp_path / "real" / "install_journal.json").is_file()
+    assert "super-secret" not in (tmp_path / "real" / "install_journal.json").read_text(encoding="utf-8")
+
+
 def test_begin_refuses_a_symlinked_state_parent(tmp_path):
     outside = tmp_path / "outside"
     state = outside / "state"
