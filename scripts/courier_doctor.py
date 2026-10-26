@@ -35,7 +35,11 @@ def get_app_data_dir():
         return Path.home() / ".courier"
 
 def load_config():
-    config_path = get_app_data_dir() / "config.json"
+    home = get_app_data_dir()
+    config_path = home / "config.json"
+    if (home.is_symlink() or home.parent.is_symlink()
+            or config_path.is_symlink() or config_path.parent.is_symlink()):
+        return {}
     if config_path.exists():
         with open(config_path, "r") as f:
             return json.load(f)
@@ -108,6 +112,19 @@ def redact_secret_bytes(data, secrets):
 
 def export_diagnostics(out_path):
     app_data = get_app_data_dir()
+    out = Path(out_path)
+    token_file = app_data / "run" / "controller.token"
+    db_path = app_data / "courier.db"
+    log_dir = app_data / "logs"
+    config_path = app_data / "config.json"
+    if (app_data.is_symlink() or app_data.parent.is_symlink()
+            or out.is_symlink() or out.parent.is_symlink()
+            or token_file.is_symlink() or (app_data / "run").is_symlink()
+            or db_path.is_symlink() or config_path.is_symlink() or log_dir.is_symlink()):
+        raise OSError(f"{app_data}: refusing to follow a symlink")
+    log_files = sorted(log_dir.glob("*.log*")) if log_dir.is_dir() else []
+    if any(path.is_symlink() for path in log_files):
+        raise OSError(f"{log_dir}: refusing to follow a symlink")
     config = load_config()
     
     secrets = []
@@ -123,7 +140,7 @@ def export_diagnostics(out_path):
         secrets.append(api_key)
         
     token_file = app_data / "run" / "controller.token"
-    if token_file.exists():
+    if token_file.is_file():
         token = token_file.read_text(encoding="utf-8").strip()
         if token:
             secrets.append(token)
@@ -131,13 +148,12 @@ def export_diagnostics(out_path):
     with zipfile.ZipFile(out_path, "w", zipfile.ZIP_DEFLATED) as zf:
         # Export V1 ledger
         db_path = app_data / "courier.db"
-        if db_path.exists():
+        if db_path.is_file() and not db_path.is_symlink():
             zf.writestr("courier.db", redact_secret_bytes(db_path.read_bytes(), secrets))
                 
         # Export logs
-        log_dir = app_data / "logs"
-        if log_dir.exists():
-            for f in log_dir.glob("*.log*"):
+        if log_files:
+            for f in log_files:
                 try:
                     text = f.read_text(encoding="utf-8", errors="replace")
                     if secrets:
@@ -148,7 +164,7 @@ def export_diagnostics(out_path):
                     
         # Export config (redacted)
         config_path = app_data / "config.json"
-        if config_path.exists():
+        if config_path.is_file() and not config_path.is_symlink():
             text = config_path.read_text(encoding="utf-8", errors="replace")
             if secrets:
                 text = redact_secrets(text, secrets)

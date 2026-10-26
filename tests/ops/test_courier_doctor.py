@@ -138,4 +138,44 @@ def test_check_stuck_tasks_points_at_status(tmp_path, monkeypatch):
     passed, msg = check_stuck_tasks()
     assert passed
     assert "courier_core.cli status" in msg
+
+
+def test_export_diagnostics_refuses_a_symlink(tmp_path, monkeypatch):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "courier.db").write_bytes(b"SECRET")
+    (outside / "config.json").write_text('{"COURIER_API_KEY":"SECRET"}', encoding="utf-8")
+    link = tmp_path / "home"
+    link.symlink_to(outside, target_is_directory=True)
+    monkeypatch.setenv("COURIER_HOME", str(link))
+    monkeypatch.delenv("COURIER_API_KEY", raising=False)
+    bundle = tmp_path / "bundle.zip"
+    with pytest.raises(OSError, match="symlink"):
+        export_diagnostics(bundle)
+    assert not bundle.exists()
+    assert (outside / "courier.db").read_bytes() == b"SECRET"
+    assert load_config() == {}
+
+    real = tmp_path / "real"
+    real.mkdir()
+    monkeypatch.setenv("COURIER_HOME", str(real))
+    (real / "courier.db").symlink_to(outside / "courier.db")
+    with pytest.raises(OSError, match="symlink"):
+        export_diagnostics(tmp_path / "db-bundle.zip")
+    assert (outside / "courier.db").read_bytes() == b"SECRET"
+    (real / "courier.db").unlink()
+
+    secret_zip = tmp_path / "secret.zip"
+    secret_zip.write_bytes(b"SECRET")
+    out_link = tmp_path / "out.zip"
+    out_link.symlink_to(secret_zip)
+    with pytest.raises(OSError, match="symlink"):
+        export_diagnostics(out_link)
+    assert secret_zip.read_bytes() == b"SECRET"
+
+    (real / "config.json").write_text('{"name":"LIVE"}', encoding="utf-8")
+    assert load_config()["name"] == "LIVE"
+    exported = tmp_path / "real-bundle.zip"
+    export_diagnostics(exported)
+    assert exported.is_file()
         
