@@ -102,8 +102,11 @@ def get_status_payload() -> dict:
     latch = EVENTS_DIR / "EMERGENCY_LATCH"
     is_emergency = (
         not EVENTS_DIR.is_symlink()
+        and not EVENTS_DIR.parent.is_symlink()
+        and not EVENTS_DIR.parent.parent.is_symlink()
         and not latch.is_symlink()
         and not latch.parent.is_symlink()
+        and not latch.parent.parent.is_symlink()
         and latch.exists()
     )
 

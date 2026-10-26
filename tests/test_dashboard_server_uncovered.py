@@ -258,6 +258,27 @@ def test_ledger_value_refuses_a_dir_two_levels_under_a_symlink(tmp_path):
     assert "SECRET" not in json.dumps(live)
 
 
+def test_status_ignores_a_latch_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    events = outside / "mid" / "events"
+    events.mkdir(parents=True)
+    (events / "EMERGENCY_LATCH").write_text("EMERGENCY_MODE=ON\nSECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with patch("dashboard.server.EVENTS_DIR", link / "mid" / "events"):
+        payload = d_server.get_status_payload()
+    assert payload["status"] == "ONLINE"
+    assert "SECRET" not in json.dumps(payload)
+
+    real = tmp_path / "real-status"
+    real.mkdir()
+    (real / "EMERGENCY_LATCH").write_text("EMERGENCY_MODE=ON\n", encoding="utf-8")
+    with patch("dashboard.server.EVENTS_DIR", real):
+        live = d_server.get_status_payload()
+    assert live["status"] == "EMERGENCY"
+    assert "SECRET" not in json.dumps(live)
+
+
 def test_plain_text_refuses_a_file_two_levels_under_a_symlink(tmp_path):
     outside = tmp_path / "outside"
     nested = outside / "a" / "b"
