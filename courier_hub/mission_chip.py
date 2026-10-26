@@ -34,6 +34,8 @@ def _chip_verifier(adapter: str):
             if sha != EXPECTED_GOLD_SHA256:
                 return Verdict(False, f"SHA-256 stimmt nicht mit Gold-Referenz überein: {sha[:16]} != {EXPECTED_GOLD_SHA256[:16]}")
             art_path = home / a.get("path", "")
+            if home.is_symlink() or home.parent.is_symlink() or art_path.is_symlink() or art_path.parent.is_symlink():
+                return Verdict(False, "Artefaktpfad ist eine Verknuepfung")
             if art_path.is_file():
                 content = art_path.read_bytes()
                 if content != EXPECTED_GOLD_BYTES:

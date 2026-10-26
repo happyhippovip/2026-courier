@@ -86,6 +86,25 @@ def test_mission_chip_cli(tmp_path, capsys):
     assert data["verifier_result"]["resolution"] == "verified"
 
 
+def test_chip_verifier_refuses_a_symlinked_artifact(tmp_path):
+    from courier_hub.mission_chip import EXPECTED_GOLD_SHA256, _chip_verifier
+    from types import SimpleNamespace
+
+    outside = tmp_path / "secret.txt"
+    outside.write_bytes(b"SECRET")
+    home = tmp_path / "home"
+    home.mkdir()
+    (home / "mission_result.txt").symlink_to(outside)
+    verifier = _chip_verifier("synthetic")
+    result = SimpleNamespace(payload={
+        "artifacts": [{"path": "mission_result.txt", "sha256": EXPECTED_GOLD_SHA256, "size_bytes": 34}]
+    })
+    verdict = verifier({"task_id": "t-link"}, result, home)
+    assert verdict.accepted is False
+    assert "Verknuepfung" in verdict.reason
+    assert outside.read_bytes() == b"SECRET"
+
+
 def test_chip_verifier_rejects_tampered_hash(tmp_path):
     from courier_hub.mission_chip import _chip_verifier
     from types import SimpleNamespace
