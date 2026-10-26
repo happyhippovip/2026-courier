@@ -25,7 +25,12 @@ class RevenueStore:
         self.leads_path = self.dir / "leads.jsonl"
         self.jobs_path = self.dir / "jobs.jsonl"
 
+    def _refuse(self, path: Path) -> None:
+        if self.dir.parent.is_symlink() or self.dir.is_symlink() or path.is_symlink():
+            raise OSError(f"{path}: refusing to follow a symlink")
+
     def _append(self, path, record):
+        self._refuse(path)
         self.dir.mkdir(parents=True, exist_ok=True)
         with open(path, "a", encoding="utf-8") as f:
             f.write(json.dumps(record, sort_keys=True) + "\n")
@@ -52,9 +57,11 @@ class RevenueStore:
         self._append(self.jobs_path, dataclasses.asdict(job))
 
     def leads(self):
+        self._refuse(self.leads_path)
         return [Lead(**r) for r in self._latest(self.leads_path, "lead_id").values()]
 
     def jobs(self):
+        self._refuse(self.jobs_path)
         return [Job(**r) for r in self._latest(self.jobs_path, "job_id").values()]
 
     def dashboard(self, month, monthly_cost_eur=DEFAULT_MONTHLY_COST_EUR):

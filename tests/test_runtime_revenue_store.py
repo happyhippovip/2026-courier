@@ -1,7 +1,30 @@
 import json
 
+import pytest
+
 from courier_runtime.revenue import DRAFT_READY, QUALIFIED, Job, Lead
 from courier_runtime.revenue_store import RevenueStore, main
+
+
+def test_revenue_store_refuses_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    home = tmp_path / "home"
+    home.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(OSError, match="symlink"):
+        RevenueStore(home).save_lead(Lead("L1", "X", "p", "s"))
+    assert not (outside / "revenue").exists()
+
+    real = tmp_path / "real"
+    real.mkdir()
+    store = RevenueStore(real)
+    store.dir.mkdir()
+    planted = tmp_path / "stolen-leads.jsonl"
+    planted.write_text('{"lead_id":"stolen"}\n', encoding="utf-8")
+    store.leads_path.symlink_to(planted)
+    with pytest.raises(OSError, match="symlink"):
+        store.leads()
+    assert planted.read_text(encoding="utf-8") == '{"lead_id":"stolen"}\n'
 
 
 def test_last_snapshot_wins_and_history_survives(tmp_path):
