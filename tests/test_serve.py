@@ -186,6 +186,27 @@ def test_main_refuses_a_symlinked_home(tmp_path, monkeypatch):
     assert list(outside.iterdir()) == []
 
 
+def test_home_lock_refuses_a_lock_two_levels_under_a_symlink(tmp_path: Path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    mid = link / "mid"
+    mid.mkdir()
+    lock = HomeLock(mid / "controller.lock")
+    owned = lock.acquire()
+    try:
+        assert owned is False
+    finally:
+        lock.release()
+    assert sorted(path.name for path in outside.iterdir()) == ["mid"]
+    assert not (outside / "mid" / "controller.lock").exists()
+    real = HomeLock(tmp_path / "real" / "controller.lock")
+    assert real.acquire() is True
+    assert (tmp_path / "real" / "controller.lock").is_file()
+    real.release()
+
+
 def test_home_lock_refuses_a_symlink(tmp_path: Path):
     target = tmp_path / "outside"
     target.write_bytes(b"")
