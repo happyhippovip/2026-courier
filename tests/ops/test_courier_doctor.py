@@ -203,6 +203,28 @@ def test_check_stuck_tasks_points_at_status(tmp_path, monkeypatch):
     assert "courier_core.cli status" in msg
 
 
+def test_load_config_refuses_a_home_two_levels_under_a_symlink(tmp_path, monkeypatch):
+    outside = tmp_path / "outside"
+    home = outside / "mid" / "home"
+    home.mkdir(parents=True)
+    secret = home / "config.json"
+    secret.write_text('{"COURIER_API_KEY":"SECRET"}', encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    monkeypatch.setenv("COURIER_HOME", str(link / "mid" / "home"))
+    monkeypatch.delenv("COURIER_API_KEY", raising=False)
+    assert load_config() == {}
+    assert "SECRET" in secret.read_text(encoding="utf-8")
+
+    real = tmp_path / "real"
+    real.mkdir()
+    (real / "config.json").write_text('{"name":"LIVE"}', encoding="utf-8")
+    monkeypatch.setenv("COURIER_HOME", str(real))
+    loaded = load_config()
+    assert loaded["name"] == "LIVE"
+    assert "SECRET" not in json.dumps(loaded)
+
+
 def test_export_diagnostics_refuses_a_symlink(tmp_path, monkeypatch):
     outside = tmp_path / "outside"
     outside.mkdir()

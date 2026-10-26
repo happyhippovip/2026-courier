@@ -37,8 +37,9 @@ def get_app_data_dir():
 def load_config():
     home = get_app_data_dir()
     config_path = home / "config.json"
-    if (home.is_symlink() or home.parent.is_symlink()
-            or config_path.is_symlink() or config_path.parent.is_symlink()):
+    if (home.is_symlink() or home.parent.is_symlink() or home.parent.parent.is_symlink()
+            or config_path.is_symlink() or config_path.parent.is_symlink()
+            or config_path.parent.parent.is_symlink()):
         return {}
     if config_path.exists():
         with open(config_path, "r") as f:
