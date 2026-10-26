@@ -541,6 +541,25 @@ def test_home_lock_refuses_a_symlink(tmp_path):
     assert target.read_bytes() == b""
 
 
+def test_home_lock_refuses_a_home_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        acquire_home_lock(str(link / "mid" / "home"))
+    assert not (outside / "mid").exists()
+    assert (outside / "SECRET").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real"
+    fd = acquire_home_lock(str(real))
+    try:
+        assert (real / "run" / "worker.lock").is_file()
+    finally:
+        release_home_lock(fd)
+
+
 # -- outbox --------------------------------------------------------------------
 
 

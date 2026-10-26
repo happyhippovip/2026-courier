@@ -719,7 +719,8 @@ def acquire_home_lock(home: str):
     """
     root = Path(home)
     run = _run_dir(home)
-    if root.is_symlink() or run.is_symlink():
+    if (root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink()
+            or run.is_symlink()):
         raise ContainmentError(f"{home}: refusing to follow a symlink")
     run.mkdir(parents=True, exist_ok=True)
     path = run / "worker.lock"
