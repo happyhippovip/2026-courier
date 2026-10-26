@@ -27,7 +27,7 @@ class RevenueStore:
 
     def _refuse(self, path: Path) -> None:
         home = self.dir.parent
-        if (home.is_symlink() or home.parent.is_symlink()
+        if (home.is_symlink() or home.parent.is_symlink() or home.parent.parent.is_symlink()
                 or self.dir.is_symlink() or path.is_symlink() or path.parent.is_symlink()):
             raise OSError(f"{path}: refusing to follow a symlink")
 

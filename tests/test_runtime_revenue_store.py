@@ -44,6 +44,22 @@ def test_revenue_store_refuses_a_home_two_levels_under_a_symlink(tmp_path):
     assert store.leads()[0].lead_id == "L1"
 
 
+def test_revenue_store_refuses_a_nested_home_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    (outside / "mid").mkdir(parents=True)
+    (outside / "mid" / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(OSError, match="symlink"):
+        RevenueStore(link / "mid" / "home").save_lead(Lead("L1", "X", "p", "s"))
+    assert not (outside / "mid" / "home").exists()
+    assert (outside / "mid" / "SECRET").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "ok"
+    store = RevenueStore(real)
+    store.save_lead(Lead("L2", "Example", "note", "src"))
+    assert store.leads()[0].lead_id == "L2"
+
 
 def test_last_snapshot_wins_and_history_survives(tmp_path):
     store = RevenueStore(tmp_path)
