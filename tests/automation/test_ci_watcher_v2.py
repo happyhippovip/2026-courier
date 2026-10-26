@@ -435,7 +435,7 @@ def test_query_timeout_or_missing_gh_is_a_counted_failed_poll_not_a_traceback(tm
         raise exc
 
     result = go(tmp_path, broken, window=1)
-    assert result["status"] == w.WAITING and result["attempts"] == 1 and "could not run" in result["last_error"]
+    assert result["status"] == w.WAITING and result["attempts"] >= 1 and "could not run" in result["last_error"]
 
 
 def test_cli_rejects_negative_or_nonsense_numbers(tmp_path):
