@@ -217,6 +217,15 @@ def latch_emergency() -> bool:
 
 
 class CommandCenterHandler(http.server.SimpleHTTPRequestHandler):
+    def send_head(self):
+        root = Path(getattr(self, "directory", None) or DASHBOARD_DIR)
+        path = Path(self.translate_path(self.path))
+        if (root.is_symlink() or path.is_symlink() or path.parent.is_symlink()
+                or (path / "index.html").is_symlink() or (path / "index.htm").is_symlink()):
+            self.send_error(404, "File not found")
+            return None
+        return super().send_head()
+
     def do_GET(self) -> None:
         if self.path in ("/api/status", "/api/health"):
             self.send_response(200)

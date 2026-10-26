@@ -255,3 +255,36 @@ def test_emergency_latch_refuses_a_symlink(mock_dirs):
     assert d_server.latch_emergency() is True
     assert (events / "EMERGENCY_LATCH").read_text(encoding="utf-8") == "EMERGENCY_MODE=ON\n"
     assert d_server.get_status_payload()["status"] == "EMERGENCY"
+
+
+def test_static_get_refuses_a_symlink(tmp_path):
+    import socketserver
+    import threading
+    import urllib.error
+    import urllib.request
+    from functools import partial
+
+    outside = tmp_path / "secret.html"
+    outside.write_text("SECRET", encoding="utf-8")
+    root = tmp_path / "dash"
+    root.mkdir()
+    (root / "page.html").symlink_to(outside)
+    (root / "ok.html").write_text("LIVE", encoding="utf-8")
+    handler = partial(d_server.CommandCenterHandler, directory=str(root))
+    httpd = socketserver.TCPServer(("127.0.0.1", 0), handler)
+    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    thread.start()
+    try:
+        port = httpd.server_address[1]
+        try:
+            with urllib.request.urlopen(f"http://127.0.0.1:{port}/page.html") as resp:
+                body, code = resp.read(), resp.status
+        except urllib.error.HTTPError as exc:
+            body, code = exc.read(), exc.code
+        assert code == 404
+        assert b"SECRET" not in body
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/ok.html") as resp:
+            assert resp.read() == b"LIVE"
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
