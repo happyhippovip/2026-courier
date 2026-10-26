@@ -1,5 +1,7 @@
 """GOAL-06: a wake callback must run after the campaign lock is released."""
-import fcntl
+import pytest
+
+fcntl = pytest.importorskip("fcntl")
 import hashlib
 import json
 import os
