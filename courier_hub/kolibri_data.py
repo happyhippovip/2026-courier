@@ -477,12 +477,13 @@ def _entry_count(payload) -> Optional[int]:
 
 def read_postfach(flower: str, home: Optional[Path], root: Path, observed_at: str) -> dict:
     name = _POSTFACH[flower]
-    if home is not None and (home.is_symlink() or home.parent.is_symlink()):
+    if home is not None and (home.is_symlink() or home.parent.is_symlink() or home.parent.parent.is_symlink()):
         home = None
     chosen = next(
         (
             path for path in _postfach_candidates(name, home, root)
-            if not path.is_symlink() and not path.parent.is_symlink() and path.is_file()
+            if not path.is_symlink() and not path.parent.is_symlink()
+            and not path.parent.parent.is_symlink() and path.is_file()
         ),
         None,
     )

@@ -78,6 +78,30 @@ def test_read_postfach_refuses_a_symlink(tmp_path, monkeypatch):
     assert live["available"] is True
 
 
+def test_read_postfach_refuses_a_home_two_levels_under_a_symlink(tmp_path, monkeypatch):
+    monkeypatch.delenv("COURIER_POSTFACH_DIR", raising=False)
+    outside = tmp_path / "outside"
+    linked_home = outside / "mid" / "home"
+    linked_home.mkdir(parents=True)
+    secret = linked_home / "POSTFACH_ALT_AN_NEU"
+    secret.write_text('[{"secret":"SECRET"}]', encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    root = tmp_path / "repo"
+    root.mkdir()
+    block = read_postfach("postfach_alt_an_neu", link / "mid" / "home", root, "2026-10-26T04:43:00Z")
+    assert block["entries"] is None
+    assert "SECRET" not in json.dumps(block)
+    assert "SECRET" in secret.read_text(encoding="utf-8")
+
+    real = tmp_path / "real"
+    real.mkdir()
+    (real / "POSTFACH_ALT_AN_NEU").write_text('[{"ok":1}]', encoding="utf-8")
+    live = read_postfach("postfach_alt_an_neu", real, root, "2026-10-26T04:43:00Z")
+    assert live["entries"] == 1
+    assert live["available"] is True
+
+
 def test_read_ledger_bridge_refuses_a_symlink(tmp_path):
     outside = tmp_path / "outside.json"
     outside.write_text(json.dumps({"missions": {"A": {"status": "SECRET"}}}), encoding="utf-8")
