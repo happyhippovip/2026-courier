@@ -157,7 +157,10 @@ def submit(mailbox_root, host, job_id, action, params=None):
 
 def _git(repo, *args, timeout=120):
     import subprocess
-    return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, timeout=timeout)
+    path = Path(repo)
+    if path.is_symlink() or path.parent.is_symlink():
+        raise OSError(f"{path}: refusing to follow a symlink")
+    return subprocess.run(["git", "-C", str(path), *args], capture_output=True, text=True, timeout=timeout)
 
 
 def _single_instance(lock_path):

@@ -271,3 +271,42 @@ def test_single_instance_dead_lock_is_taken_over(tmp_path, monkeypatch):
     assert _single_instance(str(lock)) is True
     after = json.loads(lock.read_text())
     assert after["pid"] == os.getpid() and after["workkey"] == "home-agent"
+
+
+def test_git_refuses_a_symlinked_repo(tmp_path):
+    import subprocess
+
+    from courier_runtime.home_agent import _git
+
+    outside = tmp_path / "outside"
+    subprocess.run(["git", "init", "-q", str(outside)], check=True)
+    marker = outside / "SECRET"
+    marker.write_text("SECRET\n", encoding="utf-8")
+    link = tmp_path / "repo"
+    link.symlink_to(outside, target_is_directory=True)
+    try:
+        _git(link, "status")
+    except OSError as exc:
+        assert "symlink" in str(exc)
+    else:
+        raise AssertionError("symlink repo was used")
+    assert marker.read_text(encoding="utf-8") == "SECRET\n"
+
+    nested = tmp_path / "nested-real" / "repo"
+    nested.parent.mkdir()
+    subprocess.run(["git", "init", "-q", str(nested)], check=True)
+    (nested / "SECRET").write_text("SECRET\n", encoding="utf-8")
+    home_link = tmp_path / "home-link"
+    home_link.symlink_to(nested.parent, target_is_directory=True)
+    try:
+        _git(home_link / "repo", "status")
+    except OSError as exc:
+        assert "symlink" in str(exc)
+    else:
+        raise AssertionError("repo under a symlink was used")
+    assert (nested / "SECRET").read_text(encoding="utf-8") == "SECRET\n"
+
+    real = tmp_path / "real"
+    subprocess.run(["git", "init", "-q", str(real)], check=True)
+    result = _git(real, "status", "--porcelain")
+    assert result.returncode == 0
