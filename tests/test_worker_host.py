@@ -326,6 +326,26 @@ def test_write_crash_report_refuses_a_symlink(tmp_path):
     assert not (plain / "crash.json").exists()
 
 
+def test_write_crash_report_refuses_a_dir_two_levels_under_a_symlink(tmp_path):
+    spec = _spec(tmp_path)
+    err = tmp_path / "s.err"
+    err.write_bytes(b"boom")
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        write_crash_report(str(link / "mid" / "arts"), spec, Outcome.CRASH, 3, 1.0, str(err))
+    assert not (outside / "mid").exists()
+    assert (outside / "SECRET").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real-arts"
+    out = write_crash_report(str(real), spec, Outcome.CRASH, 3, 1.0, str(err))
+    assert os.path.isfile(out)
+    assert "SECRET" not in open(out, encoding="utf-8").read()
+
+
 def test_write_crash_report_shape(tmp_path):
     spec = _spec(tmp_path)
     art = tmp_path / "arts"

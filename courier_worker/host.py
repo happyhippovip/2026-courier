@@ -823,7 +823,7 @@ def write_crash_report(artifact_dir: str, spec: ExecutionSpec, outcome: str,
     """Persist the abnormal end as evidence; the report itself is an artifact."""
     root = Path(artifact_dir)
     err = Path(stderr_path)
-    if root.is_symlink() or root.parent.is_symlink():
+    if root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink():
         raise ContainmentError(f"{artifact_dir}: refusing to follow a symlink")
     if err.is_symlink() or err.parent.is_symlink():
         raise ContainmentError(f"{stderr_path}: refusing to follow a symlink")
