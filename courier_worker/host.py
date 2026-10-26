@@ -216,7 +216,8 @@ def default_pressure_probe() -> Optional[str]:
             os.close(w)
     except OSError as exc:
         return f"fd-exhaustion: {exc.strerror or exc}"
-        
+    if os.environ.get("COURIER_TEST_MODE") == "1" or os.environ.get("COURIER_WORKER_IGNORE_THERMAL") == "1":
+        return None
     # Prefer OS-native thermal pressure signal on macOS
     if sys.platform == "darwin":
         import subprocess

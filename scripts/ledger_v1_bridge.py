@@ -360,10 +360,25 @@ def _dispatch(store, state, specs, agent, host, args, transport, token, emit, ho
                 mapping["inputs_digest"] = inputs_digest
             state["missions"][mission_id] = mapping
             _save_state(home / "ledger_bridge_state.json", state)
+        if mapping.get("status") == "BLOCKED":
+            emit({
+                "mission_id": mission_id,
+                "outcome": "blocked",
+                "reason": mapping.get("reason") or "BLOCKED",
+            })
+            ok = False
+            continue
         if mapping.get("posted"):
             continue
         posted = _post_task(transport, args, token, spec, mapping["idempotency_key"], mapping.get("inputs"))
         if posted.get("rejected"):
+            reason_code = posted.get("reason_code") or "CONTROLLER_REJECTED"
+            if not _reason_ok(reason_code):
+                reason_code = "CONTROLLER_REJECTED"
+            mission = reducer.get_mission(mission_id)
+            if mission is not None and mission.get("status") != MissionStatus.BLOCKED:
+                _park_goal(store, reducer, mission, agent, host, reason_code)
+            _stamp(home / "ledger_bridge_state.json", state, mapping, "BLOCKED", reason_code)
             emit({"mission_id": mission_id, "outcome": "skipped", "reason": "rejected"})
             ok = False
             continue
@@ -741,7 +756,13 @@ def _post_task(transport, args, token, spec, key, inputs=None):
     except (UnicodeError, json.JSONDecodeError):
         body = {}
     if status not in (200, 201) or not isinstance(body, dict):
-        return {"rejected": True}
+        raw_code = body.get("code") or body.get("error") if isinstance(body, dict) else None
+        reason_code = "COST_BLOCKED" if raw_code == "cost_blocked" else "CONTROLLER_REJECTED"
+        return {
+            "rejected": True,
+            "reason_code": reason_code,
+            "reason": str(raw_code or f"HTTP_{status}"),
+        }
     return body
 
 

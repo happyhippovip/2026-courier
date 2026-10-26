@@ -168,6 +168,7 @@ class Courier:
     def env(self):
         env = dict(os.environ)
         env["COURIER_HOME"] = str(self.home)
+        env["COURIER_WORKER_IGNORE_THERMAL"] = "1"
         env["no_proxy"] = "127.0.0.1,localhost"
         env["NO_PROXY"] = "127.0.0.1,localhost"
         parts = [str(REPO_ROOT)] + [p for p in env.get("PYTHONPATH", "").split(os.pathsep) if p]

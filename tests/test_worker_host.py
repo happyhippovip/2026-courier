@@ -41,6 +41,12 @@ from courier_worker.host import (
 PY = sys.executable
 
 
+@pytest.fixture(autouse=True)
+def _ignore_machine_thermal(monkeypatch):
+    """Unit tests that want a pause inject their own probe. A hot CPU must not fail them."""
+    monkeypatch.setenv("COURIER_WORKER_IGNORE_THERMAL", "1")
+
+
 def _spec(tmp_path, **over) -> ExecutionSpec:
     kw = dict(
         task_id="t1",
@@ -173,6 +179,11 @@ def test_resource_paused_carries_reason():
 def test_pressure_probe_never_raises():
     result = default_pressure_probe()
     assert result is None or isinstance(result, str)
+
+
+def test_pressure_probe_skips_thermal_in_worker_test_mode(monkeypatch):
+    monkeypatch.setenv("COURIER_WORKER_IGNORE_THERMAL", "1")
+    assert default_pressure_probe() is None
 
 
 # -- artifacts, tails and crash reports ---------------------------------------
