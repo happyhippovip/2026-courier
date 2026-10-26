@@ -52,7 +52,7 @@ class CostBlocked(Exception):
 
 
 def _refuse_symlink(path: Path) -> None:
-    if path.is_symlink() or path.parent.is_symlink():
+    if path.is_symlink() or path.parent.is_symlink() or path.parent.parent.is_symlink():
         raise OSError(f"{path}: refusing to follow a symlink")
 
 

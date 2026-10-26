@@ -312,6 +312,27 @@ def test_campaign_refuses_a_symlink(tmp_path):
     assert not campaign.exists()
 
 
+def test_campaign_refuses_a_path_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    (outside / "mid").mkdir(parents=True)
+    (outside / "mid" / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    engine = LedgerEngine(object(), link / "mid" / "kirby.json", "host-a")
+    with pytest.raises(OSError, match="symlink"):
+        with engine._campaign():
+            pass
+    assert (outside / "mid" / "SECRET").read_text(encoding="utf-8") == "SECRET"
+    assert {p.name for p in (outside / "mid").iterdir()} == {"SECRET"}
+
+    real = tmp_path / "real-kirby.json"
+    engine = LedgerEngine(object(), real, "host-a")
+    with engine._campaign():
+        pass
+    assert engine.writer_path.is_file()
+    assert not real.exists()
+
+
 def test_b2_second_writer_rejected(setup):
     """A second LedgerEngine with a different writer id cannot change the campaign."""
     engine1, ctrl, _, _ = setup
