@@ -172,7 +172,7 @@ def _single_instance(lock_path):
     import os
     from courier_runtime.ownership import OwnedProcess, is_same_process
     lock = Path(lock_path)
-    if lock.is_symlink() or lock.parent.is_symlink():
+    if lock.is_symlink() or lock.parent.is_symlink() or lock.parent.parent.is_symlink():
         return False
     if lock.exists():
         try:
