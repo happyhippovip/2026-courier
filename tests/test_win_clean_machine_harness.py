@@ -130,19 +130,19 @@ def test_win_clean_machine_harness(tmp_path):
         # 3. Synthetic work execution
         # Normal task
         done_id = api("POST", "/v1/tasks", {
-            "adapter": "synthetic", "params": {"sleep_s": 1, "write": "out.txt", "content": "normal"},
+            "adapter": "synthetic", "params": {"sleep_s": 1, "write": "out.txt", "content": "normal", "estimated_cost_eur": 0.0},
             "effect_class": "idempotent", "max_attempts": 3, "lease_ttl_s": 6
         })["task_id"]
 
         # Non-idempotent task (killed mid-action)
         blocked_id = api("POST", "/v1/tasks", {
-            "adapter": "synthetic", "params": {"write": "sent.txt", "content": "message", "hang": True},
+            "adapter": "synthetic", "params": {"write": "sent.txt", "content": "message", "hang": True, "estimated_cost_eur": 0.0},
             "effect_class": "non_idempotent", "max_attempts": 3, "lease_ttl_s": 6
         })["task_id"]
 
         # Long-running task
         working_id = api("POST", "/v1/tasks", {
-            "adapter": "synthetic", "params": {"sleep_s": 60, "write": "report.txt", "content": "long"},
+            "adapter": "synthetic", "params": {"sleep_s": 60, "write": "report.txt", "content": "long", "estimated_cost_eur": 0.0},
             "effect_class": "idempotent", "max_attempts": 3, "lease_ttl_s": 6, "timeout_s": 90
         })["task_id"]
 
