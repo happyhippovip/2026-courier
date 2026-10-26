@@ -9,13 +9,46 @@ from pathlib import Path
 
 from courier_core.events import Event, EventType
 from courier_core.journal import Journal
-from courier_hub.kolibri_data import PAUSE, REST_TEXT, UNAVAILABLE, build_snapshot, read_github, read_ledger_bridge, read_postfach, station_key
+from courier_hub.kolibri_data import PAUSE, REST_TEXT, UNAVAILABLE, build_snapshot, read_github, read_ledger_bridge, read_muse_wall, read_postfach, station_key
 from courier_hub.server import Hub, HubServer
 
 REPO = Path(__file__).resolve().parents[2]
 WALL = REPO / "scripts" / "windows_muse_wall" / "runtime" / "slots"
 MUSE_LABEL = "scripts/windows_muse_wall/runtime/slots"
 OFFLINE = lambda _path: None  # no token and no fabricated GitHub body
+
+
+def test_read_muse_wall_refuses_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    (outside / "01").mkdir(parents=True)
+    secret = {"slot_id": "SECRET", "state": "SECRET", "process": 1, "updated_at": datetime.now(timezone.utc).timestamp()}
+    (outside / "01" / "state.json").write_text(json.dumps(secret), encoding="utf-8")
+    root = tmp_path / "repo"
+    root.mkdir()
+    linked = tmp_path / "linked-wall"
+    linked.symlink_to(outside)
+    merged = {"available": False}
+    block = read_muse_wall(root, linked, "wall", "2026-10-26T04:47:00Z", merged)
+    assert block["available"] is False
+    assert block["stations"] == []
+    assert "SECRET" not in json.dumps(block)
+
+    wall = tmp_path / "wall"
+    (wall / "01").mkdir(parents=True)
+    (wall / "01" / "state.json").symlink_to(outside / "01" / "state.json")
+    skipped = read_muse_wall(root, wall, "wall", "2026-10-26T04:47:00Z", merged)
+    assert skipped["stations"] == []
+    assert "SECRET" not in json.dumps(skipped)
+
+    now = datetime.now(timezone.utc)
+    (wall / "01" / "state.json").unlink()
+    (wall / "01" / "state.json").write_text(
+        json.dumps({"slot_id": "LIVE-01", "state": "RUNNING", "process": 1, "updated_at": now.timestamp()}),
+        encoding="utf-8",
+    )
+    live = read_muse_wall(root, wall, "wall", now.strftime("%Y-%m-%dT%H:%M:%SZ"), merged)
+    assert live["stations"][0]["id"] == "LIVE-01"
+    assert live["stations"][0]["state"]["value"] == "RUNNING"
 
 
 def test_read_postfach_refuses_a_symlink(tmp_path, monkeypatch):
