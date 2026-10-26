@@ -100,6 +100,36 @@ def _no_amount(block):
     assert revenue["status"] in (UNAVAILABLE, "UNKNOWN")
 
 
+def test_read_arbitrage_research_refuses_a_symlink(tmp_path: Path):
+    outside = tmp_path / "outside.json"
+    outside.write_text('{"title":"SECRET","verified_actual_revenue":{"amount_eur":1}}', encoding="utf-8")
+    root = tmp_path / "root"
+    (root / "registries").mkdir(parents=True)
+    (root / "registries" / "arbitrage_research.json").symlink_to(outside)
+    block = read_arbitrage_research(root, AT)
+    assert block["available"] is False
+    assert "SECRET" not in str(block)
+    _no_amount(block)
+    assert outside.read_text(encoding="utf-8").startswith('{"title":"SECRET"')
+
+    linked = tmp_path / "linked-root"
+    linked.symlink_to(root)
+    (root / "registries" / "arbitrage_research.json").unlink()
+    (root / "registries" / "arbitrage_research.json").write_text(
+        '{"title":"SECRET","verified_actual_revenue":{"amount_eur":1}}',
+        encoding="utf-8",
+    )
+    through = read_arbitrage_research(linked, AT)
+    assert through["available"] is False
+    assert "SECRET" not in str(through)
+    _no_amount(through)
+
+    live = read_arbitrage_research(root, AT)
+    assert live["available"] is True
+    assert live["title"] == "SECRET"
+    assert live["verified_actual_revenue"]["amount_eur"] == 1
+
+
 def test_k2_missing_arbitrage_file_has_no_amount(tmp_path: Path):
     block = read_arbitrage_research(tmp_path, AT)
     assert block["available"] is False

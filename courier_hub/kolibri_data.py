@@ -648,7 +648,9 @@ def read_arbitrage_research(root: Path, observed_at: str) -> dict:
     - Missing metrics render as UNAVAILABLE (fail-closed).
     """
     arbi_file = root / "registries" / "arbitrage_research.json"
-    if not arbi_file.is_file():
+    if (root.is_symlink() or root.parent.is_symlink()
+            or arbi_file.is_symlink() or arbi_file.parent.is_symlink()
+            or not arbi_file.is_file()):
         # No research file, no numbers: a missing source stays UNKNOWN.
         res = _unavailable("registries/arbitrage_research.json", observed_at)
         res["pairs_monitored"] = []
