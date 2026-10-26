@@ -351,3 +351,29 @@ def test_git_refuses_a_symlinked_repo(tmp_path):
     subprocess.run(["git", "init", "-q", str(real)], check=True)
     result = _git(real, "status", "--porcelain")
     assert result.returncode == 0
+
+
+def test_git_refuses_a_repo_two_levels_under_a_symlink(tmp_path):
+    import subprocess
+
+    from courier_runtime.home_agent import _git
+
+    outside = tmp_path / "outside"
+    repo = outside / "mid" / "repo"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    (repo / "SECRET").write_text("SECRET\n", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    try:
+        _git(link / "mid" / "repo", "status")
+    except OSError as exc:
+        assert "symlink" in str(exc)
+    else:
+        raise AssertionError("repo two levels under a symlink was used")
+    assert (repo / "SECRET").read_text(encoding="utf-8") == "SECRET\n"
+
+    real = tmp_path / "real"
+    subprocess.run(["git", "init", "-q", str(real)], check=True)
+    result = _git(real, "status", "--porcelain")
+    assert result.returncode == 0
