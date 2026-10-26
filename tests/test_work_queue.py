@@ -330,6 +330,93 @@ def test_external_claim_ignores_the_clock(tmp_path):
     assert caught.value.code == "DUPLICATE_CLAIM"
 
 
+def test_ledger_two_levels_under_a_symlinked_home_is_not_opened(tmp_path):
+    outside = tmp_path / "outside"
+    (outside / "registries").mkdir(parents=True)
+    (outside / "registries" / "ledger.jsonl").write_text('{"secret":"SECRET"}\n', encoding="utf-8")
+    link = tmp_path / "home"
+    link.symlink_to(outside, target_is_directory=True)
+    items = tmp_path / "items"
+    _write_items(items, [_item("LIVE", ["courier_core/a.py"])])
+    queue = WorkQueue(items, link / "registries" / "ledger.jsonl")
+    with pytest.raises(WorkQueueError) as caught:
+        queue.items(now=NOW)
+    assert caught.value.code == "UNREADABLE"
+    assert not (outside / "registries" / "ledger.jsonl.lock").exists()
+    assert "SECRET" in (outside / "registries" / "ledger.jsonl").read_text(encoding="utf-8")
+
+    fresh = tmp_path / "fresh"
+    fresh.mkdir()
+    fresh_link = tmp_path / "fresh-link"
+    fresh_link.symlink_to(fresh, target_is_directory=True)
+    with pytest.raises(WorkQueueError) as caught:
+        WorkQueue(items, fresh_link / "registries" / "ledger.jsonl").claim("LIVE", "holder-a", 60, now=NOW)
+    assert caught.value.code == "UNREADABLE"
+    assert not (fresh / "registries").exists()
+
+    claimed = WorkQueue(items, tmp_path / "real" / "registries" / "ledger.jsonl").claim("LIVE", "holder-a", 60, now=NOW)
+    assert claimed["holder"] == "holder-a"
+
+
+def test_items_under_a_symlinked_home_are_not_opened(tmp_path):
+    outside = tmp_path / "outside"
+    _write_items(outside / "items", [_item("SECRET", ["courier_core/a.py"])])
+    link = tmp_path / "home"
+    link.symlink_to(outside, target_is_directory=True)
+    queue = WorkQueue(link / "items", tmp_path / "ledger.jsonl")
+    with pytest.raises(WorkQueueError) as caught:
+        queue.items(now=NOW)
+    assert caught.value.code == "UNREADABLE"
+    assert "SECRET" in (outside / "items" / "SECRET.json").read_text(encoding="utf-8")
+
+    real = tmp_path / "real-items"
+    _write_items(real, [_item("LIVE", ["courier_core/a.py"])])
+    assert [item["id"] for item in WorkQueue(real, tmp_path / "live.jsonl").items(now=NOW)] == ["LIVE"]
+
+    schema_dir = tmp_path / "schema-dir"
+    schema_dir.mkdir()
+    (schema_dir / "work_item.schema.json").write_text(DEFAULT_SCHEMA.read_text(encoding="utf-8"), encoding="utf-8")
+    schema_link = tmp_path / "schema-link"
+    schema_link.symlink_to(schema_dir, target_is_directory=True)
+    with pytest.raises(WorkQueueError) as caught:
+        WorkQueue(real, tmp_path / "schema.jsonl", schema_link / "work_item.schema.json").items(now=NOW)
+    assert caught.value.code == "UNREADABLE"
+
+
+def test_items_two_levels_under_a_symlink_are_not_opened(tmp_path):
+    outside = tmp_path / "outside"
+    _write_items(outside / "mid" / "items", [_item("SECRET", ["courier_core/a.py"])])
+    link = tmp_path / "home"
+    link.symlink_to(outside, target_is_directory=True)
+    queue = WorkQueue(link / "mid" / "items", tmp_path / "ledger.jsonl")
+    with pytest.raises(WorkQueueError) as caught:
+        queue.items(now=NOW)
+    assert caught.value.code == "UNREADABLE"
+    assert "SECRET" in (outside / "mid" / "items" / "SECRET.json").read_text(encoding="utf-8")
+
+    real = tmp_path / "real-items"
+    _write_items(real, [_item("LIVE", ["courier_core/a.py"])])
+    assert [item["id"] for item in WorkQueue(real, tmp_path / "live-two.jsonl").items(now=NOW)] == ["LIVE"]
+
+
+def test_schema_two_levels_under_a_symlink_is_not_opened(tmp_path):
+    outside = tmp_path / "outside"
+    mid = outside / "mid"
+    mid.mkdir(parents=True)
+    secret = mid / "work_item.schema.json"
+    secret.write_text('{"note":"SECRET"}', encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    real = tmp_path / "real-items"
+    _write_items(real, [_item("LIVE", ["courier_core/a.py"])])
+    with pytest.raises(WorkQueueError) as caught:
+        WorkQueue(real, tmp_path / "ledger.jsonl", link / "mid" / "work_item.schema.json").items(now=NOW)
+    assert caught.value.code == "UNREADABLE"
+    assert secret.read_text(encoding="utf-8") == '{"note":"SECRET"}'
+
+    assert [item["id"] for item in WorkQueue(real, tmp_path / "live-schema.jsonl").items(now=NOW)] == ["LIVE"]
+
+
 def test_ledger_under_symlinked_parent_is_not_opened(tmp_path):
     outside = tmp_path / "outside"
     outside.mkdir()

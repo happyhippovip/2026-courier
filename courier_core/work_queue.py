@@ -250,7 +250,7 @@ class WorkQueue:
     def _append(self, event: dict) -> None:
         line = json.dumps(event, sort_keys=True, separators=(",", ":")).encode("utf-8") + b"\n"
         path = self.ledger_path
-        if path.is_symlink() or path.parent.is_symlink():
+        if path.is_symlink() or path.parent.is_symlink() or path.parent.parent.is_symlink():
             raise WorkQueueError("UNREADABLE")
         existing = path.stat().st_size if path.exists() else 0
         if existing + len(line) > MAX_LEDGER_BYTES:
@@ -266,7 +266,7 @@ class WorkQueue:
     @contextmanager
     def _lock(self):
         lock_path = self.ledger_path.with_suffix(self.ledger_path.suffix + ".lock")
-        if lock_path.is_symlink() or lock_path.parent.is_symlink():
+        if lock_path.is_symlink() or lock_path.parent.is_symlink() or lock_path.parent.parent.is_symlink():
             raise WorkQueueError("UNREADABLE")
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         flags = os.O_CREAT | os.O_RDWR
@@ -395,7 +395,8 @@ def main(argv=None) -> int:
 
 def _load_seeds(items_dir: Path, schema_path: Path) -> dict[str, dict]:
     schema = _read_json(schema_path, MAX_ITEM_BYTES)
-    if not items_dir.is_dir() or items_dir.is_symlink():
+    if (items_dir.is_symlink() or items_dir.parent.is_symlink()
+            or items_dir.parent.parent.is_symlink() or not items_dir.is_dir()):
         raise WorkQueueError("UNREADABLE")
     found = {}
     for path in sorted(items_dir.glob("*.json")):
@@ -484,7 +485,7 @@ def _matches(value, rules) -> bool:
 
 
 def _read_ledger(path: Path) -> list[dict]:
-    if path.is_symlink() or path.parent.is_symlink():
+    if path.is_symlink() or path.parent.is_symlink() or path.parent.parent.is_symlink():
         raise WorkQueueError("UNREADABLE")
     if not path.exists():
         return []
@@ -630,7 +631,7 @@ def _apply(items: dict[str, dict], event: dict) -> None:
 
 
 def _read_json(path: Path, cap: int):
-    if path.is_symlink() or not path.is_file():
+    if path.is_symlink() or path.parent.is_symlink() or path.parent.parent.is_symlink() or not path.is_file():
         raise WorkQueueError("UNREADABLE")
     try:
         raw = path.read_bytes()
