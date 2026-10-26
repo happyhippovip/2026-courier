@@ -26,7 +26,9 @@ class RevenueStore:
         self.jobs_path = self.dir / "jobs.jsonl"
 
     def _refuse(self, path: Path) -> None:
-        if self.dir.parent.is_symlink() or self.dir.is_symlink() or path.is_symlink():
+        home = self.dir.parent
+        if (home.is_symlink() or home.parent.is_symlink()
+                or self.dir.is_symlink() or path.is_symlink() or path.parent.is_symlink()):
             raise OSError(f"{path}: refusing to follow a symlink")
 
     def _append(self, path, record):
