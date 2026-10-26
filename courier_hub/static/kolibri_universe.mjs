@@ -24,6 +24,28 @@ export const UNIVERSE_COLORS = Object.freeze({
   AMBER_ACCENT: "#d8b46a",   // Courier Gold
 });
 
+// A ledger item is verified only when read_ledger saw the journaled RESULT_ACCEPTED
+// proof (it then sets verified === true and event_id "journal:<seq>:RESULT_ACCEPTED").
+const JOURNAL_PROOF_ID = /^journal:[1-9][0-9]*:RESULT_ACCEPTED$/;
+
+function ledgerVerified(item) {
+  return item.verified === true && typeof item.event_id === "string" && JOURNAL_PROOF_ID.test(item.event_id);
+}
+
+function sourceAvailable(block) {
+  return Boolean(block && typeof block === "object" && block.available === true);
+}
+
+// Team state from its members: any blocked member blocks the team, any member still
+// working keeps it reported, green only when every member is verified; else unknown.
+function teamStatus(members) {
+  const states = members.map((a) => a.status);
+  if (states.includes(UNIVERSE_STATUS.BLOCKED)) return UNIVERSE_STATUS.BLOCKED;
+  if (states.includes(UNIVERSE_STATUS.REPORTED)) return UNIVERSE_STATUS.REPORTED;
+  if (states.length > 0 && states.every((st) => st === UNIVERSE_STATUS.VERIFIED)) return UNIVERSE_STATUS.VERIFIED;
+  return UNIVERSE_STATUS.UNKNOWN;
+}
+
 /**
  * Extracts normalized planet and workflow graph from snapshot.
  * Guarantees zero synthetic or invented items.
@@ -38,12 +60,14 @@ export function buildUniverseModel(snapshot, options) {
   const ledger = data.ledger && typeof data.ledger === "object" ? data.ledger : {};
   const bridge = data.ledger_bridge && typeof data.ledger_bridge === "object" ? data.ledger_bridge : {};
 
-  // Center node: Courier Symphony Core
+  // Center node: Courier Symphony Core. Its status is the health of the snapshot,
+  // never VERIFIED: reported while at least one real source answered, else unknown.
+  const coreLive = [muse, ledger, bridge].some(sourceAvailable);
   const center = {
     id: "courier-core",
     label: "Courier Symphony Core",
     kind: "core",
-    status: UNIVERSE_STATUS.VERIFIED,
+    status: coreLive ? UNIVERSE_STATUS.REPORTED : UNIVERSE_STATUS.UNKNOWN,
     color: UNIVERSE_COLORS.CORE_SPHERE,
     observed_at: data.observed_at || UNAVAILABLE,
   };
@@ -94,26 +118,34 @@ export function buildUniverseModel(snapshot, options) {
   agents.forEach((a) => {
     if (a.owner && a.owner !== "—") teamSet.add(a.owner);
   });
-  const teams = Array.from(teamSet).map((name, i) => ({
-    id: `team-${i + 1}`,
-    name,
-    kind: "team",
-    status: UNIVERSE_STATUS.REPORTED,
-    color: "#c084fc", // Lila
-  }));
+  const teams = Array.from(teamSet).map((name, i) => {
+    const status = teamStatus(agents.filter((a) => a.owner === name));
+    return {
+      id: `team-${i + 1}`,
+      name,
+      kind: "team",
+      status,
+      color: status === UNIVERSE_STATUS.VERIFIED ? verifiedGreen : UNIVERSE_COLORS[status],
+      halo: UNIVERSE_COLORS.CORE_RING, // decorative Lila halo, carries no state
+    };
+  });
 
   // 2. Project / Mission Planets
   const projects = [];
   const seenProjKeys = new Set();
+  // Only the journal proves a project done; mission status strings are claims.
+  const provenLedger = new Map(rawLedgerItems.filter((item) => item && ledgerVerified(item))
+    .map((item) => [String(item.id), item]));
 
   rawMissions.forEach((m, idx) => {
     const pid = String(m.id || m.task_id || `mission-${idx + 1}`);
     seenProjKeys.add(pid);
     const mStatusRaw = String(m.status || "").toUpperCase();
+    const proof = provenLedger.get(String(m.task_id || "")) || provenLedger.get(pid);
     let status = UNIVERSE_STATUS.UNKNOWN;
     if (mStatusRaw === "BLOCKED" || m.blocker) status = UNIVERSE_STATUS.BLOCKED;
-    else if (mStatusRaw === "VERIFIED" || mStatusRaw === "DONE") status = UNIVERSE_STATUS.VERIFIED;
-    else if (mStatusRaw.length > 0) status = UNIVERSE_STATUS.REPORTED;
+    else if (proof) status = UNIVERSE_STATUS.VERIFIED;
+    else if (mStatusRaw.length > 0 && !mStatusRaw.startsWith("UNKNOWN")) status = UNIVERSE_STATUS.REPORTED;
 
     projects.push({
       id: pid,
@@ -121,7 +153,8 @@ export function buildUniverseModel(snapshot, options) {
       kind: "project",
       workkey: m.workkey || null,
       status,
-      color: UNIVERSE_COLORS[status] || UNIVERSE_COLORS[UNIVERSE_STATUS.UNKNOWN],
+      color: status === UNIVERSE_STATUS.VERIFIED ? verifiedGreen : UNIVERSE_COLORS[status],
+      event_id: status === UNIVERSE_STATUS.VERIFIED ? proof.event_id : null,
     });
   });
 
@@ -129,13 +162,18 @@ export function buildUniverseModel(snapshot, options) {
     const pid = String(item.id || `ledger-${idx + 1}`);
     if (!seenProjKeys.has(pid)) {
       seenProjKeys.add(pid);
+      // "done" alone is not proof: it also holds human-confirmed, stopped and failed tasks.
+      const proven = ledgerVerified(item);
+      const status = proven ? UNIVERSE_STATUS.VERIFIED
+        : (item.pile === "working" ? UNIVERSE_STATUS.REPORTED : UNIVERSE_STATUS.UNKNOWN);
       projects.push({
         id: pid,
         label: String(item.title || pid).slice(0, 32),
         kind: "project",
         workkey: pid,
-        status: item.pile === "done" ? UNIVERSE_STATUS.VERIFIED : (item.pile === "working" ? UNIVERSE_STATUS.REPORTED : UNIVERSE_STATUS.UNKNOWN),
-        color: item.pile === "done" ? UNIVERSE_COLORS[UNIVERSE_STATUS.VERIFIED] : UNIVERSE_COLORS[UNIVERSE_STATUS.REPORTED],
+        status,
+        color: proven ? verifiedGreen : UNIVERSE_COLORS[status],
+        event_id: proven ? item.event_id : null,
       });
     }
   });
@@ -153,24 +191,59 @@ export function buildUniverseModel(snapshot, options) {
         status: agent.status,
         color: agent.color,
         workkey: agent.workkey,
+        verified: false, // a station report is no journal proof
+        event_id: null,
       });
     }
 
     if (agent.workkey) {
       const match = projects.find((p) => p.workkey === agent.workkey || p.id === agent.workkey);
       if (match) {
+        // Only an edge into a journal-proven project is verified and may carry the
+        // proof event id, so a beam pulses once per real RESULT_ACCEPTED, never otherwise.
+        const proven = match.status === UNIVERSE_STATUS.VERIFIED && typeof match.event_id === "string";
         connections.push({
           from: agent.id,
           to: match.id,
           status: agent.status,
           color: agent.color,
           workkey: agent.workkey,
+          verified: proven,
+          event_id: proven ? match.event_id : null,
         });
       }
     }
   });
 
   return { center, teams, agents, projects, connections };
+}
+
+/**
+ * Graph for kolibri_beams.createBeams().setGraph(), in its own topology: the Courier
+ * master ("courier"), the verifier ("verifier") and agents as stations. Courier -> agent
+ * beams show live wiring and never pulse. An agent -> verifier beam exists only for a
+ * journal-proven project and carries that RESULT_ACCEPTED id, so it pulses once per proof.
+ */
+export function toBeamGraph(model) {
+  const m = model && typeof model === "object" ? model : {};
+  const agents = Array.isArray(m.agents) ? m.agents : [];
+  const known = new Set(agents.map((a) => a.id));
+  const nodes = [
+    { id: "courier", color: m.center ? m.center.color : UNIVERSE_COLORS.CORE_SPHERE },
+    { id: "verifier", color: UNIVERSE_COLORS[UNIVERSE_STATUS.UNKNOWN] },
+    ...agents.map((a) => ({ id: a.id, kind: "station", color: a.color })),
+  ];
+  const edges = [];
+  for (const c of Array.isArray(m.connections) ? m.connections : []) {
+    if (m.center && c.from === m.center.id && known.has(c.to)) {
+      edges.push({ id: `courier->${c.to}`, from: "courier", to: c.to, color: c.color, state: c.status,
+        verified: false, event_id: null });
+    } else if (known.has(c.from) && c.verified === true && typeof c.event_id === "string") {
+      edges.push({ id: `${c.from}->verifier`, from: c.from, to: "verifier", color: c.color, state: c.status,
+        verified: true, event_id: c.event_id });
+    }
+  }
+  return { nodes, edges };
 }
 
 /**
