@@ -191,6 +191,10 @@ class LedgerTick:
         path = self.status_path()
         tmp = path.with_name(path.name + f".{os.getpid()}.tmp")
         try:
+            home = Path(self.home)
+            if (home.is_symlink() or home.parent.is_symlink() or home.parent.parent.is_symlink()
+                    or path.is_symlink() or path.parent.is_symlink()):
+                raise OSError(f"{path}: refusing to follow a symlink")
             path.parent.mkdir(parents=True, exist_ok=True)
             with open(tmp, "w", encoding="utf-8") as fh:
                 json.dump(record, fh, sort_keys=True)
