@@ -113,6 +113,26 @@ def test_submit_refuses_a_symlinked_mailbox(tmp_path):
     assert json.loads(path.read_text(encoding="utf-8"))["action"] == "host_health"
 
 
+def test_submit_refuses_a_mailbox_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    (outside / "mid").mkdir(parents=True)
+    (outside / "mid" / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    try:
+        submit(link / "mid" / "box", "pc-1", "j1", "host_health", {"secret": "SECRET"})
+    except OSError as exc:
+        seen = str(exc)
+    else:
+        seen = "written"
+    assert "symlink" in seen.lower(), seen
+    assert not (outside / "mid" / "box").exists()
+    assert (outside / "mid" / "SECRET").read_text(encoding="utf-8") == "SECRET"
+
+    path = submit(tmp_path / "real", "pc-1", "j1", "host_health")
+    assert json.loads(path.read_text(encoding="utf-8"))["action"] == "host_health"
+
+
 def test_run_once_refuses_a_symlinked_mailbox(tmp_path):
     outside = tmp_path / "outside"
     inbox = outside / "pc-1" / "inbox"
