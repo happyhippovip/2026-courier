@@ -456,6 +456,24 @@ def test_claim_record_refuses_a_symlink(tmp_path):
     assert planted.read_text(encoding="utf-8").startswith("{")
 
 
+def test_claim_record_refuses_a_home_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    run = type("Run", (), {"pid": 1, "group_id": lambda self: 1})()
+    with pytest.raises(ContainmentError, match="symlink"):
+        H._write_claim_record(str(link / "mid" / "home"), _spec(tmp_path), run)
+    assert not (outside / "mid").exists()
+    assert (outside / "SECRET").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real"
+    path = H._write_claim_record(str(real), _spec(tmp_path), run)
+    assert path.is_file()
+    assert "SECRET" not in path.read_text(encoding="utf-8")
+
+
 def test_orphan_gate_without_claims_dir(tmp_path):
     assert run_orphan_gate(str(tmp_path / "home")) == 0
 

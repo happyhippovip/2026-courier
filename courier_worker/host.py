@@ -612,7 +612,8 @@ def _refuse_claim_link(home: str) -> Path:
     root = Path(home)
     run_dir = _run_dir(home)
     claims = _claims_dir(home)
-    if root.is_symlink() or run_dir.is_symlink() or claims.is_symlink():
+    if (root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink()
+            or run_dir.is_symlink() or claims.is_symlink()):
         raise ContainmentError(f"{home}: refusing to follow a symlink")
     return claims
 
