@@ -208,6 +208,18 @@ def test_collect_artifacts_hashes_files(tmp_path):
     assert all(isinstance(a, ArtifactRef) for a in found)
 
 
+def test_collect_artifacts_refuses_a_symlink(tmp_path):
+    root = tmp_path / "arts"
+    root.mkdir()
+    outside = tmp_path / "outside.txt"
+    outside.write_bytes(b"secret")
+    (root / "local.txt").write_bytes(b"ok")
+    (root / "link.txt").symlink_to(outside)
+    with pytest.raises(ContainmentError, match="symlink"):
+        collect_artifacts(str(root))
+    assert outside.read_bytes() == b"secret"
+
+
 def test_collect_artifacts_count_bound(tmp_path):
     root = tmp_path / "many"
     root.mkdir()

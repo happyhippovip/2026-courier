@@ -763,6 +763,8 @@ def collect_artifacts(artifact_dir: str) -> tuple:
     for dirpath, _dirnames, filenames in os.walk(artifact_dir):
         for name in sorted(filenames):
             full = os.path.join(dirpath, name)
+            if os.path.islink(full):
+                raise ContainmentError("artifact path is a symlink")
             try:
                 size = os.path.getsize(full)
             except OSError:
