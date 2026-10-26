@@ -446,6 +446,13 @@ class StubHandler(BaseHTTPRequestHandler):
     def log_message(self, *args):
         pass
 
+    def _sse_wait(self):
+        stop = getattr(self.server, "sse_stop", None)
+        if stop is not None and stop.is_set():
+            return False
+        time.sleep(0.2)
+        return not (stop is not None and stop.is_set())
+
     def _json(self, status, payload=None):
         body = b"" if payload is None else json.dumps(payload).encode()
         self.send_response(status)
@@ -470,12 +477,13 @@ class StubHandler(BaseHTTPRequestHandler):
             self.end_headers()
             try:
                 for payload in STUB.sse_plan:
-                    time.sleep(0.2)
+                    if not self._sse_wait():
+                        return
                     line = ("data: %s\n\n" % json.dumps(payload)).encode()
                     self.wfile.write(line)
                     self.wfile.flush()
-                while True:
-                    time.sleep(0.2)
+                while self._sse_wait():
+                    pass
             except (BrokenPipeError, ConnectionResetError, OSError):
                 pass
         else:
@@ -531,11 +539,13 @@ class StubHandler(BaseHTTPRequestHandler):
 def stub():
     STUB.reset()
     server = ThreadingHTTPServer(("127.0.0.1", 0), StubHandler)
+    server.sse_stop = threading.Event()
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
         yield f"http://127.0.0.1:{server.server_port}"
     finally:
+        server.sse_stop.set()
         server.shutdown()
         thread.join(timeout=5)
         server.server_close()

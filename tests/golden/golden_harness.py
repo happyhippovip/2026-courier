@@ -129,6 +129,7 @@ def synthetic_params(**overrides):
         "hang": False,
         "fail_transient_n": 0,
         "fault_attempts": [1],
+        "estimated_cost_eur": 0.0,
     }
     params.update(overrides)
     return params

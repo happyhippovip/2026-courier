@@ -387,7 +387,7 @@ def test_service_lifecycle_and_http_endpoints(tmp_path: Path):
         # 6. POST /v1/tasks with valid payload returns 201
         task_payload = {
             "adapter": "synthetic",
-            "params": {"duration_ms": 10},
+            "params": {"duration_ms": 10, "estimated_cost_eur": 0.0},
             "effect_class": "idempotent",
             "max_attempts": 3,
             "lease_ttl_s": 60,
@@ -478,7 +478,7 @@ def test_service_claim_and_execution_lifecycle(tmp_path: Path):
         # 2. Create task
         task_payload = {
             "adapter": "synthetic",
-            "params": {"duration_ms": 5},
+            "params": {"duration_ms": 5, "estimated_cost_eur": 0.0},
             "effect_class": "idempotent",
             "max_attempts": 2,
             "lease_ttl_s": 60,
