@@ -58,6 +58,31 @@ def test_local_grants_refuse_a_symlink(tmp_path):
     assert LocalGrants.load(home / "home_grants.json").max_access == "control"
 
 
+def test_run_once_refuses_a_symlinked_mailbox(tmp_path):
+    outside = tmp_path / "outside"
+    inbox = outside / "pc-1" / "inbox"
+    inbox.mkdir(parents=True)
+    (inbox / "j1.json").write_text(
+        json.dumps({"action": "host_health", "params": {"secret": "SECRET"}}),
+        encoding="utf-8",
+    )
+    link = tmp_path / "mailbox"
+    link.symlink_to(outside, target_is_directory=True)
+    calls = []
+    agent = HomeAgent(link, "pc-1", LocalGrants(), {"host_health": lambda p: calls.append(p) or {"ok": True}}, clock=lambda: 5.0)
+    assert agent.run_once() == []
+    assert calls == []
+    assert not (outside / "pc-1" / "outbox").exists()
+    assert "SECRET" in (inbox / "j1.json").read_text(encoding="utf-8")
+
+    real = tmp_path / "real-mailbox"
+    submit(real, "pc-1", "j1", "host_health")
+    live = HomeAgent(real, "pc-1", LocalGrants(), {"host_health": lambda p: calls.append("live") or {"ok": True}}, clock=lambda: 5.0)
+    receipts = live.run_once()
+    assert receipts[0]["status"] == "DONE"
+    assert calls == ["live"]
+
+
 def test_local_grants_allow_more_and_pause_stops_all(tmp_path):
     gpath = tmp_path / "home_grants.json"
     gpath.write_text(json.dumps({"max_access": "write", "allowed_actions": ["host_health", "git_pull_repo"],

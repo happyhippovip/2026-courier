@@ -79,11 +79,18 @@ class HomeAgent:
 
     def run_once(self):
         """Process every new job once. Returns the receipts written in this pass."""
+        root = self.inbox.parent.parent
+        if (root.is_symlink() or root.parent.is_symlink()
+                or self.inbox.is_symlink() or self.inbox.parent.is_symlink()
+                or self.outbox.is_symlink() or self.outbox.parent.is_symlink()):
+            return []
         self.outbox.mkdir(parents=True, exist_ok=True)
         receipts = []
         for path in sorted(self.inbox.glob("*.json")) if self.inbox.exists() else []:
             job_id = path.stem
             out = self.outbox / f"{job_id}.json"
+            if path.is_symlink() or out.is_symlink():
+                continue
             if out.exists():
                 continue                                   # already done: never twice
             try:
