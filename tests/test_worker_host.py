@@ -556,6 +556,23 @@ def test_outbox_refuses_a_symlink(tmp_path):
     assert "stolen" in planted.read_text(encoding="utf-8")
 
 
+def test_outbox_refuses_a_home_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ContainmentError, match="symlink"):
+        outbox_write(str(link / "mid" / "home"), {"dispatch_id": "d1", "result": 1})
+    assert not (outside / "mid").exists()
+    assert (outside / "SECRET").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real"
+    path = outbox_write(str(real), {"dispatch_id": "d1", "result": 1})
+    assert path.is_file()
+    assert "SECRET" not in path.read_text(encoding="utf-8")
+
+
 def test_outbox_roundtrip_and_remove(tmp_path):
     home = str(tmp_path / "home")
     payload = {"dispatch_id": "d1", "result": 1}

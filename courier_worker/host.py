@@ -866,7 +866,8 @@ def _outbox_dir(home: str) -> Path:
 def _refuse_outbox_link(home: str) -> Path:
     root = Path(home)
     outbox = _outbox_dir(home)
-    if root.is_symlink() or outbox.is_symlink():
+    if (root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink()
+            or outbox.is_symlink()):
         raise ContainmentError(f"{home}: refusing to follow a symlink")
     return outbox
 
