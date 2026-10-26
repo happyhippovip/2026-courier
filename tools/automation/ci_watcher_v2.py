@@ -21,7 +21,15 @@ Guarantees (proved by tests/automation/test_ci_watcher_v2*.py with a gh stub and
   reached GitHub (gh could not start, HTTP 4xx other than 408, gh usage/auth errors) frees the key;
 * one process per key at a time: flock where available (released by the OS when a process dies, so
   a SIGKILL leaves no stale lock); where there is no fcntl (Windows) an O_EXCL lock file with a
-  heartbeat, taken over only after `stale_after` seconds without heartbeat.
+  heartbeat (refreshed around every sleep and poll). A lock without heartbeat for `stale_after` seconds
+  may be taken over, atomically: the taker first claims a takeover guard file named after the exact stale
+  file (inode + mtime), re-checks that the lock file is still that same stale file, removes it and creates
+  its own with O_EXCL, so two takers never both hold the lock. If a taker is killed inside that
+  microsecond window its guard file (`<lock>.x.take-*`) stays: the lock then fails closed (exit 13, the
+  result names the files) until someone deletes `<lock>.x` and `<lock>.x.take-*` by hand. This path is
+  proved on Linux with a forced interleaving; real Windows behaviour is UNPROVEN beyond CI;
+* numbers are validated in the library and in the CLI: base and max_interval >= 1, factor >= 1, window and
+  dispatch_grace >= 0, max_attempts >= 0, all finite (nan/inf are refused with ValueError / exit 2).
 
 What counts as "finished" (the one rule, CW-2):
 * DISPATCHED BY THIS KEY: only runs with `createdAt >= dispatched_at - 5s` (clock-skew allowance) and
@@ -30,9 +38,20 @@ What counts as "finished" (the one rule, CW-2):
   seen and all of them are completed. If none appears within `dispatch_grace` seconds the result is
   DISPATCH_UNCONFIRMED.
 * OBSERVER MODE (no dispatch by this key): all runs of the SHA count, and completion needs a
-  stability window of two consecutive polls that list the same, completely finished set of runs
-  (so a workflow that registers a moment after the first one finished cannot yield a false SUCCESS).
-  It cannot know a workflow that has not been created yet at both polls: UNKNOWN beyond that.
+  stability window: two polls that list the same, completely finished set of runs, at most
+  `stability_gap` seconds apart (3 * max_interval + 60; an older first look is just a first look again).
+  The window is about one backoff interval (5 s with the defaults): a workflow that registers later than
+  the stability window is not detected and the watcher reports SUCCESS without it. The observer
+  is therefore not a merge gate and decides nothing about merging; for a verdict that is tied to a run use
+  dispatch mode (--dispatch-workflow), where only the run created by the dispatch counts.
+
+DISPATCH_UNCONFIRMED and clock skew: a run counts as ours when GitHub's `createdAt` is not earlier than the
+local dispatch time minus 5 s. If the local clock runs more than 5 s ahead of GitHub, the watcher can fail to
+recognise its own run and ends with DISPATCH_UNCONFIRMED (exit 12, terminal; the safe direction: never a
+false SUCCESS). `--reset-state` refuses that state on purpose. What to do: check on GitHub whether the run
+exists, fix the clock (NTP), then delete the dotfile (`.ci-watch-*.json` in the state dir) by hand and run
+again WITHOUT --dispatch-workflow, so the run is simply watched in observer mode; running again with
+--dispatch-workflow would send a new dispatch.
 
 CLI (watch only unless --dispatch-workflow is given):
     python -m tools.automation.ci_watcher_v2 --workkey WK --sha <40 hex> --state-dir DIR
@@ -40,7 +59,7 @@ CLI (watch only unless --dispatch-workflow is given):
         [--dispatch-workflow FILE --ref BRANCH] [--repo owner/name] [--reset-state]
 Exit codes: 0 all runs success - 1 runs finished but not all success - 2 usage (also: --base and
 --max-interval must be >= 1, --factor >= 1) - 10 still waiting (window over; run again) - 11 attempts
-exhausted - 12 dispatch unconfirmed - 13 locked by another process - 14 state file unreadable -
+exhausted - 12 dispatch unconfirmed - 13 locked by another process (or a stale lock whose takeover was interrupted: see above) - 14 state file unreadable -
 15 dispatch ambiguous (may have reached GitHub; NOT repeated; check GitHub, then run again to watch) -
 16 dispatch failed cleanly (nothing was dispatched, the key is free) - 17 I/O error on the state/lock
 file - 18 --reset-state refused (state is not COMPLETED/EXHAUSTED). Every outcome prints one JSON line.
@@ -56,6 +75,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import re
 import subprocess
@@ -83,7 +103,12 @@ DISPATCH_AMBIGUOUS, DISPATCH_FAILED, IO_ERROR, RESET_REFUSED = "DISPATCH_AMBIGUO
 EXIT_CODES = {"SUCCESS": 0, "FINISHED_NOT_SUCCESS": 1, WAITING: 10, EXHAUSTED: 11, UNCONFIRMED: 12,
               LOCKED: 13, STATE_UNREADABLE: 14, DISPATCH_AMBIGUOUS: 15, DISPATCH_FAILED: 16, IO_ERROR: 17,
               RESET_REFUSED: 18, "RESET": 0, "NO_STATE": 0}
-MIN_INTERVAL = 1.0  # CLI lower bound for --base and --max-interval (CW-4)
+MIN_INTERVAL = 1.0  # lower bound for base and max_interval, in the CLI and in the library (CW-4, N-3)
+
+
+def stability_gap(backoff: "Backoff") -> float:
+    """Longest time between the two finished looks that confirm an observed result (N-2)."""
+    return 3 * backoff.max_interval + 60.0
 
 
 class GhQueryError(RuntimeError):
@@ -113,6 +138,20 @@ class Backoff:
         if attempt <= 1:
             return 0.0
         return min(self.max_interval, self.base * (max(self.factor, 1.0) ** (attempt - 2)))
+
+
+def validate_backoff(backoff: Backoff) -> None:
+    """ValueError for anything that could make the loop spin, hang or never wait (nan, inf, too small, negative)."""
+    def number(name: str, value, low: float) -> None:
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < low:
+            raise ValueError(f"{name} must be a finite number >= {low:g} (got {value!r})")
+    number("base", backoff.base, MIN_INTERVAL)
+    number("max_interval", backoff.max_interval, MIN_INTERVAL)
+    number("factor", backoff.factor, 1.0)
+    number("window", backoff.window, 0.0)
+    number("dispatch_grace", backoff.dispatch_grace, 0.0)
+    if isinstance(backoff.max_attempts, bool) or not isinstance(backoff.max_attempts, int) or backoff.max_attempts < 0:
+        raise ValueError(f"max_attempts must be an integer >= 0 (got {backoff.max_attempts!r})")
 
 
 def idempotency_key(workkey: str, sha: str) -> str:
@@ -156,6 +195,23 @@ def write_state(path: Path, state: dict) -> None:
         except OSError:
             pass
         raise
+    _fsync_dir(path.parent)  # make the rename itself durable (a power cut must not bring back the old state)
+
+
+def _fsync_dir(directory: Path) -> None:
+    """POSIX: fsync the directory after os.replace. Best effort: some filesystems refuse it (EINVAL). Skipped on Windows."""
+    if os.name == "nt":
+        return
+    try:
+        fd = os.open(directory, os.O_RDONLY)
+    except OSError:
+        return
+    try:
+        os.fsync(fd)
+    except OSError:
+        pass
+    finally:
+        os.close(fd)
 
 
 def read_state(path: Path) -> Optional[dict]:
@@ -174,6 +230,9 @@ def read_state(path: Path) -> Optional[dict]:
         value = state.get(field)
         if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float)) or value != value):
             raise ValueError(f"state file field {field} is not a number")
+    value = state.get("last_complete_at")
+    if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float)) or value != value):
+        raise ValueError("state file field last_complete_at is not a number")
     if not isinstance(state.get("last_complete_ids"), (list, type(None))):
         raise ValueError("state file has an unexpected shape")
     if not isinstance(state.get("runs", []), list) or state.get("dispatch", "NONE") not in ("NONE", "DISPATCHING", "DISPATCHED") \
@@ -222,12 +281,14 @@ def _result(status: str, state: dict, polls: int, key: str) -> dict:
 
 
 class _Lock:
-    """flock where available; otherwise an O_EXCL lock file with a heartbeat (CW-5)."""
+    """flock where available; otherwise an O_EXCL lock file with a heartbeat and an atomic stale takeover (CW-5, N-W1)."""
 
     def __init__(self, path: Path, stale_after: float = 600.0):
         self.path, self.handle, self.stale_after = path, None, stale_after
         self.excl_path = path.with_name(path.name + ".x")
         self.excl_held = False
+        self.token = None  # unique content of the lock file we created: how we recognise it as ours
+        self._stale_hook: Optional[Callable[[], None]] = None  # test seam: runs after "stale" was decided, before the takeover
 
     def acquire(self) -> bool:
         if fcntl is None:
@@ -241,33 +302,66 @@ class _Lock:
             return False
         return True
 
+    def _takeover_guard(self, seen: os.stat_result) -> Path:
+        return self.excl_path.with_name(f"{self.excl_path.name}.take-{seen.st_ino}-{seen.st_mtime_ns}")
+
+    def _take_over(self, seen: os.stat_result) -> bool:
+        """Remove the stale lock file `seen`, unless somebody else got there first. Of several takers of the same stale
+        file only the one that creates its guard (O_EXCL) may act, and it acts only if the file is still the stale one."""
+        guard = self._takeover_guard(seen)
+        try:
+            os.close(os.open(guard, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+        except OSError:
+            return False  # another taker is at work (or died there: fail closed, see the module docstring)
+        try:
+            try:
+                now = self.excl_path.stat()
+            except FileNotFoundError:
+                return True  # already removed by someone: just try to create it
+            if (now.st_ino, now.st_mtime_ns) != (seen.st_ino, seen.st_mtime_ns):
+                return False  # replaced by a fresh lock of another process: it is theirs
+            os.unlink(self.excl_path)
+            return True
+        except OSError:
+            return False
+        finally:
+            try:
+                os.unlink(guard)
+            except OSError:
+                pass
+
     def _acquire_excl(self) -> bool:
-        for _ in range(2):
+        for _ in range(3):
             try:
                 fd = os.open(self.excl_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
             except FileExistsError:
                 try:
-                    age = time.time() - self.excl_path.stat().st_mtime
+                    seen = self.excl_path.stat()
                 except OSError:
                     continue  # vanished between the two calls: try to create it again
-                if age < self.stale_after:
+                if time.time() - seen.st_mtime < self.stale_after:
                     return False
-                grave = self.excl_path.with_name(f"{self.excl_path.name}.stale.{os.getpid()}")
-                try:  # the rename is atomic: of several processes that see a stale lock only one wins it
-                    os.replace(self.excl_path, grave)
-                    os.unlink(grave)
-                except OSError:
+                if self._stale_hook is not None:
+                    self._stale_hook()
+                if not self._take_over(seen):
                     return False
                 continue
+            self.token = f"{os.getpid()}:{os.urandom(8).hex()}"  # unique content: how we recognise the file as ours
             with os.fdopen(fd, "w") as handle:
-                handle.write(str(os.getpid()))
+                handle.write(self.token)
             self.excl_held = True
             return True
         return False
 
+    def _still_ours(self) -> bool:
+        try:  # an inode number can be reused by the next file: compare what is written in it
+            return self.excl_path.read_text() == self.token
+        except OSError:
+            return False
+
     def touch(self) -> None:
         """Heartbeat of the O_EXCL fallback (the flock needs none)."""
-        if self.excl_held:
+        if self.excl_held and self._still_ours():
             try:
                 os.utime(self.excl_path)
             except OSError:
@@ -279,10 +373,11 @@ class _Lock:
             self.handle = None
         if self.excl_held:
             self.excl_held = False
-            try:
-                os.unlink(self.excl_path)
-            except OSError:
-                pass
+            if self._still_ours():  # never remove the lock of whoever took it over after us
+                try:
+                    os.unlink(self.excl_path)
+                except OSError:
+                    pass
 
 
 def _epoch(text) -> Optional[float]:
@@ -328,14 +423,22 @@ def reset_state(workkey: str, sha: str, state_dir) -> dict:
         if state is None:
             return _result("NO_STATE", {"sha": sha, "workkey": workkey}, 0, key)
         if state.get("status") not in (COMPLETED, EXHAUSTED):
-            return _result(RESET_REFUSED, dict(state, last_error=f"state is {state.get('status')}; only COMPLETED/EXHAUSTED "
-                                                              "can be reset (check GitHub, then delete the dotfile by hand)"), 0, key)
+            hint = (f"state is {state.get('status')}; only COMPLETED/EXHAUSTED can be reset (check GitHub, then delete the dotfile by hand)")
+            if state.get("status") == UNCONFIRMED:
+                hint = ("state is DISPATCH_UNCONFIRMED; if the run exists on GitHub the local clock may run more than 5 s ahead of "
+                        "GitHub: fix the clock, check GitHub, delete the dotfile by hand and run again without --dispatch-workflow "
+                        "(with it a new dispatch would be sent)")
+            return _result(RESET_REFUSED, dict(state, last_error=hint), 0, key)
         state.update({"status": WATCHING, "attempts": 0, "next_poll_at": None, "runs": [], "conclusion": None,
-                      "last_error": None, "last_complete_ids": None})
+                      "last_error": None, "last_complete_ids": None, "last_complete_at": None})
         write_state(path, state)
         return _result("RESET", state, 0, key)
     finally:
         lock.release()
+
+
+_LOCKED_HINT = ("another watcher holds the lock for this key; if none is running and the lock came from a crash, delete "
+                "{name} and {name}.take-* in the state dir by hand")
 
 
 def watch(workkey: str, sha: str, state_dir, *, backoff: Backoff = Backoff(),
@@ -347,13 +450,14 @@ def watch(workkey: str, sha: str, state_dir, *, backoff: Backoff = Backoff(),
         raise ValueError("sha must be a full 40-character lowercase hex commit id")
     if not workkey:
         raise ValueError("workkey is required")
+    validate_backoff(backoff)  # before any file is created or any gh call is made
     key = idempotency_key(workkey, sha)
     state_dir = Path(state_dir)
     state_dir.mkdir(parents=True, exist_ok=True)
     path = state_path(state_dir, key)
     lock = _Lock(path.with_name(path.name[:-5] + ".lock"), stale_after=max(600.0, 3 * backoff.max_interval + 300.0))
     if not lock.acquire():
-        return _result(LOCKED, {"sha": sha, "workkey": workkey}, 0, key)
+        return _result(LOCKED, {"sha": sha, "workkey": workkey, "last_error": _LOCKED_HINT.format(name=lock.excl_path.name)}, 0, key)
     try:
         try:
             state = read_state(path)
@@ -424,7 +528,10 @@ def watch(workkey: str, sha: str, state_dir, *, backoff: Backoff = Backoff(),
                 state["runs"] = _summary(considered)
                 finished = bool(considered) and all(run.get("status") == "completed" for run in considered)
                 ids = sorted(str(run.get("databaseId")) for run in considered)
-                if finished and (ours or state.get("last_complete_ids") == ids):
+                looked_at = state.get("last_complete_at")
+                confirmed = (state.get("last_complete_ids") == ids and looked_at is not None
+                             and 0 <= now - looked_at <= stability_gap(backoff))
+                if finished and (ours or confirmed):
                     state["status"] = COMPLETED  # ours: the expected run is seen and finished; observer: 2 identical complete polls
                     ok = all(run.get("conclusion") == "success" for run in considered)
                     state["conclusion"] = "success" if ok else "not_success"
@@ -433,6 +540,7 @@ def watch(workkey: str, sha: str, state_dir, *, backoff: Backoff = Backoff(),
                     write_state(path, state)
                     return _result(COMPLETED, state, polls, key)
                 state["last_complete_ids"] = ids if finished else None  # first complete look: confirm once more
+                state["last_complete_at"] = now if finished else None
                 if (not considered and state.get("dispatch") in ("DISPATCHING", "DISPATCHED")
                         and state.get("dispatched_at") is not None and now - state["dispatched_at"] > backoff.dispatch_grace):
                     state["status"] = UNCONFIRMED  # never dispatch again on our own
@@ -510,11 +618,14 @@ def main(argv: list[str] | None = None) -> int:
     if bool(args.dispatch_workflow) != bool(args.ref):
         print("--dispatch-workflow and --ref belong together", file=sys.stderr)
         return 2
-    if args.window < 0 or args.factor < 1 or args.max_attempts < 0 or args.base < MIN_INTERVAL or args.max_interval < MIN_INTERVAL:
-        print(f"--base and --max-interval must be >= {MIN_INTERVAL:g}, --window and --max-attempts >= 0, --factor >= 1", file=sys.stderr)
-        return 2
     backoff = Backoff(base=args.base, factor=args.factor, max_interval=args.max_interval,
                       max_attempts=args.max_attempts, window=args.window)
+    try:
+        validate_backoff(backoff)
+    except ValueError as exc:
+        print(f"{exc}; limits: --base and --max-interval >= {MIN_INTERVAL:g}, --factor >= 1, --window and --max-attempts >= 0, "
+              "all finite", file=sys.stderr)
+        return 2
     dispatch = gh_dispatch(args.dispatch_workflow, args.ref, args.repo) if args.dispatch_workflow else None
     try:
         if args.reset_state:

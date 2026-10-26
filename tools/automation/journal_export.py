@@ -39,6 +39,19 @@ at the end (a deleted last event, a truncated WAL). The header carries head_seq/
 `head_checked`: false unless the caller supplied --expect-head-hash. Compare the header with a
 head you know from another source before treating an export as complete.
 
+Operating notes (read before wiring this into a script):
+* Run it as the user that runs the controller. On a writable medium a `mode=ro` reader of a WAL journal may create
+  the -wal/-shm sidecars, and they get the owner and permissions of whoever exports: sidecars owned by another user
+  (for example root) can stop the controller from opening its own journal afterwards.
+* The export holds one read snapshot from the first check until the last line is written. While it is open SQLite cannot
+  checkpoint past that snapshot, so the WAL grows (and an explicit `wal_checkpoint(TRUNCATE)` of a writer waits).
+  Prefer `--out FILE` (the stream is written at file speed) and do not stall the consumer of stdout for long.
+* With `--out` a failed run (exit 6, 7, 8 ...) never replaces the previous export file. On stdout the lines that were
+  already written cannot be taken back: when exit 7 is reported they are not trustworthy, so the consumer must check the
+  exit code and discard what it read whenever the code is not 0 (or 4 with --allow-partial).
+* `--expect-head-hash` takes the 64 hex digits of the head hash; upper case and surrounding whitespace are normalised, anything
+  else is a usage error (exit 2).
+
 Memory use is O(tasks), not O(events): output is streamed after a first pass has verified the
 chain and checked the state-machine fold, and a second pass in the same read snapshot checks
 that exactly the verified events were emitted.
@@ -109,6 +122,16 @@ def _classify(path, exc: Exception) -> ExportError:
     if "decode" in text.lower():  # stored text is not valid UTF-8: the content is damaged
         return ExportError(EXIT_BAD_CHAIN, f"{path}: stored journal text is not valid UTF-8: {text}")
     return ExportError(EXIT_UNREADABLE, f"{path}: cannot read journal: {text}")
+
+
+def normalize_head_hash(value: str | None) -> str | None:
+    """Lower-case 64-hex head hash, or ExportError(2) for anything else (None stays None)."""
+    if value is None:
+        return None
+    text = value.strip().lower()
+    if len(text) != 64 or not text.isascii() or any(ch not in "0123456789abcdef" for ch in text):
+        raise ExportError(EXIT_USAGE, f"--expect-head-hash must be 64 hex digits (the head_hash of an earlier export), got {value[:80]!r}")
+    return text
 
 
 def resolve_journal(path: str | os.PathLike) -> Path:
@@ -208,6 +231,7 @@ def export_stream(path: str | os.PathLike, only_transitions: bool = False, allow
     first line is handed out, so a refused export never produces output. The returned iterator reads a
     second time inside the same read snapshot, one event at a time (constant memory), and raises
     ExportError(7) at its end if what it read is not what pass 1 verified."""
+    expect_head_hash = normalize_head_hash(expect_head_hash)  # before anything is opened
     journal = open_readonly(path)
     real = Path(journal.path)
     try:
@@ -271,14 +295,18 @@ def _same_file_as_journal(out: Path, journal: Path) -> bool:
 def main(argv: list[str] | None = None, stdout=None, stderr=None) -> int:
     stdout = stdout or sys.stdout
     stderr = stderr or sys.stderr
-    parser = argparse.ArgumentParser(prog="tools.automation.journal_export", description=__doc__.split("\n\n")[0])
+    parser = argparse.ArgumentParser(
+        prog="tools.automation.journal_export", description=__doc__.split("\n\n")[0],
+        epilog="Always check the exit code: with stdout the lines written before a failure (exit 7) must be discarded. "
+               "Use --out to keep the previous export on failure. Run as the user that runs the controller.")
     parser.add_argument("journal", help="path to courier.db (opened read-only)")
     parser.add_argument("--out", help="write the export to this file instead of stdout")
     parser.add_argument("--only-transitions", action="store_true", help="skip events that do not change a task status")
     parser.add_argument("--allow-partial", action="store_true",
                         help="on a broken chain export the verified prefix (exit code stays 4)")
     parser.add_argument("--expect-head-hash", metavar="HEX",
-                        help="head hash known from another source; a different head is exit 8 (detects a cut-off tail)")
+                        help="head hash (64 hex digits, case-insensitive) known from another source; malformed = exit 2, a "
+                             "different head = exit 8 (detects a cut-off tail)")
     try:
         args = parser.parse_args(argv)
     except SystemExit as exc:
