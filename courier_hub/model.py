@@ -267,6 +267,52 @@ def acceptance_proof(task: Any, events: List[Any]) -> Optional[dict]:
     return None
 
 
+# Adapters whose verifier re-reads the artifact and checks its bytes against the
+# journaled sha256 (adapters/synthetic.py, adapters/local_shell.py). Only for these
+# is a verified completion translated into the Kolibri contract value below.
+BYTE_LEVEL_VERIFIED_ADAPTERS = frozenset({"synthetic", "local_shell"})
+KOLIBRI_VERIFIED_RESOLUTION = "BYTE_LEVEL_GOLD_VERIFIED"
+
+
+def acceptance_evidence(task: Any, events: List[Any]) -> Optional[dict]:
+    """The evidence tuple for the Kolibri badge, built only from sealed journal events.
+
+    Needs the journaled RESULT_ACCEPTED proof, the RESULT_READY of the same dispatch
+    and result naming exactly one artifact, and an adapter whose verifier checks
+    bytes. Anything missing or ambiguous gives None, never a partial tuple."""
+    proof = acceptance_proof(task, events)
+    if proof is None or _get(task, "adapter") not in BYTE_LEVEL_VERIFIED_ADAPTERS:
+        return None
+    task_id = _get(task, "task_id")
+    accepted = next((e for e in events if _type(e) == "RESULT_ACCEPTED" and _get(e, "seq") == proof["seq"]), None)
+    if accepted is None or _get(accepted, "task_id") != task_id:
+        return None
+    attempt, dispatch_id = _get(accepted, "attempt"), _get(accepted, "dispatch_id")
+    if (isinstance(attempt, bool) or not isinstance(attempt, int) or attempt < 1
+            or not isinstance(dispatch_id, str) or not dispatch_id):
+        return None
+    ready = [e for e in events if _type(e) == "RESULT_READY" and _get(e, "dispatch_id") == dispatch_id
+             and _get(e, "result_id") == proof["result_id"]]
+    if len(ready) != 1:
+        return None
+    artifacts = _payload(ready[0]).get("artifacts")
+    if not isinstance(artifacts, list) or len(artifacts) != 1 or not isinstance(artifacts[0], dict):
+        return None
+    sha = artifacts[0].get("sha256")
+    if not isinstance(sha, str) or len(sha) != 64 or any(c not in "0123456789abcdef" for c in sha):
+        return None
+    return {
+        "journal_entry_id": f"journal:{proof['seq']}:RESULT_ACCEPTED",
+        "task_id": task_id,
+        "attempt": attempt,
+        "dispatch_id": dispatch_id,
+        "accepted_result_id": proof["result_id"],
+        "artifact_sha256": sha,
+        "resolution": KOLIBRI_VERIFIED_RESOLUTION,
+        "proof": dict(proof),
+    }
+
+
 def card(task: Any, events: Iterable[Any]) -> dict:
     """The Home card for one task."""
     events = list(events)
@@ -288,6 +334,9 @@ def card(task: Any, events: Iterable[Any]) -> dict:
         proof = acceptance_proof(task, events)
         if proof is not None:
             base["proof"] = proof
+            evidence = acceptance_evidence(task, events)
+            if evidence is not None:
+                base["evidence"] = evidence
     return base
 
 
