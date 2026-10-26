@@ -32,7 +32,7 @@ def _file_size(path):
 
 def _refuse_link(path) -> None:
     raw = Path(path)
-    if raw.is_symlink() or raw.parent.is_symlink():
+    if raw.is_symlink() or raw.parent.is_symlink() or raw.parent.parent.is_symlink():
         raise OSError(f"{raw}: refusing to follow a symlink")
 
 

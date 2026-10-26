@@ -37,6 +37,26 @@ def test_emit_signal_refuses_a_symlink(tmp_path):
     assert (planted / "wakeups.jsonl").read_text(encoding="utf-8") == '{"stolen":true}\n'
 
 
+def test_emit_signal_refuses_a_path_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    (outside / "mid").mkdir(parents=True)
+    (outside / "mid" / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    try:
+        emit_signal(link / "mid" / "signals.txt", "IDLE")
+    except OSError as exc:
+        assert "symlink" in str(exc)
+    else:
+        raise AssertionError("appended through a linked directory")
+    assert (outside / "mid" / "SECRET").read_text(encoding="utf-8") == "SECRET"
+    assert not (outside / "mid" / "signals.txt").exists()
+
+    real = tmp_path / "signals.txt"
+    assert emit_signal(real, "IDLE") == "IDLE"
+    assert real.read_text(encoding="utf-8") == "IDLE\n"
+
+
 class Clock:
     def __init__(self):
         self.t = 1000.0
