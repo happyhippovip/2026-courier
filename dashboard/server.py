@@ -25,9 +25,9 @@ EVENTS_DIR = COURIER_DIR / "events"
 
 
 def _plain_text(path: Path, root: Path | None = None) -> str | None:
-    if root is not None and (root.is_symlink() or root.parent.is_symlink()):
+    if root is not None and (root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink()):
         return None
-    if path.is_symlink() or path.parent.is_symlink() or not path.is_file():
+    if path.is_symlink() or path.parent.is_symlink() or path.parent.parent.is_symlink() or not path.is_file():
         return None
     try:
         return path.read_text(encoding="utf-8")

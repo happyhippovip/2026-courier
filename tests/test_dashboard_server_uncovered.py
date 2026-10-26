@@ -234,6 +234,25 @@ def test_status_refuses_a_symlink(mock_dirs):
     assert "SECRET" not in json.dumps(offers)
 
 
+def test_plain_text_refuses_a_file_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    nested = outside / "a" / "b"
+    nested.mkdir(parents=True)
+    secret = nested / "note.txt"
+    secret.write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    assert d_server._plain_text(link / "a" / "b" / "note.txt", link / "a" / "b") is None
+    assert d_server._plain_text(link / "a" / "note.txt", tmp_path) is None
+    assert secret.read_text(encoding="utf-8") == "SECRET"
+
+    real_dir = tmp_path / "real"
+    real_dir.mkdir()
+    real = real_dir / "note.txt"
+    real.write_text("HELLO", encoding="utf-8")
+    assert d_server._plain_text(real, real_dir) == "HELLO"
+
+
 def test_emergency_latch_refuses_a_symlink(mock_dirs):
     outside = mock_dirs["tmp_path"] / "outside-latch"
     outside.write_text("SECRET", encoding="utf-8")
