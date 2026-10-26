@@ -10,10 +10,11 @@ No network, no model calls, no secrets. The watcher tests use a stub `gh`; a rea
     python3 tests/automation/ci_call_counts.py                                            # call-count harness, JSON, exit 0
     python3 -m pytest -p no:cacheprovider -q tests/automation/test_journal_export_round3.py tests/automation/test_journal_export_round4.py   # exporter last rounds
     python3 -m pytest -p no:cacheprovider -q tests/automation/test_ci_watcher_v2_round3.py                                              # watcher last round
-Read the exit code (`echo $?`, or `${PIPESTATUS[0]}` behind a pipe), not only the last line. Every skip in this suite carries the reason prefix
-`SKIPPED, NOT PASSED: ...` (enforced by `test_round5_k0.py::test_r3_2_every_skip_reason_starts_with_the_common_prefix`); with `-rs` they are listed.
+Read the exit code (`echo $?`, or `${PIPESTATUS[0]}` behind a pipe), not only the last line. Every skip in `tests/automation` carries the reason prefix
+`SKIPPED, NOT PASSED: ...` (enforced by `test_round5_k0.py::test_r3_2_every_skip_reason_starts_with_the_common_prefix`, which scans this directory only); with `-rs`
+they are listed. The one skip outside this directory, `tests/test_github_worker_adapter.py` (needs flask), has no such prefix: it is not ours to change.
 A skipped test proved nothing on that machine. Typical skips: chmod tests as root/Windows (the read-only-medium path is then covered by the forced-medium
-tests `test_n_e5_*`), directory-fsync tests on Windows, the adapter test needs flask.
+tests `test_n_e5_*`), POSIX-only tests (directory fsync, flock) on Windows.
 
 ## Edge-case coverage (where each class is tested; `file::test`)
 | Class | Exporter (`test_journal_export*.py`) | Watcher (`test_ci_watcher_v2*.py`) |
@@ -23,9 +24,29 @@ tests `test_n_e5_*`), directory-fsync tests on Windows, the adapter test needs f
 | stale locks | — | `test_cw5_*`, `test_n_w1_a_takeover_that_died_midway_fails_closed_and_the_locked_result_names_the_files`, `test_n_w1_release_does_not_remove_a_lock_somebody_else_took_over`, `test_n_w5_the_watch_loop_refreshes_the_heartbeat_before_and_after_every_sleep` |
 | interrupted export / write | `test_interrupt_while_writing_leaves_no_tmp_file_and_no_half_output`, `test_ex3_changed_journal_with_out_never_replaces_the_previous_export`, `test_unwritable_out_path_exits_6_after_a_good_read`, `test_broken_pipe_on_stdout_is_exit_6_and_journal_untouched`, `test_n_r4_out_fsyncs_the_directory_after_the_rename` | `test_t1_*` (atomic state write), `test_n_w5_write_state_fsyncs_the_directory_after_the_replace` |
 | re-execution | `test_repeated_export_is_byte_identical_and_stdout_equals_out_file` | `S5_already_posted` in `ci_call_counts.py`, `test_cw3_*` (`--reset-state`), no second dispatch after an ambiguous dispatch (`test_cw6_*`) |
-| tampering / truncation | `test_broken_chain_exits_4_and_exports_nothing_by_default`, `test_b3_expect_head_hash_detects_the_cut_off_tail_with_exit_8`, `test_truncated_*` | `test_n_2_two_finished_looks_hours_apart_are_not_a_confirmation` |
+| tampering / truncation | `test_broken_chain_exits_4_and_exports_nothing_by_default`, `test_b3_expect_head_hash_detects_the_cut_off_tail_with_exit_8`, `test_truncated_*` | — |
+| stability window (observer) | — | `test_n_2_two_finished_looks_hours_apart_are_not_a_confirmation`, `test_r3_w5_two_looks_up_to_3_max_interval_plus_60_seconds_apart_confirm` (boundary 75 s / 75.5 s for max_interval 5) |
+| absurd but finite numbers | — | `test_r3_w1_*` (CLI exit 2, library ValueError, `Backoff.delay` never overflows) |
+| lock lost / future mtime | — | `test_r3_w2_*`, `test_r3_w3_*` |
+| check order | `test_r3_e2_*` (usage error before a missing journal) | — |
 
 Test-name patterns with `*` stand for several tests; list them with `pytest --collect-only -q tests/automation | grep <pattern>`.
 
 ## Known limits (not tested, do not read as proven)
-Real GitHub, NFS, Windows execution of the lock fallback, and a taker killed inside the takeover window (that case fails closed, exit 13).
+Real GitHub, NFS, and Windows execution of the lock fallback (UNKNOWN; the Windows RUNBOOK commands are untested, too).
+
+Lock remainders of the O_EXCL fallback (platforms without `fcntl`; with flock none of this exists):
+* A taker killed inside the takeover window leaves `<state>.lock.x` and `<state>.lock.x.take-<inode>-<mtime_ns>`. This fails closed on purpose:
+  every watcher of that key then ends LOCKED (exit 13) until you delete BOTH files by hand in the state dir (deleting only one also heals it).
+  Check first that no watcher for that key is running. The design is kept: an automatic clean-up of the guard could let two takers act at once.
+* Residual races of the heartbeat (the owner is stalled between "re-check" and "unlink", or a takeover happens right after the owner's last check) cannot be closed
+  without a kernel lock. The owner notices a lost lock at its next heartbeat and then stops without polling or writing (LOCKED, "lock lost").
+* A lock file whose mtime lies far in the future (clock set back by more than the stale limit) counts as stale; a slightly future mtime counts as live.
+
+Extreme values: `--base/--max-interval/--window` are limited to 86400 s, `--factor` to 100 (exit 2 beyond that, library: ValueError); the exponential delay is
+computed without overflow for any number of attempts. `--max-attempts 0 --window 0` runs until a terminal state and can therefore run for a very long time on purpose.
+
+Observer after a manual reset from DISPATCH_UNCONFIRMED (R3-W6): the observer counts ALL runs of the SHA, so an older red run gives FINISHED_NOT_SUCCESS
+(the safe direction: never a false SUCCESS).
+
+Order of checks in the exporter: usage errors (malformed `--expect-head-hash`, `--out` = the journal) first, then the journal (missing = exit 3, broken = 4).

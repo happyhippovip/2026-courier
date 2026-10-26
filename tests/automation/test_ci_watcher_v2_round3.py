@@ -178,8 +178,8 @@ def test_n_w5_the_watch_loop_refreshes_the_heartbeat_before_and_after_every_slee
 
 def test_n_w3_the_docs_state_the_size_of_the_stability_window_and_that_the_observer_is_no_gate():
     doc = " ".join(w.__doc__.split()).lower()
-    assert "stability window" in doc and "one backoff interval" in doc
-    assert "later than the stability window" in doc and "is not detected" in doc
+    assert "stability window" in doc and "3 * max_interval + 60 s" in doc
+    assert "later than that" in doc and "is not detected" in doc
     assert "not a merge gate" in doc and "dispatch mode" in doc
 
 

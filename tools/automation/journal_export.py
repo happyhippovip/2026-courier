@@ -26,6 +26,9 @@ running, the export fails with exit 7 instead of returning torn data.
                                           [--only-transitions] [--allow-partial]
                                           [--expect-head-hash HEX]
 
+Order of checks: usage errors (a malformed --expect-head-hash, --out equal to the journal) are decided before the
+journal is looked at, so a bad flag is exit 2 even if the journal is missing (exit 3 only for a well-formed command line).
+
 Exit codes: 0 exported · 2 usage (also: --out would overwrite the journal or its files) ·
 3 journal missing/unreadable (also: an open that SQLite refuses, e.g. a database that needs
 a writable directory) · 4 hash chain broken or stored text not valid UTF-8 (no export; with
@@ -72,6 +75,8 @@ from typing import Callable, Iterator
 from courier_core.events import SYSTEM_EVENTS, Event
 from courier_core.journal import Journal, JournalError
 from courier_core.state_machine import apply as apply_state
+
+_IS_WINDOWS = os.name == "nt"  # module constant so a test can exercise the Windows branch of the directory fsync
 
 FORMAT = "courier-journal-status-export/1"
 (EXIT_OK, EXIT_USAGE, EXIT_UNREADABLE, EXIT_BAD_CHAIN, EXIT_BAD_FOLD, EXIT_WRITE, EXIT_CHANGED,
@@ -298,7 +303,7 @@ def _same_file_as_journal(out: Path, journal: Path) -> bool:
 def _fsync_dir(directory: Path) -> None:
     """fsync the output directory after os.replace so a power cut cannot bring the old export back. Best effort:
     some filesystems refuse it; skipped on Windows. A failure here never changes the exit code (the file is complete)."""
-    if os.name == "nt":
+    if _IS_WINDOWS:
         return
     try:
         fd = os.open(directory, os.O_RDONLY)
@@ -332,6 +337,7 @@ def main(argv: list[str] | None = None, stdout=None, stderr=None) -> int:
     except SystemExit as exc:
         return EXIT_USAGE if exc.code else EXIT_OK
     try:
+        args.expect_head_hash = normalize_head_hash(args.expect_head_hash)  # usage errors first: before the journal is touched
         real = resolve_journal(args.journal)
         if args.out and _same_file_as_journal(Path(args.out), real):
             raise ExportError(EXIT_USAGE, f"--out {args.out} is the journal (or one of its files); refusing to overwrite it")

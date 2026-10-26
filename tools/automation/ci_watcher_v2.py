@@ -40,8 +40,8 @@ What counts as "finished" (the one rule, CW-2):
 * OBSERVER MODE (no dispatch by this key): all runs of the SHA count, and completion needs a
   stability window: two polls that list the same, completely finished set of runs, at most
   `stability_gap` seconds apart (3 * max_interval + 60; an older first look is just a first look again).
-  The window is about one backoff interval (5 s with the defaults): a workflow that registers later than
-  the stability window is not detected and the watcher reports SUCCESS without it. The observer
+  The window is between the two finished looks, at most 3 * max_interval + 60 s (240 s with the defaults): a
+  workflow that registers later than that is not detected and the watcher reports SUCCESS without it. The observer
   is therefore not a merge gate and decides nothing about merging; for a verdict that is tied to a run use
   dispatch mode (--dispatch-workflow), where only the run created by the dispatch counts.
 
@@ -103,6 +103,9 @@ DISPATCH_AMBIGUOUS, DISPATCH_FAILED, IO_ERROR, RESET_REFUSED = "DISPATCH_AMBIGUO
 EXIT_CODES = {"SUCCESS": 0, "FINISHED_NOT_SUCCESS": 1, WAITING: 10, EXHAUSTED: 11, UNCONFIRMED: 12,
               LOCKED: 13, STATE_UNREADABLE: 14, DISPATCH_AMBIGUOUS: 15, DISPATCH_FAILED: 16, IO_ERROR: 17,
               RESET_REFUSED: 18, "RESET": 0, "NO_STATE": 0}
+MAX_SECONDS = 86400.0  # upper bound for base, max_interval, window and dispatch_grace: one day (R3-W1)
+MAX_FACTOR = 100.0  # upper bound for the backoff factor (R3-W1)
+_IS_WINDOWS = os.name == "nt"  # module constant so a test can exercise the Windows branch of the directory fsync
 MIN_INTERVAL = 1.0  # lower bound for base and max_interval, in the CLI and in the library (CW-4, N-3)
 
 
@@ -137,17 +140,21 @@ class Backoff:
         """Delay before poll number `attempt` (1-based; poll 1 is immediate)."""
         if attempt <= 1:
             return 0.0
-        return min(self.max_interval, self.base * (max(self.factor, 1.0) ** (attempt - 2)))
+        try:
+            return min(self.max_interval, self.base * (max(self.factor, 1.0) ** (attempt - 2)))
+        except OverflowError:  # factor ** n beyond the float range: the delay is long past max_interval anyway
+            return self.max_interval
 
 
 def validate_backoff(backoff: Backoff) -> None:
     """ValueError for anything that could make the loop spin, hang or never wait (nan, inf, too small, negative)."""
-    def number(name: str, value, low: float) -> None:
-        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < low:
-            raise ValueError(f"{name} must be a finite number >= {low:g} (got {value!r})")
+    def number(name: str, value, low: float, high: float = MAX_SECONDS) -> None:
+        if (isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value)
+                or value < low or value > high):
+            raise ValueError(f"{name} must be a finite number >= {low:g} and <= {high:g} (got {value!r})")
     number("base", backoff.base, MIN_INTERVAL)
     number("max_interval", backoff.max_interval, MIN_INTERVAL)
-    number("factor", backoff.factor, 1.0)
+    number("factor", backoff.factor, 1.0, MAX_FACTOR)
     number("window", backoff.window, 0.0)
     number("dispatch_grace", backoff.dispatch_grace, 0.0)
     if isinstance(backoff.max_attempts, bool) or not isinstance(backoff.max_attempts, int) or backoff.max_attempts < 0:
@@ -200,7 +207,7 @@ def write_state(path: Path, state: dict) -> None:
 
 def _fsync_dir(directory: Path) -> None:
     """POSIX: fsync the directory after os.replace. Best effort: some filesystems refuse it (EINVAL). Skipped on Windows."""
-    if os.name == "nt":
+    if _IS_WINDOWS:
         return
     try:
         fd = os.open(directory, os.O_RDONLY)
@@ -287,6 +294,7 @@ class _Lock:
         self.path, self.handle, self.stale_after = path, None, stale_after
         self.excl_path = path.with_name(path.name + ".x")
         self.excl_held = False
+        self.lost = False  # set by touch() when the lock file is no longer ours (taken over after a long stall)
         self.token = None  # unique content of the lock file we created: how we recognise it as ours
         self._stale_hook: Optional[Callable[[], None]] = None  # test seam: runs after "stale" was decided, before the takeover
 
@@ -339,7 +347,8 @@ class _Lock:
                     seen = self.excl_path.stat()
                 except OSError:
                     continue  # vanished between the two calls: try to create it again
-                if time.time() - seen.st_mtime < self.stale_after:
+                age = time.time() - seen.st_mtime
+                if -self.stale_after < age < self.stale_after:  # an mtime far in the future (clock set back) is stale, too
                     return False
                 if self._stale_hook is not None:
                     self._stale_hook()
@@ -361,11 +370,15 @@ class _Lock:
 
     def touch(self) -> None:
         """Heartbeat of the O_EXCL fallback (the flock needs none)."""
-        if self.excl_held and self._still_ours():
-            try:
-                os.utime(self.excl_path)
-            except OSError:
-                pass
+        if not self.excl_held:
+            return
+        if not self._still_ours():
+            self.lost = True  # somebody took the lock over while this process was stalled: the caller must stop
+            return
+        try:
+            os.utime(self.excl_path)
+        except OSError:
+            pass
 
     def release(self) -> None:
         if self.handle is not None:
@@ -438,7 +451,10 @@ def reset_state(workkey: str, sha: str, state_dir) -> dict:
 
 
 _LOCKED_HINT = ("another watcher holds the lock for this key; if none is running and the lock came from a crash, delete "
-                "{name} and {name}.take-* in the state dir by hand")
+                "{name} and {name}.take-* in the state dir by hand")  # only for the O_EXCL fallback: with flock no such files exist
+_LOCKED_HINT_FLOCK = "another watcher holds the lock for this key (flock); it is released when that process ends"
+_LOCK_LOST_HINT = ("lock lost: the lock of this watcher was taken over while it was stalled (longer than the stale limit): stopped without "
+                   "polling or writing; run again")
 
 
 def watch(workkey: str, sha: str, state_dir, *, backoff: Backoff = Backoff(),
@@ -457,7 +473,8 @@ def watch(workkey: str, sha: str, state_dir, *, backoff: Backoff = Backoff(),
     path = state_path(state_dir, key)
     lock = _Lock(path.with_name(path.name[:-5] + ".lock"), stale_after=max(600.0, 3 * backoff.max_interval + 300.0))
     if not lock.acquire():
-        return _result(LOCKED, {"sha": sha, "workkey": workkey, "last_error": _LOCKED_HINT.format(name=lock.excl_path.name)}, 0, key)
+        return _result(LOCKED, {"sha": sha, "workkey": workkey, "last_error": (
+            _LOCKED_HINT.format(name=lock.excl_path.name) if fcntl is None else _LOCKED_HINT_FLOCK)}, 0, key)
     try:
         try:
             state = read_state(path)
@@ -512,6 +529,8 @@ def watch(workkey: str, sha: str, state_dir, *, backoff: Backoff = Backoff(),
             if wait:
                 sleep(wait)
             lock.touch()
+            if lock.lost:  # somebody else owns the key now: do not poll, do not write the state
+                return _result(LOCKED, {"sha": sha, "workkey": workkey, "last_error": _LOCK_LOST_HINT}, polls, key)
             polls += 1
             state["attempts"] = attempts + 1
             error = None
