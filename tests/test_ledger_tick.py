@@ -274,6 +274,33 @@ def test_cli_rejects_half_or_out_of_bounds_config(monkeypatch, extra):
     assert exc.value.code == 2
 
 
+def test_status_refuses_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "secret.txt").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "home"
+    link.symlink_to(outside, target_is_directory=True)
+    tick = LedgerTick(str(link), "http://127.0.0.1:9", "GOOGLE_WINDOWS", "WINDOWS_REMOTE",
+                      runner=FakeRunner([0]), clock=FakeClock(), log=lambda _line: None)
+    assert tick._record("ran", 0) == ledger_tick.RAN
+    assert tick.status_write_failures == 1
+    assert not (outside / "run").exists()
+    assert (outside / "secret.txt").read_text(encoding="utf-8") == "SECRET"
+
+    home = tmp_path / "real"
+    home.mkdir()
+    planted = tmp_path / "planted"
+    planted.mkdir()
+    (planted / "secret.txt").write_text("SECRET", encoding="utf-8")
+    (home / "run").symlink_to(planted, target_is_directory=True)
+    real = LedgerTick(str(home), "http://127.0.0.1:9", "GOOGLE_WINDOWS", "WINDOWS_REMOTE",
+                      runner=FakeRunner([0]), clock=FakeClock(), log=lambda _line: None)
+    assert real._record("ran", 0) == ledger_tick.RAN
+    assert real.status_write_failures == 1
+    assert not (planted / "ledger_tick.json").exists()
+    assert (planted / "secret.txt").read_text(encoding="utf-8") == "SECRET"
+
+
 def test_status_file_records_each_started_pass(tmp_path):
     import json
     clock = FakeClock()
