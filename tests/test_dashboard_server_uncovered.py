@@ -325,3 +325,50 @@ def test_static_get_refuses_a_symlink(tmp_path):
     finally:
         httpd.shutdown()
         httpd.server_close()
+
+
+def test_static_get_refuses_a_dir_two_levels_under_a_symlink(tmp_path):
+    import socketserver
+    import threading
+    import urllib.error
+    import urllib.request
+    from functools import partial
+
+    outside = tmp_path / "outside"
+    dash = outside / "mid" / "dash"
+    dash.mkdir(parents=True)
+    (dash / "page.html").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    handler = partial(d_server.CommandCenterHandler, directory=str(link / "mid" / "dash"))
+    httpd = socketserver.TCPServer(("127.0.0.1", 0), handler)
+    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    thread.start()
+    try:
+        port = httpd.server_address[1]
+        try:
+            with urllib.request.urlopen(f"http://127.0.0.1:{port}/page.html") as resp:
+                body, code = resp.read(), resp.status
+        except urllib.error.HTTPError as exc:
+            body, code = exc.read(), exc.code
+        assert code == 404
+        assert b"SECRET" not in body
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
+    assert (dash / "page.html").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "real-dash"
+    real.mkdir()
+    (real / "ok.html").write_text("LIVE", encoding="utf-8")
+    live = partial(d_server.CommandCenterHandler, directory=str(real))
+    live_httpd = socketserver.TCPServer(("127.0.0.1", 0), live)
+    live_thread = threading.Thread(target=live_httpd.serve_forever, daemon=True)
+    live_thread.start()
+    try:
+        port = live_httpd.server_address[1]
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/ok.html") as resp:
+            assert resp.read() == b"LIVE"
+    finally:
+        live_httpd.shutdown()
+        live_httpd.server_close()
