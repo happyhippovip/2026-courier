@@ -44,6 +44,8 @@ class LocalGrants:
     @classmethod
     def load(cls, path):
         p = Path(path)
+        if p.is_symlink() or p.parent.is_symlink() or p.parent.parent.is_symlink():
+            return cls()
         if not p.exists():
             return cls()                           # missing file = read-only defaults
         d = json.loads(p.read_text(encoding="utf-8"))
@@ -77,11 +79,18 @@ class HomeAgent:
 
     def run_once(self):
         """Process every new job once. Returns the receipts written in this pass."""
+        root = self.inbox.parent.parent
+        if (root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink()
+                or self.inbox.is_symlink() or self.inbox.parent.is_symlink() or self.inbox.parent.parent.is_symlink()
+                or self.outbox.is_symlink() or self.outbox.parent.is_symlink() or self.outbox.parent.parent.is_symlink()):
+            return []
         self.outbox.mkdir(parents=True, exist_ok=True)
         receipts = []
         for path in sorted(self.inbox.glob("*.json")) if self.inbox.exists() else []:
             job_id = path.stem
             out = self.outbox / f"{job_id}.json"
+            if path.is_symlink() or out.is_symlink():
+                continue
             if out.exists():
                 continue                                   # already done: never twice
             try:
@@ -133,9 +142,14 @@ def default_handlers(surface_supervisor=None):
 
 def submit(mailbox_root, host, job_id, action, params=None):
     """Courier side (cloud or any device): put one job into a computer's inbox."""
-    inbox = Path(mailbox_root) / host / "inbox"
-    inbox.mkdir(parents=True, exist_ok=True)
+    root = Path(mailbox_root)
+    inbox = root / host / "inbox"
     path = inbox / f"{job_id}.json"
+    if (root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink()
+            or inbox.is_symlink() or inbox.parent.is_symlink() or inbox.parent.parent.is_symlink()
+            or path.is_symlink() or path.parent.is_symlink() or path.parent.parent.is_symlink()):
+        raise OSError(f"{path}: refusing to follow a symlink")
+    inbox.mkdir(parents=True, exist_ok=True)
     if not path.exists():                                  # same job id twice = one job
         path.write_text(json.dumps({"action": action, "params": params or {}}, indent=1), encoding="utf-8")
     return path
@@ -143,7 +157,10 @@ def submit(mailbox_root, host, job_id, action, params=None):
 
 def _git(repo, *args, timeout=120):
     import subprocess
-    return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, timeout=timeout)
+    path = Path(repo)
+    if path.is_symlink() or path.parent.is_symlink() or path.parent.parent.is_symlink():
+        raise OSError(f"{path}: refusing to follow a symlink")
+    return subprocess.run(["git", "-C", str(path), *args], capture_output=True, text=True, timeout=timeout)
 
 
 def _single_instance(lock_path):
@@ -155,6 +172,8 @@ def _single_instance(lock_path):
     import os
     from courier_runtime.ownership import OwnedProcess, is_same_process
     lock = Path(lock_path)
+    if lock.is_symlink() or lock.parent.is_symlink() or lock.parent.parent.is_symlink():
+        return False
     if lock.exists():
         try:
             old = OwnedProcess(**json.loads(lock.read_text(encoding="utf-8")))

@@ -1,7 +1,64 @@
 import json
 
+import pytest
+
 from courier_runtime.revenue import DRAFT_READY, QUALIFIED, Job, Lead
 from courier_runtime.revenue_store import RevenueStore, main
+
+
+def test_revenue_store_refuses_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    home = tmp_path / "home"
+    home.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(OSError, match="symlink"):
+        RevenueStore(home).save_lead(Lead("L1", "X", "p", "s"))
+    assert not (outside / "revenue").exists()
+
+    real = tmp_path / "real"
+    real.mkdir()
+    store = RevenueStore(real)
+    store.dir.mkdir()
+    planted = tmp_path / "stolen-leads.jsonl"
+    planted.write_text('{"lead_id":"stolen"}\n', encoding="utf-8")
+    store.leads_path.symlink_to(planted)
+    with pytest.raises(OSError, match="symlink"):
+        store.leads()
+    assert planted.read_text(encoding="utf-8") == '{"lead_id":"stolen"}\n'
+
+
+def test_revenue_store_refuses_a_home_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    (outside / "mid").mkdir(parents=True)
+    (outside / "mid" / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(OSError, match="symlink"):
+        RevenueStore(link / "mid").save_lead(Lead("L1", "X", "p", "s"))
+    assert (outside / "mid" / "SECRET").read_text(encoding="utf-8") == "SECRET"
+    assert not (outside / "mid" / "revenue").exists()
+
+    real = tmp_path / "real"
+    store = RevenueStore(real)
+    store.save_lead(Lead("L1", "Example", "note", "src"))
+    assert store.leads()[0].lead_id == "L1"
+
+
+def test_revenue_store_refuses_a_nested_home_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    (outside / "mid").mkdir(parents=True)
+    (outside / "mid" / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(OSError, match="symlink"):
+        RevenueStore(link / "mid" / "home").save_lead(Lead("L1", "X", "p", "s"))
+    assert not (outside / "mid" / "home").exists()
+    assert (outside / "mid" / "SECRET").read_text(encoding="utf-8") == "SECRET"
+
+    real = tmp_path / "ok"
+    store = RevenueStore(real)
+    store.save_lead(Lead("L2", "Example", "note", "src"))
+    assert store.leads()[0].lead_id == "L2"
 
 
 def test_last_snapshot_wins_and_history_survives(tmp_path):

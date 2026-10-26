@@ -34,6 +34,162 @@ def test_no_free_commands_ever(tmp_path):
     assert why_refused({"action": "host_health", "argv": ["rm", "-rf", "/"]}, g) == "jobs may not carry commands"
 
 
+def test_local_grants_refuse_a_symlink(tmp_path):
+    outside = tmp_path / "outside.json"
+    outside.write_text(json.dumps({
+        "max_access": "control",
+        "allowed_actions": ["reclaim_idle_surfaces"],
+    }), encoding="utf-8")
+    home = tmp_path / "home"
+    home.mkdir()
+    (home / "home_grants.json").symlink_to(outside)
+    linked_file = LocalGrants.load(home / "home_grants.json")
+    assert linked_file == LocalGrants()
+    assert "control" in outside.read_text(encoding="utf-8")
+
+    (home / "home_grants.json").unlink()
+    (home / "home_grants.json").write_text(json.dumps({
+        "max_access": "control",
+        "allowed_actions": ["reclaim_idle_surfaces"],
+    }), encoding="utf-8")
+    linked_home = tmp_path / "linked-home"
+    linked_home.symlink_to(home, target_is_directory=True)
+    assert LocalGrants.load(linked_home / "home_grants.json").max_access == "read"
+    assert LocalGrants.load(home / "home_grants.json").max_access == "control"
+
+
+def test_local_grants_refuse_a_file_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    (outside / "mid").mkdir(parents=True)
+    (outside / "mid" / "home_grants.json").write_text(json.dumps({
+        "max_access": "control",
+        "allowed_actions": ["reclaim_idle_surfaces"],
+    }), encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    loaded = LocalGrants.load(link / "mid" / "home_grants.json")
+    assert loaded == LocalGrants()
+    assert loaded.max_access == "read"
+    assert "control" in (outside / "mid" / "home_grants.json").read_text(encoding="utf-8")
+
+    real = tmp_path / "home_grants.json"
+    real.write_text(json.dumps({
+        "max_access": "control",
+        "allowed_actions": ["host_health"],
+    }), encoding="utf-8")
+    assert LocalGrants.load(real).max_access == "control"
+
+
+def test_submit_refuses_a_symlinked_mailbox(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "mailbox"
+    link.symlink_to(outside, target_is_directory=True)
+    try:
+        submit(link, "pc-1", "j1", "host_health", {"secret": "SECRET"})
+    except OSError as exc:
+        seen = str(exc)
+    else:
+        seen = "written"
+    assert "symlink" in seen.lower(), seen
+    assert not (outside / "pc-1").exists()
+
+    secret = tmp_path / "secret.json"
+    secret.write_text("SECRET", encoding="utf-8")
+    real = tmp_path / "real"
+    inbox = real / "pc-1" / "inbox"
+    inbox.mkdir(parents=True)
+    (inbox / "j2.json").symlink_to(secret)
+    try:
+        submit(real, "pc-1", "j2", "host_health")
+    except OSError as exc:
+        seen = str(exc)
+    else:
+        seen = "written"
+    assert "symlink" in seen.lower(), seen
+    assert secret.read_text(encoding="utf-8") == "SECRET"
+
+    path = submit(real, "pc-1", "j1", "host_health")
+    assert json.loads(path.read_text(encoding="utf-8"))["action"] == "host_health"
+
+
+def test_submit_refuses_a_mailbox_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    (outside / "mid").mkdir(parents=True)
+    (outside / "mid" / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    try:
+        submit(link / "mid" / "box", "pc-1", "j1", "host_health", {"secret": "SECRET"})
+    except OSError as exc:
+        seen = str(exc)
+    else:
+        seen = "written"
+    assert "symlink" in seen.lower(), seen
+    assert not (outside / "mid" / "box").exists()
+    assert (outside / "mid" / "SECRET").read_text(encoding="utf-8") == "SECRET"
+
+    path = submit(tmp_path / "real", "pc-1", "j1", "host_health")
+    assert json.loads(path.read_text(encoding="utf-8"))["action"] == "host_health"
+
+
+def test_run_once_refuses_a_symlinked_mailbox(tmp_path):
+    outside = tmp_path / "outside"
+    inbox = outside / "pc-1" / "inbox"
+    inbox.mkdir(parents=True)
+    (inbox / "j1.json").write_text(
+        json.dumps({"action": "host_health", "params": {"secret": "SECRET"}}),
+        encoding="utf-8",
+    )
+    link = tmp_path / "mailbox"
+    link.symlink_to(outside, target_is_directory=True)
+    calls = []
+    agent = HomeAgent(link, "pc-1", LocalGrants(), {"host_health": lambda p: calls.append(p) or {"ok": True}}, clock=lambda: 5.0)
+    assert agent.run_once() == []
+    assert calls == []
+    assert not (outside / "pc-1" / "outbox").exists()
+    assert "SECRET" in (inbox / "j1.json").read_text(encoding="utf-8")
+
+    real = tmp_path / "real-mailbox"
+    submit(real, "pc-1", "j1", "host_health")
+    live = HomeAgent(real, "pc-1", LocalGrants(), {"host_health": lambda p: calls.append("live") or {"ok": True}}, clock=lambda: 5.0)
+    receipts = live.run_once()
+    assert receipts[0]["status"] == "DONE"
+    assert calls == ["live"]
+
+
+def test_run_once_refuses_a_mailbox_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    inbox = outside / "mid" / "box" / "pc-1" / "inbox"
+    inbox.mkdir(parents=True)
+    (inbox / "j1.json").write_text(
+        json.dumps({"action": "host_health", "params": {"secret": "SECRET"}}),
+        encoding="utf-8",
+    )
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    calls = []
+    agent = HomeAgent(
+        link / "mid" / "box", "pc-1", LocalGrants(),
+        {"host_health": lambda p: calls.append(p) or {"ok": True}}, clock=lambda: 5.0,
+    )
+    assert agent.run_once() == []
+    assert calls == []
+    assert not (outside / "mid" / "box" / "pc-1" / "outbox").exists()
+    assert "SECRET" in (inbox / "j1.json").read_text(encoding="utf-8")
+
+    real = tmp_path / "real"
+    real_inbox = real / "pc-1" / "inbox"
+    real_inbox.mkdir(parents=True)
+    (real_inbox / "j1.json").write_text(json.dumps({"action": "host_health", "params": {}}), encoding="utf-8")
+    receipts = HomeAgent(
+        real, "pc-1", LocalGrants(),
+        {"host_health": lambda p: {"ok": True}}, clock=lambda: 5.0,
+    ).run_once()
+    assert receipts[0]["status"] == "DONE"
+    assert "SECRET" not in json.dumps(receipts)
+
+
 def test_local_grants_allow_more_and_pause_stops_all(tmp_path):
     gpath = tmp_path / "home_grants.json"
     gpath.write_text(json.dumps({"max_access": "write", "allowed_actions": ["host_health", "git_pull_repo"],
@@ -88,6 +244,50 @@ def test_cli_once_against_a_git_mailbox(tmp_path):
 def _lock_record(pid):
     return {"pid": pid, "create_time": 1.0, "workkey": "home-agent",
             "owner": "courier", "recorded_at": 0.0}
+
+
+def test_single_instance_refuses_a_symlink(tmp_path):
+    import os
+
+    from courier_runtime.home_agent import _single_instance
+
+    outside = tmp_path / "outside.lock"
+    outside.write_text(json.dumps({"pid": 1, "secret": "SECRET"}), encoding="utf-8")
+    home = tmp_path / "home"
+    home.mkdir()
+    lock = home / "home_agent.lock"
+    lock.symlink_to(outside)
+    assert _single_instance(lock) is False
+    assert "SECRET" in outside.read_text(encoding="utf-8")
+
+    lock.unlink()
+    linked = tmp_path / "linked"
+    linked.symlink_to(home, target_is_directory=True)
+    assert _single_instance(linked / "home_agent.lock") is False
+    assert not (home / "home_agent.lock").exists()
+
+    assert _single_instance(home / "home_agent.lock") is True
+    taken = json.loads((home / "home_agent.lock").read_text(encoding="utf-8"))
+    assert taken["pid"] == os.getpid() and taken["workkey"] == "home-agent"
+
+
+def test_single_instance_refuses_a_lock_two_levels_under_a_symlink(tmp_path):
+    import os
+
+    from courier_runtime.home_agent import _single_instance
+
+    outside = tmp_path / "outside"
+    (outside / "mid").mkdir(parents=True)
+    (outside / "mid" / "SECRET").write_text("SECRET", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    assert _single_instance(link / "mid" / "home_agent.lock") is False
+    assert (outside / "mid" / "SECRET").read_text(encoding="utf-8") == "SECRET"
+    assert not (outside / "mid" / "home_agent.lock").exists()
+
+    assert _single_instance(tmp_path / "home_agent.lock") is True
+    taken = json.loads((tmp_path / "home_agent.lock").read_text(encoding="utf-8"))
+    assert taken["pid"] == os.getpid() and taken["workkey"] == "home-agent"
 
 
 def test_single_instance_denied_lock_is_not_taken_over(tmp_path, monkeypatch):
@@ -164,3 +364,68 @@ def test_single_instance_dead_lock_is_taken_over(tmp_path, monkeypatch):
     assert _single_instance(str(lock)) is True
     after = json.loads(lock.read_text())
     assert after["pid"] == os.getpid() and after["workkey"] == "home-agent"
+
+
+def test_git_refuses_a_symlinked_repo(tmp_path):
+    import subprocess
+
+    from courier_runtime.home_agent import _git
+
+    outside = tmp_path / "outside"
+    subprocess.run(["git", "init", "-q", str(outside)], check=True)
+    marker = outside / "SECRET"
+    marker.write_text("SECRET\n", encoding="utf-8")
+    link = tmp_path / "repo"
+    link.symlink_to(outside, target_is_directory=True)
+    try:
+        _git(link, "status")
+    except OSError as exc:
+        assert "symlink" in str(exc)
+    else:
+        raise AssertionError("symlink repo was used")
+    assert marker.read_text(encoding="utf-8") == "SECRET\n"
+
+    nested = tmp_path / "nested-real" / "repo"
+    nested.parent.mkdir()
+    subprocess.run(["git", "init", "-q", str(nested)], check=True)
+    (nested / "SECRET").write_text("SECRET\n", encoding="utf-8")
+    home_link = tmp_path / "home-link"
+    home_link.symlink_to(nested.parent, target_is_directory=True)
+    try:
+        _git(home_link / "repo", "status")
+    except OSError as exc:
+        assert "symlink" in str(exc)
+    else:
+        raise AssertionError("repo under a symlink was used")
+    assert (nested / "SECRET").read_text(encoding="utf-8") == "SECRET\n"
+
+    real = tmp_path / "real"
+    subprocess.run(["git", "init", "-q", str(real)], check=True)
+    result = _git(real, "status", "--porcelain")
+    assert result.returncode == 0
+
+
+def test_git_refuses_a_repo_two_levels_under_a_symlink(tmp_path):
+    import subprocess
+
+    from courier_runtime.home_agent import _git
+
+    outside = tmp_path / "outside"
+    repo = outside / "mid" / "repo"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    (repo / "SECRET").write_text("SECRET\n", encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    try:
+        _git(link / "mid" / "repo", "status")
+    except OSError as exc:
+        assert "symlink" in str(exc)
+    else:
+        raise AssertionError("repo two levels under a symlink was used")
+    assert (repo / "SECRET").read_text(encoding="utf-8") == "SECRET\n"
+
+    real = tmp_path / "real"
+    subprocess.run(["git", "init", "-q", str(real)], check=True)
+    result = _git(real, "status", "--porcelain")
+    assert result.returncode == 0
