@@ -234,6 +234,30 @@ def test_status_refuses_a_symlink(mock_dirs):
     assert "SECRET" not in json.dumps(offers)
 
 
+def test_ledger_value_refuses_a_dir_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    processed = outside / "mid" / "events" / "processed"
+    processed.mkdir(parents=True)
+    secret = processed / "result-secret.json"
+    secret.write_text('{"note":"SECRET"}', encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with patch("dashboard.server.EVENTS_DIR", link / "mid" / "events"):
+        payload = d_server.get_ledger_value_payload()
+    assert payload["metrics"]["evidence_files_available"]["value"] == 0
+    assert payload["evidence"] == []
+    assert "SECRET" not in json.dumps(payload)
+    assert secret.read_text(encoding="utf-8") == '{"note":"SECRET"}'
+
+    real = tmp_path / "real-events"
+    (real / "processed").mkdir(parents=True)
+    (real / "processed" / "result-ok.json").write_text("{}", encoding="utf-8")
+    with patch("dashboard.server.EVENTS_DIR", real):
+        live = d_server.get_ledger_value_payload()
+    assert live["metrics"]["evidence_files_available"]["value"] == 1
+    assert "SECRET" not in json.dumps(live)
+
+
 def test_plain_text_refuses_a_file_two_levels_under_a_symlink(tmp_path):
     outside = tmp_path / "outside"
     nested = outside / "a" / "b"

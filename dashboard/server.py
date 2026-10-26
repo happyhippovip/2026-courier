@@ -176,7 +176,10 @@ def get_ledger_value_payload() -> dict:
     reused = 0
     work_units = 0
     evidence = []
-    linked = EVENTS_DIR.is_symlink() or processed_dir.is_symlink() or processed_dir.parent.is_symlink()
+    linked = (EVENTS_DIR.is_symlink() or EVENTS_DIR.parent.is_symlink()
+              or EVENTS_DIR.parent.parent.is_symlink()
+              or processed_dir.is_symlink() or processed_dir.parent.is_symlink()
+              or processed_dir.parent.parent.is_symlink())
     try:
         reuse_text = None if linked else _plain_text(processed_dir / "reuse_events.jsonl", EVENTS_DIR)
         if reuse_text:
