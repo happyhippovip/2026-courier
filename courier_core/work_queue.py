@@ -395,7 +395,7 @@ def main(argv=None) -> int:
 
 def _load_seeds(items_dir: Path, schema_path: Path) -> dict[str, dict]:
     schema = _read_json(schema_path, MAX_ITEM_BYTES)
-    if not items_dir.is_dir() or items_dir.is_symlink():
+    if items_dir.is_symlink() or items_dir.parent.is_symlink() or not items_dir.is_dir():
         raise WorkQueueError("UNREADABLE")
     found = {}
     for path in sorted(items_dir.glob("*.json")):
@@ -630,7 +630,7 @@ def _apply(items: dict[str, dict], event: dict) -> None:
 
 
 def _read_json(path: Path, cap: int):
-    if path.is_symlink() or not path.is_file():
+    if path.is_symlink() or path.parent.is_symlink() or not path.is_file():
         raise WorkQueueError("UNREADABLE")
     try:
         raw = path.read_bytes()

@@ -330,6 +330,31 @@ def test_external_claim_ignores_the_clock(tmp_path):
     assert caught.value.code == "DUPLICATE_CLAIM"
 
 
+def test_items_under_a_symlinked_home_are_not_opened(tmp_path):
+    outside = tmp_path / "outside"
+    _write_items(outside / "items", [_item("SECRET", ["courier_core/a.py"])])
+    link = tmp_path / "home"
+    link.symlink_to(outside, target_is_directory=True)
+    queue = WorkQueue(link / "items", tmp_path / "ledger.jsonl")
+    with pytest.raises(WorkQueueError) as caught:
+        queue.items(now=NOW)
+    assert caught.value.code == "UNREADABLE"
+    assert "SECRET" in (outside / "items" / "SECRET.json").read_text(encoding="utf-8")
+
+    real = tmp_path / "real-items"
+    _write_items(real, [_item("LIVE", ["courier_core/a.py"])])
+    assert [item["id"] for item in WorkQueue(real, tmp_path / "live.jsonl").items(now=NOW)] == ["LIVE"]
+
+    schema_dir = tmp_path / "schema-dir"
+    schema_dir.mkdir()
+    (schema_dir / "work_item.schema.json").write_text(DEFAULT_SCHEMA.read_text(encoding="utf-8"), encoding="utf-8")
+    schema_link = tmp_path / "schema-link"
+    schema_link.symlink_to(schema_dir, target_is_directory=True)
+    with pytest.raises(WorkQueueError) as caught:
+        WorkQueue(real, tmp_path / "schema.jsonl", schema_link / "work_item.schema.json").items(now=NOW)
+    assert caught.value.code == "UNREADABLE"
+
+
 def test_ledger_under_symlinked_parent_is_not_opened(tmp_path):
     outside = tmp_path / "outside"
     outside.mkdir()
