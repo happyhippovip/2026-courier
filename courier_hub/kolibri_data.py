@@ -274,12 +274,14 @@ def _live_heartbeat(data: dict, observed_at: str) -> bool:
 
 
 def read_muse_wall(root: Path, wall: Optional[Path], label: str, observed_at: str, merged: dict) -> dict:
-    if wall is None or not wall.is_dir():
+    if wall is None or wall.is_symlink() or wall.parent.is_symlink() or wall.parent.parent.is_symlink() or not wall.is_dir():
         block = _unavailable(label, observed_at)
         block["stations"] = []
         return block
     stations = []
     for path in sorted(wall.glob("*/state.json")):
+        if path.is_symlink() or path.parent.is_symlink() or path.parent.parent.is_symlink():
+            continue
         rel = _display_path(path, root)
         slot_id = path.parent.name
         try:
@@ -399,7 +401,8 @@ def read_ledger(view: Optional[dict], observed_at: str) -> dict:
 def read_ledger_bridge(home: Optional[Path], root: Path, observed_at: str) -> dict:
     source = "ledger_bridge_state.json"
     path = (home / "ledger_bridge_state.json") if home is not None else None
-    if path is None or not path.is_file():
+    if (path is None or path.is_symlink() or path.parent.is_symlink()
+            or path.parent.parent.is_symlink() or not path.is_file()):
         block = _unavailable(source, observed_at)
         block["missions"] = []
         return block
@@ -474,7 +477,16 @@ def _entry_count(payload) -> Optional[int]:
 
 def read_postfach(flower: str, home: Optional[Path], root: Path, observed_at: str) -> dict:
     name = _POSTFACH[flower]
-    chosen = next((path for path in _postfach_candidates(name, home, root) if path.is_file()), None)
+    if home is not None and (home.is_symlink() or home.parent.is_symlink() or home.parent.parent.is_symlink()):
+        home = None
+    chosen = next(
+        (
+            path for path in _postfach_candidates(name, home, root)
+            if not path.is_symlink() and not path.parent.is_symlink()
+            and not path.parent.parent.is_symlink() and path.is_file()
+        ),
+        None,
+    )
     if chosen is None:
         block = _unavailable(name, observed_at)
         block["entries"] = None
@@ -640,7 +652,10 @@ def read_arbitrage_research(root: Path, observed_at: str) -> dict:
     - Missing metrics render as UNAVAILABLE (fail-closed).
     """
     arbi_file = root / "registries" / "arbitrage_research.json"
-    if not arbi_file.is_file():
+    if (root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink()
+            or arbi_file.is_symlink() or arbi_file.parent.is_symlink()
+            or arbi_file.parent.parent.is_symlink()
+            or not arbi_file.is_file()):
         # No research file, no numbers: a missing source stays UNKNOWN.
         res = _unavailable("registries/arbitrage_research.json", observed_at)
         res["pairs_monitored"] = []

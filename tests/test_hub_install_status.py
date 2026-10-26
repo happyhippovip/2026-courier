@@ -45,6 +45,48 @@ def _completed(tmp_path, *, version="1.0.0", finished=10):
     return done
 
 
+def test_evidence_refuses_a_symlink(tmp_path):
+    from courier_core.install_state import JournalUnreadable
+    from courier_hub.cli import load_evidence
+
+    outside = tmp_path / "outside.json"
+    outside.write_text(json.dumps({"config_present": True, "note": SECRET}), encoding="utf-8")
+    link = tmp_path / "evidence.json"
+    link.symlink_to(outside)
+    with pytest.raises(JournalUnreadable, match="symlink"):
+        load_evidence(link)
+    assert SECRET in outside.read_text(encoding="utf-8")
+
+    planted = tmp_path / "planted"
+    planted.mkdir()
+    (planted / "evidence.json").write_text(json.dumps({"note": SECRET}), encoding="utf-8")
+    home = tmp_path / "home"
+    home.symlink_to(planted, target_is_directory=True)
+    with pytest.raises(JournalUnreadable, match="symlink"):
+        load_evidence(home / "evidence.json")
+
+
+def test_evidence_refuses_a_file_two_levels_under_a_symlink(tmp_path):
+    from courier_core.install_state import JournalUnreadable
+    from courier_hub.cli import load_evidence
+
+    outside = tmp_path / "outside"
+    mid = outside / "mid"
+    mid.mkdir(parents=True)
+    secret = mid / "evidence.json"
+    secret.write_text(json.dumps({"config_present": True, "note": SECRET}), encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(JournalUnreadable, match="symlink"):
+        load_evidence(link / "mid" / "evidence.json")
+    assert SECRET in secret.read_text(encoding="utf-8")
+
+    real = tmp_path / "real.json"
+    real.write_text("{}", encoding="utf-8")
+    evidence = load_evidence(real)
+    assert evidence.config_present is False
+
+
 def test_string_false_evidence_is_not_healthy(tmp_path):
     _completed(tmp_path)
     raw = {

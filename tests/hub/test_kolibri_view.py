@@ -9,13 +9,173 @@ from pathlib import Path
 
 from courier_core.events import Event, EventType
 from courier_core.journal import Journal
-from courier_hub.kolibri_data import PAUSE, REST_TEXT, UNAVAILABLE, build_snapshot, read_github, station_key
+from courier_hub.kolibri_data import PAUSE, REST_TEXT, UNAVAILABLE, build_snapshot, read_github, read_ledger_bridge, read_muse_wall, read_postfach, station_key
 from courier_hub.server import Hub, HubServer
 
 REPO = Path(__file__).resolve().parents[2]
 WALL = REPO / "scripts" / "windows_muse_wall" / "runtime" / "slots"
 MUSE_LABEL = "scripts/windows_muse_wall/runtime/slots"
 OFFLINE = lambda _path: None  # no token and no fabricated GitHub body
+
+
+def test_read_muse_wall_refuses_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    (outside / "01").mkdir(parents=True)
+    secret = {"slot_id": "SECRET", "state": "SECRET", "process": 1, "updated_at": datetime.now(timezone.utc).timestamp()}
+    (outside / "01" / "state.json").write_text(json.dumps(secret), encoding="utf-8")
+    root = tmp_path / "repo"
+    root.mkdir()
+    linked = tmp_path / "linked-wall"
+    linked.symlink_to(outside)
+    merged = {"available": False}
+    block = read_muse_wall(root, linked, "wall", "2026-10-26T04:47:00Z", merged)
+    assert block["available"] is False
+    assert block["stations"] == []
+    assert "SECRET" not in json.dumps(block)
+
+    wall = tmp_path / "wall"
+    (wall / "01").mkdir(parents=True)
+    (wall / "01" / "state.json").symlink_to(outside / "01" / "state.json")
+    skipped = read_muse_wall(root, wall, "wall", "2026-10-26T04:47:00Z", merged)
+    assert skipped["stations"] == []
+    assert "SECRET" not in json.dumps(skipped)
+
+    now = datetime.now(timezone.utc)
+    (wall / "01" / "state.json").unlink()
+    (wall / "01" / "state.json").write_text(
+        json.dumps({"slot_id": "LIVE-01", "state": "RUNNING", "process": 1, "updated_at": now.timestamp()}),
+        encoding="utf-8",
+    )
+    live = read_muse_wall(root, wall, "wall", now.strftime("%Y-%m-%dT%H:%M:%SZ"), merged)
+    assert live["stations"][0]["id"] == "LIVE-01"
+    assert live["stations"][0]["state"]["value"] == "RUNNING"
+
+
+def test_read_muse_wall_refuses_a_wall_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    wall = outside / "mid" / "wall"
+    (wall / "01").mkdir(parents=True)
+    secret = {"slot_id": "SECRET", "state": "SECRET", "process": 1, "updated_at": datetime.now(timezone.utc).timestamp()}
+    secret_path = wall / "01" / "state.json"
+    secret_path.write_text(json.dumps(secret), encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    root = tmp_path / "repo"
+    root.mkdir()
+    merged = {"available": False}
+    block = read_muse_wall(root, link / "mid" / "wall", "wall", "2026-10-26T04:47:00Z", merged)
+    assert block["available"] is False
+    assert block["stations"] == []
+    assert "SECRET" not in json.dumps(block)
+    assert "SECRET" in secret_path.read_text(encoding="utf-8")
+
+    real = tmp_path / "real-wall"
+    (real / "01").mkdir(parents=True)
+    now = datetime.now(timezone.utc)
+    (real / "01" / "state.json").write_text(
+        json.dumps({"slot_id": "LIVE-01", "state": "RUNNING", "process": 1, "updated_at": now.timestamp()}),
+        encoding="utf-8",
+    )
+    live = read_muse_wall(root, real, "wall", now.strftime("%Y-%m-%dT%H:%M:%SZ"), merged)
+    assert live["stations"][0]["id"] == "LIVE-01"
+    assert live["stations"][0]["state"]["value"] == "RUNNING"
+    assert "SECRET" not in json.dumps(live)
+
+
+def test_read_postfach_refuses_a_symlink(tmp_path, monkeypatch):
+    monkeypatch.delenv("COURIER_POSTFACH_DIR", raising=False)
+    outside = tmp_path / "secret.json"
+    outside.write_text('[{"secret":"SECRET"}]', encoding="utf-8")
+    home = tmp_path / "home"
+    home.mkdir()
+    root = tmp_path / "repo"
+    root.mkdir()
+    (home / "POSTFACH_ALT_AN_NEU").symlink_to(outside)
+    block = read_postfach("postfach_alt_an_neu", home, root, "2026-10-26T04:43:00Z")
+    assert block["entries"] is None
+    assert "SECRET" not in json.dumps(block)
+    assert "SECRET" in outside.read_text(encoding="utf-8")
+
+    linked = tmp_path / "linked-home"
+    linked.symlink_to(home)
+    (home / "POSTFACH_ALT_AN_NEU").unlink()
+    (home / "POSTFACH_ALT_AN_NEU").write_text('[{"secret":"SECRET"}]', encoding="utf-8")
+    through = read_postfach("postfach_alt_an_neu", linked, root, "2026-10-26T04:43:00Z")
+    assert through["entries"] is None
+    assert "SECRET" not in json.dumps(through)
+
+    live = read_postfach("postfach_alt_an_neu", home, root, "2026-10-26T04:43:00Z")
+    assert live["entries"] == 1
+    assert live["available"] is True
+
+
+def test_read_postfach_refuses_a_home_two_levels_under_a_symlink(tmp_path, monkeypatch):
+    monkeypatch.delenv("COURIER_POSTFACH_DIR", raising=False)
+    outside = tmp_path / "outside"
+    linked_home = outside / "mid" / "home"
+    linked_home.mkdir(parents=True)
+    secret = linked_home / "POSTFACH_ALT_AN_NEU"
+    secret.write_text('[{"secret":"SECRET"}]', encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    root = tmp_path / "repo"
+    root.mkdir()
+    block = read_postfach("postfach_alt_an_neu", link / "mid" / "home", root, "2026-10-26T04:43:00Z")
+    assert block["entries"] is None
+    assert "SECRET" not in json.dumps(block)
+    assert "SECRET" in secret.read_text(encoding="utf-8")
+
+    real = tmp_path / "real"
+    real.mkdir()
+    (real / "POSTFACH_ALT_AN_NEU").write_text('[{"ok":1}]', encoding="utf-8")
+    live = read_postfach("postfach_alt_an_neu", real, root, "2026-10-26T04:43:00Z")
+    assert live["entries"] == 1
+    assert live["available"] is True
+
+
+def test_read_ledger_bridge_refuses_a_symlink(tmp_path):
+    outside = tmp_path / "outside.json"
+    outside.write_text(json.dumps({"missions": {"A": {"status": "SECRET"}}}), encoding="utf-8")
+    home = tmp_path / "home"
+    home.mkdir()
+    (home / "ledger_bridge_state.json").symlink_to(outside)
+    block = read_ledger_bridge(home, tmp_path, "2026-10-26T04:40:00Z")
+    assert block["missions"] == []
+    assert "SECRET" not in json.dumps(block)
+    assert "SECRET" in outside.read_text(encoding="utf-8")
+
+    (home / "ledger_bridge_state.json").unlink()
+    (home / "ledger_bridge_state.json").write_text(
+        json.dumps({"missions": {"A": {"status": "WORKING", "updated_at": "2026-10-26T04:40:00Z"}}}),
+        encoding="utf-8",
+    )
+    live = read_ledger_bridge(home, tmp_path, "2026-10-26T04:40:00Z")
+    assert live["missions"][0]["id"] == "A"
+    assert live["missions"][0]["status"] == "WORKING"
+
+
+def test_read_ledger_bridge_refuses_a_file_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    mid = outside / "mid"
+    mid.mkdir(parents=True)
+    secret = mid / "ledger_bridge_state.json"
+    secret.write_text(json.dumps({"missions": {"A": {"status": "SECRET"}}}), encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    block = read_ledger_bridge(link / "mid", tmp_path, "2026-10-26T04:40:00Z")
+    assert block["missions"] == []
+    assert "SECRET" not in json.dumps(block)
+    assert "SECRET" in secret.read_text(encoding="utf-8")
+
+    real = tmp_path / "real"
+    real.mkdir()
+    (real / "ledger_bridge_state.json").write_text(
+        json.dumps({"missions": {"A": {"status": "WORKING", "updated_at": "2026-10-26T04:40:00Z"}}}),
+        encoding="utf-8",
+    )
+    live = read_ledger_bridge(real, tmp_path, "2026-10-26T04:40:00Z")
+    assert live["missions"][0]["id"] == "A"
+    assert live["missions"][0]["status"] == "WORKING"
 
 
 def _render(snapshot: dict) -> tuple[str, int]:

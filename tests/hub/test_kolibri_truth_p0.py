@@ -100,6 +100,63 @@ def _no_amount(block):
     assert revenue["status"] in (UNAVAILABLE, "UNKNOWN")
 
 
+def test_read_arbitrage_research_refuses_a_symlink(tmp_path: Path):
+    outside = tmp_path / "outside.json"
+    outside.write_text('{"title":"SECRET","verified_actual_revenue":{"amount_eur":1}}', encoding="utf-8")
+    root = tmp_path / "root"
+    (root / "registries").mkdir(parents=True)
+    (root / "registries" / "arbitrage_research.json").symlink_to(outside)
+    block = read_arbitrage_research(root, AT)
+    assert block["available"] is False
+    assert "SECRET" not in str(block)
+    _no_amount(block)
+    assert outside.read_text(encoding="utf-8").startswith('{"title":"SECRET"')
+
+    linked = tmp_path / "linked-root"
+    linked.symlink_to(root)
+    (root / "registries" / "arbitrage_research.json").unlink()
+    (root / "registries" / "arbitrage_research.json").write_text(
+        '{"title":"SECRET","verified_actual_revenue":{"amount_eur":1}}',
+        encoding="utf-8",
+    )
+    through = read_arbitrage_research(linked, AT)
+    assert through["available"] is False
+    assert "SECRET" not in str(through)
+    _no_amount(through)
+
+    live = read_arbitrage_research(root, AT)
+    assert live["available"] is True
+    assert live["title"] == "SECRET"
+    assert live["verified_actual_revenue"]["amount_eur"] == 1
+
+
+def test_read_arbitrage_research_refuses_a_root_two_levels_under_a_symlink(tmp_path: Path):
+    outside = tmp_path / "outside"
+    home = outside / "mid" / "home"
+    (home / "registries").mkdir(parents=True)
+    secret = home / "registries" / "arbitrage_research.json"
+    secret.write_text('{"title":"SECRET","verified_actual_revenue":{"amount_eur":1}}', encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    block = read_arbitrage_research(link / "mid" / "home", AT)
+    assert block["available"] is False
+    assert "SECRET" not in str(block)
+    _no_amount(block)
+    assert secret.read_text(encoding="utf-8").startswith('{"title":"SECRET"')
+
+    real = tmp_path / "real"
+    (real / "registries").mkdir(parents=True)
+    (real / "registries" / "arbitrage_research.json").write_text(
+        '{"title":"LIVE","verified_actual_revenue":{"status":"UNKNOWN"}}',
+        encoding="utf-8",
+    )
+    live = read_arbitrage_research(real, AT)
+    assert live["available"] is True
+    assert live["title"] == "LIVE"
+    assert "SECRET" not in str(live)
+    assert "amount_eur" not in live["verified_actual_revenue"]
+
+
 def test_k2_missing_arbitrage_file_has_no_amount(tmp_path: Path):
     block = read_arbitrage_research(tmp_path, AT)
     assert block["available"] is False

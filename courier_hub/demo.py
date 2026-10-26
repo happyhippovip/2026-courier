@@ -28,13 +28,18 @@ REPO = Path(__file__).resolve().parents[1]
 
 
 def _spawn(args, home, log_name, new_group=False):
+    home_path = Path(home)
+    log_path = home_path / log_name
+    if (home_path.is_symlink() or home_path.parent.is_symlink() or home_path.parent.parent.is_symlink()
+            or log_path.is_symlink() or log_path.parent.is_symlink() or log_path.parent.parent.is_symlink()):
+        raise SystemExit(f"{log_path}: refusing to follow a symlink")
     env = dict(os.environ, COURIER_HOME=str(home),
                PYTHONPATH=os.pathsep.join([str(REPO), os.environ.get("PYTHONPATH", "")]))
     kwargs = {}
     if new_group:
         kwargs = ({"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP} if os.name == "nt"
                   else {"start_new_session": True})
-    log = open(Path(home) / log_name, "ab")
+    log = open(log_path, "ab")
     return subprocess.Popen([sys.executable, "-m", *args], cwd=str(REPO), env=env, stdout=subprocess.PIPE,
                             stderr=log, stdin=subprocess.DEVNULL, **kwargs)
 
@@ -70,12 +75,25 @@ def _kill_tree(proc):
     proc.wait(10)
 
 
+def _controller_token(home: Path) -> str:
+    path = home / "run" / "controller.token"
+    if (home.is_symlink() or home.parent.is_symlink() or home.parent.parent.is_symlink()
+            or (home / "run").is_symlink()
+            or path.is_symlink() or path.parent.is_symlink() or path.parent.parent.is_symlink()):
+        raise SystemExit(f"{path}: refusing to follow a symlink")
+    if not path.is_file():
+        return ""
+    return path.read_text(encoding="utf-8").strip()
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="python -m courier_hub.demo")
     parser.add_argument("--home", help="empty directory to use (default: a new temp dir)")
     parser.add_argument("--hub-port", type=int, default=8780)
     args = parser.parse_args(argv)
     home = Path(args.home or tempfile.mkdtemp(prefix="courier-demo-"))
+    if home.is_symlink() or home.parent.is_symlink() or home.parent.parent.is_symlink():
+        raise SystemExit(f"{home}: refusing to follow a symlink")
     home.mkdir(parents=True, exist_ok=True)
     procs = []
     try:
@@ -84,8 +102,7 @@ def main(argv=None) -> int:
         procs.append(controller)
         port = int(controller.stdout.readline().strip())
         base = f"http://127.0.0.1:{port}"
-        token = _wait("controller token", lambda: (home / "run" / "controller.token").exists()
-                      and (home / "run" / "controller.token").read_text().strip(), 20)
+        token = _wait("controller token", lambda: _controller_token(home), 20)
         status = lambda tid: _api(base, token, "GET", f"/v1/tasks/{tid}")["status"]  # noqa: E731
 
         worker = _spawn(["courier_worker.host", "--home", str(home), "--controller", base, "--max-tasks", "1",

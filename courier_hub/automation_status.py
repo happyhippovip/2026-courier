@@ -5,8 +5,9 @@ by the ledger-to-V1 bridge. A mission may carry ``status`` (``POSTED``,
 ``FINAL_DONE``, ``BLOCKED``, ``ERROR``), ``reason`` (null or one of
 ``CONTROLLER_BLOCKED``, ``FAILED``, ``CANCELLED``, ``GOAL_PAIR``,
 ``GOAL_TOKEN``), and ``updated_at`` (ISO-8601 UTC ending in Z). Files written
-before those fields existed are derived: a result is ``FINAL_DONE``, and a
-mission with no result is ``POSTED``. This module does not read the
+before those fields existed are derived: a real accepted result is
+``FINAL_DONE``. A blank id or the placeholder ``none`` is not a result, so
+that mission stays ``POSTED``. This module does not read the
 coordination ledger, the controller, or a token.
 
 Any ``ERROR`` is attention. Otherwise any ``BLOCKED`` is blocked. Otherwise
@@ -44,7 +45,11 @@ class _Bad(Exception):
 def automation_card(home, now: datetime) -> dict:
     """One customer card. ``now`` may be naive; a naive value is read as UTC."""
     moment = now if now.tzinfo is not None else now.replace(tzinfo=timezone.utc)
-    path = Path(home) / STATE_NAME
+    root = Path(home)
+    path = root / STATE_NAME
+    if (root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink()
+            or path.is_symlink() or path.parent.is_symlink()):
+        return _attention("UNREADABLE", _UNREADABLE, age=None)
     if not path.is_file():
         if path.exists():
             return _attention("UNREADABLE", _UNREADABLE, age=None)
@@ -154,9 +159,10 @@ def _status_of(mapping):
 
 
 def _derive_status(mapping):
-    """A result is finished. No result stays posted, including a claim not yet posted."""
+    """A real result is finished. A placeholder or a blank id stays posted."""
     result = mapping.get("accepted_result_id")
-    if isinstance(result, str) and result:
+    token = result.strip() if isinstance(result, str) else ""
+    if token and token.lower() != "none":
         return "FINAL_DONE", None
     return "POSTED", None
 

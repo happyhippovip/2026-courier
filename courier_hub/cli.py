@@ -55,6 +55,8 @@ def evidence_from_mapping(raw: dict) -> Evidence:
 
 def load_evidence(path) -> Evidence:
     target = Path(path)
+    if target.is_symlink() or target.parent.is_symlink() or target.parent.parent.is_symlink():
+        raise JournalUnreadable(f"{target}: refusing to follow a symlink")
     try:
         size = target.stat().st_size
         if isinstance(size, bool) or not isinstance(size, int) or size < 0 or size > MAX_STATE_BYTES:
