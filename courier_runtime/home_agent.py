@@ -44,7 +44,7 @@ class LocalGrants:
     @classmethod
     def load(cls, path):
         p = Path(path)
-        if p.is_symlink() or p.parent.is_symlink():
+        if p.is_symlink() or p.parent.is_symlink() or p.parent.parent.is_symlink():
             return cls()
         if not p.exists():
             return cls()                           # missing file = read-only defaults

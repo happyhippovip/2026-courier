@@ -58,6 +58,28 @@ def test_local_grants_refuse_a_symlink(tmp_path):
     assert LocalGrants.load(home / "home_grants.json").max_access == "control"
 
 
+def test_local_grants_refuse_a_file_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    (outside / "mid").mkdir(parents=True)
+    (outside / "mid" / "home_grants.json").write_text(json.dumps({
+        "max_access": "control",
+        "allowed_actions": ["reclaim_idle_surfaces"],
+    }), encoding="utf-8")
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    loaded = LocalGrants.load(link / "mid" / "home_grants.json")
+    assert loaded == LocalGrants()
+    assert loaded.max_access == "read"
+    assert "control" in (outside / "mid" / "home_grants.json").read_text(encoding="utf-8")
+
+    real = tmp_path / "home_grants.json"
+    real.write_text(json.dumps({
+        "max_access": "control",
+        "allowed_actions": ["host_health"],
+    }), encoding="utf-8")
+    assert LocalGrants.load(real).max_access == "control"
+
+
 def test_submit_refuses_a_symlinked_mailbox(tmp_path):
     outside = tmp_path / "outside"
     outside.mkdir()
