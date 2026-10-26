@@ -9,13 +9,40 @@ from pathlib import Path
 
 from courier_core.events import Event, EventType
 from courier_core.journal import Journal
-from courier_hub.kolibri_data import PAUSE, REST_TEXT, UNAVAILABLE, build_snapshot, read_github, read_ledger_bridge, station_key
+from courier_hub.kolibri_data import PAUSE, REST_TEXT, UNAVAILABLE, build_snapshot, read_github, read_ledger_bridge, read_postfach, station_key
 from courier_hub.server import Hub, HubServer
 
 REPO = Path(__file__).resolve().parents[2]
 WALL = REPO / "scripts" / "windows_muse_wall" / "runtime" / "slots"
 MUSE_LABEL = "scripts/windows_muse_wall/runtime/slots"
 OFFLINE = lambda _path: None  # no token and no fabricated GitHub body
+
+
+def test_read_postfach_refuses_a_symlink(tmp_path, monkeypatch):
+    monkeypatch.delenv("COURIER_POSTFACH_DIR", raising=False)
+    outside = tmp_path / "secret.json"
+    outside.write_text('[{"secret":"SECRET"}]', encoding="utf-8")
+    home = tmp_path / "home"
+    home.mkdir()
+    root = tmp_path / "repo"
+    root.mkdir()
+    (home / "POSTFACH_ALT_AN_NEU").symlink_to(outside)
+    block = read_postfach("postfach_alt_an_neu", home, root, "2026-10-26T04:43:00Z")
+    assert block["entries"] is None
+    assert "SECRET" not in json.dumps(block)
+    assert "SECRET" in outside.read_text(encoding="utf-8")
+
+    linked = tmp_path / "linked-home"
+    linked.symlink_to(home)
+    (home / "POSTFACH_ALT_AN_NEU").unlink()
+    (home / "POSTFACH_ALT_AN_NEU").write_text('[{"secret":"SECRET"}]', encoding="utf-8")
+    through = read_postfach("postfach_alt_an_neu", linked, root, "2026-10-26T04:43:00Z")
+    assert through["entries"] is None
+    assert "SECRET" not in json.dumps(through)
+
+    live = read_postfach("postfach_alt_an_neu", home, root, "2026-10-26T04:43:00Z")
+    assert live["entries"] == 1
+    assert live["available"] is True
 
 
 def test_read_ledger_bridge_refuses_a_symlink(tmp_path):
