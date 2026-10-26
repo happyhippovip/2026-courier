@@ -81,7 +81,8 @@ def cost_admission(params: Any, spend_limit_eur: float = 0.0) -> str | None:
     """Return None if the task may be created, else the reason it is blocked."""
     if not isinstance(params, dict):
         return "UNKNOWN_COST: params missing"
-    if params.get("unknown_cost") is True or params.get("cost_class") == "unknown":
+    marker = params.get("cost_class")
+    if params.get("unknown_cost") is True or (isinstance(marker, str) and marker.strip().lower() == "unknown"):
         return "UNKNOWN_COST: marked unknown"
     cost = params.get("estimated_cost_eur")
     if isinstance(cost, bool) or not isinstance(cost, (int, float)) or not math.isfinite(cost):

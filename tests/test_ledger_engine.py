@@ -74,6 +74,8 @@ def kirby_state(path):
     ({"estimated_cost_eur": 0.01}, True),
     ({"estimated_cost_eur": 0.0, "unknown_cost": True}, True),
     ({"estimated_cost_eur": 0.0, "cost_class": "unknown"}, True),
+    ({"estimated_cost_eur": 0.0, "cost_class": "UNKNOWN"}, True),
+    ({"estimated_cost_eur": 0.0, "cost_class": " Unknown "}, True),
     (None, True),
     ([], True),
     ({"estimated_cost_eur": "nan"}, True),
