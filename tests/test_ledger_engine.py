@@ -285,6 +285,33 @@ def test_zero_human_chain_runs_three_workkeys_to_final_with_proofs(setup):
 
 # -- known gaps outside the engine (owners: controller L2, host loop L3) ----------------------
 
+def test_campaign_refuses_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    home = tmp_path / "home"
+    home.symlink_to(outside, target_is_directory=True)
+    engine = LedgerEngine(object(), home / "kirby.json", "host-a")
+    with pytest.raises(OSError, match="symlink"):
+        with engine._campaign():
+            pass
+    assert list(outside.iterdir()) == []
+
+    real = tmp_path / "real"
+    campaign = real / "kirby.json"
+    engine = LedgerEngine(object(), campaign, "host-a")
+    with engine._campaign():
+        pass
+    planted = tmp_path / "other.lock"
+    planted.write_text("locked-elsewhere", encoding="utf-8")
+    engine.lock_path.unlink()
+    engine.lock_path.symlink_to(planted)
+    with pytest.raises(OSError, match="symlink"):
+        with engine._campaign():
+            pass
+    assert planted.read_text(encoding="utf-8") == "locked-elsewhere"
+    assert not campaign.exists()
+
+
 def test_b2_second_writer_rejected(setup):
     """A second LedgerEngine with a different writer id cannot change the campaign."""
     engine1, ctrl, _, _ = setup
