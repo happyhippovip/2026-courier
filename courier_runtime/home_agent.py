@@ -80,9 +80,9 @@ class HomeAgent:
     def run_once(self):
         """Process every new job once. Returns the receipts written in this pass."""
         root = self.inbox.parent.parent
-        if (root.is_symlink() or root.parent.is_symlink()
-                or self.inbox.is_symlink() or self.inbox.parent.is_symlink()
-                or self.outbox.is_symlink() or self.outbox.parent.is_symlink()):
+        if (root.is_symlink() or root.parent.is_symlink() or root.parent.parent.is_symlink()
+                or self.inbox.is_symlink() or self.inbox.parent.is_symlink() or self.inbox.parent.parent.is_symlink()
+                or self.outbox.is_symlink() or self.outbox.parent.is_symlink() or self.outbox.parent.parent.is_symlink()):
             return []
         self.outbox.mkdir(parents=True, exist_ok=True)
         receipts = []

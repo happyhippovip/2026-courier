@@ -158,6 +158,38 @@ def test_run_once_refuses_a_symlinked_mailbox(tmp_path):
     assert calls == ["live"]
 
 
+def test_run_once_refuses_a_mailbox_two_levels_under_a_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    inbox = outside / "mid" / "box" / "pc-1" / "inbox"
+    inbox.mkdir(parents=True)
+    (inbox / "j1.json").write_text(
+        json.dumps({"action": "host_health", "params": {"secret": "SECRET"}}),
+        encoding="utf-8",
+    )
+    link = tmp_path / "link"
+    link.symlink_to(outside, target_is_directory=True)
+    calls = []
+    agent = HomeAgent(
+        link / "mid" / "box", "pc-1", LocalGrants(),
+        {"host_health": lambda p: calls.append(p) or {"ok": True}}, clock=lambda: 5.0,
+    )
+    assert agent.run_once() == []
+    assert calls == []
+    assert not (outside / "mid" / "box" / "pc-1" / "outbox").exists()
+    assert "SECRET" in (inbox / "j1.json").read_text(encoding="utf-8")
+
+    real = tmp_path / "real"
+    real_inbox = real / "pc-1" / "inbox"
+    real_inbox.mkdir(parents=True)
+    (real_inbox / "j1.json").write_text(json.dumps({"action": "host_health", "params": {}}), encoding="utf-8")
+    receipts = HomeAgent(
+        real, "pc-1", LocalGrants(),
+        {"host_health": lambda p: {"ok": True}}, clock=lambda: 5.0,
+    ).run_once()
+    assert receipts[0]["status"] == "DONE"
+    assert "SECRET" not in json.dumps(receipts)
+
+
 def test_local_grants_allow_more_and_pause_stops_all(tmp_path):
     gpath = tmp_path / "home_grants.json"
     gpath.write_text(json.dumps({"max_access": "write", "allowed_actions": ["host_health", "git_pull_repo"],
