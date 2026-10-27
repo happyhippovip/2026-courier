@@ -588,3 +588,52 @@ def test_p2r3_restart_and_double_dispatch_keep_one_consistent_done(tmp_path):
             for make in (lambda: q, lambda: _queue(tmp_path, journal=jh.journal),  # 2 workers, then a restart
                          lambda: _queue(tmp_path, journal=jh.restart()))] == [False, True, True]
     assert (tmp_path / "ledger.jsonl").read_text(encoding="utf-8").count('"type":"RELEASE"') == 1
+
+
+@pytest.mark.parametrize("results", [["r-1", "r-2"], ["r-1", "r-1"]])  # X05 / X04 (same result id, new attempt)
+def test_p2r3_sha256_only_from_the_accepted_attempt_and_result(tmp_path, results):
+    jh = JournalHome(tmp_path)
+    queue = _queue(tmp_path, journal=jh.journal)
+    queue.claim("REPORT-QA", "holder-a", 60, now=NOW, done_prs=["281"])
+    proof = jh.accept("REPORT-QA", results=results)        # attempt 1 failed with its own artifact
+    _not_proven(queue, tmp_path, proof.split("|sha256:")[0] + "|sha256:" + jh.digests[0], "SHA256_MISMATCH")
+    assert queue.release("REPORT-QA", "holder-a", "draft PR", now=NOW, proof=proof)["status"] == "DONE"
+
+
+def test_p2r3_accepted_exactly_at_the_claim_head_is_stale(tmp_path):  # X03: the fence is seq <= claim_seq
+    jh = JournalHome(tmp_path)
+    proof = jh.accept("REPORT-QA")
+    seq = int(proof.split(":")[1])
+
+    class HeadAtAccept:  # the real journal, but its head is the RESULT_ACCEPTED itself (no later event yet)
+        def __getattr__(self, name):
+            return getattr(jh.journal, name)
+
+        def head(self):
+            return seq, ""
+
+    queue = _queue(tmp_path, journal=HeadAtAccept())
+    queue.claim("REPORT-QA", "holder-a", 60, now=NOW, done_prs=["281"])
+    queue.journal = jh.journal
+    _not_proven(queue, tmp_path, proof, "STALE_GENERATION")
+
+
+def test_p2r3_sha256_ignores_another_result_of_the_accepted_attempt(tmp_path):
+    # X05, journal double: a legal journal keeps a 2nd result of one attempt as LATE_RESULT_DISCARDED only.
+    jh = JournalHome(tmp_path)
+    queue = _queue(tmp_path, journal=jh.journal)
+    queue.claim("REPORT-QA", "holder-a", 60, now=NOW, done_prs=["281"])
+    proof = jh.accept("REPORT-QA")
+    ready = next(e for e in jh.journal.events(task_id=jh.task_id) if e.type.value == "RESULT_READY")
+    extra = dataclasses.replace(ready, result_id="r-other", payload={**ready.payload,
+                                "artifacts": [{"path": "other.bin", "sha256": "c" * 64}]})
+
+    class WithExtra:  # the real journal plus one RESULT_READY of the same attempt with another result id
+        def __getattr__(self, name):
+            return getattr(jh.journal, name)
+
+        def events(self, after_seq=0, task_id=None):
+            return [*jh.journal.events(after_seq, task_id), *([extra] if task_id == jh.task_id else [])]
+
+    queue.journal = WithExtra()
+    assert queue.release("REPORT-QA", "holder-a", "draft PR", now=NOW, proof=proof)["status"] == "DONE"

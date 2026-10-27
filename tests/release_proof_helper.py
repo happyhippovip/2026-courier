@@ -22,19 +22,25 @@ class JournalHome:  # accept(): one task through create/claim/start/result/verif
         self.journal = self.ctrl.journal
         return self.journal
 
-    def accept(self, workkey, key=None, payload=b"P2R2"):  # new accepted task (key workkey:<id>); proof from journal
+    def accept(self, workkey, key=None, payload=b"P2R2", results=None):  # new accepted task; proof from journal
+        """results: result ids per attempt; all but the last attempt fail (retryable) with their own artifact."""
         self.count += 1
+        results = results or [f"r-{self.count}"]
         created = self.ctrl.create_task({"adapter": "synthetic", "params": {"estimated_cost_eur": 0.0},
-                                         "effect_class": "idempotent", "max_attempts": 1, "lease_ttl_s": 10,
+                                         "effect_class": "idempotent", "max_attempts": len(results), "lease_ttl_s": 10,
                                          "idempotency_key": key or f"workkey:{workkey}"})
         task_id = self.task_id = created[1]["task_id"]
-        c = self.ctrl.claim({"worker_id": "w1"})
-        self.ctrl.start({"dispatch_id": c["dispatch_id"], "worker_id": "w1"})
-        name, data = f"out{self.count}.bin", payload + f"{workkey}#{self.count}".encode()
-        (self.home / name).write_bytes(data)
-        self.ctrl.result({"dispatch_id": c["dispatch_id"], "result_id": f"r-{self.count}", "outcome": "success",
-                          "artifacts": [{"path": name, "sha256": hashlib.sha256(data).hexdigest()}]})
-        self.ctrl.drain()
+        self.digests = []
+        for attempt, rid in enumerate(results, 1):
+            c = self.ctrl.claim({"worker_id": "w1"})
+            self.ctrl.start({"dispatch_id": c["dispatch_id"], "worker_id": "w1"})
+            name, data = f"out{self.count}-{attempt}.bin", payload + f"{workkey}#{self.count}-{attempt}".encode()
+            (self.home / name).write_bytes(data)
+            self.digests.append(hashlib.sha256(data).hexdigest())
+            self.ctrl.result({"dispatch_id": c["dispatch_id"], "result_id": rid, "retryable": True,
+                              "outcome": "success" if attempt == len(results) else "failure",
+                              "artifacts": [{"path": name, "sha256": self.digests[-1]}]})
+            self.ctrl.drain()
         seq = [e.seq for e in self.journal.events(task_id=task_id) if e.type is EventType.RESULT_ACCEPTED]
         assert len(seq) == 1, (task_id, seq)
-        return f"journal:{seq[0]}:RESULT_ACCEPTED|sha256:{hashlib.sha256(data).hexdigest()}"
+        return f"journal:{seq[0]}:RESULT_ACCEPTED|sha256:{self.digests[-1]}"

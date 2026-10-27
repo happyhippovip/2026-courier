@@ -5,6 +5,8 @@ from pathlib import Path
 
 from courier_core.work_queue import WorkQueue
 from courier_worker.queue_feed import feed_once
+from scripts.coordination_ledger import AgentID, CoordinationEvent, EventType, HostID, MissionStatus
+from scripts.github_coordination import FileCoordinationStore
 from tests.release_proof_helper import FORGED, JournalHome
 
 NOW = datetime(2026, 10, 25, 18, 0, tzinfo=timezone.utc)
@@ -185,3 +187,22 @@ def test_second_pass_does_not_claim_twice(tmp_path):
     assert first["claimed"] == ["ONLY"]
     assert second["claimed"] == []
     assert second["renewed"] == ["ONLY"]
+
+
+def test_bridge_claim_tasks_bind_only_their_own_mission(tmp_path):
+    # X07/X06: only "claim-" events of this mission name bridge tasks (task key ledger:<claim event id>).
+    home, queue = _home(tmp_path, [_item("HELD", ["docs/held.md"], [])])
+    jh = _journal_claim(home, queue)
+    store = FileCoordinationStore(home / "coordination_ledger.jsonl")
+    for event_id, mission in (("claim-other-y", "OTHER"), ("queue-assign-HELD", "HELD"), ("claim-held-x", "HELD")):
+        store.write_event(CoordinationEvent(
+            event_id=event_id, mission_id=mission, agent_id=AgentID(AGENT), host_id=HostID(HOST),
+            event_type=EventType.ASSIGNED, status=MissionStatus.WORKING, depends_on=[], head="work_queue",
+            evidence_ref=f"work_queue:{mission}", created_at=NOW.isoformat().replace("+00:00", "Z"),
+            payload_hash="work_queue", ownership=AGENT))
+    for key in ("ledger:claim-other-y", "ledger:queue-assign-HELD"):  # real proofs, wrong mission / no claim
+        _final_done(home, journal_proof=jh.accept("HELD", key=key), task_id=jh.task_id)
+        report = feed_once(home, AGENT, HOST, now=NOW)
+        assert report["released"] == [] and report["not_proven"] == ["HELD"], key
+    _final_done(home, journal_proof=jh.accept("HELD", key="ledger:claim-held-x"), task_id=jh.task_id)
+    assert feed_once(home, AGENT, HOST, now=NOW)["released"] == ["HELD"]
