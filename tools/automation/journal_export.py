@@ -160,7 +160,7 @@ def open_readonly(path: str | os.PathLike, immutable_ok: bool = True) -> Journal
         conn.execute("PRAGMA query_only=ON")
         conn.execute("BEGIN")  # one read snapshot for verification and export
         conn.execute("SELECT 1 FROM events LIMIT 1").fetchall()
-    except sqlite3.Error as exc:
+    except (sqlite3.Error, UnicodeDecodeError) as exc:  # a damaged schema text raises UnicodeDecodeError, not sqlite3.Error (K2 fuzz, seed 83)
         raise _classify(path, exc) from exc
     journal = Journal(path, readonly=True)
     journal._conn = conn  # hand the existing verifier a connection that cannot write
