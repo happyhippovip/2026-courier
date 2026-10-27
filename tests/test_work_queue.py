@@ -286,8 +286,23 @@ def test_cli_next_prints_prompt_without_claiming(tmp_path, capsys):
     assert "CLAIMED" in capsys.readouterr().out
     assert main(["--ledger", str(ledger), "next", "--holder", "window-b", "--done-pr", "281"]) == 0
     assert "id: REPORT-QA" not in capsys.readouterr().out
-    assert main(["--ledger", str(ledger), "release", "--item", "REPORT-QA", "--holder", "other", "--result", "draft PR"]) == 2
+    # P2: release requires --proof; a wrong holder with a valid proof is still NOT_HOLDER.
+    proof = "journal:7:RESULT_ACCEPTED"
+    assert main(["--ledger", str(ledger), "release", "--item", "REPORT-QA", "--holder", "other", "--result", "draft PR",
+                 "--proof", proof]) == 2
     assert capsys.readouterr().err.strip() == "NOT_HOLDER"
+    # A bare/fake proof never writes DONE, even for the real holder.
+    before = ledger.read_bytes()
+    assert main(["--ledger", str(ledger), "release", "--item", "REPORT-QA", "--holder", "window-a", "--result", "draft PR",
+                 "--proof", "RESULT_ACCEPTED"]) == 2
+    assert capsys.readouterr().err.strip() == "NOT_PROVEN"
+    assert ledger.read_bytes() == before
+    # Missing --proof is refused by the CLI parser.
+    with pytest.raises(SystemExit) as caught:
+        main(["--ledger", str(ledger), "release", "--item", "REPORT-QA", "--holder", "window-a", "--result", "draft PR"])
+    assert caught.value.code == 2
+    capsys.readouterr()
+    assert ledger.read_bytes() == before
 
 
 def test_p9_template_spawns_claim_once_items(tmp_path):

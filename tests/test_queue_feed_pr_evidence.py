@@ -104,19 +104,59 @@ def test_final_done_without_a_result_is_not_released(tmp_path):
     assert "HELD" in report["blocked"]
 
 
+JOURNAL_PROOF = "journal:7:RESULT_ACCEPTED|sha256:" + "b" * 64
+
+
+def _final_done(home, **extra):
+    mission = {"status": "FINAL_DONE", "task_id": "task-held", "accepted_result_id": "res-accepted-1"}
+    mission.update(extra)
+    (home / "ledger_bridge_state.json").write_text(json.dumps({"missions": {"HELD": mission}}), encoding="utf-8")
+
+
 def test_proven_final_done_releases_once_and_restart_does_not_claim_again(tmp_path):
+    # P2: FINAL_DONE releases only with the bridge's journal RESULT_ACCEPTED proof (P2b).
     home, queue = _home(tmp_path, [_item("HELD", ["docs/held.md"], [])])
     queue.claim("HELD", HOLDER, 600, host=HOST, now=NOW)
-    (home / "ledger_bridge_state.json").write_text(json.dumps({
-        "missions": {"HELD": {"status": "FINAL_DONE", "task_id": "task-held",
-                              "accepted_result_id": "res-accepted-1"}}
-    }), encoding="utf-8")
+    _final_done(home, journal_proof=JOURNAL_PROOF)
     first = feed_once(home, AGENT, HOST, now=NOW)
     assert first["released"] == ["HELD"]
     again = feed_once(home, AGENT, HOST, now=NOW + timedelta(seconds=5))
     assert again["released"] == []
     assert again["claimed"] == []
     assert queue.items(now=NOW)[0]["status"] == "DONE"
+    # Restart: a fresh queue over the same ledger replays to the same single DONE.
+    restarted = WorkQueue(items_dir=tmp_path / "items", ledger_path=tmp_path / "queue.jsonl")
+    assert [i["status"] for i in restarted.items(now=NOW)] == ["DONE"]
+    lines = (tmp_path / "queue.jsonl").read_text(encoding="utf-8").splitlines()
+    releases = [json.loads(line) for line in lines if '"RELEASE"' in line]
+    assert len(releases) == 1
+    assert releases[0]["proof"] == JOURNAL_PROOF
+
+
+def test_final_done_without_journal_proof_stays_held_and_dispatches_nothing(tmp_path):
+    # Negative: FINAL_DONE + accepted_result_id but no journal proof -> no DONE(A), no B.
+    home, queue = _home(tmp_path, [_item("HELD", ["docs/held.md"], []),
+                                   _item("NEXTB", ["docs/b.md"], ["HELD"])])
+    queue.claim("HELD", HOLDER, 600, host=HOST, now=NOW)
+    _final_done(home)
+    report = feed_once(home, AGENT, HOST, now=NOW)
+    assert report["released"] == []
+    assert report["not_proven"] == ["HELD"]
+    assert "NEXTB" not in report["claimed"]
+    status = {i["id"]: i["status"] for i in queue.items(now=NOW)}
+    assert status["HELD"] == "CLAIMED"
+    assert status["NEXTB"] != "CLAIMED"
+
+
+def test_fake_journal_proof_is_not_a_release(tmp_path):
+    home, queue = _home(tmp_path, [_item("HELD", ["docs/held.md"], [])])
+    queue.claim("HELD", HOLDER, 600, host=HOST, now=NOW)
+    for fake in ("RESULT_ACCEPTED", "journal:0:RESULT_ACCEPTED", "journal:x:RESULT_ACCEPTED",
+                 "res-accepted-1", "local-verified:sha256:abc"):
+        _final_done(home, journal_proof=fake)
+        report = feed_once(home, AGENT, HOST, now=NOW)
+        assert report["released"] == [], fake
+        assert queue.items(now=NOW)[0]["status"] == "CLAIMED", fake
 
 
 def test_second_pass_does_not_claim_twice(tmp_path):

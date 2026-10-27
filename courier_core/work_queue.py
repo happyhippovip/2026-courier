@@ -36,8 +36,9 @@ DEFAULT_LEDGER = REPO_ROOT / "registries" / "work_queue_ledger.jsonl"
 
 # O7-12 P2: a workkey is DONE only with a proof of acceptance. Either the journal
 # RESULT_ACCEPTED of the ledger engine, or the local verifier's artifact digest.
+# Journal positions start at 1 (as in ledger_v1_bridge.journal_proof); seq 0 is no proof.
 _RELEASE_PROOF = re.compile(
-    r"^(journal:[0-9]+:RESULT_ACCEPTED(\|sha256:[0-9a-f]{64})?|local-verified:sha256:[0-9a-f]{64})$")
+    r"^(journal:[1-9][0-9]*:RESULT_ACCEPTED(\|sha256:[0-9a-f]{64})?|local-verified:sha256:[0-9a-f]{64})$")
 
 
 def valid_release_proof(proof) -> bool:
