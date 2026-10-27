@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from courier_core.work_queue import WorkQueue, WorkQueueError
+from tests.release_proof_helper import JournalHome
 
 from scripts.windows_worker.local_queue import (
     TemporaryFailure,
@@ -40,15 +41,20 @@ def _write_items(directory, rows):
         (directory / f"{row['id']}.json").write_text(json.dumps(row), encoding="utf-8")
 
 
+JH = {}  # P2 R2: the real controller journal of the current test (local evidence is no proof)
+
+
 def _queue(tmp_path, rows):
     home = tmp_path / "items"
     _write_items(home, rows)
-    return WorkQueue(home, tmp_path / "ledger.jsonl")
+    JH["jh"] = JournalHome(tmp_path)
+    return WorkQueue(home, tmp_path / "ledger.jsonl", journal=JH["jh"].journal)
 
 
 def _execute(item_id, workspace):
     path = workspace / f"{item_id}.txt"
     path.write_text("done\n", encoding="utf-8")
+    JH["jh"].accept(item_id)  # the verified result lands in the journal after the claim
     return path.name
 
 
@@ -177,6 +183,7 @@ def test_ran_phase_survives_and_does_not_execute_again(tmp_path):
     queue.claim("A", HOLDER, 60, host="win-host", now=NOW)
     (work).mkdir()
     (work / "A.txt").write_text("done\n", encoding="utf-8")
+    JH["jh"].accept("A")  # the run before the crash got its verified journal result
     (work / "phase.json").write_text(json.dumps({
         "item_id": "A", "phase": "RAN", "evidence": "A.txt",
     }), encoding="utf-8")
@@ -194,7 +201,7 @@ def test_remainder_stays_ready_after_a_new_queue_object(tmp_path):
     queue = _queue(tmp_path, rows)
     first = run_once(queue, HOLDER, "win-host", tmp_path / "work", _execute, NOW)
     assert first["item_id"] == "A"
-    reopened = WorkQueue(tmp_path / "items", tmp_path / "ledger.jsonl")
+    reopened = WorkQueue(tmp_path / "items", tmp_path / "ledger.jsonl", journal=queue.journal)
     assert [item["id"] for item in reopened.list_ready(now=NOW)] == ["B"]
     second = run_once(reopened, HOLDER, "win-host", tmp_path / "work", _execute, NOW)
     assert second["item_id"] == "B" and second["next"] == []
@@ -255,7 +262,7 @@ def test_dead_letter_is_not_executed_or_released_again(tmp_path):
     assert calls == ["A", "A"]
     text = (tmp_path / "ledger.jsonl").read_text(encoding="utf-8")
     assert "RELEASE" not in text
-    proof = "local-verified:sha256:" + "c" * 64          # O7-12 P2: DONE needs a valid proof
+    proof = JH["jh"].accept("A")                          # P2 R2: a real journal proof
     again = queue.release("A", HOLDER, "BLOCKED", now=NOW, proof=proof)
     repeat = queue.release("A", HOLDER, "BLOCKED", now=NOW, proof=proof)
     assert again["status"] == "DONE" and again["idempotent"] is False
@@ -309,3 +316,13 @@ def test_synthetic_run_finalizes_distinct_workkeys_in_order(tmp_path):
     assert steps[:5] == ["CLAIM", "RUN", "VERIFY", "FINAL", "NEXT"]
     for item_id in ("A", "B", "C"):
         assert (tmp_path / "work" / f"{item_id}.txt").read_text(encoding="utf-8") == "done\n"
+
+
+def test_p2r2_without_journal_a_verified_local_file_is_not_final(tmp_path):
+    _write_items(tmp_path / "items", [_item("A", ["scripts/windows_worker/a.py"])])
+    queue = WorkQueue(tmp_path / "items", tmp_path / "ledger.jsonl")
+    receipt = run_once(queue, HOLDER, "win-host", tmp_path / "work",
+                       lambda item, ws: (ws / "A.txt").write_text("done\n") and "A.txt", NOW)  # file only
+    assert receipt["outcome"] == "blocked" and receipt["reason"] == "RELEASE_REJECTED"
+    assert '"type":"RELEASE"' not in (tmp_path / "ledger.jsonl").read_text(encoding="utf-8")
+    assert queue.items(now=NOW)[0]["status"] == "CLAIMED"

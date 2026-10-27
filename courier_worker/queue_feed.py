@@ -20,6 +20,7 @@ a scheduler; LedgerTick calls it once before each bridge pass.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from datetime import datetime, timedelta, timezone
@@ -167,6 +168,15 @@ def has_open_work(home, now=None) -> bool:
 
 
 def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
+    opened = []
+    try:
+        return _feed_once(home, agent_id, host_id, now, opened)
+    finally:
+        for journal in opened:
+            journal.close()
+
+
+def _feed_once(home, agent_id: str, host_id: str, now, opened) -> dict:
     home = Path(home)
     config = _read_json(home / CONFIG_NAME, None)
     if config is None:
@@ -187,7 +197,14 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
         return {"outcome": "blocked", "released": [], "claimed": [], "assigned": [],
                 "renewed": [], "blocked": ["PR_EVIDENCE"]}
     done_prs, open_pr_files = evidence
-    queue = WorkQueue(items_dir=config["items_dir"], ledger_path=config["ledger"])
+    journal = None
+    if (home / "courier.db").is_file():
+        # P2 R2: release proofs are checked against this home's controller journal, read-only.
+        # Trust limit: whoever can write <home>/courier.db can mint proofs (= controller trust).
+        from courier_core.journal import Journal
+        journal = Journal(home / "courier.db", readonly=True).open()
+        opened.append(journal)
+    queue = WorkQueue(items_dir=config["items_dir"], ledger_path=config["ledger"], journal=journal)
     store = FileCoordinationStore(home / "coordination_ledger.jsonl")
     bridge_state = _read_json(home / "ledger_bridge_state.json", {"missions": {}})
     missions = bridge_state.get("missions") or {}
@@ -218,11 +235,13 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
         item_id = item["id"]
         mapping = missions.get(item_id) or {}
         if _result_proven(mapping):
-            # O7-12 P2: the bridge mapping carries no journal RESULT_ACCEPTED proof today
-            # (ledger_v1_bridge writes accepted_result_id only). Without "journal_proof"
-            # the release is NOT_PROVEN: the workkey stays held instead of becoming DONE.
+            # P2 R2: mapping["journal_proof"] is only a pointer; the queue checks it against the journal
+            # (task = bridge claim tasks of this mission, not the mapping). Any gap => NOT_PROVEN, held.
+            claim_tasks = {"task-" + hashlib.sha256(f"ledger:{e.event_id}".encode("utf-8")).hexdigest()[:32]
+                           for e in reduce_store(store).events
+                           if e.mission_id == item_id and str(e.event_id).startswith("claim-")}
             released = queue.release(item_id, holder, f"FINAL_DONE {mapping.get('task_id', '')}".strip(),
-                                     now=now, proof=mapping.get("journal_proof"))
+                                     now=now, proof=mapping.get("journal_proof"), task_ids=claim_tasks)
             if released["status"] == "DONE":
                 report["released"].append(item_id)
                 continue

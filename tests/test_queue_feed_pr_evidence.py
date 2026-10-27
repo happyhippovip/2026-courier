@@ -5,6 +5,7 @@ from pathlib import Path
 
 from courier_core.work_queue import WorkQueue
 from courier_worker.queue_feed import feed_once
+from tests.release_proof_helper import FORGED, JournalHome
 
 NOW = datetime(2026, 10, 25, 18, 0, tzinfo=timezone.utc)
 AGENT = "GOOGLE_WINDOWS"
@@ -104,7 +105,11 @@ def test_final_done_without_a_result_is_not_released(tmp_path):
     assert "HELD" in report["blocked"]
 
 
-JOURNAL_PROOF = "journal:7:RESULT_ACCEPTED|sha256:" + "b" * 64
+def _journal_claim(home, queue, item_id="HELD"):  # real journal (home/courier.db), then claim + fence
+    jh = JournalHome(home, nested=False)
+    queue.journal = jh.journal
+    queue.claim(item_id, HOLDER, 600, host=HOST, now=NOW)
+    return jh
 
 
 def _final_done(home, **extra):
@@ -114,10 +119,11 @@ def _final_done(home, **extra):
 
 
 def test_proven_final_done_releases_once_and_restart_does_not_claim_again(tmp_path):
-    # P2: FINAL_DONE releases only with the bridge's journal RESULT_ACCEPTED proof (P2b).
+    # P2 R2: FINAL_DONE releases only when the bridge's proof is confirmed by the real journal.
     home, queue = _home(tmp_path, [_item("HELD", ["docs/held.md"], [])])
-    queue.claim("HELD", HOLDER, 600, host=HOST, now=NOW)
-    _final_done(home, journal_proof=JOURNAL_PROOF)
+    jh = _journal_claim(home, queue)
+    proof = jh.accept("HELD")
+    _final_done(home, journal_proof=proof)
     first = feed_once(home, AGENT, HOST, now=NOW)
     assert first["released"] == ["HELD"]
     again = feed_once(home, AGENT, HOST, now=NOW + timedelta(seconds=5))
@@ -130,7 +136,7 @@ def test_proven_final_done_releases_once_and_restart_does_not_claim_again(tmp_pa
     lines = (tmp_path / "queue.jsonl").read_text(encoding="utf-8").splitlines()
     releases = [json.loads(line) for line in lines if '"RELEASE"' in line]
     assert len(releases) == 1
-    assert releases[0]["proof"] == JOURNAL_PROOF
+    assert releases[0]["proof"] == proof
 
 
 def test_final_done_without_journal_proof_stays_held_and_dispatches_nothing(tmp_path):
@@ -150,13 +156,27 @@ def test_final_done_without_journal_proof_stays_held_and_dispatches_nothing(tmp_
 
 def test_fake_journal_proof_is_not_a_release(tmp_path):
     home, queue = _home(tmp_path, [_item("HELD", ["docs/held.md"], [])])
-    queue.claim("HELD", HOLDER, 600, host=HOST, now=NOW)
-    for fake in ("RESULT_ACCEPTED", "journal:0:RESULT_ACCEPTED", "journal:x:RESULT_ACCEPTED",
-                 "res-accepted-1", "local-verified:sha256:abc"):
-        _final_done(home, journal_proof=fake)
+    jh = _journal_claim(home, queue)
+    real = jh.accept("HELD")
+    foreign = jh.accept("OTHER")       # a real proof of another workkey's task; the mapping even names it
+    for fake in FORGED + ("RESULT_ACCEPTED", "journal:0:RESULT_ACCEPTED", "journal:x:RESULT_ACCEPTED",
+                          "res-accepted-1", real.split("|")[0], real.split("|")[0] + "|sha256:" + "0" * 64,
+                          foreign):
+        _final_done(home, journal_proof=fake, task_id=jh.task_id)
         report = feed_once(home, AGENT, HOST, now=NOW)
-        assert report["released"] == [], fake
+        assert report["released"] == [] and report["not_proven"] == ["HELD"], fake
         assert queue.items(now=NOW)[0]["status"] == "CLAIMED", fake
+
+
+def test_without_journal_no_proof_is_a_release(tmp_path):
+    # Fail closed: no courier.db in the feed home => nothing is DONE, whatever the mapping says.
+    home, queue = _home(tmp_path, [_item("HELD", ["docs/held.md"], [])])
+    jh = _journal_claim(tmp_path / "elsewhere", queue)
+    for proof in FORGED + (jh.accept("HELD"),):
+        _final_done(home, journal_proof=proof)
+        report = feed_once(home, AGENT, HOST, now=NOW)
+        assert report["released"] == [] and report["not_proven"] == ["HELD"], proof
+    assert queue.items(now=NOW)[0]["status"] == "CLAIMED"
 
 
 def test_second_pass_does_not_claim_twice(tmp_path):

@@ -5,12 +5,11 @@ as the given holder, runs a local function, and releases FINAL after a file
 in the workspace verifies. A blocked dependency is not released by skipping
 it. A failed item stays claimed and is recorded as dead letter.
 """
-import hashlib
 import json
 import os
 from pathlib import Path
 
-from courier_core.work_queue import WorkQueueError
+from courier_core.work_queue import WorkQueueError, journal_release_proof
 
 
 class TemporaryFailure(Exception):
@@ -82,7 +81,8 @@ def run_once(queue, holder, host, workspace, execute, now, ttl=60, max_attempts=
     if not _verified(workspace, evidence):
         return _dead(workspace, item_id, holder, "UNVERIFIED", _attempts(workspace, item_id))
     _append(workspace, "VERIFY", {"item_id": item_id, "evidence": evidence})
-    proof = _local_proof(workspace, evidence)
+    # P2 R2: a local file check is no proof. DONE needs the journal RESULT_ACCEPTED of this workkey.
+    proof = journal_release_proof(getattr(queue, "journal", None), item_id)
     released = queue.release(item_id, holder, "FINAL", now=now, proof=proof)
     if released["status"] != "DONE" or released["result"] != "FINAL":
         return _receipt(workspace, {"outcome": "blocked", "reason": "RELEASE_REJECTED", "item_id": item_id})
@@ -155,18 +155,6 @@ def _attempts(workspace, item_id):
         return int(data.get("attempts") or 0)
     except (TypeError, ValueError):
         return 0
-
-
-def _local_proof(workspace, evidence):
-    """local-verified:sha256:<hex> of the verified evidence file, or None."""
-    path = Path(evidence)
-    if not path.is_absolute():
-        path = workspace / path
-    try:
-        digest = hashlib.sha256(path.read_bytes()).hexdigest()
-    except OSError:
-        return None
-    return f"local-verified:sha256:{digest}"
 
 
 def _verified(workspace, evidence):

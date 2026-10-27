@@ -1,5 +1,6 @@
 """Offline tests for the canonical work queue. No network."""
 
+import dataclasses
 import json
 import threading
 from datetime import datetime, timedelta, timezone
@@ -13,7 +14,10 @@ from courier_core.work_queue import (
     WorkQueue,
     WorkQueueError,
     main,
+    release_task_id,
 )
+from courier_runtime.ledger_engine import task_id_for
+from tests.release_proof_helper import FORGED, JournalHome
 
 NOW = datetime(2026, 10, 8, 12, 0, 0, tzinfo=timezone.utc)
 CLAIMED = {
@@ -27,11 +31,8 @@ CLAIMED = {
 DONE = ["P1", "P5", "P7"]
 
 
-PROOF = "local-verified:sha256:" + "a" * 64   # O7-12 P2: DONE needs a valid proof
-JOURNAL_PROOF = "journal:7:RESULT_ACCEPTED|sha256:" + "b" * 64
-
-def _queue(tmp_path, items=None):
-    return WorkQueue(items or DEFAULT_ITEMS, tmp_path / "ledger.jsonl", DEFAULT_SCHEMA)
+def _queue(tmp_path, items=None, journal=None):
+    return WorkQueue(items or DEFAULT_ITEMS, tmp_path / "ledger.jsonl", DEFAULT_SCHEMA, journal=journal)
 
 
 def _item(item_id, scope, status="READY", depends=None):
@@ -170,10 +171,11 @@ def test_dependencies_on_items_and_prs(tmp_path):
         _item("A", ["courier_core/a.py"]),
         _item("B", ["courier_core/b.py"], depends=["A", "277"]),
     ])
-    queue = WorkQueue(home, tmp_path / "ledger.jsonl")
+    jh = JournalHome(tmp_path)
+    queue = WorkQueue(home, tmp_path / "ledger.jsonl", journal=jh.journal)
     assert [item["id"] for item in queue.list_ready(now=NOW)] == ["A"]
     queue.claim("A", "holder-a", 60, now=NOW)
-    queue.release("A", "holder-a", "draft PR", now=NOW, proof=PROOF)
+    assert queue.release("A", "holder-a", "draft PR", now=NOW, proof=jh.accept("A"))["status"] == "DONE"
     assert [item["id"] for item in queue.list_ready(now=NOW)] == []
     ready = queue.list_ready(done_prs=["277"], now=NOW)
     assert [item["id"] for item in ready] == ["B"]
@@ -185,8 +187,10 @@ def test_dependencies_on_items_and_prs(tmp_path):
 
 
 def test_renew_release_and_replay(tmp_path):
-    queue = _queue(tmp_path)
+    jh = JournalHome(tmp_path)
+    queue = _queue(tmp_path, journal=jh.journal)
     queue.claim("REPORT-QA", "holder-a", 60, now=NOW, done_prs=["281"])
+    PROOF = jh.accept("REPORT-QA")
     renewed = queue.renew("REPORT-QA", "holder-a", 120, now=NOW + timedelta(seconds=10))
     assert renewed["expires_at"] == "2026-10-08T12:02:10Z"
     with pytest.raises(WorkQueueError) as caught:
@@ -286,8 +290,8 @@ def test_cli_next_prints_prompt_without_claiming(tmp_path, capsys):
     assert "CLAIMED" in capsys.readouterr().out
     assert main(["--ledger", str(ledger), "next", "--holder", "window-b", "--done-pr", "281"]) == 0
     assert "id: REPORT-QA" not in capsys.readouterr().out
-    # P2: release requires --proof; a wrong holder with a valid proof is still NOT_HOLDER.
-    proof = "journal:7:RESULT_ACCEPTED"
+    # P2: release requires --proof; a wrong holder is NOT_HOLDER before any proof check.
+    proof = FORGED[1]
     assert main(["--ledger", str(ledger), "release", "--item", "REPORT-QA", "--holder", "other", "--result", "draft PR",
                  "--proof", proof]) == 2
     assert capsys.readouterr().err.strip() == "NOT_HOLDER"
@@ -490,12 +494,84 @@ def test_p2_release_with_invalid_proof_is_not_proven(tmp_path):
     assert (tmp_path / "ledger.jsonl").read_bytes() == before
 
 
-def test_p2_release_with_valid_proof_is_done_and_replay_is_idempotent(tmp_path):
-    queue = _queue(tmp_path)
+def test_p2r2_real_journal_proof_is_done_replay_idempotent_restart_same(tmp_path):
+    jh = JournalHome(tmp_path)
+    queue = _queue(tmp_path, journal=jh.journal)
     queue.claim("REPORT-QA", "holder-a", 60, now=NOW, done_prs=["281"])
-    done = queue.release("REPORT-QA", "holder-a", "draft PR", now=NOW, proof=JOURNAL_PROOF)
+    proof = jh.accept("REPORT-QA")
+    done = queue.release("REPORT-QA", "holder-a", "draft PR", now=NOW, proof=proof)
     assert done["status"] == "DONE" and done["idempotent"] is False
     before = (tmp_path / "ledger.jsonl").read_bytes()
-    again = queue.release("REPORT-QA", "holder-a", "draft PR", now=NOW, proof=JOURNAL_PROOF)
+    again = queue.release("REPORT-QA", "holder-a", "draft PR", now=NOW, proof=proof)
     assert again["status"] == "DONE" and again["idempotent"] is True
     assert (tmp_path / "ledger.jsonl").read_bytes() == before
+    restarted = _queue(tmp_path)  # replay needs no journal; the RELEASE keeps its proof
+    assert [i["status"] for i in restarted.items(now=NOW) if i["id"] == "REPORT-QA"] == ["DONE"]
+    assert release_task_id("REPORT-QA") == task_id_for("REPORT-QA")
+
+
+def _not_proven(queue, tmp_path, proof, reason, **kw):
+    before = (tmp_path / "ledger.jsonl").read_bytes()
+    res = queue.release("REPORT-QA", kw.pop("holder", "holder-a"), "draft PR", now=kw.pop("now", NOW), proof=proof,
+                        task_ids=kw.pop("task_ids", ()))
+    assert (res["status"], res.get("reason")) == ("NOT_PROVEN", reason), proof
+    assert (tmp_path / "ledger.jsonl").read_bytes() == before
+
+
+def test_p2r2_forged_proofs_are_not_done_with_or_without_journal(tmp_path):
+    queue = _queue(tmp_path)
+    queue.claim("REPORT-QA", "holder-a", 60, now=NOW, done_prs=["281"])
+    for proof, reason in zip(FORGED, ("NO_JOURNAL", "NO_JOURNAL", "FORMAT")):
+        _not_proven(queue, tmp_path, proof, reason)
+    jh = JournalHome(tmp_path / "j")
+    queue = _queue(tmp_path / "j", journal=jh.journal)
+    queue.claim("REPORT-QA", "holder-a", 60, now=NOW, done_prs=["281"])
+    real = jh.accept("REPORT-QA")
+    seq, digest = real.split(":")[1], real.split("|sha256:")[1]
+    bad = {FORGED[0]: "NOT_RESULT_ACCEPTED", FORGED[1]: "NO_SUCH_SEQ", FORGED[2]: "FORMAT",
+           real.split("|")[0]: "SHA256_MISMATCH", f"journal:{seq}:RESULT_ACCEPTED|sha256:" + "0" * 64: "SHA256_MISMATCH",
+           f"journal:{int(seq) - 1}:RESULT_ACCEPTED|sha256:{digest}": "NOT_RESULT_ACCEPTED"}
+    for proof, reason in bad.items():
+        _not_proven(queue, tmp_path / "j", proof, reason)
+
+
+def test_p2r2_foreign_task_and_stale_attempt_are_not_done(tmp_path):
+    jh = JournalHome(tmp_path)
+    queue = _queue(tmp_path, journal=jh.journal)
+    queue.claim("REPORT-QA", "holder-a", 60, now=NOW, done_prs=["281"])
+    _not_proven(queue, tmp_path, jh.accept("OTHER-WK"), "FOREIGN_TASK")
+    real = jh.accept("REPORT-QA")
+
+    class Moved:  # the real journal, but the task has moved on (later attempt / not verified)
+        def __init__(self, **change):
+            self.change = change
+
+        def __getattr__(self, name):
+            return getattr(jh.journal, name)
+
+        def task(self, task_id):
+            return dataclasses.replace(jh.journal.task(task_id), **self.change)
+
+    for change in ({"attempt": 2}, {"resolution": "rejected"}):
+        queue.journal = Moved(**change)
+        _not_proven(queue, tmp_path, real, "STALE_ATTEMPT")
+    queue.journal = jh.journal
+    assert queue.release("REPORT-QA", "holder-a", "draft PR", now=NOW, proof=real)["status"] == "DONE"
+
+
+def test_p2r2_stale_generation_and_missing_fence_are_not_done(tmp_path):
+    jh = JournalHome(tmp_path)
+    old = jh.accept("REPORT-QA")                       # accepted before this claim existed
+    queue = _queue(tmp_path, journal=jh.journal)
+    queue.claim("REPORT-QA", "holder-a", 60, now=NOW, done_prs=["281"])
+    _not_proven(queue, tmp_path, old, "STALE_GENERATION")
+    gen1 = jh.accept("REPORT-QA", key="ledger:claim-gen1")   # a bridge task of the first claim
+    later = NOW + timedelta(seconds=120)               # lease expired: a new claim generation
+    queue.claim("REPORT-QA", "holder-b", 60, now=later, done_prs=["281"])
+    _not_proven(queue, tmp_path, gen1, "STALE_GENERATION", holder="holder-b", now=later, task_ids={jh.task_id})
+    (tmp_path / "b").mkdir()
+    blind = _queue(tmp_path / "b")                      # claimed without a journal: no fence
+    blind.claim("REPORT-QA", "holder-a", 60, now=NOW, done_prs=["281"])
+    blind.journal = jh.journal
+    late = jh.accept("REPORT-QA", key="ledger:claim-blind")
+    _not_proven(blind, tmp_path / "b", late, "NO_CLAIM_FENCE", task_ids={jh.task_id})

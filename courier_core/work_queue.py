@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import errno
+import hashlib
 import json
 import os
 import re
@@ -34,15 +35,75 @@ DEFAULT_SCHEMA = Path(__file__).resolve().parent / "schemas" / "work_item.schema
 DEFAULT_LEDGER = REPO_ROOT / "registries" / "work_queue_ledger.jsonl"
 
 
-# O7-12 P2: a workkey is DONE only with a proof of acceptance. Either the journal
-# RESULT_ACCEPTED of the ledger engine, or the local verifier's artifact digest.
-# Journal positions start at 1 (as in ledger_v1_bridge.journal_proof); seq 0 is no proof.
-_RELEASE_PROOF = re.compile(
-    r"^(journal:[1-9][0-9]*:RESULT_ACCEPTED(\|sha256:[0-9a-f]{64})?|local-verified:sha256:[0-9a-f]{64})$")
+# O7-12 P2 R2: DONE only with journal:<seq>:RESULT_ACCEPTED[|sha256:<hex>] confirmed by the
+# controller journal itself. The format alone proves nothing; no journal => NOT_PROVEN.
+_RELEASE_PROOF = re.compile(r"^journal:([1-9][0-9]{0,17}):RESULT_ACCEPTED(?:\|sha256:([0-9a-f]{64}))?$")
 
 
-def valid_release_proof(proof) -> bool:
-    return isinstance(proof, str) and _RELEASE_PROOF.fullmatch(proof) is not None
+def release_task_id(item_id: str) -> str:
+    """Controller task id of a workkey (same rule as courier_runtime.ledger_engine.task_id_for)."""
+    return "task-" + hashlib.sha256(f"workkey:{item_id}".encode("utf-8")).hexdigest()[:32]
+
+
+def check_release_proof(journal, proof, task_ids, claim_seq) -> str | None:
+    """None when proof is the current verified RESULT_ACCEPTED of one of task_ids, recorded
+    after the claim (journal seq > claim_seq); otherwise the reason it proves nothing."""
+    from courier_core.events import EventType
+    from courier_core.state_machine import RESOLVED_VERIFIED, TaskStatus
+    match = _RELEASE_PROOF.fullmatch(proof) if isinstance(proof, str) else None
+    if match is None:
+        return "FORMAT"
+    if journal is None:
+        return "NO_JOURNAL"
+    if isinstance(claim_seq, bool) or not isinstance(claim_seq, int):
+        return "NO_CLAIM_FENCE"
+    seq = int(match.group(1))
+    event = next(iter(journal.events(after_seq=seq - 1)), None)
+    if event is None or event.seq != seq:
+        return "NO_SUCH_SEQ"
+    if event.type is not EventType.RESULT_ACCEPTED:
+        return "NOT_RESULT_ACCEPTED"
+    if event.task_id not in task_ids:
+        return "FOREIGN_TASK"
+    if seq <= claim_seq:
+        return "STALE_GENERATION"
+    task = journal.task(event.task_id)
+    if (task is None or task.status is not TaskStatus.COMPLETE or task.resolution != RESOLVED_VERIFIED
+            or task.attempt != event.attempt or task.dispatch_id != event.dispatch_id
+            or task.accepted_result_id != event.result_id):
+        return "STALE_ATTEMPT"
+    if match.group(2) not in _accepted_digests(journal, task):
+        return "SHA256_MISMATCH"
+    return None
+
+
+def _accepted_digests(journal, task) -> set:
+    """Digests of the accepted RESULT_READY: LedgerEngine rule and ledger_v1_bridge rule."""
+    from courier_core.events import EventType
+    arts = [a for ev in journal.events(task_id=task.task_id)
+            if ev.type is EventType.RESULT_READY and ev.result_id == task.accepted_result_id
+            and ev.attempt == task.attempt for a in (ev.payload or {}).get("artifacts") or []]
+    pairs = [{"path": a.get("path"), "sha256": a.get("sha256")} for a in arts if isinstance(a, dict)]
+    if len(pairs) < 2:
+        return {pairs[0]["sha256"] if pairs else None}
+    canon = json.dumps(sorted(pairs, key=lambda p: (str(p["path"]), str(p["sha256"]))),
+                       sort_keys=True, separators=(",", ":"))
+    return {hashlib.sha256(",".join(str(p["sha256"]) for p in pairs).encode("utf-8")).hexdigest(),
+            hashlib.sha256(canon.encode("utf-8")).hexdigest()}
+
+
+def journal_release_proof(journal, item_id: str, task_ids=()):
+    """Newest proof of item_id's task(s) read from the journal (never minted locally), or None."""
+    from courier_core.events import EventType
+    ids = {release_task_id(item_id), *task_ids}
+    found = [e for t in sorted(ids) for e in journal.events(task_id=t)
+             if e.type is EventType.RESULT_ACCEPTED] if journal is not None else []
+    for ev in sorted(found, key=lambda e: e.seq, reverse=True):
+        digest = sorted(_accepted_digests(journal, journal.task(ev.task_id)), key=str)[0]
+        proof = f"journal:{ev.seq}:RESULT_ACCEPTED" + (f"|sha256:{digest}" if digest else "")
+        if check_release_proof(journal, proof, ids, 0) is None:  # the claim fence is checked by release()
+            return proof
+    return None
 
 
 class WorkQueueError(Exception):
@@ -74,7 +135,8 @@ def spawn(queue: "WorkQueue", template, module, now=None) -> dict:
 
 
 class WorkQueue:
-    def __init__(self, items_dir=None, ledger_path=None, schema_path=None):
+    def __init__(self, items_dir=None, ledger_path=None, schema_path=None, journal=None):
+        self.journal = journal  # controller Journal (read-only) for release proofs; None => nothing is DONE
         self.items_dir = Path(items_dir) if items_dir is not None else DEFAULT_ITEMS
         self.ledger_path = Path(ledger_path) if ledger_path is not None else DEFAULT_LEDGER
         self.schema_path = Path(schema_path) if schema_path is not None else DEFAULT_SCHEMA
@@ -129,6 +191,7 @@ class WorkQueue:
                 "holder": holder,
                 "host": host,
                 "expires_at": expires,
+                "journal_seq": self.journal.head()[0] if self.journal is not None else None,
                 "at": _stamp(moment),
             })
             current["status"] = "CLAIMED"
@@ -161,13 +224,11 @@ class WorkQueue:
             current["lease"]["expires_at"] = expires
             return _claim_view(current, idempotent=False)
 
-    def release(self, item, holder, result, now=None, proof=None) -> dict:
-        """Release a held workkey as DONE. Without a valid proof nothing is written."""
+    def release(self, item, holder, result, now=None, proof=None, task_ids=()) -> dict:
+        """DONE only with a journal-checked proof (check_release_proof; task_ids = more tasks of item)."""
         item_id = _require_token(item, "ITEM")
         holder = _require_holder(holder)
         result = _require_result(result)
-        if not valid_release_proof(proof):
-            return {"item_id": item_id, "status": "NOT_PROVEN", "result": result, "idempotent": False}
         moment = _now(now)
         with self._lock():
             items = self._effective(moment)
@@ -175,12 +236,17 @@ class WorkQueue:
             if current is None:
                 raise WorkQueueError("UNKNOWN_ITEM")
             if (current["status"] == "DONE" and current.get("result") == result and current.get("released_by") == holder
-                    and current.get("proof") == proof):
+                    and proof is not None and current.get("proof") == proof):
                 return {"item_id": item_id, "status": "DONE", "result": result, "idempotent": True}
             if current["status"] == "DONE":
                 raise WorkQueueError("ALREADY_DONE")
             if not _held(current, moment) or current["lease"]["holder"] != holder:
                 raise WorkQueueError("NOT_HOLDER")
+            reason = check_release_proof(self.journal, proof, {release_task_id(item_id), *task_ids},
+                                         current.get("claim_seq"))
+            if reason is not None:
+                return {"item_id": item_id, "status": "NOT_PROVEN", "reason": reason, "result": result,
+                        "idempotent": False}
             self._append({
                 "type": "RELEASE",
                 "item_id": item_id,
@@ -375,7 +441,7 @@ def main(argv=None) -> int:
     rel.add_argument("--holder", required=True)
     rel.add_argument("--result", required=True)
     rel.add_argument("--proof", required=True,
-                     help="journal:<seq>:RESULT_ACCEPTED[|sha256:<hex>] or local-verified:sha256:<64hex>")
+                     help="journal:<seq>:RESULT_ACCEPTED[|sha256:<hex>]; the CLI opens no journal => NOT_PROVEN")
 
     spawned = sub.add_parser("spawn")
     spawned.add_argument("--template", required=True)
@@ -615,6 +681,8 @@ def _apply(items: dict[str, dict], event: dict) -> None:
             raise WorkQueueError("UNREADABLE")
         item["status"] = "CLAIMED"
         item["lease"] = {"holder": event["holder"], "host": event["host"], "expires_at": event["expires_at"]}
+        fence = event.get("journal_seq")  # journal head at claim time: older proofs are stale
+        item["claim_seq"] = fence if isinstance(fence, int) and not isinstance(fence, bool) and fence >= 0 else None
         return
     if kind == "RENEW":
         if item["status"] != "CLAIMED" or not isinstance(item.get("lease"), dict):
