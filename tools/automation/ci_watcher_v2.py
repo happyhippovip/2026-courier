@@ -122,6 +122,10 @@ class GhQueryError(RuntimeError):
         self.rate_limited = rate_limited
 
 
+class _LockLost(Exception):
+    """Internal: the O_EXCL lock of this watcher was taken over while it was stalled. Ends the call as LOCKED, never escapes watch()."""
+
+
 class AmbiguousDispatch(RuntimeError):
     """The dispatch command may or may not have reached GitHub (e.g. it timed out).
     The DISPATCHING marker is kept, so the key is never dispatched a second time."""
@@ -141,7 +145,7 @@ class Backoff:
         if attempt <= 1:
             return 0.0
         try:
-            return min(self.max_interval, self.base * (max(self.factor, 1.0) ** (attempt - 2)))
+            return min(self.max_interval, self.base * (float(max(self.factor, 1.0)) ** (attempt - 2)))  # float power: an int power of 100 ** 10**7 takes seconds
         except OverflowError:  # factor ** n beyond the float range: the delay is long past max_interval anyway
             return self.max_interval
 
@@ -149,9 +153,17 @@ class Backoff:
 def validate_backoff(backoff: Backoff) -> None:
     """ValueError for anything that could make the loop spin, hang or never wait (nan, inf, too small, negative)."""
     def number(name: str, value, low: float, high: float = MAX_SECONDS) -> None:
-        if (isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value)
-                or value < low or value > high):
-            raise ValueError(f"{name} must be a finite number >= {low:g} and <= {high:g} (got {value!r})")
+        try:
+            bad = (isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value)
+                   or value < low or value > high)
+        except OverflowError:  # an int beyond the float range (K0c N2): too large, not a crash
+            bad = True
+        if bad:
+            try:
+                shown = str(value)[:40]
+            except ValueError:  # str() of an int with thousands of digits is refused by Python itself
+                shown = "<huge int>"
+            raise ValueError(f"{name} must be a finite number >= {low:g} and <= {high:g} (got {shown!r})")
     number("base", backoff.base, MIN_INTERVAL)
     number("max_interval", backoff.max_interval, MIN_INTERVAL)
     number("factor", backoff.factor, 1.0, MAX_FACTOR)
@@ -477,6 +489,14 @@ def watch(workkey: str, sha: str, state_dir, *, backoff: Backoff = Backoff(),
     if not lock.acquire():
         return _result(LOCKED, {"sha": sha, "workkey": workkey, "last_error": (
             _LOCKED_HINT.format(name=lock.excl_path.name) if fcntl is None else _LOCKED_HINT_FLOCK)}, 0, key)
+    def save(state: dict) -> None:
+        """Every state write of the loop: heartbeat and ownership check first (K0c N1; O_EXCL fallback only, flock needs none)."""
+        lock.touch()
+        if lock.lost:
+            raise _LockLost
+        write_state(path, state)
+
+    polls = 0
     try:
         try:
             state = read_state(path)
@@ -494,25 +514,25 @@ def watch(workkey: str, sha: str, state_dir, *, backoff: Backoff = Backoff(),
 
         if dispatch is not None and state.get("dispatch", "NONE") == "NONE":
             state["dispatch"], state["dispatched_at"] = "DISPATCHING", clock()  # intent first
-            write_state(path, state)
+            save(state)
             try:
                 dispatch()
             except AmbiguousDispatch:  # may have been sent: keep the marker, report, never retry on our own
                 raise
             except Exception:  # clean failure: nothing was dispatched, the key stays free
                 state["dispatch"], state["dispatched_at"] = "NONE", None
-                write_state(path, state)
+                save(state)
                 raise
             state["dispatch"] = "DISPATCHED"
-            write_state(path, state)
+            save(state)
         started = clock()
         deadline = started + backoff.window if backoff.window > 0 else None
-        polls, edge_used = 0, False
+        edge_used = False
         while True:
             attempts = state.get("attempts", 0)
             if backoff.max_attempts and attempts >= backoff.max_attempts:
                 state["status"] = EXHAUSTED
-                write_state(path, state)
+                save(state)
                 return _result(EXHAUSTED, state, polls, key)
             due = state.get("next_poll_at")
             now = clock()
@@ -558,20 +578,22 @@ def watch(workkey: str, sha: str, state_dir, *, backoff: Backoff = Backoff(),
                     state["conclusion"] = "success" if ok else "not_success"
                     state["next_poll_at"] = None
                     state["last_complete_ids"] = ids
-                    write_state(path, state)
+                    save(state)
                     return _result(COMPLETED, state, polls, key)
                 state["last_complete_ids"] = ids if finished else None  # first complete look: confirm once more
                 state["last_complete_at"] = now if finished else None
                 if (not considered and state.get("dispatch") in ("DISPATCHING", "DISPATCHED")
                         and state.get("dispatched_at") is not None and now - state["dispatched_at"] > backoff.dispatch_grace):
                     state["status"] = UNCONFIRMED  # never dispatch again on our own
-                    write_state(path, state)
+                    save(state)
                     return _result(UNCONFIRMED, state, polls, key)
             delay = backoff.delay(state["attempts"] + 1)
             if error is not None and getattr(error, "rate_limited", False):
                 delay = max(delay, backoff.max_interval)
             state["next_poll_at"] = now + delay
-            write_state(path, state)
+            save(state)
+    except _LockLost:  # somebody else owns the key now: no dispatch, no poll, no write from this process
+        return _result(LOCKED, {"sha": sha, "workkey": workkey, "last_error": _LOCK_LOST_HINT}, polls, key)
     finally:
         lock.release()
 
