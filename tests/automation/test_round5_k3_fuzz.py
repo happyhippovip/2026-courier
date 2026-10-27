@@ -294,23 +294,33 @@ def test_k3_random_gh_clock_and_state_damage_never_break_an_invariant(tmp_path, 
 
 
 @pytest.mark.parametrize("seed", SEEDS)
-def test_k3_a_monotone_clock_keeps_the_polls_inside_the_window(tmp_path, seed):
-    """Without clock jumps the number of polls per call is bounded by the window (delay >= base >= 1 after the first poll)."""
+def test_k3_on_a_steady_clock_the_polls_happen_exactly_when_the_backoff_says(tmp_path, seed):
+    """K0e F-2 (replaces a tautological bound): with an instant gh and no clock jumps the poll times are fully determined. Oracle, written
+    from the documented schedule: poll 1 at once, the gap after poll k is min(max_interval, base * factor ** (k - 1)), and when the next
+    poll would fall behind the window one last poll is made exactly at the window edge. A backoff that is too short, too long, constant
+    or ignores max_interval changes the times."""
+    from test_ci_watcher_v2 import BUSY, Clock, Gh  # noqa: E402
     rng = random.Random(f"k3w-{seed}")
-
-    class Plain(FuzzClock):
-        def sleep(self, seconds):
-            self.t += seconds
-
-    clock = Plain(rng)
-    gh = FuzzGh(rng, clock)
-    window = rng.choice([5.0, 30.0, 200.0])
-    backoff = w.Backoff(base=rng.choice([1.0, 3.0]), factor=rng.choice([1.0, 2.0]), max_interval=rng.choice([1.0, 20.0]), max_attempts=0, window=window)
+    clock = Clock()
+    clock.t = T0
+    gh = Gh(BUSY, clock=clock)
+    base, factor = rng.choice([1.0, 2.0, 3.0, 5.0]), rng.choice([1.0, 1.5, 2.0, 3.0])
+    max_interval = rng.choice([1.0, 4.0, 20.0, 60.0])
+    window = rng.choice([5.5, 30.5, 100.5])
+    backoff = w.Backoff(base=base, factor=factor, max_interval=max_interval, max_attempts=500, window=window)
     result = w.watch("WK-K3W", SHA, tmp_path, backoff=backoff, run_cmd=gh, clock=clock.time, sleep=clock.sleep)
-    assert result["exit_code"] in DOCUMENTED
-    # one immediate poll, then at least min(base, max_interval) apart, plus one edge poll; gh itself may add up to 3 s per call
-    spacing = min(backoff.base, backoff.max_interval)
-    assert len(gh.looks) <= window / spacing + 3 + (len(gh.looks) * 3.0) / spacing
+    assert result["status"] == w.WAITING
+    expected, t, k = [T0], T0, 1
+    while True:
+        following = t + min(max_interval, base * factor ** (k - 1))
+        if following > T0 + window:
+            if T0 + window - t > 0:
+                expected.append(T0 + window)
+            break
+        expected.append(following)
+        t, k = following, k + 1
+    assert len(gh.times) == len(expected), (gh.times, expected)
+    assert gh.times == pytest.approx(expected, abs=1e-6)
 
 
 @pytest.mark.parametrize("seed", SEEDS)

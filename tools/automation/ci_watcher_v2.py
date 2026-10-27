@@ -105,6 +105,7 @@ EXIT_CODES = {"SUCCESS": 0, "FINISHED_NOT_SUCCESS": 1, WAITING: 10, EXHAUSTED: 1
               RESET_REFUSED: 18, "RESET": 0, "NO_STATE": 0}
 MAX_SECONDS = 86400.0  # upper bound for base, max_interval, window and dispatch_grace: one day (R3-W1)
 MAX_FACTOR = 100.0  # upper bound for the backoff factor (R3-W1)
+RESET_LOCK_STALE_AFTER = 3 * MAX_SECONDS + 300.0  # K0e F-1: the largest stale limit a watch() can have; --reset-state must never evict a live watcher
 _IS_WINDOWS = os.name == "nt"  # module constant so a test can exercise the Windows branch of the directory fsync
 MIN_INTERVAL = 1.0  # lower bound for base and max_interval, in the CLI and in the library (CW-4, N-3)
 
@@ -439,7 +440,7 @@ def reset_state(workkey: str, sha: str, state_dir) -> dict:
     key = idempotency_key(workkey, sha)
     path = state_path(Path(state_dir), key)
     path.parent.mkdir(parents=True, exist_ok=True)
-    lock = _Lock(path.with_name(path.name[:-5] + ".lock"))
+    lock = _Lock(path.with_name(path.name[:-5] + ".lock"), stale_after=RESET_LOCK_STALE_AFTER)
     if not lock.acquire():
         return _result(LOCKED, {"sha": sha, "workkey": workkey}, 0, key)
     try:
