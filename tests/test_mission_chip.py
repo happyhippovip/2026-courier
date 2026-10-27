@@ -202,5 +202,7 @@ def test_mission_chip_cli_pretty_output(tmp_path, capsys):
     captured = capsys.readouterr()
     assert "COURIER MISSION CHIP" in captured.out
     assert "ERSTE GRÜNE MISSION" in captured.out
-    assert "BYTE_LEVEL_GOLD_VERIFIED" or "verified" in captured.out
+    # F8: the old `"A" or "B" in out` was always true. The CLI prints the verifier
+    # resolution (mission_chip.py:216); RESOLVED_VERIFIED == "verified".
+    assert "Verifier Resolution: verified" in captured.out
 
