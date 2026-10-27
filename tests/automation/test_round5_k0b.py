@@ -200,7 +200,8 @@ def test_r3_e2_a_good_head_hash_and_a_missing_journal_is_still_exit_3(tmp_path):
 
 
 def test_r3_e2_the_order_is_documented():
-    assert "usage errors" in je.__doc__.lower() and "before" in je.__doc__.lower()
+    doc = " ".join(je.__doc__.split())  # K0d: the old wording ("usage errors ... before the journal") was too broad, see test_round5_k0d.py
+    assert "Order of checks" in doc and "malformed --expect-head-hash" in doc and "before the journal is looked at" in doc
 
 
 # ------------------------------------------------------------------ RUNBOOK statements that the code can contradict

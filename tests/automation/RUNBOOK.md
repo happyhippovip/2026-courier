@@ -58,10 +58,10 @@ Watcher `python -m tools.automation.ci_watcher_v2 --workkey WK --sha <40 hex> --
 ## Stale lock / dead taker (hand work, O_EXCL fallback only; with flock there is nothing to clean up)
 1. Make sure no watcher for that key is running (`ps`), including on other machines that share the state dir.
 2. (`<key>` is the 32-hex stem in the name of the state file `.ci-watch-<key>.json` of that workkey/SHA.) In the state dir delete `.ci-watch-<key>.lock.x` and every `.ci-watch-<key>.lock.x.take-*` (deleting only one of them also heals it).
-3. Run the watcher again. A watcher that ends LOCKED with "lock lost" lost its lock to a taker while stalled: it dispatched, polled and wrote nothing after the loss; run it again later.
+3. Run the watcher again. A watcher that ends LOCKED with "lock lost" lost its lock to a taker while stalled: from the moment it noticed the loss (first heartbeat of a round, before the sleep) it dispatched, polled and wrote nothing; a poll that was already running when the takeover happened still finishes, its result is not written. Run it again later.
 
 ## DISPATCH_UNCONFIRMED (exit 12)
-Check on GitHub whether the run exists. If the local clock runs more than 5 s ahead of GitHub's, fix it (NTP). Delete the state dotfile by hand and run again WITHOUT
+Check on GitHub whether the run exists. If the local clock runs more than 5 s ahead of GitHub's, fix it (NTP). `--reset-state` does not help here (exit 18, RESET_REFUSED). Delete the state dotfile by hand and run again WITHOUT
 `--dispatch-workflow` (observer mode); running with `--dispatch-workflow` would send a new dispatch.
 
 ## Rollback (undoing this change set)
@@ -100,11 +100,21 @@ LOCKED ("lock lost") without dispatching, polling or writing once the check fail
 already sent when the lock was lost leaves the DISPATCHING marker in the state file, so nobody dispatches the key a second time. Only the O_EXCL fallback has this
 (flock needs no takeover).
 * A lock file whose mtime lies far in the future (clock set back by more than the stale limit) counts as stale; a slightly future mtime counts as live.
+  Known limit (Schurke K0-2, not fixed): the age of the lock is compared with the wall clock, because the lock file is shared between processes and no
+  monotonic clock is shared. If the clock of a TAKER jumps back by more than the stale limit (at least 600 s), a lock that is alive counts as stale and two processes
+  hold it until the owner's next heartbeat (before and after every sleep, before every state write), where the owner sees the loss and stops; a poll already running
+  at that moment (gh timeout 120 s) still finishes, its result is not written. Keep the clock on NTP; with flock (Linux, macOS) this cannot happen.
 
 Extreme values: `--base/--max-interval/--window` are limited to 86400 s, `--factor` to 100 (exit 2 beyond that, library: ValueError); the exponential delay is
 computed without overflow for any number of attempts. `--max-attempts 0 --window 0` runs until a terminal state and can therefore run for a very long time on purpose.
 
-Observer after a manual reset from DISPATCH_UNCONFIRMED (R3-W6): the observer counts ALL runs of the SHA, so an older red run gives FINISHED_NOT_SUCCESS
-(the safe direction: never a false SUCCESS).
+Observer after a manual reset from DISPATCH_UNCONFIRMED (R3-W6): the observer counts ALL runs of the SHA, so an older red run gives FINISHED_NOT_SUCCESS.
+That is NOT a guarantee against a false SUCCESS: if every run of the SHA is green, including a run of ANOTHER workflow of the same SHA, the observer reports SUCCESS
+(after two identical finished looks). In observer mode SUCCESS means "all runs of this SHA that GitHub lists are green", not "the run you meant". `--reset-state`
+from DISPATCH_UNCONFIRMED is refused (exit 18, RESET_REFUSED); the only way out is deleting the state dotfile by hand after looking at GitHub.
 
-Order of checks in the exporter: usage errors (malformed `--expect-head-hash`, `--out` = the journal) first, then the journal (missing = exit 3, broken = 4).
+Very small `--window`: a poll that is due right now is always made once per call (it costs no waiting), so even `--window 1e-9` looks once and then ends WAITING (exit 10)
+with 1 poll. (Before K0d a window shorter than the clock tick gave exit 10 with 0 polls.) A window of 0 means no limit.
+
+Order of checks in the exporter: a malformed `--expect-head-hash` is exit 2 first, even if the journal is missing. Then the journal is resolved: missing = exit 3
+(also when `--out` names that same path), `--out` = an existing journal or one of its sidecars = exit 2, broken = 4.

@@ -545,14 +545,18 @@ def watch(workkey: str, sha: str, state_dir, *, backoff: Backoff = Backoff(),
                 # seen); a schedule inherited from an earlier process is honoured without a call.
                 if polls > 0 and not edge_used and deadline - now > 0:
                     wait, edge_used = deadline - now, True
+                elif polls == 0 and wait == 0:
+                    pass  # K0d: a poll that is due right now costs no waiting, so even a tiny window gets its one look
                 else:
                     return _result(WAITING, state, polls, key)
             lock.touch()
+            if lock.lost:  # K0d: noticed at the first heartbeat: stop now, do not sleep the whole wait (up to a day) first
+                raise _LockLost
             if wait:
                 sleep(wait)
             lock.touch()
             if lock.lost:  # somebody else owns the key now: do not poll, do not write the state
-                return _result(LOCKED, {"sha": sha, "workkey": workkey, "last_error": _LOCK_LOST_HINT}, polls, key)
+                raise _LockLost
             polls += 1
             state["attempts"] = attempts + 1
             error = None
@@ -641,6 +645,8 @@ def _failure(status: str, workkey: str, sha: str, message: str) -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="tools.automation.ci_watcher_v2", description="Follow the CI runs of one commit SHA.")
+    parser.epilog = (f"limits (exit 2 beyond them): --base and --max-interval {MIN_INTERVAL:g}..{MAX_SECONDS:g} s, --window 0..{MAX_SECONDS:g} s "
+                     f"(0 = until a terminal state), --factor 1..{MAX_FACTOR:g}, --max-attempts >= 0 (0 = unlimited). Exit codes: see tests/automation/RUNBOOK.md.")
     parser.add_argument("--workkey", required=True)
     parser.add_argument("--sha", required=True)
     parser.add_argument("--state-dir", required=True)
@@ -667,7 +673,7 @@ def main(argv: list[str] | None = None) -> int:
         validate_backoff(backoff)
     except ValueError as exc:
         print(f"{exc}; limits: --base and --max-interval >= {MIN_INTERVAL:g}, --factor >= 1, --window and --max-attempts >= 0, "
-              "all finite", file=sys.stderr)
+              f"all finite; upper limits: --base, --max-interval and --window <= {MAX_SECONDS:g} s, --factor <= {MAX_FACTOR:g}", file=sys.stderr)
         return 2
     dispatch = gh_dispatch(args.dispatch_workflow, args.ref, args.repo) if args.dispatch_workflow else None
     try:
