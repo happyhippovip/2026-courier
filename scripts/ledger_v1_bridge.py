@@ -187,6 +187,13 @@ def _feedback(store, state, specs, agent, host, args, transport, token, emit, ho
                 emit({"mission_id": mission_id, "outcome": "skipped", "reason": "result_changed"})
                 ok = False
                 continue
+            if mapping.get("journal_proof") is None:
+                # P2b backfill: FINAL_DONE written before P2b (or while /result was
+                # unavailable) gets its journal proof once; no second FINAL is written.
+                proof = _journal_proof_for(transport, args, token, mapping)
+                if proof is not None:
+                    _stamp(home / "ledger_bridge_state.json", state, mapping, "FINAL_DONE",
+                           mapping.get("reason"), journal_proof=proof)
             try:
                 if _receipt_present(home, mission_id, "final"):
                     continue
@@ -228,6 +235,13 @@ def _feedback(store, state, specs, agent, host, args, transport, token, emit, ho
                 ok = False
                 continue
         status_name, reason_code = _status_for_outcome(event, view)
+        proof_fields = {}
+        if status_name == "FINAL_DONE":
+            # P2b: release proof for the work queue. None keeps the workkey NOT_PROVEN.
+            proof = _journal_proof_for(
+                transport, args, token, {**mapping, "accepted_result_id": _result_id(view)})
+            if proof is not None:
+                proof_fields["journal_proof"] = proof
         _stamp(
             home / "ledger_bridge_state.json", state, mapping, status_name, reason_code,
             accepted_result_id=_result_id(view),
@@ -235,6 +249,7 @@ def _feedback(store, state, specs, agent, host, args, transport, token, emit, ho
             evidence_ref=event.evidence_ref,
             spec_fingerprint=mapping.get("spec_fingerprint") or _fingerprint(spec or {}),
             source_sha=_recorded_source(mapping, spec),
+            **proof_fields,
         )
         emit({"mission_id": mission_id, "outcome": outcome, "task_id": mapping.get("task_id")})
     return ok
@@ -706,6 +721,52 @@ def _task_view(transport, args, token, task_id):
     if not isinstance(body, dict):
         raise ControllerDown()
     return body
+
+
+_HEX64 = re.compile(r"^[0-9a-f]{64}$")
+
+
+def journal_proof(result, accepted_result_id):
+    """journal:<seq>:RESULT_ACCEPTED[|sha256:<hex>] for a verified result, else None.
+
+    <seq> is the controller journal position of RESULT_ACCEPTED (task_result's
+    accepted_seq). The digest is the single artifact's sha256, or the sha256 of
+    the canonical sorted [{path, sha256}] list when there are several. Anything
+    malformed or bound to another result yields None (fail closed: NOT_PROVEN).
+    """
+    if not isinstance(result, dict) or not isinstance(accepted_result_id, str) or not accepted_result_id:
+        return None
+    if result.get("result_id") != accepted_result_id:
+        return None
+    seq = result.get("accepted_seq")
+    if isinstance(seq, bool) or not isinstance(seq, int) or seq < 1:
+        return None
+    proof = f"journal:{seq}:RESULT_ACCEPTED"
+    artifacts = result.get("artifacts")
+    if isinstance(artifacts, list) and artifacts:
+        pairs = []
+        for item in artifacts:
+            if not isinstance(item, dict) or not isinstance(item.get("path"), str) \
+                    or not isinstance(item.get("sha256"), str) or not _HEX64.match(item["sha256"]):
+                return proof  # seq alone is still a journal proof; no unverifiable digest
+            pairs.append({"path": item["path"], "sha256": item["sha256"]})
+        if len(pairs) == 1:
+            digest = pairs[0]["sha256"]
+        else:
+            canon = json.dumps(sorted(pairs, key=lambda p: (p["path"], p["sha256"])),
+                               sort_keys=True, separators=(",", ":"))
+            digest = hashlib.sha256(canon.encode("utf-8")).hexdigest()
+        proof += f"|sha256:{digest}"
+    return proof
+
+
+def _journal_proof_for(transport, args, token, mapping):
+    """Fetch /result for the mapped task and build its journal proof; None on any gap."""
+    try:
+        result = _task_result(transport, args, token, mapping.get("task_id"))
+    except ControllerDown:
+        return None
+    return journal_proof(result, mapping.get("accepted_result_id"))
 
 
 def _task_result(transport, args, token, task_id):
