@@ -34,7 +34,7 @@ Exporter `python -m tools.automation.journal_export <db> [--out FILE] [--only-tr
 Watcher `python -m tools.automation.ci_watcher_v2 --workkey WK --sha <40 hex> --state-dir DIR ...` (one JSON line on stdout every time)
 | Exit | Status | Meaning / what to do |
 |---|---|---|
-| 0 | SUCCESS (or RESET / NO_STATE for `--reset-state`) | all considered runs finished and succeeded (observer: after two identical finished looks) |
+| 0 | SUCCESS (or RESET / NO_STATE for `--reset-state`) | all considered runs finished and succeeded (observer: after two identical finished looks; a clock set back between the two looks does not count: the next look starts over, so three looks are needed) |
 | 1 | FINISHED_NOT_SUCCESS | runs finished, not all succeeded: read the runs in the JSON, look at GitHub |
 | 2 | usage | numbers out of range/non-finite, `--dispatch-workflow` without `--ref`: nothing was written or called |
 | 10 | WAITING | the window ended, the schedule is in the state file: run again (it does not poll before `next_poll_at`, except after a clock that jumped back: the wait is capped at `max_interval`) |
@@ -79,7 +79,7 @@ what prevents a second dispatch. The exporter writes nothing to the journal, so 
 | interrupted export / write | `test_interrupt_while_writing_leaves_no_tmp_file_and_no_half_output`, `test_ex3_changed_journal_with_out_never_replaces_the_previous_export`, `test_unwritable_out_path_exits_6_after_a_good_read`, `test_broken_pipe_on_stdout_is_exit_6_and_journal_untouched`, `test_n_r4_out_fsyncs_the_directory_after_the_rename` | `test_t1_*` (atomic state write), `test_n_w5_write_state_fsyncs_the_directory_after_the_replace` |
 | re-execution | `test_repeated_export_is_byte_identical_and_stdout_equals_out_file` | `S5_already_posted` in `ci_call_counts.py`, `test_cw3_*` (`--reset-state`), no second dispatch after an ambiguous dispatch (`test_cw6_*`) |
 | tampering / truncation | `test_broken_chain_exits_4_and_exports_nothing_by_default`, `test_b3_expect_head_hash_detects_the_cut_off_tail_with_exit_8`, `test_truncated_*` | — |
-| stability window (observer) | — | `test_n_2_two_finished_looks_hours_apart_are_not_a_confirmation`, `test_r3_w5_two_looks_up_to_3_max_interval_plus_60_seconds_apart_confirm` (boundary 75 s / 75.5 s for max_interval 5) |
+| stability window (observer) | — | `test_n_2_two_finished_looks_hours_apart_are_not_a_confirmation`, `test_r3_w5_two_looks_up_to_3_max_interval_plus_60_seconds_apart_confirm`, `test_k7_c06_a_clock_that_went_back_between_two_finished_looks_is_not_a_confirmation` (clock set back: no confirmation) (boundary 75 s / 75.5 s for max_interval 5) |
 | absurd but finite numbers | — | `test_r3_w1_*` (CLI exit 2, library ValueError, `Backoff.delay` never overflows) |
 | lock lost / future mtime | — | `test_r3_w2_*`, `test_r3_w3_*`, `test_k0c_n1_*` (lost before dispatch, during dispatch, during poll), `test_k0c_n3_*` (mtime thresholds, 600 s floor) |
 | check order | `test_r3_e2_*` (usage error before a missing journal) | — |

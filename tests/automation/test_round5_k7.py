@@ -50,20 +50,20 @@ def test_k7_nf1_a_lock_lost_during_the_poll_that_finds_no_run_does_not_write_unc
         return 0, json.dumps([]), ""
 
     result = watch(tmp_path, gh, clock, dispatch=lambda: None, cfg=dict(dispatch_grace=5))
-    assert result["status"] == w.LOCKED and result["exit_code"] == 13
+    assert result["status"] == w.LOCKED and result["exit_code"] == 13 and result["polls_this_call"] == 1
     assert state_file_of(tmp_path).read_text() == TAKER_STATE  # not DISPATCH_UNCONFIRMED over the taker's state
+    assert lock_file_of(tmp_path).read_text() == TAKER
 
 
 def test_k7_nf1_a_lock_lost_before_the_exhausted_verdict_does_not_write_exhausted(tmp_path, monkeypatch):
     monkeypatch.setattr(w, "fcntl", None)
     clock, gh = Clock(), Gh(BUSY)
-    first = watch(tmp_path, gh, clock, cfg=dict(window=1, max_attempts=1))  # one attempt used, state stays WATCHING
-    assert first["status"] in (w.WAITING, w.EXHAUSTED)
+    # call 1: two polls (one at the start, one at the window edge) and the state stays WATCHING with attempts == 2
+    first = watch(tmp_path, gh, clock, cfg=dict(window=1, max_attempts=5))
     path = state_file_of(tmp_path)
-    stored = json.loads(path.read_text())
-    stored["status"] = w.WATCHING
-    path.write_text(json.dumps(stored))
+    assert first["status"] == w.WAITING and json.loads(path.read_text())["attempts"] == 2
     before = path.read_text()
+    # call 2 runs with max_attempts lowered to 2 (a real sequence, no hand-edited state): the exhausted check is the first thing it reaches
     real_read = w.read_state
 
     def read_then_stall(p):
@@ -72,9 +72,10 @@ def test_k7_nf1_a_lock_lost_before_the_exhausted_verdict_does_not_write_exhauste
         return value
 
     monkeypatch.setattr(w, "read_state", read_then_stall)
-    result = watch(tmp_path, gh, clock, cfg=dict(window=300, max_attempts=1))
-    assert result["status"] == w.LOCKED
+    result = watch(tmp_path, gh, clock, cfg=dict(window=300, max_attempts=2))
+    assert result["status"] == w.LOCKED and result["exit_code"] == 13 and result["polls_this_call"] == 0
     assert path.read_text() == before  # EXHAUSTED was not written
+    assert lock_file_of(tmp_path).read_text() == TAKER
 
 
 # ------------------------------------------------------------------ C06
@@ -107,3 +108,33 @@ def test_k7_c06_a_gap_of_exactly_zero_still_confirms(tmp_path):
 
     result = w.watch("WK", SHA, tmp_path, backoff=w.Backoff(window=300, max_attempts=10), run_cmd=gh, clock=clock.time, sleep=sleeping)
     assert result["status"] == w.COMPLETED and len(gh.lists) == 2
+
+
+def test_k7_a_single_unreadable_lock_file_during_the_poll_counts_as_a_loss_and_writes_nothing(tmp_path, monkeypatch):
+    monkeypatch.setattr(w, "fcntl", None)
+    lock_path = lock_file_of(tmp_path)
+    real_read, failures = Path.read_text, []
+
+    def gh(command):
+        def once(self, *a, **k):
+            if self == lock_path and not failures:
+                failures.append(True)
+                raise PermissionError("EACCES")  # one failed read of the lock file, later reads work again
+            return real_read(self, *a, **k)
+
+        monkeypatch.setattr(Path, "read_text", once)
+        return 0, json.dumps(DONE), ""
+
+    result = watch(tmp_path, gh, Clock(), dispatch=lambda: None)
+    assert failures, "the read error never happened: the scenario did not run"
+    assert result["status"] == w.LOCKED and result["exit_code"] == 13 and result["polls_this_call"] == 1
+    stored = json.loads(state_file_of(tmp_path).read_text())
+    assert stored["status"] == w.WATCHING and stored["dispatch"] == "DISPATCHED"  # the last write that happened is the dispatch marker, never COMPLETED
+    assert not lock_path.exists(), "the lock file is still ours by content, so release removes it"
+
+
+def test_k7_c06_the_text_says_that_a_clock_set_back_costs_the_observer_a_look():
+    book = " ".join((Path(__file__).resolve().parent / "RUNBOOK.md").read_text(encoding="utf-8").split())
+    assert "a clock set back between the two looks does not count: the next look starts over, so three looks are needed" in book
+    assert "test_k7_c06_a_clock_that_went_back_between_two_finished_looks_is_not_a_confirmation" in book
+    assert "a negative gap (a clock set back) does not count either" in " ".join((w.__doc__ or "").split())
