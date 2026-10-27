@@ -1,5 +1,6 @@
 """P2 R2 test helper: a real in-process controller journal with verified RESULT_ACCEPTED events."""
 import hashlib
+import types
 
 from courier_core.controller import Controller
 from courier_core.events import EventType
@@ -7,6 +8,11 @@ from courier_core.verification import Verdict
 
 FORGED = ("journal:1:RESULT_ACCEPTED", "journal:999999:RESULT_ACCEPTED|sha256:" + "0" * 64,
           "local-verified:sha256:" + "a" * 64)   # P0 probe of review R1: none of them may be DONE
+
+
+class View(types.SimpleNamespace):  # test double: View(_journal=j, method=...) = j with some methods replaced
+    def __getattr__(self, name):
+        return getattr(self._journal, name)
 
 
 class JournalHome:  # accept(): one task through create/claim/start/result/verify, real journal
@@ -22,8 +28,7 @@ class JournalHome:  # accept(): one task through create/claim/start/result/verif
         self.journal = self.ctrl.journal
         return self.journal
 
-    def accept(self, workkey, key=None, payload=b"P2R2", results=None):  # new accepted task; proof from journal
-        """results: result ids per attempt; all but the last attempt fail (retryable) with their own artifact."""
+    def accept(self, workkey, key=None, payload=b"P2R2", results=None):  # results: ids per attempt, last succeeds
         self.count += 1
         results = results or [f"r-{self.count}"]
         created = self.ctrl.create_task({"adapter": "synthetic", "params": {"estimated_cost_eur": 0.0},
@@ -41,6 +46,5 @@ class JournalHome:  # accept(): one task through create/claim/start/result/verif
                               "outcome": "success" if attempt == len(results) else "failure",
                               "artifacts": [{"path": name, "sha256": self.digests[-1]}]})
             self.ctrl.drain()
-        seq = [e.seq for e in self.journal.events(task_id=task_id) if e.type is EventType.RESULT_ACCEPTED]
-        assert len(seq) == 1, (task_id, seq)
-        return f"journal:{seq[0]}:RESULT_ACCEPTED|sha256:{self.digests[-1]}"
+        (seq,) = [e.seq for e in self.journal.events(task_id=task_id) if e.type is EventType.RESULT_ACCEPTED]
+        return f"journal:{seq}:RESULT_ACCEPTED|sha256:{self.digests[-1]}"

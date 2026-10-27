@@ -316,4 +316,3 @@ def test_synthetic_run_finalizes_distinct_workkeys_in_order(tmp_path):
     assert steps[:5] == ["CLAIM", "RUN", "VERIFY", "FINAL", "NEXT"]
     for item_id in ("A", "B", "C"):
         assert (tmp_path / "work" / f"{item_id}.txt").read_text(encoding="utf-8") == "done\n"
-

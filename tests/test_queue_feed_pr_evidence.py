@@ -108,15 +108,13 @@ def test_final_done_without_a_result_is_not_released(tmp_path):
 
 
 def _journal_claim(home, queue, item_id="HELD"):  # real journal (home/courier.db), then claim + fence
-    jh = JournalHome(home, nested=False)
-    queue.journal = jh.journal
+    queue.journal = (jh := JournalHome(home, nested=False)).journal
     queue.claim(item_id, HOLDER, 600, host=HOST, now=NOW)
     return jh
 
 
 def _final_done(home, **extra):
-    mission = {"status": "FINAL_DONE", "task_id": "task-held", "accepted_result_id": "res-accepted-1"}
-    mission.update(extra)
+    mission = {"status": "FINAL_DONE", "task_id": "task-held", "accepted_result_id": "res-accepted-1", **extra}
     (home / "ledger_bridge_state.json").write_text(json.dumps({"missions": {"HELD": mission}}), encoding="utf-8")
 
 
@@ -132,52 +130,10 @@ def test_proven_final_done_releases_once_and_restart_does_not_claim_again(tmp_pa
     assert again["released"] == []
     assert again["claimed"] == []
     assert queue.items(now=NOW)[0]["status"] == "DONE"
-    # Restart: a fresh queue over the same ledger replays to the same single DONE.
-    restarted = WorkQueue(items_dir=tmp_path / "items", ledger_path=tmp_path / "queue.jsonl")
+    restarted = WorkQueue(items_dir=tmp_path / "items", ledger_path=tmp_path / "queue.jsonl")  # restart: same DONE
     assert [i["status"] for i in restarted.items(now=NOW)] == ["DONE"]
     lines = (tmp_path / "queue.jsonl").read_text(encoding="utf-8").splitlines()
-    releases = [json.loads(line) for line in lines if '"RELEASE"' in line]
-    assert len(releases) == 1
-    assert releases[0]["proof"] == proof
-
-
-def test_final_done_without_journal_proof_stays_held_and_dispatches_nothing(tmp_path):
-    # Negative: FINAL_DONE + accepted_result_id but no journal proof -> no DONE(A), no B.
-    home, queue = _home(tmp_path, [_item("HELD", ["docs/held.md"], []),
-                                   _item("NEXTB", ["docs/b.md"], ["HELD"])])
-    queue.claim("HELD", HOLDER, 600, host=HOST, now=NOW)
-    _final_done(home)
-    report = feed_once(home, AGENT, HOST, now=NOW)
-    assert report["released"] == []
-    assert report["not_proven"] == ["HELD"]
-    assert "NEXTB" not in report["claimed"]
-    status = {i["id"]: i["status"] for i in queue.items(now=NOW)}
-    assert status["HELD"] == "CLAIMED"
-    assert status["NEXTB"] != "CLAIMED"
-
-
-def test_fake_journal_proof_is_not_a_release(tmp_path):
-    home, queue = _home(tmp_path, [_item("HELD", ["docs/held.md"], [])])
-    jh = _journal_claim(home, queue)
-    real = jh.accept("HELD")
-    foreign = jh.accept("OTHER")       # a real proof of another workkey's task; the mapping even names it
-    for fake in FORGED + ("RESULT_ACCEPTED", "journal:0:RESULT_ACCEPTED", "journal:x:RESULT_ACCEPTED",
-                          "res-accepted-1", real.split("|")[0], real.split("|")[0] + "|sha256:" + "0" * 64,
-                          foreign):
-        _final_done(home, journal_proof=fake, task_id=jh.task_id)
-        report = feed_once(home, AGENT, HOST, now=NOW)
-        assert report["released"] == [] and report["not_proven"] == ["HELD"], fake
-        assert queue.items(now=NOW)[0]["status"] == "CLAIMED", fake
-
-
-def test_without_journal_no_proof_is_a_release(tmp_path):
-    # Fail closed: no courier.db in the feed home => nothing is DONE, whatever the mapping says.
-    home, queue = _home(tmp_path, [_item("HELD", ["docs/held.md"], [])])
-    jh = _journal_claim(tmp_path / "elsewhere", queue)
-    for proof in FORGED + (jh.accept("HELD"),):
-        _final_done(home, journal_proof=proof)
-        report = feed_once(home, AGENT, HOST, now=NOW)
-        assert report["released"] == [] and report["not_proven"] == ["HELD"], proof
+    assert [json.loads(line)["proof"] for line in lines if '"RELEASE"' in line] == [proof]  # exactly one RELEASE
 
 
 def test_second_pass_does_not_claim_twice(tmp_path):
@@ -189,8 +145,21 @@ def test_second_pass_does_not_claim_twice(tmp_path):
     assert second["renewed"] == ["ONLY"]
 
 
-def test_bridge_claim_tasks_bind_only_their_own_mission(tmp_path):
-    # X07/X06: only "claim-" events of this mission name bridge tasks (task key ledger:<claim event id>).
+def test_without_journal_no_proof_is_a_release(tmp_path):
+    # FINAL_DONE without journal proof, or without courier.db in the feed home (fail closed): no DONE(A), no B.
+    home, queue = _home(tmp_path, [_item("HELD", ["docs/held.md"], []),
+                                   _item("NEXTB", ["docs/b.md"], ["HELD"])])
+    jh = _journal_claim(tmp_path / "elsewhere", queue)
+    for proof in (None,) + FORGED + (jh.accept("HELD"),):
+        _final_done(home, **({} if proof is None else {"journal_proof": proof}))
+        report = feed_once(home, AGENT, HOST, now=NOW)
+        assert (report["released"], report["not_proven"], "NEXTB" in report["claimed"]) == ([], ["HELD"], False), proof
+        assert [(i["id"], i["status"] == "CLAIMED") for i in queue.items(now=NOW)] == [("HELD", True), ("NEXTB", False)]
+
+
+def test_fake_or_foreign_mission_proof_is_not_a_release(tmp_path):
+    # X07/X06: only "claim-" events of this mission name bridge tasks (key ledger:<claim event id>). Real proofs
+    # of another workkey's task (the mapping even names it), of another mission or without a claim event: no release.
     home, queue = _home(tmp_path, [_item("HELD", ["docs/held.md"], [])])
     jh = _journal_claim(home, queue)
     store = FileCoordinationStore(home / "coordination_ledger.jsonl")
@@ -200,9 +169,15 @@ def test_bridge_claim_tasks_bind_only_their_own_mission(tmp_path):
             event_type=EventType.ASSIGNED, status=MissionStatus.WORKING, depends_on=[], head="work_queue",
             evidence_ref=f"work_queue:{mission}", created_at=NOW.isoformat().replace("+00:00", "Z"),
             payload_hash="work_queue", ownership=AGENT))
-    for key in ("ledger:claim-other-y", "ledger:queue-assign-HELD"):  # real proofs, wrong mission / no claim
-        _final_done(home, journal_proof=jh.accept("HELD", key=key), task_id=jh.task_id)
+    real = jh.accept("HELD")
+    named = [(jh.accept(wk, key=key), jh.task_id) for wk, key in (
+        ("OTHER", None), ("HELD", "ledger:claim-other-y"), ("HELD", "ledger:queue-assign-HELD"))]
+    for fake, task in [(f, named[0][1]) for f in FORGED + (
+            "RESULT_ACCEPTED", "journal:0:RESULT_ACCEPTED", "journal:x:RESULT_ACCEPTED", "res-accepted-1",
+            real.split("|")[0], real.split("|")[0] + "|sha256:" + "0" * 64)] + named:
+        _final_done(home, journal_proof=fake, task_id=task)
         report = feed_once(home, AGENT, HOST, now=NOW)
-        assert report["released"] == [] and report["not_proven"] == ["HELD"], key
+        assert report["released"] == [] and report["not_proven"] == ["HELD"], fake
+        assert queue.items(now=NOW)[0]["status"] == "CLAIMED", fake
     _final_done(home, journal_proof=jh.accept("HELD", key="ledger:claim-held-x"), task_id=jh.task_id)
     assert feed_once(home, AGENT, HOST, now=NOW)["released"] == ["HELD"]
