@@ -39,7 +39,8 @@ What counts as "finished" (the one rule, CW-2):
   DISPATCH_UNCONFIRMED.
 * OBSERVER MODE (no dispatch by this key): all runs of the SHA count, and completion needs a
   stability window: two polls that list the same, completely finished set of runs, at most
-  `stability_gap` seconds apart (3 * max_interval + 60; an older first look is just a first look again).
+  `stability_gap` seconds apart (3 * max_interval + 60; an older first look is just a first look again; a negative gap (a clock set back)
+  does not count either: the next look starts over, so the observer then needs three looks instead of two).
   The window is between the two finished looks, at most 3 * max_interval + 60 s (240 s with the defaults): a
   workflow that registers later than that is not detected and the watcher reports SUCCESS without it. The observer
   is therefore not a merge gate and decides nothing about merging; for a verdict that is tied to a run use
