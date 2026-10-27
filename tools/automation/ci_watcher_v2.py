@@ -233,6 +233,8 @@ def read_state(path: Path) -> Optional[dict]:
         raise ValueError(f"state file is not valid JSON: {exc}") from exc
     if not isinstance(state, dict) or not isinstance(state.get("attempts", 0), int) or isinstance(state.get("attempts"), bool):
         raise ValueError("state file has an unexpected shape")
+    if state.get("attempts", 0) < 0:  # a negative counter would hand out more polls than max_attempts allows (K3 fuzz)
+        raise ValueError("state file field attempts is negative")
     for field in ("next_poll_at", "dispatched_at"):
         value = state.get(field)
         if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float)) or value != value):
