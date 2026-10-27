@@ -26,8 +26,9 @@ running, the export fails with exit 7 instead of returning torn data.
                                           [--only-transitions] [--allow-partial]
                                           [--expect-head-hash HEX]
 
-Order of checks: usage errors (a malformed --expect-head-hash, --out equal to the journal) are decided before the
-journal is looked at, so a bad flag is exit 2 even if the journal is missing (exit 3 only for a well-formed command line).
+Order of checks: only a malformed --expect-head-hash is decided before the journal is looked at (exit 2 even if the
+journal is missing). Then the journal is resolved: a missing journal is exit 3, also when --out names that same path;
+--out equal to an EXISTING journal (or its -wal/-shm/-journal) is exit 2.
 
 Exit codes: 0 exported · 2 usage (also: --out would overwrite the journal or its files) ·
 3 journal missing/unreadable (also: an open that SQLite refuses, e.g. a database that needs
