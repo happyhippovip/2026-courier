@@ -127,6 +127,10 @@ class LeaseStore:
         same workkey renews; a live lease for a different workkey conflicts even when the
         holder (device) is the same, so two workkeys never share one fencing token.
         Hierarchical scope overlap with another live lease raises LeaseConflict."""
+        # O7-04: a writer lease needs a real owner id. None/"" would be stored as an
+        # anonymous lease that every other anonymous caller shares (single writer broken).
+        if not isinstance(holder, str) or not holder.strip():
+            raise ValueError("lease holder must be a non-empty string")
         c_scope = canonicalize_scope(scope)
         now = self.clock()
         self.db.execute("BEGIN IMMEDIATE")

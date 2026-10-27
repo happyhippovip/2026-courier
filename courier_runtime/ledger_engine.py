@@ -161,6 +161,10 @@ class LedgerEngine:
         self.writer_path = Path(str(self.campaign_path) + ".writer")
         self.host = host
         self.writer_id = host if writer_id is None else writer_id
+        # O7-04: an empty writer id matches an empty .writer file, so two anonymous
+        # engines would both pass _require_writer. Reject it up front.
+        if not isinstance(self.writer_id, str) or not self.writer_id.strip():
+            raise ValueError("writer_id (or host) must be a non-empty string")
         try:
             finite_limit = (not isinstance(spend_limit_eur, bool)
                             and isinstance(spend_limit_eur, (int, float))
