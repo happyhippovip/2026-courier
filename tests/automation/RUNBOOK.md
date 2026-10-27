@@ -18,6 +18,58 @@ spelling `pytest.skip` / `pytest.mark.skip[if]` in the top folder of this direct
 A skipped test proved nothing on that machine. Typical skips: chmod tests as root/Windows (the read-only-medium path is then covered by the forced-medium
 tests `test_n_e5_*`), POSIX-only tests (directory fsync, flock) on Windows.
 
+## Exit codes (checked against the code by `test_round5_k6.py`)
+Exporter `python -m tools.automation.journal_export <db> [--out FILE] [--only-transitions] [--allow-partial] [--expect-head-hash HEX]`
+| Exit | Meaning | What to do |
+|---|---|---|
+| 0 | exported | check `head_checked` in the header: false unless you gave `--expect-head-hash` |
+| 2 | usage (bad flag, malformed hash, `--out` = the journal) | fix the command line; nothing was read |
+| 3 | journal missing or unreadable (also: a database SQLite refuses to open) | check the path, permissions and that the file is a SQLite journal |
+| 4 | hash chain broken, or stored text not valid UTF-8 | no export (with `--allow-partial` only the verified prefix); do not "repair" the journal, restore a copy and compare heads |
+| 5 | event stream does not fold through the state machine | same as 4: a journal that is intact but inconsistent; escalate |
+| 6 | output could not be written (disk full, broken pipe, bad `--out` dir) | fix the target, run again; the old `--out` file is untouched |
+| 7 | journal changed while it was read (immutable read or snapshot lost) | run again; discard anything already read from stdout |
+| 8 | head differs from `--expect-head-hash` (shorter, newer or replaced journal) | decide if the journal moved on legitimately; otherwise treat as truncation/tampering |
+
+Watcher `python -m tools.automation.ci_watcher_v2 --workkey WK --sha <40 hex> --state-dir DIR ...` (one JSON line on stdout every time)
+| Exit | Status | Meaning / what to do |
+|---|---|---|
+| 0 | SUCCESS (or RESET / NO_STATE for `--reset-state`) | all considered runs finished and succeeded (observer: after two identical finished looks) |
+| 1 | FINISHED_NOT_SUCCESS | runs finished, not all succeeded: read the runs in the JSON, look at GitHub |
+| 2 | usage | numbers out of range/non-finite, `--dispatch-workflow` without `--ref`: nothing was written or called |
+| 10 | WAITING | the window ended, the schedule is in the state file: run again (it never polls before `next_poll_at`) |
+| 11 | EXHAUSTED | `max_attempts` used up: look at GitHub; to watch again `--reset-state` (keeps the dispatch marker) |
+| 12 | DISPATCH_UNCONFIRMED | no run of ours showed up within `dispatch_grace`: see "DISPATCH_UNCONFIRMED" below; never dispatch again on your own |
+| 13 | LOCKED | another watcher holds the key, or (O_EXCL lock) a takeover was interrupted or this watcher lost its lock: see "Stale lock" |
+| 14 | STATE_UNREADABLE | state file damaged or belongs to another key: look at GitHub, then delete the dotfile by hand (a damaged state could hide a dispatch) |
+| 15 | DISPATCH_AMBIGUOUS | the dispatch may have reached GitHub and is NOT repeated: check GitHub, then run again WITHOUT `--dispatch-workflow` |
+| 16 | DISPATCH_FAILED | provably nothing was dispatched (gh could not start, HTTP 4xx, auth/usage error): the key is free, fix the cause, run again |
+| 17 | IO_ERROR | state dir/state file/lock file not usable: fix permissions or space, run again |
+| 18 | RESET_REFUSED | `--reset-state` only for COMPLETED/EXHAUSTED: look at GitHub, then delete the dotfile by hand |
+
+## Restart (what a second call does)
+* Same `--workkey`, `--sha` and `--state-dir` resume the state file: attempts, schedule and dispatch marker survive a crash, a reboot or a kill. A terminal state (COMPLETED, EXHAUSTED,
+  DISPATCH_UNCONFIRMED) answers with zero gh calls. After SIGKILL no lock stays with flock; on the O_EXCL fallback the lock becomes stale after
+  `max(600, 3*max_interval+300)` s and is taken over (see below).
+* A killed watcher that had written the DISPATCHING marker never dispatches again for that key: it adopts the run if it shows up, otherwise ends DISPATCH_UNCONFIRMED.
+* A new dispatch needs a new `--workkey`. Re-running a failed CI of the same commit: `--reset-state` (COMPLETED/EXHAUSTED only), then watch again.
+* The exporter has nothing to restart: it is read-only and idempotent (same journal, same bytes). With `--out` a failed run leaves the previous file in place.
+
+## Stale lock / dead taker (hand work, O_EXCL fallback only; with flock there is nothing to clean up)
+1. Make sure no watcher for that key is running (`ps`), including on other machines that share the state dir.
+2. (`<key>` is the 32-hex stem in the name of the state file `.ci-watch-<key>.json` of that workkey/SHA.) In the state dir delete `.ci-watch-<key>.lock.x` and every `.ci-watch-<key>.lock.x.take-*` (deleting only one of them also heals it).
+3. Run the watcher again. A watcher that ends LOCKED with "lock lost" lost its lock to a taker while stalled: it dispatched, polled and wrote nothing after the loss; run it again later.
+
+## DISPATCH_UNCONFIRMED (exit 12)
+Check on GitHub whether the run exists. If the local clock runs more than 5 s ahead of GitHub's, fix it (NTP). Delete the state dotfile by hand and run again WITHOUT
+`--dispatch-workflow` (observer mode); running with `--dispatch-workflow` would send a new dispatch.
+
+## Rollback (undoing this change set)
+The tools are stand-alone and nothing else imports them (UNKNOWN for code outside this repository). To go back: `git revert` the commits of branch `acc2/automation-v2-fixes`
+(or check out the previous tag/commit of `tools/automation/` and `tests/automation/`), never a force-push. The state files of the watcher are plain JSON
+(`.ci-watch-*.json`) and stay valid across versions as long as `key`, `sha`, `dispatch` and `dispatched_at` are kept: delete them only after looking at GitHub, because the dispatch marker is
+what prevents a second dispatch. The exporter writes nothing to the journal, so rolling it back has no data effect; delete exported files by hand if you want them gone.
+
 ## Edge-case coverage (where each class is tested; `file::test`)
 | Class | Exporter (`test_journal_export*.py`) | Watcher (`test_ci_watcher_v2*.py`) |
 |---|---|---|
