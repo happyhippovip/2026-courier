@@ -360,15 +360,24 @@ class Controller:
                     or not task.accepted_result_id):
                 raise ApiError(409, "not_verified", "task has no verified result")
             ready = None
+            accepted_seq = None
             for event in self.journal.events(task_id=task_id):
                 if (event.type is EventType.RESULT_READY and event.result_id == task.accepted_result_id
                         and event.attempt == task.attempt):
                     ready = event
+                # P2b: the journal position of the verifier's acceptance is the proof a
+                # workkey release cites (journal:<seq>:RESULT_ACCEPTED).
+                if (event.type is EventType.RESULT_ACCEPTED and event.result_id == task.accepted_result_id
+                        and event.attempt == task.attempt):
+                    accepted_seq = event.seq
         if ready is None:
             raise ApiError(409, "not_verified", "the verified result is not in the journal")
         artifacts = [{"path": item["path"], "sha256": item["sha256"]} for item in ready.payload.get("artifacts", [])]
-        return {"task_id": task.task_id, "attempt": task.attempt, "result_id": task.accepted_result_id,
+        body = {"task_id": task.task_id, "attempt": task.attempt, "result_id": task.accepted_result_id,
                 "artifacts": artifacts}
+        if isinstance(accepted_seq, int) and not isinstance(accepted_seq, bool) and accepted_seq > 0:
+            body["accepted_seq"] = accepted_seq
+        return body
 
     def create_task(self, body: Any) -> tuple[int, dict]:
         self._require_writable()

@@ -27,6 +27,9 @@ CLAIMED = {
 DONE = ["P1", "P5", "P7"]
 
 
+PROOF = "local-verified:sha256:" + "a" * 64   # O7-12 P2: DONE needs a valid proof
+JOURNAL_PROOF = "journal:7:RESULT_ACCEPTED|sha256:" + "b" * 64
+
 def _queue(tmp_path, items=None):
     return WorkQueue(items or DEFAULT_ITEMS, tmp_path / "ledger.jsonl", DEFAULT_SCHEMA)
 
@@ -170,7 +173,7 @@ def test_dependencies_on_items_and_prs(tmp_path):
     queue = WorkQueue(home, tmp_path / "ledger.jsonl")
     assert [item["id"] for item in queue.list_ready(now=NOW)] == ["A"]
     queue.claim("A", "holder-a", 60, now=NOW)
-    queue.release("A", "holder-a", "draft PR", now=NOW)
+    queue.release("A", "holder-a", "draft PR", now=NOW, proof=PROOF)
     assert [item["id"] for item in queue.list_ready(now=NOW)] == []
     ready = queue.list_ready(done_prs=["277"], now=NOW)
     assert [item["id"] for item in ready] == ["B"]
@@ -189,14 +192,14 @@ def test_renew_release_and_replay(tmp_path):
     with pytest.raises(WorkQueueError) as caught:
         queue.renew("REPORT-QA", "holder-b", 60, now=NOW)
     assert caught.value.code == "NOT_HOLDER"
-    done = queue.release("REPORT-QA", "holder-a", "draft PR", now=NOW + timedelta(seconds=11))
+    done = queue.release("REPORT-QA", "holder-a", "draft PR", now=NOW + timedelta(seconds=11), proof=PROOF)
     assert done["status"] == "DONE" and done["idempotent"] is False
     before = (tmp_path / "ledger.jsonl").read_bytes()
-    again = queue.release("REPORT-QA", "holder-a", "draft PR", now=NOW)
+    again = queue.release("REPORT-QA", "holder-a", "draft PR", now=NOW, proof=PROOF)
     assert again["idempotent"] is True
     assert (tmp_path / "ledger.jsonl").read_bytes() == before
     with pytest.raises(WorkQueueError) as caught:
-        queue.release("REPORT-QA", "holder-a", "other result", now=NOW)
+        queue.release("REPORT-QA", "holder-a", "other result", now=NOW, proof=PROOF)
     assert caught.value.code == "ALREADY_DONE"
     assert "REPORT-QA" not in [item["id"] for item in queue.list_ready(done_prs=["281"], now=NOW)]
     with pytest.raises(WorkQueueError) as caught:
@@ -452,3 +455,32 @@ def test_cli_next_empty(tmp_path, capsys):
     code = main(["--items", str(home), "--ledger", str(tmp_path / "ledger.jsonl"), "next", "--holder", "window-a"])
     assert code == 0
     assert capsys.readouterr().out.strip() == "NO_READY_ITEM"
+
+
+def test_p2_release_without_proof_is_not_proven_and_writes_nothing(tmp_path):
+    queue = _queue(tmp_path)
+    queue.claim("REPORT-QA", "holder-a", 60, now=NOW, done_prs=["281"])
+    before = (tmp_path / "ledger.jsonl").read_bytes()
+    res = queue.release("REPORT-QA", "holder-a", "draft PR", now=NOW)
+    assert res["status"] == "NOT_PROVEN"
+    assert (tmp_path / "ledger.jsonl").read_bytes() == before
+
+
+def test_p2_release_with_invalid_proof_is_not_proven(tmp_path):
+    queue = _queue(tmp_path)
+    queue.claim("REPORT-QA", "holder-a", 60, now=NOW, done_prs=["281"])
+    before = (tmp_path / "ledger.jsonl").read_bytes()
+    for bad in ("FINAL", "journal:x:RESULT_ACCEPTED", "local-verified:sha256:abc", "canary passed"):
+        assert queue.release("REPORT-QA", "holder-a", "draft PR", now=NOW, proof=bad)["status"] == "NOT_PROVEN"
+    assert (tmp_path / "ledger.jsonl").read_bytes() == before
+
+
+def test_p2_release_with_valid_proof_is_done_and_replay_is_idempotent(tmp_path):
+    queue = _queue(tmp_path)
+    queue.claim("REPORT-QA", "holder-a", 60, now=NOW, done_prs=["281"])
+    done = queue.release("REPORT-QA", "holder-a", "draft PR", now=NOW, proof=JOURNAL_PROOF)
+    assert done["status"] == "DONE" and done["idempotent"] is False
+    before = (tmp_path / "ledger.jsonl").read_bytes()
+    again = queue.release("REPORT-QA", "holder-a", "draft PR", now=NOW, proof=JOURNAL_PROOF)
+    assert again["status"] == "DONE" and again["idempotent"] is True
+    assert (tmp_path / "ledger.jsonl").read_bytes() == before

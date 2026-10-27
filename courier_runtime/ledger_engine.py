@@ -40,6 +40,7 @@ from courier_runtime.continuity import Kirby
 NOT_PROVEN = "NOT_PROVEN"
 COST_BLOCKED = "COST_BLOCKED"
 REJECTED_FOREIGN_TASK = "REJECTED_FOREIGN_TASK"
+CANARY_PREFIX = "courier_canary_"
 
 
 def task_id_for(workkey: str) -> str:
@@ -160,6 +161,10 @@ class LedgerEngine:
         self.writer_path = Path(str(self.campaign_path) + ".writer")
         self.host = host
         self.writer_id = host if writer_id is None else writer_id
+        # O7-04: an empty writer id matches an empty .writer file, so two anonymous
+        # engines would both pass _require_writer. Reject it up front.
+        if not isinstance(self.writer_id, str) or not self.writer_id.strip():
+            raise ValueError("writer_id (or host) must be a non-empty string")
         try:
             finite_limit = (not isinstance(spend_limit_eur, bool)
                             and isinstance(spend_limit_eur, (int, float))
@@ -275,6 +280,20 @@ class LedgerEngine:
             return digests[0]
         return hashlib.sha256(",".join(digests).encode("utf-8")).hexdigest()
 
+    def _canary_artifact_ok(self, task_id: str, result_id: str) -> bool:
+        """Caller holds the controller lock. A courier_canary_* artifact with a sha256 in the accepted result."""
+        for event in self.controller.journal.events(task_id=task_id):
+            if event.type is not EventType.RESULT_READY or event.result_id != result_id:
+                continue
+            for art in (event.payload or {}).get("artifacts") or []:
+                if not isinstance(art, dict):
+                    continue
+                name = os.path.basename(str(art.get("path") or ""))
+                digest = art.get("sha256")
+                if name.startswith(CANARY_PREFIX) and isinstance(digest, str) and digest:
+                    return True
+        return False
+
     def proof(self, task_id: str) -> str | None:
         """journal:<seq>:RESULT_ACCEPTED or that plus |sha256:<hex> for a verified task."""
         with self.controller._locked():
@@ -291,6 +310,11 @@ class LedgerEngine:
                 return None
             digest = self._artifact_sha256(task_id, task.accepted_result_id)
             params = task.params if isinstance(getattr(task, "params", None), dict) else {}
+            # O7-12 / Option A: a task marked params.canary=true is proven only by its own
+            # courier_canary_* artifact (sha256 in the proof). Checkpoint text never counts.
+            if params.get("canary") is True and (
+                    digest is None or not self._canary_artifact_ok(task_id, task.accepted_result_id)):
+                return None
             upstreams = params.get("inputs_from")
             if isinstance(upstreams, list) and upstreams:
                 for upstream in upstreams:
@@ -322,7 +346,7 @@ class LedgerEngine:
                     # A crash after the receipt line and before the campaign save: finish the
                     # state change, but do not write the same DONE receipt twice.
                     kirby._log = _skip_receipts(kirby._log)
-                return kirby.on_turn_end(slot, "DONE", token, checkpoint=note)
+                return kirby.on_turn_end(slot, "DONE", token, checkpoint=note, proof=proof)
             if task is not None and task.status in (TaskStatus.FAILED, TaskStatus.CANCELLED):
                 return kirby.on_turn_end(slot, "FAILED_FINAL", token, checkpoint=checkpoint,
                                          reason=f"task {task.status.value}")

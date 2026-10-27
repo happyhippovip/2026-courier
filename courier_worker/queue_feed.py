@@ -218,8 +218,17 @@ def feed_once(home, agent_id: str, host_id: str, now=None) -> dict:
         item_id = item["id"]
         mapping = missions.get(item_id) or {}
         if _result_proven(mapping):
-            queue.release(item_id, holder, f"FINAL_DONE {mapping.get('task_id', '')}".strip(), now=now)
-            report["released"].append(item_id)
+            # O7-12 P2: the bridge mapping carries no journal RESULT_ACCEPTED proof today
+            # (ledger_v1_bridge writes accepted_result_id only). Without "journal_proof"
+            # the release is NOT_PROVEN: the workkey stays held instead of becoming DONE.
+            released = queue.release(item_id, holder, f"FINAL_DONE {mapping.get('task_id', '')}".strip(),
+                                     now=now, proof=mapping.get("journal_proof"))
+            if released["status"] == "DONE":
+                report["released"].append(item_id)
+                continue
+            report.setdefault("not_proven", []).append(item_id)
+            still_held.append(item_id)
+            queue.renew(item_id, holder, ttl, now=now)
             continue
         if mapping.get("status") == "FINAL_DONE":
             report.setdefault("blocked", []).append(item_id)

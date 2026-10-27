@@ -24,6 +24,7 @@ so the same contract runs on Mac, Windows and in tests. Termination is only
 ever by proven ownership (courier_runtime.ownership), never by name.
 """
 import dataclasses
+import re
 import json
 import os
 import tempfile
@@ -37,6 +38,7 @@ OPEN, CLAIMED, DONE, BLOCKED, FAILED_FINAL = "OPEN", "CLAIMED", "DONE", "BLOCKED
 WORKING, IDLE, WAKE_PENDING, WAITING_FOR_USER = "WORKING", "IDLE", "WAKE_PENDING", "WAITING_FOR_USER"
 RECOVERING, RETIRED = "RECOVERING", "RETIRED"
 LIVE = {WORKING, IDLE, WAKE_PENDING, WAITING_FOR_USER, RECOVERING}
+_PROOF_RE = re.compile(r"^journal:\d+:RESULT_ACCEPTED(\|sha256:[0-9a-f]{64})?$")
 
 # Explicit provider failure signals that mean "this session's context/backlog is
 # saturated". No fixed prompt-count limit is assumed.
@@ -214,13 +216,17 @@ class Kirby:
         self._save()
         return s.workkey
 
-    def on_turn_end(self, slot, outcome, token, checkpoint="", reason=""):
+    def on_turn_end(self, slot, outcome, token, checkpoint="", reason="", proof=""):
         """Provider returned idle. outcome: DONE | BLOCKED | STILL_OPEN | FAILED_FINAL.
-        The stale-token check is the duplicate-writer guard."""
+        The stale-token check is the duplicate-writer guard. DONE needs a journal
+        proof (journal:<seq>:RESULT_ACCEPTED...) from the ledger engine; without it the
+        workkey stays claimed and the answer is NOT_PROVEN (O7-12)."""
         s = self.sessions[slot]
         w = self.workkeys.get(s.workkey)
         if w is None or w.owner != s.session_id or w.token != token or not s.accepting:
             return "REJECTED_STALE_WRITER"
+        if outcome == "DONE" and not (isinstance(proof, str) and _PROOF_RE.match(proof)):
+            return "NOT_PROVEN"
         w.checkpoint = checkpoint or w.checkpoint
         if outcome == "DONE":
             w.state, w.owner = DONE, ""
