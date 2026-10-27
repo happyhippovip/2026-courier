@@ -37,7 +37,7 @@ Watcher `python -m tools.automation.ci_watcher_v2 --workkey WK --sha <40 hex> --
 | 0 | SUCCESS (or RESET / NO_STATE for `--reset-state`) | all considered runs finished and succeeded (observer: after two identical finished looks) |
 | 1 | FINISHED_NOT_SUCCESS | runs finished, not all succeeded: read the runs in the JSON, look at GitHub |
 | 2 | usage | numbers out of range/non-finite, `--dispatch-workflow` without `--ref`: nothing was written or called |
-| 10 | WAITING | the window ended, the schedule is in the state file: run again (it never polls before `next_poll_at`) |
+| 10 | WAITING | the window ended, the schedule is in the state file: run again (it does not poll before `next_poll_at`, except after a clock that jumped back: the wait is capped at `max_interval`) |
 | 11 | EXHAUSTED | `max_attempts` used up: look at GitHub; to watch again `--reset-state` (keeps the dispatch marker) |
 | 12 | DISPATCH_UNCONFIRMED | no run of ours showed up within `dispatch_grace`: see "DISPATCH_UNCONFIRMED" below; never dispatch again on your own |
 | 13 | LOCKED | another watcher holds the key, or (O_EXCL lock) a takeover was interrupted or this watcher lost its lock: see "Stale lock" |
@@ -58,7 +58,7 @@ Watcher `python -m tools.automation.ci_watcher_v2 --workkey WK --sha <40 hex> --
 ## Stale lock / dead taker (hand work, O_EXCL fallback only; with flock there is nothing to clean up)
 1. Make sure no watcher for that key is running (`ps`), including on other machines that share the state dir.
 2. (`<key>` is the 32-hex stem in the name of the state file `.ci-watch-<key>.json` of that workkey/SHA.) In the state dir delete `.ci-watch-<key>.lock.x` and every `.ci-watch-<key>.lock.x.take-*` (deleting only one of them also heals it).
-3. Run the watcher again. A watcher that ends LOCKED with "lock lost" lost its lock to a taker while stalled: from the moment it noticed the loss (first heartbeat of a round, before the sleep) it dispatched, polled and wrote nothing; a poll that was already running when the takeover happened still finishes, its result is not written. Run it again later.
+3. Run the watcher again. A watcher that ends LOCKED with "lock lost" lost its lock to a taker while stalled: from the moment it noticed the loss (first heartbeat of a round, before the sleep) it dispatched, polled and wrote nothing; a poll that was already running when the takeover happened still finishes, its result is not written. Run it again later. If the loss happened while a dispatch had failed cleanly (DISPATCH_FAILED would be exit 16), the result is LOCKED (exit 13) instead and the state keeps the DISPATCHING marker although nothing was sent: the next run ends DISPATCH_UNCONFIRMED (exit 12, fail closed, never a second dispatch); look at GitHub, then delete the state dotfile by hand. A single failed read of the lock file (EACCES, EIO, EMFILE) counts as a loss, too: the watcher stops with exit 13 without writing the state, which is the safe direction and rare. `--reset-state` uses the largest stale limit (3 days + 300 s), so it never takes the lock of a living watcher; with a lock left by a crash it ends LOCKED (exit 13): clean up by hand as above.
 
 ## DISPATCH_UNCONFIRMED (exit 12)
 Check on GitHub whether the run exists. If the local clock runs more than 5 s ahead of GitHub's, fix it (NTP). `--reset-state` does not help here (exit 18, RESET_REFUSED). Delete the state dotfile by hand and run again WITHOUT
