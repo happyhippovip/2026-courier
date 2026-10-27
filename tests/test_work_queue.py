@@ -528,8 +528,7 @@ def test_p2r2_forged_proofs_are_not_done_with_or_without_journal(tmp_path):
     queue.claim("REPORT-QA", "holder-a", 60, now=NOW, done_prs=["281"])
     real = jh.accept("REPORT-QA")
     seq, digest = real.split(":")[1], real.split("|sha256:")[1]
-    bad = {FORGED[0]: "NOT_RESULT_ACCEPTED", FORGED[1]: "NO_SUCH_SEQ", FORGED[2]: "FORMAT",
-           real.split("|")[0]: "SHA256_MISMATCH", f"journal:{seq}:RESULT_ACCEPTED|sha256:" + "0" * 64: "SHA256_MISMATCH",
+    bad = {real.split("|")[0]: "SHA256_MISMATCH", f"journal:{seq}:RESULT_ACCEPTED|sha256:" + "0" * 64: "SHA256_MISMATCH",
            f"journal:{int(seq) - 1}:RESULT_ACCEPTED|sha256:{digest}": "NOT_RESULT_ACCEPTED"}
     for proof, reason in bad.items():
         _not_proven(queue, tmp_path / "j", proof, reason)
@@ -543,17 +542,14 @@ def test_p2r2_foreign_task_and_stale_attempt_are_not_done(tmp_path):
     real = jh.accept("REPORT-QA")
 
     class Moved:  # the real journal, but the task has moved on (later attempt / not verified)
-        def __init__(self, **change):
-            self.change = change
-
         def __getattr__(self, name):
             return getattr(jh.journal, name)
 
         def task(self, task_id):
             return dataclasses.replace(jh.journal.task(task_id), **self.change)
 
-    for change in ({"attempt": 2}, {"resolution": "rejected"}):
-        queue.journal = Moved(**change)
+    for Moved.change in ({"attempt": 2}, {"resolution": "rejected"}):
+        queue.journal = Moved()
         _not_proven(queue, tmp_path, real, "STALE_ATTEMPT")
     queue.journal = jh.journal
     assert queue.release("REPORT-QA", "holder-a", "draft PR", now=NOW, proof=real)["status"] == "DONE"
@@ -575,3 +571,20 @@ def test_p2r2_stale_generation_and_missing_fence_are_not_done(tmp_path):
     blind.journal = jh.journal
     late = jh.accept("REPORT-QA", key="ledger:claim-blind")
     _not_proven(blind, tmp_path / "b", late, "NO_CLAIM_FENCE", task_ids={jh.task_id})
+
+
+def test_p2r3_restart_and_double_dispatch_keep_one_consistent_done(tmp_path):
+    jh = JournalHome(tmp_path)
+    _queue(tmp_path, journal=jh.journal).claim("REPORT-QA", "holder-a", 60, now=NOW, done_prs=["281"])
+    proof = jh.accept("REPORT-QA")
+    status, body = jh.ctrl.create_task({"adapter": "synthetic", "params": {"estimated_cost_eur": 0.0}, "max_attempts": 1,
+                                        "effect_class": "idempotent", "lease_ttl_s": 10, "idempotency_key": "workkey:REPORT-QA"})
+    assert (status, body["duplicate"]) == (200, True) and jh.ctrl.claim({"worker_id": "w2"}) is None  # no 2nd dispatch
+    for restart in (False, True):  # the same answers before and after a controller restart
+        q = _queue(tmp_path, journal=jh.restart() if restart else jh.journal)
+        for forged, reason in zip(FORGED, ("NOT_RESULT_ACCEPTED", "NO_SUCH_SEQ", "FORMAT")):
+            _not_proven(q, tmp_path, forged, reason)
+    assert [make().release("REPORT-QA", "holder-a", "draft PR", now=NOW, proof=proof)["idempotent"]
+            for make in (lambda: q, lambda: _queue(tmp_path, journal=jh.journal),  # 2 workers, then a restart
+                         lambda: _queue(tmp_path, journal=jh.restart()))] == [False, True, True]
+    assert (tmp_path / "ledger.jsonl").read_text(encoding="utf-8").count('"type":"RELEASE"') == 1

@@ -81,8 +81,7 @@ def run_once(queue, holder, host, workspace, execute, now, ttl=60, max_attempts=
     if not _verified(workspace, evidence):
         return _dead(workspace, item_id, holder, "UNVERIFIED", _attempts(workspace, item_id))
     _append(workspace, "VERIFY", {"item_id": item_id, "evidence": evidence})
-    # P2 R2: a local file check is no proof. DONE needs the journal RESULT_ACCEPTED of this workkey.
-    proof = journal_release_proof(getattr(queue, "journal", None), item_id)
+    proof = journal_release_proof(getattr(queue, "journal", None), item_id)  # P2 R2: a local file is no proof
     released = queue.release(item_id, holder, "FINAL", now=now, proof=proof)
     if released["status"] != "DONE" or released["result"] != "FINAL":
         return _receipt(workspace, {"outcome": "blocked", "reason": "RELEASE_REJECTED", "item_id": item_id})

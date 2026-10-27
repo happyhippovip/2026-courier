@@ -11,14 +11,18 @@ FORGED = ("journal:1:RESULT_ACCEPTED", "journal:999999:RESULT_ACCEPTED|sha256:" 
 
 class JournalHome:  # accept(): one task through create/claim/start/result/verify, real journal
     def __init__(self, tmp_path, nested=True):
-        self.home = tmp_path / "ctrl_home" if nested else tmp_path
+        self.home, self.count, self.ctrl = tmp_path / "ctrl_home" if nested else tmp_path, 0, None
+        self.restart()
+
+    def restart(self):  # stop the controller (stop() closes its journal), boot a new one on the same courier.db
+        if self.ctrl is not None:
+            self.ctrl.stop()
         self.ctrl = Controller(self.home, verifier=lambda adapter: (lambda task, result, h: Verdict(True, "test")),
                                clock=lambda: 1000.0).boot()
         self.journal = self.ctrl.journal
-        self.count = 0
+        return self.journal
 
-    def accept(self, workkey, key=None, payload=b"P2R2"):
-        """Proof of a new accepted task (idempotency key default workkey:<workkey>), built from the journal."""
+    def accept(self, workkey, key=None, payload=b"P2R2"):  # new accepted task (key workkey:<id>); proof from journal
         self.count += 1
         created = self.ctrl.create_task({"adapter": "synthetic", "params": {"estimated_cost_eur": 0.0},
                                          "effect_class": "idempotent", "max_attempts": 1, "lease_ttl_s": 10,

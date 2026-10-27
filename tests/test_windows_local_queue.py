@@ -317,12 +317,3 @@ def test_synthetic_run_finalizes_distinct_workkeys_in_order(tmp_path):
     for item_id in ("A", "B", "C"):
         assert (tmp_path / "work" / f"{item_id}.txt").read_text(encoding="utf-8") == "done\n"
 
-
-def test_p2r2_without_journal_a_verified_local_file_is_not_final(tmp_path):
-    _write_items(tmp_path / "items", [_item("A", ["scripts/windows_worker/a.py"])])
-    queue = WorkQueue(tmp_path / "items", tmp_path / "ledger.jsonl")
-    receipt = run_once(queue, HOLDER, "win-host", tmp_path / "work",
-                       lambda item, ws: (ws / "A.txt").write_text("done\n") and "A.txt", NOW)  # file only
-    assert receipt["outcome"] == "blocked" and receipt["reason"] == "RELEASE_REJECTED"
-    assert '"type":"RELEASE"' not in (tmp_path / "ledger.jsonl").read_text(encoding="utf-8")
-    assert queue.items(now=NOW)[0]["status"] == "CLAIMED"

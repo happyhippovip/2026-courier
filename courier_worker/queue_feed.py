@@ -235,8 +235,7 @@ def _feed_once(home, agent_id: str, host_id: str, now, opened) -> dict:
         item_id = item["id"]
         mapping = missions.get(item_id) or {}
         if _result_proven(mapping):
-            # P2 R2: mapping["journal_proof"] is only a pointer; the queue checks it against the journal
-            # (task = bridge claim tasks of this mission, not the mapping). Any gap => NOT_PROVEN, held.
+            # P2 R2: journal_proof is only a pointer, checked against the journal; tasks from the coordination ledger.
             claim_tasks = {"task-" + hashlib.sha256(f"ledger:{e.event_id}".encode("utf-8")).hexdigest()[:32]
                            for e in reduce_store(store).events
                            if e.mission_id == item_id and str(e.event_id).startswith("claim-")}

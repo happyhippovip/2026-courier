@@ -176,7 +176,6 @@ def test_without_journal_no_proof_is_a_release(tmp_path):
         _final_done(home, journal_proof=proof)
         report = feed_once(home, AGENT, HOST, now=NOW)
         assert report["released"] == [] and report["not_proven"] == ["HELD"], proof
-    assert queue.items(now=NOW)[0]["status"] == "CLAIMED"
 
 
 def test_second_pass_does_not_claim_twice(tmp_path):

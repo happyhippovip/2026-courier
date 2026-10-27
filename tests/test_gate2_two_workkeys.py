@@ -152,9 +152,8 @@ def test_two_distinct_workkeys_then_restart_without_double_effect(tmp_path):
         # Order: claim A, release A (checkpoint), only then claim B, release B.
         seq = [(e["type"], e["item_id"]) for e in _queue_events(ledger) if e["type"] in ("CLAIM", "RELEASE")]
         assert seq == [("CLAIM", "WKA"), ("RELEASE", "WKA"), ("CLAIM", "WKB"), ("RELEASE", "WKB")], seq
-        for e in _queue_events(ledger):  # P2 R2: RELEASE carries the journal-checked bridge proof
-            if e["type"] == "RELEASE":
-                assert e["proof"] == _state(home)["missions"][e["item_id"]]["journal_proof"], e
+        assert all(e["proof"] == _state(home)["missions"][e["item_id"]]["journal_proof"]  # P2: journal-checked proof
+                   for e in _queue_events(ledger) if e["type"] == "RELEASE")
 
         created = [e for e in courier.all_events() if e["type"] == "TASK_CREATED"]
         task_ids = [e["task_id"] for e in created]
