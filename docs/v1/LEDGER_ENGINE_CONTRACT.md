@@ -25,7 +25,7 @@ Limits (deliberate):
 | Path | What it does today | Risk | Owner |
 |---|---|---|---|
 | `courier_core.controller.Controller.create_task` called directly | creates a task with no cost check | unknown cost reaches a worker (F-C1) | L2 (controller admission; open, no PR fixes it — #826 edits `controller.py` for other reasons) |
-| `courier_runtime/host_loop.py` → `provider_events.handle` | a provider line `TURN_ENDED outcome=DONE` calls `Kirby.on_turn_end(DONE)`; the loop keeps one `Kirby` in memory, no lock, no reload | DONE without proof (F-K1); its next save overwrites engine writes (F-K2) | L3 (host loop / continuity) |
+| `courier_runtime/host_loop.py` → `provider_events.handle` | since 9bc414cc4 a provider line `TURN_ENDED outcome=DONE` goes to `LedgerEngine.finish_turn` (engine present) or returns `NOT_PROVEN` (no engine); it never sets DONE itself. Since O7-12 `Kirby.on_turn_end(DONE)` also returns `NOT_PROVEN` unless the engine passes `proof=journal:<seq>:RESULT_ACCEPTED[|sha256:<hex>]` | F-K1 closed; the loop's in-memory `Kirby` save can still overwrite engine writes (F-K2) | L3 (host loop / continuity) |
 | `scripts/ledger_v1_bridge.py` (PR #827) | cost gate only when the spec names `agent_id`, `host_id` or `estimated_cost_eur` | a local mission spec without those keys is dispatched without a cost check | Cursor A→B→C |
 
 `tests/test_ledger_engine.py` pins the first two as `xfail(strict=True)`: when an owner closes the gap the test passes, strict turns that into a failure, and the owner removes the marker.
@@ -46,3 +46,9 @@ The capability is the triple (slot, workkey, token), never a bare token. Any wri
 | controller | engine | read-only: `journal.task(task_id)` and the `RESULT_ACCEPTED` event; the engine never writes the journal except `create_task` |
 | provider signal (`TURN_ENDED outcome=DONE`) | engine | a claim, not a fact: map it to `engine.finish_turn(...)`; the engine decides DONE from the journal |
 | engine | Cursor / Kolibri | `kirby.json` workkey `state`, `checkpoint` (contains `journal:<seq>:RESULT_ACCEPTED` for DONE), `blocked_reason`; `receipts.jsonl` one line per DONE |
+
+## Canary contract (O7-12, Option A, Dennis 2026-10-26)
+- Every workkey: DONE/FINAL only with `proof()` = RESULT_ACCEPTED of the accepted result in the journal (unchanged).
+- A task with `params.canary == True` is proven only if its accepted RESULT_READY carries an artifact whose basename starts with `courier_canary_` and has a sha256; otherwise `proof()` is `None` and `finish_turn` returns `NOT_PROVEN`.
+- Checkpoint text (e.g. "canary passed") never counts as canary proof.
+- Unmarked tasks need no canary artifact.
