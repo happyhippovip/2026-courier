@@ -255,8 +255,9 @@ def test_dead_letter_is_not_executed_or_released_again(tmp_path):
     assert calls == ["A", "A"]
     text = (tmp_path / "ledger.jsonl").read_text(encoding="utf-8")
     assert "RELEASE" not in text
-    again = queue.release("A", HOLDER, "BLOCKED", now=NOW)
-    repeat = queue.release("A", HOLDER, "BLOCKED", now=NOW)
+    proof = "local-verified:sha256:" + "c" * 64          # O7-12 P2: DONE needs a valid proof
+    again = queue.release("A", HOLDER, "BLOCKED", now=NOW, proof=proof)
+    repeat = queue.release("A", HOLDER, "BLOCKED", now=NOW, proof=proof)
     assert again["status"] == "DONE" and again["idempotent"] is False
     assert repeat["status"] == "DONE" and repeat["idempotent"] is True
 

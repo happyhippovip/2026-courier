@@ -34,6 +34,16 @@ DEFAULT_SCHEMA = Path(__file__).resolve().parent / "schemas" / "work_item.schema
 DEFAULT_LEDGER = REPO_ROOT / "registries" / "work_queue_ledger.jsonl"
 
 
+# O7-12 P2: a workkey is DONE only with a proof of acceptance. Either the journal
+# RESULT_ACCEPTED of the ledger engine, or the local verifier's artifact digest.
+_RELEASE_PROOF = re.compile(
+    r"^(journal:[0-9]+:RESULT_ACCEPTED(\|sha256:[0-9a-f]{64})?|local-verified:sha256:[0-9a-f]{64})$")
+
+
+def valid_release_proof(proof) -> bool:
+    return isinstance(proof, str) and _RELEASE_PROOF.fullmatch(proof) is not None
+
+
 class WorkQueueError(Exception):
     """A refused or unreadable queue operation. ``code`` is a short token."""
 
@@ -54,8 +64,8 @@ def renew(queue: "WorkQueue", item, holder, ttl, now=None) -> dict:
     return queue.renew(item, holder, ttl, now=now)
 
 
-def release(queue: "WorkQueue", item, holder, result, now=None) -> dict:
-    return queue.release(item, holder, result, now=now)
+def release(queue: "WorkQueue", item, holder, result, now=None, proof=None) -> dict:
+    return queue.release(item, holder, result, now=now, proof=proof)
 
 
 def spawn(queue: "WorkQueue", template, module, now=None) -> dict:
@@ -150,17 +160,21 @@ class WorkQueue:
             current["lease"]["expires_at"] = expires
             return _claim_view(current, idempotent=False)
 
-    def release(self, item, holder, result, now=None) -> dict:
+    def release(self, item, holder, result, now=None, proof=None) -> dict:
+        """Release a held workkey as DONE. Without a valid proof nothing is written."""
         item_id = _require_token(item, "ITEM")
         holder = _require_holder(holder)
         result = _require_result(result)
+        if not valid_release_proof(proof):
+            return {"item_id": item_id, "status": "NOT_PROVEN", "result": result, "idempotent": False}
         moment = _now(now)
         with self._lock():
             items = self._effective(moment)
             current = items.get(item_id)
             if current is None:
                 raise WorkQueueError("UNKNOWN_ITEM")
-            if current["status"] == "DONE" and current.get("result") == result and current.get("released_by") == holder:
+            if (current["status"] == "DONE" and current.get("result") == result and current.get("released_by") == holder
+                    and current.get("proof") == proof):
                 return {"item_id": item_id, "status": "DONE", "result": result, "idempotent": True}
             if current["status"] == "DONE":
                 raise WorkQueueError("ALREADY_DONE")
@@ -171,6 +185,7 @@ class WorkQueue:
                 "item_id": item_id,
                 "holder": holder,
                 "result": result,
+                "proof": proof,
                 "at": _stamp(moment),
             })
             return {"item_id": item_id, "status": "DONE", "result": result, "idempotent": False}
@@ -358,6 +373,8 @@ def main(argv=None) -> int:
     rel.add_argument("--item", required=True)
     rel.add_argument("--holder", required=True)
     rel.add_argument("--result", required=True)
+    rel.add_argument("--proof", required=True,
+                     help="journal:<seq>:RESULT_ACCEPTED[|sha256:<hex>] or local-verified:sha256:<64hex>")
 
     spawned = sub.add_parser("spawn")
     spawned.add_argument("--template", required=True)
@@ -385,7 +402,10 @@ def main(argv=None) -> int:
         elif args.command == "renew":
             claimed = queue.renew(args.item, args.holder, args.ttl)
         else:
-            claimed = queue.release(args.item, args.holder, args.result)
+            claimed = queue.release(args.item, args.holder, args.result, proof=args.proof)
+            if claimed["status"] != "DONE":
+                print("NOT_PROVEN", file=sys.stderr)
+                return 2
     except WorkQueueError as exc:
         print(exc.code, file=sys.stderr)
         return 2
@@ -628,6 +648,9 @@ def _apply(items: dict[str, dict], event: dict) -> None:
     item["lease"] = None
     item["result"] = result.strip()
     item["released_by"] = event["holder"]
+    # Ledgers written before P2 have RELEASE events without proof; replay keeps them
+    # DONE (history is not rewritten), new releases always carry one.
+    item["proof"] = event.get("proof") if isinstance(event.get("proof"), str) else None
 
 
 def _read_json(path: Path, cap: int):
