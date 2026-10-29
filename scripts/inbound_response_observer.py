@@ -116,9 +116,11 @@ class InboundResponseObserver:
         return []
 
     def scan_inboxes(self, dry_run: bool = False) -> Dict[str, Any]:
+        """No mailbox is opened here. Do not report a clean or active inbox."""
+        del dry_run
         return {
-            "status": "MONITORING_ACTIVE",
-            "raw_check": "INBOX_CHECKED_CLEAN",
+            "status": "NOT_CHECKED",
+            "raw_check": "INBOX_NOT_READ",
             "active_experiments_monitored": [],
             "total_monitored_experiments": 0,
             "new_responses": 0,
@@ -145,7 +147,9 @@ def main() -> int:
 
     res = observer.scan_inboxes(dry_run=False)
     print(json.dumps(res, indent=2))
-    return 0
+    if res.get("raw_check") == "INBOX_CHECKED_CLEAN":
+        return 0
+    return 1
 
 if __name__ == "__main__":
     sys.exit(main())
