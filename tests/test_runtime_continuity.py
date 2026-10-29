@@ -516,6 +516,15 @@ def test_concurrency_advice_scales_down_when_more_slots_stop_helping():
     assert concurrency_advice([{"slots": 12, "completions_per_h": 5, "errors": 9, "ram_pct": 95}])["slots"] == 6
 
 
+def test_unmeasured_window_is_not_treated_as_idle():
+    measured = {"slots": 4, "completions_per_h": 10, "errors": 0, "ram_pct": 40}
+    loud = {"slots": 32, "completions_per_h": 100}
+    assert concurrency_advice([measured, loud])["slots"] == 4
+    assert concurrency_advice([{"slots": 8, "completions_per_h": 50}])["slots"] == 4
+    assert concurrency_advice([{"slots": 8, "completions_per_h": 50, "errors": True, "ram_pct": 10}])["slots"] == 4
+    assert concurrency_advice([])["slots"] == 1
+
+
 def test_real_hung_child_is_recovered_with_ownership_identity(tmp_path):
     """End to end with a real process and the real ownership module."""
     import subprocess
