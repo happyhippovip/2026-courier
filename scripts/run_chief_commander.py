@@ -268,6 +268,22 @@ class ChiefCommander:
 
         return presence_data
 
+    def _missing_continuation_authorities(
+        self,
+        grant: dict | None,
+        workkey: str | None,
+    ) -> list[str]:
+        """Grant, workkey, and a known resource state. Confidence is not authority."""
+        missing: list[str] = []
+        if not isinstance(grant, dict) or not grant:
+            missing.append("grant")
+        if not isinstance(workkey, str) or not workkey.strip():
+            missing.append("workkey")
+        resource_state = self.resource_context()
+        if self.resource_intelligence is None or not resource_state:
+            missing.append("resource state")
+        return missing
+
     def get_presence(self) -> dict:
         """Reads the durable Chief presence record."""
         presence_file = self.repo_dir / "events/chief_presence.json"
@@ -315,6 +331,8 @@ class ChiefCommander:
         round_index: int = 0,
         conversation_id: str = "c61b931a-e4f1-476d-b9d2-431218079df5",
         chief_turn_id: str | None = None,
+        grant: dict | None = None,
+        workkey: str | None = None,
     ) -> ChiefDecisionContract:
         """Evaluates a completed worker result and produces a persisted ChiefDecisionContract."""
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -458,7 +476,36 @@ class ChiefCommander:
             self._persist_decision(task_id, decision_obj)
             return decision_obj
 
-        # 6. Handle Pass & Check Next Task
+        # 6. A model PASS is not authority. Confidence is not read.
+        # Broker.authorize stays unwired. Resource state is not a claim field.
+        if verdict == "PASS":
+            missing_authority = self._missing_continuation_authorities(grant, workkey)
+            if missing_authority:
+                decision_obj = ChiefDecisionContract(
+                    conversation_id=conversation_id,
+                    chief_turn_id=chief_turn_id or f"turn-{uuid.uuid4().hex[:8]}",
+                    workflow_id=workflow_id,
+                    task_id=task_id,
+                    correlation_id=correlation_id,
+                    result_id=result_id,
+                    decision="PAUSE",
+                    next_task=None,
+                    risk_level="LOW",
+                    cost_class="ZERO_COST_LOCAL",
+                    review_decision=review_decision,
+                    value_gate=value_gate_res,
+                    reason=(
+                        "Paused: model PASS is not authority. Missing "
+                        + ", ".join(missing_authority)
+                        + "."
+                    ),
+                    evidence_refs=[str(result_file.name)],
+                    created_at=now_iso,
+                )
+                self._persist_decision(task_id, decision_obj)
+                return decision_obj
+
+        # 7. Handle an authorized pass and check the next plan step
         next_task_info = None
         if workflow_plan and (round_index + 1) < len(workflow_plan):
             next_step = workflow_plan[round_index + 1]
