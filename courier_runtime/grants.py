@@ -677,13 +677,22 @@ class Gate:
         return self._has(issuer, "COORDINATE") or self._has(issuer, "ISSUE_PREAPPROVED_LEASE")
 
     def _extend_guard(self, row, approver, verifier):
-        """Same three-principal rule as extend. Used by LeaseStore.renew."""
+        """Same fail-closed rule as extend. Used by LeaseStore.renew.
+
+        Three distinct principals, a known spend limit on the bound principal,
+        and a CLEAR stop. Unknown spend or STOP/HOLD refuses the renew.
+        """
         parties = {row.holder, row.principal} - {""}
         if not approver or not verifier or approver in parties or verifier in parties or approver == verifier:
             return False
         if not self._has(approver, "ISSUE_PREAPPROVED_LEASE"):
             return False
-        return self._has(verifier, "VERIFY_LEASE") or self._has(verifier, "REVIEW_INDEPENDENTLY")
+        if not (self._has(verifier, "VERIFY_LEASE") or self._has(verifier, "REVIEW_INDEPENDENTLY")):
+            return False
+        record = self.registry.get(row.principal or row.holder)
+        if record is None or not known_spend(record.spend_limit):
+            return False
+        return self.probe_stop() == "CLEAR"
 
     def activate(self, *, issuer, verifier, writer, ack_principal, scope, workkey, ttl_s, host,
                  grant, spend_limit, requested_by, owner_authorizes=False):
@@ -764,9 +773,9 @@ class Gate:
     def extend(self, lease, ttl_s, *, approver, verifier):
         """Policy extend. Issuer, verifier, and writer must be three principals.
 
-        Does not call renew when the approver is the writer. A principal-bound
-        LeaseStore.renew uses this gate's extend guard, so an arbitrary approver
-        string is refused there too.
+        Does not call renew when the approver is the writer, when spend is
+        unknown, or when stop is not CLEAR. A principal-bound LeaseStore.renew
+        uses this gate's extend guard, so those refusals hold on the store too.
         """
         parties = {lease.holder, lease.principal} - {""}
         if not approver or not verifier or approver in parties or verifier in parties or approver == verifier:
@@ -780,6 +789,11 @@ class Gate:
         record = self.registry.get(lease.principal or lease.holder)
         if record is None or not known_spend(record.spend_limit):
             return Decision(HOLD, "spend unknown")
+        stop = self.probe_stop()
+        if stop is None:
+            return Decision(HOLD, "stop not checkable; no extend")
+        if stop != "CLEAR":
+            return Decision(HOLD, f"stop is {stop}; no extend")
         renewed = self.leases.renew(lease, ttl_s, approver=approver, verifier=verifier)
         return Decision(RECORDED, "extended by distinct approver", evidence={"lease": renewed})
 

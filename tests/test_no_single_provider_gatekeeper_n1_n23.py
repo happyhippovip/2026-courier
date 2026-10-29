@@ -646,6 +646,48 @@ def test_g6_renew_rejects_arbitrary_approver(opened):
     assert renewed.expires_at > expiry and renewed.token == lease.token
 
 
+def test_r1_unknown_spend_blocks_extend_and_principal_bound_renew(opened):
+    gate, _, store = opened
+    decision = activate(gate, scope="scope-r1")
+    lease = decision.evidence["lease"]
+    expiry = store.current("scope-r1").expires_at
+    gate.register(
+        WRITER, ["WRITE_SCOPED_CODE", "RESUME_WORKKEY"], proof="external-proof",
+        host="host-a", spend_limit=None, cost=0,
+    )
+    held = gate.extend(lease, 250, approver=ISSUER, verifier=VERIFIER)
+    assert held.status == HOLD and "spend" in held.reason
+    assert held.status != ACTIVE
+    with pytest.raises(LeaseConflict):
+        store.renew(lease, 250, approver=ISSUER, verifier=VERIFIER)
+    assert store.current("scope-r1").expires_at == expiry
+
+
+def test_r4_stop_blocks_extend_and_principal_bound_renew(opened):
+    gate, _, store = opened
+    decision = activate(gate, scope="scope-r4")
+    lease = decision.evidence["lease"]
+    expiry = store.current("scope-r4").expires_at
+    for status in ("STOP", "HOLD"):
+        gate.set_stop(status)
+        held = gate.extend(lease, 250, approver=ISSUER, verifier=VERIFIER)
+        assert held.status == HOLD and status in held.reason
+        assert held.status != ACTIVE
+        with pytest.raises(LeaseConflict):
+            store.renew(lease, 250, approver=ISSUER, verifier=VERIFIER)
+        assert store.current("scope-r4").expires_at == expiry
+    gate.set_stop(lambda: (_ for _ in ()).throw(ConnectionError("stop unreachable")))
+    unreachable = gate.extend(lease, 250, approver=ISSUER, verifier=VERIFIER)
+    assert unreachable.status == HOLD and "not checkable" in unreachable.reason
+    with pytest.raises(LeaseConflict):
+        store.renew(lease, 250, approver=ISSUER, verifier=VERIFIER)
+    assert store.current("scope-r4").expires_at == expiry
+    gate.set_stop("CLEAR")
+    extended = gate.extend(lease, 250, approver=ISSUER, verifier=VERIFIER)
+    assert extended.status == RECORDED
+    assert store.current("scope-r4").expires_at > expiry
+
+
 def test_authority_roles_do_not_hardcode_provider_names():
     root = Path(__file__).resolve().parents[1]
     source = (root / "courier_runtime" / "grants.py").read_text(encoding="utf-8")

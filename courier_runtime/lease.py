@@ -155,9 +155,10 @@ class LeaseStore:
         A row with an empty principal keeps the pre-existing same-holder heartbeat.
         A principal-bound row is extended only when extend_guard accepts the
         approver and verifier. Gate installs that guard with the same rule as
-        Gate.extend: approver, verifier, and holder are three principals, and
-        the verifier is independent. An arbitrary approver string is refused.
-        With no guard installed, a principal-bound renew fails closed.
+        Gate.extend: three principals, a known spend limit, and a CLEAR stop.
+        Unknown spend, STOP, or HOLD refuses the renew. An arbitrary approver
+        string is refused. With no guard installed, a principal-bound renew
+        fails closed. An empty principal keeps the pre-existing heartbeat.
         """
         now = self.clock()
         self.db.execute("BEGIN IMMEDIATE")
