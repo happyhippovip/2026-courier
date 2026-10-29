@@ -357,11 +357,15 @@ def verify(task: dict, candidate: dict, work_dir: Path) -> dict:
     verdict = run_independent_verifier(task, candidate, work_dir)
     if not verdict.get("accepted"):
         fail(f"independent verifier {verdict.get('verdict', 'FAIL')}: {'; '.join(verdict.get('reasons', []))[:500]}")
-    
+
+    worker_status = candidate.get("worker_status")
+    if worker_status not in ("PASS", "WARN"):
+        fail(f"worker_status {worker_status!r} is not PASS or WARN")
+
     return {
         **candidate,
         "verifier_id": VERIFIER_ID,
-        "verifier_status": "PASS" if candidate.get("worker_status", "PASS") == "PASS" else "WARN",
+        "verifier_status": "PASS" if worker_status == "PASS" else "WARN",
         "independent_verdict": verdict["verdict"],
         "independent_verifier": verdict["verifier"],
         "next_safe_state": "HUMAN_REVIEW_REQUIRED"
