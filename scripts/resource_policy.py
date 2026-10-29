@@ -243,10 +243,14 @@ class TaskLeaseManager:
 
             if expires_at > now_ts:
                 if current_owner == owner_id and existing.get("task_hash") == task_hash:
-                    # Renew lease atomically (only for the same input)
+                    # Renew lease atomically (only for the same input).
+                    # Roll the file back if the authority database refuses the renew.
+                    previous_expires = existing.get("expires_at")
                     existing["expires_at"] = now_ts + duration_sec
                     save_json(lease_path, existing)
                     if not self._sync_authority_acquire(task_id, task_hash, owner_id, duration_sec, existing):
+                        existing["expires_at"] = previous_expires
+                        save_json(lease_path, existing)
                         return False, "TASK_ALREADY_CLAIMED_BY_ANOTHER_BUILDER", {"reason": "AUTHORITY_DB_LEASE_CONFLICT"}
                     return True, "LEASE_RENEWED", existing
                 else:
@@ -335,12 +339,13 @@ class TaskLeaseManager:
         except Exception:
             return False
 
-    def _sync_authority_release(self, task_id: str, owner_id: str) -> None:
+    def _sync_authority_release(self, task_id: str, owner_id: str) -> bool:
+        """Release the authority-db lease. False means the authority row may still be held."""
         try:
             from courier_runtime.lease import LeaseStore
             authority_db = self.locks_dir / "authority.db"
             if not authority_db.exists():
-                return
+                return True
             store = LeaseStore(authority_db)
             try:
                 clean_id = task_id.replace("/", "_").replace("\\", "_")
@@ -348,21 +353,24 @@ class TaskLeaseManager:
                 lease = store.current(scope)
                 if lease and lease.holder == owner_id:
                     store.release(lease)
+                return True
             finally:
                 store.close()
         except Exception:
-            pass
+            return False
 
     def release_lease(self, task_id: str, owner_id: str) -> bool:
         lease_path = self._get_lease_path(task_id)
         if not lease_path.exists():
-            self._sync_authority_release(task_id, owner_id)
-            return True
+            return self._sync_authority_release(task_id, owner_id)
         existing = load_json(lease_path)
         if existing and existing.get("owner_id") == owner_id:
+            # Authority first. A failed authority release must keep the file lease
+            # so a second builder cannot treat the task as free.
+            if not self._sync_authority_release(task_id, owner_id):
+                return False
             try:
                 lease_path.unlink(missing_ok=True)
-                self._sync_authority_release(task_id, owner_id)
                 return True
             except Exception:
                 return False
