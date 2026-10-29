@@ -79,9 +79,11 @@ def check_server():
             pass
         return True, f"Server responding at {server}"
     except urllib.error.HTTPError as e:
+        # 401/403/404 still prove a process answered. Every other HTTP status
+        # on /v1/health is an unhealthy server, including 5xx.
         if e.code in (401, 403, 404):
             return True, f"Server responding at {server} ({e.code})"
-        return True, f"Server responding at {server} ({e.code})"
+        return False, f"Server unhealthy at {server} ({e.code})"
     except Exception as e:
         return False, f"Server unreachable at {server}: {e}"
 

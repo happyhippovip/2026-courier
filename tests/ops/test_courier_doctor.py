@@ -6,8 +6,12 @@ import zipfile
 
 import pytest
 
+import urllib.error
+from io import BytesIO
+
 from scripts.courier_doctor import (
     check_ledger,
+    check_server,
     check_stuck_tasks,
     export_diagnostics,
     get_app_data_dir,
@@ -193,6 +197,58 @@ def test_check_stuck_tasks_without_ledger(tmp_path, monkeypatch):
     passed, msg = check_stuck_tasks()
     assert passed
     assert msg == "No local state to check"
+
+
+class _HealthResponse:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+
+def test_check_server_200_is_healthy(tmp_path, monkeypatch):
+    _home(tmp_path, monkeypatch)
+    monkeypatch.setenv("COURIER_SERVER", "http://127.0.0.1:9")
+    monkeypatch.setattr(
+        "scripts.courier_doctor.urllib.request.urlopen",
+        lambda *args, **kwargs: _HealthResponse(),
+    )
+    passed, msg = check_server()
+    assert passed
+    assert msg == "Server responding at http://127.0.0.1:9"
+
+
+@pytest.mark.parametrize("code", [401, 403, 404])
+def test_check_server_auth_or_missing_route_still_responding(tmp_path, monkeypatch, code):
+    _home(tmp_path, monkeypatch)
+    monkeypatch.setenv("COURIER_SERVER", "http://127.0.0.1:9")
+
+    def refuse(*args, **kwargs):
+        raise urllib.error.HTTPError(
+            "http://127.0.0.1:9/v1/health", code, "answered", hdrs=None, fp=BytesIO(b"")
+        )
+
+    monkeypatch.setattr("scripts.courier_doctor.urllib.request.urlopen", refuse)
+    passed, msg = check_server()
+    assert passed
+    assert msg == f"Server responding at http://127.0.0.1:9 ({code})"
+
+
+@pytest.mark.parametrize("code", [400, 500, 503])
+def test_check_server_other_http_errors_are_unhealthy(tmp_path, monkeypatch, code):
+    _home(tmp_path, monkeypatch)
+    monkeypatch.setenv("COURIER_SERVER", "http://127.0.0.1:9")
+
+    def fail(*args, **kwargs):
+        raise urllib.error.HTTPError(
+            "http://127.0.0.1:9/v1/health", code, "unhealthy", hdrs=None, fp=BytesIO(b"")
+        )
+
+    monkeypatch.setattr("scripts.courier_doctor.urllib.request.urlopen", fail)
+    passed, msg = check_server()
+    assert not passed
+    assert msg == f"Server unhealthy at http://127.0.0.1:9 ({code})"
 
 
 def test_check_stuck_tasks_points_at_status(tmp_path, monkeypatch):
