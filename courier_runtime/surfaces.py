@@ -238,11 +238,15 @@ class SurfaceSupervisor:
         return reasons
 
     def reclaim(self, surface_id, closer):
-        """Close one surface through `closer(surface)` only if every safety check passes."""
+        """Close one surface through `closer(surface)` only if every safety check passes
+        and the closer receipt does not report a survivor."""
         reasons = self.why_not_closable(surface_id)
         if reasons:
             return {"surface_id": surface_id, "closed": False, "reasons": reasons}
         result = closer(self.surfaces[surface_id])
+        if not _termination_proven(result):
+            return {"surface_id": surface_id, "closed": False,
+                    "reasons": ["termination not proven"], "closer": result}
         self.surfaces[surface_id].state = COMPLETED
         self._save()
         return {"surface_id": surface_id, "closed": True, "closer": result}
@@ -305,3 +309,16 @@ class WindowsAdapter(PlatformAdapter):
 
 def adapter_for(platform_name):
     return {"darwin": MacAdapter, "win32": WindowsAdapter}.get(platform_name, PlatformAdapter)()
+
+
+def _termination_proven(result):
+    """A closer proves the surface is gone only when its receipt lists no survivors.
+
+    `terminate_owned` returns a dict whose `result` is STOPPED or ORPHANS_REMAIN.
+    A plain success value such as the string "STOPPED" has no survivor list.
+    """
+    if not isinstance(result, dict):
+        return True
+    if result.get("still_alive"):
+        return False
+    return result.get("result") != "ORPHANS_REMAIN"

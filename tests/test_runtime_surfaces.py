@@ -1,7 +1,7 @@
 """Window storm / surface budget: 100 repeated continue requests must not create 100 windows."""
 import pytest
 
-from courier_runtime.surfaces import (BUSY, IDLE_READY, NO_NEW_VISIBLE, SURFACE_BUDGET_EXHAUSTED,
+from courier_runtime.surfaces import (BUSY, COMPLETED, IDLE_READY, NO_NEW_VISIBLE, SURFACE_BUDGET_EXHAUSTED,
                                       WAITING_FOR_USER, Budget, MacAdapter, SurfaceSupervisor, WindowsAdapter,
                                       adapter_for)
 
@@ -206,3 +206,45 @@ def test_real_process_closed_by_identity_not_name(tmp_path):
         if child.poll() is None:
             child.kill()
             child.wait()
+
+
+def test_orphans_remaining_are_not_a_closed_surface(tmp_path):
+    """A closer receipt of ORPHANS_REMAIN is not termination. The surface stays
+    idle and the recorded process is still running."""
+    import subprocess
+    import sys
+
+    import psutil
+
+    child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
+    receipt = {"result": "ORPHANS_REMAIN", "still_alive": [child.pid], "action": "TERMINATE_OWNED_TREE"}
+    try:
+        s, ident = sup(tmp_path)
+        d = s.admit("muse", "W1", "a")
+        start(s, ident, d, child.pid)
+        s.finish(d.surface_id, "ckpt")
+        r = s.reclaim(d.surface_id, lambda surf: receipt)
+        assert r["closed"] is False
+        assert "termination not proven" in r["reasons"]
+        assert s.surfaces[d.surface_id].state == IDLE_READY
+        assert psutil.Process(child.pid).is_running()
+        [again] = s.reclaim_idle(lambda surf: receipt)
+        assert again["closed"] is False
+        assert d.surface_id in s.surfaces
+        assert s.surfaces[d.surface_id].state == IDLE_READY
+        assert s.status()["workers"] == 1
+        assert psutil.Process(child.pid).is_running()
+    finally:
+        if child.poll() is None:
+            child.kill()
+            child.wait()
+
+
+def test_stopped_receipt_with_no_survivors_is_closed(tmp_path):
+    s, ident = sup(tmp_path)
+    d = s.admit("muse", "W1", "a")
+    start(s, ident, d, 101)
+    s.finish(d.surface_id, "ckpt")
+    r = s.reclaim(d.surface_id, lambda surf: {"result": "STOPPED", "still_alive": []})
+    assert r["closed"] is True
+    assert s.surfaces[d.surface_id].state == COMPLETED
