@@ -10,17 +10,60 @@ intermediate; the completed render is converted to a web-friendly MP4.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
+import os
 import re
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
-try:
-    CanonicalAuthority = None
-except ImportError:
-    pass
+EXIT_ADMISSION_DENIED = 3
+
+
+def default_lock_path() -> Path:
+    override = os.environ.get("COURIER_HEAVY_LOCK")
+    return Path(override) if override else Path.home() / ".courier" / "locks" / "heavy_job.lock"
+
+
+@contextlib.contextmanager
+def heavy_job_lock(path: Path):
+    """Machine-wide single heavy job, fail-closed.
+
+    Yields True when this process holds the lock, False when another heavy job
+    already holds it.  The OS releases the lock if the process dies, so a crash
+    never leaves a stale owner behind.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    handle = open(path, "a+")
+    acquired = False
+    try:
+        try:
+            if os.name == "nt":
+                import msvcrt
+                handle.seek(0)
+                msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            acquired = True
+        except OSError:
+            acquired = False
+        yield acquired
+    finally:
+        if acquired:
+            try:
+                if os.name == "nt":
+                    import msvcrt
+                    handle.seek(0)
+                    msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+            except OSError:
+                pass
+        handle.close()
 
 def _required_constant(script: Path, name: str) -> float:
     match = re.search(rf"^\s*const\s+{re.escape(name)}\s*:=\s*([0-9]+(?:\.[0-9]+)?)", script.read_text(encoding="utf-8"), re.MULTILINE)
@@ -64,6 +107,10 @@ def main() -> int:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--godot", default="/Users/user/Desktop/Godot.app/Contents/MacOS/Godot")
     parser.add_argument("--ffmpeg", default=shutil.which("ffmpeg") or "/usr/local/bin/ffmpeg")
+    parser.add_argument("--ffprobe", default=shutil.which("ffprobe") or "/usr/local/bin/ffprobe")
+    parser.add_argument("--width", type=int, default=360)
+    parser.add_argument("--height", type=int, default=640)
+    parser.add_argument("--lock-file", type=Path, default=None)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -74,6 +121,8 @@ def main() -> int:
     frames = round(duration * fps)
     if duration <= 0 or fps <= 0 or frames <= 0:
         raise ValueError("Duration, FPS, and frame limit must be positive")
+    if args.width <= 0 or args.height <= 0:
+        raise ValueError("Width and height must be positive")
     if not Path(args.godot).is_file() or not Path(args.ffmpeg).is_file():
         raise FileNotFoundError("Godot or ffmpeg executable is unavailable")
 
@@ -87,61 +136,58 @@ def main() -> int:
     if args.dry_run:
         return 0
 
-    auth = CanonicalAuthority() if CanonicalAuthority else None
-    owner_id = "render_godot_movie"
-    task_id = f"godot_render_{output_dir.name}"
-    success, gen, err = auth.acquire_heavy_authority(
-        owner_id=owner_id,
-        task_id=task_id,
-        metadata={"project": str(project), "scene": args.scene},
-    )
-    if not success:
-        print(f"CANONICAL_AUTHORITY_DENIED: {err}", file=sys.stderr)
+    lock_path = args.lock_file or default_lock_path()
+    with heavy_job_lock(lock_path) as admitted:
+        if not admitted:
+            print("ADMISSION_DENIED: another heavy job holds the machine-wide lock; nothing was started.", file=sys.stderr)
+            return EXIT_ADMISSION_DENIED
+        return _render(args, project, command, avi, mp4, metadata, duration, fps, frames)
+
+
+def _render(args, project, command, avi, mp4, metadata, duration, fps, frames) -> int:
+    output_dir = avi.parent
+    output_dir.mkdir(parents=True, exist_ok=True)
+    if avi.exists() or mp4.exists() or metadata.exists():
+        print("Output directory must be empty for a deterministic render.", file=sys.stderr)
         return 1
 
+    godot_result = subprocess.run(command, check=False)
+    if godot_result.returncode != 0 or not avi.is_file() or avi.stat().st_size == 0:
+        print("Godot Movie Maker failed; AVI preserved for diagnosis.", file=sys.stderr)
+        return 1
+
+    ffmpeg_command = [
+        args.ffmpeg, "-y", "-i", str(avi), "-map", "0:v:0", "-map", "0:a?",
+        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", "-movflags", "+faststart", str(mp4),
+    ]
+    ffmpeg_result = subprocess.run(ffmpeg_command, check=False)
+    if ffmpeg_result.returncode != 0 or not mp4.is_file() or mp4.stat().st_size == 0:
+        print("MP4 conversion failed; AVI preserved for diagnosis.", file=sys.stderr)
+        return 1
+
+    probe = subprocess.run(
+        [args.ffprobe, "-v", "error", "-show_entries", "stream=codec_type,codec_name,width,height:format=duration", "-of", "json", str(mp4)],
+        text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False,
+    )
+    if probe.returncode != 0:
+        print("MP4 probe failed; AVI preserved for diagnosis.", file=sys.stderr)
+        return 1
     try:
-        output_dir.mkdir(parents=True, exist_ok=True)
-        if avi.exists() or mp4.exists() or metadata.exists():
-            raise FileExistsError("Output directory must be empty for a deterministic render")
-
-        godot_result = subprocess.run(command, check=False)
-        if godot_result.returncode != 0 or not avi.is_file() or avi.stat().st_size == 0:
-            print("Godot Movie Maker failed; AVI preserved for diagnosis.", file=sys.stderr)
-            return 1
-
-        ffmpeg_command = [
-            args.ffmpeg, "-y", "-i", str(avi), "-map", "0:v:0", "-map", "0:a?",
-            "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", "-movflags", "+faststart", str(mp4),
-        ]
-        ffmpeg_result = subprocess.run(ffmpeg_command, check=False)
-        if ffmpeg_result.returncode != 0 or not mp4.is_file() or mp4.stat().st_size == 0:
-            print("MP4 conversion failed; AVI preserved for diagnosis.", file=sys.stderr)
-            return 1
-
-        probe = subprocess.run(
-            ["ffprobe", "-v", "error", "-show_entries", "stream=codec_name,width,height:format=duration", "-of", "json", str(mp4)],
-            text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False,
-        )
-        if probe.returncode != 0:
-            print("MP4 probe failed; AVI preserved for diagnosis.", file=sys.stderr)
-            return 1
         info = json.loads(probe.stdout)
-        stream = (info.get("streams") or [{}])[0]
-        actual_duration = float(info.get("format", {}).get("duration", 0.0))
-        if stream.get("codec_name") != "h264" or (stream.get("width"), stream.get("height")) != (360, 640) or abs(actual_duration - duration) > 0.25:
-            print("MP4 did not meet expected H.264 360x640 constraints; AVI preserved for diagnosis.", file=sys.stderr)
-            return 1
-        metadata.write_text(json.dumps({"duration_seconds": duration, "fps": fps, "frame_limit": frames, "mp4_duration_seconds": actual_duration, "mp4_probe": stream}, indent=2) + "\n", encoding="utf-8")
-        avi.unlink()
-        print(json.dumps({"status": "COMPLETE", "mp4": str(mp4), "metadata": str(metadata)}, separators=(",", ":")))
-        return 0
-    finally:
-        auth.release_heavy_authority(
-            owner_id=owner_id,
-            task_id=task_id,
-            generation=gen,
-        )
-
+    except json.JSONDecodeError:
+        print("MP4 probe output unreadable; AVI preserved for diagnosis.", file=sys.stderr)
+        return 1
+    streams = info.get("streams") or []
+    video = next((s for s in streams if s.get("codec_type", "video") == "video"), {})
+    actual_duration = float(info.get("format", {}).get("duration", 0.0) or 0.0)
+    expected = (args.width, args.height)
+    if video.get("codec_name") != "h264" or (video.get("width"), video.get("height")) != expected or abs(actual_duration - duration) > 0.25:
+        print(f"MP4 did not meet expected H.264 {expected[0]}x{expected[1]} constraints; AVI preserved for diagnosis.", file=sys.stderr)
+        return 1
+    metadata.write_text(json.dumps({"duration_seconds": duration, "fps": fps, "frame_limit": frames, "mp4_duration_seconds": actual_duration, "mp4_probe": video}, indent=2) + "\n", encoding="utf-8")
+    avi.unlink()
+    print(json.dumps({"status": "COMPLETE", "mp4": str(mp4), "metadata": str(metadata)}, separators=(",", ":")))
+    return 0
 
 if __name__ == "__main__":
     raise SystemExit(main())
