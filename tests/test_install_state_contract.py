@@ -222,6 +222,24 @@ def test_refuse_install_over_unattributable_running_worker(tmp_path):
     assert allowed.ok, allowed.reason
 
 
+def test_worker_report_without_alive_true_refuses_install(tmp_path):
+    journal = InstallJournal(tmp_path)
+    _install(journal)
+    before = journal.path.read_text(encoding="utf-8")
+    for report in (
+        {"pid": 99, "executable": "other.exe"},
+        {"alive": 1, "pid": 99, "executable": "other.exe"},
+        {"alive": "yes", "pid": 99, "executable": "other.exe"},
+    ):
+        refused = journal.begin("2.0.0", _at(30), running_worker=report)
+        assert refused.ok is False
+        assert refused.reason == REFUSED_RUNNING_WORKER
+        assert journal.path.read_text(encoding="utf-8") == before
+    dead = {"alive": False, "pid": 99, "executable": "other.exe"}
+    allowed = journal.begin("2.0.0", _at(40), running_worker=dead)
+    assert allowed.ok, allowed.reason
+
+
 def test_secret_redaction(tmp_path):
     with pytest.raises(SecretRejected):
         reject_secrets({"api_key": SECRET})
