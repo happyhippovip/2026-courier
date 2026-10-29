@@ -7,7 +7,7 @@ import pytest
 from core_builders import (
     Attempt, created, golden_path, task_event, transient_twice_then_success, worker_killed_then_retried,
 )
-from courier_core.events import EventType
+from courier_core.events import Event, EventType
 from courier_core.projection import fold
 from courier_core.state_machine import Decision, TaskStatus, TransitionError, apply, decide_after_failure
 
@@ -225,3 +225,32 @@ def test_uncertain_non_idempotent_outcome_outranks_a_cancel_request():
     blocked = apply(lost, task_event(EventType.TASK_BLOCKED, reason="uncertain"))
     cancelled = apply(blocked, task_event(EventType.TASK_CANCELLED, actor="desk:ana"))
     assert cancelled.status is TaskStatus.CANCELLED and cancelled.resolution == "cancelled_effect_unknown"
+
+
+def test_retry_authorized_does_not_keep_the_leftover_attempt_budget():
+    """A human retry grants one fresh attempt, not the unused automatic budget.
+
+    A non-idempotent task blocked on attempt 1 of 3 must not be able to run
+    attempt 3 after that single granted attempt fails and asks to be retried.
+    """
+    a = Attempt()
+    blocked = run([
+        created(effect_class="non_idempotent", max_attempts=3),
+        a.claimed(), a.started(), a.lease_expired(),
+        task_event(EventType.TASK_BLOCKED, reason="uncertain non-idempotent outcome"),
+    ])
+    assert blocked.attempt == 1 and blocked.max_attempts == 3
+    authorized = apply(blocked, Event(
+        type=EventType.RETRY_AUTHORIZED, task_id="t1", attempt=1,
+        payload={"actor": "desk:ana", "reason": "one more try"}))
+    assert authorized.status is TaskStatus.QUEUED
+    assert authorized.max_attempts == blocked.attempt + 1
+    granted = Attempt(attempt=2)
+    exhausted = run([
+        granted.claimed(), granted.started(), granted.result_ready(outcome="failure"),
+        granted.rejected(retryable=True),
+    ], authorized)
+    assert exhausted.attempt == 2 and exhausted.status is TaskStatus.RETRY_PENDING
+    assert decide_after_failure(exhausted) is Decision.FAIL
+    with pytest.raises(TransitionError, match="retry forbidden"):
+        apply(exhausted, granted.retry_scheduled())
