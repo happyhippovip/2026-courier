@@ -40,6 +40,15 @@ DEFAULT_LEDGER = REPO_ROOT / "registries" / "work_queue_ledger.jsonl"
 _RELEASE_PROOF = re.compile(r"^journal:([1-9][0-9]{0,17}):RESULT_ACCEPTED(?:\|sha256:([0-9a-f]{64}))?$")
 
 
+def _journal_read_errors():
+    import sqlite3
+    from courier_core.journal import JournalError
+    return (JournalError, sqlite3.Error, OSError)
+
+
+_JOURNAL_READ_ERRORS = _journal_read_errors()
+
+
 def release_task_id(item_id: str) -> str:
     """Controller task id of a workkey (same rule as courier_runtime.ledger_engine.task_id_for)."""
     return "task-" + hashlib.sha256(f"workkey:{item_id}".encode("utf-8")).hexdigest()[:32]
@@ -47,7 +56,15 @@ def release_task_id(item_id: str) -> str:
 
 def check_release_proof(journal, proof, task_ids, claim_seq) -> str | None:
     """None when proof is the current verified RESULT_ACCEPTED of one of task_ids, recorded
-    after the claim (journal seq > claim_seq); otherwise the reason it proves nothing."""
+    after the claim (journal seq > claim_seq); otherwise the reason it proves nothing.
+    WK-026: an unreadable journal is JOURNAL_UNAVAILABLE (fail closed), never an exception."""
+    try:
+        return _check_release_proof(journal, proof, task_ids, claim_seq)
+    except _JOURNAL_READ_ERRORS:
+        return "JOURNAL_UNAVAILABLE"
+
+
+def _check_release_proof(journal, proof, task_ids, claim_seq) -> str | None:
     from courier_core.events import EventType
     from courier_core.state_machine import RESOLVED_VERIFIED, TaskStatus
     match = _RELEASE_PROOF.fullmatch(proof) if isinstance(proof, str) else None
@@ -96,13 +113,16 @@ def journal_release_proof(journal, item_id: str, task_ids=()):
     """Newest proof of item_id's task(s) read from the journal (never minted locally), or None."""
     from courier_core.events import EventType
     ids = {release_task_id(item_id), *task_ids}
-    found = [e for t in sorted(ids) for e in journal.events(task_id=t)
-             if e.type is EventType.RESULT_ACCEPTED] if journal is not None else []
-    for ev in sorted(found, key=lambda e: e.seq, reverse=True):
-        digest = sorted(_accepted_digests(journal, journal.task(ev.task_id)), key=str)[0]
-        proof = f"journal:{ev.seq}:RESULT_ACCEPTED" + (f"|sha256:{digest}" if digest else "")
-        if check_release_proof(journal, proof, ids, 0) is None:  # the claim fence is checked by release()
-            return proof
+    try:  # WK-026: unreadable journal => no proof (release() then answers NOT_PROVEN)
+        found = [e for t in sorted(ids) for e in journal.events(task_id=t)
+                 if e.type is EventType.RESULT_ACCEPTED] if journal is not None else []
+        for ev in sorted(found, key=lambda e: e.seq, reverse=True):
+            digest = sorted(_accepted_digests(journal, journal.task(ev.task_id)), key=str)[0]
+            proof = f"journal:{ev.seq}:RESULT_ACCEPTED" + (f"|sha256:{digest}" if digest else "")
+            if check_release_proof(journal, proof, ids, 0) is None:  # the claim fence is checked by release()
+                return proof
+    except _JOURNAL_READ_ERRORS:
+        return None
     return None
 
 
