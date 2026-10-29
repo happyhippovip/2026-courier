@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Angebote — Courier Symphony</title>
+<meta name="description" content="Angebote: GitHub Actions Safety Baseline 99 €, Continuity Audit 149 €, Pilot 390 € (7 Tage).">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#000;--fg:#f5f5f7;--mut:#a1a1aa;--line:rgba(255,255,255,.12);--acc:#8fc4ef}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,-apple-system,"Helvetica Neue",Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--fg)}
+nav{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:18px 5vw;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+nav .brand{font-weight:800;letter-spacing:.18em;text-transform:uppercase;font-size:.85rem;text-decoration:none}
+nav .links a{margin-left:28px;text-decoration:none;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+nav .links a:hover{color:var(--fg)}
+.hero{position:relative;min-height:100vh;display:flex;align-items:flex-end;padding:0 5vw 12vh;overflow:hidden}
+.hero iframe{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,#000 100%);pointer-events:none}
+.hero .txt{position:relative;z-index:2;max-width:1100px}
+.kicker{font-size:.8rem;letter-spacing:.24em;text-transform:uppercase;color:var(--acc);margin:0 0 18px}
+h1{font-size:clamp(2.4rem,6.5vw,5.6rem);line-height:1.02;letter-spacing:-.03em;margin:0 0 24px;font-weight:800}
+h2{font-size:clamp(1.9rem,4vw,3.2rem);letter-spacing:-.02em;line-height:1.1;margin:0 0 20px}
+.lead{font-size:clamp(1.05rem,1.6vw,1.3rem);color:var(--mut);max-width:760px}
+section.blk{padding:14vh 5vw;border-top:1px solid var(--line)}
+.wrap{max-width:1200px;margin:0 auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:2px;background:var(--line);border:1px solid var(--line)}
+.card{background:#000;padding:44px}
+.price{font-size:clamp(2.4rem,5vw,4rem);font-weight:800;letter-spacing:-.03em;margin:8px 0}
+.card ul{padding-left:18px;color:var(--mut)}.card li{margin:6px 0}
+.ph{font-family:"JetBrains Mono",monospace;font-size:.85rem;color:#fbbf24}
+.btn{display:inline-block;margin-top:20px;padding:14px 30px;border:1px solid var(--fg);text-decoration:none;font-size:.8rem;letter-spacing:.18em;text-transform:uppercase;transition:background .2s,color .2s}
+.btn:hover{background:var(--fg);color:#000}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:40px;counter-reset:s}
+.steps div{border-top:1px solid var(--fg);padding-top:20px}
+.steps div::before{counter-increment:s;content:"0" counter(s);font-family:"JetBrains Mono",monospace;color:var(--acc);font-size:.85rem}
+.steps h3{margin:10px 0 8px}.steps p{color:var(--mut);margin:0}
+.tag{display:inline-block;border:1px solid var(--acc);color:var(--acc);padding:4px 12px;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;margin-bottom:20px}
+.vision{background:radial-gradient(ellipse at 70% 0%,#0b1630 0%,#000 65%)}
+code,pre{font-family:"JetBrains Mono",monospace;font-size:.88rem}
+pre{background:#0a0a0a;border:1px solid var(--line);padding:18px;overflow-x:auto;color:#d4d4d8}
+footer{padding:50px 5vw;border-top:1px solid var(--line);color:var(--mut);font-size:.85rem}
+footer .fl a{margin-right:22px;color:var(--mut);text-decoration:none}footer .fl a:hover{color:var(--fg)}
+@media (max-width:720px){nav .links a{margin-left:14px;font-size:.7rem}nav .links a.opt{display:none}.card{padding:28px}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+</style>
+
+</head>
+<body>
+<nav><a class="brand" href="index.html">Courier Symphony</a><div class="links"><a href="angebote.html">Angebote</a><a class="opt" href="index.html#vision">Vision</a><a href="community.html">Community</a></div></nav>
+
+<section class="blk" style="padding-top:18vh;border-top:0"><div class="wrap">
+<p class="kicker">Angebote</p>
+<h1 style="font-size:clamp(2.2rem,5vw,4rem)">Drei Pakete. Feste Preise.</h1>
+<p class="lead">Keine Garantie auf Fehlerfreiheit oder auf die Lösung aller Probleme. Preise in Euro. <span class="ph">[PLATZHALTER: Hinweis USt / Kleinunternehmer § 19 UStG]</span> <span class="ph">[PLATZHALTER: nur für Unternehmer i. S. d. § 14 BGB oder auch Verbraucher?]</span></p>
+<div class="grid" style="margin-top:50px">
+<div class="card" id="safety-baseline">
+<h3>GitHub Actions Safety Baseline</h3>
+<div class="price">99 €</div>
+<p>Einführungspreis (nicht validiert).</p>
+<ul>
+<li>Prüfung eines von Ihnen gewählten öffentlichen Repositorys zu einem unveränderlichen Commit-Stand (SHA)</li>
+<li>Read-only: Es werden keine Änderungen direkt an Ihrem Repository vorgenommen</li>
+<li>Ergebnisse werden von einem unabhängigen Verifier geprüft</li>
+<li>Deterministischer Report</li>
+<li>Übergabe ausschließlich als Pull Request (PR-only)</li>
+<li>Menschliche Prüfung vor der Lieferung</li>
+</ul>
+<p style="color:var(--mut)">Ablauf: Anfrage → Repository + SHA → Prüfung → unabhängiger Verifier → menschliche Prüfung → Lieferung.</p>
+<p>Prüfumfang im Detail: <span class="ph">[PLATZHALTER: konkrete Prüfpunkte der Baseline]</span><br>
+Lieferzeit: <span class="ph">[PLATZHALTER: Lieferzeit]</span><br>
+Format des Reports: <span class="ph">[PLATZHALTER: Format]</span><br>
+Zahlungszeitpunkt: Zahlung vor der Lieferung über den Zahlungslink.</p>
+<a class="btn" href="[PLATZHALTER: Zahlungslink Safety Baseline]">GitHub Actions Safety Baseline anfragen (99 €)</a>
+</div>
+<div class="card" id="continuity-audit">
+<h3>Continuity Audit</h3>
+<div class="price">149 €</div>
+<p>Festpreis. Bericht in der Regel innerhalb von 48 Stunden (Werktage).</p>
+<p style="color:var(--mut)">Einstiegsangebot. Spezialisierte KI-Agenten prüfen echten Code, identifizieren Architektur-Engpässe und leiten konkrete Empfehlungen ab – nachvollziehbar dokumentiert im Ledger.</p>
+<p>Format: <span class="ph">[PLATZHALTER: Format/Umfang des Berichts]</span></p>
+<a class="btn" href="https://buy.stripe.com/test_beta">Continuity Audit buchen (149 €)</a>
+<p><span class="ph">[PLATZHALTER: echter Stripe-Link – aktuell Test-Link buy.stripe.com/test_beta]</span></p>
+</div>
+<div class="card" id="pilot">
+<h3>Pilot (7 Tage, max. 3 Erstkunden)</h3>
+<div class="price">390 €</div>
+<p>7-Tage-Pilot.</p>
+<p style="color:var(--mut)">Kernangebot nach dem Continuity Audit: 7 Tage Pilotbetrieb. Ergebnis sind konkret definierte Result Objects (z. B. Code-Reparatur, Datenextraktion, Entscheidungsvorlagen), festgelegt in einem Goal Contract.</p>
+<p>Leistungsumfang im Detail: <span class="ph">[PLATZHALTER: Umfang, Anzahl Aufgaben/Repos]</span><br>Zahlung: <span class="ph">[PLATZHALTER: Zahlungszeitpunkt]</span></p>
+<a class="btn" href="[PLATZHALTER: Zahlungslink Pilot]">Pilot anfragen (390 €)</a>
+</div>
+</div>
+</div></section>
+<footer><div class="wrap">
+<div class="fl"><a href="https://github.com/happyhippovip/2026-courier/issues" target="_blank" rel="noopener">Kontakt / GitHub Issues</a><a href="angebote.html">Angebote</a><a href="community.html">Community / Mitbauen</a><a href="agb.html">AGB</a><a href="widerruf.html">Widerrufsbelehrung</a><a href="datenschutz.html">Datenschutz</a><a href="impressum.html">Impressum</a></div>
+<p>Hinweis: Ihr Quellcode wird ausschließlich zur Durchführung des Audits verarbeitet und nach Abschluss innerhalb von [LÖSCHFRIST NACH ABSCHLUSS] gelöscht. Details in der <a href="datenschutz.html">Datenschutzerklärung</a>.</p>
+<p>&copy; 2026 Courier Symphony</p>
+</div></footer>
+</body>
+</html>
