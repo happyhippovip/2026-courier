@@ -186,6 +186,30 @@ test('receipt answers the seven questions and keeps ids in the support view', ()
   assert.ok(exportLink.includes(`href="/hub/api/items/${view.done[0].id}/support" download`));
 });
 
+test('evidence is checked only when accepted is boolean true', () => {
+  const receipt = {
+    understood: 'u',
+    authorized: { may: [], must_ask: [], note: 'n' },
+    tried: [], resumed: false, happened: 'h', how_known: 'k',
+    decisions: [], changed_later: [],
+    evidence: [
+      { name: 'real', accepted: true },
+      { name: 'word', accepted: 'false' },
+      { name: 'number', accepted: 1 },
+      { name: 'missing' },
+    ],
+  };
+  const html = renderReceipt({
+    card: view.done[0],
+    receipt,
+    support: { task: {}, events: [] },
+  }, { now: NOW });
+  assert.match(html, /real — checked/);
+  assert.doesNotMatch(html, /word — checked/);
+  assert.doesNotMatch(html, /number — checked/);
+  assert.doesNotMatch(html, /missing — checked/);
+});
+
 test('everything shown is escaped', () => {
   const evil = { ...view.working[0], title: '<img src=x onerror=alert(1)>' };
   const html = renderCard(evil, { now: NOW });
