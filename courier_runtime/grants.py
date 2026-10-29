@@ -12,7 +12,9 @@ activate policy, verify cryptographic signatures, or start agents.
 AUTH_PROOF_STATUS stays PARTIAL until a verifier outside this file exists.
 """
 import hashlib
+import hmac
 import json
+import secrets
 from dataclasses import dataclass, field, replace
 from typing import Optional
 
@@ -231,7 +233,12 @@ class Decision:
 
 
 def grant_content_hash(grant):
-    """Integrity hash of the authority scope. Not an authentication proof."""
+    """Public integrity hash of the authority scope. Not an authentication proof.
+
+    Broker.grant also stores an HMAC seal under a process-local key. A caller
+    who recomputes this hash cannot mint a sealed grant. AUTH_PROOF_STATUS
+    stays PARTIAL: the seal is not a signature and not a provider credential.
+    """
     body = {
         "grant_id": grant.grant_id,
         "project": grant.project,
@@ -262,7 +269,7 @@ def why_not_covered(grant, request, now):
         return "grant expired"
     if grant.once and grant.uses >= 1:
         return "one-time grant already used"
-    if grant.content_hash and grant.content_hash != grant_content_hash(grant):
+    if not grant.content_hash or grant.content_hash != grant_content_hash(grant):
         return "grant hash mismatch"
     for dim in ("project", "capability", "host", "provider_account", "effect_class"):
         if getattr(grant, dim) != getattr(request, dim):
@@ -443,6 +450,20 @@ class Broker:
         self.grants = {}
         self.requests = {}
         self.events = []
+        self._seal_key = secrets.token_bytes(32)
+        self._seals = {}
+
+    def _seal(self, grant):
+        return hmac.new(self._seal_key, grant.content_hash.encode("utf-8"), hashlib.sha256).hexdigest()
+
+    def seal_matches(self, grant):
+        """True only for a hash this broker sealed. Empty or recomputed hashes fail."""
+        if not grant.content_hash or grant.content_hash != grant_content_hash(grant):
+            return False
+        expected = self._seals.get(grant.grant_id)
+        if not expected:
+            return False
+        return hmac.compare_digest(expected, self._seal(grant))
 
     def _event(self, kind, **data):
         self.events.append({"type": kind, "at": self.clock(), **data})
@@ -453,6 +474,8 @@ class Broker:
         reasons = []
         for grant in self.grants.values():
             reason = why_not_covered(grant, request, now)
+            if reason is None and not self.seal_matches(grant):
+                reason = "grant seal missing"
             if reason is None:
                 used = replace(grant, uses=grant.uses + 1)
                 self.grants[grant.grant_id] = used
@@ -489,6 +512,7 @@ class Broker:
                       once=once, granted_by=granted_by, source_request=request.request_id,
                       owner_principal=owner_principal, bound_principal=bound_principal, scope_key=scope_key)
         grant = replace(grant, content_hash=grant_content_hash(grant))
+        self._seals[grant_id] = self._seal(grant)
         self.grants[grant_id] = grant
         self.requests[request.request_id] = GRANTED
         self._event("GRANT_GIVEN", grant_id=grant_id, request_id=request.request_id, granted_by=granted_by)
@@ -525,6 +549,7 @@ class Gate:
                  stop_status=None, project="courier"):
         self.broker = broker
         self.leases = leases
+        self.leases.extend_guard = self._extend_guard
         self.clock = clock
         self.owner_principal = owner_principal
         self.auth_verifier = auth_verifier
@@ -651,12 +676,24 @@ class Gate:
             return False
         return self._has(issuer, "COORDINATE") or self._has(issuer, "ISSUE_PREAPPROVED_LEASE")
 
+    def _extend_guard(self, row, approver, verifier):
+        """Same three-principal rule as extend. Used by LeaseStore.renew."""
+        parties = {row.holder, row.principal} - {""}
+        if not approver or not verifier or approver in parties or verifier in parties or approver == verifier:
+            return False
+        if not self._has(approver, "ISSUE_PREAPPROVED_LEASE"):
+            return False
+        return self._has(verifier, "VERIFY_LEASE") or self._has(verifier, "REVIEW_INDEPENDENTLY")
+
     def activate(self, *, issuer, verifier, writer, ack_principal, scope, workkey, ttl_s, host,
                  grant, spend_limit, requested_by, owner_authorizes=False):
-        if self.registry.get(writer) is None:
+        writer_rec = self.registry.get(writer)
+        if writer_rec is None:
             return Decision(REJECT, "unknown writer")
         if ack_principal != writer:
             return Decision(PENDING, "ack principal is not the writer")
+        if "WRITE_SCOPED_CODE" not in writer_rec.capabilities:
+            return Decision(REJECT, "writer lacks WRITE_SCOPED_CODE")
         if not issuer or self.registry.get(issuer) is None:
             return Decision(REJECT, "unknown issuer")
         if issuer == writer or (verifier and (verifier == writer or verifier == issuer)):
@@ -665,7 +702,6 @@ class Gate:
             return Decision(REJECT, "replacement coordinator inside writer scope")
         if not known_spend(spend_limit):
             return Decision(HOLD, "spend unknown")
-        writer_rec = self.registry.get(writer)
         if not known_spend(writer_rec.spend_limit):
             return Decision(HOLD, "spend unknown")
         if writer_rec.cost > spend_limit:
@@ -677,8 +713,13 @@ class Gate:
             return Decision(HOLD, f"stop is {stop}; no new ACTIVE")
         if grant is None:
             return Decision(HOLD, "missing grant")
+        stored = self.broker.grants.get(getattr(grant, "grant_id", None))
+        if stored is None:
+            return Decision(HOLD, "grant is not in the broker")
+        if not self.broker.seal_matches(stored):
+            return Decision(HOLD, "grant seal missing")
         request = self.activation_request(writer=writer, scope=scope, host=host, request_id="activate-" + scope)
-        reason = why_not_covered(grant, request, self.clock())
+        reason = why_not_covered(stored, request, self.clock())
         if reason:
             return Decision(HOLD, reason)
         if not writer_rec.auth_proven:
@@ -715,13 +756,17 @@ class Gate:
             )
         except LeaseConflict:
             return Decision(REJECT, "lease conflict")
-        return Decision(ACTIVE, "activation match", evidence={"lease": lease})
+        used = replace(stored, uses=stored.uses + 1)
+        self.broker.grants[stored.grant_id] = used
+        self.broker._event("GRANT_USED", grant_id=stored.grant_id, request_id=request.request_id)
+        return Decision(ACTIVE, "activation match", evidence={"lease": lease, "grant_id": stored.grant_id})
 
     def extend(self, lease, ttl_s, *, approver, verifier):
         """Policy extend. Issuer, verifier, and writer must be three principals.
 
         Does not call renew when the approver is the writer. A principal-bound
-        LeaseStore.renew also rejects a missing or self approver.
+        LeaseStore.renew uses this gate's extend guard, so an arbitrary approver
+        string is refused there too.
         """
         parties = {lease.holder, lease.principal} - {""}
         if not approver or not verifier or approver in parties or verifier in parties or approver == verifier:
@@ -735,7 +780,7 @@ class Gate:
         record = self.registry.get(lease.principal or lease.holder)
         if record is None or not known_spend(record.spend_limit):
             return Decision(HOLD, "spend unknown")
-        renewed = self.leases.renew(lease, ttl_s, approver=approver)
+        renewed = self.leases.renew(lease, ttl_s, approver=approver, verifier=verifier)
         return Decision(RECORDED, "extended by distinct approver", evidence={"lease": renewed})
 
     def authorize_side_effect(self, effect, *, human_go, lease_active):

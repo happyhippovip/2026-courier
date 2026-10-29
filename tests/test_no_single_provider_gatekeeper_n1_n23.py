@@ -5,14 +5,15 @@ SQLite files are not a cross-host lock. A passing test for N15 asserts that
 blocked result; it does not claim a global fence.
 """
 import inspect
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
 
 from courier_runtime.grants import (
     ACTIVE, AUTH_PROOF_EXTRA_SCOPE, AUTH_PROOF_STATUS, CHECKED, CONTINUITY_OK,
-    HOLD, PENDING, REJECT, RECORDED, AuthAttestation, Broker, Gate, ResumeView,
-    equate_status, parse_workkey, resume_from_package,
+    HOLD, PENDING, REJECT, RECORDED, AuthAttestation, Broker, Gate, Grant, ResumeView,
+    equate_status, grant_content_hash, parse_workkey, resume_from_package,
 )
 from courier_runtime.lease import (
     CROSS_HOST_EXTRA_SCOPE, CROSS_HOST_PROOF, LeaseConflict, LeaseStore, StaleLease,
@@ -250,6 +251,8 @@ def test_n8_writer_cannot_self_extend_or_self_approve(opened):
         store.renew(lease, 250)
     with pytest.raises(LeaseConflict):
         store.renew(lease, 250, approver=WRITER)
+    with pytest.raises(LeaseConflict):
+        store.renew(lease, 250, approver="stranger", verifier="other-stranger")
     assert store.current("scope-n8").expires_at == expiry
     extended = gate.extend(lease, 250, approver=ISSUER, verifier=VERIFIER)
     assert extended.status == RECORDED
@@ -553,6 +556,94 @@ def test_auth_proof_partial_refuses_unverified_blob(tmp_path):
         assert store.current("scope-auth") is None
     finally:
         store.close()
+
+
+def test_g1_caller_built_grant_is_not_active(opened):
+    gate, _, store = opened
+    scope = "scope-g1"
+    forged = Grant(
+        grant_id="forged", project="courier", capability="WRITE_SCOPED_CODE",
+        resources=frozenset({scope}), host="host-a", provider_account="", data_class="project",
+        access="write", effect_class="idempotent", expires_at=None, granted_by="nobody",
+        bound_principal=WRITER, scope_key=scope, content_hash="",
+    )
+    decision = activate(gate, grant=forged, scope=scope)
+    assert decision.status == HOLD and "not in the broker" in decision.reason
+    assert decision.status != ACTIVE
+    assert store.current(scope) is None
+    real = issue(gate, scope=scope, grant_id="g-real")
+    widened = replace(real, access="control", resources=frozenset({scope, "extra"}))
+    decision = activate(gate, grant=widened, scope=scope)
+    assert decision.status == ACTIVE
+    stored = gate.broker.grants["g-real"]
+    assert stored.resources == real.resources and stored.access == "write"
+    assert "extra" not in stored.resources
+
+
+def test_g2_revoked_grant_reference_is_not_active(opened):
+    gate, _, store = opened
+    grant = issue(gate, scope="scope-g2", grant_id="g-revoke")
+    assert grant.state == "GRANTED"
+    gate.broker.revoke(grant.grant_id)
+    assert grant.state == "GRANTED"
+    assert gate.broker.grants[grant.grant_id].state == "REVOKED"
+    decision = activate(gate, grant=grant, scope="scope-g2")
+    assert decision.status == HOLD and "REVOKED" in decision.reason
+    assert decision.status != ACTIVE
+    assert store.current("scope-g2") is None
+
+
+def test_g3_once_grant_is_consumed_on_activate(opened):
+    gate, _, store = opened
+    request = gate.activation_request(writer=WRITER, scope="scope-g3", host="host-a", request_id="g-once")
+    gate.broker.authorize(request)
+    grant = gate.broker.grant(
+        request, "g-once", expires_at=10_000, once=True, granted_by=OWNER, owner_principal=OWNER,
+    )
+    first = activate(gate, grant=grant, scope="scope-g3")
+    assert first.status == ACTIVE
+    assert gate.broker.grants["g-once"].uses == 1
+    second = activate(gate, grant=grant, scope="scope-g3")
+    assert second.status == HOLD and "used" in second.reason
+    assert second.status != ACTIVE
+    assert store.current("scope-g3").holder == WRITER
+
+
+def test_g4_writer_without_write_capability_is_not_active(opened):
+    gate, _, store = opened
+    decision = activate(gate, writer=PEER, ack_principal=PEER, scope="scope-g4")
+    assert decision.status == REJECT and "WRITE_SCOPED_CODE" in decision.reason
+    assert decision.status != ACTIVE
+    assert store.current("scope-g4") is None
+
+
+def test_g5_recomputed_or_empty_hash_is_not_active(opened):
+    gate, _, store = opened
+    grant = issue(gate, scope="scope-g5", grant_id="g-seal")
+    widened = replace(grant, expires_at=None, content_hash="")
+    widened = replace(widened, content_hash=grant_content_hash(widened))
+    gate.broker.grants[grant.grant_id] = widened
+    decision = activate(gate, grant=widened, scope="scope-g5")
+    assert decision.status == HOLD and "seal" in decision.reason
+    assert store.current("scope-g5") is None
+    gate.broker.grants[grant.grant_id] = replace(grant, content_hash="")
+    decision = activate(gate, grant=grant, scope="scope-g5")
+    assert decision.status == HOLD and decision.status != ACTIVE
+    assert store.current("scope-g5") is None
+
+
+def test_g6_renew_rejects_arbitrary_approver(opened):
+    gate, _, store = opened
+    decision = activate(gate, scope="scope-g6")
+    lease = decision.evidence["lease"]
+    expiry = store.current("scope-g6").expires_at
+    with pytest.raises(LeaseConflict):
+        store.renew(lease, 50, approver="not-a-principal", verifier="also-not")
+    with pytest.raises(LeaseConflict):
+        store.renew(lease, 50, approver=ISSUER)
+    assert store.current("scope-g6").expires_at == expiry
+    renewed = store.renew(lease, 250, approver=ISSUER, verifier=VERIFIER)
+    assert renewed.expires_at > expiry and renewed.token == lease.token
 
 
 def test_authority_roles_do_not_hardcode_provider_names():

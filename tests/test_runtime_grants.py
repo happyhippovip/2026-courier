@@ -3,7 +3,8 @@ from dataclasses import replace
 import pytest
 
 from courier_runtime.grants import (DENIED, GRANTED, REQUESTED, WAITING_FOR_OS_PERMISSION,
-                                    WAITING_FOR_USER_PERMISSION, Broker, Request, TransitionError)
+                                    WAITING_FOR_USER_PERMISSION, Broker, Request, TransitionError,
+                                    grant_content_hash)
 
 
 class Clock:
@@ -145,5 +146,21 @@ def test_tampered_grant_hash_is_not_covered(broker):
     granted = b.grant(req("r1"), "g1", expires_at=2000)
     b.grants["g1"] = replace(granted, access="control")
     grant, state, reason = b.authorize(req("r2"))
+    assert grant is None and state == REQUESTED
+    assert reason is not None and "hash" in reason
+
+
+def test_recomputed_hash_without_broker_seal_is_not_covered(broker):
+    b, _ = broker
+    b.authorize(req("r1"))
+    granted = b.grant(req("r1"), "g1", expires_at=2000)
+    widened = replace(granted, expires_at=None, content_hash="")
+    widened = replace(widened, content_hash=grant_content_hash(widened))
+    b.grants["g1"] = widened
+    grant, state, reason = b.authorize(req("r2"))
+    assert grant is None and state == REQUESTED
+    assert reason is not None and "seal" in reason
+    b.grants["g1"] = replace(granted, content_hash="")
+    grant, state, reason = b.authorize(req("r3"))
     assert grant is None and state == REQUESTED
     assert reason is not None and "hash" in reason

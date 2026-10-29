@@ -71,6 +71,7 @@ class LeaseStore:
     def __init__(self, path, clock=time.time):
         self.path = path
         self.clock = clock
+        self.extend_guard = None
         self.db = sqlite3.connect(path, isolation_level=None, timeout=10)
         self.db.execute(
             "CREATE TABLE IF NOT EXISTS lease ("
@@ -148,12 +149,15 @@ class LeaseStore:
             raise
         return Lease(scope, holder, workkey, token, now + ttl_s, principal, host, owner, 0)
 
-    def renew(self, lease, ttl_s, approver=None):
+    def renew(self, lease, ttl_s, approver=None, verifier=None):
         """Heartbeat. Fails if the lease expired, was revoked, or the token moved on.
 
         A row with an empty principal keeps the pre-existing same-holder heartbeat.
-        A principal-bound row refuses a missing approver or an approver who is the
-        holder. That is not the full three-role check; Gate.extend does that.
+        A principal-bound row is extended only when extend_guard accepts the
+        approver and verifier. Gate installs that guard with the same rule as
+        Gate.extend: approver, verifier, and holder are three principals, and
+        the verifier is independent. An arbitrary approver string is refused.
+        With no guard installed, a principal-bound renew fails closed.
         """
         now = self.clock()
         self.db.execute("BEGIN IMMEDIATE")
@@ -162,8 +166,10 @@ class LeaseStore:
             if (not row or row.revoked or row.token != lease.token or row.holder != lease.holder
                     or row.expires_at <= now):
                 raise StaleLease(f"lease on {lease.scope} token {lease.token} is no longer current")
-            if row.principal and (not approver or approver in {row.principal, row.holder}):
-                raise LeaseConflict("writer self-extend rejected")
+            if row.principal:
+                guard = self.extend_guard
+                if guard is None or not guard(row, approver, verifier):
+                    raise LeaseConflict("principal-bound extend refused")
             self.db.execute("UPDATE lease SET expires_at=? WHERE scope=?", (now + ttl_s, lease.scope))
             self.db.execute("COMMIT")
         except Exception:
