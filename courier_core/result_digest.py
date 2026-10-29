@@ -148,12 +148,15 @@ def summarize_home(home: Path | str) -> ResultDigest:
             (EventType.TASK_CREATED.value,),
         )
         task_adapters: dict[str, str] = {}
+        unreadable: list[str] = []
         for row in cursor.fetchall():
             try:
                 p = json.loads(row["payload"])
+                if not isinstance(p, dict):
+                    raise TypeError("payload is not an object")
                 task_adapters[row["task_id"]] = p.get("adapter", "unknown")
-            except (json.JSONDecodeError, TypeError):
-                continue
+            except (json.JSONDecodeError, TypeError, ValueError):
+                unreadable.append(f"TASK_CREATED task {row['task_id']}")
 
         # Build mapping of (dispatch_id, result_id) -> RESULT_READY payload (outcome, artifacts)
         cursor.execute(
@@ -168,9 +171,21 @@ def summarize_home(home: Path | str) -> ResultDigest:
         for row in cursor.fetchall():
             try:
                 p = json.loads(row["payload"])
+                if not isinstance(p, dict):
+                    raise TypeError("payload is not an object")
                 results_ready[(row["dispatch_id"], row["result_id"])] = p
-            except (json.JSONDecodeError, TypeError):
-                continue
+            except (json.JSONDecodeError, TypeError, ValueError):
+                unreadable.append(
+                    f"RESULT_READY {row['dispatch_id']}:{row['result_id']}"
+                )
+
+        if unreadable:
+            conn.close()
+            return ResultDigest(
+                status="CORRUPT",
+                home=str(home_path),
+                error_detail="Unreadable journal payload: " + "; ".join(unreadable),
+            )
 
         conn.close()
 

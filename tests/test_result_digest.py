@@ -229,3 +229,51 @@ def test_cli_invocation(tmp_path, capsys):
     captured2 = capsys.readouterr()
     assert "Status: OK" in captured2.out
     assert "Total Accepted Tasks: 0" in captured2.out
+
+
+def test_unreadable_result_payload_is_not_an_ok_digest(tmp_path):
+    home = tmp_path / "torn_payload"
+    journal = Journal(home / "courier.db").open()
+    journal.append(Event(
+        EventType.TASK_CREATED,
+        task_id="task-001",
+        payload={"adapter": "synthetic", "params": {}, "effect_class": "idempotent",
+                 "max_attempts": 1, "lease_ttl_s": 30},
+    ))
+    journal.append(Event(EventType.TASK_CLAIMED, task_id="task-001", attempt=1, dispatch_id="disp-1", worker_id="w1", payload={"ttl_s": 30}))
+    journal.append(Event(EventType.TASK_STARTED, task_id="task-001", attempt=1, dispatch_id="disp-1", worker_id="w1"))
+    journal.append(Event(
+        EventType.RESULT_READY,
+        task_id="task-001",
+        attempt=1,
+        dispatch_id="disp-1",
+        worker_id="w1",
+        result_id="res-1",
+        payload={"outcome": "success", "artifacts": []},
+    ))
+    journal.append(Event(
+        EventType.RESULT_ACCEPTED,
+        task_id="task-001",
+        attempt=1,
+        dispatch_id="disp-1",
+        result_id="res-1",
+    ))
+    journal.close()
+
+    # A foreign writer can leave a torn payload even though the live journal
+    # refuses updates. The digest must not call that home OK.
+    conn = sqlite3.connect(home / "courier.db")
+    conn.execute("DROP TRIGGER events_no_update")
+    conn.execute(
+        "UPDATE events SET payload = ? WHERE type = ?",
+        ("{not json", EventType.RESULT_READY.value),
+    )
+    conn.commit()
+    conn.close()
+
+    digest = summarize_home(home)
+    assert digest.status == "CORRUPT"
+    assert digest.digest_sha256 == ""
+    assert digest.total_accepted == 0
+    assert "RESULT_READY disp-1:res-1" in (digest.error_detail or "")
+    assert main(["--home", str(home)]) == 1
