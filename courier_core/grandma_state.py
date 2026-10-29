@@ -79,9 +79,10 @@ def derive_user_state(
             "step_progress": step_progress,
         }
 
-    # If workflow_plan exists and all steps are reconciled, treat as FERTIG
+    # Reconciled steps are the only step status the runtime records as finished.
+    # SUCCESS, DONE, and COMPLETED are not that proof.
     if workflow_plan and all(
-        step.get("status") in ("RECONCILED", "COMPLETED", "DONE", "SUCCESS")
+        isinstance(step, dict) and step.get("status") == "RECONCILED"
         for step in workflow_plan
     ):
         return {
@@ -190,18 +191,10 @@ def _is_worker_active_for_task(
             continue
         last_seen = worker.get("last_seen", 0)
         is_fresh = (now - last_seen) <= heartbeat_window
-        current_task = worker.get("current_task")
-
-        # Worker is active if it holds the task and is fresh, or if worker is marked BUSY on this task
-        if is_fresh and (current_task == task_id or worker.get("status") in ("BUSY", "WORKING", "RUNNING")):
+        if is_fresh and worker.get("current_task") == task_id:
             return True
 
-    # If no exact match found, check if any worker was seen within window
-    # (permissive fallback if workers do not record current_task)
-    return any(
-        isinstance(w, dict) and (now - w.get("last_seen", 0)) <= heartbeat_window
-        for w in workers.values()
-    )
+    return False
 
 
 def _sanitize_user_message(raw: Optional[str]) -> str:
