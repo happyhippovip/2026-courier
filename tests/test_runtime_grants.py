@@ -3,7 +3,8 @@ from dataclasses import replace
 import pytest
 
 from courier_runtime.grants import (DENIED, GRANTED, REQUESTED, WAITING_FOR_OS_PERMISSION,
-                                    WAITING_FOR_USER_PERMISSION, Broker, Request, TransitionError)
+                                    WAITING_FOR_USER_PERMISSION, Broker, Request, TransitionError,
+                                    grant_content_hash)
 
 
 class Clock:
@@ -112,3 +113,54 @@ def test_grant_records_exactly_the_requested_scope(broker):
     assert g.resources == frozenset({"api.github.com:443"}) and g.access == "read"
     assert g.source_request == "r1" and g.granted_by == "user"
     assert replace(g, uses=0) == replace(b.grants["g1"], uses=0)
+
+
+def test_principal_and_scope_binding_are_not_silently_wider(broker):
+    b, _ = broker
+    bound = req("r1", bound_principal="writer-1", scope_key="files:a")
+    b.authorize(bound)
+    b.grant(bound, "g1", expires_at=2000, granted_by="owner-1", owner_principal="owner-1")
+    grant, state, reason = b.authorize(req("r2", bound_principal="writer-2", scope_key="files:a"))
+    assert grant is None and state == REQUESTED and "bound_principal" in reason
+    grant, state, reason = b.authorize(req("r3", bound_principal="writer-1", scope_key="files:b"))
+    assert grant is None and state == REQUESTED and "scope_key" in reason
+    grant, state, _ = b.authorize(req("r4", bound_principal="writer-1", scope_key="files:a"))
+    assert state == GRANTED and grant.grant_id == "g1"
+
+
+def test_bound_principal_cannot_grant_itself(broker):
+    b, _ = broker
+    bound = req("r1", bound_principal="writer-1", scope_key="files:a")
+    b.authorize(bound)
+    with pytest.raises(TransitionError):
+        b.grant(bound, "g1", expires_at=2000, granted_by="writer-1")
+    assert "g1" not in b.grants
+    granted = b.grant(bound, "g1", expires_at=2000, granted_by="owner-1", owner_principal="owner-1")
+    assert granted.bound_principal == "writer-1" and granted.owner_principal == "owner-1"
+    assert granted.content_hash
+
+
+def test_tampered_grant_hash_is_not_covered(broker):
+    b, _ = broker
+    b.authorize(req("r1"))
+    granted = b.grant(req("r1"), "g1", expires_at=2000)
+    b.grants["g1"] = replace(granted, access="control")
+    grant, state, reason = b.authorize(req("r2"))
+    assert grant is None and state == REQUESTED
+    assert reason is not None and "hash" in reason
+
+
+def test_recomputed_hash_without_broker_seal_is_not_covered(broker):
+    b, _ = broker
+    b.authorize(req("r1"))
+    granted = b.grant(req("r1"), "g1", expires_at=2000)
+    widened = replace(granted, expires_at=None, content_hash="")
+    widened = replace(widened, content_hash=grant_content_hash(widened))
+    b.grants["g1"] = widened
+    grant, state, reason = b.authorize(req("r2"))
+    assert grant is None and state == REQUESTED
+    assert reason is not None and "seal" in reason
+    b.grants["g1"] = replace(granted, content_hash="")
+    grant, state, reason = b.authorize(req("r3"))
+    assert grant is None and state == REQUESTED
+    assert reason is not None and "hash" in reason
