@@ -84,6 +84,32 @@ def test_resume_pending(mock_spawn, mock_env):
     assert d3 in args
     assert d2 not in args
 
+
+@patch("scripts.courier_github_dispatcher.spawn_adapter")
+def test_resume_pending_corrupt_state_is_not_respawned(mock_spawn, mock_env):
+    disp_dir = courier_github_dispatcher.DISPATCH_DIR
+    disp_dir.mkdir(parents=True)
+
+    pending = disp_dir / "dispatch-ok.json"
+    pending.write_text('{"dispatch_id": "dispatch-ok"}')
+
+    torn = disp_dir / "dispatch-torn.json"
+    torn.write_text('{"dispatch_id": "dispatch-torn"}')
+    (disp_dir / "dispatch-torn.github-worker-state.json").write_text("{not json")
+
+    posted_shape = disp_dir / "dispatch-list.json"
+    posted_shape.write_text('{"dispatch_id": "dispatch-list"}')
+    (disp_dir / "dispatch-list.github-worker-state.json").write_text("[")
+
+    no_status = disp_dir / "dispatch-nostatus.json"
+    no_status.write_text('{"dispatch_id": "dispatch-nostatus"}')
+    (disp_dir / "dispatch-nostatus.github-worker-state.json").write_text('{"pid": 1}')
+
+    resumed = courier_github_dispatcher.resume_pending()
+    assert resumed == 1
+    mock_spawn.assert_called_once_with(pending)
+    assert torn.read_text(encoding="utf-8") == '{"dispatch_id": "dispatch-torn"}'
+
 @patch("scripts.courier_github_dispatcher.spawn_adapter")
 def test_handle_claimed_task(mock_spawn, mock_env):
     task = {

@@ -88,10 +88,16 @@ def resume_pending():
         state_file = path.with_name(f"{path.stem}.github-worker-state.json")
         if state_file.is_file():
             try:
-                if json.loads(state_file.read_text(encoding="utf-8")).get("status") == "POSTED":
-                    continue
-            except (OSError, ValueError):
-                pass
+                state = json.loads(state_file.read_text(encoding="utf-8"))
+                status = state.get("status") if isinstance(state, dict) else None
+            except (OSError, ValueError, AttributeError):
+                log(f"Unreadable worker state for {path.name}; not resuming")
+                continue
+            if status == "POSTED":
+                continue
+            if not isinstance(status, str) or not status:
+                log(f"Worker state for {path.name} has no status; not resuming")
+                continue
         spawn_adapter(path)
         resumed += 1
     return resumed
