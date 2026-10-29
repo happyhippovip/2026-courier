@@ -66,6 +66,7 @@ def derive_completion_certificate(
     verified_steps: list[dict[str, Any]] = []
     all_passed = True
     any_retried = False
+    passed_steps = 0
 
     for idx, step in enumerate(workflow_plan, start=1):
         task_id = step.get("task_id", f"step-{idx}")
@@ -74,10 +75,9 @@ def derive_completion_certificate(
         instruction = step.get("instruction", "Task step")
         step_status = task.get("status", step.get("status", "QUEUED"))
 
-        # Verifier outcome
+        # Verifier outcome. A missing verifier id stays missing.
         verification = task.get("verification") or {}
         verdict = verification.get("verdict", "UNKNOWN")
-        verifier_id = verification.get("verifier_id") or verification.get("verifier", "courier_verifier")
 
         # Result binding
         result = task.get("result") or {}
@@ -88,17 +88,22 @@ def derive_completion_certificate(
         if attempts > 1 or task.get("resumed_from"):
             any_retried = True
 
-        # A step counts only with an independent verifier PASS bound to its result:
-        # result_id must be a non-empty string on both sides (no None == None, no "" == "").
+        # A step counts only with an independent verifier PASS bound to its result.
+        # result_id must be a non-empty string on both sides, and verifier_id must
+        # name a verifier. A missing id is not filled in.
         verified_result_id = verification.get("result_id")
         bound_result_id = result.get("result_id")
+        verifier_id = verification.get("verifier_id")
         is_step_passed = (
             verdict == "PASS"
+            and _is_nonempty_id(verifier_id)
             and _is_nonempty_id(verified_result_id)
             and _is_nonempty_id(bound_result_id)
             and verified_result_id == bound_result_id
         )
-        if not is_step_passed:
+        if is_step_passed:
+            passed_steps += 1
+        else:
             all_passed = False
 
         verified_steps.append({
@@ -107,7 +112,7 @@ def derive_completion_certificate(
             "instruction": instruction,
             "status": step_status,
             "verdict": verdict,
-            "verifier_id": str(verifier_id),
+            "verifier_id": verifier_id if _is_nonempty_id(verifier_id) else "unrecorded",
             "result_id": str(result_id),
             "attempts": attempts,
             "resumed_from": task.get("resumed_from"),
@@ -141,7 +146,7 @@ def derive_completion_certificate(
     else:
         completed_at_str = str(completed_at)
 
-    plan_extent = f"{len([s for s in verified_steps if s['verdict'] == 'PASS'] or [s for s in verified_steps if s['status'] in ('RECONCILED', 'SUCCESS', 'DONE')])}/{total_steps} Steps"
+    plan_extent = f"{passed_steps}/{total_steps} Steps"
 
     # Quotable deterministic certificate ID (O5)
     certificate_material = {
