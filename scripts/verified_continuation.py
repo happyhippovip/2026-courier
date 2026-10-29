@@ -311,47 +311,25 @@ class VerifiedContinuation:
         if human_gate_policy != "STOP_ON_HUMAN_GATE_ONLY":
             raise ValueError(f"Human gate policy violation: {human_gate_policy}")
 
-        # Integrate with Antigravity bridge runner if present
+        # The bridge module only records local hook files. Copying that file
+        # into a repo is not a model call and must not become a PASS result.
         bridge_script = self.root_dir / "scripts/run_antigravity_bridge.py"
-        if bridge_script.exists():
-            from scripts.run_antigravity_bridge import AntigravityHookRunner, AntigravityVisualStateTracker
-
-            tracker = AntigravityVisualStateTracker(agent_id=f"agent-{task_id}", repo_dir=self.root_dir)
-            runner = AntigravityHookRunner(tracker)
-            runner.on_task_start(task_id, str(uuid.uuid4()), instruction)
-            runner.on_tool_action(task_id, "Executing authorized scope", 0.5)
-
-            payload = {
-                "verdict": "PASS",
-                "action_executed": "GOOGLE_BUILDER_EXECUTION",
-                "instruction_summary": instruction[:100],
-                "allowed_scope": allowed_scope,
-                "zero_cost_policy": cost_policy,
-                "model_driven": True,
-            }
-            res_file = runner.on_task_completion(task_id, str(uuid.uuid4()), None, payload)
-            runner.on_task_stop(task_id)
-
-            result = {
-                "task_id": task_id,
-                "mode": ExecutionMode.MODE_B_GOOGLE_BUILDER.value,
-                "status": "PASS",
-                "payload": payload,
-                "result_file": str(res_file.name),
-                "model_invoked": True,
-                "model_driven": True,
-            }
+        bridge_present = bridge_script.is_file()
+        if bridge_present:
+            error = "Antigravity bridge file is a local hook recorder; no model result was returned"
         else:
-            # Honest fail-closed: NO bridge available -> NO model execution possible
-            # Never mistake simulation for model execution.
-            result = {
-                "task_id": task_id,
-                "mode": ExecutionMode.MODE_B_GOOGLE_BUILDER.value,
-                "status": "UNAVAILABLE",
-                "error": "Google Builder bridge script not found; failing closed per zero-simulation policy",
-                "model_invoked": False,
-                "model_driven": False,
-            }
+            error = "Google Builder bridge script not found; failing closed per zero-simulation policy"
+        result = {
+            "task_id": task_id,
+            "mode": ExecutionMode.MODE_B_GOOGLE_BUILDER.value,
+            "status": "UNAVAILABLE",
+            "error": error,
+            "instruction_summary": instruction[:100],
+            "allowed_scope": allowed_scope,
+            "model_invoked": False,
+            "model_driven": False,
+            "bridge_present": bridge_present,
+        }
 
         result["result_hash"] = canonical_json_hash(result)
         return result
@@ -598,12 +576,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         }
         u2 = {
             "task_id": "task-unit-2",
-            "workkey": "WORKKEY_UNIT_2_BUILDER",
-            "mode": ExecutionMode.MODE_B_GOOGLE_BUILDER,
-            "instruction": "Verify Google builder execution within allowed scope",
-            "allowed_scope": ["happyhippovip/2026-courier"],
-            "cost_policy": "ZERO_COST_ONLY",
-            "human_gate_policy": "STOP_ON_HUMAN_GATE_ONLY",
+            "workkey": "WORKKEY_UNIT_2_LOCAL",
+            "mode": ExecutionMode.MODE_A_LOCAL_DETERMINISTIC,
+            "instruction": "Verify a second local deterministic unit",
+            "command": [sys.executable, "-c", "print('unit-2-local')"],
         }
         report = engine.run_sequential_two_unit(u1, u2)
         print(json.dumps(report, indent=2))
