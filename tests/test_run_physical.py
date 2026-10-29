@@ -103,8 +103,8 @@ def test_run2_gate_rejects_empty_exit_file(tmp_path):
         restart.execute_run2("1234abcd", str(run1_dir), str(tmp_path / "evidence2"))
 
 
-def test_run2_gate_accepts_matching_bundle(tmp_path):
-    """P3: exit 0 + SUCCESS + matching SHA passes the gate (incl. legacy 1-line exit file)."""
+def test_run2_gate_accepts_matching_bundle(tmp_path, capsys):
+    """Matching RUN_1 evidence passes the gate and does not count as a restart."""
     import scripts.run_physical_restart as restart
 
     for exit_text in ("0\nSUCCESS\n", "0\n"):
@@ -115,7 +115,10 @@ def test_run2_gate_accepts_matching_bundle(tmp_path):
         })
         evidence_dir = tmp_path / f"evidence2_{len(exit_text)}"
 
-        assert restart.execute_run2("1234abcd", str(run1_dir), str(evidence_dir)) == 0
-        snapshot = json.loads((evidence_dir / "run2_state_snapshot.json").read_text())
-        assert snapshot["candidate_sha"] == "1234abcd"
+        code = restart.execute_run2("1234abcd", str(run1_dir), str(evidence_dir))
+        captured = capsys.readouterr()
+        assert code != 0
+        assert "Restart completed successfully" not in captured.out
+        assert not (evidence_dir / "run2_state_snapshot.json").exists()
+        assert not (evidence_dir / "run2_exit_code.txt").exists()
 
