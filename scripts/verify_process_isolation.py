@@ -27,8 +27,10 @@ def check_process_isolation(port=8080):
             cmd = p.info['cmdline']
             if cmd and 'server.app' in cmd:
                 current_heavy_jobs += 1
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
+        except psutil.NoSuchProcess:
             pass
+        except psutil.AccessDenied:
+            errors.append("A process could not be read; isolation not verified.")
             
     if current_heavy_jobs > 0:
         errors.append("Foreign server.app process detected running on this host.")

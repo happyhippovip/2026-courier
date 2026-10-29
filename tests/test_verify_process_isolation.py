@@ -83,5 +83,7 @@ def test_verify_process_isolation_psutil_exceptions(capsys, mock_clean_env):
         m_exit = run_script()
         
     captured = capsys.readouterr()
-    assert "PROCESS ISOLATION VALID" in captured.out
-    m_exit.assert_called_once_with(0)
+    assert "PROCESS ISOLATION VALID" not in captured.out
+    assert "PROCESS ISOLATION FAILED:" in captured.out
+    assert "could not be read" in captured.out
+    m_exit.assert_called_once_with(1)
