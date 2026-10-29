@@ -8,8 +8,15 @@ if [ -z "${COURIER_API_KEY// /}" ] || [ -z "${COURIER_VERIFIER_API_KEY// /}" ]; 
     exit 1
 fi
 
+# Do not report the services running unless launchctl actually loaded them.
+if ! command -v launchctl >/dev/null 2>&1; then
+    echo "Background services not proven: launchctl is not available." >&2
+    exit 1
+fi
+
 echo "1. Setting up Courier Server LaunchAgent..."
-cat << PLIST > ~/Library/LaunchAgents/com.courier.server.plist
+mkdir -p "$HOME/Library/LaunchAgents" logs
+cat << PLIST > "$HOME/Library/LaunchAgents/com.courier.server.plist"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -46,13 +53,18 @@ cat << PLIST > ~/Library/LaunchAgents/com.courier.server.plist
 </plist>
 PLIST
 
-mkdir -p logs
-
-launchctl unload ~/Library/LaunchAgents/com.courier.server.plist 2>/dev/null
-launchctl load ~/Library/LaunchAgents/com.courier.server.plist
+# Nothing to unload on a first install. A failed load is not "running".
+launchctl unload "$HOME/Library/LaunchAgents/com.courier.server.plist" 2>/dev/null || true
+if ! launchctl load "$HOME/Library/LaunchAgents/com.courier.server.plist"; then
+    echo "Background services not proven: server LaunchAgent did not load." >&2
+    exit 1
+fi
 
 echo "2. Setting up Mac Worker LaunchAgent..."
 export COURIER_API_KEY
-./scripts/mac_worker/install.sh
+if ! ./scripts/mac_worker/install.sh; then
+    echo "Background services not proven: mac worker install failed." >&2
+    exit 1
+fi
 
 echo "Vollautomatik Background Services installed and running!"
