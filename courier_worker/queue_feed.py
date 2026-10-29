@@ -201,9 +201,13 @@ def _feed_once(home, agent_id: str, host_id: str, now, opened) -> dict:
     if (home / "courier.db").is_file():
         # P2 R2: release proofs are checked against this home's controller journal, read-only.
         # Trust limit: whoever can write <home>/courier.db can mint proofs (= controller trust).
-        from courier_core.journal import Journal
-        journal = Journal(home / "courier.db", readonly=True).open()
-        opened.append(journal)
+        import sqlite3
+        from courier_core.journal import Journal, JournalError
+        try:  # WK-028: a locked/corrupt journal blocks releases (NOT_PROVEN), it does not abort the feed
+            journal = Journal(home / "courier.db", readonly=True).open()
+            opened.append(journal)
+        except (JournalError, sqlite3.Error, OSError):
+            journal = None
     queue = WorkQueue(items_dir=config["items_dir"], ledger_path=config["ledger"], journal=journal)
     store = FileCoordinationStore(home / "coordination_ledger.jsonl")
     bridge_state = _read_json(home / "ledger_bridge_state.json", {"missions": {}})
@@ -245,6 +249,9 @@ def _feed_once(home, agent_id: str, host_id: str, now, opened) -> dict:
                 report["released"].append(item_id)
                 continue
             report.setdefault("not_proven", []).append(item_id)
+            if released.get("reason") in ("NO_JOURNAL", "JOURNAL_UNAVAILABLE") \
+                    and "JOURNAL_UNAVAILABLE" not in report.setdefault("blocked", []):
+                report["blocked"].append("JOURNAL_UNAVAILABLE")  # WK-028: documented, never DONE
             still_held.append(item_id)
             queue.renew(item_id, holder, ttl, now=now)
             continue
