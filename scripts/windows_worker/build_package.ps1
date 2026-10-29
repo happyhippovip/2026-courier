@@ -63,10 +63,18 @@ if (Test-Path "$PSScriptRoot\stop.ps1") { Copy-Item "$PSScriptRoot\stop.ps1" -De
 if (Test-Path "$PSScriptRoot\stop.bat") { Copy-Item "$PSScriptRoot\stop.bat" -Destination $OutDir }
 if (Test-Path "$PSScriptRoot\start.bat") { Copy-Item "$PSScriptRoot\start.bat" -Destination $OutDir }
 
-# 3. Download and embed Python
+# 3. Download and embed Python. The hash is the SHA-256 of the official
+# python.org embeddable package whose MD5 is ae256f31ee4700eba679802233bff3e9.
+$expectedPythonSha256 = "a86a2e28870967745d255cc597d1e4d19ae79e65e927cdc324baa0256202231c"
 $pyZip = "$env:TEMP\python-embed.zip"
 Write-Host "Downloading Embedded Python from $PythonUrl..."
 Invoke-WebRequest -Uri $PythonUrl -OutFile $pyZip
+$actualPythonSha256 = (Get-FileHash -Algorithm SHA256 -Path $pyZip).Hash.ToLower()
+if ($actualPythonSha256 -ne $expectedPythonSha256) {
+    Remove-Item -Force $pyZip -ErrorAction SilentlyContinue
+    Write-Error "BUILD REFUSED: embedded Python SHA-256 mismatch (got $actualPythonSha256)."
+    exit 1
+}
 $pyDir = Join-Path $OutDir "python"
 New-Item -ItemType Directory -Force -Path $pyDir | Out-Null
 Write-Host "Extracting Python..."
