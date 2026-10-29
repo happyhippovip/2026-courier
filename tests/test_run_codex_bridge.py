@@ -314,6 +314,13 @@ def test_run_chief_review_router(tmp_path, monkeypatch):
     assert dec3["verdict"] == "HUMAN_APPROVAL_REQUIRED"
     assert dec3["action"] == "STOP_AT_HUMAN_GATE"
 
+    res_file4 = tmp_path / "res_missing.json"
+    res_file4.write_text(json.dumps({"payload": {}}), encoding="utf-8")
+    dec4 = run_chief_review_router("task-4", res_file4)
+    assert dec4["verdict"] == "HUMAN_APPROVAL_REQUIRED"
+    assert dec4["action"] == "STOP_AT_HUMAN_GATE"
+    assert dec4["verdict"] != "ACCEPTED"
+
 
 def test_canonical_authority_acquire_and_release(tmp_path):
     from scripts.run_codex_bridge import CanonicalAuthority
