@@ -346,6 +346,27 @@ def test_status_file_records_each_started_pass(tmp_path):
     assert [p.name for p in status.parent.iterdir()] == ["ledger_tick.json"]
 
 
+def test_status_replace_retries_a_windows_share_violation(tmp_path, monkeypatch):
+    real = ledger_tick.os.replace
+    calls = {"n": 0}
+
+    def flaky(src, dst):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise PermissionError(13, "Permission denied", str(dst))
+        return real(src, dst)
+
+    monkeypatch.setattr(ledger_tick.os, "replace", flaky)
+    monkeypatch.setattr(ledger_tick.time, "sleep", lambda _s: None)
+    tick = LedgerTick(str(tmp_path), "http://127.0.0.1:9", "GOOGLE_WINDOWS", "WINDOWS_REMOTE",
+                      runner=FakeRunner([0]), clock=FakeClock(), log=lambda _l: None)
+    assert tick() == ledger_tick.RAN
+    assert calls["n"] == 2
+    assert tick.status_write_failures == 0
+    status = tmp_path / "run" / "ledger_tick.json"
+    assert status.is_file()
+
+
 def test_unwritable_status_never_raises(tmp_path):
     blocker = tmp_path / "home"
     blocker.write_text("not a directory", encoding="utf-8")

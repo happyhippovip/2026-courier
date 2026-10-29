@@ -198,7 +198,19 @@ class LedgerTick:
             path.parent.mkdir(parents=True, exist_ok=True)
             with open(tmp, "w", encoding="utf-8") as fh:
                 json.dump(record, fh, sort_keys=True)
-            os.replace(tmp, path)
+            last_replace = None
+            for _ in range(8):
+                try:
+                    os.replace(tmp, path)
+                    last_replace = None
+                    break
+                except OSError as exc:
+                    # Windows denies the replace while a reader has the status
+                    # file open. A short retry is the same status, not a new pass.
+                    last_replace = exc
+                    time.sleep(0.05)
+            if last_replace is not None:
+                raise last_replace
         except OSError as exc:
             self.status_write_failures += 1
             self._log(f"courier_worker.ledger_tick: status write failed ({exc.__class__.__name__}); "

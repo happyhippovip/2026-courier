@@ -28,6 +28,20 @@ ADMISSION_DISPATCHING = "DISPATCHING"
 ADMISSION_ADMITTED = "ADMITTED"
 
 
+def _finite_timestamp(value):
+    """A usable epoch, or None when the marker cannot prove its age.
+
+    Missing, boolean, and non-finite values are not epoch 0. ``True`` is an
+    int, so ``time.time() - True`` looks ancient and would start a second
+    ``gh workflow run``.
+    """
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    if value != value or value in (float("inf"), float("-inf")):
+        return None
+    return float(value)
+
+
 @contextlib.contextmanager
 def _central_state_locked(state_file):
     """Exclusive cross-process lock for one central-state read-modify-write.
@@ -251,22 +265,31 @@ def dispatch_intake(intake_file):
                 "admission", ADMISSION_ADMITTED) == ADMISSION_ADMITTED:
             print(f"Task {task_id} already admitted; skipping re-dispatch")
             return task_id
+        decision = None
         if (existing is not None
-                and existing.get("admission") == ADMISSION_DISPATCHING
-                and time.time() - existing.get("dispatched_at", 0)
-                < INTAKE_DISPATCH_GRACE_SECONDS):
-            # Fresh marker: a dispatch may already be in flight. Adopt its run
-            # if exactly one is visible, else stay pending for a later retry.
-            # The (slow) resolve runs outside the lock; the marker snapshot
-            # is re-verified before the adopt is recorded.
-            snapshot = dict(existing)
-            decision = "adopt"
-        else:
-            # Fresh admission or stale marker: record DISPATCHING *before* the
-            # external call so recovery can adopt instead of blind re-dispatch.
-            # A stale marker means the old attempt is dead; exactly one new
-            # dispatch replaces it. Payment is required before that record and
-            # before `gh workflow run`.
+                and existing.get("admission") == ADMISSION_DISPATCHING):
+            dispatched_at = _finite_timestamp(existing.get("dispatched_at"))
+            if dispatched_at is None:
+                # Unknown age is not "already stale". A second workflow run
+                # would admit work that may already be in flight.
+                print(
+                    f"Refusing dispatch: {task_id} DISPATCHING marker "
+                    "has no usable dispatched_at"
+                )
+                sys.exit(1)
+            if time.time() - dispatched_at < INTAKE_DISPATCH_GRACE_SECONDS:
+                # Fresh marker: a dispatch may already be in flight. Adopt its
+                # run if exactly one is visible, else stay pending for a later
+                # retry. The (slow) resolve runs outside the lock; the marker
+                # snapshot is re-verified before the adopt is recorded.
+                snapshot = dict(existing)
+                decision = "adopt"
+        if decision != "adopt":
+            # Fresh admission or a stale *finite* marker: record DISPATCHING
+            # *before* the external call so recovery can adopt instead of a
+            # blind re-dispatch. A stale marker means the old attempt is dead;
+            # exactly one new dispatch replaces it. Payment is required before
+            # that record and before `gh workflow run`.
             _assert_dispatch_paid(intake)
             dispatch_start = time.time()
             state["tasks"][task_id] = {
