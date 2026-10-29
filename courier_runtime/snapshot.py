@@ -21,11 +21,16 @@ def collect(registry, sessions, host_id, trigger, clock=time.time):
     """sessions: {session_id: {"workkey", "last_progress_at", "turn_complete", "owes_work",
     "pending_permission": None|"user"|"os", "os_blocked_operation": bool, "surface_ok": bool,
     "exit_code": None|int}} - runtime facts, never screen contents."""
-    owned = {r.workkey: r for r in registry.owned()}
+    by_workkey = {}
+    for record in registry.owned():
+        by_workkey.setdefault(record.workkey, []).append(record)
     out = []
     for session_id, s in sessions.items():
-        record = owned.get(s["workkey"])
-        alive = bool(record and is_same_process(record))
+        records = by_workkey.get(s["workkey"], [])
+        # A later dead record must not hide an earlier live one.
+        live = next((r for r in records if is_same_process(r)), None)
+        record = live if live is not None else (records[-1] if records else None)
+        alive = live is not None
         out.append({
             "session_id": session_id, "workkey": s["workkey"],
             "process": None if record is None else {"pid": record.pid, "create_time": record.create_time,
