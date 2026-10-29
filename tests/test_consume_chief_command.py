@@ -164,8 +164,25 @@ def test_process_command(tmp_path):
     processed_dir = tmp_path / "processed"
     
     res = consume_chief_command.process_command(cmd_file, tmp_path, processed_dir)
-    assert res["status"] == "DONE"
+    assert res["status"] == "BLOCKED"
+    assert res["payload"]["test_results"] == "NOT_RUN"
     assert res["task_id"] == "task-1"
+
+
+def test_validation_is_not_reported_as_executed(tmp_path):
+    """A validated command that was never run must not be published as done."""
+    cmd = generate_valid_command()
+    cmd_file = tmp_path / "cmd.json"
+    cmd_file.write_text(json.dumps(cmd))
+    processed_dir = tmp_path / "processed"
+
+    res = consume_chief_command.process_command(cmd_file, tmp_path, processed_dir)
+    payload = res["payload"]
+    assert res["status"] != "DONE"
+    assert res["status"] != "SUCCESS"
+    assert payload["test_results"] != "PASS"
+    assert not str(payload["summary"]).startswith("Executed")
+    assert "not executed" in str(payload["summary"]).lower()
     
     res_file = processed_dir / "task-1-result.json"
     assert res_file.exists()
@@ -196,7 +213,7 @@ def test_process_command_validation_failed(tmp_path):
     assert "Validation failed" in str(exc.value)
 
 
-def test_main(tmp_path, monkeypatch):
+def test_main(tmp_path, monkeypatch, capsys):
     cmd = generate_valid_command()
     cmd_file = tmp_path / "cmd.json"
     cmd_file.write_text(json.dumps(cmd))
@@ -212,8 +229,14 @@ def test_main(tmp_path, monkeypatch):
     ])
     
     import runpy
-    # Prevent SystemExit due to script reaching the end successfully
-    runpy.run_path(str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "consume_chief_command.py"), run_name="__main__")
-    
-    assert (processed_dir / "task-1-result.json").exists()
+    with pytest.raises(SystemExit) as exc:
+        runpy.run_path(str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "consume_chief_command.py"), run_name="__main__")
+    assert exc.value.code == 1
+
+    result_path = processed_dir / "task-1-result.json"
+    assert result_path.exists()
+    published = json.loads(result_path.read_text(encoding="utf-8"))
+    assert published["status"] == "BLOCKED"
+    assert published["payload"]["test_results"] != "PASS"
+    assert "RESULT_PUBLISHED" not in capsys.readouterr().out
 
