@@ -82,6 +82,13 @@ test("insight: green only for verifier evidence with a real event id", () => {
   assert.equal(deriveInsights(fake, AT).graph.edges.filter((e) => e.color === GREEN).length, 0);
   const statusOnly = snap(); delete statusOnly.ledger.items[1].verified; statusOnly.ledger.items[1].status = "VERIFIED";
   assert.equal(deriveInsights(statusOnly, AT).graph.edges.filter((e) => e.color === GREEN).length, 0);
+  const looseId = snap(); looseId.ledger.items[1].event_id = "evt:canonical:mission:999";
+  assert.equal(deriveInsights(looseId, AT).graph.edges.filter((e) => e.color === GREEN).length, 0);
+  const worded = snap();
+  worded.muse_wall.stations.push({ id: "MUSE-3", heartbeat: true, state: { value: "VERIFIED", source: "w", at: AT } });
+  const station = deriveInsights(worded, AT).graph.nodes.find((n) => n.id === "MUSE-3");
+  assert.equal(station.state, "UNKNOWN");
+  assert.notEqual(station.color, GREEN);
 });
 
 test("insight: DEMO has no green edge, no green node and no verifier claim", () => {
