@@ -164,11 +164,24 @@ def test_unverified_result_is_not_final(tmp_path):
     assert "RELEASE" not in (tmp_path / "ledger.jsonl").read_text(encoding="utf-8")
 
 
+def _require_symlink_privilege(tmp_path):
+    """Skip only when Windows proves the privilege is missing (WinError 1314); any other error fails."""
+    import os
+    probe = tmp_path / "symlink_probe"
+    try:
+        os.symlink(tmp_path / "symlink_probe_target", probe)
+    except OSError as exc:
+        if os.name == "nt" and getattr(exc, "winerror", None) == 1314:
+            pytest.skip("SeCreateSymbolicLinkPrivilege missing (WinError 1314)")
+        raise
+    probe.unlink()
+
 def test_receipt_log_symlink_is_not_followed(tmp_path):
     queue = _queue(tmp_path, [_item("A", ["scripts/windows_worker/a.py"])])
     work = tmp_path / "work"
     work.mkdir()
     outside = tmp_path / "outside.log"
+    _require_symlink_privilege(tmp_path)
     (work / "receipts.jsonl").symlink_to(outside)
     receipt = run_once(queue, HOLDER, "win-host", work, _execute, NOW)
     assert receipt["outcome"] == "blocked" and receipt["reason"] == "RECEIPT_LINK"
@@ -411,3 +424,19 @@ def test_valid_journal_releases_once_and_restart_does_not_release_again(tmp_path
     jh.restart()  # controller restart on the same courier.db, new journal handle
     second = _run(jh.home, items, ledger, tmp_path / "w", _accepting(jh, calls))
     assert second["outcome"] == "idle" and calls == ["A"] and _releases(ledger) == 1
+
+
+def test_journal_constructor_error_is_safe_rejection(tmp_path, monkeypatch):
+    import sqlite3
+
+    import courier_core.journal as journal_module
+
+    jh, items, ledger = _journal_setup(tmp_path)
+    def broken(*args, **kwargs):
+        raise sqlite3.OperationalError("unable to open database file")
+    monkeypatch.setattr(journal_module, "Journal", broken)  # review 36f4d456 A2: constructor fails
+    assert open_controller_journal(jh.home) == (None, "JOURNAL_UNAVAILABLE")
+    receipt = _run(jh.home, items, ledger, tmp_path / "w", _accepting(jh, []))
+    assert receipt["reason"] == "RELEASE_REJECTED" and receipt["proof_status"] == "NOT_PROVEN"
+    assert receipt["journal"] == "JOURNAL_UNAVAILABLE" and _releases(ledger) == 0
+    assert "DONE" not in [item["status"] for item in WorkQueue(items, ledger).items(now=NOW)]

@@ -114,15 +114,17 @@ def open_controller_journal(controller_home):
     path = Path(controller_home) / CONTROLLER_JOURNAL
     if not path.is_file():
         return None, "NO_JOURNAL"
-    journal = Journal(path, readonly=True)
+    journal = None
     try:
+        journal = Journal(path, readonly=True)  # review 36f4d456 A2: a failing constructor fails closed too
         journal.open()
         journal.head()  # touch the file now: a corrupt or locked journal is rejected here
     except (JournalError, sqlite3.Error, OSError):
-        try:
-            journal.close()
-        except Exception:
-            pass
+        if journal is not None:
+            try:
+                journal.close()
+            except Exception:
+                pass
         return None, "JOURNAL_UNAVAILABLE"
     return journal, None
 
