@@ -13,6 +13,8 @@ from scripts.windows_worker.local_queue import (
     backoff_seconds,
     heartbeat,
     run_once,
+    open_controller_journal,
+    run_once_with_controller_journal,
     run_until_idle,
 )
 
@@ -316,3 +318,96 @@ def test_synthetic_run_finalizes_distinct_workkeys_in_order(tmp_path):
     assert steps[:5] == ["CLAIM", "RUN", "VERIFY", "FINAL", "NEXT"]
     for item_id in ("A", "B", "C"):
         assert (tmp_path / "work" / f"{item_id}.txt").read_text(encoding="utf-8") == "done\n"
+
+
+# ACC3 t1696u: read-only controller journal opener; missing/wrong proof is NOT_PROVEN, never DONE.
+
+def _journal_setup(tmp_path):
+    items = tmp_path / "items"
+    _write_items(items, [_item("A", ["scripts/windows_worker/a.py"])])
+    jh = JournalHome(tmp_path)
+    return jh, items, tmp_path / "ledger.jsonl"
+
+
+def _releases(ledger):
+    return ledger.read_text(encoding="utf-8").count('"type":"RELEASE"') if ledger.exists() else 0
+
+
+def _run(jh_home, items, ledger, work, execute):
+    return run_once_with_controller_journal(jh_home, items, ledger, HOLDER, "win-host", work, execute, NOW)
+
+
+def _accepting(jh, calls, workkey=None):
+    def run(item_id, workspace):
+        calls.append(item_id)
+        (workspace / f"{item_id}.txt").write_text("done\n", encoding="utf-8")
+        jh.accept(workkey or item_id)
+        return f"{item_id}.txt"
+    return run
+
+
+def test_missing_controller_journal_is_safe_rejection(tmp_path):
+    items = tmp_path / "items"
+    _write_items(items, [_item("A", ["scripts/windows_worker/a.py"])])
+    assert open_controller_journal(tmp_path / "nohome") == (None, "NO_JOURNAL")
+    receipt = _run(tmp_path / "nohome", items, tmp_path / "ledger.jsonl", tmp_path / "w",
+                   lambda i, w: (w / "A.txt").write_text("done\n") and "A.txt")
+    assert receipt["reason"] == "RELEASE_REJECTED" and receipt["proof_status"] == "NOT_PROVEN"
+    assert receipt["proof_reason"] == "NO_JOURNAL" and receipt["journal"] == "NO_JOURNAL"
+    assert _releases(tmp_path / "ledger.jsonl") == 0
+
+
+def test_corrupt_controller_journal_is_safe_rejection(tmp_path):
+    home = tmp_path / "ctrl"
+    home.mkdir()
+    (home / "courier.db").write_bytes(b"this is not a sqlite journal" * 64)
+    assert open_controller_journal(home) == (None, "JOURNAL_UNAVAILABLE")
+    items = tmp_path / "items"
+    _write_items(items, [_item("A", ["scripts/windows_worker/a.py"])])
+    receipt = _run(home, items, tmp_path / "ledger.jsonl", tmp_path / "w",
+                   lambda i, w: (w / "A.txt").write_text("done\n") and "A.txt")
+    assert receipt["proof_status"] == "NOT_PROVEN" and receipt["journal"] == "JOURNAL_UNAVAILABLE"
+    assert _releases(tmp_path / "ledger.jsonl") == 0
+
+
+def test_locked_controller_journal_is_safe_rejection(tmp_path, monkeypatch):
+    import sqlite3
+
+    from courier_core.journal import Journal
+
+    jh, items, ledger = _journal_setup(tmp_path)
+    def locked(self):
+        raise sqlite3.OperationalError("database is locked")
+    monkeypatch.setattr(Journal, "open", locked)  # simulated lock; a real one waits busy_timeout
+    assert open_controller_journal(jh.home) == (None, "JOURNAL_UNAVAILABLE")
+    receipt = _run(jh.home, items, ledger, tmp_path / "w", _accepting(jh, []))
+    assert receipt["reason"] == "RELEASE_REJECTED" and receipt["proof_status"] == "NOT_PROVEN"
+    assert _releases(ledger) == 0
+
+
+def test_proof_of_a_wrong_task_is_not_proven(tmp_path):
+    jh, items, ledger = _journal_setup(tmp_path)
+    receipt = _run(jh.home, items, ledger, tmp_path / "w", _accepting(jh, [], workkey="OTHER"))
+    assert receipt["reason"] == "RELEASE_REJECTED" and receipt["proof_status"] == "NOT_PROVEN"
+    assert receipt["proof_reason"] == "NO_JOURNAL_PROOF" and _releases(ledger) == 0
+    journal, problem = open_controller_journal(jh.home)
+    try:
+        queue = WorkQueue(items, ledger, journal=journal)
+        foreign = jh.accept("OTHER-2")  # a real RESULT_ACCEPTED, but for another workkey
+        out = queue.release("A", HOLDER, "FINAL", now=NOW, proof=foreign)
+    finally:
+        journal.close()
+    assert problem is None and out["status"] == "NOT_PROVEN" and out["reason"] == "FOREIGN_TASK"
+    assert _releases(ledger) == 0
+
+
+def test_valid_journal_releases_once_and_restart_does_not_release_again(tmp_path):
+    jh, items, ledger = _journal_setup(tmp_path)
+    calls = []
+    first = _run(jh.home, items, ledger, tmp_path / "w", _accepting(jh, calls))
+    assert first["outcome"] == "final" and "journal" not in first and _releases(ledger) == 1
+    text = ledger.read_text(encoding="utf-8")
+    assert "RESULT_ACCEPTED|sha256:" in text and "local-verified" not in text
+    jh.restart()  # controller restart on the same courier.db, new journal handle
+    second = _run(jh.home, items, ledger, tmp_path / "w", _accepting(jh, calls))
+    assert second["outcome"] == "idle" and calls == ["A"] and _releases(ledger) == 1

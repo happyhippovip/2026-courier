@@ -84,7 +84,11 @@ def run_once(queue, holder, host, workspace, execute, now, ttl=60, max_attempts=
     proof = journal_release_proof(getattr(queue, "journal", None), item_id)  # P2 R2: a local file is no proof
     released = queue.release(item_id, holder, "FINAL", now=now, proof=proof)
     if released["status"] != "DONE" or released["result"] != "FINAL":
-        return _receipt(workspace, {"outcome": "blocked", "reason": "RELEASE_REJECTED", "item_id": item_id})
+        rejected = {"outcome": "blocked", "reason": "RELEASE_REJECTED", "item_id": item_id}
+        if released["status"] == "NOT_PROVEN":  # ACC3 t1696u: say why, never DONE
+            rejected["proof_status"] = "NOT_PROVEN"
+            rejected["proof_reason"] = _proof_reason(queue, proof, released)
+        return _receipt(workspace, rejected)
     _write_json(workspace / "phase.json", {"item_id": item_id, "phase": "FINAL", "evidence": evidence})
     attempts_path = workspace / "attempts.json"
     if attempts_path.exists():
@@ -94,6 +98,61 @@ def run_once(queue, holder, host, workspace, execute, now, ttl=60, max_attempts=
     _append(workspace, "NEXT", {"item_id": item_id, "next": nxt})
     return _receipt(workspace, {"outcome": "final", "item_id": item_id, "next": nxt})
 
+
+CONTROLLER_JOURNAL = "courier.db"
+
+
+def open_controller_journal(controller_home):
+    """(journal, None) or (None, reason). Read-only, like courier_worker.queue_feed.
+
+    Missing, locked or corrupt courier.db fails closed: no journal => no proof => nothing is DONE.
+    """
+    import sqlite3
+
+    from courier_core.journal import Journal, JournalError
+
+    path = Path(controller_home) / CONTROLLER_JOURNAL
+    if not path.is_file():
+        return None, "NO_JOURNAL"
+    journal = Journal(path, readonly=True)
+    try:
+        journal.open()
+        journal.head()  # touch the file now: a corrupt or locked journal is rejected here
+    except (JournalError, sqlite3.Error, OSError):
+        try:
+            journal.close()
+        except Exception:
+            pass
+        return None, "JOURNAL_UNAVAILABLE"
+    return journal, None
+
+
+def run_once_with_controller_journal(controller_home, items_dir, ledger_path, holder, host, workspace,
+                                     execute, now, ttl=60, max_attempts=3):
+    """run_once over a WorkQueue whose release proofs come from the controller journal (read-only).
+
+    The journal is always closed. Without a usable journal the receipt carries journal=<reason>.
+    """
+    from courier_core.work_queue import WorkQueue
+
+    journal, problem = open_controller_journal(controller_home)
+    try:
+        queue = WorkQueue(items_dir=items_dir, ledger_path=ledger_path, journal=journal)
+        receipt = run_once(queue, holder, host, workspace, execute, now, ttl=ttl, max_attempts=max_attempts)
+    finally:
+        if journal is not None:
+            journal.close()
+    if problem is not None:
+        receipt = dict(receipt, journal=problem)
+    return receipt
+
+
+def _proof_reason(queue, proof, released):
+    if getattr(queue, "journal", None) is None:
+        return "NO_JOURNAL"
+    if proof is None:
+        return "NO_JOURNAL_PROOF"
+    return released.get("reason") or "NOT_PROVEN"
 
 def heartbeat(workspace):
     """Record liveness. This is not a verified result and never releases work."""
