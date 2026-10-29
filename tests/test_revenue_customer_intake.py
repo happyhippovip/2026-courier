@@ -54,6 +54,22 @@ def test_main_arguments_error(monkeypatch, capsys):
     assert "Usage: python3 revenue_customer_intake.py" in out
 
 @patch("requests.post")
+def test_main_failed_post_does_not_exit_zero(mock_post, monkeypatch, capsys):
+    mock_resp = MagicMock()
+    mock_resp.status_code = 500
+    mock_resp.text = "Internal Server Error"
+    mock_post.return_value = mock_resp
+    monkeypatch.setattr("sys.argv", ["revenue_customer_intake.py", "ow", "re", "sh", "cu"])
+    import runpy
+    with pytest.raises(SystemExit) as exc:
+        runpy.run_path(str(__import__("pathlib").Path(__file__).resolve().parents[1] / "scripts" / "revenue_customer_intake.py"), run_name="__main__")
+    assert exc.value.code not in (0, None)
+    out, _ = capsys.readouterr()
+    assert "Success!" not in out
+    assert "Failed: 500" in out
+
+
+@patch("requests.post")
 def test_main_arguments_success(mock_post, monkeypatch):
     mock_resp = MagicMock()
     mock_resp.status_code = 200
