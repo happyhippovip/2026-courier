@@ -440,3 +440,16 @@ def test_journal_constructor_error_is_safe_rejection(tmp_path, monkeypatch):
     assert receipt["reason"] == "RELEASE_REJECTED" and receipt["proof_status"] == "NOT_PROVEN"
     assert receipt["journal"] == "JOURNAL_UNAVAILABLE" and _releases(ledger) == 0
     assert "DONE" not in [item["status"] for item in WorkQueue(items, ledger).items(now=NOW)]
+
+
+def test_courier_db_that_is_not_a_file_is_journal_unavailable(tmp_path):
+    # ACC3 t1696u: something occupies courier.db but is no journal file -> unavailable, not "absent"
+    home = tmp_path / "ctrl"
+    (home / "courier.db").mkdir(parents=True)
+    assert open_controller_journal(home) == (None, "JOURNAL_UNAVAILABLE")
+    items = tmp_path / "items"
+    _write_items(items, [_item("A", ["scripts/windows_worker/a.py"])])
+    receipt = _run(home, items, tmp_path / "ledger.jsonl", tmp_path / "w",
+                   lambda i, w: (w / "A.txt").write_text("done\n") and "A.txt")
+    assert receipt["reason"] == "RELEASE_REJECTED" and receipt["proof_status"] == "NOT_PROVEN"
+    assert receipt["journal"] == "JOURNAL_UNAVAILABLE" and _releases(tmp_path / "ledger.jsonl") == 0

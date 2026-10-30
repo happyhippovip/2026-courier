@@ -113,7 +113,8 @@ def open_controller_journal(controller_home):
 
     path = Path(controller_home) / CONTROLLER_JOURNAL
     if not path.is_file():
-        return None, "NO_JOURNAL"
+        # a directory/device in place of courier.db is not "absent": fail closed as unavailable
+        return None, ("JOURNAL_UNAVAILABLE" if os.path.lexists(path) else "NO_JOURNAL")
     journal = None
     try:
         journal = Journal(path, readonly=True)  # review 36f4d456 A2: a failing constructor fails closed too
