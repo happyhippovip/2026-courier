@@ -453,3 +453,16 @@ def test_courier_db_that_is_not_a_file_is_journal_unavailable(tmp_path):
                    lambda i, w: (w / "A.txt").write_text("done\n") and "A.txt")
     assert receipt["reason"] == "RELEASE_REJECTED" and receipt["proof_status"] == "NOT_PROVEN"
     assert receipt["journal"] == "JOURNAL_UNAVAILABLE" and _releases(tmp_path / "ledger.jsonl") == 0
+
+
+@pytest.mark.parametrize("name,content", [("phase.json", "[]"), ("phase.json", '"RAN"'), ("attempts.json", "[1]")])
+def test_restart_state_file_with_non_object_json_is_reset_not_a_crash(tmp_path, name, content):
+    # ACC3 t1696u: a restart must survive valid-JSON-but-not-an-object state files (no AttributeError)
+    queue = _queue(tmp_path, [_item("A", ["scripts/windows_worker/a.py"])])
+    work = tmp_path / "work"
+    work.mkdir()
+    queue.claim("A", HOLDER, 60, host="win-host", now=NOW)
+    (work / name).write_text(content, encoding="utf-8")
+    receipt = run_once(queue, HOLDER, "win-host", work, _execute, NOW)
+    assert receipt["outcome"] == "final" and receipt["item_id"] == "A"
+    assert (tmp_path / "ledger.jsonl").read_text(encoding="utf-8").count('"type":"RELEASE"') == 1

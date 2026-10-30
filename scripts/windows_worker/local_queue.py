@@ -284,9 +284,11 @@ def _receipt(workspace, body):
 
 def _read_json(path, default):
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        data = json.loads(path.read_text(encoding="utf-8"))
     except (FileNotFoundError, json.JSONDecodeError, UnicodeError, OSError):
         return default
+    # a restart must not crash on valid JSON of the wrong shape (e.g. [] in phase.json): unreadable state
+    return data if isinstance(data, type(default)) else default
 
 
 def _write_json(path, data):
