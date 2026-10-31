@@ -1,0 +1,138 @@
+# LUECKE_01_TEST.log – WK-INTEGRATION-004 · 2026-10-29 18:48 CET
+STOP_81.flag: absent (ls /workspace/GrokBot/STOP_81.flag → No such file) → execution allowed
+Patch: LUECKE_01.diff sha256 34a7bb3a9c6b733723b829cefc7a61e8bc073d1afea4131dd003b28c6960ff11
+Base: git archive 26ee23485952e61f6f2ad3da24176d6bbac82a63 → /tmp/l01/clean ; patched copy /tmp/l01/testcopy ; baseline copy /tmp/l01/basecopy
+Isolation: unshare --user --map-root-user --net ; env -i ; lo up inside netns ; HOME/TMPDIR/XDG_*/COURIER_HOME → /tmp/l01/env/* ; PYTHONPATH=user site ; PYTHONDONTWRITEBYTECODE=1 ; -p no:cacheprovider ; --timeout=60 per test
+Runner: /tmp/l01/run.sh sha256 b899de99612383ffb8ce7bbe092ec0b50566065e41456b97bb54e372a3c6f33d
+NOTE: Python 3.13.5 on box; project declares <3.13.
+NOTE: a first run (tests/controller tests/core tests/test_serve.py, no per-test timeout) hung 18:04–18:25 MEZ (PID 2223298) and was killed by me; it blocked another agent's pgrep gate 18:05–18:15 (see LAUFEND.md 18:17). Re-run with --timeout=60.
+
+===== A) new gate tests (patched) =====
+== preflight
+Python 3.13.5
+pytest 9.1.1
+deps ok
+loopback ok 50151
+== run: -v -p no:randomly --timeout=60 tests/controller/test_ctrl_goal_gate_l01.py
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0 -- /usr/bin/python3
+rootdir: /tmp/l01/testcopy
+configfile: pytest.ini
+plugins: timeout-2.4.0, anyio-4.15.1
+timeout: 60.0s
+timeout method: signal
+timeout func_only: False
+collecting ... collected 13 items
+
+tests/controller/test_ctrl_goal_gate_l01.py::test_confirmed_contract_is_accepted_and_claimable PASSED [  7%]
+tests/controller/test_ctrl_goal_gate_l01.py::test_task_without_contract_view_is_rejected PASSED [ 15%]
+tests/controller/test_ctrl_goal_gate_l01.py::test_unconfirmed_contract_is_rejected PASSED [ 23%]
+tests/controller/test_ctrl_goal_gate_l01.py::test_scope_widened_is_rejected PASSED [ 30%]
+tests/controller/test_ctrl_goal_gate_l01.py::test_forbidden_scope_is_rejected PASSED [ 38%]
+tests/controller/test_ctrl_goal_gate_l01.py::test_stale_fingerprint_is_rejected PASSED [ 46%]
+tests/controller/test_ctrl_goal_gate_l01.py::test_unknown_acceptance_id_is_rejected PASSED [ 53%]
+tests/controller/test_ctrl_goal_gate_l01.py::test_free_text_goal_needs_clarification_and_is_not_journaled PASSED [ 61%]
+tests/controller/test_ctrl_goal_gate_l01.py::test_ambiguous_structured_goal_needs_clarification PASSED [ 69%]
+tests/controller/test_ctrl_goal_gate_l01.py::test_structured_goal_returns_unconfirmed_draft_not_dispatched PASSED [ 76%]
+tests/controller/test_ctrl_goal_gate_l01.py::test_legacy_queued_task_without_contract_is_not_leased_and_is_visible PASSED [ 84%]
+tests/controller/test_ctrl_goal_gate_l01.py::test_confirm_goal_requires_dedicated_human_token PASSED [ 92%]
+tests/controller/test_ctrl_goal_gate_l01.py::test_confirm_goal_refuses_agent_actor PASSED [100%]
+
+============================== 13 passed in 0.33s ==============================
+PYTEST_EXIT=0
+
+===== B) tests/controller (patched) — tail =====
+........................................................................ [ 62%]
+........................................................................ [ 93%]
+....s...........                                                         [100%]
+231 passed, 1 skipped in 75.38s (0:01:15)
+PYTEST_EXIT=0
+
+===== B0) tests/controller (baseline 26ee2348) — tail =====
+...                                                                      [100%]
+218 passed, 1 skipped in 73.40s (0:01:13)
+PYTEST_EXIT=0
+
+===== C) full suite tests/ (baseline 26ee2348) =====
+__________ test_github_payload_is_shown_and_a_failed_read_is_unknown ___________
+    def test_github_payload_is_shown_and_a_failed_read_is_unknown():
+FAILED tests/hub/test_kolibri_view.py::test_github_payload_is_shown_and_a_failed_read_is_unknown
+FAILED tests/test_serve.py::test_main_arg_parser_validation - Failed: Timeout...
+2 failed, 4017 passed, 16 skipped, 1 warning, 6 subtests passed in 450.90s (0:07:30)
+
+===== D) full suite tests/ (patched) =====
+ERROR    courier.hub:server.py:493 hub error on GET /hub/api/mission-chip
+FAILED tests/hub/test_kolibri_view.py::test_github_payload_is_shown_and_a_failed_read_is_unknown
+FAILED tests/test_ab_e2e_gaps.py::test_mailbox_dedupes_same_task_id - courier...
+FAILED tests/test_ab_e2e_gaps.py::test_synthetic_a_to_b_two_agents_zero_eur
+FAILED tests/test_ab_master_synthetic.py::test_synthetic_controller_worker_verifier_and_replay
+FAILED tests/test_b6_wake_outside_lock.py::test_b6_host_loop_finish_turn_canary_abc_zero_human_relay
+FAILED tests/test_controller_cost_admission.py::test_create_task_accepts_an_explicit_zero_in_params
+FAILED tests/test_courier_mailbox.py::test_mailbox_processes_pending_task - c...
+FAILED tests/test_courier_mailbox.py::test_mailbox_single_writer_lease_conflict_prevents_race
+FAILED tests/test_gate2_two_workkeys.py::test_two_distinct_workkeys_then_restart_without_double_effect
+FAILED tests/test_golden_goal_ab_autonomous.py::test_goal_a_then_b_done_by_worker_tick_across_hard_kill
+FAILED tests/test_golden_ledger_bridge_ab.py::test_real_controller_ab_and_restart_before_feedback
+FAILED tests/test_ledger_bridge_verified_inputs.py::test_b_receives_a_verified_artifact
+FAILED tests/test_ledger_bridge_verified_inputs.py::test_changed_artifact_bytes_block_b
+FAILED tests/test_ledger_bridge_verified_inputs.py::test_undeclared_input_is_refused
+FAILED tests/test_ledger_chain_abcd_restart.py::test_chain_abcd_with_restart_reuses_verified_results
+FAILED tests/test_ledger_chain_abcd_restart.py::test_changed_upstream_stops_chain_downstream
+FAILED tests/test_ledger_engine.py::test_verified_task_makes_the_workkey_done_with_its_journal_proof
+FAILED tests/test_ledger_engine.py::test_provider_says_done_but_nothing_is_verified_stays_claimed
+FAILED tests/test_ledger_engine.py::test_wrong_bytes_end_failed_final_not_done
+FAILED tests/test_ledger_engine.py::test_blocked_task_parks_the_workkey - cou...
+FAILED tests/test_ledger_engine.py::test_stale_token_cannot_finish_a_workkey
+FAILED tests/test_ledger_engine.py::test_stale_token_cannot_overwrite_the_checkpoint_of_an_unproven_workkey
+FAILED tests/test_ledger_engine.py::test_restart_finds_the_same_task_and_does_not_run_it_again
+FAILED tests/test_ledger_engine.py::test_zero_human_chain_runs_three_workkeys_to_final_with_proofs
+FAILED tests/test_ledger_engine.py::test_b1_missing_cost_blocks - courier_cor...
+FAILED tests/test_ledger_engine.py::test_b4_abc_bytes_sha256_per_hop - courie...
+FAILED tests/test_ledger_engine.py::test_b4_tampered_hop_bytes_rejected - cou...
+FAILED tests/test_ledger_engine.py::test_b3_done_requires_result_accepted - c...
+FAILED tests/test_ledger_engine.py::test_time_passing_while_verifying_does_not_lose_the_result
+FAILED tests/test_ledger_engine.py::test_human_confirmed_effect_is_not_proof
+FAILED tests/test_ledger_engine.py::test_a_second_finish_after_final_is_rejected_and_writes_no_second_receipt
+FAILED tests/test_ledger_engine.py::test_crash_after_verifier_acceptance_completes_on_restart
+FAILED tests/test_ledger_engine.py::test_final_checkpoint_and_receipt_carry_everything_needed_to_resume
+FAILED tests/test_ledger_engine.py::test_cost_blocked_workkey_is_parked_and_the_chain_moves_on
+FAILED tests/test_ledger_engine.py::test_a_verified_task_of_another_workkey_cannot_finish_this_workkey
+FAILED tests/test_ledger_engine.py::test_resubmit_after_restart_with_the_same_body_returns_the_existing_task
+FAILED tests/test_ledger_engine.py::test_a_changed_body_under_the_same_workkey_is_a_conflict_and_parks_nothing
+FAILED tests/test_ledger_engine.py::test_a_crash_after_the_receipt_and_before_the_save_writes_one_receipt
+FAILED tests/test_mission_chip.py::test_mission_chip_deterministic_execution
+FAILED tests/test_mission_chip.py::test_mission_chip_http_endpoint - urllib.e...
+FAILED tests/test_mission_chip.py::test_mission_chip_cli - courier_core.contr...
+FAILED tests/test_mission_chip.py::test_mission_chip_cli_pretty_output - cour...
+FAILED tests/test_serve.py::test_main_arg_parser_validation - Failed: Timeout...
+FAILED tests/test_serve.py::test_service_lifecycle_and_http_endpoints - asser...
+FAILED tests/test_serve.py::test_service_claim_and_execution_lifecycle - asse...
+FAILED tests/test_task_dependency_input.py::test_real_controller_and_worker_run_a_then_b_on_the_verified_result
+FAILED tests/test_task_dependency_input.py::test_a_changed_dependency_artifact_never_reaches_the_adapter
+FAILED tests/test_task_dependency_input.py::test_controller_restart_between_a_and_b_runs_b_once_and_a_never_again
+ERROR tests/test_continuity_demo.py::test_run_writes_a_passing_receipt - Fail...
+ERROR tests/test_continuity_demo.py::test_no_token_in_receipt_or_logs - Faile...
+ERROR tests/test_continuity_demo.py::test_verify_passes_on_untouched_evidence
+ERROR tests/test_continuity_demo.py::test_verify_fails_on_edited_receipt - Fa...
+ERROR tests/test_continuity_demo.py::test_verify_fails_on_edited_ledger - Fai...
+ERROR tests/test_continuity_demo.py::test_verify_fails_on_edited_journal - Fa...
+PYTEST_EXIT=1
+48 failed, 3978 passed, 16 skipped, 1 warning, 6 errors, 6 subtests passed in 573.66s (0:09:33)
+
+===== E) error signatures (patched full) =====
+     35 E               courier_core.controller.ApiError: task has no confirmed goal contract that accepts it
+      8 E           Failed: Timeout (>60.0s) from pytest-timeout.
+      5 E         
+      4 E       assert 2 == 0
+      4 E       AssertionError: {"mission_id":"A","outcome":"skipped","reason":"rejected"}
+      2 E           assert 409 == 201
+      1 E       urllib.error.HTTPError: HTTP Error 500: Internal Server Error
+      1 E       AssertionError: assert 'UNKNOWN / nicht erreichbar' == 'success'
+
+VERDICT: gate tests 13/13 passed; tests/controller 231 passed 1 skipped (baseline 218 passed); FULL SUITE NOT GREEN: patched 48 failed + 6 errors vs baseline 2 failed (test_kolibri_view, test_serve arg-parser timeout, both also failing on baseline). New failures = producers (ledger_engine, ledger_v1_bridge, continuity_demo, mission_chip, …) create tasks without a goal view and are now rejected by the gate (35× 'no confirmed goal contract'). Acceptance 'pytest passed' NOT met for the full suite.
+Full raw logs (sha256):
+34fa48ca327a80e08e38135ceda3e8754d25ca852f0d96f2d551166975dc0b9c  base_controller.log
+b3abde0999b131686788fd6205314a027ecff06220a3f5780da3925c66729790  base_full.log
+ffa27f3e2f251feda07fae62da33e3a6d36189a3c852bdeeaacee3c5e3e77774  patch_controller.log
+0c867349be3614e948129ed04a9d8dfcd7781761f1d468d72c4fcb8954d6079e  patch_full.log
+ee87ea398f094fd76c2a51c10c865750b72e8e26c09c77558eb44d2649df567e  patch_gate_v.log

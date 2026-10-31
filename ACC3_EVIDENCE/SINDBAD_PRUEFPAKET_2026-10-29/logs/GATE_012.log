@@ -1,0 +1,165 @@
+18:16:54 BUSY: 2223298 python3 -m pytest -p no:cacheprovider -q tests/controller tests/core tests/test_serve.py
+18:17:24 BUSY: 2223298 python3 -m pytest -p no:cacheprovider -q tests/controller tests/core tests/test_serve.py
+18:17:54 BUSY: 2223298 python3 -m pytest -p no:cacheprovider -q tests/controller tests/core tests/test_serve.py
+18:18:24 BUSY: 2223298 python3 -m pytest -p no:cacheprovider -q tests/controller tests/core tests/test_serve.py
+18:18:54 BUSY: 2223298 python3 -m pytest -p no:cacheprovider -q tests/controller tests/core tests/test_serve.py
+18:19:24 BUSY: 2223298 python3 -m pytest -p no:cacheprovider -q tests/controller tests/core tests/test_serve.py
+18:19:54 BUSY: 2223298 python3 -m pytest -p no:cacheprovider -q tests/controller tests/core tests/test_serve.py
+18:20:24 BUSY: 2223298 python3 -m pytest -p no:cacheprovider -q tests/controller tests/core tests/test_serve.py
+18:20:54 BUSY: 2223298 python3 -m pytest -p no:cacheprovider -q tests/controller tests/core tests/test_serve.py
+18:21:24 BUSY: 2223298 python3 -m pytest -p no:cacheprovider -q tests/controller tests/core tests/test_serve.py
+18:21:54 BUSY: 2223298 python3 -m pytest -p no:cacheprovider -q tests/controller tests/core tests/test_serve.py
+18:22:24 BUSY: 2223298 python3 -m pytest -p no:cacheprovider -q tests/controller tests/core tests/test_serve.py
+18:22:54 BUSY: 2223298 python3 -m pytest -p no:cacheprovider -q tests/controller tests/core tests/test_serve.py
+18:23:24 BUSY: 2223298 python3 -m pytest -p no:cacheprovider -q tests/controller tests/core tests/test_serve.py
+18:23:54 BUSY: 2223298 python3 -m pytest -p no:cacheprovider -q tests/controller tests/core tests/test_serve.py
+18:24:24 BUSY: 2223298 python3 -m pytest -p no:cacheprovider -q tests/controller tests/core tests/test_serve.py
+18:24:54 BUSY: 2223298 python3 -m pytest -p no:cacheprovider -q tests/controller tests/core tests/test_serve.py
+18:25:25 BUSY: 2240701 python3 -m pytest -p no:cacheprovider -q -rfE --timeout=60 tests/controller
+2240925 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-2/test_restart_grace_expires_van0/courier_home --port 47393 --print-port
+18:25:55 BUSY: 2240701 python3 -m pytest -p no:cacheprovider -q -rfE --timeout=60 tests/controller
+18:26:25 BUSY: 2241833 python3 -m pytest -p no:cacheprovider -q -rfE --timeout=60 tests/controller
+2242042 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-3/test_late_result_controller_ha0/courier_home --port 36559 --print-port
+18:26:55 BUSY: 2241833 python3 -m pytest -p no:cacheprovider -q -rfE --timeout=60 tests/controller
+18:27:25 BUSY: 2241833 python3 -m pytest -p no:cacheprovider -q -rfE --timeout=60 tests/controller
+2243307 /usr/bin/python3 -m courier_core.serve --port 0 --print-port --home /tmp/l01/env/tmp/pytest-of-root/pytest-3/test_sigterm_is_a_graceful_sto0/home
+18:27:55 BUSY: 2243627 python3 -m pytest -p no:cacheprovider -q -rfE --timeout=60 tests/controller
+18:28:25 BUSY: 2243627 python3 -m pytest -p no:cacheprovider -q -rfE --timeout=60 tests/controller
+2244042 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-4/test_restart_grace_expires_van0/courier_home --port 57683 --print-port
+18:28:55 BUSY: 2243627 python3 -m pytest -p no:cacheprovider -q -rfE --timeout=60 tests/controller
+18:29:25 BUSY: 2244970 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+18:29:55 BUSY: 2244970 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2245988 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/test_restart_grace_expires_van0/courier_home --port 44689 --print-port
+18:30:25 BUSY: 2244970 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+18:30:55 BUSY: 2244970 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2247102 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/test_late_result_from_supersed1/courier_home --port 60349 --print-port
+18:31:25 BUSY: 2244970 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2247443 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/test_controller_restart_mid_ru1/courier_home --controller http://127.0.0.1:45153 --max-tasks 1 --heartbeat 2
+2247449 /usr/bin/python3 /tmp/l01/testcopy/courier_worker/adapter_runner.py /tmp/l01/env/tmp/pytest-of-root/pytest-5/test_controller_restart_mid_ru1/courier_home/run/requests/dsp-b7d53cd30e0e482c80aff4e053c166c4.json
+2247457 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/test_controller_restart_mid_ru1/courier_home --port 45153 --print-port
+18:31:55 BUSY: 2244970 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+18:32:25 BUSY: 2244970 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2249003 /usr/bin/python3 /tmp/l01/testcopy/scripts/continuity_demo.py run --out /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run
+2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+18:32:55 BUSY: 2244970 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2249003 /usr/bin/python3 /tmp/l01/testcopy/scripts/continuity_demo.py run --out /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run
+2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+18:33:25 BUSY: 2244970 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+18:33:55 BUSY: 2244970 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+2250632 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/test_two_distinct_workkeys_the0/home --port 33533 --print-port
+2250639 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/test_two_distinct_workkeys_the0/home --controller http://127.0.0.1:33533 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 1.0 --ledger-tick-timeout 60
+18:34:25 BUSY: 2244970 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+2250632 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/test_two_distinct_workkeys_the0/home --port 33533 --print-port
+2250639 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/test_two_distinct_workkeys_the0/home --controller http://127.0.0.1:33533 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 1.0 --ledger-tick-timeout 60
+18:34:55 BUSY: 2244970 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+2252083 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/test_goal_a_then_b_done_by_wor0/home --port 51697 --print-port
+2252090 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/test_goal_a_then_b_done_by_wor0/home --controller http://127.0.0.1:51697 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+18:35:25 BUSY: 2244970 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+2252083 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/test_goal_a_then_b_done_by_wor0/home --port 51697 --print-port
+2252090 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/test_goal_a_then_b_done_by_wor0/home --controller http://127.0.0.1:51697 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+18:35:55 BUSY: 2244970 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+18:36:25 BUSY: 2244970 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+2254349 /bin/bash /tmp/l01/testcopy/scripts/mac_worker/limit_wrapper.sh /tmp/l01/env/tmp/pytest-of-root/pytest-5/test_agy_timeout_still_fail_cl0/bin/agy -p Task ID: task-agy-hb-1 Instruction: do work  You are a headless worker on Mac. You MUST execute the instruction. After you have successfully executed the instruction, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did. IMPORTANT: Your current working directory is /tmp/l01/testcopy. Any file artifacts you create MUST be relative to this directory. --sandbox --disable-slash-commands
+2254351 /bin/sh /tmp/l01/env/tmp/pytest-of-root/pytest-5/test_agy_timeout_still_fail_cl0/bin/agy -p Task ID: task-agy-hb-1 Instruction: do work  You are a headless worker on Mac. You MUST execute the instruction. After you have successfully executed the instruction, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did. IMPORTANT: Your current working directory is /tmp/l01/testcopy. Any file artifacts you create MUST be relative to this directory. --sandbox --disable-slash-commands
+18:36:55 BUSY: 2244970 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+18:37:25 BUSY: 2244970 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+18:37:55 BUSY: 2244970 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+18:38:25 BUSY: 2244970 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+18:38:55 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+18:39:25 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+2257693 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2257922 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-6/test_non_idempotent_worker_los0/courier_home --port 59133 --print-port
+18:39:55 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+2257693 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+18:40:25 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+2257693 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2260400 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-6/test_kill_worker_mid_task_is_r0/courier_home --port 47971 --print-port
+2260408 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-6/test_kill_worker_mid_task_is_r0/courier_home --controller http://127.0.0.1:47971 --max-tasks 1 --heartbeat 2
+2260571 /usr/bin/python3 /tmp/l01/basecopy/courier_worker/adapter_runner.py /tmp/l01/env/tmp/pytest-of-root/pytest-6/test_kill_worker_mid_task_is_r0/courier_home/run/requests/dsp-808df91811d742d683b85d1658d1b69e.json
+18:40:55 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+2257693 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2260916 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-6/test_cancel_while_running0/courier_home --port 33707 --print-port
+18:41:25 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+2257693 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2261262 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-6/test_non_idempotent_task_block0/courier_home --port 41183 --print-port
+2261276 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-6/test_non_idempotent_task_block0/courier_home --controller http://127.0.0.1:41183 --max-tasks 1 --heartbeat 2
+18:41:55 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+2257693 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+18:42:25 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+2257693 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2263232 /usr/bin/python3 -m scripts.coordination_status --events-file /tmp/l01/env/tmp/pytest-of-root/pytest-6/test_reap_via_cli0/ledger.jsonl --agent GOOGLE_MAC --host MAC_LOCAL --reap --lease-ttl 1
+18:42:55 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+2257693 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2263569 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-6/test_goal_a_then_b_done_by_wor0/home --port 56923 --print-port
+2263602 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-6/test_goal_a_then_b_done_by_wor0/home --controller http://127.0.0.1:56923 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+18:43:25 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+2257693 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+18:43:55 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+2257693 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+2264952 /bin/bash /tmp/l01/basecopy/scripts/mac_worker/limit_wrapper.sh /tmp/l01/env/tmp/pytest-of-root/pytest-6/test_agy_timeout_still_fail_cl0/bin/agy -p Task ID: task-agy-hb-1 Instruction: do work  You are a headless worker on Mac. You MUST execute the instruction. After you have successfully executed the instruction, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did. IMPORTANT: Your current working directory is /tmp/l01/basecopy. Any file artifacts you create MUST be relative to this directory. --sandbox --disable-slash-commands
+2264954 /bin/sh /tmp/l01/env/tmp/pytest-of-root/pytest-6/test_agy_timeout_still_fail_cl0/bin/agy -p Task ID: task-agy-hb-1 Instruction: do work  You are a headless worker on Mac. You MUST execute the instruction. After you have successfully executed the instruction, you MUST output a final JSON object in a markdown codeblock. The JSON must contain a 'status' field set to 'SUCCESS' and a 'stdout_summary' field explaining what you did. IMPORTANT: Your current working directory is /tmp/l01/basecopy. Any file artifacts you create MUST be relative to this directory. --sandbox --disable-slash-commands
+18:44:25 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+2257693 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+18:44:55 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+2257693 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+18:45:25 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+2257693 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+18:45:55 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+2257693 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+18:46:25 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+2257693 python3 -m pytest -p no:cacheprovider -q -rfEs --timeout=60 tests
+18:46:55 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+18:47:25 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+18:47:55 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+18:48:25 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+18:48:55 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+18:49:26 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+18:49:56 BUSY: 2249004 /usr/bin/python3 -m courier_core.serve --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --port 58449 --print-port
+2249009 /usr/bin/python3 -m courier_worker.host --home /tmp/l01/env/tmp/pytest-of-root/pytest-5/continuity0/run/home --controller http://127.0.0.1:58449 --max-tasks 1 --heartbeat 0.5 --ledger-agent-id GOOGLE_WINDOWS --ledger-host-id WINDOWS_REMOTE --ledger-tick-interval 12.0 --ledger-tick-timeout 60
+18:50:26 FREE (Versuch 67)

@@ -1,0 +1,44 @@
+# WK-INTEGRATOR-002/009/012 – pytest-Zusammenfassung RC-0060 (Integrator, 29.10.2026, alle Zeiten MEZ)
+Gate: 18:16:54–18:50:26 belegt durch fremden pytest PID 2223298 (/tmp/l01, Lücke 01; nicht angefasst), frei bei Versuch 67 (GATE_012.log).
+Vor dem Start 18:50:32: STOP_81.flag fehlt, kein fremder pytest (Rest-Prozess courier_worker.host aus /tmp/l01 lief noch, kein pytest, nicht angefasst).
+Scratch: /tmp/i12 (Clone ohne Remote), Trees per git apply reproduziert: a209b3fe (PR 2), 9afe8706 (PR 2 + 2b), 481eabda (9afe8706 + CP1–CP5).
+Befehl je Datei: python3 -m pytest -rA -p no:cacheprovider --timeout=300 <ziel> (seriell, Gate vor jedem Lauf). Python 3.13.5, pytest 9.1.1.
+Vollständige Logs: PYTEST_0060_a209b3fe.log, PYTEST_0060_9afe8706.log, INTEGRATIONSTEST.log, BASELINE_26ee2348_3tests.log.
+
+## Zahlen je Ziel (passed / failed / errors / skipped)
+| Ziel | a209b3fe (nur PR 2) | 9afe8706 (PR 2 + 2b) |
+|---|---|---|
+| tests/test_ledger_v1_bridge.py | 40/0/0/0 | 40/0/0/0 |
+| tests/controller | 220/0/0/1 | 220/0/0/1 |
+| tests/test_serve.py | 24/0/0/0 | 24/0/0/0 |
+| tests/hub | 128/**15**/0/0 | 145/**3**/0/0 |
+| tests/test_task_dependency_input.py | 23/0/0/0 | 23/0/0/0 |
+| tests/test_mission_chip.py | 10/0/0/0 | 10/0/0/0 |
+| tests/test_local_bind_loopback.py | 5/0/0/0 | 5/0/0/0 |
+| tests/test_work_queue.py | 21/0/0/0 | 21/0/0/0 |
+| tests/test_queue_feed_pr_evidence.py | 7/0/0/0 | 7/0/0/0 |
+| tests/test_windows_local_queue.py | 15/0/0/0 | 15/0/0/0 |
+| tests/test_queue_feed_corrupt_default.py | 2/0/0/0 | 2/0/0/0 |
+| tests/test_work_queue_windows_lock.py | 1/0/0/0 | 1/0/0/0 |
+| tests/test_runtime_continuity.py | 46/0/0/0 | 46/0/0/0 |
+| tests/test_gate2_two_workkeys.py | 3/0/0/0 | 3/0/0/0 |
+| **Summe** | **545 / 15 / 0 / 1** | **562 / 3 / 0 / 1** |
+Nicht im Tree (R3c-Liste, gehören zu Linie A/P2B): tests/test_p2b_journal_proof.py, tests/controller/test_ctrl_p2b_accepted_seq.py, tests/test_o7_04_lease_owner_required.py → nicht gelaufen.
+(Hub-Summe 143 → 148: 2b fügt 5 Testfälle hinzu = 1 + 3 (parametrisiert) + 1.)
+
+## Fehlschläge und Ursache
+a209b3fe (ohne 2b), 15 failed:
+- 14 × tests/hub/test_hub_product.py: erwartete Hub-403. Der Hub sendet ohne PR 2b kein X-Courier-Resolve-Token ⇒ Controller 403 ⇒ Hub meldet 502/„error“ statt recorded (Assertions 502≠200, 'error'≠'recorded', BLOCKED≠CANCELLED …). Das bestätigt den Befund aus PR_2_READY/CHECKS.md §6.
+- 1 × tests/hub/test_kolibri_view.py::test_github_payload_is_shown_and_a_failed_read_is_unknown: **schon auf Base 26ee2348 rot** (BASELINE-Log), unabhängig von RC-0060; Kolibri, gesperrt, nicht analysiert.
+9afe8706 (mit 2b), 3 failed:
+- test_hub_product.py::test_controller_not_running_means_nothing_was_sent: **Regression durch PR 2b.** Das Test-Home hat keine resolve.token; 2b prüft das Operator-Token vor dem Verbindungsversuch ⇒ 403 not_authorized statt 503 offline. Auf 26ee2348 grün.
+- test_hub_product.py::test_lost_answer_after_the_controller_recorded_is_never_reported_as_nothing_changed: **Lücke in PR 2b.** Der Test-Proxy (test_hub_product.py:403-407) leitet nur X-Courier-Token weiter, nicht den Resolve-Header ⇒ Controller 403 im Proxy ⇒ nichts aufgezeichnet ⇒ KeyError 'outcome'. Auf 26ee2348 grün.
+- test_kolibri_view.py::test_github_payload…: wie oben, vorbestehend.
+Neue 2b-Tests (H1–H3, H2 dreifach) und H4: alle passed.
+
+## -k-Filter (Collect-Only, a209b3fe)
+- T1 `tests/test_ledger_v1_bridge.py -k legacy` → 5 Tests (legacy_state_loads…, e0_legacy ×2, e0b_legacy ×2): trifft, aber nicht die E0v2-Tests.
+- T5 `-k e0` → 6 Tests (alle E0/E0b/E0v2): trifft genau.
+- T8 `tests/controller -k resolve` → 4 Tests, darunter fälschlich test_cancel_of_claimed_task_resolves_on_lease_expiry; die EC1v2-Tests T6/T7 heißen nicht „resolve“. Filter unscharf → besser Node-IDs.
+- R4 (2b) `tests/hub -k kolibri` → 68 Tests: trifft.
+T2–T4, T6, T7, H1–H4 als Node-IDs: alle passed (siehe -rA-Abschnitt PASSES in den Logs).

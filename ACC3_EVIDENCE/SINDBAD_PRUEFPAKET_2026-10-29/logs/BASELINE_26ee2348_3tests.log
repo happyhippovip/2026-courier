@@ -1,0 +1,6 @@
+# Baseline-Kontrolle 26ee2348 (ohne PR 2/2b), 2026-10-29 18:56:05 CET, Gate: STOP_81 fehlt, kein fremder pytest
+python3 -m pytest -q -p no:cacheprovider tests/hub/test_kolibri_view.py::test_github_payload_is_shown_and_a_failed_read_is_unknown tests/hub/test_hub_product.py::test_controller_not_running_means_nothing_was_sent tests/hub/test_hub_product.py::test_lost_answer_after_the_controller_recorded_is_never_reported_as_nothing_changed
+tests/hub/test_kolibri_view.py:379: AssertionError
+=========================== short test summary info ============================
+FAILED tests/hub/test_kolibri_view.py::test_github_payload_is_shown_and_a_failed_read_is_unknown
+1 failed, 2 passed in 1.42s

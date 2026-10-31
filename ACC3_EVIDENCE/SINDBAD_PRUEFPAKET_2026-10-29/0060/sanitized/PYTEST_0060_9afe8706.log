@@ -1,0 +1,1289 @@
+# WK-012 pytest Tree 9afe8706ee94bbd554efdbff5dc4666a0bf19f64 start 2026-10-29 18:52:34 CET python Python 3.13.5 pytest pytest 9.1.1
+### 18:52:35 [9afe8706 collect] python3 -m pytest -rA -p no:cacheprovider --timeout=300 --collect-only -q tests/test_ledger_v1_bridge.py -k legacy
+tests/test_ledger_v1_bridge.py::test_legacy_state_loads_derived_status_without_rewrite
+tests/test_ledger_v1_bridge.py::test_e0_legacy_result_without_verified_view_never_finalizes
+tests/test_ledger_v1_bridge.py::test_e0_legacy_result_with_verified_view_finalizes_once
+tests/test_ledger_v1_bridge.py::test_e0b_legacy_already_done_in_ledger_gets_no_second_final
+tests/test_ledger_v1_bridge.py::test_e0b_legacy_already_done_but_unverified_stays_posted
+
+5/40 tests collected (35 deselected) in 0.29s
+### EXIT 0 18:52:35
+### 18:52:35 [9afe8706 collect] python3 -m pytest -rA -p no:cacheprovider --timeout=300 --collect-only -q tests/test_ledger_v1_bridge.py -k e0
+tests/test_ledger_v1_bridge.py::test_e0_legacy_result_without_verified_view_never_finalizes
+tests/test_ledger_v1_bridge.py::test_e0_legacy_result_with_verified_view_finalizes_once
+tests/test_ledger_v1_bridge.py::test_e0b_legacy_already_done_in_ledger_gets_no_second_final
+tests/test_ledger_v1_bridge.py::test_e0b_legacy_already_done_but_unverified_stays_posted
+tests/test_ledger_v1_bridge.py::test_e0v2_changed_result_on_done_mission_gets_no_second_final
+tests/test_ledger_v1_bridge.py::test_e0v2_same_result_on_done_mission_is_stamped_once
+
+6/40 tests collected (34 deselected) in 0.16s
+### EXIT 0 18:52:35
+### 18:52:35 [9afe8706 collect] python3 -m pytest -rA -p no:cacheprovider --timeout=300 --collect-only -q tests/controller -k resolve
+tests/controller/test_ctrl_lifecycle.py::test_cancel_of_claimed_task_resolves_on_lease_expiry
+tests/controller/test_ctrl_moat_hardening.py::test_resolve_cancel_records_the_actor_and_keeps_the_uncertainty
+tests/controller/test_ctrl_moat_hardening.py::test_resolve_and_cancel_over_http
+tests/controller/test_ctrl_service.py::test_resolve_route_validates_over_http
+
+4/221 tests collected (217 deselected) in 0.37s
+### EXIT 0 18:52:36
+### 18:52:36 [9afe8706 collect] python3 -m pytest -rA -p no:cacheprovider --timeout=300 --collect-only -q tests/hub -k kolibri
+tests/hub/test_hub_product.py::test_hub_kolibri_endpoint_returns_arbitrage_research
+tests/hub/test_kolibri_arbi_view.py::test_read_arbitrage_research_structure
+tests/hub/test_kolibri_arbi_view.py::test_build_snapshot_contains_arbitrage_research
+tests/hub/test_kolibri_arbi_view.py::test_kolibri_dom_renders_arbi_first_before_system_resources
+tests/hub/test_kolibri_bridge.py::test_happy_path_reaches_done_with_evidence
+tests/hub/test_kolibri_bridge.py::test_ready_vs_queued_needs_dependency_evidence
+tests/hub/test_kolibri_bridge.py::test_claim_shows_transferred_start_shows_running
+tests/hub/test_kolibri_bridge.py::test_start_without_claim_stays_unknown
+tests/hub/test_kolibri_bridge.py::test_verdict_without_running_and_done_without_verdict_stay_unknown
+tests/hub/test_kolibri_bridge.py::test_accept_without_verifier_identity_is_not_green
+tests/hub/test_kolibri_bridge.py::test_human_confirmation_never_done_or_green
+tests/hub/test_kolibri_bridge.py::test_dedupe_and_conflict
+tests/hub/test_kolibri_bridge.py::test_out_of_order_buffers_until_gap_fills
+tests/hub/test_kolibri_bridge.py::test_replay_idempotent_restart_equal_no_repulse
+tests/hub/test_kolibri_bridge.py::test_stale_flag_and_late_events_never_change_state
+tests/hub/test_kolibri_bridge.py::test_blocked_failed_cancel_paths_with_diagnosis
+tests/hub/test_kolibri_bridge.py::test_reconnect_closes_gap
+tests/hub/test_kolibri_bridge.py::test_bridge_is_read_only_by_construction
+tests/hub/test_kolibri_flow_failclosed.py::test_no_green_without_event_id
+tests/hub/test_kolibri_flow_failclosed.py::test_no_green_from_status_string_alone
+tests/hub/test_kolibri_flow_failclosed.py::test_no_green_from_success_string_alone
+tests/hub/test_kolibri_flow_failclosed.py::test_replay_does_not_re_emit_success
+tests/hub/test_kolibri_flow_failclosed.py::test_done_without_verifier_stays_unknown
+tests/hub/test_kolibri_flow_failclosed.py::test_human_confirmed_is_not_verified
+tests/hub/test_kolibri_flow_failclosed.py::test_demo_data_never_green
+tests/hub/test_kolibri_neon_slice.py::test_lane_shows_five_stages_in_order
+tests/hub/test_kolibri_neon_slice.py::test_statuses_are_distinguishable_in_live
+tests/hub/test_kolibri_neon_slice.py::test_demo_is_deterministic_labeled_and_never_green
+tests/hub/test_kolibri_neon_slice.py::test_live_ticker_and_detail_carry_proof
+tests/hub/test_kolibri_neon_slice.py::test_done_proof_uses_real_merge_evidence_not_synthetic_id
+tests/hub/test_kolibri_neon_slice.py::test_perf_guards_are_wired
+tests/hub/test_kolibri_truth_p0.py::test_k1_verified_outcome_with_journal_proof_is_evidence
+tests/hub/test_kolibri_truth_p0.py::test_k1_verified_outcome_without_valid_proof_stays_unverified[None]
+tests/hub/test_kolibri_truth_p0.py::test_k1_verified_outcome_without_valid_proof_stays_unverified[proof1]
+tests/hub/test_kolibri_truth_p0.py::test_k1_verified_outcome_without_valid_proof_stays_unverified[proof2]
+tests/hub/test_kolibri_truth_p0.py::test_k1_verified_outcome_without_valid_proof_stays_unverified[proof3]
+tests/hub/test_kolibri_truth_p0.py::test_k1_verified_outcome_without_valid_proof_stays_unverified[proof4]
+tests/hub/test_kolibri_truth_p0.py::test_k1_verified_outcome_without_valid_proof_stays_unverified[proof5]
+tests/hub/test_kolibri_truth_p0.py::test_k1_verified_outcome_without_valid_proof_stays_unverified[proof6]
+tests/hub/test_kolibri_truth_p0.py::test_k1_verified_outcome_without_valid_proof_stays_unverified[journal:7]
+tests/hub/test_kolibri_truth_p0.py::test_k1_human_confirmed_or_unlabelled_is_never_verified_even_with_a_proof
+tests/hub/test_kolibri_truth_p0.py::test_k1_card_proof_comes_from_the_real_result_accepted_event
+tests/hub/test_kolibri_truth_p0.py::test_k1_card_without_the_accepted_event_carries_no_proof
+tests/hub/test_kolibri_truth_p0.py::test_read_arbitrage_research_refuses_a_symlink
+tests/hub/test_kolibri_truth_p0.py::test_read_arbitrage_research_refuses_a_root_two_levels_under_a_symlink
+tests/hub/test_kolibri_truth_p0.py::test_k2_missing_arbitrage_file_has_no_amount
+tests/hub/test_kolibri_truth_p0.py::test_k2_corrupt_arbitrage_file_has_no_amount
+tests/hub/test_kolibri_truth_p0.py::test_k2_file_without_revenue_field_has_no_amount
+tests/hub/test_kolibri_truth_p0.py::test_k2_snapshot_fallback_has_no_amount
+tests/hub/test_kolibri_view.py::test_read_muse_wall_refuses_a_symlink
+tests/hub/test_kolibri_view.py::test_read_muse_wall_refuses_a_wall_two_levels_under_a_symlink
+tests/hub/test_kolibri_view.py::test_read_postfach_refuses_a_symlink
+tests/hub/test_kolibri_view.py::test_read_postfach_refuses_a_home_two_levels_under_a_symlink
+tests/hub/test_kolibri_view.py::test_read_ledger_bridge_refuses_a_symlink
+tests/hub/test_kolibri_view.py::test_read_ledger_bridge_refuses_a_file_two_levels_under_a_symlink
+tests/hub/test_kolibri_view.py::test_station_order_is_numeric_and_stable
+tests/hub/test_kolibri_view.py::test_view_renders_real_sources_with_traceable_values
+tests/hub/test_kolibri_view.py::test_no_activity_bird_rests
+tests/hub/test_kolibri_view.py::test_unreachable_source_is_unknown_without_an_invented_value
+tests/hub/test_kolibri_view.py::test_github_payload_is_shown_and_a_failed_read_is_unknown
+tests/hub/test_kolibri_view.py::test_fresh_heartbeat_is_not_pause
+tests/hub/test_kolibri_view.py::test_new_journal_entry_is_visible_on_the_next_poll
+tests/hub/test_kolibri_view.py::test_merged_ref_uses_origin_then_unknown
+tests/hub/test_kolibri_view.py::test_local_merge_subject_is_a_row_without_a_fixed_number
+tests/hub/test_kolibri_view.py::test_hub_route_serves_one_page
+tests/hub/test_kolibri_view.py::test_kolibri_workkey_lease_blocker_and_resource_pause_visibility
+tests/hub/test_kolibri_view.py::test_kolibri_static_script_lifecycle_guards
+tests/hub/test_kolibri_view.py::test_kolibri_flow_signal_translation
+
+68/148 tests collected (80 deselected) in 0.39s
+### EXIT 0 18:52:37
+### 18:52:37 [9afe8706] python3 -m pytest -rA -p no:cacheprovider --timeout=300 tests/test_ledger_v1_bridge.py
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0
+rootdir: /tmp/i12/pr2b
+configfile: pytest.ini
+plugins: timeout-2.4.0, anyio-4.15.1
+timeout: 300.0s
+timeout method: signal
+timeout func_only: False
+collected 40 items
+
+tests/test_ledger_v1_bridge.py ........................................  [100%]
+
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/test_ledger_v1_bridge.py::test_ready_mission_is_claimed_and_posted_once
+PASSED tests/test_ledger_v1_bridge.py::test_replay_writes_nothing_and_posts_nothing
+PASSED tests/test_ledger_v1_bridge.py::test_post_failure_after_claim_retries_same_key
+PASSED tests/test_ledger_v1_bridge.py::test_complete_a_finalizes_and_posts_b_in_the_same_pass
+PASSED tests/test_ledger_v1_bridge.py::test_blocked_a_parks_and_unrelated_c_dispatches
+PASSED tests/test_ledger_v1_bridge.py::test_failed_or_cancelled_becomes_error_not_final
+PASSED tests/test_ledger_v1_bridge.py::test_restart_on_complete_task_writes_one_final_and_no_post
+PASSED tests/test_ledger_v1_bridge.py::test_unreadable_receipt_log_is_not_a_present_receipt
+PASSED tests/test_ledger_v1_bridge.py::test_bad_config_exits_2_without_posting
+PASSED tests/test_ledger_v1_bridge.py::test_goal_fields_round_trip_into_evidence_and_replay_is_noop
+PASSED tests/test_ledger_v1_bridge.py::test_half_or_invalid_goal_is_blocked_and_not_posted
+PASSED tests/test_ledger_v1_bridge.py::test_mission_status_posted_then_final_done_and_replay_is_stable
+PASSED tests/test_ledger_v1_bridge.py::test_mission_status_blocked_and_error_never_final_done
+PASSED tests/test_ledger_v1_bridge.py::test_legacy_state_loads_derived_status_without_rewrite
+PASSED tests/test_ledger_v1_bridge.py::test_token_never_appears_in_stdout_stderr_or_log
+PASSED tests/test_ledger_v1_bridge.py::test_complete_task_with_only_pending_result_never_emits_final
+PASSED tests/test_ledger_v1_bridge.py::test_human_confirmed_effect_is_not_final
+PASSED tests/test_ledger_v1_bridge.py::test_complete_without_accepted_result_is_not_final
+PASSED tests/test_ledger_v1_bridge.py::test_accepted_result_without_resolution_is_not_final
+PASSED tests/test_ledger_v1_bridge.py::test_accepted_result_with_non_verified_resolution_is_not_final
+PASSED tests/test_ledger_v1_bridge.py::test_positive_cost_without_a_route_is_not_posted
+PASSED tests/test_ledger_v1_bridge.py::test_missing_cost_is_not_dispatched
+PASSED tests/test_ledger_v1_bridge.py::test_unknown_cost_flag_is_not_dispatched
+PASSED tests/test_ledger_v1_bridge.py::test_unknown_cost_class_is_not_dispatched
+PASSED tests/test_ledger_v1_bridge.py::test_invalid_cost_is_not_dispatched[-1.0]
+PASSED tests/test_ledger_v1_bridge.py::test_invalid_cost_is_not_dispatched[nan]
+PASSED tests/test_ledger_v1_bridge.py::test_invalid_cost_is_not_dispatched[inf]
+PASSED tests/test_ledger_v1_bridge.py::test_explicit_zero_cost_without_a_route_still_posts
+PASSED tests/test_ledger_v1_bridge.py::test_params_only_zero_is_posted_and_bound_in_the_fingerprint
+PASSED tests/test_ledger_v1_bridge.py::test_params_only_positive_cost_is_not_posted
+PASSED tests/test_ledger_v1_bridge.py::test_disagreeing_estimates_are_not_posted
+PASSED tests/test_ledger_v1_bridge.py::test_local_shell_without_an_estimate_is_not_dispatched
+PASSED tests/test_ledger_v1_bridge.py::test_changed_result_does_not_write_a_second_final
+PASSED tests/test_ledger_v1_bridge.py::test_controller_reject_stamps_blocked_and_does_not_repost
+PASSED tests/test_ledger_v1_bridge.py::test_e0_legacy_result_without_verified_view_never_finalizes
+PASSED tests/test_ledger_v1_bridge.py::test_e0_legacy_result_with_verified_view_finalizes_once
+PASSED tests/test_ledger_v1_bridge.py::test_e0b_legacy_already_done_in_ledger_gets_no_second_final
+PASSED tests/test_ledger_v1_bridge.py::test_e0b_legacy_already_done_but_unverified_stays_posted
+PASSED tests/test_ledger_v1_bridge.py::test_e0v2_changed_result_on_done_mission_gets_no_second_final
+PASSED tests/test_ledger_v1_bridge.py::test_e0v2_same_result_on_done_mission_is_stamped_once
+============================== 40 passed in 0.44s ==============================
+### EXIT 0 18:52:37
+### 18:52:37 [9afe8706] python3 -m pytest -rA -p no:cacheprovider --timeout=300 tests/controller
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0
+rootdir: /tmp/i12/pr2b
+configfile: pytest.ini
+plugins: timeout-2.4.0, anyio-4.15.1
+timeout: 300.0s
+timeout method: signal
+timeout func_only: False
+collected 221 items
+
+tests/controller/test_ctrl_adversarial.py ...................            [  8%]
+tests/controller/test_ctrl_golden_contract.py .........                  [ 12%]
+tests/controller/test_ctrl_lifecycle.py ................................ [ 27%]
+.............                                                            [ 33%]
+tests/controller/test_ctrl_moat_hardening.py ........................... [ 45%]
+.............................                                            [ 58%]
+tests/controller/test_ctrl_restart_integrity.py ............             [ 63%]
+tests/controller/test_ctrl_service.py .................................. [ 79%]
+.........                                                                [ 83%]
+tests/controller/test_ctrl_task_dependency.py ....................       [ 92%]
+tests/controller/test_ctrl_verify_busy.py ....                           [ 94%]
+tests/controller/test_ctrl_verify_resume.py .                            [ 94%]
+tests/controller/test_gate_g3_zero_human.py s...........                 [100%]
+
+==================================== PASSES ====================================
+___________ test_structural_page_corruption_is_caught_by_quick_check ___________
+------------------------------ Captured log call -------------------------------
+ERROR    courier.controller:controller.py:245 controller is degraded_readonly: sqlite quick_check failed: *** in database main ***
+Tree 5 page 5: btreeInitPage() returns error code 11; wrong # of entries in index events_task
+__________ test_single_byte_payload_flip_is_caught_by_the_hash_chain ___________
+------------------------------ Captured log call -------------------------------
+ERROR    courier.controller:controller.py:245 controller is degraded_readonly: hash chain broken: hash mismatch: stored event was modified
+______________ test_stalled_client_does_not_pin_a_handler_forever ______________
+----------------------------- Captured stderr call -----------------------------
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 50238)
+Traceback (most recent call last):
+  File "/usr/lib/python3.13/socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "/usr/lib/python3.13/http/server.py", line 438, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.13/http/server.py", line 404, in handle_one_request
+    self.raw_requestline = self.rfile.readline(65537)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/usr/lib/python3.13/socket.py", line 717, in readinto
+    raise OSError("cannot read from timed out object")
+OSError: cannot read from timed out object
+----------------------------------------
+------------------------------ Captured log call -------------------------------
+ERROR    courier.serve:serve.py:297 unhandled error on POST /v1/tasks
+Traceback (most recent call last):
+  File "/tmp/i12/pr2b/courier_core/serve.py", line 258, in _dispatch
+    body = self._read_json()
+  File "/tmp/i12/pr2b/courier_core/serve.py", line 214, in _read_json
+    raw = self.rfile.read(length) if length else b""
+          ~~~~~~~~~~~~~~~^^^^^^^^
+  File "/usr/lib/python3.13/socket.py", line 719, in readinto
+    return self._sock.recv_into(b)
+           ~~~~~~~~~~~~~~~~~~~~^^^
+TimeoutError: timed out
+___________________ test_suspend_gap_does_not_expire_leases ____________________
+------------------------------ Captured log call -------------------------------
+WARNING  courier.controller:controller.py:672 tick gap of 3600.0s (suspend?); lease deadlines extended
+__________ test_stale_projection_on_a_damaged_journal_stays_read_only __________
+------------------------------ Captured log call -------------------------------
+ERROR    courier.controller:controller.py:245 controller is degraded_readonly: append-only guard triggers are missing
+___________ test_tampered_payload_starts_degraded_with_first_bad_seq ___________
+------------------------------ Captured log call -------------------------------
+ERROR    courier.controller:controller.py:245 controller is degraded_readonly: hash chain broken: hash mismatch: stored event was modified
+________________ test_missing_append_only_guard_starts_degraded ________________
+------------------------------ Captured log call -------------------------------
+ERROR    courier.controller:controller.py:245 controller is degraded_readonly: append-only guard triggers are missing
+____________________ test_edited_projection_starts_degraded ____________________
+------------------------------ Captured log call -------------------------------
+ERROR    courier.controller:controller.py:245 controller is degraded_readonly: stored projection differs from journal replay
+__________ test_unreadable_database_starts_degraded_and_is_preserved ___________
+------------------------------ Captured log call -------------------------------
+ERROR    courier.controller:controller.py:245 controller is degraded_readonly: journal inspection failed: DatabaseError: file is not a database
+_________________ test_degraded_controller_still_serves_reads __________________
+------------------------------ Captured log call -------------------------------
+ERROR    courier.controller:controller.py:245 controller is degraded_readonly: hash chain broken: hash mismatch: stored event was modified
+=========================== short test summary info ============================
+PASSED tests/controller/test_ctrl_adversarial.py::test_expiry_is_exactly_ttl_after_the_last_heartbeat
+PASSED tests/controller/test_ctrl_adversarial.py::test_heartbeat_after_expiry_cannot_resurrect_the_dispatch
+PASSED tests/controller/test_ctrl_adversarial.py::test_restart_never_produces_a_false_expiry_for_a_beating_worker[0]
+PASSED tests/controller/test_ctrl_adversarial.py::test_restart_never_produces_a_false_expiry_for_a_beating_worker[1]
+PASSED tests/controller/test_ctrl_adversarial.py::test_restart_never_produces_a_false_expiry_for_a_beating_worker[2]
+PASSED tests/controller/test_ctrl_adversarial.py::test_restart_never_produces_a_false_expiry_for_a_beating_worker[3]
+PASSED tests/controller/test_ctrl_adversarial.py::test_restart_never_produces_a_false_expiry_for_a_beating_worker[4]
+PASSED tests/controller/test_ctrl_adversarial.py::test_invalid_transitions_over_the_api_change_nothing
+PASSED tests/controller/test_ctrl_adversarial.py::test_stop_during_a_slow_verification_writes_nothing_after_close
+PASSED tests/controller/test_ctrl_adversarial.py::test_requests_during_shutdown_get_503
+PASSED tests/controller/test_ctrl_adversarial.py::test_sse_resume_across_a_controller_restart_has_no_gaps_or_duplicates
+PASSED tests/controller/test_ctrl_adversarial.py::test_empty_stream_sends_keepalives_and_stays_bounded
+PASSED tests/controller/test_ctrl_adversarial.py::test_event_streams_are_capped
+PASSED tests/controller/test_ctrl_adversarial.py::test_structural_page_corruption_is_caught_by_quick_check
+PASSED tests/controller/test_ctrl_adversarial.py::test_single_byte_payload_flip_is_caught_by_the_hash_chain
+PASSED tests/controller/test_ctrl_adversarial.py::test_cancel_waits_for_confirmation_while_the_worker_still_reports
+PASSED tests/controller/test_ctrl_adversarial.py::test_cancelled_non_idempotent_attempt_with_vanished_worker_is_blocked
+PASSED tests/controller/test_ctrl_adversarial.py::test_blocked_task_with_cancel_request_survives_restart_as_blocked
+PASSED tests/controller/test_ctrl_adversarial.py::test_stalled_client_does_not_pin_a_handler_forever
+PASSED tests/controller/test_ctrl_golden_contract.py::test_golden_happy_path_controller_half
+PASSED tests/controller/test_ctrl_golden_contract.py::test_duplicate_result_controller_half
+PASSED tests/controller/test_ctrl_golden_contract.py::test_late_result_controller_half
+PASSED tests/controller/test_ctrl_golden_contract.py::test_transient_failures_controller_half
+PASSED tests/controller/test_ctrl_golden_contract.py::test_non_idempotent_worker_loss_blocks
+PASSED tests/controller/test_ctrl_golden_contract.py::test_cancel_while_running_controller_half
+PASSED tests/controller/test_ctrl_golden_contract.py::test_controller_restart_mid_run_keeps_the_dispatch
+PASSED tests/controller/test_ctrl_golden_contract.py::test_restart_grace_expires_vanished_worker
+PASSED tests/controller/test_ctrl_golden_contract.py::test_corrupt_journal_starts_degraded_and_read_only
+PASSED tests/controller/test_ctrl_lifecycle.py::test_golden_sequence_through_controller
+PASSED tests/controller/test_ctrl_lifecycle.py::test_task_input_is_validated_strictly[bad0-unknown field]
+PASSED tests/controller/test_ctrl_lifecycle.py::test_task_input_is_validated_strictly[bad1-adapter]
+PASSED tests/controller/test_ctrl_lifecycle.py::test_task_input_is_validated_strictly[bad2-adapter]
+PASSED tests/controller/test_ctrl_lifecycle.py::test_task_input_is_validated_strictly[bad3-params]
+PASSED tests/controller/test_ctrl_lifecycle.py::test_task_input_is_validated_strictly[bad4-effect_class]
+PASSED tests/controller/test_ctrl_lifecycle.py::test_task_input_is_validated_strictly[bad5-max_attempts]
+PASSED tests/controller/test_ctrl_lifecycle.py::test_task_input_is_validated_strictly[bad6-max_attempts]
+PASSED tests/controller/test_ctrl_lifecycle.py::test_task_input_is_validated_strictly[bad7-lease_ttl_s]
+PASSED tests/controller/test_ctrl_lifecycle.py::test_task_input_is_validated_strictly[bad8-lease_ttl_s]
+PASSED tests/controller/test_ctrl_lifecycle.py::test_task_input_is_validated_strictly[bad9-timeout_s]
+PASSED tests/controller/test_ctrl_lifecycle.py::test_task_input_is_validated_strictly[bad10-timeout_s]
+PASSED tests/controller/test_ctrl_lifecycle.py::test_non_object_body_is_rejected
+PASSED tests/controller/test_ctrl_lifecycle.py::test_idempotency_key_makes_creation_repeatable
+PASSED tests/controller/test_ctrl_lifecycle.py::test_task_creation_writes_only_the_journal
+PASSED tests/controller/test_ctrl_lifecycle.py::test_claim_returns_lease_and_spec
+PASSED tests/controller/test_ctrl_lifecycle.py::test_claim_order_is_creation_order
+PASSED tests/controller/test_ctrl_lifecycle.py::test_claim_validates_worker_id
+PASSED tests/controller/test_ctrl_lifecycle.py::test_start_is_bound_to_the_exact_dispatch
+PASSED tests/controller/test_ctrl_lifecycle.py::test_start_of_an_expired_dispatch_is_stale
+PASSED tests/controller/test_ctrl_lifecycle.py::test_heartbeats_keep_the_lease_alive
+PASSED tests/controller/test_ctrl_lifecycle.py::test_heartbeat_from_wrong_worker_or_for_unknown_dispatch_says_stop
+PASSED tests/controller/test_ctrl_lifecycle.py::test_heartbeat_input_is_bounded
+PASSED tests/controller/test_ctrl_lifecycle.py::test_lease_deadline_is_never_stored
+PASSED tests/controller/test_ctrl_lifecycle.py::test_expiry_retries_until_max_attempts_then_fails
+PASSED tests/controller/test_ctrl_lifecycle.py::test_lease_does_not_expire_exactly_at_the_heartbeat_boundary
+PASSED tests/controller/test_ctrl_lifecycle.py::test_non_idempotent_started_attempt_is_blocked_not_retried
+PASSED tests/controller/test_ctrl_lifecycle.py::test_non_idempotent_attempt_that_never_started_is_retried
+PASSED tests/controller/test_ctrl_lifecycle.py::test_suspend_gap_does_not_expire_leases
+PASSED tests/controller/test_ctrl_lifecycle.py::test_duplicate_result_is_acknowledged_without_new_events
+PASSED tests/controller/test_ctrl_lifecycle.py::test_result_id_reuse_with_other_content_conflicts
+PASSED tests/controller/test_ctrl_lifecycle.py::test_result_before_start_is_refused
+PASSED tests/controller/test_ctrl_lifecycle.py::test_late_result_from_superseded_attempt_is_discarded
+PASSED tests/controller/test_ctrl_lifecycle.py::test_failure_outcome_is_rejected_and_retried
+PASSED tests/controller/test_ctrl_lifecycle.py::test_non_retryable_failure_fails_the_task
+PASSED tests/controller/test_ctrl_lifecycle.py::test_verification_fails_closed[verifier0-no verifier]
+PASSED tests/controller/test_ctrl_lifecycle.py::test_verification_fails_closed[verifier1-raised]
+PASSED tests/controller/test_ctrl_lifecycle.py::test_verification_fails_closed[verifier2-invalid verdict]
+PASSED tests/controller/test_ctrl_lifecycle.py::test_verification_fails_closed[verifier3-sha mismatch]
+PASSED tests/controller/test_ctrl_lifecycle.py::test_retryable_verdict_retries
+PASSED tests/controller/test_ctrl_lifecycle.py::test_cancel_of_queued_task_is_immediate
+PASSED tests/controller/test_ctrl_lifecycle.py::test_cancel_running_task_needs_worker_confirmation
+PASSED tests/controller/test_ctrl_lifecycle.py::test_cancel_of_claimed_task_resolves_on_lease_expiry
+PASSED tests/controller/test_ctrl_lifecycle.py::test_cancel_of_blocked_task
+PASSED tests/controller/test_ctrl_lifecycle.py::test_projection_always_equals_replay
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_only_idempotent_is_on_the_auto_retry_whitelist
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_idempotent_uncertain_outcome_follows_bounded_retry
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_uncertain_outcome_of_any_other_class_is_blocked[non_idempotent]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_uncertain_outcome_of_any_other_class_is_blocked[physical]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_uncertain_outcome_of_any_other_class_is_blocked[medical]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_uncertain_outcome_of_any_other_class_is_blocked[aviation]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_uncertain_outcome_of_any_other_class_is_blocked[financial]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_uncertain_outcome_of_any_other_class_is_blocked[legal]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_uncertain_outcome_of_any_other_class_is_blocked[future_custom_class]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_uncertain_outcome_of_any_other_class_is_blocked[]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_uncertain_outcome_of_any_other_class_is_blocked[Idempotent]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_cancel_does_not_erase_uncertainty[non_idempotent]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_cancel_does_not_erase_uncertainty[physical]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_cancel_does_not_erase_uncertainty[medical]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_cancel_does_not_erase_uncertainty[aviation]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_cancel_does_not_erase_uncertainty[financial]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_cancel_does_not_erase_uncertainty[legal]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_cancel_does_not_erase_uncertainty[future_custom_class]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_cancel_does_not_erase_uncertainty[]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_cancel_does_not_erase_uncertainty[Idempotent]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_unknown_effect_class_is_refused_at_intake[physical]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_unknown_effect_class_is_refused_at_intake[medical]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_unknown_effect_class_is_refused_at_intake[aviation]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_unknown_effect_class_is_refused_at_intake[financial]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_unknown_effect_class_is_refused_at_intake[legal]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_unknown_effect_class_is_refused_at_intake[future_custom_class]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_unknown_effect_class_is_refused_at_intake[]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_unknown_effect_class_is_refused_at_intake[Idempotent]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_worker_failure_is_retryable_by_omission_only_for_idempotent
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_explicitly_retryable_worker_failure_of_non_idempotent_task_retries
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_effect_confirmed_completes_without_re_executing
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_retry_authorized_grants_one_fresh_fenced_attempt
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_authorized_retry_that_is_lost_again_blocks_again
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_resolve_cancel_records_the_actor_and_keeps_the_uncertainty
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_decisions_need_actor_reason_attempt_and_a_blocked_task
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_repeated_decision_is_acknowledged_and_a_conflicting_one_refused
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_retry_is_not_authorized_over_a_pending_cancel_request
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_late_result_for_a_blocked_task_is_kept_as_evidence
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_human_decisions_survive_restart_and_replay
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_state_machine_refuses_decisions_outside_blocked_and_without_actor
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_resolve_and_cancel_over_http
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_controller_start_records_build_identity
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_every_event_is_attributed_to_the_build_that_wrote_it
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_build_identity_does_not_change_the_projection_hash
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_accepted_result_names_the_verifier_that_accepted_it
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_real_adapter_verifier_identity_carries_source_hash
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_rejections_name_the_courier_rule_that_decided[no_verifier-no_verifier]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_rejections_name_the_courier_rule_that_decided[failure-worker_reported_failure]
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_malformed_verdicts_still_fail_closed_with_identity
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_effect_key_is_stable_per_task_and_distinct_between_tasks
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_effect_key_survives_restart_and_idempotent_resubmission
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_projection_from_an_older_build_is_rebuilt_from_the_journal
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_stale_projection_on_a_damaged_journal_stays_read_only
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_journal_open_rebuilds_a_stale_projection_atomically
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_worker_token_cannot_cancel_blocked_as_human
+PASSED tests/controller/test_ctrl_moat_hardening.py::test_operator_token_cancels_blocked_and_worker_cancel_without_actor_still_works
+PASSED tests/controller/test_ctrl_restart_integrity.py::test_restart_keeps_projection_and_logs_lifecycle
+PASSED tests/controller/test_ctrl_restart_integrity.py::test_live_worker_keeps_its_dispatch_across_restart
+PASSED tests/controller/test_ctrl_restart_integrity.py::test_vanished_worker_expires_with_restart_grace
+PASSED tests/controller/test_ctrl_restart_integrity.py::test_restart_grace_blocks_uncertain_non_idempotent_work
+PASSED tests/controller/test_ctrl_restart_integrity.py::test_pending_verification_is_finished_after_restart
+PASSED tests/controller/test_ctrl_restart_integrity.py::test_accepted_result_is_completed_after_restart
+PASSED tests/controller/test_ctrl_restart_integrity.py::test_pending_retry_decision_is_taken_after_restart
+PASSED tests/controller/test_ctrl_restart_integrity.py::test_tampered_payload_starts_degraded_with_first_bad_seq
+PASSED tests/controller/test_ctrl_restart_integrity.py::test_missing_append_only_guard_starts_degraded
+PASSED tests/controller/test_ctrl_restart_integrity.py::test_edited_projection_starts_degraded
+PASSED tests/controller/test_ctrl_restart_integrity.py::test_unreadable_database_starts_degraded_and_is_preserved
+PASSED tests/controller/test_ctrl_restart_integrity.py::test_degraded_controller_still_serves_reads
+PASSED tests/controller/test_ctrl_service.py::test_health_and_localhost_only_binding
+PASSED tests/controller/test_ctrl_service.py::test_missing_or_wrong_token_is_rejected_without_leaking[headers0]
+PASSED tests/controller/test_ctrl_service.py::test_missing_or_wrong_token_is_rejected_without_leaking[headers1]
+PASSED tests/controller/test_ctrl_service.py::test_missing_or_wrong_token_is_rejected_without_leaking[headers2]
+PASSED tests/controller/test_ctrl_service.py::test_token_file_is_private_and_stable
+PASSED tests/controller/test_ctrl_service.py::test_errors_are_json_and_bounded
+PASSED tests/controller/test_ctrl_service.py::test_connection_is_closed_when_a_body_cannot_be_trusted
+PASSED tests/controller/test_ctrl_service.py::test_golden_sequence_over_http
+PASSED tests/controller/test_ctrl_service.py::test_duplicate_and_stale_results_over_http
+PASSED tests/controller/test_ctrl_service.py::test_sse_ids_are_journal_seqs_and_resume_is_exact
+PASSED tests/controller/test_ctrl_service.py::test_sse_streams_live_events_without_duplicates
+PASSED tests/controller/test_ctrl_service.py::test_sse_payload_is_the_journal_row
+PASSED tests/controller/test_ctrl_service.py::test_sse_rejects_bad_last_event_id
+PASSED tests/controller/test_ctrl_service.py::test_exactly_one_claimant_under_contention[0]
+PASSED tests/controller/test_ctrl_service.py::test_exactly_one_claimant_under_contention[1]
+PASSED tests/controller/test_ctrl_service.py::test_exactly_one_claimant_under_contention[2]
+PASSED tests/controller/test_ctrl_service.py::test_exactly_one_claimant_under_contention[3]
+PASSED tests/controller/test_ctrl_service.py::test_exactly_one_claimant_under_contention[4]
+PASSED tests/controller/test_ctrl_service.py::test_exactly_one_claimant_under_contention[5]
+PASSED tests/controller/test_ctrl_service.py::test_exactly_one_claimant_under_contention[6]
+PASSED tests/controller/test_ctrl_service.py::test_exactly_one_claimant_under_contention[7]
+PASSED tests/controller/test_ctrl_service.py::test_exactly_one_claimant_under_contention[8]
+PASSED tests/controller/test_ctrl_service.py::test_exactly_one_claimant_under_contention[9]
+PASSED tests/controller/test_ctrl_service.py::test_concurrent_duplicate_results_record_one_effect[0]
+PASSED tests/controller/test_ctrl_service.py::test_concurrent_duplicate_results_record_one_effect[1]
+PASSED tests/controller/test_ctrl_service.py::test_concurrent_duplicate_results_record_one_effect[2]
+PASSED tests/controller/test_ctrl_service.py::test_concurrent_duplicate_results_record_one_effect[3]
+PASSED tests/controller/test_ctrl_service.py::test_concurrent_duplicate_results_record_one_effect[4]
+PASSED tests/controller/test_ctrl_service.py::test_concurrent_duplicate_results_record_one_effect[5]
+PASSED tests/controller/test_ctrl_service.py::test_concurrent_duplicate_results_record_one_effect[6]
+PASSED tests/controller/test_ctrl_service.py::test_concurrent_duplicate_results_record_one_effect[7]
+PASSED tests/controller/test_ctrl_service.py::test_concurrent_duplicate_results_record_one_effect[8]
+PASSED tests/controller/test_ctrl_service.py::test_concurrent_duplicate_results_record_one_effect[9]
+PASSED tests/controller/test_ctrl_service.py::test_busy_controller_answers_503_instead_of_hanging
+PASSED tests/controller/test_ctrl_service.py::test_external_sqlite_writer_only_delays_a_write
+PASSED tests/controller/test_ctrl_service.py::test_process_boot_shutdown_and_clean_close
+PASSED tests/controller/test_ctrl_service.py::test_one_controller_per_home
+PASSED tests/controller/test_ctrl_service.py::test_sigterm_is_a_graceful_stop
+PASSED tests/controller/test_ctrl_service.py::test_restarted_controller_rebinds_the_same_port
+PASSED tests/controller/test_ctrl_service.py::test_process_listens_on_loopback_only
+PASSED tests/controller/test_ctrl_service.py::test_cancel_route_over_http
+PASSED tests/controller/test_ctrl_service.py::test_resolve_route_validates_over_http
+PASSED tests/controller/test_ctrl_service.py::test_newest_event_reaches_a_block_buffered_client_before_the_stream_idles
+PASSED tests/controller/test_ctrl_task_dependency.py::test_dependent_task_is_not_claimable_before_its_dependency_is_verified
+PASSED tests/controller/test_ctrl_task_dependency.py::test_dependent_task_is_claimed_with_the_verified_result_as_input
+PASSED tests/controller/test_ctrl_task_dependency.py::test_input_carries_the_hash_of_the_result_that_was_actually_accepted
+PASSED tests/controller/test_ctrl_task_dependency.py::test_a_chain_runs_in_order_each_on_the_previous_result
+PASSED tests/controller/test_ctrl_task_dependency.py::test_independent_tasks_are_unchanged
+PASSED tests/controller/test_ctrl_task_dependency.py::test_a_retried_dependent_task_gets_the_same_input_again
+PASSED tests/controller/test_ctrl_task_dependency.py::test_dependent_task_fails_when_its_dependency_is_rejected
+PASSED tests/controller/test_ctrl_task_dependency.py::test_dependent_task_fails_when_its_dependency_is_cancelled
+PASSED tests/controller/test_ctrl_task_dependency.py::test_blocked_dependency_keeps_the_dependent_task_waiting_and_a_human_confirmation_is_not_a_result
+PASSED tests/controller/test_ctrl_task_dependency.py::test_a_dependent_non_idempotent_task_with_unknown_outcome_is_blocked_not_retried
+PASSED tests/controller/test_ctrl_task_dependency.py::test_restart_after_the_dependency_completed_dispatches_the_dependent_task_exactly_once
+PASSED tests/controller/test_ctrl_task_dependency.py::test_create_task_refuses_an_unknown_or_malformed_dependency
+PASSED tests/controller/test_ctrl_task_dependency.py::test_a_task_cannot_depend_on_itself
+PASSED tests/controller/test_ctrl_task_dependency.py::test_the_journal_refuses_a_dependent_claim_without_the_right_input
+PASSED tests/controller/test_ctrl_task_dependency.py::test_a_malformed_input_never_becomes_an_event[bad0]
+PASSED tests/controller/test_ctrl_task_dependency.py::test_a_malformed_input_never_becomes_an_event[bad1]
+PASSED tests/controller/test_ctrl_task_dependency.py::test_a_malformed_input_never_becomes_an_event[bad2]
+PASSED tests/controller/test_ctrl_task_dependency.py::test_a_malformed_input_never_becomes_an_event[bad3]
+PASSED tests/controller/test_ctrl_task_dependency.py::test_a_malformed_input_never_becomes_an_event[bad4]
+PASSED tests/controller/test_ctrl_task_dependency.py::test_a_malformed_input_never_becomes_an_event[not-an-object]
+PASSED tests/controller/test_ctrl_verify_busy.py::test_busy_verification_remains_queued_until_one_durable_decision[True-load]
+PASSED tests/controller/test_ctrl_verify_busy.py::test_busy_verification_remains_queued_until_one_durable_decision[True-commit]
+PASSED tests/controller/test_ctrl_verify_busy.py::test_busy_verification_remains_queued_until_one_durable_decision[False-load]
+PASSED tests/controller/test_ctrl_verify_busy.py::test_busy_verification_remains_queued_until_one_durable_decision[False-commit]
+PASSED tests/controller/test_ctrl_verify_resume.py::test_verify_task_error_keeps_the_result_queued
+PASSED tests/controller/test_gate_g3_zero_human.py::test_skip_reason_names_the_canonical_commit_and_refuses_a_pass
+PASSED tests/controller/test_gate_g3_zero_human.py::test_unknown_journal_is_a_failure
+PASSED tests/controller/test_gate_g3_zero_human.py::test_unknown_ledger_flag_is_a_failure_and_events_stay_unread
+PASSED tests/controller/test_gate_g3_zero_human.py::test_unknown_event_type_is_a_failure
+PASSED tests/controller/test_gate_g3_zero_human.py::test_broken_hash_chain_is_not_a_measured_zero
+PASSED tests/controller/test_gate_g3_zero_human.py::test_caller_cannot_supply_the_relay_count
+PASSED tests/controller/test_gate_g3_zero_human.py::test_measured_zero_on_an_empty_ledger_is_not_a_pass
+PASSED tests/controller/test_gate_g3_zero_human.py::test_a_human_retry_is_measured_and_fails
+PASSED tests/controller/test_gate_g3_zero_human.py::test_trunk_restart_does_not_pass_without_a_recorded_dependency
+PASSED tests/controller/test_gate_g3_zero_human.py::test_judge_pass_requires_measured_zero_a_complete_ledger_and_no_replay
+PASSED tests/controller/test_gate_g3_zero_human.py::test_a_second_claim_of_a_after_restart_is_a_replay
+SKIPPED [1] tests/controller/test_gate_g3_zero_human.py:83: The canonical Windows-core A→B service proof is commit ad7dbc2c42273b755d8daefa16ad8762e55b1a07. It was read and is not modified. It needs that commit's LiveService worker loop, depends_on, and from_input, which are not in this tree, plus a Windows worker host. Skipping is not a pass and is not VERIFIED.
+================== 220 passed, 1 skipped in 75.63s (0:01:15) ===================
+### EXIT 0 18:53:53
+### 18:53:53 [9afe8706] python3 -m pytest -rA -p no:cacheprovider --timeout=300 tests/test_serve.py
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0
+rootdir: /tmp/i12/pr2b
+configfile: pytest.ini
+plugins: timeout-2.4.0, anyio-4.15.1
+timeout: 300.0s
+timeout method: signal
+timeout func_only: False
+collected 24 items
+
+tests/test_serve.py ........................                             [100%]
+
+==================================== PASSES ====================================
+_______________________ test_main_arg_parser_validation ________________________
+----------------------------- Captured stderr call -----------------------------
+usage: python -m courier_core.serve [-h] [--home HOME] [--port PORT]
+                                    [--print-port] [--log-level LOG_LEVEL]
+python -m courier_core.serve: error: --home or COURIER_HOME is required
+usage: python -m courier_core.serve [-h] [--home HOME] [--port PORT]
+                                    [--print-port] [--log-level LOG_LEVEL]
+python -m courier_core.serve: error: --port must be between 0 and 65535
+usage: python -m courier_core.serve [-h] [--home HOME] [--port PORT]
+                                    [--print-port] [--log-level LOG_LEVEL]
+python -m courier_core.serve: error: --port must be between 0 and 65535
+=========================== short test summary info ============================
+PASSED tests/test_serve.py::test_home_lock_acquire_and_release
+PASSED tests/test_serve.py::test_home_lock_double_release_safe
+PASSED tests/test_serve.py::test_service_refuses_a_home_two_levels_under_a_symlink
+PASSED tests/test_serve.py::test_main_refuses_a_home_two_levels_under_a_symlink
+PASSED tests/test_serve.py::test_service_refuses_a_symlinked_home_parent
+PASSED tests/test_serve.py::test_service_refuses_a_symlinked_home
+PASSED tests/test_serve.py::test_main_refuses_a_symlinked_home
+PASSED tests/test_serve.py::test_home_lock_refuses_a_lock_two_levels_under_a_symlink
+PASSED tests/test_serve.py::test_home_lock_refuses_a_symlink
+PASSED tests/test_serve.py::test_home_lock_refuses_a_symlinked_parent
+PASSED tests/test_serve.py::test_load_or_create_token_generates_valid_token
+PASSED tests/test_serve.py::test_load_or_create_token_replaces_short_corrupt_token
+PASSED tests/test_serve.py::test_load_or_create_token_refuses_a_file_two_levels_under_a_symlink
+PASSED tests/test_serve.py::test_load_or_create_token_refuses_a_symlink
+PASSED tests/test_serve.py::test_load_or_create_token_refuses_a_symlinked_parent
+PASSED tests/test_serve.py::test_load_or_create_token_strips_whitespace
+PASSED tests/test_serve.py::test_task_path_regex
+PASSED tests/test_serve.py::test_cancel_path_regex
+PASSED tests/test_serve.py::test_resolve_path_regex
+PASSED tests/test_serve.py::test_event_json_serialization
+PASSED tests/test_serve.py::test_main_arg_parser_validation
+PASSED tests/test_serve.py::test_service_lifecycle_and_http_endpoints
+PASSED tests/test_serve.py::test_service_http_payload_edge_cases
+PASSED tests/test_serve.py::test_service_claim_and_execution_lifecycle
+============================== 24 passed in 1.73s ==============================
+### EXIT 0 18:53:56
+### 18:53:56 [9afe8706] python3 -m pytest -rA -p no:cacheprovider --timeout=300 tests/hub
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0
+rootdir: /tmp/i12/pr2b
+configfile: pytest.ini
+plugins: timeout-2.4.0, anyio-4.15.1
+timeout: 300.0s
+timeout method: signal
+timeout func_only: False
+collected 148 items
+
+tests/hub/test_hub_bounded_reads.py ......                               [  4%]
+tests/hub/test_hub_fixture.py .                                          [  4%]
+tests/hub/test_hub_journal_symlink.py ...                                [  6%]
+tests/hub/test_hub_product.py ..............................FF.......... [ 35%]
+.........................                                                [ 52%]
+tests/hub/test_hub_static_symlink.py .                                   [ 52%]
+tests/hub/test_hub_undecodable_state.py ...                              [ 54%]
+tests/hub/test_kolibri_arbi_view.py ...                                  [ 56%]
+tests/hub/test_kolibri_bridge.py ..............                          [ 66%]
+tests/hub/test_kolibri_flow_failclosed.py .......                        [ 70%]
+tests/hub/test_kolibri_neon_slice.py ......                              [ 75%]
+tests/hub/test_kolibri_truth_p0.py ..................                    [ 87%]
+tests/hub/test_kolibri_view.py ..........F........                       [100%]
+
+=================================== FAILURES ===================================
+_ test_lost_answer_after_the_controller_recorded_is_never_reported_as_nothing_changed _
+
+tmp_path = PosixPath('/tmp/pytest-of-box/pytest-1324/test_lost_answer_after_the_con0')
+
+    def test_lost_answer_after_the_controller_recorded_is_never_reported_as_nothing_changed(tmp_path):
+        clock = FakeClock()
+        live = LiveService(tmp_path / "home", clock=clock)
+        proxy = AnswerDroppingProxy(live.base)
+        hub = HubProcess(tmp_path / "home", proxy.base)
+        try:
+            task_id = blocked_task(live, clock)
+            answer = hub.decide(task_id, "effect_confirmed", 1)
+            assert answer.status_code == 504
+            body = answer.json()
+            assert body["result"] == "unknown" and "nothing" not in body["message"].lower()
+>           assert body["item"]["card"]["outcome"] == "human_confirmed"  # what Courier actually recorded
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           KeyError: 'outcome'
+
+tests/hub/test_hub_product.py:441: KeyError
+----------------------------- Captured stderr call -----------------------------
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 39036)
+Traceback (most recent call last):
+  File "/usr/lib/python3.13/socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "/usr/lib/python3.13/http/server.py", line 436, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.13/http/server.py", line 424, in handle_one_request
+    method()
+    ~~~~~~^^
+  File "/tmp/i12/pr2b/tests/hub/test_hub_product.py", line 407, in do_POST
+    urllib.request.urlopen(req, timeout=10).read()
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/urllib/request.py", line 189, in urlopen
+    return opener.open(url, data, timeout)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/urllib/request.py", line 495, in open
+    response = meth(req, response)
+  File "/usr/lib/python3.13/urllib/request.py", line 604, in http_response
+    response = self.parent.error(
+        'http', request, response, code, msg, hdrs)
+  File "/usr/lib/python3.13/urllib/request.py", line 533, in error
+    return self._call_chain(*args)
+           ~~~~~~~~~~~~~~~~^^^^^^^
+  File "/usr/lib/python3.13/urllib/request.py", line 466, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.13/urllib/request.py", line 613, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 403: Forbidden
+----------------------------------------
+______________ test_controller_not_running_means_nothing_was_sent ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-box/pytest-1324/test_controller_not_running_me0')
+
+    def test_controller_not_running_means_nothing_was_sent(tmp_path):
+        hub = HubProcess(tmp_path / "home", "http://127.0.0.1:9")
+        (tmp_path / "home" / "run").mkdir(parents=True)
+        (tmp_path / "home" / "run" / "controller.token").write_text("t")
+        try:
+            answer = hub.decide("task-x", "cancel", 1)
+>           assert answer.status_code == 503 and answer.json()["result"] == "offline"
+E           assert (403 == 503)
+E            +  where 403 = <Response [403]>.status_code
+
+tests/hub/test_hub_product.py:458: AssertionError
+__________ test_github_payload_is_shown_and_a_failed_read_is_unknown ___________
+
+    def test_github_payload_is_shown_and_a_failed_read_is_unknown():
+        ci, drafts = read_github(REPO, "2026-10-14T22:00:00Z", fetch=OFFLINE)
+        assert ci["value"] == UNAVAILABLE and drafts["value"] == UNAVAILABLE
+    
+        def fetch(path: str):
+            if path.endswith("/status"):
+                return {"state": "success", "sha": "abc", "statuses": [
+                    {"context": "ci", "state": "success", "updated_at": "2026-01-01T00:00:00Z"},
+                ]}
+            return [{"number": 15, "draft": True, "title": "Open draft", "updated_at": "2026-10-14T21:00:00Z"},
+                    {"number": 16, "draft": False, "title": "Not a draft", "updated_at": "2026-10-14T21:00:00Z"}]
+    
+        ci, drafts = read_github(REPO, "2026-10-14T22:00:00Z", fetch=fetch)
+>       assert ci["value"] == "success"
+E       AssertionError: assert 'UNKNOWN / nicht erreichbar' == 'success'
+E         
+E         - success
+E         + UNKNOWN / nicht erreichbar
+
+tests/hub/test_kolibri_view.py:379: AssertionError
+==================================== PASSES ====================================
+_________ test_an_oversized_controller_body_is_not_buffered_or_trusted _________
+------------------------------ Captured log call -------------------------------
+WARNING  courier.hub:server.py:128 hub refused an oversized controller response
+_________________ test_an_oversized_error_body_is_not_buffered _________________
+------------------------------ Captured log call -------------------------------
+WARNING  courier.hub:server.py:128 hub refused an oversized controller response
+_______________ test_an_oversized_decision_answer_is_unavailable _______________
+------------------------------ Captured log call -------------------------------
+WARNING  courier.hub:server.py:128 hub refused an oversized controller response
+ERROR    courier.hub:server.py:435 hub could not read item t1 after relaying
+Traceback (most recent call last):
+  File "/tmp/i12/pr2b/courier_hub/server.py", line 395, in _relay
+    code, answer = self._call(method, path, payload, human=True)
+                   ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/i12/pr2b/courier_hub/server.py", line 332, in _call
+    raw = _read_capped(response)
+  File "/tmp/i12/pr2b/courier_hub/server.py", line 129, in _read_capped
+    raise ResponseTooLarge("controller response exceeds the read limit")
+courier_hub.server.ResponseTooLarge: controller response exceeds the read limit
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/tmp/i12/pr2b/courier_hub/server.py", line 433, in _safe_item
+    return self.item_view(task_id)
+           ~~~~~~~~~~~~~~^^^^^^^^^
+  File "/tmp/i12/pr2b/courier_hub/server.py", line 265, in item_view
+    journal = self._open()
+  File "/tmp/i12/pr2b/courier_hub/server.py", line 153, in _open
+    raise TruthUnavailable("not_set_up")
+courier_hub.server.TruthUnavailable: not_set_up
+_______________ test_an_unsafe_actor_name_is_refused_at_start[] ________________
+----------------------------- Captured stderr call -----------------------------
+usage: python -m courier_hub [-h] [--home HOME] --controller CONTROLLER
+                             [--port PORT] [--actor ACTOR] [--print-url]
+                             [--with-overlay]
+python -m courier_hub: error: --actor must be 1-200 characters of letters, digits and _.:@-
+___________ test_an_unsafe_actor_name_is_refused_at_start[ana smith] ___________
+----------------------------- Captured stderr call -----------------------------
+usage: python -m courier_hub [-h] [--home HOME] --controller CONTROLLER
+                             [--port PORT] [--actor ACTOR] [--print-url]
+                             [--with-overlay]
+python -m courier_hub: error: --actor must be 1-200 characters of letters, digits and _.:@-
+_ test_an_unsafe_actor_name_is_refused_at_start[aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa] _
+----------------------------- Captured stderr call -----------------------------
+usage: python -m courier_hub [-h] [--home HOME] --controller CONTROLLER
+                             [--port PORT] [--actor ACTOR] [--print-url]
+                             [--with-overlay]
+python -m courier_hub: error: --actor must be 1-200 characters of letters, digits and _.:@-
+___________ test_an_unsafe_actor_name_is_refused_at_start[<script>] ____________
+----------------------------- Captured stderr call -----------------------------
+usage: python -m courier_hub [-h] [--home HOME] --controller CONTROLLER
+                             [--port PORT] [--actor ACTOR] [--print-url]
+                             [--with-overlay]
+python -m courier_hub: error: --actor must be 1-200 characters of letters, digits and _.:@-
+__________ test_an_unsafe_actor_name_is_refused_at_start[ana\nforged] __________
+----------------------------- Captured stderr call -----------------------------
+usage: python -m courier_hub [-h] [--home HOME] --controller CONTROLLER
+                             [--port PORT] [--actor ACTOR] [--print-url]
+                             [--with-overlay]
+python -m courier_hub: error: --actor must be 1-200 characters of letters, digits and _.:@-
+_ test_a_recorded_decision_is_never_reported_as_failed_when_the_reread_breaks __
+------------------------------ Captured log call -------------------------------
+ERROR    courier.hub:server.py:435 hub could not read item task-431f9b1c10fe4f269afb1d3f7b7f6fd9 after relaying
+Traceback (most recent call last):
+  File "/tmp/i12/pr2b/courier_hub/server.py", line 433, in _safe_item
+    return self.item_view(task_id)
+           ~~~~~~~~~~~~~~^^^^^^^^^
+  File "/tmp/i12/pr2b/tests/hub/test_hub_product.py", line 653, in broken
+    raise RuntimeError("journal read failed after the controller answered")
+RuntimeError: journal read failed after the controller answered
+_________ test_an_unreadable_item_is_unavailable_not_an_internal_error _________
+------------------------------ Captured log call -------------------------------
+ERROR    courier.hub:server.py:272 hub could not read item task-ec36ed4b0ec44faab5a3c68892c99a24
+Traceback (most recent call last):
+  File "/tmp/i12/pr2b/courier_hub/server.py", line 270, in item_view
+    events, total = self._task_events(journal, task_id)
+                    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/tmp/i12/pr2b/courier_hub/server.py", line 262, in _task_events
+    return list(journal.events(task_id=task_id)), total
+                ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/tmp/i12/pr2b/tests/hub/test_hub_product.py", line 667, in corrupt
+    raise sqlite3.DatabaseError("database disk image is malformed")
+sqlite3.DatabaseError: database disk image is malformed
+______ test_an_internal_error_after_relaying_never_claims_nothing_changed ______
+------------------------------ Captured log call -------------------------------
+ERROR    courier.hub:server.py:560 hub error on POST /hub/api/items/task-45b1e01f53234c3e81357e7bd0e79b81/decision
+Traceback (most recent call last):
+  File "/tmp/i12/pr2b/courier_hub/server.py", line 557, in do_POST
+    status, payload = hub.decide(task_id, body) if action == "decision" else hub.stop(task_id, body)
+                      ~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/tmp/i12/pr2b/courier_hub/server.py", line 385, in decide
+    return self._relay(task_id, "POST", f"/v1/tasks/{task_id}/resolve",
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                       {"decision": decision, "actor": self.actor, "attempt": attempt, "reason": reason})
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/i12/pr2b/tests/hub/test_hub_product.py", line 681, in relay_then_crash
+    raise RuntimeError("crash after the controller recorded it")
+RuntimeError: crash after the controller recorded it
+___ test_unknown_stored_status_makes_home_unavailable_not_an_internal_error ____
+------------------------------ Captured log call -------------------------------
+ERROR    courier.hub:server.py:210 hub could not read the journal
+Traceback (most recent call last):
+  File "/tmp/i12/pr2b/courier_hub/server.py", line 171, in _read
+    tasks = journal.tasks()
+  File "/tmp/i12/pr2b/courier_core/journal.py", line 215, in tasks
+    return projection.load_tasks(self.conn, status)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/tmp/i12/pr2b/courier_core/projection.py", line 123, in load_tasks
+    return [_from_row(tuple(row)) for row in conn.execute(query + " ORDER BY created_seq, task_id", args)]
+            ~~~~~~~~~^^^^^^^^^^^^
+  File "/tmp/i12/pr2b/courier_core/projection.py", line 107, in _from_row
+    return TaskState.from_record(record)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/tmp/i12/pr2b/courier_core/state_machine.py", line 116, in from_record
+    values["status"] = TaskStatus(values["status"])
+                       ~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/enum.py", line 726, in __call__
+    return cls.__new__(cls, value)
+           ~~~~~~~~~~~^^^^^^^^^^^^
+  File "/usr/lib/python3.13/enum.py", line 1203, in __new__
+    raise ve_exc
+ValueError: 'TELEPORTED' is not a valid TaskStatus
+_____ test_unknown_stored_status_item_is_unavailable_not_an_internal_error _____
+------------------------------ Captured log call -------------------------------
+ERROR    courier.hub:server.py:272 hub could not read item t1
+Traceback (most recent call last):
+  File "/tmp/i12/pr2b/courier_hub/server.py", line 267, in item_view
+    task = journal.task(task_id)
+  File "/tmp/i12/pr2b/courier_core/journal.py", line 212, in task
+    return projection.load_task(self.conn, task_id)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/i12/pr2b/courier_core/projection.py", line 114, in load_task
+    return _from_row(tuple(row)) if row else None
+           ~~~~~~~~~^^^^^^^^^^^^
+  File "/tmp/i12/pr2b/courier_core/projection.py", line 107, in _from_row
+    return TaskState.from_record(record)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/tmp/i12/pr2b/courier_core/state_machine.py", line 116, in from_record
+    values["status"] = TaskStatus(values["status"])
+                       ~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/enum.py", line 726, in __call__
+    return cls.__new__(cls, value)
+           ~~~~~~~~~~~^^^^^^^^^^^^
+  File "/usr/lib/python3.13/enum.py", line 1203, in __new__
+    raise ve_exc
+ValueError: 'TELEPORTED' is not a valid TaskStatus
+ERROR    courier.hub:server.py:272 hub could not read item t1
+Traceback (most recent call last):
+  File "/tmp/i12/pr2b/courier_hub/server.py", line 267, in item_view
+    task = journal.task(task_id)
+  File "/tmp/i12/pr2b/courier_core/journal.py", line 212, in task
+    return projection.load_task(self.conn, task_id)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/i12/pr2b/courier_core/projection.py", line 114, in load_task
+    return _from_row(tuple(row)) if row else None
+           ~~~~~~~~~^^^^^^^^^^^^
+  File "/tmp/i12/pr2b/courier_core/projection.py", line 107, in _from_row
+    return TaskState.from_record(record)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/tmp/i12/pr2b/courier_core/state_machine.py", line 116, in from_record
+    values["status"] = TaskStatus(values["status"])
+                       ~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/enum.py", line 726, in __call__
+    return cls.__new__(cls, value)
+           ~~~~~~~~~~~^^^^^^^^^^^^
+  File "/usr/lib/python3.13/enum.py", line 1203, in __new__
+    raise ve_exc
+ValueError: 'TELEPORTED' is not a valid TaskStatus
+______ test_one_unmapped_status_is_an_unrecognised_card_and_home_stays_up ______
+------------------------------ Captured log call -------------------------------
+ERROR    courier.hub:server.py:95 hub could not classify task t1
+Traceback (most recent call last):
+  File "/tmp/i12/pr2b/courier_hub/server.py", line 93, in _task_is_done
+    return pile_of(task) == PILE_DONE
+           ~~~~~~~^^^^^^
+  File "/tmp/i12/pr2b/tests/hub/test_hub_undecodable_state.py", line 105, in pile_of
+    raise ValueError("status not mapped by this hub")
+ValueError: status not mapped by this hub
+=========================== short test summary info ============================
+PASSED tests/hub/test_hub_bounded_reads.py::test_a_short_history_is_shown_in_full
+PASSED tests/hub/test_hub_bounded_reads.py::test_a_long_progress_history_is_capped_and_the_omission_is_counted
+PASSED tests/hub/test_hub_bounded_reads.py::test_a_small_controller_body_is_still_a_running_controller
+PASSED tests/hub/test_hub_bounded_reads.py::test_an_oversized_controller_body_is_not_buffered_or_trusted
+PASSED tests/hub/test_hub_bounded_reads.py::test_an_oversized_error_body_is_not_buffered
+PASSED tests/hub/test_hub_bounded_reads.py::test_an_oversized_decision_answer_is_unavailable
+PASSED tests/hub/test_hub_fixture.py::test_desktop_fixture_matches_the_projection_model
+PASSED tests/hub/test_hub_journal_symlink.py::test_hub_does_not_read_a_symlinked_journal
+PASSED tests/hub/test_hub_journal_symlink.py::test_hub_does_not_read_a_symlinked_token
+PASSED tests/hub/test_hub_journal_symlink.py::test_status_does_not_treat_a_symlinked_journal_as_running
+PASSED tests/hub/test_hub_product.py::test_every_runtime_status_projects_to_exactly_one_pile[QUEUED-working]
+PASSED tests/hub/test_hub_product.py::test_every_runtime_status_projects_to_exactly_one_pile[CLAIMED-working]
+PASSED tests/hub/test_hub_product.py::test_every_runtime_status_projects_to_exactly_one_pile[RUNNING-working]
+PASSED tests/hub/test_hub_product.py::test_every_runtime_status_projects_to_exactly_one_pile[VERIFYING-working]
+PASSED tests/hub/test_hub_product.py::test_every_runtime_status_projects_to_exactly_one_pile[ACCEPTED-working]
+PASSED tests/hub/test_hub_product.py::test_every_runtime_status_projects_to_exactly_one_pile[RETRY_PENDING-working]
+PASSED tests/hub/test_hub_product.py::test_every_runtime_status_projects_to_exactly_one_pile[BLOCKED-needs_you]
+PASSED tests/hub/test_hub_product.py::test_every_runtime_status_projects_to_exactly_one_pile[COMPLETE-done]
+PASSED tests/hub/test_hub_product.py::test_every_runtime_status_projects_to_exactly_one_pile[FAILED-done]
+PASSED tests/hub/test_hub_product.py::test_every_runtime_status_projects_to_exactly_one_pile[CANCELLED-done]
+PASSED tests/hub/test_hub_product.py::test_done_outcomes_stay_distinct_and_only_verified_gets_the_check
+PASSED tests/hub/test_hub_product.py::test_complete_without_resolution_is_never_shown_as_checked
+PASSED tests/hub/test_hub_product.py::test_retry_pending_does_not_change_the_working_card
+PASSED tests/hub/test_hub_product.py::test_unknown_status_is_refused_not_guessed
+PASSED tests/hub/test_hub_product.py::test_needs_you_card_explains_the_concrete_retry_consequence
+PASSED tests/hub/test_hub_product.py::test_retry_is_not_offered_once_a_stop_was_requested
+PASSED tests/hub/test_hub_product.py::test_customer_copy_carries_no_internal_identifiers
+PASSED tests/hub/test_hub_product.py::test_empty_and_not_set_up_states
+PASSED tests/hub/test_hub_product.py::test_home_projects_canonical_state_and_survives_restart
+PASSED tests/hub/test_hub_product.py::test_blocked_effect_confirmed_through_the_hub
+PASSED tests/hub/test_hub_product.py::test_duplicate_click_is_recorded_once
+PASSED tests/hub/test_hub_product.py::test_a_stale_screen_cannot_decide_a_newer_question
+PASSED tests/hub/test_hub_product.py::test_stop_after_uncertain_effect_stays_uncertain
+PASSED tests/hub/test_hub_product.py::test_decision_while_controller_is_down_changes_nothing
+PASSED tests/hub/test_hub_product.py::test_invalid_decisions_are_refused_before_reaching_the_runtime
+PASSED tests/hub/test_hub_product.py::test_working_card_shows_observable_state_authority_and_stop
+PASSED tests/hub/test_hub_product.py::test_verified_receipt_says_how_courier_knows
+PASSED tests/hub/test_hub_product.py::test_requests_from_other_origins_are_refused
+PASSED tests/hub/test_hub_product.py::test_page_is_served_with_a_strict_content_security_policy
+PASSED tests/hub/test_hub_product.py::test_resumed_only_when_courier_actually_continued
+PASSED tests/hub/test_hub_product.py::test_retry_authorized_twice_gives_exactly_one_new_attempt
+PASSED tests/hub/test_hub_product.py::test_two_tabs_with_different_decisions_only_the_first_counts
+PASSED tests/hub/test_hub_product.py::test_stop_after_a_non_idempotent_action_started_never_reads_as_nothing_happened
+PASSED tests/hub/test_hub_product.py::test_stop_before_start_is_a_plain_stop
+PASSED tests/hub/test_hub_product.py::test_stop_after_completion_is_stale_not_success
+PASSED tests/hub/test_hub_product.py::test_an_unknown_runtime_state_does_not_take_home_down
+PASSED tests/hub/test_hub_product.py::test_done_count_is_the_true_total_even_when_the_list_is_trimmed
+PASSED tests/hub/test_hub_product.py::test_idle_home_reads_only_the_journal_head
+PASSED tests/hub/test_hub_product.py::test_500_tasks_render_quickly_and_quietly
+PASSED tests/hub/test_hub_product.py::test_a_replaced_journal_with_the_same_length_is_never_served_from_cache
+PASSED tests/hub/test_hub_product.py::test_failed_receipt_never_claims_courier_checked_it
+PASSED tests/hub/test_hub_product.py::test_an_unsafe_actor_name_is_refused_at_start[]
+PASSED tests/hub/test_hub_product.py::test_an_unsafe_actor_name_is_refused_at_start[ana smith]
+PASSED tests/hub/test_hub_product.py::test_an_unsafe_actor_name_is_refused_at_start[aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa]
+PASSED tests/hub/test_hub_product.py::test_an_unsafe_actor_name_is_refused_at_start[<script>]
+PASSED tests/hub/test_hub_product.py::test_an_unsafe_actor_name_is_refused_at_start[ana\nforged]
+PASSED tests/hub/test_hub_product.py::test_malformed_or_hostile_posts_are_refused[headers0-{}-403]
+PASSED tests/hub/test_hub_product.py::test_malformed_or_hostile_posts_are_refused[headers1-{not json-400]
+PASSED tests/hub/test_hub_product.py::test_malformed_or_hostile_posts_are_refused[headers2-[1, 2]-400]
+PASSED tests/hub/test_hub_product.py::test_malformed_or_hostile_posts_are_refused[headers3-{"decision": "cancel", "attempt": 1, "note": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}-400]
+PASSED tests/hub/test_hub_product.py::test_malformed_or_hostile_posts_are_refused[headers4-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-413]
+PASSED tests/hub/test_hub_product.py::test_unknown_or_malformed_task_ids_are_not_found
+PASSED tests/hub/test_hub_product.py::test_task_text_is_returned_as_data_never_as_markup
+PASSED tests/hub/test_hub_product.py::test_a_state_the_hub_does_not_know_still_opens_its_details
+PASSED tests/hub/test_hub_product.py::test_a_recorded_decision_is_never_reported_as_failed_when_the_reread_breaks
+PASSED tests/hub/test_hub_product.py::test_an_unreadable_item_is_unavailable_not_an_internal_error
+PASSED tests/hub/test_hub_product.py::test_an_internal_error_after_relaying_never_claims_nothing_changed
+PASSED tests/hub/test_hub_product.py::test_a_non_ascii_content_length_is_refused_cleanly
+PASSED tests/hub/test_hub_product.py::test_support_export_is_one_item_read_only_and_holds_no_secrets
+PASSED tests/hub/test_hub_product.py::test_hub_kolibri_endpoint_returns_arbitrage_research
+PASSED tests/hub/test_hub_product.py::test_hub_relays_decisions_with_the_operator_token_header
+PASSED tests/hub/test_hub_product.py::test_without_a_valid_operator_token_the_hub_sends_nothing[None]
+PASSED tests/hub/test_hub_product.py::test_without_a_valid_operator_token_the_hub_sends_nothing[short]
+PASSED tests/hub/test_hub_product.py::test_without_a_valid_operator_token_the_hub_sends_nothing[symlink]
+PASSED tests/hub/test_hub_product.py::test_a_wrong_operator_token_is_refused_by_the_controller_and_shown_clearly
+PASSED tests/hub/test_hub_static_symlink.py::test_static_symlink_is_not_served
+PASSED tests/hub/test_hub_undecodable_state.py::test_unknown_stored_status_makes_home_unavailable_not_an_internal_error
+PASSED tests/hub/test_hub_undecodable_state.py::test_unknown_stored_status_item_is_unavailable_not_an_internal_error
+PASSED tests/hub/test_hub_undecodable_state.py::test_one_unmapped_status_is_an_unrecognised_card_and_home_stays_up
+PASSED tests/hub/test_kolibri_arbi_view.py::test_read_arbitrage_research_structure
+PASSED tests/hub/test_kolibri_arbi_view.py::test_build_snapshot_contains_arbitrage_research
+PASSED tests/hub/test_kolibri_arbi_view.py::test_kolibri_dom_renders_arbi_first_before_system_resources
+PASSED tests/hub/test_kolibri_bridge.py::test_happy_path_reaches_done_with_evidence
+PASSED tests/hub/test_kolibri_bridge.py::test_ready_vs_queued_needs_dependency_evidence
+PASSED tests/hub/test_kolibri_bridge.py::test_claim_shows_transferred_start_shows_running
+PASSED tests/hub/test_kolibri_bridge.py::test_start_without_claim_stays_unknown
+PASSED tests/hub/test_kolibri_bridge.py::test_verdict_without_running_and_done_without_verdict_stay_unknown
+PASSED tests/hub/test_kolibri_bridge.py::test_accept_without_verifier_identity_is_not_green
+PASSED tests/hub/test_kolibri_bridge.py::test_human_confirmation_never_done_or_green
+PASSED tests/hub/test_kolibri_bridge.py::test_dedupe_and_conflict
+PASSED tests/hub/test_kolibri_bridge.py::test_out_of_order_buffers_until_gap_fills
+PASSED tests/hub/test_kolibri_bridge.py::test_replay_idempotent_restart_equal_no_repulse
+PASSED tests/hub/test_kolibri_bridge.py::test_stale_flag_and_late_events_never_change_state
+PASSED tests/hub/test_kolibri_bridge.py::test_blocked_failed_cancel_paths_with_diagnosis
+PASSED tests/hub/test_kolibri_bridge.py::test_reconnect_closes_gap
+PASSED tests/hub/test_kolibri_bridge.py::test_bridge_is_read_only_by_construction
+PASSED tests/hub/test_kolibri_flow_failclosed.py::test_no_green_without_event_id
+PASSED tests/hub/test_kolibri_flow_failclosed.py::test_no_green_from_status_string_alone
+PASSED tests/hub/test_kolibri_flow_failclosed.py::test_no_green_from_success_string_alone
+PASSED tests/hub/test_kolibri_flow_failclosed.py::test_replay_does_not_re_emit_success
+PASSED tests/hub/test_kolibri_flow_failclosed.py::test_done_without_verifier_stays_unknown
+PASSED tests/hub/test_kolibri_flow_failclosed.py::test_human_confirmed_is_not_verified
+PASSED tests/hub/test_kolibri_flow_failclosed.py::test_demo_data_never_green
+PASSED tests/hub/test_kolibri_neon_slice.py::test_lane_shows_five_stages_in_order
+PASSED tests/hub/test_kolibri_neon_slice.py::test_statuses_are_distinguishable_in_live
+PASSED tests/hub/test_kolibri_neon_slice.py::test_demo_is_deterministic_labeled_and_never_green
+PASSED tests/hub/test_kolibri_neon_slice.py::test_live_ticker_and_detail_carry_proof
+PASSED tests/hub/test_kolibri_neon_slice.py::test_done_proof_uses_real_merge_evidence_not_synthetic_id
+PASSED tests/hub/test_kolibri_neon_slice.py::test_perf_guards_are_wired
+PASSED tests/hub/test_kolibri_truth_p0.py::test_k1_verified_outcome_with_journal_proof_is_evidence
+PASSED tests/hub/test_kolibri_truth_p0.py::test_k1_verified_outcome_without_valid_proof_stays_unverified[None]
+PASSED tests/hub/test_kolibri_truth_p0.py::test_k1_verified_outcome_without_valid_proof_stays_unverified[proof1]
+PASSED tests/hub/test_kolibri_truth_p0.py::test_k1_verified_outcome_without_valid_proof_stays_unverified[proof2]
+PASSED tests/hub/test_kolibri_truth_p0.py::test_k1_verified_outcome_without_valid_proof_stays_unverified[proof3]
+PASSED tests/hub/test_kolibri_truth_p0.py::test_k1_verified_outcome_without_valid_proof_stays_unverified[proof4]
+PASSED tests/hub/test_kolibri_truth_p0.py::test_k1_verified_outcome_without_valid_proof_stays_unverified[proof5]
+PASSED tests/hub/test_kolibri_truth_p0.py::test_k1_verified_outcome_without_valid_proof_stays_unverified[proof6]
+PASSED tests/hub/test_kolibri_truth_p0.py::test_k1_verified_outcome_without_valid_proof_stays_unverified[journal:7]
+PASSED tests/hub/test_kolibri_truth_p0.py::test_k1_human_confirmed_or_unlabelled_is_never_verified_even_with_a_proof
+PASSED tests/hub/test_kolibri_truth_p0.py::test_k1_card_proof_comes_from_the_real_result_accepted_event
+PASSED tests/hub/test_kolibri_truth_p0.py::test_k1_card_without_the_accepted_event_carries_no_proof
+PASSED tests/hub/test_kolibri_truth_p0.py::test_read_arbitrage_research_refuses_a_symlink
+PASSED tests/hub/test_kolibri_truth_p0.py::test_read_arbitrage_research_refuses_a_root_two_levels_under_a_symlink
+PASSED tests/hub/test_kolibri_truth_p0.py::test_k2_missing_arbitrage_file_has_no_amount
+PASSED tests/hub/test_kolibri_truth_p0.py::test_k2_corrupt_arbitrage_file_has_no_amount
+PASSED tests/hub/test_kolibri_truth_p0.py::test_k2_file_without_revenue_field_has_no_amount
+PASSED tests/hub/test_kolibri_truth_p0.py::test_k2_snapshot_fallback_has_no_amount
+PASSED tests/hub/test_kolibri_view.py::test_read_muse_wall_refuses_a_symlink
+PASSED tests/hub/test_kolibri_view.py::test_read_muse_wall_refuses_a_wall_two_levels_under_a_symlink
+PASSED tests/hub/test_kolibri_view.py::test_read_postfach_refuses_a_symlink
+PASSED tests/hub/test_kolibri_view.py::test_read_postfach_refuses_a_home_two_levels_under_a_symlink
+PASSED tests/hub/test_kolibri_view.py::test_read_ledger_bridge_refuses_a_symlink
+PASSED tests/hub/test_kolibri_view.py::test_read_ledger_bridge_refuses_a_file_two_levels_under_a_symlink
+PASSED tests/hub/test_kolibri_view.py::test_station_order_is_numeric_and_stable
+PASSED tests/hub/test_kolibri_view.py::test_view_renders_real_sources_with_traceable_values
+PASSED tests/hub/test_kolibri_view.py::test_no_activity_bird_rests
+PASSED tests/hub/test_kolibri_view.py::test_unreachable_source_is_unknown_without_an_invented_value
+PASSED tests/hub/test_kolibri_view.py::test_fresh_heartbeat_is_not_pause
+PASSED tests/hub/test_kolibri_view.py::test_new_journal_entry_is_visible_on_the_next_poll
+PASSED tests/hub/test_kolibri_view.py::test_merged_ref_uses_origin_then_unknown
+PASSED tests/hub/test_kolibri_view.py::test_local_merge_subject_is_a_row_without_a_fixed_number
+PASSED tests/hub/test_kolibri_view.py::test_hub_route_serves_one_page
+PASSED tests/hub/test_kolibri_view.py::test_kolibri_workkey_lease_blocker_and_resource_pause_visibility
+PASSED tests/hub/test_kolibri_view.py::test_kolibri_static_script_lifecycle_guards
+PASSED tests/hub/test_kolibri_view.py::test_kolibri_flow_signal_translation
+FAILED tests/hub/test_hub_product.py::test_lost_answer_after_the_controller_recorded_is_never_reported_as_nothing_changed
+FAILED tests/hub/test_hub_product.py::test_controller_not_running_means_nothing_was_sent
+FAILED tests/hub/test_kolibri_view.py::test_github_payload_is_shown_and_a_failed_read_is_unknown
+======================== 3 failed, 145 passed in 27.66s ========================
+### EXIT 1 18:54:24
+### 18:54:24 [9afe8706] python3 -m pytest -rA -p no:cacheprovider --timeout=300 tests/test_task_dependency_input.py
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0
+rootdir: /tmp/i12/pr2b
+configfile: pytest.ini
+plugins: timeout-2.4.0, anyio-4.15.1
+timeout: 300.0s
+timeout method: signal
+timeout func_only: False
+collected 23 items
+
+tests/test_task_dependency_input.py .......................              [100%]
+
+==================================== PASSES ====================================
+___ test_runner_refuses_an_input_whose_bytes_do_not_match_the_verified_hash ____
+----------------------------- Captured stderr call -----------------------------
+adapter_runner: input refused: input artifact hash does not match the verified result
+=========================== short test summary info ============================
+PASSED tests/test_task_dependency_input.py::test_real_controller_and_worker_run_a_then_b_on_the_verified_result
+PASSED tests/test_task_dependency_input.py::test_a_changed_dependency_artifact_never_reaches_the_adapter
+PASSED tests/test_task_dependency_input.py::test_controller_restart_between_a_and_b_runs_b_once_and_a_never_again
+PASSED tests/test_task_dependency_input.py::test_resolve_spec_carries_a_valid_input_and_none_for_an_independent_task
+PASSED tests/test_task_dependency_input.py::test_a_malformed_input_refuses_the_claim_before_it_runs[text]
+PASSED tests/test_task_dependency_input.py::test_a_malformed_input_refuses_the_claim_before_it_runs[bad1]
+PASSED tests/test_task_dependency_input.py::test_a_malformed_input_refuses_the_claim_before_it_runs[bad2]
+PASSED tests/test_task_dependency_input.py::test_a_malformed_input_refuses_the_claim_before_it_runs[bad3]
+PASSED tests/test_task_dependency_input.py::test_a_malformed_input_refuses_the_claim_before_it_runs[bad4]
+PASSED tests/test_task_dependency_input.py::test_a_malformed_input_refuses_the_claim_before_it_runs[bad5]
+PASSED tests/test_task_dependency_input.py::test_a_malformed_input_refuses_the_claim_before_it_runs[bad6]
+PASSED tests/test_task_dependency_input.py::test_a_malformed_input_refuses_the_claim_before_it_runs[bad7]
+PASSED tests/test_task_dependency_input.py::test_a_malformed_input_refuses_the_claim_before_it_runs[bad8]
+PASSED tests/test_task_dependency_input.py::test_a_malformed_input_refuses_the_claim_before_it_runs[bad9]
+PASSED tests/test_task_dependency_input.py::test_write_request_adds_input_and_home_only_for_a_dependent_task
+PASSED tests/test_task_dependency_input.py::test_runner_hands_the_hash_checked_input_to_the_adapter
+PASSED tests/test_task_dependency_input.py::test_runner_refuses_an_input_whose_bytes_do_not_match_the_verified_hash
+PASSED tests/test_task_dependency_input.py::test_synthetic_from_input_params
+PASSED tests/test_task_dependency_input.py::test_synthetic_from_input_needs_an_input
+PASSED tests/test_task_dependency_input.py::test_verifier_accepts_the_transform_of_the_verified_input
+PASSED tests/test_task_dependency_input.py::test_verifier_rejects_a_wrong_output
+PASSED tests/test_task_dependency_input.py::test_verifier_rejects_when_the_input_artifact_was_changed
+PASSED tests/test_task_dependency_input.py::test_verifier_rejects_a_from_input_task_without_a_bound_input
+============================== 23 passed in 4.13s ==============================
+### EXIT 0 18:54:28
+### 18:54:28 [9afe8706] python3 -m pytest -rA -p no:cacheprovider --timeout=300 tests/test_mission_chip.py
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0
+rootdir: /tmp/i12/pr2b
+configfile: pytest.ini
+plugins: timeout-2.4.0, anyio-4.15.1
+timeout: 300.0s
+timeout method: signal
+timeout func_only: False
+collected 10 items
+
+tests/test_mission_chip.py ..........                                    [100%]
+
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/test_mission_chip.py::test_mission_chip_deterministic_execution
+PASSED tests/test_mission_chip.py::test_mission_chip_http_endpoint
+PASSED tests/test_mission_chip.py::test_mission_chip_cli
+PASSED tests/test_mission_chip.py::test_chip_verifier_refuses_a_symlinked_artifact
+PASSED tests/test_mission_chip.py::test_chip_verifier_refuses_an_artifact_two_levels_under_a_symlink
+PASSED tests/test_mission_chip.py::test_chip_verifier_rejects_tampered_hash
+PASSED tests/test_mission_chip.py::test_chip_verifier_rejects_tampered_file_bytes
+PASSED tests/test_mission_chip.py::test_chip_verifier_rejects_missing_artifacts
+PASSED tests/test_mission_chip.py::test_chip_verifier_rejects_invalid_sha_format
+PASSED tests/test_mission_chip.py::test_mission_chip_cli_pretty_output
+============================== 10 passed in 0.66s ==============================
+### EXIT 0 18:54:29
+### 18:54:29 [9afe8706] python3 -m pytest -rA -p no:cacheprovider --timeout=300 tests/test_local_bind_loopback.py
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0
+rootdir: /tmp/i12/pr2b
+configfile: pytest.ini
+plugins: timeout-2.4.0, anyio-4.15.1
+timeout: 300.0s
+timeout method: signal
+timeout func_only: False
+collected 5 items
+
+tests/test_local_bind_loopback.py .....                                  [100%]
+
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/test_local_bind_loopback.py::test_dashboard_binds_loopback
+PASSED tests/test_local_bind_loopback.py::test_legacy_server_defaults_to_loopback
+PASSED tests/test_local_bind_loopback.py::test_legacy_server_lan_bind_is_an_explicit_opt_in
+PASSED tests/test_local_bind_loopback.py::test_v1_services_stay_loopback[courier_core.serve-ControllerServer]
+PASSED tests/test_local_bind_loopback.py::test_v1_services_stay_loopback[courier_hub.server-HubServer]
+============================== 5 passed in 0.22s ===============================
+### EXIT 0 18:54:30
+### 18:54:30 [9afe8706] python3 -m pytest -rA -p no:cacheprovider --timeout=300 tests/test_work_queue.py
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0
+rootdir: /tmp/i12/pr2b
+configfile: pytest.ini
+plugins: timeout-2.4.0, anyio-4.15.1
+timeout: 300.0s
+timeout method: signal
+timeout func_only: False
+collected 21 items
+
+tests/test_work_queue.py .....................                           [100%]
+
+==================================== PASSES ====================================
+___________________ test_p9_template_spawns_claim_once_items ___________________
+----------------------------- Captured stdout call -----------------------------
+{"branch": "lane/L2-P9-worker_tokens", "claim_once": true, "files_scope": ["tests/"], "idempotent": true, "item_id": "P9-worker_tokens", "status": "CLAIMED"}
+=========================== short test summary info ============================
+PASSED tests/test_work_queue.py::test_seed_files_match_schema_and_claims
+PASSED tests/test_work_queue.py::test_list_ready_skips_taken_items
+PASSED tests/test_work_queue.py::test_duplicate_claim_is_rejected_and_same_holder_is_idempotent
+PASSED tests/test_work_queue.py::test_overlapping_scope_is_not_ready_until_the_lease_expires
+PASSED tests/test_work_queue.py::test_open_pr_files_block_ready_and_claim
+PASSED tests/test_work_queue.py::test_dependencies_on_items_and_prs
+PASSED tests/test_work_queue.py::test_renew_release_and_replay
+PASSED tests/test_work_queue.py::test_expired_renew_is_rejected
+PASSED tests/test_work_queue.py::test_malformed_catalog_and_ledger_fail_closed
+PASSED tests/test_work_queue.py::test_blocked_seed_is_not_ready
+PASSED tests/test_work_queue.py::test_concurrent_claims_one_winner
+PASSED tests/test_work_queue.py::test_cli_next_prints_prompt_without_claiming
+PASSED tests/test_work_queue.py::test_p9_template_spawns_claim_once_items
+PASSED tests/test_work_queue.py::test_external_claim_ignores_the_clock
+PASSED tests/test_work_queue.py::test_ledger_two_levels_under_a_symlinked_home_is_not_opened
+PASSED tests/test_work_queue.py::test_items_under_a_symlinked_home_are_not_opened
+PASSED tests/test_work_queue.py::test_items_two_levels_under_a_symlink_are_not_opened
+PASSED tests/test_work_queue.py::test_schema_two_levels_under_a_symlink_is_not_opened
+PASSED tests/test_work_queue.py::test_ledger_under_symlinked_parent_is_not_opened
+PASSED tests/test_work_queue.py::test_lock_symlink_is_not_opened
+PASSED tests/test_work_queue.py::test_cli_next_empty
+============================== 21 passed in 0.26s ==============================
+### EXIT 0 18:54:30
+### 18:54:30 [9afe8706] python3 -m pytest -rA -p no:cacheprovider --timeout=300 tests/test_queue_feed_pr_evidence.py
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0
+rootdir: /tmp/i12/pr2b
+configfile: pytest.ini
+plugins: timeout-2.4.0, anyio-4.15.1
+timeout: 300.0s
+timeout method: signal
+timeout func_only: False
+collected 7 items
+
+tests/test_queue_feed_pr_evidence.py .......                             [100%]
+
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/test_queue_feed_pr_evidence.py::test_verified_done_pr_lets_the_dependent_be_claimed
+PASSED tests/test_queue_feed_pr_evidence.py::test_open_pr_281_is_not_treated_as_done
+PASSED tests/test_queue_feed_pr_evidence.py::test_open_pr_files_block_a_conflicting_claim
+PASSED tests/test_queue_feed_pr_evidence.py::test_stale_evidence_blocks_and_does_not_release
+PASSED tests/test_queue_feed_pr_evidence.py::test_final_done_without_a_result_is_not_released
+PASSED tests/test_queue_feed_pr_evidence.py::test_proven_final_done_releases_once_and_restart_does_not_claim_again
+PASSED tests/test_queue_feed_pr_evidence.py::test_second_pass_does_not_claim_twice
+============================== 7 passed in 0.21s ===============================
+### EXIT 0 18:54:31
+### 18:54:31 [9afe8706] python3 -m pytest -rA -p no:cacheprovider --timeout=300 tests/test_windows_local_queue.py
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0
+rootdir: /tmp/i12/pr2b
+configfile: pytest.ini
+plugins: timeout-2.4.0, anyio-4.15.1
+timeout: 300.0s
+timeout method: signal
+timeout func_only: False
+collected 15 items
+
+tests/test_windows_local_queue.py ...............                        [100%]
+
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/test_windows_local_queue.py::test_only_the_holder_can_claim_and_final_is_not_restarted
+PASSED tests/test_windows_local_queue.py::test_checkpoint_releases_only_the_next_ready_workkey
+PASSED tests/test_windows_local_queue.py::test_selection_is_deterministic_and_resumable
+PASSED tests/test_windows_local_queue.py::test_blocked_dependency_is_not_released
+PASSED tests/test_windows_local_queue.py::test_temporary_failures_retry_then_dead_letter_keeps_the_claim
+PASSED tests/test_windows_local_queue.py::test_unverified_result_is_not_final
+PASSED tests/test_windows_local_queue.py::test_receipt_log_symlink_is_not_followed
+PASSED tests/test_windows_local_queue.py::test_ran_phase_survives_and_does_not_execute_again
+PASSED tests/test_windows_local_queue.py::test_remainder_stays_ready_after_a_new_queue_object
+PASSED tests/test_windows_local_queue.py::test_two_homes_cannot_both_dispatch_wq1
+PASSED tests/test_windows_local_queue.py::test_kill_switch_stops_a_retry_without_a_second_run
+PASSED tests/test_windows_local_queue.py::test_dead_letter_is_not_executed_or_released_again
+PASSED tests/test_windows_local_queue.py::test_a_second_holder_does_not_take_the_claimed_workkey
+PASSED tests/test_windows_local_queue.py::test_heartbeat_is_not_verification_and_kill_switch_stops_before_claim
+PASSED tests/test_windows_local_queue.py::test_synthetic_run_finalizes_distinct_workkeys_in_order
+============================== 15 passed in 0.19s ==============================
+### EXIT 0 18:54:31
+### [9afe8706] MISSING_IN_TREE tests/test_p2b_journal_proof.py
+### [9afe8706] MISSING_IN_TREE tests/controller/test_ctrl_p2b_accepted_seq.py
+### 18:54:31 [9afe8706] python3 -m pytest -rA -p no:cacheprovider --timeout=300 tests/test_queue_feed_corrupt_default.py
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0
+rootdir: /tmp/i12/pr2b
+configfile: pytest.ini
+plugins: timeout-2.4.0, anyio-4.15.1
+timeout: 300.0s
+timeout method: signal
+timeout func_only: False
+collected 2 items
+
+tests/test_queue_feed_corrupt_default.py ..                              [100%]
+
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/test_queue_feed_corrupt_default.py::test_read_json_missing_returns_default
+PASSED tests/test_queue_feed_corrupt_default.py::test_read_json_corrupt_returns_default
+============================== 2 passed in 0.08s ===============================
+### EXIT 0 18:54:32
+### 18:54:32 [9afe8706] python3 -m pytest -rA -p no:cacheprovider --timeout=300 tests/test_work_queue_windows_lock.py
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0
+rootdir: /tmp/i12/pr2b
+configfile: pytest.ini
+plugins: timeout-2.4.0, anyio-4.15.1
+timeout: 300.0s
+timeout method: signal
+timeout func_only: False
+collected 1 item
+
+tests/test_work_queue_windows_lock.py .                                  [100%]
+
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/test_work_queue_windows_lock.py::test_second_claimant_waits_instead_of_writing_into_the_locked_byte
+============================== 1 passed in 0.56s ===============================
+### EXIT 0 18:54:32
+### [9afe8706] MISSING_IN_TREE tests/test_o7_04_lease_owner_required.py
+### 18:54:32 [9afe8706] python3 -m pytest -rA -p no:cacheprovider --timeout=300 tests/test_runtime_continuity.py
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0
+rootdir: /tmp/i12/pr2b
+configfile: pytest.ini
+plugins: timeout-2.4.0, anyio-4.15.1
+timeout: 300.0s
+timeout method: signal
+timeout func_only: False
+collected 46 items
+
+tests/test_runtime_continuity.py ....................................... [ 84%]
+.......                                                                  [100%]
+
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/test_runtime_continuity.py::test_25_sequential_workkeys_without_any_manual_continue
+PASSED tests/test_runtime_continuity.py::test_blocked_workkey_parks_and_session_moves_on
+PASSED tests/test_runtime_continuity.py::test_duplicate_wakes_coalesce_to_one_pending
+PASSED tests/test_runtime_continuity.py::test_100_continuation_intents_are_one_execution
+PASSED tests/test_runtime_continuity.py::test_saturation_rotates_once_and_successor_resumes_from_checkpoint
+PASSED tests/test_runtime_continuity.py::test_old_session_cannot_be_replaced_twice
+PASSED tests/test_runtime_continuity.py::test_unproven_cleanup_never_launches_successor[receipt0]
+PASSED tests/test_runtime_continuity.py::test_unproven_cleanup_never_launches_successor[receipt1]
+PASSED tests/test_runtime_continuity.py::test_unproven_cleanup_never_launches_successor[receipt2]
+PASSED tests/test_runtime_continuity.py::test_unproven_cleanup_never_launches_successor[receipt3]
+PASSED tests/test_runtime_continuity.py::test_unproven_cleanup_never_launches_successor[receipt4]
+PASSED tests/test_runtime_continuity.py::test_recovery_checkpoint_precedes_external_effects[terminate]
+PASSED tests/test_runtime_continuity.py::test_recovery_checkpoint_precedes_external_effects[start_session]
+PASSED tests/test_runtime_continuity.py::test_checkpoint_sync_failure_prevents_cleanup_and_launch
+PASSED tests/test_runtime_continuity.py::test_fenced_slot_repeat_blocks_have_complete_audit_receipts
+PASSED tests/test_runtime_continuity.py::test_recovery_resolution_rejects_unbound_or_uncertain_proof[invalid0]
+PASSED tests/test_runtime_continuity.py::test_recovery_resolution_rejects_unbound_or_uncertain_proof[invalid1]
+PASSED tests/test_runtime_continuity.py::test_recovery_resolution_rejects_unbound_or_uncertain_proof[invalid2]
+PASSED tests/test_runtime_continuity.py::test_recovery_resolution_rejects_unbound_or_uncertain_proof[invalid3]
+PASSED tests/test_runtime_continuity.py::test_recovery_resolution_rejects_unbound_or_uncertain_proof[invalid4]
+PASSED tests/test_runtime_continuity.py::test_recovery_resolution_rejects_unbound_or_uncertain_proof[invalid5]
+PASSED tests/test_runtime_continuity.py::test_recovery_resolution_rejects_unbound_or_uncertain_proof[invalid6]
+PASSED tests/test_runtime_continuity.py::test_recovery_resolution_rejects_unbound_or_uncertain_proof[invalid7]
+PASSED tests/test_runtime_continuity.py::test_recovery_resolution_rejects_unbound_or_uncertain_proof[invalid8]
+PASSED tests/test_runtime_continuity.py::test_recovery_resolution_requires_current_authority
+PASSED tests/test_runtime_continuity.py::test_recovery_resolution_resumes_once_from_verified_checkpoint
+PASSED tests/test_runtime_continuity.py::test_recovery_resolution_rechecks_fence_after_hooks
+PASSED tests/test_runtime_continuity.py::test_recovery_authority_uses_existing_broker_and_revocation
+PASSED tests/test_runtime_continuity.py::test_recovery_authority_is_not_restored_from_checkpoint
+PASSED tests/test_runtime_continuity.py::test_recovery_resolution_of_idle_slot_does_not_invent_work
+PASSED tests/test_runtime_continuity.py::test_no_duplicate_writer_after_rotation
+PASSED tests/test_runtime_continuity.py::test_reopened_archived_slot_never_reuses_retired_session_identity
+PASSED tests/test_runtime_continuity.py::test_stalled_provider_detected_by_fast_tick_not_after_15_minutes
+PASSED tests/test_runtime_continuity.py::test_long_quiet_task_is_not_killed_and_one_weak_signal_only_investigates
+PASSED tests/test_runtime_continuity.py::test_hung_but_alive_executor_is_terminated_by_identity_and_replaced_once
+PASSED tests/test_runtime_continuity.py::test_pid_reuse_is_never_terminated
+PASSED tests/test_runtime_continuity.py::test_critical_snapshot_is_structured_evidence_every_15_minutes
+PASSED tests/test_runtime_continuity.py::test_restart_leaves_no_ghost_sessions
+PASSED tests/test_runtime_continuity.py::test_power_pool_distinct_slots_one_writer_each_and_bounded
+PASSED tests/test_runtime_continuity.py::test_user_sees_recovering_then_working
+PASSED tests/test_runtime_continuity.py::test_saturation_needs_a_real_signal_not_a_prompt_count[context compaction failed: hard_threshold_failed-None-hard_threshold_failed]
+PASSED tests/test_runtime_continuity.py::test_saturation_needs_a_real_signal_not_a_prompt_count[Turn-submit backlog full (4)-None-turn-submit backlog full]
+PASSED tests/test_runtime_continuity.py::test_saturation_needs_a_real_signal_not_a_prompt_count[all good-95.0-context pressure 95%]
+PASSED tests/test_runtime_continuity.py::test_saturation_needs_a_real_signal_not_a_prompt_count[all good-None-None]
+PASSED tests/test_runtime_continuity.py::test_concurrency_advice_scales_down_when_more_slots_stop_helping
+PASSED tests/test_runtime_continuity.py::test_real_hung_child_is_recovered_with_ownership_identity
+============================== 46 passed in 0.56s ==============================
+### EXIT 0 18:54:33
+### 18:54:33 [9afe8706] python3 -m pytest -rA -p no:cacheprovider --timeout=300 tests/test_gate2_two_workkeys.py
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0
+rootdir: /tmp/i12/pr2b
+configfile: pytest.ini
+plugins: timeout-2.4.0, anyio-4.15.1
+timeout: 300.0s
+timeout method: signal
+timeout func_only: False
+collected 3 items
+
+tests/test_gate2_two_workkeys.py ...                                     [100%]
+
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/test_gate2_two_workkeys.py::test_feed_once_is_idempotent_and_waits_for_final
+PASSED tests/test_gate2_two_workkeys.py::test_feed_is_off_without_config
+PASSED tests/test_gate2_two_workkeys.py::test_two_distinct_workkeys_then_restart_without_double_effect
+============================== 3 passed in 11.03s ==============================
+### EXIT 0 18:54:45

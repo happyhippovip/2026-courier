@@ -1,0 +1,236 @@
+== preflight
+Python 3.13.5
+pytest 9.1.1
+deps ok
+loopback ok 50195
+== run: -q -rfEs --timeout=60 tests
+........................................................................ [  1%]
+........................................................................ [  3%]
+........................................................................ [  5%]
+........................................................................ [  7%]
+................................................................s....... [  8%]
+........................................................................ [ 10%]
+........................................................................ [ 12%]
+........................................................................ [ 14%]
+........................................................................ [ 16%]
+........................................................................ [ 17%]
+........................................................................ [ 19%]
+................F..........................s............................ [ 21%]
+........................................................................ [ 23%]
+........................................................................ [ 24%]
+........................................................................ [ 26%]
+........................................................................ [ 28%]
+........................................................................ [ 30%]
+.................................................................. [ 31%]
+........................................................................ [ 33%]
+........................................................................ [ 35%]
+........................................................................ [ 37%]
+........................................................................ [ 39%]
+........................................................................ [ 40%]
+........................................................................ [ 42%]
+........................................................................ [ 44%]
+........................................................................ [ 46%]
+........................................................................ [ 48%]
+........................................................................ [ 49%]
+........................................................................ [ 51%]
+..........................s............................................. [ 53%]
+........................................................................ [ 55%]
+........................................................................ [ 56%]
+........................................................................ [ 58%]
+........................................................................ [ 60%]
+........................................................................ [ 62%]
+........................................................................ [ 64%]
+........................................................................ [ 65%]
+........................................................................ [ 67%]
+........................................................................ [ 69%]
+........................................................................ [ 71%]
+........................................................................ [ 73%]
+........................................................................ [ 74%]
+........................................................................ [ 76%]
+........................................................................ [ 78%]
+........................................................................ [ 80%]
+........................................................................ [ 81%]
+........................................................................ [ 83%]
+........................................................................ [ 85%]
+....................................................................+++++++++++++++++++++++++++++++++++ Timeout ++++++++++++++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~ Stack of courier-http (140465554843328) ~~~~~~~~~~~~~~~~~~~~
+  File "/usr/lib/python3.13/threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib/python3.13/threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.13/threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "/usr/lib/python3.13/socketserver.py", line 235, in serve_forever
+    ready = selector.select(poll_interval)
+  File "/usr/lib/python3.13/selectors.py", line 398, in select
+    fd_event_list = self._selector.poll(timeout)
+~~~~~~~~~~~~~~~~~ Stack of courier-verifier (140465563236032) ~~~~~~~~~~~~~~~~~~
+  File "/usr/lib/python3.13/threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib/python3.13/threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.13/threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "/tmp/l01/basecopy/courier_core/controller.py", line 754, in verifier
+    self.verify_next(timeout=0.5)
+  File "/tmp/l01/basecopy/courier_core/controller.py", line 687, in verify_next
+    task_id = self._verify_queue.get(timeout=timeout) if timeout else self._verify_queue.get_nowait()
+  File "/usr/lib/python3.13/queue.py", line 213, in get
+    self.not_empty.wait(remaining)
+  File "/usr/lib/python3.13/threading.py", line 363, in wait
+    gotit = waiter.acquire(True, timeout)
+~~~~~~~~~~~~~~~ Stack of courier-lease-ticker (140465790424768) ~~~~~~~~~~~~~~~~
+  File "/usr/lib/python3.13/threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib/python3.13/threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.13/threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "/tmp/l01/basecopy/courier_core/controller.py", line 743, in ticker
+    while not self._stopping.wait(tick_s if self._leases else 1.0):
+  File "/usr/lib/python3.13/threading.py", line 659, in wait
+    signaled = self._cond.wait(timeout)
+  File "/usr/lib/python3.13/threading.py", line 363, in wait
+    gotit = waiter.acquire(True, timeout)
+~~~~~~~~~~~~~~ Stack of Thread-972 (run_server) (140465774687936) ~~~~~~~~~~~~~~
+  File "/usr/lib/python3.13/threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "/usr/lib/python3.13/threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.13/threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "/tmp/l01/basecopy/scripts/q14_proof.py", line 26, in run_server
+    app.run(host="127.0.0.1", port=8080, use_reloader=False)
+  File "/home/box/.local/lib/python3.13/site-packages/flask/app.py", line 662, in run
+    run_simple(t.cast(str, host), port, self, **options)
+  File "/home/box/.local/lib/python3.13/site-packages/werkzeug/serving.py", line 1129, in run_simple
+    srv.serve_forever()
+  File "/home/box/.local/lib/python3.13/site-packages/werkzeug/serving.py", line 823, in serve_forever
+    super().serve_forever(poll_interval=poll_interval)
+  File "/usr/lib/python3.13/socketserver.py", line 235, in serve_forever
+    ready = selector.select(poll_interval)
+  File "/usr/lib/python3.13/selectors.py", line 398, in select
+    fd_event_list = self._selector.poll(timeout)
++++++++++++++++++++++++++++++++++++ Timeout ++++++++++++++++++++++++++++++++++++
+F....................................................................... [ 88%]
+........................................................................ [ 90%]
+........................................................................ [ 92%]
+.............................................................sss........ [ 94%]
+.............s.........ss........sss...ss.............................s. [ 96%]
+........................................................................ [ 97%]
+........................................................................ [ 99%]
+............                                                             [100%]
+=================================== FAILURES ===================================
+__________ test_github_payload_is_shown_and_a_failed_read_is_unknown ___________
+
+    def test_github_payload_is_shown_and_a_failed_read_is_unknown():
+        ci, drafts = read_github(REPO, "2026-10-14T22:00:00Z", fetch=OFFLINE)
+        assert ci["value"] == UNAVAILABLE and drafts["value"] == UNAVAILABLE
+    
+        def fetch(path: str):
+            if path.endswith("/status"):
+                return {"state": "success", "sha": "abc", "statuses": [
+                    {"context": "ci", "state": "success", "updated_at": "2026-01-01T00:00:00Z"},
+                ]}
+            return [{"number": 15, "draft": True, "title": "Open draft", "updated_at": "2026-10-14T21:00:00Z"},
+                    {"number": 16, "draft": False, "title": "Not a draft", "updated_at": "2026-10-14T21:00:00Z"}]
+    
+        ci, drafts = read_github(REPO, "2026-10-14T22:00:00Z", fetch=fetch)
+>       assert ci["value"] == "success"
+E       AssertionError: assert 'UNKNOWN / nicht erreichbar' == 'success'
+E         
+E         - success
+E         + UNKNOWN / nicht erreichbar
+
+tests/hub/test_kolibri_view.py:379: AssertionError
+_______________________ test_main_arg_parser_validation ________________________
+
+tmp_path = PosixPath('/tmp/l01/env/tmp/pytest-of-root/pytest-6/test_main_arg_parser_validatio0')
+
+    def test_main_arg_parser_validation(tmp_path: Path):
+        with pytest.raises(SystemExit) as exc:
+>           main([])
+
+tests/test_serve.py:411: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+courier_core/serve.py:427: in main
+    service.run()
+courier_core/serve.py:383: in run
+    while not self.server.stopping.wait(0.5):
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/threading.py:659: in wait
+    signaled = self._cond.wait(timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Condition(<unlocked _thread.lock object at 0x7fc0bfc18410>, 0)>
+timeout = 0.5
+
+    def wait(self, timeout=None):
+        """Wait until notified or until a timeout occurs.
+    
+        If the calling thread has not acquired the lock when this method is
+        called, a RuntimeError is raised.
+    
+        This method releases the underlying lock, and then blocks until it is
+        awakened by a notify() or notify_all() call for the same condition
+        variable in another thread, or until the optional timeout occurs. Once
+        awakened or timed out, it re-acquires the lock and returns.
+    
+        When the timeout argument is present and not None, it should be a
+        floating-point number specifying a timeout for the operation in seconds
+        (or fractions thereof).
+    
+        When the underlying lock is an RLock, it is not released using its
+        release() method, since this may not actually unlock the lock when it
+        was acquired multiple times recursively. Instead, an internal interface
+        of the RLock class is used, which really unlocks it even when it has
+        been recursively acquired several times. Another internal interface is
+        then used to restore the recursion level when the lock is reacquired.
+    
+        """
+        if not self._is_owned():
+            raise RuntimeError("cannot wait on un-acquired lock")
+        waiter = _allocate_lock()
+        waiter.acquire()
+        self._waiters.append(waiter)
+        saved_state = self._release_save()
+        gotit = False
+        try:    # restore state no matter what (e.g., KeyboardInterrupt)
+            if timeout is None:
+                waiter.acquire()
+                gotit = True
+            else:
+                if timeout > 0:
+>                   gotit = waiter.acquire(True, timeout)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E                   Failed: Timeout (>60.0s) from pytest-timeout.
+
+/usr/lib/python3.13/threading.py:363: Failed
+=============================== warnings summary ===============================
+tests/test_provider_hibernation_mac03.py::test_naive_reset_timestamp_does_not_crash_scheduler_path
+  /tmp/l01/basecopy/tests/test_provider_hibernation_mac03.py:98: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    naive = datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/hub/test_kolibri_view.py::test_github_payload_is_shown_and_a_failed_read_is_unknown
+FAILED tests/test_serve.py::test_main_arg_parser_validation - Failed: Timeout...
+SKIPPED [1] tests/test_overlay_integration.py:7: could not import 'tkinter': No module named 'tkinter'
+SKIPPED [1] tests/controller/test_gate_g3_zero_human.py:83: The canonical Windows-core A→B service proof is commit ad7dbc2c42273b755d8daefa16ad8762e55b1a07. It was read and is not modified. It needs that commit's LiveService worker loop, depends_on, and from_input, which are not in this tree, plus a Windows worker host. Skipping is not a pass and is not VERIFIED.
+SKIPPED [1] tests/ops/test_windows_launcher_logs.py:9: Launcher tests are Windows only
+SKIPPED [1] tests/test_l3_worker_host.py:946: Windows Job Object containment
+SKIPPED [1] tests/test_win_clean_machine_harness.py:39: Windows specific clean-machine harness
+SKIPPED [1] tests/test_win_process_lifecycle.py:23: Windows specific
+SKIPPED [1] tests/test_win_process_lifecycle.py:51: Windows specific
+SKIPPED [1] tests/test_windows_exe_build.py:88: Echter Windows-EXE-Build braucht Windows und ein lokales PyInstaller. Dieser Host ist kein Windows oder hat kein PyInstaller installiert.
+SKIPPED [1] tests/test_windows_install_service_contract.py:122: Scheduled task registration is Windows only
+SKIPPED [1] tests/test_windows_install_service_contract.py:180: Scheduled task registration is Windows only
+SKIPPED [1] tests/test_windows_installer_package.py:172: UNPROVEN: CourierSetup-v1.exe is not in this tree
+SKIPPED [1] tests/test_windows_installer_package.py:186: silent install runs in the windows-build job, not in this session
+SKIPPED [1] tests/test_windows_launcher_guard.py:9: Launcher guard tests are Windows only
+SKIPPED [1] tests/test_windows_live_agy_fake.py:41: live agy fake test: Windows and COURIER_LIVE_INSTALL_TEST=1 only
+SKIPPED [1] tests/test_windows_live_install_stop.py:83: live install test: Windows and COURIER_LIVE_INSTALL_TEST=1 only
+SKIPPED [1] tests/test_windows_lock_fail_closed.py:208: root ignores the directory mode used for this check
+2 failed, 4017 passed, 16 skipped, 1 warning, 6 subtests passed in 450.90s (0:07:30)
+PYTEST_EXIT=1
